@@ -48,6 +48,20 @@ enum PlayerSaveSection: Int, CaseIterable {
         case .voyage: snapshot.voyage != candidate.voyage
         }
     }
+
+    func copy(from source: PlayerSave, into destination: inout PlayerSave) {
+        switch self {
+        case .root: destination.applyRootFields(from: source)
+        case .journey: destination.journey = source.journey
+        case .roster: destination.roster = source.roster
+        case .inventory: destination.inventory = source.inventory
+        case .homestead: destination.homestead = source.homestead
+        case .spires: destination.spires = source.spires
+        case .labyrinth: destination.labyrinth = source.labyrinth
+        case .contracts: destination.contracts = source.contracts
+        case .voyage: destination.voyage = source.voyage
+        }
+    }
 }
 
 struct PlayerSaveSlice: OptionSet {

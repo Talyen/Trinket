@@ -4,21 +4,21 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
-    @Test func `playful energy heals on third party card only`() throws {
-        var battle = capstoneBattle(companion: ["golden_retriever_health_t1_2"])
+    @Test func `playful energy draws once per restoring action`() {
+        var profile = CombatantTalentCatalog.profile(for: ["golden_retriever_health_t1_2"])
+        profile.triggers.healthRestoreDrawChancePercent = 1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionAbilities: [.bash, .fangs], companionModifiers: profile, dealOpeningHand: false,
+        )
+        battle.companionDeck = CombatDeck(abilities: [.bash, .fangs])
         battle.roster.hero.currentHealth = 10
-        battle.roster.companion.currentHealth = 10
-        let card = Ability(id: "wait", name: "Wait", tier: .basic, directDamage: 0)
-        for owner in [BattleParticipant.hero, .companion, .hero, .companion] {
-            let events = try playHeroTalentCard(card, owner: owner, in: &battle)
-            let count = battle.turnCadence.cardsPlayed.values.reduce(0, +)
-            #expect(battle.roster.hero.currentHealth == (count >= 3 ? 12 : 10))
-            #expect(battle.roster.companion.currentHealth == (count >= 3 ? 12 : 10))
-            #expect(events.contains { $0.abilityName == "Playful Energy" } == (count == 3))
-        }
-        _ = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
-        #expect(battle.roster.hero.currentHealth == 12)
-        #expect(battle.roster.companion.currentHealth == 12)
+        let first = battle.healEmitting(amount: 2, target: battle.hero, source: battle.companion, abilityName: "Heal")
+        let second = battle.healEmitting(amount: 2, target: battle.hero, source: battle.companion, abilityName: "Heal")
+        #expect(first.contains { $0.abilityName == "Playful Energy" })
+        #expect(!second.contains { $0.abilityName == "Playful Energy" })
+        battle.actionCount += 1
+        let later = battle.healEmitting(amount: 2, target: battle.hero, source: battle.companion, abilityName: "Heal")
+        #expect(later.contains { $0.abilityName == "Playful Energy" })
     }
 
     @Test(arguments: [false, true], [Keyword.physical, .freeze, .bleed])
@@ -86,40 +86,25 @@ extension TalentCatalogRoundTripTests {
         }
     }
 
-    @Test func `freezing gale deals damage through block and builds freeze`() {
-        var battle = capstoneBattle(companion: ["frost_whelp_freeze_t3_2"])
-        battle.turnCount = 2
-        DefensePoolEngine.set(1, on: battle.enemy, in: &battle)
-        let before = battle.roster.enemy.currentHealth
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
-        #expect(battle.roster.enemy.currentHealth == before - 1)
-        #expect(talentPoints(.shield, on: .enemy, in: battle) == 0)
-        #expect(battle.activeEffects(of: battle.enemy).contains {
-            $0.effect.controlMeterValues?.amount == 1 && $0.keyword == .freeze
-        })
-    }
-
-    @Test(arguments: [19, 20, 21])
-    func `safe perch requires more than half health`(health: Int) {
+    @Test func `safe perch grants dodge only at full health`() {
         var battle = capstoneBattle(companion: ["library_owl_health_t1_1"])
-        battle.roster.companion.currentHealth = health
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
-        #expect(battle.roster.companion.currentHealth == health + (health > 20 ? 2 : 0))
+        let full = DamagePipeline.dodgeChance(for: battle.companion, attackerID: battle.enemy.id, in: battle)
+        battle.roster.companion.currentHealth -= 1
+        let injured = DamagePipeline.dodgeChance(for: battle.companion, attackerID: battle.enemy.id, in: battle)
+        #expect(abs(full - injured - 0.10) < 0.0001)
     }
 
-    @Test func `wing buffet delays an uncontrolled enemy exactly once`() {
+    @Test func `wing buffet deals freeze damage on dodge`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyAbilities: [.slash],
             companionModifiers: CombatantTalentCatalog.profile(for: ["frost_whelp_dodge_t2_2"]),
             dealOpeningHand: false,
         )
-        _ = CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle)
-        #expect(battle.additionalControlSkipsByCombatantID[battle.enemy.id] == 1)
-        let delayed = BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
-        #expect(!delayed.contains { $0.kind == .ability && $0.actorID == battle.enemy.id })
+        let before = battle.roster.enemy.currentHealth
+        let events = CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle)
+        #expect(battle.roster.enemy.currentHealth == before - 2)
+        #expect(events.contains { $0.keyword == .freeze && $0.amount == 2 })
         #expect(battle.additionalControlSkipsByCombatantID[battle.enemy.id, default: 0] == 0)
-        let resumed = BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
-        #expect(resumed.contains { $0.kind == .ability && $0.actorID == battle.enemy.id })
     }
 
     @Test func `natural poison expiry pays the last source and explicit removal does not`() {

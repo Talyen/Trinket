@@ -18,7 +18,6 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var attacksApplyPoison: Int = 0
     public var physicalAttackApplyBleed: Int = 0
     public var physicalAttackApplyBleedAndStun: Int = 0
-    public var physicalAttackFlatStunBuildup: Int = 0
     public var basicAttackApplyBleed: Int = 0
     public var basicAttackFreezeBuildup: Int = 0
     public var criticalApplyPoison: Int = 0
@@ -55,10 +54,6 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var cleanCut: Bool = false
     public var crackedGuard: Bool = false
     public var blockedAttackNextPhysicalDouble: Bool = false
-    public var physicalVsStunnedStunBuildup: Int = 0
-    public var firstPhysicalBleedStunPerTurn: Bool = false
-    public var attackStunBuildupBelowHealthThreshold: Double = 0
-    public var attackStunBuildupBelowHealthBonus: Int = 0
     public var poisonCritPreparesBleedCrit: Bool = false
     public var leechCriticalVsBleedingBonus: Double = 0
     public var burnAttackCritDrawCard: Bool = false
@@ -67,6 +62,29 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var physicalElementDamage: Int = 0
     public var standardDeviation: Bool = false
     public var physicalVsFrozenCritBonus: Double = 0
+    public var blockBreakNextPhysicalBonus: Int = 0
+    public var physicalDamageVsStunnedMultiplier: Double = 1
+    public var physicalCritChanceBelowHalfBonus: Double = 0
+    public var physicalCritRemoveEnemyBlock: Bool = false
+    public var firstPhysicalAttackBlockDamagePercent: Double = 0
+    public var poisonCriticalHasLeech: Bool = false
+    public var poisonAttackStunChancePercent: Double = 0
+    public var bleedCriticalPoisonDamage: Int = 0
+    public var bleedCriticalThorns: Int = 0
+    public var bleedCriticalDrawChancePercent: Double = 0
+    public var criticalGoldStealFlat: Int = 0
+    public var bleedAttackDamageBonus: Int = 0
+    public var bleedAttackCriticalBonus: Double = 0
+    public var attackVsBleedingBelowHalfMultiplier: Double = 1
+    public var bleedCriticalDamageMultiplier: Double = 1
+    public var belowHalfHealthNextBleedDouble: Bool = false
+    public var partyCritChanceWhileCompanionFullHealth: Double = 0
+    public var holyCriticalAllyIgnoreBlock: Bool = false
+    public var holyAttackCriticalBonus: Double = 0
+    public var holyAttackEnemyMissChance: Double = 0
+    public var holyAttackDrawChancePercent: Double = 0
+    public var holyCriticalPurgeCount: Int = 0
+    public var holyAttackCleanseAllyChancePercent: Double = 0
 
     public init(
         firstCriticalHitRepeatsPerTurn: Bool = false,
@@ -83,7 +101,6 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         attacksApplyPoison: Int = 0,
         physicalAttackApplyBleed: Int = 0,
         physicalAttackApplyBleedAndStun: Int = 0,
-        physicalAttackFlatStunBuildup: Int = 0,
         basicAttackApplyBleed: Int = 0,
         basicAttackFreezeBuildup: Int = 0,
         criticalApplyPoison: Int = 0,
@@ -120,10 +137,6 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         cleanCut: Bool = false,
         crackedGuard: Bool = false,
         blockedAttackNextPhysicalDouble: Bool = false,
-        physicalVsStunnedStunBuildup: Int = 0,
-        firstPhysicalBleedStunPerTurn: Bool = false,
-        attackStunBuildupBelowHealthThreshold: Double = 0,
-        attackStunBuildupBelowHealthBonus: Int = 0,
         poisonCritPreparesBleedCrit: Bool = false,
         leechCriticalVsBleedingBonus: Double = 0,
         burnAttackCritDrawCard: Bool = false,
@@ -131,7 +144,30 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         physicalElementChancePercent: Double = 0,
         physicalElementDamage: Int = 0,
         standardDeviation: Bool = false,
-        physicalVsFrozenCritBonus: Double = 0
+        physicalVsFrozenCritBonus: Double = 0,
+        blockBreakNextPhysicalBonus: Int = 0,
+        physicalDamageVsStunnedMultiplier: Double = 1,
+        physicalCritChanceBelowHalfBonus: Double = 0,
+        physicalCritRemoveEnemyBlock: Bool = false,
+        firstPhysicalAttackBlockDamagePercent: Double = 0,
+        poisonCriticalHasLeech: Bool = false,
+        poisonAttackStunChancePercent: Double = 0,
+        bleedCriticalPoisonDamage: Int = 0,
+        bleedCriticalThorns: Int = 0,
+        bleedCriticalDrawChancePercent: Double = 0,
+        criticalGoldStealFlat: Int = 0,
+        bleedAttackDamageBonus: Int = 0,
+        bleedAttackCriticalBonus: Double = 0,
+        attackVsBleedingBelowHalfMultiplier: Double = 1,
+        bleedCriticalDamageMultiplier: Double = 1,
+        belowHalfHealthNextBleedDouble: Bool = false,
+        partyCritChanceWhileCompanionFullHealth: Double = 0,
+        holyCriticalAllyIgnoreBlock: Bool = false,
+        holyAttackCriticalBonus: Double = 0,
+        holyAttackEnemyMissChance: Double = 0,
+        holyAttackDrawChancePercent: Double = 0,
+        holyCriticalPurgeCount: Int = 0,
+        holyAttackCleanseAllyChancePercent: Double = 0
     ) {
         self.firstCriticalHitRepeatsPerTurn = firstCriticalHitRepeatsPerTurn
         self.returnAttackAgainstBleedingOncePerTurn = returnAttackAgainstBleedingOncePerTurn
@@ -147,7 +183,6 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.attacksApplyPoison = attacksApplyPoison
         self.physicalAttackApplyBleed = physicalAttackApplyBleed
         self.physicalAttackApplyBleedAndStun = physicalAttackApplyBleedAndStun
-        self.physicalAttackFlatStunBuildup = physicalAttackFlatStunBuildup
         self.basicAttackApplyBleed = basicAttackApplyBleed
         self.basicAttackFreezeBuildup = basicAttackFreezeBuildup
         self.criticalApplyPoison = criticalApplyPoison
@@ -184,10 +219,6 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.cleanCut = cleanCut
         self.crackedGuard = crackedGuard
         self.blockedAttackNextPhysicalDouble = blockedAttackNextPhysicalDouble
-        self.physicalVsStunnedStunBuildup = physicalVsStunnedStunBuildup
-        self.firstPhysicalBleedStunPerTurn = firstPhysicalBleedStunPerTurn
-        self.attackStunBuildupBelowHealthThreshold = attackStunBuildupBelowHealthThreshold
-        self.attackStunBuildupBelowHealthBonus = attackStunBuildupBelowHealthBonus
         self.poisonCritPreparesBleedCrit = poisonCritPreparesBleedCrit
         self.leechCriticalVsBleedingBonus = leechCriticalVsBleedingBonus
         self.burnAttackCritDrawCard = burnAttackCritDrawCard
@@ -196,10 +227,33 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.physicalElementDamage = physicalElementDamage
         self.standardDeviation = standardDeviation
         self.physicalVsFrozenCritBonus = physicalVsFrozenCritBonus
+        self.blockBreakNextPhysicalBonus = blockBreakNextPhysicalBonus
+        self.physicalDamageVsStunnedMultiplier = physicalDamageVsStunnedMultiplier
+        self.physicalCritChanceBelowHalfBonus = physicalCritChanceBelowHalfBonus
+        self.physicalCritRemoveEnemyBlock = physicalCritRemoveEnemyBlock
+        self.firstPhysicalAttackBlockDamagePercent = firstPhysicalAttackBlockDamagePercent
+        self.poisonCriticalHasLeech = poisonCriticalHasLeech
+        self.poisonAttackStunChancePercent = poisonAttackStunChancePercent
+        self.bleedCriticalPoisonDamage = bleedCriticalPoisonDamage
+        self.bleedCriticalThorns = bleedCriticalThorns
+        self.bleedCriticalDrawChancePercent = bleedCriticalDrawChancePercent
+        self.criticalGoldStealFlat = criticalGoldStealFlat
+        self.bleedAttackDamageBonus = bleedAttackDamageBonus
+        self.bleedAttackCriticalBonus = bleedAttackCriticalBonus
+        self.attackVsBleedingBelowHalfMultiplier = attackVsBleedingBelowHalfMultiplier
+        self.bleedCriticalDamageMultiplier = bleedCriticalDamageMultiplier
+        self.belowHalfHealthNextBleedDouble = belowHalfHealthNextBleedDouble
+        self.partyCritChanceWhileCompanionFullHealth = partyCritChanceWhileCompanionFullHealth
+        self.holyCriticalAllyIgnoreBlock = holyCriticalAllyIgnoreBlock
+        self.holyAttackCriticalBonus = holyAttackCriticalBonus
+        self.holyAttackEnemyMissChance = holyAttackEnemyMissChance
+        self.holyAttackDrawChancePercent = holyAttackDrawChancePercent
+        self.holyCriticalPurgeCount = holyCriticalPurgeCount
+        self.holyAttackCleanseAllyChancePercent = holyAttackCleanseAllyChancePercent
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "returnAttackAgainstBleedingOncePerTurn", "heldCardNextAttackDamage", "partnerFirstAttackDamage", "dazingSwipeChancePercent", "dazingSwipeStunDamage", "firstCriticalHitCompanionBasicPerTurn", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "firstElementCardsDraw", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "physicalAttackFlatStunBuildup", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "cleanCut", "crackedGuard", "blockedAttackNextPhysicalDouble", "physicalVsStunnedStunBuildup", "firstPhysicalBleedStunPerTurn", "attackStunBuildupBelowHealthThreshold", "attackStunBuildupBelowHealthBonus", "poisonCritPreparesBleedCrit", "leechCriticalVsBleedingBonus", "burnAttackCritDrawCard", "burnPreparesBleedDamageBonus", "physicalElementChancePercent", "physicalElementDamage", "standardDeviation", "physicalVsFrozenCritBonus"]
+    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "returnAttackAgainstBleedingOncePerTurn", "heldCardNextAttackDamage", "partnerFirstAttackDamage", "dazingSwipeChancePercent", "dazingSwipeStunDamage", "firstCriticalHitCompanionBasicPerTurn", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "firstElementCardsDraw", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "cleanCut", "crackedGuard", "blockedAttackNextPhysicalDouble", "poisonCritPreparesBleedCrit", "leechCriticalVsBleedingBonus", "burnAttackCritDrawCard", "burnPreparesBleedDamageBonus", "physicalElementChancePercent", "physicalElementDamage", "standardDeviation", "physicalVsFrozenCritBonus", "blockBreakNextPhysicalBonus", "physicalDamageVsStunnedMultiplier", "physicalCritChanceBelowHalfBonus", "physicalCritRemoveEnemyBlock", "firstPhysicalAttackBlockDamagePercent", "poisonCriticalHasLeech", "poisonAttackStunChancePercent", "bleedCriticalPoisonDamage", "bleedCriticalThorns", "bleedCriticalDrawChancePercent", "criticalGoldStealFlat", "bleedAttackDamageBonus", "bleedAttackCriticalBonus", "attackVsBleedingBelowHalfMultiplier", "bleedCriticalDamageMultiplier", "belowHalfHealthNextBleedDouble", "partyCritChanceWhileCompanionFullHealth", "holyCriticalAllyIgnoreBlock", "holyAttackCriticalBonus", "holyAttackEnemyMissChance", "holyAttackDrawChancePercent", "holyCriticalPurgeCount", "holyAttackCleanseAllyChancePercent"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -218,7 +272,6 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         if self.attacksApplyPoison != other.attacksApplyPoison { names.append("attacksApplyPoison") }
         if self.physicalAttackApplyBleed != other.physicalAttackApplyBleed { names.append("physicalAttackApplyBleed") }
         if self.physicalAttackApplyBleedAndStun != other.physicalAttackApplyBleedAndStun { names.append("physicalAttackApplyBleedAndStun") }
-        if self.physicalAttackFlatStunBuildup != other.physicalAttackFlatStunBuildup { names.append("physicalAttackFlatStunBuildup") }
         if self.basicAttackApplyBleed != other.basicAttackApplyBleed { names.append("basicAttackApplyBleed") }
         if self.basicAttackFreezeBuildup != other.basicAttackFreezeBuildup { names.append("basicAttackFreezeBuildup") }
         if self.criticalApplyPoison != other.criticalApplyPoison { names.append("criticalApplyPoison") }
@@ -255,10 +308,6 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         if self.cleanCut != other.cleanCut { names.append("cleanCut") }
         if self.crackedGuard != other.crackedGuard { names.append("crackedGuard") }
         if self.blockedAttackNextPhysicalDouble != other.blockedAttackNextPhysicalDouble { names.append("blockedAttackNextPhysicalDouble") }
-        if self.physicalVsStunnedStunBuildup != other.physicalVsStunnedStunBuildup { names.append("physicalVsStunnedStunBuildup") }
-        if self.firstPhysicalBleedStunPerTurn != other.firstPhysicalBleedStunPerTurn { names.append("firstPhysicalBleedStunPerTurn") }
-        if self.attackStunBuildupBelowHealthThreshold != other.attackStunBuildupBelowHealthThreshold { names.append("attackStunBuildupBelowHealthThreshold") }
-        if self.attackStunBuildupBelowHealthBonus != other.attackStunBuildupBelowHealthBonus { names.append("attackStunBuildupBelowHealthBonus") }
         if self.poisonCritPreparesBleedCrit != other.poisonCritPreparesBleedCrit { names.append("poisonCritPreparesBleedCrit") }
         if self.leechCriticalVsBleedingBonus != other.leechCriticalVsBleedingBonus { names.append("leechCriticalVsBleedingBonus") }
         if self.burnAttackCritDrawCard != other.burnAttackCritDrawCard { names.append("burnAttackCritDrawCard") }
@@ -267,6 +316,29 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         if self.physicalElementDamage != other.physicalElementDamage { names.append("physicalElementDamage") }
         if self.standardDeviation != other.standardDeviation { names.append("standardDeviation") }
         if self.physicalVsFrozenCritBonus != other.physicalVsFrozenCritBonus { names.append("physicalVsFrozenCritBonus") }
+        if self.blockBreakNextPhysicalBonus != other.blockBreakNextPhysicalBonus { names.append("blockBreakNextPhysicalBonus") }
+        if self.physicalDamageVsStunnedMultiplier != other.physicalDamageVsStunnedMultiplier { names.append("physicalDamageVsStunnedMultiplier") }
+        if self.physicalCritChanceBelowHalfBonus != other.physicalCritChanceBelowHalfBonus { names.append("physicalCritChanceBelowHalfBonus") }
+        if self.physicalCritRemoveEnemyBlock != other.physicalCritRemoveEnemyBlock { names.append("physicalCritRemoveEnemyBlock") }
+        if self.firstPhysicalAttackBlockDamagePercent != other.firstPhysicalAttackBlockDamagePercent { names.append("firstPhysicalAttackBlockDamagePercent") }
+        if self.poisonCriticalHasLeech != other.poisonCriticalHasLeech { names.append("poisonCriticalHasLeech") }
+        if self.poisonAttackStunChancePercent != other.poisonAttackStunChancePercent { names.append("poisonAttackStunChancePercent") }
+        if self.bleedCriticalPoisonDamage != other.bleedCriticalPoisonDamage { names.append("bleedCriticalPoisonDamage") }
+        if self.bleedCriticalThorns != other.bleedCriticalThorns { names.append("bleedCriticalThorns") }
+        if self.bleedCriticalDrawChancePercent != other.bleedCriticalDrawChancePercent { names.append("bleedCriticalDrawChancePercent") }
+        if self.criticalGoldStealFlat != other.criticalGoldStealFlat { names.append("criticalGoldStealFlat") }
+        if self.bleedAttackDamageBonus != other.bleedAttackDamageBonus { names.append("bleedAttackDamageBonus") }
+        if self.bleedAttackCriticalBonus != other.bleedAttackCriticalBonus { names.append("bleedAttackCriticalBonus") }
+        if self.attackVsBleedingBelowHalfMultiplier != other.attackVsBleedingBelowHalfMultiplier { names.append("attackVsBleedingBelowHalfMultiplier") }
+        if self.bleedCriticalDamageMultiplier != other.bleedCriticalDamageMultiplier { names.append("bleedCriticalDamageMultiplier") }
+        if self.belowHalfHealthNextBleedDouble != other.belowHalfHealthNextBleedDouble { names.append("belowHalfHealthNextBleedDouble") }
+        if self.partyCritChanceWhileCompanionFullHealth != other.partyCritChanceWhileCompanionFullHealth { names.append("partyCritChanceWhileCompanionFullHealth") }
+        if self.holyCriticalAllyIgnoreBlock != other.holyCriticalAllyIgnoreBlock { names.append("holyCriticalAllyIgnoreBlock") }
+        if self.holyAttackCriticalBonus != other.holyAttackCriticalBonus { names.append("holyAttackCriticalBonus") }
+        if self.holyAttackEnemyMissChance != other.holyAttackEnemyMissChance { names.append("holyAttackEnemyMissChance") }
+        if self.holyAttackDrawChancePercent != other.holyAttackDrawChancePercent { names.append("holyAttackDrawChancePercent") }
+        if self.holyCriticalPurgeCount != other.holyCriticalPurgeCount { names.append("holyCriticalPurgeCount") }
+        if self.holyAttackCleanseAllyChancePercent != other.holyAttackCleanseAllyChancePercent { names.append("holyAttackCleanseAllyChancePercent") }
         return names
     }
 }
@@ -287,7 +359,6 @@ extension AttackTriggers {
         attacksApplyPoison += other.attacksApplyPoison
         physicalAttackApplyBleed += other.physicalAttackApplyBleed
         physicalAttackApplyBleedAndStun += other.physicalAttackApplyBleedAndStun
-        physicalAttackFlatStunBuildup += other.physicalAttackFlatStunBuildup
         basicAttackApplyBleed += other.basicAttackApplyBleed
         basicAttackFreezeBuildup += other.basicAttackFreezeBuildup
         criticalApplyPoison += other.criticalApplyPoison
@@ -324,10 +395,6 @@ extension AttackTriggers {
         cleanCut = cleanCut || other.cleanCut
         crackedGuard = crackedGuard || other.crackedGuard
         blockedAttackNextPhysicalDouble = blockedAttackNextPhysicalDouble || other.blockedAttackNextPhysicalDouble
-        physicalVsStunnedStunBuildup += other.physicalVsStunnedStunBuildup
-        firstPhysicalBleedStunPerTurn = firstPhysicalBleedStunPerTurn || other.firstPhysicalBleedStunPerTurn
-        attackStunBuildupBelowHealthThreshold = max(attackStunBuildupBelowHealthThreshold, other.attackStunBuildupBelowHealthThreshold)
-        attackStunBuildupBelowHealthBonus += other.attackStunBuildupBelowHealthBonus
         poisonCritPreparesBleedCrit = poisonCritPreparesBleedCrit || other.poisonCritPreparesBleedCrit
         leechCriticalVsBleedingBonus += other.leechCriticalVsBleedingBonus
         burnAttackCritDrawCard = burnAttackCritDrawCard || other.burnAttackCritDrawCard
@@ -336,6 +403,29 @@ extension AttackTriggers {
         physicalElementDamage += other.physicalElementDamage
         standardDeviation = standardDeviation || other.standardDeviation
         physicalVsFrozenCritBonus += other.physicalVsFrozenCritBonus
+        blockBreakNextPhysicalBonus += other.blockBreakNextPhysicalBonus
+        physicalDamageVsStunnedMultiplier *= other.physicalDamageVsStunnedMultiplier
+        physicalCritChanceBelowHalfBonus += other.physicalCritChanceBelowHalfBonus
+        physicalCritRemoveEnemyBlock = physicalCritRemoveEnemyBlock || other.physicalCritRemoveEnemyBlock
+        firstPhysicalAttackBlockDamagePercent += other.firstPhysicalAttackBlockDamagePercent
+        poisonCriticalHasLeech = poisonCriticalHasLeech || other.poisonCriticalHasLeech
+        poisonAttackStunChancePercent += other.poisonAttackStunChancePercent
+        bleedCriticalPoisonDamage += other.bleedCriticalPoisonDamage
+        bleedCriticalThorns += other.bleedCriticalThorns
+        bleedCriticalDrawChancePercent += other.bleedCriticalDrawChancePercent
+        criticalGoldStealFlat += other.criticalGoldStealFlat
+        bleedAttackDamageBonus += other.bleedAttackDamageBonus
+        bleedAttackCriticalBonus += other.bleedAttackCriticalBonus
+        attackVsBleedingBelowHalfMultiplier *= other.attackVsBleedingBelowHalfMultiplier
+        bleedCriticalDamageMultiplier *= other.bleedCriticalDamageMultiplier
+        belowHalfHealthNextBleedDouble = belowHalfHealthNextBleedDouble || other.belowHalfHealthNextBleedDouble
+        partyCritChanceWhileCompanionFullHealth += other.partyCritChanceWhileCompanionFullHealth
+        holyCriticalAllyIgnoreBlock = holyCriticalAllyIgnoreBlock || other.holyCriticalAllyIgnoreBlock
+        holyAttackCriticalBonus += other.holyAttackCriticalBonus
+        holyAttackEnemyMissChance += other.holyAttackEnemyMissChance
+        holyAttackDrawChancePercent += other.holyAttackDrawChancePercent
+        holyCriticalPurgeCount += other.holyCriticalPurgeCount
+        holyAttackCleanseAllyChancePercent += other.holyAttackCleanseAllyChancePercent
     }
 }
 
@@ -357,7 +447,6 @@ extension AttackTriggers {
             attacksApplyPoison: values.decode(Int.self, "attacksApplyPoison", default: 0),
             physicalAttackApplyBleed: values.decode(Int.self, "physicalAttackApplyBleed", default: 0),
             physicalAttackApplyBleedAndStun: values.decode(Int.self, "physicalAttackApplyBleedAndStun", default: 0),
-            physicalAttackFlatStunBuildup: values.decode(Int.self, "physicalAttackFlatStunBuildup", default: 0),
             basicAttackApplyBleed: values.decode(Int.self, "basicAttackApplyBleed", default: 0),
             basicAttackFreezeBuildup: values.decode(Int.self, "basicAttackFreezeBuildup", default: 0),
             criticalApplyPoison: values.decode(Int.self, "criticalApplyPoison", default: 0),
@@ -394,10 +483,6 @@ extension AttackTriggers {
             cleanCut: values.decode(Bool.self, "cleanCut", default: false),
             crackedGuard: values.decode(Bool.self, "crackedGuard", default: false),
             blockedAttackNextPhysicalDouble: values.decode(Bool.self, "blockedAttackNextPhysicalDouble", default: false),
-            physicalVsStunnedStunBuildup: values.decode(Int.self, "physicalVsStunnedStunBuildup", default: 0),
-            firstPhysicalBleedStunPerTurn: values.decode(Bool.self, "firstPhysicalBleedStunPerTurn", default: false),
-            attackStunBuildupBelowHealthThreshold: values.decode(Double.self, "attackStunBuildupBelowHealthThreshold", default: 0),
-            attackStunBuildupBelowHealthBonus: values.decode(Int.self, "attackStunBuildupBelowHealthBonus", default: 0),
             poisonCritPreparesBleedCrit: values.decode(Bool.self, "poisonCritPreparesBleedCrit", default: false),
             leechCriticalVsBleedingBonus: values.decode(Double.self, "leechCriticalVsBleedingBonus", default: 0),
             burnAttackCritDrawCard: values.decode(Bool.self, "burnAttackCritDrawCard", default: false),
@@ -405,7 +490,30 @@ extension AttackTriggers {
             physicalElementChancePercent: values.decode(Double.self, "physicalElementChancePercent", default: 0),
             physicalElementDamage: values.decode(Int.self, "physicalElementDamage", default: 0),
             standardDeviation: values.decode(Bool.self, "standardDeviation", default: false),
-            physicalVsFrozenCritBonus: values.decode(Double.self, "physicalVsFrozenCritBonus", default: 0)
+            physicalVsFrozenCritBonus: values.decode(Double.self, "physicalVsFrozenCritBonus", default: 0),
+            blockBreakNextPhysicalBonus: values.decode(Int.self, "blockBreakNextPhysicalBonus", default: 0),
+            physicalDamageVsStunnedMultiplier: values.decode(Double.self, "physicalDamageVsStunnedMultiplier", default: 1),
+            physicalCritChanceBelowHalfBonus: values.decode(Double.self, "physicalCritChanceBelowHalfBonus", default: 0),
+            physicalCritRemoveEnemyBlock: values.decode(Bool.self, "physicalCritRemoveEnemyBlock", default: false),
+            firstPhysicalAttackBlockDamagePercent: values.decode(Double.self, "firstPhysicalAttackBlockDamagePercent", default: 0),
+            poisonCriticalHasLeech: values.decode(Bool.self, "poisonCriticalHasLeech", default: false),
+            poisonAttackStunChancePercent: values.decode(Double.self, "poisonAttackStunChancePercent", default: 0),
+            bleedCriticalPoisonDamage: values.decode(Int.self, "bleedCriticalPoisonDamage", default: 0),
+            bleedCriticalThorns: values.decode(Int.self, "bleedCriticalThorns", default: 0),
+            bleedCriticalDrawChancePercent: values.decode(Double.self, "bleedCriticalDrawChancePercent", default: 0),
+            criticalGoldStealFlat: values.decode(Int.self, "criticalGoldStealFlat", default: 0),
+            bleedAttackDamageBonus: values.decode(Int.self, "bleedAttackDamageBonus", default: 0),
+            bleedAttackCriticalBonus: values.decode(Double.self, "bleedAttackCriticalBonus", default: 0),
+            attackVsBleedingBelowHalfMultiplier: values.decode(Double.self, "attackVsBleedingBelowHalfMultiplier", default: 1),
+            bleedCriticalDamageMultiplier: values.decode(Double.self, "bleedCriticalDamageMultiplier", default: 1),
+            belowHalfHealthNextBleedDouble: values.decode(Bool.self, "belowHalfHealthNextBleedDouble", default: false),
+            partyCritChanceWhileCompanionFullHealth: values.decode(Double.self, "partyCritChanceWhileCompanionFullHealth", default: 0),
+            holyCriticalAllyIgnoreBlock: values.decode(Bool.self, "holyCriticalAllyIgnoreBlock", default: false),
+            holyAttackCriticalBonus: values.decode(Double.self, "holyAttackCriticalBonus", default: 0),
+            holyAttackEnemyMissChance: values.decode(Double.self, "holyAttackEnemyMissChance", default: 0),
+            holyAttackDrawChancePercent: values.decode(Double.self, "holyAttackDrawChancePercent", default: 0),
+            holyCriticalPurgeCount: values.decode(Int.self, "holyCriticalPurgeCount", default: 0),
+            holyAttackCleanseAllyChancePercent: values.decode(Double.self, "holyAttackCleanseAllyChancePercent", default: 0)
         )
     }
 
@@ -424,7 +532,6 @@ extension AttackTriggers {
         try container.encodeNonDefault(attacksApplyPoison, "attacksApplyPoison", default: 0)
         try container.encodeNonDefault(physicalAttackApplyBleed, "physicalAttackApplyBleed", default: 0)
         try container.encodeNonDefault(physicalAttackApplyBleedAndStun, "physicalAttackApplyBleedAndStun", default: 0)
-        try container.encodeNonDefault(physicalAttackFlatStunBuildup, "physicalAttackFlatStunBuildup", default: 0)
         try container.encodeNonDefault(basicAttackApplyBleed, "basicAttackApplyBleed", default: 0)
         try container.encodeNonDefault(basicAttackFreezeBuildup, "basicAttackFreezeBuildup", default: 0)
         try container.encodeNonDefault(criticalApplyPoison, "criticalApplyPoison", default: 0)
@@ -461,10 +568,6 @@ extension AttackTriggers {
         try container.encodeNonDefault(cleanCut, "cleanCut", default: false)
         try container.encodeNonDefault(crackedGuard, "crackedGuard", default: false)
         try container.encodeNonDefault(blockedAttackNextPhysicalDouble, "blockedAttackNextPhysicalDouble", default: false)
-        try container.encodeNonDefault(physicalVsStunnedStunBuildup, "physicalVsStunnedStunBuildup", default: 0)
-        try container.encodeNonDefault(firstPhysicalBleedStunPerTurn, "firstPhysicalBleedStunPerTurn", default: false)
-        try container.encodeNonDefault(attackStunBuildupBelowHealthThreshold, "attackStunBuildupBelowHealthThreshold", default: 0)
-        try container.encodeNonDefault(attackStunBuildupBelowHealthBonus, "attackStunBuildupBelowHealthBonus", default: 0)
         try container.encodeNonDefault(poisonCritPreparesBleedCrit, "poisonCritPreparesBleedCrit", default: false)
         try container.encodeNonDefault(leechCriticalVsBleedingBonus, "leechCriticalVsBleedingBonus", default: 0)
         try container.encodeNonDefault(burnAttackCritDrawCard, "burnAttackCritDrawCard", default: false)
@@ -473,5 +576,28 @@ extension AttackTriggers {
         try container.encodeNonDefault(physicalElementDamage, "physicalElementDamage", default: 0)
         try container.encodeNonDefault(standardDeviation, "standardDeviation", default: false)
         try container.encodeNonDefault(physicalVsFrozenCritBonus, "physicalVsFrozenCritBonus", default: 0)
+        try container.encodeNonDefault(blockBreakNextPhysicalBonus, "blockBreakNextPhysicalBonus", default: 0)
+        try container.encodeNonDefault(physicalDamageVsStunnedMultiplier, "physicalDamageVsStunnedMultiplier", default: 1)
+        try container.encodeNonDefault(physicalCritChanceBelowHalfBonus, "physicalCritChanceBelowHalfBonus", default: 0)
+        try container.encodeNonDefault(physicalCritRemoveEnemyBlock, "physicalCritRemoveEnemyBlock", default: false)
+        try container.encodeNonDefault(firstPhysicalAttackBlockDamagePercent, "firstPhysicalAttackBlockDamagePercent", default: 0)
+        try container.encodeNonDefault(poisonCriticalHasLeech, "poisonCriticalHasLeech", default: false)
+        try container.encodeNonDefault(poisonAttackStunChancePercent, "poisonAttackStunChancePercent", default: 0)
+        try container.encodeNonDefault(bleedCriticalPoisonDamage, "bleedCriticalPoisonDamage", default: 0)
+        try container.encodeNonDefault(bleedCriticalThorns, "bleedCriticalThorns", default: 0)
+        try container.encodeNonDefault(bleedCriticalDrawChancePercent, "bleedCriticalDrawChancePercent", default: 0)
+        try container.encodeNonDefault(criticalGoldStealFlat, "criticalGoldStealFlat", default: 0)
+        try container.encodeNonDefault(bleedAttackDamageBonus, "bleedAttackDamageBonus", default: 0)
+        try container.encodeNonDefault(bleedAttackCriticalBonus, "bleedAttackCriticalBonus", default: 0)
+        try container.encodeNonDefault(attackVsBleedingBelowHalfMultiplier, "attackVsBleedingBelowHalfMultiplier", default: 1)
+        try container.encodeNonDefault(bleedCriticalDamageMultiplier, "bleedCriticalDamageMultiplier", default: 1)
+        try container.encodeNonDefault(belowHalfHealthNextBleedDouble, "belowHalfHealthNextBleedDouble", default: false)
+        try container.encodeNonDefault(partyCritChanceWhileCompanionFullHealth, "partyCritChanceWhileCompanionFullHealth", default: 0)
+        try container.encodeNonDefault(holyCriticalAllyIgnoreBlock, "holyCriticalAllyIgnoreBlock", default: false)
+        try container.encodeNonDefault(holyAttackCriticalBonus, "holyAttackCriticalBonus", default: 0)
+        try container.encodeNonDefault(holyAttackEnemyMissChance, "holyAttackEnemyMissChance", default: 0)
+        try container.encodeNonDefault(holyAttackDrawChancePercent, "holyAttackDrawChancePercent", default: 0)
+        try container.encodeNonDefault(holyCriticalPurgeCount, "holyCriticalPurgeCount", default: 0)
+        try container.encodeNonDefault(holyAttackCleanseAllyChancePercent, "holyAttackCleanseAllyChancePercent", default: 0)
     }
 }

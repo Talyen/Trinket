@@ -12,6 +12,11 @@ package enum ControlMeterEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
+        if keyword == .stun || keyword == .freeze,
+           context.modifiers(for: combatant.id).triggers.blockedControlPrevention,
+           DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: combatant)) > 0 {
+            return []
+        }
         if context.roster.hasControlStatus(for: combatant, keyword: keyword) {
             return []
         }
@@ -20,36 +25,9 @@ package enum ControlMeterEngine {
             : amount
         guard pacedAmount > 0 else { return [] }
 
-        var adjustedAmount = pacedAmount
-        if keyword == .freeze, combatant.role == .enemy, let sourceActorID {
-            let multiplier = context.modifiers(for: sourceActorID).triggers.freezeBuildupMultiplier
-            if multiplier > 1 {
-                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: multiplier)
-            }
-        }
-        if keyword == .stun, combatant.role == .enemy, let sourceActorID,
-           context.roster.hasAffliction(.poison, on: combatant) {
-            let multiplier = context.modifiers(for: sourceActorID).triggers.poisonedEnemyStunBuildupMultiplier
-            if multiplier > 1 {
-                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: multiplier)
-            }
-        }
-        if keyword == .stun || keyword == .freeze {
-            let targetTriggers = context.modifiers(for: combatant.id).triggers
-            let steadfastResistance = targetTriggers.blockedControlBurnResistance > 0
-                && DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: combatant)) > 0
-                ? targetTriggers.blockedControlBurnResistance
-                : 0
-            let lichboneResistance = keyword == .stun ? targetTriggers.afflictionResistance : 0
-            let partyResistance: Double = switch combatant.role {
-            case .hero, .companion: 0.25
-            case .enemy: 0
-            }
-            let controlResistance = 1 - (1 - partyResistance) * (1 - steadfastResistance) * (1 - lichboneResistance)
-            if controlResistance > 0 {
-                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: 1 - min(1, controlResistance))
-            }
-        }
+        let adjustedAmount = adjustedCharge(
+            pacedAmount, keyword: keyword, to: combatant, sourceActorID: sourceActorID, in: context,
+        )
         guard adjustedAmount > 0 else { return [] }
 
         let threshold = threshold(for: combatant, in: context)
@@ -104,6 +82,54 @@ package enum ControlMeterEngine {
             in: &context,
         )
         return []
+    }
+
+    private static func adjustedCharge(
+        _ amount: Int,
+        keyword: Keyword,
+        to combatant: Combatant,
+        sourceActorID: String?,
+        in context: BattleState,
+    ) -> Int {
+        var adjustedAmount = amount
+        if keyword == .freeze, combatant.role == .enemy, let sourceActorID {
+            let multiplier = context.modifiers(for: sourceActorID).triggers.freezeBuildupMultiplier
+            if multiplier > 1 {
+                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: multiplier)
+            }
+        }
+        if keyword == .stun, combatant.role == .enemy, let sourceActorID,
+           context.roster.hasAffliction(.poison, on: combatant) {
+            let multiplier = context.modifiers(for: sourceActorID).triggers.poisonedEnemyStunBuildupMultiplier
+            if multiplier > 1 {
+                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: multiplier)
+            }
+        }
+        if keyword == .stun, combatant.role == .enemy, let sourceActorID,
+           let source = context.roster.combatant(for: sourceActorID),
+           source.currentHealth * 2 < source.maxHealth {
+            adjustedAmount = CombatRounding.scaled(
+                adjustedAmount,
+                multiplier: context.modifiers(for: sourceActorID).triggers.stunBuildupBelowHalfMultiplier,
+            )
+        }
+        if keyword == .stun || keyword == .freeze {
+            let targetTriggers = context.modifiers(for: combatant.id).triggers
+            let steadfastResistance = targetTriggers.blockedControlBurnResistance > 0
+                && DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: combatant)) > 0
+                ? targetTriggers.blockedControlBurnResistance
+                : 0
+            let lichboneResistance = keyword == .stun ? targetTriggers.afflictionResistance : 0
+            let partyResistance: Double = switch combatant.role {
+            case .hero, .companion: 0.25
+            case .enemy: 0
+            }
+            let controlResistance = 1 - (1 - partyResistance) * (1 - steadfastResistance) * (1 - lichboneResistance)
+            if controlResistance > 0 {
+                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: 1 - min(1, controlResistance))
+            }
+        }
+        return adjustedAmount
     }
 
     package static func threshold(for combatant: Combatant, in context: BattleState) -> Int {
@@ -202,12 +228,9 @@ package enum ControlMeterEngine {
         if keyword == .stun, combatant.id == context.roster.enemy.id {
             events.append(contentsOf: CombatTriggerEngine.afterEnemyStunned(sourceActorID: sourceActorID, in: &context))
         }
-        events.append(contentsOf: applyTalentControlBonus(
-            keyword: keyword,
-            combatant: combatant,
-            sourceActorID: sourceActorID,
-            in: &context,
-        ))
+        if keyword == .freeze, combatant.id == context.roster.enemy.id {
+            events.append(contentsOf: CombatTriggerEngine.afterEnemyFrozen(sourceActorID: sourceActorID, in: &context))
+        }
         if keyword == .freeze,
            let sourceActorID,
            let source = context.roster.combatant(for: sourceActorID),
@@ -282,33 +305,6 @@ package enum ControlMeterEngine {
         if remaining > 0, BattleChance.succeeds(probability: remaining, using: &context.rng) {
             context.additionalControlSkipsByCombatantID[combatant.id, default: 0] += 1
         }
-    }
-
-    private static func applyTalentControlBonus(
-        keyword: Keyword,
-        combatant: Combatant,
-        sourceActorID: String?,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard combatant.role == .enemy, let sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID), source.role != .enemy
-        else { return [] }
-        var events: [ActionEvent] = []
-        if keyword == .freeze, CombatTriggerEngine.hasLivingPartyTrigger(\.avalancheGuard, in: context) {
-            for owner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[owner]
-                let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: member.combatant))
-                guard member.isAlive, block > 0 else { continue }
-                events.append(contentsOf: context.applyBlock(
-                    block,
-                    to: member.combatant,
-                    source: source.combatant,
-                    abilityName: "Avalanche Guard",
-                    amountBasis: .resolved,
-                ))
-            }
-        }
-        return events
     }
 
     package struct ControlMeterUpdate {

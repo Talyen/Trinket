@@ -146,6 +146,9 @@ package extension CombatTriggerEngine {
         }
 
         let abilityTarget = context.talentAdjustedEnemyTarget
+        if let blindedMiss = blindingLightMiss(abilityTarget: abilityTarget, in: &context) {
+            return blindedMiss
+        }
         if let poisonMiss = poisonedEnemyMiss(abilityTarget: abilityTarget, in: &context) {
             return poisonMiss
         }
@@ -166,6 +169,26 @@ package extension CombatTriggerEngine {
             guard context.modifiers(for: runtime.id).triggers.subzeroMist else { continue }
             context.roster.mutateRuntime(for: runtime.combatant) { $0.talents.turn.subzeroMistActive = true }
         }
+    }
+
+    private static func blindingLightMiss(
+        abilityTarget: Combatant,
+        in context: inout BattleState,
+    ) -> (events: [ActionEvent], cancelled: Bool)? {
+        let enemy = context.roster.enemy.combatant
+        let chance = context.roster.runtime(for: enemy)?.talents.pending.nextAttackMissChance ?? 0
+        guard chance > 0 else { return nil }
+        context.roster.mutateRuntime(for: enemy) { $0.talents.pending.nextAttackMissChance = 0 }
+        guard BattleChance.succeeds(probability: chance, using: &context.rng) else { return nil }
+        return ([context.nextEvent(
+            kind: .effect,
+            effectKind: .dodgeApplied,
+            actorName: enemy.name,
+            abilityName: "Blinding Light",
+            target: abilityTarget,
+            amount: 0,
+            keyword: .dodge,
+        )], true)
     }
 
     private static func poisonedEnemyMiss(

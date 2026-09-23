@@ -212,12 +212,6 @@
       "merge": "max"
     },
     {
-      "name": "shadowCamouflage",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
       "name": "untargetableAboveHealthPercent",
       "type": "Double",
       "default": "0",
@@ -322,6 +316,54 @@
     {
       "name": "dodgeBurnDamage",
       "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "firstDodgeDrawForAlly",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "dodgeNextManaEmpowerFree",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "dodgeNextFreezeIgnoreBlock",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "dodgeDealBleedFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "firstDodgeDoubleNextAttack",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "dodgeNextAttackIgnoreBlock",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "dodgeDrawChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "dodgeAtFullHealthBonus",
+      "type": "Double",
       "default": "0",
       "merge": "add"
     }

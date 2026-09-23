@@ -11,9 +11,9 @@ expires: 2026-10-07
 ## Objective
 
 Revise all 446 Talent nodes across 21 combatants and 63 keyword trees, then make
-their actual mechanics match the approved text. The eight Heroes have now been
-reviewed; implement their approved revisions first. Review the 13 Companions in
-a later pass. Keep each tree's current node count. The user confirms there are
+their actual mechanics match the approved text. All eight Heroes and the first
+seven Companions have been reviewed and implemented; the remaining six
+Companions await design. Keep each tree's current node count. The user confirms there are
 no players or saves to migrate, so IDs may change when a tree move requires it.
 
 ## Agreed design constraints
@@ -78,6 +78,50 @@ no players or saves to migrate, so IDs may change when a tree move requires it.
 - [ ] Run routed, isolated handoff for all changed paths; review generated
   consistency and the final diff. Archive the plan outcome and delete this file
   when the whole redesign is complete.
+
+### First Companion implementation batch
+
+Implement all 149 nodes for Bear, Frost Whelp, Lizard Scout, Panther, Phoenix,
+Golden Retriever, and Library Owl before designing the remaining six
+Companions. Keep their node counts and approved tree placement. Leave Wolf,
+Risen Skeleton, Mana Moth, Pixie, Shield Scarab, and Fox behavior unchanged.
+
+- [ ] Resolve the explicitly pending interaction choices below. Continue
+  independent approved work while waiting for an answer.
+- [x] Apply approved names, descriptions, and trigger values to the authored
+  Talent manifest; remove replaced triggers from the authored schemas and
+  regenerate the catalog through `Scripts/generate.sh`.
+- [x] Wire damage, control, Block, Dodge, resource, healing, Death's Door, and
+  preparation effects in their owning BattleEngine pipelines. Chance riders
+  roll once per ability unless the approved text specifies a turn decay roll.
+  Prepared next-attack/restoration bonuses cannot be consumed by their
+  creating ability; refresh rather than stack unless explicitly specified.
+- [x] Keep triggered damage and restoration in ordinary combat pipelines while
+  preventing recursive Talent chains. Coalesce same-action Bleed detonation
+  feedback, make Barbed Tail's Dodge retaliation rare, and limit chance draws
+  to one roll per ability.
+- [x] Update canonical Talent behavior notes, inspect every Companion's viable
+  ability pool, and audit all 149 descriptions for their tree keyword,
+  player-facing voice, and feedback density with all nodes equipped.
+- [x] Build affected packages, run pinned formatting/lint and docs checks,
+  verify generated output stability, and review the final diff. Do not add or
+  run tests without an explicit request in this task.
+
+Panther's Arterial Cascade uses the existing action-group feedback consolidation
+for Bleed damage and consumes Bleed on each qualifying Critical Hit, so another
+detonation requires another Bleed application. Trophy Scales follows the user's exact
+Block-break rule. Carrion Claim is provisionally renamed Shared Spoils with
+the requested always-on 2-Health transfer. Warning Bark's Block wording is
+provisional while retaining its Dodge behavior.
+
+The first 149 Companion rows match their approved plan descriptions, all mention
+their tree keyword, and the remaining six Companions' rows are unchanged.
+The initial Companion implementation pass compiled BattleEngine and its test
+targets, passed SwiftFormat, SwiftLint, documentation, generated-output
+idempotence, and diff checks, and retired six obsolete checks. It deferred test
+execution and isolated handoff. A later outstanding-change review reconciles
+the remaining tests with approved rules, adds focused Companion regressions,
+and runs routed, isolated handoff.
 
 ### Hero implementation ledger
 
@@ -406,3 +450,262 @@ Earlier conversational drafts for the remaining combatants are unapproved.
 Record only the user's selected current, proposed, or modified effect here as
 each combatant is reviewed. Audit all of them for the tree-keyword rule and
 player-facing wording before presenting a batch.
+
+## Bear · Block — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Thick Hide | While you have Block, take 2 less Physical damage | Accept proposal |
+| Hibernation | End your turn with Block to restore 2 Health | Accept proposal; wording only |
+| Grizzly Guard | When your ally first falls below half Health, grant 6 Block | Accept proposal |
+| Tough Pelt | While you have Block, Bleed damage is halved | Accept proposal |
+| Ironhide | Attacks that break your Block deal half their remaining damage | Accept proposal |
+| Vital Armor | Below half Health, gain 50% more Block | Accept proposal |
+| Aftershock Guard (was Avalanche Guard) | Stunning an enemy doubles your next Block gain | Accept proposal |
+
+## Bear · Physical — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Shield Breaker | Physical attacks deal double damage to enemy Block | Keep effect; wording only |
+| Primal Rage | When Block breaks, your next Physical attack gains 2 damage | User magnitude revision; bonus stays in the Physical hit |
+| Cleaving Claws | Bleeding enemies take 25% increased Physical damage | Accept proposal |
+| Heavy Impact | Stunned enemies take 25% increased Physical damage | Accept proposal |
+| Enrage | Below half Health, Physical attacks gain +25% Critical Hit chance | Accept proposal |
+| Pulverize | Physical Critical Hits remove all enemy Block | Accept proposal |
+| Battering Ram | Your first Physical attack each turn gains half your Block as damage | User magnitude and wording revision |
+
+## Bear · Stun — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Ground Slam | Your first Stun attack each turn deals 3 additional damage | Accept proposal |
+| Dazing Swipe | Physical attacks have a 10% chance to deal 4 Stun damage | Accept proposal; roll once per ability |
+| Shockwave | Stun attacks ignore half enemy Block | Accept proposal |
+| Deep Stun | Stun has a 20% chance to last another turn | Keep effect; wording only |
+| Exposed Prey | Stunned enemies take 25% more damage from your ally | Accept proposal |
+| Seismic Roar | Below half Health, your Stun build-up increases by 50% | Accept proposal |
+| Seismic Reversal | When your Block breaks, return absorbed damage as Stun | Accept proposal |
+
+## Frost Whelp · Freeze — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Rimewind | Freeze damage has a 10% chance to draw a card | User revision; once per Freeze ability, excluding Talent retaliation |
+| Chilling Scales | Taking damage has a 10% chance to return 4 Freeze damage | Accept proposal; roll once per enemy ability |
+| Glacial Grip | Increase Freeze build-up by 20% | Accept proposal |
+| Frost Siphon | Freezing an enemy restores 2 Mana | Accept proposal |
+| Shatter Frost | Frozen enemies take 25% increased damage | Wording only |
+| Freezing Gale | Freeze Critical Hits double Freeze build-up | Accept proposal |
+| Winter’s Dominion (was Elemental Paradox) | Freezing an enemy draws a card | User effect revision |
+
+## Frost Whelp · Mana — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Dragon Spark | Spending Mana has a 10% chance to draw a card | User effect revision; roll once per ability |
+| Arcane Breath | Mana empowerment adds 1 damage to Freeze attacks | Accept proposal |
+| Mana Absorption | Excess Mana restored becomes Block | Accept proposal |
+| Aetherial Armor | While you have Mana, take 25% less damage | Accept proposal |
+| Mana Flow | Spending Mana has a 25% chance to refund it | Accept proposal; roll once per ability |
+| Spell Channeling | Mana empowerment costs 1 less Mana | Wording only |
+| Dragon’s Patronage | Mana empowerment grants your ally 2 Block | User effect revision; once per empowered ability |
+
+## Frost Whelp · Dodge — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| High Altitude | Above half Health, gain +15% Dodge chance | Wording only |
+| Tailwind | Your first Dodge each combat draws a card for your ally | Accept proposal |
+| Flyby Strike | Dodging makes your next attack Critically Hit | Accept proposal |
+| Wing Buffet | Deal 2 Freeze damage when you Dodge | User revision |
+| Aerial Cover | Dodging an attack grants the Hero 3 Block. | Keep current effect and text |
+| Tempest Wing | Dodging makes your next Mana empowerment free | Accept proposal |
+| Winter’s Wake | Dodging makes your next Freeze attack ignore enemy Block | Accept proposal |
+
+## Lizard Scout · Poison — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Cold Blood | Deal 2 Poison damage when you Dodge. | Keep current effect and text |
+| Venomous Skin | Deal 1 Poison damage to attackers when you take damage. | Keep current trigger; user reduced damage from 2 to 1 |
+| Spit Poison | Poison attacks deal 1 additional damage to Bleeding enemies | User reduced proposal from 2 to 1 Poison damage |
+| Toxiphage | Poison Critical Hits gain Leech | Accept proposal |
+| Paralysis | Poison attacks have a 10% chance to Stun | Accept proposal; roll once per ability |
+| Venom Spores | Poison has a 20% chance to not decay | User revision; roll each decay opportunity |
+| Toxic Coma | Stunned enemies take 20% increased Poison damage | User magnitude revision |
+| Cross-Contamination | Bleed Critical Hits also deal 4 Poison damage | Accept proposal |
+
+## Lizard Scout · Bleed — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Barbed Tail | Dodging has a 20% chance to deal 4 Bleed damage | User-approved feedback revision; one roll per Dodge |
+| Spiny Carapace | Bleed Critical Hits grant 2 Thorns | User revision |
+| Ferocious Bite | +10% Critical Hit chance against Bleeding enemies | User revision |
+| Evasive Reflexes | Gain +10% Dodge against Bleeding enemies | Wording only |
+| Frenzied Tail | Bleed Critical Hits have a 20% chance to draw a card | User revision; roll once per ability |
+| Armor Shred | Bleed attacks deal 50% more damage to enemy Block | Accept proposal |
+| Butcher’s Cut (was Butcher’s Ledger) | Enemies below half Health take 30% increased Bleed damage | User magnitude revision |
+
+## Lizard Scout · Gold — approved, Shared Spoils name provisional
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Trophy Scales | Steal 3 Gold when your Block is broken | User revision; depends on external Block or Hoard Armor |
+| Hoard Armor | Stealing Gold has a 10% chance to grant 4 Block | User revision; roll once per ability |
+| Pickpocket | Critical Hits steal 3 Gold | Accept proposal |
+| Scavenger’s Cache | Stealing Gold has a 10% chance to draw a card | User revision; roll once per ability |
+| Flawless Bounty | Excess Leech restoration on you is converted to Gold | User clarification; 1 Gold per excess Health |
+| Gilded Claws | Gold stolen adds equal damage to your next attack | Accept proposal |
+| Shared Spoils (was Carrion Claim) | Stealing Gold restores 2 Health to your ally | User effect, corrected grammar; provisional thematic name |
+
+Trophy Scales depends on Block despite Scout having no Block ability in its
+loadout; Hoard Armor's 10% proc or an ally's Block grant makes it viable.
+Cold Blood retaliates on every Dodge. Barbed Tail's rare roll keeps the two
+typed retaliation chips from appearing together on most Dodges.
+
+## Panther · Bleed — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Razor Claws | Bleed attacks deal 1 additional damage | Accept proposal |
+| Raking Swipes | Bleed attacks gain +10% Critical Hit chance | Accept proposal |
+| Stalk the Wound | Bleeding enemies below half Health take 25% increased damage | User revision |
+| Rend Flesh | Bleed Critical Hits deal 25% more damage | Accept proposal |
+| Crippling Laceration | Enemies with 3 or more Bleed deal 30% less damage. | Keep current effect and text |
+| Bloodprice | Bleeding enemies restore half as much Health | Accept proposal |
+| Arterial Cascade | Critical Hits detonate Bleed | User revision; feedback aggregation and once-per-ability cadence to confirm |
+| Redline | Dropping below half Health doubles your next Bleed attack | Accept proposal |
+
+## Panther · Leech — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Blood Hunger | Bleed attacks gain Leech while below 30% Health | User revision |
+| Shared Feast | Excess Leech Health restoration is shared with your ally | User revision; transfer excess only, no loss of owner's actual healing |
+| Vitality Infusion | Leech Critical Hits grant your ally 3 Block | Accept proposal |
+| Sanguine Resistance (was Sanguine Growth) | Enemies cannot Leech from you | User name and effect revision |
+| Frenzied Feeding | Leech restores 20% more Health against Bleeding enemies | User revision |
+| Pack Bloodlust | Your ally's attacks have a 10% chance to Leech | User revision; roll once per ability |
+| Blood Feast | Bleed Critical Hits gain Leech | User revision; applies to the Critical Hit itself |
+
+## Panther · Dodge — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Surprise Strike | Your first Dodge each combat doubles your next attack | Accept proposal |
+| Counter Pounce | Deal 2 Bleed damage when you Dodge | User revision |
+| Survival Instinct | Below half Health, gain +20% Dodge chance | Accept proposal |
+| Stalker’s Precision | Dodging makes your next attack ignore enemy Block | Accept proposal |
+| Regroup (was Shadow Camouflage) | Dodging has a 10% chance to draw a card | User name and effect revision; roll once per Dodge |
+| Vanish | Dodging makes your next attack Critically Hit | Accept proposal |
+| Killing Grace | Gain Critical Hit chance equal to half your Dodge chance | Accept proposal |
+
+## Phoenix · Burn — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Blazing Feathers | Taking damage has a 10% chance to return 4 Burn damage | Accept proposal; roll once per enemy ability |
+| Ignition Spark | Burn has a 20% chance to not decay | Accept proposal; roll each decay opportunity |
+| Flame Shield | Burn attacks have a 10% chance to grant 4 Block | Accept proposal; roll once per ability |
+| Explosive Embers | Burn Critical Hits deal 3 additional damage | Accept proposal |
+| Molten Heat | Burn attacks deal 50% more damage to enemy Block | Accept proposal |
+| Intense Heat | Burning enemies take 25% increased damage from your Critical Hits | Accept proposal |
+| Furnace Rhythm | Burn Critical Hits restore 3 Mana | Accept proposal |
+
+## Phoenix · Health — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Restorative Ashes | Below half Health, restore 50% more Health | Accept proposal |
+| Healing Flames | Burn attacks have a 10% chance to restore 4 Health to the lowest ally | Accept proposal; roll once per ability |
+| Afterglow | Surviving Death's Door restores 4 Health to both allies | Accept proposal |
+| Radiant Health | At full Health, both allies gain +10% Critical Hit chance | Accept proposal |
+| Phoenix Gift | Your ally's first fatal hit each combat revives them with 5 Health | Accept proposal |
+| Ashen Vitality | Excess Health restored to you adds 2 damage to your next Burn attack | Accept proposal; preparation refreshes rather than stacks |
+| Clean Slate | Excess Health restoration Cleanses 1 negative status effect | Accept proposal |
+
+## Phoenix · Death's Door — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| From the Ashes | Entering Death's Door restores 6 Health | Accept proposal; first fatal hit now enters Death's Door |
+| Lingering Spirit | Death's Door lasts 1 additional turn. | Keep current effect and text |
+| Blazing Rebirth | Entering Death's Door deals 4 Burn damage to the enemy | Accept proposal |
+| Phoenix Vigor | Surviving Death's Door doubles your next attack | Accept proposal |
+| Fortified Rebirth | Death's Door halves damage you take | Accept proposal |
+| Ashen Ward | Death's Door prevents negative status effects | Accept proposal |
+| Undying Ember | Burn damage gains Leech while you're on Death's Door | User revision; outgoing Burn damage, including ongoing damage |
+
+## Golden Retriever · Gold — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Bounty | Defeating an enemy grants 3 Gold | Wording only |
+| Dig for Treasure | Gain 2 Gold every 3 turns. | Keep current effect and text |
+| Haggler | Steal 1 additional Gold | Accept proposal |
+| Golden Guard | Stealing Gold increases your next Block gain by 50% | Accept proposal |
+| Fetch! | Your first Gold steal each combat draws a card | Accept proposal |
+| Treasure Hoard | Gaining Gold has a 10% chance to draw a card | User revision; only during live combat, once per Gold-gaining ability |
+| War Chest | Your ally gains Critical Hit chance equal to Gold gained this combat | User revision; cumulative Gold, one percentage point per Gold |
+
+## Golden Retriever · Block — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Guardian | Grant your ally 5 Block before their first incoming attack | Accept proposal |
+| Watchful Eye | Start combat with 3 Block | Wording only |
+| Shield Bond | Your first Block gain each turn is shared with your ally | Accept proposal |
+| Warning Bark | Dodge the first enemy attack each combat without spending Block | Keep current Dodge effect; provisional wording mentions Block |
+| Sacrificial Guard | Your Block also absorbs damage dealt to your ally | User-approved pairing; Retriever Block protects Hero before Hero Block |
+| Steadfast | While you have Block, prevent Stun and Freeze build-up | Accept proposal |
+| Shield Relay (was Icebound Exchange) | When your Block breaks, your ally gains 2 Block | User magnitude revision |
+
+## Golden Retriever · Health — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Cheer Up | Your first Health restoration each combat draws a card | User revision; actual restoration only |
+| Playful Energy | Restoring Health has a 10% chance to draw a card | User revision; roll once per restoring ability |
+| Campfire Comfort | At turn end, restore 3 Health to the lowest Health ally | Accept proposal |
+| Man's Best Friend | Intercept the first damage each combat that would reduce your ally's Health to zero | User-approved pairing; once per combat after Block absorption |
+| Inspirational Vigor | Below half Health, both allies gain +15% Critical Hit chance | Accept proposal |
+| Protective Lick | Restoring Health also Cleanses 1 negative status effect | Accept proposal |
+| Contagious Joy | Excess Health restoration on you is shared with your ally | User revision; transfer excess only |
+
+## Library Owl · Holy — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Revealed Flaw | Holy Critical Hits make your ally's next attack ignore enemy Block | Accept proposal |
+| Scholarly Smite | Holy attacks gain +15% Critical Hit chance | Accept proposal |
+| Blinding Light | Holy attacks reduce the enemy's next attack accuracy by 20% | Accept proposal |
+| Radiant Wisdom | Holy attacks have a 10% chance to draw a card | Accept proposal; roll once per ability |
+| Bane of Evil | Holy Critical Hits Purge a positive status effect | User revision |
+| Purifying Light | Holy attacks have a 10% chance to Cleanse your ally | User revision after feedback audit; roll once per ability |
+| Interdict | Purging with Holy prevents that positive status effect from returning next turn | Accept proposal |
+
+## Library Owl · Cleanse — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Purifying Wisdom | Your first successful Cleanse each combat draws a card | Accept proposal |
+| Healing Hymn | Cleansing an ally restores 2 Health | Wording only |
+| Spellbreak Shield | Cleansing a negative effect grants 2 Block per effect removed. | Keep current effect and text |
+| Mass Cleanse | Your first successful Cleanse each turn also Cleanses your ally | Accept proposal |
+| Reflective Ward | Cleansing a negative effect reflects it onto the enemy who applied it. | Keep current effect and text |
+| Sanctified Scroll | Cleansing an ally grants +20% Critical Hit chance on their next attack | Accept proposal |
+| Lesson Learned | Cleansed effects cannot return until your next turn. | Keep current effect and text |
+
+## Library Owl · Health — approved
+
+| Talent | Final description | Decision |
+| --- | --- | --- |
+| Safe Perch | At full Health, gain +10% Dodge chance | Accept proposal |
+| Warded Roost | Restoring Health reduces that ally's next incoming damage by 20% | Accept proposal |
+| Efficient Care | Restore 25% more Health | Accept proposal |
+| Aether Shield | Restoring Health has a 10% chance to grant equal Block | User revision; healed ally receives Block equal to actual Health restored, one recipient per ability |
+| Guardian Archive | When either ally enters Death's Door, they restore 8 Health | User revision |
+| Font of Magic | Restoring Health or Mana has a 10% chance to draw a card | User revision; roll once per ability |
+| Living Archive | Restoring Health has a 10% chance to grant 3 Thorns | User revision; healed ally receives Thorns, one recipient per ability |

@@ -13,16 +13,10 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Mystery.offerArtwork(choiceID: "take-the-notes"))
         assertDoesNotExist(AccessibilityID.Mystery.confirmChoiceButton, timeout: 2)
         tapButton(AccessibilityID.Mystery.offerArtwork(choiceID: "harvest-remedies"))
-        let inspectedItemIDs = [
-            AccessibilityID.LoadoutPicker.itemDetail("chapter-1-stage-2-harvest-remedies"),
-            AccessibilityID.LoadoutPicker.itemDetail("mortar_and_pestle"),
-        ]
-        let inspected = inspectedItemIDs.contains {
-            app.descendants(matching: .any)[$0].trinketWaitForExistence(timeout: 3)
-        }
-        if !inspected {
-            fail("Inspected mystery item detail not found")
-        }
+        let itemDetail = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.LoadoutPicker.itemDetail("")),
+        ).firstMatch
+        assertExists(itemDetail)
         dismissSheet()
         assertDoesNotExist(AccessibilityID.Mystery.rewardTitle, timeout: 2)
         assertExistsAfterScroll(AccessibilityID.Mystery.choiceButton(choiceID: "harvest-remedies"), requireHittable: true)

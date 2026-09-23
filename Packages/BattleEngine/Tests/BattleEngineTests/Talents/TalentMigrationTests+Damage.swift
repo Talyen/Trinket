@@ -48,8 +48,9 @@ extension TalentMigrationTests {
         #expect(crit.healthLost > noPoison.healthLost)
     }
 
-    @Test func `toxicComa doubles poison vs stunned`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(toxicComa: true)))
+    @Test func `toxic coma increases companion poison damage against stunned enemies`() {
+        let triggers = CombatTraitTriggers(dot: DotTriggers(poisonDamageVsStunnedMultiplier: 1.2))
+        var battle = makeBattle(companionTriggers: triggers)
         battle.withEngineContext { ctx in
             ctx.roster.setActiveEffects(
                 [ActiveEffect(id: 1, effect: .controlMeter(Keyword.stun, 100, 10), remainingTurns: 0)],
@@ -61,17 +62,17 @@ extension TalentMigrationTests {
                 amount: 8,
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.poison,
-                sourceActorID: ctx.roster.hero.id,
+                sourceActorID: ctx.roster.companion.id,
                 options: .reaction(),
             ))
         }
-        var plain = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(toxicComa: true)))
+        var plain = makeBattle(companionTriggers: triggers)
         let without = plain.withEngineContext { ctx in
             ctx.resolveDamage(DamageRequest(
                 amount: 8,
                 target: ctx.roster.enemy.combatant,
                 keyword: Keyword.poison,
-                sourceActorID: ctx.roster.hero.id,
+                sourceActorID: ctx.roster.companion.id,
                 options: .reaction(),
             ))
         }

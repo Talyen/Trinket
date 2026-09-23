@@ -146,6 +146,9 @@ package extension DamagePipeline {
         if context.roster.health(for: combatant) * 2 > context.roster.maxHealth(for: combatant) {
             chance += profile.triggers.dodgeChanceAboveHalfHealthBonus
         }
+        if context.roster.health(for: combatant) == context.roster.maxHealth(for: combatant) {
+            chance += profile.triggers.dodgeAtFullHealthBonus
+        }
         return min(0.75, max(0, chance))
     }
 
@@ -172,10 +175,18 @@ package extension DamagePipeline {
         var abilityBonus = state.options.abilityCriticalChanceBonus
         if state.options.isAttackHit,
            let prepared = context.roster.runtime(for: actor.combatant)?.talents.pending.nextAttackCriticalBonus,
-           prepared > 0 {
+           prepared > 0,
+           CombatantTalentState.Pending.isLaterAbility(
+               preparedCardSerial: context.roster.runtime(for: actor.combatant)?.talents.pending.nextAttackCriticalPreparedCardSerial,
+               currentCardSerial: context.resolution.cardTalents?.playSerial,
+           ) {
             abilityBonus += prepared
-            context.roster.mutateRuntime(for: actor.combatant) { $0.talents.pending.nextAttackCriticalBonus = 0 }
+            context.roster.mutateRuntime(for: actor.combatant) {
+                $0.talents.pending.nextAttackCriticalBonus = 0
+                $0.talents.pending.nextAttackCriticalPreparedCardSerial = nil
+            }
         }
+        abilityBonus += consumeSanctifiedCriticalBonus(for: state, actor: actor.combatant, in: &context)
         if state.options.isAttackHit, state.options.abilityHasLeech,
            context.roster.hasAffliction(.bleed, on: state.combatant) {
             abilityBonus += context.modifiers(for: sourceActorID).triggers.leechCriticalVsBleedingBonus
@@ -183,6 +194,7 @@ package extension DamagePipeline {
         if state.options.isAttackHit, state.damageKeyword == .physical, state.targetStatus.isFrozen {
             abilityBonus += context.modifiers(for: sourceActorID).triggers.physicalVsFrozenCritBonus
         }
+        abilityBonus += companionAttackCriticalBonus(for: state, actor: actor, in: context)
         if state.options.isAttackHit, state.options.isBasicAttackHit,
            let pendingBonus = context.roster.runtime(for: actor.combatant)?.talents.pending.basicCriticalBonus,
            pendingBonus > 0 {

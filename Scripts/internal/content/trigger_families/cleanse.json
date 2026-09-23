@@ -171,6 +171,12 @@
       "type": "Bool",
       "default": "false",
       "merge": "or"
+    },
+    {
+      "name": "cleanseNextAttackCriticalBonus",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
     }
   ]
 }

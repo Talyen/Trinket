@@ -39,12 +39,6 @@
       "merge": "add"
     },
     {
-      "name": "onSurviveDeathsDoorDamageBonusPercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
-    },
-    {
       "name": "deathsDoorDodgeAndDebuffImmunity",
       "type": "Bool",
       "default": "false",
@@ -69,28 +63,64 @@
       "merge": "max"
     },
     {
-      "name": "onHeroFatalHealPercentMaxHealth",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
-    },
-    {
-      "name": "onAllyDeathsDoorHealAndCleanse",
-      "type": "Int",
-      "default": "0",
-      "merge": "max"
-    },
-    {
-      "name": "surviveDeathsDoorPartyHealPercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
-    },
-    {
       "name": "holyDamageReviveCompanionChancePercent",
       "type": "Double",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "surviveDeathsDoorPartyHealFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onHeroFatalReviveHealth",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "enterDeathsDoorHeal",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "enterDeathsDoorBurnDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "surviveDeathsDoorNextAttackDouble",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "deathsDoorIncomingDamageMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "deathsDoorNegativeStatusImmune",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "onAllyDeathsDoorRestoreHealth",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "firstAllyFatalIntercept",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
     }
   ]
 }

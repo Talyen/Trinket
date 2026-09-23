@@ -1,3 +1,4 @@
+import Observation
 import Testing
 import TrinketContent
 import TrinketCore
@@ -11,6 +12,41 @@ struct PostBattleTalentChoiceTests {
 
     init() throws {
         context = try AppTestContext()
+    }
+
+    @Test func `Play observation follows talent choice and confirmation`() async throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let hero = state.playerSave.roster.activeHero
+        try state.playerSave.performBatchMutation { save in
+            save.roster.progressions[hero.id] = CombatantProgression(
+                level: 1, currentXP: 9, requiredXP: 10,
+            )
+        }
+        _ = state.journey.startBattle(for: stage)
+        let configuration = try #require(state.battle.activeBattle)
+
+        await confirmation("Talent choice becomes observable") { changed in
+            withObservationTracking {
+                _ = state.currentPostBattleTalentCombatantID
+            } onChange: {
+                changed()
+            }
+            #expect(state.completeActiveBattle(configuration, battleGold: .init()).didComplete)
+        }
+        #expect(state.currentPostBattleTalentCombatantID == hero.id)
+
+        let tree = try #require(CombatantTalentCatalog.allConfigs[hero.id]?.trees.first)
+        let node = try #require(tree.nodes.first)
+        await confirmation("Talent confirmation becomes observable") { changed in
+            withObservationTracking {
+                _ = state.postBattleTalentConfirmationID
+            } onChange: {
+                changed()
+            }
+            #expect(state.choosePostBattleTalent(nodeID: node.id, treeID: tree.id) == .unlocked)
+        }
+        #expect(state.postBattleTalentConfirmationID != nil)
     }
 
     @Test(arguments: [false, true])

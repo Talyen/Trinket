@@ -97,9 +97,9 @@ private extension CombatantTalentState.Pending {
             (nextBurnDamageBonus > 0, .burn, "Your next Burn attack deals \(nextBurnDamageBonus) additional damage."),
             (nextPoisonDamageBonus > 0, .poison, "Your next Poison attack deals \(nextPoisonDamageBonus) additional damage."),
             (
-                nextAttackCriticalBonus > 0,
+                nextAttackCriticalBonus + nextCleanseCriticalBonus > 0,
                 .physical,
-                "Your next attack has +\(Int((nextAttackCriticalBonus * 100).rounded()))% Critical Hit chance.",
+                "Your next attack has +\(Int(((nextAttackCriticalBonus + nextCleanseCriticalBonus) * 100).rounded()))% Critical Hit chance.",
             ),
             (nextAttackGuaranteedCritical, .physical, "Cracked Guard: Your next attack Critically Hits."),
             (

@@ -35,6 +35,9 @@ enum DamageDefensePolicy {
     }
 
     static func blockMultiplier(state: DamageResolutionState, in context: BattleState) -> Double {
+        if state.ignoreBlockFromTalent {
+            return 0
+        }
         let blindSpot = state.options.isCardAttack && state.damageKeyword == .physical
             && context.resolution.cardTalents?.actorID == state.sourceActorID
             && context.resolution.cardTalents?.preparations.contains(.ignorePhysicalBlock) == true
@@ -67,6 +70,9 @@ enum DamageDefensePolicy {
             }
             if state.damageKeyword == .bleed, state.options.isAttackHit {
                 ignored = max(ignored, triggers.bleedAttackBlockIgnorePercent)
+            }
+            if state.damageKeyword == .stun, state.options.isAttackHit {
+                ignored = max(ignored, triggers.stunBlockIgnorePercent)
             }
             if state.options.isAttackHit, state.options.abilityHasLeech {
                 ignored = max(ignored, triggers.leechAttackBlockIgnorePercent)

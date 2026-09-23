@@ -238,12 +238,6 @@
       "merge": "or"
     },
     {
-      "name": "avalancheGuard",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
       "name": "stunExtendVsBurning",
       "type": "Bool",
       "default": "false",
@@ -266,6 +260,54 @@
       "type": "Double",
       "default": "1",
       "merge": "mul"
+    },
+    {
+      "name": "firstStunAttackBonusPerTurn",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "stunBuildupBelowHalfMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "freezeAttackDrawChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onDamageFreezeRetaliationChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onDamageFreezeRetaliationDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onFreezeEnemyRestoreMana",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "freezeCriticalBuildupMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "onFreezeEnemyDrawCard",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
     }
   ]
 }

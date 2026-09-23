@@ -26,6 +26,19 @@ package extension BattleState {
         return resolution.claim(.heroCard(name), actorID: actorID, cadence: .card(card.playSerial))
     }
 
+    mutating func claimTalentAbility(_ name: String, actorID: String) -> Bool {
+        guard allowsHeroTalentReaction else { return false }
+        let cadence: CombatResolution.Cadence = if resolution.cardTalents?.actorID == actorID,
+                                                   let serial = resolution.cardTalents?.playSerial {
+            .card(serial)
+        } else if let actionID = resolution.actionID {
+            .action(actionID)
+        } else {
+            .standaloneAction(actionCount)
+        }
+        return resolution.claim(.heroTalent(name), actorID: actorID, cadence: cadence)
+    }
+
     func hasTalentStatus(_ kind: EffectKind, on target: Combatant) -> Bool {
         roster.activeEffects(for: target).contains { $0.effect.kind == kind && ($0.effect.potency ?? 1) > 0 }
     }

@@ -75,21 +75,21 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.hero.currentMana == 0)
     }
 
-    @Test func `sacrificial guard does not weaken the redirected hit twice`() {
+    @Test func `sacrificial guard spends companion block before hero health`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionModifiers: CombatantTalentCatalog.profile(for: ["golden_retriever_block_t3_1"]),
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
-        battle.roster.hero.currentHealth = 1
-        battle.appendEffect(.damageReductionFlat(2, 2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        battle.roster.hero.currentHealth = 10
+        DefensePoolEngine.set(6, on: battle.companion, in: &battle)
 
         _ = battle.resolveDamage(DamageRequest(
-            amount: 6, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id, options: .reaction(),
+            amount: 4, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id, options: .reaction(),
         ))
 
-        #expect(battle.roster.hero.currentHealth == 1)
-        #expect(battle.roster.companion.currentHealth == 16)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 10)
+        #expect(battle.roster.hero.currentHealth == 10)
+        #expect(battle.roster.companion.currentHealth == battle.roster.companion.maxHealth)
+        #expect(talentPoints(.shield, on: .companion, in: battle) == 2)
     }
 }

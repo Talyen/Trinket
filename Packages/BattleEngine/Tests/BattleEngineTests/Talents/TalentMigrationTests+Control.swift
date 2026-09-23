@@ -145,54 +145,6 @@ extension TalentMigrationTests {
         #expect(battle.health(of: battle.hero) == heroHealthBefore)
     }
 
-    @Test func `skullcracker adds stun only against stunned enemies`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(attack: AttackTriggers(physicalVsStunnedStunBuildup: 2)))
-        battle.appliesFightPacing = false
-        _ = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 1,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-            ))
-        }
-        #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.kind == .controlMeter })
-        _ = battle.withEngineContext { ctx in
-            _ = ControlMeterEngine.applyMeterCharge(
-                20, keyword: .stun, to: ctx.roster.enemy.combatant,
-                sourceActorID: ctx.roster.hero.id, applyFightPacing: false, in: &ctx,
-            )
-            ctx.resolveDamage(DamageRequest(
-                amount: 1,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-            ))
-        }
-        #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
-    }
-
-    @Test func `pulverize applies bleed and stun once per turn`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(attack: AttackTriggers(firstPhysicalBleedStunPerTurn: true)))
-        battle.appliesFightPacing = false
-        for _ in 0 ..< 2 {
-            _ = battle.withEngineContext { ctx in
-                ctx.resolveDamage(DamageRequest(
-                    amount: 1,
-                    target: ctx.roster.enemy.combatant,
-                    keyword: Keyword.physical,
-                    sourceActorID: ctx.roster.hero.id,
-                    options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-                ))
-            }
-        }
-        let bleeds = battle.activeEffects(of: battle.enemy).filter(\.effect.isBleed)
-        #expect(bleeds.count == 1)
-        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .controlMeter(.stun, 1, 20) })
-    }
-
     @Test func `searing bind extends stun against burning enemies`() {
         for burning in [false, true] {
             var battle = makeBattle(heroTriggers: CombatTraitTriggers(control: ControlTriggers(stunExtendVsBurning: true)))
@@ -212,30 +164,6 @@ extension TalentMigrationTests {
             #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
             #expect(battle.additionalControlSkipsByCombatantID[battle.roster.enemy.id, default: 0] == (burning ? 1 : 0))
         }
-    }
-
-    @Test func `seismic roar stuns while below half health`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(
-            attack: AttackTriggers(attackStunBuildupBelowHealthThreshold: 0.5, attackStunBuildupBelowHealthBonus: 2),
-        ))
-        battle.appliesFightPacing = false
-        battle.withEngineContext { ctx in
-            ctx.roster.mutateRuntime(for: ctx.roster.hero.combatant) {
-                $0.currentHealth = $0.maxHealth / 2 - 1
-            }
-            _ = ControlMeterEngine.applyMeterCharge(
-                18, keyword: .stun, to: ctx.roster.enemy.combatant,
-                sourceActorID: ctx.roster.hero.id, applyFightPacing: false, in: &ctx,
-            )
-            ctx.resolveDamage(DamageRequest(
-                amount: 1,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-            ))
-        }
-        #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
     }
 
     @Test func `blizzard triggers at three cards without refreezing on later cards`() {

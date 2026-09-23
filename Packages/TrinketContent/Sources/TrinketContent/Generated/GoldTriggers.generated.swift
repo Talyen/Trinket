@@ -42,6 +42,15 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var goldGainBelowHalfDrawCard: Bool = false
     public var goldTheftDodgeBonus: Double = 0
     public var goldGainDrawChancePercent: Double = 0
+    public var goldTheftBlockChancePercent: Double = 0
+    public var goldTheftBlockAmount: Int = 0
+    public var goldTheftDrawChancePercent: Double = 0
+    public var goldStealFlatBonus: Int = 0
+    public var goldTheftNextBlockMultiplier: Double = 1
+    public var firstGoldTheftDrawBattle: Bool = false
+    public var allyCriticalChancePerCombatGold: Double = 0
+    public var blockBreakStealGoldFlat: Int = 0
+    public var goldTheftHealAllyFlat: Int = 0
 
     public init(
         carrionClaim: Bool = false,
@@ -81,7 +90,16 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         goldGainCleanseChancePercent: Double = 0,
         goldGainBelowHalfDrawCard: Bool = false,
         goldTheftDodgeBonus: Double = 0,
-        goldGainDrawChancePercent: Double = 0
+        goldGainDrawChancePercent: Double = 0,
+        goldTheftBlockChancePercent: Double = 0,
+        goldTheftBlockAmount: Int = 0,
+        goldTheftDrawChancePercent: Double = 0,
+        goldStealFlatBonus: Int = 0,
+        goldTheftNextBlockMultiplier: Double = 1,
+        firstGoldTheftDrawBattle: Bool = false,
+        allyCriticalChancePerCombatGold: Double = 0,
+        blockBreakStealGoldFlat: Int = 0,
+        goldTheftHealAllyFlat: Int = 0
     ) {
         self.carrionClaim = carrionClaim
         self.lightFingered = lightFingered
@@ -121,10 +139,19 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.goldGainBelowHalfDrawCard = goldGainBelowHalfDrawCard
         self.goldTheftDodgeBonus = goldTheftDodgeBonus
         self.goldGainDrawChancePercent = goldGainDrawChancePercent
+        self.goldTheftBlockChancePercent = goldTheftBlockChancePercent
+        self.goldTheftBlockAmount = goldTheftBlockAmount
+        self.goldTheftDrawChancePercent = goldTheftDrawChancePercent
+        self.goldStealFlatBonus = goldStealFlatBonus
+        self.goldTheftNextBlockMultiplier = goldTheftNextBlockMultiplier
+        self.firstGoldTheftDrawBattle = firstGoldTheftDrawBattle
+        self.allyCriticalChancePerCombatGold = allyCriticalChancePerCombatGold
+        self.blockBreakStealGoldFlat = blockBreakStealGoldFlat
+        self.goldTheftHealAllyFlat = goldTheftHealAllyFlat
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "firstGoldTheftHeal", "goldDoubledWhileFullHealth", "firstGoldTheftDraw", "bountyBlade", "blockedAttackFirstGold", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold", "stunCriticalStealGold", "dodgePreparesDoubleGoldSteal", "criticalGoldStealDrawCard", "goldStealNextPhysicalBonus", "goldGainHealChancePercent", "goldGainHealAmount", "criticalGoldTheftBonus", "goldGainCleanseChancePercent", "goldGainBelowHalfDrawCard", "goldTheftDodgeBonus", "goldGainDrawChancePercent"]
+    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "firstGoldTheftHeal", "goldDoubledWhileFullHealth", "firstGoldTheftDraw", "bountyBlade", "blockedAttackFirstGold", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold", "stunCriticalStealGold", "dodgePreparesDoubleGoldSteal", "criticalGoldStealDrawCard", "goldStealNextPhysicalBonus", "goldGainHealChancePercent", "goldGainHealAmount", "criticalGoldTheftBonus", "goldGainCleanseChancePercent", "goldGainBelowHalfDrawCard", "goldTheftDodgeBonus", "goldGainDrawChancePercent", "goldTheftBlockChancePercent", "goldTheftBlockAmount", "goldTheftDrawChancePercent", "goldStealFlatBonus", "goldTheftNextBlockMultiplier", "firstGoldTheftDrawBattle", "allyCriticalChancePerCombatGold", "blockBreakStealGoldFlat", "goldTheftHealAllyFlat"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -167,6 +194,15 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         if self.goldGainBelowHalfDrawCard != other.goldGainBelowHalfDrawCard { names.append("goldGainBelowHalfDrawCard") }
         if self.goldTheftDodgeBonus != other.goldTheftDodgeBonus { names.append("goldTheftDodgeBonus") }
         if self.goldGainDrawChancePercent != other.goldGainDrawChancePercent { names.append("goldGainDrawChancePercent") }
+        if self.goldTheftBlockChancePercent != other.goldTheftBlockChancePercent { names.append("goldTheftBlockChancePercent") }
+        if self.goldTheftBlockAmount != other.goldTheftBlockAmount { names.append("goldTheftBlockAmount") }
+        if self.goldTheftDrawChancePercent != other.goldTheftDrawChancePercent { names.append("goldTheftDrawChancePercent") }
+        if self.goldStealFlatBonus != other.goldStealFlatBonus { names.append("goldStealFlatBonus") }
+        if self.goldTheftNextBlockMultiplier != other.goldTheftNextBlockMultiplier { names.append("goldTheftNextBlockMultiplier") }
+        if self.firstGoldTheftDrawBattle != other.firstGoldTheftDrawBattle { names.append("firstGoldTheftDrawBattle") }
+        if self.allyCriticalChancePerCombatGold != other.allyCriticalChancePerCombatGold { names.append("allyCriticalChancePerCombatGold") }
+        if self.blockBreakStealGoldFlat != other.blockBreakStealGoldFlat { names.append("blockBreakStealGoldFlat") }
+        if self.goldTheftHealAllyFlat != other.goldTheftHealAllyFlat { names.append("goldTheftHealAllyFlat") }
         return names
     }
 }
@@ -211,6 +247,15 @@ extension GoldTriggers {
         goldGainBelowHalfDrawCard = goldGainBelowHalfDrawCard || other.goldGainBelowHalfDrawCard
         goldTheftDodgeBonus += other.goldTheftDodgeBonus
         goldGainDrawChancePercent += other.goldGainDrawChancePercent
+        goldTheftBlockChancePercent += other.goldTheftBlockChancePercent
+        goldTheftBlockAmount += other.goldTheftBlockAmount
+        goldTheftDrawChancePercent += other.goldTheftDrawChancePercent
+        goldStealFlatBonus += other.goldStealFlatBonus
+        goldTheftNextBlockMultiplier *= other.goldTheftNextBlockMultiplier
+        firstGoldTheftDrawBattle = firstGoldTheftDrawBattle || other.firstGoldTheftDrawBattle
+        allyCriticalChancePerCombatGold += other.allyCriticalChancePerCombatGold
+        blockBreakStealGoldFlat += other.blockBreakStealGoldFlat
+        goldTheftHealAllyFlat += other.goldTheftHealAllyFlat
     }
 }
 
@@ -255,7 +300,16 @@ extension GoldTriggers {
             goldGainCleanseChancePercent: values.decode(Double.self, "goldGainCleanseChancePercent", default: 0),
             goldGainBelowHalfDrawCard: values.decode(Bool.self, "goldGainBelowHalfDrawCard", default: false),
             goldTheftDodgeBonus: values.decode(Double.self, "goldTheftDodgeBonus", default: 0),
-            goldGainDrawChancePercent: values.decode(Double.self, "goldGainDrawChancePercent", default: 0)
+            goldGainDrawChancePercent: values.decode(Double.self, "goldGainDrawChancePercent", default: 0),
+            goldTheftBlockChancePercent: values.decode(Double.self, "goldTheftBlockChancePercent", default: 0),
+            goldTheftBlockAmount: values.decode(Int.self, "goldTheftBlockAmount", default: 0),
+            goldTheftDrawChancePercent: values.decode(Double.self, "goldTheftDrawChancePercent", default: 0),
+            goldStealFlatBonus: values.decode(Int.self, "goldStealFlatBonus", default: 0),
+            goldTheftNextBlockMultiplier: values.decode(Double.self, "goldTheftNextBlockMultiplier", default: 1),
+            firstGoldTheftDrawBattle: values.decode(Bool.self, "firstGoldTheftDrawBattle", default: false),
+            allyCriticalChancePerCombatGold: values.decode(Double.self, "allyCriticalChancePerCombatGold", default: 0),
+            blockBreakStealGoldFlat: values.decode(Int.self, "blockBreakStealGoldFlat", default: 0),
+            goldTheftHealAllyFlat: values.decode(Int.self, "goldTheftHealAllyFlat", default: 0)
         )
     }
 
@@ -298,5 +352,14 @@ extension GoldTriggers {
         try container.encodeNonDefault(goldGainBelowHalfDrawCard, "goldGainBelowHalfDrawCard", default: false)
         try container.encodeNonDefault(goldTheftDodgeBonus, "goldTheftDodgeBonus", default: 0)
         try container.encodeNonDefault(goldGainDrawChancePercent, "goldGainDrawChancePercent", default: 0)
+        try container.encodeNonDefault(goldTheftBlockChancePercent, "goldTheftBlockChancePercent", default: 0)
+        try container.encodeNonDefault(goldTheftBlockAmount, "goldTheftBlockAmount", default: 0)
+        try container.encodeNonDefault(goldTheftDrawChancePercent, "goldTheftDrawChancePercent", default: 0)
+        try container.encodeNonDefault(goldStealFlatBonus, "goldStealFlatBonus", default: 0)
+        try container.encodeNonDefault(goldTheftNextBlockMultiplier, "goldTheftNextBlockMultiplier", default: 1)
+        try container.encodeNonDefault(firstGoldTheftDrawBattle, "firstGoldTheftDrawBattle", default: false)
+        try container.encodeNonDefault(allyCriticalChancePerCombatGold, "allyCriticalChancePerCombatGold", default: 0)
+        try container.encodeNonDefault(blockBreakStealGoldFlat, "blockBreakStealGoldFlat", default: 0)
+        try container.encodeNonDefault(goldTheftHealAllyFlat, "goldTheftHealAllyFlat", default: 0)
     }
 }

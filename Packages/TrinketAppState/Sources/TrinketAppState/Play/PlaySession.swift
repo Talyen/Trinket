@@ -28,25 +28,14 @@ public final class PlaySession {
     let battleCompletion: PlayBattleCompletion
 
     public private(set) var pendingDestination: PlayLaunchDestination?
-    private var postBattleTalentCombatantIDs: [String] = []
-    private var pendingTalentConfirmation: TalentConfirmation?
-
-    private struct TalentConfirmation {
-        let id = UUID()
-        let combatantID: String
-    }
+    private var postBattleTalentChoices = PostBattleTalentChoices()
 
     public var postBattleTalentConfirmationID: UUID? {
-        pendingTalentConfirmation?.id
+        postBattleTalentChoices.confirmationID
     }
 
     public var currentPostBattleTalentCombatantID: String? {
-        pendingTalentConfirmation?.combatantID
-            ?? postBattleTalentCombatantIDs.first { playerSave.roster.hasUnlockableTalent(for: $0) }
-    }
-
-    private func prunePostBattleTalentCombatantIDs() {
-        postBattleTalentCombatantIDs.removeAll { !playerSave.roster.hasUnlockableTalent(for: $0) }
+        postBattleTalentChoices.currentCombatantID(in: playerSave.roster)
     }
 
     public var isGameplayActive: Bool {
@@ -225,33 +214,15 @@ public final class PlaySession {
     }
 
     public func choosePostBattleTalent(nodeID: String, treeID: String) -> TalentUnlockResult {
-        prunePostBattleTalentCombatantIDs()
-        guard let combatantID = currentPostBattleTalentCombatantID else {
-            return .unavailable
-        }
-        let result = playerSave.unlockTalent(
-            nodeID: nodeID,
-            treeID: treeID,
-            for: combatantID,
-        )
-        if result == .unlocked {
-            pendingTalentConfirmation = TalentConfirmation(combatantID: combatantID)
-            if !playerSave.roster.hasUnlockableTalent(for: combatantID) {
-                postBattleTalentCombatantIDs.removeAll(where: { $0 == combatantID })
-            }
-        }
-        return result
+        postBattleTalentChoices.choose(nodeID: nodeID, treeID: treeID, in: playerSave)
     }
 
     public func dismissPostBattleTalentChoice() {
-        pendingTalentConfirmation = nil
-        postBattleTalentCombatantIDs.removeAll(keepingCapacity: true)
+        postBattleTalentChoices.dismiss()
     }
 
     public func finishPostBattleTalentConfirmation(id: UUID) {
-        guard pendingTalentConfirmation?.id == id else { return }
-        pendingTalentConfirmation = nil
-        prunePostBattleTalentCombatantIDs()
+        postBattleTalentChoices.finishConfirmation(id: id, roster: playerSave.roster)
     }
 
     func clearTransientState() {
@@ -291,16 +262,12 @@ public final class PlaySession {
         for combatants: [Combatant],
         progressionsBefore: [String: CombatantProgression],
     ) {
-        let progressionsBefore = progressionsBefore.merging(battleCompletion.deferredDefeatTalentProgressions) { _, deferred in deferred }
+        postBattleTalentChoices.queue(
+            for: combatants,
+            progressionsBefore: progressionsBefore,
+            deferredProgressions: battleCompletion.deferredDefeatTalentProgressions,
+            roster: playerSave.roster,
+        )
         battleCompletion.deferredDefeatTalentProgressions.removeAll()
-        let roster = playerSave.roster
-        postBattleTalentCombatantIDs = combatants.compactMap { combatant in
-            guard let before = progressionsBefore[combatant.id] else { return nil }
-            let after = roster.progression(for: combatant)
-            guard after.totalTalentPoints > before.totalTalentPoints,
-                  roster.hasUnlockableTalent(for: combatant.id)
-            else { return nil }
-            return combatant.id
-        }
     }
 }

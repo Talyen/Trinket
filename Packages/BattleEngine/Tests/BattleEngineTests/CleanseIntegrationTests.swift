@@ -46,34 +46,6 @@ struct CleanseIntegrationTests {
         #expect(battle.roster.enemy.currentHealth == enemyHealth)
     }
 
-    @Test(arguments: [false, true])
-    func `mass cleanse heals the other cleansed ally`(primaryHasDebuff: Bool) throws {
-        let owl = try BattleTestFixtures.catalogBuild(
-            combatantID: "library_owl", talents: "library_owl_cleanse_t2_2", "library_owl_cleanse_t1_2",
-        )
-        let cleanse = Ability(id: "mass-cleanse", name: "Cleanse", tier: .basic, targetedEffects: [
-            TargetedEffect(.cleanse(nil), target: .companion),
-        ])
-        var battle = BattleStateTestFactory.makeBattle(companion: owl.combatant, companionModifiers: owl.modifiers)
-        battle.withEngineContext { context in
-            context.appliesFightPacing = false
-            context.roster.hero.currentHealth = 1
-            context.roster.hero.activeEffects = [
-                ActiveEffect(id: 90, effect: .poison(4), remainingTurns: 0, sourceActorID: context.enemy.id),
-            ]
-            if primaryHasDebuff {
-                context.roster.companion.activeEffects = [
-                    ActiveEffect(id: 91, effect: .burn(4), remainingTurns: 0, sourceActorID: context.enemy.id),
-                ]
-            }
-        }
-        battle.hand = BattleHand()
-        _ = BattleCardCombatEngine.deal(cleanse, owner: .companion, context: &battle)
-        _ = try BattleTestFixtures.playCardNamed("Cleanse", owner: .companion, on: &battle)
-        try #expect(!battle.activeEffects(of: battle.hero).contains(where: \.effect.isRemovableDebuff))
-        #expect(battle.health(of: battle.hero) == 3)
-    }
-
     @Test func `panacea cleanses most debuffed and heals lowest as one action`() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",

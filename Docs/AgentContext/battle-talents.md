@@ -28,6 +28,28 @@ Mana restoration into Thorns, including when Mana starts full; it does not
 require a Mana-using Companion. Grove Reserve gives the Companion passive Dodge
 while the owner has unspent Mana.
 
+### Companion chance cadence
+
+Rimewind and the Mana-spend draw/refund talents roll once per eligible
+ability, not per component. Healing Flames, Flame Shield, Radiant Wisdom,
+Purifying Light, Aether Shield, Font of Magic, Living Archive, and Treasure
+Hoard use the same ability cadence. Chilling Scales and Blazing Feathers roll
+once per enemy ability or natural-damage turn. Venom Spores and Ignition Spark
+roll separately at each natural Poison or Burn decay; detonations do not run
+those preservation rolls.
+
+Paralysis rolls on a Poison attack even when Block absorbs all Health damage.
+
+### Companion Gold and Leech
+
+Haggler adds Gold only to a positive steal by a living Retriever; an empty
+steal grants no Gold. Flawless Bounty converts only unallocated excess Leech
+restoration on Lizard Scout into Gold, one for one. The gain cannot restore
+Health or start another Leech. War Chest adds one percentage point of Hero
+Critical Hit chance per Gold gained this combat, subject to the
+existing global chance ceiling. Treasure Hoard cannot draw after the enemy
+dies.
+
 ### Loyal Companion
 
 Loyal Companion draws from the Companion's deck when the wearer actually
@@ -66,7 +88,7 @@ normal Freeze damage and control resolution for both Frost Elemental and Winter 
 
 ### Poison riders and damage conversions
 
-Venomous Skin resolves its immediate Poison damage before attaching stacks.
+Venomous Skin resolves its immediate 1 Poison damage before attaching stacks.
 Prismatic Edge's Burn and allied Thorn Shedding's Poison attach only the Health
 damage their respective hits actually dealt; fully blocked hits attach none.
 Sunwall rolls once per Holy ability and, on success, grants the Companion Block
@@ -78,12 +100,13 @@ again.
 Concussive Force and Martial Guard include Physical reaction and periodic damage,
 not only attacks. Their proportional rewards use actual Health damage; converted
 Block is already resolved and does not receive outgoing Block bonuses again.
-Healing Flames, Flame Shield, and Ember Shield also observe damaging Burn ticks.
-Fully absorbed ticks grant no damage rewards.
+Healing Flames and Flame Shield roll once per Burn ability after positive Health
+damage. Ember Shield still observes damaging Burn ticks. Fully absorbed ticks
+grant no damage rewards.
 
 ### Thick Hide
 
-Thick Hide retains flat reduction 2, restricted to Physical damage.
+Thick Hide reduces Physical damage by 2 only while its owner has Block.
 
 ### Dazing Swipe
 
@@ -138,6 +161,14 @@ potency to the card's Freeze damage; secondary Freeze reactions do not
 activate it. Backdraft increases Critical Hit damage against Burning enemies
 within the existing hit.
 
+### Phoenix rebirth
+
+From the Ashes now lets Phoenix enter Death's Door on its first fatal hit,
+then restores Health. Blazing Rebirth deals its Burn on entry. Afterglow and
+Phoenix Vigor fire only if Phoenix survives until Death's Door expires;
+Lingering Spirit extends that protection and delays those survival rewards.
+Fortified Rebirth and Ashen Ward protect Phoenix only during Death's Door.
+
 ## Card preparation and rewards
 
 ### Quick Fingers
@@ -166,15 +197,21 @@ instead accumulates actual Gold stolen until the next attack. Authored
 `Ability.stealsGold` identifies theft from Steal, Bounty Shot, Blackjack,
 and Tithe; the marker survives outcome resolution and empowerment.
 
-### Shadow Camouflage
+Aftershock Guard, Winter's Wake, Redline, Ashen Vitality, Golden Guard,
+Revealed Flaw, and Sanctified Scroll also reserve their next Block gain,
+typed attack, or Critical Hit bonus for a later ability. Multi-hit creating
+abilities cannot spend them.
 
-Shadow Camouflage grants Panther's normal next-attack Dodge preparation
-(evade, refresh not stack, ordinary Dodge reactions on consume) after Panther
-plays a non-damaging ordinary card. Sniff Out and Predator's Focus now deal
-damage and do not qualify.
-Use shared resolved-action classification (Block-absorbed attacks remain
-damaging; zero Health loss does not make support; preparing future damage is
-not current damage). Automatic abilities and reactions never recursively grant.
+### Panther Dodge preparations
+
+Surprise Strike doubles the next attack after Panther's first Dodge each
+combat. Stalker's Precision ignores Block and Vanish guarantees a Critical
+Hit on the next attack. Counter Pounce returns 2 Bleed damage on Dodge;
+Regroup rolls for one card draw. Preparations refresh instead of stacking.
+
+Lizard Scout's Cold Blood returns Poison on every Dodge; Barbed Tail rolls
+once per Dodge for 4 Bleed damage at 20% chance, limiting simultaneous typed
+retaliation feedback.
 
 ### Sleight of Coin and Jackpot
 
@@ -210,18 +247,20 @@ from Mana-empowered Critical Hits within the existing hit.
 
 ### Dragon’s Patronage and Prismatic Scales
 
-Dragon’s Patronage uses the card owner’s Mana first, then the living patron’s
-Mana, then any existing Block-for-Mana substitution. Spending reactions belong
-to each actual payer. Prismatic Scales empowers existing Burn and Freeze
-damage and supplies a missing element as a damaging hit, charging Mana once.
+Dragon’s Patronage grants 2 Block to Frost Whelp's ally once per Mana-empowered
+ability. Prismatic Scales empowers existing Burn and Freeze damage and
+supplies a missing element as a damaging hit, charging Mana once.
 
 ## Healing and overflow
 
-### Man's Best Friend
+### Sacrificial Guard and Man's Best Friend
 
-Man's Best Friend restores 1 Health to each living ally (no revive) on a
-damaging Hero Critical Hit (enemy target, actual Health loss). Healing
-Critical Hits target allies (not enemies) and never recursively activate.
+Sacrificial Guard lets Golden Retriever's Block absorb incoming damage to its
+Hero ally before the Hero's own Block. Man's Best Friend redirects the first
+non-Health-cost fatal damage to the living Retriever once per combat, after
+all Block absorption and only when Death's Door cannot protect the Hero. The
+redirected damage uses the ordinary damage pipeline;
+the intercept is marked as spent before that resolution starts.
 
 ### Elemental Leech
 
@@ -231,17 +270,16 @@ hit. Overhealing keeps its emitted reactions even when no Health is restored.
 
 ### Shared Leech
 
-Symbiosis and Companion-to-Hero Leech sharing transfer a fraction of actual
-restoration as resolved healing. Do not reroll Critical Hits or apply healing
-magnitude bonuses a second time; ordinary recipient eligibility still applies.
+Symbiosis shares a fraction of actual Leech restoration. Shared Feast transfers
+only excess Leech restoration from Panther to its living ally. Do not reroll
+Critical Hits or apply healing magnitude bonuses a second time.
 
 ### Living Archive, Wishspring, and Marrowmend
 
-Living Archive stores half the resolved card healing on the original
-recipient until the next party turn. Echoes do not reroll Critical Hits,
-reapply healing magnitude bonuses, create further echoes, or revive defeated
-recipients. Wishspring uses the original overhealing amount alongside existing
-Block and maximum-Health conversions. Marrowmend fills existing Block only to 6.
+Living Archive rolls once per Health-restoring ability and gives 3 Thorns to
+one healed ally on success. Wishspring uses the original overhealing amount
+alongside existing Block and maximum-Health conversions. Marrowmend fills
+existing Block only to 6.
 
 ### Shelter Seed, Shared Prescription, and Thorn Shedding
 
@@ -253,13 +291,21 @@ half the remainder to Block. Thorn Shedding converts either ally's Thorns to
 Poison damage with normal Poison application; a Companion's own Resonant Shell
 conversion takes precedence.
 
+### Library Owl restoration and Cleanse
+
+Owl's Aether Shield and Living Archive each roll once per restoring ability
+after actual Health is gained. A successful roll affects one healed ally:
+Aether Shield grants Block equal to their restoration; Living Archive grants
+3 Thorns. Font of Magic rolls once when an ability restores Health or Mana,
+even when it restores both. Purifying Light's automatic Cleanse uses normal
+Cleanse reactions when it succeeds; its 10% chance rolls once per Holy ability.
+
 ## Removal, protection, and Block
 
 ### Guardian
 
-Guardian grants the Hero 2 Block before an incoming Hero-targeted attack
-resolves, once per incoming attack (claimed per action, not per multi-hit
-component; ongoing damage never qualifies).
+Guardian grants the Hero 5 Block before the first qualifying Hero-targeted
+attack each combat. Ongoing damage and Dodged attacks do not consume it.
 
 ### Warning Bark
 
@@ -279,18 +325,18 @@ Shredding restricts mitigation penetration to Physical damage, preserving
 separation from Block penetration. Retaliatory remains Physical damage based
 on actual Health lost (despite the internal Thorns trigger name).
 
-### Lightning Rod and Avalanche Guard
+### Lightning Rod and Aftershock Guard
 
 Lightning Rod adds half the attacker's Block to Stun damage within the existing
-hit. Avalanche Guard still duplicates existing Block without reapplying Block
-bonuses or pacing.
+hit. Aftershock Guard prepares double Block gain after Bear Stuns an enemy;
+the creating ability cannot consume the preparation.
 
 ### Lesson Learned and Undying Ember
 
 Lesson Learned protects each cleansed keyword until the next party turn.
 Protection prevents reapplication, not the associated damaging hit. Undying
-Ember replaces incoming Burn damage with healing during Death’s Door before
-Dodge or Block; existing Burn still decays normally.
+Ember gives Phoenix's outgoing Burn damage Leech only while Phoenix remains on
+Death's Door, including its ongoing Burn damage.
 
 ### Block theft and protection
 

@@ -17,6 +17,8 @@ package extension DamagePipeline {
             target: state.combatant,
             blockedAmount: state.blockedAmount,
             abilityHasLeech: state.options.abilityHasLeech,
+            criticalAttack: state.isCritical && state.options.isAttackHit,
+            attackHit: state.options.isAttackHit,
             damageKeyword: state.damageKeyword,
             in: &context,
         )
@@ -197,15 +199,6 @@ package extension DamagePipeline {
         let target = state.combatant
         let targetAlive = context.roster.health(for: target) > 0
 
-        applyBelowHealthStunBuildup(
-            to: &state,
-            source: source,
-            sourceActorID: sourceActorID,
-            triggers: triggers,
-            target: target,
-            targetAlive: targetAlive,
-            in: &context,
-        )
         applyRangedAndPhysicalAfflictions(
             to: &state,
             sourceActorID: sourceActorID,
@@ -263,15 +256,6 @@ package extension DamagePipeline {
                 in: &context,
             ))
         }
-        applyPhysicalStunAfflictions(
-            to: &state,
-            sourceActorID: sourceActorID,
-            triggers: triggers,
-            keyword: keyword,
-            target: target,
-            targetAlive: targetAlive,
-            in: &context,
-        )
         if triggers.onPhysicalDamageGainBlock > 0, keyword == .physical {
             appendAttackerBlock(triggers.onPhysicalDamageGainBlock, abilityName: "Bone Shield", state: &state, context: &context)
         }
@@ -417,7 +401,9 @@ package extension DamagePipeline {
             appendTargetBleed(potency: 1, state: &state, context: &context)
         }
         if triggers.dazingSwipeChancePercent > 0, triggers.dazingSwipeStunDamage > 0,
-           state.options.isAttackHit, !state.options.isRetaliation, targetAlive,
+           state.options.isAttackHit, state.damageKeyword == .physical,
+           !state.options.isRetaliation, targetAlive,
+           context.claimTalentAbility("Dazing Swipe", actorID: sourceActorID),
            BattleChance.succeeds(probability: triggers.dazingSwipeChancePercent, using: &context.rng) {
             state.damageEvents.append(contentsOf: resolveNestedDamage(
                 amount: triggers.dazingSwipeStunDamage,
@@ -463,25 +449,6 @@ package extension DamagePipeline {
             source: source.combatant,
             in: &context,
         ))
-        // Man's Best Friend: damaging Hero Critical Hits restore Health to each living ally.
-        if source.combatant.role == .hero,
-           context.roster.companion.isAlive,
-           context.companionModifiers.triggers.heroCritHealPartyFlat > 0 {
-            let amount = context.companionModifiers.triggers.heroCritHealPartyFlat
-            for (_, member) in CombatTriggerEngine.livingPartyMembers(in: context) {
-                state.damageEvents.append(contentsOf: context.healEmitting(
-                    amount: amount,
-                    target: member.combatant,
-                    source: source.combatant,
-                    abilityName: CombatTriggerEngine.triggerAbilityName(
-                        "heroCritHealPartyFlat",
-                        for: context.roster.companion.combatant,
-                        fallback: "Man's Best Friend",
-                        in: context,
-                    ),
-                ))
-            }
-        }
     }
 
     static func applyHolyStunReactions(
@@ -532,8 +499,14 @@ package extension DamagePipeline {
               context.roster.health(for: state.combatant) > 0
         else { return }
         let wasControlled = context.roster.hasControlStatus(for: state.combatant, keyword: damageKeyword)
+        let criticalMultiplier: Double = if damageKeyword == .freeze, state.isCritical, state.options.isAttackHit,
+                                            let sourceActorID = state.sourceActorID {
+            context.modifiers(for: sourceActorID).triggers.freezeCriticalBuildupMultiplier
+        } else {
+            1
+        }
         state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-            state.remaining,
+            CombatRounding.scaled(state.remaining, multiplier: criticalMultiplier),
             keyword: damageKeyword,
             to: state.combatant,
             sourceActorID: state.sourceActorID,

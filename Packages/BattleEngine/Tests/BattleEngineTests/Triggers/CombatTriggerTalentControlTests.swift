@@ -5,20 +5,6 @@ import TrinketCore
 @testable import BattleEngine
 
 struct CombatTriggerTalentControlTests {
-    @Test func `avalanche guard doubles party block without reapplying outgoing bonuses`() {
-        var profile = CombatantTalentCatalog.profile(for: ["bear_block_t4_1"])
-        profile.blockGainedBonus = 3
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
-        DefensePoolEngine.set(5, on: battle.hero, in: &battle)
-        DefensePoolEngine.set(7, on: battle.companion, in: &battle)
-        _ = ControlMeterEngine.applyMeterCharge(
-            ControlMeterEngine.threshold(for: battle.enemy, in: battle), keyword: .freeze,
-            to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false, in: &battle,
-        )
-        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 10)
-        #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == 14)
-    }
-
     @Test func `freeze buildup does not decay`() {
         var battle = BattleTestFixtures.makePipelineContext()
         BattleStateTestFactory.seedActiveEffects(

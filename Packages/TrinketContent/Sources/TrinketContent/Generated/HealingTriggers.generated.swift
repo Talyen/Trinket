@@ -15,7 +15,6 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var holyDamageHealFlat: Int = 0
     public var healthRestoredPoisonPercent: Double = 0
     public var healthPerTurn: Int = 0
-    public var heroCritHealPartyFlat: Int = 0
     public var overhealConvertsToBlock: Bool = false
     public var overhealConvertsToMaxHealth: Bool = false
     public var overhealConvertsToMaxHealthCap: Int = 0
@@ -78,6 +77,28 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var shelterSeedBlock: Int = 0
     public var sharedRootsHealPercent: Double = 0
     public var returningBloomHeal: Int = 0
+    public var excessLeechHealthToGold: Bool = false
+    public var bleedAttackLeechBelowHealthThreshold: Double = 0
+    public var leechOverflowShareAlly: Bool = false
+    public var leechCriticalAllyBlock: Int = 0
+    public var enemyCannotLeechFromTarget: Bool = false
+    public var leechHealingVsBleedingMultiplier: Double = 1
+    public var allyAttackLeechChancePercent: Double = 0
+    public var bleedCriticalHasLeech: Bool = false
+    public var healBelowHalfMultiplier: Double = 1
+    public var burnAttackHealLowestChancePercent: Double = 0
+    public var burnAttackHealLowestAmount: Int = 0
+    public var overhealNextBurnBonus: Int = 0
+    public var firstHealthRestorationDrawBattle: Bool = false
+    public var partyCritChanceWhileCompanionBelowHalf: Double = 0
+    public var healthRestorationCleansesOne: Bool = false
+    public var excessHealthShareAlly: Bool = false
+    public var healthRestoreNextIncomingDamageMultiplier: Double = 1
+    public var healingMultiplier: Double = 1
+    public var healthRestoreBlockChancePercent: Double = 0
+    public var healthOrManaRestoreDrawChancePercent: Double = 0
+    public var healthRestoreThornsChancePercent: Double = 0
+    public var healthRestoreThornsAmount: Int = 0
 
     public init(
         contagiousJoy: Bool = false,
@@ -91,7 +112,6 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         holyDamageHealFlat: Int = 0,
         healthRestoredPoisonPercent: Double = 0,
         healthPerTurn: Int = 0,
-        heroCritHealPartyFlat: Int = 0,
         overhealConvertsToBlock: Bool = false,
         overhealConvertsToMaxHealth: Bool = false,
         overhealConvertsToMaxHealthCap: Int = 0,
@@ -153,7 +173,29 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         pruningHealthRemoveEnemyThorns: Int = 0,
         shelterSeedBlock: Int = 0,
         sharedRootsHealPercent: Double = 0,
-        returningBloomHeal: Int = 0
+        returningBloomHeal: Int = 0,
+        excessLeechHealthToGold: Bool = false,
+        bleedAttackLeechBelowHealthThreshold: Double = 0,
+        leechOverflowShareAlly: Bool = false,
+        leechCriticalAllyBlock: Int = 0,
+        enemyCannotLeechFromTarget: Bool = false,
+        leechHealingVsBleedingMultiplier: Double = 1,
+        allyAttackLeechChancePercent: Double = 0,
+        bleedCriticalHasLeech: Bool = false,
+        healBelowHalfMultiplier: Double = 1,
+        burnAttackHealLowestChancePercent: Double = 0,
+        burnAttackHealLowestAmount: Int = 0,
+        overhealNextBurnBonus: Int = 0,
+        firstHealthRestorationDrawBattle: Bool = false,
+        partyCritChanceWhileCompanionBelowHalf: Double = 0,
+        healthRestorationCleansesOne: Bool = false,
+        excessHealthShareAlly: Bool = false,
+        healthRestoreNextIncomingDamageMultiplier: Double = 1,
+        healingMultiplier: Double = 1,
+        healthRestoreBlockChancePercent: Double = 0,
+        healthOrManaRestoreDrawChancePercent: Double = 0,
+        healthRestoreThornsChancePercent: Double = 0,
+        healthRestoreThornsAmount: Int = 0
     ) {
         self.contagiousJoy = contagiousJoy
         self.livingArchive = livingArchive
@@ -166,7 +208,6 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         self.holyDamageHealFlat = holyDamageHealFlat
         self.healthRestoredPoisonPercent = healthRestoredPoisonPercent
         self.healthPerTurn = healthPerTurn
-        self.heroCritHealPartyFlat = heroCritHealPartyFlat
         self.overhealConvertsToBlock = overhealConvertsToBlock
         self.overhealConvertsToMaxHealth = overhealConvertsToMaxHealth
         self.overhealConvertsToMaxHealthCap = overhealConvertsToMaxHealthCap
@@ -229,10 +270,32 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         self.shelterSeedBlock = shelterSeedBlock
         self.sharedRootsHealPercent = sharedRootsHealPercent
         self.returningBloomHeal = returningBloomHeal
+        self.excessLeechHealthToGold = excessLeechHealthToGold
+        self.bleedAttackLeechBelowHealthThreshold = bleedAttackLeechBelowHealthThreshold
+        self.leechOverflowShareAlly = leechOverflowShareAlly
+        self.leechCriticalAllyBlock = leechCriticalAllyBlock
+        self.enemyCannotLeechFromTarget = enemyCannotLeechFromTarget
+        self.leechHealingVsBleedingMultiplier = leechHealingVsBleedingMultiplier
+        self.allyAttackLeechChancePercent = allyAttackLeechChancePercent
+        self.bleedCriticalHasLeech = bleedCriticalHasLeech
+        self.healBelowHalfMultiplier = healBelowHalfMultiplier
+        self.burnAttackHealLowestChancePercent = burnAttackHealLowestChancePercent
+        self.burnAttackHealLowestAmount = burnAttackHealLowestAmount
+        self.overhealNextBurnBonus = overhealNextBurnBonus
+        self.firstHealthRestorationDrawBattle = firstHealthRestorationDrawBattle
+        self.partyCritChanceWhileCompanionBelowHalf = partyCritChanceWhileCompanionBelowHalf
+        self.healthRestorationCleansesOne = healthRestorationCleansesOne
+        self.excessHealthShareAlly = excessHealthShareAlly
+        self.healthRestoreNextIncomingDamageMultiplier = healthRestoreNextIncomingDamageMultiplier
+        self.healingMultiplier = healingMultiplier
+        self.healthRestoreBlockChancePercent = healthRestoreBlockChancePercent
+        self.healthOrManaRestoreDrawChancePercent = healthOrManaRestoreDrawChancePercent
+        self.healthRestoreThornsChancePercent = healthRestoreThornsChancePercent
+        self.healthRestoreThornsAmount = healthRestoreThornsAmount
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["contagiousJoy", "livingArchive", "marrowmend", "wishspring", "cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "heroCritHealPartyFlat", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "freezeDamageLeechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "coolingSalve", "sharedPrescription", "cleansingDew", "onAttackBleedingEnemyHeal", "overhealFirstBlockPerTurn", "leechBonusHealVsStunned", "onHealDealHoly", "bleedingEnemyHealingMultiplier", "darkRecoveryMultiplier", "leechToFullNextAttackBonus", "leechBlockBelowHalf", "burningEnemyHealingMultiplier", "healthRestoreDrawChancePercent", "overhealToBlockPercent", "healthRestoreNextPoisonBonus", "healthRestoreManaChancePercent", "springSapHealthBonus", "pruningHealthRemoveEnemyThorns", "shelterSeedBlock", "sharedRootsHealPercent", "returningBloomHeal"]
+    public static let fieldNames: [String] = ["contagiousJoy", "livingArchive", "marrowmend", "wishspring", "cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "freezeDamageLeechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "coolingSalve", "sharedPrescription", "cleansingDew", "onAttackBleedingEnemyHeal", "overhealFirstBlockPerTurn", "leechBonusHealVsStunned", "onHealDealHoly", "bleedingEnemyHealingMultiplier", "darkRecoveryMultiplier", "leechToFullNextAttackBonus", "leechBlockBelowHalf", "burningEnemyHealingMultiplier", "healthRestoreDrawChancePercent", "overhealToBlockPercent", "healthRestoreNextPoisonBonus", "healthRestoreManaChancePercent", "springSapHealthBonus", "pruningHealthRemoveEnemyThorns", "shelterSeedBlock", "sharedRootsHealPercent", "returningBloomHeal", "excessLeechHealthToGold", "bleedAttackLeechBelowHealthThreshold", "leechOverflowShareAlly", "leechCriticalAllyBlock", "enemyCannotLeechFromTarget", "leechHealingVsBleedingMultiplier", "allyAttackLeechChancePercent", "bleedCriticalHasLeech", "healBelowHalfMultiplier", "burnAttackHealLowestChancePercent", "burnAttackHealLowestAmount", "overhealNextBurnBonus", "firstHealthRestorationDrawBattle", "partyCritChanceWhileCompanionBelowHalf", "healthRestorationCleansesOne", "excessHealthShareAlly", "healthRestoreNextIncomingDamageMultiplier", "healingMultiplier", "healthRestoreBlockChancePercent", "healthOrManaRestoreDrawChancePercent", "healthRestoreThornsChancePercent", "healthRestoreThornsAmount"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -248,7 +311,6 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         if self.holyDamageHealFlat != other.holyDamageHealFlat { names.append("holyDamageHealFlat") }
         if self.healthRestoredPoisonPercent != other.healthRestoredPoisonPercent { names.append("healthRestoredPoisonPercent") }
         if self.healthPerTurn != other.healthPerTurn { names.append("healthPerTurn") }
-        if self.heroCritHealPartyFlat != other.heroCritHealPartyFlat { names.append("heroCritHealPartyFlat") }
         if self.overhealConvertsToBlock != other.overhealConvertsToBlock { names.append("overhealConvertsToBlock") }
         if self.overhealConvertsToMaxHealth != other.overhealConvertsToMaxHealth { names.append("overhealConvertsToMaxHealth") }
         if self.overhealConvertsToMaxHealthCap != other.overhealConvertsToMaxHealthCap { names.append("overhealConvertsToMaxHealthCap") }
@@ -311,6 +373,28 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         if self.shelterSeedBlock != other.shelterSeedBlock { names.append("shelterSeedBlock") }
         if self.sharedRootsHealPercent != other.sharedRootsHealPercent { names.append("sharedRootsHealPercent") }
         if self.returningBloomHeal != other.returningBloomHeal { names.append("returningBloomHeal") }
+        if self.excessLeechHealthToGold != other.excessLeechHealthToGold { names.append("excessLeechHealthToGold") }
+        if self.bleedAttackLeechBelowHealthThreshold != other.bleedAttackLeechBelowHealthThreshold { names.append("bleedAttackLeechBelowHealthThreshold") }
+        if self.leechOverflowShareAlly != other.leechOverflowShareAlly { names.append("leechOverflowShareAlly") }
+        if self.leechCriticalAllyBlock != other.leechCriticalAllyBlock { names.append("leechCriticalAllyBlock") }
+        if self.enemyCannotLeechFromTarget != other.enemyCannotLeechFromTarget { names.append("enemyCannotLeechFromTarget") }
+        if self.leechHealingVsBleedingMultiplier != other.leechHealingVsBleedingMultiplier { names.append("leechHealingVsBleedingMultiplier") }
+        if self.allyAttackLeechChancePercent != other.allyAttackLeechChancePercent { names.append("allyAttackLeechChancePercent") }
+        if self.bleedCriticalHasLeech != other.bleedCriticalHasLeech { names.append("bleedCriticalHasLeech") }
+        if self.healBelowHalfMultiplier != other.healBelowHalfMultiplier { names.append("healBelowHalfMultiplier") }
+        if self.burnAttackHealLowestChancePercent != other.burnAttackHealLowestChancePercent { names.append("burnAttackHealLowestChancePercent") }
+        if self.burnAttackHealLowestAmount != other.burnAttackHealLowestAmount { names.append("burnAttackHealLowestAmount") }
+        if self.overhealNextBurnBonus != other.overhealNextBurnBonus { names.append("overhealNextBurnBonus") }
+        if self.firstHealthRestorationDrawBattle != other.firstHealthRestorationDrawBattle { names.append("firstHealthRestorationDrawBattle") }
+        if self.partyCritChanceWhileCompanionBelowHalf != other.partyCritChanceWhileCompanionBelowHalf { names.append("partyCritChanceWhileCompanionBelowHalf") }
+        if self.healthRestorationCleansesOne != other.healthRestorationCleansesOne { names.append("healthRestorationCleansesOne") }
+        if self.excessHealthShareAlly != other.excessHealthShareAlly { names.append("excessHealthShareAlly") }
+        if self.healthRestoreNextIncomingDamageMultiplier != other.healthRestoreNextIncomingDamageMultiplier { names.append("healthRestoreNextIncomingDamageMultiplier") }
+        if self.healingMultiplier != other.healingMultiplier { names.append("healingMultiplier") }
+        if self.healthRestoreBlockChancePercent != other.healthRestoreBlockChancePercent { names.append("healthRestoreBlockChancePercent") }
+        if self.healthOrManaRestoreDrawChancePercent != other.healthOrManaRestoreDrawChancePercent { names.append("healthOrManaRestoreDrawChancePercent") }
+        if self.healthRestoreThornsChancePercent != other.healthRestoreThornsChancePercent { names.append("healthRestoreThornsChancePercent") }
+        if self.healthRestoreThornsAmount != other.healthRestoreThornsAmount { names.append("healthRestoreThornsAmount") }
         return names
     }
 }
@@ -328,7 +412,6 @@ extension HealingTriggers {
         holyDamageHealFlat += other.holyDamageHealFlat
         healthRestoredPoisonPercent += other.healthRestoredPoisonPercent
         healthPerTurn += other.healthPerTurn
-        heroCritHealPartyFlat += other.heroCritHealPartyFlat
         overhealConvertsToBlock = overhealConvertsToBlock || other.overhealConvertsToBlock
         overhealConvertsToMaxHealth = overhealConvertsToMaxHealth || other.overhealConvertsToMaxHealth
         overhealConvertsToMaxHealthCap = max(overhealConvertsToMaxHealthCap, other.overhealConvertsToMaxHealthCap)
@@ -391,6 +474,28 @@ extension HealingTriggers {
         shelterSeedBlock += other.shelterSeedBlock
         sharedRootsHealPercent += other.sharedRootsHealPercent
         returningBloomHeal += other.returningBloomHeal
+        excessLeechHealthToGold = excessLeechHealthToGold || other.excessLeechHealthToGold
+        bleedAttackLeechBelowHealthThreshold += other.bleedAttackLeechBelowHealthThreshold
+        leechOverflowShareAlly = leechOverflowShareAlly || other.leechOverflowShareAlly
+        leechCriticalAllyBlock += other.leechCriticalAllyBlock
+        enemyCannotLeechFromTarget = enemyCannotLeechFromTarget || other.enemyCannotLeechFromTarget
+        leechHealingVsBleedingMultiplier *= other.leechHealingVsBleedingMultiplier
+        allyAttackLeechChancePercent += other.allyAttackLeechChancePercent
+        bleedCriticalHasLeech = bleedCriticalHasLeech || other.bleedCriticalHasLeech
+        healBelowHalfMultiplier *= other.healBelowHalfMultiplier
+        burnAttackHealLowestChancePercent += other.burnAttackHealLowestChancePercent
+        burnAttackHealLowestAmount += other.burnAttackHealLowestAmount
+        overhealNextBurnBonus += other.overhealNextBurnBonus
+        firstHealthRestorationDrawBattle = firstHealthRestorationDrawBattle || other.firstHealthRestorationDrawBattle
+        partyCritChanceWhileCompanionBelowHalf += other.partyCritChanceWhileCompanionBelowHalf
+        healthRestorationCleansesOne = healthRestorationCleansesOne || other.healthRestorationCleansesOne
+        excessHealthShareAlly = excessHealthShareAlly || other.excessHealthShareAlly
+        healthRestoreNextIncomingDamageMultiplier *= other.healthRestoreNextIncomingDamageMultiplier
+        healingMultiplier *= other.healingMultiplier
+        healthRestoreBlockChancePercent += other.healthRestoreBlockChancePercent
+        healthOrManaRestoreDrawChancePercent += other.healthOrManaRestoreDrawChancePercent
+        healthRestoreThornsChancePercent += other.healthRestoreThornsChancePercent
+        healthRestoreThornsAmount += other.healthRestoreThornsAmount
     }
 }
 
@@ -409,7 +514,6 @@ extension HealingTriggers {
             holyDamageHealFlat: values.decode(Int.self, "holyDamageHealFlat", default: 0),
             healthRestoredPoisonPercent: values.decode(Double.self, "healthRestoredPoisonPercent", default: 0),
             healthPerTurn: values.decode(Int.self, "healthPerTurn", default: 0),
-            heroCritHealPartyFlat: values.decode(Int.self, "heroCritHealPartyFlat", default: 0),
             overhealConvertsToBlock: values.decode(Bool.self, "overhealConvertsToBlock", default: false),
             overhealConvertsToMaxHealth: values.decode(Bool.self, "overhealConvertsToMaxHealth", default: false),
             overhealConvertsToMaxHealthCap: values.decode(Int.self, "overhealConvertsToMaxHealthCap", default: 0),
@@ -471,7 +575,29 @@ extension HealingTriggers {
             pruningHealthRemoveEnemyThorns: values.decode(Int.self, "pruningHealthRemoveEnemyThorns", default: 0),
             shelterSeedBlock: values.decode(Int.self, "shelterSeedBlock", default: 0),
             sharedRootsHealPercent: values.decode(Double.self, "sharedRootsHealPercent", default: 0),
-            returningBloomHeal: values.decode(Int.self, "returningBloomHeal", default: 0)
+            returningBloomHeal: values.decode(Int.self, "returningBloomHeal", default: 0),
+            excessLeechHealthToGold: values.decode(Bool.self, "excessLeechHealthToGold", default: false),
+            bleedAttackLeechBelowHealthThreshold: values.decode(Double.self, "bleedAttackLeechBelowHealthThreshold", default: 0),
+            leechOverflowShareAlly: values.decode(Bool.self, "leechOverflowShareAlly", default: false),
+            leechCriticalAllyBlock: values.decode(Int.self, "leechCriticalAllyBlock", default: 0),
+            enemyCannotLeechFromTarget: values.decode(Bool.self, "enemyCannotLeechFromTarget", default: false),
+            leechHealingVsBleedingMultiplier: values.decode(Double.self, "leechHealingVsBleedingMultiplier", default: 1),
+            allyAttackLeechChancePercent: values.decode(Double.self, "allyAttackLeechChancePercent", default: 0),
+            bleedCriticalHasLeech: values.decode(Bool.self, "bleedCriticalHasLeech", default: false),
+            healBelowHalfMultiplier: values.decode(Double.self, "healBelowHalfMultiplier", default: 1),
+            burnAttackHealLowestChancePercent: values.decode(Double.self, "burnAttackHealLowestChancePercent", default: 0),
+            burnAttackHealLowestAmount: values.decode(Int.self, "burnAttackHealLowestAmount", default: 0),
+            overhealNextBurnBonus: values.decode(Int.self, "overhealNextBurnBonus", default: 0),
+            firstHealthRestorationDrawBattle: values.decode(Bool.self, "firstHealthRestorationDrawBattle", default: false),
+            partyCritChanceWhileCompanionBelowHalf: values.decode(Double.self, "partyCritChanceWhileCompanionBelowHalf", default: 0),
+            healthRestorationCleansesOne: values.decode(Bool.self, "healthRestorationCleansesOne", default: false),
+            excessHealthShareAlly: values.decode(Bool.self, "excessHealthShareAlly", default: false),
+            healthRestoreNextIncomingDamageMultiplier: values.decode(Double.self, "healthRestoreNextIncomingDamageMultiplier", default: 1),
+            healingMultiplier: values.decode(Double.self, "healingMultiplier", default: 1),
+            healthRestoreBlockChancePercent: values.decode(Double.self, "healthRestoreBlockChancePercent", default: 0),
+            healthOrManaRestoreDrawChancePercent: values.decode(Double.self, "healthOrManaRestoreDrawChancePercent", default: 0),
+            healthRestoreThornsChancePercent: values.decode(Double.self, "healthRestoreThornsChancePercent", default: 0),
+            healthRestoreThornsAmount: values.decode(Int.self, "healthRestoreThornsAmount", default: 0)
         )
     }
 
@@ -487,7 +613,6 @@ extension HealingTriggers {
         try container.encodeNonDefault(holyDamageHealFlat, "holyDamageHealFlat", default: 0)
         try container.encodeNonDefault(healthRestoredPoisonPercent, "healthRestoredPoisonPercent", default: 0)
         try container.encodeNonDefault(healthPerTurn, "healthPerTurn", default: 0)
-        try container.encodeNonDefault(heroCritHealPartyFlat, "heroCritHealPartyFlat", default: 0)
         try container.encodeNonDefault(overhealConvertsToBlock, "overhealConvertsToBlock", default: false)
         try container.encodeNonDefault(overhealConvertsToMaxHealth, "overhealConvertsToMaxHealth", default: false)
         try container.encodeNonDefault(overhealConvertsToMaxHealthCap, "overhealConvertsToMaxHealthCap", default: 0)
@@ -550,5 +675,27 @@ extension HealingTriggers {
         try container.encodeNonDefault(shelterSeedBlock, "shelterSeedBlock", default: 0)
         try container.encodeNonDefault(sharedRootsHealPercent, "sharedRootsHealPercent", default: 0)
         try container.encodeNonDefault(returningBloomHeal, "returningBloomHeal", default: 0)
+        try container.encodeNonDefault(excessLeechHealthToGold, "excessLeechHealthToGold", default: false)
+        try container.encodeNonDefault(bleedAttackLeechBelowHealthThreshold, "bleedAttackLeechBelowHealthThreshold", default: 0)
+        try container.encodeNonDefault(leechOverflowShareAlly, "leechOverflowShareAlly", default: false)
+        try container.encodeNonDefault(leechCriticalAllyBlock, "leechCriticalAllyBlock", default: 0)
+        try container.encodeNonDefault(enemyCannotLeechFromTarget, "enemyCannotLeechFromTarget", default: false)
+        try container.encodeNonDefault(leechHealingVsBleedingMultiplier, "leechHealingVsBleedingMultiplier", default: 1)
+        try container.encodeNonDefault(allyAttackLeechChancePercent, "allyAttackLeechChancePercent", default: 0)
+        try container.encodeNonDefault(bleedCriticalHasLeech, "bleedCriticalHasLeech", default: false)
+        try container.encodeNonDefault(healBelowHalfMultiplier, "healBelowHalfMultiplier", default: 1)
+        try container.encodeNonDefault(burnAttackHealLowestChancePercent, "burnAttackHealLowestChancePercent", default: 0)
+        try container.encodeNonDefault(burnAttackHealLowestAmount, "burnAttackHealLowestAmount", default: 0)
+        try container.encodeNonDefault(overhealNextBurnBonus, "overhealNextBurnBonus", default: 0)
+        try container.encodeNonDefault(firstHealthRestorationDrawBattle, "firstHealthRestorationDrawBattle", default: false)
+        try container.encodeNonDefault(partyCritChanceWhileCompanionBelowHalf, "partyCritChanceWhileCompanionBelowHalf", default: 0)
+        try container.encodeNonDefault(healthRestorationCleansesOne, "healthRestorationCleansesOne", default: false)
+        try container.encodeNonDefault(excessHealthShareAlly, "excessHealthShareAlly", default: false)
+        try container.encodeNonDefault(healthRestoreNextIncomingDamageMultiplier, "healthRestoreNextIncomingDamageMultiplier", default: 1)
+        try container.encodeNonDefault(healingMultiplier, "healingMultiplier", default: 1)
+        try container.encodeNonDefault(healthRestoreBlockChancePercent, "healthRestoreBlockChancePercent", default: 0)
+        try container.encodeNonDefault(healthOrManaRestoreDrawChancePercent, "healthOrManaRestoreDrawChancePercent", default: 0)
+        try container.encodeNonDefault(healthRestoreThornsChancePercent, "healthRestoreThornsChancePercent", default: 0)
+        try container.encodeNonDefault(healthRestoreThornsAmount, "healthRestoreThornsAmount", default: 0)
     }
 }

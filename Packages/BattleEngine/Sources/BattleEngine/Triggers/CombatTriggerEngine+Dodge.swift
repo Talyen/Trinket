@@ -136,7 +136,7 @@ package extension CombatTriggerEngine {
                 keyword: .freeze,
                 amount: profile.triggers.dodgeDealFreezeFlat,
                 key: "dodgeDealFreezeFlat",
-                fallback: "Rimewind",
+                fallback: "Wing Buffet",
                 for: combatant,
                 in: &context,
             ))
@@ -227,6 +227,7 @@ package extension CombatTriggerEngine {
             })
         }
 
+        events.append(contentsOf: afterCompanionDodge(by: combatant, in: &context))
         return events
     }
 

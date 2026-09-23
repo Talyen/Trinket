@@ -62,7 +62,7 @@ extension TalentMigrationTests {
         #expect(battle.health(of: battle.hero) > 10)
     }
 
-    @Test func `cleanSlate caps at one per turn`() {
+    @Test func `cleanSlate cleanses once per excess restoration`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(cleanSlate: true)))
         battle.withEngineContext { ctx in
             ctx.roster.setActiveEffects([
@@ -78,7 +78,7 @@ extension TalentMigrationTests {
         let remainingDebuffs = battle.activeEffects(of: battle.hero).count(
             where: { $0.effect.keyword == .poison || $0.effect.keyword == .burn },
         )
-        #expect(remainingDebuffs == 1)
+        #expect(remainingDebuffs == 0)
     }
 
     @Test func `purifyingWaters does not heal when enemy cleanses`() {

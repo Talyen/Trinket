@@ -70,8 +70,10 @@ talent choices. Interruption or backgrounding finishes the same keyed exit witho
 replaying feedback or granting rewards again. Animation timing never authorizes a
 save, and a stale callback cannot dismiss a newer battle.
 
-Post-battle Talent choices persist before their short unlock confirmation. Play
-retains the displayed combatant under a unique confirmation token, even after
+Post-battle Talent choices persist before their short unlock confirmation.
+`PostBattleTalentChoices` owns the transient queue and token; `PlaySession`
+forwards screen actions and queues only after battle settlement. The choice
+owner retains the displayed combatant under a unique confirmation token, even after
 their last point is spent. Finishing that token exposes the next eligible
 combatant or dismisses the sheet. Additional legal choices replace the token;
 stale completions cannot advance the flow. Dismissal clears the presentation,

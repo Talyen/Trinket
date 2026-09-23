@@ -48,22 +48,6 @@ struct BattleMechanicsTests {
         #expect(battle.gold == 0)
     }
 
-    @Test(arguments: [(80, 0.10), (81, 0.20)])
-    func `pack bloodlust requires health above eighty percent`(health: Int, expectedChance: Double) {
-        let battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 100),
-            enemy: CombatantFixtures.passiveEnemy(),
-            companionHealth: health,
-            companionModifiers: CombatantTalentCatalog.profile(for: ["panther_leech_t3_2"]),
-        )
-        for actor in [battle.hero, battle.companion] {
-            #expect(CriticalChanceEngine.chance(
-                actorID: actor.id, defender: battle.enemy, in: battle,
-            ) == expectedChance)
-        }
-    }
-
     @Test(arguments: [false, true])
     func `dodge critical summary matches who can consume the bonus`(partyWide: Bool) {
         var battle = BattleStateTestFactory.makeMinimalBattle(
@@ -129,26 +113,6 @@ struct BattleMechanicsTests {
         #expect(hit.isCritical)
         #expect(hit.healthLost == 4)
         #expect(!battle.roster.companion.talents.pending.guaranteedCriticalAfterDodge)
-    }
-
-    @Test func `block gained from reflected damage survives the incoming hit`() {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionEffects: [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 0)],
-            enemyEffects: [ActiveEffect(id: 2, effect: .shield(.block, 20), remainingTurns: 0)],
-            heroModifiers: CombatantTalentCatalog.profile(for: ["wizard_freeze_t4_1"]),
-            companionModifiers: CombatantTalentCatalog.profile(for: ["golden_retriever_block_t4_1"]),
-        )
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 5, target: battle.companion, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: DamageOperation.effect(scaling: .statsAndItems, accuracy: .unavoidable),
-        ))
-        #expect(outcome.healthLost == 0)
-        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 5)
-        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.companion)) == 20)
-        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 15)
     }
 
     private func makeContext(

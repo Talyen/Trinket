@@ -66,14 +66,21 @@ package extension BattleState {
         } else {
             (keyword, buffer) = (.block, amount)
         }
+        let (adjustedBuffer, spendsPreparation) = adjustedBlockGain(buffer, to: target)
         let applied = DefensePoolEngine.add(
-            buffer,
+            adjustedBuffer,
             to: target,
             keyword: keyword,
             sourceActorID: source.id,
             applyFightPacing: amountBasis == .base,
             in: &self,
         )
+        if applied > 0, spendsPreparation {
+            roster.mutateRuntime(for: target) {
+                $0.talents.pending.nextBlockGainMultiplier = 1
+                $0.talents.pending.nextBlockGainPreparedCardSerial = nil
+            }
+        }
         var events = [nextEvent(
             kind: .effect,
             effectKind: .shieldApplied,
@@ -90,6 +97,20 @@ package extension BattleState {
             in: &self,
         ))
         return BlockGain(applied: applied, events: events)
+    }
+
+    private mutating func adjustedBlockGain(_ amount: Int, to target: Combatant) -> (Int, Bool) {
+        let triggers = modifiers(for: target.id).triggers
+        let belowHalf = roster.health(for: target) * 2 < roster.maxHealth(for: target)
+        let healthMultiplier = belowHalf ? triggers.blockGainBelowHalfMultiplier : 1
+        let pending = roster.runtime(for: target)?.talents.pending
+        let prepared = pending?.nextBlockGainMultiplier ?? 1
+        let spendsPreparation = prepared > 1 && CombatantTalentState.Pending.isLaterAbility(
+            preparedCardSerial: pending?.nextBlockGainPreparedCardSerial,
+            currentCardSerial: resolution.cardTalents?.playSerial,
+        )
+        let multiplier = healthMultiplier * (spendsPreparation ? prepared : 1)
+        return (CombatRounding.scaled(amount, multiplier: multiplier), spendsPreparation)
     }
 
     mutating func interceptDebuff(_ effect: Effect, on target: Combatant) -> Bool {

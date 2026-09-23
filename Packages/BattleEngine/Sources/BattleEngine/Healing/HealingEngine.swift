@@ -31,6 +31,7 @@ package enum HealingEngine {
 
         var allocation = HealingAllocation(resolvedAmount: amount, directRestoration: restored)
         let overflow = allocation.overflow
+        prepareBurnAfterOverheal(overflow: overflow, target: request.target, triggers: targetTriggers, in: &context)
         events.append(contentsOf: applyShelterSeed(
             preHealth: preHealth, maxHealth: maxHealth, restored: restored,
             request: request, sourceTriggers: sourceTriggers, in: &context,
@@ -108,7 +109,7 @@ package enum HealingEngine {
            src.role != .enemy,
            request.target.role != .enemy,
            CombatTriggerEngine.hasLivingPartyTrigger(\.cleanSlate, in: context),
-           context.claimTurnGuard(.cleanSlate, actorID: srcID) {
+           context.resolution.depth(.talentReaction) == 0 {
             CombatTriggerEngine.performRandomCleanses(
                 source: src.combatant,
                 target: request.target,

@@ -10,12 +10,18 @@ package extension HealingEngine {
         target: Combatant? = nil,
         blockedAmount: Int = 0,
         abilityHasLeech: Bool = false,
+        criticalAttack: Bool = false,
+        attackHit: Bool = false,
         damageKeyword: Keyword? = nil,
         in context: inout BattleState,
     ) -> CombatOutcome {
         guard let actor = context.roster.combatant(for: sourceActorID),
               context.roster.health(for: actor.combatant) > 0
         else { return .empty }
+        if actor.role == .enemy, let target,
+           context.modifiers(for: target.id).triggers.enemyCannotLeechFromTarget {
+            return .empty
+        }
         let actorCombatant = actor.combatant
 
         let profile = context.modifiers(for: sourceActorID)
@@ -31,8 +37,16 @@ package extension HealingEngine {
         }
         let keywordGrantsLeech = damageKeyword == .freeze && profile.triggers.freezeDamageLeech
             || damageKeyword == .poison && profile.triggers.poisonDamageLeech
+            || damageKeyword == .poison && criticalAttack && profile.triggers.poisonCriticalHasLeech
+            || damageKeyword == .bleed && criticalAttack && profile.triggers.bleedCriticalHasLeech
             || damageKeyword == .burn && profile.triggers.burnDamageLeech
+            || damageKeyword == .burn && profile.triggers.undyingEmber
+            && context.roster.isDeathsDoorActive(for: actorCombatant)
             || damageKeyword == .bleed && profile.triggers.bleedDamageLeech
+            || damageKeyword == .bleed && attackHit
+            && actor.currentHealth > 0 && actor.maxHealth > 0
+            && Double(actor.currentHealth) / Double(actor.maxHealth)
+            < profile.triggers.bleedAttackLeechBelowHealthThreshold
             || damageKeyword == .physical && profile.triggers.borrowedLife
             && context.roster.isDeathsDoorActive(for: actorCombatant)
         if leechPct == 0, keywordGrantsLeech {
@@ -45,6 +59,15 @@ package extension HealingEngine {
         }
         if leechPct == 0,
            BattleChance.succeeds(probability: min(1, profile.triggers.leechChancePercent + typedChance), using: &context.rng) {
+            leechPct = Effect.abilityLeechPercent
+        }
+        if leechPct == 0, attackHit, actor.role == .hero, context.roster.companion.isAlive,
+           context.companionModifiers.triggers.allyAttackLeechChancePercent > 0,
+           context.claimTalentAbility("Pack Bloodlust", actorID: sourceActorID),
+           BattleChance.succeeds(
+               probability: context.companionModifiers.triggers.allyAttackLeechChancePercent,
+               using: &context.rng,
+           ) {
             leechPct = Effect.abilityLeechPercent
         }
         guard leechPct > 0 else { return .empty }
@@ -73,6 +96,12 @@ package extension HealingEngine {
                 restored = CombatRounding.scaled(restored, multiplier: profile.triggers.leechHealingVsAfflictedMultiplier)
             }
         }
+        if let target, context.roster.hasAffliction(.bleed, on: target),
+           profile.triggers.leechHealingVsBleedingMultiplier > 1 {
+            restored = CombatRounding.scaled(
+                restored, multiplier: profile.triggers.leechHealingVsBleedingMultiplier,
+            )
+        }
         if context.roster.runtime(for: actorCombatant)?.currentMana == 0,
            profile.triggers.darkRecoveryMultiplier > 1 {
             restored = CombatRounding.scaled(restored, multiplier: profile.triggers.darkRecoveryMultiplier)
@@ -90,6 +119,11 @@ package extension HealingEngine {
             ),
             in: &context,
         )
+        if profile.triggers.excessLeechHealthToGold, healing.allocation.remaining > 0 {
+            healing.events.append(contentsOf: context.grantGoldEvent(
+                healing.allocation.remaining, to: actorCombatant, abilityName: "Flawless Bounty",
+            ))
+        }
         guard healing.didLeech else { return healing.combatOutcome }
         let actualRestored = healing.directRestoration
         var events = healing.events

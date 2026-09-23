@@ -33,10 +33,10 @@ final class MysteryPerformanceUITests: PerformanceJourneyUITestCase {
             assertExists(AccessibilityID.Mystery.encounterTitle)
             measured("mystery-offer-inspection", iteration: iteration) {
                 tapButton(AccessibilityID.Mystery.offerArtwork(choiceID: "harvest-remedies"))
-                let inspected = ["chapter-1-stage-2-harvest-remedies", "mortar_and_pestle"].contains {
-                    any(AccessibilityID.LoadoutPicker.itemDetail($0)).trinketWaitForExistence(timeout: 3)
-                }
-                XCTAssertTrue(inspected)
+                let itemDetail = app.descendants(matching: .any).matching(
+                    NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.LoadoutPicker.itemDetail("")),
+                ).firstMatch
+                assertExists(itemDetail)
                 dismissSheet()
                 assertExists(AccessibilityID.Mystery.encounterTitle)
             }

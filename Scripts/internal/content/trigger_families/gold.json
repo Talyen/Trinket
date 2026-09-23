@@ -256,6 +256,60 @@
       "type": "Double",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "goldTheftBlockChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "goldTheftBlockAmount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "goldTheftDrawChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "goldStealFlatBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "goldTheftNextBlockMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "firstGoldTheftDrawBattle",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "allyCriticalChancePerCombatGold",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "blockBreakStealGoldFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "goldTheftHealAllyFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
     }
   ]
 }

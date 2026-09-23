@@ -36,6 +36,7 @@ package extension BattleTurnEngine {
         guard context.roster.health(for: actor) > 0 else { return events }
         if purchases > 0 {
             context.roster.mutateRuntime(for: actor) { $0.talents.action.empoweredByMana = true }
+            events.append(contentsOf: grantDragonPatronageBlock(actor: actor, amount: triggers.manaEmpowerAllyBlock, in: &context))
             if triggers.manaEmpowerNextAttackPercent > 0 {
                 prepareOvercharge(for: actor, percent: triggers.manaEmpowerNextAttackPercent, in: &context)
             }
@@ -70,6 +71,14 @@ package extension BattleTurnEngine {
 }
 
 private extension BattleTurnEngine {
+    static func grantDragonPatronageBlock(actor: Combatant, amount: Int, in context: inout BattleState) -> [ActionEvent] {
+        guard amount > 0, actor.role == .companion, context.roster.hero.isAlive else { return [] }
+        return context.applyBlock(
+            amount, to: context.roster.hero.combatant,
+            source: actor, abilityName: "Dragon’s Patronage",
+        )
+    }
+
     static func prepareOvercharge(for actor: Combatant, percent: Double, in context: inout BattleState) {
         let preparedCardSerial = context.resolution.cardTalents?.playSerial
         context.roster.mutateRuntime(for: actor) {

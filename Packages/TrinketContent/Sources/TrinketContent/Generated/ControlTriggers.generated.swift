@@ -37,11 +37,18 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     public var turnFreezeDamageAllEnemiesInterval: Int = 2
     public var stunPurgeDealHolyPerEffect: Int = 0
     public var lightningRod: Bool = false
-    public var avalancheGuard: Bool = false
     public var stunExtendVsBurning: Bool = false
     public var dodgeDealFreezeFlat: Int = 0
     public var freezeBuildupMultiplier: Double = 1
     public var poisonedEnemyStunBuildupMultiplier: Double = 1
+    public var firstStunAttackBonusPerTurn: Int = 0
+    public var stunBuildupBelowHalfMultiplier: Double = 1
+    public var freezeAttackDrawChancePercent: Double = 0
+    public var onDamageFreezeRetaliationChancePercent: Double = 0
+    public var onDamageFreezeRetaliationDamage: Int = 0
+    public var onFreezeEnemyRestoreMana: Int = 0
+    public var freezeCriticalBuildupMultiplier: Double = 1
+    public var onFreezeEnemyDrawCard: Bool = false
 
     public init(
         stunDamageAddsEnemyBlock: Bool = false,
@@ -77,11 +84,18 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         turnFreezeDamageAllEnemiesInterval: Int = 2,
         stunPurgeDealHolyPerEffect: Int = 0,
         lightningRod: Bool = false,
-        avalancheGuard: Bool = false,
         stunExtendVsBurning: Bool = false,
         dodgeDealFreezeFlat: Int = 0,
         freezeBuildupMultiplier: Double = 1,
-        poisonedEnemyStunBuildupMultiplier: Double = 1
+        poisonedEnemyStunBuildupMultiplier: Double = 1,
+        firstStunAttackBonusPerTurn: Int = 0,
+        stunBuildupBelowHalfMultiplier: Double = 1,
+        freezeAttackDrawChancePercent: Double = 0,
+        onDamageFreezeRetaliationChancePercent: Double = 0,
+        onDamageFreezeRetaliationDamage: Int = 0,
+        onFreezeEnemyRestoreMana: Int = 0,
+        freezeCriticalBuildupMultiplier: Double = 1,
+        onFreezeEnemyDrawCard: Bool = false
     ) {
         self.stunDamageAddsEnemyBlock = stunDamageAddsEnemyBlock
         self.stunRetainedBuildupPercent = stunRetainedBuildupPercent
@@ -116,15 +130,22 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         self.turnFreezeDamageAllEnemiesInterval = turnFreezeDamageAllEnemiesInterval
         self.stunPurgeDealHolyPerEffect = stunPurgeDealHolyPerEffect
         self.lightningRod = lightningRod
-        self.avalancheGuard = avalancheGuard
         self.stunExtendVsBurning = stunExtendVsBurning
         self.dodgeDealFreezeFlat = dodgeDealFreezeFlat
         self.freezeBuildupMultiplier = freezeBuildupMultiplier
         self.poisonedEnemyStunBuildupMultiplier = poisonedEnemyStunBuildupMultiplier
+        self.firstStunAttackBonusPerTurn = firstStunAttackBonusPerTurn
+        self.stunBuildupBelowHalfMultiplier = stunBuildupBelowHalfMultiplier
+        self.freezeAttackDrawChancePercent = freezeAttackDrawChancePercent
+        self.onDamageFreezeRetaliationChancePercent = onDamageFreezeRetaliationChancePercent
+        self.onDamageFreezeRetaliationDamage = onDamageFreezeRetaliationDamage
+        self.onFreezeEnemyRestoreMana = onFreezeEnemyRestoreMana
+        self.freezeCriticalBuildupMultiplier = freezeCriticalBuildupMultiplier
+        self.onFreezeEnemyDrawCard = onFreezeEnemyDrawCard
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["stunDamageAddsEnemyBlock", "stunRetainedBuildupPercent", "freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "flashFreeze", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "turnFreezeDamageAllEnemiesInterval", "stunPurgeDealHolyPerEffect", "lightningRod", "avalancheGuard", "stunExtendVsBurning", "dodgeDealFreezeFlat", "freezeBuildupMultiplier", "poisonedEnemyStunBuildupMultiplier"]
+    public static let fieldNames: [String] = ["stunDamageAddsEnemyBlock", "stunRetainedBuildupPercent", "freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "flashFreeze", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "turnFreezeDamageAllEnemiesInterval", "stunPurgeDealHolyPerEffect", "lightningRod", "stunExtendVsBurning", "dodgeDealFreezeFlat", "freezeBuildupMultiplier", "poisonedEnemyStunBuildupMultiplier", "firstStunAttackBonusPerTurn", "stunBuildupBelowHalfMultiplier", "freezeAttackDrawChancePercent", "onDamageFreezeRetaliationChancePercent", "onDamageFreezeRetaliationDamage", "onFreezeEnemyRestoreMana", "freezeCriticalBuildupMultiplier", "onFreezeEnemyDrawCard"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -162,11 +183,18 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         if self.turnFreezeDamageAllEnemiesInterval != other.turnFreezeDamageAllEnemiesInterval { names.append("turnFreezeDamageAllEnemiesInterval") }
         if self.stunPurgeDealHolyPerEffect != other.stunPurgeDealHolyPerEffect { names.append("stunPurgeDealHolyPerEffect") }
         if self.lightningRod != other.lightningRod { names.append("lightningRod") }
-        if self.avalancheGuard != other.avalancheGuard { names.append("avalancheGuard") }
         if self.stunExtendVsBurning != other.stunExtendVsBurning { names.append("stunExtendVsBurning") }
         if self.dodgeDealFreezeFlat != other.dodgeDealFreezeFlat { names.append("dodgeDealFreezeFlat") }
         if self.freezeBuildupMultiplier != other.freezeBuildupMultiplier { names.append("freezeBuildupMultiplier") }
         if self.poisonedEnemyStunBuildupMultiplier != other.poisonedEnemyStunBuildupMultiplier { names.append("poisonedEnemyStunBuildupMultiplier") }
+        if self.firstStunAttackBonusPerTurn != other.firstStunAttackBonusPerTurn { names.append("firstStunAttackBonusPerTurn") }
+        if self.stunBuildupBelowHalfMultiplier != other.stunBuildupBelowHalfMultiplier { names.append("stunBuildupBelowHalfMultiplier") }
+        if self.freezeAttackDrawChancePercent != other.freezeAttackDrawChancePercent { names.append("freezeAttackDrawChancePercent") }
+        if self.onDamageFreezeRetaliationChancePercent != other.onDamageFreezeRetaliationChancePercent { names.append("onDamageFreezeRetaliationChancePercent") }
+        if self.onDamageFreezeRetaliationDamage != other.onDamageFreezeRetaliationDamage { names.append("onDamageFreezeRetaliationDamage") }
+        if self.onFreezeEnemyRestoreMana != other.onFreezeEnemyRestoreMana { names.append("onFreezeEnemyRestoreMana") }
+        if self.freezeCriticalBuildupMultiplier != other.freezeCriticalBuildupMultiplier { names.append("freezeCriticalBuildupMultiplier") }
+        if self.onFreezeEnemyDrawCard != other.onFreezeEnemyDrawCard { names.append("onFreezeEnemyDrawCard") }
         return names
     }
 }
@@ -206,11 +234,18 @@ extension ControlTriggers {
         turnFreezeDamageAllEnemiesInterval = max(turnFreezeDamageAllEnemiesInterval, other.turnFreezeDamageAllEnemiesInterval)
         stunPurgeDealHolyPerEffect += other.stunPurgeDealHolyPerEffect
         lightningRod = lightningRod || other.lightningRod
-        avalancheGuard = avalancheGuard || other.avalancheGuard
         stunExtendVsBurning = stunExtendVsBurning || other.stunExtendVsBurning
         dodgeDealFreezeFlat += other.dodgeDealFreezeFlat
         freezeBuildupMultiplier *= other.freezeBuildupMultiplier
         poisonedEnemyStunBuildupMultiplier *= other.poisonedEnemyStunBuildupMultiplier
+        firstStunAttackBonusPerTurn += other.firstStunAttackBonusPerTurn
+        stunBuildupBelowHalfMultiplier *= other.stunBuildupBelowHalfMultiplier
+        freezeAttackDrawChancePercent += other.freezeAttackDrawChancePercent
+        onDamageFreezeRetaliationChancePercent += other.onDamageFreezeRetaliationChancePercent
+        onDamageFreezeRetaliationDamage += other.onDamageFreezeRetaliationDamage
+        onFreezeEnemyRestoreMana += other.onFreezeEnemyRestoreMana
+        freezeCriticalBuildupMultiplier *= other.freezeCriticalBuildupMultiplier
+        onFreezeEnemyDrawCard = onFreezeEnemyDrawCard || other.onFreezeEnemyDrawCard
     }
 }
 
@@ -251,11 +286,18 @@ extension ControlTriggers {
             turnFreezeDamageAllEnemiesInterval: values.decode(Int.self, "turnFreezeDamageAllEnemiesInterval", default: 2),
             stunPurgeDealHolyPerEffect: values.decode(Int.self, "stunPurgeDealHolyPerEffect", default: 0),
             lightningRod: values.decode(Bool.self, "lightningRod", default: false),
-            avalancheGuard: values.decode(Bool.self, "avalancheGuard", default: false),
             stunExtendVsBurning: values.decode(Bool.self, "stunExtendVsBurning", default: false),
             dodgeDealFreezeFlat: values.decode(Int.self, "dodgeDealFreezeFlat", default: 0),
             freezeBuildupMultiplier: values.decode(Double.self, "freezeBuildupMultiplier", default: 1),
-            poisonedEnemyStunBuildupMultiplier: values.decode(Double.self, "poisonedEnemyStunBuildupMultiplier", default: 1)
+            poisonedEnemyStunBuildupMultiplier: values.decode(Double.self, "poisonedEnemyStunBuildupMultiplier", default: 1),
+            firstStunAttackBonusPerTurn: values.decode(Int.self, "firstStunAttackBonusPerTurn", default: 0),
+            stunBuildupBelowHalfMultiplier: values.decode(Double.self, "stunBuildupBelowHalfMultiplier", default: 1),
+            freezeAttackDrawChancePercent: values.decode(Double.self, "freezeAttackDrawChancePercent", default: 0),
+            onDamageFreezeRetaliationChancePercent: values.decode(Double.self, "onDamageFreezeRetaliationChancePercent", default: 0),
+            onDamageFreezeRetaliationDamage: values.decode(Int.self, "onDamageFreezeRetaliationDamage", default: 0),
+            onFreezeEnemyRestoreMana: values.decode(Int.self, "onFreezeEnemyRestoreMana", default: 0),
+            freezeCriticalBuildupMultiplier: values.decode(Double.self, "freezeCriticalBuildupMultiplier", default: 1),
+            onFreezeEnemyDrawCard: values.decode(Bool.self, "onFreezeEnemyDrawCard", default: false)
         )
     }
 
@@ -293,10 +335,17 @@ extension ControlTriggers {
         try container.encodeNonDefault(turnFreezeDamageAllEnemiesInterval, "turnFreezeDamageAllEnemiesInterval", default: 2)
         try container.encodeNonDefault(stunPurgeDealHolyPerEffect, "stunPurgeDealHolyPerEffect", default: 0)
         try container.encodeNonDefault(lightningRod, "lightningRod", default: false)
-        try container.encodeNonDefault(avalancheGuard, "avalancheGuard", default: false)
         try container.encodeNonDefault(stunExtendVsBurning, "stunExtendVsBurning", default: false)
         try container.encodeNonDefault(dodgeDealFreezeFlat, "dodgeDealFreezeFlat", default: 0)
         try container.encodeNonDefault(freezeBuildupMultiplier, "freezeBuildupMultiplier", default: 1)
         try container.encodeNonDefault(poisonedEnemyStunBuildupMultiplier, "poisonedEnemyStunBuildupMultiplier", default: 1)
+        try container.encodeNonDefault(firstStunAttackBonusPerTurn, "firstStunAttackBonusPerTurn", default: 0)
+        try container.encodeNonDefault(stunBuildupBelowHalfMultiplier, "stunBuildupBelowHalfMultiplier", default: 1)
+        try container.encodeNonDefault(freezeAttackDrawChancePercent, "freezeAttackDrawChancePercent", default: 0)
+        try container.encodeNonDefault(onDamageFreezeRetaliationChancePercent, "onDamageFreezeRetaliationChancePercent", default: 0)
+        try container.encodeNonDefault(onDamageFreezeRetaliationDamage, "onDamageFreezeRetaliationDamage", default: 0)
+        try container.encodeNonDefault(onFreezeEnemyRestoreMana, "onFreezeEnemyRestoreMana", default: 0)
+        try container.encodeNonDefault(freezeCriticalBuildupMultiplier, "freezeCriticalBuildupMultiplier", default: 1)
+        try container.encodeNonDefault(onFreezeEnemyDrawCard, "onFreezeEnemyDrawCard", default: false)
     }
 }

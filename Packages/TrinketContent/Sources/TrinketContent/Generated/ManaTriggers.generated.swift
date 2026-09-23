@@ -74,6 +74,11 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     public var arcaneThornsOnManaRestore: Int = 0
     public var barkweaveOnEmpowerBlock: Int = 0
     public var sharedCurrentCompanionNextAttackBonus: Int = 0
+    public var spendManaDrawChancePercent: Double = 0
+    public var excessManaRestorationBlock: Bool = false
+    public var manaHeldDamageMultiplier: Double = 1
+    public var manaEmpowerAllyBlock: Int = 0
+    public var burnCriticalRestoreMana: Int = 0
 
     public init(
         dragonPatronage: Bool = false,
@@ -145,7 +150,12 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         poisonExpiryManaRestore: Int = 0,
         arcaneThornsOnManaRestore: Int = 0,
         barkweaveOnEmpowerBlock: Int = 0,
-        sharedCurrentCompanionNextAttackBonus: Int = 0
+        sharedCurrentCompanionNextAttackBonus: Int = 0,
+        spendManaDrawChancePercent: Double = 0,
+        excessManaRestorationBlock: Bool = false,
+        manaHeldDamageMultiplier: Double = 1,
+        manaEmpowerAllyBlock: Int = 0,
+        burnCriticalRestoreMana: Int = 0
     ) {
         self.dragonPatronage = dragonPatronage
         self.prismaticScales = prismaticScales
@@ -217,10 +227,15 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         self.arcaneThornsOnManaRestore = arcaneThornsOnManaRestore
         self.barkweaveOnEmpowerBlock = barkweaveOnEmpowerBlock
         self.sharedCurrentCompanionNextAttackBonus = sharedCurrentCompanionNextAttackBonus
+        self.spendManaDrawChancePercent = spendManaDrawChancePercent
+        self.excessManaRestorationBlock = excessManaRestorationBlock
+        self.manaHeldDamageMultiplier = manaHeldDamageMultiplier
+        self.manaEmpowerAllyBlock = manaEmpowerAllyBlock
+        self.burnCriticalRestoreMana = burnCriticalRestoreMana
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["dragonPatronage", "prismaticScales", "freezeEmpowermentBlockPerMana", "lastManaEmpowermentRepeatsDamage", "spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaRemovesAfflictions", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "onReachZeroManaRestoreMana", "spendManaRandomElementDamage", "onGainManaHealFlat", "startBattleBonusMana", "empowermentDamageBonus", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "firstEmpowermentCostReduction", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaGrantsEqualBlock", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "healCompanionDrawsCompanionCard", "forbiddenKnowledge", "drawOnHealthLoss", "companionCardsEveryOtherTurn", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle", "livingConduit", "deepRoots", "groveAccord", "onEmpowerBurnRestoreMana", "empowerFreezeDamageBonus", "empoweredSkillEchoes", "spendLastManaStunDamage", "empowerBurnDamageBonus", "empowerBurnCostReduction", "manaEmpowerNextAttackPercent", "endTurnZeroManaCleanse", "spendLastManaDrawCard", "manaEmpoweredAttackDoubleChancePercent", "freezeCriticalRestoreMana", "healthLossManaGain", "manaEmpowerPurgeCount", "healthCostEmpowerDiscount", "manaEmpoweredCriticalMultiplier", "lastManaNextBurnPercent", "poisonExpiryManaRestore", "arcaneThornsOnManaRestore", "barkweaveOnEmpowerBlock", "sharedCurrentCompanionNextAttackBonus"]
+    public static let fieldNames: [String] = ["dragonPatronage", "prismaticScales", "freezeEmpowermentBlockPerMana", "lastManaEmpowermentRepeatsDamage", "spendManaBlockFlat", "empoweredElementDrawOpposite", "spendManaRandomDoTFlat", "gainManaBlockFlat", "leechRestoreManaFlat", "drawOnSpendMana", "repeatManaEmpowerment", "unspentManaConvertsToBlock", "spendManaRemovesAfflictions", "spendManaEmpowerNextCardThreshold", "nextCardEmpowerPercent", "startTurnFullManaDrawCards", "onReachZeroManaRestoreMana", "spendManaRandomElementDamage", "onGainManaHealFlat", "startBattleBonusMana", "empowermentDamageBonus", "spendManaDamageBonusPerMana", "onHeroSpendManaGainBlock", "spendManaRefundChancePercent", "firstEmpowermentCostReduction", "empowermentCostReduction", "healingEmpowermentCostReduction", "bonusManaOnTurns", "spendManaGrantsEqualBlock", "manaGainDoubleChancePercent", "spendManaThresholdAutoPlayCard", "onSpendManaBurnBurningEnemies", "onHeroSpendManaApplyRandomAffliction", "cardsPlayedManaThreshold", "cardsPlayedManaFlat", "onBurnDamageRestoreManaFlat", "drawEveryOtherTurn", "healCompanionDrawsCompanionCard", "forbiddenKnowledge", "drawOnHealthLoss", "companionCardsEveryOtherTurn", "companionCardsPerTurn", "onFreezeEnemyGainManaEqualBlock", "closedCircuit", "eyeOfTheStorm", "furnaceRhythm", "temperCycle", "livingConduit", "deepRoots", "groveAccord", "onEmpowerBurnRestoreMana", "empowerFreezeDamageBonus", "empoweredSkillEchoes", "spendLastManaStunDamage", "empowerBurnDamageBonus", "empowerBurnCostReduction", "manaEmpowerNextAttackPercent", "endTurnZeroManaCleanse", "spendLastManaDrawCard", "manaEmpoweredAttackDoubleChancePercent", "freezeCriticalRestoreMana", "healthLossManaGain", "manaEmpowerPurgeCount", "healthCostEmpowerDiscount", "manaEmpoweredCriticalMultiplier", "lastManaNextBurnPercent", "poisonExpiryManaRestore", "arcaneThornsOnManaRestore", "barkweaveOnEmpowerBlock", "sharedCurrentCompanionNextAttackBonus", "spendManaDrawChancePercent", "excessManaRestorationBlock", "manaHeldDamageMultiplier", "manaEmpowerAllyBlock", "burnCriticalRestoreMana"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -295,6 +310,11 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         if self.arcaneThornsOnManaRestore != other.arcaneThornsOnManaRestore { names.append("arcaneThornsOnManaRestore") }
         if self.barkweaveOnEmpowerBlock != other.barkweaveOnEmpowerBlock { names.append("barkweaveOnEmpowerBlock") }
         if self.sharedCurrentCompanionNextAttackBonus != other.sharedCurrentCompanionNextAttackBonus { names.append("sharedCurrentCompanionNextAttackBonus") }
+        if self.spendManaDrawChancePercent != other.spendManaDrawChancePercent { names.append("spendManaDrawChancePercent") }
+        if self.excessManaRestorationBlock != other.excessManaRestorationBlock { names.append("excessManaRestorationBlock") }
+        if self.manaHeldDamageMultiplier != other.manaHeldDamageMultiplier { names.append("manaHeldDamageMultiplier") }
+        if self.manaEmpowerAllyBlock != other.manaEmpowerAllyBlock { names.append("manaEmpowerAllyBlock") }
+        if self.burnCriticalRestoreMana != other.burnCriticalRestoreMana { names.append("burnCriticalRestoreMana") }
         return names
     }
 }
@@ -373,6 +393,11 @@ extension ManaTriggers {
         arcaneThornsOnManaRestore += other.arcaneThornsOnManaRestore
         barkweaveOnEmpowerBlock += other.barkweaveOnEmpowerBlock
         sharedCurrentCompanionNextAttackBonus += other.sharedCurrentCompanionNextAttackBonus
+        spendManaDrawChancePercent += other.spendManaDrawChancePercent
+        excessManaRestorationBlock = excessManaRestorationBlock || other.excessManaRestorationBlock
+        manaHeldDamageMultiplier *= other.manaHeldDamageMultiplier
+        manaEmpowerAllyBlock += other.manaEmpowerAllyBlock
+        burnCriticalRestoreMana += other.burnCriticalRestoreMana
     }
 }
 
@@ -449,7 +474,12 @@ extension ManaTriggers {
             poisonExpiryManaRestore: values.decode(Int.self, "poisonExpiryManaRestore", default: 0),
             arcaneThornsOnManaRestore: values.decode(Int.self, "arcaneThornsOnManaRestore", default: 0),
             barkweaveOnEmpowerBlock: values.decode(Int.self, "barkweaveOnEmpowerBlock", default: 0),
-            sharedCurrentCompanionNextAttackBonus: values.decode(Int.self, "sharedCurrentCompanionNextAttackBonus", default: 0)
+            sharedCurrentCompanionNextAttackBonus: values.decode(Int.self, "sharedCurrentCompanionNextAttackBonus", default: 0),
+            spendManaDrawChancePercent: values.decode(Double.self, "spendManaDrawChancePercent", default: 0),
+            excessManaRestorationBlock: values.decode(Bool.self, "excessManaRestorationBlock", default: false),
+            manaHeldDamageMultiplier: values.decode(Double.self, "manaHeldDamageMultiplier", default: 1),
+            manaEmpowerAllyBlock: values.decode(Int.self, "manaEmpowerAllyBlock", default: 0),
+            burnCriticalRestoreMana: values.decode(Int.self, "burnCriticalRestoreMana", default: 0)
         )
     }
 
@@ -524,5 +554,10 @@ extension ManaTriggers {
         try container.encodeNonDefault(arcaneThornsOnManaRestore, "arcaneThornsOnManaRestore", default: 0)
         try container.encodeNonDefault(barkweaveOnEmpowerBlock, "barkweaveOnEmpowerBlock", default: 0)
         try container.encodeNonDefault(sharedCurrentCompanionNextAttackBonus, "sharedCurrentCompanionNextAttackBonus", default: 0)
+        try container.encodeNonDefault(spendManaDrawChancePercent, "spendManaDrawChancePercent", default: 0)
+        try container.encodeNonDefault(excessManaRestorationBlock, "excessManaRestorationBlock", default: false)
+        try container.encodeNonDefault(manaHeldDamageMultiplier, "manaHeldDamageMultiplier", default: 1)
+        try container.encodeNonDefault(manaEmpowerAllyBlock, "manaEmpowerAllyBlock", default: 0)
+        try container.encodeNonDefault(burnCriticalRestoreMana, "burnCriticalRestoreMana", default: 0)
     }
 }

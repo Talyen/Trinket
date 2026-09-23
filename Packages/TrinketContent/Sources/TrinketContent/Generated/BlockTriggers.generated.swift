@@ -16,13 +16,13 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var sunderingBlockMultiplier: Double = 0
     public var blockRetainsThreeQuarters: Bool = false
     public var blockAbsorbsCompanionDamage: Bool = false
+    public var companionBlockAbsorbsHeroDamage: Bool = false
     public var onEnemyBlockBrokenDealPhysical: Int = 0
     public var postBlockOverflowDamageMultiplier: Double = 1
     public var maxDamagePerHitCap: Int = 0
     public var guardianHeroBlockFlat: Int = 0
     public var doublePhysicalBlockAbsorption: Bool = false
     public var blockPreparesCritical: Bool = false
-    public var blockGainedMaxHealthEvery: Int = 0
     public var shieldDamageBonusWhileBlocked: Int = 0
     public var physicalBlockBreakMultiplier: Double = 1
     public var holyBlockBreakMultiplier: Double = 1
@@ -42,9 +42,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var companionBlockProtectsHeroPercent: Double = 0
     public var onAnyHealthLossGainBlock: Int = 0
     public var onSelfHealthLossGainBlock: Int = 0
-    public var companionFatalDamageRedirectBlock: Int = 0
     public var onEnemyFrozenGainBlock: Int = 0
-    public var onCompanionTakeDamageGrantHeroBlock: Int = 0
     public var startBattleBlock: Int = 0
     public var blockPerGoldEarnedEvery: Int = 0
     public var goldGainBlockPercent: Double = 0
@@ -57,7 +55,6 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var seismicReversal: Bool = false
     public var unbrokenVow: Bool = false
     public var storedImpact: Bool = false
-    public var iceboundExchange: Bool = false
     public var glacialReprieve: Bool = false
     public var retainedBlockGainThornsPercent: Double = 0
     public var onStunEnemyGainBlock: Int = 0
@@ -76,6 +73,17 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var bleedIgnoresEnemyBlock: Bool = false
     public var leechAttackBlockIgnorePercent: Double = 0
     public var poisonDamageVsBlockMultiplier: Double = 1
+    public var physicalMitigationWhileBlockedFlat: Int = 0
+    public var allyFirstBelowHalfBlock: Int = 0
+    public var bleedDamageMultiplierWhileBlocked: Double = 1
+    public var blockGainBelowHalfMultiplier: Double = 1
+    public var stunNextBlockGainMultiplier: Double = 1
+    public var stunBlockIgnorePercent: Double = 0
+    public var bleedAttackBlockBreakMultiplier: Double = 1
+    public var burnAttackBlockChancePercent: Double = 0
+    public var burnAttackBlockAmount: Int = 0
+    public var blockedControlPrevention: Bool = false
+    public var blockBreakAllyBlockFlat: Int = 0
 
     public init(
         sealedSarcophagus: Bool = false,
@@ -90,13 +98,13 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         sunderingBlockMultiplier: Double = 0,
         blockRetainsThreeQuarters: Bool = false,
         blockAbsorbsCompanionDamage: Bool = false,
+        companionBlockAbsorbsHeroDamage: Bool = false,
         onEnemyBlockBrokenDealPhysical: Int = 0,
         postBlockOverflowDamageMultiplier: Double = 1,
         maxDamagePerHitCap: Int = 0,
         guardianHeroBlockFlat: Int = 0,
         doublePhysicalBlockAbsorption: Bool = false,
         blockPreparesCritical: Bool = false,
-        blockGainedMaxHealthEvery: Int = 0,
         shieldDamageBonusWhileBlocked: Int = 0,
         physicalBlockBreakMultiplier: Double = 1,
         holyBlockBreakMultiplier: Double = 1,
@@ -116,9 +124,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         companionBlockProtectsHeroPercent: Double = 0,
         onAnyHealthLossGainBlock: Int = 0,
         onSelfHealthLossGainBlock: Int = 0,
-        companionFatalDamageRedirectBlock: Int = 0,
         onEnemyFrozenGainBlock: Int = 0,
-        onCompanionTakeDamageGrantHeroBlock: Int = 0,
         startBattleBlock: Int = 0,
         blockPerGoldEarnedEvery: Int = 0,
         goldGainBlockPercent: Double = 0,
@@ -131,7 +137,6 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         seismicReversal: Bool = false,
         unbrokenVow: Bool = false,
         storedImpact: Bool = false,
-        iceboundExchange: Bool = false,
         glacialReprieve: Bool = false,
         retainedBlockGainThornsPercent: Double = 0,
         onStunEnemyGainBlock: Int = 0,
@@ -149,7 +154,18 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         poisonAttackExtraBlockRemoval: Int = 0,
         bleedIgnoresEnemyBlock: Bool = false,
         leechAttackBlockIgnorePercent: Double = 0,
-        poisonDamageVsBlockMultiplier: Double = 1
+        poisonDamageVsBlockMultiplier: Double = 1,
+        physicalMitigationWhileBlockedFlat: Int = 0,
+        allyFirstBelowHalfBlock: Int = 0,
+        bleedDamageMultiplierWhileBlocked: Double = 1,
+        blockGainBelowHalfMultiplier: Double = 1,
+        stunNextBlockGainMultiplier: Double = 1,
+        stunBlockIgnorePercent: Double = 0,
+        bleedAttackBlockBreakMultiplier: Double = 1,
+        burnAttackBlockChancePercent: Double = 0,
+        burnAttackBlockAmount: Int = 0,
+        blockedControlPrevention: Bool = false,
+        blockBreakAllyBlockFlat: Int = 0
     ) {
         self.sealedSarcophagus = sealedSarcophagus
         self.retainAllBlockBetweenTurns = retainAllBlockBetweenTurns
@@ -163,13 +179,13 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         self.sunderingBlockMultiplier = sunderingBlockMultiplier
         self.blockRetainsThreeQuarters = blockRetainsThreeQuarters
         self.blockAbsorbsCompanionDamage = blockAbsorbsCompanionDamage
+        self.companionBlockAbsorbsHeroDamage = companionBlockAbsorbsHeroDamage
         self.onEnemyBlockBrokenDealPhysical = onEnemyBlockBrokenDealPhysical
         self.postBlockOverflowDamageMultiplier = postBlockOverflowDamageMultiplier
         self.maxDamagePerHitCap = maxDamagePerHitCap
         self.guardianHeroBlockFlat = guardianHeroBlockFlat
         self.doublePhysicalBlockAbsorption = doublePhysicalBlockAbsorption
         self.blockPreparesCritical = blockPreparesCritical
-        self.blockGainedMaxHealthEvery = blockGainedMaxHealthEvery
         self.shieldDamageBonusWhileBlocked = shieldDamageBonusWhileBlocked
         self.physicalBlockBreakMultiplier = physicalBlockBreakMultiplier
         self.holyBlockBreakMultiplier = holyBlockBreakMultiplier
@@ -189,9 +205,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         self.companionBlockProtectsHeroPercent = companionBlockProtectsHeroPercent
         self.onAnyHealthLossGainBlock = onAnyHealthLossGainBlock
         self.onSelfHealthLossGainBlock = onSelfHealthLossGainBlock
-        self.companionFatalDamageRedirectBlock = companionFatalDamageRedirectBlock
         self.onEnemyFrozenGainBlock = onEnemyFrozenGainBlock
-        self.onCompanionTakeDamageGrantHeroBlock = onCompanionTakeDamageGrantHeroBlock
         self.startBattleBlock = startBattleBlock
         self.blockPerGoldEarnedEvery = blockPerGoldEarnedEvery
         self.goldGainBlockPercent = goldGainBlockPercent
@@ -204,7 +218,6 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         self.seismicReversal = seismicReversal
         self.unbrokenVow = unbrokenVow
         self.storedImpact = storedImpact
-        self.iceboundExchange = iceboundExchange
         self.glacialReprieve = glacialReprieve
         self.retainedBlockGainThornsPercent = retainedBlockGainThornsPercent
         self.onStunEnemyGainBlock = onStunEnemyGainBlock
@@ -223,10 +236,21 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         self.bleedIgnoresEnemyBlock = bleedIgnoresEnemyBlock
         self.leechAttackBlockIgnorePercent = leechAttackBlockIgnorePercent
         self.poisonDamageVsBlockMultiplier = poisonDamageVsBlockMultiplier
+        self.physicalMitigationWhileBlockedFlat = physicalMitigationWhileBlockedFlat
+        self.allyFirstBelowHalfBlock = allyFirstBelowHalfBlock
+        self.bleedDamageMultiplierWhileBlocked = bleedDamageMultiplierWhileBlocked
+        self.blockGainBelowHalfMultiplier = blockGainBelowHalfMultiplier
+        self.stunNextBlockGainMultiplier = stunNextBlockGainMultiplier
+        self.stunBlockIgnorePercent = stunBlockIgnorePercent
+        self.bleedAttackBlockBreakMultiplier = bleedAttackBlockBreakMultiplier
+        self.burnAttackBlockChancePercent = burnAttackBlockChancePercent
+        self.burnAttackBlockAmount = burnAttackBlockAmount
+        self.blockedControlPrevention = blockedControlPrevention
+        self.blockBreakAllyBlockFlat = blockBreakAllyBlockFlat
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["sealedSarcophagus", "retainAllBlockBetweenTurns", "blockedAttackBasicOncePerTurn", "blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "guardianHeroBlockFlat", "doublePhysicalBlockAbsorption", "blockPreparesCritical", "blockGainedMaxHealthEvery", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "companionFatalDamageRedirectBlock", "onEnemyFrozenGainBlock", "onCompanionTakeDamageGrantHeroBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock", "seismicReversal", "unbrokenVow", "storedImpact", "iceboundExchange", "glacialReprieve", "retainedBlockGainThornsPercent", "onStunEnemyGainBlock", "blockRetainsHalf", "blockWhileGoldThreshold", "blockWhileGoldAmount", "burnIgnoresBlock", "thornsDamageDoubleWhileBlocked", "blockAbsorptionMultiplierBelowHalfHealth", "holyBlockIgnorePercent", "sunwallChancePercent", "bleedAttackBlockIgnorePercent", "burnAttackBlockBreakMultiplier", "burningEnemyBlockGainMultiplier", "poisonAttackExtraBlockRemoval", "bleedIgnoresEnemyBlock", "leechAttackBlockIgnorePercent", "poisonDamageVsBlockMultiplier"]
+    public static let fieldNames: [String] = ["sealedSarcophagus", "retainAllBlockBetweenTurns", "blockedAttackBasicOncePerTurn", "blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "companionBlockAbsorbsHeroDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "guardianHeroBlockFlat", "doublePhysicalBlockAbsorption", "blockPreparesCritical", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "onEnemyFrozenGainBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock", "seismicReversal", "unbrokenVow", "storedImpact", "glacialReprieve", "retainedBlockGainThornsPercent", "onStunEnemyGainBlock", "blockRetainsHalf", "blockWhileGoldThreshold", "blockWhileGoldAmount", "burnIgnoresBlock", "thornsDamageDoubleWhileBlocked", "blockAbsorptionMultiplierBelowHalfHealth", "holyBlockIgnorePercent", "sunwallChancePercent", "bleedAttackBlockIgnorePercent", "burnAttackBlockBreakMultiplier", "burningEnemyBlockGainMultiplier", "poisonAttackExtraBlockRemoval", "bleedIgnoresEnemyBlock", "leechAttackBlockIgnorePercent", "poisonDamageVsBlockMultiplier", "physicalMitigationWhileBlockedFlat", "allyFirstBelowHalfBlock", "bleedDamageMultiplierWhileBlocked", "blockGainBelowHalfMultiplier", "stunNextBlockGainMultiplier", "stunBlockIgnorePercent", "bleedAttackBlockBreakMultiplier", "burnAttackBlockChancePercent", "burnAttackBlockAmount", "blockedControlPrevention", "blockBreakAllyBlockFlat"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -243,13 +267,13 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         if self.sunderingBlockMultiplier != other.sunderingBlockMultiplier { names.append("sunderingBlockMultiplier") }
         if self.blockRetainsThreeQuarters != other.blockRetainsThreeQuarters { names.append("blockRetainsThreeQuarters") }
         if self.blockAbsorbsCompanionDamage != other.blockAbsorbsCompanionDamage { names.append("blockAbsorbsCompanionDamage") }
+        if self.companionBlockAbsorbsHeroDamage != other.companionBlockAbsorbsHeroDamage { names.append("companionBlockAbsorbsHeroDamage") }
         if self.onEnemyBlockBrokenDealPhysical != other.onEnemyBlockBrokenDealPhysical { names.append("onEnemyBlockBrokenDealPhysical") }
         if self.postBlockOverflowDamageMultiplier != other.postBlockOverflowDamageMultiplier { names.append("postBlockOverflowDamageMultiplier") }
         if self.maxDamagePerHitCap != other.maxDamagePerHitCap { names.append("maxDamagePerHitCap") }
         if self.guardianHeroBlockFlat != other.guardianHeroBlockFlat { names.append("guardianHeroBlockFlat") }
         if self.doublePhysicalBlockAbsorption != other.doublePhysicalBlockAbsorption { names.append("doublePhysicalBlockAbsorption") }
         if self.blockPreparesCritical != other.blockPreparesCritical { names.append("blockPreparesCritical") }
-        if self.blockGainedMaxHealthEvery != other.blockGainedMaxHealthEvery { names.append("blockGainedMaxHealthEvery") }
         if self.shieldDamageBonusWhileBlocked != other.shieldDamageBonusWhileBlocked { names.append("shieldDamageBonusWhileBlocked") }
         if self.physicalBlockBreakMultiplier != other.physicalBlockBreakMultiplier { names.append("physicalBlockBreakMultiplier") }
         if self.holyBlockBreakMultiplier != other.holyBlockBreakMultiplier { names.append("holyBlockBreakMultiplier") }
@@ -269,9 +293,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         if self.companionBlockProtectsHeroPercent != other.companionBlockProtectsHeroPercent { names.append("companionBlockProtectsHeroPercent") }
         if self.onAnyHealthLossGainBlock != other.onAnyHealthLossGainBlock { names.append("onAnyHealthLossGainBlock") }
         if self.onSelfHealthLossGainBlock != other.onSelfHealthLossGainBlock { names.append("onSelfHealthLossGainBlock") }
-        if self.companionFatalDamageRedirectBlock != other.companionFatalDamageRedirectBlock { names.append("companionFatalDamageRedirectBlock") }
         if self.onEnemyFrozenGainBlock != other.onEnemyFrozenGainBlock { names.append("onEnemyFrozenGainBlock") }
-        if self.onCompanionTakeDamageGrantHeroBlock != other.onCompanionTakeDamageGrantHeroBlock { names.append("onCompanionTakeDamageGrantHeroBlock") }
         if self.startBattleBlock != other.startBattleBlock { names.append("startBattleBlock") }
         if self.blockPerGoldEarnedEvery != other.blockPerGoldEarnedEvery { names.append("blockPerGoldEarnedEvery") }
         if self.goldGainBlockPercent != other.goldGainBlockPercent { names.append("goldGainBlockPercent") }
@@ -284,7 +306,6 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         if self.seismicReversal != other.seismicReversal { names.append("seismicReversal") }
         if self.unbrokenVow != other.unbrokenVow { names.append("unbrokenVow") }
         if self.storedImpact != other.storedImpact { names.append("storedImpact") }
-        if self.iceboundExchange != other.iceboundExchange { names.append("iceboundExchange") }
         if self.glacialReprieve != other.glacialReprieve { names.append("glacialReprieve") }
         if self.retainedBlockGainThornsPercent != other.retainedBlockGainThornsPercent { names.append("retainedBlockGainThornsPercent") }
         if self.onStunEnemyGainBlock != other.onStunEnemyGainBlock { names.append("onStunEnemyGainBlock") }
@@ -303,6 +324,17 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         if self.bleedIgnoresEnemyBlock != other.bleedIgnoresEnemyBlock { names.append("bleedIgnoresEnemyBlock") }
         if self.leechAttackBlockIgnorePercent != other.leechAttackBlockIgnorePercent { names.append("leechAttackBlockIgnorePercent") }
         if self.poisonDamageVsBlockMultiplier != other.poisonDamageVsBlockMultiplier { names.append("poisonDamageVsBlockMultiplier") }
+        if self.physicalMitigationWhileBlockedFlat != other.physicalMitigationWhileBlockedFlat { names.append("physicalMitigationWhileBlockedFlat") }
+        if self.allyFirstBelowHalfBlock != other.allyFirstBelowHalfBlock { names.append("allyFirstBelowHalfBlock") }
+        if self.bleedDamageMultiplierWhileBlocked != other.bleedDamageMultiplierWhileBlocked { names.append("bleedDamageMultiplierWhileBlocked") }
+        if self.blockGainBelowHalfMultiplier != other.blockGainBelowHalfMultiplier { names.append("blockGainBelowHalfMultiplier") }
+        if self.stunNextBlockGainMultiplier != other.stunNextBlockGainMultiplier { names.append("stunNextBlockGainMultiplier") }
+        if self.stunBlockIgnorePercent != other.stunBlockIgnorePercent { names.append("stunBlockIgnorePercent") }
+        if self.bleedAttackBlockBreakMultiplier != other.bleedAttackBlockBreakMultiplier { names.append("bleedAttackBlockBreakMultiplier") }
+        if self.burnAttackBlockChancePercent != other.burnAttackBlockChancePercent { names.append("burnAttackBlockChancePercent") }
+        if self.burnAttackBlockAmount != other.burnAttackBlockAmount { names.append("burnAttackBlockAmount") }
+        if self.blockedControlPrevention != other.blockedControlPrevention { names.append("blockedControlPrevention") }
+        if self.blockBreakAllyBlockFlat != other.blockBreakAllyBlockFlat { names.append("blockBreakAllyBlockFlat") }
         return names
     }
 }
@@ -321,13 +353,13 @@ extension BlockTriggers {
         sunderingBlockMultiplier += other.sunderingBlockMultiplier
         blockRetainsThreeQuarters = blockRetainsThreeQuarters || other.blockRetainsThreeQuarters
         blockAbsorbsCompanionDamage = blockAbsorbsCompanionDamage || other.blockAbsorbsCompanionDamage
+        companionBlockAbsorbsHeroDamage = companionBlockAbsorbsHeroDamage || other.companionBlockAbsorbsHeroDamage
         onEnemyBlockBrokenDealPhysical += other.onEnemyBlockBrokenDealPhysical
         postBlockOverflowDamageMultiplier *= other.postBlockOverflowDamageMultiplier
         maxDamagePerHitCap = max(maxDamagePerHitCap, other.maxDamagePerHitCap)
         guardianHeroBlockFlat += other.guardianHeroBlockFlat
         doublePhysicalBlockAbsorption = doublePhysicalBlockAbsorption || other.doublePhysicalBlockAbsorption
         blockPreparesCritical = blockPreparesCritical || other.blockPreparesCritical
-        blockGainedMaxHealthEvery = max(blockGainedMaxHealthEvery, other.blockGainedMaxHealthEvery)
         shieldDamageBonusWhileBlocked += other.shieldDamageBonusWhileBlocked
         physicalBlockBreakMultiplier *= other.physicalBlockBreakMultiplier
         holyBlockBreakMultiplier *= other.holyBlockBreakMultiplier
@@ -347,9 +379,7 @@ extension BlockTriggers {
         companionBlockProtectsHeroPercent += other.companionBlockProtectsHeroPercent
         onAnyHealthLossGainBlock += other.onAnyHealthLossGainBlock
         onSelfHealthLossGainBlock += other.onSelfHealthLossGainBlock
-        companionFatalDamageRedirectBlock = max(companionFatalDamageRedirectBlock, other.companionFatalDamageRedirectBlock)
         onEnemyFrozenGainBlock += other.onEnemyFrozenGainBlock
-        onCompanionTakeDamageGrantHeroBlock += other.onCompanionTakeDamageGrantHeroBlock
         startBattleBlock += other.startBattleBlock
         blockPerGoldEarnedEvery = max(blockPerGoldEarnedEvery, other.blockPerGoldEarnedEvery)
         goldGainBlockPercent += other.goldGainBlockPercent
@@ -362,7 +392,6 @@ extension BlockTriggers {
         seismicReversal = seismicReversal || other.seismicReversal
         unbrokenVow = unbrokenVow || other.unbrokenVow
         storedImpact = storedImpact || other.storedImpact
-        iceboundExchange = iceboundExchange || other.iceboundExchange
         glacialReprieve = glacialReprieve || other.glacialReprieve
         retainedBlockGainThornsPercent += other.retainedBlockGainThornsPercent
         onStunEnemyGainBlock += other.onStunEnemyGainBlock
@@ -381,6 +410,17 @@ extension BlockTriggers {
         bleedIgnoresEnemyBlock = bleedIgnoresEnemyBlock || other.bleedIgnoresEnemyBlock
         leechAttackBlockIgnorePercent += other.leechAttackBlockIgnorePercent
         poisonDamageVsBlockMultiplier *= other.poisonDamageVsBlockMultiplier
+        physicalMitigationWhileBlockedFlat += other.physicalMitigationWhileBlockedFlat
+        allyFirstBelowHalfBlock += other.allyFirstBelowHalfBlock
+        bleedDamageMultiplierWhileBlocked *= other.bleedDamageMultiplierWhileBlocked
+        blockGainBelowHalfMultiplier *= other.blockGainBelowHalfMultiplier
+        stunNextBlockGainMultiplier *= other.stunNextBlockGainMultiplier
+        stunBlockIgnorePercent += other.stunBlockIgnorePercent
+        bleedAttackBlockBreakMultiplier *= other.bleedAttackBlockBreakMultiplier
+        burnAttackBlockChancePercent += other.burnAttackBlockChancePercent
+        burnAttackBlockAmount += other.burnAttackBlockAmount
+        blockedControlPrevention = blockedControlPrevention || other.blockedControlPrevention
+        blockBreakAllyBlockFlat += other.blockBreakAllyBlockFlat
     }
 }
 
@@ -400,13 +440,13 @@ extension BlockTriggers {
             sunderingBlockMultiplier: values.decode(Double.self, "sunderingBlockMultiplier", default: 0),
             blockRetainsThreeQuarters: values.decode(Bool.self, "blockRetainsThreeQuarters", default: false),
             blockAbsorbsCompanionDamage: values.decode(Bool.self, "blockAbsorbsCompanionDamage", default: false),
+            companionBlockAbsorbsHeroDamage: values.decode(Bool.self, "companionBlockAbsorbsHeroDamage", default: false),
             onEnemyBlockBrokenDealPhysical: values.decode(Int.self, "onEnemyBlockBrokenDealPhysical", default: 0),
             postBlockOverflowDamageMultiplier: values.decode(Double.self, "postBlockOverflowDamageMultiplier", default: 1),
             maxDamagePerHitCap: values.decode(Int.self, "maxDamagePerHitCap", default: 0),
             guardianHeroBlockFlat: values.decode(Int.self, "guardianHeroBlockFlat", default: 0),
             doublePhysicalBlockAbsorption: values.decode(Bool.self, "doublePhysicalBlockAbsorption", default: false),
             blockPreparesCritical: values.decode(Bool.self, "blockPreparesCritical", default: false),
-            blockGainedMaxHealthEvery: values.decode(Int.self, "blockGainedMaxHealthEvery", default: 0),
             shieldDamageBonusWhileBlocked: values.decode(Int.self, "shieldDamageBonusWhileBlocked", default: 0),
             physicalBlockBreakMultiplier: values.decode(Double.self, "physicalBlockBreakMultiplier", default: 1),
             holyBlockBreakMultiplier: values.decode(Double.self, "holyBlockBreakMultiplier", default: 1),
@@ -426,9 +466,7 @@ extension BlockTriggers {
             companionBlockProtectsHeroPercent: values.decode(Double.self, "companionBlockProtectsHeroPercent", default: 0),
             onAnyHealthLossGainBlock: values.decode(Int.self, "onAnyHealthLossGainBlock", default: 0),
             onSelfHealthLossGainBlock: values.decode(Int.self, "onSelfHealthLossGainBlock", default: 0),
-            companionFatalDamageRedirectBlock: values.decode(Int.self, "companionFatalDamageRedirectBlock", default: 0),
             onEnemyFrozenGainBlock: values.decode(Int.self, "onEnemyFrozenGainBlock", default: 0),
-            onCompanionTakeDamageGrantHeroBlock: values.decode(Int.self, "onCompanionTakeDamageGrantHeroBlock", default: 0),
             startBattleBlock: values.decode(Int.self, "startBattleBlock", default: 0),
             blockPerGoldEarnedEvery: values.decode(Int.self, "blockPerGoldEarnedEvery", default: 0),
             goldGainBlockPercent: values.decode(Double.self, "goldGainBlockPercent", default: 0),
@@ -441,7 +479,6 @@ extension BlockTriggers {
             seismicReversal: values.decode(Bool.self, "seismicReversal", default: false),
             unbrokenVow: values.decode(Bool.self, "unbrokenVow", default: false),
             storedImpact: values.decode(Bool.self, "storedImpact", default: false),
-            iceboundExchange: values.decode(Bool.self, "iceboundExchange", default: false),
             glacialReprieve: values.decode(Bool.self, "glacialReprieve", default: false),
             retainedBlockGainThornsPercent: values.decode(Double.self, "retainedBlockGainThornsPercent", default: 0),
             onStunEnemyGainBlock: values.decode(Int.self, "onStunEnemyGainBlock", default: 0),
@@ -459,7 +496,18 @@ extension BlockTriggers {
             poisonAttackExtraBlockRemoval: values.decode(Int.self, "poisonAttackExtraBlockRemoval", default: 0),
             bleedIgnoresEnemyBlock: values.decode(Bool.self, "bleedIgnoresEnemyBlock", default: false),
             leechAttackBlockIgnorePercent: values.decode(Double.self, "leechAttackBlockIgnorePercent", default: 0),
-            poisonDamageVsBlockMultiplier: values.decode(Double.self, "poisonDamageVsBlockMultiplier", default: 1)
+            poisonDamageVsBlockMultiplier: values.decode(Double.self, "poisonDamageVsBlockMultiplier", default: 1),
+            physicalMitigationWhileBlockedFlat: values.decode(Int.self, "physicalMitigationWhileBlockedFlat", default: 0),
+            allyFirstBelowHalfBlock: values.decode(Int.self, "allyFirstBelowHalfBlock", default: 0),
+            bleedDamageMultiplierWhileBlocked: values.decode(Double.self, "bleedDamageMultiplierWhileBlocked", default: 1),
+            blockGainBelowHalfMultiplier: values.decode(Double.self, "blockGainBelowHalfMultiplier", default: 1),
+            stunNextBlockGainMultiplier: values.decode(Double.self, "stunNextBlockGainMultiplier", default: 1),
+            stunBlockIgnorePercent: values.decode(Double.self, "stunBlockIgnorePercent", default: 0),
+            bleedAttackBlockBreakMultiplier: values.decode(Double.self, "bleedAttackBlockBreakMultiplier", default: 1),
+            burnAttackBlockChancePercent: values.decode(Double.self, "burnAttackBlockChancePercent", default: 0),
+            burnAttackBlockAmount: values.decode(Int.self, "burnAttackBlockAmount", default: 0),
+            blockedControlPrevention: values.decode(Bool.self, "blockedControlPrevention", default: false),
+            blockBreakAllyBlockFlat: values.decode(Int.self, "blockBreakAllyBlockFlat", default: 0)
         )
     }
 
@@ -476,13 +524,13 @@ extension BlockTriggers {
         try container.encodeNonDefault(sunderingBlockMultiplier, "sunderingBlockMultiplier", default: 0)
         try container.encodeNonDefault(blockRetainsThreeQuarters, "blockRetainsThreeQuarters", default: false)
         try container.encodeNonDefault(blockAbsorbsCompanionDamage, "blockAbsorbsCompanionDamage", default: false)
+        try container.encodeNonDefault(companionBlockAbsorbsHeroDamage, "companionBlockAbsorbsHeroDamage", default: false)
         try container.encodeNonDefault(onEnemyBlockBrokenDealPhysical, "onEnemyBlockBrokenDealPhysical", default: 0)
         try container.encodeNonDefault(postBlockOverflowDamageMultiplier, "postBlockOverflowDamageMultiplier", default: 1)
         try container.encodeNonDefault(maxDamagePerHitCap, "maxDamagePerHitCap", default: 0)
         try container.encodeNonDefault(guardianHeroBlockFlat, "guardianHeroBlockFlat", default: 0)
         try container.encodeNonDefault(doublePhysicalBlockAbsorption, "doublePhysicalBlockAbsorption", default: false)
         try container.encodeNonDefault(blockPreparesCritical, "blockPreparesCritical", default: false)
-        try container.encodeNonDefault(blockGainedMaxHealthEvery, "blockGainedMaxHealthEvery", default: 0)
         try container.encodeNonDefault(shieldDamageBonusWhileBlocked, "shieldDamageBonusWhileBlocked", default: 0)
         try container.encodeNonDefault(physicalBlockBreakMultiplier, "physicalBlockBreakMultiplier", default: 1)
         try container.encodeNonDefault(holyBlockBreakMultiplier, "holyBlockBreakMultiplier", default: 1)
@@ -502,9 +550,7 @@ extension BlockTriggers {
         try container.encodeNonDefault(companionBlockProtectsHeroPercent, "companionBlockProtectsHeroPercent", default: 0)
         try container.encodeNonDefault(onAnyHealthLossGainBlock, "onAnyHealthLossGainBlock", default: 0)
         try container.encodeNonDefault(onSelfHealthLossGainBlock, "onSelfHealthLossGainBlock", default: 0)
-        try container.encodeNonDefault(companionFatalDamageRedirectBlock, "companionFatalDamageRedirectBlock", default: 0)
         try container.encodeNonDefault(onEnemyFrozenGainBlock, "onEnemyFrozenGainBlock", default: 0)
-        try container.encodeNonDefault(onCompanionTakeDamageGrantHeroBlock, "onCompanionTakeDamageGrantHeroBlock", default: 0)
         try container.encodeNonDefault(startBattleBlock, "startBattleBlock", default: 0)
         try container.encodeNonDefault(blockPerGoldEarnedEvery, "blockPerGoldEarnedEvery", default: 0)
         try container.encodeNonDefault(goldGainBlockPercent, "goldGainBlockPercent", default: 0)
@@ -517,7 +563,6 @@ extension BlockTriggers {
         try container.encodeNonDefault(seismicReversal, "seismicReversal", default: false)
         try container.encodeNonDefault(unbrokenVow, "unbrokenVow", default: false)
         try container.encodeNonDefault(storedImpact, "storedImpact", default: false)
-        try container.encodeNonDefault(iceboundExchange, "iceboundExchange", default: false)
         try container.encodeNonDefault(glacialReprieve, "glacialReprieve", default: false)
         try container.encodeNonDefault(retainedBlockGainThornsPercent, "retainedBlockGainThornsPercent", default: 0)
         try container.encodeNonDefault(onStunEnemyGainBlock, "onStunEnemyGainBlock", default: 0)
@@ -536,5 +581,16 @@ extension BlockTriggers {
         try container.encodeNonDefault(bleedIgnoresEnemyBlock, "bleedIgnoresEnemyBlock", default: false)
         try container.encodeNonDefault(leechAttackBlockIgnorePercent, "leechAttackBlockIgnorePercent", default: 0)
         try container.encodeNonDefault(poisonDamageVsBlockMultiplier, "poisonDamageVsBlockMultiplier", default: 1)
+        try container.encodeNonDefault(physicalMitigationWhileBlockedFlat, "physicalMitigationWhileBlockedFlat", default: 0)
+        try container.encodeNonDefault(allyFirstBelowHalfBlock, "allyFirstBelowHalfBlock", default: 0)
+        try container.encodeNonDefault(bleedDamageMultiplierWhileBlocked, "bleedDamageMultiplierWhileBlocked", default: 1)
+        try container.encodeNonDefault(blockGainBelowHalfMultiplier, "blockGainBelowHalfMultiplier", default: 1)
+        try container.encodeNonDefault(stunNextBlockGainMultiplier, "stunNextBlockGainMultiplier", default: 1)
+        try container.encodeNonDefault(stunBlockIgnorePercent, "stunBlockIgnorePercent", default: 0)
+        try container.encodeNonDefault(bleedAttackBlockBreakMultiplier, "bleedAttackBlockBreakMultiplier", default: 1)
+        try container.encodeNonDefault(burnAttackBlockChancePercent, "burnAttackBlockChancePercent", default: 0)
+        try container.encodeNonDefault(burnAttackBlockAmount, "burnAttackBlockAmount", default: 0)
+        try container.encodeNonDefault(blockedControlPrevention, "blockedControlPrevention", default: false)
+        try container.encodeNonDefault(blockBreakAllyBlockFlat, "blockBreakAllyBlockFlat", default: 0)
     }
 }

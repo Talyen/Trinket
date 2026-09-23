@@ -4,24 +4,24 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
-    @Test(arguments: [0, 1])
-    func `dragon patronage pays only the shortfall and credits the actual spenders`(heroMana: Int) {
+    @Test func `dragon patronage grants hero block once when companion empowers a freeze ability`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroMaxMana: heroMana, heroMana: heroMana,
+            heroMaxMana: 0, heroMana: 0,
             companionMaxMana: 8, companionMana: 3,
-            companionModifiers: CombatantTalentCatalog.profile(for: ["frost_whelp_mana_t4_1", "frost_whelp_mana_t2_1"]),
+            companionModifiers: CombatantTalentCatalog.profile(for: ["frost_whelp_mana_t4_1"]),
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
         var card = Ability.rayOfFrost
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &card, actor: battle.hero, context: &battle)
+        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &card, actor: battle.companion, context: &battle)
         #expect(card.damageComponents == [
             DamageComponent(2, keyword: .freeze),
             DamageComponent(2, keyword: .freeze),
         ])
         #expect(battle.roster.hero.currentMana == 0)
-        #expect(battle.roster.companion.currentMana == heroMana)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == (heroMana > 0 ? 2 : 0))
+        #expect(battle.roster.companion.currentMana == 0)
+        #expect(talentPoints(.shield, on: .hero, in: battle) == 2)
+        #expect(talentPoints(.shield, on: .companion, in: battle) == 0)
     }
 
     @Test func `dragon patronage rejects insufficient mana burn cards and defeated patrons`() {

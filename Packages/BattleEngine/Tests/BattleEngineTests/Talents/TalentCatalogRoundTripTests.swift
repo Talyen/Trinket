@@ -38,39 +38,6 @@ struct TalentCatalogRoundTripTests {
         #expect(profile.triggers.blockRetainsThreeQuarters)
     }
 
-    @Test(arguments: [BattleParticipant.hero, .companion])
-    func `intercede returns absorbed damage through seismic reversal`(target: BattleParticipant) throws {
-        let build = try BattleTestFixtures.catalogBuild(combatantID: "knight", talents: "knight_block_t2_1")
-        let bear = try BattleTestFixtures.catalogBuild(combatantID: "bear", talents: "bear_stun_t4_1")
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: build.combatant,
-            companion: bear.combatant,
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
-            heroModifiers: build.modifiers,
-            companionModifiers: bear.modifiers,
-        )
-        battle.appliesFightPacing = false
-        _ = battle.applyBlock(10, to: build.combatant, source: build.combatant, abilityName: "Test")
-        let outcome = battle.resolveDamage(
-            DamageRequest(
-                amount: 4,
-                target: battle.roster[target].combatant,
-                keyword: .physical,
-                sourceActorID: "enemy",
-                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
-            ),
-        )
-        #expect(outcome.healthLost == 0)
-        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: build.combatant)) == 6)
-        #expect(battle.roster.enemy.currentHealth == 36)
-        #expect(battle.roster.activeEffects(for: battle.enemy).contains {
-            if case .controlMeter(.stun, 4, _) = $0.effect {
-                return true
-            }
-            return false
-        })
-    }
-
     @Test(arguments: [(Keyword.burn, 0.0, 8, 10, 4), (.physical, 0.5, 1, 5, 2), (.physical, 0.0, 0, 2, 4)])
     func `block bypass applies to intercede and the recipients block`(
         keyword: Keyword, physicalIgnore: Double, healthLost: Int, heroBlock: Int, companionBlock: Int,
@@ -205,7 +172,7 @@ struct TalentCatalogRoundTripTests {
                 options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
             ),
         )
-        #expect(battle.roster.health(for: hero) == 3)
+        #expect(battle.roster.health(for: hero) == 5)
         #expect(battle.roster.runtime(for: build.combatant)?.hasTriggeredPhoenixGift == true)
 
         _ = battle.resolveDamage(
@@ -234,45 +201,6 @@ struct TalentCatalogRoundTripTests {
             ),
         )
         #expect(battle.roster.health(for: hero) == 0)
-    }
-
-    @Test func `rebirth revives before deaths door then deaths door on second lethal`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        let build = try BattleTestFixtures.catalogBuild(combatantID: "phoenix", talents: "phoenix_deathsdoor_t1_1")
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: build.combatant,
-            enemy: enemy,
-            companionModifiers: build.modifiers,
-        )
-        context.roster.mutateRuntime(for: build.combatant) { $0.currentHealth = 5 }
-
-        _ = context.resolveDamage(
-            DamageRequest(
-                amount: 50,
-                target: build.combatant,
-                keyword: .physical,
-                sourceActorID: enemy.id,
-                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
-            ),
-        )
-        try #expect(context.roster.health(for: build.combatant) == 10)
-        try #expect(context.roster.runtime(for: build.combatant)?.hasTriggeredDeathRevive == true)
-        try #expect(context.roster.hasConsumedDeathsDoor(for: build.combatant) == false)
-
-        _ = context.resolveDamage(
-            DamageRequest(
-                amount: 50,
-                target: build.combatant,
-                keyword: .physical,
-                sourceActorID: enemy.id,
-                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
-            ),
-        )
-        try #expect(context.roster.health(for: build.combatant) == 1)
-        try #expect(context.roster.hasConsumedDeathsDoor(for: build.combatant))
-        try #expect(context.roster.isDeathsDoorActive(for: build.combatant))
     }
 
     @Test func `deathrattle revives with block before deaths door`() throws {
@@ -317,37 +245,5 @@ struct TalentCatalogRoundTripTests {
         )
         try #expect(context.roster.health(for: build.combatant) == 1)
         try #expect(context.roster.hasConsumedDeathsDoor(for: build.combatant))
-    }
-
-    private struct HealGrantBlockCase {
-        let combatantID: String
-        let talentID: String
-        let abilityName: String
-
-        static let wardedRoost = Self(
-            combatantID: "library_owl",
-            talentID: "library_owl_health_t1_2",
-            abilityName: "Warded Roost",
-        )
-    }
-
-    @Test(arguments: [Self.HealGrantBlockCase.wardedRoost])
-    private func `heal grant block logs authored ability name`(_ testCase: HealGrantBlockCase) throws {
-        let build = try BattleTestFixtures.catalogBuild(combatantID: testCase.combatantID, talents: testCase.talentID)
-        #expect(build.modifiers.triggerAbilityName("onHealGrantBlock", fallback: "") == testCase.abilityName)
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: build.combatant,
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
-            companionModifiers: build.modifiers,
-        )
-        battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
-        let outcome = battle.resolveHeal(
-            HealRequest(amount: 4, target: hero, sourceActorID: build.combatant.id),
-        )
-        #expect(outcome.events.contains {
-            $0.abilityName == testCase.abilityName && $0.effectKind == .shieldApplied && $0.amount == 2
-        })
     }
 }

@@ -13,6 +13,7 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         applyBaseAndScaledDamage(to: &state, in: &context)
+        applyCompanionAttackBonuses(to: &state, in: &context)
         if state.options.isAttackHit, state.amount > 0 {
             let bonus = context.resolution.consumeGoldDamage(for: state.sourceActorID)
             state.remaining += bonus
@@ -136,6 +137,10 @@ package extension DamagePipeline {
             state.remaining *= 2
             context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.doubleDamageAfterDodge = false }
         }
+        if runtime.talents.pending.doubleNextAttackAfterDeathsDoor {
+            state.remaining *= 2
+            context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.doubleNextAttackAfterDeathsDoor = false }
+        }
         if runtime.talents.pending.cardDamageBonus > 0 {
             state.remaining += runtime.talents.pending.cardDamageBonus
             context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.cardDamageBonus = 0 }
@@ -181,6 +186,7 @@ package extension DamagePipeline {
             }
         }
         applyTalentStatusMultipliers(to: &state, in: &context)
+        applyCompanionStatusMultipliers(to: &state, in: &context)
         applyTalentBlockConsumption(to: &state, in: &context)
     }
 
@@ -202,13 +208,6 @@ package extension DamagePipeline {
             }
         }
         guard keyword == .physical, state.options.isAttackHit, !state.options.isRetaliation else { return }
-        if triggers.batteringRam {
-            let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant))
-            if block > 0, let reduced = DefensePoolEngine.reduce(block, in: context.roster.activeEffects(for: source.combatant)) {
-                context.roster.setActiveEffects(reduced.effects, for: source.combatant)
-                state.remaining += reduced.absorbed
-            }
-        }
         var stored = 0
         if CombatTriggerEngine.hasLivingPartyTrigger(\.storedImpact, in: context) {
             for owner in [BattleParticipant.hero, .companion] {
@@ -415,6 +414,10 @@ package extension DamagePipeline {
         var talentResistance = 0.0
         if damageKeyword == .bleed {
             talentResistance = max(talentResistance, defenderTriggers.bleedResistance, defenderTriggers.afflictionResistance)
+            talentResistance = max(
+                talentResistance,
+                companionBleedResistance(for: state.combatant, keyword: damageKeyword, in: context),
+            )
         }
         if damageKeyword == .poison {
             talentResistance = max(talentResistance, defenderTriggers.afflictionResistance)
@@ -444,6 +447,8 @@ package extension DamagePipeline {
                 multiplier: context.heroModifiers.triggers.verdantShelterDamageMultiplier,
             )
         }
+        applyCompanionDefenseMultipliers(to: &state, in: context)
+        applyPreparedIncomingProtection(to: &state, in: &context)
     }
 
     static func applyCriticalMultiply(
@@ -491,6 +496,9 @@ package extension DamagePipeline {
             remaining, defenderTriggers: defenderTriggers,
             damageKeyword: state.damageKeyword, effectiveReduction: effectiveReduction,
         )
+        state.remaining = remaining
+        applyCompanionFlatDefense(to: &state, in: context)
+        remaining = state.remaining
         remaining = applySpellBlockReduction(
             remaining, state: state, defenderTriggers: defenderTriggers,
             effectiveReduction: effectiveReduction, in: &context,
@@ -602,12 +610,7 @@ package extension DamagePipeline {
               context.roster.companion.isAlive,
               context.companionModifiers.triggers.guardianHeroBlockFlat > 0,
               state.options.isAttackHit, !state.options.isRetaliation,
-              let actionID = context.resolution.actionID,
-              context.resolution.claim(
-                  .heroTalent("guardian"),
-                  actorID: context.roster.companion.id,
-                  cadence: .action(actionID),
-              )
+              context.claimHeroTalent("Guardian", actorID: context.roster.companion.id, battle: true)
         else { return }
         let block = context.companionModifiers.triggers.guardianHeroBlockFlat
         let granted = context.applyBlockGain(

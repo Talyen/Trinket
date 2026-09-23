@@ -53,9 +53,6 @@ enum CleanseOperation {
                     isDirectCardHeal: context.hasHeroCard(for: source.id),
                 ))
             }
-            if propagation == .primary {
-                events.append(contentsOf: CombatTriggerEngine.cleanseOtherPartyMember(source: source, target: target, in: &context))
-            }
             return Outcome(removed: [], application: EffectApplyOutcome(events: events, didApply: !events.isEmpty))
         }
         if propagation == .secondary {

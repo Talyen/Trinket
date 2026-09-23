@@ -15,22 +15,12 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
     }
 
-    func testDefeatContinueReturnsToCampaign() {
-        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval(
-            "0.01",
-            in: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat"),
-        ))
-        assertDoesNotExist(AccessibilityID.Battle.defeatPrimaryButton)
-        tapWhenReady(button(AccessibilityID.Battle.defeatLeaveButton))
-        play.assertCampaignLoaded()
-        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 1))
-    }
-
     func testDefeatContinueRecoversFromSaveFailureAndReturnsToCampaign() {
         launchApp(arguments: TestLaunchArg.replacingBattleTickInterval(
             "0.01",
             in: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat-save-failure"),
         ))
+        assertDoesNotExist(AccessibilityID.Battle.defeatPrimaryButton)
         tapWhenReady(button(AccessibilityID.Battle.defeatLeaveButton))
         play.assertCampaignLoaded()
         XCTAssertFalse(app.alerts.firstMatch.exists)

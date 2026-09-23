@@ -9,7 +9,7 @@ package extension DamagePipeline {
     ) {
         guard let pending = context.roster.runtime(for: source)?.talents.pending,
               pending.overchargePercent > 0,
-              CombatantTalentState.Pending.isLaterAttack(
+              CombatantTalentState.Pending.isLaterAbility(
                   preparedCardSerial: pending.overchargePreparedCardSerial,
                   currentCardSerial: context.resolution.cardTalents?.playSerial,
               ) else { return }
@@ -117,7 +117,7 @@ package extension DamagePipeline {
             if state.options.isAttackHit,
                let percent = context.roster.runtime(for: source)?.talents.pending.nextBurnAttackPercent,
                percent > 0,
-               CombatantTalentState.Pending.isLaterAttack(
+               CombatantTalentState.Pending.isLaterAbility(
                    preparedCardSerial: context.roster.runtime(for: source)?.talents.pending.nextBurnAttackPreparedCardSerial,
                    currentCardSerial: context.resolution.cardTalents?.playSerial,
                ) {
@@ -157,13 +157,7 @@ package extension DamagePipeline {
                 context.roster.mutateRuntime(for: source) { $0.talents.pending.doubleNextPoisonAttack = false }
             }
         }
-        if keyword == .burn, state.options.isAttackHit,
-           let bonus = context.roster.runtime(for: source)?.talents.pending.nextBurnDamageBonus,
-           bonus > 0 {
-            state.remaining += bonus
-            state.itemBonus += bonus
-            context.roster.mutateRuntime(for: source) { $0.talents.pending.nextBurnDamageBonus = 0 }
-        }
+        applyPreparedBurnAttackBonus(to: &state, source: source, in: &context)
     }
 
     private static func applyBlockAndHolyBonuses(
@@ -190,7 +184,7 @@ package extension DamagePipeline {
         if keyword == .physical, state.options.isAttackHit,
            let pending = context.roster.runtime(for: source)?.talents.pending,
            pending.doubleNextPhysicalAttack,
-           CombatantTalentState.Pending.isLaterAttack(
+           CombatantTalentState.Pending.isLaterAbility(
                preparedCardSerial: pending.nextPhysicalPreparedCardSerial,
                currentCardSerial: context.resolution.cardTalents?.playSerial,
            ) {
@@ -228,9 +222,6 @@ package extension DamagePipeline {
         let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
         if keyword == .physical || sharedKeyword == .physical,
            state.isCritical, state.targetStatus.isPoisoned, triggers.pressurePoint {
-            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
-        }
-        if keyword == .poison, state.targetStatus.isStunned, triggers.toxicComa {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
         }
         if keyword == .bleed || sharedKeyword == .bleed, state.targetStatus.isPoisoned, triggers.septicemia {

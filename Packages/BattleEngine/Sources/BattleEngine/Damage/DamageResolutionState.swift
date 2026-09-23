@@ -67,6 +67,7 @@ package struct DamageResolutionState {
     var additionalPhysicalDamage = 0
     var pendingAttackBonus = 0
     var pendingHolyBonus = 0
+    var ignoreBlockFromTalent = false
     var didLeech = false
     var didTriggerControl = false
     /// Scratch owned by Unique equipment rules (capture/apply/store), not by

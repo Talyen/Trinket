@@ -244,11 +244,17 @@ package extension CombatTriggerEngine {
         }
         if source.role == .hero, status.isStunned {
             multiplier *= triggers.heroDamageVsStunnedMultiplier
+            multiplier *= companionExposedPreyMultiplier(in: context)
         }
         if damageKeyword == .poison, targetBelowPoisonThreshold {
             multiplier *= triggers.poisonDamageBelowHealthMultiplier
         }
         return multiplier
+    }
+
+    private static func companionExposedPreyMultiplier(in context: BattleState) -> Double {
+        context.roster.companion.isAlive
+            ? context.companionModifiers.triggers.heroDamageVsStunnedMultiplier : 1
     }
 
     static func afterStunDamageDealt(

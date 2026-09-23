@@ -39,8 +39,8 @@ extension TalentCatalogRoundTripTests {
             amount: 1, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
         ))
-        #expect(before - battle.roster.enemy.currentHealth == 2 - block)
-        #expect(talentPoints(.poison, on: .enemy, in: battle) == 2 - block)
-        #expect(talentPoints(.shield, on: .enemy, in: battle) == 0)
+        #expect(before - battle.roster.enemy.currentHealth == (block == 0 ? 1 : 0))
+        #expect(talentPoints(.poison, on: .enemy, in: battle) == (block == 0 ? 1 : 0))
+        #expect(talentPoints(.shield, on: .enemy, in: battle) == max(0, block - 1))
     }
 }

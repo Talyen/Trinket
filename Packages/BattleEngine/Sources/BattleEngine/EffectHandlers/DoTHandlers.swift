@@ -15,9 +15,13 @@ struct DecayingDoTHandler: BattleEffectHandler {
         let nextPotency: Int
         if keyword == .burn {
             let decayed = active.effect.potencyAfterTurn(burnDecaySlowPercent: slowPercent)
-            if let sourceTriggers, sourceTriggers.burnIncreaseChancePercent > 0,
-               BattleChance.succeeds(probability: sourceTriggers.burnIncreaseChancePercent, using: &context.rng),
+            if let sourceTriggers, sourceTriggers.burnPreventDecayChancePercent > 0,
+               BattleChance.succeeds(probability: sourceTriggers.burnPreventDecayChancePercent, using: &context.rng),
                let potency = active.effect.potency {
+                nextPotency = potency
+            } else if let sourceTriggers, sourceTriggers.burnIncreaseChancePercent > 0,
+                      BattleChance.succeeds(probability: sourceTriggers.burnIncreaseChancePercent, using: &context.rng),
+                      let potency = active.effect.potency {
                 nextPotency = potency + 1
             } else {
                 nextPotency = decayed
@@ -112,6 +116,11 @@ struct DecayingDoTHandler: BattleEffectHandler {
     ) -> Int {
         guard case let .poison(potency) = active.effect else {
             return active.effect.potencyAfterTurn()
+        }
+        if BattleChance.succeeds(
+            probability: sourceTriggers?.poisonPreventDecayChancePercent ?? 0, using: &context.rng,
+        ) {
+            return potency
         }
         let chance: Double = if let sourceActorID = active.sourceActorID {
             context.modifiers(for: sourceActorID).triggers.poisonDecayIncreaseChance

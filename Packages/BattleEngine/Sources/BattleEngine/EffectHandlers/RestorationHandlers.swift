@@ -57,7 +57,7 @@ struct ResourceGainHandler: BattleEffectHandler {
             if restored > 0 {
                 events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: target, in: &context))
             }
-            events.append(contentsOf: CombatTriggerEngine.consumeManaOverflowThorns(
+            events.append(contentsOf: CombatTriggerEngine.consumeManaOverflowTalents(
                 for: target, restoredMana: restored > 0, in: &context,
             ))
             return EffectApplyOutcome(events: events, didApply: true)
@@ -123,7 +123,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
         if restored > 0 {
             events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: target, in: &context))
         }
-        events.append(contentsOf: CombatTriggerEngine.consumeManaOverflowThorns(
+        events.append(contentsOf: CombatTriggerEngine.consumeManaOverflowTalents(
             for: target, restoredMana: restored > 0, in: &context,
         ))
         return EffectApplyOutcome(events: events, didApply: true)

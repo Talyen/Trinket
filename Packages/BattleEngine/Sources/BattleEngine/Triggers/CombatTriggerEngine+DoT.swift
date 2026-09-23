@@ -142,7 +142,7 @@ package extension CombatTriggerEngine {
             cap > 0 ? cap - already : sourceTriggers.onBurnDamageRestoreManaFlat,
         )
         let restored = context.restoreMana(toRestore, to: caster.combatant)
-        let overflowEvents = consumeManaOverflowThorns(
+        let overflowEvents = consumeManaOverflowTalents(
             for: caster.combatant, restoredMana: restored > 0, in: &context,
         )
         guard restored > 0 else { return overflowEvents }

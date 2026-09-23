@@ -5,7 +5,22 @@ package extension CombatTriggerEngine {
     static func afterGoldTheft(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         guard context.roster.health(for: actor) > 0 else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
-        var events: [ActionEvent] = []
+        var events = afterCompanionGoldTheft(by: actor, in: &context)
+        if triggers.goldTheftBlockAmount > 0, triggers.goldTheftBlockChancePercent > 0,
+           context.claimTalentAbility("Hoard Armor", actorID: actor.id),
+           BattleChance.succeeds(probability: triggers.goldTheftBlockChancePercent, using: &context.rng) {
+            events.append(contentsOf: context.applyBlock(
+                triggers.goldTheftBlockAmount, to: actor, source: actor, abilityName: "Hoard Armor",
+            ))
+        }
+        if triggers.goldTheftDrawChancePercent > 0,
+           context.claimTalentAbility("Scavenger’s Cache", actorID: actor.id),
+           BattleChance.succeeds(probability: triggers.goldTheftDrawChancePercent, using: &context.rng),
+           let owner = context.roster.participant(for: actor) {
+            events.append(contentsOf: drawCards(
+                1, for: owner, actor: actor, abilityName: "Scavenger’s Cache", in: &context,
+            ))
+        }
         if triggers.goldTheftDodgeBonus > 0,
            context.roster.runtime(for: actor)?.talents.turn.goldTheftDodgeApplied == false {
             context.roster.mutateRuntime(for: actor) {
@@ -178,11 +193,15 @@ package extension CombatTriggerEngine {
                     1, for: owner, actor: combatant, abilityName: "Last Wager", in: &context,
                 ))
             }
-            if triggers.goldGainDrawChancePercent > 0,
+            if triggers.goldGainDrawChancePercent > 0, context.roster.enemy.isAlive,
+               context.claimTalentAbility("goldGainDrawChance", actorID: combatant.id),
                BattleChance.succeeds(probability: triggers.goldGainDrawChancePercent, using: &context.rng),
                let owner = context.roster.participant(for: combatant) {
                 events.append(contentsOf: drawCards(
-                    1, for: owner, actor: combatant, abilityName: "Lucky Break", in: &context,
+                    1, for: owner, actor: combatant,
+                    abilityName: triggerAbilityName(
+                        "goldGainDrawChancePercent", for: combatant, fallback: "Lucky Break", in: context,
+                    ), in: &context,
                 ))
             }
         }

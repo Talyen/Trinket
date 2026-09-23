@@ -465,6 +465,36 @@
       "type": "Int",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "spendManaDrawChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "excessManaRestorationBlock",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "manaHeldDamageMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "manaEmpowerAllyBlock",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "burnCriticalRestoreMana",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
     }
   ]
 }

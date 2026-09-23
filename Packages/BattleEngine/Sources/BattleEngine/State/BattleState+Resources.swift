@@ -14,7 +14,9 @@ package extension BattleState {
         isTheft: Bool = false,
         isDirectCardGain: Bool = false,
     ) -> [ActionEvent] {
-        let baseGold = goldGranted(for: amount, sourceActorID: combatant.id)
+        let theftBonus = isTheft && amount > 0 && roster.health(for: combatant) > 0
+            ? modifiers(for: combatant.id).triggers.goldStealFlatBonus : 0
+        let baseGold = goldGranted(for: amount + theftBonus, sourceActorID: combatant.id)
         var granted = baseGold
         if isTheft, granted > 0,
            roster.runtime(for: combatant)?.talents.pending.doubleNextGoldSteal == true {
@@ -97,6 +99,9 @@ package extension BattleState {
         if overflow > 0, profile.triggers.livingConduit {
             runtime.talents.pending.manaOverflowThorns += overflow
         }
+        if overflow > 0, profile.triggers.excessManaRestorationBlock {
+            runtime.talents.pending.manaOverflowBlock += overflow
+        }
         roster.update(runtime)
         return total
     }
@@ -108,7 +113,7 @@ package extension BattleState {
         actorName: String? = nil,
     ) -> [ActionEvent] {
         let restored = restoreMana(amount, to: combatant)
-        let overflowEvents = CombatTriggerEngine.consumeManaOverflowThorns(
+        let overflowEvents = CombatTriggerEngine.consumeManaOverflowTalents(
             for: combatant, restoredMana: restored > 0, in: &self,
         )
         guard restored > 0 else { return overflowEvents }

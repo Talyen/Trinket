@@ -13,13 +13,14 @@ struct LingeringBlessing: Hashable, Sendable {
 
 struct CombatantTalentState: Hashable, Sendable {
     struct Battle: Hashable, Sendable {
+        var wasBelowHalfHealth = false
         var maximumHealthBonus = 0
         var damageBonus = 0
         var keywordDamageRamp: [Keyword: Int] = [:]
         var leechOverhealDamageBonus = 0
-        var totalBlockGained = 0
         var criticalMultiplierBonus = 0.0
         var negatedFirstEnemyAttack = false
+        var interceptedFirstAllyFatalHit = false
         var hasEmpoweredWithMana = false
         var manaSpentTowardAutoPlay = 0
         var flatDamageReductionBonus = 0
@@ -57,21 +58,38 @@ struct CombatantTalentState: Hashable, Sendable {
         var doubleNextGoldSteal = false
         var nextPhysicalDamageBonus = 0
         var nextManaEmpowerDiscount = 0
+        var nextBlockGainMultiplier = 1.0
+        var nextBlockGainPreparedCardSerial: Int?
+        var nextFreezeIgnoresBlock = false
+        var nextFreezeIgnorePreparedCardSerial: Int?
+        var nextAttackIgnoresBlock = false
+        var nextAttackIgnorePreparedCardSerial: Int?
+        var nextAttackMissChance = 0.0
+        var nextIncomingDamageMultiplier = 1.0
+        var nextIncomingDamagePreparedCardSerial: Int?
+        var doubleNextBleedAttack = false
+        var nextBleedAttackPreparedCardSerial: Int?
+        var doubleNextAttackAfterDeathsDoor = false
         var nextBurnAttackPercent = 0.0
         var nextBurnAttackPreparedCardSerial: Int?
         var doubleNextPhysicalAttack = false
         var nextPhysicalPreparedCardSerial: Int?
         var nextBleedDamageBonus = 0
         var nextBurnDamageBonus = 0
+        var nextBurnDamagePreparedCardSerial: Int?
         var nextPoisonDamageBonus = 0
         var manaOverflowThorns = 0
+        var manaOverflowBlock = 0
         var nextAttackCriticalBonus = 0.0
+        var nextAttackCriticalPreparedCardSerial: Int?
+        var nextCleanseCriticalBonus = 0.0
+        var nextCleanseCriticalPreparedCardSerial: Int?
         var nextAttackGuaranteedCritical = false
         var basicGuaranteedCritical = false
         var basicCriticalBonus = 0.0
         var attackBonusOnFullHealth = 0
 
-        static func isLaterAttack(preparedCardSerial: Int?, currentCardSerial: Int?) -> Bool {
+        static func isLaterAbility(preparedCardSerial: Int?, currentCardSerial: Int?) -> Bool {
             preparedCardSerial == nil || preparedCardSerial != currentCardSerial
         }
 

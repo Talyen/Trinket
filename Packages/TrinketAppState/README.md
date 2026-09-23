@@ -12,6 +12,8 @@ encounter orchestration plus `Modes/`; `Purchases/` owns StoreKit access;
 
 - `AppState`: dependency wiring and shell state
 - `PlaySession`: Play shell and mode composition
+- `PostBattleTalentChoices`: transient queue, eligibility, and confirmation
+  transitions after settled battle rewards; `PlaySession` forwards screen actions
 - `PlayBattleRuns`: paired runtime/route metadata lifecycle; preparation, activation,
   restart rollback, pruning, and exit. Its registration storage is private.
 - `PlayBattleLaunch`: access policy and save-backed launch assembly

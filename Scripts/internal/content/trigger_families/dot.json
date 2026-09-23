@@ -430,6 +430,42 @@
       "type": "Int",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "poisonPreventDecayChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "poisonDamageVsStunnedMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "bleedDamageBelowHalfMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "onDamageBurnRetaliationChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onDamageBurnRetaliationDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "burnPreventDecayChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
     }
   ]
 }

@@ -16,10 +16,9 @@ extension CombatTriggerTalentDamageTests {
         #expect(ability.directDamage == Ability.frostbolt.directDamage + 2)
     }
 
-    @Test(arguments: ["bear_physical_t4_1", "wolf_physical_t4_1"])
-    func `physical reactions preserve next attack resources`(talentID: String) {
+    @Test func `physical reactions preserve stored impact for the next attack`() {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatantTalentCatalog.profile(for: [talentID]),
+            heroModifiers: CombatantTalentCatalog.profile(for: ["wolf_physical_t4_1"]),
         )
         battle.appliesFightPacing = false
         let hero = battle.hero
@@ -37,11 +36,7 @@ extension CombatTriggerTalentDamageTests {
             options: DamageOperation.attack(tier: .skill, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
         ))
         #expect(attack.healthLost == 9)
-        if talentID == "bear_physical_t4_1" {
-            #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 0)
-        } else {
-            #expect(battle.storedBlockedDamageByActorID[hero.id] == nil)
-        }
+        #expect(battle.storedBlockedDamageByActorID[hero.id] == nil)
     }
 
     @Test(arguments: [0, 2, 10])

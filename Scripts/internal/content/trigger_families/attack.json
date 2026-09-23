@@ -87,12 +87,6 @@
       "merge": "add"
     },
     {
-      "name": "physicalAttackFlatStunBuildup",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
-    },
-    {
       "name": "basicAttackApplyBleed",
       "type": "Int",
       "default": "0",
@@ -316,30 +310,6 @@
       "merge": "or"
     },
     {
-      "name": "physicalVsStunnedStunBuildup",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
-    },
-    {
-      "name": "firstPhysicalBleedStunPerTurn",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "attackStunBuildupBelowHealthThreshold",
-      "type": "Double",
-      "default": "0",
-      "merge": "max"
-    },
-    {
-      "name": "attackStunBuildupBelowHealthBonus",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
-    },
-    {
       "name": "poisonCritPreparesBleedCrit",
       "type": "Bool",
       "default": "false",
@@ -383,6 +353,144 @@
     },
     {
       "name": "physicalVsFrozenCritBonus",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "blockBreakNextPhysicalBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "physicalDamageVsStunnedMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "physicalCritChanceBelowHalfBonus",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "physicalCritRemoveEnemyBlock",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "firstPhysicalAttackBlockDamagePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "poisonCriticalHasLeech",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "poisonAttackStunChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedCriticalPoisonDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedCriticalThorns",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedCriticalDrawChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "criticalGoldStealFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedAttackDamageBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedAttackCriticalBonus",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "attackVsBleedingBelowHalfMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "bleedCriticalDamageMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "belowHalfHealthNextBleedDouble",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "partyCritChanceWhileCompanionFullHealth",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "holyCriticalAllyIgnoreBlock",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "holyAttackCriticalBonus",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "holyAttackEnemyMissChance",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "holyAttackDrawChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "holyCriticalPurgeCount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "holyAttackCleanseAllyChancePercent",
       "type": "Double",
       "default": "0",
       "merge": "add"

@@ -51,6 +51,7 @@ package extension CombatTriggerEngine {
         return CombatCheckpoint.payment(payment).resolve([
             { afterHeroTalentSpendMana(actor: actor, amount: amountSpent, in: &$0) },
             { drawAfterSpendMana(by: actor, in: &$0) },
+            { drawOnManaSpendChance(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
             { spendManaBlockIfNeeded(actor: actor, triggers: triggers, in: &$0) },
             { heroSpendManaCompanionIfNeeded(actor: actor, in: &$0) },
             { spendManaRefundIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
@@ -139,11 +140,26 @@ package extension CombatTriggerEngine {
         amountSpent: Int,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard triggers.spendManaRefundChancePercent > 0,
+        guard amountSpent > 0, triggers.spendManaRefundChancePercent > 0,
+              context.claimTalentAbility("Mana Flow", actorID: actor.id),
               BattleChance.succeeds(probability: triggers.spendManaRefundChancePercent, using: &context.rng) else {
             return []
         }
         return emitMana("spendManaRefundChancePercent", "Mana Flow", amount: amountSpent, to: actor, in: &context)
+    }
+
+    private static func drawOnManaSpendChance(
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        amountSpent: Int,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard amountSpent > 0, triggers.spendManaDrawChancePercent > 0,
+              context.claimTalentAbility("Dragon Spark", actorID: actor.id),
+              BattleChance.succeeds(probability: triggers.spendManaDrawChancePercent, using: &context.rng),
+              let owner = context.roster.participant(for: actor)
+        else { return [] }
+        return drawCards(1, for: owner, actor: actor, abilityName: "Dragon Spark", in: &context)
     }
 
     private static func spendManaBurnIfNeeded(
@@ -388,6 +404,9 @@ package extension CombatTriggerEngine {
     static func afterGainMana(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
+        events.append(contentsOf: HealingEngine.drawOwlFontOfMagic(
+            actor: actor, chance: triggers.healthOrManaRestoreDrawChancePercent, in: &context,
+        ))
         let amount = triggers.gainManaBlockFlat
         if amount > 0 {
             events.append(contentsOf: emitBlock(
@@ -404,22 +423,33 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    static func consumeManaOverflowThorns(
+    static func consumeManaOverflowTalents(
         for actor: Combatant,
         restoredMana: Bool,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let overflow = context.roster.runtime(for: actor)?.talents.pending.manaOverflowThorns ?? 0
+        let block = context.roster.runtime(for: actor)?.talents.pending.manaOverflowBlock ?? 0
         let arcane = restoredMana ? context.modifiers(for: actor.id).triggers.arcaneThornsOnManaRestore : 0
         let amount = overflow + arcane
-        guard amount > 0 else { return [] }
-        context.roster.mutateRuntime(for: actor) { $0.talents.pending.manaOverflowThorns = 0 }
-        return heroTalentThorns(
-            to: actor,
-            source: actor,
-            amount: amount,
-            name: overflow > 0 ? "Living Conduit" : "Arcane Thorns",
-            in: &context,
-        )
+        guard amount > 0 || block > 0 else { return [] }
+        context.roster.mutateRuntime(for: actor) {
+            $0.talents.pending.manaOverflowThorns = 0
+            $0.talents.pending.manaOverflowBlock = 0
+        }
+        var events: [ActionEvent] = []
+        if amount > 0 {
+            events.append(contentsOf: heroTalentThorns(
+                to: actor, source: actor, amount: amount,
+                name: overflow > 0 ? "Living Conduit" : "Arcane Thorns", in: &context,
+            ))
+        }
+        if block > 0 {
+            events.append(contentsOf: context.applyBlock(
+                block, to: actor, source: actor,
+                abilityName: "Mana Absorption", amountBasis: .resolved,
+            ))
+        }
+        return events
     }
 }

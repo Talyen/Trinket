@@ -4,10 +4,7 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
-    @Test(arguments: [
-        ("warlock_leech_t4_1", Keyword.burn),
-        ("panther_leech_t4_1", Keyword.bleed),
-    ])
+    @Test(arguments: [("warlock_leech_t4_1", Keyword.burn)])
     func `elemental leech works on ticks without doubling existing leech`(talent: String, keyword: Keyword) {
         var battle = capstoneBattle(companion: [talent])
         battle.roster.companion.currentHealth = 1
@@ -52,83 +49,15 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.companion.currentHealth == health)
     }
 
-    @Test func `undying ember heals through block without adding burn or blocking its decay`() {
-        var battle = capstoneBattle(companion: ["phoenix_deathsdoor_t4_1"])
-        seedHeroTalentEffect(.burn(4), on: .companion, in: &battle, source: .enemy)
-        seedHeroTalentEffect(.shield(.block, 5), on: .companion, in: &battle)
-        seedHeroTalentEffect(.deathsDoor, on: .companion, in: &battle)
-        battle.roster.companion.currentHealth = 1
-        let events = DoTApplicator.applyDecayingDoT(
-            keyword: .burn, potency: 4, to: battle.companion, sourceActorID: battle.enemy.id,
-            application: .ability, in: &battle,
-        )
-        #expect(battle.roster.companion.currentHealth == 5)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 5)
-        #expect(talentPoints(.burn, on: .companion, in: battle) == 4)
-        #expect(events.contains { $0.abilityName == "Undying Ember" && $0.amount == 4 })
-        _ = EffectTurnEngine.advanceAll(context: &battle)
-        #expect(battle.roster.companion.currentHealth == 7)
-        #expect(talentPoints(.burn, on: .companion, in: battle) < 4)
-        ActiveEffectMutation.removeMatching(from: battle.companion, in: &battle) { $0.kind == .deathsDoor }
-        DefensePoolEngine.set(0, on: battle.companion, in: &battle)
-        let hit = battle.resolveDamage(.doTTick(
-            amount: 2, target: battle.companion, keyword: .burn, sourceActorID: battle.enemy.id,
-        ))
-        #expect(hit.healthLost == 2)
-    }
-
-    @Test func `winters wake reflects dodged damage as A freeze hit before block`() {
-        var battle = capstoneBattle(companion: ["frost_whelp_dodge_t4_1"])
-        seedHeroTalentEffect(.evadeNextHit, on: .companion, in: &battle)
-        seedHeroTalentEffect(.shield(.block, 20), on: .companion, in: &battle)
-        var options = DamageOperation.attack(scaling: .flat)
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.companion, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: options,
-        ))
-        #expect(result.flags.contains(.dodged))
-        #expect(result.events.contains { $0.kind == .abilityDamage && $0.keyword == .freeze && $0.amount == 4 })
-        #expect(battle.roster.enemy.currentHealth == 196)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 20)
-        #expect(battle.roster.enemy.activeEffects.contains {
-            if case let .controlMeter(.freeze, amount, _) = $0.effect {
-                return amount == 4
-            }
-            return false
-        })
-        seedHeroTalentEffect(.evadeNextHit, on: .companion, in: &battle)
-        options = .reaction(cause: .dodge, scaling: .flat, accuracy: .normal)
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.companion, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: options,
-        ))
-        #expect(battle.roster.enemy.currentHealth == 196)
-    }
-
     @Test func `killing grace uses current dodge chance and respects critical cap`() {
         var battle = capstoneBattle(companion: ["panther_dodge_t4_1", "panther_dodge_t2_1"])
         let healthy = CriticalChanceEngine.chance(actorID: battle.companion.id, defender: battle.enemy, in: battle)
-        #expect(abs(healthy - 0.20) < 0.0001)
+        #expect(abs(healthy - 0.15) < 0.0001)
         battle.roster.companion.currentHealth = 1
         let injured = CriticalChanceEngine.chance(actorID: battle.companion.id, defender: battle.enemy, in: battle)
-        #expect(abs(injured - 0.45) < 0.0001)
+        #expect(abs(injured - 0.25) < 0.0001)
         seedHeroTalentEffect(.criticalChanceBonus(1, 2), on: .companion, in: &battle)
         #expect(CriticalChanceEngine.chance(actorID: battle.companion.id, defender: battle.enemy, in: battle) == 0.75)
-    }
-
-    @Test func `carrion claim rewards poison and bleed damage including ticks but not blocked damage`() {
-        var battle = capstoneBattle(companion: ["lizard_scout_gold_t4_1"])
-        for keyword in [Keyword.poison, .bleed, .physical] {
-            _ = battle.resolveDamage(.doTTick(
-                amount: 2, target: battle.enemy, keyword: keyword, sourceActorID: battle.companion.id,
-            ))
-        }
-        #expect(battle.gold == 2)
-        seedHeroTalentEffect(.shield(.block, 10), on: .enemy, in: &battle)
-        _ = battle.resolveDamage(.doTTick(
-            amount: 2, target: battle.enemy, keyword: .poison, sourceActorID: battle.companion.id,
-        ))
-        #expect(battle.gold == 2)
     }
 
     @Test func `ghostfrost deals health damage and builds freeze without consuming block`() {
@@ -209,23 +138,6 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.burn, on: .enemy, in: battle) == 0)
     }
 
-    @Test func `interdict extends purifying light without duplicating its purge`() throws {
-        var battle = capstoneBattle(companion: ["library_owl_holy_t3_2", "library_owl_holy_t4_1"])
-        seedHeroTalentEffect(.nextStrikeDouble, on: .enemy, in: &battle, source: .enemy)
-        seedHeroTalentEffect(.nextStrikeCritical, on: .enemy, in: &battle, source: .enemy)
-        let events = try playHeroTalentCard(.smite, owner: .companion, in: &battle)
-        #expect(events.count { $0.effectKind == .purgeApplied } == 2)
-        for effect in [Effect.nextStrikeDouble, .nextStrikeCritical] {
-            seedHeroTalentEffect(effect, on: .enemy, in: &battle, source: .enemy)
-            #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect == effect })
-        }
-        seedHeroTalentEffect(.thorns(3), on: .enemy, in: &battle, source: .enemy)
-        #expect(talentPoints(.thorns, on: .enemy, in: battle) == 3)
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
-        seedHeroTalentEffect(.nextStrikeDouble, on: .enemy, in: &battle, source: .enemy)
-        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .nextStrikeDouble })
-    }
-
     @Test(arguments: [Effect.purge(nil), .purgeRandom])
     func `interdict blocks purged block but permits healing and resource gains`(effect: Effect) throws {
         var battle = capstoneBattle(companion: ["library_owl_holy_t4_1"])
@@ -270,22 +182,6 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.hero.currentHealth < heroHealth || battle.roster.companion.currentHealth < companionHealth)
     }
 
-    @Test func `redline follows detonation while rend flesh still extends undetonated bleed`() throws {
-        var battle = capstoneBattle(companion: ["panther_bleed_t2_2", "panther_bleed_t4_1", "panther_bleed_t4_2"])
-        seedHeroTalentEffect(.bleed(2), on: .enemy, in: &battle, source: .companion)
-        let originalTurns = try #require(battle.activeEffects(of: battle.enemy).first { $0.effect.isBleed }?.remainingTurns)
-        seedHeroTalentEffect(.nextStrikeCritical, on: .companion, in: &battle)
-        try playHeroTalentCard(.smite, owner: .companion, in: &battle)
-        #expect(battle.activeEffects(of: battle.enemy).first { $0.effect.isBleed }?.remainingTurns == originalTurns * 2)
-        seedHeroTalentEffect(.nextStrikeCritical, on: .companion, in: &battle)
-        let detonating = try playHeroTalentCard(.slash, owner: .companion, in: &battle)
-        #expect(!detonating.contains { $0.kind == .abilityDamage && $0.keyword == .bleed })
-        #expect(talentPoints(.bleed, on: .enemy, in: battle) == 0)
-        let next = try playHeroTalentCard(.slash, owner: .companion, in: &battle)
-        #expect(next.count { $0.kind == .abilityDamage && $0.keyword == .bleed } == 1)
-        #expect(talentPoints(.bleed, on: .enemy, in: battle) == 2)
-    }
-
     @Test func `subzero mist protects the recovery attack and expires at party turn start`() {
         var battle = capstoneBattle(companion: ["mana_moth_freeze_t2_2"])
         let threshold = ControlMeterEngine.threshold(for: battle.enemy, in: battle)
@@ -323,25 +219,18 @@ extension TalentCatalogRoundTripTests {
     }
 
     @Test func `gilded claws banks actual theft without scaling from carried gold`() throws {
-        var battle = capstoneBattle(companion: ["lizard_scout_gold_t3_2", "lizard_scout_gold_t4_1"])
+        var battle = capstoneBattle(companion: ["lizard_scout_gold_t3_2"])
         battle.gold = 10000
-        try playHeroTalentCard(.goldenPlate, owner: .companion, in: &battle)
-        let plain = try playHeroTalentCard(.stab, owner: .companion, in: &battle)
-        let plainHit = try #require(plain.first { $0.kind == .abilityDamage })
-        #expect(plainHit.amount == (plainHit.isCritical ? 4 : 2))
-        try playHeroTalentCard(.steal, owner: .companion, in: &battle)
-        for _ in 0 ..< 7 {
-            _ = battle.resolveDamage(.doTTick(amount: 1, target: battle.enemy, keyword: .poison, sourceActorID: battle.companion.id))
-        }
+        _ = battle.grantGoldEvent(3, to: battle.companion, abilityName: "Steal", isTheft: true)
         let next = try playHeroTalentCard(.stab, owner: .companion, in: &battle)
         let nextHit = try #require(next.first { $0.kind == .abilityDamage })
-        #expect(nextHit.amount == (nextHit.isCritical ? 22 : 11))
+        #expect(nextHit.amount == (nextHit.isCritical ? 10 : 5))
         let spent = try playHeroTalentCard(.stab, owner: .companion, in: &battle)
         let spentHit = try #require(spent.first { $0.kind == .abilityDamage })
         #expect(spentHit.amount == (spentHit.isCritical ? 4 : 2))
     }
 
-    @Test func `blinding light reduces one whole attack and leaves damage over time unchanged`() throws {
+    @Test func `blinding light reserves one attack miss roll and leaves damage over time unchanged`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxHealth: 40,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeChanceBonus: -1))),
@@ -349,17 +238,19 @@ extension TalentCatalogRoundTripTests {
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
-        let holy = try playHeroTalentCard(.smite, owner: .companion, in: &battle)
-        let holyHit = try #require(holy.first { $0.kind == .abilityDamage })
-        let reduction = CombatRounding.scaled(holyHit.amount, multiplier: 0.5)
+        try playHeroTalentCard(.smite, owner: .companion, in: &battle)
+        #expect(battle.roster.enemy.talents.pending.nextAttackMissChance == 0.20)
         let dot = battle.resolveDamage(.doTTick(amount: 2, target: battle.hero, keyword: .burn, sourceActorID: battle.enemy.id))
         #expect(dot.healthLost == 2)
+        #expect(battle.roster.enemy.talents.pending.nextAttackMissChance == 0.20)
+        battle.roster.enemy.talents.pending.nextAttackMissChance = 1
         let attack = Ability(id: "two-hits", name: "Two Hits", tier: .basic, damageComponents: [DamageComponent(4), DamageComponent(4)])
-        for expected in [8 - reduction, 8] {
-            let before = battle.roster.hero.currentHealth
-            _ = BattleTurnEngine.performAction(ability: attack, actor: battle.enemy, abilityTarget: battle.hero, context: &battle)
-            #expect(before - battle.roster.hero.currentHealth == expected)
-        }
+        let avoided = CombatTriggerEngine.enemyAttackAvoidance(in: &battle)
+        #expect(avoided.cancelled)
+        let before = battle.roster.hero.currentHealth
+        _ = BattleTurnEngine.performAction(ability: attack, actor: battle.enemy, abilityTarget: battle.hero, context: &battle)
+        #expect(before - battle.roster.hero.currentHealth == 8)
+        #expect(battle.roster.enemy.talents.pending.nextAttackMissChance == 0)
     }
 
     @Test(arguments: [false, true])

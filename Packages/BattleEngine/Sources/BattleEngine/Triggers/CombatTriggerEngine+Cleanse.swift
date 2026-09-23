@@ -10,7 +10,7 @@ package extension CombatTriggerEngine {
         if context.roster.runtime(for: target)?.talents.turn.cleansedKeywordProtection.contains(effect.keyword) == true {
             return true
         }
-        return effect.keyword == .burn && context.modifiers(for: target.id).triggers.undyingEmber
+        return context.modifiers(for: target.id).triggers.deathsDoorNegativeStatusImmune
             && context.roster.isDeathsDoorActive(for: target)
     }
 
@@ -44,6 +44,16 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         var events: [ActionEvent] = []
+        if removedCount > 0, triggers.cleanseNextAttackCriticalBonus > 0 {
+            let preparedCardSerial = context.resolution.cardTalents?.playSerial
+            context.roster.mutateRuntime(for: target) {
+                $0.talents.pending.nextCleanseCriticalBonus = max(
+                    $0.talents.pending.nextCleanseCriticalBonus,
+                    triggers.cleanseNextAttackCriticalBonus,
+                )
+                $0.talents.pending.nextCleanseCriticalPreparedCardSerial = preparedCardSerial
+            }
+        }
         events.append(contentsOf: cleanseShieldBonuses(
             triggers: triggers,
             source: source,
@@ -189,7 +199,9 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
-        guard triggers.cleanseAffectsBothHeroAndCompanion else { return [] }
+        guard triggers.cleanseAffectsBothHeroAndCompanion,
+              context.claimHeroTalent("Mass Cleanse", actorID: source.id)
+        else { return [] }
         let action = BattleActionContext(actor: source, in: context)
         guard let other = action.allies(in: context).first(where: {
             $0.id != target.id && context.health(of: $0) > 0
@@ -212,7 +224,8 @@ package extension CombatTriggerEngine {
         target: Combatant,
         in context: inout BattleState,
     ) -> CombatOutcome {
-        resolveBonusHeal(
+        guard context.roster.health(for: target) < context.roster.maxHealth(for: target) else { return .empty }
+        return resolveBonusHeal(
             amount: context.modifiers(for: source.id).triggers.cleanseBonusHeal,
             source: source,
             target: target,
@@ -237,7 +250,9 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let count = context.modifiers(for: source.id).triggers.cleanseBonusDraw
-        guard count > 0 else { return [] }
+        guard count > 0,
+              context.claimHeroTalent("Purifying Wisdom", actorID: source.id, battle: true)
+        else { return [] }
         guard let owner = context.roster.participant(for: source), owner.isPartyMember else {
             return []
         }

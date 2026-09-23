@@ -7,15 +7,21 @@ extension HealingEngine {
     ) -> CombatOutcome {
         guard overflow > 0, let sourceID = request.sourceActorID,
               let source = context.roster.combatant(for: sourceID), source.isAlive,
-              request.target.role != .enemy,
-              context.modifiers(for: sourceID).triggers.sharedPrescription else { return .empty }
+              request.target.role != .enemy else { return .empty }
+        let triggers = context.modifiers(for: sourceID).triggers
+        let sharedFeast = request.origin == .leech && sourceID == request.target.id
+            && triggers.leechOverflowShareAlly
+        let contagiousJoy = context.modifiers(for: request.target.id).triggers.excessHealthShareAlly
+        guard triggers.sharedPrescription || sharedFeast || contagiousJoy else { return .empty }
         let other = request.target.role == .hero ? context.roster.companion : context.roster.hero
         let amount = min(overflow, max(0, other.maxHealth - other.currentHealth))
         guard other.isAlive, amount > 0 else { return .empty }
         var transfer = HealRequest(
             amount: amount, target: other.combatant, sourceActorID: sourceID,
             origin: .restoration(.health), logAs: .instantHeal(
-                actorName: source.name, abilityName: "Shared Prescription", keyword: .health,
+                actorName: contagiousJoy ? request.target.name : source.name,
+                abilityName: contagiousJoy ? "Contagious Joy" : (sharedFeast ? "Shared Feast" : "Shared Prescription"),
+                keyword: .health,
             ),
         )
         transfer.amountBasis = .resolved

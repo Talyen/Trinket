@@ -129,7 +129,7 @@ package extension DamagePipeline {
                     in: &context,
                 ))
             }
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.consumeManaOverflowThorns(
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.consumeManaOverflowTalents(
                 for: state.combatant,
                 restoredMana: restored > 0,
                 in: &context,

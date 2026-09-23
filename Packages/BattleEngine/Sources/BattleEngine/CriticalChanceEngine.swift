@@ -49,7 +49,7 @@ package enum CriticalChanceEngine {
             chance += context.heroModifiers.triggers.companionCriticalVsBurningBonus
         }
         if context.modifiers(for: actorID).triggers.killingGrace {
-            chance += DamagePipeline.dodgeChance(for: actor.combatant, attackerID: context.roster.enemy.id, in: context)
+            chance += DamagePipeline.dodgeChance(for: actor.combatant, attackerID: context.roster.enemy.id, in: context) * 0.5
         }
         if countsBleedingDefender,
            context.roster.hasAffliction(.bleed, on: defender) {
@@ -71,6 +71,15 @@ package enum CriticalChanceEngine {
         let companionTriggers = context.companionModifiers.triggers
         var bonus: Double = 0
         let companionMaxHealth = context.roster.companion.maxHealth
+        if companionMaxHealth > 0, context.roster.companion.currentHealth == companionMaxHealth {
+            bonus += companionTriggers.partyCritChanceWhileCompanionFullHealth
+        }
+        if companionMaxHealth > 0, context.roster.companion.currentHealth * 2 < companionMaxHealth {
+            bonus += companionTriggers.partyCritChanceWhileCompanionBelowHalf
+        }
+        if actorRole == .hero, companionTriggers.allyCriticalChancePerCombatGold > 0 {
+            bonus += Double(context.goldFlow.gained) * companionTriggers.allyCriticalChancePerCombatGold
+        }
         if companionTriggers.partyCritChanceWhileCompanionAboveHealthThreshold > 0,
            companionMaxHealth > 0,
            Double(context.roster.companion.currentHealth) / Double(companionMaxHealth)

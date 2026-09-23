@@ -31,6 +31,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
     public var cleanBreak: Bool = false
     public var perfectPurity: Bool = false
     public var purgePreparesDoubleHolyAttack: Bool = false
+    public var cleanseNextAttackCriticalBonus: Double = 0
 
     public init(
         interdict: Bool = false,
@@ -59,7 +60,8 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         clearMind: Bool = false,
         cleanBreak: Bool = false,
         perfectPurity: Bool = false,
-        purgePreparesDoubleHolyAttack: Bool = false
+        purgePreparesDoubleHolyAttack: Bool = false,
+        cleanseNextAttackCriticalBonus: Double = 0
     ) {
         self.interdict = interdict
         self.lessonLearned = lessonLearned
@@ -88,10 +90,11 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         self.cleanBreak = cleanBreak
         self.perfectPurity = perfectPurity
         self.purgePreparesDoubleHolyAttack = purgePreparesDoubleHolyAttack
+        self.cleanseNextAttackCriticalBonus = cleanseNextAttackCriticalBonus
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["interdict", "lessonLearned", "cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "purifyingAura", "onCleansePoisonDealDamagePerStack", "crownfall", "clearSolution", "freshBatch", "heatRecovery", "antitoxinCoating", "clearMind", "cleanBreak", "perfectPurity", "purgePreparesDoubleHolyAttack"]
+    public static let fieldNames: [String] = ["interdict", "lessonLearned", "cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "purifyingAura", "onCleansePoisonDealDamagePerStack", "crownfall", "clearSolution", "freshBatch", "heatRecovery", "antitoxinCoating", "clearMind", "cleanBreak", "perfectPurity", "purgePreparesDoubleHolyAttack", "cleanseNextAttackCriticalBonus"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -123,6 +126,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         if self.cleanBreak != other.cleanBreak { names.append("cleanBreak") }
         if self.perfectPurity != other.perfectPurity { names.append("perfectPurity") }
         if self.purgePreparesDoubleHolyAttack != other.purgePreparesDoubleHolyAttack { names.append("purgePreparesDoubleHolyAttack") }
+        if self.cleanseNextAttackCriticalBonus != other.cleanseNextAttackCriticalBonus { names.append("cleanseNextAttackCriticalBonus") }
         return names
     }
 }
@@ -156,6 +160,7 @@ extension CleanseTriggers {
         cleanBreak = cleanBreak || other.cleanBreak
         perfectPurity = perfectPurity || other.perfectPurity
         purgePreparesDoubleHolyAttack = purgePreparesDoubleHolyAttack || other.purgePreparesDoubleHolyAttack
+        cleanseNextAttackCriticalBonus += other.cleanseNextAttackCriticalBonus
     }
 }
 
@@ -189,7 +194,8 @@ extension CleanseTriggers {
             clearMind: values.decode(Bool.self, "clearMind", default: false),
             cleanBreak: values.decode(Bool.self, "cleanBreak", default: false),
             perfectPurity: values.decode(Bool.self, "perfectPurity", default: false),
-            purgePreparesDoubleHolyAttack: values.decode(Bool.self, "purgePreparesDoubleHolyAttack", default: false)
+            purgePreparesDoubleHolyAttack: values.decode(Bool.self, "purgePreparesDoubleHolyAttack", default: false),
+            cleanseNextAttackCriticalBonus: values.decode(Double.self, "cleanseNextAttackCriticalBonus", default: 0)
         )
     }
 
@@ -221,5 +227,6 @@ extension CleanseTriggers {
         try container.encodeNonDefault(cleanBreak, "cleanBreak", default: false)
         try container.encodeNonDefault(perfectPurity, "perfectPurity", default: false)
         try container.encodeNonDefault(purgePreparesDoubleHolyAttack, "purgePreparesDoubleHolyAttack", default: false)
+        try container.encodeNonDefault(cleanseNextAttackCriticalBonus, "cleanseNextAttackCriticalBonus", default: 0)
     }
 }

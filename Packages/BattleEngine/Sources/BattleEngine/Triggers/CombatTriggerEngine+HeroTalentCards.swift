@@ -17,6 +17,7 @@ package extension CombatTriggerEngine {
         keyword: Keyword?,
         sourceID: String?,
         critical: Bool,
+        healthLost: Int,
         fullyBlocked: Bool,
         blockBroken: Bool,
         in context: inout BattleState,
@@ -28,6 +29,9 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if critical {
             context.mutateHeroCard { $0.didCriticalHit = true }
+        }
+        if keyword == .freeze {
+            events.append(contentsOf: drawOnFreezeCardHit(healthLost: healthLost, actor: actor, in: &context))
         }
         if keyword == .freeze, critical, triggers.freezeCriticalRestoreMana > 0,
            context.claimHeroCardBonus("Frost Circuit", actorID: sourceID) {
@@ -60,37 +64,56 @@ package extension CombatTriggerEngine {
                 )
             }
         }
-        events.append(contentsOf: afterBurnOrBlockedHit(
-            keyword: keyword, sourceID: sourceID, actor: actor,
-            fullyBlocked: fullyBlocked, triggers: triggers, in: &context,
+        events.append(contentsOf: afterOtherCardHits(
+            keyword: keyword, actor: actor,
+            critical: critical, healthLost: healthLost, fullyBlocked: fullyBlocked,
+            triggers: triggers, in: &context,
         ))
         guard keyword == .physical else { return events }
-        if blockBroken, triggers.crackedGuard {
-            context.roster.mutateRuntime(for: actor) { $0.talents.pending.nextAttackGuaranteedCritical = true }
-        }
-        if triggers.physicalElementChancePercent > 0, triggers.physicalElementDamage > 0,
-           context.claimHeroCardBonus("Prismatic Edge", actorID: sourceID),
-           BattleChance.succeeds(probability: triggers.physicalElementChancePercent, using: &context.rng) {
-            let keyword: Keyword = Bool.random(using: &context.rng) ? .burn : .freeze
-            events.append(contentsOf: heroTalentDamage(
-                keyword, amount: triggers.physicalElementDamage, source: actor,
-                name: "Prismatic Edge", in: &context,
-            ))
-        }
+        events.append(contentsOf: afterPhysicalCardHit(
+            actor: actor, sourceID: sourceID, critical: critical, blockBroken: blockBroken,
+            triggers: triggers, in: &context,
+        ))
         return events
     }
 
-    private static func afterBurnOrBlockedHit(
-        keyword: Keyword?,
-        sourceID: String,
+    private static func afterPhysicalCardHit(
         actor: Combatant,
+        sourceID: String,
+        critical: Bool,
+        blockBroken: Bool,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        if critical, triggers.physicalCritRemoveEnemyBlock {
+            DefensePoolEngine.set(0, on: context.roster.enemy.combatant, in: &context)
+        }
+        if blockBroken, triggers.crackedGuard {
+            context.roster.mutateRuntime(for: actor) { $0.talents.pending.nextAttackGuaranteedCritical = true }
+        }
+        guard triggers.physicalElementChancePercent > 0, triggers.physicalElementDamage > 0,
+              context.claimHeroCardBonus("Prismatic Edge", actorID: sourceID),
+              BattleChance.succeeds(probability: triggers.physicalElementChancePercent, using: &context.rng)
+        else { return [] }
+        let keyword: Keyword = Bool.random(using: &context.rng) ? .burn : .freeze
+        return heroTalentDamage(
+            keyword, amount: triggers.physicalElementDamage, source: actor,
+            name: "Prismatic Edge", in: &context,
+        )
+    }
+
+    private static func afterOtherCardHits(
+        keyword: Keyword?,
+        actor: Combatant,
+        critical: Bool,
+        healthLost: Int,
         fullyBlocked: Bool,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         if keyword == .burn, triggers.burnAttackBleedDamage > 0,
-           context.claimHeroCardBonus("Bloodfire", actorID: sourceID),
+           context.claimHeroCardBonus("Bloodfire", actorID: actor.id),
            BattleChance.succeeds(probability: triggers.burnAttackBleedChancePercent, using: &context.rng) {
             events.append(contentsOf: heroTalentDamage(
                 .bleed, amount: triggers.burnAttackBleedDamage, source: actor,
@@ -98,7 +121,7 @@ package extension CombatTriggerEngine {
             ))
         }
         if fullyBlocked, triggers.blockedAttackFirstGold > 0,
-           context.claimHeroTalent("Consolation Prize", actorID: sourceID, battle: true) {
+           context.claimHeroTalent("Consolation Prize", actorID: actor.id, battle: true) {
             events.append(contentsOf: context.grantGoldEvent(
                 triggers.blockedAttackFirstGold, to: actor, abilityName: "Consolation Prize",
             ))
@@ -110,6 +133,10 @@ package extension CombatTriggerEngine {
                 $0.talents.pending.nextPhysicalPreparedCardSerial = preparedCardSerial
             }
         }
+        events.append(contentsOf: afterCompanionCardHit(
+            keyword: keyword, actor: actor, critical: critical,
+            healthLost: healthLost, triggers: triggers, in: &context,
+        ))
         return events
     }
 

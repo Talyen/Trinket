@@ -138,43 +138,6 @@ public enum LabyrinthGenerator {
         let entryNodeIDs: [String]
     }
 
-    private struct LayoutKey: Hashable {
-        let nodeCount: Int
-        let cycleCount: Int
-    }
-
-    private static let validLayoutsByKey: [LayoutKey: [[LabyrinthGridPosition]]] = {
-        var result: [LayoutKey: [[LabyrinthGridPosition]]] = [:]
-        let entrance = LabyrinthGridPosition(row: 0, column: 0)
-
-        for nodeCount in 7 ... 9 {
-            for cycleCount in 0 ... 2 {
-                let key = LayoutKey(nodeCount: nodeCount, cycleCount: cycleCount)
-                let middleCount = nodeCount - 2
-                var layouts: [[LabyrinthGridPosition]] = []
-
-                for depth in 4 ... 6 {
-                    let middleCandidates = (1 ..< depth).flatMap(boundedPositions(in:))
-                    guard middleCandidates.count >= middleCount else { continue }
-
-                    for boss in boundedPositions(in: depth) {
-                        for middle in combinations(of: middleCandidates, choosing: middleCount) {
-                            let positions = [entrance] + middle + [boss]
-                            guard isValidFloorShape(positions, cycleCount: cycleCount) else { continue }
-                            layouts.append(
-                                [entrance]
-                                    + middle.sorted(by: LabyrinthGridPosition.isOrderedBefore)
-                                    + [boss],
-                            )
-                        }
-                    }
-                }
-                result[key] = layouts
-            }
-        }
-        return result
-    }()
-
     private static func generateFloor(
         number: Int,
         previousBossEnemyID: String?,
@@ -185,7 +148,7 @@ public enum LabyrinthGenerator {
     ) -> GeneratedFloor {
         let clusterID = "labyrinth-cluster-\(number)"
         let count = Int.random(in: 7 ... 9, using: &rng)
-        let planned = plannedTypes(
+        let planned = LabyrinthFloorTypePlacement.plannedTypes(
             count: count,
             hasEligibleRecruit: !eligibleRecruitEventIDs.isEmpty,
             using: &rng,
@@ -195,8 +158,8 @@ public enum LabyrinthGenerator {
             excluding: previousBossEnemyID,
             using: &rng,
         )
-        let positions = gridPositions(nodeCount: count, using: &rng)
-        let types = separatedTypes(planned, positions: positions, using: &rng)
+        let positions = LabyrinthFloorGeometry.positions(nodeCount: count, using: &rng)
+        let types = LabyrinthFloorTypePlacement.separatedTypes(planned, positions: positions, using: &rng)
         let payloads = types.enumerated().map { index, type in
             let nodeID = "\(clusterID)-n\(index)"
             let enemyID: String? = if type.isCombat {
@@ -240,180 +203,5 @@ public enum LabyrinthGenerator {
             nodeIDs: nodes.map(\.id),
         )
         return GeneratedFloor(cluster: cluster, nodes: nodes, entryNodeIDs: [nodes[0].id])
-    }
-
-    private static func gridPositions(
-        nodeCount: Int,
-        using rng: inout some RandomNumberGenerator,
-    ) -> [LabyrinthGridPosition] {
-        let roll = Int.random(in: 0 ..< 5, using: &rng)
-        let cycleCount = roll < 3 ? 0 : roll - 2
-        let key = LayoutKey(nodeCount: nodeCount, cycleCount: cycleCount)
-        guard let layouts = validLayoutsByKey[key],
-              let selected = layouts.randomElement(using: &rng)
-        else { preconditionFailure("Labyrinth floor constraints must produce a layout") }
-        return selected
-    }
-
-    private static func boundedPositions(in row: Int) -> [LabyrinthGridPosition] {
-        let bound = LabyrinthMapLayout.maxProjectedHalfColumn
-        return (-bound ... bound).compactMap { projectedColumn in
-            guard (projectedColumn - row).isMultiple(of: 2) else { return nil }
-            return LabyrinthGridPosition(
-                row: row,
-                column: (projectedColumn - row) / 2,
-            )
-        }
-    }
-
-    private static func combinations(
-        of positions: [LabyrinthGridPosition],
-        choosing count: Int,
-    ) -> [[LabyrinthGridPosition]] {
-        guard count > 0 else { return [[]] }
-        guard positions.count >= count else { return [] }
-
-        var result: [[LabyrinthGridPosition]] = []
-        var selection: [LabyrinthGridPosition] = []
-
-        func appendCombinations(startingAt index: Int) {
-            if selection.count == count {
-                result.append(selection)
-                return
-            }
-            let remainingNeeded = count - selection.count
-            guard positions.count - index >= remainingNeeded else { return }
-            for candidateIndex in index ... positions.count - remainingNeeded {
-                selection.append(positions[candidateIndex])
-                appendCombinations(startingAt: candidateIndex + 1)
-                selection.removeLast()
-            }
-        }
-
-        appendCombinations(startingAt: 0)
-        return result
-    }
-
-    private static func isValidFloorShape(
-        _ positions: [LabyrinthGridPosition],
-        cycleCount: Int,
-    ) -> Bool {
-        let degrees = positions.map { source in
-            positions.count(where: { target in
-                source != target && source.isAdjacent(to: target)
-            })
-        }
-        guard degrees.first == 1,
-              degrees.last == 1,
-              degrees.allSatisfy({ $0 <= 4 }),
-              degrees.contains(where: { $0 >= 3 })
-        else { return false }
-
-        var reached: Set<LabyrinthGridPosition> = [positions[0]]
-        var frontier = [positions[0]]
-        while let source = frontier.popLast() {
-            for target in positions where source.isAdjacent(to: target) && reached.insert(target).inserted {
-                frontier.append(target)
-            }
-        }
-        guard reached.count == positions.count else { return false }
-
-        let edgeCount = degrees.reduce(0, +) / 2
-        return edgeCount - positions.count + 1 == cycleCount
-    }
-
-    private static func plannedTypes(
-        count: Int,
-        hasEligibleRecruit: Bool,
-        using rng: inout some RandomNumberGenerator,
-    ) -> [LabyrinthNodeType] {
-        var nonCombat: [LabyrinthNodeType] = [.shop, .mystery]
-        if hasEligibleRecruit {
-            nonCombat.append(.recruit)
-        }
-        nonCombat.shuffle(using: &rng)
-
-        var middle = Array(nonCombat.prefix(min(3, count - 2)))
-        var weighted: [LabyrinthNodeType] = [.battle, .battle, .battle, .mystery, .mystery, .shop]
-        if hasEligibleRecruit, !middle.contains(.recruit) {
-            weighted.append(.recruit)
-        }
-        while middle.count < count - 2 {
-            let next = weighted.randomElement(using: &rng) ?? .battle
-            if [.shop, .recruit].contains(next), middle.contains(next) {
-                middle.append(.battle)
-            } else {
-                middle.append(next)
-            }
-        }
-        middle.shuffle(using: &rng)
-        return [.battle] + middle + [.boss]
-    }
-}
-
-private extension LabyrinthGenerator {
-    static func separatedTypes(
-        _ planned: [LabyrinthNodeType],
-        positions: [LabyrinthGridPosition],
-        using rng: inout some RandomNumberGenerator,
-    ) -> [LabyrinthNodeType] {
-        guard planned.count > 2 else { return planned }
-        let entry = planned[0]
-        let boss = planned[planned.count - 1]
-        let pairs = adjacentIndexPairs(in: positions)
-        func conflictCount(_ middle: [LabyrinthNodeType]) -> Int {
-            let full = [entry] + middle + [boss]
-            return pairs.count { pair in full[pair.0] == full[pair.1] }
-        }
-        var current = planned[1 ..< planned.count - 1].sorted { $0.rawValue < $1.rawValue }
-        var best = current
-        var bestScore = conflictCount(current)
-        var tieCount = 1
-        while nextPermutation(&current) {
-            let score = conflictCount(current)
-            if score < bestScore {
-                best = current
-                bestScore = score
-                tieCount = 1
-            } else if score == bestScore {
-                tieCount += 1
-                if Int.random(in: 1 ... tieCount, using: &rng) == 1 {
-                    best = current
-                }
-            }
-        }
-        return [entry] + best + [boss]
-    }
-
-    static func adjacentIndexPairs(in positions: [LabyrinthGridPosition]) -> [(Int, Int)] {
-        var pairs: [(Int, Int)] = []
-        for i in positions.indices {
-            for j in positions.indices where j > i && positions[i].isAdjacent(to: positions[j]) {
-                pairs.append((i, j))
-            }
-        }
-        return pairs
-    }
-
-    static func nextPermutation(_ values: inout [LabyrinthNodeType]) -> Bool {
-        guard values.count > 1 else { return false }
-        var pivot = values.count - 2
-        while values[pivot].rawValue >= values[pivot + 1].rawValue {
-            guard pivot > 0 else { return false }
-            pivot -= 1
-        }
-        var successor = values.count - 1
-        while values[successor].rawValue <= values[pivot].rawValue {
-            successor -= 1
-        }
-        values.swapAt(pivot, successor)
-        var lower = pivot + 1
-        var upper = values.count - 1
-        while lower < upper {
-            values.swapAt(lower, upper)
-            lower += 1
-            upper -= 1
-        }
-        return true
     }
 }

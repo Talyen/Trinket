@@ -33,31 +33,12 @@ package enum DamagePipeline {
             return
         }
 
-        if state.damageKeyword == .burn,
-           context.modifiers(for: state.combatant.id).triggers.undyingEmber,
-           context.roster.isDeathsDoorActive(for: state.combatant) {
-            applyOutgoingDamage(to: &state, in: &context)
-            applyTakenFlatAdjustments(to: &state, in: &context)
-            var request = HealRequest(
-                amount: state.remaining, target: state.combatant, sourceActorID: state.combatant.id,
-                origin: .restoration(.health), logAs: .instantHeal(
-                    actorName: state.combatant.name,
-                    abilityName: "Undying Ember",
-                    keyword: .health,
-                ),
-            )
-            request.amountBasis = .resolved
-            state.damageEvents.append(contentsOf: HealingEngine.resolveHeal(request, in: &context).events)
-            state.remaining = 0
-            state.dealt = 0
-            return
-        }
-
         applyDodgeGate(to: &state, in: &context)
         if state.isDodged {
             return
         }
         state.targetStatus = DamageTargetStatus(for: state.combatant, in: context)
+        reserveCompanionBlockIgnore(to: &state, in: &context)
         applyOutgoingDamage(to: &state, in: &context)
         applyPreparedAttackReduction(to: &state, in: &context)
         applyTakenFlatAdjustments(to: &state, in: &context)
@@ -81,6 +62,7 @@ package enum DamagePipeline {
         if state.options.isCardAttack, state.amount > 0, state.combatant.role == .enemy {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroCardHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID, critical: state.isCritical,
+                healthLost: state.healthLost,
                 fullyBlocked: state.blockedAmount > 0 && state.remaining == 0,
                 blockBroken: state.heroCardBlockBroken, in: &context,
             ))
@@ -89,7 +71,9 @@ package enum DamagePipeline {
         state.damageEvents.append(contentsOf: EnemyTraitEngine.basicFreezeDamage(from: state, context: &context))
         state.damageEvents.append(contentsOf: EnemyTraitEngine.firstAttackBleedBonus(from: state, context: &context))
         applyDoTDamageReactions(to: &state, in: &context)
+        applyCompanionDamageRetaliation(to: &state, in: &context)
         applyLeech(to: &state, in: &context)
+        applyCompanionLeechCriticalBlock(to: &state, in: &context)
         applyAttackerOnHitApplications(to: &state, in: &context)
         applyAttackerMirroredReactions(to: &state, in: &context)
 

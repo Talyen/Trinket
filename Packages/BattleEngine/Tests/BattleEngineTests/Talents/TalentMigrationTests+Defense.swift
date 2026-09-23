@@ -5,33 +5,6 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentMigrationTests {
-    @Test func `batteringRam consumes block for bonus damage`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(batteringRam: true)))
-        battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
-                for: ctx.roster.hero.combatant,
-            )
-        }
-        let outcome = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 10,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-            ))
-        }
-        #expect(outcome.healthLost > 10)
-        #expect(!battle.activeEffects(of: battle.hero).contains {
-            if case .shield = $0.effect {
-                true
-            } else {
-                false
-            }
-        })
-    }
-
     @Test func `storedImpact stores blocked and empowers next physical`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(storedImpact: true)))
         battle.withEngineContext { ctx in
@@ -102,30 +75,6 @@ extension TalentMigrationTests {
         }
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 9)
-    }
-
-    @Test func `batteringRam and storedImpact stack on same hit`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(
-            damage: DamageTriggers(batteringRam: true),
-            block: BlockTriggers(storedImpact: true),
-        ))
-        battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 6), remainingTurns: 0)],
-                for: ctx.roster.hero.combatant,
-            )
-            ctx.storedBlockedDamageByActorID[ctx.roster.hero.id] = 4
-        }
-        let outcome = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 10,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-            ))
-        }
-        #expect(outcome.healthLost == 20)
     }
 
     @Test func `storedImpact cross-owner companion block empowers hero`() {

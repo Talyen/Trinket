@@ -67,6 +67,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.endTurnWithBlockHealFlat > 0,
+              context.roster.health(for: actor) < context.roster.maxHealth(for: actor),
               DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor)) > 0
         else { return [] }
         return emitHeal(
@@ -82,6 +83,7 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         guard triggers.endOfTurnHealLowestAlly > 0 else { return [] }
         let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
+        guard context.roster.health(for: lowest) < context.roster.maxHealth(for: lowest) else { return [] }
         return emitHeal(
             "endOfTurnHealLowestAlly", "Cheer Up",
             amount: triggers.endOfTurnHealLowestAlly, to: lowest, source: actor, in: &context,
@@ -96,6 +98,7 @@ package extension CombatTriggerEngine {
         guard triggers.partyRegenPerRound > 0 else { return [] }
         var events: [ActionEvent] = []
         for (_, member) in livingPartyMembers(in: context) {
+            guard member.currentHealth < member.maxHealth else { continue }
             events.append(contentsOf: emitHeal(
                 "partyRegenPerRound", "Campfire Comfort",
                 amount: triggers.partyRegenPerRound, to: member.combatant, source: actor, in: &context,

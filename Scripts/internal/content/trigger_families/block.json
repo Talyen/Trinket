@@ -90,6 +90,12 @@
       "merge": "or"
     },
     {
+      "name": "companionBlockAbsorbsHeroDamage",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
       "name": "onEnemyBlockBrokenDealPhysical",
       "type": "Int",
       "default": "0",
@@ -124,12 +130,6 @@
       "type": "Bool",
       "default": "false",
       "merge": "or"
-    },
-    {
-      "name": "blockGainedMaxHealthEvery",
-      "type": "Int",
-      "default": "0",
-      "merge": "max"
     },
     {
       "name": "shieldDamageBonusWhileBlocked",
@@ -246,19 +246,7 @@
       "merge": "add"
     },
     {
-      "name": "companionFatalDamageRedirectBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "max"
-    },
-    {
       "name": "onEnemyFrozenGainBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
-    },
-    {
-      "name": "onCompanionTakeDamageGrantHeroBlock",
       "type": "Int",
       "default": "0",
       "merge": "add"
@@ -335,12 +323,6 @@
     },
     {
       "name": "storedImpact",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "iceboundExchange",
       "type": "Bool",
       "default": "false",
       "merge": "or"
@@ -452,6 +434,72 @@
       "type": "Double",
       "default": "1",
       "merge": "mul"
+    },
+    {
+      "name": "physicalMitigationWhileBlockedFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "allyFirstBelowHalfBlock",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedDamageMultiplierWhileBlocked",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "blockGainBelowHalfMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "stunNextBlockGainMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "stunBlockIgnorePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "bleedAttackBlockBreakMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "burnAttackBlockChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "burnAttackBlockAmount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "blockedControlPrevention",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "blockBreakAllyBlockFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
     }
   ]
 }

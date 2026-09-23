@@ -9,7 +9,7 @@ package extension DamagePipeline {
     ) {
         let cap = context.modifiers(for: state.combatant.id).triggers.maxDamagePerHitCap
         state.remaining = DamageDefensePolicy.cappedDamage(state.remaining, operation: state.options, cap: cap)
-        if applySacrificialGuard(to: &state, in: &context) {
+        if applyMansBestFriend(to: &state, in: &context) {
             return
         }
         var lost = 0
@@ -53,7 +53,7 @@ package extension DamagePipeline {
     }
 
     @discardableResult
-    private static func applySacrificialGuard(
+    private static func applyMansBestFriend(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) -> Bool {
@@ -61,11 +61,16 @@ package extension DamagePipeline {
               state.combatant.role == .hero,
               state.remaining > 0,
               context.roster.health(for: state.combatant) <= state.remaining,
+              !DeathsDoorEngine.hasLethalProtection(for: state.combatant, in: context),
               context.roster.companion.isAlive,
-              context.companionModifiers.triggers.companionFatalDamageRedirectBlock > 0
+              context.companionModifiers.triggers.firstAllyFatalIntercept,
+              !context.roster.companion.talents.battle.interceptedFirstAllyFatalHit
         else { return false }
         let redirected = state.remaining
         let companion = context.roster.companion.combatant
+        context.roster.mutateRuntime(for: companion) {
+            $0.talents.battle.interceptedFirstAllyFatalHit = true
+        }
         state.damageEvents.append(contentsOf: context.resolveDamage(DamageRequest(
             amount: redirected,
             target: companion,
@@ -73,14 +78,6 @@ package extension DamagePipeline {
             sourceActorID: state.sourceActorID,
             options: .redirected,
         )).events)
-        if context.roster.companion.isAlive, !context.roster.isDeathsDoorActive(for: companion) {
-            state.damageEvents.append(contentsOf: context.applyBlock(
-                context.companionModifiers.triggers.companionFatalDamageRedirectBlock,
-                to: companion,
-                source: companion,
-                abilityName: "Sacrificial Guard",
-            ))
-        }
         state.remaining = 0
         state.healthLost = 0
         return true
@@ -94,15 +91,6 @@ package extension DamagePipeline {
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         let defenderTriggers = context.modifiers(for: defender.id).triggers
-        if defender.role == .companion, context.roster.hero.isAlive,
-           context.companionModifiers.triggers.onCompanionTakeDamageGrantHeroBlock > 0 {
-            events.append(contentsOf: context.applyBlock(
-                context.companionModifiers.triggers.onCompanionTakeDamageGrantHeroBlock,
-                to: context.roster.hero.combatant,
-                source: context.roster.companion.combatant,
-                abilityName: "Grizzly Guard",
-            ))
-        }
         if defenderTriggers.toughnessOnHit > 0, isAttackHit, !isRetaliation {
             context.roster.mutateRuntime(for: defender) { runtime in
                 runtime.talents.battle.flatDamageReductionBonus += CombatGain.amount(

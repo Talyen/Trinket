@@ -11,12 +11,12 @@ package extension DamagePipeline {
         var effects = context.roster.activeEffects(for: state.combatant)
 
         let blockMultiplier = DamageDefensePolicy.blockMultiplier(state: state, in: context)
-        // Full bypass skips Intercede too: Intercede scales by the same
+        // Full bypass skips ally protection too: it scales by the same
         // multiplier, so it would absorb 0 and its absorbed-gated side
         // effects (talent blocked-damage, block-broken) would no-op.
         guard blockMultiplier > 0 else { return }
 
-        applyIntercede(to: &state, blockMultiplier: blockMultiplier, in: &context)
+        applyAllyBlockProtection(to: &state, blockMultiplier: blockMultiplier, in: &context)
         effects = context.roster.activeEffects(for: state.combatant)
 
         guard let index = effects.firstIndex(where: {
@@ -103,6 +103,7 @@ package extension DamagePipeline {
         ))
         state.damageEvents.append(contentsOf: handleTalentBlockedDamage(
             absorbed: absorption.absorbed,
+            blockBroken: blockBroken,
             defender: state.combatant,
             attackerID: state.sourceActorID,
             in: &context,
@@ -168,41 +169,53 @@ package extension DamagePipeline {
         return ShieldAbsorption(absorbed: absorbed, extraRemoved: extraRemoved)
     }
 
-    private static func applyIntercede(
+    private static func applyAllyBlockProtection(
         to state: inout DamageResolutionState,
         blockMultiplier: Double,
         in context: inout BattleState,
     ) {
-        guard state.combatant.role == .companion,
-              state.remaining > 0,
-              context.roster.hero.isAlive,
-              context.heroModifiers.triggers.blockAbsorbsCompanionDamage
+        guard state.remaining > 0, !state.options.isHealthCost else { return }
+        let protector: Combatant
+        let abilityName: String
+        if state.combatant.role == .companion,
+           context.roster.hero.isAlive,
+           context.heroModifiers.triggers.blockAbsorbsCompanionDamage {
+            protector = context.roster.hero.combatant
+            abilityName = "Intercede"
+        } else if state.combatant.role == .hero,
+                  context.roster.companion.isAlive,
+                  context.companionModifiers.triggers.companionBlockAbsorbsHeroDamage {
+            protector = context.roster.companion.combatant
+            abilityName = "Sacrificial Guard"
+        } else {
+            return
+        }
+        let protectorEffects = context.roster.activeEffects(for: protector)
+        let available = CombatRounding.scaled(DefensePoolEngine.blockPoints(in: protectorEffects), multiplier: blockMultiplier)
+        guard let reduced = DefensePoolEngine.reduce(min(state.remaining, available), in: protectorEffects)
         else { return }
-        let heroEffects = context.roster.activeEffects(for: context.roster.hero.combatant)
-        let available = CombatRounding.scaled(DefensePoolEngine.blockPoints(in: heroEffects), multiplier: blockMultiplier)
-        guard let reduced = DefensePoolEngine.reduce(min(state.remaining, available), in: heroEffects)
-        else { return }
-        let heroAbsorbed = reduced.absorbed
-        state.blockedAmount += heroAbsorbed
+        let absorbed = reduced.absorbed
+        state.blockedAmount += absorbed
         appendAbsorption(
-            heroAbsorbed,
-            abilityName: "Intercede",
+            absorbed,
+            abilityName: abilityName,
             keyword: reduced.keyword,
             actorName: reduced.keyword.rawValue,
-            target: context.roster.hero.combatant,
+            target: protector,
             to: &state,
             in: &context,
         )
-        context.roster.setActiveEffects(reduced.effects, for: context.roster.hero.combatant)
+        context.roster.setActiveEffects(reduced.effects, for: protector)
         state.damageEvents.append(contentsOf: handleTalentBlockedDamage(
-            absorbed: heroAbsorbed,
-            defender: context.roster.hero.combatant,
+            absorbed: absorbed,
+            blockBroken: reduced.broken,
+            defender: protector,
             attackerID: state.sourceActorID,
             in: &context,
         ))
         if reduced.broken {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBlockBroken(
-                on: context.roster.hero.combatant,
+                on: protector,
                 attackerID: state.sourceActorID,
                 in: &context,
             ))
@@ -211,6 +224,7 @@ package extension DamagePipeline {
 
     private static func handleTalentBlockedDamage(
         absorbed: Int,
+        blockBroken: Bool,
         defender: Combatant,
         attackerID: String?,
         in context: inout BattleState,
@@ -222,7 +236,7 @@ package extension DamagePipeline {
         if partyTrigger(\.storedImpact, defender: defender, in: context) {
             context.storedBlockedDamageByActorID[defender.id, default: 0] += absorbed
         }
-        if partyTrigger(\.seismicReversal, defender: defender, in: context) {
+        if blockBroken, context.modifiers(for: defender.id).triggers.seismicReversal {
             events.append(contentsOf: resolveNestedDamage(
                 amount: absorbed,
                 keyword: .stun,
@@ -290,6 +304,13 @@ package extension DamagePipeline {
             extraRemoved += CombatRounding.scaled(
                 absorbed,
                 multiplier: sourceTriggers.burnAttackBlockBreakMultiplier - 1,
+            )
+        }
+        if isAttackHit, damageKeyword == .bleed, let sourceTriggers,
+           sourceTriggers.bleedAttackBlockBreakMultiplier > 1 {
+            extraRemoved += CombatRounding.scaled(
+                absorbed,
+                multiplier: sourceTriggers.bleedAttackBlockBreakMultiplier - 1,
             )
         }
         if targetIsStunned, let sourceTriggers, sourceTriggers.stunnedEnemyLoseAllBlock {

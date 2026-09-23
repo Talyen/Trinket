@@ -60,9 +60,16 @@ struct ContrastMatchupBase {
 
 enum BalanceContrastSupport {
     typealias Pair = (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup)
+    typealias FocusSummary = (
+        entityID: String,
+        baselineID: String,
+        ownerID: String,
+        baselineKind: ContrastBaselineKind,
+        nonCombat: Bool,
+    )
 
     static func aggregate(
-        foci: [(entityID: String, baselineID: String, ownerID: String, baselineKind: ContrastBaselineKind, nonCombat: Bool)],
+        foci: [FocusSummary],
         pairResults: [ContrastPairOutcome],
         config: BalanceSweepConfig,
     ) -> [PairedContrastSummary] {
@@ -310,19 +317,13 @@ enum BalanceContrastSupport {
 extension BalanceContrastSupport {
     static func runSweep<Focus: Sendable>(
         context: BalanceContrastContext,
+        policy: PlayPolicy,
         foci: [Focus],
-        tiers: [SimulationPowerTier],
-        summarize: @escaping @Sendable (Focus) -> (
-            entityID: String,
-            baselineID: String,
-            ownerID: String,
-            baselineKind: ContrastBaselineKind,
-            nonCombat: Bool,
-        ),
+        summarize: @escaping @Sendable (Focus) -> FocusSummary,
         primes: @escaping @Sendable (Focus) -> (tier: UInt64, pair: UInt64),
         makePair: @escaping @Sendable (Focus, SimulationPowerTier, Int, UInt64) -> Pair?,
-        policy: PlayPolicy,
     ) -> [PairedContrastSummary] {
+        let tiers = context.config.tiers
         guard !context.heroes.isEmpty, !context.companions.isEmpty, !context.enemies.isEmpty,
               !foci.isEmpty, !tiers.isEmpty
         else { return [] }

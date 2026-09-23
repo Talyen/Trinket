@@ -2,12 +2,42 @@ import TrinketContent
 import TrinketCore
 
 extension HealingEngine {
+    static func prepareBurnAfterOverheal(
+        overflow: Int,
+        target: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) {
+        guard overflow > 0, triggers.overhealNextBurnBonus > 0 else { return }
+        let preparedCardSerial = context.resolution.cardTalents?.playSerial
+        context.roster.mutateRuntime(for: target) {
+            $0.talents.pending.nextBurnDamageBonus = max(
+                $0.talents.pending.nextBurnDamageBonus, triggers.overhealNextBurnBonus,
+            )
+            $0.talents.pending.nextBurnDamagePreparedCardSerial = preparedCardSerial
+        }
+    }
+
     static func adjustedHeroHealingAmount(
         _ baseAmount: Int,
         request: HealRequest,
         in context: BattleState,
     ) -> Int {
         var amount = baseAmount
+        if amount > 0, request.amountBasis != .resolved,
+           request.target.role != .enemy, let sourceID = request.sourceActorID {
+            amount = CombatRounding.scaled(
+                amount, multiplier: context.modifiers(for: sourceID).triggers.healingMultiplier,
+            )
+        }
+        if amount > 0, request.amountBasis != .resolved,
+           request.target.role != .enemy,
+           context.roster.health(for: request.target) * 2 < context.roster.maxHealth(for: request.target) {
+            amount = CombatRounding.scaled(
+                amount,
+                multiplier: context.modifiers(for: request.target.id).triggers.healBelowHalfMultiplier,
+            )
+        }
         if amount > 0, request.amountBasis != .resolved,
            request.target.role != .enemy, context.roster.hero.isAlive {
             let hero = context.heroModifiers.triggers
@@ -25,6 +55,9 @@ extension HealingEngine {
             let hero = context.heroModifiers.triggers
             if context.roster.hasAffliction(.bleed, on: request.target) {
                 enemyMultiplier *= hero.bleedingEnemyHealingMultiplier
+                if context.roster.companion.isAlive {
+                    enemyMultiplier *= context.companionModifiers.triggers.bleedingEnemyHealingMultiplier
+                }
             }
             if context.roster.hasAffliction(.burn, on: request.target) {
                 enemyMultiplier *= hero.burningEnemyHealingMultiplier
@@ -45,6 +78,92 @@ extension HealingEngine {
         events.append(contentsOf: applyDruidHealingTalents(
             request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context,
         ))
+        events.append(contentsOf: applyRetrieverHealingTalents(
+            request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context,
+        ))
+        events.append(contentsOf: applyOwlHealingTalents(
+            request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context,
+        ))
+        return events
+    }
+
+    private static func applyOwlHealingTalents(
+        request: HealRequest,
+        restored: Int,
+        sourceTriggers: CombatTraitTriggers?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard restored > 0, let sourceID = request.sourceActorID,
+              let source = context.roster.combatant(for: sourceID), source.isAlive,
+              request.target.role != .enemy, let triggers = sourceTriggers
+        else { return [] }
+        let actor = source.combatant
+        let target = request.target
+        if triggers.healthRestoreNextIncomingDamageMultiplier < 1 {
+            let serial = context.resolution.cardTalents?.playSerial
+            context.roster.mutateRuntime(for: target) {
+                $0.talents.pending.nextIncomingDamageMultiplier = min(
+                    $0.talents.pending.nextIncomingDamageMultiplier,
+                    triggers.healthRestoreNextIncomingDamageMultiplier,
+                )
+                $0.talents.pending.nextIncomingDamagePreparedCardSerial = serial
+            }
+        }
+        var events: [ActionEvent] = []
+        if triggers.healthRestoreBlockChancePercent > 0,
+           context.claimTalentAbility("Aether Shield", actorID: sourceID),
+           BattleChance.succeeds(probability: triggers.healthRestoreBlockChancePercent, using: &context.rng) {
+            events.append(contentsOf: context.applyBlock(
+                restored, to: target, source: actor,
+                abilityName: "Aether Shield", amountBasis: .resolved,
+            ))
+        }
+        if triggers.healthRestoreThornsAmount > 0, triggers.healthRestoreThornsChancePercent > 0,
+           context.claimTalentAbility("Living Archive", actorID: sourceID),
+           BattleChance.succeeds(probability: triggers.healthRestoreThornsChancePercent, using: &context.rng) {
+            events.append(contentsOf: CombatTriggerEngine.heroTalentThorns(
+                to: target, source: actor, amount: triggers.healthRestoreThornsAmount,
+                name: "Living Archive", in: &context,
+            ))
+        }
+        events.append(contentsOf: drawOwlFontOfMagic(actor: actor, chance: triggers.healthOrManaRestoreDrawChancePercent, in: &context))
+        return events
+    }
+
+    static func drawOwlFontOfMagic(actor: Combatant, chance: Double, in context: inout BattleState) -> [ActionEvent] {
+        guard chance > 0, context.claimTalentAbility("Font of Magic", actorID: actor.id),
+              BattleChance.succeeds(probability: chance, using: &context.rng),
+              let owner = context.roster.participant(for: actor)
+        else { return [] }
+        return CombatTriggerEngine.drawCards(1, for: owner, actor: actor, abilityName: "Font of Magic", in: &context)
+    }
+
+    private static func applyRetrieverHealingTalents(
+        request: HealRequest,
+        restored: Int,
+        sourceTriggers: CombatTraitTriggers?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard restored > 0, let sourceID = request.sourceActorID,
+              let source = context.roster.combatant(for: sourceID), source.isAlive,
+              request.target.role != .enemy, let sourceTriggers
+        else { return [] }
+        let actor = source.combatant
+        var events: [ActionEvent] = []
+        if sourceTriggers.firstHealthRestorationDrawBattle,
+           context.claimHeroTalent("Cheer Up", actorID: sourceID, battle: true),
+           let owner = context.roster.participant(for: actor) {
+            events.append(contentsOf: CombatTriggerEngine.drawCards(
+                1, for: owner, actor: actor, abilityName: "Cheer Up", in: &context,
+            ))
+        }
+        if sourceTriggers.healthRestorationCleansesOne,
+           context.hasTalentDebuff(on: request.target) {
+            events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
+                source: actor, target: request.target, count: 1,
+                abilityName: "Protective Lick", in: &context,
+            ))
+        }
         return events
     }
 
@@ -112,21 +231,15 @@ extension HealingEngine {
                     )
                 }
             }
-            let canRoll: Bool = if let card = context.resolution.cardTalents,
-                                   card.actorID == sourceActorID {
-                context.resolution.claim(
-                    .heroCard("alchemistHealChance"),
-                    actorID: sourceActorID,
-                    cadence: .card(card.playSerial),
-                )
-            } else {
-                true
-            }
+            let canRoll = context.claimTalentAbility("healthRestorationChance", actorID: sourceActorID)
             if canRoll, sourceTriggers.healthRestoreDrawChancePercent > 0,
                BattleChance.succeeds(probability: sourceTriggers.healthRestoreDrawChancePercent, using: &context.rng),
                let owner = context.roster.participant(for: source) {
                 events.append(contentsOf: CombatTriggerEngine.drawCards(
-                    1, for: owner, actor: source, abilityName: "Lifeline", in: &context,
+                    1, for: owner, actor: source,
+                    abilityName: CombatTriggerEngine.triggerAbilityName(
+                        "healthRestoreDrawChancePercent", for: source, fallback: "Lifeline", in: context,
+                    ), in: &context,
                 ))
             }
             if canRoll, sourceTriggers.healthRestoreManaChancePercent > 0,

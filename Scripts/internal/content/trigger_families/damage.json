@@ -371,12 +371,6 @@
       "merge": "add"
     },
     {
-      "name": "batteringRam",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
       "name": "toxicTransfusion",
       "type": "Bool",
       "default": "false",
@@ -396,12 +390,6 @@
     },
     {
       "name": "nerveAgent",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "toxicComa",
       "type": "Bool",
       "default": "false",
       "merge": "or"

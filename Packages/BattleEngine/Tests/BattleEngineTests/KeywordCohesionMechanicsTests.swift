@@ -228,20 +228,6 @@ extension KeywordCohesionMechanicsTests {
         try #expect(!second.isCritical)
     }
 
-    @Test func `shadow camouflage support grants dodge but blocked still damaging`() throws {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(dodge: DodgeTriggers(shadowCamouflage: true)))
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.block], companionAbilities: [.block],
-            companionModifiers: profile,
-        )
-        battle.appliesFightPacing = false
-        // Panther (companion) plays non-damaging Block (support) -> gains Dodge.
-        battle.nextCardID += 1
-        battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: .block, owner: .companion)])
-        _ = try BattleTestFixtures.playCardNamed("Block", owner: .companion, on: &battle)
-        try #expect(battle.roster.activeEffects(for: battle.companion).contains { $0.effect == .evadeNextHit })
-    }
-
     @Test func `guardian grants block once per attack`() throws {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(guardianHeroBlockFlat: 2)))
         var battle = BattleStateTestFactory.makeMinimalBattle(
@@ -288,40 +274,6 @@ extension KeywordCohesionMechanicsTests {
             options: .attack(),
         ))
         try #expect(burn.healthLost == 1)
-    }
-
-    @Test func `mans best friend heals allies on hero crit without looping`() throws {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(healing: HealingTriggers(heroCritHealPartyFlat: 1)))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 20), companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: profile,
-        )
-        battle.appliesFightPacing = false
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 5,
-            target: battle.hero,
-            keyword: .physical,
-            sourceActorID: battle.enemy.id,
-            options: .effect(),
-        ))
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 5,
-            target: battle.companion,
-            keyword: .physical,
-            sourceActorID: battle.enemy.id,
-            options: .effect(),
-        ))
-        let heroBefore = battle.roster.health(for: battle.hero)
-        let compBefore = battle.roster.health(for: battle.companion)
-        // Damaging Hero Crit (guaranteed via nextStrikeCritical) heals each living ally by 1.
-        battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
-        _ = BattleTurnEngine.performAction(
-            ability: Ability(id: "hit", name: "Hit", tier: .basic, directDamage: 4, damageKeyword: .physical),
-            actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
-        try #expect(battle.roster.health(for: battle.hero) == min(20, heroBefore + 1))
-        try #expect(battle.roster.health(for: battle.companion) == min(20, compBefore + 1))
     }
 
     @Test func `loyal companion draws on real heal once per turn`() throws {

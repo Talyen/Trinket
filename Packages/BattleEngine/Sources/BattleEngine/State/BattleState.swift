@@ -12,7 +12,6 @@ package enum TalentClaim: Hashable, Sendable {
     case poisonStun
     case cleanSlate
     case stolenThunder
-    case pulverize
     case overhealFirstBlock
 }
 

@@ -227,10 +227,9 @@ struct DeathsDoorEngineTests {
         }
 
         #expect(!battle.roster.isDeathsDoorActive(for: companion))
-        #expect(battle.roster.hero.currentHealth == 1 + CombatRounding.scaled(battle.roster.hero.maxHealth, multiplier: 0.15))
-        #expect(battle.roster.companion.currentHealth == 1 + CombatRounding.scaled(battle.roster.companion.maxHealth, multiplier: 0.15))
-        #expect(battle.roster.companion.talents.timed.damage.amount == 0.5)
-        #expect(battle.roster.companion.talents.timed.damage.expiresAtTurn == battle.turnCount + 3)
+        #expect(battle.roster.hero.currentHealth == 5)
+        #expect(battle.roster.companion.currentHealth == 5)
+        #expect(battle.roster.companion.talents.pending.doubleNextAttackAfterDeathsDoor)
         #expect(expiryEvents.contains { $0.abilityName == "Afterglow" })
     }
 
@@ -267,9 +266,9 @@ struct DeathsDoorEngineTests {
     }
 
     @Test(arguments: [BattleParticipant.hero, .companion])
-    func `guardian archive protects either party member`(owner: BattleParticipant) throws {
+    func `guardian archive restores either party member on deaths door entry`(owner: BattleParticipant) throws {
         let owl = try BattleTestFixtures.catalogBuild(
-            combatantID: "library_owl", talents: "library_owl_health_t3_1", "library_owl_cleanse_t4_1",
+            combatantID: "library_owl", talents: "library_owl_health_t3_1",
         )
         var battle = BattleStateTestFactory.makeBattle(companion: owl.combatant, companionModifiers: owl.modifiers)
         battle.appliesFightPacing = false
@@ -279,9 +278,7 @@ struct DeathsDoorEngineTests {
 
         _ = battle.applyTestDamage(1, to: target, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
-        #expect(battle.roster.health(for: target) == min(11, battle.roster.maxHealth(for: target)))
-        #expect(!battle.roster.activeEffects(for: target).contains { $0.effect.isRemovableDebuff })
-        battle.appendEffect(.poison(8), to: target, sourceID: battle.roster.enemy.id, remainingTurns: 0)
-        #expect(!battle.roster.activeEffects(for: target).contains { $0.effect.isRemovableDebuff })
+        #expect(battle.roster.health(for: target) == min(9, battle.roster.maxHealth(for: target)))
+        #expect(battle.roster.activeEffects(for: target).contains { $0.effect.isRemovableDebuff })
     }
 }

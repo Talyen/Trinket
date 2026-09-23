@@ -29,9 +29,11 @@ extension CombatTriggerTalentDamageTests {
     }
 
     @Test(arguments: [0, 10])
-    func `chilling scales deals freeze damage when attacked even through block`(block: Int) {
+    func `chilling scales rolls on damage taken after block`(block: Int) {
+        var profile = CombatantTalentCatalog.profile(for: ["frost_whelp_freeze_t1_2"])
+        profile.triggers.onDamageFreezeRetaliationChancePercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: CombatantTalentCatalog.profile(for: ["frost_whelp_freeze_t1_2"]),
+            companionModifiers: profile,
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
@@ -44,11 +46,11 @@ extension CombatTriggerTalentDamageTests {
         ))
 
         #expect(hit.healthLost == (block == 0 ? 4 : 0))
-        #expect(battle.health(of: battle.enemy) == enemyHealth - 2)
+        #expect(battle.health(of: battle.enemy) == enemyHealth - (block == 0 ? 4 : 0))
         #expect(battle.activeEffects(of: battle.enemy).contains {
-            $0.effect == .controlMeter(.freeze, 2, ControlMeterEngine.threshold(for: battle.enemy, in: battle))
-        })
-        #expect(hit.events.contains { $0.abilityName == "Chilling Scales" && $0.keyword == .freeze && $0.amount == 2 })
+            $0.effect == .controlMeter(.freeze, 4, ControlMeterEngine.threshold(for: battle.enemy, in: battle))
+        } == (block == 0))
+        #expect(hit.events.contains { $0.abilityName == "Chilling Scales" && $0.keyword == .freeze && $0.amount == 4 } == (block == 0))
     }
 
     @Test func `golden recovery claims the first positive gain each round before healing`() {
@@ -277,20 +279,6 @@ extension CombatTriggerTalentDamageTests {
         let card = try #require(battle.hand.cards.first)
         let events = try battle.playCard(cardID: card.id)
         #expect(events.count { $0.kind == .abilityDamage && $0.keyword == .bleed && $0.amount == 4 } == 1)
-    }
-
-    @Test func `healing flames heals the lowest living ally on a burn tick`() throws {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: CombatantTalentCatalog.profile(for: ["phoenix_health_t1_2"]), dealOpeningHand: false,
-        )
-        battle.appliesFightPacing = false
-        battle.roster.hero.currentHealth = 5
-        battle.roster.companion.currentHealth = 10
-        battle.appendEffect(.burn(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
-        let burn = try #require(battle.activeEffects(of: battle.enemy).first { $0.keyword == .burn })
-        _ = DecayingDoTHandler(keyword: .burn, kind: .burn).advanceTurn(burn, on: battle.enemy, in: &battle)
-        #expect(battle.health(of: battle.hero) == 7)
-        #expect(battle.health(of: battle.companion) == 10)
     }
 }
 

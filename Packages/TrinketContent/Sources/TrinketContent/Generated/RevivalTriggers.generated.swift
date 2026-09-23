@@ -10,15 +10,20 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
     public var onceDeathReviveBlock: Int = 0
     public var deathsDoorDurationBonusTurns: Int = 0
     public var reviveDealBurnDamage: Int = 0
-    public var onSurviveDeathsDoorDamageBonusPercent: Double = 0
     public var deathsDoorDodgeAndDebuffImmunity: Bool = false
     public var onDeathDealPhysicalDamageAllEnemies: Int = 0
     public var guaranteedCritWhileOnDeathsDoor: Bool = false
     public var deathsDoorExpiredHealFlat: Int = 0
-    public var onHeroFatalHealPercentMaxHealth: Double = 0
-    public var onAllyDeathsDoorHealAndCleanse: Int = 0
-    public var surviveDeathsDoorPartyHealPercent: Double = 0
     public var holyDamageReviveCompanionChancePercent: Double = 0
+    public var surviveDeathsDoorPartyHealFlat: Int = 0
+    public var onHeroFatalReviveHealth: Int = 0
+    public var enterDeathsDoorHeal: Int = 0
+    public var enterDeathsDoorBurnDamage: Int = 0
+    public var surviveDeathsDoorNextAttackDouble: Bool = false
+    public var deathsDoorIncomingDamageMultiplier: Double = 1
+    public var deathsDoorNegativeStatusImmune: Bool = false
+    public var onAllyDeathsDoorRestoreHealth: Int = 0
+    public var firstAllyFatalIntercept: Bool = false
 
     public init(
         undyingEmber: Bool = false,
@@ -27,15 +32,20 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         onceDeathReviveBlock: Int = 0,
         deathsDoorDurationBonusTurns: Int = 0,
         reviveDealBurnDamage: Int = 0,
-        onSurviveDeathsDoorDamageBonusPercent: Double = 0,
         deathsDoorDodgeAndDebuffImmunity: Bool = false,
         onDeathDealPhysicalDamageAllEnemies: Int = 0,
         guaranteedCritWhileOnDeathsDoor: Bool = false,
         deathsDoorExpiredHealFlat: Int = 0,
-        onHeroFatalHealPercentMaxHealth: Double = 0,
-        onAllyDeathsDoorHealAndCleanse: Int = 0,
-        surviveDeathsDoorPartyHealPercent: Double = 0,
-        holyDamageReviveCompanionChancePercent: Double = 0
+        holyDamageReviveCompanionChancePercent: Double = 0,
+        surviveDeathsDoorPartyHealFlat: Int = 0,
+        onHeroFatalReviveHealth: Int = 0,
+        enterDeathsDoorHeal: Int = 0,
+        enterDeathsDoorBurnDamage: Int = 0,
+        surviveDeathsDoorNextAttackDouble: Bool = false,
+        deathsDoorIncomingDamageMultiplier: Double = 1,
+        deathsDoorNegativeStatusImmune: Bool = false,
+        onAllyDeathsDoorRestoreHealth: Int = 0,
+        firstAllyFatalIntercept: Bool = false
     ) {
         self.undyingEmber = undyingEmber
         self.borrowedLife = borrowedLife
@@ -43,19 +53,24 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         self.onceDeathReviveBlock = onceDeathReviveBlock
         self.deathsDoorDurationBonusTurns = deathsDoorDurationBonusTurns
         self.reviveDealBurnDamage = reviveDealBurnDamage
-        self.onSurviveDeathsDoorDamageBonusPercent = onSurviveDeathsDoorDamageBonusPercent
         self.deathsDoorDodgeAndDebuffImmunity = deathsDoorDodgeAndDebuffImmunity
         self.onDeathDealPhysicalDamageAllEnemies = onDeathDealPhysicalDamageAllEnemies
         self.guaranteedCritWhileOnDeathsDoor = guaranteedCritWhileOnDeathsDoor
         self.deathsDoorExpiredHealFlat = deathsDoorExpiredHealFlat
-        self.onHeroFatalHealPercentMaxHealth = onHeroFatalHealPercentMaxHealth
-        self.onAllyDeathsDoorHealAndCleanse = onAllyDeathsDoorHealAndCleanse
-        self.surviveDeathsDoorPartyHealPercent = surviveDeathsDoorPartyHealPercent
         self.holyDamageReviveCompanionChancePercent = holyDamageReviveCompanionChancePercent
+        self.surviveDeathsDoorPartyHealFlat = surviveDeathsDoorPartyHealFlat
+        self.onHeroFatalReviveHealth = onHeroFatalReviveHealth
+        self.enterDeathsDoorHeal = enterDeathsDoorHeal
+        self.enterDeathsDoorBurnDamage = enterDeathsDoorBurnDamage
+        self.surviveDeathsDoorNextAttackDouble = surviveDeathsDoorNextAttackDouble
+        self.deathsDoorIncomingDamageMultiplier = deathsDoorIncomingDamageMultiplier
+        self.deathsDoorNegativeStatusImmune = deathsDoorNegativeStatusImmune
+        self.onAllyDeathsDoorRestoreHealth = onAllyDeathsDoorRestoreHealth
+        self.firstAllyFatalIntercept = firstAllyFatalIntercept
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["undyingEmber", "borrowedLife", "onceDeathReviveHealth", "onceDeathReviveBlock", "deathsDoorDurationBonusTurns", "reviveDealBurnDamage", "onSurviveDeathsDoorDamageBonusPercent", "deathsDoorDodgeAndDebuffImmunity", "onDeathDealPhysicalDamageAllEnemies", "guaranteedCritWhileOnDeathsDoor", "deathsDoorExpiredHealFlat", "onHeroFatalHealPercentMaxHealth", "onAllyDeathsDoorHealAndCleanse", "surviveDeathsDoorPartyHealPercent", "holyDamageReviveCompanionChancePercent"]
+    public static let fieldNames: [String] = ["undyingEmber", "borrowedLife", "onceDeathReviveHealth", "onceDeathReviveBlock", "deathsDoorDurationBonusTurns", "reviveDealBurnDamage", "deathsDoorDodgeAndDebuffImmunity", "onDeathDealPhysicalDamageAllEnemies", "guaranteedCritWhileOnDeathsDoor", "deathsDoorExpiredHealFlat", "holyDamageReviveCompanionChancePercent", "surviveDeathsDoorPartyHealFlat", "onHeroFatalReviveHealth", "enterDeathsDoorHeal", "enterDeathsDoorBurnDamage", "surviveDeathsDoorNextAttackDouble", "deathsDoorIncomingDamageMultiplier", "deathsDoorNegativeStatusImmune", "onAllyDeathsDoorRestoreHealth", "firstAllyFatalIntercept"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -66,15 +81,20 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         if self.onceDeathReviveBlock != other.onceDeathReviveBlock { names.append("onceDeathReviveBlock") }
         if self.deathsDoorDurationBonusTurns != other.deathsDoorDurationBonusTurns { names.append("deathsDoorDurationBonusTurns") }
         if self.reviveDealBurnDamage != other.reviveDealBurnDamage { names.append("reviveDealBurnDamage") }
-        if self.onSurviveDeathsDoorDamageBonusPercent != other.onSurviveDeathsDoorDamageBonusPercent { names.append("onSurviveDeathsDoorDamageBonusPercent") }
         if self.deathsDoorDodgeAndDebuffImmunity != other.deathsDoorDodgeAndDebuffImmunity { names.append("deathsDoorDodgeAndDebuffImmunity") }
         if self.onDeathDealPhysicalDamageAllEnemies != other.onDeathDealPhysicalDamageAllEnemies { names.append("onDeathDealPhysicalDamageAllEnemies") }
         if self.guaranteedCritWhileOnDeathsDoor != other.guaranteedCritWhileOnDeathsDoor { names.append("guaranteedCritWhileOnDeathsDoor") }
         if self.deathsDoorExpiredHealFlat != other.deathsDoorExpiredHealFlat { names.append("deathsDoorExpiredHealFlat") }
-        if self.onHeroFatalHealPercentMaxHealth != other.onHeroFatalHealPercentMaxHealth { names.append("onHeroFatalHealPercentMaxHealth") }
-        if self.onAllyDeathsDoorHealAndCleanse != other.onAllyDeathsDoorHealAndCleanse { names.append("onAllyDeathsDoorHealAndCleanse") }
-        if self.surviveDeathsDoorPartyHealPercent != other.surviveDeathsDoorPartyHealPercent { names.append("surviveDeathsDoorPartyHealPercent") }
         if self.holyDamageReviveCompanionChancePercent != other.holyDamageReviveCompanionChancePercent { names.append("holyDamageReviveCompanionChancePercent") }
+        if self.surviveDeathsDoorPartyHealFlat != other.surviveDeathsDoorPartyHealFlat { names.append("surviveDeathsDoorPartyHealFlat") }
+        if self.onHeroFatalReviveHealth != other.onHeroFatalReviveHealth { names.append("onHeroFatalReviveHealth") }
+        if self.enterDeathsDoorHeal != other.enterDeathsDoorHeal { names.append("enterDeathsDoorHeal") }
+        if self.enterDeathsDoorBurnDamage != other.enterDeathsDoorBurnDamage { names.append("enterDeathsDoorBurnDamage") }
+        if self.surviveDeathsDoorNextAttackDouble != other.surviveDeathsDoorNextAttackDouble { names.append("surviveDeathsDoorNextAttackDouble") }
+        if self.deathsDoorIncomingDamageMultiplier != other.deathsDoorIncomingDamageMultiplier { names.append("deathsDoorIncomingDamageMultiplier") }
+        if self.deathsDoorNegativeStatusImmune != other.deathsDoorNegativeStatusImmune { names.append("deathsDoorNegativeStatusImmune") }
+        if self.onAllyDeathsDoorRestoreHealth != other.onAllyDeathsDoorRestoreHealth { names.append("onAllyDeathsDoorRestoreHealth") }
+        if self.firstAllyFatalIntercept != other.firstAllyFatalIntercept { names.append("firstAllyFatalIntercept") }
         return names
     }
 }
@@ -87,15 +107,20 @@ extension RevivalTriggers {
         onceDeathReviveBlock += other.onceDeathReviveBlock
         deathsDoorDurationBonusTurns += other.deathsDoorDurationBonusTurns
         reviveDealBurnDamage += other.reviveDealBurnDamage
-        onSurviveDeathsDoorDamageBonusPercent += other.onSurviveDeathsDoorDamageBonusPercent
         deathsDoorDodgeAndDebuffImmunity = deathsDoorDodgeAndDebuffImmunity || other.deathsDoorDodgeAndDebuffImmunity
         onDeathDealPhysicalDamageAllEnemies += other.onDeathDealPhysicalDamageAllEnemies
         guaranteedCritWhileOnDeathsDoor = guaranteedCritWhileOnDeathsDoor || other.guaranteedCritWhileOnDeathsDoor
         deathsDoorExpiredHealFlat = max(deathsDoorExpiredHealFlat, other.deathsDoorExpiredHealFlat)
-        onHeroFatalHealPercentMaxHealth += other.onHeroFatalHealPercentMaxHealth
-        onAllyDeathsDoorHealAndCleanse = max(onAllyDeathsDoorHealAndCleanse, other.onAllyDeathsDoorHealAndCleanse)
-        surviveDeathsDoorPartyHealPercent += other.surviveDeathsDoorPartyHealPercent
         holyDamageReviveCompanionChancePercent += other.holyDamageReviveCompanionChancePercent
+        surviveDeathsDoorPartyHealFlat += other.surviveDeathsDoorPartyHealFlat
+        onHeroFatalReviveHealth += other.onHeroFatalReviveHealth
+        enterDeathsDoorHeal += other.enterDeathsDoorHeal
+        enterDeathsDoorBurnDamage += other.enterDeathsDoorBurnDamage
+        surviveDeathsDoorNextAttackDouble = surviveDeathsDoorNextAttackDouble || other.surviveDeathsDoorNextAttackDouble
+        deathsDoorIncomingDamageMultiplier *= other.deathsDoorIncomingDamageMultiplier
+        deathsDoorNegativeStatusImmune = deathsDoorNegativeStatusImmune || other.deathsDoorNegativeStatusImmune
+        onAllyDeathsDoorRestoreHealth += other.onAllyDeathsDoorRestoreHealth
+        firstAllyFatalIntercept = firstAllyFatalIntercept || other.firstAllyFatalIntercept
     }
 }
 
@@ -109,15 +134,20 @@ extension RevivalTriggers {
             onceDeathReviveBlock: values.decode(Int.self, "onceDeathReviveBlock", default: 0),
             deathsDoorDurationBonusTurns: values.decode(Int.self, "deathsDoorDurationBonusTurns", default: 0),
             reviveDealBurnDamage: values.decode(Int.self, "reviveDealBurnDamage", default: 0),
-            onSurviveDeathsDoorDamageBonusPercent: values.decode(Double.self, "onSurviveDeathsDoorDamageBonusPercent", default: 0),
             deathsDoorDodgeAndDebuffImmunity: values.decode(Bool.self, "deathsDoorDodgeAndDebuffImmunity", default: false),
             onDeathDealPhysicalDamageAllEnemies: values.decode(Int.self, "onDeathDealPhysicalDamageAllEnemies", default: 0),
             guaranteedCritWhileOnDeathsDoor: values.decode(Bool.self, "guaranteedCritWhileOnDeathsDoor", default: false),
             deathsDoorExpiredHealFlat: values.decode(Int.self, "deathsDoorExpiredHealFlat", default: 0),
-            onHeroFatalHealPercentMaxHealth: values.decode(Double.self, "onHeroFatalHealPercentMaxHealth", default: 0),
-            onAllyDeathsDoorHealAndCleanse: values.decode(Int.self, "onAllyDeathsDoorHealAndCleanse", default: 0),
-            surviveDeathsDoorPartyHealPercent: values.decode(Double.self, "surviveDeathsDoorPartyHealPercent", default: 0),
-            holyDamageReviveCompanionChancePercent: values.decode(Double.self, "holyDamageReviveCompanionChancePercent", default: 0)
+            holyDamageReviveCompanionChancePercent: values.decode(Double.self, "holyDamageReviveCompanionChancePercent", default: 0),
+            surviveDeathsDoorPartyHealFlat: values.decode(Int.self, "surviveDeathsDoorPartyHealFlat", default: 0),
+            onHeroFatalReviveHealth: values.decode(Int.self, "onHeroFatalReviveHealth", default: 0),
+            enterDeathsDoorHeal: values.decode(Int.self, "enterDeathsDoorHeal", default: 0),
+            enterDeathsDoorBurnDamage: values.decode(Int.self, "enterDeathsDoorBurnDamage", default: 0),
+            surviveDeathsDoorNextAttackDouble: values.decode(Bool.self, "surviveDeathsDoorNextAttackDouble", default: false),
+            deathsDoorIncomingDamageMultiplier: values.decode(Double.self, "deathsDoorIncomingDamageMultiplier", default: 1),
+            deathsDoorNegativeStatusImmune: values.decode(Bool.self, "deathsDoorNegativeStatusImmune", default: false),
+            onAllyDeathsDoorRestoreHealth: values.decode(Int.self, "onAllyDeathsDoorRestoreHealth", default: 0),
+            firstAllyFatalIntercept: values.decode(Bool.self, "firstAllyFatalIntercept", default: false)
         )
     }
 
@@ -128,14 +158,19 @@ extension RevivalTriggers {
         try container.encodeNonDefault(onceDeathReviveBlock, "onceDeathReviveBlock", default: 0)
         try container.encodeNonDefault(deathsDoorDurationBonusTurns, "deathsDoorDurationBonusTurns", default: 0)
         try container.encodeNonDefault(reviveDealBurnDamage, "reviveDealBurnDamage", default: 0)
-        try container.encodeNonDefault(onSurviveDeathsDoorDamageBonusPercent, "onSurviveDeathsDoorDamageBonusPercent", default: 0)
         try container.encodeNonDefault(deathsDoorDodgeAndDebuffImmunity, "deathsDoorDodgeAndDebuffImmunity", default: false)
         try container.encodeNonDefault(onDeathDealPhysicalDamageAllEnemies, "onDeathDealPhysicalDamageAllEnemies", default: 0)
         try container.encodeNonDefault(guaranteedCritWhileOnDeathsDoor, "guaranteedCritWhileOnDeathsDoor", default: false)
         try container.encodeNonDefault(deathsDoorExpiredHealFlat, "deathsDoorExpiredHealFlat", default: 0)
-        try container.encodeNonDefault(onHeroFatalHealPercentMaxHealth, "onHeroFatalHealPercentMaxHealth", default: 0)
-        try container.encodeNonDefault(onAllyDeathsDoorHealAndCleanse, "onAllyDeathsDoorHealAndCleanse", default: 0)
-        try container.encodeNonDefault(surviveDeathsDoorPartyHealPercent, "surviveDeathsDoorPartyHealPercent", default: 0)
         try container.encodeNonDefault(holyDamageReviveCompanionChancePercent, "holyDamageReviveCompanionChancePercent", default: 0)
+        try container.encodeNonDefault(surviveDeathsDoorPartyHealFlat, "surviveDeathsDoorPartyHealFlat", default: 0)
+        try container.encodeNonDefault(onHeroFatalReviveHealth, "onHeroFatalReviveHealth", default: 0)
+        try container.encodeNonDefault(enterDeathsDoorHeal, "enterDeathsDoorHeal", default: 0)
+        try container.encodeNonDefault(enterDeathsDoorBurnDamage, "enterDeathsDoorBurnDamage", default: 0)
+        try container.encodeNonDefault(surviveDeathsDoorNextAttackDouble, "surviveDeathsDoorNextAttackDouble", default: false)
+        try container.encodeNonDefault(deathsDoorIncomingDamageMultiplier, "deathsDoorIncomingDamageMultiplier", default: 1)
+        try container.encodeNonDefault(deathsDoorNegativeStatusImmune, "deathsDoorNegativeStatusImmune", default: false)
+        try container.encodeNonDefault(onAllyDeathsDoorRestoreHealth, "onAllyDeathsDoorRestoreHealth", default: 0)
+        try container.encodeNonDefault(firstAllyFatalIntercept, "firstAllyFatalIntercept", default: false)
     }
 }

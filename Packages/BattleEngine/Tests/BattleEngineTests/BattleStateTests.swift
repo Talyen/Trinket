@@ -105,7 +105,7 @@ struct BattleStateTests {
         try #expect(initialGoldBattle.goldFlow.net == initialGoldBattle.gold - 5)
     }
 
-    @Test func `haggler gold bonus stops on defeat and returns on revival`() throws {
+    @Test func `haggler adds gold only to living retriever theft`() throws {
         let retriever = try BattleTestFixtures.catalogBuild(
             combatantID: "golden_retriever", talents: "golden_retriever_gold_t2_1",
         )
@@ -115,12 +115,15 @@ struct BattleStateTests {
             enemy: defaultEnemy,
             companionModifiers: retriever.modifiers,
         )
-        for (health, expectedGold) in [(1, 12), (0, 10), (1, 12)] {
+        for (health, expectedGold) in [(1, 11), (0, 10), (1, 11)] {
             battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = health }
             let before = battle.gold
-            _ = battle.grantGoldEvent(10, to: battle.hero, abilityName: "Gold")
+            _ = battle.grantGoldEvent(10, to: battle.companion, abilityName: "Steal", isTheft: true)
             #expect(battle.gold - before == expectedGold)
         }
+        let beforeEmptySteal = battle.gold
+        _ = battle.grantGoldEvent(0, to: battle.companion, abilityName: "Empty Steal", isTheft: true)
+        #expect(battle.gold == beforeEmptySteal)
     }
 
     @Test func `card combat defeat when party obliterated`() throws {

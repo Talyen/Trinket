@@ -24,7 +24,7 @@ package extension DamagePipeline {
         let triggers = context.modifiers(for: source.id).triggers
         applyTalentMirroredDoTs(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
         applyTalentBlockAndManaReactions(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
-        applyTalentDetonations(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
+        applyTalentDetonations(to: &state, triggers: triggers, source: source, in: &context)
         applyTalentCardAndEconomyReactions(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
     }
 
@@ -95,13 +95,6 @@ package extension DamagePipeline {
                 in: &context,
             ))
         }
-        if triggers.iceboundExchange, keyword == .freeze {
-            state.damageEvents.append(contentsOf: grantTalentPartyBlock(
-                state.blockedAmount,
-                source: source.combatant,
-                in: &context,
-            ))
-        }
         if triggers.eyeOfTheStorm, keyword == .stun {
             state.damageEvents.append(contentsOf: context.restoreManaEmitting(
                 state.remaining,
@@ -114,11 +107,10 @@ package extension DamagePipeline {
     private static func applyTalentDetonations(
         to state: inout DamageResolutionState,
         triggers: CombatTraitTriggers,
-        keyword: Keyword,
         source: CombatantRuntime,
         in context: inout BattleState,
     ) {
-        let shouldDetonateBleed = triggers.arterialCascade && keyword == .physical && state.isCritical
+        let shouldDetonateBleed = triggers.arterialCascade && state.options.isAttackHit && state.isCritical
         if shouldDetonateBleed {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.detonateBleed(
                 on: state.combatant,
@@ -184,22 +176,6 @@ package extension DamagePipeline {
         ).events
     }
 
-    private static func grantTalentPartyBlock(
-        _ amount: Int,
-        source: Combatant,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard amount > 0 else { return [] }
-        return [BattleParticipant.hero, .companion].flatMap { owner -> [ActionEvent] in
-            let member = context.roster[owner]
-            guard member.isAlive else { return [] }
-            return context.applyBlock(
-                amount, to: member.combatant, source: source,
-                abilityName: "Icebound Exchange", amountBasis: .resolved,
-            )
-        }
-    }
-
     private static func grantTalentCompanionBlock(
         _ amount: Int,
         source: Combatant,
@@ -230,80 +206,6 @@ package extension DamagePipeline {
             amount: 1,
             keyword: keyword,
         )]
-    }
-
-    static func applyBelowHealthStunBuildup(
-        to state: inout DamageResolutionState,
-        source: Combatant,
-        sourceActorID: String,
-        triggers: CombatTraitTriggers,
-        target: Combatant,
-        targetAlive: Bool,
-        in context: inout BattleState,
-    ) {
-        guard triggers.attackStunBuildupBelowHealthBonus > 0, targetAlive,
-              triggers.attackStunBuildupBelowHealthThreshold > 0,
-              context.roster.maxHealth(for: source) > 0,
-              Double(context.roster.health(for: source)) / Double(context.roster.maxHealth(for: source))
-              < triggers.attackStunBuildupBelowHealthThreshold
-        else { return }
-        state.damageEvents.append(contentsOf: resolveNestedDamage(
-            amount: triggers.attackStunBuildupBelowHealthBonus,
-            keyword: .stun,
-            target: target,
-            sourceActorID: sourceActorID,
-            in: &context,
-        ).events)
-    }
-
-    static func applyPhysicalStunAfflictions(
-        to state: inout DamageResolutionState,
-        sourceActorID: String,
-        triggers: CombatTraitTriggers,
-        keyword: Keyword,
-        target: Combatant,
-        targetAlive: Bool,
-        in context: inout BattleState,
-    ) {
-        if triggers.physicalAttackFlatStunBuildup > 0, keyword == .physical, targetAlive {
-            state.damageEvents.append(contentsOf: resolveNestedDamage(
-                amount: triggers.physicalAttackFlatStunBuildup,
-                keyword: .stun,
-                target: target,
-                sourceActorID: sourceActorID,
-                in: &context,
-            ).events)
-        }
-        if triggers.physicalVsStunnedStunBuildup > 0, keyword == .physical, targetAlive,
-           context.roster.hasControlStatus(for: target, keyword: .stun) {
-            state.damageEvents.append(contentsOf: resolveNestedDamage(
-                amount: triggers.physicalVsStunnedStunBuildup,
-                keyword: .stun,
-                target: target,
-                sourceActorID: sourceActorID,
-                in: &context,
-            ).events)
-        }
-        // Pulverize Strike is folded in here (its only caller): same
-        // physical/alive gates plus a once-per-turn claim, then one bleed and
-        // one stun application.
-        if triggers.firstPhysicalBleedStunPerTurn, keyword == .physical, targetAlive,
-           context.claimTurnGuard(.pulverize, actorID: sourceActorID) {
-            state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
-                potency: 1,
-                to: target,
-                sourceActorID: sourceActorID,
-                application: .reaction,
-                in: &context,
-            ))
-            state.damageEvents.append(contentsOf: resolveNestedDamage(
-                amount: 1,
-                keyword: .stun,
-                target: target,
-                sourceActorID: sourceActorID,
-                in: &context,
-            ).events)
-        }
     }
 
     static func applyBleedingPreyHeal(

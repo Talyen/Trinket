@@ -325,7 +325,7 @@ class TrinketUITestCase: XCTestCase {
             file: file,
             line: line,
         )
-        if !element.exists {
+        if !element.exists || (requireHittable && !element.isHittable) {
             scrollUntilVisible(
                 element,
                 swipingUp: false,

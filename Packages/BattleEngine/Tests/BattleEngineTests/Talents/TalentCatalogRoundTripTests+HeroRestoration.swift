@@ -16,58 +16,22 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.heroDeck.count == 1)
     }
 
-    @Test(arguments: [38, 40])
-    func `scavengers cache heals on first theft each turn without spending gold`(startingHealth: Int) throws {
-        var battle = capstoneBattle(companion: [
-            "lizard_scout_gold_t2_1", "lizard_scout_gold_t2_2",
-            "lizard_scout_gold_t3_1", "lizard_scout_gold_t4_1",
-        ])
-        battle.roster.companion.currentHealth = startingHealth
-        _ = battle.grantGoldEvent(5, to: battle.companion, abilityName: "Reward")
-        _ = battle.grantGoldEvent(1, to: battle.hero, abilityName: "Hero theft", isTheft: true)
-        #expect(battle.roster.companion.currentHealth == startingHealth)
-
-        let goldBefore = battle.gold
-        let first = try playHeroTalentCard(heroTalentPhysicalCard, owner: .companion, in: &battle)
-        #expect(battle.roster.companion.currentHealth == 40)
-        #expect(battle.gold - goldBefore == (startingHealth == 40 ? 2 : 1))
-        #expect(first.contains { $0.effectKind == .instantHeal && $0.targetID == battle.companion.id })
-
-        let goldAfterTheft = battle.gold
-        let hit = battle.resolveDamage(DamageRequest(
-            amount: 3, target: battle.companion, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: DamageOperation.effect(scaling: .statsAndItems, accuracy: .unavoidable),
-        ))
-        #expect(hit.healthLost == 3)
-        #expect(battle.gold == goldAfterTheft)
-        try playHeroTalentCard(heroTalentPhysicalCard, owner: .companion, in: &battle)
-        _ = battle.resolveDamage(.doTTick(
-            amount: 1, target: battle.enemy, keyword: .poison, sourceActorID: battle.companion.id,
-        ))
-        #expect(battle.roster.companion.currentHealth == 37)
-
-        _ = battle.endTurn()
-        _ = battle.resolveDamage(.doTTick(
-            amount: 1, target: battle.enemy, keyword: .poison, sourceActorID: battle.companion.id,
-        ))
-        #expect(battle.roster.companion.currentHealth == 39)
-        _ = battle.resolveDamage(.doTTick(
-            amount: 1, target: battle.enemy, keyword: .bleed, sourceActorID: battle.companion.id,
-        ))
-        #expect(battle.roster.companion.currentHealth == 39)
-    }
-
     @Test(arguments: [Effect.cleanse(nil), .cleanseRandom, .cleanseHealPerDebuff(2)])
-    func `mass cleanse reaches the other ally when the first has no debuffs`(effect: Effect) throws {
+    func `mass cleanse waits for a successful first cleanse`(effect: Effect) throws {
         var battle = heroTalentBattle("library_owl_cleanse_t2_2")
         seedHeroTalentEffect(.burn(2), on: .companion, in: &battle)
         seedHeroTalentEffect(.poison(2), on: .companion, in: &battle)
         let ability = Ability(id: "empty-cleanse", name: "Cleanse", tier: .basic, targetedEffects: [
             TargetedEffect(effect, target: .hero),
         ])
-        let events = try playHeroTalentCard(ability, in: &battle)
+        let empty = try playHeroTalentCard(ability, in: &battle)
+        #expect(battle.hasTalentDebuff(on: battle.companion))
+        #expect(empty.count { $0.effectKind == .cleanseApplied && $0.targetID == battle.companion.id } == 0)
+        seedHeroTalentEffect(.poison(2), on: .hero, in: &battle)
+        let successful = try playHeroTalentCard(ability, in: &battle)
+        #expect(!battle.hasTalentDebuff(on: battle.hero))
         #expect(!battle.hasTalentDebuff(on: battle.companion))
-        #expect(events.count { $0.effectKind == .cleanseApplied && $0.targetID == battle.companion.id } == 2)
+        #expect(successful.contains { $0.effectKind == .cleanseApplied && $0.targetID == battle.companion.id })
     }
 
     @Test func `shelter seed grants three block after healing an injured ally`() throws {
