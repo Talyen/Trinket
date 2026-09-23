@@ -76,6 +76,7 @@ package extension CombatTriggerEngine {
             { lastManaStunIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
             { autoPlayAfterManaSpend(by: actor, amountSpent: amountSpent, in: &$0) },
             { spendManaRandomDoTIfNeeded(actor: actor, triggers: triggers, in: &$0) },
+            { afterFinalCompanionManaSpend(actor: actor, amountSpent: amountSpent, in: &$0) },
         ], in: &context)
     }
 
@@ -407,6 +408,7 @@ package extension CombatTriggerEngine {
         events.append(contentsOf: HealingEngine.drawOwlFontOfMagic(
             actor: actor, chance: triggers.healthOrManaRestoreDrawChancePercent, in: &context,
         ))
+        events.append(contentsOf: drawOnFinalCompanionManaRestoration(actor: actor, in: &context))
         let amount = triggers.gainManaBlockFlat
         if amount > 0 {
             events.append(contentsOf: emitBlock(

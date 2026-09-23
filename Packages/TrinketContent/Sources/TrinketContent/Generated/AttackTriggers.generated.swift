@@ -85,6 +85,36 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var holyAttackDrawChancePercent: Double = 0
     public var holyCriticalPurgeCount: Int = 0
     public var holyAttackCleanseAllyChancePercent: Double = 0
+    public var attackDamageVsStunnedMultiplier: Double = 1
+    public var bleedDamageVsPoisonedMultiplier: Double = 1
+    public var burnCriticalDamageMultiplier: Double = 1
+    public var burnCriticalIgnoreBlock: Bool = false
+    public var firstBleedAttackLeechPerTurn: Bool = false
+    public var firstHolyAttackBlockPerTurn: Int = 0
+    public var firstHolyAttackBonusPerTurn: Int = 0
+    public var firstHolyHitDamageMultiplierPerTurn: Double = 1
+    public var firstPhysicalAttackBattleMultiplier: Double = 1
+    public var firstPhysicalAttackBlockPerTurn: Int = 0
+    public var freezeAttackCriticalBonus: Double = 0
+    public var freezeCriticalDamageMultiplier: Double = 1
+    public var holyCriticalStunDamage: Int = 0
+    public var holyDamageMultiplierWhileBlocked: Double = 1
+    public var holyDamageVsStunnedMultiplier: Double = 1
+    public var leechAttackDamageVsBleedingMultiplier: Double = 1
+    public var partyBleedCritChanceBonus: Double = 0
+    public var partyFirstPhysicalCriticalBonus: Double = 0
+    public var partyHolyAttackCriticalBonus: Double = 0
+    public var partyHolyDamageMultiplier: Double = 1
+    public var physicalAttackBurstChancePercent: Double = 0
+    public var physicalAttackBurstMultiplier: Double = 1
+    public var physicalCritVsBleedingBonus: Double = 0
+    public var physicalCriticalBleedDamage: Int = 0
+    public var physicalCriticalDamageVsBleedingMultiplier: Double = 1
+    public var physicalCriticalDamageVsPoisonedMultiplier: Double = 1
+    public var stunAttackCriticalBonus: Double = 0
+    public var stunCriticalIgnoreBlock: Bool = false
+    public var stunDamageMultiplierWhileThorns: Double = 1
+    public var firstHolyHitAllyBlockPerTurn: Int = 0
 
     public init(
         firstCriticalHitRepeatsPerTurn: Bool = false,
@@ -167,7 +197,37 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         holyAttackEnemyMissChance: Double = 0,
         holyAttackDrawChancePercent: Double = 0,
         holyCriticalPurgeCount: Int = 0,
-        holyAttackCleanseAllyChancePercent: Double = 0
+        holyAttackCleanseAllyChancePercent: Double = 0,
+        attackDamageVsStunnedMultiplier: Double = 1,
+        bleedDamageVsPoisonedMultiplier: Double = 1,
+        burnCriticalDamageMultiplier: Double = 1,
+        burnCriticalIgnoreBlock: Bool = false,
+        firstBleedAttackLeechPerTurn: Bool = false,
+        firstHolyAttackBlockPerTurn: Int = 0,
+        firstHolyAttackBonusPerTurn: Int = 0,
+        firstHolyHitDamageMultiplierPerTurn: Double = 1,
+        firstPhysicalAttackBattleMultiplier: Double = 1,
+        firstPhysicalAttackBlockPerTurn: Int = 0,
+        freezeAttackCriticalBonus: Double = 0,
+        freezeCriticalDamageMultiplier: Double = 1,
+        holyCriticalStunDamage: Int = 0,
+        holyDamageMultiplierWhileBlocked: Double = 1,
+        holyDamageVsStunnedMultiplier: Double = 1,
+        leechAttackDamageVsBleedingMultiplier: Double = 1,
+        partyBleedCritChanceBonus: Double = 0,
+        partyFirstPhysicalCriticalBonus: Double = 0,
+        partyHolyAttackCriticalBonus: Double = 0,
+        partyHolyDamageMultiplier: Double = 1,
+        physicalAttackBurstChancePercent: Double = 0,
+        physicalAttackBurstMultiplier: Double = 1,
+        physicalCritVsBleedingBonus: Double = 0,
+        physicalCriticalBleedDamage: Int = 0,
+        physicalCriticalDamageVsBleedingMultiplier: Double = 1,
+        physicalCriticalDamageVsPoisonedMultiplier: Double = 1,
+        stunAttackCriticalBonus: Double = 0,
+        stunCriticalIgnoreBlock: Bool = false,
+        stunDamageMultiplierWhileThorns: Double = 1,
+        firstHolyHitAllyBlockPerTurn: Int = 0
     ) {
         self.firstCriticalHitRepeatsPerTurn = firstCriticalHitRepeatsPerTurn
         self.returnAttackAgainstBleedingOncePerTurn = returnAttackAgainstBleedingOncePerTurn
@@ -250,10 +310,40 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.holyAttackDrawChancePercent = holyAttackDrawChancePercent
         self.holyCriticalPurgeCount = holyCriticalPurgeCount
         self.holyAttackCleanseAllyChancePercent = holyAttackCleanseAllyChancePercent
+        self.attackDamageVsStunnedMultiplier = attackDamageVsStunnedMultiplier
+        self.bleedDamageVsPoisonedMultiplier = bleedDamageVsPoisonedMultiplier
+        self.burnCriticalDamageMultiplier = burnCriticalDamageMultiplier
+        self.burnCriticalIgnoreBlock = burnCriticalIgnoreBlock
+        self.firstBleedAttackLeechPerTurn = firstBleedAttackLeechPerTurn
+        self.firstHolyAttackBlockPerTurn = firstHolyAttackBlockPerTurn
+        self.firstHolyAttackBonusPerTurn = firstHolyAttackBonusPerTurn
+        self.firstHolyHitDamageMultiplierPerTurn = firstHolyHitDamageMultiplierPerTurn
+        self.firstPhysicalAttackBattleMultiplier = firstPhysicalAttackBattleMultiplier
+        self.firstPhysicalAttackBlockPerTurn = firstPhysicalAttackBlockPerTurn
+        self.freezeAttackCriticalBonus = freezeAttackCriticalBonus
+        self.freezeCriticalDamageMultiplier = freezeCriticalDamageMultiplier
+        self.holyCriticalStunDamage = holyCriticalStunDamage
+        self.holyDamageMultiplierWhileBlocked = holyDamageMultiplierWhileBlocked
+        self.holyDamageVsStunnedMultiplier = holyDamageVsStunnedMultiplier
+        self.leechAttackDamageVsBleedingMultiplier = leechAttackDamageVsBleedingMultiplier
+        self.partyBleedCritChanceBonus = partyBleedCritChanceBonus
+        self.partyFirstPhysicalCriticalBonus = partyFirstPhysicalCriticalBonus
+        self.partyHolyAttackCriticalBonus = partyHolyAttackCriticalBonus
+        self.partyHolyDamageMultiplier = partyHolyDamageMultiplier
+        self.physicalAttackBurstChancePercent = physicalAttackBurstChancePercent
+        self.physicalAttackBurstMultiplier = physicalAttackBurstMultiplier
+        self.physicalCritVsBleedingBonus = physicalCritVsBleedingBonus
+        self.physicalCriticalBleedDamage = physicalCriticalBleedDamage
+        self.physicalCriticalDamageVsBleedingMultiplier = physicalCriticalDamageVsBleedingMultiplier
+        self.physicalCriticalDamageVsPoisonedMultiplier = physicalCriticalDamageVsPoisonedMultiplier
+        self.stunAttackCriticalBonus = stunAttackCriticalBonus
+        self.stunCriticalIgnoreBlock = stunCriticalIgnoreBlock
+        self.stunDamageMultiplierWhileThorns = stunDamageMultiplierWhileThorns
+        self.firstHolyHitAllyBlockPerTurn = firstHolyHitAllyBlockPerTurn
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "returnAttackAgainstBleedingOncePerTurn", "heldCardNextAttackDamage", "partnerFirstAttackDamage", "dazingSwipeChancePercent", "dazingSwipeStunDamage", "firstCriticalHitCompanionBasicPerTurn", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "firstElementCardsDraw", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "cleanCut", "crackedGuard", "blockedAttackNextPhysicalDouble", "poisonCritPreparesBleedCrit", "leechCriticalVsBleedingBonus", "burnAttackCritDrawCard", "burnPreparesBleedDamageBonus", "physicalElementChancePercent", "physicalElementDamage", "standardDeviation", "physicalVsFrozenCritBonus", "blockBreakNextPhysicalBonus", "physicalDamageVsStunnedMultiplier", "physicalCritChanceBelowHalfBonus", "physicalCritRemoveEnemyBlock", "firstPhysicalAttackBlockDamagePercent", "poisonCriticalHasLeech", "poisonAttackStunChancePercent", "bleedCriticalPoisonDamage", "bleedCriticalThorns", "bleedCriticalDrawChancePercent", "criticalGoldStealFlat", "bleedAttackDamageBonus", "bleedAttackCriticalBonus", "attackVsBleedingBelowHalfMultiplier", "bleedCriticalDamageMultiplier", "belowHalfHealthNextBleedDouble", "partyCritChanceWhileCompanionFullHealth", "holyCriticalAllyIgnoreBlock", "holyAttackCriticalBonus", "holyAttackEnemyMissChance", "holyAttackDrawChancePercent", "holyCriticalPurgeCount", "holyAttackCleanseAllyChancePercent"]
+    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "returnAttackAgainstBleedingOncePerTurn", "heldCardNextAttackDamage", "partnerFirstAttackDamage", "dazingSwipeChancePercent", "dazingSwipeStunDamage", "firstCriticalHitCompanionBasicPerTurn", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "firstElementCardsDraw", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "cleanCut", "crackedGuard", "blockedAttackNextPhysicalDouble", "poisonCritPreparesBleedCrit", "leechCriticalVsBleedingBonus", "burnAttackCritDrawCard", "burnPreparesBleedDamageBonus", "physicalElementChancePercent", "physicalElementDamage", "standardDeviation", "physicalVsFrozenCritBonus", "blockBreakNextPhysicalBonus", "physicalDamageVsStunnedMultiplier", "physicalCritChanceBelowHalfBonus", "physicalCritRemoveEnemyBlock", "firstPhysicalAttackBlockDamagePercent", "poisonCriticalHasLeech", "poisonAttackStunChancePercent", "bleedCriticalPoisonDamage", "bleedCriticalThorns", "bleedCriticalDrawChancePercent", "criticalGoldStealFlat", "bleedAttackDamageBonus", "bleedAttackCriticalBonus", "attackVsBleedingBelowHalfMultiplier", "bleedCriticalDamageMultiplier", "belowHalfHealthNextBleedDouble", "partyCritChanceWhileCompanionFullHealth", "holyCriticalAllyIgnoreBlock", "holyAttackCriticalBonus", "holyAttackEnemyMissChance", "holyAttackDrawChancePercent", "holyCriticalPurgeCount", "holyAttackCleanseAllyChancePercent", "attackDamageVsStunnedMultiplier", "bleedDamageVsPoisonedMultiplier", "burnCriticalDamageMultiplier", "burnCriticalIgnoreBlock", "firstBleedAttackLeechPerTurn", "firstHolyAttackBlockPerTurn", "firstHolyAttackBonusPerTurn", "firstHolyHitDamageMultiplierPerTurn", "firstPhysicalAttackBattleMultiplier", "firstPhysicalAttackBlockPerTurn", "freezeAttackCriticalBonus", "freezeCriticalDamageMultiplier", "holyCriticalStunDamage", "holyDamageMultiplierWhileBlocked", "holyDamageVsStunnedMultiplier", "leechAttackDamageVsBleedingMultiplier", "partyBleedCritChanceBonus", "partyFirstPhysicalCriticalBonus", "partyHolyAttackCriticalBonus", "partyHolyDamageMultiplier", "physicalAttackBurstChancePercent", "physicalAttackBurstMultiplier", "physicalCritVsBleedingBonus", "physicalCriticalBleedDamage", "physicalCriticalDamageVsBleedingMultiplier", "physicalCriticalDamageVsPoisonedMultiplier", "stunAttackCriticalBonus", "stunCriticalIgnoreBlock", "stunDamageMultiplierWhileThorns", "firstHolyHitAllyBlockPerTurn"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -339,6 +429,36 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         if self.holyAttackDrawChancePercent != other.holyAttackDrawChancePercent { names.append("holyAttackDrawChancePercent") }
         if self.holyCriticalPurgeCount != other.holyCriticalPurgeCount { names.append("holyCriticalPurgeCount") }
         if self.holyAttackCleanseAllyChancePercent != other.holyAttackCleanseAllyChancePercent { names.append("holyAttackCleanseAllyChancePercent") }
+        if self.attackDamageVsStunnedMultiplier != other.attackDamageVsStunnedMultiplier { names.append("attackDamageVsStunnedMultiplier") }
+        if self.bleedDamageVsPoisonedMultiplier != other.bleedDamageVsPoisonedMultiplier { names.append("bleedDamageVsPoisonedMultiplier") }
+        if self.burnCriticalDamageMultiplier != other.burnCriticalDamageMultiplier { names.append("burnCriticalDamageMultiplier") }
+        if self.burnCriticalIgnoreBlock != other.burnCriticalIgnoreBlock { names.append("burnCriticalIgnoreBlock") }
+        if self.firstBleedAttackLeechPerTurn != other.firstBleedAttackLeechPerTurn { names.append("firstBleedAttackLeechPerTurn") }
+        if self.firstHolyAttackBlockPerTurn != other.firstHolyAttackBlockPerTurn { names.append("firstHolyAttackBlockPerTurn") }
+        if self.firstHolyAttackBonusPerTurn != other.firstHolyAttackBonusPerTurn { names.append("firstHolyAttackBonusPerTurn") }
+        if self.firstHolyHitDamageMultiplierPerTurn != other.firstHolyHitDamageMultiplierPerTurn { names.append("firstHolyHitDamageMultiplierPerTurn") }
+        if self.firstPhysicalAttackBattleMultiplier != other.firstPhysicalAttackBattleMultiplier { names.append("firstPhysicalAttackBattleMultiplier") }
+        if self.firstPhysicalAttackBlockPerTurn != other.firstPhysicalAttackBlockPerTurn { names.append("firstPhysicalAttackBlockPerTurn") }
+        if self.freezeAttackCriticalBonus != other.freezeAttackCriticalBonus { names.append("freezeAttackCriticalBonus") }
+        if self.freezeCriticalDamageMultiplier != other.freezeCriticalDamageMultiplier { names.append("freezeCriticalDamageMultiplier") }
+        if self.holyCriticalStunDamage != other.holyCriticalStunDamage { names.append("holyCriticalStunDamage") }
+        if self.holyDamageMultiplierWhileBlocked != other.holyDamageMultiplierWhileBlocked { names.append("holyDamageMultiplierWhileBlocked") }
+        if self.holyDamageVsStunnedMultiplier != other.holyDamageVsStunnedMultiplier { names.append("holyDamageVsStunnedMultiplier") }
+        if self.leechAttackDamageVsBleedingMultiplier != other.leechAttackDamageVsBleedingMultiplier { names.append("leechAttackDamageVsBleedingMultiplier") }
+        if self.partyBleedCritChanceBonus != other.partyBleedCritChanceBonus { names.append("partyBleedCritChanceBonus") }
+        if self.partyFirstPhysicalCriticalBonus != other.partyFirstPhysicalCriticalBonus { names.append("partyFirstPhysicalCriticalBonus") }
+        if self.partyHolyAttackCriticalBonus != other.partyHolyAttackCriticalBonus { names.append("partyHolyAttackCriticalBonus") }
+        if self.partyHolyDamageMultiplier != other.partyHolyDamageMultiplier { names.append("partyHolyDamageMultiplier") }
+        if self.physicalAttackBurstChancePercent != other.physicalAttackBurstChancePercent { names.append("physicalAttackBurstChancePercent") }
+        if self.physicalAttackBurstMultiplier != other.physicalAttackBurstMultiplier { names.append("physicalAttackBurstMultiplier") }
+        if self.physicalCritVsBleedingBonus != other.physicalCritVsBleedingBonus { names.append("physicalCritVsBleedingBonus") }
+        if self.physicalCriticalBleedDamage != other.physicalCriticalBleedDamage { names.append("physicalCriticalBleedDamage") }
+        if self.physicalCriticalDamageVsBleedingMultiplier != other.physicalCriticalDamageVsBleedingMultiplier { names.append("physicalCriticalDamageVsBleedingMultiplier") }
+        if self.physicalCriticalDamageVsPoisonedMultiplier != other.physicalCriticalDamageVsPoisonedMultiplier { names.append("physicalCriticalDamageVsPoisonedMultiplier") }
+        if self.stunAttackCriticalBonus != other.stunAttackCriticalBonus { names.append("stunAttackCriticalBonus") }
+        if self.stunCriticalIgnoreBlock != other.stunCriticalIgnoreBlock { names.append("stunCriticalIgnoreBlock") }
+        if self.stunDamageMultiplierWhileThorns != other.stunDamageMultiplierWhileThorns { names.append("stunDamageMultiplierWhileThorns") }
+        if self.firstHolyHitAllyBlockPerTurn != other.firstHolyHitAllyBlockPerTurn { names.append("firstHolyHitAllyBlockPerTurn") }
         return names
     }
 }
@@ -426,6 +546,36 @@ extension AttackTriggers {
         holyAttackDrawChancePercent += other.holyAttackDrawChancePercent
         holyCriticalPurgeCount += other.holyCriticalPurgeCount
         holyAttackCleanseAllyChancePercent += other.holyAttackCleanseAllyChancePercent
+        attackDamageVsStunnedMultiplier *= other.attackDamageVsStunnedMultiplier
+        bleedDamageVsPoisonedMultiplier *= other.bleedDamageVsPoisonedMultiplier
+        burnCriticalDamageMultiplier *= other.burnCriticalDamageMultiplier
+        burnCriticalIgnoreBlock = burnCriticalIgnoreBlock || other.burnCriticalIgnoreBlock
+        firstBleedAttackLeechPerTurn = firstBleedAttackLeechPerTurn || other.firstBleedAttackLeechPerTurn
+        firstHolyAttackBlockPerTurn += other.firstHolyAttackBlockPerTurn
+        firstHolyAttackBonusPerTurn += other.firstHolyAttackBonusPerTurn
+        firstHolyHitDamageMultiplierPerTurn *= other.firstHolyHitDamageMultiplierPerTurn
+        firstPhysicalAttackBattleMultiplier *= other.firstPhysicalAttackBattleMultiplier
+        firstPhysicalAttackBlockPerTurn += other.firstPhysicalAttackBlockPerTurn
+        freezeAttackCriticalBonus += other.freezeAttackCriticalBonus
+        freezeCriticalDamageMultiplier *= other.freezeCriticalDamageMultiplier
+        holyCriticalStunDamage += other.holyCriticalStunDamage
+        holyDamageMultiplierWhileBlocked *= other.holyDamageMultiplierWhileBlocked
+        holyDamageVsStunnedMultiplier *= other.holyDamageVsStunnedMultiplier
+        leechAttackDamageVsBleedingMultiplier *= other.leechAttackDamageVsBleedingMultiplier
+        partyBleedCritChanceBonus += other.partyBleedCritChanceBonus
+        partyFirstPhysicalCriticalBonus += other.partyFirstPhysicalCriticalBonus
+        partyHolyAttackCriticalBonus += other.partyHolyAttackCriticalBonus
+        partyHolyDamageMultiplier *= other.partyHolyDamageMultiplier
+        physicalAttackBurstChancePercent += other.physicalAttackBurstChancePercent
+        physicalAttackBurstMultiplier *= other.physicalAttackBurstMultiplier
+        physicalCritVsBleedingBonus += other.physicalCritVsBleedingBonus
+        physicalCriticalBleedDamage += other.physicalCriticalBleedDamage
+        physicalCriticalDamageVsBleedingMultiplier *= other.physicalCriticalDamageVsBleedingMultiplier
+        physicalCriticalDamageVsPoisonedMultiplier *= other.physicalCriticalDamageVsPoisonedMultiplier
+        stunAttackCriticalBonus += other.stunAttackCriticalBonus
+        stunCriticalIgnoreBlock = stunCriticalIgnoreBlock || other.stunCriticalIgnoreBlock
+        stunDamageMultiplierWhileThorns *= other.stunDamageMultiplierWhileThorns
+        firstHolyHitAllyBlockPerTurn += other.firstHolyHitAllyBlockPerTurn
     }
 }
 
@@ -513,7 +663,37 @@ extension AttackTriggers {
             holyAttackEnemyMissChance: values.decode(Double.self, "holyAttackEnemyMissChance", default: 0),
             holyAttackDrawChancePercent: values.decode(Double.self, "holyAttackDrawChancePercent", default: 0),
             holyCriticalPurgeCount: values.decode(Int.self, "holyCriticalPurgeCount", default: 0),
-            holyAttackCleanseAllyChancePercent: values.decode(Double.self, "holyAttackCleanseAllyChancePercent", default: 0)
+            holyAttackCleanseAllyChancePercent: values.decode(Double.self, "holyAttackCleanseAllyChancePercent", default: 0),
+            attackDamageVsStunnedMultiplier: values.decode(Double.self, "attackDamageVsStunnedMultiplier", default: 1),
+            bleedDamageVsPoisonedMultiplier: values.decode(Double.self, "bleedDamageVsPoisonedMultiplier", default: 1),
+            burnCriticalDamageMultiplier: values.decode(Double.self, "burnCriticalDamageMultiplier", default: 1),
+            burnCriticalIgnoreBlock: values.decode(Bool.self, "burnCriticalIgnoreBlock", default: false),
+            firstBleedAttackLeechPerTurn: values.decode(Bool.self, "firstBleedAttackLeechPerTurn", default: false),
+            firstHolyAttackBlockPerTurn: values.decode(Int.self, "firstHolyAttackBlockPerTurn", default: 0),
+            firstHolyAttackBonusPerTurn: values.decode(Int.self, "firstHolyAttackBonusPerTurn", default: 0),
+            firstHolyHitDamageMultiplierPerTurn: values.decode(Double.self, "firstHolyHitDamageMultiplierPerTurn", default: 1),
+            firstPhysicalAttackBattleMultiplier: values.decode(Double.self, "firstPhysicalAttackBattleMultiplier", default: 1),
+            firstPhysicalAttackBlockPerTurn: values.decode(Int.self, "firstPhysicalAttackBlockPerTurn", default: 0),
+            freezeAttackCriticalBonus: values.decode(Double.self, "freezeAttackCriticalBonus", default: 0),
+            freezeCriticalDamageMultiplier: values.decode(Double.self, "freezeCriticalDamageMultiplier", default: 1),
+            holyCriticalStunDamage: values.decode(Int.self, "holyCriticalStunDamage", default: 0),
+            holyDamageMultiplierWhileBlocked: values.decode(Double.self, "holyDamageMultiplierWhileBlocked", default: 1),
+            holyDamageVsStunnedMultiplier: values.decode(Double.self, "holyDamageVsStunnedMultiplier", default: 1),
+            leechAttackDamageVsBleedingMultiplier: values.decode(Double.self, "leechAttackDamageVsBleedingMultiplier", default: 1),
+            partyBleedCritChanceBonus: values.decode(Double.self, "partyBleedCritChanceBonus", default: 0),
+            partyFirstPhysicalCriticalBonus: values.decode(Double.self, "partyFirstPhysicalCriticalBonus", default: 0),
+            partyHolyAttackCriticalBonus: values.decode(Double.self, "partyHolyAttackCriticalBonus", default: 0),
+            partyHolyDamageMultiplier: values.decode(Double.self, "partyHolyDamageMultiplier", default: 1),
+            physicalAttackBurstChancePercent: values.decode(Double.self, "physicalAttackBurstChancePercent", default: 0),
+            physicalAttackBurstMultiplier: values.decode(Double.self, "physicalAttackBurstMultiplier", default: 1),
+            physicalCritVsBleedingBonus: values.decode(Double.self, "physicalCritVsBleedingBonus", default: 0),
+            physicalCriticalBleedDamage: values.decode(Int.self, "physicalCriticalBleedDamage", default: 0),
+            physicalCriticalDamageVsBleedingMultiplier: values.decode(Double.self, "physicalCriticalDamageVsBleedingMultiplier", default: 1),
+            physicalCriticalDamageVsPoisonedMultiplier: values.decode(Double.self, "physicalCriticalDamageVsPoisonedMultiplier", default: 1),
+            stunAttackCriticalBonus: values.decode(Double.self, "stunAttackCriticalBonus", default: 0),
+            stunCriticalIgnoreBlock: values.decode(Bool.self, "stunCriticalIgnoreBlock", default: false),
+            stunDamageMultiplierWhileThorns: values.decode(Double.self, "stunDamageMultiplierWhileThorns", default: 1),
+            firstHolyHitAllyBlockPerTurn: values.decode(Int.self, "firstHolyHitAllyBlockPerTurn", default: 0)
         )
     }
 
@@ -599,5 +779,35 @@ extension AttackTriggers {
         try container.encodeNonDefault(holyAttackDrawChancePercent, "holyAttackDrawChancePercent", default: 0)
         try container.encodeNonDefault(holyCriticalPurgeCount, "holyCriticalPurgeCount", default: 0)
         try container.encodeNonDefault(holyAttackCleanseAllyChancePercent, "holyAttackCleanseAllyChancePercent", default: 0)
+        try container.encodeNonDefault(attackDamageVsStunnedMultiplier, "attackDamageVsStunnedMultiplier", default: 1)
+        try container.encodeNonDefault(bleedDamageVsPoisonedMultiplier, "bleedDamageVsPoisonedMultiplier", default: 1)
+        try container.encodeNonDefault(burnCriticalDamageMultiplier, "burnCriticalDamageMultiplier", default: 1)
+        try container.encodeNonDefault(burnCriticalIgnoreBlock, "burnCriticalIgnoreBlock", default: false)
+        try container.encodeNonDefault(firstBleedAttackLeechPerTurn, "firstBleedAttackLeechPerTurn", default: false)
+        try container.encodeNonDefault(firstHolyAttackBlockPerTurn, "firstHolyAttackBlockPerTurn", default: 0)
+        try container.encodeNonDefault(firstHolyAttackBonusPerTurn, "firstHolyAttackBonusPerTurn", default: 0)
+        try container.encodeNonDefault(firstHolyHitDamageMultiplierPerTurn, "firstHolyHitDamageMultiplierPerTurn", default: 1)
+        try container.encodeNonDefault(firstPhysicalAttackBattleMultiplier, "firstPhysicalAttackBattleMultiplier", default: 1)
+        try container.encodeNonDefault(firstPhysicalAttackBlockPerTurn, "firstPhysicalAttackBlockPerTurn", default: 0)
+        try container.encodeNonDefault(freezeAttackCriticalBonus, "freezeAttackCriticalBonus", default: 0)
+        try container.encodeNonDefault(freezeCriticalDamageMultiplier, "freezeCriticalDamageMultiplier", default: 1)
+        try container.encodeNonDefault(holyCriticalStunDamage, "holyCriticalStunDamage", default: 0)
+        try container.encodeNonDefault(holyDamageMultiplierWhileBlocked, "holyDamageMultiplierWhileBlocked", default: 1)
+        try container.encodeNonDefault(holyDamageVsStunnedMultiplier, "holyDamageVsStunnedMultiplier", default: 1)
+        try container.encodeNonDefault(leechAttackDamageVsBleedingMultiplier, "leechAttackDamageVsBleedingMultiplier", default: 1)
+        try container.encodeNonDefault(partyBleedCritChanceBonus, "partyBleedCritChanceBonus", default: 0)
+        try container.encodeNonDefault(partyFirstPhysicalCriticalBonus, "partyFirstPhysicalCriticalBonus", default: 0)
+        try container.encodeNonDefault(partyHolyAttackCriticalBonus, "partyHolyAttackCriticalBonus", default: 0)
+        try container.encodeNonDefault(partyHolyDamageMultiplier, "partyHolyDamageMultiplier", default: 1)
+        try container.encodeNonDefault(physicalAttackBurstChancePercent, "physicalAttackBurstChancePercent", default: 0)
+        try container.encodeNonDefault(physicalAttackBurstMultiplier, "physicalAttackBurstMultiplier", default: 1)
+        try container.encodeNonDefault(physicalCritVsBleedingBonus, "physicalCritVsBleedingBonus", default: 0)
+        try container.encodeNonDefault(physicalCriticalBleedDamage, "physicalCriticalBleedDamage", default: 0)
+        try container.encodeNonDefault(physicalCriticalDamageVsBleedingMultiplier, "physicalCriticalDamageVsBleedingMultiplier", default: 1)
+        try container.encodeNonDefault(physicalCriticalDamageVsPoisonedMultiplier, "physicalCriticalDamageVsPoisonedMultiplier", default: 1)
+        try container.encodeNonDefault(stunAttackCriticalBonus, "stunAttackCriticalBonus", default: 0)
+        try container.encodeNonDefault(stunCriticalIgnoreBlock, "stunCriticalIgnoreBlock", default: false)
+        try container.encodeNonDefault(stunDamageMultiplierWhileThorns, "stunDamageMultiplierWhileThorns", default: 1)
+        try container.encodeNonDefault(firstHolyHitAllyBlockPerTurn, "firstHolyHitAllyBlockPerTurn", default: 0)
     }
 }

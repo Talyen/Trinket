@@ -145,7 +145,8 @@ package enum DefensePoolEngine {
         let current = blockPoints(in: context.roster.activeEffects(for: target))
         guard current > 0 else { return [] }
         let triggers = context.modifiers(for: target.id).triggers
-        let retained: Int = if triggers.retainAllBlockBetweenTurns {
+        let retained: Int = if triggers.retainAllBlockBetweenTurns
+            || triggers.retainAllBlockDuringDeathsDoor && context.roster.isDeathsDoorActive(for: target) {
             current
         } else if triggers.blockRetainsThreeQuarters {
             (current * 3) / 4
@@ -185,12 +186,6 @@ package enum DefensePoolEngine {
         guard let keyword, keyword == .holy, let sourceActorID else { return false }
         let srcTriggers = context.modifiers(for: sourceActorID).triggers
         if srcTriggers.holyIgnoresBlockAndDodge {
-            return true
-        }
-        guard let src = context.roster.combatant(for: sourceActorID) else { return false }
-        let partyUnbroken = (src.role != .enemy) && CombatTriggerEngine.hasLivingPartyTrigger(\.unbrokenVow, in: context)
-        if srcTriggers.unbrokenVow || partyUnbroken,
-           Self.blockPoints(in: context.roster.activeEffects(for: src.combatant)) > 0 {
             return true
         }
         return false

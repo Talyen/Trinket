@@ -177,6 +177,30 @@
       "type": "Double",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "cleansePurgeChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "cleanseRemovesFreezeBuildup",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "cleanseTargetBlockFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "firstCleanseExtraRemovalPerTurn",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
     }
   ]
 }

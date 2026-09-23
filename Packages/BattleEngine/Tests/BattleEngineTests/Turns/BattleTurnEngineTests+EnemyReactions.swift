@@ -76,23 +76,4 @@ extension BattleTurnEngineTests {
         #expect(battle.roster.enemy.currentHealth == 100)
         #expect(events.contains { $0.effectKind == (control == nil ? .shieldApplied : .controlActionSkipped) })
     }
-
-    @Test func `extended stun rewards recovery only after the final skipped action`() {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.slash],
-            heroModifiers: CombatantTalentCatalog.profile(for: ["knight_stun_t2_2", "fox_stun_t3_1"]),
-            dealOpeningHand: false,
-        )
-        battle.appliesFightPacing = false
-        battle.appendEffect(.controlMeter(.stun, 20, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        battle.additionalControlSkipsByCombatantID[battle.enemy.id] = 1
-
-        let first = BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle)
-        #expect(!first.contains { $0.effectKind == .cardsDrawn })
-        #expect(!battle.roster.enemy.activeEffects.contains { $0.effect.isBleed || $0.effect.isDecayingDoT })
-
-        let last = BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle)
-        #expect(last.contains { $0.effectKind == .cardsDrawn && $0.amount == 1 })
-        #expect(battle.roster.enemy.activeEffects.contains { $0.effect.isBleed })
-    }
 }

@@ -310,6 +310,66 @@
       "type": "Int",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "attackGoldStealAmount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "attackGoldStealChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "belowHalfFirstGoldGainHealPerTurn",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "criticalGoldStealAmount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "criticalGoldStealChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "dodgeGoldAmount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "dodgeGoldChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "firstGoldTheftDoubleBattle",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "goldTheftNextAttackCriticalBonus",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "goldTheftStealEnemyBlockChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
     }
   ]
 }

@@ -603,6 +603,54 @@
       "type": "Int",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "excessHealthNextManaEmpowerFree",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "firstBelowHalfHealthHeal",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "firstHealthRestorationBonusPerTurn",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "firstLeechRestorationShareAlly",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "healthRestorationRepeatNextTurnChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "leechCriticalPoisonDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "leechHealingVsLowEnemyHealthMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "leechHealingVsPoisonedMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
     }
   ]
 }

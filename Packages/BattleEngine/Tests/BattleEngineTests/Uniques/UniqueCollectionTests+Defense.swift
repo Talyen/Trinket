@@ -4,17 +4,6 @@ import TrinketCore
 @testable import BattleEngine
 
 extension UniqueCollectionTests {
-    @Test func `laughing guard retained block still triggers spiked shell`() throws {
-        var context = try battle(
-            ["laughing_guard"], owner: .companion,
-            extra: CombatantTalentCatalog.profile(for: ["shield_scarab_block_t3_1"]),
-        )
-        block(10, owner: .companion, in: &context)
-        DefensePoolEngine.decayBlock(on: context.companion, in: &context)
-        #expect(blockAmount(.companion, in: context) == 10)
-        #expect(context.roster.companion.activeEffects.contains { $0.effect == .thorns(5) })
-    }
-
     @Test func `unclosing wound preserves duration then halves to expiration`() throws {
         var context = try battle(["the_unclosing_wound"], extra: CombatModifierProfile(bleedDurationBonus: 2))
         let target = context.roster.enemy.combatant

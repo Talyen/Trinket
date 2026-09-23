@@ -53,19 +53,18 @@ enum DamageDefensePolicy {
            state.combatant.role == .enemy, triggers.rootPassage {
             return 0
         }
-        if keywordIgnoresBlock(keyword: state.damageKeyword, sourceTriggers: triggers, sourceActorID: sourceID, in: context) {
+        if keywordIgnoresBlock(keyword: state.damageKeyword, sourceTriggers: triggers) {
             return 0
         }
         if state.damageKeyword == .bleed, state.combatant.role == .enemy, triggers.bleedIgnoresEnemyBlock {
             return 0
         }
-        if state.damageKeyword == .physical, state.isCritical,
-           state.combatant.role == .enemy, triggers.cleanCut {
+        if talentAttackIgnoresBlock(state: state, triggers: triggers, sourceID: sourceID, in: context) {
             return 0
         }
         var ignored = 0.0
         if state.combatant.role == .enemy {
-            if state.damageKeyword == .holy {
+            if state.damageKeyword == .holy, state.options.isAttackHit {
                 ignored = max(ignored, triggers.holyBlockIgnorePercent)
             }
             if state.damageKeyword == .bleed, state.options.isAttackHit {
@@ -87,11 +86,29 @@ enum DamageDefensePolicy {
         return 1 - clamped01(ignored)
     }
 
+    private static func talentAttackIgnoresBlock(
+        state: DamageResolutionState,
+        triggers: CombatTraitTriggers,
+        sourceID: String,
+        in context: BattleState,
+    ) -> Bool {
+        guard state.combatant.role == .enemy else { return false }
+        if state.damageKeyword == .physical, state.isCritical, triggers.cleanCut {
+            return true
+        }
+        if state.damageKeyword == .holy, state.options.isAttackHit, triggers.unbrokenVow,
+           let source = context.roster.combatant(for: sourceID),
+           DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant)) > 0 {
+            return true
+        }
+        guard state.options.isAttackHit, state.isCritical else { return false }
+        return state.damageKeyword == .burn && triggers.burnCriticalIgnoreBlock
+            || state.damageKeyword == .stun && triggers.stunCriticalIgnoreBlock
+    }
+
     private static func keywordIgnoresBlock(
         keyword: Keyword?,
         sourceTriggers: CombatTraitTriggers,
-        sourceActorID: String?,
-        in context: BattleState,
     ) -> Bool {
         guard let keyword else { return false }
         if keyword == .freeze, sourceTriggers.ghostfrost {
@@ -100,14 +117,6 @@ enum DamageDefensePolicy {
         if keyword == .holy {
             if sourceTriggers.holyIgnoresBlock || sourceTriggers.holyIgnoresBlockAndDodge {
                 return true
-            }
-            if let sourceActorID,
-               let src = context.roster.combatant(for: sourceActorID) {
-                let partyUnbroken = (src.role != .enemy) && CombatTriggerEngine.hasLivingPartyTrigger(\.unbrokenVow, in: context)
-                if sourceTriggers.unbrokenVow || partyUnbroken,
-                   DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: src.combatant)) > 0 {
-                    return true
-                }
             }
         }
         if keyword == .burn, sourceTriggers.burnIgnoresBlockAndMitigation {

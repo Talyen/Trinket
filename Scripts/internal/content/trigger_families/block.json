@@ -500,6 +500,60 @@
       "type": "Int",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "blockAbsorptionMultiplierWhileMana",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "blockAbsorptionVsBurningMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "blockBreakNextHolyHitDouble",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "blockHolyReflectChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "damageTakenMultiplierWhileBlocked",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
+      "name": "doubleAllBlockAbsorption",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "firstBlockBreakNextStunDouble",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "retainAllBlockDuringDeathsDoor",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "thornsDamageMultiplierWhileBlocked",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
     }
   ]
 }

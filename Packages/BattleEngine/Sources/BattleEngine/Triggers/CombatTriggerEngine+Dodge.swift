@@ -228,6 +228,7 @@ package extension CombatTriggerEngine {
         }
 
         events.append(contentsOf: afterCompanionDodge(by: combatant, in: &context))
+        events.append(contentsOf: afterFinalCompanionDodge(by: combatant, in: &context))
         return events
     }
 

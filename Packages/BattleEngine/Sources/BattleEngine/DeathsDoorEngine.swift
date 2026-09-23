@@ -177,6 +177,19 @@ package enum DeathsDoorEngine {
             keyword: .deathsDoor,
         )
         var events = [event]
+        if triggers.firstBelowHalfHealthHeal > 0,
+           context.resolution.claim(.heroTalent("Vital Infusion"), actorID: combatant.id, cadence: .battle) {
+            events.append(contentsOf: context.healEmitting(
+                amount: triggers.firstBelowHalfHealthHeal,
+                target: combatant, source: combatant, abilityName: "Vital Infusion",
+            ))
+        }
+        if triggers.enterDeathsDoorDrawCard,
+           let owner = context.roster.participant(for: combatant) {
+            events.append(contentsOf: CombatTriggerEngine.drawCards(
+                1, for: owner, actor: combatant, abilityName: "Deathrattle", in: &context,
+            ))
+        }
         let blockAmount = triggers.blockOnDeathsDoor
         if blockAmount > 0 {
             events.append(contentsOf: context.applyBlock(
@@ -278,6 +291,18 @@ package enum DeathsDoorEngine {
             }
         }
         var events = afterglow(on: combatant, in: &context)
+        if triggers.surviveDeathsDoorPartyBlockFlat > 0, context.roster.enemy.isAlive {
+            for owner in [BattleParticipant.hero, .companion] {
+                let member = context.roster[owner]
+                guard member.isAlive else { continue }
+                events.append(contentsOf: context.applyBlock(
+                    triggers.surviveDeathsDoorPartyBlockFlat,
+                    to: member.combatant,
+                    source: combatant,
+                    abilityName: "Endless Legion",
+                ))
+            }
+        }
         let amount = triggers.deathsDoorExpiredHealFlat
         guard amount > 0,
               context.claimBattleGuard(.endlessLegion, actorID: combatant.id)

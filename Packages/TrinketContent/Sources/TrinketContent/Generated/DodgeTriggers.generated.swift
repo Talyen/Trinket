@@ -61,6 +61,21 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     public var dodgeNextAttackIgnoreBlock: Bool = false
     public var dodgeDrawChancePercent: Double = 0
     public var dodgeAtFullHealthBonus: Double = 0
+    public var belowHalfFirstDodgeHealPerTurn: Int = 0
+    public var dodgeAllyNextAttackCriticalBonus: Double = 0
+    public var dodgeNextBleedAttackMultiplier: Double = 1
+    public var dodgeNextCriticalDamageMultiplier: Double = 1
+    public var dodgeNextPhysicalDamageMultiplier: Double = 1
+    public var dodgePhysicalChancePercent: Double = 0
+    public var dodgePhysicalDamage: Int = 0
+    public var dodgePoisonChancePercent: Double = 0
+    public var dodgePoisonDamage: Int = 0
+    public var dodgeStunChancePercent: Double = 0
+    public var dodgeStunDamage: Int = 0
+    public var firstDodgeAllyEvadeNextHit: Bool = false
+    public var firstDodgeNextAttackBonusPerTurn: Int = 0
+    public var partyDodgeAtFullHealthBonus: Double = 0
+    public var partyDodgeChanceBonus: Double = 0
 
     public init(
         wintersWake: Bool = false,
@@ -119,7 +134,22 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         firstDodgeDoubleNextAttack: Bool = false,
         dodgeNextAttackIgnoreBlock: Bool = false,
         dodgeDrawChancePercent: Double = 0,
-        dodgeAtFullHealthBonus: Double = 0
+        dodgeAtFullHealthBonus: Double = 0,
+        belowHalfFirstDodgeHealPerTurn: Int = 0,
+        dodgeAllyNextAttackCriticalBonus: Double = 0,
+        dodgeNextBleedAttackMultiplier: Double = 1,
+        dodgeNextCriticalDamageMultiplier: Double = 1,
+        dodgeNextPhysicalDamageMultiplier: Double = 1,
+        dodgePhysicalChancePercent: Double = 0,
+        dodgePhysicalDamage: Int = 0,
+        dodgePoisonChancePercent: Double = 0,
+        dodgePoisonDamage: Int = 0,
+        dodgeStunChancePercent: Double = 0,
+        dodgeStunDamage: Int = 0,
+        firstDodgeAllyEvadeNextHit: Bool = false,
+        firstDodgeNextAttackBonusPerTurn: Int = 0,
+        partyDodgeAtFullHealthBonus: Double = 0,
+        partyDodgeChanceBonus: Double = 0
     ) {
         self.wintersWake = wintersWake
         self.killingGrace = killingGrace
@@ -178,10 +208,25 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         self.dodgeNextAttackIgnoreBlock = dodgeNextAttackIgnoreBlock
         self.dodgeDrawChancePercent = dodgeDrawChancePercent
         self.dodgeAtFullHealthBonus = dodgeAtFullHealthBonus
+        self.belowHalfFirstDodgeHealPerTurn = belowHalfFirstDodgeHealPerTurn
+        self.dodgeAllyNextAttackCriticalBonus = dodgeAllyNextAttackCriticalBonus
+        self.dodgeNextBleedAttackMultiplier = dodgeNextBleedAttackMultiplier
+        self.dodgeNextCriticalDamageMultiplier = dodgeNextCriticalDamageMultiplier
+        self.dodgeNextPhysicalDamageMultiplier = dodgeNextPhysicalDamageMultiplier
+        self.dodgePhysicalChancePercent = dodgePhysicalChancePercent
+        self.dodgePhysicalDamage = dodgePhysicalDamage
+        self.dodgePoisonChancePercent = dodgePoisonChancePercent
+        self.dodgePoisonDamage = dodgePoisonDamage
+        self.dodgeStunChancePercent = dodgeStunChancePercent
+        self.dodgeStunDamage = dodgeStunDamage
+        self.firstDodgeAllyEvadeNextHit = firstDodgeAllyEvadeNextHit
+        self.firstDodgeNextAttackBonusPerTurn = firstDodgeNextAttackBonusPerTurn
+        self.partyDodgeAtFullHealthBonus = partyDodgeAtFullHealthBonus
+        self.partyDodgeChanceBonus = partyDodgeChanceBonus
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["wintersWake", "killingGrace", "dodgeNextHitPoisonAndBleedPercent", "dodgeSpendsHalfBlockAsPhysical", "dodgeDrawPoisonAndReadyCritical", "dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo", "passingLuck", "improvingOdds", "blindSpot", "onDodgeNextAttackGuaranteedCritical", "dodgeFirstAttackEachCombat", "partyDodgeVsBurningBonus", "quietGroveDodgeAtFullHealth", "groveReserveCompanionDodgeBonus", "dodgeNextAttackCritBonus", "dodgeBelowHalfDrawCard", "dodgeBleedChancePercent", "dodgeBleedDamage", "dodgeBurnChancePercent", "dodgeBurnDamage", "firstDodgeDrawForAlly", "dodgeNextManaEmpowerFree", "dodgeNextFreezeIgnoreBlock", "dodgeDealBleedFlat", "firstDodgeDoubleNextAttack", "dodgeNextAttackIgnoreBlock", "dodgeDrawChancePercent", "dodgeAtFullHealthBonus"]
+    public static let fieldNames: [String] = ["wintersWake", "killingGrace", "dodgeNextHitPoisonAndBleedPercent", "dodgeSpendsHalfBlockAsPhysical", "dodgeDrawPoisonAndReadyCritical", "dodgeChanceBonus", "dodgeBlockFlat", "dodgeApplyPoison", "dodgeGoldFlat", "dodgeHealFlat", "dodgeChanceAboveHalfHealthBonus", "dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus", "onDodgeDrawCardForHero", "nextAttackDoubleAfterDodge", "onDodgeDelayAttackerTurn", "onDodgeGrantHeroBlock", "onDodgePartyMana", "onDodgeCounterDamage", "onDodgeCounterBasicAttack", "critMultiplierPerDodge", "onDodgeNextPartyHitGuaranteedCritical", "onCompanionDodgeGrantHeroDodgePercent", "autoDodgeAfterFirstHitPerTurn", "nextAttackBleedAfterDodge", "onDodgeApplyPoisonOrBleed", "onDodgePartyNextCardDamageBonus", "onApplyBurnDodgeChanceUntilNextTurn", "dodgeChanceVsBleedingEnemiesBonus", "firstAttackGuaranteedCritical", "swapAndDodgeForHeroChance", "untargetableAboveHealthPercent", "onDodgeDrawAndPlayCardChainOnCrit", "phantomCounter", "perfectTempo", "passingLuck", "improvingOdds", "blindSpot", "onDodgeNextAttackGuaranteedCritical", "dodgeFirstAttackEachCombat", "partyDodgeVsBurningBonus", "quietGroveDodgeAtFullHealth", "groveReserveCompanionDodgeBonus", "dodgeNextAttackCritBonus", "dodgeBelowHalfDrawCard", "dodgeBleedChancePercent", "dodgeBleedDamage", "dodgeBurnChancePercent", "dodgeBurnDamage", "firstDodgeDrawForAlly", "dodgeNextManaEmpowerFree", "dodgeNextFreezeIgnoreBlock", "dodgeDealBleedFlat", "firstDodgeDoubleNextAttack", "dodgeNextAttackIgnoreBlock", "dodgeDrawChancePercent", "dodgeAtFullHealthBonus", "belowHalfFirstDodgeHealPerTurn", "dodgeAllyNextAttackCriticalBonus", "dodgeNextBleedAttackMultiplier", "dodgeNextCriticalDamageMultiplier", "dodgeNextPhysicalDamageMultiplier", "dodgePhysicalChancePercent", "dodgePhysicalDamage", "dodgePoisonChancePercent", "dodgePoisonDamage", "dodgeStunChancePercent", "dodgeStunDamage", "firstDodgeAllyEvadeNextHit", "firstDodgeNextAttackBonusPerTurn", "partyDodgeAtFullHealthBonus", "partyDodgeChanceBonus"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -243,6 +288,21 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         if self.dodgeNextAttackIgnoreBlock != other.dodgeNextAttackIgnoreBlock { names.append("dodgeNextAttackIgnoreBlock") }
         if self.dodgeDrawChancePercent != other.dodgeDrawChancePercent { names.append("dodgeDrawChancePercent") }
         if self.dodgeAtFullHealthBonus != other.dodgeAtFullHealthBonus { names.append("dodgeAtFullHealthBonus") }
+        if self.belowHalfFirstDodgeHealPerTurn != other.belowHalfFirstDodgeHealPerTurn { names.append("belowHalfFirstDodgeHealPerTurn") }
+        if self.dodgeAllyNextAttackCriticalBonus != other.dodgeAllyNextAttackCriticalBonus { names.append("dodgeAllyNextAttackCriticalBonus") }
+        if self.dodgeNextBleedAttackMultiplier != other.dodgeNextBleedAttackMultiplier { names.append("dodgeNextBleedAttackMultiplier") }
+        if self.dodgeNextCriticalDamageMultiplier != other.dodgeNextCriticalDamageMultiplier { names.append("dodgeNextCriticalDamageMultiplier") }
+        if self.dodgeNextPhysicalDamageMultiplier != other.dodgeNextPhysicalDamageMultiplier { names.append("dodgeNextPhysicalDamageMultiplier") }
+        if self.dodgePhysicalChancePercent != other.dodgePhysicalChancePercent { names.append("dodgePhysicalChancePercent") }
+        if self.dodgePhysicalDamage != other.dodgePhysicalDamage { names.append("dodgePhysicalDamage") }
+        if self.dodgePoisonChancePercent != other.dodgePoisonChancePercent { names.append("dodgePoisonChancePercent") }
+        if self.dodgePoisonDamage != other.dodgePoisonDamage { names.append("dodgePoisonDamage") }
+        if self.dodgeStunChancePercent != other.dodgeStunChancePercent { names.append("dodgeStunChancePercent") }
+        if self.dodgeStunDamage != other.dodgeStunDamage { names.append("dodgeStunDamage") }
+        if self.firstDodgeAllyEvadeNextHit != other.firstDodgeAllyEvadeNextHit { names.append("firstDodgeAllyEvadeNextHit") }
+        if self.firstDodgeNextAttackBonusPerTurn != other.firstDodgeNextAttackBonusPerTurn { names.append("firstDodgeNextAttackBonusPerTurn") }
+        if self.partyDodgeAtFullHealthBonus != other.partyDodgeAtFullHealthBonus { names.append("partyDodgeAtFullHealthBonus") }
+        if self.partyDodgeChanceBonus != other.partyDodgeChanceBonus { names.append("partyDodgeChanceBonus") }
         return names
     }
 }
@@ -306,6 +366,21 @@ extension DodgeTriggers {
         dodgeNextAttackIgnoreBlock = dodgeNextAttackIgnoreBlock || other.dodgeNextAttackIgnoreBlock
         dodgeDrawChancePercent += other.dodgeDrawChancePercent
         dodgeAtFullHealthBonus += other.dodgeAtFullHealthBonus
+        belowHalfFirstDodgeHealPerTurn += other.belowHalfFirstDodgeHealPerTurn
+        dodgeAllyNextAttackCriticalBonus += other.dodgeAllyNextAttackCriticalBonus
+        dodgeNextBleedAttackMultiplier *= other.dodgeNextBleedAttackMultiplier
+        dodgeNextCriticalDamageMultiplier *= other.dodgeNextCriticalDamageMultiplier
+        dodgeNextPhysicalDamageMultiplier *= other.dodgeNextPhysicalDamageMultiplier
+        dodgePhysicalChancePercent += other.dodgePhysicalChancePercent
+        dodgePhysicalDamage += other.dodgePhysicalDamage
+        dodgePoisonChancePercent += other.dodgePoisonChancePercent
+        dodgePoisonDamage += other.dodgePoisonDamage
+        dodgeStunChancePercent += other.dodgeStunChancePercent
+        dodgeStunDamage += other.dodgeStunDamage
+        firstDodgeAllyEvadeNextHit = firstDodgeAllyEvadeNextHit || other.firstDodgeAllyEvadeNextHit
+        firstDodgeNextAttackBonusPerTurn += other.firstDodgeNextAttackBonusPerTurn
+        partyDodgeAtFullHealthBonus += other.partyDodgeAtFullHealthBonus
+        partyDodgeChanceBonus += other.partyDodgeChanceBonus
     }
 }
 
@@ -369,7 +444,22 @@ extension DodgeTriggers {
             firstDodgeDoubleNextAttack: values.decode(Bool.self, "firstDodgeDoubleNextAttack", default: false),
             dodgeNextAttackIgnoreBlock: values.decode(Bool.self, "dodgeNextAttackIgnoreBlock", default: false),
             dodgeDrawChancePercent: values.decode(Double.self, "dodgeDrawChancePercent", default: 0),
-            dodgeAtFullHealthBonus: values.decode(Double.self, "dodgeAtFullHealthBonus", default: 0)
+            dodgeAtFullHealthBonus: values.decode(Double.self, "dodgeAtFullHealthBonus", default: 0),
+            belowHalfFirstDodgeHealPerTurn: values.decode(Int.self, "belowHalfFirstDodgeHealPerTurn", default: 0),
+            dodgeAllyNextAttackCriticalBonus: values.decode(Double.self, "dodgeAllyNextAttackCriticalBonus", default: 0),
+            dodgeNextBleedAttackMultiplier: values.decode(Double.self, "dodgeNextBleedAttackMultiplier", default: 1),
+            dodgeNextCriticalDamageMultiplier: values.decode(Double.self, "dodgeNextCriticalDamageMultiplier", default: 1),
+            dodgeNextPhysicalDamageMultiplier: values.decode(Double.self, "dodgeNextPhysicalDamageMultiplier", default: 1),
+            dodgePhysicalChancePercent: values.decode(Double.self, "dodgePhysicalChancePercent", default: 0),
+            dodgePhysicalDamage: values.decode(Int.self, "dodgePhysicalDamage", default: 0),
+            dodgePoisonChancePercent: values.decode(Double.self, "dodgePoisonChancePercent", default: 0),
+            dodgePoisonDamage: values.decode(Int.self, "dodgePoisonDamage", default: 0),
+            dodgeStunChancePercent: values.decode(Double.self, "dodgeStunChancePercent", default: 0),
+            dodgeStunDamage: values.decode(Int.self, "dodgeStunDamage", default: 0),
+            firstDodgeAllyEvadeNextHit: values.decode(Bool.self, "firstDodgeAllyEvadeNextHit", default: false),
+            firstDodgeNextAttackBonusPerTurn: values.decode(Int.self, "firstDodgeNextAttackBonusPerTurn", default: 0),
+            partyDodgeAtFullHealthBonus: values.decode(Double.self, "partyDodgeAtFullHealthBonus", default: 0),
+            partyDodgeChanceBonus: values.decode(Double.self, "partyDodgeChanceBonus", default: 0)
         )
     }
 
@@ -431,5 +521,20 @@ extension DodgeTriggers {
         try container.encodeNonDefault(dodgeNextAttackIgnoreBlock, "dodgeNextAttackIgnoreBlock", default: false)
         try container.encodeNonDefault(dodgeDrawChancePercent, "dodgeDrawChancePercent", default: 0)
         try container.encodeNonDefault(dodgeAtFullHealthBonus, "dodgeAtFullHealthBonus", default: 0)
+        try container.encodeNonDefault(belowHalfFirstDodgeHealPerTurn, "belowHalfFirstDodgeHealPerTurn", default: 0)
+        try container.encodeNonDefault(dodgeAllyNextAttackCriticalBonus, "dodgeAllyNextAttackCriticalBonus", default: 0)
+        try container.encodeNonDefault(dodgeNextBleedAttackMultiplier, "dodgeNextBleedAttackMultiplier", default: 1)
+        try container.encodeNonDefault(dodgeNextCriticalDamageMultiplier, "dodgeNextCriticalDamageMultiplier", default: 1)
+        try container.encodeNonDefault(dodgeNextPhysicalDamageMultiplier, "dodgeNextPhysicalDamageMultiplier", default: 1)
+        try container.encodeNonDefault(dodgePhysicalChancePercent, "dodgePhysicalChancePercent", default: 0)
+        try container.encodeNonDefault(dodgePhysicalDamage, "dodgePhysicalDamage", default: 0)
+        try container.encodeNonDefault(dodgePoisonChancePercent, "dodgePoisonChancePercent", default: 0)
+        try container.encodeNonDefault(dodgePoisonDamage, "dodgePoisonDamage", default: 0)
+        try container.encodeNonDefault(dodgeStunChancePercent, "dodgeStunChancePercent", default: 0)
+        try container.encodeNonDefault(dodgeStunDamage, "dodgeStunDamage", default: 0)
+        try container.encodeNonDefault(firstDodgeAllyEvadeNextHit, "firstDodgeAllyEvadeNextHit", default: false)
+        try container.encodeNonDefault(firstDodgeNextAttackBonusPerTurn, "firstDodgeNextAttackBonusPerTurn", default: 0)
+        try container.encodeNonDefault(partyDodgeAtFullHealthBonus, "partyDodgeAtFullHealthBonus", default: 0)
+        try container.encodeNonDefault(partyDodgeChanceBonus, "partyDodgeChanceBonus", default: 0)
     }
 }

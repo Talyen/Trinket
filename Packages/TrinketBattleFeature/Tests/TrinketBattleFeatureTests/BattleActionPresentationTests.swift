@@ -316,7 +316,7 @@ struct BattleActionPresentationTests {
         let enemy = durableActingEnemy(abilities: [attack])
         var state = BattleState(
             hero: original.hero, companion: original.companion, enemy: enemy,
-            companionModifiers: CombatantTalentCatalog.profile(for: ["golden_retriever_block_t3_1"]),
+            companionModifiers: CombatantTalentCatalog.profile(for: ["golden_retriever_health_t2_2"]),
             heroStartingHealth: 1, rngSeed: CombatantFixtures.deterministicBattleSeed, dealOpeningHand: false,
         )
         state.appliesFightPacing = false

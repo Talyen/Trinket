@@ -18,39 +18,21 @@ package enum HealingEngine {
         let sourceTriggers = request.sourceActorID.map { context.modifiers(for: $0).triggers }
         var flags: Set<CombatFlag> = []
         let baseAmount = resolvedAmount(request, sourceTriggers: sourceTriggers, flags: &flags, in: &context)
-        let amount = adjustedHeroHealingAmount(baseAmount, request: request, in: context)
+        let amount = adjustedHeroHealingAmount(baseAmount, request: request, in: &context)
 
         let preHealth = context.roster.health(for: request.target)
         let maxHealth = context.roster.maxHealth(for: request.target)
         let restored = applyDirectRestoration(amount: amount, request: request, sourceTriggers: sourceTriggers, in: &context)
 
-        var events: [ActionEvent] = []
-        let targetTriggers = context.modifiers(for: request.target.id).triggers
-
-        applyFullHealthBonus(preHealth: preHealth, maxHealth: maxHealth, request: request, targetTriggers: targetTriggers, in: &context)
-
         var allocation = HealingAllocation(resolvedAmount: amount, directRestoration: restored)
         let overflow = allocation.overflow
-        prepareBurnAfterOverheal(overflow: overflow, target: request.target, triggers: targetTriggers, in: &context)
-        events.append(contentsOf: applyShelterSeed(
-            preHealth: preHealth, maxHealth: maxHealth, restored: restored,
-            request: request, sourceTriggers: sourceTriggers, in: &context,
-        ))
-        let cardTransfer = transferOverhealToAlly(overflow, request: request, in: &context)
-        allocation.allocate(cardTransfer.healthRestored, to: .transfer)
-        events.append(contentsOf: cardTransfer.events)
-        events.append(contentsOf: applyCleanSlate(overflow: overflow, request: request, in: &context))
-        events.append(contentsOf: applyOverhealConversion(
-            allocation: &allocation,
-            request: request,
-            sourceTriggers: sourceTriggers,
-            targetTriggers: targetTriggers,
-            in: &context,
-        ))
-        events.append(contentsOf: applyOnHealGrants(restored: restored, request: request, sourceTriggers: sourceTriggers, in: &context))
+        var events = applyPreLogTalentReactions(
+            request: request, restored: restored, preHealth: preHealth,
+            maxHealth: maxHealth, allocation: &allocation, in: &context,
+        )
 
         appendHealLog(request: request, restored: restored, flags: flags, events: &events, in: &context)
-        if overflow > 0 {
+        if overflow > 0, !request.suppressTalentReactions {
             events.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .overheal,
@@ -63,20 +45,57 @@ package enum HealingEngine {
                 origin: request.isHoTTick ? .periodic : (request.isDirectCardHeal ? .direct : .automatic),
             ))
         }
-        events.append(contentsOf: applyRestoredReactions(
-            restored: restored, request: request, sourceTriggers: sourceTriggers, in: &context,
-        ))
-        events.append(contentsOf: applyHeroHealingTalents(
-            request: request,
-            restored: restored,
-            sourceTriggers: sourceTriggers,
-            in: &context,
-        ))
+        if !request.suppressTalentReactions {
+            events.append(contentsOf: applyRestoredReactions(
+                restored: restored, request: request, sourceTriggers: sourceTriggers, in: &context,
+            ))
+            events.append(contentsOf: applyHeroHealingTalents(
+                request: request,
+                restored: restored,
+                sourceTriggers: sourceTriggers,
+                in: &context,
+            ))
+        }
 
         return HealingResult(
             allocation: allocation,
             isLeech: request.origin == .leech, isCritical: flags.contains(.critical), events: events,
         )
+    }
+
+    private static func applyPreLogTalentReactions(
+        request: HealRequest,
+        restored: Int,
+        preHealth: Int,
+        maxHealth: Int,
+        allocation: inout HealingAllocation,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard !request.suppressTalentReactions else { return [] }
+        let sourceTriggers = request.sourceActorID.map { context.modifiers(for: $0).triggers }
+        let targetTriggers = context.modifiers(for: request.target.id).triggers
+        applyFullHealthBonus(
+            preHealth: preHealth, maxHealth: maxHealth,
+            request: request, targetTriggers: targetTriggers, in: &context,
+        )
+        let overflow = allocation.overflow
+        prepareBurnAfterOverheal(overflow: overflow, target: request.target, triggers: targetTriggers, in: &context)
+        var events = applyShelterSeed(
+            preHealth: preHealth, maxHealth: maxHealth, restored: restored,
+            request: request, sourceTriggers: sourceTriggers, in: &context,
+        )
+        let cardTransfer = transferOverhealToAlly(overflow, request: request, in: &context)
+        allocation.allocate(cardTransfer.healthRestored, to: .transfer)
+        events.append(contentsOf: cardTransfer.events)
+        events.append(contentsOf: applyCleanSlate(overflow: overflow, request: request, in: &context))
+        events.append(contentsOf: applyOverhealConversion(
+            allocation: &allocation, request: request,
+            sourceTriggers: sourceTriggers, targetTriggers: targetTriggers, in: &context,
+        ))
+        events.append(contentsOf: applyOnHealGrants(
+            restored: restored, request: request, sourceTriggers: sourceTriggers, in: &context,
+        ))
+        return events
     }
 
     private static func applyDirectRestoration(

@@ -46,25 +46,6 @@ struct ManaEmpowermentTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 6)
     }
 
-    @Test func `empowerment stops when arcane burst kills its caster`() {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionMaxMana: 12, companionMana: 12,
-            companionModifiers: CombatantTalentCatalog.profile(for: ["mana_moth_mana_t3_2"]),
-            dealOpeningHand: false,
-        )
-        battle.roster.companion.currentHealth = 1
-        battle.roster.companion.hasConsumedDeathsDoor = true
-        battle.companionDeck = CombatDeck(abilities: [.pixieDust])
-        battle.appendEffect(.thorns(10), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
-        var ability = Ability.meteor
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
-            for: &ability, actor: battle.companion, context: &battle,
-        )
-        #expect(battle.health(of: battle.companion) == 0)
-        #expect(battle.mana(of: battle.companion) == 3)
-        #expect(ability.directDamage == Ability.meteor.directDamage + 2)
-    }
-
     @Test func `recurring freeze empowerment draws the opposite element`() {
         var battle = makeBattle(
             heroAbilities: [], heroMaxMana: 3, heroMana: 3,

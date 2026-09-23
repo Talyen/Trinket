@@ -24,6 +24,19 @@ package extension CombatTriggerEngine {
                 triggers.onFreezeEnemyRestoreMana, to: actor, abilityName: "Frost Siphon",
             ))
         }
+        if triggers.onFreezeEnemyGainBlock > 0 {
+            events.append(contentsOf: context.applyBlock(
+                triggers.onFreezeEnemyGainBlock,
+                to: actor, source: actor, abilityName: "Frost Guard",
+            ))
+        }
+        if triggers.onFreezeBurningEnemyBurnDamage > 0,
+           context.roster.hasAffliction(.burn, on: context.roster.enemy.combatant) {
+            events.append(contentsOf: heroTalentDamage(
+                .burn, amount: triggers.onFreezeBurningEnemyBurnDamage,
+                source: actor, name: "Steam Explosion", in: &context,
+            ))
+        }
         if triggers.onFreezeEnemyDrawCard,
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: drawCards(

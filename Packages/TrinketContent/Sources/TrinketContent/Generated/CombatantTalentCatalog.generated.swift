@@ -1214,156 +1214,156 @@ public extension CombatantTalentCatalog {
             "wolf_bleed_t1_1": CombatantTalentEffect(
                 name: "Pack Ferocity",
                 iconID: "sf:pawprint.fill",
-                description: "Increase Bleed duration by 1 and Bleed damage dealt by 1.",
-                modifiers: [.bleedDuration(1), .damageDealt(.bleed, 1)],
-                triggers: CombatTraitTriggers()
+                description: "Both allies' Bleed attacks gain +10% Critical Hit chance",
+                modifiers: [],
+                triggers: CombatTraitTriggers(attack: AttackTriggers(partyBleedCritChanceBonus: 0.10))
             ),
             "wolf_bleed_t1_2": CombatantTalentEffect(
                 name: "Deep Bite",
                 iconID: "sf:burst.fill",
-                description: "Deal 2 additional damage to Bleeding enemies.",
+                description: "Enemies below half Health take 25% increased Bleed damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBleedingBonus: 2))
+                triggers: CombatTraitTriggers(dot: DotTriggers(bleedDamageBelowHalfMultiplier: 1.25))
             ),
             "wolf_bleed_t2_1": CombatantTalentEffect(
                 name: "Hamstring",
                 iconID: "sf:figure.fall",
-                description: "Bleeding enemies deal 2 less damage.",
+                description: "Bleeding enemies deal 20% less Physical damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(bleedingEnemyDamageReductionFlat: 2))
+                triggers: CombatTraitTriggers(damage: DamageTriggers(bleedingEnemyPhysicalDamageMultiplier: 0.8))
             ),
             "wolf_bleed_t2_2": CombatantTalentEffect(
                 name: "Open Wounds",
                 iconID: "sf:drop.fill",
-                description: "Dealing Bleed damage to a Bleeding target deals 2 damage.",
+                description: "Bleed attacks ignore half enemy Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(onBleedAppliedToBleedingDealDamage: 2))
+                triggers: CombatTraitTriggers(block: BlockTriggers(bleedAttackBlockIgnorePercent: 0.5))
             ),
             "wolf_bleed_t3_1": CombatantTalentEffect(
                 name: "Carnivore",
                 iconID: "sf:heart.fill",
-                description: "Restore 2 Health whenever Bleed deals damage.",
+                description: "Your first Bleed attack each turn gains Leech",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(onBleedDamageHealSelf: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(firstBleedAttackLeechPerTurn: true))
             ),
             "wolf_bleed_t3_2": CombatantTalentEffect(
                 name: "Savage Tear",
                 iconID: "sf:burst.fill",
-                description: "Bleed ticks have a 20% chance to critically strike.",
+                description: "Bleed Critical Hits deal 50% more damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(bleedTickCritChancePercent: 0.20))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(bleedCriticalDamageMultiplier: 1.5))
             ),
             "wolf_dodge_t1_1": CombatantTalentEffect(
                 name: "Sidestep",
                 iconID: "sf:figure.walk",
-                description: "Gain 2 Block whenever you Dodge.",
+                description: "Gain +10% Dodge chance against Bleeding enemies",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeBlockFlat: 2))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeChanceVsBleedingEnemiesBonus: 0.10))
             ),
             "wolf_dodge_t1_2": CombatantTalentEffect(
                 name: "Nimble Fang",
                 iconID: "sf:drop.fill",
-                description: "After Dodging, your next attack deals 2 Bleed damage.",
+                description: "Dodging makes your next Bleed attack deal 25% more damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(nextAttackBleedAfterDodge: 2))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeNextBleedAttackMultiplier: 1.25))
             ),
             "wolf_dodge_t2_1": CombatantTalentEffect(
                 name: "Pack Coordination",
                 iconID: "sf:person.2.fill",
-                description: "When Wolf Dodges, the Hero gains +10% Dodge chance until your next turn.",
+                description: "Both allies gain +10% Dodge chance",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onCompanionDodgeGrantHeroDodgePercent: 0.10))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(partyDodgeChanceBonus: 0.10))
             ),
             "wolf_dodge_t2_2": CombatantTalentEffect(
                 name: "Flanking Position",
                 iconID: "sf:point.topleft.down.to.point.bottomright.curvepath",
-                description: "Dodging makes your next party hit a guaranteed Critical Hit.",
+                description: "Dodging gives your ally's next attack +20% Critical Hit chance",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgeNextPartyHitGuaranteedCritical: true))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeAllyNextAttackCriticalBonus: 0.20))
             ),
             "wolf_dodge_t3_1": CombatantTalentEffect(
                 name: "Evasive Pack",
                 iconID: "sf:wind",
-                description: "Wolf automatically Dodges attacks after the first hit each turn. These Dodges do not counterattack.",
+                description: "Your first Dodge each combat makes your ally Dodge their next incoming attack",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(autoDodgeAfterFirstHitPerTurn: true))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(firstDodgeAllyEvadeNextHit: true))
             ),
             "wolf_dodge_t3_2": CombatantTalentEffect(
                 name: "Snapping Jaws",
                 iconID: "sf:arrow.uturn.backward",
-                description: "Dodging counters with an immediate basic attack.",
+                description: "Dodging has a 20% chance to deal 4 Physical damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgeCounterBasicAttack: true))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgePhysicalChancePercent: 0.20, dodgePhysicalDamage: 4))
             ),
             "wolf_physical_t1_1": CombatantTalentEffect(
                 name: "Alpha Howl",
                 iconID: "sf:dog.fill",
-                description: "Party deals 2 additional Physical damage for the first 3 turns.",
+                description: "Both allies' first Physical attack each combat gains +20% Critical Hit chance",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(partyPhysicalDamageBonusFirstTurns: 2, partyPhysicalDamageBonusFirstTurnCount: 3))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(partyFirstPhysicalCriticalBonus: 0.20))
             ),
             "wolf_physical_t1_2": CombatantTalentEffect(
                 name: "Predatory Focus",
                 iconID: "sf:scope",
-                description: "Deal 3 additional damage to enemies with lower Health than Wolf.",
+                description: "Physical attacks gain +10% Critical Hit chance against Bleeding enemies",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsLowerHealthEnemyBonus: 3))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(physicalCritVsBleedingBonus: 0.10))
             ),
             "wolf_physical_t2_1": CombatantTalentEffect(
                 name: "Bone-Crushing Bite",
                 iconID: "sf:burst.fill",
-                description: "Physical attacks against enemies with Block deal 2 additional damage.",
+                description: "Physical Critical Hits remove all enemy Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(physicalDamageVsBlockedBonus: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(physicalCritRemoveEnemyBlock: true))
             ),
             "wolf_physical_t2_2": CombatantTalentEffect(
                 name: "Alpha Might",
                 iconID: "sf:dumbbell.fill",
-                description: "While the enemy is below half Health, party Physical attacks deal 2 additional damage.",
+                description: "Physical attacks deal 2 additional damage to enemies below half Health",
                 modifiers: [],
                 triggers: CombatTraitTriggers(damage: DamageTriggers(damageBelowHealthPercentThreshold: 0.5, damageBelowHealthPercentKeyword: .physical, damageBelowHealthPercentBonus: 2))
             ),
             "wolf_physical_t3_1": CombatantTalentEffect(
                 name: "Feral Frenzy",
                 iconID: "sf:flame.fill",
-                description: "While the enemy is below 40% Health, Wolf draws an extra card each turn.",
+                description: "Physical attacks have a 20% chance to deal 50% more damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(enemyTurn: EnemyTurnTriggers(extraCardDrawBelowEnemyHealthPercent: 0.40))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(physicalAttackBurstChancePercent: 0.20, physicalAttackBurstMultiplier: 1.5))
             ),
             "wolf_physical_t3_2": CombatantTalentEffect(
                 name: "Rending Fangs",
                 iconID: "sf:drop.fill",
-                description: "Physical attacks deal 1 Bleed damage on hit.",
+                description: "Physical Critical Hits deal 25% more damage to Bleeding enemies",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(physicalAttackApplyBleed: 1))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(physicalCriticalDamageVsBleedingMultiplier: 1.25))
             ),
             "wolf_physical_t4_1": CombatantTalentEffect(
-                name: "Stored Impact",
+                name: "Alpha Strike",
                 iconID: "sf:shield.fill",
-                description: "Blocked damage empowers your next Physical attack.",
+                description: "Your first Physical attack each combat deals double damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(storedImpact: true))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(firstPhysicalAttackBattleMultiplier: 2))
             ),
             "wolf_bleed_t4_1": CombatantTalentEffect(
                 name: "Septicemia",
                 iconID: "sf:drop.fill",
-                description: "Poisoned enemies take double Bleed damage.",
+                description: "Poisoned enemies take 25% increased Bleed damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(septicemia: true))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(bleedDamageVsPoisonedMultiplier: 1.25))
             ),
             "wolf_dodge_t4_1": CombatantTalentEffect(
                 name: "Phantom Counter",
                 iconID: "sf:arrow.uturn.backward",
-                description: "Dodging draws and plays a Physical card.",
+                description: "Dodging makes your next Physical attack deal 50% more damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(phantomCounter: true))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeNextPhysicalDamageMultiplier: 1.5))
             ),
             "wolf_bleed_t4_2": CombatantTalentEffect(
                 name: "Bloodrush",
                 iconID: "sf:waveform.path.ecg",
-                description: "Bleed ticks have a 20% chance to draw a Physical card.",
+                description: "Bleed Critical Hits have a 20% chance to draw a card",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(bleedTickDrawChancePercent: 0.2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(bleedCriticalDrawChancePercent: 0.20))
             )
     ]
 
@@ -2435,147 +2435,147 @@ public extension CombatantTalentCatalog {
             "risen_skeleton_physical_t1_1": CombatantTalentEffect(
                 name: "Bone Shield",
                 iconID: "sf:shield.fill",
-                description: "Gain 2 Block whenever you deal Physical damage.",
+                description: "Your first Physical attack each turn grants 3 Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(onPhysicalDamageGainBlock: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(firstPhysicalAttackBlockPerTurn: 3))
             ),
             "risen_skeleton_physical_t1_2": CombatantTalentEffect(
                 name: "Bone Burst",
                 iconID: "sf:burst.fill",
-                description: "Attacks have a 25% chance to deal 3 extra damage and grant 2 Block.",
+                description: "When your Block breaks, your next Physical attack gains 3 damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(attackBurstChancePercent: 0.25, attackBurstDamage: 3, attackBurstBlock: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(blockBreakNextPhysicalBonus: 3))
             ),
             "risen_skeleton_physical_t2_1": CombatantTalentEffect(
                 name: "Brittle Strike",
                 iconID: "sf:shield.slash.fill",
-                description: "Physical attacks ignore all Block on Stunned or Frozen enemies.",
+                description: "Physical attacks deal double damage to enemy Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(physicalIgnoresBlockVsStunnedOrFrozen: true))
+                triggers: CombatTraitTriggers(block: BlockTriggers(physicalBlockBreakMultiplier: 2))
             ),
             "risen_skeleton_physical_t2_2": CombatantTalentEffect(
                 name: "Dense Bones",
                 iconID: "sf:shield.fill",
-                description: "Your Block absorbs twice as much Physical damage.",
+                description: "Block absorbs twice as much Physical damage",
                 modifiers: [],
                 triggers: CombatTraitTriggers(block: BlockTriggers(doublePhysicalBlockAbsorption: true))
             ),
             "risen_skeleton_physical_t3_1": CombatantTalentEffect(
                 name: "Cleaving Bones",
                 iconID: "sf:burst.fill",
-                description: "Physical attacks deal 1 additional Bleed damage to the enemy.",
+                description: "Physical Critical Hits deal 3 Bleed damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(physicalAttackApplyBleed: 1))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(physicalCriticalBleedDamage: 3))
             ),
             "risen_skeleton_physical_t3_2": CombatantTalentEffect(
                 name: "Bone Armor",
                 iconID: "sf:shield.fill",
-                description: "Whenever you take Health damage, gain 1 Block.",
+                description: "While you have Block, take 2 less Physical damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(onSelfHealthLossGainBlock: 1))
+                triggers: CombatTraitTriggers(block: BlockTriggers(physicalMitigationWhileBlockedFlat: 2))
             ),
             "risen_skeleton_leech_t1_1": CombatantTalentEffect(
                 name: "Weaken Soul",
                 iconID: "sf:heart.slash.fill",
-                description: "Leech reduces the target's damage by 2 for 2 turns.",
+                description: "Leeching causes the enemy's next hit to deal 25% less damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(onLeechReduceEnemyStrength: 2, onLeechReduceEnemyStrengthTurns: 2))
+                triggers: CombatTraitTriggers(damage: DamageTriggers(leechEnemyNextAttackDamageMultiplier: 0.75))
             ),
             "risen_skeleton_leech_t1_2": CombatantTalentEffect(
                 name: "Toxic Touch",
                 iconID: "sf:hand.raised.fill",
-                description: "Leech damage deals 2 Poison damage to the target.",
+                description: "Leech Critical Hits deal 3 Poison damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(onLeechApplyPoison: 2))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(leechCriticalPoisonDamage: 3))
             ),
             "risen_skeleton_leech_t2_1": CombatantTalentEffect(
                 name: "Grave Harvest",
                 iconID: "sf:eyedropper",
-                description: "Leeching Health from an enemy below half Health restores 2 additional Health.",
+                description: "Leech restores 25% more Health against enemies below half Health",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(leechBonusHealVsLowHealthEnemies: 2))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(leechHealingVsLowEnemyHealthMultiplier: 1.25))
             ),
             "risen_skeleton_leech_t2_2": CombatantTalentEffect(
                 name: "Soul Sharing",
                 iconID: "sf:heart.fill",
-                description: "Convert half of Skeleton's damage into Health restored to the Hero.",
+                description: "Your first Leech restoration each turn also heals your ally equally",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(companionDamageLeechesToHeroPercent: 0.5))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(firstLeechRestorationShareAlly: true))
             ),
             "risen_skeleton_leech_t3_1": CombatantTalentEffect(
                 name: "Affliction Siphon",
                 iconID: "sf:eyedropper",
-                description: "Leeching Health from a Stunned enemy restores 3 additional Health.",
+                description: "Leech restores 25% more Health from Poisoned enemies",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(leechBonusHealVsStunned: 3))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(leechHealingVsPoisonedMultiplier: 1.25))
             ),
             "risen_skeleton_leech_t3_2": CombatantTalentEffect(
                 name: "Necrotic Bleed",
                 iconID: "sf:drop.fill",
-                description: "Leeching Health deals 2 Bleed damage to the target.",
+                description: "Leech attacks deal 25% more damage against Bleeding enemies",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(onLeechApplyBleed: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(leechAttackDamageVsBleedingMultiplier: 1.25))
             ),
             "risen_skeleton_deathsdoor_t1_1": CombatantTalentEffect(
                 name: "Deathrattle",
                 iconID: "sf:arrow.counterclockwise",
-                description: "Revive at 1 Health with 10 Block the first time you die each battle.",
+                description: "Entering Death's Door draws a card",
                 modifiers: [],
-                triggers: CombatTraitTriggers(revival: RevivalTriggers(onceDeathReviveHealth: 1, onceDeathReviveBlock: 10))
+                triggers: CombatTraitTriggers(revival: RevivalTriggers(enterDeathsDoorDrawCard: true))
             ),
             "risen_skeleton_deathsdoor_t1_2": CombatantTalentEffect(
                 name: "Tenacious Spirit",
                 iconID: "sf:hourglass.bottomhalf.filled",
-                description: "Death's Door lasts 2 additional turns.",
+                description: "Death's Door lasts one additional turn",
                 modifiers: [],
-                triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorDurationBonusTurns: 2))
+                triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorDurationBonusTurns: 1))
             ),
             "risen_skeleton_deathsdoor_t2_1": CombatantTalentEffect(
                 name: "Corpse Explosion",
                 iconID: "sf:burst.fill",
-                description: "Deal 8 Physical damage to the enemy when you die.",
+                description: "Dying after Death's Door deals 8 Physical damage",
                 modifiers: [],
                 triggers: CombatTraitTriggers(revival: RevivalTriggers(onDeathDealPhysicalDamageAllEnemies: 8))
             ),
             "risen_skeleton_deathsdoor_t2_2": CombatantTalentEffect(
                 name: "Deathly Wrath",
                 iconID: "sf:hourglass.bottomhalf.filled",
-                description: "Attacks are guaranteed Critical Hits while on Death's Door.",
+                description: "While on Death's Door, gain +25% Critical Hit chance",
                 modifiers: [],
-                triggers: CombatTraitTriggers(revival: RevivalTriggers(guaranteedCritWhileOnDeathsDoor: true))
+                triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorCriticalChanceBonus: 0.25))
             ),
             "risen_skeleton_deathsdoor_t3_1": CombatantTalentEffect(
                 name: "Endless Legion",
                 iconID: "sf:person.2.fill",
-                description: "If Death's Door ends while Skeleton is still alive, restore Health to 6 once per battle.",
+                description: "Surviving Death's Door grants both allies 4 Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorExpiredHealFlat: 6))
+                triggers: CombatTraitTriggers(revival: RevivalTriggers(surviveDeathsDoorPartyBlockFlat: 4))
             ),
             "risen_skeleton_deathsdoor_t3_2": CombatantTalentEffect(
                 name: "Lichbone",
                 iconID: "sf:shield.fill",
-                description: "Take 50% less Bleed and Poison damage, and 50% less Stun.",
+                description: "Death's Door preserves your Block between turns",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(afflictionResistance: 0.5))
+                triggers: CombatTraitTriggers(block: BlockTriggers(retainAllBlockDuringDeathsDoor: true))
             ),
             "risen_skeleton_physical_t4_1": CombatantTalentEffect(
                 name: "Pressure Point",
                 iconID: "sf:scope",
-                description: "Critical Hits against Poisoned enemies deal double Physical damage.",
+                description: "Physical Critical Hits deal 50% more damage to Poisoned enemies",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(pressurePoint: true))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(physicalCriticalDamageVsPoisonedMultiplier: 1.5))
             ),
             "risen_skeleton_leech_t4_1": CombatantTalentEffect(
                 name: "Marrowmend",
                 iconID: "sf:cross.case.fill",
-                description: "Your excess Leech healing becomes Block, up to 6.",
+                description: "Your first excess Leech restoration each turn grants half as much Block",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(marrowmend: true))
             ),
             "risen_skeleton_deathsdoor_t4_1": CombatantTalentEffect(
                 name: "Borrowed Life",
                 iconID: "sf:hourglass.bottomhalf.filled",
-                description: "Your Physical damage Leeches Health while on Death’s Door.",
+                description: "Attacks gain Leech while on Death's Door",
                 modifiers: [],
                 triggers: CombatTraitTriggers(revival: RevivalTriggers(borrowedLife: true))
             )
@@ -2585,154 +2585,154 @@ public extension CombatantTalentCatalog {
             "mana_moth_mana_t1_1": CombatantTalentEffect(
                 name: "Arcane Reservoir",
                 iconID: "sf:tray.full.fill",
-                description: "Whenever you gain Mana, gain 1 Block.",
+                description: "Mana restoration has a 10% chance to double",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(gainManaBlockFlat: 1))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(manaRestorationDoubleChancePercent: 0.10))
             ),
             "mana_moth_mana_t1_2": CombatantTalentEffect(
                 name: "Aetherial Surge",
                 iconID: "sf:waveform",
-                description: "Restore 1 bonus Mana on turn 1 and turn 4.",
+                description: "Your first Mana spend each turn refunds 1 Mana",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(bonusManaOnTurns: [1, 4]))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(firstManaSpendRefundPerTurn: 1))
             ),
             "mana_moth_mana_t2_1": CombatantTalentEffect(
                 name: "Mana Cocoon",
                 iconID: "sf:fossil.shell.fill",
-                description: "Spending Mana grants equal Block.",
+                description: "Your Block absorbs 25% more damage while you have Mana",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(spendManaGrantsEqualBlock: true))
+                triggers: CombatTraitTriggers(block: BlockTriggers(blockAbsorptionMultiplierWhileMana: 1.25))
             ),
             "mana_moth_mana_t2_2": CombatantTalentEffect(
                 name: "Aetherial Flow",
                 iconID: "sf:wind",
-                description: "When the Hero spends Mana, Moth's next attack deals 2 additional damage.",
+                description: "Spending Mana adds 2 damage to your next attack",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(onHeroSpendManaCompanionNextAttackBonus: 2))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(selfManaSpendNextAttackBonus: 2))
             ),
             "mana_moth_mana_t3_1": CombatantTalentEffect(
                 name: "Prismatic Spark",
                 iconID: "sf:diamond.fill",
-                description: "Gain a 25% chance to double all Mana gained.",
+                description: "Restoring Mana has a 10% chance to draw a card",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(manaGainDoubleChancePercent: 0.25))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(manaRestorationDrawChancePercent: 0.10))
             ),
             "mana_moth_mana_t3_2": CombatantTalentEffect(
                 name: "Arcane Burst",
                 iconID: "sf:burst.fill",
-                description: "Spending 5 Mana draws and automatically plays a random card.",
+                description: "Mana empowerment has a 20% chance to deal 50% more damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(spendManaThresholdAutoPlayCard: 5))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(manaEmpowerDamageChancePercent: 0.20, manaEmpowerDamageMultiplier: 1.5))
             ),
             "mana_moth_freeze_t1_1": CombatantTalentEffect(
                 name: "Chilling Flutter",
                 iconID: "sf:bird.fill",
-                description: "Basic attacks deal 2 Freeze damage.",
+                description: "Freeze attacks gain +10% Critical Hit chance",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(basicAttackFreezeBuildup: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(freezeAttackCriticalBonus: 0.10))
             ),
             "mana_moth_freeze_t1_2": CombatantTalentEffect(
                 name: "Frost Guard",
                 iconID: "sf:shield.fill",
-                description: "Mana empowerment adds 1 Freeze damage.",
+                description: "Freezing an enemy grants 3 Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(empowerFreezeDamageBonus: 1))
+                triggers: CombatTraitTriggers(control: ControlTriggers(onFreezeEnemyGainBlock: 3))
             ),
             "mana_moth_freeze_t2_1": CombatantTalentEffect(
                 name: "Blinding Frost",
                 iconID: "sf:eye.slash.fill",
-                description: "Moth deals 25% additional damage to Frozen enemies.",
+                description: "Freeze Critical Hits reduce the enemy's next attack accuracy by 20%",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsFrozenMultiplier: 1.25))
+                triggers: CombatTraitTriggers(control: ControlTriggers(freezeCritEnemyNextAttackMissChance: 0.20))
             ),
             "mana_moth_freeze_t2_2": CombatantTalentEffect(
                 name: "Subzero Mist",
                 iconID: "sf:cloud.fog.fill",
-                description: "When Freeze ends on the enemy, gain +20% Dodge chance until your next turn.",
+                description: "Freeze has a 10% chance to last an extra turn",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(subzeroMist: true))
+                triggers: CombatTraitTriggers(control: ControlTriggers(freezeExtendChancePercent: 0.10))
             ),
             "mana_moth_freeze_t3_1": CombatantTalentEffect(
                 name: "Flash Freeze",
                 iconID: "sf:snowflake",
-                description: "Mana empowerment increases the empowered card’s Freeze damage by 2.",
+                description: "Mana empowerment increases Freeze build-up by 25%",
                 modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(flashFreeze: true))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(manaEmpowerFreezeBuildupMultiplier: 1.25))
             ),
             "mana_moth_freeze_t3_2": CombatantTalentEffect(
                 name: "Frost Nova",
                 iconID: "sf:burst.fill",
-                description: "Deal 4 additional Freeze damage against Frozen enemies.",
+                description: "Freeze Critical Hits deal 50% more damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(frostDamageVsFrozenBonus: 4))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(freezeCriticalDamageMultiplier: 1.5))
             ),
             "mana_moth_burn_t1_1": CombatantTalentEffect(
                 name: "Ember Shield",
                 iconID: "sf:shield.fill",
-                description: "Gain 2 Block whenever an ally deals Burn damage.",
+                description: "Block absorbs 25% more damage against Burning enemies",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(onAllyBurnDamageGainBlock: 2))
+                triggers: CombatTraitTriggers(block: BlockTriggers(blockAbsorptionVsBurningMultiplier: 1.25))
             ),
             "mana_moth_burn_t1_2": CombatantTalentEffect(
                 name: "Moth to Flame",
                 iconID: "sf:flame.fill",
-                description: "Restore 1 Mana whenever Burn deals damage (up to 2 per turn).",
+                description: "Burn Critical Hits restore 2 Mana",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(onBurnDamageRestoreManaPerTurnCap: 2), mana: ManaTriggers(onBurnDamageRestoreManaFlat: 1))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(burnCriticalRestoreMana: 2))
             ),
             "mana_moth_burn_t2_1": CombatantTalentEffect(
                 name: "Flashover",
                 iconID: "sf:sun.snow.fill",
-                description: "Burn damage against Frozen enemies has a 50% chance to deal double damage.",
+                description: "Burn Critical Hits ignore enemy Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(burnDoubleVsFrozenChancePercent: 0.5))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(burnCriticalIgnoreBlock: true))
             ),
             "mana_moth_burn_t2_2": CombatantTalentEffect(
-                name: "Combustion",
+                name: "Cinderstrike",
                 iconID: "sf:burst.fill",
-                description: "Your attacks against Burning enemies deal bonus damage equal to half their current Burn.",
+                description: "Burn Critical Hits deal 25% more damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(damagePerBurnPotencyPercent: 0.5))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(burnCriticalDamageMultiplier: 1.25))
             ),
             "mana_moth_burn_t3_1": CombatantTalentEffect(
                 name: "Ember Persistence",
                 iconID: "sf:hourglass.bottomhalf.filled",
-                description: "Enemies lose 35% less Burn at the end of each round.",
+                description: "Burn has a 20% chance to not decay",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(burnDecaySlowPercent: 0.35))
+                triggers: CombatTraitTriggers(dot: DotTriggers(burnPreventDecayChancePercent: 0.20))
             ),
             "mana_moth_burn_t3_2": CombatantTalentEffect(
-                name: "Cinder Halo",
+                name: "Scorching Dust",
                 iconID: "sf:sun.max.fill",
-                description: "Burning enemies take 1 Holy damage each time Burn deals damage.",
+                description: "+10% Critical Hit chance against Burning enemies",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(onBurnTickHolyDamage: 1))
+                triggers: CombatTraitTriggers(damage: DamageTriggers(criticalVsBurningBonus: 0.10))
             ),
             "mana_moth_burn_t4_1": CombatantTalentEffect(
                 name: "Steam Explosion",
                 iconID: "sf:burst.fill",
-                description: "Your Freeze cards consume Burn for equal additional Freeze damage.",
+                description: "Freezing a Burning enemy deals 5 Burn damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(steamExplosion: true))
+                triggers: CombatTraitTriggers(control: ControlTriggers(onFreezeBurningEnemyBurnDamage: 5))
             ),
             "mana_moth_burn_t4_2": CombatantTalentEffect(
                 name: "Frostfire",
                 iconID: "sf:sun.snow.fill",
-                description: "Burn damage deals half as much Freeze damage.",
+                description: "Frozen enemies take 25% increased Burn damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(frostfire: true))
+                triggers: CombatTraitTriggers(damage: DamageTriggers(burnDamageVsFrozenMultiplier: 1.25))
             ),
             "mana_moth_mana_t4_1": CombatantTalentEffect(
                 name: "Prismatic Scales",
                 iconID: "sf:diamond.fill",
-                description: "Your Mana empowerment deals both Burn and Freeze damage.",
+                description: "Mana empowerment increases Burn and Freeze damage by 25%",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(prismaticScales: true))
+                triggers: CombatTraitTriggers(mana: ManaTriggers(manaEmpowerBurnFreezeDamageMultiplier: 1.25))
             ),
             "mana_moth_freeze_t4_1": CombatantTalentEffect(
                 name: "Ghostfrost",
                 iconID: "sf:snowflake",
-                description: "Your Freeze damage ignores enemy Block.",
+                description: "Freeze damage ignores enemy Block",
                 modifiers: [],
                 triggers: CombatTraitTriggers(damage: DamageTriggers(ghostfrost: true))
             )
@@ -2749,30 +2749,30 @@ public extension CombatantTalentCatalog {
             "pixie_cleanse_t1_2": CombatantTalentEffect(
                 name: "Dispel Magic",
                 iconID: "sf:wand.and.stars",
-                description: "Cleanse effects also Purge 1 positive buff from the enemy.",
+                description: "Cleansing has a 20% chance to Purge an enemy's positive status effect",
                 modifiers: [],
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseAlsoPurgesEnemyBuffs: 1))
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleansePurgeChancePercent: 0.20))
             ),
             "pixie_cleanse_t2_1": CombatantTalentEffect(
                 name: "Fae Swiftness",
                 iconID: "sf:wind",
-                description: "Cleansing an ally grants them +10% Dodge chance for 2 turns.",
+                description: "Cleansing also removes all Freeze build-up from the target",
                 modifiers: [],
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseDodgeChanceBonus: 0.10, cleanseDodgeChanceBonusTurns: 2))
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseRemovesFreezeBuildup: true))
             ),
             "pixie_cleanse_t2_2": CombatantTalentEffect(
                 name: "Cleansing Ward",
                 iconID: "sf:shield.fill",
-                description: "Cleansing an ally also grants the party 2 Block.",
+                description: "Cleansing grants the target 3 Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleansePartyBlock: 2))
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseTargetBlockFlat: 3))
             ),
             "pixie_cleanse_t3_1": CombatantTalentEffect(
                 name: "Fae Ward",
                 iconID: "sf:shield.lefthalf.filled",
-                description: "Your Cleanse cards grant 1 Block per effect removed.",
+                description: "Your first Cleanse each turn removes one extra negative status effect",
                 modifiers: [],
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseBlockPerStack: 1))
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(firstCleanseExtraRemovalPerTurn: 1))
             ),
             "pixie_cleanse_t3_2": CombatantTalentEffect(
                 name: "Purifying Aura",
@@ -2784,37 +2784,37 @@ public extension CombatantTalentCatalog {
             "pixie_health_t1_1": CombatantTalentEffect(
                 name: "Sprite Touch",
                 iconID: "sf:heart.fill",
-                description: "Restore 2 Health each turn for the first 3 turns of battle.",
+                description: "Your first Health restoration each turn restores 2 additional Health",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(healthRegenFirstTurnsAmount: 2, healthRegenFirstTurnsDuration: 3))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(firstHealthRestorationBonusPerTurn: 2))
             ),
             "pixie_health_t1_2": CombatantTalentEffect(
                 name: "Emergency Mend",
                 iconID: "sf:cross.fill",
-                description: "Health restored to allies below 30% Health is doubled.",
+                description: "Restore 25% more Health to allies below half Health",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(healingBelowHealthPercentThreshold: 0.30, healingBelowHealthPercentMultiplier: 2))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(healingBelowHealthPercentThreshold: 0.5, healingBelowHealthPercentMultiplier: 1.25))
             ),
             "pixie_health_t2_1": CombatantTalentEffect(
                 name: "Lingering Blessing",
                 iconID: "sf:hourglass.bottomhalf.filled",
-                description: "Restoring Health to an ally applies a 3-turn effect that restores 1 Health over time.",
+                description: "Restoring Health has a 10% chance to repeat next turn",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(healOverTimeOnHealTurns: 3, healOverTimeOnHealAmount: 1))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(healthRestorationRepeatNextTurnChancePercent: 0.10))
             ),
             "pixie_health_t2_2": CombatantTalentEffect(
                 name: "Protective Bloom",
                 iconID: "sf:camera.macro",
-                description: "Restoring Health to an ally also deals 2 Holy damage to the enemy.",
+                description: "Allies at full Health gain +10% Dodge chance",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(onHealDealHoly: 2))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(partyDodgeAtFullHealthBonus: 0.10))
             ),
             "pixie_health_t3_1": CombatantTalentEffect(
                 name: "Vital Infusion",
                 iconID: "sf:heart.fill",
-                description: "Health restored beyond full increases the target's Max Health by +1 this combat (up to +5).",
+                description: "Restore 6 Health the first time you drop below half Health each combat",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(overhealConvertsToMaxHealth: true, overhealConvertsToMaxHealthCap: 5, overhealConvertsToMaxHealthPerEvent: 1))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(firstBelowHalfHealthHeal: 6))
             ),
             "pixie_health_t3_2": CombatantTalentEffect(
                 name: "Barrier Blessing",
@@ -2826,65 +2826,65 @@ public extension CombatantTalentCatalog {
             "pixie_holy_t1_1": CombatantTalentEffect(
                 name: "Dazzle",
                 iconID: "sf:sparkles",
-                description: "Holy attacks reduce the target's damage by 2 on their next turn.",
+                description: "Holy attacks gain +10% Critical Hit chance",
                 modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(holyDamageReduceTargetDamage: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(holyAttackCriticalBonus: 0.10))
             ),
             "pixie_holy_t1_2": CombatantTalentEffect(
                 name: "Piercing Starlight",
                 iconID: "sf:star.fill",
-                description: "Holy damage ignores enemy Block and cannot be Dodged.",
+                description: "Holy attacks ignore half enemy Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(holyIgnoresBlockAndDodge: true))
+                triggers: CombatTraitTriggers(block: BlockTriggers(holyBlockIgnorePercent: 0.5))
             ),
             "pixie_holy_t2_1": CombatantTalentEffect(
                 name: "Radiant Barrier",
                 iconID: "sf:shield.fill",
-                description: "Dealing Holy damage grants 2 Block to the party.",
+                description: "Your first Holy attack each turn grants 3 Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(onHolyDamagePartyBlock: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(firstHolyAttackBlockPerTurn: 3))
             ),
             "pixie_holy_t2_2": CombatantTalentEffect(
                 name: "Stun Flare",
                 iconID: "sf:bolt.fill",
-                description: "Holy attacks deal 1 Burn and 1 Stun damage.",
+                description: "Holy Critical Hits deal 4 Stun damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(holyAttackApplyBurnAndStunBuildup: 1))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(holyCriticalStunDamage: 4))
             ),
             "pixie_holy_t3_1": CombatantTalentEffect(
                 name: "Supernal Glow",
                 iconID: "sf:sun.min.fill",
-                description: "All party basic attacks deal 2 additional Holy damage.",
+                description: "Both allies deal 15% more Holy damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(partyBasicAttackHolyBonus: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(partyHolyDamageMultiplier: 1.15))
             ),
             "pixie_holy_t3_2": CombatantTalentEffect(
                 name: "Sunlight Spark",
                 iconID: "sf:sun.max.fill",
-                description: "Your next attack after dealing Holy damage deals 1 additional Holy damage.",
+                description: "Your first Holy attack each turn deals 2 additional damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(holyDamageNextAttackHolyBonus: 1))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(firstHolyAttackBonusPerTurn: 2))
             ),
             "pixie_holy_t4_1": CombatantTalentEffect(
                 name: "Unbroken Vow",
                 iconID: "sf:checkmark.seal.fill",
-                description: "Block lets Holy damage ignore Block and Dodge.",
+                description: "While you have Block, Holy attacks ignore enemy Block",
                 modifiers: [],
                 triggers: CombatTraitTriggers(block: BlockTriggers(unbrokenVow: true))
             ),
             "pixie_cleanse_t4_1": CombatantTalentEffect(
                 name: "Purifying Waters",
                 iconID: "sf:water.waves",
-                description: "Cleansing restores 4 Health per effect.",
+                description: "Cleansing restores 4 Health per negative status effect removed",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(purifyingWaters: true))
             ),
             "pixie_health_t4_1": CombatantTalentEffect(
                 name: "Wishspring",
                 iconID: "sf:wand.and.stars",
-                description: "Your overhealing restores half as much Mana.",
+                description: "Excess Health restoration makes your next Mana empowerment free",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(wishspring: true))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(excessHealthNextManaEmpowerFree: true))
             )
     ]
 
@@ -2892,149 +2892,149 @@ public extension CombatantTalentCatalog {
             "shield_scarab_block_t1_1": CombatantTalentEffect(
                 name: "Plated Hide",
                 iconID: "sf:shield.fill",
-                description: "Gain 2 Block when you are hit.",
+                description: "While you have Block, take 20% less damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(onHit: OnHitTriggers(onHitGainBlock: 2))
+                triggers: CombatTraitTriggers(block: BlockTriggers(damageTakenMultiplierWhileBlocked: 0.8))
             ),
             "shield_scarab_block_t1_2": CombatantTalentEffect(
                 name: "Hardened Chitin",
                 iconID: "sf:fossil.shell.fill",
-                description: "Take 2 less damage from non-Physical hits while you have Block.",
+                description: "While you have Block, take 2 less non-Physical damage",
                 modifiers: [],
                 triggers: CombatTraitTriggers(block: BlockTriggers(spellDamageTakenReductionWhileBlocked: 2))
             ),
             "shield_scarab_block_t2_1": CombatantTalentEffect(
                 name: "Enduring Shell",
                 iconID: "sf:fossil.shell.fill",
-                description: "Scarab's Block retains 50% at the end of each round (up to 30 max).",
+                description: "Retain 75% of your Block between turns",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(blockRetainsHalf: true))
+                triggers: CombatTraitTriggers(block: BlockTriggers(blockRetainsThreeQuarters: true))
             ),
             "shield_scarab_block_t2_2": CombatantTalentEffect(
                 name: "Bulwark Fortress",
                 iconID: "sf:building.2.fill",
-                description: "While Scarab has Block, the Hero takes 20% less damage.",
+                description: "While you have Block, your ally takes 20% less damage",
                 modifiers: [],
                 triggers: CombatTraitTriggers(block: BlockTriggers(companionBlockProtectsHeroPercent: 0.2))
             ),
             "shield_scarab_block_t3_1": CombatantTalentEffect(
                 name: "Spiked Shell",
                 iconID: "sf:asterisk",
-                description: "Whenever you retain Block at the end of each round, gain Thorns equal to half that amount.",
+                description: "While you have Block, Thorns deal 25% more damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(retainedBlockGainThornsPercent: 0.5))
+                triggers: CombatTraitTriggers(block: BlockTriggers(thornsDamageMultiplierWhileBlocked: 1.25))
             ),
             "shield_scarab_block_t3_2": CombatantTalentEffect(
                 name: "Sun-Struck Shell",
                 iconID: "sf:sun.max.fill",
-                description: "When your Block is hit, deal 2 Holy damage to the attacker.",
+                description: "When your Block breaks, your next Holy hit deals double damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(onBlockHitDealHoly: 2))
+                triggers: CombatTraitTriggers(block: BlockTriggers(blockBreakNextHolyHitDouble: true))
             ),
             "shield_scarab_stun_t1_1": CombatantTalentEffect(
                 name: "Sunder Shield",
                 iconID: "sf:shield.slash.fill",
-                description: "Stunned enemies lose all their active Block.",
+                description: "Stunning an enemy removes all their Block",
                 modifiers: [],
                 triggers: CombatTraitTriggers(block: BlockTriggers(stunnedEnemyLoseAllBlock: true))
             ),
             "shield_scarab_stun_t1_2": CombatantTalentEffect(
                 name: "Heavy Slam",
                 iconID: "sf:hammer.fill",
-                description: "Deal 4 additional Physical damage to Stunned enemies.",
+                description: "Stunned enemies take 25% increased Physical damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(damageWhileTargetStunnedBonus: 4))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(physicalDamageVsStunnedMultiplier: 1.25))
             ),
             "shield_scarab_stun_t2_1": CombatantTalentEffect(
                 name: "Prolonged Daze",
                 iconID: "sf:hourglass.bottomhalf.filled",
-                description: "Stunning an enemy deals 2 Physical damage to them.",
+                description: "Stun has a 20% chance to last another turn",
                 modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(stunDealPhysicalFlat: 2))
+                triggers: CombatTraitTriggers(control: ControlTriggers(stunExtendChancePercent: 0.20))
             ),
             "shield_scarab_stun_t2_2": CombatantTalentEffect(
                 name: "Seismic Impact",
                 iconID: "sf:waveform",
-                description: "Enemies require 25% less Stun to be Stunned.",
+                description: "Increase Stun build-up by 20%",
                 modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(enemyStunThresholdReductionPercent: 0.25))
+                triggers: CombatTraitTriggers(control: ControlTriggers(stunBuildupMultiplier: 1.2))
             ),
             "shield_scarab_stun_t3_1": CombatantTalentEffect(
                 name: "Quaking Carapace",
                 iconID: "sf:fossil.shell.fill",
-                description: "Deal 3 Stun damage to the enemy and grant 5 Block to the party every 3 turns.",
+                description: "Your first Block break each combat doubles your next Stun attack",
                 modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(everyNTurnsStunBuildupInterval: 3, everyNTurnsStunBuildupAmount: 3, everyNTurnsTeamBlockAmount: 5))
+                triggers: CombatTraitTriggers(block: BlockTriggers(firstBlockBreakNextStunDouble: true))
             ),
             "shield_scarab_stun_t3_2": CombatantTalentEffect(
                 name: "Solar Brand",
                 iconID: "sf:flame.fill",
-                description: "Stunning an enemy also deals 2 Burn damage to them.",
+                description: "Stunning an enemy deals 2 Burn damage",
                 modifiers: [],
                 triggers: CombatTraitTriggers(control: ControlTriggers(onStunEnemyApplyBurn: 2))
             ),
             "shield_scarab_holy_t1_1": CombatantTalentEffect(
                 name: "Gilded Carapace",
                 iconID: "sf:fossil.shell.fill",
-                description: "Gain 2 Block whenever an enemy becomes Stunned.",
+                description: "While you have Block, Holy damage is increased by 25%",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(onStunEnemyGainBlock: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(holyDamageMultiplierWhileBlocked: 1.25))
             ),
             "shield_scarab_holy_t1_2": CombatantTalentEffect(
                 name: "Radiant Shell",
                 iconID: "sf:fossil.shell.fill",
-                description: "Enemies attacking Scarab take 2 Holy damage.",
+                description: "Blocking damage has a 10% chance to reflect it as Holy",
                 modifiers: [],
-                triggers: CombatTraitTriggers(onHit: OnHitTriggers(onHitAttackerHoly: 2))
+                triggers: CombatTraitTriggers(block: BlockTriggers(blockHolyReflectChancePercent: 0.10))
             ),
             "shield_scarab_holy_t2_1": CombatantTalentEffect(
                 name: "Sun Glyph",
                 iconID: "sf:sun.max.fill",
-                description: "Holy damage dealt by Scarab restores 2 Health to the Hero.",
+                description: "Your first Holy hit each turn grants your ally 2 Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(holyDamageHealHeroFlat: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(firstHolyHitAllyBlockPerTurn: 2))
             ),
             "shield_scarab_holy_t2_2": CombatantTalentEffect(
                 name: "Solar Ward",
                 iconID: "sf:shield.fill",
-                description: "Party deals 2 additional Holy damage while Scarab is at full Health.",
+                description: "Both allies' Holy attacks gain +10% Critical Hit chance",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(partyHolyDamageBonusWhileCompanionFullHealth: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(partyHolyAttackCriticalBonus: 0.10))
             ),
             "shield_scarab_holy_t3_1": CombatantTalentEffect(
                 name: "Dazzling Guard",
                 iconID: "sf:eye.slash.fill",
-                description: "Blocking an attack reduces the attacker's accuracy by 25% for 2 turns.",
+                description: "Holy Critical Hits reduce the enemy's next attack accuracy by 20%",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(onBlockReduceAttackerAccuracyPercent: 25, onBlockReduceAttackerAccuracyTurns: 2))
+                triggers: CombatTraitTriggers(control: ControlTriggers(holyCritEnemyNextAttackMissChance: 0.20))
             ),
             "shield_scarab_holy_t3_2": CombatantTalentEffect(
-                name: "Purifying Sun",
+                name: "Solar Judgment",
                 iconID: "sf:sun.max.fill",
-                description: "Holy damage deals double damage to Poisoned or Bleeding targets.",
+                description: "Stunned enemies take 25% increased Holy damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(holyDamageVsPoisonedOrBleedingMultiplier: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(holyDamageVsStunnedMultiplier: 1.25))
             ),
             "shield_scarab_holy_t4_1": CombatantTalentEffect(
                 name: "Crownfall",
                 iconID: "sf:crown.fill",
-                description: "Purging deals 3 Holy damage per effect.",
+                description: "Your first Holy hit each turn deals 50% more damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(crownfall: true))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(firstHolyHitDamageMultiplierPerTurn: 1.5))
             ),
             "shield_scarab_block_t4_1": CombatantTalentEffect(
                 name: "Sealed Sarcophagus",
                 iconID: "sf:lock.shield.fill",
-                description: "Your Block cannot be stolen or Purged.",
+                description: "Your Block absorbs twice as much damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(sealedSarcophagus: true))
+                triggers: CombatTraitTriggers(block: BlockTriggers(doubleAllBlockAbsorption: true))
             ),
             "shield_scarab_stun_t4_1": CombatantTalentEffect(
                 name: "Resonant Shell",
                 iconID: "sf:waveform",
-                description: "Your Thorns deal Stun damage instead of Physical damage.",
+                description: "While you have Thorns, Stun attacks deal 25% more damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(onHit: OnHitTriggers(resonantShell: true))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(stunDamageMultiplierWhileThorns: 1.25))
             )
     ]
 
@@ -3042,149 +3042,149 @@ public extension CombatantTalentCatalog {
             "fox_gold_t1_1": CombatantTalentEffect(
                 name: "Palmed Coin",
                 iconID: "sf:hand.pinch.fill",
-                description: "Gain 2 Gold when you Dodge.",
+                description: "Dodging has a 20% chance to gain 4 Gold",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeGoldFlat: 2))
+                triggers: CombatTraitTriggers(gold: GoldTriggers(dodgeGoldAmount: 4, dodgeGoldChancePercent: 0.20))
             ),
             "fox_gold_t1_2": CombatantTalentEffect(
                 name: "Snatch",
                 iconID: "sf:hand.pinch.fill",
-                description: "Basic attacks steal 2 Gold from the enemy.",
+                description: "Your attacks have a 10% chance to steal 3 Gold",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(basicAttackStealGold: 2))
+                triggers: CombatTraitTriggers(gold: GoldTriggers(attackGoldStealAmount: 3, attackGoldStealChancePercent: 0.10))
             ),
             "fox_gold_t2_1": CombatantTalentEffect(
                 name: "Golden Opportunity",
                 iconID: "sf:circle.circle.fill",
-                description: "The first time you gain 5 or more Gold at once each round, draw a card.",
+                description: "Your first Gold steal each combat is doubled",
                 modifiers: [],
-                triggers: CombatTraitTriggers(gold: GoldTriggers(gainGoldDrawThreshold: 5))
+                triggers: CombatTraitTriggers(gold: GoldTriggers(firstGoldTheftDoubleBattle: true))
             ),
             "fox_gold_t2_2": CombatantTalentEffect(
                 name: "Lucky Strike",
                 iconID: "sf:die.face.5.fill",
-                description: "Critical Hits grant 3 Gold.",
+                description: "Critical Hits have a 10% chance to steal 5 Gold",
                 modifiers: [],
-                triggers: CombatTraitTriggers(gold: GoldTriggers(criticalGoldFlat: 3))
+                triggers: CombatTraitTriggers(gold: GoldTriggers(criticalGoldStealAmount: 5, criticalGoldStealChancePercent: 0.10))
             ),
             "fox_gold_t3_1": CombatantTalentEffect(
                 name: "Master Thief",
                 iconID: "sf:eye.slash.fill",
-                description: "When you Critically Hit, steal the enemy's Block and gain it yourself.",
+                description: "Stealing Gold grants +20% Critical Hit chance on your next attack",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(critStealEnemyBlock: true))
+                triggers: CombatTraitTriggers(gold: GoldTriggers(goldTheftNextAttackCriticalBonus: 0.20))
             ),
             "fox_gold_t3_2": CombatantTalentEffect(
                 name: "Golden Recovery",
                 iconID: "sf:heart.fill",
-                description: "The first time you gain Gold each round, restore 3 Health to each living ally.",
+                description: "Below half Health, your first Gold gain each turn restores 3 Health",
                 modifiers: [],
-                triggers: CombatTraitTriggers(gold: GoldTriggers(onGainGoldHealParty: 3))
+                triggers: CombatTraitTriggers(gold: GoldTriggers(belowHalfFirstGoldGainHealPerTurn: 3))
             ),
             "fox_dodge_t1_1": CombatantTalentEffect(
                 name: "Feint Strike",
                 iconID: "sf:burst.fill",
-                description: "Dodging an attack increases the party's next card damage by 2.",
+                description: "Your first Dodge each turn adds 3 damage to your next attack",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgePartyNextCardDamageBonus: 2))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(firstDodgeNextAttackBonusPerTurn: 3))
             ),
             "fox_dodge_t1_2": CombatantTalentEffect(
                 name: "Poisonous Dash",
                 iconID: "sf:flask.fill",
-                description: "Dodging an attack deals 2 Poison or 2 Bleed damage to the attacker.",
+                description: "Dodging has a 20% chance to deal 2 Poison damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgeApplyPoisonOrBleed: 2))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgePoisonChancePercent: 0.20, dodgePoisonDamage: 2))
             ),
             "fox_dodge_t2_1": CombatantTalentEffect(
                 name: "Slip Away",
                 iconID: "sf:wind",
-                description: "Dodge the first attack against you each combat.",
+                description: "Dodge the first attack against you each combat",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeFirstAttackEachCombat: true))
             ),
             "fox_dodge_t2_2": CombatantTalentEffect(
                 name: "Misdirection",
                 iconID: "sf:signpost.right.fill",
-                description: "After Dodging, the enemy is off-balance: your next attack deals double damage.",
+                description: "Dodging makes your next attack ignore enemy Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(nextAttackDoubleAfterDodge: true))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeNextAttackIgnoreBlock: true))
             ),
             "fox_dodge_t3_1": CombatantTalentEffect(
                 name: "Decoy Swap",
                 iconID: "sf:theatermasks.fill",
-                description: "50% chance when the Hero is attacked for Fox to swap places and Dodge for them.",
+                description: "10% chance to intercept and Dodge for an ally",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(swapAndDodgeForHeroChance: 0.5))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(swapAndDodgeForHeroChance: 0.10))
             ),
             "fox_dodge_t3_2": CombatantTalentEffect(
                 name: "Stolen Breath",
                 iconID: "sf:wind",
-                description: "Dodging an attack restores 2 Health to you.",
+                description: "Below half Health, your first Dodge each turn restores 3 Health",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeHealFlat: 2))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(belowHalfFirstDodgeHealPerTurn: 3))
             ),
             "fox_stun_t1_1": CombatantTalentEffect(
                 name: "Dazzling Tail",
                 iconID: "sf:sparkles",
-                description: "Deal 2 Stun damage to attackers when you Dodge their attack.",
+                description: "Dodging has a 20% chance to deal 4 Stun damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(onDodgeAttackerStunBuildup: 2))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeStunChancePercent: 0.20, dodgeStunDamage: 4))
             ),
             "fox_stun_t1_2": CombatantTalentEffect(
                 name: "Confusing Feint",
                 iconID: "sf:theatermasks.fill",
-                description: "Attacks against Stunned enemies deal 1 additional damage.",
+                description: "Stunned enemies take 25% increased damage from your attacks",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(damageWhileTargetStunnedBonus: 1))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(attackDamageVsStunnedMultiplier: 1.25))
             ),
             "fox_stun_t2_1": CombatantTalentEffect(
                 name: "Disorienting Strike",
                 iconID: "sf:tornado",
-                description: "Attacking a Stunned enemy grants 2 Gold and 2 Block.",
+                description: "Stun Critical Hits ignore enemy Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(attack: AttackTriggers(onAttackStunnedEnemyGold: 2, onAttackStunnedEnemyBlock: 2))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(stunCriticalIgnoreBlock: true))
             ),
             "fox_stun_t2_2": CombatantTalentEffect(
-                name: "Chaos Manipulation",
+                name: "Rigged Opening",
                 iconID: "sf:die.face.5.fill",
-                description: "Fox deals 50% additional damage to Stunned enemies.",
+                description: "Stun attacks gain +20% Critical Hit chance",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(stunnedDamageMultiplier: 1.50))
+                triggers: CombatTraitTriggers(attack: AttackTriggers(stunAttackCriticalBonus: 0.20))
             ),
             "fox_stun_t3_1": CombatantTalentEffect(
-                name: "Affliction Burst",
+                name: "Venom Trap",
                 iconID: "sf:microbe.fill",
-                description: "When an enemy recovers from Stun, they take 2 Bleed, 2 Poison, and 2 Burn damage.",
+                description: "When Stun ends, deal 2 Poison damage",
                 modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(onEnemyStunRecoverApplyAfflictions: 2))
+                triggers: CombatTraitTriggers(control: ControlTriggers(onStunExpirePoisonDamage: 2))
             ),
             "fox_stun_t3_2": CombatantTalentEffect(
                 name: "Confounding Loot",
                 iconID: "sf:hand.pinch.fill",
-                description: "Critical Hits against Stunned enemies steal 3 Gold.",
+                description: "Critical Hits against Stunned enemies steal 3 Gold",
                 modifiers: [],
                 triggers: CombatTraitTriggers(gold: GoldTriggers(criticalVsStunnedEnemyGold: 3))
             ),
             "fox_dodge_t4_1": CombatantTalentEffect(
                 name: "Perfect Tempo",
                 iconID: "sf:metronome.fill",
-                description: "Physical Critical Hits make you Dodge the next attack.",
+                description: "Dodging increases your next Critical Hit's damage by 50%",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers(perfectTempo: true))
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeNextCriticalDamageMultiplier: 1.5))
             ),
             "fox_gold_t4_1": CombatantTalentEffect(
                 name: "Light-Fingered",
                 iconID: "sf:hand.pinch.fill",
-                description: "Gaining Gold steals an equal amount of enemy Block.",
+                description: "Stealing Gold has a 10% chance to steal all of an enemy's Block",
                 modifiers: [],
-                triggers: CombatTraitTriggers(gold: GoldTriggers(lightFingered: true))
+                triggers: CombatTraitTriggers(gold: GoldTriggers(goldTheftStealEnemyBlockChancePercent: 0.10))
             ),
             "fox_stun_t4_1": CombatantTalentEffect(
                 name: "Stolen Thunder",
                 iconID: "sf:bolt.fill",
-                description: "Your Stun attacks spend Block for equal bonus damage.",
+                description: "Stunning an enemy makes your next attack Critically Hit",
                 modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(stolenThunder: true))
+                triggers: CombatTraitTriggers(control: ControlTriggers(onStunNextAttackGuaranteedCritical: true))
             )
     ]
 

@@ -47,7 +47,7 @@ package extension HealingEngine {
             && actor.currentHealth > 0 && actor.maxHealth > 0
             && Double(actor.currentHealth) / Double(actor.maxHealth)
             < profile.triggers.bleedAttackLeechBelowHealthThreshold
-            || damageKeyword == .physical && profile.triggers.borrowedLife
+            || attackHit && profile.triggers.borrowedLife
             && context.roster.isDeathsDoorActive(for: actorCombatant)
         if leechPct == 0, keywordGrantsLeech {
             leechPct = Effect.abilityLeechPercent
@@ -100,6 +100,16 @@ package extension HealingEngine {
            profile.triggers.leechHealingVsBleedingMultiplier > 1 {
             restored = CombatRounding.scaled(
                 restored, multiplier: profile.triggers.leechHealingVsBleedingMultiplier,
+            )
+        }
+        if let target, context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target) {
+            restored = CombatRounding.scaled(
+                restored, multiplier: profile.triggers.leechHealingVsLowEnemyHealthMultiplier,
+            )
+        }
+        if let target, context.roster.hasAffliction(.poison, on: target) {
+            restored = CombatRounding.scaled(
+                restored, multiplier: profile.triggers.leechHealingVsPoisonedMultiplier,
             )
         }
         if context.roster.runtime(for: actorCombatant)?.currentMana == 0,
@@ -178,6 +188,18 @@ package extension HealingEngine {
                 request.amountBasis = .resolved
                 events.append(contentsOf: Self.resolveHeal(request, in: &context).events)
             }
+        }
+        if actorCombatant.role == .companion, context.roster.hero.isAlive,
+           actualRestored > 0, profile.triggers.firstLeechRestorationShareAlly,
+           context.roster.enemy.isAlive,
+           context.claimHeroTalent("Soul Sharing", actorID: actorCombatant.id) {
+            var request = HealRequest(
+                amount: actualRestored,
+                target: context.roster.hero.combatant,
+                sourceActorID: sourceActorID,
+            )
+            request.amountBasis = .resolved
+            events.append(contentsOf: Self.resolveHeal(request, in: &context).events)
         }
         if actorCombatant.role == .companion, context.roster.hero.isAlive,
            profile.triggers.onCompanionLeechRestoreHeroMana > 0 {

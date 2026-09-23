@@ -121,6 +121,24 @@
       "type": "Bool",
       "default": "false",
       "merge": "or"
+    },
+    {
+      "name": "deathsDoorCriticalChanceBonus",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "enterDeathsDoorDrawCard",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "surviveDeathsDoorPartyBlockFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
     }
   ]
 }

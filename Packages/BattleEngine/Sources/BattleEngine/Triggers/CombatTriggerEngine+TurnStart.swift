@@ -232,20 +232,19 @@ package extension CombatTriggerEngine {
         if let blessing = runtime.talents.timed.lingeringBlessing,
            let source = context.roster.combatant(for: blessing.sourceActorID) {
             let amount = blessing.amount
-            events.append(contentsOf: HealingEngine.resolveHeal(
-                HealRequest(
-                    amount: amount,
-                    target: actor,
-                    sourceActorID: source.id,
-                    origin: .periodic, logAs: .instantHeal(
-                        actorName: source.name,
-                        abilityName: "Lingering Blessing",
-                        keyword: .health,
-                    ),
-
+            var request = HealRequest(
+                amount: amount,
+                target: actor,
+                sourceActorID: source.id,
+                origin: .periodic, logAs: .instantHeal(
+                    actorName: source.name,
+                    abilityName: "Lingering Blessing",
+                    keyword: .health,
                 ),
-                in: &context,
-            ).events)
+            )
+            request.amountBasis = .resolved
+            request.suppressTalentReactions = true
+            events.append(contentsOf: HealingEngine.resolveHeal(request, in: &context).events)
             context.roster.mutateRuntime(for: actor) {
                 guard var current = $0.talents.timed.lingeringBlessing else { return }
                 current.turnsRemaining -= 1

@@ -69,6 +69,7 @@ package struct DamageResolutionState {
     var pendingHolyBonus = 0
     var ignoreBlockFromTalent = false
     var didLeech = false
+    var talentAttackHasLeech = false
     var didTriggerControl = false
     /// Scratch owned by Unique equipment rules (capture/apply/store), not by
     /// the generic pipeline. Only `UniqueCombatEngine`, burn-detonation folding,

@@ -29,26 +29,6 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.companion.currentHealth == health)
     }
 
-    @Test func `borrowed life only leeches physical damage during deaths door`() {
-        var battle = capstoneBattle(companion: ["risen_skeleton_deathsdoor_t4_1"])
-        battle.roster.companion.currentHealth = 1
-        let hit = DamageRequest(
-            amount: 8, target: battle.enemy, keyword: .physical,
-            sourceActorID: battle.companion.id, options: .reaction(),
-        )
-        _ = battle.resolveDamage(hit)
-        #expect(battle.roster.companion.currentHealth == 1)
-        seedHeroTalentEffect(.deathsDoor, on: .companion, in: &battle)
-        _ = battle.resolveDamage(hit)
-        #expect(battle.roster.companion.currentHealth > 1)
-        let health = battle.roster.companion.currentHealth
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.enemy, keyword: .holy,
-            sourceActorID: battle.companion.id, options: .reaction(),
-        ))
-        #expect(battle.roster.companion.currentHealth == health)
-    }
-
     @Test func `killing grace uses current dodge chance and respects critical cap`() {
         var battle = capstoneBattle(companion: ["panther_dodge_t4_1", "panther_dodge_t2_1"])
         let healthy = CriticalChanceEngine.chance(actorID: battle.companion.id, defender: battle.enemy, in: battle)
@@ -75,67 +55,6 @@ extension TalentCatalogRoundTripTests {
             }
             return false
         })
-    }
-
-    @Test(arguments: [(Effect.thorns(4), Keyword.stun), (.onHitDamage(.freeze, 4), .freeze)])
-    func `retaliation wards consume their effect and deal typed control damage`(ward: Effect, keyword: Keyword) {
-        var battle = capstoneBattle(companion: keyword == .stun ? ["shield_scarab_stun_t4_1"] : [])
-        seedHeroTalentEffect(ward, on: .companion, in: &battle)
-        seedHeroTalentEffect(.controlMeter(keyword, 38, 40), on: .enemy, in: &battle)
-        let options = DamageOperation.attack(accuracy: .unavoidable)
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.companion, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: options,
-        ))
-        #expect(battle.roster.enemy.currentHealth == 196)
-        #expect(result.events.contains { $0.effectKind == .thornsTriggered && $0.keyword == keyword && $0.amount == 4 })
-        #expect(result.events.contains { $0.effectKind == .controlTriggered && $0.keyword == keyword })
-        #expect(talentPoints(ward.kind, on: .companion, in: battle) == 0)
-        #expect(battle.roster.enemy.activeEffects.contains {
-            if case let .controlMeter(appliedKeyword, amount, _) = $0.effect {
-                return appliedKeyword == keyword && amount == 40
-            }
-            return false
-        })
-    }
-
-    @Test func `stolen thunder spends block once per attack and leaves other damage unchanged`() {
-        var battle = capstoneBattle(companion: ["fox_stun_t4_1"])
-        seedHeroTalentEffect(.shield(.block, 4), on: .companion, in: &battle)
-        let options = DamageOperation.attack(
-            origin: .counterattack, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
-        )
-        let hit = DamageRequest(
-            amount: 2, target: battle.enemy, keyword: .stun,
-            sourceActorID: battle.companion.id, options: options,
-        )
-        #expect(battle.resolveDamage(hit).healthLost == 6)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 0)
-        seedHeroTalentEffect(.shield(.block, 3), on: .companion, in: &battle)
-        #expect(battle.resolveDamage(hit).healthLost == 2)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 3)
-        battle.actionCount += 1
-        #expect(battle.resolveDamage(hit).healthLost == 5)
-    }
-
-    @Test(arguments: [Ability.frostbolt, .rayOfFrost])
-    func `steam explosion consumes burn for freeze cards but not frostfire reactions`(card: Ability) throws {
-        var battle = capstoneBattle(companion: ["mana_moth_burn_t4_1", "mana_moth_burn_t4_2"])
-        battle.roster.companion.currentMana = 0
-        seedHeroTalentEffect(.burn(8), on: .enemy, in: &battle, source: .companion)
-        _ = battle.resolveDamage(.doTTick(
-            amount: 4, target: battle.enemy, keyword: .burn, sourceActorID: battle.companion.id,
-        ))
-        #expect(talentPoints(.burn, on: .enemy, in: battle) == 8)
-        let events = try playHeroTalentCard(card, owner: .companion, in: &battle)
-        let hit = try #require(events.first { $0.kind == .abilityDamage && $0.keyword == .freeze })
-        let freezeEvents = events.filter { $0.kind == .abilityDamage && $0.keyword == .freeze }
-        if card == .frostbolt {
-            #expect(hit.amount == 12 * (hit.isCritical ? 2 : 1))
-        } else {
-            #expect(freezeEvents.map(\.amount) == [9, 1])
-        }
-        #expect(talentPoints(.burn, on: .enemy, in: battle) == 0)
     }
 
     @Test(arguments: [Effect.purge(nil), .purgeRandom])
@@ -180,42 +99,6 @@ extension TalentCatalogRoundTripTests {
         #expect(applied.events.contains { $0.effectKind == .avatarApplied })
         #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.kind == .avatar })
         #expect(battle.roster.hero.currentHealth < heroHealth || battle.roster.companion.currentHealth < companionHealth)
-    }
-
-    @Test func `subzero mist protects the recovery attack and expires at party turn start`() {
-        var battle = capstoneBattle(companion: ["mana_moth_freeze_t2_2"])
-        let threshold = ControlMeterEngine.threshold(for: battle.enemy, in: battle)
-        seedHeroTalentEffect(.controlMeter(.freeze, threshold, threshold), on: .enemy, in: &battle)
-        _ = BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
-        #expect(!battle.roster.companion.talents.turn.subzeroMistActive)
-        _ = BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
-        #expect(battle.roster.companion.talents.turn.subzeroMistActive)
-        #expect(abs(DamagePipeline.dodgeChance(for: battle.companion, attackerID: battle.enemy.id, in: battle) - 0.30) < 0.0001)
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
-        #expect(DamagePipeline.dodgeChance(for: battle.companion, attackerID: battle.enemy.id, in: battle) == 0.10)
-    }
-
-    @Test func `flash freeze empowers repeated freeze cards at the normal mana cost`() throws {
-        var battle = capstoneBattle(companion: ["mana_moth_freeze_t3_1"])
-        for remainingMana in [7, 4] {
-            let events = try playHeroTalentCard(.frostbolt, owner: .companion, in: &battle)
-            let hit = try #require(events.first { $0.kind == .abilityDamage && $0.keyword == .freeze })
-            #expect(hit.amount == (hit.isCritical ? 14 : 7))
-            #expect(battle.roster.companion.currentMana == remainingMana)
-        }
-    }
-
-    @Test func `flash freeze increases only freeze for every repeated empowerment`() {
-        var battle = capstoneBattle(companion: ["mana_moth_freeze_t3_1"])
-        battle.roster.companion.currentMana = 9
-        var ability = Ability(
-            id: "mixed-empowerment", name: "Mixed", tier: .skill,
-            damageComponents: [DamageComponent(2, keyword: .burn), DamageComponent(3, keyword: .freeze)],
-            repeatsManaEmpowerment: true,
-        )
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &ability, actor: battle.companion, context: &battle)
-        #expect(ability.damageComponents.map(\.amount) == [5, 12])
-        #expect(battle.roster.companion.currentMana == 0)
     }
 
     @Test func `gilded claws banks actual theft without scaling from carried gold`() throws {

@@ -133,4 +133,5 @@ public struct HealRequest: Equatable, Hashable, Sendable {
 
     var isDirectCardHeal = false
     var amountBasis: AmountBasis = .base
+    var suppressTalentReactions = false
 }

@@ -44,6 +44,9 @@ package extension CombatTriggerEngine {
         if keyword == .bleed, critical {
             events.append(contentsOf: afterCompanionBleedCritical(actor: actor, triggers: triggers, in: &context))
         }
+        events.append(contentsOf: afterFinalCompanionCardHit(
+            keyword: keyword, actor: actor, critical: critical, triggers: triggers, in: &context,
+        ))
         return events
     }
 
@@ -69,11 +72,9 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.holyAttackEnemyMissChance > 0, context.roster.enemy.isAlive {
-            context.roster.mutateRuntime(for: context.roster.enemy.combatant) {
-                $0.talents.pending.nextAttackMissChance = max(
-                    $0.talents.pending.nextAttackMissChance, triggers.holyAttackEnemyMissChance,
-                )
-            }
+            prepareEnemyNextAttackMiss(
+                triggers.holyAttackEnemyMissChance, abilityName: "Blinding Light", in: &context,
+            )
         }
         if triggers.holyAttackDrawChancePercent > 0, context.roster.enemy.isAlive,
            context.claimTalentAbility("Radiant Wisdom", actorID: actor.id),
@@ -119,10 +120,11 @@ package extension CombatTriggerEngine {
                 ))
             }
         }
-        if critical, triggers.burnCriticalRestoreMana > 0,
-           context.claimTalentAbility("Furnace Rhythm", actorID: actor.id) {
+        let manaName = triggerAbilityName("burnCriticalRestoreMana", for: actor, fallback: "Furnace Rhythm", in: context)
+        if critical, triggers.burnCriticalRestoreMana > 0, context.roster.enemy.isAlive,
+           context.claimTalentAbility(manaName, actorID: actor.id) {
             events.append(contentsOf: context.restoreManaEmitting(
-                triggers.burnCriticalRestoreMana, to: actor, abilityName: "Furnace Rhythm",
+                triggers.burnCriticalRestoreMana, to: actor, abilityName: manaName,
             ))
         }
         return events
@@ -146,12 +148,15 @@ package extension CombatTriggerEngine {
                 name: "Spiny Carapace", in: &context,
             ))
         }
-        if triggers.bleedCriticalDrawChancePercent > 0,
-           context.claimTalentAbility("Frenzied Tail", actorID: actor.id),
+        let drawName = triggerAbilityName(
+            "bleedCriticalDrawChancePercent", for: actor, fallback: "Frenzied Tail", in: context,
+        )
+        if triggers.bleedCriticalDrawChancePercent > 0, context.roster.enemy.isAlive,
+           context.claimTalentAbility(drawName, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.bleedCriticalDrawChancePercent, using: &context.rng),
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: drawCards(
-                1, for: owner, actor: actor, abilityName: "Frenzied Tail", in: &context,
+                1, for: owner, actor: actor, abilityName: drawName, in: &context,
             ))
         }
         return events

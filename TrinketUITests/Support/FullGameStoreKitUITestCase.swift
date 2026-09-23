@@ -44,7 +44,7 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
         XCTAssertTrue(waitForProductLoaded(timeout: 20), "Full Game purchase product did not load")
     }
 
-    private func startStoreSession() throws {
+    func startStoreSession() throws {
         let session = try SKTestSession(configurationFileNamed: "Trinket")
         session.resetToDefaultState()
         session.disableDialogs = true

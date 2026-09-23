@@ -16,29 +16,6 @@ extension CombatTriggerTalentDamageTests {
         #expect(ability.directDamage == Ability.frostbolt.directDamage + 2)
     }
 
-    @Test func `physical reactions preserve stored impact for the next attack`() {
-        var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatantTalentCatalog.profile(for: ["wolf_physical_t4_1"]),
-        )
-        battle.appliesFightPacing = false
-        let hero = battle.hero
-        DefensePoolEngine.set(7, on: hero, in: &battle)
-        battle.storedBlockedDamageByActorID[hero.id] = 7
-        let reaction = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.enemy, keyword: .physical,
-            sourceActorID: hero.id, options: .reaction(),
-        ))
-        #expect(reaction.healthLost == 2)
-        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 7)
-        #expect(battle.storedBlockedDamageByActorID[hero.id] == 7)
-        let attack = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.enemy, keyword: .physical, sourceActorID: hero.id,
-            options: DamageOperation.attack(tier: .skill, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
-        #expect(attack.healthLost == 9)
-        #expect(battle.storedBlockedDamageByActorID[hero.id] == nil)
-    }
-
     @Test(arguments: [0, 2, 10])
     func `blood link transfers only excess leech`(missingHealth: Int) {
         var battle = BattleTestFixtures.makePipelineContext(
@@ -53,18 +30,6 @@ extension CombatTriggerTalentDamageTests {
         )
         #expect(battle.roster.hero.currentHealth == 50 - max(0, missingHealth - 5))
         #expect(battle.roster.companion.currentHealth == 1 + max(0, 5 - missingHealth))
-    }
-
-    @Test(arguments: [false, true])
-    func `protective bloom triggers on sprite touch healing`(injured: Bool) {
-        var battle = BattleTestFixtures.makePipelineContext(
-            companionModifiers: CombatantTalentCatalog.profile(for: ["pixie_health_t2_2", "pixie_health_t1_1"]),
-        )
-        battle.appliesFightPacing = false
-        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = injured ? 10 : $0.maxHealth }
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
-        #expect(battle.roster.companion.currentHealth == (injured ? 12 : 20))
-        #expect(battle.roster.enemy.currentHealth == (injured ? 48 : 50))
     }
 }
 
@@ -84,24 +49,6 @@ extension CombatTriggerTalentDamageTests {
             return battle.roster.hero.currentHealth - 5
         }
         #expect(restored(mana: 0) > restored(mana: 1))
-    }
-
-    @Test func `arcane burst accumulates mana across cards and turns`() throws {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionMaxMana: 15,
-            companionModifiers: CombatantTalentCatalog.profile(for: ["mana_moth_mana_t3_2"]),
-            dealOpeningHand: false,
-        )
-        battle.appliesFightPacing = false
-        let actor = battle.companion
-        for index in 0 ..< 5 {
-            battle.companionDeck = CombatDeck(abilities: [.block])
-            battle.turnCount = index
-            let card = BattleCardCombatEngine.deal(.kindling, owner: .companion, context: &battle)
-            let events = try BattleCardCombatEngine.playDrawnCard(card, context: &battle)
-            #expect(events.contains { $0.kind == .ability && $0.abilityID == Ability.block.id } == (index == 1 || index >= 3))
-        }
-        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: actor)) == 9)
     }
 }
 

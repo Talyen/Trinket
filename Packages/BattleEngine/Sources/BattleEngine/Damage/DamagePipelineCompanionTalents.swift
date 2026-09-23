@@ -2,6 +2,43 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
+    static func finalCompanionCriticalChanceBonus(
+        for state: DamageResolutionState,
+        actor: CombatantRuntime,
+        in context: inout BattleState,
+    ) -> Double {
+        guard state.options.isAttackHit, let keyword = state.damageKeyword else { return 0 }
+        let triggers = context.modifiers(for: actor.id).triggers
+        var bonus = 0.0
+        switch keyword {
+        case .physical where state.targetStatus.isBleeding:
+            bonus += triggers.physicalCritVsBleedingBonus
+        case .freeze:
+            bonus += triggers.freezeAttackCriticalBonus
+        case .stun:
+            bonus += triggers.stunAttackCriticalBonus
+        default:
+            break
+        }
+        if context.roster.isDeathsDoorActive(for: actor.combatant) {
+            bonus += triggers.deathsDoorCriticalChanceBonus
+        }
+        if context.roster.companion.isAlive {
+            let party = context.companionModifiers.triggers
+            if keyword == .bleed {
+                bonus += party.partyBleedCritChanceBonus
+            }
+            if keyword == .holy {
+                bonus += party.partyHolyAttackCriticalBonus
+            }
+            if keyword == .physical, party.partyFirstPhysicalCriticalBonus > 0,
+               context.claimHeroTalent("Alpha Howl", actorID: actor.id, battle: true) {
+                bonus += party.partyFirstPhysicalCriticalBonus
+            }
+        }
+        return bonus
+    }
+
     static func consumeSanctifiedCriticalBonus(
         for state: DamageResolutionState,
         actor: Combatant,
@@ -244,7 +281,10 @@ package extension DamagePipeline {
             ? triggers.manaHeldDamageMultiplier : 1
         let doorMultiplier = context.roster.isDeathsDoorActive(for: state.combatant)
             ? triggers.deathsDoorIncomingDamageMultiplier : 1
-        let multiplier = manaMultiplier * doorMultiplier
+        let blockedMultiplier = DefensePoolEngine.blockPoints(
+            in: context.roster.activeEffects(for: state.combatant),
+        ) > 0 ? triggers.damageTakenMultiplierWhileBlocked : 1
+        let multiplier = manaMultiplier * doorMultiplier * blockedMultiplier
         if multiplier < 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: multiplier)
         }

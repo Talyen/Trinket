@@ -179,24 +179,24 @@ phoenix_deathsdoor_t2_1	Blazing Rebirth	sf:flame.fill	Entering Death's Door deal
 phoenix_deathsdoor_t2_2	Phoenix Vigor	sf:dumbbell.fill	Surviving Death's Door doubles your next attack		surviveDeathsDoorNextAttackDouble:true
 phoenix_deathsdoor_t3_1	Fortified Rebirth	sf:shield.fill	Death's Door halves damage you take		deathsDoorIncomingDamageMultiplier:0.5
 phoenix_deathsdoor_t3_2	Ashen Ward	sf:checkmark.shield.fill	Death's Door prevents negative status effects		deathsDoorNegativeStatusImmune:true
-wolf_bleed_t1_1	Pack Ferocity	sf:pawprint.fill	Increase Bleed duration by 1 and Bleed damage dealt by 1.	bleed_duration:1|damage_dealt:bleed:1	
-wolf_bleed_t1_2	Deep Bite	sf:burst.fill	Deal 2 additional damage to Bleeding enemies.		damageVsBleedingBonus:2
-wolf_bleed_t2_1	Hamstring	sf:figure.fall	Bleeding enemies deal 2 less damage.		bleedingEnemyDamageReductionFlat:2
-wolf_bleed_t2_2	Open Wounds	sf:drop.fill	Dealing Bleed damage to a Bleeding target deals 2 damage.		onBleedAppliedToBleedingDealDamage:2
-wolf_bleed_t3_1	Carnivore	sf:heart.fill	Restore 2 Health whenever Bleed deals damage.		onBleedDamageHealSelf:2
-wolf_bleed_t3_2	Savage Tear	sf:burst.fill	Bleed ticks have a 20% chance to critically strike.		bleedTickCritChancePercent:0.20
-wolf_dodge_t1_1	Sidestep	sf:figure.walk	Gain 2 Block whenever you Dodge.		dodgeBlockFlat:2
-wolf_dodge_t1_2	Nimble Fang	sf:drop.fill	After Dodging, your next attack deals 2 Bleed damage.		nextAttackBleedAfterDodge:2
-wolf_dodge_t2_1	Pack Coordination	sf:person.2.fill	When Wolf Dodges, the Hero gains +10% Dodge chance until your next turn.		onCompanionDodgeGrantHeroDodgePercent:0.10
-wolf_dodge_t2_2	Flanking Position	sf:point.topleft.down.to.point.bottomright.curvepath	Dodging makes your next party hit a guaranteed Critical Hit.		onDodgeNextPartyHitGuaranteedCritical:true
-wolf_dodge_t3_1	Evasive Pack	sf:wind	Wolf automatically Dodges attacks after the first hit each turn. These Dodges do not counterattack.		autoDodgeAfterFirstHitPerTurn:true
-wolf_dodge_t3_2	Snapping Jaws	sf:arrow.uturn.backward	Dodging counters with an immediate basic attack.		onDodgeCounterBasicAttack:true
-wolf_physical_t1_1	Alpha Howl	sf:dog.fill	Party deals 2 additional Physical damage for the first 3 turns.		partyPhysicalDamageBonusFirstTurns:2|partyPhysicalDamageBonusFirstTurnCount:3
-wolf_physical_t1_2	Predatory Focus	sf:scope	Deal 3 additional damage to enemies with lower Health than Wolf.		damageVsLowerHealthEnemyBonus:3
-wolf_physical_t2_1	Bone-Crushing Bite	sf:burst.fill	Physical attacks against enemies with Block deal 2 additional damage.		physicalDamageVsBlockedBonus:2
-wolf_physical_t2_2	Alpha Might	sf:dumbbell.fill	While the enemy is below half Health, party Physical attacks deal 2 additional damage.		damageBelowHealthPercentThreshold:0.5|damageBelowHealthPercentKeyword:.physical|damageBelowHealthPercentBonus:2
-wolf_physical_t3_1	Feral Frenzy	sf:flame.fill	While the enemy is below 40% Health, Wolf draws an extra card each turn.		extraCardDrawBelowEnemyHealthPercent:0.40
-wolf_physical_t3_2	Rending Fangs	sf:drop.fill	Physical attacks deal 1 Bleed damage on hit.		physicalAttackApplyBleed:1
+wolf_bleed_t1_1	Pack Ferocity	sf:pawprint.fill	Both allies' Bleed attacks gain +10% Critical Hit chance		partyBleedCritChanceBonus:0.10
+wolf_bleed_t1_2	Deep Bite	sf:burst.fill	Enemies below half Health take 25% increased Bleed damage		bleedDamageBelowHalfMultiplier:1.25
+wolf_bleed_t2_1	Hamstring	sf:figure.fall	Bleeding enemies deal 20% less Physical damage		bleedingEnemyPhysicalDamageMultiplier:0.8
+wolf_bleed_t2_2	Open Wounds	sf:drop.fill	Bleed attacks ignore half enemy Block		bleedAttackBlockIgnorePercent:0.5
+wolf_bleed_t3_1	Carnivore	sf:heart.fill	Your first Bleed attack each turn gains Leech		firstBleedAttackLeechPerTurn:true
+wolf_bleed_t3_2	Savage Tear	sf:burst.fill	Bleed Critical Hits deal 50% more damage		bleedCriticalDamageMultiplier:1.5
+wolf_dodge_t1_1	Sidestep	sf:figure.walk	Gain +10% Dodge chance against Bleeding enemies		dodgeChanceVsBleedingEnemiesBonus:0.10
+wolf_dodge_t1_2	Nimble Fang	sf:drop.fill	Dodging makes your next Bleed attack deal 25% more damage		dodgeNextBleedAttackMultiplier:1.25
+wolf_dodge_t2_1	Pack Coordination	sf:person.2.fill	Both allies gain +10% Dodge chance		partyDodgeChanceBonus:0.10
+wolf_dodge_t2_2	Flanking Position	sf:point.topleft.down.to.point.bottomright.curvepath	Dodging gives your ally's next attack +20% Critical Hit chance		dodgeAllyNextAttackCriticalBonus:0.20
+wolf_dodge_t3_1	Evasive Pack	sf:wind	Your first Dodge each combat makes your ally Dodge their next incoming attack		firstDodgeAllyEvadeNextHit:true
+wolf_dodge_t3_2	Snapping Jaws	sf:arrow.uturn.backward	Dodging has a 20% chance to deal 4 Physical damage		dodgePhysicalChancePercent:0.20|dodgePhysicalDamage:4
+wolf_physical_t1_1	Alpha Howl	sf:dog.fill	Both allies' first Physical attack each combat gains +20% Critical Hit chance		partyFirstPhysicalCriticalBonus:0.20
+wolf_physical_t1_2	Predatory Focus	sf:scope	Physical attacks gain +10% Critical Hit chance against Bleeding enemies		physicalCritVsBleedingBonus:0.10
+wolf_physical_t2_1	Bone-Crushing Bite	sf:burst.fill	Physical Critical Hits remove all enemy Block		physicalCritRemoveEnemyBlock:true
+wolf_physical_t2_2	Alpha Might	sf:dumbbell.fill	Physical attacks deal 2 additional damage to enemies below half Health		damageBelowHealthPercentThreshold:0.5|damageBelowHealthPercentKeyword:.physical|damageBelowHealthPercentBonus:2
+wolf_physical_t3_1	Feral Frenzy	sf:flame.fill	Physical attacks have a 20% chance to deal 50% more damage		physicalAttackBurstChancePercent:0.20|physicalAttackBurstMultiplier:1.5
+wolf_physical_t3_2	Rending Fangs	sf:drop.fill	Physical Critical Hits deal 25% more damage to Bleeding enemies		physicalCriticalDamageVsBleedingMultiplier:1.25
 golden_retriever_gold_t1_1	Bounty	sf:circle.circle.fill	Defeating an enemy grants 3 Gold		defeatEnemyGoldFlat:3
 golden_retriever_gold_t1_2	Dig for Treasure	sf:circle.circle.fill	Gain 2 Gold every 3 turns.		goldEveryNTurnsInterval:3|goldEveryNTurnsAmount:2
 golden_retriever_gold_t2_1	Haggler	sf:circle.circle.fill	Steal 1 additional Gold		goldStealFlatBonus:1
@@ -233,106 +233,106 @@ library_owl_health_t2_1	Efficient Care	sf:waveform.path.ecg	Restore 25% more Hea
 library_owl_health_t2_2	Aether Shield	sf:shield.fill	Restoring Health has a 10% chance to grant equal Block		healthRestoreBlockChancePercent:0.10
 library_owl_health_t3_1	Guardian Archive	sf:books.vertical.fill	When either ally enters Death's Door, they restore 8 Health		onAllyDeathsDoorRestoreHealth:8
 library_owl_health_t3_2	Font of Magic	sf:wand.and.stars	Restoring Health or Mana has a 10% chance to draw a card		healthOrManaRestoreDrawChancePercent:0.10
-risen_skeleton_physical_t1_1	Bone Shield	sf:shield.fill	Gain 2 Block whenever you deal Physical damage.		onPhysicalDamageGainBlock:2
-risen_skeleton_physical_t1_2	Bone Burst	sf:burst.fill	Attacks have a 25% chance to deal 3 extra damage and grant 2 Block.		attackBurstChancePercent:0.25|attackBurstDamage:3|attackBurstBlock:2
-risen_skeleton_physical_t2_1	Brittle Strike	sf:shield.slash.fill	Physical attacks ignore all Block on Stunned or Frozen enemies.		physicalIgnoresBlockVsStunnedOrFrozen:true
-risen_skeleton_physical_t2_2	Dense Bones	sf:shield.fill	Your Block absorbs twice as much Physical damage.		doublePhysicalBlockAbsorption:true
-risen_skeleton_physical_t3_1	Cleaving Bones	sf:burst.fill	Physical attacks deal 1 additional Bleed damage to the enemy.		physicalAttackApplyBleed:1
-risen_skeleton_physical_t3_2	Bone Armor	sf:shield.fill	Whenever you take Health damage, gain 1 Block.		onSelfHealthLossGainBlock:1
-risen_skeleton_leech_t1_1	Weaken Soul	sf:heart.slash.fill	Leech reduces the target's damage by 2 for 2 turns.		onLeechReduceEnemyStrength:2|onLeechReduceEnemyStrengthTurns:2
-risen_skeleton_leech_t1_2	Toxic Touch	sf:hand.raised.fill	Leech damage deals 2 Poison damage to the target.		onLeechApplyPoison:2
-risen_skeleton_leech_t2_1	Grave Harvest	sf:eyedropper	Leeching Health from an enemy below half Health restores 2 additional Health.		leechBonusHealVsLowHealthEnemies:2
-risen_skeleton_leech_t2_2	Soul Sharing	sf:heart.fill	Convert half of Skeleton's damage into Health restored to the Hero.		companionDamageLeechesToHeroPercent:0.5
-risen_skeleton_leech_t3_1	Affliction Siphon	sf:eyedropper	Leeching Health from a Stunned enemy restores 3 additional Health.		leechBonusHealVsStunned:3
-risen_skeleton_leech_t3_2	Necrotic Bleed	sf:drop.fill	Leeching Health deals 2 Bleed damage to the target.		onLeechApplyBleed:2
-risen_skeleton_deathsdoor_t1_1	Deathrattle	sf:arrow.counterclockwise	Revive at 1 Health with 10 Block the first time you die each battle.		onceDeathReviveHealth:1|onceDeathReviveBlock:10
-risen_skeleton_deathsdoor_t1_2	Tenacious Spirit	sf:hourglass.bottomhalf.filled	Death's Door lasts 2 additional turns.		deathsDoorDurationBonusTurns:2
-risen_skeleton_deathsdoor_t2_1	Corpse Explosion	sf:burst.fill	Deal 8 Physical damage to the enemy when you die.		onDeathDealPhysicalDamageAllEnemies:8
-risen_skeleton_deathsdoor_t2_2	Deathly Wrath	sf:hourglass.bottomhalf.filled	Attacks are guaranteed Critical Hits while on Death's Door.		guaranteedCritWhileOnDeathsDoor:true
-risen_skeleton_deathsdoor_t3_1	Endless Legion	sf:person.2.fill	If Death's Door ends while Skeleton is still alive, restore Health to 6 once per battle.		deathsDoorExpiredHealFlat:6
-risen_skeleton_deathsdoor_t3_2	Lichbone	sf:shield.fill	Take 50% less Bleed and Poison damage, and 50% less Stun.		afflictionResistance:0.5
-mana_moth_mana_t1_1	Arcane Reservoir	sf:tray.full.fill	Whenever you gain Mana, gain 1 Block.		on_gain_mana_block:1
-mana_moth_mana_t1_2	Aetherial Surge	sf:waveform	Restore 1 bonus Mana on turn 1 and turn 4.		bonusManaOnTurns:[1, 4]
-mana_moth_mana_t2_1	Mana Cocoon	sf:fossil.shell.fill	Spending Mana grants equal Block.		spendManaGrantsEqualBlock:true
-mana_moth_mana_t2_2	Aetherial Flow	sf:wind	When the Hero spends Mana, Moth's next attack deals 2 additional damage.		onHeroSpendManaCompanionNextAttackBonus:2
-mana_moth_mana_t3_1	Prismatic Spark	sf:diamond.fill	Gain a 25% chance to double all Mana gained.		manaGainDoubleChancePercent:0.25
-mana_moth_mana_t3_2	Arcane Burst	sf:burst.fill	Spending 5 Mana draws and automatically plays a random card.		spendManaThresholdAutoPlayCard:5
-mana_moth_freeze_t1_1	Chilling Flutter	sf:bird.fill	Basic attacks deal 2 Freeze damage.		basicAttackFreezeBuildup:2
-mana_moth_freeze_t1_2	Frost Guard	sf:shield.fill	Mana empowerment adds 1 Freeze damage.		empowerFreezeDamageBonus:1
-mana_moth_freeze_t2_1	Blinding Frost	sf:eye.slash.fill	Moth deals 25% additional damage to Frozen enemies.		damageVsFrozenMultiplier:1.25
-mana_moth_freeze_t2_2	Subzero Mist	sf:cloud.fog.fill	When Freeze ends on the enemy, gain +20% Dodge chance until your next turn.		subzeroMist:true
-mana_moth_freeze_t3_1	Flash Freeze	sf:snowflake	Mana empowerment increases the empowered card’s Freeze damage by 2.		flashFreeze:true
-mana_moth_freeze_t3_2	Frost Nova	sf:burst.fill	Deal 4 additional Freeze damage against Frozen enemies.		frostDamageVsFrozenBonus:4
-mana_moth_burn_t1_1	Ember Shield	sf:shield.fill	Gain 2 Block whenever an ally deals Burn damage.		onAllyBurnDamageGainBlock:2
-mana_moth_burn_t1_2	Moth to Flame	sf:flame.fill	Restore 1 Mana whenever Burn deals damage (up to 2 per turn).		onBurnDamageRestoreManaPerTurnCap:2|onBurnDamageRestoreManaFlat:1
-mana_moth_burn_t2_1	Flashover	sf:sun.snow.fill	Burn damage against Frozen enemies has a 50% chance to deal double damage.		burnDoubleVsFrozenChancePercent:0.5
-mana_moth_burn_t2_2	Combustion	sf:burst.fill	Your attacks against Burning enemies deal bonus damage equal to half their current Burn.		damagePerBurnPotencyPercent:0.5
-mana_moth_burn_t3_1	Ember Persistence	sf:hourglass.bottomhalf.filled	Enemies lose 35% less Burn at the end of each round.		burnDecaySlowPercent:0.35
-mana_moth_burn_t3_2	Cinder Halo	sf:sun.max.fill	Burning enemies take 1 Holy damage each time Burn deals damage.		onBurnTickHolyDamage:1
+risen_skeleton_physical_t1_1	Bone Shield	sf:shield.fill	Your first Physical attack each turn grants 3 Block		firstPhysicalAttackBlockPerTurn:3
+risen_skeleton_physical_t1_2	Bone Burst	sf:burst.fill	When your Block breaks, your next Physical attack gains 3 damage		blockBreakNextPhysicalBonus:3
+risen_skeleton_physical_t2_1	Brittle Strike	sf:shield.slash.fill	Physical attacks deal double damage to enemy Block		physicalBlockBreakMultiplier:2
+risen_skeleton_physical_t2_2	Dense Bones	sf:shield.fill	Block absorbs twice as much Physical damage		doublePhysicalBlockAbsorption:true
+risen_skeleton_physical_t3_1	Cleaving Bones	sf:burst.fill	Physical Critical Hits deal 3 Bleed damage		physicalCriticalBleedDamage:3
+risen_skeleton_physical_t3_2	Bone Armor	sf:shield.fill	While you have Block, take 2 less Physical damage		physicalMitigationWhileBlockedFlat:2
+risen_skeleton_leech_t1_1	Weaken Soul	sf:heart.slash.fill	Leeching causes the enemy's next hit to deal 25% less damage		leechEnemyNextAttackDamageMultiplier:0.75
+risen_skeleton_leech_t1_2	Toxic Touch	sf:hand.raised.fill	Leech Critical Hits deal 3 Poison damage		leechCriticalPoisonDamage:3
+risen_skeleton_leech_t2_1	Grave Harvest	sf:eyedropper	Leech restores 25% more Health against enemies below half Health		leechHealingVsLowEnemyHealthMultiplier:1.25
+risen_skeleton_leech_t2_2	Soul Sharing	sf:heart.fill	Your first Leech restoration each turn also heals your ally equally		firstLeechRestorationShareAlly:true
+risen_skeleton_leech_t3_1	Affliction Siphon	sf:eyedropper	Leech restores 25% more Health from Poisoned enemies		leechHealingVsPoisonedMultiplier:1.25
+risen_skeleton_leech_t3_2	Necrotic Bleed	sf:drop.fill	Leech attacks deal 25% more damage against Bleeding enemies		leechAttackDamageVsBleedingMultiplier:1.25
+risen_skeleton_deathsdoor_t1_1	Deathrattle	sf:arrow.counterclockwise	Entering Death's Door draws a card		enterDeathsDoorDrawCard:true
+risen_skeleton_deathsdoor_t1_2	Tenacious Spirit	sf:hourglass.bottomhalf.filled	Death's Door lasts one additional turn		deathsDoorDurationBonusTurns:1
+risen_skeleton_deathsdoor_t2_1	Corpse Explosion	sf:burst.fill	Dying after Death's Door deals 8 Physical damage		onDeathDealPhysicalDamageAllEnemies:8
+risen_skeleton_deathsdoor_t2_2	Deathly Wrath	sf:hourglass.bottomhalf.filled	While on Death's Door, gain +25% Critical Hit chance		deathsDoorCriticalChanceBonus:0.25
+risen_skeleton_deathsdoor_t3_1	Endless Legion	sf:person.2.fill	Surviving Death's Door grants both allies 4 Block		surviveDeathsDoorPartyBlockFlat:4
+risen_skeleton_deathsdoor_t3_2	Lichbone	sf:shield.fill	Death's Door preserves your Block between turns		retainAllBlockDuringDeathsDoor:true
+mana_moth_mana_t1_1	Arcane Reservoir	sf:tray.full.fill	Mana restoration has a 10% chance to double		manaRestorationDoubleChancePercent:0.10
+mana_moth_mana_t1_2	Aetherial Surge	sf:waveform	Your first Mana spend each turn refunds 1 Mana		firstManaSpendRefundPerTurn:1
+mana_moth_mana_t2_1	Mana Cocoon	sf:fossil.shell.fill	Your Block absorbs 25% more damage while you have Mana		blockAbsorptionMultiplierWhileMana:1.25
+mana_moth_mana_t2_2	Aetherial Flow	sf:wind	Spending Mana adds 2 damage to your next attack		selfManaSpendNextAttackBonus:2
+mana_moth_mana_t3_1	Prismatic Spark	sf:diamond.fill	Restoring Mana has a 10% chance to draw a card		manaRestorationDrawChancePercent:0.10
+mana_moth_mana_t3_2	Arcane Burst	sf:burst.fill	Mana empowerment has a 20% chance to deal 50% more damage		manaEmpowerDamageChancePercent:0.20|manaEmpowerDamageMultiplier:1.5
+mana_moth_freeze_t1_1	Chilling Flutter	sf:bird.fill	Freeze attacks gain +10% Critical Hit chance		freezeAttackCriticalBonus:0.10
+mana_moth_freeze_t1_2	Frost Guard	sf:shield.fill	Freezing an enemy grants 3 Block		onFreezeEnemyGainBlock:3
+mana_moth_freeze_t2_1	Blinding Frost	sf:eye.slash.fill	Freeze Critical Hits reduce the enemy's next attack accuracy by 20%		freezeCritEnemyNextAttackMissChance:0.20
+mana_moth_freeze_t2_2	Subzero Mist	sf:cloud.fog.fill	Freeze has a 10% chance to last an extra turn		freezeExtendChancePercent:0.10
+mana_moth_freeze_t3_1	Flash Freeze	sf:snowflake	Mana empowerment increases Freeze build-up by 25%		manaEmpowerFreezeBuildupMultiplier:1.25
+mana_moth_freeze_t3_2	Frost Nova	sf:burst.fill	Freeze Critical Hits deal 50% more damage		freezeCriticalDamageMultiplier:1.5
+mana_moth_burn_t1_1	Ember Shield	sf:shield.fill	Block absorbs 25% more damage against Burning enemies		blockAbsorptionVsBurningMultiplier:1.25
+mana_moth_burn_t1_2	Moth to Flame	sf:flame.fill	Burn Critical Hits restore 2 Mana		burnCriticalRestoreMana:2
+mana_moth_burn_t2_1	Flashover	sf:sun.snow.fill	Burn Critical Hits ignore enemy Block		burnCriticalIgnoreBlock:true
+mana_moth_burn_t2_2	Cinderstrike	sf:burst.fill	Burn Critical Hits deal 25% more damage		burnCriticalDamageMultiplier:1.25
+mana_moth_burn_t3_1	Ember Persistence	sf:hourglass.bottomhalf.filled	Burn has a 20% chance to not decay		burnPreventDecayChancePercent:0.20
+mana_moth_burn_t3_2	Scorching Dust	sf:sun.max.fill	+10% Critical Hit chance against Burning enemies		criticalVsBurningBonus:0.10
 pixie_cleanse_t1_1	Fae Mending	sf:heart.fill	Restore 2 Health to yourself when you Cleanse.		cleanseSelfHeal:2
-pixie_cleanse_t1_2	Dispel Magic	sf:wand.and.stars	Cleanse effects also Purge 1 positive buff from the enemy.		cleanseAlsoPurgesEnemyBuffs:1
-pixie_cleanse_t2_1	Fae Swiftness	sf:wind	Cleansing an ally grants them +10% Dodge chance for 2 turns.		cleanseDodgeChanceBonus:0.10|cleanseDodgeChanceBonusTurns:2
-pixie_cleanse_t2_2	Cleansing Ward	sf:shield.fill	Cleansing an ally also grants the party 2 Block.		cleansePartyBlock:2
-pixie_cleanse_t3_1	Fae Ward	sf:shield.lefthalf.filled	Your Cleanse cards grant 1 Block per effect removed.		cleanseBlockPerStack:1
+pixie_cleanse_t1_2	Dispel Magic	sf:wand.and.stars	Cleansing has a 20% chance to Purge an enemy's positive status effect		cleansePurgeChancePercent:0.20
+pixie_cleanse_t2_1	Fae Swiftness	sf:wind	Cleansing also removes all Freeze build-up from the target		cleanseRemovesFreezeBuildup:true
+pixie_cleanse_t2_2	Cleansing Ward	sf:shield.fill	Cleansing grants the target 3 Block		cleanseTargetBlockFlat:3
+pixie_cleanse_t3_1	Fae Ward	sf:shield.lefthalf.filled	Your first Cleanse each turn removes one extra negative status effect		firstCleanseExtraRemovalPerTurn:1
 pixie_cleanse_t3_2	Purifying Aura	sf:sun.max.fill	Cleanse 1 negative effect from each ally every other turn.		purifyingAura:true
-pixie_health_t1_1	Sprite Touch	sf:heart.fill	Restore 2 Health each turn for the first 3 turns of battle.		healthRegenFirstTurnsAmount:2|healthRegenFirstTurnsDuration:3
-pixie_health_t1_2	Emergency Mend	sf:cross.fill	Health restored to allies below 30% Health is doubled.		healingBelowHealthPercentThreshold:0.30|healingBelowHealthPercentMultiplier:2
-pixie_health_t2_1	Lingering Blessing	sf:hourglass.bottomhalf.filled	Restoring Health to an ally applies a 3-turn effect that restores 1 Health over time.		healOverTimeOnHealTurns:3|healOverTimeOnHealAmount:1
-pixie_health_t2_2	Protective Bloom	sf:camera.macro	Restoring Health to an ally also deals 2 Holy damage to the enemy.		onHealDealHoly:2
-pixie_health_t3_1	Vital Infusion	sf:heart.fill	Health restored beyond full increases the target's Max Health by +1 this combat (up to +5).		overhealConvertsToMaxHealth:true|overhealConvertsToMaxHealthCap:5|overhealConvertsToMaxHealthPerEvent:1
+pixie_health_t1_1	Sprite Touch	sf:heart.fill	Your first Health restoration each turn restores 2 additional Health		firstHealthRestorationBonusPerTurn:2
+pixie_health_t1_2	Emergency Mend	sf:cross.fill	Restore 25% more Health to allies below half Health		healingBelowHealthPercentThreshold:0.5|healingBelowHealthPercentMultiplier:1.25
+pixie_health_t2_1	Lingering Blessing	sf:hourglass.bottomhalf.filled	Restoring Health has a 10% chance to repeat next turn		healthRestorationRepeatNextTurnChancePercent:0.10
+pixie_health_t2_2	Protective Bloom	sf:camera.macro	Allies at full Health gain +10% Dodge chance		partyDodgeAtFullHealthBonus:0.10
+pixie_health_t3_1	Vital Infusion	sf:heart.fill	Restore 6 Health the first time you drop below half Health each combat		firstBelowHalfHealthHeal:6
 pixie_health_t3_2	Barrier Blessing	sf:shield.fill	Excess Health restored is converted into Block for that ally.		overhealConvertsToBlock:true
-pixie_holy_t1_1	Dazzle	sf:sparkles	Holy attacks reduce the target's damage by 2 on their next turn.		holyDamageReduceTargetDamage:2
-pixie_holy_t1_2	Piercing Starlight	sf:star.fill	Holy damage ignores enemy Block and cannot be Dodged.		holyIgnoresBlockAndDodge:true
-pixie_holy_t2_1	Radiant Barrier	sf:shield.fill	Dealing Holy damage grants 2 Block to the party.		onHolyDamagePartyBlock:2
-pixie_holy_t2_2	Stun Flare	sf:bolt.fill	Holy attacks deal 1 Burn and 1 Stun damage.		holyAttackApplyBurnAndStunBuildup:1
-pixie_holy_t3_1	Supernal Glow	sf:sun.min.fill	All party basic attacks deal 2 additional Holy damage.		partyBasicAttackHolyBonus:2
-pixie_holy_t3_2	Sunlight Spark	sf:sun.max.fill	Your next attack after dealing Holy damage deals 1 additional Holy damage.		holyDamageNextAttackHolyBonus:1
-shield_scarab_block_t1_1	Plated Hide	sf:shield.fill	Gain 2 Block when you are hit.		onHitGainBlock:2
-shield_scarab_block_t1_2	Hardened Chitin	sf:fossil.shell.fill	Take 2 less damage from non-Physical hits while you have Block.		spellDamageTakenReductionWhileBlocked:2
-shield_scarab_block_t2_1	Enduring Shell	sf:fossil.shell.fill	Scarab's Block retains 50% at the end of each round (up to 30 max).		blockRetainsHalf:true
-shield_scarab_block_t2_2	Bulwark Fortress	sf:building.2.fill	While Scarab has Block, the Hero takes 20% less damage.		companionBlockProtectsHeroPercent:0.2
-shield_scarab_block_t3_1	Spiked Shell	sf:asterisk	Whenever you retain Block at the end of each round, gain Thorns equal to half that amount.		retainedBlockGainThornsPercent:0.5
-shield_scarab_block_t3_2	Sun-Struck Shell	sf:sun.max.fill	When your Block is hit, deal 2 Holy damage to the attacker.		onBlockHitDealHoly:2
-shield_scarab_stun_t1_1	Sunder Shield	sf:shield.slash.fill	Stunned enemies lose all their active Block.		stunnedEnemyLoseAllBlock:true
-shield_scarab_stun_t1_2	Heavy Slam	sf:hammer.fill	Deal 4 additional Physical damage to Stunned enemies.		damageWhileTargetStunnedBonus:4
-shield_scarab_stun_t2_1	Prolonged Daze	sf:hourglass.bottomhalf.filled	Stunning an enemy deals 2 Physical damage to them.		stunDealPhysicalFlat:2
-shield_scarab_stun_t2_2	Seismic Impact	sf:waveform	Enemies require 25% less Stun to be Stunned.		enemyStunThresholdReductionPercent:0.25
-shield_scarab_stun_t3_1	Quaking Carapace	sf:fossil.shell.fill	Deal 3 Stun damage to the enemy and grant 5 Block to the party every 3 turns.		everyNTurnsStunBuildupInterval:3|everyNTurnsStunBuildupAmount:3|everyNTurnsTeamBlockAmount:5
-shield_scarab_stun_t3_2	Solar Brand	sf:flame.fill	Stunning an enemy also deals 2 Burn damage to them.		onStunEnemyApplyBurn:2
-shield_scarab_holy_t1_1	Gilded Carapace	sf:fossil.shell.fill	Gain 2 Block whenever an enemy becomes Stunned.		onStunEnemyGainBlock:2
-shield_scarab_holy_t1_2	Radiant Shell	sf:fossil.shell.fill	Enemies attacking Scarab take 2 Holy damage.		onHitAttackerHoly:2
-shield_scarab_holy_t2_1	Sun Glyph	sf:sun.max.fill	Holy damage dealt by Scarab restores 2 Health to the Hero.		holyDamageHealHeroFlat:2
-shield_scarab_holy_t2_2	Solar Ward	sf:shield.fill	Party deals 2 additional Holy damage while Scarab is at full Health.		partyHolyDamageBonusWhileCompanionFullHealth:2
-shield_scarab_holy_t3_1	Dazzling Guard	sf:eye.slash.fill	Blocking an attack reduces the attacker's accuracy by 25% for 2 turns.		onBlockReduceAttackerAccuracyPercent:25|onBlockReduceAttackerAccuracyTurns:2
-shield_scarab_holy_t3_2	Purifying Sun	sf:sun.max.fill	Holy damage deals double damage to Poisoned or Bleeding targets.		holyDamageVsPoisonedOrBleedingMultiplier:2
-fox_gold_t1_1	Palmed Coin	sf:hand.pinch.fill	Gain 2 Gold when you Dodge.		dodgeGoldFlat:2
-fox_gold_t1_2	Snatch	sf:hand.pinch.fill	Basic attacks steal 2 Gold from the enemy.		basicAttackStealGold:2
-fox_gold_t2_1	Golden Opportunity	sf:circle.circle.fill	The first time you gain 5 or more Gold at once each round, draw a card.		gainGoldDrawThreshold:5
-fox_gold_t2_2	Lucky Strike	sf:die.face.5.fill	Critical Hits grant 3 Gold.		criticalGoldFlat:3
-fox_gold_t3_1	Master Thief	sf:eye.slash.fill	When you Critically Hit, steal the enemy's Block and gain it yourself.		critStealEnemyBlock:true
-fox_gold_t3_2	Golden Recovery	sf:heart.fill	The first time you gain Gold each round, restore 3 Health to each living ally.		onGainGoldHealParty:3
-fox_dodge_t1_1	Feint Strike	sf:burst.fill	Dodging an attack increases the party's next card damage by 2.		onDodgePartyNextCardDamageBonus:2
-fox_dodge_t1_2	Poisonous Dash	sf:flask.fill	Dodging an attack deals 2 Poison or 2 Bleed damage to the attacker.		onDodgeApplyPoisonOrBleed:2
-fox_dodge_t2_1	Slip Away	sf:wind	Dodge the first attack against you each combat.		dodgeFirstAttackEachCombat:true
-fox_dodge_t2_2	Misdirection	sf:signpost.right.fill	After Dodging, the enemy is off-balance: your next attack deals double damage.		nextAttackDoubleAfterDodge:true
-fox_dodge_t3_1	Decoy Swap	sf:theatermasks.fill	50% chance when the Hero is attacked for Fox to swap places and Dodge for them.		swapAndDodgeForHeroChance:0.5
-fox_dodge_t3_2	Stolen Breath	sf:wind	Dodging an attack restores 2 Health to you.		dodgeHealFlat:2
-fox_stun_t1_1	Dazzling Tail	sf:sparkles	Deal 2 Stun damage to attackers when you Dodge their attack.		onDodgeAttackerStunBuildup:2
-fox_stun_t1_2	Confusing Feint	sf:theatermasks.fill	Attacks against Stunned enemies deal 1 additional damage.		damageWhileTargetStunnedBonus:1
-fox_stun_t2_1	Disorienting Strike	sf:tornado	Attacking a Stunned enemy grants 2 Gold and 2 Block.		onAttackStunnedEnemyGold:2|onAttackStunnedEnemyBlock:2
-fox_stun_t2_2	Chaos Manipulation	sf:die.face.5.fill	Fox deals 50% additional damage to Stunned enemies.		stunnedDamageMultiplier:1.50
-fox_stun_t3_1	Affliction Burst	sf:microbe.fill	When an enemy recovers from Stun, they take 2 Bleed, 2 Poison, and 2 Burn damage.		onEnemyStunRecoverApplyAfflictions:2
-fox_stun_t3_2	Confounding Loot	sf:hand.pinch.fill	Critical Hits against Stunned enemies steal 3 Gold.		criticalVsStunnedEnemyGold:3
+pixie_holy_t1_1	Dazzle	sf:sparkles	Holy attacks gain +10% Critical Hit chance		holyAttackCriticalBonus:0.10
+pixie_holy_t1_2	Piercing Starlight	sf:star.fill	Holy attacks ignore half enemy Block		holyBlockIgnorePercent:0.5
+pixie_holy_t2_1	Radiant Barrier	sf:shield.fill	Your first Holy attack each turn grants 3 Block		firstHolyAttackBlockPerTurn:3
+pixie_holy_t2_2	Stun Flare	sf:bolt.fill	Holy Critical Hits deal 4 Stun damage		holyCriticalStunDamage:4
+pixie_holy_t3_1	Supernal Glow	sf:sun.min.fill	Both allies deal 15% more Holy damage		partyHolyDamageMultiplier:1.15
+pixie_holy_t3_2	Sunlight Spark	sf:sun.max.fill	Your first Holy attack each turn deals 2 additional damage		firstHolyAttackBonusPerTurn:2
+shield_scarab_block_t1_1	Plated Hide	sf:shield.fill	While you have Block, take 20% less damage		damageTakenMultiplierWhileBlocked:0.8
+shield_scarab_block_t1_2	Hardened Chitin	sf:fossil.shell.fill	While you have Block, take 2 less non-Physical damage		spellDamageTakenReductionWhileBlocked:2
+shield_scarab_block_t2_1	Enduring Shell	sf:fossil.shell.fill	Retain 75% of your Block between turns		blockRetainsThreeQuarters:true
+shield_scarab_block_t2_2	Bulwark Fortress	sf:building.2.fill	While you have Block, your ally takes 20% less damage		companionBlockProtectsHeroPercent:0.2
+shield_scarab_block_t3_1	Spiked Shell	sf:asterisk	While you have Block, Thorns deal 25% more damage		thornsDamageMultiplierWhileBlocked:1.25
+shield_scarab_block_t3_2	Sun-Struck Shell	sf:sun.max.fill	When your Block breaks, your next Holy hit deals double damage		blockBreakNextHolyHitDouble:true
+shield_scarab_stun_t1_1	Sunder Shield	sf:shield.slash.fill	Stunning an enemy removes all their Block		stunnedEnemyLoseAllBlock:true
+shield_scarab_stun_t1_2	Heavy Slam	sf:hammer.fill	Stunned enemies take 25% increased Physical damage		physicalDamageVsStunnedMultiplier:1.25
+shield_scarab_stun_t2_1	Prolonged Daze	sf:hourglass.bottomhalf.filled	Stun has a 20% chance to last another turn		stun_extend_chance_percent:0.20
+shield_scarab_stun_t2_2	Seismic Impact	sf:waveform	Increase Stun build-up by 20%		stunBuildupMultiplier:1.2
+shield_scarab_stun_t3_1	Quaking Carapace	sf:fossil.shell.fill	Your first Block break each combat doubles your next Stun attack		firstBlockBreakNextStunDouble:true
+shield_scarab_stun_t3_2	Solar Brand	sf:flame.fill	Stunning an enemy deals 2 Burn damage		onStunEnemyApplyBurn:2
+shield_scarab_holy_t1_1	Gilded Carapace	sf:fossil.shell.fill	While you have Block, Holy damage is increased by 25%		holyDamageMultiplierWhileBlocked:1.25
+shield_scarab_holy_t1_2	Radiant Shell	sf:fossil.shell.fill	Blocking damage has a 10% chance to reflect it as Holy		blockHolyReflectChancePercent:0.10
+shield_scarab_holy_t2_1	Sun Glyph	sf:sun.max.fill	Your first Holy hit each turn grants your ally 2 Block		firstHolyHitAllyBlockPerTurn:2
+shield_scarab_holy_t2_2	Solar Ward	sf:shield.fill	Both allies' Holy attacks gain +10% Critical Hit chance		partyHolyAttackCriticalBonus:0.10
+shield_scarab_holy_t3_1	Dazzling Guard	sf:eye.slash.fill	Holy Critical Hits reduce the enemy's next attack accuracy by 20%		holyCritEnemyNextAttackMissChance:0.20
+shield_scarab_holy_t3_2	Solar Judgment	sf:sun.max.fill	Stunned enemies take 25% increased Holy damage		holyDamageVsStunnedMultiplier:1.25
+fox_gold_t1_1	Palmed Coin	sf:hand.pinch.fill	Dodging has a 20% chance to gain 4 Gold		dodgeGoldAmount:4|dodgeGoldChancePercent:0.20
+fox_gold_t1_2	Snatch	sf:hand.pinch.fill	Your attacks have a 10% chance to steal 3 Gold		attackGoldStealAmount:3|attackGoldStealChancePercent:0.10
+fox_gold_t2_1	Golden Opportunity	sf:circle.circle.fill	Your first Gold steal each combat is doubled		firstGoldTheftDoubleBattle:true
+fox_gold_t2_2	Lucky Strike	sf:die.face.5.fill	Critical Hits have a 10% chance to steal 5 Gold		criticalGoldStealAmount:5|criticalGoldStealChancePercent:0.10
+fox_gold_t3_1	Master Thief	sf:eye.slash.fill	Stealing Gold grants +20% Critical Hit chance on your next attack		goldTheftNextAttackCriticalBonus:0.20
+fox_gold_t3_2	Golden Recovery	sf:heart.fill	Below half Health, your first Gold gain each turn restores 3 Health		belowHalfFirstGoldGainHealPerTurn:3
+fox_dodge_t1_1	Feint Strike	sf:burst.fill	Your first Dodge each turn adds 3 damage to your next attack		firstDodgeNextAttackBonusPerTurn:3
+fox_dodge_t1_2	Poisonous Dash	sf:flask.fill	Dodging has a 20% chance to deal 2 Poison damage		dodgePoisonChancePercent:0.20|dodgePoisonDamage:2
+fox_dodge_t2_1	Slip Away	sf:wind	Dodge the first attack against you each combat		dodgeFirstAttackEachCombat:true
+fox_dodge_t2_2	Misdirection	sf:signpost.right.fill	Dodging makes your next attack ignore enemy Block		dodgeNextAttackIgnoreBlock:true
+fox_dodge_t3_1	Decoy Swap	sf:theatermasks.fill	10% chance to intercept and Dodge for an ally		swapAndDodgeForHeroChance:0.10
+fox_dodge_t3_2	Stolen Breath	sf:wind	Below half Health, your first Dodge each turn restores 3 Health		belowHalfFirstDodgeHealPerTurn:3
+fox_stun_t1_1	Dazzling Tail	sf:sparkles	Dodging has a 20% chance to deal 4 Stun damage		dodgeStunChancePercent:0.20|dodgeStunDamage:4
+fox_stun_t1_2	Confusing Feint	sf:theatermasks.fill	Stunned enemies take 25% increased damage from your attacks		attackDamageVsStunnedMultiplier:1.25
+fox_stun_t2_1	Disorienting Strike	sf:tornado	Stun Critical Hits ignore enemy Block		stunCriticalIgnoreBlock:true
+fox_stun_t2_2	Rigged Opening	sf:die.face.5.fill	Stun attacks gain +20% Critical Hit chance		stunAttackCriticalBonus:0.20
+fox_stun_t3_1	Venom Trap	sf:microbe.fill	When Stun ends, deal 2 Poison damage		onStunExpirePoisonDamage:2
+fox_stun_t3_2	Confounding Loot	sf:hand.pinch.fill	Critical Hits against Stunned enemies steal 3 Gold		criticalVsStunnedEnemyGold:3
 knight_stun_t4_1	Lightning Rod	sf:bolt.fill	Stun damage is increased by half your Block		lightningRod:true
 bear_stun_t4_1	Seismic Reversal	sf:arrow.uturn.backward	When your Block breaks, return absorbed damage as Stun		seismicReversal:true
 knight_holy_t4_1	Sunwall	sf:shield.fill	Holy damage has a 10% chance to grant equal Block to your Companion		sunwallChancePercent:0.10
-pixie_holy_t4_1	Unbroken Vow	sf:checkmark.seal.fill	Block lets Holy damage ignore Block and Dodge.		unbrokenVow:true
-wolf_physical_t4_1	Stored Impact	sf:shield.fill	Blocked damage empowers your next Physical attack.		storedImpact:true
+pixie_holy_t4_1	Unbroken Vow	sf:checkmark.seal.fill	While you have Block, Holy attacks ignore enemy Block		unbrokenVow:true
+wolf_physical_t4_1	Alpha Strike	sf:shield.fill	Your first Physical attack each combat deals double damage		firstPhysicalAttackBattleMultiplier:2
 bear_physical_t4_1	Battering Ram	sf:hammer.fill	Your first Physical attack each turn gains half your Block as damage		firstPhysicalAttackBlockDamagePercent:0.5
 library_owl_holy_t4_1	Interdict	sf:nosign	Purging with Holy prevents that positive status effect from returning next turn		interdict:true
-shield_scarab_holy_t4_1	Crownfall	sf:crown.fill	Purging deals 3 Holy damage per effect.		crownfall:true
+shield_scarab_holy_t4_1	Crownfall	sf:crown.fill	Your first Holy hit each turn deals 50% more damage		firstHolyHitDamageMultiplierPerTurn:1.5
 ranger_poison_t4_1	Toxic Transfusion	sf:eyedropper	Companion Critical Hits double your next Poison attack		toxicTransfusion:true
-risen_skeleton_physical_t4_1	Pressure Point	sf:scope	Critical Hits against Poisoned enemies deal double Physical damage.		pressurePoint:true
+risen_skeleton_physical_t4_1	Pressure Point	sf:scope	Physical Critical Hits deal 50% more damage to Poisoned enemies		physicalCriticalDamageVsPoisonedMultiplier:1.5
 rogue_gold_t4_1	Bounty Blade	sf:burst.fill	Stealing Gold adds 3 damage to your next Physical attack		goldStealNextPhysicalBonus:3
 golden_retriever_gold_t4_1	War Chest	sf:circle.circle.fill	Your ally gains Critical Hit chance equal to Gold gained this combat		allyCriticalChancePerCombatGold:0.01
 wizard_mana_t4_1	Frost Circuit	sf:bolt.horizontal.fill	Freeze Critical Hits restore 1 Mana		freezeCriticalRestoreMana:1
@@ -342,10 +342,10 @@ lizard_scout_poison_t4_1	Toxic Coma	sf:moon.fill	Stunned enemies take 20% increa
 ranger_bleed_t4_1	Shatterpoint	sf:burst.fill	Stunning a Bleeding enemy doubles its next Bleed damage		shatterpoint:true
 rogue_bleed_t4_1	Septic Wound	sf:microbe.fill	Bleed lasts 1 extra turn on Poisoned enemies		bleedDurationVsPoisonedBonus:1
 lizard_scout_poison_t4_2	Cross-Contamination	sf:arrow.triangle.merge	Bleed Critical Hits also deal 4 Poison damage		bleedCriticalPoisonDamage:4
-wolf_bleed_t4_1	Septicemia	sf:drop.fill	Poisoned enemies take double Bleed damage.		septicemia:true
-wolf_dodge_t4_1	Phantom Counter	sf:arrow.uturn.backward	Dodging draws and plays a Physical card.		phantomCounter:true
-fox_dodge_t4_1	Perfect Tempo	sf:metronome.fill	Physical Critical Hits make you Dodge the next attack.		perfectTempo:true
-pixie_cleanse_t4_1	Purifying Waters	sf:water.waves	Cleansing restores 4 Health per effect.		purifyingWaters:true
+wolf_bleed_t4_1	Septicemia	sf:drop.fill	Poisoned enemies take 25% increased Bleed damage		bleedDamageVsPoisonedMultiplier:1.25
+wolf_dodge_t4_1	Phantom Counter	sf:arrow.uturn.backward	Dodging makes your next Physical attack deal 50% more damage		dodgeNextPhysicalDamageMultiplier:1.5
+fox_dodge_t4_1	Perfect Tempo	sf:metronome.fill	Dodging increases your next Critical Hit's damage by 50%		dodgeNextCriticalDamageMultiplier:1.5
+pixie_cleanse_t4_1	Purifying Waters	sf:water.waves	Cleansing restores 4 Health per negative status effect removed		purifyingWaters:true
 phoenix_health_t4_1	Clean Slate	sf:eraser.fill	Excess Health restoration Cleanses 1 negative status effect		cleanSlate:true
 ranger_burn_t4_1	Firebrand	sf:flame.fill	Companion attacks gain +15% Critical chance against Burning enemies		companionCriticalVsBurningBonus:0.15
 wizard_burn_t4_1	Backdraft	sf:wind	Burning enemies take 25% increased Critical Hit damage		criticalDamageVsBurningMultiplier:1.25
@@ -353,14 +353,14 @@ warlock_burn_t4_1	Ashen Arsenal	sf:burst.fill	Burn attacks that Critically Hit d
 phoenix_burn_t4_1	Furnace Rhythm	sf:repeat	Burn Critical Hits restore 3 Mana		burnCriticalRestoreMana:3
 lizard_scout_bleed_t4_1	Butcher’s Cut	sf:square.and.pencil	Enemies below half Health take 30% increased Bleed damage		bleedDamageBelowHalfMultiplier:1.3
 panther_bleed_t4_1	Arterial Cascade	sf:drop.fill	Critical Hits detonate Bleed		arterialCascade:true
-wolf_bleed_t4_2	Bloodrush	sf:waveform.path.ecg	Bleed ticks have a 20% chance to draw a Physical card.		bleedTickDrawChancePercent:0.2
+wolf_bleed_t4_2	Bloodrush	sf:waveform.path.ecg	Bleed Critical Hits have a 20% chance to draw a card		bleedCriticalDrawChancePercent:0.20
 panther_bleed_t4_2	Redline	sf:gauge.with.needle.fill	Dropping below half Health doubles your next Bleed attack		belowHalfHealthNextBleedDouble:true
 knight_block_t4_1	Stalwart Oath	sf:checkmark.shield.fill	Below half Health, Block absorbs 50% more damage		blockAbsorptionMultiplierBelowHalfHealth:1.5
 bear_block_t4_1	Aftershock Guard	sf:mountain.2.fill	Stunning an enemy doubles your next Block gain		stunNextBlockGainMultiplier:2
 golden_retriever_block_t4_1	Shield Relay	sf:arrow.left.arrow.right	When your Block breaks, your ally gains 2 Block		blockBreakAllyBlockFlat:2
 wizard_freeze_t4_1	Glacial Reprieve	sf:snowflake	Damage you Block is returned as Freeze		glacialReprieve:true
-mana_moth_burn_t4_1	Steam Explosion	sf:burst.fill	Your Freeze cards consume Burn for equal additional Freeze damage.		steamExplosion:true
-mana_moth_burn_t4_2	Frostfire	sf:sun.snow.fill	Burn damage deals half as much Freeze damage.		frostfire:true
+mana_moth_burn_t4_1	Steam Explosion	sf:burst.fill	Freezing a Burning enemy deals 5 Burn damage		onFreezeBurningEnemyBurnDamage:5
+mana_moth_burn_t4_2	Frostfire	sf:sun.snow.fill	Frozen enemies take 25% increased Burn damage		burnDamageVsFrozenMultiplier:1.25
 frost_whelp_freeze_t4_1	Winter’s Dominion	sf:sun.snow.fill	Freezing an enemy draws a card		onFreezeEnemyDrawCard:true
 warlock_burn_t4_2	Temper Cycle	sf:repeat	Burn attacks add 1 bonus damage to your next Bleed attack		burnPreparesBleedDamageBonus:1
 alchemist_poison_t1_1	Reactive Coating	sf:asterisk	Poison Critical Hits deal 2 additional damage		poisonCriticalDamageBonus:2
@@ -436,12 +436,12 @@ phoenix_deathsdoor_t4_1	Undying Ember	sf:flame.fill	Burn damage gains Leech whil
 golden_retriever_health_t4_1	Contagious Joy	sf:face.smiling.fill	Excess Health restoration on you is shared with your ally		excessHealthShareAlly:true
 library_owl_cleanse_t4_1	Lesson Learned	sf:book.closed.fill	Cleansed effects cannot return until your next turn.		lessonLearned:true
 library_owl_health_t4_1	Living Archive	sf:books.vertical.fill	Restoring Health has a 10% chance to grant 3 Thorns		healthRestoreThornsChancePercent:0.10|healthRestoreThornsAmount:3
-risen_skeleton_leech_t4_1	Marrowmend	sf:cross.case.fill	Your excess Leech healing becomes Block, up to 6.		marrowmend:true
-risen_skeleton_deathsdoor_t4_1	Borrowed Life	sf:hourglass.bottomhalf.filled	Your Physical damage Leeches Health while on Death’s Door.		borrowedLife:true
-mana_moth_mana_t4_1	Prismatic Scales	sf:diamond.fill	Your Mana empowerment deals both Burn and Freeze damage.		prismaticScales:true
-mana_moth_freeze_t4_1	Ghostfrost	sf:snowflake	Your Freeze damage ignores enemy Block.		ghostfrost:true
-pixie_health_t4_1	Wishspring	sf:wand.and.stars	Your overhealing restores half as much Mana.		wishspring:true
-shield_scarab_block_t4_1	Sealed Sarcophagus	sf:lock.shield.fill	Your Block cannot be stolen or Purged.		sealedSarcophagus:true
-shield_scarab_stun_t4_1	Resonant Shell	sf:waveform	Your Thorns deal Stun damage instead of Physical damage.		resonantShell:true
-fox_gold_t4_1	Light-Fingered	sf:hand.pinch.fill	Gaining Gold steals an equal amount of enemy Block.		lightFingered:true
-fox_stun_t4_1	Stolen Thunder	sf:bolt.fill	Your Stun attacks spend Block for equal bonus damage.		stolenThunder:true
+risen_skeleton_leech_t4_1	Marrowmend	sf:cross.case.fill	Your first excess Leech restoration each turn grants half as much Block		marrowmend:true
+risen_skeleton_deathsdoor_t4_1	Borrowed Life	sf:hourglass.bottomhalf.filled	Attacks gain Leech while on Death's Door		borrowedLife:true
+mana_moth_mana_t4_1	Prismatic Scales	sf:diamond.fill	Mana empowerment increases Burn and Freeze damage by 25%		manaEmpowerBurnFreezeDamageMultiplier:1.25
+mana_moth_freeze_t4_1	Ghostfrost	sf:snowflake	Freeze damage ignores enemy Block		ghostfrost:true
+pixie_health_t4_1	Wishspring	sf:wand.and.stars	Excess Health restoration makes your next Mana empowerment free		excessHealthNextManaEmpowerFree:true
+shield_scarab_block_t4_1	Sealed Sarcophagus	sf:lock.shield.fill	Your Block absorbs twice as much damage		doubleAllBlockAbsorption:true
+shield_scarab_stun_t4_1	Resonant Shell	sf:waveform	While you have Thorns, Stun attacks deal 25% more damage		stunDamageMultiplierWhileThorns:1.25
+fox_gold_t4_1	Light-Fingered	sf:hand.pinch.fill	Stealing Gold has a 10% chance to steal all of an enemy's Block		goldTheftStealEnemyBlockChancePercent:0.10
+fox_stun_t4_1	Stolen Thunder	sf:bolt.fill	Stunning an enemy makes your next attack Critically Hit		onStunNextAttackGuaranteedCritical:true

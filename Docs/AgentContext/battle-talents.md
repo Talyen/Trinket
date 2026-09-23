@@ -38,6 +38,33 @@ once per enemy ability or natural-damage turn. Venom Spores and Ignition Spark
 roll separately at each natural Poison or Burn decay; detonations do not run
 those preservation rolls.
 
+### Final Companion Talent cadence
+
+Wolf's pack Dodge and Bleed bonuses apply only while Wolf lives. Its first
+Physical attack bonus is tracked separately for each ally; Dodge preparations
+refresh rather than stack. Bloodrush rolls once per Bleed ability that Critically
+Hits. Risen Skeleton's Deathrattle draws on Death's Door entry, allowing the
+Door Talents to work together. Weaken Soul refreshes one enemy attack-hit
+reduction; ongoing damage cannot consume it. Marrowmend converts half the first
+excess Leech restoration each turn to Block.
+
+Mana Moth's Arcane Reservoir and Prismatic Spark roll once per Mana-restoring
+ability after actual Mana is restored. Arcane Burst rolls once per empowered
+ability; Prismatic Scales increases its existing Burn and Freeze damage without
+adding hits. Pixie's Lingering Blessing repeats actual Health restored to one
+recipient next turn as resolved healing; that repeat cannot start another
+Talent reaction chain. Wishspring prepares a later free Mana empowerment.
+
+Shield Scarab's Radiant Shell rolls on the first qualifying Block absorption
+in an incoming ability, reflecting that absorbed amount in one Holy hit. The reflected hit
+qualifies for Sun Glyph and Crownfall, each limited to once per turn. Fox's
+Snatch, Lucky Strike, and Light-Fingered roll once per eligible ability; its
+first successful Gold steal doubles only once per combat. Dodge retaliation
+chances roll once per Dodge and preparations refresh rather than stack.
+Decoy Swap rolls once per Hero-targeted enemy ability. On success Fox Dodges
+the entire ability and reacts once. Piercing Starlight lets Pixie's Holy
+attacks ignore half enemy Block; enemies do not currently Dodge.
+
 Paralysis rolls on a Poison attack even when Block absorbs all Health damage.
 
 ### Companion Gold and Leech

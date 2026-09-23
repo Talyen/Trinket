@@ -252,6 +252,11 @@ package extension DamagePipeline {
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
         let blocked = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0
         var retaliation = defenderTriggers.thornsDamageDoubleWhileBlocked && blocked ? amount * 2 : amount
+        if blocked, defenderTriggers.thornsDamageMultiplierWhileBlocked > 1 {
+            retaliation = CombatRounding.scaled(
+                retaliation, multiplier: defenderTriggers.thornsDamageMultiplierWhileBlocked,
+            )
+        }
         if attacker.combatant.role == .enemy, state.combatant.role != .enemy,
            context.roster.hero.isAlive,
            context.roster.hasAffliction(.poison, on: attacker.combatant) {

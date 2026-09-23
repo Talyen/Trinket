@@ -73,6 +73,7 @@ package enum DamagePipeline {
         applyDoTDamageReactions(to: &state, in: &context)
         applyCompanionDamageRetaliation(to: &state, in: &context)
         applyLeech(to: &state, in: &context)
+        applyFinalCompanionHolyHitRewards(to: &state, in: &context)
         applyCompanionLeechCriticalBlock(to: &state, in: &context)
         applyAttackerOnHitApplications(to: &state, in: &context)
         applyAttackerMirroredReactions(to: &state, in: &context)
@@ -151,12 +152,14 @@ package enum DamagePipeline {
             state.remaining = state.amount
             state.dealt = state.amount
             state.isCritical = state.options.guaranteedCritical
+            applyFinalCompanionOutgoingBonuses(to: &state, in: &context)
         } else {
             reserveAttackEmpowers(to: &state, in: &context)
             UniqueCombatEngine.captureEnemyBlock(for: &state, in: context)
             applyCriticalGate(to: &state, in: &context)
             applyCriticalBlockSteal(to: &state, in: &context)
             applyDamageBonus(to: &state, in: &context)
+            applyFinalCompanionOutgoingBonuses(to: &state, in: &context)
             applyFightPacing(to: &state, in: &context)
             applyMarkedBonus(to: &state, in: &context)
             UniqueCombatEngine.applyStoredDamage(to: &state, in: &context)

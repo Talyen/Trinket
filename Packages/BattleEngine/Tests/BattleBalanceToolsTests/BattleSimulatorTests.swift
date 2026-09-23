@@ -134,8 +134,8 @@ struct BattleSimulatorTests {
             companionLoadout: companion.abilityLoadout,
             seed: 7,
         )
-        #expect(withTalent.heroModifiers.triggers.blockPerTurn == 2)
-        #expect(withoutTalent.heroModifiers.triggers.blockPerTurn == 0)
+        #expect(withTalent.heroModifiers.triggers.startBattleBlock == 6)
+        #expect(withoutTalent.heroModifiers.triggers.startBattleBlock == 0)
         #expect(withTalent.context.heroTalentIDs == ["knight_block_t1_1"])
         #expect(withoutTalent.context.heroTalentIDs.isEmpty)
     }

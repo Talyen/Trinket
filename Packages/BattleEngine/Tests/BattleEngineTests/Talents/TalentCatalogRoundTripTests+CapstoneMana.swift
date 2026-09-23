@@ -45,28 +45,6 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.hero.currentMana == 1)
     }
 
-    @Test(arguments: [Keyword.burn, .freeze])
-    func `prismatic scales empowers both damage types for one mana payment`(keyword: Keyword) throws {
-        var battle = capstoneBattle(companion: ["mana_moth_mana_t4_1"])
-        let original = Ability(
-            id: "prismatic", name: "Prismatic", tier: .skill,
-            damageComponents: [DamageComponent(2, keyword: keyword)],
-        )
-        var empowered = original
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &empowered, actor: battle.companion, context: &battle)
-        #expect(battle.roster.companion.currentMana == 7)
-        #expect(empowered.damageComponents.count == 2)
-        #expect(empowered.damageComponents.first { $0.keyword == keyword }?.amount == 3)
-        let opposite: Keyword = keyword == .burn ? .freeze : .burn
-        #expect(empowered.damageComponents.first { $0.keyword == opposite }?.amount == 1)
-        battle.roster.companion.currentMana = 10
-        try playHeroTalentCard(original, owner: .companion, in: &battle)
-        #expect(battle.roster.companion.currentMana == 7)
-        #expect(talentPoints(.burn, on: .enemy, in: battle) > 0)
-        #expect(battle.roster.enemy.activeEffects.contains { $0.keyword == .freeze })
-        #expect(battle.roster.enemy.currentHealth < 200)
-    }
-
     @Test func `prismatic scales does not duplicate mixed components or grant unpaid damage`() {
         var battle = capstoneBattle(companion: ["mana_moth_mana_t4_1"])
         var mixed = Ability(
@@ -81,38 +59,5 @@ extension TalentCatalogRoundTripTests {
         _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &unpaid, actor: battle.companion, context: &battle)
         #expect(unpaid == Ability.rayOfFrost)
         #expect(battle.roster.companion.currentMana == 2)
-    }
-
-    @Test(arguments: [Effect.purge(nil), .purgeRandom])
-    func `sealed sarcophagus protects only block from purge and theft`(effect: Effect) throws {
-        var battle = capstoneBattle(companion: ["shield_scarab_block_t4_1"])
-        seedHeroTalentEffect(.shield(.block, 5), on: .companion, in: &battle)
-        seedHeroTalentEffect(.thorns(2), on: .companion, in: &battle)
-        let handler = try #require(EffectHandlers.all[effect.kind])
-        _ = handler.apply(effect, ability: .cleanse, source: battle.enemy, target: battle.companion, in: &battle)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 5)
-        #expect(talentPoints(.thorns, on: .companion, in: battle) == 0)
-        _ = DefensePoolEngine.steal(5, from: battle.companion, to: battle.enemy, abilityName: "Theft", in: &battle)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 5)
-        #expect(talentPoints(.shield, on: .enemy, in: battle) == 0)
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.companion, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: .reaction(),
-        ))
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 3)
-        DefensePoolEngine.decayBlock(on: battle.companion, in: &battle)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 1)
-    }
-
-    @Test func `light fingered steals only available block for actual gold gains`() {
-        var battle = capstoneBattle(companion: ["fox_gold_t4_1"])
-        seedHeroTalentEffect(.shield(.block, 5), on: .enemy, in: &battle)
-        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Steal")
-        #expect(talentPoints(.shield, on: .enemy, in: battle) == 3)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 2)
-        _ = battle.grantGoldEvent(4, to: battle.companion, abilityName: "Lucky Strike")
-        #expect(talentPoints(.shield, on: .enemy, in: battle) == 0)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 5)
-        #expect(battle.gold == 6)
     }
 }

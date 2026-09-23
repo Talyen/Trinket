@@ -91,17 +91,29 @@ package extension CombatTriggerEngine {
         // Claim the combat allowance before resolving reactions.
         context.roster.mutateRuntime(for: companion.combatant) { $0.talents.battle.negatedFirstEnemyAttack = true }
         let protected = context.talentAdjustedEnemyTarget
+        return dodgeEntireEnemyAbility(
+            by: protected,
+            abilityName: triggerAbilityName(
+                "negateFirstEnemyAttack",
+                for: companion.combatant,
+                fallback: "Warning Bark",
+                in: context,
+            ),
+            in: &context,
+        )
+    }
+
+    private static func dodgeEntireEnemyAbility(
+        by protected: Combatant,
+        abilityName: String,
+        in context: inout BattleState,
+    ) -> (events: [ActionEvent], cancelled: Bool) {
         var events: [ActionEvent] = [
             context.nextEvent(
                 kind: .effect,
                 effectKind: .dodgeApplied,
                 actorName: protected.name,
-                abilityName: triggerAbilityName(
-                    "negateFirstEnemyAttack",
-                    for: companion.combatant,
-                    fallback: "Warning Bark",
-                    in: context,
-                ),
+                abilityName: abilityName,
                 target: protected,
                 amount: 0,
                 keyword: .dodge,
@@ -159,7 +171,11 @@ package extension CombatTriggerEngine {
                probability: context.companionModifiers.triggers.swapAndDodgeForHeroChance,
                using: &context.rng,
            ) {
-            context.prependEffect(.evadeNextHit, to: context.roster.hero.combatant, remainingTurns: 0)
+            return dodgeEntireEnemyAbility(
+                by: context.roster.companion.combatant,
+                abilityName: "Decoy Swap",
+                in: &context,
+            )
         }
         return ([], false)
     }
@@ -176,15 +192,19 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> (events: [ActionEvent], cancelled: Bool)? {
         let enemy = context.roster.enemy.combatant
-        let chance = context.roster.runtime(for: enemy)?.talents.pending.nextAttackMissChance ?? 0
+        let pending = context.roster.runtime(for: enemy)?.talents.pending
+        let chance = pending?.nextAttackMissChance ?? 0
         guard chance > 0 else { return nil }
-        context.roster.mutateRuntime(for: enemy) { $0.talents.pending.nextAttackMissChance = 0 }
+        context.roster.mutateRuntime(for: enemy) {
+            $0.talents.pending.nextAttackMissChance = 0
+            $0.talents.pending.nextAttackMissAbilityName = nil
+        }
         guard BattleChance.succeeds(probability: chance, using: &context.rng) else { return nil }
         return ([context.nextEvent(
             kind: .effect,
             effectKind: .dodgeApplied,
             actorName: enemy.name,
-            abilityName: "Blinding Light",
+            abilityName: pending?.nextAttackMissAbilityName ?? "Blinding Light",
             target: abilityTarget,
             amount: 0,
             keyword: .dodge,
@@ -271,6 +291,12 @@ package extension CombatTriggerEngine {
                     sourceActorID: member.id,
                     application: .attached,
                     in: &context,
+                ))
+            }
+            if triggers.onStunExpirePoisonDamage > 0, context.roster.health(for: enemy) > 0 {
+                events.append(contentsOf: heroTalentDamage(
+                    .poison, amount: triggers.onStunExpirePoisonDamage,
+                    source: member.combatant, name: "Venom Trap", in: &context,
                 ))
             }
         }

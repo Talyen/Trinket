@@ -21,8 +21,9 @@ final class FullGamePurchaseSmokeTests: FullGameStoreKitUITestCase {
         combatantDetail.assertLoaded(for: "Warlock")
     }
 
-    func testCampaignUnlockOffersTheNextChapter() {
+    func testCampaignUnlockOffersTheNextChapter() throws {
         let freeStages = GameContent.chapters.filter { $0.number <= 3 }.flatMap { $0.stages.map(\.id) }
+        try startStoreSession()
         launchApp(arguments: TestLaunchArg.allUnseeded() + TestLaunchArg.completedStages(freeStages))
         tapButton(AccessibilityID.Play.campaignModeCard)
         let unlock = AccessibilityID.Play.stageAction(chapter: 4, stage: 1)

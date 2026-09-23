@@ -52,7 +52,7 @@ struct BalanceReportGoldenTests {
     }
 
     @Test func `identity sweep is stable`() {
-        #expect(Self.fingerprint(Self.config(mode: .identity)) == 16754792888666914513)
+        #expect(Self.fingerprint(Self.config(mode: .identity)) == 5505264504310043334)
     }
 
     @Test func `ability contrast is stable`() {
@@ -70,6 +70,6 @@ struct BalanceReportGoldenTests {
             samples: 1,
             focus: ["knight_block_t1_1", "full-kit"],
         )
-        #expect(Self.fingerprint(config) == 10121275086951025619)
+        #expect(Self.fingerprint(config) == 7400120783590447750)
     }
 }

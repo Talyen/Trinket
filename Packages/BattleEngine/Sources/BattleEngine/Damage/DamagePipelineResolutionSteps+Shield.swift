@@ -34,7 +34,6 @@ package extension DamagePipeline {
 
         let sourceTriggers = state.sourceActorID.map { context.modifiers(for: $0).triggers }
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
-        let targetIsStunned = state.targetStatus.isStunned
 
         let effectiveBuffer = max(0, CombatRounding.scaled(buffer, multiplier: blockMultiplier))
         guard effectiveBuffer > 0, state.remaining > 0 else {
@@ -45,7 +44,14 @@ package extension DamagePipeline {
         let belowHalfHealth = context.roster.health(for: state.combatant) * 2
             < context.roster.maxHealth(for: state.combatant)
         let oathMultiplier = belowHalfHealth ? defenderTriggers.blockAbsorptionMultiplierBelowHalfHealth : 1
+        let manaMultiplier = (context.roster.runtime(for: state.combatant)?.currentMana ?? 0) > 0
+            ? defenderTriggers.blockAbsorptionMultiplierWhileMana : 1
+        let attackerIsBurning = state.sourceActorID.flatMap { context.roster.combatant(for: $0)?.combatant }
+            .map { context.roster.hasAffliction(.burn, on: $0) } ?? false
+        let burningMultiplier = attackerIsBurning ? defenderTriggers.blockAbsorptionVsBurningMultiplier : 1
         let absorptionMultiplier = (doublesPhysical ? 2.0 : 1.0) * max(1, oathMultiplier)
+            * max(1, defenderTriggers.doubleAllBlockAbsorption ? 2 : 1)
+            * max(1, manaMultiplier) * max(1, burningMultiplier)
         let absorptionBuffer = CombatRounding.scaled(effectiveBuffer, multiplier: absorptionMultiplier)
 
         let absorption = applyAbsorption(
@@ -54,7 +60,6 @@ package extension DamagePipeline {
             buffer: buffer,
             effectiveBuffer: absorptionBuffer,
             sourceTriggers: sourceTriggers,
-            targetIsStunned: targetIsStunned,
             in: &context,
         )
 
@@ -144,7 +149,6 @@ package extension DamagePipeline {
         buffer: Int,
         effectiveBuffer: Int,
         sourceTriggers: CombatTraitTriggers?,
-        targetIsStunned: Bool,
         in context: inout BattleState,
     ) -> ShieldAbsorption {
         let absorbed = min(state.remaining, effectiveBuffer)
@@ -162,7 +166,6 @@ package extension DamagePipeline {
             absorbed: absorbed,
             buffer: buffer,
             sourceTriggers: sourceTriggers,
-            targetIsStunned: targetIsStunned,
             damageKeyword: state.damageKeyword,
             isAttackHit: state.options.isAttackHit,
         )
@@ -256,6 +259,19 @@ package extension DamagePipeline {
                 in: &context,
             ).events)
         }
+        let reflectChance = context.modifiers(for: defender.id).triggers.blockHolyReflectChancePercent
+        if reflectChance > 0, attacker.role == .enemy,
+           context.claimTalentAbility("Radiant Shell", actorID: defender.id),
+           BattleChance.succeeds(probability: reflectChance, using: &context.rng) {
+            events.append(contentsOf: resolveNestedDamage(
+                amount: absorbed,
+                keyword: .holy,
+                target: attacker.combatant,
+                sourceActorID: defender.id,
+                requireTargetAlive: true,
+                in: &context,
+            ).events)
+        }
         return events
     }
 
@@ -272,7 +288,6 @@ package extension DamagePipeline {
         absorbed: Int,
         buffer: Int,
         sourceTriggers: CombatTraitTriggers?,
-        targetIsStunned: Bool,
         damageKeyword: Keyword?,
         isAttackHit: Bool,
     ) -> Int {
@@ -312,9 +327,6 @@ package extension DamagePipeline {
                 absorbed,
                 multiplier: sourceTriggers.bleedAttackBlockBreakMultiplier - 1,
             )
-        }
-        if targetIsStunned, let sourceTriggers, sourceTriggers.stunnedEnemyLoseAllBlock {
-            extraRemoved = buffer
         }
         return extraRemoved
     }

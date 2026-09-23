@@ -24,6 +24,11 @@ package extension BattleState {
             roster.mutateRuntime(for: combatant) { $0.talents.pending.doubleNextGoldSteal = false }
         }
         if isTheft, granted > 0,
+           modifiers(for: combatant.id).triggers.firstGoldTheftDoubleBattle,
+           claimHeroTalent("Golden Opportunity", actorID: combatant.id, battle: true) {
+            granted *= 2
+        }
+        if isTheft, granted > 0,
            resolution.cardTalents?.actorID == combatant.id,
            resolution.cardTalents?.didCriticalHit == true,
            modifiers(for: combatant.id).triggers.criticalGoldTheftBonus > 0,
@@ -92,6 +97,13 @@ package extension BattleState {
         var overflow = max(0, requested - actual)
         if actual > 0, profile.triggers.manaGainDoubleChancePercent > 0,
            BattleChance.succeeds(probability: profile.triggers.manaGainDoubleChancePercent, using: &rng) {
+            let doubled = runtime.restoreMana(requested)
+            total += doubled
+            overflow += max(0, requested - doubled)
+        }
+        if actual > 0, profile.triggers.manaRestorationDoubleChancePercent > 0,
+           claimTalentAbility("Arcane Reservoir", actorID: combatant.id),
+           BattleChance.succeeds(probability: profile.triggers.manaRestorationDoubleChancePercent, using: &rng) {
             let doubled = runtime.restoreMana(requested)
             total += doubled
             overflow += max(0, requested - doubled)

@@ -382,34 +382,6 @@ extension CombatTriggerTalentDamageTests {
         #expect(outcome.healthLost == expectedDamage)
     }
 
-    @Test func `unbroken vow allows ally with block to ignore enemy block and dodge`() {
-        var battle = BattleTestFixtures.makePipelineContext(
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                block: BlockTriggers(unbrokenVow: true),
-            )),
-        )
-        BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
-            for: battle.roster.hero.combatant,
-            on: &battle,
-        )
-        BattleStateTestFactory.seedActiveEffects(
-            [
-                ActiveEffect(id: 2, effect: .shield(.block, 10), remainingTurns: 0),
-                ActiveEffect(id: 3, effect: .evadeNextHit, remainingTurns: 0),
-            ],
-            for: battle.roster.enemy.combatant,
-            on: &battle,
-        )
-        let outcome = battle.resolveDamage(
-            DamageRequest(amount: 6, target: battle.roster.enemy.combatant, keyword: .holy, sourceActorID: "source"),
-        )
-        #expect(outcome.healthLost == 6)
-        #expect(!outcome.isDodged)
-        let enemyBlock = DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.enemy.combatant))
-        #expect(enemyBlock == 10)
-    }
-
     @Test func `unbroken vow does not give enemies block or dodge ignore`() {
         var battle = BattleTestFixtures.makePipelineContext(
             companionModifiers: .init(triggers: CombatTraitTriggers(

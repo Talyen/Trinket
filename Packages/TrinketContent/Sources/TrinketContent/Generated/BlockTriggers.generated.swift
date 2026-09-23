@@ -84,6 +84,15 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var burnAttackBlockAmount: Int = 0
     public var blockedControlPrevention: Bool = false
     public var blockBreakAllyBlockFlat: Int = 0
+    public var blockAbsorptionMultiplierWhileMana: Double = 1
+    public var blockAbsorptionVsBurningMultiplier: Double = 1
+    public var blockBreakNextHolyHitDouble: Bool = false
+    public var blockHolyReflectChancePercent: Double = 0
+    public var damageTakenMultiplierWhileBlocked: Double = 1
+    public var doubleAllBlockAbsorption: Bool = false
+    public var firstBlockBreakNextStunDouble: Bool = false
+    public var retainAllBlockDuringDeathsDoor: Bool = false
+    public var thornsDamageMultiplierWhileBlocked: Double = 1
 
     public init(
         sealedSarcophagus: Bool = false,
@@ -165,7 +174,16 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         burnAttackBlockChancePercent: Double = 0,
         burnAttackBlockAmount: Int = 0,
         blockedControlPrevention: Bool = false,
-        blockBreakAllyBlockFlat: Int = 0
+        blockBreakAllyBlockFlat: Int = 0,
+        blockAbsorptionMultiplierWhileMana: Double = 1,
+        blockAbsorptionVsBurningMultiplier: Double = 1,
+        blockBreakNextHolyHitDouble: Bool = false,
+        blockHolyReflectChancePercent: Double = 0,
+        damageTakenMultiplierWhileBlocked: Double = 1,
+        doubleAllBlockAbsorption: Bool = false,
+        firstBlockBreakNextStunDouble: Bool = false,
+        retainAllBlockDuringDeathsDoor: Bool = false,
+        thornsDamageMultiplierWhileBlocked: Double = 1
     ) {
         self.sealedSarcophagus = sealedSarcophagus
         self.retainAllBlockBetweenTurns = retainAllBlockBetweenTurns
@@ -247,10 +265,19 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         self.burnAttackBlockAmount = burnAttackBlockAmount
         self.blockedControlPrevention = blockedControlPrevention
         self.blockBreakAllyBlockFlat = blockBreakAllyBlockFlat
+        self.blockAbsorptionMultiplierWhileMana = blockAbsorptionMultiplierWhileMana
+        self.blockAbsorptionVsBurningMultiplier = blockAbsorptionVsBurningMultiplier
+        self.blockBreakNextHolyHitDouble = blockBreakNextHolyHitDouble
+        self.blockHolyReflectChancePercent = blockHolyReflectChancePercent
+        self.damageTakenMultiplierWhileBlocked = damageTakenMultiplierWhileBlocked
+        self.doubleAllBlockAbsorption = doubleAllBlockAbsorption
+        self.firstBlockBreakNextStunDouble = firstBlockBreakNextStunDouble
+        self.retainAllBlockDuringDeathsDoor = retainAllBlockDuringDeathsDoor
+        self.thornsDamageMultiplierWhileBlocked = thornsDamageMultiplierWhileBlocked
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["sealedSarcophagus", "retainAllBlockBetweenTurns", "blockedAttackBasicOncePerTurn", "blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "companionBlockAbsorbsHeroDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "guardianHeroBlockFlat", "doublePhysicalBlockAbsorption", "blockPreparesCritical", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "onEnemyFrozenGainBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock", "seismicReversal", "unbrokenVow", "storedImpact", "glacialReprieve", "retainedBlockGainThornsPercent", "onStunEnemyGainBlock", "blockRetainsHalf", "blockWhileGoldThreshold", "blockWhileGoldAmount", "burnIgnoresBlock", "thornsDamageDoubleWhileBlocked", "blockAbsorptionMultiplierBelowHalfHealth", "holyBlockIgnorePercent", "sunwallChancePercent", "bleedAttackBlockIgnorePercent", "burnAttackBlockBreakMultiplier", "burningEnemyBlockGainMultiplier", "poisonAttackExtraBlockRemoval", "bleedIgnoresEnemyBlock", "leechAttackBlockIgnorePercent", "poisonDamageVsBlockMultiplier", "physicalMitigationWhileBlockedFlat", "allyFirstBelowHalfBlock", "bleedDamageMultiplierWhileBlocked", "blockGainBelowHalfMultiplier", "stunNextBlockGainMultiplier", "stunBlockIgnorePercent", "bleedAttackBlockBreakMultiplier", "burnAttackBlockChancePercent", "burnAttackBlockAmount", "blockedControlPrevention", "blockBreakAllyBlockFlat"]
+    public static let fieldNames: [String] = ["sealedSarcophagus", "retainAllBlockBetweenTurns", "blockedAttackBasicOncePerTurn", "blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "companionBlockAbsorbsHeroDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "guardianHeroBlockFlat", "doublePhysicalBlockAbsorption", "blockPreparesCritical", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "onEnemyFrozenGainBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock", "seismicReversal", "unbrokenVow", "storedImpact", "glacialReprieve", "retainedBlockGainThornsPercent", "onStunEnemyGainBlock", "blockRetainsHalf", "blockWhileGoldThreshold", "blockWhileGoldAmount", "burnIgnoresBlock", "thornsDamageDoubleWhileBlocked", "blockAbsorptionMultiplierBelowHalfHealth", "holyBlockIgnorePercent", "sunwallChancePercent", "bleedAttackBlockIgnorePercent", "burnAttackBlockBreakMultiplier", "burningEnemyBlockGainMultiplier", "poisonAttackExtraBlockRemoval", "bleedIgnoresEnemyBlock", "leechAttackBlockIgnorePercent", "poisonDamageVsBlockMultiplier", "physicalMitigationWhileBlockedFlat", "allyFirstBelowHalfBlock", "bleedDamageMultiplierWhileBlocked", "blockGainBelowHalfMultiplier", "stunNextBlockGainMultiplier", "stunBlockIgnorePercent", "bleedAttackBlockBreakMultiplier", "burnAttackBlockChancePercent", "burnAttackBlockAmount", "blockedControlPrevention", "blockBreakAllyBlockFlat", "blockAbsorptionMultiplierWhileMana", "blockAbsorptionVsBurningMultiplier", "blockBreakNextHolyHitDouble", "blockHolyReflectChancePercent", "damageTakenMultiplierWhileBlocked", "doubleAllBlockAbsorption", "firstBlockBreakNextStunDouble", "retainAllBlockDuringDeathsDoor", "thornsDamageMultiplierWhileBlocked"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -335,6 +362,15 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         if self.burnAttackBlockAmount != other.burnAttackBlockAmount { names.append("burnAttackBlockAmount") }
         if self.blockedControlPrevention != other.blockedControlPrevention { names.append("blockedControlPrevention") }
         if self.blockBreakAllyBlockFlat != other.blockBreakAllyBlockFlat { names.append("blockBreakAllyBlockFlat") }
+        if self.blockAbsorptionMultiplierWhileMana != other.blockAbsorptionMultiplierWhileMana { names.append("blockAbsorptionMultiplierWhileMana") }
+        if self.blockAbsorptionVsBurningMultiplier != other.blockAbsorptionVsBurningMultiplier { names.append("blockAbsorptionVsBurningMultiplier") }
+        if self.blockBreakNextHolyHitDouble != other.blockBreakNextHolyHitDouble { names.append("blockBreakNextHolyHitDouble") }
+        if self.blockHolyReflectChancePercent != other.blockHolyReflectChancePercent { names.append("blockHolyReflectChancePercent") }
+        if self.damageTakenMultiplierWhileBlocked != other.damageTakenMultiplierWhileBlocked { names.append("damageTakenMultiplierWhileBlocked") }
+        if self.doubleAllBlockAbsorption != other.doubleAllBlockAbsorption { names.append("doubleAllBlockAbsorption") }
+        if self.firstBlockBreakNextStunDouble != other.firstBlockBreakNextStunDouble { names.append("firstBlockBreakNextStunDouble") }
+        if self.retainAllBlockDuringDeathsDoor != other.retainAllBlockDuringDeathsDoor { names.append("retainAllBlockDuringDeathsDoor") }
+        if self.thornsDamageMultiplierWhileBlocked != other.thornsDamageMultiplierWhileBlocked { names.append("thornsDamageMultiplierWhileBlocked") }
         return names
     }
 }
@@ -421,6 +457,15 @@ extension BlockTriggers {
         burnAttackBlockAmount += other.burnAttackBlockAmount
         blockedControlPrevention = blockedControlPrevention || other.blockedControlPrevention
         blockBreakAllyBlockFlat += other.blockBreakAllyBlockFlat
+        blockAbsorptionMultiplierWhileMana *= other.blockAbsorptionMultiplierWhileMana
+        blockAbsorptionVsBurningMultiplier *= other.blockAbsorptionVsBurningMultiplier
+        blockBreakNextHolyHitDouble = blockBreakNextHolyHitDouble || other.blockBreakNextHolyHitDouble
+        blockHolyReflectChancePercent += other.blockHolyReflectChancePercent
+        damageTakenMultiplierWhileBlocked *= other.damageTakenMultiplierWhileBlocked
+        doubleAllBlockAbsorption = doubleAllBlockAbsorption || other.doubleAllBlockAbsorption
+        firstBlockBreakNextStunDouble = firstBlockBreakNextStunDouble || other.firstBlockBreakNextStunDouble
+        retainAllBlockDuringDeathsDoor = retainAllBlockDuringDeathsDoor || other.retainAllBlockDuringDeathsDoor
+        thornsDamageMultiplierWhileBlocked *= other.thornsDamageMultiplierWhileBlocked
     }
 }
 
@@ -507,7 +552,16 @@ extension BlockTriggers {
             burnAttackBlockChancePercent: values.decode(Double.self, "burnAttackBlockChancePercent", default: 0),
             burnAttackBlockAmount: values.decode(Int.self, "burnAttackBlockAmount", default: 0),
             blockedControlPrevention: values.decode(Bool.self, "blockedControlPrevention", default: false),
-            blockBreakAllyBlockFlat: values.decode(Int.self, "blockBreakAllyBlockFlat", default: 0)
+            blockBreakAllyBlockFlat: values.decode(Int.self, "blockBreakAllyBlockFlat", default: 0),
+            blockAbsorptionMultiplierWhileMana: values.decode(Double.self, "blockAbsorptionMultiplierWhileMana", default: 1),
+            blockAbsorptionVsBurningMultiplier: values.decode(Double.self, "blockAbsorptionVsBurningMultiplier", default: 1),
+            blockBreakNextHolyHitDouble: values.decode(Bool.self, "blockBreakNextHolyHitDouble", default: false),
+            blockHolyReflectChancePercent: values.decode(Double.self, "blockHolyReflectChancePercent", default: 0),
+            damageTakenMultiplierWhileBlocked: values.decode(Double.self, "damageTakenMultiplierWhileBlocked", default: 1),
+            doubleAllBlockAbsorption: values.decode(Bool.self, "doubleAllBlockAbsorption", default: false),
+            firstBlockBreakNextStunDouble: values.decode(Bool.self, "firstBlockBreakNextStunDouble", default: false),
+            retainAllBlockDuringDeathsDoor: values.decode(Bool.self, "retainAllBlockDuringDeathsDoor", default: false),
+            thornsDamageMultiplierWhileBlocked: values.decode(Double.self, "thornsDamageMultiplierWhileBlocked", default: 1)
         )
     }
 
@@ -592,5 +646,14 @@ extension BlockTriggers {
         try container.encodeNonDefault(burnAttackBlockAmount, "burnAttackBlockAmount", default: 0)
         try container.encodeNonDefault(blockedControlPrevention, "blockedControlPrevention", default: false)
         try container.encodeNonDefault(blockBreakAllyBlockFlat, "blockBreakAllyBlockFlat", default: 0)
+        try container.encodeNonDefault(blockAbsorptionMultiplierWhileMana, "blockAbsorptionMultiplierWhileMana", default: 1)
+        try container.encodeNonDefault(blockAbsorptionVsBurningMultiplier, "blockAbsorptionVsBurningMultiplier", default: 1)
+        try container.encodeNonDefault(blockBreakNextHolyHitDouble, "blockBreakNextHolyHitDouble", default: false)
+        try container.encodeNonDefault(blockHolyReflectChancePercent, "blockHolyReflectChancePercent", default: 0)
+        try container.encodeNonDefault(damageTakenMultiplierWhileBlocked, "damageTakenMultiplierWhileBlocked", default: 1)
+        try container.encodeNonDefault(doubleAllBlockAbsorption, "doubleAllBlockAbsorption", default: false)
+        try container.encodeNonDefault(firstBlockBreakNextStunDouble, "firstBlockBreakNextStunDouble", default: false)
+        try container.encodeNonDefault(retainAllBlockDuringDeathsDoor, "retainAllBlockDuringDeathsDoor", default: false)
+        try container.encodeNonDefault(thornsDamageMultiplierWhileBlocked, "thornsDamageMultiplierWhileBlocked", default: 1)
     }
 }

@@ -149,6 +149,13 @@ package extension DamagePipeline {
         if context.roster.health(for: combatant) == context.roster.maxHealth(for: combatant) {
             chance += profile.triggers.dodgeAtFullHealthBonus
         }
+        if context.roster.companion.isAlive {
+            let companion = context.companionModifiers.triggers
+            chance += companion.partyDodgeChanceBonus
+            if context.roster.health(for: combatant) == context.roster.maxHealth(for: combatant) {
+                chance += companion.partyDodgeAtFullHealthBonus
+            }
+        }
         return min(0.75, max(0, chance))
     }
 
@@ -173,19 +180,7 @@ package extension DamagePipeline {
             return
         }
         var abilityBonus = state.options.abilityCriticalChanceBonus
-        if state.options.isAttackHit,
-           let prepared = context.roster.runtime(for: actor.combatant)?.talents.pending.nextAttackCriticalBonus,
-           prepared > 0,
-           CombatantTalentState.Pending.isLaterAbility(
-               preparedCardSerial: context.roster.runtime(for: actor.combatant)?.talents.pending.nextAttackCriticalPreparedCardSerial,
-               currentCardSerial: context.resolution.cardTalents?.playSerial,
-           ) {
-            abilityBonus += prepared
-            context.roster.mutateRuntime(for: actor.combatant) {
-                $0.talents.pending.nextAttackCriticalBonus = 0
-                $0.talents.pending.nextAttackCriticalPreparedCardSerial = nil
-            }
-        }
+        abilityBonus += consumePendingCriticalChanceBonus(for: state, actor: actor.combatant, in: &context)
         abilityBonus += consumeSanctifiedCriticalBonus(for: state, actor: actor.combatant, in: &context)
         if state.options.isAttackHit, state.options.abilityHasLeech,
            context.roster.hasAffliction(.bleed, on: state.combatant) {
@@ -195,6 +190,7 @@ package extension DamagePipeline {
             abilityBonus += context.modifiers(for: sourceActorID).triggers.physicalVsFrozenCritBonus
         }
         abilityBonus += companionAttackCriticalBonus(for: state, actor: actor, in: context)
+        abilityBonus += finalCompanionCriticalChanceBonus(for: state, actor: actor, in: &context)
         if state.options.isAttackHit, state.options.isBasicAttackHit,
            let pendingBonus = context.roster.runtime(for: actor.combatant)?.talents.pending.basicCriticalBonus,
            pendingBonus > 0 {
@@ -215,6 +211,30 @@ package extension DamagePipeline {
             return
         }
         state.isCritical = true
+    }
+
+    private static func consumePendingCriticalChanceBonus(
+        for state: DamageResolutionState,
+        actor: Combatant,
+        in context: inout BattleState,
+    ) -> Double {
+        guard state.options.isAttackHit,
+              let pending = context.roster.runtime(for: actor)?.talents.pending,
+              pending.nextAttackCriticalBonus > 0,
+              CombatantTalentState.Pending.isLaterAbility(
+                  preparedCardSerial: pending.nextAttackCriticalPreparedCardSerial,
+                  currentCardSerial: context.resolution.cardTalents?.playSerial,
+              ),
+              CombatantTalentState.Pending.isLaterAction(
+                  preparedActionID: pending.nextAttackCriticalPreparedActionID,
+                  currentActionID: context.resolution.actionID,
+              ) else { return 0 }
+        context.roster.mutateRuntime(for: actor) {
+            $0.talents.pending.nextAttackCriticalBonus = 0
+            $0.talents.pending.nextAttackCriticalPreparedCardSerial = nil
+            $0.talents.pending.nextAttackCriticalPreparedActionID = nil
+        }
+        return pending.nextAttackCriticalBonus
     }
 
     private static func resolveGuaranteedCrit(
@@ -264,6 +284,9 @@ package extension DamagePipeline {
            consumePreparedHeroCritical(keyword: state.damageKeyword, actor: actor.combatant, in: &context) {
             guaranteed = true
         }
+        if consumeStunPreparedCritical(for: state, actor: actor.combatant, in: &context) {
+            guaranteed = true
+        }
         if context.roster.isDeathsDoorActive(for: actor.combatant),
            context.modifiers(for: sourceActorID).triggers.guaranteedCritWhileOnDeathsDoor {
             guaranteed = true
@@ -277,6 +300,30 @@ package extension DamagePipeline {
             state.isCritical = true
         }
         return guaranteed
+    }
+
+    private static func consumeStunPreparedCritical(
+        for state: DamageResolutionState,
+        actor: Combatant,
+        in context: inout BattleState,
+    ) -> Bool {
+        guard state.options.isAttackHit,
+              let pending = context.roster.runtime(for: actor)?.talents.pending,
+              pending.nextStunPreparedCritical,
+              CombatantTalentState.Pending.isLaterAbility(
+                  preparedCardSerial: pending.nextStunCriticalPreparedCardSerial,
+                  currentCardSerial: context.resolution.cardTalents?.playSerial,
+              ),
+              CombatantTalentState.Pending.isLaterAction(
+                  preparedActionID: pending.nextStunCriticalPreparedActionID,
+                  currentActionID: context.resolution.actionID,
+              ) else { return false }
+        context.roster.mutateRuntime(for: actor) {
+            $0.talents.pending.nextStunPreparedCritical = false
+            $0.talents.pending.nextStunCriticalPreparedCardSerial = nil
+            $0.talents.pending.nextStunCriticalPreparedActionID = nil
+        }
+        return true
     }
 
     private static func consumePreparedHeroCritical(

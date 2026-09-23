@@ -21,46 +21,6 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.hero.currentHealth == 0)
     }
 
-    @Test func `wishspring shares overhealing with existing blessings and respects mana capacity`() {
-        var battle = capstoneBattle(companion: ["pixie_health_t4_1", "pixie_health_t3_1", "pixie_health_t3_2"])
-        battle.roster.hero.currentMana = 0
-        _ = HealingEngine.resolveHeal(
-            HealRequest(amount: 8, target: battle.hero, sourceActorID: battle.companion.id), in: &battle,
-        )
-        #expect(battle.roster.hero.currentMana == 4)
-        #expect(battle.roster.hero.maxHealth == 41)
-        #expect(talentPoints(.shield, on: .hero, in: battle) == 7)
-        battle.roster.hero.currentMana = 9
-        _ = HealingEngine.resolveHeal(
-            HealRequest(amount: 8, target: battle.hero, sourceActorID: battle.companion.id), in: &battle,
-        )
-        #expect(battle.roster.hero.currentMana == 10)
-        battle.roster.hero.currentHealth = 1
-        battle.roster.hero.currentMana = 0
-        _ = HealingEngine.resolveHeal(
-            HealRequest(amount: 8, target: battle.hero, sourceActorID: battle.companion.id), in: &battle,
-        )
-        #expect(battle.roster.hero.currentMana == 0)
-    }
-
-    @Test func `marrowmend emits block for leech overhealing without exceeding six`() {
-        var battle = capstoneBattle(companion: ["risen_skeleton_leech_t4_1"])
-        var options = DamageOperation.reaction()
-        options.abilityHasLeech = true
-        let request = DamageRequest(
-            amount: 12, target: battle.enemy, keyword: .physical,
-            sourceActorID: battle.companion.id, options: options,
-        )
-        let result = battle.resolveDamage(request)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 6)
-        #expect(result.events.contains { $0.abilityName == "Marrowmend" && $0.amount == 6 })
-        _ = battle.resolveDamage(request)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 6)
-        _ = battle.applyBlock(4, to: battle.companion, source: battle.companion, abilityName: "Other Block")
-        _ = battle.resolveDamage(request)
-        #expect(talentPoints(.shield, on: .companion, in: battle) == 10)
-    }
-
     @Test func `contagious joy shares only retriever overhealing`() {
         var battle = capstoneBattle(companion: ["golden_retriever_health_t4_1"])
         battle.roster.hero.currentHealth = 1

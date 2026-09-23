@@ -309,7 +309,7 @@ struct CombatFeedbackPresenterTests {
 }
 
 extension CombatFeedbackPresenterTests {
-    @Test @MainActor func `holy proc chain presents damage and healing instead of repeated benefits`() {
+    @Test @MainActor func `same action holy hits share one damage chip`() {
         let ability = Ability(
             id: "feedback-holy", name: "Holy Chain", tier: .basic,
             damageComponents: [DamageComponent(2, keyword: .holy), DamageComponent(2, keyword: .holy), DamageComponent(2, keyword: .holy)],
@@ -318,27 +318,21 @@ extension CombatFeedbackPresenterTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 30, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 30)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var profile = CombatantTalentCatalog.profile(for: ["knight_holy_t1_1", "knight_block_t1_2", "knight_holy_t3_2"])
-        profile.triggers.criticalChanceBonus = -1
         var battle = BattleState(
             hero: hero, companion: companion, enemy: enemy,
-            heroModifiers: profile, rngSeed: CombatantFixtures.deterministicBattleSeed,
+            rngSeed: CombatantFixtures.deterministicBattleSeed,
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
-        battle.roster.hero.currentHealth = 1
         let events = BattleTurnEngine.performAction(ability: ability, actor: hero, abilityTarget: enemy, context: &battle)
         let items = CombatFeedbackPresenter.makeItems(from: events, at: .now)
-        #expect(events.count { $0.effectKind == .shieldApplied } == 3)
-        #expect(events.count { $0.effectKind == .thornsApplied } == 3)
-        #expect(events.count { $0.effectKind == .instantHeal } == 3)
-        #expect(items.count == 2)
+        #expect(events.count { $0.kind == .abilityDamage && $0.keyword == .holy } == 3)
+        #expect(items.count == 1)
         #expect(items.first { $0.targetID == "enemy" }?.label == .amount(-6))
-        #expect(items.first { $0.targetID == "hero" }?.label == .amount(12))
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         lane.record(events)
-        #expect(Set(lane.hitReactionsByTargetID.keys) == ["hero", "enemy"])
+        #expect(Set(lane.hitReactionsByTargetID.keys) == ["enemy"])
     }
 
     @Test func `keeps same kind results separate across action I ds`() {

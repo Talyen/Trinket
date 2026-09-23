@@ -21,14 +21,6 @@ extension TalentCatalogRoundTripTests {
         }
     }
 
-    @Test func `protective bloom deals holy damage on heal`() throws {
-        var battle = heroTalentBattle("pixie_health_t2_2")
-        let enemyHealth = battle.maxHealth(of: battle.enemy)
-        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = $0.maxHealth - 3 }
-        _ = try playHeroTalentCard(heroTalentHealingCard, in: &battle)
-        #expect(battle.health(of: battle.enemy) == enemyHealth - 2)
-    }
-
     @Test(arguments: [Ability.steal, .bountyShot, .blackjack, .tithe])
     func `authored theft cards preserve gilded claws through outcome resolution`(ability: Ability) throws {
         var battle = capstoneBattle(companion: ["lizard_scout_gold_t3_2"])

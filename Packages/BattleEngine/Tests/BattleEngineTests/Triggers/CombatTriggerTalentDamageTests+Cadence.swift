@@ -4,30 +4,6 @@ import TrinketCore
 @testable import BattleEngine
 
 extension CombatTriggerTalentDamageTests {
-    @Test func `nimble fang is consumed by snapping jaws counterattack`() {
-        var profile = CombatantTalentCatalog.profile(for: ["wolf_dodge_t1_2", "wolf_dodge_t3_2"])
-        profile.triggers.criticalChanceBonus = -1
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionAbilities: [.fangs],
-            companionModifiers: profile,
-            dealOpeningHand: false,
-        )
-        battle.appliesFightPacing = false
-        battle.appendEffect(.evadeNextHit, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
-
-        let dodged = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
-        ))
-
-        #expect(dodged.isDodged)
-        #expect(battle.roster.companion.talents.pending.bleedAfterDodge == 0)
-        #expect(battle.activeEffects(of: battle.enemy).count { $0.effect == .bleed(2) } == 1)
-        _ = BattleTurnEngine.performAction(
-            ability: .fangs, actor: battle.companion, abilityTarget: battle.enemy, context: &battle,
-        )
-        #expect(battle.activeEffects(of: battle.enemy).count { $0.effect == .bleed(2) } == 1)
-    }
-
     @Test(arguments: [0, 10])
     func `chilling scales rolls on damage taken after block`(block: Int) {
         var profile = CombatantTalentCatalog.profile(for: ["frost_whelp_freeze_t1_2"])
@@ -51,51 +27,6 @@ extension CombatTriggerTalentDamageTests {
             $0.effect == .controlMeter(.freeze, 4, ControlMeterEngine.threshold(for: battle.enemy, in: battle))
         } == (block == 0))
         #expect(hit.events.contains { $0.abilityName == "Chilling Scales" && $0.keyword == .freeze && $0.amount == 4 } == (block == 0))
-    }
-
-    @Test func `golden recovery claims the first positive gain each round before healing`() {
-        var profile = CombatantTalentCatalog.profile(for: ["fox_gold_t3_2"])
-        profile.triggers.criticalChanceBonus = -1
-        profile.triggers.healthRestoredPoisonPercent = 1
-        profile.triggers.carrionClaim = true
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(companionModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
-        battle.roster.hero.currentHealth = 1
-        battle.roster.companion.currentHealth = 1
-        _ = battle.grantGoldEvent(0, to: battle.companion, abilityName: "Snatch")
-        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Snatch")
-        #expect(battle.roster.hero.currentHealth == 4)
-        #expect(battle.roster.companion.currentHealth == 4)
-        #expect(battle.gold == 3)
-        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Snatch")
-        #expect(battle.roster.companion.currentHealth == 4)
-        battle.turnCount += 1
-        battle.roster.hero.currentHealth = 0
-        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Snatch")
-        #expect(battle.roster.hero.currentHealth == 0)
-        #expect(battle.roster.companion.currentHealth == 7)
-        battle.turnCount += 1
-        battle.roster.companion.currentHealth = battle.roster.companion.maxHealth
-        _ = battle.grantGoldEvent(1, to: battle.companion, abilityName: "Snatch")
-        battle.roster.companion.currentHealth = 1
-        _ = battle.grantGoldEvent(1, to: battle.companion, abilityName: "Snatch")
-        #expect(battle.roster.companion.currentHealth == 1)
-    }
-
-    @Test(arguments: [0, 10])
-    func `radiant shell retaliates against blocked attacks`(block: Int) {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: CombatantTalentCatalog.profile(for: ["shield_scarab_holy_t1_2"]),
-            dealOpeningHand: false,
-        )
-        battle.appliesFightPacing = false
-        DefensePoolEngine.set(block, on: battle.companion, in: &battle)
-        let before = battle.roster.enemy.currentHealth
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable),
-        ))
-        #expect(battle.roster.enemy.currentHealth == before - 2)
     }
 
     @Test func `dense bones gains reduction only from attack hits up to four`() {

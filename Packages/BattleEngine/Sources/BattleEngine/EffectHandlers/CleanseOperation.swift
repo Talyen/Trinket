@@ -32,9 +32,21 @@ enum CleanseOperation {
         in context: inout BattleState,
     ) -> Outcome {
         var effects = context.roster.activeEffects(for: target)
-        let removed: [ActiveEffect] = switch selection {
+        var removed: [ActiveEffect] = switch selection {
         case let .all(keyword): EffectRemoval.removeDebuffs(from: &effects, keyword: keyword)
         case .random: EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng).map { [$0] } ?? []
+        }
+        if !removed.isEmpty {
+            let triggers = context.modifiers(for: source.id).triggers
+            if triggers.cleanseRemovesFreezeBuildup {
+                removed.append(contentsOf: EffectRemoval.removeDebuffs(from: &effects, keyword: .freeze))
+            }
+            if triggers.firstCleanseExtraRemovalPerTurn > 0,
+               context.claimHeroTalent("Fae Ward", actorID: source.id),
+               effects.contains(where: \.effect.isRemovableDebuff),
+               let extra = EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng) {
+                removed.append(extra)
+            }
         }
         context.roster.setActiveEffects(effects, for: target)
         if let owner = context.roster.participant(for: target), owner.isPartyMember,

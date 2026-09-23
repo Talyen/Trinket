@@ -24,6 +24,9 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
     public var deathsDoorNegativeStatusImmune: Bool = false
     public var onAllyDeathsDoorRestoreHealth: Int = 0
     public var firstAllyFatalIntercept: Bool = false
+    public var deathsDoorCriticalChanceBonus: Double = 0
+    public var enterDeathsDoorDrawCard: Bool = false
+    public var surviveDeathsDoorPartyBlockFlat: Int = 0
 
     public init(
         undyingEmber: Bool = false,
@@ -45,7 +48,10 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         deathsDoorIncomingDamageMultiplier: Double = 1,
         deathsDoorNegativeStatusImmune: Bool = false,
         onAllyDeathsDoorRestoreHealth: Int = 0,
-        firstAllyFatalIntercept: Bool = false
+        firstAllyFatalIntercept: Bool = false,
+        deathsDoorCriticalChanceBonus: Double = 0,
+        enterDeathsDoorDrawCard: Bool = false,
+        surviveDeathsDoorPartyBlockFlat: Int = 0
     ) {
         self.undyingEmber = undyingEmber
         self.borrowedLife = borrowedLife
@@ -67,10 +73,13 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         self.deathsDoorNegativeStatusImmune = deathsDoorNegativeStatusImmune
         self.onAllyDeathsDoorRestoreHealth = onAllyDeathsDoorRestoreHealth
         self.firstAllyFatalIntercept = firstAllyFatalIntercept
+        self.deathsDoorCriticalChanceBonus = deathsDoorCriticalChanceBonus
+        self.enterDeathsDoorDrawCard = enterDeathsDoorDrawCard
+        self.surviveDeathsDoorPartyBlockFlat = surviveDeathsDoorPartyBlockFlat
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["undyingEmber", "borrowedLife", "onceDeathReviveHealth", "onceDeathReviveBlock", "deathsDoorDurationBonusTurns", "reviveDealBurnDamage", "deathsDoorDodgeAndDebuffImmunity", "onDeathDealPhysicalDamageAllEnemies", "guaranteedCritWhileOnDeathsDoor", "deathsDoorExpiredHealFlat", "holyDamageReviveCompanionChancePercent", "surviveDeathsDoorPartyHealFlat", "onHeroFatalReviveHealth", "enterDeathsDoorHeal", "enterDeathsDoorBurnDamage", "surviveDeathsDoorNextAttackDouble", "deathsDoorIncomingDamageMultiplier", "deathsDoorNegativeStatusImmune", "onAllyDeathsDoorRestoreHealth", "firstAllyFatalIntercept"]
+    public static let fieldNames: [String] = ["undyingEmber", "borrowedLife", "onceDeathReviveHealth", "onceDeathReviveBlock", "deathsDoorDurationBonusTurns", "reviveDealBurnDamage", "deathsDoorDodgeAndDebuffImmunity", "onDeathDealPhysicalDamageAllEnemies", "guaranteedCritWhileOnDeathsDoor", "deathsDoorExpiredHealFlat", "holyDamageReviveCompanionChancePercent", "surviveDeathsDoorPartyHealFlat", "onHeroFatalReviveHealth", "enterDeathsDoorHeal", "enterDeathsDoorBurnDamage", "surviveDeathsDoorNextAttackDouble", "deathsDoorIncomingDamageMultiplier", "deathsDoorNegativeStatusImmune", "onAllyDeathsDoorRestoreHealth", "firstAllyFatalIntercept", "deathsDoorCriticalChanceBonus", "enterDeathsDoorDrawCard", "surviveDeathsDoorPartyBlockFlat"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -95,6 +104,9 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         if self.deathsDoorNegativeStatusImmune != other.deathsDoorNegativeStatusImmune { names.append("deathsDoorNegativeStatusImmune") }
         if self.onAllyDeathsDoorRestoreHealth != other.onAllyDeathsDoorRestoreHealth { names.append("onAllyDeathsDoorRestoreHealth") }
         if self.firstAllyFatalIntercept != other.firstAllyFatalIntercept { names.append("firstAllyFatalIntercept") }
+        if self.deathsDoorCriticalChanceBonus != other.deathsDoorCriticalChanceBonus { names.append("deathsDoorCriticalChanceBonus") }
+        if self.enterDeathsDoorDrawCard != other.enterDeathsDoorDrawCard { names.append("enterDeathsDoorDrawCard") }
+        if self.surviveDeathsDoorPartyBlockFlat != other.surviveDeathsDoorPartyBlockFlat { names.append("surviveDeathsDoorPartyBlockFlat") }
         return names
     }
 }
@@ -121,6 +133,9 @@ extension RevivalTriggers {
         deathsDoorNegativeStatusImmune = deathsDoorNegativeStatusImmune || other.deathsDoorNegativeStatusImmune
         onAllyDeathsDoorRestoreHealth += other.onAllyDeathsDoorRestoreHealth
         firstAllyFatalIntercept = firstAllyFatalIntercept || other.firstAllyFatalIntercept
+        deathsDoorCriticalChanceBonus += other.deathsDoorCriticalChanceBonus
+        enterDeathsDoorDrawCard = enterDeathsDoorDrawCard || other.enterDeathsDoorDrawCard
+        surviveDeathsDoorPartyBlockFlat += other.surviveDeathsDoorPartyBlockFlat
     }
 }
 
@@ -147,7 +162,10 @@ extension RevivalTriggers {
             deathsDoorIncomingDamageMultiplier: values.decode(Double.self, "deathsDoorIncomingDamageMultiplier", default: 1),
             deathsDoorNegativeStatusImmune: values.decode(Bool.self, "deathsDoorNegativeStatusImmune", default: false),
             onAllyDeathsDoorRestoreHealth: values.decode(Int.self, "onAllyDeathsDoorRestoreHealth", default: 0),
-            firstAllyFatalIntercept: values.decode(Bool.self, "firstAllyFatalIntercept", default: false)
+            firstAllyFatalIntercept: values.decode(Bool.self, "firstAllyFatalIntercept", default: false),
+            deathsDoorCriticalChanceBonus: values.decode(Double.self, "deathsDoorCriticalChanceBonus", default: 0),
+            enterDeathsDoorDrawCard: values.decode(Bool.self, "enterDeathsDoorDrawCard", default: false),
+            surviveDeathsDoorPartyBlockFlat: values.decode(Int.self, "surviveDeathsDoorPartyBlockFlat", default: 0)
         )
     }
 
@@ -172,5 +190,8 @@ extension RevivalTriggers {
         try container.encodeNonDefault(deathsDoorNegativeStatusImmune, "deathsDoorNegativeStatusImmune", default: false)
         try container.encodeNonDefault(onAllyDeathsDoorRestoreHealth, "onAllyDeathsDoorRestoreHealth", default: 0)
         try container.encodeNonDefault(firstAllyFatalIntercept, "firstAllyFatalIntercept", default: false)
+        try container.encodeNonDefault(deathsDoorCriticalChanceBonus, "deathsDoorCriticalChanceBonus", default: 0)
+        try container.encodeNonDefault(enterDeathsDoorDrawCard, "enterDeathsDoorDrawCard", default: false)
+        try container.encodeNonDefault(surviveDeathsDoorPartyBlockFlat, "surviveDeathsDoorPartyBlockFlat", default: 0)
     }
 }

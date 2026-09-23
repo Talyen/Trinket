@@ -51,6 +51,16 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var allyCriticalChancePerCombatGold: Double = 0
     public var blockBreakStealGoldFlat: Int = 0
     public var goldTheftHealAllyFlat: Int = 0
+    public var attackGoldStealAmount: Int = 0
+    public var attackGoldStealChancePercent: Double = 0
+    public var belowHalfFirstGoldGainHealPerTurn: Int = 0
+    public var criticalGoldStealAmount: Int = 0
+    public var criticalGoldStealChancePercent: Double = 0
+    public var dodgeGoldAmount: Int = 0
+    public var dodgeGoldChancePercent: Double = 0
+    public var firstGoldTheftDoubleBattle: Bool = false
+    public var goldTheftNextAttackCriticalBonus: Double = 0
+    public var goldTheftStealEnemyBlockChancePercent: Double = 0
 
     public init(
         carrionClaim: Bool = false,
@@ -99,7 +109,17 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         firstGoldTheftDrawBattle: Bool = false,
         allyCriticalChancePerCombatGold: Double = 0,
         blockBreakStealGoldFlat: Int = 0,
-        goldTheftHealAllyFlat: Int = 0
+        goldTheftHealAllyFlat: Int = 0,
+        attackGoldStealAmount: Int = 0,
+        attackGoldStealChancePercent: Double = 0,
+        belowHalfFirstGoldGainHealPerTurn: Int = 0,
+        criticalGoldStealAmount: Int = 0,
+        criticalGoldStealChancePercent: Double = 0,
+        dodgeGoldAmount: Int = 0,
+        dodgeGoldChancePercent: Double = 0,
+        firstGoldTheftDoubleBattle: Bool = false,
+        goldTheftNextAttackCriticalBonus: Double = 0,
+        goldTheftStealEnemyBlockChancePercent: Double = 0
     ) {
         self.carrionClaim = carrionClaim
         self.lightFingered = lightFingered
@@ -148,10 +168,20 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.allyCriticalChancePerCombatGold = allyCriticalChancePerCombatGold
         self.blockBreakStealGoldFlat = blockBreakStealGoldFlat
         self.goldTheftHealAllyFlat = goldTheftHealAllyFlat
+        self.attackGoldStealAmount = attackGoldStealAmount
+        self.attackGoldStealChancePercent = attackGoldStealChancePercent
+        self.belowHalfFirstGoldGainHealPerTurn = belowHalfFirstGoldGainHealPerTurn
+        self.criticalGoldStealAmount = criticalGoldStealAmount
+        self.criticalGoldStealChancePercent = criticalGoldStealChancePercent
+        self.dodgeGoldAmount = dodgeGoldAmount
+        self.dodgeGoldChancePercent = dodgeGoldChancePercent
+        self.firstGoldTheftDoubleBattle = firstGoldTheftDoubleBattle
+        self.goldTheftNextAttackCriticalBonus = goldTheftNextAttackCriticalBonus
+        self.goldTheftStealEnemyBlockChancePercent = goldTheftStealEnemyBlockChancePercent
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "firstGoldTheftHeal", "goldDoubledWhileFullHealth", "firstGoldTheftDraw", "bountyBlade", "blockedAttackFirstGold", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold", "stunCriticalStealGold", "dodgePreparesDoubleGoldSteal", "criticalGoldStealDrawCard", "goldStealNextPhysicalBonus", "goldGainHealChancePercent", "goldGainHealAmount", "criticalGoldTheftBonus", "goldGainCleanseChancePercent", "goldGainBelowHalfDrawCard", "goldTheftDodgeBonus", "goldGainDrawChancePercent", "goldTheftBlockChancePercent", "goldTheftBlockAmount", "goldTheftDrawChancePercent", "goldStealFlatBonus", "goldTheftNextBlockMultiplier", "firstGoldTheftDrawBattle", "allyCriticalChancePerCombatGold", "blockBreakStealGoldFlat", "goldTheftHealAllyFlat"]
+    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "firstGoldTheftHeal", "goldDoubledWhileFullHealth", "firstGoldTheftDraw", "bountyBlade", "blockedAttackFirstGold", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold", "stunCriticalStealGold", "dodgePreparesDoubleGoldSteal", "criticalGoldStealDrawCard", "goldStealNextPhysicalBonus", "goldGainHealChancePercent", "goldGainHealAmount", "criticalGoldTheftBonus", "goldGainCleanseChancePercent", "goldGainBelowHalfDrawCard", "goldTheftDodgeBonus", "goldGainDrawChancePercent", "goldTheftBlockChancePercent", "goldTheftBlockAmount", "goldTheftDrawChancePercent", "goldStealFlatBonus", "goldTheftNextBlockMultiplier", "firstGoldTheftDrawBattle", "allyCriticalChancePerCombatGold", "blockBreakStealGoldFlat", "goldTheftHealAllyFlat", "attackGoldStealAmount", "attackGoldStealChancePercent", "belowHalfFirstGoldGainHealPerTurn", "criticalGoldStealAmount", "criticalGoldStealChancePercent", "dodgeGoldAmount", "dodgeGoldChancePercent", "firstGoldTheftDoubleBattle", "goldTheftNextAttackCriticalBonus", "goldTheftStealEnemyBlockChancePercent"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -203,6 +233,16 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         if self.allyCriticalChancePerCombatGold != other.allyCriticalChancePerCombatGold { names.append("allyCriticalChancePerCombatGold") }
         if self.blockBreakStealGoldFlat != other.blockBreakStealGoldFlat { names.append("blockBreakStealGoldFlat") }
         if self.goldTheftHealAllyFlat != other.goldTheftHealAllyFlat { names.append("goldTheftHealAllyFlat") }
+        if self.attackGoldStealAmount != other.attackGoldStealAmount { names.append("attackGoldStealAmount") }
+        if self.attackGoldStealChancePercent != other.attackGoldStealChancePercent { names.append("attackGoldStealChancePercent") }
+        if self.belowHalfFirstGoldGainHealPerTurn != other.belowHalfFirstGoldGainHealPerTurn { names.append("belowHalfFirstGoldGainHealPerTurn") }
+        if self.criticalGoldStealAmount != other.criticalGoldStealAmount { names.append("criticalGoldStealAmount") }
+        if self.criticalGoldStealChancePercent != other.criticalGoldStealChancePercent { names.append("criticalGoldStealChancePercent") }
+        if self.dodgeGoldAmount != other.dodgeGoldAmount { names.append("dodgeGoldAmount") }
+        if self.dodgeGoldChancePercent != other.dodgeGoldChancePercent { names.append("dodgeGoldChancePercent") }
+        if self.firstGoldTheftDoubleBattle != other.firstGoldTheftDoubleBattle { names.append("firstGoldTheftDoubleBattle") }
+        if self.goldTheftNextAttackCriticalBonus != other.goldTheftNextAttackCriticalBonus { names.append("goldTheftNextAttackCriticalBonus") }
+        if self.goldTheftStealEnemyBlockChancePercent != other.goldTheftStealEnemyBlockChancePercent { names.append("goldTheftStealEnemyBlockChancePercent") }
         return names
     }
 }
@@ -256,6 +296,16 @@ extension GoldTriggers {
         allyCriticalChancePerCombatGold += other.allyCriticalChancePerCombatGold
         blockBreakStealGoldFlat += other.blockBreakStealGoldFlat
         goldTheftHealAllyFlat += other.goldTheftHealAllyFlat
+        attackGoldStealAmount += other.attackGoldStealAmount
+        attackGoldStealChancePercent += other.attackGoldStealChancePercent
+        belowHalfFirstGoldGainHealPerTurn += other.belowHalfFirstGoldGainHealPerTurn
+        criticalGoldStealAmount += other.criticalGoldStealAmount
+        criticalGoldStealChancePercent += other.criticalGoldStealChancePercent
+        dodgeGoldAmount += other.dodgeGoldAmount
+        dodgeGoldChancePercent += other.dodgeGoldChancePercent
+        firstGoldTheftDoubleBattle = firstGoldTheftDoubleBattle || other.firstGoldTheftDoubleBattle
+        goldTheftNextAttackCriticalBonus += other.goldTheftNextAttackCriticalBonus
+        goldTheftStealEnemyBlockChancePercent += other.goldTheftStealEnemyBlockChancePercent
     }
 }
 
@@ -309,7 +359,17 @@ extension GoldTriggers {
             firstGoldTheftDrawBattle: values.decode(Bool.self, "firstGoldTheftDrawBattle", default: false),
             allyCriticalChancePerCombatGold: values.decode(Double.self, "allyCriticalChancePerCombatGold", default: 0),
             blockBreakStealGoldFlat: values.decode(Int.self, "blockBreakStealGoldFlat", default: 0),
-            goldTheftHealAllyFlat: values.decode(Int.self, "goldTheftHealAllyFlat", default: 0)
+            goldTheftHealAllyFlat: values.decode(Int.self, "goldTheftHealAllyFlat", default: 0),
+            attackGoldStealAmount: values.decode(Int.self, "attackGoldStealAmount", default: 0),
+            attackGoldStealChancePercent: values.decode(Double.self, "attackGoldStealChancePercent", default: 0),
+            belowHalfFirstGoldGainHealPerTurn: values.decode(Int.self, "belowHalfFirstGoldGainHealPerTurn", default: 0),
+            criticalGoldStealAmount: values.decode(Int.self, "criticalGoldStealAmount", default: 0),
+            criticalGoldStealChancePercent: values.decode(Double.self, "criticalGoldStealChancePercent", default: 0),
+            dodgeGoldAmount: values.decode(Int.self, "dodgeGoldAmount", default: 0),
+            dodgeGoldChancePercent: values.decode(Double.self, "dodgeGoldChancePercent", default: 0),
+            firstGoldTheftDoubleBattle: values.decode(Bool.self, "firstGoldTheftDoubleBattle", default: false),
+            goldTheftNextAttackCriticalBonus: values.decode(Double.self, "goldTheftNextAttackCriticalBonus", default: 0),
+            goldTheftStealEnemyBlockChancePercent: values.decode(Double.self, "goldTheftStealEnemyBlockChancePercent", default: 0)
         )
     }
 
@@ -361,5 +421,15 @@ extension GoldTriggers {
         try container.encodeNonDefault(allyCriticalChancePerCombatGold, "allyCriticalChancePerCombatGold", default: 0)
         try container.encodeNonDefault(blockBreakStealGoldFlat, "blockBreakStealGoldFlat", default: 0)
         try container.encodeNonDefault(goldTheftHealAllyFlat, "goldTheftHealAllyFlat", default: 0)
+        try container.encodeNonDefault(attackGoldStealAmount, "attackGoldStealAmount", default: 0)
+        try container.encodeNonDefault(attackGoldStealChancePercent, "attackGoldStealChancePercent", default: 0)
+        try container.encodeNonDefault(belowHalfFirstGoldGainHealPerTurn, "belowHalfFirstGoldGainHealPerTurn", default: 0)
+        try container.encodeNonDefault(criticalGoldStealAmount, "criticalGoldStealAmount", default: 0)
+        try container.encodeNonDefault(criticalGoldStealChancePercent, "criticalGoldStealChancePercent", default: 0)
+        try container.encodeNonDefault(dodgeGoldAmount, "dodgeGoldAmount", default: 0)
+        try container.encodeNonDefault(dodgeGoldChancePercent, "dodgeGoldChancePercent", default: 0)
+        try container.encodeNonDefault(firstGoldTheftDoubleBattle, "firstGoldTheftDoubleBattle", default: false)
+        try container.encodeNonDefault(goldTheftNextAttackCriticalBonus, "goldTheftNextAttackCriticalBonus", default: 0)
+        try container.encodeNonDefault(goldTheftStealEnemyBlockChancePercent, "goldTheftStealEnemyBlockChancePercent", default: 0)
     }
 }

@@ -81,22 +81,6 @@ struct TalentCatalogRoundTripTests {
         #expect(battle.roster.companion.currentHealth == battle.roster.companion.maxHealth - 1)
     }
 
-    @Test(arguments: [false, true])
-    func `triggered purge pays crownfall for each removed buff`(purgeAll: Bool) {
-        var battle = heroTalentBattle("shield_scarab_holy_t4_1")
-        seedHeroTalentEffect(.thorns(2), on: .enemy, in: &battle)
-        seedHeroTalentEffect(.damageReductionFlat(1, 2), on: .enemy, in: &battle)
-        seedHeroTalentEffect(.nextStrikeDouble, on: .enemy, in: &battle)
-        let healthBefore = battle.roster.enemy.currentHealth
-        let events = CombatTriggerEngine.applyPurge(
-            to: battle.enemy, source: battle.hero, abilityName: "Unmaking",
-            count: 1, purgeAll: purgeAll, in: &battle,
-        )
-        #expect(events.count { $0.effectKind == .purgeApplied } == (purgeAll ? 2 : 1))
-        #expect(healthBefore - battle.roster.enemy.currentHealth == (purgeAll ? 6 : 3))
-        #expect(battle.roster.activeEffects(for: battle.enemy).contains { $0.effect.kind == .damageReductionFlat })
-    }
-
     @Test func `deep freeze blocks enemy block and healing`() throws {
         let build = try BattleTestFixtures.catalogBuild(combatantID: "wizard", talents: "wizard_freeze_t3_1")
         var battle = BattleStateTestFactory.makeMinimalBattle(
@@ -201,49 +185,5 @@ struct TalentCatalogRoundTripTests {
             ),
         )
         #expect(battle.roster.health(for: hero) == 0)
-    }
-
-    @Test func `deathrattle revives with block before deaths door`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        let build = try BattleTestFixtures.catalogBuild(
-            combatantID: "risen_skeleton",
-            talents: "risen_skeleton_deathsdoor_t1_1",
-        )
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: build.combatant,
-            enemy: enemy,
-            companionModifiers: build.modifiers,
-        )
-        context.roster.mutateRuntime(for: build.combatant) { $0.currentHealth = 5 }
-
-        _ = context.resolveDamage(
-            DamageRequest(
-                amount: 50,
-                target: build.combatant,
-                keyword: .physical,
-                sourceActorID: enemy.id,
-                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
-            ),
-        )
-        try #expect(context.roster.health(for: build.combatant) == 1)
-        try #expect(
-            BattleTestFixtures.shieldPoints(for: build.combatant, in: context)
-                == context.paced(10, sourceActorID: build.combatant.id),
-        )
-        try #expect(context.roster.hasConsumedDeathsDoor(for: build.combatant) == false)
-
-        _ = context.resolveDamage(
-            DamageRequest(
-                amount: 50,
-                target: build.combatant,
-                keyword: .physical,
-                sourceActorID: enemy.id,
-                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
-            ),
-        )
-        try #expect(context.roster.health(for: build.combatant) == 1)
-        try #expect(context.roster.hasConsumedDeathsDoor(for: build.combatant))
     }
 }

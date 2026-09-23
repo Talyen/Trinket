@@ -113,6 +113,19 @@ package enum ControlMeterEngine {
                 multiplier: context.modifiers(for: sourceActorID).triggers.stunBuildupBelowHalfMultiplier,
             )
         }
+        if keyword == .stun, combatant.role == .enemy, let sourceActorID {
+            adjustedAmount = CombatRounding.scaled(
+                adjustedAmount, multiplier: context.modifiers(for: sourceActorID).triggers.stunBuildupMultiplier,
+            )
+        }
+        if keyword == .freeze, combatant.role == .enemy, let sourceActorID,
+           let source = context.roster.combatant(for: sourceActorID),
+           context.roster.runtime(for: source.combatant)?.talents.action.empoweredByMana == true {
+            adjustedAmount = CombatRounding.scaled(
+                adjustedAmount,
+                multiplier: context.modifiers(for: sourceActorID).triggers.manaEmpowerFreezeBuildupMultiplier,
+            )
+        }
         if keyword == .stun || keyword == .freeze {
             let targetTriggers = context.modifiers(for: combatant.id).triggers
             let steadfastResistance = targetTriggers.blockedControlBurnResistance > 0

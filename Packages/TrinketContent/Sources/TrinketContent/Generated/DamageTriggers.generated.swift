@@ -94,6 +94,8 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     public var poisonVsBurningMultiplier: Double = 1
     public var barbedSporesThornsVsPoisonedMultiplier: Double = 1
     public var coolMossFreezeBonus: Int = 0
+    public var bleedingEnemyPhysicalDamageMultiplier: Double = 1
+    public var leechEnemyNextAttackDamageMultiplier: Double = 1
 
     public init(
         ghostfrost: Bool = false,
@@ -185,7 +187,9 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         poisonCriticalDamageBonus: Int = 0,
         poisonVsBurningMultiplier: Double = 1,
         barbedSporesThornsVsPoisonedMultiplier: Double = 1,
-        coolMossFreezeBonus: Int = 0
+        coolMossFreezeBonus: Int = 0,
+        bleedingEnemyPhysicalDamageMultiplier: Double = 1,
+        leechEnemyNextAttackDamageMultiplier: Double = 1
     ) {
         self.ghostfrost = ghostfrost
         self.stolenThunder = stolenThunder
@@ -277,10 +281,12 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         self.poisonVsBurningMultiplier = poisonVsBurningMultiplier
         self.barbedSporesThornsVsPoisonedMultiplier = barbedSporesThornsVsPoisonedMultiplier
         self.coolMossFreezeBonus = coolMossFreezeBonus
+        self.bleedingEnemyPhysicalDamageMultiplier = bleedingEnemyPhysicalDamageMultiplier
+        self.leechEnemyNextAttackDamageMultiplier = leechEnemyNextAttackDamageMultiplier
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["ghostfrost", "stolenThunder", "physicalBonusesApplyToHoly", "attacksIgnoreBlockWhileTargetPoisoned", "damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "firstPhysicalAttackGuaranteedCritical", "firstAttackBleedBonus", "physicalIgnoreMitigationPercent", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "gildedClaws", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount", "toxicTransfusion", "pressurePoint", "warChest", "nerveAgent", "septicemia", "firebrand", "butchersLedger", "frostfire", "elementalParadox", "burnDoubleVsFrozenChancePercent", "companionDamageVsBurningMultiplier", "physicalDamageVsBlockedBonus", "burnDamageVsFrozenMultiplier", "criticalDamageVsBurningMultiplier", "physicalDamageFromBlockPercent", "holyDamageWhileBlockedMultiplier", "stunCriticalDamageMultiplier", "thornsDealHoly", "poisonAttackVsBleedingBonus", "companionDamageVsPoisonedMultiplier", "companionAttackVsBleedingMultiplier", "bleedAttackVsStunnedMultiplier", "burnDamageVsBleedingMultiplier", "burnCriticalDamageBonus", "companionCriticalVsBurningBonus", "poisonDoubleAfterCompanionHurt", "poisonDamageVsBleedingMultiplier", "bleedCriticalBelowHalfMultiplier", "burnBelowHalfHealthMultiplier", "zeroManaBurnMultiplier", "criticalVsBurningBonus", "poisonCriticalDamageBonus", "poisonVsBurningMultiplier", "barbedSporesThornsVsPoisonedMultiplier", "coolMossFreezeBonus"]
+    public static let fieldNames: [String] = ["ghostfrost", "stolenThunder", "physicalBonusesApplyToHoly", "attacksIgnoreBlockWhileTargetPoisoned", "damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus", "damageAfterDodgeBonus", "damageWhileTargetFrozenBonus", "damageWhileTargetStunnedBonus", "ignoreEnemyMitigationPercent", "leechIgnoresMitigation", "firstHitDoubleDamage", "firstPhysicalAttackGuaranteedCritical", "firstAttackBleedBonus", "physicalIgnoreMitigationPercent", "turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount", "turnRandomDamageAllEnemiesInterval", "holyDamagePoisonFlat", "stunnedDamageMultiplier", "criticalChanceBonus", "damageVsBleedingBonus", "damageVsPoisonedMultiplier", "damageVsBurningMultiplier", "damageVsFrozenMultiplier", "holyDamageVsStunnedOrBurningMultiplier", "holyDamageVsPoisonedOrBleedingMultiplier", "holyDamageVsStunnedBonus", "holyDamageVsUndeadOrCorruptedMultiplier", "frostDamageVsFrozenBonus", "burnDamageVsFrozenBonusPhysical", "burnDamageVsNoBlockMultiplier", "physicalDamageVsBleedingMultiplier", "damagePerMissingHealthEvery", "gildedClaws", "goldReservesDamageEvery", "goldReservesDamageCap", "damageVsLowerHealthEnemyBonus", "companionDamageVsPoisonedBonus", "companionDamageVsBurningBonus", "heroDamageVsStunnedMultiplier", "poisonDamageBelowHealthThreshold", "poisonDamageBelowHealthMultiplier", "bleedTickCritChancePercent", "burnDamageDoubleChancePercent", "partyCritChanceWhileCompanionAboveHealthThreshold", "partyCritChanceWhileCompanionAboveHealthBonus", "heroCritChanceWhileCompanionAlive", "critChancePerBleedingEnemy", "partyCritChanceWhileGoldAbove", "partyCritChanceWhileGoldAboveBonus", "partyAllStatsBonusBelowHealthThreshold", "partyAllStatsBonusBelowHealthAmount", "toxicTransfusion", "pressurePoint", "warChest", "nerveAgent", "septicemia", "firebrand", "butchersLedger", "frostfire", "elementalParadox", "burnDoubleVsFrozenChancePercent", "companionDamageVsBurningMultiplier", "physicalDamageVsBlockedBonus", "burnDamageVsFrozenMultiplier", "criticalDamageVsBurningMultiplier", "physicalDamageFromBlockPercent", "holyDamageWhileBlockedMultiplier", "stunCriticalDamageMultiplier", "thornsDealHoly", "poisonAttackVsBleedingBonus", "companionDamageVsPoisonedMultiplier", "companionAttackVsBleedingMultiplier", "bleedAttackVsStunnedMultiplier", "burnDamageVsBleedingMultiplier", "burnCriticalDamageBonus", "companionCriticalVsBurningBonus", "poisonDoubleAfterCompanionHurt", "poisonDamageVsBleedingMultiplier", "bleedCriticalBelowHalfMultiplier", "burnBelowHalfHealthMultiplier", "zeroManaBurnMultiplier", "criticalVsBurningBonus", "poisonCriticalDamageBonus", "poisonVsBurningMultiplier", "barbedSporesThornsVsPoisonedMultiplier", "coolMossFreezeBonus", "bleedingEnemyPhysicalDamageMultiplier", "leechEnemyNextAttackDamageMultiplier"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -375,6 +381,8 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
         if self.poisonVsBurningMultiplier != other.poisonVsBurningMultiplier { names.append("poisonVsBurningMultiplier") }
         if self.barbedSporesThornsVsPoisonedMultiplier != other.barbedSporesThornsVsPoisonedMultiplier { names.append("barbedSporesThornsVsPoisonedMultiplier") }
         if self.coolMossFreezeBonus != other.coolMossFreezeBonus { names.append("coolMossFreezeBonus") }
+        if self.bleedingEnemyPhysicalDamageMultiplier != other.bleedingEnemyPhysicalDamageMultiplier { names.append("bleedingEnemyPhysicalDamageMultiplier") }
+        if self.leechEnemyNextAttackDamageMultiplier != other.leechEnemyNextAttackDamageMultiplier { names.append("leechEnemyNextAttackDamageMultiplier") }
         return names
     }
 }
@@ -471,6 +479,8 @@ extension DamageTriggers {
         poisonVsBurningMultiplier *= other.poisonVsBurningMultiplier
         barbedSporesThornsVsPoisonedMultiplier *= other.barbedSporesThornsVsPoisonedMultiplier
         coolMossFreezeBonus += other.coolMossFreezeBonus
+        bleedingEnemyPhysicalDamageMultiplier *= other.bleedingEnemyPhysicalDamageMultiplier
+        leechEnemyNextAttackDamageMultiplier *= other.leechEnemyNextAttackDamageMultiplier
     }
 }
 
@@ -567,7 +577,9 @@ extension DamageTriggers {
             poisonCriticalDamageBonus: values.decode(Int.self, "poisonCriticalDamageBonus", default: 0),
             poisonVsBurningMultiplier: values.decode(Double.self, "poisonVsBurningMultiplier", default: 1),
             barbedSporesThornsVsPoisonedMultiplier: values.decode(Double.self, "barbedSporesThornsVsPoisonedMultiplier", default: 1),
-            coolMossFreezeBonus: values.decode(Int.self, "coolMossFreezeBonus", default: 0)
+            coolMossFreezeBonus: values.decode(Int.self, "coolMossFreezeBonus", default: 0),
+            bleedingEnemyPhysicalDamageMultiplier: values.decode(Double.self, "bleedingEnemyPhysicalDamageMultiplier", default: 1),
+            leechEnemyNextAttackDamageMultiplier: values.decode(Double.self, "leechEnemyNextAttackDamageMultiplier", default: 1)
         )
     }
 
@@ -662,5 +674,7 @@ extension DamageTriggers {
         try container.encodeNonDefault(poisonVsBurningMultiplier, "poisonVsBurningMultiplier", default: 1)
         try container.encodeNonDefault(barbedSporesThornsVsPoisonedMultiplier, "barbedSporesThornsVsPoisonedMultiplier", default: 1)
         try container.encodeNonDefault(coolMossFreezeBonus, "coolMossFreezeBonus", default: 0)
+        try container.encodeNonDefault(bleedingEnemyPhysicalDamageMultiplier, "bleedingEnemyPhysicalDamageMultiplier", default: 1)
+        try container.encodeNonDefault(leechEnemyNextAttackDamageMultiplier, "leechEnemyNextAttackDamageMultiplier", default: 1)
     }
 }

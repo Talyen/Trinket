@@ -40,6 +40,7 @@ extension HealingEngine {
         var events = applyLeechOverhealing(
             allocation: &allocation, request: request, sourceTriggers: sourceTriggers, in: &context,
         )
+        prepareFreeManaEmpowermentAfterOverheal(request: request, triggers: sourceTriggers, in: &context)
         if sourceTriggers?.wishspring == true {
             events.append(contentsOf: context.restoreManaEmitting(
                 CombatRounding.scaled(overflow, multiplier: 0.5), to: request.target,
@@ -89,6 +90,20 @@ extension HealingEngine {
             ))
         }
         return events
+    }
+
+    private static func prepareFreeManaEmpowermentAfterOverheal(
+        request: HealRequest,
+        triggers: CombatTraitTriggers?,
+        in context: inout BattleState,
+    ) {
+        guard triggers?.excessHealthNextManaEmpowerFree == true,
+              request.origin != .periodic,
+              let sourceID = request.sourceActorID,
+              let source = context.roster.combatant(for: sourceID), source.isAlive else { return }
+        context.roster.mutateRuntime(for: source.combatant) {
+            $0.talents.pending.nextManaEmpowerDiscount = max($0.talents.pending.nextManaEmpowerDiscount, 3)
+        }
     }
 
     private static func convertFractionalOverhealToBlock(
@@ -199,9 +214,11 @@ extension HealingEngine {
             }
         }
         if request.origin == .leech, sourceTriggers?.marrowmend == true,
-           request.sourceActorID == request.target.id {
-            let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: request.target))
-            let converted = allocation.allocate(max(0, 6 - block), to: .block)
+           request.sourceActorID == request.target.id,
+           context.claimHeroTalent("Marrowmend", actorID: request.target.id) {
+            let converted = allocation.allocate(
+                CombatRounding.scaled(allocation.remaining, multiplier: 0.5), to: .block,
+            )
             if converted > 0 {
                 events.append(contentsOf: context.applyBlock(
                     converted, to: request.target, source: request.target,

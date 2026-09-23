@@ -308,6 +308,48 @@
       "type": "Bool",
       "default": "false",
       "merge": "or"
+    },
+    {
+      "name": "freezeCritEnemyNextAttackMissChance",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "holyCritEnemyNextAttackMissChance",
+      "type": "Double",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onFreezeBurningEnemyBurnDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onFreezeEnemyGainBlock",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onStunExpirePoisonDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "onStunNextAttackGuaranteedCritical",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "stunBuildupMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
     }
   ]
 }

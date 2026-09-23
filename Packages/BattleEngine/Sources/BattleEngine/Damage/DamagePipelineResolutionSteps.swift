@@ -6,6 +6,7 @@ package extension DamagePipeline {
     static func applyPreparedAttackReduction(to state: inout DamageResolutionState, in context: inout BattleState) {
         guard state.options.isAttackHit, !state.options.isRetaliation else { return }
         state.remaining -= context.resolution.consumeAttackReduction(for: state.sourceActorID, damage: state.remaining)
+        applyFinalCompanionEnemyAttackReduction(to: &state, in: &context)
     }
 
     static func applyDamageBonus(

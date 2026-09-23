@@ -165,6 +165,7 @@ package extension CombatTriggerEngine {
         let wasBelowHalfHealth = context.roster.health(for: combatant) * 2
             < context.roster.maxHealth(for: combatant)
         var events = healSelfAfterGoldGain(source: combatant, in: &context).events
+        events.append(contentsOf: afterFinalCompanionGoldGain(granted: granted, actor: combatant, in: &context))
         let wildcardGoldGain = granted > 0 && context.allowsHeroTalentReaction
             && (!context.hasHeroCard(for: combatant.id)
                 || context.claimHeroCardBonus("wildcardGoldGain", actorID: combatant.id))

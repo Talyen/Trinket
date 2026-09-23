@@ -152,6 +152,21 @@ package extension CombatTriggerEngine {
                 )
             }
         }
+        if profile.triggers.blockBreakNextHolyHitDouble {
+            let serial = context.resolution.cardTalents?.playSerial
+            context.roster.mutateRuntime(for: target) {
+                $0.talents.pending.nextHolyHitDouble = true
+                $0.talents.pending.nextHolyHitPreparedCardSerial = serial
+            }
+        }
+        if profile.triggers.firstBlockBreakNextStunDouble,
+           context.claimHeroTalent("Quaking Carapace", actorID: target.id, battle: true) {
+            let serial = context.resolution.cardTalents?.playSerial
+            context.roster.mutateRuntime(for: target) {
+                $0.talents.pending.nextStunAttackDouble = true
+                $0.talents.pending.nextStunAttackPreparedCardSerial = serial
+            }
+        }
         if target.role == .companion, context.roster.hero.isAlive,
            profile.triggers.blockBreakAllyBlockFlat > 0 {
             events.append(contentsOf: context.applyBlock(
@@ -185,6 +200,22 @@ package extension CombatTriggerEngine {
     }
 
     static func afterEnemyStunned(sourceActorID: String?, in context: inout BattleState) -> [ActionEvent] {
+        if let sourceActorID, context.roster.enemy.isAlive {
+            let triggers = context.modifiers(for: sourceActorID).triggers
+            if triggers.stunnedEnemyLoseAllBlock {
+                DefensePoolEngine.set(0, on: context.roster.enemy.combatant, in: &context)
+            }
+            if triggers.onStunNextAttackGuaranteedCritical,
+               let source = context.roster.combatant(for: sourceActorID), source.isAlive {
+                let serial = context.resolution.cardTalents?.playSerial
+                let actionID = context.resolution.actionID
+                context.roster.mutateRuntime(for: source.combatant) {
+                    $0.talents.pending.nextStunPreparedCritical = true
+                    $0.talents.pending.nextStunCriticalPreparedCardSerial = serial
+                    $0.talents.pending.nextStunCriticalPreparedActionID = actionID
+                }
+            }
+        }
         if let sourceActorID,
            let source = context.roster.combatant(for: sourceActorID), source.isAlive,
            context.modifiers(for: sourceActorID).triggers.stunNextBlockGainMultiplier > 1 {
@@ -318,6 +349,7 @@ package extension CombatTriggerEngine {
         let profile = context.modifiers(for: target.id)
         var events = drawAfterHealthLoss(by: target, in: &context)
         preparePantherRedline(afterHealthLoss: target, in: &context)
+        events.append(contentsOf: vitalInfusionAfterHealthDrop(target: target, in: &context))
         if target.id == context.roster.hero.id, context.roster.hero.isAlive,
            context.roster.companion.isAlive,
            context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target),
@@ -371,6 +403,19 @@ package extension CombatTriggerEngine {
             amount: profile.triggers.onceBelowHealthPercentHeal, to: target, source: target, in: &context,
         ))
         return events
+    }
+
+    private static func vitalInfusionAfterHealthDrop(
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        let amount = context.modifiers(for: target.id).triggers.firstBelowHalfHealthHeal
+        guard amount > 0,
+              context.roster.health(for: target) > 0,
+              context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target),
+              context.resolution.claim(.heroTalent("Vital Infusion"), actorID: target.id, cadence: .battle)
+        else { return [] }
+        return context.healEmitting(amount: amount, target: target, source: target, abilityName: "Vital Infusion")
     }
 
     static func applyPurge(

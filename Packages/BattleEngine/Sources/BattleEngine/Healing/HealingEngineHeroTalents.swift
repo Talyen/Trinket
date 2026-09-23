@@ -21,9 +21,16 @@ extension HealingEngine {
     static func adjustedHeroHealingAmount(
         _ baseAmount: Int,
         request: HealRequest,
-        in context: BattleState,
+        in context: inout BattleState,
     ) -> Int {
         var amount = baseAmount
+        if amount > 0, request.target.role != .enemy, !request.isHoTTick,
+           let sourceID = request.sourceActorID,
+           context.roster.health(for: request.target) < context.roster.maxHealth(for: request.target),
+           context.modifiers(for: sourceID).triggers.firstHealthRestorationBonusPerTurn > 0,
+           context.claimHeroTalent("Sprite Touch", actorID: sourceID) {
+            amount += context.modifiers(for: sourceID).triggers.firstHealthRestorationBonusPerTurn
+        }
         if amount > 0, request.amountBasis != .resolved,
            request.target.role != .enemy, let sourceID = request.sourceActorID {
             amount = CombatRounding.scaled(
@@ -84,7 +91,34 @@ extension HealingEngine {
         events.append(contentsOf: applyOwlHealingTalents(
             request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context,
         ))
+        events.append(contentsOf: applyFinalCompanionHealingTalents(
+            request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context,
+        ))
         return events
+    }
+
+    private static func applyFinalCompanionHealingTalents(
+        request: HealRequest,
+        restored: Int,
+        sourceTriggers: CombatTraitTriggers?,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard restored > 0, !request.isHoTTick, request.target.role != .enemy,
+              let sourceID = request.sourceActorID,
+              let source = context.roster.combatant(for: sourceID), source.isAlive,
+              let sourceTriggers else { return [] }
+        if sourceTriggers.healthRestorationRepeatNextTurnChancePercent > 0,
+           context.claimTalentAbility("Lingering Blessing", actorID: sourceID),
+           BattleChance.succeeds(
+               probability: sourceTriggers.healthRestorationRepeatNextTurnChancePercent, using: &context.rng,
+           ) {
+            context.roster.mutateRuntime(for: request.target) {
+                $0.talents.timed.lingeringBlessing = LingeringBlessing(
+                    amount: restored, sourceActorID: sourceID, turnsRemaining: 1,
+                )
+            }
+        }
+        return []
     }
 
     private static func applyOwlHealingTalents(

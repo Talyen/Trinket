@@ -16,7 +16,7 @@ package extension DamagePipeline {
             sourceActorID: sourceActorID,
             target: state.combatant,
             blockedAmount: state.blockedAmount,
-            abilityHasLeech: state.options.abilityHasLeech,
+            abilityHasLeech: state.options.abilityHasLeech || state.talentAttackHasLeech,
             criticalAttack: state.isCritical && state.options.isAttackHit,
             attackHit: state.options.isAttackHit,
             damageKeyword: state.damageKeyword,
@@ -24,6 +24,7 @@ package extension DamagePipeline {
         )
         state.damageEvents.append(contentsOf: leechOutcome.events)
         state.didLeech = leechOutcome.flags.contains(.leeched)
+        applyFinalCompanionLeechRewards(to: &state, in: &context)
     }
 
     static func applyKeywordReactions(

@@ -115,6 +115,12 @@ package extension CombatTriggerEngine {
                 amount: triggers.cleanseBlockPerStack * removedCount, to: target, source: source, in: &context,
             ))
         }
+        if triggers.cleanseTargetBlockFlat > 0, removedCount > 0 {
+            events.append(contentsOf: context.applyBlock(
+                triggers.cleanseTargetBlockFlat,
+                to: target, source: source, abilityName: "Cleansing Ward",
+            ))
+        }
         guard allowPartyBlock, triggers.cleansePartyBlock > 0 else { return events }
         for (_, member) in livingPartyMembers(in: context) {
             events.append(contentsOf: emitBlock(
@@ -131,11 +137,19 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.roster.enemy.isAlive else { return [] }
+        var count = triggers.cleanseAlsoPurgesEnemyBuffs
+        if count == 0, triggers.cleansePurgeChancePercent > 0,
+           context.roster.activeEffects(for: context.roster.enemy.combatant).contains(where: \.effect.isRemovableBuff),
+           context.claimTalentAbility("Dispel Magic", actorID: source.id),
+           BattleChance.succeeds(probability: triggers.cleansePurgeChancePercent, using: &context.rng) {
+            count = 1
+        }
+        guard count > 0 else { return [] }
         return applyPurge(
             to: context.roster.enemy.combatant,
             source: source,
             abilityName: triggerAbilityName("cleanseAlsoPurgesEnemyBuffs", for: source, fallback: "Dispel Magic", in: context),
-            count: triggers.cleanseAlsoPurgesEnemyBuffs,
+            count: count,
             purgeAll: false,
             in: &context,
         )

@@ -57,7 +57,20 @@ struct CombatantTalentState: Hashable, Sendable {
         var guaranteedBleedCritical = false
         var doubleNextGoldSteal = false
         var nextPhysicalDamageBonus = 0
+        var nextHolyHitDouble = false
+        var nextHolyHitPreparedCardSerial: Int?
+        var nextStunAttackDouble = false
+        var nextStunAttackPreparedCardSerial: Int?
+        var nextBleedAttackMultiplier = 1.0
+        var nextBleedMultiplierPreparedCardSerial: Int?
+        var nextPhysicalAttackMultiplier = 1.0
+        var nextPhysicalAttackPreparedCardSerial: Int?
+        var nextCriticalHitMultiplier = 1.0
+        var nextCriticalHitPreparedCardSerial: Int?
         var nextManaEmpowerDiscount = 0
+        var nextManaSpendAttackBonus = 0
+        var nextManaSpendAttackPreparedCardSerial: Int?
+        var nextManaSpendAttackPreparedActionID: Int?
         var nextBlockGainMultiplier = 1.0
         var nextBlockGainPreparedCardSerial: Int?
         var nextFreezeIgnoresBlock = false
@@ -65,6 +78,8 @@ struct CombatantTalentState: Hashable, Sendable {
         var nextAttackIgnoresBlock = false
         var nextAttackIgnorePreparedCardSerial: Int?
         var nextAttackMissChance = 0.0
+        var nextAttackMissAbilityName: String?
+        var nextOutgoingAttackMultiplier = 1.0
         var nextIncomingDamageMultiplier = 1.0
         var nextIncomingDamagePreparedCardSerial: Int?
         var doubleNextBleedAttack = false
@@ -82,15 +97,23 @@ struct CombatantTalentState: Hashable, Sendable {
         var manaOverflowBlock = 0
         var nextAttackCriticalBonus = 0.0
         var nextAttackCriticalPreparedCardSerial: Int?
+        var nextAttackCriticalPreparedActionID: Int?
         var nextCleanseCriticalBonus = 0.0
         var nextCleanseCriticalPreparedCardSerial: Int?
         var nextAttackGuaranteedCritical = false
+        var nextStunPreparedCritical = false
+        var nextStunCriticalPreparedCardSerial: Int?
+        var nextStunCriticalPreparedActionID: Int?
         var basicGuaranteedCritical = false
         var basicCriticalBonus = 0.0
         var attackBonusOnFullHealth = 0
 
         static func isLaterAbility(preparedCardSerial: Int?, currentCardSerial: Int?) -> Bool {
             preparedCardSerial == nil || preparedCardSerial != currentCardSerial
+        }
+
+        static func isLaterAction(preparedActionID: Int?, currentActionID: Int?) -> Bool {
+            preparedActionID == nil || preparedActionID != currentActionID
         }
 
         mutating func reserveAttackBonuses() -> (damage: Int, holy: Int) {
@@ -115,6 +138,7 @@ struct CombatantTalentState: Hashable, Sendable {
 
     struct Action: Hashable, Sendable {
         var empoweredByMana = false
+        var arcaneBurst = false
     }
 
     var battle = Battle()
