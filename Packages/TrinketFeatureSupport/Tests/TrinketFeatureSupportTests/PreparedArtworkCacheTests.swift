@@ -230,6 +230,29 @@ struct PreparedArtworkCacheTests {
         #expect(cache.snapshot().pinnedCount == 0)
     }
 
+    @Test func `cloud artwork handoff retains old pins until publication and releases discarded pins`() async {
+        let image = makeImage()
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["old", "shared", "new"]) { name in
+            PreparedArtwork(name: name, image: image)
+        }
+        await cache.prepareAll(priorityImageNames: ["old", "shared"])
+
+        let discard = await cache.prepareLaunchPinReplacement(names: ["shared", "new"])
+        #expect(cache.pinDemandCount(for: "old") == 1)
+        #expect(cache.pinDemandCount(for: "shared") == 2)
+        #expect(cache.pinDemandCount(for: "new") == 1)
+        discard(false)
+        #expect(cache.pinDemandCount(for: "old") == 1)
+        #expect(cache.pinDemandCount(for: "shared") == 1)
+        #expect(cache.pinDemandCount(for: "new") == 0)
+
+        let publish = await cache.prepareLaunchPinReplacement(names: ["shared", "new"])
+        publish(true)
+        #expect(cache.pinDemandCount(for: "old") == 0)
+        #expect(cache.pinDemandCount(for: "shared") == 1)
+        #expect(cache.pinDemandCount(for: "new") == 1)
+    }
+
     @Test func `releasing pins during decode does not leak A pin`() async {
         let image = makeImage()
         let gate = DeferredDecodeGate()

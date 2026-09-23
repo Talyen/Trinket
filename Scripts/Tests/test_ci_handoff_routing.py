@@ -13,6 +13,7 @@ SCRIPT_INPUTS = (
 
 
 import re
+import shlex
 import shutil
 import subprocess
 import unittest
@@ -24,6 +25,38 @@ import tempfile
 from pathlib import Path
 
 class CIHandoffRoutingTests(ScriptRegressionTestCase):
+    def test_gemfile_changes_select_script_regressions(self) -> None:
+        for path in ("Gemfile", "Gemfile.lock"):
+            with self.subTest(path=path):
+                result = subprocess.run(
+                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", path],
+                    cwd=ROOT, capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn(f"./Scripts/test-scripts.sh --paths {path}", result.stdout)
+
+    def test_mixed_script_and_product_scope_keeps_narrow_regressions(self) -> None:
+        result = subprocess.run(
+            [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths",
+             "Scripts/check-links.py", "Packages/TrinketCore/Sources/TrinketCore/Keyword.swift"],
+            cwd=ROOT, capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        command = next(line.strip() for line in result.stdout.splitlines()
+                       if line.strip().startswith("./Scripts/test-scripts.sh --paths"))
+        paths = shlex.split(command)[2:]
+        selected = subprocess.run(
+            ["python3", "Scripts/script_test_selection.py", "--paths", *paths],
+            cwd=ROOT, capture_output=True, text=True, check=False,
+        )
+        script_only = subprocess.run(
+            ["python3", "Scripts/script_test_selection.py", "--paths", "Scripts/check-links.py"],
+            cwd=ROOT, capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(selected.returncode, 0, selected.stderr)
+        self.assertEqual(script_only.returncode, 0, script_only.stderr)
+        self.assertEqual(selected.stdout, script_only.stdout)
+
     def test_mystery_subflow_runs_play_smoke(self) -> None:
         # Deterministic routing: when --smoke is passed, any Play diff runs SmokeShellTests.
         result = subprocess.run(

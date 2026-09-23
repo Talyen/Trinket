@@ -155,16 +155,28 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
             launchApp(arguments: TestLaunchArg.allForAppPerformance())
             play.openCampaign()
             let campaignScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            measured("campaign-scroll", iteration: iteration) { performScrollGestures(app.scrollViews.firstMatch) }
-            verifyScrollProbes(campaignScrollProbes, app.scrollViews.firstMatch)
-            scrollUntilVisible(button(AccessibilityID.Play.stagePartyControl), swipingUp: false, maxAttempts: 8, requireHittable: true)
-            measured("campaign-party-picker", iteration: iteration) {
-                tapButton(AccessibilityID.Play.stagePartyControl)
-                assertExists(AccessibilityID.Play.battlePartyDone)
-                exerciseScroll(horizontalScrollView, horizontal: true)
-                app.buttons[AccessibilityID.Play.battlePartyOption(for: "Hero", combatantID: "rogue")].tap()
-                tapButton(AccessibilityID.Play.battlePartyDone)
-                assertDoesNotExist(AccessibilityID.Play.battlePartyDone)
+            let didScroll = measured("campaign-scroll", iteration: iteration) { performScrollGestures(app.scrollViews.firstMatch) }
+            if didScroll {
+                verifyScrollProbes(campaignScrollProbes, app.scrollViews.firstMatch)
+            }
+            if selected("campaign-party-picker") || selected("campaign-party-shelf-scroll") || selected("campaign-party-selection") {
+                scrollUntilVisible(button(AccessibilityID.Play.stagePartyControl), swipingUp: false, maxAttempts: 8, requireHittable: true)
+                measured("campaign-party-picker", iteration: iteration) {
+                    tapButton(AccessibilityID.Play.stagePartyControl)
+                    assertExists(AccessibilityID.Play.battlePartyDone)
+                }
+                if selected("campaign-party-shelf-scroll") {
+                    let partyScrollProbes = captureScrollProbes(horizontalScrollView, horizontal: true)
+                    measured("campaign-party-shelf-scroll", iteration: iteration) {
+                        performScrollGestures(horizontalScrollView, horizontal: true)
+                    }
+                    verifyScrollProbes(partyScrollProbes, horizontalScrollView, horizontal: true)
+                }
+                measured("campaign-party-selection", iteration: iteration) {
+                    app.buttons[AccessibilityID.Play.battlePartyOption(for: "Hero", combatantID: "rogue")].tap()
+                    tapButton(AccessibilityID.Play.battlePartyDone)
+                    assertDoesNotExist(AccessibilityID.Play.battlePartyDone)
+                }
             }
         }
     }

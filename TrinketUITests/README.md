@@ -81,6 +81,9 @@ Assert a journey’s return destination before using helpers that navigate elsew
   [performance playbook](../Docs/Platform/PerformanceInvestigationPlaybook.md);
   that plan measures explicit interaction windows, including victory and Mystery reveals.
   `performance.sh --list` lists scenarios and groups; its default is one pass.
+- In performance journeys, capture and verify scroll probes outside `measured`.
+  Establish a newly opened scroll surface before capturing its probes; measure
+  its gestures separately when the scroll itself needs a frame report.
 - Required Full Game coverage includes one purchase-to-unlocked-character journey
   and a chapter offer-entry check. Ask to Buy, restore/refund, and progress reset
   are advisory FullUI journeys.

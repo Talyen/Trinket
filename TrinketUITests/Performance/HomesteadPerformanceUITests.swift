@@ -25,15 +25,22 @@ final class HomesteadPerformanceUITests: PerformanceJourneyUITestCase {
             launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "homestead"))
             homestead.assertLoaded()
             let homesteadRootProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            measured("homestead-root-scroll", iteration: iteration) { performScrollGestures(app.scrollViews.firstMatch) }
-            verifyScrollProbes(homesteadRootProbes, app.scrollViews.firstMatch)
+            let didScrollRoot = measured("homestead-root-scroll", iteration: iteration) { performScrollGestures(app.scrollViews.firstMatch)
+            }
+            if didScrollRoot {
+                verifyScrollProbes(homesteadRootProbes, app.scrollViews.firstMatch)
+            }
             measured("homestead-category-browse", iteration: iteration) {
                 homestead.openFarmingCategoryAndRevealWheatFieldNode()
                 assertExists(AccessibilityID.Homestead.gallery)
             }
             let homesteadGalleryProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            measured("homestead-gallery-scroll", iteration: iteration) { performScrollGestures(app.scrollViews.firstMatch) }
-            verifyScrollProbes(homesteadGalleryProbes, app.scrollViews.firstMatch)
+            let didScrollGallery = measured("homestead-gallery-scroll", iteration: iteration) {
+                performScrollGestures(app.scrollViews.firstMatch)
+            }
+            if didScrollGallery {
+                verifyScrollProbes(homesteadGalleryProbes, app.scrollViews.firstMatch)
+            }
             reveal(button(AccessibilityID.Homestead.node(title: "Wheat Field")))
             measured("homestead-improvement", iteration: iteration, settle: 3) {
                 tapButton(AccessibilityID.Homestead.node(title: "Wheat Field"))

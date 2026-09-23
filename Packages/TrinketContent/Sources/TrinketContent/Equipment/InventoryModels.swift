@@ -164,9 +164,18 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         in slot: ItemSlot,
         inventory: [InventoryItem],
     ) -> Bool {
-        guard item.baseType.canEquip(in: slot) else { return false }
-        guard trinketBaseIsFree(item, excluding: slot, inventory: inventory) else { return false }
-        if slot == .weapon, !item.baseType.isRanged {
+        canEquip(baseType: item.baseType, candidateID: item.id, in: slot, inventory: inventory)
+    }
+
+    func canEquip(
+        baseType: ItemBaseType,
+        candidateID: String,
+        in slot: ItemSlot,
+        inventory: [InventoryItem],
+    ) -> Bool {
+        guard baseType.canEquip(in: slot) else { return false }
+        guard trinketBaseIsFree(baseType: baseType, candidateID: candidateID, excluding: slot, inventory: inventory) else { return false }
+        if slot == .weapon, !baseType.isRanged {
             if let secondaryID = itemID(for: .secondaryWeapon),
                let secondary = inventory.first(where: { $0.id == secondaryID }),
                secondary.baseType.isQuiver {
@@ -178,9 +187,9 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
             let primaryID = itemID(for: .weapon),
             let primary = inventory.first(where: { $0.id == primaryID })
         else {
-            return !item.baseType.isQuiver
+            return !baseType.isQuiver
         }
-        return Self.secondaryWeaponAllows(primary: primary.baseType, secondary: item.baseType)
+        return Self.secondaryWeaponAllows(primary: primary.baseType, secondary: baseType)
     }
 
     static func secondaryWeaponAllows(primary: ItemBaseType, secondary: ItemBaseType) -> Bool {
@@ -194,19 +203,20 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     }
 
     private func trinketBaseIsFree(
-        _ item: InventoryItem,
+        baseType: ItemBaseType,
+        candidateID: String,
         excluding destination: ItemSlot,
         inventory: [InventoryItem],
     ) -> Bool {
-        guard item.isTrinket else { return true }
+        guard baseType.slot == .trinket else { return true }
         return ItemSlot.allCases.allSatisfy { slot in
             guard slot != destination,
                   slot.baseItemSlot == destination.baseItemSlot,
                   let siblingID = itemID(for: slot),
-                  siblingID != item.id,
+                  siblingID != candidateID,
                   let worn = inventory.first(where: { $0.id == siblingID })
             else { return true }
-            return worn.baseType.id != item.baseType.id
+            return worn.baseType.id != baseType.id
         }
     }
 

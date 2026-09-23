@@ -48,10 +48,13 @@ with `handoff.sh --isolate --quiet --dry-run --paths <files...>` before an unfam
 
 ## Script regression ownership
 
-Each Python test module may declare a literal `SCRIPT_INPUTS = ("Scripts/owner.py", ...)`
+Each Python test module declares a literal `SCRIPT_INPUTS = ("Scripts/owner.py", ...)`
 tuple of repository-relative files or globs. The selector reads it with AST literal
 parsing and never imports test modules. Keep ownership beside the tests when adding
-or moving coverage; shared consumers combine their selections. Shell-suite mappings
+or moving coverage; shared consumers combine their selections. List direct inputs
+even when a shared source already takes the full-suite route. Shell-suite mappings
 and explicit full-suite exceptions remain in `script_test_selection.py`. Unknown
-inputs fall back to the full suite; ownership regressions reject unaccounted leaves
-and malformed metadata. Direct edits to a test module select that module.
+script and infrastructure inputs fall back to the full suite. Unrelated product
+paths use their own gates unless a regression declares them as direct inputs.
+Ownership regressions reject unaccounted leaves and malformed metadata. Direct
+edits to a test module select that module.

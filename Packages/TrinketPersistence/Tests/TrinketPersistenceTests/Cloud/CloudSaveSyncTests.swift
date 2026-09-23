@@ -163,9 +163,54 @@ extension CloudSaveSyncTests {
         #expect(await b.cloudSync?.synchronize() == true)
         try b.performBatchMutation { $0.roster.gold = 22 }
         #expect(await b.cloudSync?.synchronize() == true)
+        var preparationEvents: [String] = []
+        a.prepareExternalProgress = { incomingSave in
+            #expect(a.roster.gold == 11)
+            #expect(incomingSave.roster.gold == 22)
+            preparationEvents.append("prepared")
+            return { wasPublished in
+                preparationEvents.append(wasPublished ? "published" : "discarded")
+            }
+        }
         #expect(await a.cloudSync?.synchronize() == true)
         #expect(a.roster.gold == 22)
         #expect(invalidations == 1)
+        #expect(preparationEvents == ["prepared", "published"])
+
+        try b.performBatchMutation { $0.roster.gold = 33 }
+        #expect(await b.cloudSync?.synchronize() == true)
+        a.prepareExternalProgress = { _ in throw CloudSaveError.unavailable }
+        #expect(await a.cloudSync?.synchronize() == false)
+        #expect(a.roster.gold == 22)
+        a.prepareExternalProgress = nil
+        #expect(await a.cloudSync?.synchronize() == true)
+        #expect(a.roster.gold == 33)
+        #expect(try first.makeReloadedStore().roster.gold == 33)
+    }
+
+    @Test @MainActor func `cancelled external preparation keeps the current save until retry`() async throws {
+        let transport = CloudSaveTestTransport()
+        let first = try PersistenceTestContext()
+        let second = try PersistenceTestContext()
+        let a = try cloudStore(first, transport: transport)
+        let b = try cloudStore(second, transport: transport)
+        #expect(await a.cloudSync?.synchronize() == true)
+        #expect(await b.cloudSync?.synchronize() == true)
+        try b.performBatchMutation { $0.roster.gold = 21 }
+        #expect(await b.cloudSync?.synchronize() == true)
+
+        var discarded = false
+        a.prepareExternalProgress = { _ in
+            a.cloudSync?.accountDidChange()
+            return { wasPublished in discarded = !wasPublished }
+        }
+        #expect(await a.cloudSync?.synchronize() == false)
+        #expect(discarded)
+        #expect(a.roster.gold == 0)
+
+        a.prepareExternalProgress = nil
+        #expect(await a.cloudSync?.synchronize() == true)
+        #expect(a.roster.gold == 21)
     }
 
     @Test @MainActor func `unreadable cloud metadata stays intact while local progress remains playable`() throws {
@@ -404,6 +449,12 @@ extension CloudSaveSyncTests {
         #expect(await store.cloudSync?.synchronize() == true)
         #expect(store.roster.gold == 100)
         try store.performBatchMutation { $0.roster.gold = 777 }
+        var preparedGold: [Int] = []
+        store.prepareExternalProgress = { incomingSave in
+            preparedGold.append(incomingSave.roster.gold)
+            #expect(store.roster.gold != incomingSave.roster.gold)
+            return { _ in }
+        }
         await transport.switchAccount("player-b")
         #expect(await store.cloudSync?.synchronize() == true)
         #expect(store.roster.gold == 0)
@@ -411,6 +462,7 @@ extension CloudSaveSyncTests {
         await transport.switchAccount("player-a")
         #expect(await store.cloudSync?.synchronize() == true)
         #expect(store.roster.gold == 100)
+        #expect(preparedGold == [0, 100])
         #expect(await transport.account("player-b").head?.head.revision.snapshot.roster.gold == 0)
         #expect(try context.makeReloadedStore().cloudDeviceState.activeAccountID == "player-a")
     }

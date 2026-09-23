@@ -46,6 +46,15 @@ USAGE
   shift
 done
 
+if (( ${#requested_paths[@]} > 0 )); then
+  # Use the same path validation and normalization as handoff so direct
+  # invocations handle in-repository absolute paths for both routing and syntax.
+  # shellcheck source=change-classification.sh
+  source Scripts/change-classification.sh
+  trinket_collect_paths explicit "${requested_paths[@]}"
+  requested_paths=("${TRINKET_CHANGED_PATHS[@]}")
+fi
+
 selection_args=()
 if (( ${#requested_paths[@]} > 0 )); then
   selection_args=(--paths "${requested_paths[@]}")

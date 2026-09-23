@@ -55,6 +55,9 @@ public final class PlayerSaveStore {
     }
 
     @ObservationIgnored public var onExternalProgressChange: (@MainActor () -> Void)?
+    /// Prepares presentation resources for an incoming cloud save. The returned
+    /// closure commits or discards that preparation after the durable save write.
+    @ObservationIgnored public var prepareExternalProgress: (@MainActor (PlayerSave) async throws -> @MainActor (Bool) -> Void)?
     @ObservationIgnored var cloudDeviceState = CloudDeviceState()
     var preservesUnreadableCloudState = false
     static let memoryFallbackError = PlayerSavePersistenceError.storeUnavailable(

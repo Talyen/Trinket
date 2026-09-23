@@ -133,14 +133,25 @@ public final class JourneyPlayMode {
     }
 
     public func previewMysteryEvent(for stage: Stage) -> MysteryEvent? {
-        let resolved = resolvedCampaignStage(stage)
+        previewMysteryEvent(for: stage, save: playerSave.currentSave)
+    }
+
+    /// Preview against an incoming save before CloudKit publishes it. This
+    /// uses the same deterministic event inputs as the live encounter path.
+    public func previewMysteryEvent(for stage: Stage, save: PlayerSave) -> MysteryEvent? {
+        let resolved = resolvedCampaignStage(stage, save: save)
         switch resolved.encounter {
-        case .mysteryEvent:
-            return encounters.previewMysteryEvent(origin: .journey(stage: resolved))
-        case .recruit:
-            return encounters.previewMysteryEvent(
+        case .mysteryEvent, .recruit:
+            return MysteryEncounterSession.resolveEvent(
                 origin: .journey(stage: resolved),
                 forcedEventID: resolved.encounter.recruitEventID,
+                worldSeed: save.worldSeed,
+                pickContext: .journey(
+                    chapterNumber: resolved.chapterNumber,
+                    inventory: save.inventory,
+                    corruptionAltarCooldownRemaining: save.corruptionAltarCooldownRemaining,
+                ),
+                pinnedJourneyEventID: save.journey.pinnedMysteryEventIDs[resolved.id],
             )
         default:
             return nil
@@ -148,10 +159,14 @@ public final class JourneyPlayMode {
     }
 
     func resolvedCampaignStage(_ stage: Stage) -> Stage {
-        let roster = playerSave.roster
+        resolvedCampaignStage(stage, save: playerSave.currentSave)
+    }
+
+    private func resolvedCampaignStage(_ stage: Stage, save: PlayerSave) -> Stage {
+        let roster = save.roster
         return GameContent.resolveRecruitStage(
             stage,
-            worldSeed: playerSave.worldSeed,
+            worldSeed: save.worldSeed,
             unlockedHeroIDs: roster.unlockedHeroIDs,
             unlockedCompanionIDs: roster.unlockedCompanionIDs,
             access: playerSave.contentAccess,

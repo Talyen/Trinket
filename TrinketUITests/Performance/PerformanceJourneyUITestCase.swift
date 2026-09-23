@@ -26,12 +26,14 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
     }
 
     @MainActor
-    func measured(_ scenario: String, iteration: Int = 1, settle: TimeInterval = 1.5, action: () -> Void) {
+    @discardableResult
+    func measured(_ scenario: String, iteration: Int = 1, settle: TimeInterval = 1.5, action: () -> Void) -> Bool {
         guard selected(scenario) else {
-            if currentTestSelection.map({ !$0.isSubset(of: completedSteps[iteration] ?? []) }) ?? true {
+            let neededForLaterSelection = currentTestSelection.map { !$0.isSubset(of: completedSteps[iteration] ?? []) } ?? true
+            if neededForLaterSelection {
                 action()
             }
-            return
+            return neededForLaterSelection
         }
         prepareMeasurement()
         measurementControl.tap()
@@ -39,6 +41,7 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
         action()
         finishMeasurement(scenario, iteration: iteration, settle: settle)
         completedSteps[iteration, default: []].insert(scenario)
+        return true
     }
 
     var measurementControl: XCUICoordinate {
@@ -213,12 +216,5 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
                 abs($0.frame.minX - anchor.frame.minX) > 2 || abs($0.frame.minY - anchor.frame.minY) > 2
             }
         }
-    }
-
-    @MainActor
-    func exerciseScroll(_ surface: XCUIElement, horizontal: Bool = false) {
-        let before = captureScrollProbes(surface, horizontal: horizontal)
-        performScrollGestures(surface, horizontal: horizontal)
-        verifyScrollProbes(before, surface, horizontal: horizontal)
     }
 }

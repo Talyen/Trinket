@@ -57,7 +57,12 @@ Generated files are committed so the app builds without rerunning the generator.
 | `Combatant` | Hero/Companion model (stats, ability loadout) |
 | `Enemy` | Enemy model |
 | `ItemGenerator` | Random item generation from base + affix pools |
+| `ThemedGearGenerator` | Legal worn equipment for headless balance simulations |
 | `ShopOfferGenerator` | Procedural Merchant's Shop shelves (rarity + gold prices) |
+
+Themed gear builds retain only equipped items. Candidate bases must satisfy the
+same weapon-pair and duplicate-Trinket rules as `EquipmentLoadout`, so simulation
+inventory and loadout metadata describe the same gear.
 
 ## Combat trigger value semantics
 

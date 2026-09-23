@@ -9,11 +9,13 @@ final class ShellPerformanceUITests: PerformanceJourneyUITestCase {
             launchApp(arguments: [TestLaunchArg.resetState, TestLaunchArg.disableCloudSync, TestLaunchArg.enableFrameMetrics])
             assertExists(AccessibilityID.Onboarding.heroScreen)
             let carouselProbes = captureScrollProbes(app.scrollViews.firstMatch, horizontal: true)
-            measured("starter-carousel", iteration: iteration) {
+            let didScroll = measured("starter-carousel", iteration: iteration) {
                 performScrollGestures(app.scrollViews.firstMatch, horizontal: true)
                 app.buttons[AccessibilityID.Onboarding.option(role: .hero, combatantID: "knight")].tap()
             }
-            verifyScrollProbes(carouselProbes, app.scrollViews.firstMatch, horizontal: true)
+            if didScroll {
+                verifyScrollProbes(carouselProbes, app.scrollViews.firstMatch, horizontal: true)
+            }
             measured("starter-hero-confirm", iteration: iteration, settle: 3) {
                 tapWhenReady(any(AccessibilityID.Onboarding.confirm(role: .hero)))
                 assertExists(AccessibilityID.Onboarding.companionScreen)
@@ -32,14 +34,16 @@ final class ShellPerformanceUITests: PerformanceJourneyUITestCase {
             options.assertLoaded()
             let optionsForm = app.collectionViews.firstMatch.exists ? app.collectionViews.firstMatch : app.tables.firstMatch
             let optionsScrollProbes = captureScrollProbes(optionsForm)
-            measured("options-controls", iteration: iteration) {
+            let didScroll = measured("options-controls", iteration: iteration) {
                 app.sliders.firstMatch.adjust(toNormalizedSliderPosition: 0.3)
                 app.sliders.element(boundBy: 1).adjust(toNormalizedSliderPosition: 0.7)
                 app.switches[AccessibilityID.Options.hapticsToggle].tap()
                 app.switches[AccessibilityID.Options.rememberAutoBattleToggle].tap()
                 performScrollGestures(app.collectionViews.firstMatch.exists ? app.collectionViews.firstMatch : app.tables.firstMatch)
             }
-            verifyScrollProbes(optionsScrollProbes, optionsForm)
+            if didScroll {
+                verifyScrollProbes(optionsScrollProbes, optionsForm)
+            }
             assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
             measured("options-reset-cancel", iteration: iteration) {
                 tapButton(AccessibilityID.Options.resetProgressButton)

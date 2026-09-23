@@ -118,6 +118,10 @@ cannot acknowledge unseen remote changes as ancestors of those mutations.
 Adopting external progress increments the device-local session generation and
 invokes AppState's transient-session invalidation. Starter navigation also follows
 that generation so an imported hero choice refreshes the companion step.
+An app-provided preparation hook may await incoming presentation resources before
+the external save is durably installed; a cancelled or stale preparation must
+leave the observed save and cloud request intact. [UI performance](ui-performance.md)
+owns the artwork pin handoff.
 Acknowledging this device's own upload or claim does not end its current session. Session generation is local
 coordination state and is excluded from cloud snapshot coding.
 

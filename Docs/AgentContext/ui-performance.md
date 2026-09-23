@@ -6,15 +6,26 @@ first-frame performance. Root guidance owns product approval constraints.
 The launch cover intentionally holds for at least two seconds while resources
 prepare. `LaunchWarmupView` owns that duration, its timed gold title fill,
 and the completion callback used by `PreparedAppRoot`. Status text keeps stable
-identity and stops rotating when the title is full. The title fills left to right from 0 to
-100% over those two seconds; it represents the intentional hold, not artwork
-decode counts. Do not reconnect it to `PreparedArtworkCache.progress` or add a
-separate dismissal timer. If required resources, cast effects, or applicable root
-layouts take longer, keep the cover visible with the title fully gold until they are ready.
-The title animation timeline pauses when the scene is inactive and stops when launch
-readiness completes, including retained encounter underlays.
-Resource decoding and texture/raster preparation start during the hold; root and
-hidden-tab layout start after it, and launch cast rendering starts after those
+identity and stops rotating when the title is full. The title fills smoothly left
+to right from 0 to 100% over two seconds of elapsed wall time; it represents the
+intentional hold, not artwork decode counts. Scene inactivity pauses the title's
+rendering, not its elapsed clock or minimum hold. If the cover is still visible on
+return, the fill catches up rather than restarting or extending the hold. Keep
+the animation active for its set duration; do not reconnect it to
+`PreparedArtworkCache.progress` or add a separate dismissal timer. If required
+resources, cast effects, or applicable root layouts take longer, keep the cover
+visible with the title fully gold until they are ready. The title animation
+timeline stops when launch readiness completes, including retained encounter
+underlays.
+
+Artwork decoding and battle texture/raster preparation start during the hold.
+`PreparedAppRoot` launches them concurrently after enqueueing audio warmup.
+`PreparedArtworkCache.prepareAll` decodes pinned first-paint artwork first, then
+starts deferred catalog decoding as soon as priority work finishes; deferred work
+can continue after the cover closes, subject to the shared admission limits
+below. Before changing launch timing or decode policy to fill a perceived idle
+window, check pending artwork work and those limits. Root and hidden-tab layout
+start after resource preparation, and launch cast rendering starts after those
 layouts acknowledge readiness. Hidden cast warmups acquire their artwork and
 textures before constructing the live effect, then run their bounded rendering
 allowance. That allowance is not a GPU completion fence.
@@ -40,6 +51,10 @@ to `Image(name)` sync-decodes on that frame — that is the hitch path, not a
 memory win. Do not convert this to on-demand loading. Transient battle and
 Collection pins still release when that lifecycle ends; Collection re-keys its
 pin task when shelf combatants change so newly unlocked heroes stay hitch-free.
+Before CloudKit publishes different progress, prepare and pin the incoming
+save's first-paint artwork through the same cache. Keep the displayed save's
+launch pins until the durable replacement succeeds; discard incoming pins if
+the replacement is cancelled, fails, or loses a race with local progress.
 `PlayEncounterCoversModifier` prepares and retains first-visible Mystery and Shop
 artwork before publishing an encounter cover, keeping artwork readiness separate
 from encounter creation and gameplay eligibility. A mounted cover refreshes its

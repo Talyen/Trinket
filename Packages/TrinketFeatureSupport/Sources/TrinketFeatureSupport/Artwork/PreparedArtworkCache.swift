@@ -60,6 +60,7 @@ public final class PreparedArtworkCache {
     @ObservationIgnored private var deferredWarmupTask: Task<Void, Never>?
     @ObservationIgnored private var decodedCostsByName: [String: Int] = [:]
     @ObservationIgnored private var launchWarmupNames: [String] = []
+    @ObservationIgnored private var launchPinnedNames: [String] = []
     @ObservationIgnored private lazy var decodeScheduler = ArtworkDecodeScheduler(decode: decodeHandler) { [weak self] prepared in
         self?.publish(prepared)
     }
@@ -127,6 +128,20 @@ public final class PreparedArtworkCache {
 
     public func prepareAndPin(names: [String]) async {
         _ = await acquirePinnedArtwork(names: names)
+    }
+
+    /// Stage a cloud save's first-paint artwork without releasing the visible
+    /// save's pins. The caller finishes the handoff after its durable save write.
+    public func prepareLaunchPinReplacement(names: [String]) async -> @MainActor (Bool) -> Void {
+        let acquired = await acquirePinnedArtwork(names: names)
+        return { [self] wasPublished in
+            if wasPublished {
+                releasePins(names: launchPinnedNames)
+                launchPinnedNames = acquired
+            } else {
+                releasePins(names: acquired)
+            }
+        }
     }
 
     func acquirePinnedArtwork(names: [String]) async -> [String] {
@@ -210,6 +225,7 @@ public final class PreparedArtworkCache {
             for name in plan.priorityNames {
                 balanceFailedPin(named: name)
             }
+            launchPinnedNames = plan.priorityNames.filter { pinnedImages[$0] != nil }
             isLaunchWarmupComplete = true
             priorityWarmupTask = nil
             reportMemorySnapshot(label: "priorityWarmup")

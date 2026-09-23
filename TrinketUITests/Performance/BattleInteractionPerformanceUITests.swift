@@ -16,10 +16,12 @@ final class BattleInteractionPerformanceUITests: PerformanceJourneyUITestCase {
                 assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
                 battle.openCombatantCard(named: "Knight")
                 combatantDetail.assertLoaded(for: "Knight")
-                exerciseScroll(app.scrollViews.firstMatch)
-                dismissSheet()
-                assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
             }
+            let detailScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            performScrollGestures(app.scrollViews.firstMatch)
+            verifyScrollProbes(detailScrollProbes, app.scrollViews.firstMatch)
+            dismissSheet()
+            assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
             measured("battle-auto", iteration: iteration, settle: 3) {
                 let count = battle.handCards.count
                 battle.autoBattleToggle.tap()
@@ -48,10 +50,17 @@ final class BattleInteractionPerformanceUITests: PerformanceJourneyUITestCase {
                 battle.openActions()
                 tapButton(AccessibilityID.Battle.combatLog)
                 assertExists(AccessibilityID.Battle.combatLogSheet)
-                exerciseScroll(app.collectionViews.firstMatch.exists ? app.collectionViews.firstMatch : app.tables.firstMatch)
-                dismissSheet()
-                assertDoesNotExist(AccessibilityID.Battle.combatLogSheet)
             }
+            let log = app.collectionViews.firstMatch.exists ? app.collectionViews.firstMatch : app.tables.firstMatch
+            let logScrollProbes = captureScrollProbes(log)
+            let didScroll = measured("battle-log-scroll", iteration: iteration) {
+                performScrollGestures(log)
+            }
+            if didScroll {
+                verifyScrollProbes(logScrollProbes, log)
+            }
+            dismissSheet()
+            assertDoesNotExist(AccessibilityID.Battle.combatLogSheet)
         }
     }
 }

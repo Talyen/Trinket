@@ -8,14 +8,15 @@ final class ExplorePerformanceUITests: PerformanceJourneyUITestCase {
             launchApp(arguments: TestLaunchArg.allForAppPerformance())
             play.openExplore()
             assertExistsAfterScroll(AccessibilityID.Voyage.modeCard, requireHittable: true)
-            var scrollProbes: [ScrollAnchor] = []
-            measured("voyage-browse", iteration: iteration) {
-                tapButton(AccessibilityID.Voyage.modeCard)
-                assertExists(AccessibilityID.Voyage.action("easy"))
-                scrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            tapButton(AccessibilityID.Voyage.modeCard)
+            assertExists(AccessibilityID.Voyage.action("easy"))
+            let scrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            let didBrowse = measured("voyage-browse", iteration: iteration) {
                 performScrollGestures(app.scrollViews.firstMatch)
             }
-            verifyScrollProbes(scrollProbes, app.scrollViews.firstMatch)
+            if didBrowse {
+                verifyScrollProbes(scrollProbes, app.scrollViews.firstMatch)
+            }
         }
     }
 
@@ -28,21 +29,28 @@ final class ExplorePerformanceUITests: PerformanceJourneyUITestCase {
                 play.openExplore()
                 assertExists(AccessibilityID.Play.exploreHub)
             }
-            var spiresScrollProbes: [ScrollAnchor] = []
-            measured("spires-browse", iteration: iteration) {
+            if selected("spires-browse") || selected("spire-climb") {
                 tapButton(AccessibilityID.Play.spiresModeCard)
                 assertExists(AccessibilityID.Play.spiresHub)
-                spiresScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-                performScrollGestures(app.scrollViews.firstMatch)
-            }
-            verifyScrollProbes(spiresScrollProbes, app.scrollViews.firstMatch)
-            scrollUntilVisible(button(AccessibilityID.Play.spireRow("ironVein")), swipingUp: false, requireHittable: true)
-            measured("spire-climb", iteration: iteration) {
-                tapButton(AccessibilityID.Play.spireRow("ironVein"))
-                assertExists(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 1))
-                exerciseScroll(app.scrollViews.firstMatch)
-                goBack()
-                assertExists(AccessibilityID.Play.spiresHub)
+                let spiresScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+                let didBrowse = measured("spires-browse", iteration: iteration) {
+                    performScrollGestures(app.scrollViews.firstMatch)
+                }
+                if didBrowse {
+                    verifyScrollProbes(spiresScrollProbes, app.scrollViews.firstMatch)
+                }
+                if selected("spire-climb") {
+                    scrollUntilVisible(button(AccessibilityID.Play.spireRow("ironVein")), swipingUp: false, requireHittable: true)
+                    measured("spire-climb", iteration: iteration) {
+                        tapButton(AccessibilityID.Play.spireRow("ironVein"))
+                        assertExists(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 1))
+                    }
+                    let floorScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+                    performScrollGestures(app.scrollViews.firstMatch)
+                    verifyScrollProbes(floorScrollProbes, app.scrollViews.firstMatch)
+                    goBack()
+                    assertExists(AccessibilityID.Play.spiresHub)
+                }
             }
         }
     }
@@ -62,10 +70,12 @@ final class ExplorePerformanceUITests: PerformanceJourneyUITestCase {
                 assertExists(AccessibilityID.Play.labyrinthMap)
             }
             let labyrinthScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            measured("labyrinth-scroll", iteration: iteration) {
+            let didScroll = measured("labyrinth-scroll", iteration: iteration) {
                 performScrollGestures(app.scrollViews.firstMatch)
             }
-            verifyScrollProbes(labyrinthScrollProbes, app.scrollViews.firstMatch)
+            if didScroll {
+                verifyScrollProbes(labyrinthScrollProbes, app.scrollViews.firstMatch)
+            }
             scrollUntilVisible(any(AccessibilityID.Play.labyrinthFloor1EntryNode), swipingUp: false, requireHittable: true)
             measured("labyrinth-inspector", iteration: iteration) {
                 tapWhenReady(any(AccessibilityID.Play.labyrinthFloor1EntryNode))
@@ -83,14 +93,15 @@ final class ExplorePerformanceUITests: PerformanceJourneyUITestCase {
             launchApp(arguments: TestLaunchArg.allForAppPerformance())
             play.openExplore()
             assertExistsAfterScroll(AccessibilityID.Play.contractsModeCard, requireHittable: true)
-            var contractsScrollProbes: [ScrollAnchor] = []
-            measured("contracts-browse", iteration: iteration) {
-                tapButton(AccessibilityID.Play.contractsModeCard)
-                assertExists(AccessibilityID.Play.contractsBoard)
-                contractsScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            tapButton(AccessibilityID.Play.contractsModeCard)
+            assertExists(AccessibilityID.Play.contractsBoard)
+            let contractsScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            let didBrowse = measured("contracts-browse", iteration: iteration) {
                 performScrollGestures(app.scrollViews.firstMatch)
             }
-            verifyScrollProbes(contractsScrollProbes, app.scrollViews.firstMatch)
+            if didBrowse {
+                verifyScrollProbes(contractsScrollProbes, app.scrollViews.firstMatch)
+            }
             assertExistsAfterScroll(AccessibilityID.Play.contractsRefresh, requireHittable: true)
             measured("contracts-refresh", iteration: iteration) {
                 tapButton(AccessibilityID.Play.contractsRefresh)

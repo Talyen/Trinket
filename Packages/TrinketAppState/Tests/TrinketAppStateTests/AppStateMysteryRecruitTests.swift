@@ -41,6 +41,10 @@ struct AppStateMysteryRecruitTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
         let preview = try #require(state.journey.previewMysteryEvent(for: stage))
+        var incomingSave = state.playerSave.currentSave
+        incomingSave.roster.unlockedCompanionIDs.insert("bear")
+        #expect(state.journey.previewMysteryEvent(for: stage, save: incomingSave)?.id != preview.id)
+        #expect(state.journey.previewMysteryEvent(for: stage)?.id == preview.id)
         #expect(preview.isRecruit)
         #expect(preview.id == "recruit-bear")
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)

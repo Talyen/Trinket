@@ -20,6 +20,13 @@ INTENTIONALLY_UNMAPPED = {
     "Scripts/internal/cli.py": "shared by six families; any narrow route would under-test consumers",
     "Scripts/test-scripts.sh": "the runner itself; self-hosted, always full suite",
 }
+# Product inputs have their own handoff gates. A regression may still claim one
+# explicitly through SCRIPT_INPUTS, which takes precedence over this exclusion.
+PRODUCT_ROOTS = frozenset({
+    "Packages", "Trinket", "TrinketUITests", "ContentManifest", "ArtManifest",
+    "CinematicManifest", "MusicManifest", "SoundManifest", "Raw Assets",
+    "StoreKit", "Performance",
+})
 SHELL_FAMILIES = (({'Scripts/build-for-testing.sh',
    'Scripts/build-freshness.sh',
    'Scripts/build.sh',
@@ -131,6 +138,8 @@ def select_tests(paths: list[str], root: Path = ROOT) -> list[str]:
         families = [modules for owners, modules in routes
                     if any(fnmatchcase(path, owner) for owner in owners)]
         if not families:
+            if path.partition("/")[0] in PRODUCT_ROOTS:
+                continue
             return available
         for modules in families:
             selected.update(_module_path(module) for module in modules)

@@ -79,15 +79,18 @@ final class MysteryPerformanceUITests: PerformanceJourneyUITestCase {
                     + TestLaunchArg.mysteryRecruit(eventID: "corruption-altar")))
             assertExists(AccessibilityID.Mystery.encounterTitle)
             assertExistsAfterScroll(AccessibilityID.Mystery.choiceButton(choiceID: "corrupt-item"), requireHittable: true)
-            var corruptPickerProbes: [ScrollAnchor] = []
             measured("corruption-item-picker", iteration: iteration) {
                 tapButton(AccessibilityID.Mystery.choiceButton(choiceID: "corrupt-item"))
                 tapButton(AccessibilityID.Mystery.confirmChoiceButton)
                 assertExists(AccessibilityID.Mystery.corruptItemTitle)
-                corruptPickerProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            }
+            let corruptPickerProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            let didScroll = measured("corruption-item-scroll", iteration: iteration) {
                 performScrollGestures(app.scrollViews.firstMatch)
             }
-            verifyScrollProbes(corruptPickerProbes, app.scrollViews.firstMatch)
+            if didScroll {
+                verifyScrollProbes(corruptPickerProbes, app.scrollViews.firstMatch)
+            }
             let candidate = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "Mystery Corrupt Item ")).firstMatch
             reveal(candidate)
             measured("corruption-reveal", iteration: iteration, settle: 3) {

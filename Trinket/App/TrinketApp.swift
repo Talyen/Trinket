@@ -57,8 +57,10 @@ struct TrinketApp: App {
         // launch census let) before touching self.
         let bootstrap = Self.bootstrapState(makeState: makeState)
         if let state = bootstrap.state {
-            launchPriorityImageNames = LaunchArtworkCensus.priorityImageNames(for: state)
+            let initialNames = Self.priorityArtworkNames(for: state.playerSave.currentSave, in: state)
+            launchPriorityImageNames = initialNames
             _appState = State(initialValue: state)
+            Self.installCloudArtworkPreparation(in: state, initialNames: initialNames)
             cloudNotifications.store = state.playerSave
         } else {
             launchPriorityImageNames = []
@@ -66,6 +68,31 @@ struct TrinketApp: App {
             _bootstrapFailureMessage = State(initialValue: bootstrap.failureMessage)
         }
         MetricKitSubscriber.shared.start()
+    }
+
+    private static func priorityArtworkNames(for save: PlayerSave, in state: AppState) -> [String] {
+        LaunchArtworkCensus.priorityImageNames(
+            for: save,
+            contentAccess: state.playerSave.contentAccess,
+        ) { stage in
+            state.play.journey.previewMysteryEvent(for: stage, save: save)
+        }
+    }
+
+    private static func installCloudArtworkPreparation(in state: AppState, initialNames: [String]) {
+        state.playerSave.prepareExternalProgress = { [weak state] incomingSave in
+            guard let state else { return { _ in } }
+            let names = priorityArtworkNames(for: incomingSave, in: state)
+            let cache = PreparedArtworkCache.shared
+            await cache.prepareAll(priorityImageNames: initialNames)
+            try Task.checkCancellation()
+            let finish = await cache.prepareLaunchPinReplacement(names: names)
+            if Task.isCancelled {
+                finish(false)
+                throw CancellationError()
+            }
+            return finish
+        }
     }
 
     private struct BootstrapResult {

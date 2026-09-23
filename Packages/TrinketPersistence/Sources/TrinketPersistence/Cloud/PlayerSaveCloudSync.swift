@@ -93,7 +93,7 @@ public final class PlayerSaveCloudSync {
         store.flushPendingPersistence()
         let accountID = try await transport.accountID()
         try Task.checkCancellation()
-        try bind(accountID, in: store)
+        try await bind(accountID, in: store)
         requiresAuthority = accountID != nil
         guard let accountID else { return }
 
@@ -110,7 +110,7 @@ public final class PlayerSaveCloudSync {
             try Task.checkCancellation()
             guard store.cloudDeviceState.activeAccountID == accountID else { throw CloudSaveError.accountChanged }
             guard let request = store.cloudDeviceState.account.pending else {
-                if try importRemoteIfUnchanged(server, in: store) {
+                if try await importRemoteIfUnchanged(server, in: store) {
                     return
                 }
                 continue
@@ -118,7 +118,7 @@ public final class PlayerSaveCloudSync {
 
             if let receipt = try await transport.fetchReceipt(accountID: accountID, requestID: request.id) {
                 guard let server else { throw CloudSaveError.missingHead }
-                if try finish(request, receipt: receipt, server: server, accountID: accountID, in: store) {
+                if try await finish(request, receipt: receipt, server: server, accountID: accountID, in: store) {
                     return
                 }
                 continue
@@ -136,7 +136,7 @@ public final class PlayerSaveCloudSync {
                     receipt: resolution.receipt,
                     backups: resolution.backups,
                 )
-                if try finish(request, receipt: resolution.receipt, server: committed, accountID: accountID, in: store) {
+                if try await finish(request, receipt: resolution.receipt, server: committed, accountID: accountID, in: store) {
                     return
                 }
             } catch CloudSaveError.conflict {
@@ -157,16 +157,44 @@ public final class PlayerSaveCloudSync {
         try await Task.sleep(for: .milliseconds(Int.random(in: (ceiling / 2) ... ceiling)))
     }
 
-    private func importRemoteIfUnchanged(_ server: CloudServerSave?, in store: PlayerSaveStore) throws -> Bool {
+    private func importRemoteIfUnchanged(_ server: CloudServerSave?, in store: PlayerSaveStore) async throws -> Bool {
         guard let server else { throw CloudSaveError.missingHead }
-        var state = store.cloudDeviceState
+        let originalState = store.cloudDeviceState
         let current = CloudSaveSnapshot(store.currentSave)
-        guard state.account.base?.revision.snapshot == current, !state.account.resetRequested else { return false }
-        if state.account.base != server.head {
+        guard originalState.account.base?.revision.snapshot == current,
+              !originalState.account.resetRequested else { return false }
+        if originalState.account.base != server.head {
+            var state = originalState
             state.account.base = server.head
-            try store.commitCloudState(state, replacing: server.head.revision.snapshot.restored())
+            let replacement = try server.head.revision.snapshot.restored()
+            return try await withPreparedExternalSave(replacement, in: store) {
+                guard store.cloudDeviceState == originalState,
+                      CloudSaveSnapshot(store.currentSave) == current else { return false }
+                try store.commitCloudState(state, replacing: replacement)
+                return true
+            }
         }
         return true
+    }
+
+    /// Hold incoming artwork before publishing a different save. A preparation
+    /// that loses a race with local progress or an account switch is discarded.
+    private func withPreparedExternalSave(
+        _ replacement: PlayerSave,
+        in store: PlayerSaveStore,
+        commit: () throws -> Bool,
+    ) async throws -> Bool {
+        let differs = CloudSaveSnapshot(store.currentSave) != CloudSaveSnapshot(replacement)
+        let finishPreparation = differs ? try await store.prepareExternalProgress?(replacement) : nil
+        do {
+            try Task.checkCancellation()
+            let committed = try commit()
+            finishPreparation?(committed)
+            return committed
+        } catch {
+            finishPreparation?(false)
+            throw error
+        }
     }
 
     private func enqueue(_ action: CloudSaveRequest.Action, in store: PlayerSaveStore) throws -> CloudSaveRequest {
@@ -198,9 +226,11 @@ public final class PlayerSaveCloudSync {
         server: CloudServerSave,
         accountID: String,
         in store: PlayerSaveStore,
-    ) throws -> Bool {
+    ) async throws -> Bool {
         try Task.checkCancellation()
-        var state = store.cloudDeviceState
+        let originalState = store.cloudDeviceState
+        let originalSnapshot = CloudSaveSnapshot(store.currentSave)
+        var state = originalState
         guard state.activeAccountID == accountID else { throw CloudSaveError.accountChanged }
         guard state.account.pending?.id == request.id else { return false }
         let sourceUnchanged = CloudSaveSnapshot(store.currentSave) == request.revision.snapshot
@@ -224,11 +254,23 @@ public final class PlayerSaveCloudSync {
             default:
                 receipt.acceptedLocalSnapshot && server.head.revision.id == request.id
             }
-            try store.commitCloudState(
-                state,
-                replacing: server.head.revision.snapshot.restored(),
-                invalidatesSession: !isOwnChange,
-            )
+            let replacement = try server.head.revision.snapshot.restored()
+            let commitReplacement = {
+                guard store.cloudDeviceState == originalState,
+                      CloudSaveSnapshot(store.currentSave) == originalSnapshot else { return false }
+                try store.commitCloudState(
+                    state,
+                    replacing: replacement,
+                    invalidatesSession: !isOwnChange,
+                )
+                return true
+            }
+            if !isOwnChange {
+                guard try await withPreparedExternalSave(replacement, in: store, commit: commitReplacement)
+                else { return false }
+            } else {
+                guard try commitReplacement() else { return false }
+            }
         } else {
             if receipt.outcome == .synchronized, receipt.epoch == server.head.epoch,
                server.head.revision.id == request.id {
@@ -245,9 +287,10 @@ public final class PlayerSaveCloudSync {
         return sourceUnchanged
     }
 
-    private func bind(_ accountID: String?, in store: PlayerSaveStore) throws {
+    private func bind(_ accountID: String?, in store: PlayerSaveStore) async throws {
         var state = store.cloudDeviceState
         guard state.activeAccountID != accountID else { return }
+        let originalState = state
         let local = CloudSaveSnapshot(store.currentSave)
         if let previous = state.activeAccountID {
             state.archiving(CloudAccountArchive(snapshot: local, state: state.account), for: previous)
@@ -277,6 +320,15 @@ public final class PlayerSaveCloudSync {
             replacement = nil
         }
         state.activeAccountID = accountID
-        try store.commitCloudState(state, replacing: replacement)
+        if let replacement {
+            guard try await withPreparedExternalSave(replacement, in: store, commit: {
+                guard store.cloudDeviceState == originalState,
+                      CloudSaveSnapshot(store.currentSave) == local else { return false }
+                try store.commitCloudState(state, replacing: replacement)
+                return true
+            }) else { throw CloudSaveError.conflict }
+        } else {
+            try store.commitCloudState(state)
+        }
     }
 }

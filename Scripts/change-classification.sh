@@ -642,7 +642,7 @@ trinket_classify_path() {
       TRINKET_NEEDS_APP_BUILD=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
-    Scripts/*|.github/*|.githooks/*)
+    Scripts/*|.github/*|.githooks/*|Gemfile|Gemfile.lock)
       TRINKET_NEEDS_SCRIPT_TESTS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;

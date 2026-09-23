@@ -134,7 +134,7 @@ struct ChapterStageSelectView: View {
 
 @MainActor
 enum CampaignStagePresentation {
-    static func chapter(_ chapter: Chapter, playerSave: PlayerSaveStore) -> Chapter {
+    static func chapter(_ chapter: Chapter, save: PlayerSave, contentAccess: ContentAccessPolicy) -> Chapter {
         Chapter(
             id: chapter.id,
             number: chapter.number,
@@ -143,10 +143,10 @@ enum CampaignStagePresentation {
             stages: chapter.stages.map { stage in
                 GameContent.resolveRecruitStage(
                     stage,
-                    worldSeed: playerSave.worldSeed,
-                    unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
-                    unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs,
-                    access: playerSave.contentAccess,
+                    worldSeed: save.worldSeed,
+                    unlockedHeroIDs: save.roster.unlockedHeroIDs,
+                    unlockedCompanionIDs: save.roster.unlockedCompanionIDs,
+                    access: contentAccess,
                 )
             },
         )
@@ -161,7 +161,11 @@ private struct CampaignMapSnapshot {
     let isComplete: Bool
 
     init(journey: JourneyPlayMode, playerSave: PlayerSaveStore) {
-        chapter = CampaignStagePresentation.chapter(journey.playChapter, playerSave: playerSave)
+        chapter = CampaignStagePresentation.chapter(
+            journey.playChapter,
+            save: playerSave.currentSave,
+            contentAccess: playerSave.contentAccess,
+        )
         rows = StageSelectRowPresentation.stageRows(
             for: chapter,
             progress: playerSave.journey,

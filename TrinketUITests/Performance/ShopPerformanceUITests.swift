@@ -11,10 +11,12 @@ final class ShopPerformanceUITests: PerformanceJourneyUITestCase {
             assertExists(AccessibilityID.Shop.goldBalance)
             let shop = ShopScreen(app: app)
             let shopScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            measured("shop-scroll", iteration: iteration) {
+            let didScroll = measured("shop-scroll", iteration: iteration) {
                 performScrollGestures(app.scrollViews.firstMatch)
             }
-            verifyScrollProbes(shopScrollProbes, app.scrollViews.firstMatch)
+            if didScroll {
+                verifyScrollProbes(shopScrollProbes, app.scrollViews.firstMatch)
+            }
             measured("shop-purchase", iteration: iteration) {
                 tapWhenReady(shop.offerCards.firstMatch)
                 assertExists(shop.detailBuy)

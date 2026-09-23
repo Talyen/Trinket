@@ -3,7 +3,8 @@ import TrinketCore
 
 enum BattleAbilityRules {
     static func canPayHealthCost(_ ability: Ability, actor: Combatant, in context: BattleState) -> Bool {
-        let componentSets = ability.outcomeBranches?.map(\.damageComponents) ?? [ability.damageComponents]
+        let selected = resolveConditionalOutcome(ability, actor: actor, in: context)
+        let componentSets = selected.outcomeBranches?.map(\.damageComponents) ?? [selected.damageComponents]
         let cost = componentSets.map { healthCost($0, actor: actor, in: context) }.max() ?? 0
         return context.roster.health(for: actor) > cost
     }
@@ -46,18 +47,6 @@ enum BattleAbilityRules {
         let ability = resolveConditionalOutcome(ability, actor: actor, in: context)
         guard let branches = ability.outcomeBranches else { return ability }
         guard let selected = branches.randomElement(using: &context.rng) else { return ability }
-        let operations = selected.operations.compactMap { operation -> AbilityOperation? in
-            guard case let .effect(targeted) = operation else { return operation }
-            if let condition = targeted.condition,
-               !BattleConditionEvaluator.isMet(condition, actor: actor, in: context) {
-                return nil
-            }
-            return .effect(TargetedEffect(targeted.effect, target: targeted.target))
-        }
-        let branch = AbilityOutcomeBranch(
-            randomizeDamageKeywords: selected.randomizeDamageKeywords,
-            operations: operations,
-        )
-        return ability.resolving(branch: branch, using: &context.rng)
+        return ability.resolving(branch: selected, using: &context.rng)
     }
 }

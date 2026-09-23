@@ -1,14 +1,18 @@
-import TrinketAppState
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketPersistence
 
 @MainActor
 enum LaunchArtworkCensus {
-    static func priorityImageNames(for appState: AppState) -> [String] {
+    static func priorityImageNames(
+        for save: PlayerSave,
+        contentAccess: ContentAccessPolicy,
+        previewMysteryEvent: (Stage) -> MysteryEvent?,
+    ) -> [String] {
         var names = Set<String>()
 
-        for combatant in [appState.playerSave.roster.activeHero, appState.playerSave.roster.activeCompanion] {
+        for combatant in [save.roster.activeHero, save.roster.activeCompanion] {
             if let ref = combatant.artReference {
                 names.insert(ref.imageName)
                 if let thumb = ref.thumbnailImageName {
@@ -17,7 +21,7 @@ enum LaunchArtworkCensus {
             }
         }
 
-        if appState.playerSave.starterSelection.phase != .complete {
+        if save.starterSelection.phase != .complete {
             for combatant in GameContent.combatants {
                 if let thumb = combatant.artReference?.thumbnailImageName {
                     names.insert(thumb)
@@ -25,9 +29,9 @@ enum LaunchArtworkCensus {
             }
         }
 
-        if let stageID = appState.playerSave.journey.activeStageID,
+        if let stageID = save.journey.activeStageID,
            let stage = GameContent.stage(id: stageID),
-           let enemyRef = stage.encounterCombatantArtReference(worldSeed: appState.playerSave.worldSeed) {
+           let enemyRef = stage.encounterCombatantArtReference(worldSeed: save.worldSeed) {
             names.insert(enemyRef.imageName)
             if let thumb = enemyRef.thumbnailImageName {
                 names.insert(thumb)
@@ -40,19 +44,30 @@ enum LaunchArtworkCensus {
                 names.insert(thumbnail)
             }
         }
-        collectRootTabImageNames(into: &names, for: appState)
+        collectRootTabImageNames(
+            into: &names, for: save, contentAccess: contentAccess,
+            previewMysteryEvent: previewMysteryEvent,
+        )
         return names.sorted()
     }
 
-    private static func collectRootTabImageNames(into names: inout Set<String>, for appState: AppState) {
-        collectCollectionImageNames(into: &names, for: appState)
+    private static func collectRootTabImageNames(
+        into names: inout Set<String>,
+        for save: PlayerSave,
+        contentAccess: ContentAccessPolicy,
+        previewMysteryEvent: (Stage) -> MysteryEvent?,
+    ) {
+        collectCollectionImageNames(into: &names, for: save)
         collectHomesteadAndResourceImageNames(into: &names)
-        collectCampaignImageNames(into: &names, for: appState)
+        collectCampaignImageNames(
+            into: &names, for: save, contentAccess: contentAccess,
+            previewMysteryEvent: previewMysteryEvent,
+        )
     }
 
-    private static func collectCollectionImageNames(into names: inout Set<String>, for appState: AppState) {
-        let roster = appState.playerSave.roster
-        let inventory = appState.playerSave.inventory
+    private static func collectCollectionImageNames(into names: inout Set<String>, for save: PlayerSave) {
+        let roster = save.roster
+        let inventory = save.inventory
         let shelfLimit = TrinketDesign.Layout.collectionShelfPreviewLimit
 
         for hero in roster.collectionHeroes.prefix(shelfLimit) {
@@ -104,8 +119,14 @@ enum LaunchArtworkCensus {
         }
     }
 
-    private static func collectCampaignImageNames(into names: inout Set<String>, for appState: AppState) {
-        let chapter = CampaignStagePresentation.chapter(appState.play.journey.playChapter, playerSave: appState.playerSave)
+    private static func collectCampaignImageNames(
+        into names: inout Set<String>,
+        for save: PlayerSave,
+        contentAccess: ContentAccessPolicy,
+        previewMysteryEvent: (Stage) -> MysteryEvent?,
+    ) {
+        let baseChapter = GameContent.chapter(id: save.journey.activeChapterID) ?? GameContent.chapters[0]
+        let chapter = CampaignStagePresentation.chapter(baseChapter, save: save, contentAccess: contentAccess)
         if let chapterImg = (ArtCatalog.backgroundArtByID[chapter.id]
             ?? ArtCatalog.backgroundArtByID[EncounterArtIDs.fallbackChapterID])?.imageName {
             names.insert(chapterImg)
@@ -114,8 +135,8 @@ enum LaunchArtworkCensus {
         for stage in chapter.stages {
             if let art = EncounterArtwork.reference(
                 for: stage,
-                resolvedMysteryEvent: appState.play.journey.previewMysteryEvent(for: stage),
-                worldSeed: appState.playerSave.worldSeed,
+                resolvedMysteryEvent: previewMysteryEvent(stage),
+                worldSeed: save.worldSeed,
             ) {
                 names.insert(art.imageName)
                 if let thumb = art.preparedThumbnailImageName {

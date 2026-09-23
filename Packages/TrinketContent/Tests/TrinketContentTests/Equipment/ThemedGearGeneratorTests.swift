@@ -46,6 +46,73 @@ struct ThemedGearGeneratorTests {
         try #expect(build.loadout.itemIDsBySlot.count == 1)
     }
 
+    @Test func `ranged loadout equips only a compatible secondary`() throws {
+        let crossbow = try #require(GameContent.itemBaseType(matching: "crossbow"))
+        let quiver = try #require(GameContent.itemBaseType(matching: "quiver"))
+        let shield = try #require(GameContent.itemBaseType(matching: "kite_shield"))
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+
+        let scenarios: [([ItemBaseType], String?)] = [
+            ([crossbow, shield], nil),
+            ([crossbow, shield, quiver], "quiver"),
+        ]
+        for (bases, expectedSecondary) in scenarios {
+            var rng = SeededRandomNumberGenerator(seed: 1)
+            let build = ThemedGearGenerator(baseTypes: bases).generate(
+                for: knight,
+                rarity: .basic,
+                fixedAffixCount: 1,
+                idPrefix: "ranged",
+                keywordBias: [.physical, .bleed, .poison],
+                using: &rng,
+            )
+
+            #expect(build.loadout.itemID(for: .weapon) != nil)
+            let secondaryID = build.loadout.itemID(for: .secondaryWeapon)
+            #expect(build.inventory.first { $0.id == secondaryID }?.baseType.id == expectedSecondary)
+            #expect(Set(build.inventory.map(\.id)) == Set(build.loadout.itemIDsBySlot.values))
+        }
+    }
+
+    @Test func `lone quiver cannot become starter gear`() throws {
+        let quiver = try #require(GameContent.itemBaseType(matching: "quiver"))
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        var rng = SeededRandomNumberGenerator(seed: 1)
+
+        let build = ThemedGearGenerator(baseTypes: [quiver]).generateSinglePiece(
+            for: knight,
+            rarity: .basic,
+            fixedAffixCount: 1,
+            idPrefix: "starter",
+            using: &rng,
+        )
+
+        #expect(build.inventory.isEmpty)
+        #expect(build.loadout.itemIDsBySlot.isEmpty)
+    }
+
+    @Test func `companion trinket slots use distinct bases`() throws {
+        let boneCharm = try #require(GameContent.itemBaseType(matching: "bone_charm"))
+        let collar = try #require(GameContent.itemBaseType(matching: "companions_collar"))
+        let bear = try #require(GameContent.companions.first { $0.id == "bear" })
+
+        for bases in [[boneCharm], [boneCharm, collar]] {
+            var rng = SeededRandomNumberGenerator(seed: 1)
+            let build = ThemedGearGenerator(baseTypes: bases, includeTrinkets: true).generate(
+                for: bear,
+                rarity: .basic,
+                fixedAffixCount: 1,
+                idPrefix: "trinkets",
+                keywordBias: [.health],
+                using: &rng,
+            )
+
+            #expect(build.inventory.count == bases.count)
+            #expect(Set(build.inventory.map(\.baseType.id)).count == bases.count)
+            #expect(Set(build.inventory.map(\.id)) == Set(build.loadout.itemIDsBySlot.values))
+        }
+    }
+
     @Test func `keyword profile includes ability keywords`() throws {
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
         try #expect(wizard.keywordProfile.contains(.burn))

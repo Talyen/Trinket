@@ -44,6 +44,12 @@ def script_leaves() -> set[str]:
 
 
 class ScriptSelectionTests(unittest.TestCase):
+    def test_every_python_regression_declares_inputs(self) -> None:
+        registered = {module for _, modules in regression_families()
+                      for module in modules if not module.endswith(".sh")}
+        available = {path.stem for path in (ROOT / "Scripts/Tests").glob("test*.py")}
+        self.assertEqual(registered, available)
+
     def test_every_leaf_is_routed_or_intentionally_unmapped(self) -> None:
         patterns = {owner for owners, _ in regression_families() for owner in owners}
         unaccounted = {leaf for leaf in script_leaves() if leaf not in INTENTIONALLY_UNMAPPED
@@ -83,17 +89,73 @@ class ScriptSelectionTests(unittest.TestCase):
         # Docs are checked by their own gate, not the script suites.
         self.assertEqual(select_tests(["Scripts/Reference.md"]), [])
 
+    def test_shared_regressions_follow_their_direct_inputs(self) -> None:
+        for path in ("Scripts/build-inputs.env", "Scripts/config/diagnostic-limits.env"):
+            with self.subTest(path=path):
+                self.assertIn("Scripts/Tests/test_internal_cli.py", select_tests([path]))
+
+    def test_product_paths_do_not_expand_script_regressions(self) -> None:
+        selected = select_tests(["Scripts/check-links.py"])
+        product_paths = (
+            "Packages/TrinketCore/Sources/TrinketCore/Keyword.swift",
+            "Trinket/App/TrinketApp.swift",
+            "TrinketUITests/Battle/BattleUITests.swift",
+            "ContentManifest/abilities.tsv", "ArtManifest/art.tsv",
+            "CinematicManifest/cinematics.tsv", "MusicManifest/music.tsv",
+            "SoundManifest/sounds.tsv", "Raw Assets/Art/card.png",
+            "StoreKit/Trinket.storekit", "Performance/scenarios.json",
+        )
+        for path in product_paths:
+            with self.subTest(path=path):
+                self.assertEqual(select_tests(["Scripts/check-links.py", path]), selected)
+                self.assertEqual(select_tests([path]), [])
+        self.assertEqual(select_tests(["Scripts/check-links.py", ".github/workflows/tests.yml"]),
+                         select_tests([]))
+        self.assertEqual(select_tests(["Scripts/check-links.py", "project.yml"]), select_tests([]))
+        self.assertEqual(select_tests(["Gemfile"]), ["Scripts/Tests/test_testflight.py"])
+        self.assertEqual(select_tests(["Gemfile.lock"]), ["Scripts/Tests/test_testflight.py"])
+
+    def test_script_runner_accepts_absolute_repository_paths(self) -> None:
+        import subprocess
+
+        relative = "Scripts/Tests/test_internal_cli.py"
+        outputs = []
+        for path in (relative, str(ROOT / relative)):
+            result = subprocess.run(
+                ["bash", "Scripts/test-scripts.sh", "--fast", "--paths", path],
+                cwd=ROOT, capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("Script scope: 1 Python and 0 shell suites.", result.stdout)
+            self.assertIn("Script syntax passed", result.stdout)
+            outputs.append([line for line in result.stdout.splitlines()
+                            if line.startswith(("Script scope:", "=== ", "test_internal_cli passed"))])
+        self.assertEqual(outputs[0], outputs[1])
+
+        for path in (str(ROOT / "Scripts"), str(ROOT.parent / "outside.py")):
+            result = subprocess.run(
+                ["bash", "Scripts/test-scripts.sh", "--fast", "--paths", path],
+                cwd=ROOT, capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("--paths", result.stderr)
+
     def test_literal_metadata_is_not_executed_and_globs_union_consumers(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             tests = root / "Scripts/Tests"
             tests.mkdir(parents=True)
             (tests / "test_one.py").write_text(
-                "SCRIPT_INPUTS = ('Scripts/domain/*.json',)\nraise RuntimeError('must not execute')\n")
+                "SCRIPT_INPUTS = ('Scripts/domain/*.json', 'Packages/Game/Sources/Owned.swift')\n"
+                "raise RuntimeError('must not execute')\n")
             (tests / "test_two.py").write_text("SCRIPT_INPUTS = ['Scripts/domain/known.json']\n")
             all_tests = select_tests([], root)
             self.assertEqual(select_tests(['Scripts/domain/known.json'], root), all_tests)
             self.assertEqual(select_tests(['Scripts/domain/new.json'], root), ['Scripts/Tests/test_one.py'])
+            self.assertEqual(select_tests(['Packages/Game/Sources/Owned.swift'], root),
+                             ['Scripts/Tests/test_one.py'])
+            self.assertEqual(select_tests(['Scripts/domain/new.json', 'Packages/Game/Sources/Other.swift'], root),
+                             ['Scripts/Tests/test_one.py'])
             self.assertEqual(select_tests(['Scripts/unmapped.py'], root), all_tests)
             self.assertEqual(select_tests(['Scripts/Tests/test_two.py'], root), ['Scripts/Tests/test_two.py'])
             for source in ("SCRIPT_INPUTS = get_paths()", "SCRIPT_INPUTS = ('../outside.py',)",

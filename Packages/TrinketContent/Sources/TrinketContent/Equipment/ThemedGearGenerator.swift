@@ -38,7 +38,6 @@ public struct ThemedGearGenerator: Sendable {
         var loadout = EquipmentLoadout()
 
         for slot in combatant.role.equipmentSlots {
-            guard loadout.isAvailable(slot, inventory: inventory) else { continue }
             guard let item = makeItem(
                 for: slot,
                 combatant: combatant,
@@ -47,6 +46,8 @@ public struct ThemedGearGenerator: Sendable {
                 idPrefix: idPrefix,
                 resolvedBias: resolvedBias,
                 requireBuildAlignment: requireBuildAlignment,
+                loadout: loadout,
+                inventory: inventory,
                 using: &randomNumberGenerator,
             ) else { continue }
             inventory.append(item)
@@ -70,7 +71,6 @@ public struct ThemedGearGenerator: Sendable {
         remaining.shuffle(using: &randomNumberGenerator)
         var loadout = EquipmentLoadout()
         for slot in remaining {
-            guard loadout.isAvailable(slot, inventory: []) else { continue }
             guard let item = makeItem(
                 for: slot,
                 combatant: combatant,
@@ -79,6 +79,8 @@ public struct ThemedGearGenerator: Sendable {
                 idPrefix: idPrefix,
                 resolvedBias: resolvedBias,
                 requireBuildAlignment: requireBuildAlignment,
+                loadout: loadout,
+                inventory: [],
                 using: &randomNumberGenerator,
             ) else { continue }
             loadout.equip(item, in: slot, inventory: [item])
@@ -96,16 +98,22 @@ public struct ThemedGearGenerator: Sendable {
         idPrefix: String,
         resolvedBias: Set<Keyword>,
         requireBuildAlignment: Bool,
+        loadout: EquipmentLoadout,
+        inventory: [InventoryItem],
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem? {
+        let id = "\(idPrefix)-\(combatant.id)-\(slot.rawValue)"
         guard let baseType = bestBaseType(
             for: slot,
+            itemID: id,
             keywordBias: resolvedBias,
             requireBuildAlignment: requireBuildAlignment,
+            loadout: loadout,
+            inventory: inventory,
             using: &randomNumberGenerator,
         ) else { return nil }
         return itemGenerator.generate(
-            id: "\(idPrefix)-\(combatant.id)-\(slot.rawValue)",
+            id: id,
             baseType: baseType,
             rarity: rarity,
             fixedAffixCount: fixedAffixCount,
@@ -117,11 +125,16 @@ public struct ThemedGearGenerator: Sendable {
 
     private func bestBaseType(
         for slot: ItemSlot,
+        itemID: String,
         keywordBias: Set<Keyword>,
         requireBuildAlignment: Bool,
+        loadout: EquipmentLoadout,
+        inventory: [InventoryItem],
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemBaseType? {
-        var candidates = baseTypes.filter { $0.canEquip(in: slot) }
+        var candidates = baseTypes.filter {
+            loadout.canEquip(baseType: $0, candidateID: itemID, in: slot, inventory: inventory)
+        }
         if requireBuildAlignment {
             candidates = candidates.filter { baseType in
                 itemGenerator.affixDefinitions.contains { definition in

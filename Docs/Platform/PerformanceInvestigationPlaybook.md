@@ -81,6 +81,15 @@ wallet fit their viewport; they receive presentation/interaction coverage instea
 of claiming a successful content scroll. Shared long detail layouts are measured
 with populated combatant/equipment content.
 
+Accessibility snapshots that establish and verify scroll motion run before and
+after frame sampling. Navigation into a new scroll surface is measured
+separately when useful: Campaign party picker opening, shelf scrolling, and
+selection; Battle log opening and scrolling; and Mystery corruption picker
+opening and scrolling have distinct reports. Other combined journeys still
+check their scroll motion and return destination, with those checks outside the
+navigation measurement. Older reports for these changed windows include
+accessibility snapshot cost and are not directly comparable to new reports.
+
 Fixtures only establish disposable prerequisites before measurement: isolated
 local saves, deterministic Labyrinth maps, pending talent progress, live Battle
 states near an outcome, and a populated combat log. Outcome fixtures stop before
@@ -241,12 +250,10 @@ budgets there.
 4. Identify an app-attributed stack, observation invalidation, layout pass, or rendering phase. A long signpost interval is elapsed time, not CPU self-time; an interval spanning animation or a scheduled callback includes waiting. A healthy CPU profile does not exclude GPU/render-server cost. Simulator scheduling noise alone is not an app regression.
 
    Inspect XCTest accessibility work before attributing automated-journey cost
-   to the game. Standalone scroll steps keep their explicit before/after
-   snapshots outside capture; combined navigation/scroll/return journeys using
-   `exerciseScroll` currently take those snapshots inside capture. Those reports
-   include that automation cost. Neither sampled-stack counts nor a faster
-   automated journey alone proves that a particular view refactor improved
-   rendering.
+   to the game. Scroll identity snapshots are outside capture, but normal
+   XCUITest control queries and gestures still participate in automated
+   journeys. Neither sampled-stack counts nor a faster automated journey alone
+   proves that a particular view refactor improved rendering.
 
    The callback sampler stores aggregate intervals, not rendered frames or a
    timestamped hitch timeline. It cannot identify which stack caused a slow

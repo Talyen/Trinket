@@ -12,10 +12,12 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
             measured("companion-detail-navigation", iteration: iteration) {
                 tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Wolf"))
                 combatantDetail.assertLoaded(for: "Wolf")
-                exerciseScroll(app.scrollViews.firstMatch)
-                dismissSheet()
-                assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
             }
+            let detailScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            performScrollGestures(app.scrollViews.firstMatch)
+            verifyScrollProbes(detailScrollProbes, app.scrollViews.firstMatch)
+            dismissSheet()
+            assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
         }
     }
 
@@ -25,10 +27,12 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allForScreen("hero:knight")))
             combatantDetail.assertLoaded(for: "Knight")
             let detailScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            measured("combatant-detail-scroll", iteration: iteration) {
+            let didScroll = measured("combatant-detail-scroll", iteration: iteration) {
                 performScrollGestures(app.scrollViews.firstMatch)
             }
-            verifyScrollProbes(detailScrollProbes, app.scrollViews.firstMatch)
+            if didScroll {
+                verifyScrollProbes(detailScrollProbes, app.scrollViews.firstMatch)
+            }
             reveal(button(AccessibilityID.Equipment.basicAbilitySlot))
             measured("ability-picker", iteration: iteration) {
                 tapButton(AccessibilityID.Equipment.basicAbilitySlot)
@@ -48,14 +52,15 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
             combatantDetail.assertLoaded(for: "Knight")
             let slot = ItemSlot.weapon.accessibilityIdentifier
             reveal(button(slot))
-            var pickerScrollProbes: [ScrollAnchor] = []
-            measured("equipment-picker-scroll", iteration: iteration) {
-                tapButton(slot)
-                assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
-                pickerScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            tapButton(slot)
+            assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
+            let pickerScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            let didScroll = measured("equipment-picker-scroll", iteration: iteration) {
                 performScrollGestures(app.scrollViews.firstMatch)
             }
-            verifyScrollProbes(pickerScrollProbes, app.scrollViews.firstMatch)
+            if didScroll {
+                verifyScrollProbes(pickerScrollProbes, app.scrollViews.firstMatch)
+            }
             measured("equipment-search-filter", iteration: iteration) {
                 tapButton(AccessibilityID.LoadoutPicker.itemFilter)
                 tapButton(AccessibilityID.LoadoutPicker.itemRarityFilter)
@@ -91,15 +96,19 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
             launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
             collection.assertLoaded()
             let browseScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            measured("collection-browse-scroll", iteration: iteration) {
+            let didBrowse = measured("collection-browse-scroll", iteration: iteration) {
                 performScrollGestures(app.scrollViews.firstMatch)
             }
-            verifyScrollProbes(browseScrollProbes, app.scrollViews.firstMatch)
+            if didBrowse {
+                verifyScrollProbes(browseScrollProbes, app.scrollViews.firstMatch)
+            }
             let shelfScrollProbes = captureScrollProbes(horizontalScrollView, horizontal: true)
-            measured("collection-shelf-scroll", iteration: iteration) {
+            let didScrollShelf = measured("collection-shelf-scroll", iteration: iteration) {
                 performScrollGestures(horizontalScrollView, horizontal: true)
             }
-            verifyScrollProbes(shelfScrollProbes, horizontalScrollView, horizontal: true)
+            if didScrollShelf {
+                verifyScrollProbes(shelfScrollProbes, horizontalScrollView, horizontal: true)
+            }
             let categories = ["Heroes", "Companions", "Basic Gear", "Astral Gear", "Unique Gear", "Trinkets"]
             for category in categories {
                 if !selected("collection-category-\(category)") {
@@ -109,10 +118,12 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
                 reveal(button(identifier))
                 measured("collection-category-\(category)", iteration: iteration) {
                     tapButton(identifier)
-                    exerciseScroll(app.scrollViews.firstMatch)
-                    goBack()
-                    collection.assertLoaded()
                 }
+                let categoryScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+                performScrollGestures(app.scrollViews.firstMatch)
+                verifyScrollProbes(categoryScrollProbes, app.scrollViews.firstMatch)
+                goBack()
+                collection.assertLoaded()
             }
         }
     }
@@ -131,13 +142,14 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
                 identifier: AccessibilityID.CombatantDetail.talentsNode(id: firstTree?.keyword.rawValue ?? "missing-tree"),
             ).firstMatch
             reveal(tree)
-            var talentScrollProbes: [ScrollAnchor] = []
-            measured("talent-tree-scroll", iteration: iteration) {
-                tapWhenReady(tree)
-                talentScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            tapWhenReady(tree)
+            let talentScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+            let didScroll = measured("talent-tree-scroll", iteration: iteration) {
                 performScrollGestures(app.scrollViews.firstMatch)
             }
-            verifyScrollProbes(talentScrollProbes, app.scrollViews.firstMatch)
+            if didScroll {
+                verifyScrollProbes(talentScrollProbes, app.scrollViews.firstMatch)
+            }
             let node = firstTree?.nodes.first { $0.row == 1 }
             XCTAssertNotNil(node)
             let control = button(AccessibilityID.CombatantDetail.talentsNode(id: node?.id ?? "missing-talent"))

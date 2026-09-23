@@ -115,6 +115,71 @@ struct AbilityStrategyTests {
         #expect(events.first { $0.kind == .abilityDamage }?.keyword == expected)
     }
 
+    @Test func `conditional self damage cost denies play before removing the card`() throws {
+        var state = battle()
+        state.roster.hero.currentHealth = 2
+        DefensePoolEngine.set(1, on: state.enemy, in: &state)
+        let ability = Ability(
+            id: "conditional-cost", name: "Conditional Cost", tier: .skill,
+            effects: [.shield(.block, 1)],
+            conditionalOutcome: AbilityConditionalOutcome(
+                condition: .enemyHasBlock,
+                operations: [.damage(DamageComponent(2, target: .actor))],
+            ),
+        )
+        let card = deal(ability, in: &state)
+
+        #expect(state.assessCard(card).denial == .insufficientHealth)
+        #expect(throws: BattlePlayError.insufficientHealth) { try state.playCard(cardID: card.id) }
+        #expect(state.hand.card(id: card.id) == card)
+        #expect(state.roster.hero.currentHealth == 2)
+
+        DefensePoolEngine.set(0, on: state.enemy, in: &state)
+        #expect(state.assessCard(card).denial == nil)
+        _ = try state.playCard(cardID: card.id)
+        #expect(state.roster.hero.currentHealth == 2)
+    }
+
+    @Test func `conditional safe outcome does not inherit base health cost`() throws {
+        var state = battle()
+        state.roster.hero.currentHealth = 2
+        DefensePoolEngine.set(1, on: state.enemy, in: &state)
+        let ability = Ability(
+            id: "conditional-safe", name: "Conditional Safe", tier: .skill,
+            damageComponents: [DamageComponent(2, target: .actor)],
+            conditionalOutcome: AbilityConditionalOutcome(
+                condition: .enemyHasBlock,
+                operations: [.effect(TargetedEffect(.shield(.block, 1), target: .actor))],
+            ),
+        )
+        let card = deal(ability, in: &state)
+
+        #expect(state.assessCard(card).denial == nil)
+        _ = try state.playCard(cardID: card.id)
+        #expect(state.roster.hero.currentHealth == 2)
+    }
+
+    @Test(arguments: [false, true])
+    func `random outcome effect condition follows earlier operations`(startsBelowHalf: Bool) throws {
+        var state = battle()
+        let halfHealth = state.roster.hero.maxHealth / 2
+        state.roster.hero.currentHealth = halfHealth + (startsBelowHalf ? -1 : 1)
+        let first: AbilityOperation = startsBelowHalf
+            ? .effect(TargetedEffect(.instantHeal(.health, state.roster.hero.maxHealth), target: .actor))
+            : .damage(DamageComponent(3, target: .actor))
+        let ability = Ability(
+            id: "late-condition", name: "Late Condition", tier: .skill,
+            outcomeBranches: [AbilityOutcomeBranch(operations: [
+                first,
+                .effect(TargetedEffect(.resourceGain(.gold, 2), target: .actor, condition: .allyBelowHalfHealth)),
+            ])],
+        )
+
+        let events = try play(ability, in: &state)
+        let gainedGold = events.contains { $0.effectKind == .resourceGain && $0.keyword == .gold }
+        #expect(gainedGold == !startsBelowHalf)
+    }
+
     @Test(arguments: [false, true])
     func `stab guarantees critical only at full health`(full: Bool) throws {
         var state = battle()
