@@ -51,6 +51,9 @@ class BuildMetadataTests(unittest.TestCase):
                      'restore-ci-test-products.sh', 'stage-ci-test-artifact.sh'):
             shutil.copy2(ROOT / 'Scripts' / name, scripts)
         self.env = fake_toolchain(self.root)
+        # Keep inherited runner paths from redirecting the copied helper scripts
+        # outside this isolated fixture checkout.
+        self.env['DERIVED_DATA_PATH'] = str(self.root / '.DerivedData')
 
     def shell(self, command, expected=0, env=None):
         result = subprocess.run(['bash', '-ec', 'source Scripts/build-freshness.sh\n' + command],
