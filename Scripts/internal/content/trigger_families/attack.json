@@ -9,12 +9,6 @@
       "merge": "or"
     },
     {
-      "name": "returnAttackAgainstBleedingOncePerTurn",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
       "name": "heldCardNextAttackDamage",
       "type": "Int",
       "default": "0",
@@ -39,12 +33,6 @@
       "merge": "add"
     },
     {
-      "name": "firstCriticalHitCompanionBasicPerTurn",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
       "name": "secondCardDrawAndDodgePercent",
       "type": "Double",
       "default": "0",
@@ -58,12 +46,6 @@
     },
     {
       "name": "recoverLastAttackCardEachTurn",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
-    },
-    {
-      "name": "firstElementCardsDraw",
       "type": "Bool",
       "default": "false",
       "merge": "or"
@@ -674,6 +656,18 @@
       "type": "Int",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "redHarvestPhysicalCriticalDetonatesBleed",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "huntsmasterPhysicalCriticalDrawsCompanion",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
     }
   ]
 }

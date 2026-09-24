@@ -158,14 +158,27 @@ package enum DefensePoolEngine {
         if retained != current {
             set(retained, on: target, in: &context)
         }
-        guard retained > 0, triggers.retainedBlockGainThornsPercent > 0 else { return [] }
-        return CombatTriggerEngine.applyBlockThorns(
-            amount: retained,
-            triggers: triggers,
-            actor: target,
-            abilityKey: "retainedBlockGainThornsPercent",
-            in: &context,
-        )
+        guard retained > 0 else { return [] }
+        var events: [ActionEvent] = []
+        if triggers.retainedBlockThornsFlat > 0 {
+            events.append(contentsOf: CombatTriggerEngine.heroTalentThorns(
+                to: target, source: target, amount: triggers.retainedBlockThornsFlat,
+                name: context.modifiers(for: target.id).triggerAbilityName(
+                    "retainedBlockThornsFlat", fallback: "Ironbriar",
+                ),
+                in: &context,
+            ))
+        }
+        if triggers.retainedBlockGainThornsPercent > 0 {
+            events.append(contentsOf: CombatTriggerEngine.applyBlockThorns(
+                amount: retained,
+                triggers: triggers,
+                actor: target,
+                abilityKey: "retainedBlockGainThornsPercent",
+                in: &context,
+            ))
+        }
+        return events
     }
 
     package static func halveBlock(

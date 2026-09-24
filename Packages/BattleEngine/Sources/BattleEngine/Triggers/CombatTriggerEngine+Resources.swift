@@ -139,14 +139,17 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    static func healSelfAfterGoldGain(
+    static func healLowestAfterGoldGain(
         source: Combatant,
         in context: inout BattleState,
     ) -> CombatOutcome {
-        resolveBonusHeal(
-            amount: context.modifiers(for: source.id).triggers.gainGoldBonusHealSelf,
+        let amount = context.modifiers(for: source.id).triggers.gainGoldBonusHealSelf
+        guard amount > 0 else { return .empty }
+        let target = BattleTargetResolver.lowestHealthAlly(for: source, in: context)
+        return resolveBonusHeal(
+            amount: amount,
             source: source,
-            target: source,
+            target: target,
             in: &context,
         )
     }
@@ -164,22 +167,13 @@ package extension CombatTriggerEngine {
             && context.resolution.claim(.heroTalent("goldenRecovery"), actorID: combatant.id, cadence: .turn(context.turnCount))
         let wasBelowHalfHealth = context.roster.health(for: combatant) * 2
             < context.roster.maxHealth(for: combatant)
-        var events = healSelfAfterGoldGain(source: combatant, in: &context).events
+        var events = healLowestAfterGoldGain(source: combatant, in: &context).events
         events.append(contentsOf: afterFinalCompanionGoldGain(granted: granted, actor: combatant, in: &context))
         let wildcardGoldGain = granted > 0 && context.allowsHeroTalentReaction
             && (!context.hasHeroCard(for: combatant.id)
                 || context.claimHeroCardBonus("wildcardGoldGain", actorID: combatant.id))
         if wildcardGoldGain {
-            if triggers.goldGainHealChancePercent > 0, triggers.goldGainHealAmount > 0,
-               context.roster.health(for: combatant) < context.roster.maxHealth(for: combatant),
-               BattleChance.succeeds(probability: triggers.goldGainHealChancePercent, using: &context.rng) {
-                events.append(contentsOf: context.healEmitting(
-                    amount: triggers.goldGainHealAmount,
-                    target: combatant,
-                    source: combatant,
-                    abilityName: "Health is Wealth",
-                ))
-            }
+            events.append(contentsOf: healthIsWealthHealing(for: combatant, triggers: triggers, in: &context))
             if triggers.goldGainCleanseChancePercent > 0,
                context.hasTalentDebuff(on: combatant),
                BattleChance.succeeds(probability: triggers.goldGainCleanseChancePercent, using: &context.rng) {
@@ -263,6 +257,24 @@ package extension CombatTriggerEngine {
             }
         }
         return events
+    }
+
+    private static func healthIsWealthHealing(
+        for combatant: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard triggers.goldGainHealChancePercent > 0, triggers.goldGainHealAmount > 0 else { return [] }
+        let target = BattleTargetResolver.lowestHealthAlly(for: combatant, in: context)
+        guard context.roster.health(for: target) < context.roster.maxHealth(for: target),
+              BattleChance.succeeds(probability: triggers.goldGainHealChancePercent, using: &context.rng)
+        else { return [] }
+        return context.healEmitting(
+            amount: triggers.goldGainHealAmount,
+            target: target,
+            source: combatant,
+            abilityName: "Health is Wealth",
+        )
     }
 }
 

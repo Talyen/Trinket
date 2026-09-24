@@ -7,7 +7,8 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        guard let sourceActorID = state.sourceActorID,
+        guard !state.options.suppressLeech,
+              let sourceActorID = state.sourceActorID,
               state.healthLost > 0 || (state.blockedAmount > 0 && context.modifiers(for: sourceActorID).triggers.leechOnBlockDamage),
               sourceActorID != state.combatant.id
         else { return }
@@ -42,6 +43,8 @@ package extension DamagePipeline {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHolyDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
+                attackHit: state.options.isAttackHit && !state.options.isRetaliation,
+                sourceHadNoBlock: state.sourceHadNoBlockAtHit,
                 in: &context,
             ))
         case .stun:
@@ -66,6 +69,20 @@ package extension DamagePipeline {
             ))
         default:
             break
+        }
+
+        guard state.combatant.role == .enemy, source.combatant.role != .enemy,
+              keyword == .burn || keyword == .freeze || keyword == .holy else { return }
+        for owner in [BattleParticipant.hero, .companion] {
+            let wearer = context.roster[owner]
+            guard wearer.isAlive, wearer.currentMana < wearer.maxMana else { continue }
+            let chance = context.modifiers(for: wearer.combatant.id).triggers.threefoldElementalDamageManaChancePercent
+            guard chance > 0, BattleChance.succeeds(probability: chance, using: &context.rng) else { continue }
+            state.damageEvents.append(contentsOf: context.restoreManaEmitting(
+                1,
+                to: wearer.combatant,
+                abilityName: "Threefold Grace",
+            ))
         }
     }
 
@@ -487,6 +504,7 @@ package extension DamagePipeline {
                 fallback: "Golden Verdict",
                 in: context,
             ),
+            isTheft: true,
         ))
     }
 

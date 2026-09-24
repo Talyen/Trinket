@@ -54,6 +54,19 @@ package extension CombatTriggerEngine {
                 $0.talents.pending.nextCleanseCriticalPreparedCardSerial = preparedCardSerial
             }
         }
+        if removedCount > 0, triggers.cleanseSelfBlockFlat > 0 {
+            events.append(contentsOf: context.applyBlock(
+                triggers.cleanseSelfBlockFlat * removedCount,
+                to: source, source: source,
+                abilityName: triggerAbilityName("cleanseSelfBlockFlat", for: source, fallback: "Clearheaded", in: context),
+            ))
+        }
+        if removedCount > 0, triggers.onCleanseRestoreMana > 0 {
+            events.append(contentsOf: emitMana(
+                "onCleanseRestoreMana", "Solace",
+                amount: triggers.onCleanseRestoreMana * removedCount, to: source, in: &context,
+            ))
+        }
         events.append(contentsOf: cleanseShieldBonuses(
             triggers: triggers,
             source: source,
@@ -72,9 +85,10 @@ package extension CombatTriggerEngine {
             ))
         }
         if source.role != .enemy, Self.hasLivingPartyTrigger(\.purifyingWaters, in: context), removedCount > 0 {
+            let healTarget = BattleTargetResolver.lowestHealthAlly(for: source, in: context)
             events.append(contentsOf: context.healEmitting(
                 amount: 4 * removedCount,
-                target: target,
+                target: healTarget,
                 source: source,
                 abilityName: "Purifying Waters",
             ))
@@ -235,14 +249,17 @@ package extension CombatTriggerEngine {
 
     static func healAfterCleanse(
         source: Combatant,
-        target: Combatant,
+        target _: Combatant,
         in context: inout BattleState,
     ) -> CombatOutcome {
-        guard context.roster.health(for: target) < context.roster.maxHealth(for: target) else { return .empty }
+        let amount = context.modifiers(for: source.id).triggers.cleanseBonusHeal
+        guard amount > 0 else { return .empty }
+        let healTarget = BattleTargetResolver.lowestHealthAlly(for: source, in: context)
+        guard context.roster.health(for: healTarget) < context.roster.maxHealth(for: healTarget) else { return .empty }
         return resolveBonusHeal(
-            amount: context.modifiers(for: source.id).triggers.cleanseBonusHeal,
+            amount: amount,
             source: source,
-            target: target,
+            target: healTarget,
             in: &context,
         )
     }
@@ -251,10 +268,13 @@ package extension CombatTriggerEngine {
         source: Combatant,
         in context: inout BattleState,
     ) -> CombatOutcome {
-        resolveBonusHeal(
-            amount: context.modifiers(for: source.id).triggers.cleanseSelfHeal,
+        let amount = context.modifiers(for: source.id).triggers.cleanseSelfHeal
+        guard amount > 0 else { return .empty }
+        let target = BattleTargetResolver.lowestHealthAlly(for: source, in: context)
+        return resolveBonusHeal(
+            amount: amount,
             source: source,
-            target: source,
+            target: target,
             in: &context,
         )
     }

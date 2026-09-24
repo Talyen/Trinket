@@ -299,9 +299,10 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard profile.triggers.dodgeHealFlat > 0 else { return [] }
+        let target = BattleTargetResolver.lowestHealthAlly(for: combatant, in: context)
         return emitHeal(
             "dodgeHealFlat", "Sidestep",
-            amount: profile.triggers.dodgeHealFlat, to: combatant, source: combatant, in: &context,
+            amount: profile.triggers.dodgeHealFlat, to: target, source: combatant, in: &context,
         )
     }
 

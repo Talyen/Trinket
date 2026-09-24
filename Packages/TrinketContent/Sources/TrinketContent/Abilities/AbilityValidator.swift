@@ -14,6 +14,7 @@ enum AbilityValidator {
     static let descriptionOverrideIDs: Set<String> = [
         "astral-arrow",
         "bash",
+        "blessed-aegis",
         "cinderbloom",
         "combustion",
         "earthquake",
@@ -136,8 +137,6 @@ enum AbilityValidator {
 
     private static func allowsAuthoredDamageTotal(abilityID: String, total: Int) -> Bool {
         switch abilityID {
-        case "luck-potion":
-            (1 ... 12).contains(total)
         case "bash":
             total == 3
         case "cold-snap", "dark-pact", "predators-focus":

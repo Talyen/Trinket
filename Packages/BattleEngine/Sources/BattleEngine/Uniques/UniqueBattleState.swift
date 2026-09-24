@@ -4,12 +4,9 @@ import TrinketCore
 package struct UniqueBattleState {
     struct OwnerState {
         var cardsPlayed = 0
-        var returnedHarvest = false
         var repeatedCritical = false
-        var calledCompanion = false
         var answeredBlock = false
         var usedFinalSpark = false
-        var usedElements: Set<Keyword> = []
         var lastAttack: Ability?
         var lastOrdinaryAbility: Ability?
         var returnedFlightThisTurn = false
@@ -22,12 +19,9 @@ package struct UniqueBattleState {
         mutating func resetTurn() {
             cardsPlayed = 0
             hasAttacked = false
-            returnedHarvest = false
             repeatedCritical = false
-            calledCompanion = false
             answeredBlock = false
             usedFinalSpark = false
-            usedElements = []
             lastAttack = nil
             lastOrdinaryAbility = nil
             returnedFlightThisTurn = false
@@ -38,7 +32,6 @@ package struct UniqueBattleState {
     struct CardPlay {
         let owner: BattleParticipant
         let originalAbility: Ability
-        let targetWasBleeding: Bool
         var returnName: String?
         var draws: [String] = []
         var attackBonus = 0
@@ -50,12 +43,10 @@ package struct UniqueBattleState {
     var owners: [BattleParticipant: OwnerState] = [:]
     var card: CardPlay?
     var retainedStunByEffectID: [Int: Int] = [:]
-    // Out-of-turn attacks owed by Huntsmaster's Call (always the Companion's
-    // Basic), Knight's Answer defenses, and Dodge counters. Recorded during
+    // Out-of-turn attacks owed by Knight's Answer defenses and Dodge counters. Recorded during
     // damage resolution and drained once the triggering action completes, so a
     // full Basic never nests inside the damage pipeline on small
     // worker-thread stacks.
-    var pendingCompanionSummons = 0
     var pendingBlockAnswerOwners: [BattleParticipant] = []
     var pendingCounterAttackActorIDs: [String] = []
     // Reentrancy guard for the outermost-damage drain below. Nested damage

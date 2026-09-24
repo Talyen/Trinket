@@ -11,14 +11,34 @@ extension InventoryItem {
             power = Self.normalizedBeastbond(power)
         case "shredding":
             power = Self.normalizedShredding(power)
+        case "groves_favor":
+            power = Self.normalizedGrovesFavor(power)
         case "tattered_pages":
             power = Self.normalizedForbiddenKnowledge(power)
         case "the_patient_edge":
             power = Self.normalizedPatientEdge(power)
+        case "red_harvest", "huntsmasters_call", "threefold_grace", "golden_verdict":
+            power = Self.normalizedReworkedUnique(power, affixID: affixID)
         default:
             break
         }
         return power
+    }
+
+    private static func normalizedReworkedUnique(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower {
+        guard let current = GameContent.unique(matching: affixID)?.affixPowers?.first else { return power }
+        var triggers = power.triggers
+        let missingCurrentTrigger: Bool = switch affixID {
+        case "red_harvest": !triggers.redHarvestPhysicalCriticalDetonatesBleed
+        case "huntsmasters_call": !triggers.huntsmasterPhysicalCriticalDrawsCompanion
+        case "threefold_grace": triggers.threefoldElementalDamageManaChancePercent <= 0
+        default: false
+        }
+        if missingCurrentTrigger {
+            triggers.merge(current.triggers)
+        }
+        guard triggers != power.triggers || power.description != current.description else { return power }
+        return ItemAffixPower(description: current.description, modifiers: power.modifiers, triggers: triggers)
     }
 
     private static func normalizedLoyalCompanion(_ power: ItemAffixPower) -> ItemAffixPower {
@@ -102,12 +122,13 @@ extension InventoryItem {
     }
 
     private static func normalizedForbiddenKnowledge(_ power: ItemAffixPower) -> ItemAffixPower {
+        let description = "Every other turn, lose 1 Health and draw a card"
         if power.triggers.forbiddenKnowledge {
-            if power.description == "Every other turn, lose 1 Health and draw 2 cards." {
+            if power.description == description {
                 return power
             }
             return ItemAffixPower(
-                description: "Every other turn, lose 1 Health and draw 2 cards.",
+                description: description,
                 modifiers: power.modifiers,
                 triggers: power.triggers,
             )
@@ -117,12 +138,18 @@ extension InventoryItem {
             triggers.forbiddenKnowledge = true
             triggers.drawEveryOtherTurn = 0
             return ItemAffixPower(
-                description: "Every other turn, lose 1 Health and draw 2 cards.",
+                description: description,
                 modifiers: power.modifiers,
                 triggers: triggers,
             )
         }
         return power
+    }
+
+    private static func normalizedGrovesFavor(_ power: ItemAffixPower) -> ItemAffixPower {
+        let description = "Restore 2 Health every other turn."
+        guard power.triggers.healthPerTurn > 0, power.description != description else { return power }
+        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: power.triggers)
     }
 
     private static func normalizedPatientEdge(_ power: ItemAffixPower) -> ItemAffixPower {

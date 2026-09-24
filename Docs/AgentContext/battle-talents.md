@@ -88,7 +88,7 @@ apply; healing/draw loops are prevented by the once-per-turn claim.
 ### Forbidden Knowledge
 
 Forbidden Knowledge pays 1 Health (ordinary Health-cost, no hidden nonlethal
-floor, cost before drawing) and draws 2 from the wearer's deck on the existing
+floor, cost before drawing) and draws 1 from the wearer's deck on the existing
 alternate-turn cadence beginning on player turn 1. A defeated owner cannot
 continue; unavailable draws still spend the Health cost.
 
@@ -279,6 +279,11 @@ ability. Prismatic Scales empowers existing Burn and Freeze damage and
 supplies a missing element as a damaging hit, charging Mana once.
 
 ## Healing and overflow
+
+### Campfire Comfort
+
+Campfire Comfort restores 2 Health to the lowest-Health living ally at the end
+of every other player turn, beginning on turn 1. It skips a fully healed ally.
 
 ### Sacrificial Guard and Man's Best Friend
 

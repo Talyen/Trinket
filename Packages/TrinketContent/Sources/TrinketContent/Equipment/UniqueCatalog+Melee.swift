@@ -34,8 +34,8 @@ extension UniqueCatalog {
             name: "Red Harvest",
             base: "hatchet",
             keywords: [.physical, .bleed],
-            description: "Once per turn, an attack card you play against a Bleeding enemy returns to your hand.",
-            triggers: CombatTraitTriggers(attack: AttackTriggers(returnAttackAgainstBleedingOncePerTurn: true)),
+            description: "Physical Critical Hits detonate Bleed.",
+            triggers: CombatTraitTriggers(attack: AttackTriggers(redHarvestPhysicalCriticalDetonatesBleed: true)),
             supports: ["keen", "serrated", "leeching"],
         ),
         unique(

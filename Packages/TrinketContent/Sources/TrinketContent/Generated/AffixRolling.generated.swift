@@ -64,6 +64,28 @@ extension CombatTraitTriggers {
         .percent(\.stunExtendChancePercent, name: "stunExtendChancePercent"),
         .percent(\.freezeExtendChancePercent, name: "freezeExtendChancePercent"),
         .percent(\.freezeDamageLeechChancePercent, name: "freezeDamageLeechChancePercent"),
+        .int(\.startBattleThorns, name: "startBattleThorns"),
+        .int(\.blockBrokenThornsFlat, name: "blockBrokenThornsFlat"),
+        .int(\.thornsDamageFlat, name: "thornsDamageFlat"),
+        .percent(\.leechBlockChancePercent, name: "leechBlockChancePercent"),
+        .int(\.cleanseSelfBlockFlat, name: "cleanseSelfBlockFlat"),
+        .percent(\.onHealCleanseTargetChance, name: "onHealCleanseTargetChance"),
+        .int(\.onCleanseRestoreMana, name: "onCleanseRestoreMana"),
+        .int(\.manaEmpowerPurgeCount, name: "manaEmpowerPurgeCount"),
+        .int(\.onPurgeGainBlock, name: "onPurgeGainBlock"),
+        .int(\.onPurgeDealHolyDamage, name: "onPurgeDealHolyDamage"),
+        .int(\.enterDeathsDoorBurnDamage, name: "enterDeathsDoorBurnDamage"),
+        .percent(\.deathsDoorCriticalChanceBonus, name: "deathsDoorCriticalChanceBonus"),
+        .int(\.affixDeathsDoorSurviveHealFlat, name: "affixDeathsDoorSurviveHealFlat"),
+        .int(\.retainedBlockThornsFlat, name: "retainedBlockThornsFlat"),
+        .int(\.firstThornsDamageHealPerTurn, name: "firstThornsDamageHealPerTurn"),
+        .int(\.thornsDamageFlatWhileBlocked, name: "thornsDamageFlatWhileBlocked"),
+        .int(\.poisonOnThornsDamage, name: "poisonOnThornsDamage"),
+        .int(\.leechThornsWithoutThorns, name: "leechThornsWithoutThorns"),
+        .int(\.leechStunBelowHalfHealth, name: "leechStunBelowHalfHealth"),
+        .int(\.poisonDamageVsBleedingFlat, name: "poisonDamageVsBleedingFlat"),
+        .int(\.holyAttackBlockIfNone, name: "holyAttackBlockIfNone"),
+        .percent(\.holyDamageVsStunnedPercent, name: "holyDamageVsStunnedPercent"),
     ]
 
     static let nonRollableAffixFields: [String: String] = [
@@ -81,6 +103,7 @@ extension CombatTraitTriggers {
         "healCompanionDrawsCompanionCard": "On/off rule with no rollable magnitude.",
         "forbiddenKnowledge": "On/off rule with no rollable magnitude.",
         "victoryGoldCoin": "On/off rule with no rollable magnitude.",
+        "physicalAttackLeechBelowHalfHealth": "On/off Leech rule with no rollable magnitude.",
     ]
 }
 

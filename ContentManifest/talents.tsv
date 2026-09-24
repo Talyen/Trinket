@@ -211,7 +211,7 @@ golden_retriever_block_t3_1	Sacrificial Guard	sf:heart.fill	Your Block also abso
 golden_retriever_block_t3_2	Steadfast	sf:lock.shield.fill	While you have Block, prevent Stun and Freeze build-up		blockedControlPrevention:true
 golden_retriever_health_t1_1	Cheer Up	sf:face.smiling.fill	Your first Health restoration each combat draws a card		firstHealthRestorationDrawBattle:true
 golden_retriever_health_t1_2	Playful Energy	sf:bolt.fill	Restoring Health has a 10% chance to draw a card		healthRestoreDrawChancePercent:0.10
-golden_retriever_health_t2_1	Campfire Comfort	sf:flame.fill	At turn end, restore 3 Health to the lowest Health ally		endOfTurnHealLowestAlly:3
+golden_retriever_health_t2_1	Campfire Comfort	sf:flame.fill	Every other turn, Restore 2 Health		endOfTurnHealLowestAlly:2
 golden_retriever_health_t2_2	Man's Best Friend	sf:dog.fill	Intercept the first damage each combat that would reduce your ally's Health to zero		firstAllyFatalIntercept:true
 golden_retriever_health_t3_1	Inspirational Vigor	sf:dumbbell.fill	Below half Health, both allies gain +15% Critical Hit chance		partyCritChanceWhileCompanionBelowHalf:0.15
 golden_retriever_health_t3_2	Protective Lick	sf:heart.fill	Restoring Health also Cleanses 1 negative status effect		healthRestorationCleansesOne:true
@@ -269,7 +269,7 @@ mana_moth_burn_t2_1	Flashover	sf:sun.snow.fill	Burn Critical Hits ignore enemy B
 mana_moth_burn_t2_2	Cinderstrike	sf:burst.fill	Burn Critical Hits deal 25% more damage		burnCriticalDamageMultiplier:1.25
 mana_moth_burn_t3_1	Ember Persistence	sf:hourglass.bottomhalf.filled	Burn has a 20% chance to not decay		burnPreventDecayChancePercent:0.20
 mana_moth_burn_t3_2	Scorching Dust	sf:sun.max.fill	+10% Critical Hit chance against Burning enemies		criticalVsBurningBonus:0.10
-pixie_cleanse_t1_1	Fae Mending	sf:heart.fill	Restore 2 Health to yourself when you Cleanse.		cleanseSelfHeal:2
+pixie_cleanse_t1_1	Fae Mending	sf:heart.fill	Restore 2 Health to the lowest Health ally when you Cleanse.		cleanseSelfHeal:2
 pixie_cleanse_t1_2	Dispel Magic	sf:wand.and.stars	Cleansing has a 20% chance to Purge an enemy's positive status effect		cleansePurgeChancePercent:0.20
 pixie_cleanse_t2_1	Fae Swiftness	sf:wind	Cleansing also removes all Freeze build-up from the target		cleanseRemovesFreezeBuildup:true
 pixie_cleanse_t2_2	Cleansing Ward	sf:shield.fill	Cleansing grants the target 3 Block		cleanseTargetBlockFlat:3

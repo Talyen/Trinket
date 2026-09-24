@@ -36,6 +36,10 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
     public var cleanseRemovesFreezeBuildup: Bool = false
     public var cleanseTargetBlockFlat: Int = 0
     public var firstCleanseExtraRemovalPerTurn: Int = 0
+    public var cleanseSelfBlockFlat: Int = 0
+    public var onCleanseRestoreMana: Int = 0
+    public var onPurgeGainBlock: Int = 0
+    public var onPurgeDealHolyDamage: Int = 0
 
     public init(
         interdict: Bool = false,
@@ -69,7 +73,11 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         cleansePurgeChancePercent: Double = 0,
         cleanseRemovesFreezeBuildup: Bool = false,
         cleanseTargetBlockFlat: Int = 0,
-        firstCleanseExtraRemovalPerTurn: Int = 0
+        firstCleanseExtraRemovalPerTurn: Int = 0,
+        cleanseSelfBlockFlat: Int = 0,
+        onCleanseRestoreMana: Int = 0,
+        onPurgeGainBlock: Int = 0,
+        onPurgeDealHolyDamage: Int = 0
     ) {
         self.interdict = interdict
         self.lessonLearned = lessonLearned
@@ -103,10 +111,14 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         self.cleanseRemovesFreezeBuildup = cleanseRemovesFreezeBuildup
         self.cleanseTargetBlockFlat = cleanseTargetBlockFlat
         self.firstCleanseExtraRemovalPerTurn = firstCleanseExtraRemovalPerTurn
+        self.cleanseSelfBlockFlat = cleanseSelfBlockFlat
+        self.onCleanseRestoreMana = onCleanseRestoreMana
+        self.onPurgeGainBlock = onPurgeGainBlock
+        self.onPurgeDealHolyDamage = onPurgeDealHolyDamage
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["interdict", "lessonLearned", "cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "purifyingAura", "onCleansePoisonDealDamagePerStack", "crownfall", "clearSolution", "freshBatch", "heatRecovery", "antitoxinCoating", "clearMind", "cleanBreak", "perfectPurity", "purgePreparesDoubleHolyAttack", "cleanseNextAttackCriticalBonus", "cleansePurgeChancePercent", "cleanseRemovesFreezeBuildup", "cleanseTargetBlockFlat", "firstCleanseExtraRemovalPerTurn"]
+    public static let fieldNames: [String] = ["interdict", "lessonLearned", "cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "purifyingAura", "onCleansePoisonDealDamagePerStack", "crownfall", "clearSolution", "freshBatch", "heatRecovery", "antitoxinCoating", "clearMind", "cleanBreak", "perfectPurity", "purgePreparesDoubleHolyAttack", "cleanseNextAttackCriticalBonus", "cleansePurgeChancePercent", "cleanseRemovesFreezeBuildup", "cleanseTargetBlockFlat", "firstCleanseExtraRemovalPerTurn", "cleanseSelfBlockFlat", "onCleanseRestoreMana", "onPurgeGainBlock", "onPurgeDealHolyDamage"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -143,6 +155,10 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         if self.cleanseRemovesFreezeBuildup != other.cleanseRemovesFreezeBuildup { names.append("cleanseRemovesFreezeBuildup") }
         if self.cleanseTargetBlockFlat != other.cleanseTargetBlockFlat { names.append("cleanseTargetBlockFlat") }
         if self.firstCleanseExtraRemovalPerTurn != other.firstCleanseExtraRemovalPerTurn { names.append("firstCleanseExtraRemovalPerTurn") }
+        if self.cleanseSelfBlockFlat != other.cleanseSelfBlockFlat { names.append("cleanseSelfBlockFlat") }
+        if self.onCleanseRestoreMana != other.onCleanseRestoreMana { names.append("onCleanseRestoreMana") }
+        if self.onPurgeGainBlock != other.onPurgeGainBlock { names.append("onPurgeGainBlock") }
+        if self.onPurgeDealHolyDamage != other.onPurgeDealHolyDamage { names.append("onPurgeDealHolyDamage") }
         return names
     }
 }
@@ -181,6 +197,10 @@ extension CleanseTriggers {
         cleanseRemovesFreezeBuildup = cleanseRemovesFreezeBuildup || other.cleanseRemovesFreezeBuildup
         cleanseTargetBlockFlat += other.cleanseTargetBlockFlat
         firstCleanseExtraRemovalPerTurn += other.firstCleanseExtraRemovalPerTurn
+        cleanseSelfBlockFlat += other.cleanseSelfBlockFlat
+        onCleanseRestoreMana += other.onCleanseRestoreMana
+        onPurgeGainBlock += other.onPurgeGainBlock
+        onPurgeDealHolyDamage += other.onPurgeDealHolyDamage
     }
 }
 
@@ -219,7 +239,11 @@ extension CleanseTriggers {
             cleansePurgeChancePercent: values.decode(Double.self, "cleansePurgeChancePercent", default: 0),
             cleanseRemovesFreezeBuildup: values.decode(Bool.self, "cleanseRemovesFreezeBuildup", default: false),
             cleanseTargetBlockFlat: values.decode(Int.self, "cleanseTargetBlockFlat", default: 0),
-            firstCleanseExtraRemovalPerTurn: values.decode(Int.self, "firstCleanseExtraRemovalPerTurn", default: 0)
+            firstCleanseExtraRemovalPerTurn: values.decode(Int.self, "firstCleanseExtraRemovalPerTurn", default: 0),
+            cleanseSelfBlockFlat: values.decode(Int.self, "cleanseSelfBlockFlat", default: 0),
+            onCleanseRestoreMana: values.decode(Int.self, "onCleanseRestoreMana", default: 0),
+            onPurgeGainBlock: values.decode(Int.self, "onPurgeGainBlock", default: 0),
+            onPurgeDealHolyDamage: values.decode(Int.self, "onPurgeDealHolyDamage", default: 0)
         )
     }
 
@@ -256,5 +280,9 @@ extension CleanseTriggers {
         try container.encodeNonDefault(cleanseRemovesFreezeBuildup, "cleanseRemovesFreezeBuildup", default: false)
         try container.encodeNonDefault(cleanseTargetBlockFlat, "cleanseTargetBlockFlat", default: 0)
         try container.encodeNonDefault(firstCleanseExtraRemovalPerTurn, "firstCleanseExtraRemovalPerTurn", default: 0)
+        try container.encodeNonDefault(cleanseSelfBlockFlat, "cleanseSelfBlockFlat", default: 0)
+        try container.encodeNonDefault(onCleanseRestoreMana, "onCleanseRestoreMana", default: 0)
+        try container.encodeNonDefault(onPurgeGainBlock, "onPurgeGainBlock", default: 0)
+        try container.encodeNonDefault(onPurgeDealHolyDamage, "onPurgeDealHolyDamage", default: 0)
     }
 }

@@ -37,6 +37,12 @@ package enum DamagePipeline {
         if state.isDodged {
             return
         }
+        if let sourceActorID = state.sourceActorID,
+           let source = context.roster.combatant(for: sourceActorID), source.role != .enemy {
+            state.sourceHadNoBlockAtHit = DefensePoolEngine.blockPoints(
+                in: context.roster.activeEffects(for: source.combatant),
+            ) == 0
+        }
         state.targetStatus = DamageTargetStatus(for: state.combatant, in: context)
         reserveCompanionBlockIgnore(to: &state, in: &context)
         applyOutgoingDamage(to: &state, in: &context)
@@ -152,6 +158,7 @@ package enum DamagePipeline {
             state.remaining = state.amount
             state.dealt = state.amount
             state.isCritical = state.options.guaranteedCritical
+            applyVenomtrail(to: &state, in: context)
             applyFinalCompanionOutgoingBonuses(to: &state, in: &context)
         } else {
             reserveAttackEmpowers(to: &state, in: &context)

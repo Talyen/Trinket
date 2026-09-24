@@ -2,6 +2,10 @@ import TrinketContent
 import TrinketCore
 
 public enum BattleTargetResolver {
+    package static func lowestHealthAlly(for actor: Combatant, in context: BattleState) -> Combatant {
+        BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
+    }
+
     public static func abilityTarget(for actor: Combatant, in context: BattleState) -> Combatant {
         BattleActionContext(actor: actor, in: context).selectedTarget
     }

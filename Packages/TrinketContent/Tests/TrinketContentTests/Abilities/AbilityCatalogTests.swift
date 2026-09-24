@@ -3,29 +3,28 @@ import TrinketCore
 @testable import TrinketContent
 
 struct AbilityCatalogTests {
-    @Test func `luck potion covers every die face and resource type`() throws {
+    @Test func `luck potion covers every die face and combat outcome`() throws {
         let branches = try #require(Ability.luckPotion.outcomeBranches)
-        #expect(branches.count == 48)
-        var amountsByResource: [Keyword: [Int]] = [:]
+        #expect(branches.count == 36)
         var thornsAmounts: [Int] = []
         var blockAmounts: [Int] = []
+        var healthAmounts: [Int] = []
         for targeted in branches.flatMap(\.targetedEffects) {
             switch targeted.effect {
-            case let .resourceGain(keyword, amount):
-                amountsByResource[keyword, default: []].append(amount)
             case let .thorns(amount):
                 thornsAmounts.append(amount)
             case let .shield(.block, amount):
                 blockAmounts.append(amount)
+            case let .instantHeal(.health, amount):
+                #expect(targeted.target == .lowestHealthAlly)
+                healthAmounts.append(amount)
             default:
-                Issue.record("Luck Potion branch did not grant a supported resource")
+                Issue.record("Luck Potion branch did not grant Block, Thorns, or Health")
             }
         }
-        #expect(Set(amountsByResource.keys) == [.mana, .gold])
-        #expect(amountsByResource[.mana]?.sorted() == Array(1 ... 12))
-        #expect(amountsByResource[.gold]?.sorted() == Array(1 ... 12))
         #expect(thornsAmounts.sorted() == Array(1 ... 12))
         #expect(blockAmounts.sorted() == Array(1 ... 12))
+        #expect(healthAmounts.sorted() == Array(1 ... 12))
     }
 
     @Test func `rebuilt definitions retain value equality and operation order`() {
@@ -141,12 +140,12 @@ struct AbilityCatalogTests {
     @Test func `ultimate reworks match player facing summaries`() throws {
         let expected: [Ability: String] = [
             .avatarOfJustice: "Deal 6 Holy damage\nYour next attack deals Holy damage\nGain 6 Block",
-            .blessedAegis: "Gain 6 Block\nRestore 6 Health\nDeal Holy damage equal to half your Block",
+            .blessedAegis: "Gain 5 Block and Health\nDeal 5 Holy damage",
             .blizzard: "Deal 6 Freeze damage this turn and next",
             .combustion: "Deal 6 Burn damage\nDetonate all enemy Burn",
             .earthquake: "Deal 6 Stun damage this turn and next",
             .hemorrhage: "Deal 6 Bleed damage\nDetonate all Bleed",
-            .luckPotion: "Roll a 12-sided die\nGain that much Mana, Gold, Thorns, or Block",
+            .luckPotion: "Roll a 12-sided die\nGain that much Block, Thorns, or Health",
             .moltenBulwark: "Deal 3 Burn damage\nGain 4 Block and Thorns",
             .panaceaPotion: "Cleanse the ally with the most status effects\nRestore 6 Health",
             .shadowstep: "Draw and play 1 card from your deck\nDodge the next attack against you",

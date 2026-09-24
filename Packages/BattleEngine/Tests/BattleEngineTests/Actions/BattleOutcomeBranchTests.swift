@@ -5,37 +5,36 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BattleOutcomeBranchTests {
-    @Test func `luck potion resolves one seeded resource gain`() throws {
+    @Test func `luck potion resolves one seeded combat gain`() throws {
         var seenKeywords: Set<Keyword> = []
         for seed in UInt64(1) ... 192 {
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                enemyMaxHealth: 500, heroMaxMana: 20, heroMana: 0,
+                enemyMaxHealth: 500,
                 heroModifiers: .init(triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: -1))),
                 rngSeed: seed, dealOpeningHand: false,
             )
             battle.appliesFightPacing = false
+            battle.roster.companion.currentHealth = 1
             let events = BattleTurnEngine.performAction(
                 ability: .luckPotion, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
             )
             #expect(!events.contains { $0.kind == .abilityDamage })
-            let resource = try #require(events.first { $0.kind == .effect })
-            #expect(resource.effectKind != nil)
-            #expect((1 ... 12).contains(resource.amount))
-            seenKeywords.insert(resource.keyword)
-            switch resource.keyword {
-            case .mana:
-                #expect(battle.roster.hero.currentMana == resource.amount)
-            case .gold:
-                #expect(battle.gold == resource.amount)
+            let gain = try #require(events.first { $0.kind == .effect })
+            #expect((1 ... 12).contains(gain.amount))
+            seenKeywords.insert(gain.keyword)
+            switch gain.keyword {
             case .thorns:
-                #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == .thorns(resource.amount) })
+                #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == .thorns(gain.amount) })
             case .block:
-                #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == resource.amount)
+                #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == gain.amount)
+            case .health:
+                #expect(battle.roster.companion.currentHealth == 1 + gain.amount)
+                #expect(battle.roster.hero.currentHealth == battle.roster.hero.maxHealth)
             default:
-                Issue.record("Luck Potion produced unsupported resource keyword \(resource.keyword)")
+                Issue.record("Luck Potion produced unsupported keyword \(gain.keyword)")
             }
         }
-        #expect(seenKeywords == [.mana, .gold, .thorns, .block])
+        #expect(seenKeywords == [.block, .thorns, .health])
     }
 
     private func makeBattle(

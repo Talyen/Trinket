@@ -18,6 +18,7 @@ struct CombatResolution {
         case talent(TalentClaim)
         case heroTalent(String)
         case heroCard(String)
+        case affix(String)
     }
 
     enum Cadence: Hashable {
@@ -335,14 +336,13 @@ enum CombatResolver {
         // iterative: nested damage during a drain only enqueues, and the
         // outer loop picks it up instead of recursing drain -> Basic ->
         // damage -> drain. Loop across both queues since counter Basics can
-        // enqueue summons and vice versa.
+        // enqueue Block answers and vice versa.
         if context.resolution.depth(.damage) == 0, !context.uniques.isDrainingOutOfTurnAttacks {
             context.uniques.isDrainingOutOfTurnAttacks = true
             while !context.uniques.pendingCounterAttackActorIDs.isEmpty
-                || context.uniques.pendingCompanionSummons > 0
                 || !context.uniques.pendingBlockAnswerOwners.isEmpty {
                 outcome.events.append(contentsOf: CombatTriggerEngine.drainPendingCounterAttacks(in: &context))
-                outcome.events.append(contentsOf: UniqueCombatEngine.drainPendingSummons(in: &context))
+                outcome.events.append(contentsOf: UniqueCombatEngine.drainPendingBlockAnswers(in: &context))
             }
             context.uniques.isDrainingOutOfTurnAttacks = false
         }

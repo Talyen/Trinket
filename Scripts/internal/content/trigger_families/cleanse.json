@@ -201,6 +201,34 @@
       "type": "Int",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "cleanseSelfBlockFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 63 }
+    },
+    {
+      "name": "onCleanseRestoreMana",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 65 }
+    },
+    {
+      "name": "onPurgeGainBlock",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 67 }
+    },
+    {
+      "name": "onPurgeDealHolyDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 68 }
     }
   ]
 }

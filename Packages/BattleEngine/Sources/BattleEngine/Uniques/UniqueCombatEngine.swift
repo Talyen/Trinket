@@ -17,11 +17,7 @@ package enum UniqueCombatEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         var owner = context.uniques.owners[card.owner, default: .init()]
         owner.cardsPlayed += 1
-        let play = UniqueBattleState.CardPlay(
-            owner: card.owner,
-            originalAbility: card.ability,
-            targetWasBleeding: context.roster.hasAffliction(.bleed, on: context.roster.enemy.combatant),
-        )
+        let play = UniqueBattleState.CardPlay(owner: card.owner, originalAbility: card.ability)
         if triggers.secondCardDrawAndDodgePercent > 0, owner.cardsPlayed == 2 {
             owner.wrenflightDodge = triggers.secondCardDrawAndDodgePercent
             var mutablePlay = play
@@ -46,12 +42,6 @@ package enum UniqueCombatEngine {
         if triggers.thirdCardReturnsToHand {
             owner.lastOrdinaryAbility = play.originalAbility
         }
-        if triggers.firstElementCardsDraw {
-            for keyword in [Keyword.burn, .freeze, .holy]
-                where facts.damageKeywords.contains(keyword) && owner.usedElements.insert(keyword).inserted {
-                play.draws.append("Threefold Grace")
-            }
-        }
         if triggers.dodgeDrawPoisonAndReadyCritical,
            owner.wildheartReady, facts.damageKeywords.contains(.poison) {
             play.guaranteedCritical = true
@@ -70,10 +60,6 @@ package enum UniqueCombatEngine {
             play.attackBonus = triggers.partnerFirstAttackDamage
         }
         owner.hasAttacked = true
-        if triggers.returnAttackAgainstBleedingOncePerTurn, !owner.returnedHarvest, play.targetWasBleeding {
-            owner.returnedHarvest = true
-            play.returnName = play.returnName ?? "Red Harvest"
-        }
     }
 
     static func finishCardDraws(in context: inout BattleState) -> [ActionEvent] {
@@ -107,7 +93,6 @@ package enum UniqueCombatEngine {
         for owner in [BattleParticipant.hero, .companion] {
             context.uniques.owners[owner, default: .init()].resetTurn()
         }
-        context.uniques.pendingCompanionSummons = 0
         context.uniques.pendingBlockAnswerOwners = []
         context.uniques.pendingCounterAttackActorIDs = []
         context.uniques.isDrainingOutOfTurnAttacks = false

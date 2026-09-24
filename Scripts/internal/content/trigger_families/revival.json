@@ -90,7 +90,8 @@
       "name": "enterDeathsDoorBurnDamage",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 69 }
     },
     {
       "name": "surviveDeathsDoorNextAttackDouble",
@@ -126,7 +127,8 @@
       "name": "deathsDoorCriticalChanceBonus",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": { "kind": "percent", "order": 70 }
     },
     {
       "name": "enterDeathsDoorDrawCard",
@@ -139,6 +141,13 @@
       "type": "Int",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "affixDeathsDoorSurviveHealFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 71 }
     }
   ]
 }

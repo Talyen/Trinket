@@ -32,6 +32,7 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
     public var guaranteedCriticalIfEnemyBuffed = false
     public var guaranteedCritical = false
     public var abilityHasLeech = false
+    var suppressLeech = false
     var partnerFirstAttackBonus = 0
 
     public static func attack(

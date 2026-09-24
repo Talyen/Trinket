@@ -113,7 +113,7 @@ package extension CombatTriggerEngine {
         )).events
         guard context.roster.health(for: actor) > 0 else { return events }
         events.append(contentsOf: drawCards(
-            2,
+            1,
             for: owner,
             actor: actor,
             abilityName: triggerAbilityName("forbiddenKnowledge", for: actor, fallback: "Forbidden Knowledge", in: context),
@@ -223,10 +223,11 @@ package extension CombatTriggerEngine {
                 "goldPerTurn", "Merchant's Favor", amount: triggers.goldPerTurn, to: actor, in: &context,
             ))
         }
-        if triggers.healthPerTurn > 0 {
+        if triggers.healthPerTurn > 0, context.isPlayerTurn(every: 2, startingAt: 1) {
+            let target = BattleTargetResolver.lowestHealthAlly(for: actor, in: context)
             events.append(contentsOf: emitHeal(
                 "healthPerTurn", "Grove's Favor",
-                amount: triggers.healthPerTurn, to: actor, source: actor, in: &context,
+                amount: triggers.healthPerTurn, to: target, source: actor, in: &context,
             ))
         }
         if let blessing = runtime.talents.timed.lingeringBlessing,
@@ -435,6 +436,13 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: emitBlock(
                 "startBattleBlock", "Watchful Eye",
                 amount: triggers.startBattleBlock, to: actor, source: actor, in: &context,
+            ))
+        }
+        if triggers.startBattleThorns > 0 {
+            events.append(contentsOf: heroTalentThorns(
+                to: actor, source: actor, amount: triggers.startBattleThorns,
+                name: triggerAbilityName("startBattleThorns", for: actor, fallback: "Thornwrought", in: context),
+                in: &context,
             ))
         }
         if triggers.startBattleBonusGold > 0 {

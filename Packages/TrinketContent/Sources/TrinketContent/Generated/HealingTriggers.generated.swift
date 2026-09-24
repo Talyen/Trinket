@@ -107,6 +107,11 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var leechCriticalPoisonDamage: Int = 0
     public var leechHealingVsLowEnemyHealthMultiplier: Double = 1
     public var leechHealingVsPoisonedMultiplier: Double = 1
+    public var leechBlockChancePercent: Double = 0
+    public var firstThornsDamageHealPerTurn: Int = 0
+    public var leechThornsWithoutThorns: Int = 0
+    public var physicalAttackLeechBelowHalfHealth: Bool = false
+    public var leechStunBelowHalfHealth: Int = 0
 
     public init(
         contagiousJoy: Bool = false,
@@ -211,7 +216,12 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         healthRestorationRepeatNextTurnChancePercent: Double = 0,
         leechCriticalPoisonDamage: Int = 0,
         leechHealingVsLowEnemyHealthMultiplier: Double = 1,
-        leechHealingVsPoisonedMultiplier: Double = 1
+        leechHealingVsPoisonedMultiplier: Double = 1,
+        leechBlockChancePercent: Double = 0,
+        firstThornsDamageHealPerTurn: Int = 0,
+        leechThornsWithoutThorns: Int = 0,
+        physicalAttackLeechBelowHalfHealth: Bool = false,
+        leechStunBelowHalfHealth: Int = 0
     ) {
         self.contagiousJoy = contagiousJoy
         self.livingArchive = livingArchive
@@ -316,10 +326,15 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         self.leechCriticalPoisonDamage = leechCriticalPoisonDamage
         self.leechHealingVsLowEnemyHealthMultiplier = leechHealingVsLowEnemyHealthMultiplier
         self.leechHealingVsPoisonedMultiplier = leechHealingVsPoisonedMultiplier
+        self.leechBlockChancePercent = leechBlockChancePercent
+        self.firstThornsDamageHealPerTurn = firstThornsDamageHealPerTurn
+        self.leechThornsWithoutThorns = leechThornsWithoutThorns
+        self.physicalAttackLeechBelowHalfHealth = physicalAttackLeechBelowHalfHealth
+        self.leechStunBelowHalfHealth = leechStunBelowHalfHealth
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["contagiousJoy", "livingArchive", "marrowmend", "wishspring", "cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "freezeDamageLeechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "coolingSalve", "sharedPrescription", "cleansingDew", "onAttackBleedingEnemyHeal", "overhealFirstBlockPerTurn", "leechBonusHealVsStunned", "onHealDealHoly", "bleedingEnemyHealingMultiplier", "darkRecoveryMultiplier", "leechToFullNextAttackBonus", "leechBlockBelowHalf", "burningEnemyHealingMultiplier", "healthRestoreDrawChancePercent", "overhealToBlockPercent", "healthRestoreNextPoisonBonus", "healthRestoreManaChancePercent", "springSapHealthBonus", "pruningHealthRemoveEnemyThorns", "shelterSeedBlock", "sharedRootsHealPercent", "returningBloomHeal", "excessLeechHealthToGold", "bleedAttackLeechBelowHealthThreshold", "leechOverflowShareAlly", "leechCriticalAllyBlock", "enemyCannotLeechFromTarget", "leechHealingVsBleedingMultiplier", "allyAttackLeechChancePercent", "bleedCriticalHasLeech", "healBelowHalfMultiplier", "burnAttackHealLowestChancePercent", "burnAttackHealLowestAmount", "overhealNextBurnBonus", "firstHealthRestorationDrawBattle", "partyCritChanceWhileCompanionBelowHalf", "healthRestorationCleansesOne", "excessHealthShareAlly", "healthRestoreNextIncomingDamageMultiplier", "healingMultiplier", "healthRestoreBlockChancePercent", "healthOrManaRestoreDrawChancePercent", "healthRestoreThornsChancePercent", "healthRestoreThornsAmount", "excessHealthNextManaEmpowerFree", "firstBelowHalfHealthHeal", "firstHealthRestorationBonusPerTurn", "firstLeechRestorationShareAlly", "healthRestorationRepeatNextTurnChancePercent", "leechCriticalPoisonDamage", "leechHealingVsLowEnemyHealthMultiplier", "leechHealingVsPoisonedMultiplier"]
+    public static let fieldNames: [String] = ["contagiousJoy", "livingArchive", "marrowmend", "wishspring", "cleanseSelfHeal", "cleanseBonusHeal", "onceBelowHealthPercentHeal", "blockOnDeathsDoor", "holyDamageHealFlat", "healthRestoredPoisonPercent", "healthPerTurn", "overhealConvertsToBlock", "overhealConvertsToMaxHealth", "overhealConvertsToMaxHealthCap", "overhealConvertsToMaxHealthPerEvent", "overhealShieldCap", "leechOverhealTransfersToCompanion", "leechSharesToHeroPercent", "onCompanionLeechRestoreHeroMana", "leechHealingVsAfflictedMultiplier", "leechPercentVsLowHealthEnemies", "leechBonusHealVsLowHealthEnemies", "leechChancePercent", "freezeDamageLeechChancePercent", "healingBelowHealthPercentThreshold", "healingBelowHealthPercentMultiplier", "healOverTimeOnHealTurns", "healOverTimeOnHealAmount", "onHealGrantBlock", "onHealCleanseTargetChance", "onHealRestoreCasterMana", "holyDamageHealLowestAllyFlat", "holyDamageHealHeroFlat", "endTurnWithBlockHealFlat", "endOfTurnHealLowestAlly", "cardsPlayedHealPartyThreshold", "cardsPlayedHealPartyAmount", "healthRegenFirstTurnsAmount", "healthRegenFirstTurnsDuration", "healthRegenAboveHalfHealth", "onBurnDamageHealLowestAllyFlat", "companionLeechSharePercent", "onLeechApplyPoison", "onLeechApplyBleed", "onLeechReduceEnemyStrength", "onLeechReduceEnemyStrengthTurns", "companionDamageLeechesToHeroPercent", "leechOnBlockDamage", "partyRegenPerRound", "purifyingWaters", "cleanSlate", "fortifyingTonic", "coolingSalve", "sharedPrescription", "cleansingDew", "onAttackBleedingEnemyHeal", "overhealFirstBlockPerTurn", "leechBonusHealVsStunned", "onHealDealHoly", "bleedingEnemyHealingMultiplier", "darkRecoveryMultiplier", "leechToFullNextAttackBonus", "leechBlockBelowHalf", "burningEnemyHealingMultiplier", "healthRestoreDrawChancePercent", "overhealToBlockPercent", "healthRestoreNextPoisonBonus", "healthRestoreManaChancePercent", "springSapHealthBonus", "pruningHealthRemoveEnemyThorns", "shelterSeedBlock", "sharedRootsHealPercent", "returningBloomHeal", "excessLeechHealthToGold", "bleedAttackLeechBelowHealthThreshold", "leechOverflowShareAlly", "leechCriticalAllyBlock", "enemyCannotLeechFromTarget", "leechHealingVsBleedingMultiplier", "allyAttackLeechChancePercent", "bleedCriticalHasLeech", "healBelowHalfMultiplier", "burnAttackHealLowestChancePercent", "burnAttackHealLowestAmount", "overhealNextBurnBonus", "firstHealthRestorationDrawBattle", "partyCritChanceWhileCompanionBelowHalf", "healthRestorationCleansesOne", "excessHealthShareAlly", "healthRestoreNextIncomingDamageMultiplier", "healingMultiplier", "healthRestoreBlockChancePercent", "healthOrManaRestoreDrawChancePercent", "healthRestoreThornsChancePercent", "healthRestoreThornsAmount", "excessHealthNextManaEmpowerFree", "firstBelowHalfHealthHeal", "firstHealthRestorationBonusPerTurn", "firstLeechRestorationShareAlly", "healthRestorationRepeatNextTurnChancePercent", "leechCriticalPoisonDamage", "leechHealingVsLowEnemyHealthMultiplier", "leechHealingVsPoisonedMultiplier", "leechBlockChancePercent", "firstThornsDamageHealPerTurn", "leechThornsWithoutThorns", "physicalAttackLeechBelowHalfHealth", "leechStunBelowHalfHealth"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -427,6 +442,11 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         if self.leechCriticalPoisonDamage != other.leechCriticalPoisonDamage { names.append("leechCriticalPoisonDamage") }
         if self.leechHealingVsLowEnemyHealthMultiplier != other.leechHealingVsLowEnemyHealthMultiplier { names.append("leechHealingVsLowEnemyHealthMultiplier") }
         if self.leechHealingVsPoisonedMultiplier != other.leechHealingVsPoisonedMultiplier { names.append("leechHealingVsPoisonedMultiplier") }
+        if self.leechBlockChancePercent != other.leechBlockChancePercent { names.append("leechBlockChancePercent") }
+        if self.firstThornsDamageHealPerTurn != other.firstThornsDamageHealPerTurn { names.append("firstThornsDamageHealPerTurn") }
+        if self.leechThornsWithoutThorns != other.leechThornsWithoutThorns { names.append("leechThornsWithoutThorns") }
+        if self.physicalAttackLeechBelowHalfHealth != other.physicalAttackLeechBelowHalfHealth { names.append("physicalAttackLeechBelowHalfHealth") }
+        if self.leechStunBelowHalfHealth != other.leechStunBelowHalfHealth { names.append("leechStunBelowHalfHealth") }
         return names
     }
 }
@@ -536,6 +556,11 @@ extension HealingTriggers {
         leechCriticalPoisonDamage += other.leechCriticalPoisonDamage
         leechHealingVsLowEnemyHealthMultiplier *= other.leechHealingVsLowEnemyHealthMultiplier
         leechHealingVsPoisonedMultiplier *= other.leechHealingVsPoisonedMultiplier
+        leechBlockChancePercent += other.leechBlockChancePercent
+        firstThornsDamageHealPerTurn += other.firstThornsDamageHealPerTurn
+        leechThornsWithoutThorns += other.leechThornsWithoutThorns
+        physicalAttackLeechBelowHalfHealth = physicalAttackLeechBelowHalfHealth || other.physicalAttackLeechBelowHalfHealth
+        leechStunBelowHalfHealth += other.leechStunBelowHalfHealth
     }
 }
 
@@ -645,7 +670,12 @@ extension HealingTriggers {
             healthRestorationRepeatNextTurnChancePercent: values.decode(Double.self, "healthRestorationRepeatNextTurnChancePercent", default: 0),
             leechCriticalPoisonDamage: values.decode(Int.self, "leechCriticalPoisonDamage", default: 0),
             leechHealingVsLowEnemyHealthMultiplier: values.decode(Double.self, "leechHealingVsLowEnemyHealthMultiplier", default: 1),
-            leechHealingVsPoisonedMultiplier: values.decode(Double.self, "leechHealingVsPoisonedMultiplier", default: 1)
+            leechHealingVsPoisonedMultiplier: values.decode(Double.self, "leechHealingVsPoisonedMultiplier", default: 1),
+            leechBlockChancePercent: values.decode(Double.self, "leechBlockChancePercent", default: 0),
+            firstThornsDamageHealPerTurn: values.decode(Int.self, "firstThornsDamageHealPerTurn", default: 0),
+            leechThornsWithoutThorns: values.decode(Int.self, "leechThornsWithoutThorns", default: 0),
+            physicalAttackLeechBelowHalfHealth: values.decode(Bool.self, "physicalAttackLeechBelowHalfHealth", default: false),
+            leechStunBelowHalfHealth: values.decode(Int.self, "leechStunBelowHalfHealth", default: 0)
         )
     }
 
@@ -753,5 +783,10 @@ extension HealingTriggers {
         try container.encodeNonDefault(leechCriticalPoisonDamage, "leechCriticalPoisonDamage", default: 0)
         try container.encodeNonDefault(leechHealingVsLowEnemyHealthMultiplier, "leechHealingVsLowEnemyHealthMultiplier", default: 1)
         try container.encodeNonDefault(leechHealingVsPoisonedMultiplier, "leechHealingVsPoisonedMultiplier", default: 1)
+        try container.encodeNonDefault(leechBlockChancePercent, "leechBlockChancePercent", default: 0)
+        try container.encodeNonDefault(firstThornsDamageHealPerTurn, "firstThornsDamageHealPerTurn", default: 0)
+        try container.encodeNonDefault(leechThornsWithoutThorns, "leechThornsWithoutThorns", default: 0)
+        try container.encodeNonDefault(physicalAttackLeechBelowHalfHealth, "physicalAttackLeechBelowHalfHealth", default: false)
+        try container.encodeNonDefault(leechStunBelowHalfHealth, "leechStunBelowHalfHealth", default: 0)
     }
 }

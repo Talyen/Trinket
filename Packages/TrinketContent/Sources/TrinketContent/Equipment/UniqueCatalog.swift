@@ -57,7 +57,7 @@ enum UniqueCatalog {
             name: "Golden Verdict",
             base: "topaz_ring",
             keywords: [.holy, .gold, .stun],
-            description: "Holy damage builds an equal amount of Stun. When this Stuns an enemy, gain 1 Gold.",
+            description: "Holy damage causes Stun build-up and steals 1 Gold when it Stuns an enemy.",
             triggers: CombatTraitTriggers(
                 control: ControlTriggers(
                     holyStunBuildupPercent: 1,

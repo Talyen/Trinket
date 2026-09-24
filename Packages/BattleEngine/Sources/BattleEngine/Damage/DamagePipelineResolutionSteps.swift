@@ -108,6 +108,7 @@ package extension DamagePipeline {
             }
         }
         state.remaining = state.amount + state.statBonus + state.itemBonus
+        applyVenomtrail(to: &state, in: context)
     }
 
     private static func applyPercentBonus(
@@ -186,6 +187,7 @@ package extension DamagePipeline {
                 appendAfflictedAuraLogEvents(to: &state, in: &context)
             }
         }
+        applyHallowbreak(to: &state, in: context)
         applyTalentStatusMultipliers(to: &state, in: &context)
         applyCompanionStatusMultipliers(to: &state, in: &context)
         applyTalentBlockConsumption(to: &state, in: &context)

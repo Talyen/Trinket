@@ -110,14 +110,12 @@ struct CombatBuildResolverTests {
         )
         battle.appliesFightPacing = false
         battle.uniques.pendingCounterAttackActorIDs = [battle.hero.id]
-        battle.uniques.pendingCompanionSummons = 1
         battle.uniques.pendingBlockAnswerOwners = [.hero]
         _ = battle.resolveDamage(DamageRequest(
             amount: 10, target: battle.enemy, keyword: .physical,
             sourceActorID: battle.hero.id, options: .reaction(),
         ))
         #expect(battle.uniques.pendingCounterAttackActorIDs.isEmpty)
-        #expect(battle.uniques.pendingCompanionSummons == 0)
         #expect(battle.uniques.pendingBlockAnswerOwners.isEmpty)
         #expect(battle.uniques.isDrainingOutOfTurnAttacks == false)
     }

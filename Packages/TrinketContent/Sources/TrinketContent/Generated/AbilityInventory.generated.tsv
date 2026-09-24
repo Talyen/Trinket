@@ -46,7 +46,7 @@ tithe	Tithe	skill	Deal 2 Holy damage\nSteal 2 Gold
 venom-fangs	Venom Fangs	skill	Deal 2 Poison damage\nLeech
 astral-arrow	Astral Arrow	ultimate	Deal 7 Burn, Freeze, or Bleed damage
 avatar-of-justice	Avatar	ultimate	Deal 6 Holy damage\nYour next attack deals Holy damage\nGain 6 Block
-blessed-aegis	Blessed Aegis	ultimate	Gain 6 Block\nRestore 6 Health\nDeal Holy damage equal to half your Block
+blessed-aegis	Blessed Aegis	ultimate	Gain 5 Block and Health\nDeal 5 Holy damage
 blizzard	Blizzard	ultimate	Deal 6 Freeze damage this turn and next
 bloodthorn	Bloodthorn	ultimate	Deal 2 Bleed damage\nDeal 2 Poison damage\nLeech
 combustion	Combustion	ultimate	Deal 6 Burn damage\nDetonate all enemy Burn
@@ -54,7 +54,7 @@ earthquake	Earthquake	ultimate	Deal 6 Stun damage this turn and next
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health\nDeal 4 Burn damage\nDraw 1 card
 golden-plate	Golden Plate	ultimate	Gain 8 Block\nGain 5 Gold
 hemorrhage	Hemorrhage	ultimate	Deal 6 Bleed damage\nDetonate all Bleed
-luck-potion	Luck Potion	ultimate	Roll a 12-sided die\nGain that much Mana, Gold, Thorns, or Block
+luck-potion	Luck Potion	ultimate	Roll a 12-sided die\nGain that much Block, Thorns, or Health
 meteor	Meteor	ultimate	Deal 6 Burn damage\nConvert all your Mana into bonus Burn damage
 molten-bulwark	Molten Bulwark	ultimate	Deal 3 Burn damage\nGain 4 Block and Thorns
 pack-tactics	Pack Tactics	ultimate	Deal 3 Physical damage\nDraw and play 1 card from your ally's deck

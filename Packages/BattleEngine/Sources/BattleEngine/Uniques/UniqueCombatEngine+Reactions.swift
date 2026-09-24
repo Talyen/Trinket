@@ -21,7 +21,7 @@ extension UniqueCombatEngine {
     static func afterDamage(_ damage: DamageResolutionState, in context: inout BattleState) -> [ActionEvent] {
         guard context.resolution.depth(.uniqueReaction) == 0 else { return [] }
         var events = answerBlockedAttack(damage, in: &context)
-        events.append(contentsOf: huntBleedFollowUp(damage, in: &context))
+        events.append(contentsOf: physicalCriticalRewards(damage, in: &context))
         guard damage.options.isOrdinaryUniqueCardDamage,
               damage.amount > 0,
               damage.combatant.role == .enemy,
@@ -64,30 +64,36 @@ extension UniqueCombatEngine {
         return events
     }
 
-    private static func huntBleedFollowUp(
+    private static func physicalCriticalRewards(
         _ damage: DamageResolutionState,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard damage.damageKeyword == .bleed,
+        guard damage.damageKeyword == .physical,
+              damage.isCritical,
+              damage.options.isAttackHit,
               damage.healthLost > 0,
               damage.combatant.role == .enemy,
               let source = damage.partySource(in: context), source.isAlive,
-              let owner = context.roster.participant(for: source.combatant),
-              context.modifiers(for: source.id).triggers.firstCriticalHitCompanionBasicPerTurn,
-              context.uniques.owners[owner]?.calledCompanion != true
+              let owner = context.roster.participant(for: source.combatant)
         else { return [] }
-        context.uniques.owners[owner, default: .init()].calledCompanion = true
-        // Defer while inside damage resolution: a full Basic nested in the
-        // damage pipeline overflows small worker-thread stacks. The claim
-        // above already spent the once-per-turn allowance; the outermost
-        // damage drains the queue on completion.
-        guard context.resolution.depth(.damage) == 0 else {
-            context.uniques.pendingCompanionSummons += 1
-            return []
+        let triggers = context.modifiers(for: source.id).triggers
+        var events: [ActionEvent] = []
+        if triggers.redHarvestPhysicalCriticalDetonatesBleed,
+           context.roster.health(for: damage.combatant) > 0 {
+            events.append(contentsOf: CombatTriggerEngine.detonateBleed(
+                on: damage.combatant, sourceActorID: source.id, in: &context,
+            ))
         }
-        context.resolution.enter(.uniqueReaction)
-        defer { context.resolution.leave(.uniqueReaction) }
-        return useBasic(owner: .companion, in: &context)
+        if owner == .hero, triggers.huntsmasterPhysicalCriticalDrawsCompanion {
+            events.append(contentsOf: CombatTriggerEngine.drawCards(
+                1,
+                for: .companion,
+                actor: context.roster.companion.combatant,
+                abilityName: "Huntsmaster’s Call",
+                in: &context,
+            ))
+        }
+        return events
     }
 
     private static func answerBlockedAttack(
@@ -101,8 +107,7 @@ extension UniqueCombatEngine {
               context.uniques.owners[owner]?.answeredBlock != true
         else { return [] }
         context.uniques.owners[owner, default: .init()].answeredBlock = true
-        // Same deferral as Huntsmaster's Call above: never nest a full Basic
-        // inside damage resolution.
+        // Never nest a full Basic inside damage resolution.
         guard context.resolution.depth(.damage) == 0 else {
             if !context.uniques.pendingBlockAnswerOwners.contains(owner) {
                 context.uniques.pendingBlockAnswerOwners.append(owner)
@@ -131,20 +136,14 @@ extension UniqueCombatEngine {
         )
     }
 
-    static func drainPendingSummons(in context: inout BattleState) -> [ActionEvent] {
-        guard context.uniques.pendingCompanionSummons > 0 || !context.uniques.pendingBlockAnswerOwners.isEmpty else {
+    static func drainPendingBlockAnswers(in context: inout BattleState) -> [ActionEvent] {
+        guard !context.uniques.pendingBlockAnswerOwners.isEmpty else {
             return []
         }
         var events: [ActionEvent] = []
-        // Drain in pipeline phase order: block answers were recorded before
-        // companion summons within committed reactions.
         while !context.uniques.pendingBlockAnswerOwners.isEmpty {
             let owner = context.uniques.pendingBlockAnswerOwners.removeFirst()
             events.append(contentsOf: useBasic(owner: owner, in: &context))
-        }
-        while context.uniques.pendingCompanionSummons > 0 {
-            context.uniques.pendingCompanionSummons -= 1
-            events.append(contentsOf: useBasic(owner: .companion, in: &context))
         }
         return events
     }

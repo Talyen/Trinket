@@ -5,16 +5,13 @@ import TrinketCore
 /// The `attack` trigger family of `CombatTraitTriggers`.
 public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var firstCriticalHitRepeatsPerTurn: Bool = false
-    public var returnAttackAgainstBleedingOncePerTurn: Bool = false
     public var heldCardNextAttackDamage: Int = 0
     public var partnerFirstAttackDamage: Int = 0
     public var dazingSwipeChancePercent: Double = 0
     public var dazingSwipeStunDamage: Int = 0
-    public var firstCriticalHitCompanionBasicPerTurn: Bool = false
     public var secondCardDrawAndDodgePercent: Double = 0
     public var thirdCardReturnsToHand: Bool = false
     public var recoverLastAttackCardEachTurn: Bool = false
-    public var firstElementCardsDraw: Bool = false
     public var attacksApplyPoison: Int = 0
     public var physicalAttackApplyBleed: Int = 0
     public var physicalAttackApplyBleedAndStun: Int = 0
@@ -115,19 +112,18 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var stunCriticalIgnoreBlock: Bool = false
     public var stunDamageMultiplierWhileThorns: Double = 1
     public var firstHolyHitAllyBlockPerTurn: Int = 0
+    public var redHarvestPhysicalCriticalDetonatesBleed: Bool = false
+    public var huntsmasterPhysicalCriticalDrawsCompanion: Bool = false
 
     public init(
         firstCriticalHitRepeatsPerTurn: Bool = false,
-        returnAttackAgainstBleedingOncePerTurn: Bool = false,
         heldCardNextAttackDamage: Int = 0,
         partnerFirstAttackDamage: Int = 0,
         dazingSwipeChancePercent: Double = 0,
         dazingSwipeStunDamage: Int = 0,
-        firstCriticalHitCompanionBasicPerTurn: Bool = false,
         secondCardDrawAndDodgePercent: Double = 0,
         thirdCardReturnsToHand: Bool = false,
         recoverLastAttackCardEachTurn: Bool = false,
-        firstElementCardsDraw: Bool = false,
         attacksApplyPoison: Int = 0,
         physicalAttackApplyBleed: Int = 0,
         physicalAttackApplyBleedAndStun: Int = 0,
@@ -227,19 +223,18 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         stunAttackCriticalBonus: Double = 0,
         stunCriticalIgnoreBlock: Bool = false,
         stunDamageMultiplierWhileThorns: Double = 1,
-        firstHolyHitAllyBlockPerTurn: Int = 0
+        firstHolyHitAllyBlockPerTurn: Int = 0,
+        redHarvestPhysicalCriticalDetonatesBleed: Bool = false,
+        huntsmasterPhysicalCriticalDrawsCompanion: Bool = false
     ) {
         self.firstCriticalHitRepeatsPerTurn = firstCriticalHitRepeatsPerTurn
-        self.returnAttackAgainstBleedingOncePerTurn = returnAttackAgainstBleedingOncePerTurn
         self.heldCardNextAttackDamage = heldCardNextAttackDamage
         self.partnerFirstAttackDamage = partnerFirstAttackDamage
         self.dazingSwipeChancePercent = dazingSwipeChancePercent
         self.dazingSwipeStunDamage = dazingSwipeStunDamage
-        self.firstCriticalHitCompanionBasicPerTurn = firstCriticalHitCompanionBasicPerTurn
         self.secondCardDrawAndDodgePercent = secondCardDrawAndDodgePercent
         self.thirdCardReturnsToHand = thirdCardReturnsToHand
         self.recoverLastAttackCardEachTurn = recoverLastAttackCardEachTurn
-        self.firstElementCardsDraw = firstElementCardsDraw
         self.attacksApplyPoison = attacksApplyPoison
         self.physicalAttackApplyBleed = physicalAttackApplyBleed
         self.physicalAttackApplyBleedAndStun = physicalAttackApplyBleedAndStun
@@ -340,25 +335,24 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.stunCriticalIgnoreBlock = stunCriticalIgnoreBlock
         self.stunDamageMultiplierWhileThorns = stunDamageMultiplierWhileThorns
         self.firstHolyHitAllyBlockPerTurn = firstHolyHitAllyBlockPerTurn
+        self.redHarvestPhysicalCriticalDetonatesBleed = redHarvestPhysicalCriticalDetonatesBleed
+        self.huntsmasterPhysicalCriticalDrawsCompanion = huntsmasterPhysicalCriticalDrawsCompanion
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "returnAttackAgainstBleedingOncePerTurn", "heldCardNextAttackDamage", "partnerFirstAttackDamage", "dazingSwipeChancePercent", "dazingSwipeStunDamage", "firstCriticalHitCompanionBasicPerTurn", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "firstElementCardsDraw", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "cleanCut", "crackedGuard", "blockedAttackNextPhysicalDouble", "poisonCritPreparesBleedCrit", "leechCriticalVsBleedingBonus", "burnAttackCritDrawCard", "burnPreparesBleedDamageBonus", "physicalElementChancePercent", "physicalElementDamage", "standardDeviation", "physicalVsFrozenCritBonus", "blockBreakNextPhysicalBonus", "physicalDamageVsStunnedMultiplier", "physicalCritChanceBelowHalfBonus", "physicalCritRemoveEnemyBlock", "firstPhysicalAttackBlockDamagePercent", "poisonCriticalHasLeech", "poisonAttackStunChancePercent", "bleedCriticalPoisonDamage", "bleedCriticalThorns", "bleedCriticalDrawChancePercent", "criticalGoldStealFlat", "bleedAttackDamageBonus", "bleedAttackCriticalBonus", "attackVsBleedingBelowHalfMultiplier", "bleedCriticalDamageMultiplier", "belowHalfHealthNextBleedDouble", "partyCritChanceWhileCompanionFullHealth", "holyCriticalAllyIgnoreBlock", "holyAttackCriticalBonus", "holyAttackEnemyMissChance", "holyAttackDrawChancePercent", "holyCriticalPurgeCount", "holyAttackCleanseAllyChancePercent", "attackDamageVsStunnedMultiplier", "bleedDamageVsPoisonedMultiplier", "burnCriticalDamageMultiplier", "burnCriticalIgnoreBlock", "firstBleedAttackLeechPerTurn", "firstHolyAttackBlockPerTurn", "firstHolyAttackBonusPerTurn", "firstHolyHitDamageMultiplierPerTurn", "firstPhysicalAttackBattleMultiplier", "firstPhysicalAttackBlockPerTurn", "freezeAttackCriticalBonus", "freezeCriticalDamageMultiplier", "holyCriticalStunDamage", "holyDamageMultiplierWhileBlocked", "holyDamageVsStunnedMultiplier", "leechAttackDamageVsBleedingMultiplier", "partyBleedCritChanceBonus", "partyFirstPhysicalCriticalBonus", "partyHolyAttackCriticalBonus", "partyHolyDamageMultiplier", "physicalAttackBurstChancePercent", "physicalAttackBurstMultiplier", "physicalCritVsBleedingBonus", "physicalCriticalBleedDamage", "physicalCriticalDamageVsBleedingMultiplier", "physicalCriticalDamageVsPoisonedMultiplier", "stunAttackCriticalBonus", "stunCriticalIgnoreBlock", "stunDamageMultiplierWhileThorns", "firstHolyHitAllyBlockPerTurn"]
+    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "heldCardNextAttackDamage", "partnerFirstAttackDamage", "dazingSwipeChancePercent", "dazingSwipeStunDamage", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "cleanCut", "crackedGuard", "blockedAttackNextPhysicalDouble", "poisonCritPreparesBleedCrit", "leechCriticalVsBleedingBonus", "burnAttackCritDrawCard", "burnPreparesBleedDamageBonus", "physicalElementChancePercent", "physicalElementDamage", "standardDeviation", "physicalVsFrozenCritBonus", "blockBreakNextPhysicalBonus", "physicalDamageVsStunnedMultiplier", "physicalCritChanceBelowHalfBonus", "physicalCritRemoveEnemyBlock", "firstPhysicalAttackBlockDamagePercent", "poisonCriticalHasLeech", "poisonAttackStunChancePercent", "bleedCriticalPoisonDamage", "bleedCriticalThorns", "bleedCriticalDrawChancePercent", "criticalGoldStealFlat", "bleedAttackDamageBonus", "bleedAttackCriticalBonus", "attackVsBleedingBelowHalfMultiplier", "bleedCriticalDamageMultiplier", "belowHalfHealthNextBleedDouble", "partyCritChanceWhileCompanionFullHealth", "holyCriticalAllyIgnoreBlock", "holyAttackCriticalBonus", "holyAttackEnemyMissChance", "holyAttackDrawChancePercent", "holyCriticalPurgeCount", "holyAttackCleanseAllyChancePercent", "attackDamageVsStunnedMultiplier", "bleedDamageVsPoisonedMultiplier", "burnCriticalDamageMultiplier", "burnCriticalIgnoreBlock", "firstBleedAttackLeechPerTurn", "firstHolyAttackBlockPerTurn", "firstHolyAttackBonusPerTurn", "firstHolyHitDamageMultiplierPerTurn", "firstPhysicalAttackBattleMultiplier", "firstPhysicalAttackBlockPerTurn", "freezeAttackCriticalBonus", "freezeCriticalDamageMultiplier", "holyCriticalStunDamage", "holyDamageMultiplierWhileBlocked", "holyDamageVsStunnedMultiplier", "leechAttackDamageVsBleedingMultiplier", "partyBleedCritChanceBonus", "partyFirstPhysicalCriticalBonus", "partyHolyAttackCriticalBonus", "partyHolyDamageMultiplier", "physicalAttackBurstChancePercent", "physicalAttackBurstMultiplier", "physicalCritVsBleedingBonus", "physicalCriticalBleedDamage", "physicalCriticalDamageVsBleedingMultiplier", "physicalCriticalDamageVsPoisonedMultiplier", "stunAttackCriticalBonus", "stunCriticalIgnoreBlock", "stunDamageMultiplierWhileThorns", "firstHolyHitAllyBlockPerTurn", "redHarvestPhysicalCriticalDetonatesBleed", "huntsmasterPhysicalCriticalDrawsCompanion"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
         var names: [String] = []
         if self.firstCriticalHitRepeatsPerTurn != other.firstCriticalHitRepeatsPerTurn { names.append("firstCriticalHitRepeatsPerTurn") }
-        if self.returnAttackAgainstBleedingOncePerTurn != other.returnAttackAgainstBleedingOncePerTurn { names.append("returnAttackAgainstBleedingOncePerTurn") }
         if self.heldCardNextAttackDamage != other.heldCardNextAttackDamage { names.append("heldCardNextAttackDamage") }
         if self.partnerFirstAttackDamage != other.partnerFirstAttackDamage { names.append("partnerFirstAttackDamage") }
         if self.dazingSwipeChancePercent != other.dazingSwipeChancePercent { names.append("dazingSwipeChancePercent") }
         if self.dazingSwipeStunDamage != other.dazingSwipeStunDamage { names.append("dazingSwipeStunDamage") }
-        if self.firstCriticalHitCompanionBasicPerTurn != other.firstCriticalHitCompanionBasicPerTurn { names.append("firstCriticalHitCompanionBasicPerTurn") }
         if self.secondCardDrawAndDodgePercent != other.secondCardDrawAndDodgePercent { names.append("secondCardDrawAndDodgePercent") }
         if self.thirdCardReturnsToHand != other.thirdCardReturnsToHand { names.append("thirdCardReturnsToHand") }
         if self.recoverLastAttackCardEachTurn != other.recoverLastAttackCardEachTurn { names.append("recoverLastAttackCardEachTurn") }
-        if self.firstElementCardsDraw != other.firstElementCardsDraw { names.append("firstElementCardsDraw") }
         if self.attacksApplyPoison != other.attacksApplyPoison { names.append("attacksApplyPoison") }
         if self.physicalAttackApplyBleed != other.physicalAttackApplyBleed { names.append("physicalAttackApplyBleed") }
         if self.physicalAttackApplyBleedAndStun != other.physicalAttackApplyBleedAndStun { names.append("physicalAttackApplyBleedAndStun") }
@@ -459,6 +453,8 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         if self.stunCriticalIgnoreBlock != other.stunCriticalIgnoreBlock { names.append("stunCriticalIgnoreBlock") }
         if self.stunDamageMultiplierWhileThorns != other.stunDamageMultiplierWhileThorns { names.append("stunDamageMultiplierWhileThorns") }
         if self.firstHolyHitAllyBlockPerTurn != other.firstHolyHitAllyBlockPerTurn { names.append("firstHolyHitAllyBlockPerTurn") }
+        if self.redHarvestPhysicalCriticalDetonatesBleed != other.redHarvestPhysicalCriticalDetonatesBleed { names.append("redHarvestPhysicalCriticalDetonatesBleed") }
+        if self.huntsmasterPhysicalCriticalDrawsCompanion != other.huntsmasterPhysicalCriticalDrawsCompanion { names.append("huntsmasterPhysicalCriticalDrawsCompanion") }
         return names
     }
 }
@@ -466,16 +462,13 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
 extension AttackTriggers {
     mutating func merge(_ other: Self) {
         firstCriticalHitRepeatsPerTurn = firstCriticalHitRepeatsPerTurn || other.firstCriticalHitRepeatsPerTurn
-        returnAttackAgainstBleedingOncePerTurn = returnAttackAgainstBleedingOncePerTurn || other.returnAttackAgainstBleedingOncePerTurn
         heldCardNextAttackDamage = max(heldCardNextAttackDamage, other.heldCardNextAttackDamage)
         partnerFirstAttackDamage = max(partnerFirstAttackDamage, other.partnerFirstAttackDamage)
         dazingSwipeChancePercent += other.dazingSwipeChancePercent
         dazingSwipeStunDamage += other.dazingSwipeStunDamage
-        firstCriticalHitCompanionBasicPerTurn = firstCriticalHitCompanionBasicPerTurn || other.firstCriticalHitCompanionBasicPerTurn
         secondCardDrawAndDodgePercent = max(secondCardDrawAndDodgePercent, other.secondCardDrawAndDodgePercent)
         thirdCardReturnsToHand = thirdCardReturnsToHand || other.thirdCardReturnsToHand
         recoverLastAttackCardEachTurn = recoverLastAttackCardEachTurn || other.recoverLastAttackCardEachTurn
-        firstElementCardsDraw = firstElementCardsDraw || other.firstElementCardsDraw
         attacksApplyPoison += other.attacksApplyPoison
         physicalAttackApplyBleed += other.physicalAttackApplyBleed
         physicalAttackApplyBleedAndStun += other.physicalAttackApplyBleedAndStun
@@ -576,6 +569,8 @@ extension AttackTriggers {
         stunCriticalIgnoreBlock = stunCriticalIgnoreBlock || other.stunCriticalIgnoreBlock
         stunDamageMultiplierWhileThorns *= other.stunDamageMultiplierWhileThorns
         firstHolyHitAllyBlockPerTurn += other.firstHolyHitAllyBlockPerTurn
+        redHarvestPhysicalCriticalDetonatesBleed = redHarvestPhysicalCriticalDetonatesBleed || other.redHarvestPhysicalCriticalDetonatesBleed
+        huntsmasterPhysicalCriticalDrawsCompanion = huntsmasterPhysicalCriticalDrawsCompanion || other.huntsmasterPhysicalCriticalDrawsCompanion
     }
 }
 
@@ -584,16 +579,13 @@ extension AttackTriggers {
     init(from values: DefaultingTriggerDecoder) throws {
         try self.init(
             firstCriticalHitRepeatsPerTurn: values.decode(Bool.self, "firstCriticalHitRepeatsPerTurn", default: false),
-            returnAttackAgainstBleedingOncePerTurn: values.decode(Bool.self, "returnAttackAgainstBleedingOncePerTurn", default: false),
             heldCardNextAttackDamage: values.decode(Int.self, "heldCardNextAttackDamage", default: 0),
             partnerFirstAttackDamage: values.decode(Int.self, "partnerFirstAttackDamage", default: 0),
             dazingSwipeChancePercent: values.decode(Double.self, "dazingSwipeChancePercent", default: 0),
             dazingSwipeStunDamage: values.decode(Int.self, "dazingSwipeStunDamage", default: 0),
-            firstCriticalHitCompanionBasicPerTurn: values.decode(Bool.self, "firstCriticalHitCompanionBasicPerTurn", default: false),
             secondCardDrawAndDodgePercent: values.decode(Double.self, "secondCardDrawAndDodgePercent", default: 0),
             thirdCardReturnsToHand: values.decode(Bool.self, "thirdCardReturnsToHand", default: false),
             recoverLastAttackCardEachTurn: values.decode(Bool.self, "recoverLastAttackCardEachTurn", default: false),
-            firstElementCardsDraw: values.decode(Bool.self, "firstElementCardsDraw", default: false),
             attacksApplyPoison: values.decode(Int.self, "attacksApplyPoison", default: 0),
             physicalAttackApplyBleed: values.decode(Int.self, "physicalAttackApplyBleed", default: 0),
             physicalAttackApplyBleedAndStun: values.decode(Int.self, "physicalAttackApplyBleedAndStun", default: 0),
@@ -693,22 +685,21 @@ extension AttackTriggers {
             stunAttackCriticalBonus: values.decode(Double.self, "stunAttackCriticalBonus", default: 0),
             stunCriticalIgnoreBlock: values.decode(Bool.self, "stunCriticalIgnoreBlock", default: false),
             stunDamageMultiplierWhileThorns: values.decode(Double.self, "stunDamageMultiplierWhileThorns", default: 1),
-            firstHolyHitAllyBlockPerTurn: values.decode(Int.self, "firstHolyHitAllyBlockPerTurn", default: 0)
+            firstHolyHitAllyBlockPerTurn: values.decode(Int.self, "firstHolyHitAllyBlockPerTurn", default: 0),
+            redHarvestPhysicalCriticalDetonatesBleed: values.decode(Bool.self, "redHarvestPhysicalCriticalDetonatesBleed", default: false),
+            huntsmasterPhysicalCriticalDrawsCompanion: values.decode(Bool.self, "huntsmasterPhysicalCriticalDrawsCompanion", default: false)
         )
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
         try container.encodeNonDefault(firstCriticalHitRepeatsPerTurn, "firstCriticalHitRepeatsPerTurn", default: false)
-        try container.encodeNonDefault(returnAttackAgainstBleedingOncePerTurn, "returnAttackAgainstBleedingOncePerTurn", default: false)
         try container.encodeNonDefault(heldCardNextAttackDamage, "heldCardNextAttackDamage", default: 0)
         try container.encodeNonDefault(partnerFirstAttackDamage, "partnerFirstAttackDamage", default: 0)
         try container.encodeNonDefault(dazingSwipeChancePercent, "dazingSwipeChancePercent", default: 0)
         try container.encodeNonDefault(dazingSwipeStunDamage, "dazingSwipeStunDamage", default: 0)
-        try container.encodeNonDefault(firstCriticalHitCompanionBasicPerTurn, "firstCriticalHitCompanionBasicPerTurn", default: false)
         try container.encodeNonDefault(secondCardDrawAndDodgePercent, "secondCardDrawAndDodgePercent", default: 0)
         try container.encodeNonDefault(thirdCardReturnsToHand, "thirdCardReturnsToHand", default: false)
         try container.encodeNonDefault(recoverLastAttackCardEachTurn, "recoverLastAttackCardEachTurn", default: false)
-        try container.encodeNonDefault(firstElementCardsDraw, "firstElementCardsDraw", default: false)
         try container.encodeNonDefault(attacksApplyPoison, "attacksApplyPoison", default: 0)
         try container.encodeNonDefault(physicalAttackApplyBleed, "physicalAttackApplyBleed", default: 0)
         try container.encodeNonDefault(physicalAttackApplyBleedAndStun, "physicalAttackApplyBleedAndStun", default: 0)
@@ -809,5 +800,7 @@ extension AttackTriggers {
         try container.encodeNonDefault(stunCriticalIgnoreBlock, "stunCriticalIgnoreBlock", default: false)
         try container.encodeNonDefault(stunDamageMultiplierWhileThorns, "stunDamageMultiplierWhileThorns", default: 1)
         try container.encodeNonDefault(firstHolyHitAllyBlockPerTurn, "firstHolyHitAllyBlockPerTurn", default: 0)
+        try container.encodeNonDefault(redHarvestPhysicalCriticalDetonatesBleed, "redHarvestPhysicalCriticalDetonatesBleed", default: false)
+        try container.encodeNonDefault(huntsmasterPhysicalCriticalDrawsCompanion, "huntsmasterPhysicalCriticalDrawsCompanion", default: false)
     }
 }

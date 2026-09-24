@@ -554,6 +554,34 @@
       "type": "Double",
       "default": "1",
       "merge": "mul"
+    },
+    {
+      "name": "startBattleThorns",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 59 }
+    },
+    {
+      "name": "blockBrokenThornsFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 60 }
+    },
+    {
+      "name": "retainedBlockThornsFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 72 }
+    },
+    {
+      "name": "holyAttackBlockIfNone",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 79 }
     }
   ]
 }

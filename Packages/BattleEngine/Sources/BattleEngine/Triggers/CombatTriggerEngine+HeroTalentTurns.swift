@@ -54,7 +54,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: applyPurge(
                 to: context.roster.enemy.combatant,
                 source: actor,
-                abilityName: "Hexing Rune",
+                abilityName: triggerAbilityName("manaEmpowerPurgeCount", for: actor, fallback: "Hexing Rune", in: context),
                 count: triggers.manaEmpowerPurgeCount,
                 purgeAll: false,
                 in: &context,

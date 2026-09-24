@@ -2233,9 +2233,9 @@ public extension CombatantTalentCatalog {
             "golden_retriever_health_t2_1": CombatantTalentEffect(
                 name: "Campfire Comfort",
                 iconID: "sf:flame.fill",
-                description: "At turn end, restore 3 Health to the lowest Health ally",
+                description: "Every other turn, Restore 2 Health",
                 modifiers: [],
-                triggers: CombatTraitTriggers(healing: HealingTriggers(endOfTurnHealLowestAlly: 3))
+                triggers: CombatTraitTriggers(healing: HealingTriggers(endOfTurnHealLowestAlly: 2))
             ),
             "golden_retriever_health_t2_2": CombatantTalentEffect(
                 name: "Man's Best Friend",
@@ -2742,7 +2742,7 @@ public extension CombatantTalentCatalog {
             "pixie_cleanse_t1_1": CombatantTalentEffect(
                 name: "Fae Mending",
                 iconID: "sf:heart.fill",
-                description: "Restore 2 Health to yourself when you Cleanse.",
+                description: "Restore 2 Health to the lowest Health ally when you Cleanse.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(cleanseSelfHeal: 2))
             ),

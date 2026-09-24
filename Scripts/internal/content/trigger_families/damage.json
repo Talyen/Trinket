@@ -591,6 +591,41 @@
       "type": "Double",
       "default": "1",
       "merge": "mul"
+    },
+    {
+      "name": "thornsDamageFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 61 }
+    },
+    {
+      "name": "thornsDamageFlatWhileBlocked",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 74 }
+    },
+    {
+      "name": "poisonOnThornsDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 75 }
+    },
+    {
+      "name": "poisonDamageVsBleedingFlat",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 78 }
+    },
+    {
+      "name": "holyDamageVsStunnedPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "percent", "order": 80 }
     }
   ]
 }

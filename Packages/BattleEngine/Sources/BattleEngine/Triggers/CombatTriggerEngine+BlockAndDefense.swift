@@ -126,9 +126,10 @@ package extension CombatTriggerEngine {
                 ))
             }
         }
+        let healTarget = BattleTargetResolver.lowestHealthAlly(for: target, in: context)
         events.append(contentsOf: emitHeal(
             "blockBrokenSaintfallPower", "Saintfall",
-            amount: power, to: target, source: target, in: &context,
+            amount: power, to: healTarget, source: target, in: &context,
         ))
         return events
     }
@@ -189,6 +190,9 @@ package extension CombatTriggerEngine {
                 amount: profile.triggers.blockBrokenBlockFlat, to: target, source: target, in: &context,
             ))
         }
+        events.append(contentsOf: blockBreakThorns(
+            profile.triggers.blockBrokenThornsFlat, on: target, in: &context,
+        ))
 
         events.append(contentsOf: saintfallAfterBlockBroken(
             on: target,
@@ -197,6 +201,19 @@ package extension CombatTriggerEngine {
             in: &context,
         ))
         return events
+    }
+
+    private static func blockBreakThorns(
+        _ amount: Int,
+        on target: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard amount > 0 else { return [] }
+        return heroTalentThorns(
+            to: target, source: target, amount: amount,
+            name: triggerAbilityName("blockBrokenThornsFlat", for: target, fallback: "Briarward", in: context),
+            in: &context,
+        )
     }
 
     static func afterEnemyStunned(sourceActorID: String?, in context: inout BattleState) -> [ActionEvent] {

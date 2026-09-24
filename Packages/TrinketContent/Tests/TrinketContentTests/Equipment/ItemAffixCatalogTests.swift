@@ -4,6 +4,47 @@ import TrinketContent
 import TrinketContentTestSupport
 
 struct ItemAffixCatalogTests {
+    @Test func `saved forbidden knowledge powers use the new draw count and description`() throws {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: "tattered_pages"))
+        let oldPowers = [
+            ItemAffixPower(
+                description: "Every other turn, lose 1 Health and draw 2 cards.", modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(forbiddenKnowledge: true)),
+            ),
+            ItemAffixPower(
+                description: "Draw 2 cards every other turn.", modifiers: [],
+                triggers: CombatTraitTriggers(mana: ManaTriggers(drawEveryOtherTurn: 2)),
+            ),
+        ]
+        for old in oldPowers {
+            let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
+            let item = try ItemFixtures.makeBareItem(
+                "tattered_pages", affixes: [definition.resolved(for: .basic)], affixPowers: decoded,
+            )
+            let power = try #require(item.resolvedPower(at: 0))
+            #expect(power.triggers.forbiddenKnowledge)
+            #expect(power.triggers.drawEveryOtherTurn == 0)
+            #expect(power.description == "Every other turn, lose 1 Health and draw a card")
+            #expect(item.displayedAffixes.first?.description == power.description)
+        }
+    }
+
+    @Test func `saved verdant renewal shows its alternate turn cadence`() throws {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: "groves_favor"))
+        let old = ItemAffixPower(
+            description: "Restore 2 Health each turn.", modifiers: [],
+            triggers: CombatTraitTriggers(healing: HealingTriggers(healthPerTurn: 2)),
+        )
+        let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
+        let item = try ItemFixtures.makeBareItem(
+            "groves_favor", affixes: [definition.resolved(for: .basic)], affixPowers: decoded,
+        )
+        let power = try #require(item.resolvedPower(at: 0))
+        #expect(power.triggers.healthPerTurn == 2)
+        #expect(power.description == "Restore 2 Health every other turn.")
+        #expect(item.displayedAffixes.first?.description == power.description)
+    }
+
     @Test func `saved loyal companion power migrates to heal draw without losing other rolls`() throws {
         let definition = try #require(GameContent.itemAffixDefinition(matching: "companions_collar"))
         let old = ItemAffixPower(

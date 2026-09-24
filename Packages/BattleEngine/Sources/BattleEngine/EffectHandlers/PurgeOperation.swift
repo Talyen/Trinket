@@ -60,6 +60,27 @@ enum PurgeOperation {
         events.append(contentsOf: CombatTriggerEngine.crownfallDamage(
             removedCount: removed.count, source: source, target: target, in: &context,
         ))
+        if target.role == .enemy, context.roster.health(for: source) > 0 {
+            let triggers = context.modifiers(for: source.id).triggers
+            if triggers.onPurgeGainBlock > 0 {
+                events.append(contentsOf: context.applyBlock(
+                    triggers.onPurgeGainBlock,
+                    to: source, source: source,
+                    abilityName: context.modifiers(for: source.id).triggerAbilityName(
+                        "onPurgeGainBlock", fallback: "Unraveling",
+                    ),
+                ))
+            }
+            if triggers.onPurgeDealHolyDamage > 0, context.roster.enemy.isAlive {
+                events.append(contentsOf: context.resolveDamage(
+                    DamageRequest(
+                        amount: triggers.onPurgeDealHolyDamage,
+                        target: target, keyword: .holy, sourceActorID: source.id,
+                        options: .reaction(),
+                    ),
+                ).events)
+            }
+        }
         return Outcome(removed: removed, application: EffectApplyOutcome(events: events, didApply: true))
     }
 }

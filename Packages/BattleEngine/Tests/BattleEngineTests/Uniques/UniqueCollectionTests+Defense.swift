@@ -129,31 +129,6 @@ extension UniqueCollectionTests {
         #expect(blockAmount(owner, in: context) == 4)
     }
 
-    @Test func `companion call uses full basic once and cannot activate companions everkeen`() throws {
-        let basic = Ability(
-            id: "companion-basic",
-            name: "Companion Basic",
-            tier: .basic,
-            directDamage: 4,
-            effects: [.instantHeal(.health, 5), .shield(.block, 3)],
-            criticalChanceBonus: -1,
-        )
-        let everkeen = try #require(GameContent.unique(matching: "everkeen")?.affixPowers?.first)
-        var companion = CombatModifierProfile.zero
-        everkeen.triggers.apply(to: &companion)
-        var context = try battle(["huntsmasters_call"], other: companion, companionBasic: basic)
-        context.roster.mutateRuntime(for: context.roster.companion.combatant) { $0.currentHealth = 100 }
-        // Huntsmaster's Call now triggers on Bleed damage (not Critical Hits), once per turn.
-        let first = try play(attack(.bleed), in: &context)
-        #expect(context.roster.companion.currentHealth > 100)
-        #expect(blockAmount(.companion, in: context) == 3)
-        #expect(first.count(where: { $0.kind == .ability && $0.abilityID == basic.id }) == 1)
-        #expect(!first.contains { $0.abilityName == "Everkeen" })
-        #expect(context.uniques.owners[.companion]?.repeatedCritical != true)
-        let next = try play(attack(.bleed), in: &context)
-        #expect(!next.contains { $0.kind == .ability && $0.abilityID == basic.id })
-    }
-
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `knights answer requires actual absorption and uses full basic`(owner: BattleParticipant) throws {
         let basic = Ability(id: "answer", name: "Answer", tier: .basic, effects: [.shield(.block, 3), .instantHeal(.health, 5)])

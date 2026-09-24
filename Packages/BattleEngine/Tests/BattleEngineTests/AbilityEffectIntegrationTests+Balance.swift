@@ -59,15 +59,15 @@ extension AbilityEffectIntegrationTests {
             context: &battle,
         )
 
-        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 6)
-        #expect(battle.health(of: battle.companion) == 16)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 5)
+        #expect(battle.health(of: battle.companion) == 15)
         #expect(battle.health(of: battle.hero) == battle.hero.maxHealth)
-        #expect(enemyBefore - battle.health(of: battle.enemy) == 3)
+        #expect(enemyBefore - battle.health(of: battle.enemy) == 5)
         #expect(!battle.activeEffects(of: battle.hero).contains { $0.effect.kind == .onHitDamage })
         #expect(!battle.activeEffects(of: battle.companion).contains { $0.effect.kind == .onHitDamage })
     }
 
-    @Test func `blessed aegis uses post gain block for immediate holy damage`() {
+    @Test func `blessed aegis holy damage does not grow with stored block`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 500, dealOpeningHand: false)
         battle.appliesFightPacing = false
         DefensePoolEngine.set(8, on: battle.hero, in: &battle)
@@ -78,8 +78,8 @@ extension AbilityEffectIntegrationTests {
             abilityTarget: battle.enemy,
             context: &battle,
         )
-        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 14)
-        #expect(before - battle.health(of: battle.enemy) == 7)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 13)
+        #expect(before - battle.health(of: battle.enemy) == 5)
     }
 
     @Test(arguments: [Keyword.poison, .freeze], [false, true])

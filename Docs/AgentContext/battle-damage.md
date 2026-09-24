@@ -29,6 +29,17 @@ Explicit non-damaging stack grants and reflection retain their specified potency
 neither gains outgoing bonuses. Ticks never attach new stacks. Bleed and authored
 recurring damage retain their separate rules. Combustion still adds its Burn before
 detonating all remaining Burn, including the fresh application.
+Barbed adds flat damage to a consumed Thorns stack before blocked or poisoned
+Thorns multipliers; it does nothing without an active Thorns stack.
+Bristling checks Block remaining after the incoming hit. Spiteful heals only
+when Thorns removes enemy Health, at most once per wearer per turn.
+Spitebloom follows Thorns Health damage with a separate Poison hit and attaches
+Poison only from Health actually lost to that hit.
+Venomtrail checks Bleed at each Poison damage event, including resolved ticks;
+it adds flat damage without replaying general outgoing bonuses. Hallowbreak
+increases Holy damage against Stunned targets, stacking with talent bonuses.
+Hallowguard snapshots the attacker's Block before a Holy attack and grants Block
+only if that attack removes enemy Health.
 
 Keep ordered
 damage checkpoints in `DamagePipeline`; commit mutations before their dependent
@@ -36,6 +47,8 @@ reactions. Reserve next-hit resources before nested reactions and never write a
 cached effects array back after a reaction. `CleanseOperation` owns removal and
 all cleanse consequences together. `PurgeOperation` likewise commits removals
 before protection and rewards; dependent damage reads its actual removed effects.
+Affix rewards for Purge require at least one buff removed from an enemy; an empty
+Purge never grants Block or deals Holy damage.
 Removal events report what was actually removed: one event per removed buff for
 purge, one per distinct keyword for cleanse. Empty purge reports `didApply:false`;
 empty cleanse still reports any heal and side-effect events as applied

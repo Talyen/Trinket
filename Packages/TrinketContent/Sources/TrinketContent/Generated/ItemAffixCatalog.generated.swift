@@ -5,13 +5,15 @@ import TrinketCore
 enum ItemAffixCatalogGenerated {
     static let definitions: [ItemAffixDefinition] = {
         var list = [ItemAffixDefinition]()
-        list.reserveCapacity(94)
+        list.reserveCapacity(117)
         list.append(contentsOf: chunk0())
         list.append(contentsOf: chunk1())
         list.append(contentsOf: chunk2())
         list.append(contentsOf: chunk3())
         list.append(contentsOf: chunk4())
         list.append(contentsOf: chunk5())
+        list.append(contentsOf: chunk6())
+        list.append(contentsOf: chunk7())
         return list
     }()
 
@@ -709,8 +711,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.health],
             weight: 1,
-            basic: ItemAffixPower(description: "Restore 2 Health each turn.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(healthPerTurn: 2))),
-            astral: ItemAffixPower(description: "Restore 2 Health each turn.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(healthPerTurn: 2)))
+            basic: ItemAffixPower(description: "Restore 2 Health every other turn.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(healthPerTurn: 2))),
+            astral: ItemAffixPower(description: "Restore 2 Health every other turn.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(healthPerTurn: 2)))
         ),
         ItemAffixCatalog.affix(
             id: "icy_heart",
@@ -849,8 +851,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.mana],
             weight: 1,
-            basic: ItemAffixPower(description: "Every other turn, lose 1 Health and draw 2 cards.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(forbiddenKnowledge: true))),
-            astral: ItemAffixPower(description: "Every other turn, lose 1 Health and draw 2 cards.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(forbiddenKnowledge: true)))
+            basic: ItemAffixPower(description: "Every other turn, lose 1 Health and draw a card", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(forbiddenKnowledge: true))),
+            astral: ItemAffixPower(description: "Every other turn, lose 1 Health and draw a card", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(forbiddenKnowledge: true)))
         ),
         ItemAffixCatalog.affix(
             id: "thunderstone",
@@ -887,6 +889,223 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Deal 3 Stun damage when you Dodge.", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers(dodgeDealStunFlat: 3))),
             astral: ItemAffixPower(description: "Deal 5 Stun damage when you Dodge.", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers(dodgeDealStunFlat: 5)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "thornwrought",
+            title: "Thornwrought",
+            slot: .armor,
+            keywords: [.thorns, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Gain 1 Thorns at the start of combat.", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers(startBattleThorns: 1))),
+            astral: ItemAffixPower(description: "Gain 3 Thorns at the start of combat.", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers(startBattleThorns: 3)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "barbed",
+            title: "Barbed",
+            slot: .armor,
+            keywords: [.thorns, .physical],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increase Thorns damage by 1.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(thornsDamageFlat: 1))),
+            astral: ItemAffixPower(description: "Increase Thorns damage by 3.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(thornsDamageFlat: 3)))
+        )
+        ]
+    }
+
+    private static func chunk6() -> [ItemAffixDefinition] {
+        [
+        ItemAffixCatalog.affix(
+            id: "briarward",
+            title: "Briarward",
+            slot: .armor,
+            keywords: [.thorns, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "When your Block is broken, gain 2 Thorns.", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers(blockBrokenThornsFlat: 2))),
+            astral: ItemAffixPower(description: "When your Block is broken, gain 4 Thorns.", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers(blockBrokenThornsFlat: 4)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "bloodward",
+            title: "Bloodward",
+            slot: .accessory,
+            keywords: [.leech, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Leech has a 10% chance to also grant an equal amount of Block.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(leechBlockChancePercent: 0.10))),
+            astral: ItemAffixPower(description: "Leech has a 20% chance to also grant an equal amount of Block.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(leechBlockChancePercent: 0.20)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "clearheaded",
+            title: "Clearheaded",
+            slot: .accessory,
+            keywords: [.cleanse, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Gain 2 Block when you Cleanse a status effect.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseSelfBlockFlat: 2))),
+            astral: ItemAffixPower(description: "Gain 4 Block when you Cleanse a status effect.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseSelfBlockFlat: 4)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "restorative",
+            title: "Restorative",
+            slot: .accessory,
+            keywords: [.cleanse, .health],
+            weight: 8,
+            basic: ItemAffixPower(description: "Restoring Health has a 10% chance to Cleanse 1 status effect from the target.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(onHealCleanseTargetChance: 0.10))),
+            astral: ItemAffixPower(description: "Restoring Health has a 20% chance to Cleanse 1 status effect from the target.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(onHealCleanseTargetChance: 0.20)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "solace",
+            title: "Solace",
+            slot: .accessory,
+            keywords: [.cleanse, .mana],
+            weight: 8,
+            basic: ItemAffixPower(description: "Gain 1 Mana when you Cleanse a status effect.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(onCleanseRestoreMana: 1))),
+            astral: ItemAffixPower(description: "Gain 2 Mana when you Cleanse a status effect.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(onCleanseRestoreMana: 2)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "spellrending",
+            title: "Spellrending",
+            slot: .weapon,
+            keywords: [.purge, .mana],
+            weight: 8,
+            basic: ItemAffixPower(description: "Purge 1 status effect from the enemy when you empower a card with Mana.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(manaEmpowerPurgeCount: 1))),
+            astral: ItemAffixPower(description: "Purge 2 status effects from the enemy when you empower a card with Mana.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(manaEmpowerPurgeCount: 2)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "unraveling",
+            title: "Unraveling",
+            slot: .weapon,
+            keywords: [.purge, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Gain 2 Block when you Purge an enemy.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(onPurgeGainBlock: 2))),
+            astral: ItemAffixPower(description: "Gain 4 Block when you Purge an enemy.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(onPurgeGainBlock: 4)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "denouncing",
+            title: "Denouncing",
+            slot: .weapon,
+            keywords: [.purge, .holy],
+            weight: 8,
+            basic: ItemAffixPower(description: "Deal 2 Holy damage when you Purge an enemy.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(onPurgeDealHolyDamage: 2))),
+            astral: ItemAffixPower(description: "Deal 4 Holy damage when you Purge an enemy.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(onPurgeDealHolyDamage: 4)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "emberwake",
+            title: "Emberwake",
+            slot: .accessory,
+            keywords: [.deathsDoor, .burn],
+            weight: 8,
+            basic: ItemAffixPower(description: "Deal 3 Burn damage when you enter Death's Door.", modifiers: [], triggers: CombatTraitTriggers(revival: RevivalTriggers(enterDeathsDoorBurnDamage: 3))),
+            astral: ItemAffixPower(description: "Deal 6 Burn damage when you enter Death's Door.", modifiers: [], triggers: CombatTraitTriggers(revival: RevivalTriggers(enterDeathsDoorBurnDamage: 6)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "lastlight",
+            title: "Lastlight",
+            slot: .accessory,
+            keywords: [.deathsDoor],
+            weight: 8,
+            basic: ItemAffixPower(description: "Gain 10% Critical chance while on Death's Door.", modifiers: [], triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorCriticalChanceBonus: 0.10))),
+            astral: ItemAffixPower(description: "Gain 20% Critical chance while on Death's Door.", modifiers: [], triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorCriticalChanceBonus: 0.20)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "rekindled",
+            title: "Rekindled",
+            slot: .accessory,
+            keywords: [.deathsDoor, .health],
+            weight: 8,
+            basic: ItemAffixPower(description: "Restore 3 Health when you survive Death's Door.", modifiers: [], triggers: CombatTraitTriggers(revival: RevivalTriggers(affixDeathsDoorSurviveHealFlat: 3))),
+            astral: ItemAffixPower(description: "Restore 6 Health when you survive Death's Door.", modifiers: [], triggers: CombatTraitTriggers(revival: RevivalTriggers(affixDeathsDoorSurviveHealFlat: 6)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "ironbriar",
+            title: "Ironbriar",
+            slot: .armor,
+            keywords: [.thorns, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Gain 1 Thorns each turn you retain Block.", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers(retainedBlockThornsFlat: 1))),
+            astral: ItemAffixPower(description: "Gain 3 Thorns each turn you retain Block.", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers(retainedBlockThornsFlat: 3)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "spiteful",
+            title: "Spiteful",
+            slot: .armor,
+            keywords: [.thorns, .health],
+            weight: 8,
+            basic: ItemAffixPower(description: "Restore 2 Health the first time Thorns deals damage each turn.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(firstThornsDamageHealPerTurn: 2))),
+            astral: ItemAffixPower(description: "Restore 4 Health the first time Thorns deals damage each turn.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(firstThornsDamageHealPerTurn: 4)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "bristling",
+            title: "Bristling",
+            slot: .armor,
+            keywords: [.thorns, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increase Thorns damage by 2 while you have Block.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(thornsDamageFlatWhileBlocked: 2))),
+            astral: ItemAffixPower(description: "Increase Thorns damage by 4 while you have Block.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(thornsDamageFlatWhileBlocked: 4)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "scarfeast",
+            title: "Scarfeast",
+            slot: .weapon,
+            keywords: [.physical, .leech, .health],
+            weight: 8,
+            basic: ItemAffixPower(description: "Physical attacks gain Leech while you're below half Health", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(physicalAttackLeechBelowHalfHealth: true))),
+            astral: ItemAffixPower(description: "Physical attacks gain Leech while you're below half Health", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(physicalAttackLeechBelowHalfHealth: true)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "spitebloom",
+            title: "Spitebloom",
+            slot: .accessory,
+            keywords: [.thorns, .poison],
+            weight: 8,
+            basic: ItemAffixPower(description: "When your Thorns deal damage, deal 1 Poison damage", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(poisonOnThornsDamage: 1))),
+            astral: ItemAffixPower(description: "When your Thorns deal damage, deal 3 Poison damage", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(poisonOnThornsDamage: 3)))
+        )
+        ]
+    }
+
+    private static func chunk7() -> [ItemAffixDefinition] {
+        [
+        ItemAffixCatalog.affix(
+            id: "bloodroot",
+            title: "Bloodroot",
+            slot: .accessory,
+            keywords: [.leech, .health, .thorns],
+            weight: 8,
+            basic: ItemAffixPower(description: "When Leech restores Health while you have no Thorns, gain 1 Thorns", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(leechThornsWithoutThorns: 1))),
+            astral: ItemAffixPower(description: "When Leech restores Health while you have no Thorns, gain 3 Thorns", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(leechThornsWithoutThorns: 3)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "heartshock",
+            title: "Heartshock",
+            slot: .accessory,
+            keywords: [.leech, .health, .stun],
+            weight: 8,
+            basic: ItemAffixPower(description: "When Leech restores Health while you are below half Health, deal 1 Stun damage", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(leechStunBelowHalfHealth: 1))),
+            astral: ItemAffixPower(description: "When Leech restores Health while you are below half Health, deal 3 Stun damage", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(leechStunBelowHalfHealth: 3)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "venomtrail",
+            title: "Venomtrail",
+            slot: .weapon,
+            keywords: [.poison, .bleed],
+            weight: 8,
+            basic: ItemAffixPower(description: "Poison deals 1 additional damage against Bleeding enemies", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(poisonDamageVsBleedingFlat: 1))),
+            astral: ItemAffixPower(description: "Poison deals 3 additional damage against Bleeding enemies", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(poisonDamageVsBleedingFlat: 3)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "hallowguard",
+            title: "Hallowguard",
+            slot: .armor,
+            keywords: [.holy, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "When a Holy attack damages an enemy while you have no Block, gain 3 Block", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers(holyAttackBlockIfNone: 3))),
+            astral: ItemAffixPower(description: "When a Holy attack damages an enemy while you have no Block, gain 5 Block", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers(holyAttackBlockIfNone: 5)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "hallowbreak",
+            title: "Hallowbreak",
+            slot: .weapon,
+            keywords: [.holy, .stun],
+            weight: 8,
+            basic: ItemAffixPower(description: "Stunned enemies take 25% more Holy damage", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(holyDamageVsStunnedPercent: 0.25))),
+            astral: ItemAffixPower(description: "Stunned enemies take 35% more Holy damage", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(holyDamageVsStunnedPercent: 0.35)))
         )
         ]
     }

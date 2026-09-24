@@ -63,49 +63,15 @@ extension UniqueCollectionTests {
         #expect(context.roster.enemy.currentHealth == (source == .hero ? 1998 : 2000))
     }
 
-    @Test(arguments: ["everkeen", "huntsmasters_call"])
-    func `critical hit rewards trigger when block absorbs the whole hit`(item: String) throws {
-        var context = try battle([item])
+    @Test func `Everkeen repeats a Critical Hit after Block absorbs it`() throws {
+        var context = try battle(["everkeen"])
         block(20, owner: .enemy, in: &context)
-        // Everkeen (Physical Crit) still repeats when Block absorbs (Crit, no healthLost requirement).
-        // Huntsmaster's Call now requires positive Bleed damage (healthLost>0), so a fully Blocked
-        // Bleed Crit (healthLost 0) does not summon the Companion.
-        let keyword: Keyword = item == "everkeen" ? .physical : .bleed
-        let events = try play(attack(keyword), critical: true, in: &context)
+        let events = try play(attack(.physical), critical: true, in: &context)
         #expect(blockAmount(.enemy, in: context) == 0)
-        if item == "everkeen" {
-            #expect(context.roster.enemy.currentHealth < 2000)
-            #expect(events.contains { $0.abilityName == "Everkeen" && $0.amount == 20 })
-        } else {
-            #expect(context.roster.enemy.currentHealth == 2000)
-            #expect(!events.contains { $0.kind == .ability && $0.abilityID == context.companion.abilityLoadout.basic?.id })
-        }
-        let next = try play(attack(keyword), critical: true, in: &context)
+        #expect(context.roster.enemy.currentHealth < 2000)
+        #expect(events.contains { $0.abilityName == "Everkeen" && $0.amount == 20 })
+        let next = try play(attack(.physical), critical: true, in: &context)
         #expect(!next.contains { $0.abilityName == "Everkeen" })
-        if item == "everkeen" {
-            #expect(!next.contains { $0.kind == .ability && $0.actorID == context.companion.id })
-        } else {
-            // The first qualifying Bleed of the turn summons the Companion (the
-            // summon resolves after the triggering action completes).
-            #expect(next.contains { $0.kind == .ability && $0.actorID == context.companion.id })
-            // A further Bleed does not summon again (once per turn).
-            let third = try play(attack(keyword), critical: true, in: &context)
-            #expect(!third.contains { $0.kind == .ability && $0.actorID == context.companion.id })
-        }
-    }
-
-    @Test func `hunt call summons immediately outside actions`() throws {
-        var context = try battle(["huntsmasters_call"])
-        // Direct damage with no action on the stack resolves the summon inline.
-        let outcome = context.resolveDamage(DamageRequest(
-            amount: 5,
-            target: context.enemy,
-            keyword: .bleed,
-            sourceActorID: context.hero.id,
-            options: .attack(tier: .basic, scaling: .statsAndItems, accuracy: .unavoidable),
-        ))
-        #expect(outcome.events.contains { $0.kind == .ability && $0.actorID == context.companion.id })
-        #expect(context.uniques.pendingCompanionSummons == 0)
     }
 
     @Test(arguments: [BattleParticipant.hero, .companion])

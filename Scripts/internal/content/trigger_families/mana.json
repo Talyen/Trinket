@@ -422,7 +422,8 @@
       "name": "manaEmpowerPurgeCount",
       "type": "Int",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 66 }
     },
     {
       "name": "healthCostEmpowerDiscount",
@@ -541,6 +542,12 @@
     {
       "name": "selfManaSpendNextAttackBonus",
       "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "threefoldElementalDamageManaChancePercent",
+      "type": "Double",
       "default": "0",
       "merge": "add"
     }

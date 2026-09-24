@@ -251,7 +251,9 @@ package extension DamagePipeline {
         }
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
         let blocked = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0
-        var retaliation = defenderTriggers.thornsDamageDoubleWhileBlocked && blocked ? amount * 2 : amount
+        let baseRetaliation = amount + max(0, defenderTriggers.thornsDamageFlat)
+            + (blocked ? max(0, defenderTriggers.thornsDamageFlatWhileBlocked) : 0)
+        var retaliation = defenderTriggers.thornsDamageDoubleWhileBlocked && blocked ? baseRetaliation * 2 : baseRetaliation
         if blocked, defenderTriggers.thornsDamageMultiplierWhileBlocked > 1 {
             retaliation = CombatRounding.scaled(
                 retaliation, multiplier: defenderTriggers.thornsDamageMultiplierWhileBlocked,
@@ -288,6 +290,46 @@ package extension DamagePipeline {
             state.damageEvents.append(contentsOf: context.applyDecayingDoT(
                 keyword: .poison, potency: healthLost, to: attacker.combatant,
                 sourceActorID: state.combatant.id, application: .attached,
+            ))
+        }
+        applySpitebloom(healthLost: healthLost, attacker: attacker.combatant, to: &state, in: &context)
+        applySpitefulHeal(healthLost: healthLost, to: &state, in: &context)
+    }
+
+    private static func applySpitebloom(
+        healthLost: Int,
+        attacker: Combatant,
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        let amount = context.modifiers(for: state.combatant.id).triggers.poisonOnThornsDamage
+        guard healthLost > 0, amount > 0, context.roster.health(for: attacker) > 0 else { return }
+        let poison = resolveNestedDamage(
+            amount: amount, keyword: .poison,
+            target: attacker, sourceActorID: state.combatant.id, in: &context,
+        )
+        state.damageEvents.append(contentsOf: poison.events)
+        if poison.healthLost > 0 {
+            state.damageEvents.append(contentsOf: context.applyDecayingDoT(
+                keyword: .poison, potency: poison.healthLost, to: attacker,
+                sourceActorID: state.combatant.id, application: .attached,
+            ))
+        }
+    }
+
+    private static func applySpitefulHeal(
+        healthLost: Int,
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        let heal = context.modifiers(for: state.combatant.id).triggers.firstThornsDamageHealPerTurn
+        if healthLost > 0, heal > 0,
+           context.resolution.claim(.affix("spiteful"), actorID: state.combatant.id, cadence: .turn(context.turnCount)) {
+            state.damageEvents.append(contentsOf: context.healEmitting(
+                amount: heal, target: state.combatant, source: state.combatant,
+                abilityName: context.modifiers(for: state.combatant.id).triggerAbilityName(
+                    "firstThornsDamageHealPerTurn", fallback: "Spiteful",
+                ),
             ))
         }
     }

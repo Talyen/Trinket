@@ -6,9 +6,9 @@ extension UniqueCatalog {
             id: "huntsmasters_call",
             name: "Huntsmaster’s Call",
             base: "longbow",
-            keywords: [.bleed],
-            description: "Your Bleed damage triggers your Companion's Basic Ability once per turn.",
-            triggers: CombatTraitTriggers(attack: AttackTriggers(firstCriticalHitCompanionBasicPerTurn: true)),
+            keywords: [.physical],
+            description: "Your Physical Critical Hits draw from your Companion's deck.",
+            triggers: CombatTraitTriggers(attack: AttackTriggers(huntsmasterPhysicalCriticalDrawsCompanion: true)),
             supports: ["keen", "serrated", "envenomed"],
         ),
         unique(

@@ -2,10 +2,26 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
+    private static func hallowguardBlock(
+        for source: Combatant,
+        amount: Int,
+        attackHit: Bool,
+        sourceHadNoBlock: Bool,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard attackHit, sourceHadNoBlock, amount > 0 else { return [] }
+        return emitBlock(
+            "holyAttackBlockIfNone", "Hallowguard",
+            amount: amount, to: source, source: source, in: &context,
+        )
+    }
+
     // swiftlint:disable:next function_body_length - holy triggers share one ordered cadence
     static func afterHolyDamageDealt(
         to enemy: Combatant,
         source: Combatant,
+        attackHit: Bool = false,
+        sourceHadNoBlock: Bool = false,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: source.id)
@@ -33,6 +49,10 @@ package extension CombatTriggerEngine {
                 amount: profile.triggers.holyDamageBlockFlat, to: source, source: source, in: &context,
             ))
         }
+        events.append(contentsOf: hallowguardBlock(
+            for: source, amount: profile.triggers.holyAttackBlockIfNone,
+            attackHit: attackHit, sourceHadNoBlock: sourceHadNoBlock, in: &context,
+        ))
 
         if profile.triggers.holyDamageCleanseCount > 0 {
             events.append(contentsOf: performRandomCleanses(
@@ -45,9 +65,10 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.holyDamageHealFlat > 0 {
+            let target = BattleTargetResolver.lowestHealthAlly(for: source, in: context)
             events.append(contentsOf: emitHeal(
                 "holyDamageHealFlat", "Beacon",
-                amount: profile.triggers.holyDamageHealFlat, to: source, source: source, in: &context,
+                amount: profile.triggers.holyDamageHealFlat, to: target, source: source, in: &context,
             ))
         }
 

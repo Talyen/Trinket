@@ -161,7 +161,8 @@ struct HealingReductionTests {
 
         let outcome = battle.resolveHeal(HealRequest(amount: 1, target: hero, sourceActorID: companion.id))
 
-        #expect(battle.roster.hero.currentHealth == 5)
+        #expect(battle.roster.hero.currentHealth == 2)
+        #expect(battle.roster.companion.currentHealth == 4)
         #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect.isRemovableDebuff })
         #expect(outcome.events.first { $0.effectKind == .cleanseApplied }?.actorName == companion.name)
     }

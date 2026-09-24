@@ -13,14 +13,11 @@ public extension AbilityCatalog {
 
     static let blessedAegis = Ability(
         id: "blessed-aegis", name: "Blessed Aegis", tier: .ultimate,
+        description: "Gain 5 Block and Health\nDeal 5 Holy damage",
         operations: [
-            .effect(TargetedEffect(.shield(.block, 6), target: .actor)),
-            .effect(TargetedEffect(.instantHeal(.health, 6))),
-            .damage(DamageComponent(
-                0,
-                keyword: .holy,
-                scaling: .actorBlockFraction(divisor: 2, minimum: 1),
-            )),
+            .effect(TargetedEffect(.shield(.block, 5), target: .actor)),
+            .effect(TargetedEffect(.instantHeal(.health, 5))),
+            .damage(DamageComponent(5, keyword: .holy)),
         ],
     )
 
@@ -95,13 +92,12 @@ public extension AbilityCatalog {
 
     static let luckPotion = Ability(
         id: "luck-potion", name: "Luck Potion", tier: .ultimate,
-        description: "Roll a 12-sided die\nGain that much Mana, Gold, Thorns, or Block",
+        description: "Roll a 12-sided die\nGain that much Block, Thorns, or Health",
         outcomeBranches: (1 ... 12).flatMap { amount in
             [
-                AbilityOutcomeBranch(targetedEffects: [TargetedEffect(.resourceGain(.mana, amount))]),
-                AbilityOutcomeBranch(targetedEffects: [TargetedEffect(.resourceGain(.gold, amount))]),
-                AbilityOutcomeBranch(targetedEffects: [TargetedEffect(.thorns(amount))]),
                 AbilityOutcomeBranch(targetedEffects: [TargetedEffect(.shield(.block, amount))]),
+                AbilityOutcomeBranch(targetedEffects: [TargetedEffect(.thorns(amount))]),
+                AbilityOutcomeBranch(targetedEffects: [TargetedEffect(.instantHeal(.health, amount))]),
             ]
         },
     )

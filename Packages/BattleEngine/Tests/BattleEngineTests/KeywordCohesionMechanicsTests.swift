@@ -312,19 +312,65 @@ extension KeywordCohesionMechanicsTests {
 
     @Test func `forbidden knowledge pays health before drawing on cadence`() throws {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(mana: ManaTriggers(forbiddenKnowledge: true)))
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [.slash, .bash, .block],
+            heroModifiers: profile,
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        let heroBefore = battle.roster.health(for: battle.hero)
+        let first = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        try #expect(battle.roster.health(for: battle.hero) == heroBefore - 1)
+        try #expect(first.first { $0.effectKind == .cardsDrawn }?.amount == 1)
+
+        battle.turnCount = 1
+        let second = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        try #expect(battle.roster.health(for: battle.hero) == heroBefore - 1)
+        try #expect(!second.contains { $0.effectKind == .cardsDrawn })
+
+        battle.turnCount = 2
+        battle.heroDeck = CombatDeck(abilities: [.slash])
+        let third = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        try #expect(battle.roster.health(for: battle.hero) == heroBefore - 2)
+        try #expect(third.first { $0.effectKind == .cardsDrawn }?.amount == 1)
+    }
+
+    @Test func `verdant renewal restores health on alternate player turns`() {
+        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(healing: HealingTriggers(healthPerTurn: 2)))
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 20), companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroHealth: 10, companionHealth: 5, heroModifiers: profile,
+        )
+        battle.appliesFightPacing = false
+        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        #expect(battle.roster.health(for: battle.companion) == 7)
+        #expect(battle.roster.health(for: battle.hero) == 10)
+        battle.turnCount = 1
+        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        #expect(battle.roster.health(for: battle.companion) == 7)
+        battle.turnCount = 2
+        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        #expect(battle.roster.health(for: battle.companion) == 9)
+    }
+
+    @Test func `campfire comfort heals the lowest ally on alternate player turns`() {
+        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(healing: HealingTriggers(endOfTurnHealLowestAlly: 2)))
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20), companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: profile,
+            companionHealth: 10, companionModifiers: profile,
         )
         battle.appliesFightPacing = false
-        battle.turnCount = 0
-        let heroBefore = battle.roster.health(for: battle.hero)
-        let deckBefore = battle.heroDeck.count
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
-        // Paid 1 Health (no floor, ordinary cost) then drew 2 (if available).
-        try #expect(battle.roster.health(for: battle.hero) == heroBefore - 1)
-        try #expect(battle.heroDeck.count <= deckBefore)
+        _ = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
+        #expect(battle.roster.health(for: battle.companion) == 12)
+        #expect(battle.roster.health(for: battle.hero) == 20)
+        battle.turnCount = 1
+        _ = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
+        #expect(battle.roster.health(for: battle.companion) == 12)
+        battle.turnCount = 2
+        _ = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
+        #expect(battle.roster.health(for: battle.companion) == 14)
     }
 
     @Test func `mimic deals one opening bleed bonus`() throws {

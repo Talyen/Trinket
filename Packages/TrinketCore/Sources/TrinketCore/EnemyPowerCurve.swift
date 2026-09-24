@@ -25,7 +25,7 @@ public enum EnemyPowerCurve {
     ]
 
     private static let bossDamageAnchors: [(level: Int, value: Double)] = [
-        (1, 0.60),
+        (1, 0.20),
         (midLevel, 0.95),
         (lateLevel, 2.30),
     ]

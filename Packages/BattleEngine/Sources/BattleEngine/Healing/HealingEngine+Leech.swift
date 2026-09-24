@@ -47,6 +47,9 @@ package extension HealingEngine {
             && actor.currentHealth > 0 && actor.maxHealth > 0
             && Double(actor.currentHealth) / Double(actor.maxHealth)
             < profile.triggers.bleedAttackLeechBelowHealthThreshold
+            || damageKeyword == .physical && attackHit
+            && actor.currentHealth > 0 && actor.currentHealth * 2 < actor.maxHealth
+            && profile.triggers.physicalAttackLeechBelowHalfHealth
             || attackHit && profile.triggers.borrowedLife
             && context.roster.isDeathsDoorActive(for: actorCombatant)
         if leechPct == 0, keywordGrantsLeech {
@@ -137,6 +140,60 @@ package extension HealingEngine {
         guard healing.didLeech else { return healing.combatOutcome }
         let actualRestored = healing.directRestoration
         var events = healing.events
+        if actualRestored > 0, profile.triggers.leechBlockChancePercent > 0,
+           BattleChance.succeeds(probability: profile.triggers.leechBlockChancePercent, using: &context.rng) {
+            events.append(contentsOf: context.applyBlock(
+                actualRestored,
+                to: actorCombatant,
+                source: actorCombatant,
+                abilityName: CombatTriggerEngine.triggerAbilityName(
+                    "leechBlockChancePercent", for: actorCombatant, fallback: "Bloodward", in: context,
+                ),
+                amountBasis: .resolved,
+            ))
+        }
+        if actualRestored > 0, profile.triggers.leechThornsWithoutThorns > 0,
+           !context.roster.activeEffects(for: actorCombatant).contains(where: {
+               if case let .thorns(stacks) = $0.effect {
+                   return stacks > 0
+               }
+               return false
+           }),
+           context.insertEffect(
+               .thorns(profile.triggers.leechThornsWithoutThorns),
+               to: actorCombatant, sourceID: actorCombatant.id, remainingTurns: 0,
+               replacing: { $0.kind == .thorns },
+           ) {
+            events.append(context.nextEvent(
+                kind: .effect, effectKind: .thornsApplied,
+                actorName: actorCombatant.name,
+                abilityName: CombatTriggerEngine.triggerAbilityName(
+                    "leechThornsWithoutThorns", for: actorCombatant, fallback: "Bloodroot", in: context,
+                ),
+                target: actorCombatant, amount: profile.triggers.leechThornsWithoutThorns, keyword: .thorns,
+            ))
+        }
+        if actualRestored > 0, preHealth * 2 < maxHealth,
+           profile.triggers.leechStunBelowHalfHealth > 0,
+           let target, target.role == .enemy, context.roster.health(for: target) > 0 {
+            var operation = DamageOperation.reaction()
+            operation.suppressLeech = true
+            let stun = context.resolveDamage(DamageRequest(
+                amount: profile.triggers.leechStunBelowHalfHealth,
+                target: target, keyword: .stun,
+                sourceActorID: actorCombatant.id, options: operation,
+            ))
+            events.append(contentsOf: stun.events)
+            if stun.healthLost > 0 {
+                events.append(context.nextEvent(
+                    kind: .abilityDamage, actorName: actorCombatant.name,
+                    abilityName: CombatTriggerEngine.triggerAbilityName(
+                        "leechStunBelowHalfHealth", for: actorCombatant, fallback: "Heartshock", in: context,
+                    ),
+                    target: target, amount: stun.healthLost, keyword: .stun,
+                ))
+            }
+        }
         if actualRestored > 0, preHealth < maxHealth,
            context.roster.health(for: actorCombatant) >= maxHealth,
            profile.triggers.leechToFullNextAttackBonus > 0 {

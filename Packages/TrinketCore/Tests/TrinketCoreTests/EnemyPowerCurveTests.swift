@@ -2,8 +2,14 @@ import Testing
 import TrinketCore
 
 struct EnemyPowerCurveTests {
-    @Test(arguments: [(1, 6.4, 7.5, 0.5, 0.6), (20, 16.0, 28.0, 1.2, 0.95), (40, 58.0, 85.0, 2.5, 2.3)])
-    func `existing anchors stay unchanged`(level: Int, normalHP: Double, bossHP: Double, normalDamage: Double, bossDamage: Double) {
+    @Test(arguments: [(1, 6.4, 7.5, 0.5, 0.2), (20, 16.0, 28.0, 1.2, 0.95), (40, 58.0, 85.0, 2.5, 2.3)])
+    func `enemy power anchors match approved tuning`(
+        level: Int,
+        normalHP: Double,
+        bossHP: Double,
+        normalDamage: Double,
+        bossDamage: Double,
+    ) {
         #expect(abs(EnemyPowerCurve.health(level: level, isBoss: false) - normalHP) < 0.000001)
         #expect(abs(EnemyPowerCurve.health(level: level, isBoss: true) - bossHP) < 0.000001)
         #expect(abs(EnemyPowerCurve.rawDamagePercent(level: level, isBoss: false) - normalDamage) < 0.000001)

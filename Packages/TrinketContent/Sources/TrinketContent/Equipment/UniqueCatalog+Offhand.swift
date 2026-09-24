@@ -38,8 +38,8 @@ extension UniqueCatalog {
             name: "Threefold Grace",
             base: "spellbook",
             keywords: [.burn, .freeze, .holy],
-            description: "Your first Burn, Freeze, and Holy card each turn each draw a card.",
-            triggers: CombatTraitTriggers(attack: AttackTriggers(firstElementCardsDraw: true)),
+            description: "Burn, Freeze, or Holy damage has a 10% chance to restore 1 Mana to the wearer.",
+            triggers: CombatTraitTriggers(mana: ManaTriggers(threefoldElementalDamageManaChancePercent: 0.10)),
             supports: ["smoldering", "glacial", "consecrated"],
         ),
     ]

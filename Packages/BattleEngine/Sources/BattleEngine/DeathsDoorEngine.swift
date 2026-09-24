@@ -291,6 +291,15 @@ package enum DeathsDoorEngine {
             }
         }
         var events = afterglow(on: combatant, in: &context)
+        if triggers.affixDeathsDoorSurviveHealFlat > 0 {
+            events.append(contentsOf: context.healEmitting(
+                amount: triggers.affixDeathsDoorSurviveHealFlat,
+                target: combatant, source: combatant,
+                abilityName: context.modifiers(for: combatant.id).triggerAbilityName(
+                    "affixDeathsDoorSurviveHealFlat", fallback: "Rekindled",
+                ),
+            ))
+        }
         if triggers.surviveDeathsDoorPartyBlockFlat > 0, context.roster.enemy.isAlive {
             for owner in [BattleParticipant.hero, .companion] {
                 let member = context.roster[owner]

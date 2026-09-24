@@ -208,7 +208,8 @@
       "name": "onHealCleanseTargetChance",
       "type": "Double",
       "default": "0",
-      "merge": "max"
+      "merge": "max",
+      "affix_roll": { "kind": "percent", "order": 64 }
     },
     {
       "name": "onHealRestoreCasterMana",
@@ -651,6 +652,41 @@
       "type": "Double",
       "default": "1",
       "merge": "mul"
+    },
+    {
+      "name": "leechBlockChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "percent", "order": 62 }
+    },
+    {
+      "name": "firstThornsDamageHealPerTurn",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 73 }
+    },
+    {
+      "name": "leechThornsWithoutThorns",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 76 }
+    },
+    {
+      "name": "physicalAttackLeechBelowHalfHealth",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or",
+      "affix_roll": { "reason": "On/off Leech rule with no rollable magnitude." }
+    },
+    {
+      "name": "leechStunBelowHalfHealth",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "kind": "int", "order": 77 }
     }
   ]
 }

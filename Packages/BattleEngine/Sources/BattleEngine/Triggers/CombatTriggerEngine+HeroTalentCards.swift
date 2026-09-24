@@ -241,8 +241,9 @@ package extension CombatTriggerEngine {
         }
         if !removed.isEmpty {
             if triggers.freshBatch {
+                let healTarget = BattleTargetResolver.lowestHealthAlly(for: source, in: context)
                 events.append(contentsOf: heroTalentHeal(
-                    to: target, source: source, amount: 2, name: "Fresh Batch", in: &context,
+                    to: healTarget, source: source, amount: 2, name: "Fresh Batch", in: &context,
                 ))
             }
             if triggers.clearMind {
