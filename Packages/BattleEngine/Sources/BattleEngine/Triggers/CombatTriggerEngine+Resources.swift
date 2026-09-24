@@ -117,7 +117,8 @@ package extension CombatTriggerEngine {
 
     static func afterVictory(in context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        for actor in [context.roster.hero.combatant, context.roster.companion.combatant] {
+        for (_, member) in livingPartyMembers(in: context) {
+            let actor = member.combatant
             let triggers = context.modifiers(for: actor.id).triggers
             if triggers.victoryGoldFlat > 0 {
                 events.append(contentsOf: emitGold(

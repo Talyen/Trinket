@@ -70,6 +70,8 @@ package enum BattleCardCombatEngine {
     }
 
     static func finishPlayerTurnStart(context: inout BattleState) -> [ActionEvent] {
+        discardDefeatedOwnerCards(context: &context)
+        promoteFromBuffer(context: &context)
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         let events = context.appendDefeatMilestonesIfNeeded()
         context.phase = context.isBattleOver ? .ended : .playerTurn

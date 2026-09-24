@@ -67,19 +67,31 @@ public enum ShopStockPersistence {
 
     static func mergedPayload(preferred: Data?, other: Data?) -> Data? {
         guard let preferred, let other else { return preferred ?? other }
+        guard let first = validSnapshot(preferred) else { return validSnapshot(other) == nil ? preferred : other }
+        guard let second = validSnapshot(other) else { return preferred }
         do {
-            let first = try JSONDecoder().decode(ShopStockSnapshot.self, from: preferred)
-            let second = try JSONDecoder().decode(ShopStockSnapshot.self, from: other)
-            guard first.encounter.location == second.encounter.location,
-                  first.encounter.worldSeed == second.encounter.worldSeed
+            guard first.snapshot.encounter.location == second.snapshot.encounter.location,
+                  first.snapshot.encounter.worldSeed == second.snapshot.encounter.worldSeed
             else { return preferred }
-            var stock = try first.resolve()
-            let otherStock = try second.resolve()
-            guard stock.offers.map(\.id) == otherStock.offers.map(\.id) else { return preferred }
-            stock.purchasedOfferIDs.formUnion(otherStock.purchasedOfferIDs)
-            return try encode(stock, encounter: first.encounter)
+            var stock = first.stock
+            let otherOffers = Dictionary(uniqueKeysWithValues: second.stock.offers.map { ($0.id, $0) })
+            for offer in stock.offers where second.stock.purchasedOfferIDs.contains(offer.id)
+                && otherOffers[offer.id] == offer {
+                stock.purchasedOfferIDs.insert(offer.id)
+            }
+            return try encode(stock, encounter: first.snapshot.encounter)
         } catch {
             return preferred
+        }
+    }
+
+    private static func validSnapshot(_ data: Data) -> (snapshot: ShopStockSnapshot, stock: ShopStock)? {
+        do {
+            let snapshot = try JSONDecoder().decode(ShopStockSnapshot.self, from: data)
+            let stock = try snapshot.resolve()
+            return stock.offers.isEmpty ? nil : (snapshot, stock)
+        } catch {
+            return nil
         }
     }
 

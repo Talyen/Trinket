@@ -52,7 +52,7 @@ enum CloudSaveMerge {
         mergeSelections(into: &merged, branches: branches)
         mergeInventory(into: &merged, from: branches.other, base: branches.base)
         mergeEconomy(into: &merged, branches: branches)
-        mergeExploration(into: &merged, from: branches.other)
+        mergeExploration(into: &merged, branches: branches)
         merged.contracts.recordVictory(encounterLevel: branches.other.contracts.highestWonEncounterLevel)
         merged.contracts.reconcileRefreshAvailability(branches.selected(
             incoming.contracts.refreshAvailable, existing.contracts.refreshAvailable,
@@ -165,19 +165,41 @@ enum CloudSaveMerge {
         }
     }
 
-    private static func mergeExploration(into merged: inout PlayerSave, from other: PlayerSave) {
+    private static func mergeExploration(into merged: inout PlayerSave, branches: Branches) {
+        let other = branches.other
         for (id, floor) in other.spires.highestClearedFloorBySpireID {
             merged.spires.highestClearedFloorBySpireID[id] = max(
                 merged.spires.highestClearedFloorBySpireID[id, default: 0], floor,
             )
         }
         mergeLabyrinth(into: &merged, from: other)
-        let currentVoyageCleared = merged.voyage.activeRun?.nodes.filter(\.isCleared).count ?? 0
-        let otherVoyageCleared = other.voyage.activeRun?.nodes.filter(\.isCleared).count ?? 0
-        if otherVoyageCleared > currentVoyageCleared {
-            merged.voyage = other.voyage
+        let selectedVoyage: PlayerVoyageState = if let baseRunID = branches.base?.voyage.activeRun?.id,
+                                                   branches.incoming.voyage.activeRun?.id == baseRunID,
+                                                   branches.existing.voyage.activeRun?.id != baseRunID,
+                                                   !branches.existing.voyage.isUnreadable {
+            branches.existing.voyage
+        } else if let baseRunID = branches.base?.voyage.activeRun?.id,
+                  branches.existing.voyage.activeRun?.id == baseRunID,
+                  branches.incoming.voyage.activeRun?.id != baseRunID,
+                  !branches.incoming.voyage.isUnreadable {
+            branches.incoming.voyage
+        } else {
+            branches.selected(
+                branches.incoming.voyage, branches.existing.voyage, base: branches.base?.voyage,
+            ) ?? merged.voyage
         }
-        if let run = merged.voyage.activeRun, let otherRun = other.voyage.activeRun, run.id == otherRun.id {
+        let alternateVoyage = selectedVoyage == branches.incoming.voyage
+            ? branches.existing.voyage : branches.incoming.voyage
+        merged.voyage = selectedVoyage
+        var mergeVoyage = alternateVoyage
+        let currentVoyageCleared = merged.voyage.activeRun?.nodes.filter(\.isCleared).count ?? 0
+        let otherVoyageCleared = alternateVoyage.activeRun?.nodes.filter(\.isCleared).count ?? 0
+        if merged.voyage.activeRun?.id == alternateVoyage.activeRun?.id,
+           otherVoyageCleared > currentVoyageCleared {
+            merged.voyage = alternateVoyage
+            mergeVoyage = selectedVoyage
+        }
+        if let run = merged.voyage.activeRun, let otherRun = mergeVoyage.activeRun, run.id == otherRun.id {
             for node in otherRun.nodes {
                 merged.voyage.updateNode(runID: run.id, nodeID: node.id) { current in
                     current.isCleared = current.isCleared || node.isCleared
@@ -200,6 +222,10 @@ enum CloudSaveMerge {
             return
         }
         merged.labyrinth.hasEntered = merged.labyrinth.hasEntered || other.labyrinth.hasEntered
+        let existingClusterIDs = Set(merged.labyrinth.clusters.map(\.id))
+        merged.labyrinth.clusters.append(contentsOf: other.labyrinth.clusters.filter {
+            !existingClusterIDs.contains($0.id)
+        })
         for (id, node) in other.labyrinth.nodes {
             guard var current = merged.labyrinth.nodes[id] else {
                 merged.labyrinth.nodes[id] = node
@@ -207,6 +233,9 @@ enum CloudSaveMerge {
             }
             current.isCleared = current.isCleared || node.isCleared
             current.isRevealed = current.isRevealed || node.isRevealed
+            for successor in node.outgoingIDs where !current.outgoingIDs.contains(successor) {
+                current.outgoingIDs.append(successor)
+            }
             current.shopPayload = ShopStockPersistence.mergedPayload(preferred: current.shopPayload, other: node.shopPayload)
             current.mysteryOffersPayload = current.mysteryOffersPayload ?? node.mysteryOffersPayload
             merged.labyrinth.nodes[id] = current

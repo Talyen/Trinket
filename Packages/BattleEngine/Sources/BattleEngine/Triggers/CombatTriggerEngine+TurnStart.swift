@@ -28,9 +28,12 @@ package extension CombatTriggerEngine {
     static func atPlayerTurnStart(in context: inout BattleState) -> [ActionEvent] {
         resetTurnCadenceState(in: &context)
         var events = startHeroTalentTurn(in: &context)
+        guard !context.isBattleOver else { return events }
         events.append(contentsOf: HealingEngine.resolveHealingEchoes(in: &context))
+        guard !context.isBattleOver else { return events }
         events.append(contentsOf: cleanseTeamIfNeeded(in: &context))
         for owner in [BattleParticipant.hero, .companion] {
+            guard !context.isBattleOver else { break }
             let runtime = context.roster[owner]
             guard runtime.isAlive else { continue }
             events.append(contentsOf: startOfTurnCadence(for: owner, runtime: runtime, in: &context))
@@ -50,6 +53,7 @@ package extension CombatTriggerEngine {
     private static func cleanseTeamIfNeeded(in context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
+            guard !context.isBattleOver else { break }
             let sourceRuntime = context.roster[owner]
             guard sourceRuntime.isAlive else { continue }
             let count = context.modifiers(for: sourceRuntime.id).triggers.autoCleanseTeamPerTurn
@@ -61,6 +65,7 @@ package extension CombatTriggerEngine {
                 in: context,
             )
             for targetOwner in [BattleParticipant.hero, .companion] {
+                guard !context.isBattleOver, context.roster[owner].isAlive else { break }
                 let target = context.roster[targetOwner]
                 guard target.isAlive else { continue }
                 events.append(contentsOf: performRandomCleanses(
@@ -84,13 +89,21 @@ package extension CombatTriggerEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
         events.append(contentsOf: startOfTurnRegen(runtime: runtime, actor: actor, triggers: triggers, in: &context))
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
         events.append(contentsOf: forbiddenKnowledgeIfNeeded(for: owner, actor: actor, triggers: triggers, in: &context))
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
         events.append(contentsOf: companionCardsIfNeeded(for: owner, actor: actor, triggers: triggers, in: &context))
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
         events.append(contentsOf: purifyingAuraIfNeeded(actor: actor, triggers: triggers, in: &context))
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
         events.append(contentsOf: startOfTurnAfflictionCadence(for: owner, actor: actor, triggers: triggers, in: &context))
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
         events.append(contentsOf: startOfTurnResourceCadence(for: owner, actor: actor, triggers: triggers, in: &context))
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
         events.append(contentsOf: startOfTurnDrawCadence(for: owner, actor: actor, triggers: triggers, in: &context))
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
         events.append(contentsOf: battleStartBonuses(for: owner, actor: actor, triggers: triggers, in: &context))
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
         applyDamageRamp(for: actor, triggers: triggers, in: &context)
         return events
     }

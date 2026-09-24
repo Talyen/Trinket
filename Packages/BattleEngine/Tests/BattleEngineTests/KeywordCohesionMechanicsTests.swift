@@ -335,6 +335,72 @@ extension KeywordCohesionMechanicsTests {
         try #expect(third.first { $0.effectKind == .cardsDrawn }?.amount == 1)
     }
 
+    @Test func `a forbidden knowledge death stops Purifying Aura`() {
+        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(
+            mana: ManaTriggers(forbiddenKnowledge: true),
+            cleanse: CleanseTriggers(purifyingAura: true),
+        ))
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 10),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 10),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 10),
+            heroEffects: [ActiveEffect(id: 1, effect: .bleed(1), remainingTurns: 2)],
+            companionHealth: 1,
+            companionModifiers: profile,
+        )
+        battle.roster.mutateRuntime(for: battle.companion) { $0.hasConsumedDeathsDoor = true }
+
+        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+
+        #expect(battle.roster.health(for: battle.companion) == 0)
+        #expect(battle.roster.activeEffects(for: battle.hero).contains { $0.effect.isBleed })
+    }
+
+    @Test func `turn start death releases hand slots for a living ally`() {
+        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(mana: ManaTriggers(forbiddenKnowledge: true)))
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [.slash], companionAbilities: [.bash, .block],
+            heroModifiers: profile, dealOpeningHand: false,
+        )
+        battle.roster.mutateRuntime(for: battle.hero) {
+            $0.currentHealth = 1
+            $0.hasConsumedDeathsDoor = true
+        }
+        battle.hand = BattleHand(
+            cards: [
+                BattleCard(id: 1, ability: .slash, owner: .hero),
+                BattleCard(id: 2, ability: .bash, owner: .companion),
+            ],
+            buffer: [BattleCard(id: 3, ability: .block, owner: .companion)],
+        )
+
+        _ = BattleCardCombatEngine.finalizeOpeningHand(context: &battle)
+
+        #expect(battle.roster.health(for: battle.hero) == 0)
+        #expect(battle.hand.cards.map(\.owner) == [.companion, .companion])
+        #expect(battle.hand.buffer.isEmpty)
+    }
+
+    @Test func `a turn start victory stops later ally Gold gains`() {
+        let healing = CombatModifierProfile(triggers: CombatTraitTriggers(healing: HealingTriggers(
+            healthRestoredPoisonPercent: 1, healthPerTurn: 2,
+        )))
+        let gold = CombatModifierProfile(triggers: CombatTraitTriggers(gold: GoldTriggers(goldPerTurn: 1)))
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 10),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 10),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 10),
+            heroHealth: 9, enemyHealth: 1,
+            heroModifiers: healing, companionModifiers: gold,
+        )
+        battle.appliesFightPacing = false
+
+        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+
+        #expect(battle.isEnemyDefeated)
+        #expect(battle.gold == 0)
+    }
+
     @Test func `verdant renewal restores health on alternate player turns`() {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(healing: HealingTriggers(healthPerTurn: 2)))
         var battle = BattleStateTestFactory.makeMinimalBattle(

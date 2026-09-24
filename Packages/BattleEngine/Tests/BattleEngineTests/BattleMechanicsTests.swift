@@ -5,6 +5,46 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BattleMechanicsTests {
+    @Test func `mutual knockout is a defeat without victory Gold`() {
+        let gold = CombatModifierProfile(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldFlat: 4)))
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 10),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 10),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 10),
+            heroEffects: [ActiveEffect(id: 1, effect: .thorns(1), remainingTurns: 0)],
+            heroHealth: 1, companionHealth: 0, enemyHealth: 1,
+            heroModifiers: gold, companionModifiers: gold,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.mutateRuntime(for: battle.hero) { $0.hasConsumedDeathsDoor = true }
+
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 1, target: battle.hero, keyword: .physical,
+            sourceActorID: battle.enemy.id, options: .attack(accuracy: .unavoidable),
+        ))
+        _ = battle.appendDefeatMilestonesIfNeeded()
+
+        #expect(battle.isPartyDefeated && battle.isEnemyDefeated)
+        #expect(BattleSimulationOutcome.resolve(isPartyDefeated: true, isEnemyDefeated: true) == .defeat)
+        #expect(battle.gold == 0)
+    }
+
+    @Test func `a defeated ally does not grant victory Gold`() {
+        let gold = CombatModifierProfile(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldFlat: 4)))
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 10),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 10),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 10),
+            companionHealth: 0, enemyHealth: 0,
+            companionModifiers: gold,
+        )
+
+        _ = battle.appendDefeatMilestonesIfNeeded()
+
+        #expect(battle.isEnemyDefeated && !battle.isPartyDefeated)
+        #expect(battle.gold == 0)
+    }
+
     @Test func `advancing a copied battle expires talent bonuses without changing the original`() {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(),

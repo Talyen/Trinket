@@ -375,6 +375,12 @@ enum LabyrinthSanitizer {
             )
         }
 
+        if sanitized.mapVersion == LabyrinthGenerator.currentMapVersion {
+            repairClearedBossExits(
+                in: &sanitized, eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards,
+            )
+        }
+
         let validClusterIDs = Set(sanitized.clusters.map(\.id))
         sanitized.nodes = sanitized.nodes.filter { _, node in
             validClusterIDs.contains(node.clusterID) || node.id == LabyrinthGenerator.entranceNodeID
@@ -400,6 +406,60 @@ enum LabyrinthSanitizer {
             )
         }
         return sanitized
+    }
+
+    private static func repairClearedBossExits(
+        in labyrinth: inout PlayerLabyrinthState,
+        eligibleRecruitEventIDs: [String],
+        eligibleRewards: [RewardModifier],
+    ) {
+        for boss in labyrinth.nodes.values.filter({ $0.type == .boss && $0.isCleared })
+            .sorted(by: { $0.depth < $1.depth }) {
+            let clusterIDs = Set(labyrinth.clusters.map(\.id))
+            let hasExit = boss.outgoingIDs.contains {
+                guard let target = labyrinth.nodes[$0] else { return false }
+                return target.depth == boss.depth + 1 && clusterIDs.contains(target.clusterID)
+            }
+            guard !hasExit else { continue }
+            if let entryID = labyrinth.clusters.first(where: { $0.depthBand == boss.depth + 1 })?.nodeIDs.first,
+               labyrinth.nodes[entryID] != nil {
+                labyrinth.nodes[boss.id]?.outgoingIDs = [entryID]
+            } else {
+                regenerateMissingFloor(
+                    beyond: boss, in: &labyrinth,
+                    eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards,
+                )
+            }
+        }
+    }
+
+    private static func regenerateMissingFloor(
+        beyond boss: LabyrinthNode,
+        in labyrinth: inout PlayerLabyrinthState,
+        eligibleRecruitEventIDs: [String],
+        eligibleRewards: [RewardModifier],
+    ) {
+        var generatedClusters: [LabyrinthCluster] = []
+        var generatedNodes = [boss.id: boss]
+        generatedNodes[boss.id]?.outgoingIDs = []
+        LabyrinthGenerator.expandBeyondBoss(
+            bossNodeID: boss.id, clusters: &generatedClusters, nodes: &generatedNodes,
+            seed: labyrinth.worldSeed, eligibleRecruitEventIDs: eligibleRecruitEventIDs,
+            eligibleRewards: eligibleRewards,
+        )
+        for cluster in generatedClusters {
+            if let index = labyrinth.clusters.firstIndex(where: { $0.id == cluster.id }) {
+                labyrinth.clusters[index] = cluster
+            } else {
+                labyrinth.clusters.append(cluster)
+            }
+        }
+        for (id, node) in generatedNodes where id != boss.id {
+            if labyrinth.nodes[id] == nil {
+                labyrinth.nodes[id] = node
+            }
+        }
+        labyrinth.nodes[boss.id]?.outgoingIDs = generatedNodes[boss.id]?.outgoingIDs ?? []
     }
 
     private static func sanitizedLabyrinthNode(

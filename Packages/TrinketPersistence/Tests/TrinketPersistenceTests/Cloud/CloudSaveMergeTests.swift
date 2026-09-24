@@ -222,4 +222,107 @@ struct CloudSaveMergeTests {
         let mergedStock = try #require(savedStock)
         #expect(mergedStock.purchasedOfferIDs == [firstOffer.id, secondOffer.id])
     }
+
+    @Test func `a purchase of a different offline Shop item does not sell the preferred item`() throws {
+        var base = PlayerSave.testSeed
+        base.roster.gold = PlayerRosterState.maxGoldBalance
+        base.inventory.items = []
+        let encounter = EncounterIdentity(
+            location: .journey(stageID: ShopOfferGenerator.starterShopStageID), save: base,
+        )
+        let items = GameContent.sampleInventoryItems.filter { $0.rarity == .basic }
+        let preferredItem = try #require(items.first)
+        let purchasedItem = try #require(items.first { $0.id != preferredItem.id })
+        let offerID = "offline-offer"
+        let preferredOffer = ShopOffer(id: offerID, item: preferredItem, price: 20)
+        let otherOffer = ShopOffer(id: offerID, item: purchasedItem, price: 25)
+        var preferred = base
+        var other = base
+        let preferredPayload = try ShopStockPersistence.encode(ShopStock(offers: [preferredOffer]), encounter: encounter)
+        let otherPayload = try ShopStockPersistence.encode(ShopStock(offers: [otherOffer]), encounter: encounter)
+        ShopStockPersistence.setPayload(
+            preferredPayload,
+            encounter: encounter, save: &preferred,
+        )
+        ShopStockPersistence.setPayload(
+            otherPayload,
+            encounter: encounter, save: &other,
+        )
+        _ = try ShopPurchaseApplier.purchase(offerID: offerID, encounter: encounter, save: &other).get()
+
+        let merged = CloudSaveMerge.merge(incoming: preferred, existing: other, base: base, preferIncoming: true)
+        let loaded = try ShopStockPersistence.stock(encounter: encounter, save: merged)
+        let stock = try #require(loaded)
+        #expect(stock.offers == [preferredOffer])
+        #expect(stock.purchasedOfferIDs.isEmpty)
+        #expect(ShopPurchaseApplier.availability(offerID: offerID, encounter: encounter, save: merged) == .available)
+        #expect(merged.inventory.items.contains(purchasedItem))
+    }
+
+    @Test func `a readable offline Shop survives a corrupt preferred stock payload`() throws {
+        let base = PlayerSave.testSeed
+        let encounter = EncounterIdentity(
+            location: .journey(stageID: ShopOfferGenerator.starterShopStageID), save: base,
+        )
+        let item = try #require(GameContent.sampleInventoryItems.first)
+        let offer = ShopOffer(id: "recovered-offer", item: item, price: 20)
+        var preferred = base
+        preferred.journey.shopPayloads[ShopOfferGenerator.starterShopStageID] = Data([0xFF])
+        var other = base
+        let payload = try ShopStockPersistence.encode(ShopStock(offers: [offer]), encounter: encounter)
+        ShopStockPersistence.setPayload(
+            payload,
+            encounter: encounter, save: &other,
+        )
+
+        let merged = CloudSaveMerge.merge(incoming: preferred, existing: other, base: base, preferIncoming: true)
+        let stock = try ShopStockPersistence.stock(encounter: encounter, save: merged)
+
+        #expect(stock?.offers == [offer])
+    }
+
+    @Test func `abandoning a Voyage does not restore its old route from another device`() throws {
+        var base = PlayerSave.testSeed
+        base.modifiedAt = Date(timeIntervalSince1970: 1)
+        base.voyage.ensureBoard(access: .fullGame)
+        let offer = try #require(base.voyage.offers.first)
+        let embarked = base.voyage.embark(offerID: offer.id, eligibleRecruitEventIDs: [], access: .fullGame)
+        #expect(embarked)
+        let runID = try #require(base.voyage.activeRun?.id)
+        let firstNodeID = try #require(base.voyage.activeRun?.nodes.first?.id)
+        base.voyage.updateNode(runID: runID, nodeID: firstNodeID) { $0.isCleared = true }
+        var abandoned = base
+        let didAbandon = abandoned.voyage.abandon(runID: runID, access: .fullGame)
+        #expect(didAbandon)
+        abandoned.modifiedAt = Date(timeIntervalSince1970: 100)
+
+        let merged = CloudSaveMerge.merge(incoming: abandoned, existing: base, base: base, preferIncoming: true)
+
+        #expect(merged.voyage.activeRun == nil)
+        #expect(merged.voyage.offers != base.voyage.offers)
+
+        var progressed = base
+        let secondNodeID = try #require(progressed.voyage.activeRun?.nodes.dropFirst().first?.id)
+        progressed.voyage.updateNode(runID: runID, nodeID: secondNodeID) { $0.isCleared = true }
+        progressed.modifiedAt = Date(timeIntervalSince1970: 200)
+        let racing = CloudSaveMerge.merge(incoming: progressed, existing: abandoned, base: base, preferIncoming: true)
+        #expect(racing.voyage.activeRun == nil)
+    }
+
+    @Test func `a newly unlocked Labyrinth floor keeps its clusters after cloud merge`() throws {
+        var base = PlayerSave.testSeed
+        base.labyrinth.ensureMap(seed: base.worldSeed)
+        let boss = try #require(base.labyrinth.nodes.values.first { $0.type == .boss })
+        var expanded = base
+        expanded.labyrinth.markCleared(nodeID: boss.id)
+        let newCluster = try #require(expanded.labyrinth.clusters.first { $0.depthBand == 2 })
+        let nextNodeID = try #require(expanded.labyrinth.node(id: boss.id)?.outgoingIDs.first)
+
+        let merged = CloudSaveMerge.merge(incoming: base, existing: expanded, base: base, preferIncoming: true)
+        let sanitized = PlayerSaveSanitizer.sanitize(merged)
+
+        #expect(merged.labyrinth.cluster(id: newCluster.id) == newCluster)
+        #expect(newCluster.nodeIDs.allSatisfy { sanitized.labyrinth.node(id: $0) != nil })
+        #expect(sanitized.labyrinth.isNodeReachable(nextNodeID))
+    }
 }

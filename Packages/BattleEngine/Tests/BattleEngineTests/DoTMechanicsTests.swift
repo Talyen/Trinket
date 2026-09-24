@@ -5,6 +5,25 @@ import TrinketCore
 @testable import BattleEngine
 
 struct DoTMechanicsTests {
+    @Test func `lethal Bleed reaction does not remain on a defeated ally`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 10),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 10),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 10),
+            heroHealth: 1,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.mutateRuntime(for: battle.hero) { $0.hasConsumedDeathsDoor = true }
+
+        _ = DoTApplicator.applyBleed(
+            potency: 1, to: battle.hero, sourceActorID: battle.enemy.id,
+            application: .reaction, in: &battle,
+        )
+
+        #expect(battle.roster.health(for: battle.hero) == 0)
+        #expect(!battle.roster.activeEffects(for: battle.hero).contains { $0.effect.isBleed })
+    }
+
     @Test(arguments: [Keyword.burn, .poison], [false, true])
     func `flashover doubles the burn hit but not stored ticks`(keyword: Keyword, frozen: Bool) throws {
         var battle = BattleTestFixtures.makePipelineContext(

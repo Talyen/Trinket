@@ -63,6 +63,41 @@ struct LabyrinthProgressTests {
         }
     }
 
+    @Test func `sanitizer restores the exit of a previously cleared boss`() throws {
+        var save = PlayerSave.fresh
+        save.worldSeed = 21
+        save.labyrinth.ensureMap(seed: save.worldSeed)
+        let boss = try #require(save.labyrinth.nodes.values.first { $0.type == .boss && $0.depth == 1 })
+        save.labyrinth.markCleared(nodeID: boss.id)
+        save.labyrinth.clusters.removeAll { $0.depthBand == 2 }
+        save.labyrinth.nodes = save.labyrinth.nodes.filter { $0.value.depth <= 1 }
+        save.labyrinth.nodes[boss.id]?.outgoingIDs = []
+
+        let repaired = PlayerSaveSanitizer.sanitize(save).labyrinth
+        let entryID = try #require(repaired.node(id: boss.id)?.outgoingIDs.first)
+
+        #expect(repaired.clusters.contains { $0.depthBand == 2 })
+        #expect(repaired.isNodeReachable(entryID))
+    }
+
+    @Test func `sanitizer repairs a dangling boss exit without losing the next floor`() throws {
+        var save = PlayerSave.fresh
+        save.worldSeed = 21
+        save.labyrinth.ensureMap(seed: save.worldSeed)
+        let boss = try #require(save.labyrinth.nodes.values.first { $0.type == .boss && $0.depth == 1 })
+        save.labyrinth.markCleared(nodeID: boss.id)
+        let entryID = try #require(save.labyrinth.node(id: boss.id)?.outgoingIDs.first)
+        let nextCluster = try #require(save.labyrinth.clusters.first { $0.depthBand == 2 })
+        save.labyrinth.nodes[boss.id]?.outgoingIDs = ["missing-entry"]
+        save.labyrinth.nodes.removeValue(forKey: entryID)
+
+        let repaired = PlayerSaveSanitizer.sanitize(save).labyrinth
+
+        #expect(repaired.clusters.count { $0.id == nextCluster.id } == 1)
+        #expect(nextCluster.nodeIDs.allSatisfy { repaired.node(id: $0) != nil })
+        #expect(repaired.isNodeReachable(entryID))
+    }
+
     @Test @MainActor func `labyrinth persists through store`() throws {
         let context = try PersistenceTestContext()
 

@@ -90,6 +90,10 @@ receipt. A successful receipt removes only its included local actions. Union ear
 items, unlocks, talents, claims, and completion; use the latest valid party/loadout
 edit, retaining displaced gear in Inventory. A one-sided change to an existing item,
 including corruption or salvage, survives unrelated progress on the other branch.
+An abandoned or dismissed Voyage must not be restored from stale route progress.
+Labyrinth floor reconciliation carries clusters and boss exits with nodes so the
+next floor stays reachable. Merge Shop purchase markers only for the same pinned
+item and price; use a readable stock copy when its preferred peer is unreadable.
 Combine independent balance changes from a shared base and floor concurrent
 overspending at zero. On first attachment of unrelated older saves, take the larger
 balance per resource. Archive conflicting snapshots in the same atomic server
