@@ -128,6 +128,33 @@ struct PresentationModelTests {
         }
     }
 
+    @Test func `labyrinth floor layout centers nodes and contains selected seals`() throws {
+        let positions = [
+            LabyrinthGridPosition(row: 0, column: -1),
+            LabyrinthGridPosition(row: 1, column: -1),
+            LabyrinthGridPosition(row: 2, column: 0),
+        ]
+        let nodes = positions.enumerated().map { index, position in
+            LabyrinthNode(
+                id: "node-\(index)", type: .battle, depth: 1,
+                clusterID: "floor", gridPosition: position,
+            )
+        }
+
+        for width: CGFloat in [280, 360, 430] {
+            let layout = LabyrinthFloorLayout(nodes: nodes, availableWidth: width)
+            let points = positions.map { layout.point(for: $0) }
+            let left = try #require(points.map(\.x).min())
+            let right = try #require(points.map(\.x).max())
+            #expect(abs((left + right) / 2 - width / 2) < 0.001)
+            let selectedHalfWidth = layout.hexWidth * 1.035 / 2 + 1.5
+            #expect(left - selectedHalfWidth >= 6 - 0.001)
+            #expect(right + selectedHalfWidth <= width - 6 + 0.001)
+            let lastPoint = try #require(points.last)
+            #expect(layout.height == lastPoint.y + layout.hexHeight / 2 + layout.hitExpansion)
+        }
+    }
+
     @Test func `stage encounter and stage presentation properties`() {
         let stage = Stage(
             id: "test-stage",

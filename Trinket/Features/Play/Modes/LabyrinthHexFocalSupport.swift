@@ -6,22 +6,6 @@ enum LabyrinthNodeArtworkMetrics {
     static let hexFocalZoom: CGFloat = 1.18
 }
 
-struct LabyrinthHexMetrics {
-    let radius: CGFloat
-    let hitExpansion: CGFloat = 6
-    var width: CGFloat {
-        radius * sqrt(3)
-    }
-
-    var height: CGFloat {
-        radius * 2
-    }
-
-    var verticalStep: CGFloat {
-        radius * 1.5
-    }
-}
-
 struct LabyrinthHexagon: InsettableShape {
     var insetAmount: CGFloat = 0
 

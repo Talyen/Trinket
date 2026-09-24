@@ -231,6 +231,47 @@ struct BalanceFindingsReporterTests {
         #expect(BalanceFindingsReporter.render(report).contains("pairing outlier"))
     }
 
+    @Test func `matchup identities remain distinct when IDs contain separators`() {
+        var records: [BalanceBattleRecord] = []
+        for sample in 0 ..< 8 {
+            var win = identityRecord(enemyID: "enemy", isBoss: false, abilities: [], win: true, seed: UInt64(sample))
+            win.heroID = "hero|one"
+            win.companionID = "partner"
+            records.append(win)
+
+            var loss = identityRecord(enemyID: "enemy", isBoss: false, abilities: [], win: false, seed: UInt64(sample + 8))
+            loss.heroID = "hero"
+            loss.companionID = "one|partner"
+            records.append(loss)
+        }
+
+        let cells = BalanceIdentityMargins.flaggedPairCells(
+            records: records,
+            left: \.heroID,
+            right: \.companionID,
+            peerRate: 0.5,
+            threshold: 0.1,
+        )
+        #expect(cells.map { ($0.leftID, $0.rightID) }.map { "\($0.0):\($0.1)" }
+            == ["hero:one|partner", "hero|one:partner"])
+        #expect(cells.map(\.battles) == [8, 8])
+        #expect(cells.map(\.flagReason) == ["LOW", "HIGH"])
+    }
+
+    @Test func `enemy target bands keep boss and trash samples separate`() {
+        let records = Array(repeating: identityRecord(
+            enemyID: "shared", isBoss: false, abilities: [], win: true, seed: 1,
+        ), count: 8) + Array(repeating: identityRecord(
+            enemyID: "shared", isBoss: true, abilities: [], win: false, seed: 2,
+        ), count: 8)
+        let rows = BalanceIdentityMargins.enemyMargins(records: records) { isBoss in
+            isBoss ? (0.7, 0.8) : (0.4, 0.5)
+        }
+        #expect(rows.count == 2)
+        #expect(rows.map(\.battles) == [8, 8])
+        #expect(rows.map(\.flagReason) == ["EASY", "HARD"])
+    }
+
     private func identityRecord(
         enemyID: String,
         isBoss: Bool,

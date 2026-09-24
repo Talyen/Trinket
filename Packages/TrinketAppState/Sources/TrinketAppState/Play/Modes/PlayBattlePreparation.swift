@@ -1,6 +1,7 @@
 import BattleEngine
 import Foundation
 import TrinketContent
+import TrinketCore
 import TrinketPersistence
 
 /// A resolved enemy plus the level it should fight at.
@@ -26,6 +27,48 @@ struct BattleLootContext {
     }
 }
 
+/// Keeps the combat, experience, and presentation views of one set of node
+/// modifiers together when Labyrinth or Voyage builds a battle.
+struct ModeBattleModifiers {
+    static let none = Self(definitions: [])
+
+    let definitions: [LabyrinthModifierDefinition]
+    let experienceBonusPercent: Int
+    let universalModifiers: [AffixModifier]
+
+    init(definitions: [LabyrinthModifierDefinition]) {
+        self.definitions = definitions
+        let effects = LabyrinthModifierEffects.combining(definitions)
+        experienceBonusPercent = effects.experienceEarnedPercent
+
+        var modifiers: [AffixModifier] = effects.damageDealtBonus
+            .sorted { $0.key.rawValue < $1.key.rawValue }
+            .map { .damageDealt($0.key, $0.value) }
+        modifiers += effects.damageTakenReduction
+            .sorted { $0.key.rawValue < $1.key.rawValue }
+            .map { .damageTakenPercent($0.key, Double($0.value) / 100) }
+        if effects.blockGainedBonus != 0 {
+            modifiers.append(.blockGained(effects.blockGainedBonus))
+        }
+        if effects.leechGainedPercent != 0 {
+            modifiers.append(.leechGainedPercent(Double(effects.leechGainedPercent) / 100))
+        }
+        if effects.startBattleBlock != 0 {
+            modifiers.append(.startBattleBlock(effects.startBattleBlock))
+        }
+        if effects.attackLeech {
+            modifiers.append(.attackLeechPercent(Effect.abilityLeechPercent))
+        }
+        if effects.attackBlockRemoval != 0 {
+            modifiers.append(.attackBlockRemoval(effects.attackBlockRemoval))
+        }
+        if effects.attackPurgeCount != 0 {
+            modifiers.append(.attackPurgeCount(effects.attackPurgeCount))
+        }
+        universalModifiers = modifiers
+    }
+}
+
 /// Shared roster + loot → launch-input tail for battle modes. Modes keep
 /// only their `resolveLoot` selection plus any experience/modifier extras;
 /// hero/companion lookup and reward plumbing stay single-owned here.
@@ -37,8 +80,7 @@ enum ModeBattleSpec {
         roster: PlayerRosterState,
         stageRewardsAlreadyClaimed: Bool = false,
         experienceBonusPercent: Int = 0,
-        universalModifiers: [AffixModifier] = [],
-        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
+        modifiers: ModeBattleModifiers = .none,
         completionBonus: VoyageCompletionBonus? = nil,
     ) -> BattleLaunchInput {
         BattleLaunchInput(
@@ -48,11 +90,11 @@ enum ModeBattleSpec {
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
             stageReward: loot.asStageReward,
-            experienceBonusPercent: experienceBonusPercent,
+            experienceBonusPercent: experienceBonusPercent + modifiers.experienceBonusPercent,
             pendingRewardItem: loot.item,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers,
-            labyrinthModifiers: labyrinthModifiers,
+            universalModifiers: modifiers.universalModifiers,
+            labyrinthModifiers: modifiers.definitions,
             completionBonus: completionBonus,
         )
     }

@@ -44,10 +44,13 @@ encounter completion never apply. Retreat grants nothing. `BattleExperienceRewar
 applies only the two XP awards in the same save transaction. The claim/navigation
 sequence is owned by [battle completion](battle-launch.md).
 
-`MysteryEncounterResolution` owns choice effects and progress together, including
-required item/unlock validation. An opened offer stays claimable; a duplicate
-Unique already earned on another device is kept once while its secondary reward
-and encounter completion proceed. Deliberate leave is an explicit outcome.
+Mystery opening pins the chosen event and prepares any saved offers in one
+transaction; rejected offers leave no new pin, and the session appears only
+after the save commits. `MysteryEncounterResolution` owns choice effects and
+progress together, including required item/unlock validation. An opened offer
+stays claimable; a duplicate Unique already earned on another device is kept
+once while its secondary reward and encounter completion proceed. Deliberate
+leave is an explicit outcome.
 
 `EncounterIdentity` scopes Journey stages and Labyrinth nodes to their world seed
 and save generation. Shop offers are pinned on first opening; stock and purchased

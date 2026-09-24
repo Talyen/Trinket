@@ -9,27 +9,28 @@ extension BattleTurnEngine {
         category: "BattleTurnEngine",
     )
 
-    struct ResolvedDamageComponent {
-        let sourceEventID: Int
-        let targetID: String
-        let healthLost: Int
-        let keyword: Keyword
-        let isCritical: Bool
-    }
-
     struct DamageComponentOutcome {
         let events: [ActionEvent]
-        let resolvedComponents: [ResolvedDamageComponent]
+        let healthLost: Int
         let logDamageKeyword: Keyword?
 
-        var totalDealt: Int {
-            resolvedComponents.reduce(0) { $0 + $1.healthLost }
+        static var empty: Self {
+            Self(events: [], healthLost: 0, logDamageKeyword: nil)
         }
     }
 
-    // swiftlint:disable:next function_body_length - attack components resolve in deterministic order
-    static func applyDamageComponents(
-        _ components: [DamageComponent],
+    private struct PreparedDamageComponent {
+        let request: DamageRequest
+        let target: Combatant
+        let keyword: Keyword
+        let stackPotency: Int
+        let holyStrikeBurnPotency: Int
+        let nextStrike: NextStrikeConsumption
+        let logDamageKeyword: Keyword?
+    }
+
+    static func applyDamageComponent(
+        _ component: DamageComponent,
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
@@ -37,148 +38,159 @@ extension BattleTurnEngine {
         reservedKeywordOverride: inout Keyword?,
         context: inout BattleState,
     ) -> DamageComponentOutcome {
-        var events: [ActionEvent] = []
-        var resolvedComponents: [ResolvedDamageComponent] = []
-        var logDamageKeyword: Keyword?
-
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
-        for component in components {
-            guard action.canContinue(in: context) else { break }
-            let damageTarget = BattleTargetResolver.effectTarget(
-                component.target,
-                actor: actor,
-                abilityTarget: abilityTarget,
-                in: context,
-            )
-            guard context.roster.health(for: damageTarget) > 0 else { continue }
+        guard action.canContinue(in: context) else { return .empty }
+        let target = BattleTargetResolver.effectTarget(
+            component.target, actor: actor, abilityTarget: abilityTarget, in: context,
+        )
+        guard context.roster.health(for: target) > 0,
+              let prepared = prepareDamageComponent(
+                  component, ability: ability, action: action, target: target, guaranteedCritical: guaranteedCritical,
+                  reservedKeywordOverride: &reservedKeywordOverride, context: &context,
+              ) else { return .empty }
+        return resolveDamageComponent(prepared, ability: ability, actor: actor, context: &context)
+    }
 
-            var amount: Int
-            if let scaling = component.scaling {
-                switch scaling {
-                case let .actorBlockFraction(divisor, minimum):
-                    let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor))
-                    amount = max(minimum, block / divisor)
-                }
-            } else {
-                amount = component.amount
+    private static func damageAmount(
+        for component: DamageComponent,
+        action: BattleActionContext,
+        in context: BattleState,
+    ) -> Int? {
+        var amount: Int
+        if let scaling = component.scaling {
+            switch scaling {
+            case let .actorBlockFraction(divisor, minimum):
+                let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: action.actor))
+                amount = max(minimum, block / divisor)
             }
-            if let condition = component.condition {
-                if BattleConditionEvaluator.isMet(
-                    condition,
-                    actor: actor,
-                    abilityTarget: abilityTarget,
-                    in: context,
-                ) {
-                    amount += component.bonusAmount
-                } else if component.bonusAmount == 0 {
-                    continue
-                }
+        } else {
+            amount = component.amount
+        }
+        if let condition = component.condition {
+            if BattleConditionEvaluator.isMet(
+                condition, actor: action.actor, abilityTarget: action.selectedTarget, in: context,
+            ) {
+                amount += component.bonusAmount
+            } else if component.bonusAmount == 0 {
+                return nil
             }
+        }
+        return amount
+    }
 
-            let isSelfHealthCost = damageTarget.id == actor.id
-            if amount > 0, !isSelfHealthCost, reservedKeywordOverride == nil {
-                reservedKeywordOverride = reserveNextStrikeKeywordOverride(for: actor, in: &context)
-            }
-            let keywordOverride = reservedKeywordOverride.map { (keyword: $0, bonus: 0) }
-                ?? activeDamageKeywordOverride(for: actor, in: context)
-            var damageKeyword = component.keyword
-            if amount > 0, !isSelfHealthCost, let override = keywordOverride {
-                damageKeyword = override.keyword
-                amount += override.bonus
-                if component.target == .abilityTarget {
-                    logDamageKeyword = override.keyword
-                }
-            }
+    private static func prepareDamageComponent(
+        _ component: DamageComponent,
+        ability: Ability,
+        action: BattleActionContext,
+        target: Combatant,
+        guaranteedCritical: Bool,
+        reservedKeywordOverride: inout Keyword?,
+        context: inout BattleState,
+    ) -> PreparedDamageComponent? {
+        guard var amount = damageAmount(for: component, action: action, in: context) else { return nil }
+        let actor = action.actor
 
-            let nextBurnBonus = amount > 0 && !isSelfHealthCost && damageKeyword == .burn
-                ? activeNextBurnBonus(for: actor, in: context)
-                : 0
-            let nextStrike = nextStrikeConsumption(
-                amount: amount,
-                damageKeyword: damageKeyword,
-                isSelfHealthCost: isSelfHealthCost,
-                actor: actor,
-                nextBurnBonus: nextBurnBonus,
-                in: context,
-            )
-            if nextBurnBonus > 0 {
-                amount += nextBurnBonus
-            }
-            let holyStrikeBurnPotency = amount
-            if nextStrike.contains(.holyStrike) || nextStrike.contains(.double) {
-                amount *= 2
-            }
-
-            ActiveEffectMutation.removeMatching(from: actor, in: &context) { nextStrike.consumedKinds.contains($0.kind) }
-            let options: DamageOperation = isSelfHealthCost
-                ? .healthCost
-                : .attack(
-                    tier: ability.tier,
-                    origin: context.resolution.attackOrigin,
-                    abilityCriticalChanceBonus: ability.criticalChanceBonus,
-                    guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
-                    guaranteedCritical: guaranteedCritical || nextStrike.contains(.critical),
-                    abilityHasLeech: ability.hasLeech || nextStrike.contains(.leech),
-                )
-            var request = DamageRequest(
-                amount: amount,
-                target: damageTarget,
-                keyword: damageKeyword,
-                sourceActorID: actor.id,
-                options: options,
-            )
-            if !isSelfHealthCost {
-                request.provenance = context.resolution.damageProvenance(for: actor.id)
-            }
-            request = UniqueCombatEngine.prepareDamage(request, in: &context)
-            let damageOutcome = context.resolveDamage(request)
-            let dealt = damageOutcome.healthLost
-            let damageEvents = damageOutcome.events
-            events.append(contentsOf: damageEvents)
-            let componentEvent = context.nextEvent(
-                kind: .abilityDamage,
-                actorID: actor.id,
-                actorName: actor.name,
-                abilityID: ability.id,
-                abilityName: ability.name,
-                abilityTier: ability.tier,
-                target: damageTarget,
-                amount: dealt,
-                keyword: damageKeyword,
-                isCritical: damageOutcome.flags.contains(.critical),
-                origin: .direct,
-            )
-            events.append(componentEvent)
-            resolvedComponents.append(ResolvedDamageComponent(
-                sourceEventID: componentEvent.id,
-                targetID: damageTarget.id,
-                healthLost: dealt,
-                keyword: damageKeyword,
-                isCritical: componentEvent.isCritical,
-            ))
-
-            if case .landed = damageOutcome.damageImpact {
-                if nextStrike.contains(.holyStrike) {
-                    events.append(contentsOf: context.applyDecayingDoT(
-                        keyword: .burn, potency: holyStrikeBurnPotency, to: damageTarget,
-                        sourceActorID: actor.id, application: .ability,
-                    ))
-                }
-                events.append(contentsOf: applyDoTStackFromDamage(
-                    keyword: damageKeyword,
-                    potency: damageKeyword == .burn || damageKeyword == .poison ? dealt : amount,
-                    to: damageTarget,
-                    sourceActorID: actor.id,
-                    isCritical: componentEvent.isCritical,
-                    context: &context,
-                ))
+        let isSelfHealthCost = target.id == actor.id
+        if amount > 0, !isSelfHealthCost, reservedKeywordOverride == nil {
+            reservedKeywordOverride = reserveNextStrikeKeywordOverride(for: actor, in: &context)
+        }
+        let keywordOverride = reservedKeywordOverride.map { (keyword: $0, bonus: 0) }
+            ?? activeDamageKeywordOverride(for: actor, in: context)
+        var keyword = component.keyword
+        var logDamageKeyword: Keyword?
+        if amount > 0, !isSelfHealthCost, let override = keywordOverride {
+            keyword = override.keyword
+            amount += override.bonus
+            if component.target == .abilityTarget {
+                logDamageKeyword = override.keyword
             }
         }
 
-        return DamageComponentOutcome(
-            events: events,
-            resolvedComponents: resolvedComponents,
+        let nextBurnBonus = amount > 0 && !isSelfHealthCost && keyword == .burn
+            ? activeNextBurnBonus(for: actor, in: context)
+            : 0
+        let nextStrike = nextStrikeConsumption(
+            amount: amount, damageKeyword: keyword, isSelfHealthCost: isSelfHealthCost,
+            actor: actor, nextBurnBonus: nextBurnBonus, in: context,
+        )
+        if nextBurnBonus > 0 {
+            amount += nextBurnBonus
+        }
+        let holyStrikeBurnPotency = amount
+        if nextStrike.contains(.holyStrike) || nextStrike.contains(.double) {
+            amount *= 2
+        }
+
+        // Consume before request preparation, which may start nested reactions.
+        ActiveEffectMutation.removeMatching(from: actor, in: &context) { nextStrike.consumedKinds.contains($0.kind) }
+        let options: DamageOperation = isSelfHealthCost
+            ? .healthCost
+            : .attack(
+                tier: ability.tier,
+                origin: context.resolution.attackOrigin,
+                abilityCriticalChanceBonus: ability.criticalChanceBonus,
+                guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
+                guaranteedCritical: guaranteedCritical || nextStrike.contains(.critical),
+                abilityHasLeech: ability.hasLeech || nextStrike.contains(.leech),
+            )
+        var request = DamageRequest(
+            amount: amount, target: target, keyword: keyword,
+            sourceActorID: actor.id, options: options,
+        )
+        if !isSelfHealthCost {
+            request.provenance = context.resolution.damageProvenance(for: actor.id)
+        }
+        request = UniqueCombatEngine.prepareDamage(request, in: &context)
+        return PreparedDamageComponent(
+            request: request, target: target, keyword: keyword, stackPotency: amount,
+            holyStrikeBurnPotency: holyStrikeBurnPotency, nextStrike: nextStrike,
             logDamageKeyword: logDamageKeyword,
+        )
+    }
+
+    private static func resolveDamageComponent(
+        _ prepared: PreparedDamageComponent,
+        ability: Ability,
+        actor: Combatant,
+        context: inout BattleState,
+    ) -> DamageComponentOutcome {
+        let damageOutcome = context.resolveDamage(prepared.request)
+        let dealt = damageOutcome.healthLost
+        var events = damageOutcome.events
+        let componentEvent = context.nextEvent(
+            kind: .abilityDamage,
+            actorID: actor.id,
+            actorName: actor.name,
+            abilityID: ability.id,
+            abilityName: ability.name,
+            abilityTier: ability.tier,
+            target: prepared.target,
+            amount: dealt,
+            keyword: prepared.keyword,
+            isCritical: damageOutcome.flags.contains(.critical),
+            origin: .direct,
+        )
+        events.append(componentEvent)
+
+        if case .landed = damageOutcome.damageImpact {
+            if prepared.nextStrike.contains(.holyStrike) {
+                events.append(contentsOf: context.applyDecayingDoT(
+                    keyword: .burn, potency: prepared.holyStrikeBurnPotency, to: prepared.target,
+                    sourceActorID: actor.id, application: .ability,
+                ))
+            }
+            events.append(contentsOf: applyDoTStackFromDamage(
+                keyword: prepared.keyword,
+                potency: prepared.keyword == .burn || prepared.keyword == .poison
+                    ? dealt : prepared.stackPotency,
+                to: prepared.target,
+                sourceActorID: actor.id,
+                isCritical: componentEvent.isCritical,
+                context: &context,
+            ))
+        }
+        return DamageComponentOutcome(
+            events: events, healthLost: dealt, logDamageKeyword: prepared.logDamageKeyword,
         )
     }
 

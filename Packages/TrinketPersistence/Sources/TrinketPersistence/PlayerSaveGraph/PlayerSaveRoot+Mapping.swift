@@ -6,14 +6,15 @@ import TrinketCore
 /// Slice hub: `changed`, sanitize/persist targets, `prepareCandidate`, and
 /// root apply/repair live here. Per-slice read/write lives beside it in
 /// `PlayerSaveModelMapping.swift` and the `*SaveModels.swift` rows; value
-/// rules live in `PlayerSaveSanitizer.swift`.
+/// rules live in `PlayerSaveSanitizer*.swift` and `LabyrinthSanitizer.swift`.
 ///
 /// `cloudStatePayload` is intentionally outside the slice set: it is local
 /// sync metadata committed with the graph transaction, never uploaded
 /// wholesale (see `PlayerSaveStore`). Each section is handled by exhaustive
-/// switches for comparison, sanitization, graph writes, and observation.
-/// Declaration order runs inventory before roster and Labyrinth last; raw
-/// values retain the existing slice bits.
+/// switches for comparison, graph writes, and observation.
+/// Declaration order keeps section iteration stable; sanitizer dependencies
+/// are sequenced explicitly by `PlayerSaveSanitizer`. Raw values retain the
+/// existing slice bits.
 enum PlayerSaveSection: Int, CaseIterable {
     case root = 0
     case inventory = 3

@@ -168,13 +168,13 @@ package enum BattleTurnEngine {
         for operation in resolvedAbility.operations {
             switch operation {
             case let .damage(component):
-                let outcome = applyDamageComponents(
-                    [component], ability: resolvedAbility, actor: actor, abilityTarget: abilityTarget,
+                let outcome = applyDamageComponent(
+                    component, ability: resolvedAbility, actor: actor, abilityTarget: abilityTarget,
                     guaranteedCritical: facts.guaranteedCritical,
                     reservedKeywordOverride: &reservedKeywordOverride, context: &context,
                 )
                 events.append(contentsOf: outcome.events)
-                totalDealt += outcome.totalDealt
+                totalDealt += outcome.healthLost
                 logKeyword = outcome.logDamageKeyword ?? logKeyword
             case let .effect(targeted):
                 appliedEffectLogs.append(contentsOf: applyTargetedEffects(

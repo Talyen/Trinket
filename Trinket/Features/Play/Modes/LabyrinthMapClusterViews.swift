@@ -20,29 +20,13 @@ struct LabyrinthFloorMap: View {
     let onSelectNode: (String) -> Void
     let onDismissSelection: () -> Void
 
-    private var metrics: LabyrinthHexMetrics {
-        let columns = nodes.compactMap(\.gridPosition?.projectedHalfColumn)
-        return LabyrinthHexMetrics(
-            radius: LabyrinthMapPresentation.hexRadius(
-                forAvailableWidth: availableWidth,
-                projectedHalfColumnSpan: (columns.max() ?? 0) - (columns.min() ?? 0),
-            ),
-        )
-    }
-
     private var nodes: [LabyrinthNode] {
         LabyrinthMapPresentation.floorNodes(for: cluster, in: state)
     }
 
     var body: some View {
-        let metrics = metrics
         let nodes = nodes
-        let projectedXs = nodes.map { projectedX(for: $0, metrics: metrics) }
-        let horizontalCenter = ((projectedXs.min() ?? 0) + (projectedXs.max() ?? 0)) / 2
-        let lastRow = nodes.compactMap(\.gridPosition?.row).max() ?? 0
-        let mapHeight = CGFloat(lastRow) * metrics.verticalStep
-            + metrics.height
-            + metrics.hitExpansion * 2
+        let layout = LabyrinthFloorLayout(nodes: nodes, availableWidth: availableWidth)
         let reachableNodeIDs = state.reachableNodeIDSet()
         let displayNodes = nodes.map { node in
             let visualState = LabyrinthMapPresentation.state(for: node, reachableNodeIDs: reachableNodeIDs)
@@ -50,11 +34,7 @@ struct LabyrinthFloorMap: View {
                 node: node,
                 visualState: visualState,
                 type: snapshot.type(for: node),
-                position: point(
-                    for: node,
-                    horizontalCenter: horizontalCenter,
-                    metrics: metrics,
-                ),
+                position: layout.point(for: node.gridPosition),
                 renderPriority: node.id == selectedNodeID ? 2 : visualState == .reachable ? 1 : 0,
             )
         }
@@ -75,7 +55,7 @@ struct LabyrinthFloorMap: View {
                     visualState: presentation.visualState,
                     type: presentation.type,
                     isSelected: selectedNodeID == presentation.id,
-                    metrics: metrics,
+                    layout: layout,
                     resolvedMysteryEvent: snapshot.events[presentation.id],
                     recruitArtwork: snapshot.recruitArtwork(for: presentation.node),
                     floorDepthBand: cluster.depthBand,
@@ -89,31 +69,7 @@ struct LabyrinthFloorMap: View {
                 .zIndex(Double(presentation.renderPriority))
             }
         }
-        .frame(width: availableWidth, height: mapHeight)
-    }
-
-    private func projectedX(
-        for node: LabyrinthNode,
-        metrics: LabyrinthHexMetrics,
-    ) -> CGFloat {
-        let position = node.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0)
-        return metrics.radius * sqrt(3) * (
-            CGFloat(position.column) + CGFloat(position.row) / 2
-        )
-    }
-
-    private func point(
-        for node: LabyrinthNode,
-        horizontalCenter: CGFloat,
-        metrics: LabyrinthHexMetrics,
-    ) -> CGPoint {
-        let position = node.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0)
-        return CGPoint(
-            x: availableWidth / 2 + (
-                projectedX(for: node, metrics: metrics) - horizontalCenter
-            ),
-            y: CGFloat(position.row) * metrics.verticalStep + metrics.height / 2 + metrics.hitExpansion,
-        )
+        .frame(width: availableWidth, height: layout.height)
     }
 }
 
@@ -134,7 +90,7 @@ private struct LabyrinthMapNodeSeal: View {
     let visualState: LabyrinthMapNodeState
     let type: LabyrinthNodeType
     let isSelected: Bool
-    let metrics: LabyrinthHexMetrics
+    let layout: LabyrinthFloorLayout
     let resolvedMysteryEvent: MysteryEvent?
     let recruitArtwork: EncounterArtReference?
     let floorDepthBand: Int
@@ -180,15 +136,15 @@ private struct LabyrinthMapNodeSeal: View {
                     .stroke(TrinketDesign.Colors.accent, lineWidth: 3)
                     .opacity(reachablePulseOpacity)
             }
-            .frame(width: metrics.width, height: metrics.height)
+            .frame(width: layout.hexWidth, height: layout.hexHeight)
             .scaleEffect(clearedSettleScale)
             .contentShape(
                 .interaction,
-                LabyrinthHexagon().inset(by: -metrics.hitExpansion),
+                LabyrinthHexagon().inset(by: -layout.hitExpansion),
             )
             .frame(
-                width: metrics.width + 2 * metrics.hitExpansion,
-                height: metrics.height + 2 * metrics.hitExpansion,
+                width: layout.hexWidth + 2 * layout.hitExpansion,
+                height: layout.hexHeight + 2 * layout.hitExpansion,
             )
         }
         .buttonStyle(LabyrinthNodeButtonStyle(isSelected: isSelected))

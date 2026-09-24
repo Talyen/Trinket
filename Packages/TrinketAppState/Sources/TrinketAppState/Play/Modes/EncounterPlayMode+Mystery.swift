@@ -32,7 +32,7 @@ public extension EncounterPlayMode {
         guard canBeginTransientEncounter else { return nil }
 
         let inputs = mysteryPickInputs(origin: origin)
-        let opened = MysteryEncounterSession.open(
+        let session = MysteryEncounterSession.open(
             origin: origin,
             encounter: origin.identity(in: playerSave.currentSave),
             forcedEventID: forcedEventID,
@@ -42,52 +42,41 @@ public extension EncounterPlayMode {
             pinnedJourneyEventID: inputs.pinnedJourneyEventID,
         )
 
-        if let paywall = mysteryPaywallMessage(for: opened.session.event) {
+        if let paywall = mysteryPaywallMessage(for: session.event) {
             return paywall
         }
         return finishOpeningMystery(
-            opened.session,
+            session,
             origin: origin,
             forcedEventID: forcedEventID,
-            resolvedEventID: opened.resolvedEventID,
             pinnedLabyrinthEventID: inputs.pinnedLabyrinthEventID,
             pinnedJourneyEventID: inputs.pinnedJourneyEventID,
         )
     }
 
-    /// Pins the event, prepares offers, publishes the session, and auto-resolves
-    /// recruit events. Transient write failures schedule a silent retry and
-    /// return nil; rejections surface a message. (Recruit auto-resolve needs no
-    /// retry here: the resolution path already scheduled one internally.)
+    /// Publishes only after the event pin and offers commit together. Recruit
+    /// auto-resolution has its own transaction and retry path.
     private func finishOpeningMystery(
         _ session: MysteryEncounterSession,
         origin: PlayEncounterOrigin,
         forcedEventID: String?,
-        resolvedEventID: String,
         pinnedLabyrinthEventID: String?,
         pinnedJourneyEventID: String?,
     ) -> StageMapMessage? {
-        if let pinFailure = pinMysteryEventIfNeeded(
-            origin: origin,
-            resolvedEventID: resolvedEventID,
-            isRecruit: session.event.isRecruit,
-            pinnedLabyrinthEventID: pinnedLabyrinthEventID,
-            pinnedJourneyEventID: pinnedJourneyEventID,
-        ) {
-            if playerSave.lastPersistenceError == .writeFailed {
+        if !session.event.isRecruit {
+            switch prepareMysteryEncounter(
+                session,
+                origin: origin,
+                pinnedLabyrinthEventID: pinnedLabyrinthEventID,
+                pinnedJourneyEventID: pinnedJourneyEventID,
+            ) {
+            case let .committed(offers):
+                session.installOffers(offers)
+            case .rejected:
+                return Self.mysteryPinFailureMessage
+            case .persistFailed:
                 retryOpeningMystery(origin: origin, forcedEventID: forcedEventID)
                 return nil
-            }
-            return pinFailure
-        }
-
-        if !session.event.isRecruit, !session.isCorruptionAltar {
-            guard prepareMysteryOffers(session) else {
-                if playerSave.lastPersistenceError == .writeFailed {
-                    retryOpeningMystery(origin: origin, forcedEventID: forcedEventID)
-                    return nil
-                }
-                return Self.mysteryPinFailureMessage
             }
         }
         activeMysteryEncounter = session
@@ -125,11 +114,24 @@ public extension EncounterPlayMode {
         }
     }
 
-    private func prepareMysteryOffers(_ session: MysteryEncounterSession) -> Bool {
-        let prepared = playerSave.persistTransaction(logging: "Failed to save mystery offers") { save -> Result<
+    private func prepareMysteryEncounter(
+        _ session: MysteryEncounterSession,
+        origin: PlayEncounterOrigin,
+        pinnedLabyrinthEventID: String?,
+        pinnedJourneyEventID: String?,
+    ) -> SaveTransactionResult<[MysteryOffer], MysteryChoiceFailure> {
+        playerSave.persistTransaction(logging: "Failed to open mystery encounter") { save -> Result<
             [MysteryOffer],
             MysteryChoiceFailure,
         > in
+            guard pinMysteryEventIfNeeded(
+                origin: origin,
+                eventID: session.event.id,
+                pinnedLabyrinthEventID: pinnedLabyrinthEventID,
+                pinnedJourneyEventID: pinnedJourneyEventID,
+                save: &save,
+            ) else { return .failure(.unavailable) }
+            guard !session.isCorruptionAltar else { return .success([]) }
             do {
                 return try .success(MysteryOfferPersistence.prepare(
                     event: session.event, stage: session.stage,
@@ -140,9 +142,6 @@ public extension EncounterPlayMode {
                 return .failure(.unavailable)
             }
         }
-        guard case let .committed(offers) = prepared else { return false }
-        session.installOffers(offers)
-        return true
     }
 
     private func mysteryEventPickContext(
@@ -334,52 +333,28 @@ public extension EncounterPlayMode {
 
     private func pinMysteryEventIfNeeded(
         origin: PlayEncounterOrigin,
-        resolvedEventID: String,
-        isRecruit: Bool,
+        eventID: String,
         pinnedLabyrinthEventID: String?,
         pinnedJourneyEventID: String?,
-    ) -> StageMapMessage? {
-        guard !isRecruit else { return nil }
-
-        if case let .voyage(runID, nodeID) = origin, pinnedLabyrinthEventID == nil {
-            return pinEvent(logging: "Failed to pin Voyage mystery") { save in
-                guard save.voyage.isPlayable(runID: runID, nodeID: nodeID) else { return false }
-                save.voyage.updateNode(runID: runID, nodeID: nodeID) { $0.mysteryEventID = resolvedEventID }
-                return true
-            }
+        save: inout PlayerSave,
+    ) -> Bool {
+        switch origin {
+        case let .voyage(runID, nodeID):
+            guard pinnedLabyrinthEventID == nil else { return true }
+            guard save.voyage.isPlayable(runID: runID, nodeID: nodeID) else { return false }
+            save.voyage.updateNode(runID: runID, nodeID: nodeID) { $0.mysteryEventID = eventID }
+            return true
+        case let .labyrinth(nodeID):
+            guard pinnedLabyrinthEventID == nil else { return true }
+            return MysteryEventPinApplier.pinLabyrinthEvent(
+                nodeID: nodeID, eventID: eventID, save: &save,
+            )
+        case let .journey(stage):
+            guard pinnedJourneyEventID == nil, stage.mysteryEvent == nil else { return true }
+            return MysteryEventPinApplier.pinJourneyEvent(
+                stageID: stage.id, eventID: eventID, save: &save,
+            )
         }
-        if let labyrinthNodeID = origin.labyrinthNodeID, pinnedLabyrinthEventID == nil {
-            return pinEvent(logging: "Failed to pin labyrinth mystery event") { save in
-                MysteryEventPinApplier.pinLabyrinthEvent(
-                    nodeID: labyrinthNodeID,
-                    eventID: resolvedEventID,
-                    save: &save,
-                )
-            }
-        }
-
-        if let stage = origin.stage, pinnedJourneyEventID == nil, stage.mysteryEvent == nil {
-            return pinEvent(logging: "Failed to pin journey mystery event") { save in
-                MysteryEventPinApplier.pinJourneyEvent(
-                    stageID: stage.id,
-                    eventID: resolvedEventID,
-                    save: &save,
-                )
-            }
-        }
-
-        return nil
-    }
-
-    private func pinEvent(
-        logging: String,
-        pin: (inout PlayerSave) -> Bool,
-    ) -> StageMapMessage? {
-        var didPinEvent = false
-        let didPersist = playerSave.persistBatch(logging: logging) { save in
-            didPinEvent = pin(&save)
-        }
-        return didPersist && didPinEvent ? nil : Self.mysteryPinFailureMessage
     }
 
     private static let mysteryPinFailureMessage = StageMapMessage(

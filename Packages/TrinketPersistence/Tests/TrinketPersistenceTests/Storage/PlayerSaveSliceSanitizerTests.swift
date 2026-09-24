@@ -79,6 +79,35 @@ struct PlayerSaveSliceSanitizerTests {
         #expect(PlayerSaveSlice.sanitizeTargets(for: [.labyrinth]) == [.labyrinth, .roster])
     }
 
+    @Test func `inventory repair precedes equipment repair`() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == PlayerRosterState.starterHeroID })
+        let trinketBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .trinket })
+        let kept = InventoryItem(
+            id: "kept-trinket",
+            templateID: "shared-trinket",
+            baseType: trinketBase,
+            rarity: .basic,
+            displayName: "Test Ring",
+            affixes: [],
+        )
+        let dropped = InventoryItem(
+            id: "dropped-trinket",
+            templateID: "shared-trinket",
+            baseType: trinketBase,
+            rarity: .basic,
+            displayName: "Test Ring",
+            affixes: [],
+        )
+        var save = PlayerSave.fresh
+        save.inventory = PlayerInventoryState(items: [kept, dropped])
+        save.roster.equipmentLoadouts[knight.id] = EquipmentLoadout(itemIDsBySlot: [.trinket: dropped.id])
+
+        let sanitized = PlayerSaveSanitizer.sanitize(save, changedSlices: .inventory)
+
+        #expect(sanitized.inventory.items.map(\.id) == [kept.id])
+        #expect(sanitized.roster.equipmentLoadout(for: knight).itemID(for: .trinket) == nil)
+    }
+
     @Test func `roster sanitize leaves labyrinth nodes for explicit labyrinth slice`() {
         var save = PlayerSave.fresh
         save.labyrinth.ensureMap(seed: 4)

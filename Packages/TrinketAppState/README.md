@@ -76,9 +76,10 @@ SFX use a prestarted `AVAudioEngine`. Battle event mapping stays in
 `TrinketBattleFeature` via `BattleRuntimeDependencies`.
 SFX engine setup, warmup, and playback run on a private audio actor. Commands from
 main-actor callers are chained in submission order, so play, stop, and resource release
-cannot overtake one another. Catalog decoding stays asynchronous; a cancelled warmup
-cannot install its buffers after release. Adding warm voices leaves already-playing
-voices running.
+cannot overtake one another. Catalog prewarming and individual sounds use the same
+asynchronous buffer preparation path. Stop and resource release invalidate in-flight
+decodes, so stale work cannot reinstall buffers or restart the engine. Adding warm
+voices leaves already-playing voices running.
 
 ## Testing
 

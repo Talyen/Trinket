@@ -5,19 +5,14 @@ import TrinketCore
 import TrinketFeatureContracts
 
 extension BattleSession {
-    struct PreparedBattleRun {
-        let configuration: BattleRunConfiguration
-        fileprivate let state: BattleState
-    }
-
     struct VictoryInput {
         let goldFlow: BattleGoldFlow
         let heroName: String
         let companionName: String
     }
 
-    var preparedBattleRuns: [PreparedBattleRun] {
-        Array(preparedBattleRunsByKey.values)
+    var preparedBattleRuns: [PreparedBattleRuns.Run] {
+        preparedRuns.runs
     }
 
     var phase: BattlePhase? {
@@ -79,26 +74,17 @@ extension BattleSession {
                 configurationID: activeBattle.id,
             )
         }
-        guard let run = singlePreparedBattleRun else { return nil }
+        guard let run = preparedRuns.selected else { return nil }
         return run.state.battlePresentationSnapshot(
             configurationID: run.configuration.id,
         )
     }
 
     public var overlayBattleConfiguration: BattleRunConfiguration? {
-        _ = preparedBattlePresentationRevision
         if let activeBattle {
             return activeBattle
         }
-        return singlePreparedBattleRun?.configuration
-    }
-
-    private var singlePreparedBattleRun: PreparedBattleRun? {
-        if let preferredPreparedRunKey, let run = preparedBattleRunsByKey[preferredPreparedRunKey] {
-            return run
-        }
-        guard preparedBattleRunsByKey.count == 1 else { return nil }
-        return preparedBattleRunsByKey.values.first
+        return preparedRuns.selected?.configuration
     }
 
     func mutateEngine<T>(_ work: (inout BattleState) -> T) -> T? {
@@ -185,47 +171,30 @@ extension BattleSession {
         mutateEngine { $0.releaseLogProjection() }
     }
 
-    func preparedBattleRun(for runKey: BattleRunKey) -> PreparedBattleRun? {
-        preparedBattleRunsByKey[runKey]
+    func preparedBattleRun(for runKey: BattleRunKey) -> PreparedBattleRuns.Run? {
+        preparedRuns.run(for: runKey)
     }
 
     @discardableResult
     public func prepareBattleRun(_ configuration: BattleRunConfiguration) -> Bool {
         guard activeBattle == nil, let runKey = configuration.runKey else { return false }
-        if preparedBattleRunsByKey[runKey]?.configuration.id == configuration.id {
-            return true
-        }
-        preparedBattleRunsByKey[runKey] = PreparedBattleRun(
-            configuration: configuration,
-            state: makeBattleState(from: configuration),
-        )
+        guard preparedRuns.prepare(configuration, for: runKey, makeState: {
+            makeBattleState(from: configuration)
+        }) else { return true }
         retainPreparedArtworkPins()
-        preparedBattlePresentationRevision += 1
         installSimulationPresentation()
         return true
     }
 
     public func keepPreparedRuns(_ keys: Set<BattleRunKey>) {
         guard activeBattle == nil else { return }
-        let before = preparedBattleRunsByKey.count
-        let previousPreferred = preferredPreparedRunKey
-        preparedBattleRunsByKey = preparedBattleRunsByKey.filter { keys.contains($0.key) }
-        let preferredWasPruned = previousPreferred.map { preparedBattleRunsByKey[$0] == nil } ?? false
-        if preferredWasPruned {
-            // didSet already bumped the revision and reinstalled.
-            preferredPreparedRunKey = nil
-            retainPreparedArtworkPins()
-        } else if preparedBattleRunsByKey.count != before {
-            retainPreparedArtworkPins()
-            preparedBattlePresentationRevision += 1
-        }
-        if !preparedBattleRunsByKey.isEmpty {
-            installSimulationPresentation()
-        }
+        guard preparedRuns.retain(keys) else { return }
+        retainPreparedArtworkPins()
+        installSimulationPresentation()
     }
 
     public func hasPreparedRun(_ runKey: BattleRunKey) -> Bool {
-        preparedBattleRunsByKey.index(forKey: runKey) != nil
+        preparedRuns.run(for: runKey) != nil
     }
 
     public func activatePreparedBattle(
@@ -233,12 +202,11 @@ extension BattleSession {
         configurationID: UUID,
     ) -> Bool {
         guard activeBattle == nil,
-              let preparedBattleRun = preparedBattleRunsByKey[runKey],
-              preparedBattleRun.configuration.id == configurationID
+              let preparedBattleRun = preparedRuns.matches(runKey, configurationID: configurationID)
         else { return false }
 
         guard installActiveBattle(preparedBattleRun.configuration, state: preparedBattleRun.state) else { return false }
-        preparedBattleRunsByKey.removeValue(forKey: runKey)
+        preparedRuns.removeActivated(runKey)
         return true
     }
 
@@ -270,16 +238,8 @@ extension BattleSession {
 
     public func endBattle() {
         activeBattle = nil
-        let hadPreparedRuns = !preparedBattleRunsByKey.isEmpty
-        let hadPreferredKey = preferredPreparedRunKey != nil
-        preparedBattleRunsByKey.removeAll(keepingCapacity: true)
+        preparedRuns.clearForEnd()
         releasePreparedArtworkPins()
-        // didSet bumps the revision when the key actually changes, so only
-        // bump here when runs existed but no key change carries the revision.
-        preferredPreparedRunKey = nil
-        if hadPreparedRuns, !hadPreferredKey {
-            preparedBattlePresentationRevision += 1
-        }
         engineState = nil
         clearRunState()
     }
@@ -327,7 +287,7 @@ extension BattleSession {
         guard installActiveBattle(
             configuration, state: makeBattleState(from: configuration), presentation: presentation,
         ) else { return false }
-        preparedBattleRunsByKey.removeAll(keepingCapacity: true)
+        preparedRuns.discardForActiveBattle()
         retainPreparedArtworkPins()
         return true
     }

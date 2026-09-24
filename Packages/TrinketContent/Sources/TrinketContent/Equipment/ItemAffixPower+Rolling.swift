@@ -1,9 +1,26 @@
 import Foundation
 
 public extension ItemAffixPower {
-    /// Single traversal behind scaled/rolled/rolledMax: maps every nonzero
-    /// modifier magnitude and reports each change for description patching.
-    /// Unchanged values skip patching (patching X to X is identity).
+    /// Applies a numeric rule to modifiers, then trigger fields in catalog order.
+    /// That order also determines which matching number in the description changes.
+    private func transformingMagnitudes(
+        percent: (Double) -> Double,
+        int: (Int) -> Int,
+    ) -> Self {
+        var description = description
+        let record: (Double, Double, Bool) -> Void = { old, new, isPercent in
+            description = Self.replacingMagnitude(
+                in: description,
+                from: old,
+                to: new,
+                isPercent: isPercent,
+            )
+        }
+        let modifiers = mapModifierMagnitudes(percent: percent, int: int, record: record)
+        let triggers = triggers.mappingAffixMagnitudes(percent: percent, int: int, record: record)
+        return Self(description: description, modifiers: modifiers, triggers: triggers)
+    }
+
     private func mapModifierMagnitudes(
         percent: (Double) -> Double,
         int: (Int) -> Int,
@@ -31,22 +48,10 @@ public extension ItemAffixPower {
 
     func scaled(by multiplier: Int) -> Self {
         guard multiplier != 1 else { return self }
-        var description = description
-        let record: (Double, Double, Bool) -> Void = { old, new, isPercent in
-            description = Self.replacingMagnitude(
-                in: description,
-                from: old,
-                to: new,
-                isPercent: isPercent,
-            )
-        }
-        let scaledModifiers = mapModifierMagnitudes(
+        return transformingMagnitudes(
             percent: { $0 * Double(multiplier) },
             int: { $0 * multiplier },
-            record: record,
         )
-        let scaledTriggers = triggers.scalingAffixMagnitudes(by: multiplier, record: record)
-        return Self(description: description, modifiers: scaledModifiers, triggers: scaledTriggers)
     }
 
     var hasRollableMagnitudes: Bool {
@@ -55,16 +60,7 @@ public extension ItemAffixPower {
 
     func rolled(using randomNumberGenerator: inout some RandomNumberGenerator) -> Self {
         guard hasRollableMagnitudes else { return self }
-        var description = description
-        let record: (Double, Double, Bool) -> Void = { old, new, isPercent in
-            description = Self.replacingMagnitude(
-                in: description,
-                from: old,
-                to: new,
-                isPercent: isPercent,
-            )
-        }
-        let rolledModifiers = mapModifierMagnitudes(
+        return transformingMagnitudes(
             percent: {
                 ItemAffixMagnitudeRoll.percentValues(around: $0)
                     .randomElement(using: &randomNumberGenerator) ?? $0
@@ -75,30 +71,15 @@ public extension ItemAffixPower {
                     using: &randomNumberGenerator,
                 )
             },
-            record: record,
         )
-        let rolledTriggers = triggers.rollingAffixMagnitudes(using: &randomNumberGenerator, record: record)
-        return Self(description: description, modifiers: rolledModifiers, triggers: rolledTriggers)
     }
 
     func rolledMax() -> Self {
         guard hasRollableMagnitudes else { return self }
-        var description = description
-        let record: (Double, Double, Bool) -> Void = { old, new, isPercent in
-            description = Self.replacingMagnitude(
-                in: description,
-                from: old,
-                to: new,
-                isPercent: isPercent,
-            )
-        }
-        let maxedModifiers = mapModifierMagnitudes(
+        return transformingMagnitudes(
             percent: { ItemAffixMagnitudeRoll.percentValues(around: $0).max() ?? $0 },
             int: { ItemAffixMagnitudeRoll.integerRange(around: $0).upperBound },
-            record: record,
         )
-        let maxedTriggers = triggers.maxRolledAffixMagnitudes(record: record)
-        return Self(description: description, modifiers: maxedModifiers, triggers: maxedTriggers)
     }
 
     func isAtOrAboveRollMax(of catalog: Self) -> Bool {
@@ -267,109 +248,20 @@ public enum ItemAffixMagnitudeRoll: Sendable {
 }
 
 private extension CombatTraitTriggers {
-    mutating func scale(
-        _ keyPath: WritableKeyPath<Self, Int>,
-        by multiplier: Int,
-        record: (Double, Double, Bool) -> Void,
-    ) {
-        let old = self[keyPath: keyPath]
-        guard old != 0 else { return }
-        let new = old * multiplier
-        self[keyPath: keyPath] = new
-        record(Double(old), Double(new), false)
-    }
-
-    mutating func scale(
-        _ keyPath: WritableKeyPath<Self, Double>,
-        by multiplier: Int,
-        record: (Double, Double, Bool) -> Void,
-    ) {
-        let old = self[keyPath: keyPath]
-        guard old != 0 else { return }
-        let new = old * Double(multiplier)
-        self[keyPath: keyPath] = new
-        record(old, new, true)
-    }
-
     var hasRollableAffixMagnitudes: Bool {
-        Self.affixMagnitudeFields.contains { field in
-            switch field {
-            case let .int(keyPath, _):
-                self[keyPath: keyPath] != 0
-            case let .percent(keyPath, _):
-                self[keyPath: keyPath] != 0
-            }
-        }
+        Self.affixMagnitudeFields.contains { $0.isNonzero(in: self) }
     }
 
-    func scalingAffixMagnitudes(
-        by multiplier: Int,
+    func mappingAffixMagnitudes(
+        percent: (Double) -> Double,
+        int: (Int) -> Int,
         record: (Double, Double, Bool) -> Void,
     ) -> Self {
-        var scaled = self
+        var mapped = self
         for field in Self.affixMagnitudeFields {
-            switch field {
-            case let .int(keyPath, _):
-                scaled.scale(keyPath, by: multiplier, record: record)
-            case let .percent(keyPath, _):
-                scaled.scale(keyPath, by: multiplier, record: record)
-            }
+            field.map(in: &mapped, percent: percent, int: int, record: record)
         }
-        return scaled
-    }
-
-    func rollingAffixMagnitudes(
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-        record: (Double, Double, Bool) -> Void,
-    ) -> Self {
-        var rolled = self
-        for field in Self.affixMagnitudeFields {
-            switch field {
-            case let .int(keyPath, _):
-                let old = rolled[keyPath: keyPath]
-                guard old != 0 else { continue }
-                let new = Int.random(
-                    in: ItemAffixMagnitudeRoll.integerRange(around: old),
-                    using: &randomNumberGenerator,
-                )
-                rolled[keyPath: keyPath] = new
-                record(Double(old), Double(new), false)
-            case let .percent(keyPath, _):
-                let old = rolled[keyPath: keyPath]
-                guard old != 0 else { continue }
-                let new = ItemAffixMagnitudeRoll.percentValues(around: old)
-                    .randomElement(using: &randomNumberGenerator)
-                    ?? old
-                rolled[keyPath: keyPath] = new
-                record(old, new, true)
-            }
-        }
-        return rolled
-    }
-
-    func maxRolledAffixMagnitudes(
-        record: (Double, Double, Bool) -> Void,
-    ) -> Self {
-        var maxed = self
-        for field in Self.affixMagnitudeFields {
-            switch field {
-            case let .int(keyPath, _):
-                let old = maxed[keyPath: keyPath]
-                guard old != 0 else { continue }
-                let new = ItemAffixMagnitudeRoll.integerRange(around: old).upperBound
-                guard new != old else { continue }
-                maxed[keyPath: keyPath] = new
-                record(Double(old), Double(new), false)
-            case let .percent(keyPath, _):
-                let old = maxed[keyPath: keyPath]
-                guard old != 0 else { continue }
-                let new = ItemAffixMagnitudeRoll.percentValues(around: old).max() ?? old
-                guard abs(new - old) > 1e-9 else { continue }
-                maxed[keyPath: keyPath] = new
-                record(old, new, true)
-            }
-        }
-        return maxed
+        return mapped
     }
 
     func hasBumpableAffixMagnitude(direction: ItemAffixPowerBumpDirection) -> Bool {
@@ -379,25 +271,7 @@ private extension CombatTraitTriggers {
     }
 
     func affixMagnitudesAreAtOrAboveRollMax(of catalog: Self) -> Bool {
-        for field in Self.affixMagnitudeFields {
-            switch field {
-            case let .int(keyPath, _):
-                let catalogValue = catalog[keyPath: keyPath]
-                guard catalogValue != 0 else { continue }
-                let maximum = ItemAffixMagnitudeRoll.integerRange(around: catalogValue).upperBound
-                if self[keyPath: keyPath] < maximum {
-                    return false
-                }
-            case let .percent(keyPath, _):
-                let catalogValue = catalog[keyPath: keyPath]
-                guard catalogValue != 0 else { continue }
-                let maximum = ItemAffixMagnitudeRoll.percentValues(around: catalogValue).max() ?? catalogValue
-                if self[keyPath: keyPath] + 1e-9 < maximum {
-                    return false
-                }
-            }
-        }
-        return true
+        Self.affixMagnitudeFields.allSatisfy { $0.isAtOrAboveRollMax(in: self, of: catalog) }
     }
 }
 
@@ -410,6 +284,53 @@ extension CombatTraitTriggers {
             switch self {
             case let .int(_, name), let .percent(_, name):
                 name
+            }
+        }
+
+        func isNonzero(in triggers: CombatTraitTriggers) -> Bool {
+            switch self {
+            case let .int(keyPath, _):
+                triggers[keyPath: keyPath] != 0
+            case let .percent(keyPath, _):
+                triggers[keyPath: keyPath] != 0
+            }
+        }
+
+        func map(
+            in triggers: inout CombatTraitTriggers,
+            percent: (Double) -> Double,
+            int: (Int) -> Int,
+            record: (Double, Double, Bool) -> Void,
+        ) {
+            switch self {
+            case let .int(keyPath, _):
+                let old = triggers[keyPath: keyPath]
+                guard old != 0 else { return }
+                let new = int(old)
+                triggers[keyPath: keyPath] = new
+                if new != old {
+                    record(Double(old), Double(new), false)
+                }
+            case let .percent(keyPath, _):
+                let old = triggers[keyPath: keyPath]
+                guard old != 0 else { return }
+                let new = percent(old)
+                triggers[keyPath: keyPath] = new
+                if new != old {
+                    record(old, new, true)
+                }
+            }
+        }
+
+        func isAtOrAboveRollMax(in triggers: CombatTraitTriggers, of catalog: CombatTraitTriggers) -> Bool {
+            switch self {
+            case let .int(keyPath, _):
+                let value = catalog[keyPath: keyPath]
+                return value == 0 || triggers[keyPath: keyPath] >= ItemAffixMagnitudeRoll.integerRange(around: value).upperBound
+            case let .percent(keyPath, _):
+                let value = catalog[keyPath: keyPath]
+                let maximum = ItemAffixMagnitudeRoll.percentValues(around: value).max() ?? value
+                return value == 0 || triggers[keyPath: keyPath] + 1e-9 >= maximum
             }
         }
 

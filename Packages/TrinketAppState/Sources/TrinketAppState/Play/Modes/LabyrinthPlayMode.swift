@@ -122,8 +122,7 @@ public final class LabyrinthPlayMode {
                 let labyrinth = playerSave.labyrinth
                 guard let node = labyrinth.node(id: nodeID), node.type.isCombat,
                       let encounter = resolvedEncounter(for: node) else { return .missing }
-                let effects = labyrinth.effects(for: nodeID)
-                let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter, effects: effects)
+                let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter)
                 return .ready(input: request.input, route: request.route)
             },
             onActivated: { preparationTracker.invalidate() },
@@ -206,10 +205,9 @@ public final class LabyrinthPlayMode {
         node: LabyrinthNode,
         labyrinth: PlayerLabyrinthState,
     ) -> Bool {
-        let effects = labyrinth.effects(for: node.id)
         guard let encounter = resolvedEncounter(for: node) else { return false }
         guard battle.lifecyclePhase != .active else { return false }
-        let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter, effects: effects)
+        let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter)
         return battleLaunch.prepareCombat(request.input, route: request.route)
     }
 
@@ -264,52 +262,21 @@ extension LabyrinthPlayMode {
         PlayBattlePreparation.labyrinthEncounter(for: node, partyAverageLevel: partyAverageLevel)
     }
 
-    static func combatModifiers(
-        from effects: LabyrinthModifierEffects,
-    ) -> [AffixModifier] {
-        var modifiers: [AffixModifier] = effects.damageDealtBonus
-            .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { .damageDealt($0.key, $0.value) }
-        modifiers += effects.damageTakenReduction
-            .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { .damageTakenPercent($0.key, Double($0.value) / 100) }
-        if effects.blockGainedBonus != 0 {
-            modifiers.append(.blockGained(effects.blockGainedBonus))
-        }
-        if effects.leechGainedPercent != 0 {
-            modifiers.append(.leechGainedPercent(Double(effects.leechGainedPercent) / 100))
-        }
-        if effects.startBattleBlock != 0 {
-            modifiers.append(.startBattleBlock(effects.startBattleBlock))
-        }
-        if effects.attackLeech {
-            modifiers.append(.attackLeechPercent(Effect.abilityLeechPercent))
-        }
-        if effects.attackBlockRemoval != 0 {
-            modifiers.append(.attackBlockRemoval(effects.attackBlockRemoval))
-        }
-        if effects.attackPurgeCount != 0 {
-            modifiers.append(.attackPurgeCount(effects.attackPurgeCount))
-        }
-        return modifiers
-    }
-
     private func combatRequest(
         node: LabyrinthNode,
         labyrinth: PlayerLabyrinthState,
         encounter: ScaledEncounter,
-        effects: LabyrinthModifierEffects,
     ) -> (input: BattleLaunchInput, route: PlayBattleRoute) {
         let loot = battleLoot(for: node, labyrinth: labyrinth, encounterLevel: encounter.level)
-        let labyrinthModifiers = RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs)
+        let modifiers = ModeBattleModifiers(
+            definitions: RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs),
+        )
         let input = ModeBattleSpec.launchInput(
             origin: .labyrinth(nodeID: node.id),
             encounter: encounter,
             loot: loot,
             roster: playerSave.roster,
-            experienceBonusPercent: LabyrinthModifierEffects.combining(labyrinthModifiers).experienceEarnedPercent,
-            universalModifiers: Self.combatModifiers(from: effects),
-            labyrinthModifiers: labyrinthModifiers,
+            modifiers: modifiers,
         )
         return (input, battleRoute(nodeID: node.id))
     }

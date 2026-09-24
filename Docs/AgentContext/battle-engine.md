@@ -11,7 +11,7 @@ generator rather than advance the live battle's generator.
 
 On-hit and reaction work is split on purpose:
 
-- `DamagePipeline` applies talent on-hit applications during damage resolution, including first-hit bonuses and attacker-ward DoTs.
+- `DamagePipeline` orders committed-damage reactions; `AttackerOnHitEngine` owns attacker-side on-hit applications during that checkpoint, including first-hit bonuses and attacker-ward DoTs. Keep live roster checks inside rider execution because earlier reactions can change Health and effects.
 - `CombatTriggerEngine` owns post-hit cadence such as after spend mana, after dodge, after cleanse, turn start/end, enemy turn, leech, and party auras.
 
 Do not fold those cadences into the pipeline or merge affix scalar fields on `CombatModifierProfile` with `triggers`; the dual channel is intentional.

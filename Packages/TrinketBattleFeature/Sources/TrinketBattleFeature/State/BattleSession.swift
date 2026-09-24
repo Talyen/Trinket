@@ -91,14 +91,12 @@ public final class BattleSession: BattleRuntime {
         if activeBattle != nil {
             return .active
         }
-        _ = preparedBattlePresentationRevision
-        return preparedBattleRunsByKey.isEmpty ? .idle : .prepared
+        return preparedRuns.isEmpty ? .idle : .prepared
     }
 
     @ObservationIgnored
     var engineState: BattleState?
-    @ObservationIgnored
-    var preparedBattleRunsByKey: [BattleRunKey: PreparedBattleRun] = [:]
+    var preparedRuns = PreparedBattleRuns()
 
     var presentation = BattlePresentationState()
 
@@ -129,12 +127,14 @@ public final class BattleSession: BattleRuntime {
         commandState.isSuspended
     }
 
-    public internal(set) var preparedBattlePresentationRevision = 0
+    public var preparedBattlePresentationRevision: Int {
+        preparedRuns.revision
+    }
 
     public var preferredPreparedRunKey: BattleRunKey? {
-        didSet {
-            guard oldValue != preferredPreparedRunKey else { return }
-            preparedBattlePresentationRevision += 1
+        get { preparedRuns.preferredKey }
+        set {
+            guard preparedRuns.setPreferredKey(newValue) else { return }
             if activeBattle == nil {
                 installSimulationPresentation()
             }

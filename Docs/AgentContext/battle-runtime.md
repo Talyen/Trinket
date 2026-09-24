@@ -6,6 +6,11 @@ Load for the runtime boundary, BattleSession, app battle orchestration, or Battl
 
 `BattleSession` implements `BattleRuntime` and coordinates mutable `BattleState`, simulation, commands, and lifecycle. App orchestration receives it only through the runtime contract. The app composition root supplies `BattleRuntimeDependencies`, builds one concrete session, and connects progression capabilities through the AppState initializer’s `configureBattleRuntime` hook before bootstrap can launch a battle. `PlaySession.battle` receives that object through the runtime contract.
 
+`PreparedBattleRuns` owns prepared simulations, preferred preview selection, and
+their revision. `BattleSession` owns the effects of those changes: artwork pins,
+presentation projection, activation, and teardown. A prepared activation consumes
+only its matched run after installation succeeds; sibling preparations survive.
+
 Keep `PlaySession` focused on shell navigation and launch/completion orchestration. Do not add presentation-only methods to `BattleRuntime`.
 
 `BattlePresentationState` owns the combat projection, `BattleFeedbackLane` owns bounded feedback scheduling/raster publication, and `BattleSpectacleState` owns cinematics and outcome timing. Views observe the narrow lane they render. App-level options and audio enter through `BattleRuntimeDependencies`; BattleFeature never imports `TrinketAppState`.

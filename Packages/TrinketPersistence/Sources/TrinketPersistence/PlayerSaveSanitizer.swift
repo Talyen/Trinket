@@ -3,12 +3,12 @@ import os
 import TrinketContent
 import TrinketCore
 
-private let sanitizerLogger = Logger(
-    subsystem: PlayerSaveDefaults.loggingSubsystem,
-    category: "PlayerSaveSanitizer",
-)
-
 enum PlayerSaveSanitizer {
+    static let logger = Logger(
+        subsystem: PlayerSaveDefaults.loggingSubsystem,
+        category: "PlayerSaveSanitizer",
+    )
+
     static func sanitize(_ save: PlayerSave) -> PlayerSave {
         sanitize(save, changedSlices: .all)
     }
@@ -44,32 +44,37 @@ enum PlayerSaveSanitizer {
            save.worldSeed == 0 || !sanitized.labyrinth.hasMap || sanitized.labyrinth.worldSeed == 0 {
             sanitized.labyrinth.worldSeed = sanitized.worldSeed
         }
-        // Section order repairs inventory before roster, then Labyrinth eligibility.
-        for section in targets.sections {
-            switch section {
-            case .root:
-                sanitized.corruptionAltarCooldownRemaining = max(0, save.corruptionAltarCooldownRemaining)
-            case .inventory:
-                sanitized.inventory = sanitizeInventory(save.inventory)
-            case .roster:
-                sanitized.roster = sanitizeRoster(save.roster, inventory: sanitized.inventory)
-            case .homestead:
-                sanitized.homestead = sanitizeHomestead(save.homestead)
-            case .journey:
-                sanitized.journey = sanitizeJourney(save.journey)
-            case .spires:
-                sanitized.spires = sanitizeSpires(save.spires)
-            case .voyage:
-                sanitized.voyage = save.voyage.sanitized()
-            case .contracts:
-                sanitized.contracts = save.contracts.sanitized()
-            case .labyrinth:
-                sanitized.labyrinth = sanitizeLabyrinth(
-                    sanitized.labyrinth,
-                    eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs,
-                    eligibleRewards: RewardOwnership(sanitized).eligibleModifiers,
-                )
-            }
+        if targets.contains(.root) {
+            sanitized.corruptionAltarCooldownRemaining = max(0, save.corruptionAltarCooldownRemaining)
+        }
+        // These dependent repairs are ordered here, independent of enum declaration order.
+        if targets.contains(.inventory) {
+            sanitized.inventory = sanitizeInventory(save.inventory)
+        }
+        if targets.contains(.roster) {
+            sanitized.roster = sanitizeRoster(save.roster, inventory: sanitized.inventory)
+        }
+        if targets.contains(.homestead) {
+            sanitized.homestead = sanitizeHomestead(save.homestead)
+        }
+        if targets.contains(.journey) {
+            sanitized.journey = sanitizeJourney(save.journey)
+        }
+        if targets.contains(.spires) {
+            sanitized.spires = sanitizeSpires(save.spires)
+        }
+        if targets.contains(.voyage) {
+            sanitized.voyage = save.voyage.sanitized()
+        }
+        if targets.contains(.contracts) {
+            sanitized.contracts = save.contracts.sanitized()
+        }
+        if targets.contains(.labyrinth) {
+            sanitized.labyrinth = sanitizeLabyrinth(
+                sanitized.labyrinth,
+                eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs,
+                eligibleRewards: RewardOwnership(sanitized).eligibleModifiers,
+            )
         }
         return sanitized
     }
@@ -111,411 +116,12 @@ enum PlayerSaveSanitizer {
         try validateEncodedAffixPowers(save.inventory)
     }
 
-    static func sanitizeJourney(
-        _ journey: JourneyProgressState,
-        chapters: [Chapter]? = nil,
-    ) -> JourneyProgressState {
-        let activeChapters = chapters ?? GameContent.chapters
-        let validChapterIDs: Set<String>
-        let allStages: [Stage]
-        let validStageIDs: Set<String>
-
-        if let chapters {
-            validChapterIDs = Set(chapters.map(\.id))
-            allStages = chapters.flatMap(\.stages)
-            validStageIDs = Set(allStages.map(\.id))
-        } else {
-            validChapterIDs = Set(GameContent.chapters.map(\.id))
-            allStages = GameContent.chapters.flatMap(\.stages)
-            validStageIDs = Set(allStages.map(\.id))
-        }
-
-        var sanitized = journey
-        let beforeCompleted = journey.completedStageIDs.count
-        let beforeClaimed = journey.claimedRewardStageIDs.count
-        sanitized.completedStageIDs = journey.completedStageIDs.filtered(to: validStageIDs)
-        sanitized.claimedRewardStageIDs = journey.claimedRewardStageIDs.filtered(to: validStageIDs)
-        if sanitized.completedStageIDs.count != beforeCompleted || sanitized.claimedRewardStageIDs.count != beforeClaimed {
-            sanitizerLogger.info("Sanitized journey: dropped invalid stage IDs")
-        }
-        for stageID in sanitized.claimedRewardStageIDs {
-            sanitized.completedStageIDs.insert(stageID)
-        }
-        let beforePinned = journey.pinnedMysteryEventIDs.count
-        sanitized.pinnedMysteryEventIDs = journey.pinnedMysteryEventIDs.filter { stageID, eventID in
-            guard validStageIDs.contains(stageID), !eventID.isEmpty else { return false }
-            return GameContent.mysteryEvent(matching: eventID) != nil
-                || GameContent.recruitEvent(matching: eventID) != nil
-        }
-        sanitized.shopPayloads = journey.shopPayloads.filter { stageID, _ in
-            validStageIDs.contains(stageID) && !sanitized.completedStageIDs.contains(stageID)
-        }
-        sanitized.mysteryOfferPayloads = journey.mysteryOfferPayloads.filter { stageID, _ in
-            validStageIDs.contains(stageID) && !sanitized.completedStageIDs.contains(stageID)
-        }
-        if sanitized.pinnedMysteryEventIDs.count != beforePinned {
-            sanitizerLogger.info("Sanitized journey: dropped invalid pinned mystery events")
-        }
-
-        if !validChapterIDs.contains(sanitized.activeChapterID) {
-            sanitized.activeChapterID = activeChapters.first?.id ?? JourneyProgressState.initial.activeChapterID
-        }
-
-        if let activeStageID = sanitized.activeStageID,
-           validStageIDs.contains(activeStageID),
-           !sanitized.completedStageIDs.contains(activeStageID) {
-            sanitized.activeStageID = activeStageID
-            if let stage = allStages.first(where: { $0.id == activeStageID }) {
-                sanitized.activeChapterID = stage.chapterID
-            }
-        } else if let firstIncomplete = allStages.first(where: {
-            $0.chapterID == sanitized.activeChapterID && !sanitized.completedStageIDs.contains($0.id)
-        }) ?? allStages.first(where: { !sanitized.completedStageIDs.contains($0.id) }) {
-            sanitized.activeStageID = firstIncomplete.id
-            sanitized.activeChapterID = firstIncomplete.chapterID
-        } else {
-            sanitized.activeStageID = nil
-            sanitized.activeChapterID = activeChapters.last?.id
-                ?? JourneyProgressState.initial.activeChapterID
-        }
-
-        return sanitized
-    }
-
-    static func sanitizeHomestead(_ homestead: PlayerHomesteadState) -> PlayerHomesteadState {
-        var sanitized = homestead
-        let beforePending = homestead.pendingProduction.count
-        sanitized.pendingProduction = Dictionary(
-            uniqueKeysWithValues: homestead.validPendingProduction.map { resource, quantity in
-                if resource == .gold {
-                    return (resource, PlayerRosterState.cappedPendingGold(quantity))
-                }
-                return (resource, quantity)
-            },
-        )
-        if sanitized.pendingProduction.count != beforePending {
-            sanitizerLogger.info("Sanitized homestead: dropped invalid pending production")
-        }
-        let hadGoldResource = homestead.resources[.gold] != nil
-        sanitized.resources = Dictionary(
-            uniqueKeysWithValues: homestead.resources.compactMap { resource, quantity in
-                guard resource != .gold else { return nil }
-                return (resource, max(0, quantity))
-            },
-        )
-        if hadGoldResource {
-            sanitizerLogger.notice("Sanitized homestead: dropped gold from resources (roster owns gold)")
-        }
-        sanitized.nodeTiers = Dictionary(
-            uniqueKeysWithValues: homestead.nodeTiers.compactMap { nodeID, tier in
-                guard let maxTier = HomesteadNodeCatalog.maxTierByNodeID[nodeID] else { return nil }
-                return (nodeID, min(max(tier, 0), maxTier))
-            },
-        )
-        return sanitized
-    }
-
-    static func sanitizeInventory(_ inventory: PlayerInventoryState) -> PlayerInventoryState {
-        let uniqueItems = InventoryDuplicatePolicy.deduplicated(inventory.items)
-        if uniqueItems.count != inventory.items.count {
-            sanitizerLogger
-                .notice("Sanitized inventory: dropped \(inventory.items.count - uniqueItems.count, privacy: .public) duplicate items")
-        }
-        return PlayerInventoryState(items: uniqueItems)
-    }
-
-    static func sanitizeRoster(
-        _ roster: PlayerRosterState,
-        inventory: PlayerInventoryState,
-        heroIDs: Set<String> = Set(GameContent.heroes.map(\.id)),
-        companionIDs: Set<String> = Set(GameContent.companions.map(\.id)),
-    ) -> PlayerRosterState {
-        let inventoryItemIDs = Set(inventory.items.map(\.id))
-        let validHeroIDs = heroIDs
-        let validCompanionIDs = companionIDs
-
-        var sanitized = roster
-        sanitized.gold = PlayerRosterState.clampedGoldBalance(roster.gold)
-        sanitized.unlockedHeroIDs = roster.unlockedHeroIDs.filtered(to: validHeroIDs)
-        sanitized.unlockedCompanionIDs = roster.unlockedCompanionIDs.filtered(to: validCompanionIDs)
-
-        if sanitized.unlockedHeroIDs.isEmpty {
-            sanitizerLogger.notice("Sanitized roster: injected starter hero (unlocked set was empty)")
-            sanitized.unlockedHeroIDs = [PlayerRosterState.starterHeroID]
-        }
-        if sanitized.unlockedCompanionIDs.isEmpty {
-            sanitizerLogger.notice("Sanitized roster: injected starter companion (unlocked set was empty)")
-            sanitized.unlockedCompanionIDs = [PlayerRosterState.starterCompanionID]
-        }
-
-        let (resolvedHeroID, resolvedCompanionID) = RosterHydration.resolveActiveSelection(
-            activeHeroID: sanitized.activeHeroID,
-            activeCompanionID: sanitized.activeCompanionID,
-            unlockedHeroIDs: sanitized.unlockedHeroIDs,
-            unlockedCompanionIDs: sanitized.unlockedCompanionIDs,
-        )
-        sanitized.activeHeroID = resolvedHeroID
-        sanitized.activeCompanionID = resolvedCompanionID
-
-        sanitized.equipmentLoadouts = RosterHydration.resolveEquipmentLoadouts(
-            from: roster.equipmentLoadouts,
-            inventoryItemIDs: inventoryItemIDs,
-            inventoryItems: inventory.items,
-        )
-
-        sanitized.abilityLoadouts = RosterHydration.resolveAbilityLoadouts(
-            from: roster.abilityLoadouts,
-        )
-
-        sanitized.progressions = sanitizeProgressions(
-            roster.progressions,
-            validCombatantIDs: validHeroIDs.union(validCompanionIDs),
-        )
-
-        sanitized.unlockedTalents = sanitizeUnlockedTalents(
-            roster.unlockedTalents,
-            validCombatantIDs: validHeroIDs.union(validCompanionIDs),
-            progressions: sanitized.progressions,
-        )
-
-        return sanitized
-    }
-
-    static func sanitizeUnlockedTalents(
-        _ talents: [String: Set<String>],
-        validCombatantIDs: Set<String>,
-        progressions: [String: CombatantProgression] = [:],
-    ) -> [String: Set<String>] {
-        var sanitized: [String: Set<String>] = [:]
-        for (combatantID, nodeIDs) in talents {
-            guard validCombatantIDs.contains(combatantID) else { continue }
-            let validNodeIDs = CombatantTalentCatalog.validNodeIDs(for: combatantID)
-            var filtered = nodeIDs.intersection(validNodeIDs)
-            let budget = progressions[combatantID]?.totalTalentPoints ?? 0
-            if let config = CombatantTalentCatalog.configIfAvailable(for: combatantID) {
-                filtered = config.cappedUnlocks(filtered, budget: budget)
-            } else {
-                #if DEBUG
-                assertionFailure("Missing talent config for \(combatantID) during sanitize")
-                #endif
-            }
-            if !filtered.isEmpty {
-                sanitized[combatantID] = filtered
-            }
-        }
-        return sanitized
-    }
-
-    static func sanitizeProgressions(
-        _ progressions: [String: CombatantProgression],
-        validCombatantIDs: Set<String>,
-    ) -> [String: CombatantProgression] {
-        var sanitized: [String: CombatantProgression] = [:]
-        for (combatantID, progression) in progressions {
-            guard validCombatantIDs.contains(combatantID) else { continue }
-            let level = max(1, progression.level)
-            let requiredXP = CombatantProgression.requiredXP(forLevel: level)
-            let currentXP = min(max(0, progression.currentXP), requiredXP)
-            sanitized[combatantID] = CombatantProgression(
-                level: level,
-                currentXP: currentXP,
-                requiredXP: requiredXP,
-            )
-        }
-        return sanitized
-    }
-
-    static func sanitizeSpires(
-        _ spires: PlayerSpiresState,
-        catalog: [SpireDefinition] = GameContent.spires,
-    ) -> PlayerSpiresState {
-        let validIDs = Set(catalog.map(\.id.rawValue))
-        let floorCounts = Dictionary(uniqueKeysWithValues: catalog.map { ($0.id.rawValue, $0.floorCount) })
-        var sanitized: [String: Int] = [:]
-        for (spireID, floor) in spires.highestClearedFloorBySpireID {
-            guard validIDs.contains(spireID) else { continue }
-            let maxFloor = floorCounts[spireID] ?? 0
-            sanitized[spireID] = min(max(floor, 0), maxFloor)
-        }
-        return PlayerSpiresState(highestClearedFloorBySpireID: sanitized)
-    }
-
     static func sanitizeLabyrinth(
         _ labyrinth: PlayerLabyrinthState,
         eligibleRecruitEventIDs: [String] = [],
         eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) -> PlayerLabyrinthState {
         LabyrinthSanitizer.sanitize(labyrinth, eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards)
-    }
-}
-
-enum LabyrinthSanitizer {
-    static func sanitize(
-        _ labyrinth: PlayerLabyrinthState,
-        eligibleRecruitEventIDs: [String] = [],
-        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
-    ) -> PlayerLabyrinthState {
-        if labyrinth.isMapPayloadUnreadable {
-            var healed = labyrinth
-            healed.ensureMap(
-                seed: labyrinth.worldSeed == 0 ? nil : labyrinth.worldSeed,
-                eligibleRecruitEventIDs: eligibleRecruitEventIDs,
-                eligibleRewards: eligibleRewards,
-            )
-            return sanitize(healed, eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards)
-        }
-
-        var sanitized = labyrinth
-
-        sanitized.clusters = sanitized.clusters.map { cluster in
-            LabyrinthCluster(
-                id: cluster.id,
-                depthBand: max(0, cluster.depthBand),
-                nodeIDs: cluster.nodeIDs,
-            )
-        }
-
-        if sanitized.mapVersion == LabyrinthGenerator.currentMapVersion {
-            repairClearedBossExits(
-                in: &sanitized, eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards,
-            )
-        }
-
-        let validClusterIDs = Set(sanitized.clusters.map(\.id))
-        sanitized.nodes = sanitized.nodes.filter { _, node in
-            validClusterIDs.contains(node.clusterID) || node.id == LabyrinthGenerator.entranceNodeID
-        }
-
-        let validNodeIDs = Set(sanitized.nodes.keys)
-        let existingNodes = sanitized.nodes
-        for (id, node) in existingNodes {
-            sanitized.nodes[id] = sanitizedLabyrinthNode(
-                node,
-                validNodeIDs: validNodeIDs,
-                cluster: sanitized.cluster(id: node.clusterID),
-                worldSeed: sanitized.worldSeed,
-                eligibleRewards: eligibleRewards,
-            )
-        }
-
-        if sanitized.hasEntered, sanitized.nodes.isEmpty {
-            sanitized.ensureMap(
-                seed: sanitized.worldSeed == 0 ? nil : sanitized.worldSeed,
-                eligibleRecruitEventIDs: eligibleRecruitEventIDs,
-                eligibleRewards: eligibleRewards,
-            )
-        }
-        return sanitized
-    }
-
-    private static func repairClearedBossExits(
-        in labyrinth: inout PlayerLabyrinthState,
-        eligibleRecruitEventIDs: [String],
-        eligibleRewards: [RewardModifier],
-    ) {
-        for boss in labyrinth.nodes.values.filter({ $0.type == .boss && $0.isCleared })
-            .sorted(by: { $0.depth < $1.depth }) {
-            let clusterIDs = Set(labyrinth.clusters.map(\.id))
-            let hasExit = boss.outgoingIDs.contains {
-                guard let target = labyrinth.nodes[$0] else { return false }
-                return target.depth == boss.depth + 1 && clusterIDs.contains(target.clusterID)
-            }
-            guard !hasExit else { continue }
-            if let entryID = labyrinth.clusters.first(where: { $0.depthBand == boss.depth + 1 })?.nodeIDs.first,
-               labyrinth.nodes[entryID] != nil {
-                labyrinth.nodes[boss.id]?.outgoingIDs = [entryID]
-            } else {
-                regenerateMissingFloor(
-                    beyond: boss, in: &labyrinth,
-                    eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards,
-                )
-            }
-        }
-    }
-
-    private static func regenerateMissingFloor(
-        beyond boss: LabyrinthNode,
-        in labyrinth: inout PlayerLabyrinthState,
-        eligibleRecruitEventIDs: [String],
-        eligibleRewards: [RewardModifier],
-    ) {
-        var generatedClusters: [LabyrinthCluster] = []
-        var generatedNodes = [boss.id: boss]
-        generatedNodes[boss.id]?.outgoingIDs = []
-        LabyrinthGenerator.expandBeyondBoss(
-            bossNodeID: boss.id, clusters: &generatedClusters, nodes: &generatedNodes,
-            seed: labyrinth.worldSeed, eligibleRecruitEventIDs: eligibleRecruitEventIDs,
-            eligibleRewards: eligibleRewards,
-        )
-        for cluster in generatedClusters {
-            if let index = labyrinth.clusters.firstIndex(where: { $0.id == cluster.id }) {
-                labyrinth.clusters[index] = cluster
-            } else {
-                labyrinth.clusters.append(cluster)
-            }
-        }
-        for (id, node) in generatedNodes where id != boss.id {
-            if labyrinth.nodes[id] == nil {
-                labyrinth.nodes[id] = node
-            }
-        }
-        labyrinth.nodes[boss.id]?.outgoingIDs = generatedNodes[boss.id]?.outgoingIDs ?? []
-    }
-
-    private static func sanitizedLabyrinthNode(
-        _ node: LabyrinthNode,
-        validNodeIDs: Set<String>,
-        cluster: LabyrinthCluster?,
-        worldSeed: UInt64,
-        eligibleRewards: [RewardModifier],
-    ) -> LabyrinthNode {
-        let depth = max(0, node.depth)
-        let type: LabyrinthNodeType = if node.type == .entrance, depth > 0 {
-            .boss
-        } else {
-            node.type
-        }
-        let enemyID: String? = if type == .boss, node.enemyID == nil {
-            LabyrinthCatalog.fallbackBossEnemyID(worldSeed: worldSeed, nodeID: node.id)
-        } else {
-            node.enemyID
-        }
-        return LabyrinthNode(
-            id: node.id,
-            type: type,
-            enemyID: enemyID,
-            depth: depth,
-            clusterID: node.clusterID,
-            gridPosition: node.gridPosition ?? fallbackGridPosition(for: node, in: cluster),
-            modifierIDs: LabyrinthCatalog.resolvedModifierIDs(
-                for: type,
-                enemyID: enemyID,
-                existingModifierIDs: node.modifierIDs,
-                worldSeed: worldSeed,
-                nodeID: node.id,
-                eligibleRewards: eligibleRewards,
-            ),
-            recruitEventID: node.recruitEventID,
-            mysteryEventID: node.mysteryEventID,
-            mysteryOffersPayload: node.mysteryOffersPayload,
-            shopPayload: node.shopPayload,
-            outgoingIDs: node.outgoingIDs.filter { validNodeIDs.contains($0) },
-            isCleared: node.isCleared,
-            isRevealed: depth > 0 || node.isRevealed,
-        )
-    }
-
-    private static func fallbackGridPosition(
-        for node: LabyrinthNode,
-        in cluster: LabyrinthCluster?,
-    ) -> LabyrinthGridPosition {
-        guard let cluster,
-              let index = cluster.nodeIDs.firstIndex(of: node.id)
-        else { return LabyrinthGridPosition(row: 0, column: 1) }
-        if index == cluster.nodeIDs.count - 1 {
-            return LabyrinthGridPosition(row: max(1, (index + 1) / 3), column: 1)
-        }
-        return LabyrinthGridPosition(row: index / 3, column: index % 3)
     }
 }
 
@@ -529,13 +135,5 @@ private func validateEncodedAffixPowers(_ inventory: PlayerInventoryState) throw
                 "Inventory item \(item.id) affix powers could not be encoded.",
             )
         }
-    }
-}
-
-private extension Set<String> {
-    /// Single home for ID-allowlist filtering; replaces repeated
-    /// `filter { validIDs.contains($0) }` closures.
-    func filtered(to validIDs: Set<String>) -> Set<String> {
-        filter(validIDs.contains)
     }
 }

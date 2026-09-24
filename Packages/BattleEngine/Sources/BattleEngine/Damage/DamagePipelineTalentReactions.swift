@@ -207,22 +207,4 @@ package extension DamagePipeline {
             keyword: keyword,
         )]
     }
-
-    static func applyBleedingPreyHeal(
-        triggers: CombatTraitTriggers,
-        source: Combatant,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        context.healEmitting(
-            amount: triggers.onAttackBleedingEnemyHeal,
-            target: source,
-            source: source,
-            abilityName: CombatTriggerEngine.triggerAbilityName(
-                "onAttackBleedingEnemyHeal",
-                for: source,
-                fallback: "Bloodprice",
-                in: context,
-            ),
-        )
-    }
 }

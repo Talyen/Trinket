@@ -130,4 +130,33 @@ struct ReactionScopeTests {
         #expect(state.roster.health(for: state.roster.enemy.combatant) == 87)
         #expect(!outcome.events.contains { $0.effectKind == .thornsTriggered })
     }
+
+    @Test func `later attack riders skip an enemy defeated by a prior rider`() {
+        var heroProfile = CombatModifierProfile.zero
+        heroProfile.triggers.partyBasicAttackHolyBonus = 3
+        heroProfile.triggers.attackBurstChancePercent = 1
+        heroProfile.triggers.attackBurstBlock = 5
+        var state = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 100),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 3),
+            heroModifiers: heroProfile,
+        )
+        let hero = state.roster.hero.combatant
+        let enemy = state.roster.enemy.combatant
+
+        let outcome = state.resolveDamage(DamageRequest(
+            amount: 1,
+            target: enemy,
+            keyword: .physical,
+            sourceActorID: hero.id,
+            options: DamageOperation.attack(
+                tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
+            ),
+        ))
+
+        #expect(outcome.healthLost == 1)
+        #expect(state.roster.health(for: enemy) == 0)
+        #expect(DefensePoolEngine.blockPoints(in: state.roster.activeEffects(for: hero)) == 0)
+    }
 }

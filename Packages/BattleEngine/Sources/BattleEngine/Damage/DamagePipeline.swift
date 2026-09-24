@@ -8,7 +8,7 @@ package enum DamagePipeline {
     /// sibling `DamagePipeline*Steps` files by phase:
     /// offense (`ResolutionSteps`), defense (`ResolutionSteps+Shield`,
     /// `+TakeDamage`, stochastic gates), then committed reactions
-    /// (`PostSteps`, `+Reactive`, `TalentReactions`) under one
+    /// (`PostSteps`, `AttackerOnHitEngine`, `+Reactive`, `TalentReactions`) under one
     /// `CombatCheckpoint.committedDamage` guard.
     package static func run(
         state: inout DamageResolutionState,
@@ -83,11 +83,11 @@ package enum DamagePipeline {
         applyEnemyAttackPurge(to: &state, in: &context)
         applyFinalCompanionHolyHitRewards(to: &state, in: &context)
         applyCompanionLeechCriticalBlock(to: &state, in: &context)
-        applyAttackerOnHitApplications(to: &state, in: &context)
+        AttackerOnHitEngine.apply(to: &state, in: &context)
         applyAttackerMirroredReactions(to: &state, in: &context)
 
         applyControlMeter(to: &state, in: &context)
-        applyNimbleFang(to: &state, in: &context)
+        AttackerOnHitEngine.applyNimbleFang(to: &state, in: &context)
         if !state.options.isRetaliation {
             applyReactiveOnHit(to: &state, in: &context)
             applyKeywordReactions(to: &state, in: &context)

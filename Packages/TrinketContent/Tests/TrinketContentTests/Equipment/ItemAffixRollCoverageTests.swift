@@ -44,6 +44,30 @@ struct ItemAffixRollCoverageTests {
         #expect(max.description == "Dealing Bleed damage has a 40% chance to deal 2 Poison damage.")
     }
 
+    @Test func `mixed modifier and trigger magnitudes share the transformation order`() {
+        let power = ItemAffixPower(
+            description: "Gain 2 Block and deal 1 Poison damage with a 35% chance.",
+            modifiers: [.blockGained(2)],
+            triggers: CombatTraitTriggers(dot: DotTriggers(
+                onBleedApplyPoison: 1,
+                onBleedDealPoisonChancePercent: 0.35,
+            )),
+        )
+
+        let scaled = power.scaled(by: 2)
+        #expect(scaled.modifiers == [.blockGained(4)])
+        #expect(scaled.triggers.onBleedApplyPoison == 2)
+        #expect(abs(scaled.triggers.onBleedDealPoisonChancePercent - 0.70) < 1e-9)
+        #expect(scaled.description == "Gain 4 Block and deal 2 Poison damage with a 70% chance.")
+
+        let max = power.rolledMax()
+        #expect(max.modifiers == [.blockGained(3)])
+        #expect(max.triggers.onBleedApplyPoison == 2)
+        #expect(abs(max.triggers.onBleedDealPoisonChancePercent - 0.40) < 1e-9)
+        #expect(max.description == "Gain 3 Block and deal 2 Poison damage with a 40% chance.")
+        #expect(max.isAtOrAboveRollMax(of: power))
+    }
+
     @Test func `sundering charm stays frozen to match its wording`() throws {
         let sundering = try #require(GameContent.itemAffixDefinition(matching: "sundering_charm"))
         #expect(!sundering.basic.hasRollableMagnitudes)

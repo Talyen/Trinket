@@ -133,15 +133,14 @@ public final class VoyagePlayMode {
     private func request(runID: String, node: VoyageNode) -> (input: BattleLaunchInput, route: PlayBattleRoute)? {
         guard let run = playerSave.voyage.activeRun, run.id == runID,
               let encounter = resolvedEncounter(for: node) else { return nil }
-        let modifiers = RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs)
-        let effects = LabyrinthModifierEffects.combining(modifiers)
+        let modifiers = ModeBattleModifiers(
+            definitions: RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs),
+        )
         let loot = VoyageCompletion.resolveLoot(node: node, encounterLevel: encounter.level, save: playerSave.currentSave)
         let origin = PlayBattleOrigin.voyage(runID: runID, nodeID: node.id)
         let input = ModeBattleSpec.launchInput(
             origin: origin, encounter: encounter, loot: loot, roster: playerSave.roster,
-            experienceBonusPercent: effects.experienceEarnedPercent,
-            universalModifiers: LabyrinthPlayMode.combatModifiers(from: effects),
-            labyrinthModifiers: modifiers,
+            modifiers: modifiers,
             completionBonus: node.type == .boss ? VoyageCompletionBonus(gold: run.earnedGold, materials: run.earnedMaterials) : nil,
         )
         let access = playerSave.contentAccess

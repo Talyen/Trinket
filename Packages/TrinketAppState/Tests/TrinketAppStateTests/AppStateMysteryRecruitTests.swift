@@ -149,6 +149,24 @@ struct AppStateMysteryRecruitTests {
     }
     #endif
 
+    @Test func `unreadable mystery offers do not pin a new event`() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let unreadableOffers = Data([0xFF])
+        #expect(state.playerSave.persistBatch(logging: "Install unreadable test offers") { save in
+            save.journey.mysteryOfferPayloads[stage.id] = unreadableOffers
+        })
+
+        let message = state.encounters.beginMysteryEncounter(
+            origin: .journey(stage: stage), forcedEventID: "hidden-cache",
+        )
+
+        #expect(message?.title == "Event Unavailable")
+        #expect(state.encounters.activeMysteryEncounter == nil)
+        #expect(state.playerSave.journey.pinnedMysteryEventIDs[stage.id] == nil)
+        #expect(state.playerSave.journey.mysteryOfferPayloads[stage.id] == unreadableOffers)
+    }
+
     @Test func `stale choice ID fails without completing progress`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))

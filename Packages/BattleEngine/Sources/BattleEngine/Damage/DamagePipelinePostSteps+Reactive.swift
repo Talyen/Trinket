@@ -43,21 +43,6 @@ package extension DamagePipeline {
         }
     }
 
-    static func applyNimbleFang(
-        to state: inout DamageResolutionState,
-        in context: inout BattleState,
-    ) {
-        guard state.options.isAttackHit,
-              let sourceActorID = state.sourceActorID,
-              let attacker = context.roster.combatant(for: sourceActorID),
-              let runtime = context.roster.runtime(for: attacker.combatant),
-              runtime.talents.pending.bleedAfterDodge > 0
-        else { return }
-        let potency = runtime.talents.pending.bleedAfterDodge
-        context.roster.mutateRuntime(for: attacker.combatant) { $0.talents.pending.bleedAfterDodge = 0 }
-        appendTargetBleed(potency: potency, state: &state, context: &context)
-    }
-
     private static func applyEnemyTraitReactions(
         to state: inout DamageResolutionState,
         sourceActorID: String,

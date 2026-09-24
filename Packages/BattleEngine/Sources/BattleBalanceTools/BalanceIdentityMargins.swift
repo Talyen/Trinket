@@ -1,19 +1,19 @@
 import BattleEngine
 import Foundation
 
-struct WinRateSpec {
-    var id: String
-    var ownerID: String?
-    var wins: Int
-    var battles: Int
-    var peerRate: Double
-    var threshold: Double
-    var positiveFlag: String
-    var negativeFlag: String
-    var targetBandDelta: Double?
-}
-
 enum BalanceIdentityMargins {
+    private struct WinRateSpec {
+        var id: String
+        var ownerID: String?
+        var wins: Int
+        var battles: Int
+        var peerRate: Double
+        var threshold: Double
+        var positiveFlag: String
+        var negativeFlag: String
+        var targetBandDelta: Double?
+    }
+
     static func ownerMargins(
         records: [BalanceBattleRecord],
         id: KeyPath<BalanceBattleRecord, String>,
@@ -102,6 +102,56 @@ enum BalanceIdentityMargins {
         var id: String
     }
 
+    private struct EnemyID: Hashable {
+        var id: String
+        var isBoss: Bool
+    }
+
+    /// Enemy rows use the boss/trash target band instead of the tier's peer rate.
+    static func enemyMargins(
+        records: [BalanceBattleRecord],
+        targetBand: (Bool) -> (lower: Double, upper: Double),
+    ) -> [WinRateSummary] {
+        tally(records) { [EnemyID(id: $0.enemyID, isBoss: $0.isBoss)] }
+            .map { enemy, bucket in
+                let band = targetBand(enemy.isBoss)
+                let ci = BalanceStatsAggregator.wilson(wins: bucket.wins, battles: bucket.battles)
+                let sampleTooLow = bucket.battles < BalanceSweepConfig.identityFlagMinBattles
+                let isHard = ci.high < band.lower
+                let isEasy = ci.low > band.upper
+                let flagged = (isHard || isEasy) && !sampleTooLow
+                let summary = WinRateSummary(
+                    id: enemy.id,
+                    ownerID: nil,
+                    wins: bucket.wins,
+                    battles: bucket.battles,
+                    winRate: bucket.rate,
+                    wilsonLow: ci.low,
+                    wilsonHigh: ci.high,
+                    deltaVsPeer: bucket.rate - ((band.lower + band.upper) / 2),
+                    flagged: flagged,
+                    flagReason: flagged ? (isEasy ? "EASY" : "HARD") : nil,
+                    sampleTooLow: sampleTooLow,
+                )
+                return (enemy, summary)
+            }
+            .sorted { lhs, rhs in
+                if lhs.1.flagged != rhs.1.flagged {
+                    return lhs.1.flagged && !rhs.1.flagged
+                }
+                if lhs.0.id != rhs.0.id {
+                    return lhs.0.id < rhs.0.id
+                }
+                return !lhs.0.isBoss && rhs.0.isBoss
+            }
+            .map(\.1)
+    }
+
+    private struct PairID: Hashable {
+        var left: String
+        var right: String
+    }
+
     static func flaggedPairCells(
         records: [BalanceBattleRecord],
         left: KeyPath<BalanceBattleRecord, String>,
@@ -109,28 +159,17 @@ enum BalanceIdentityMargins {
         peerRate: Double,
         threshold: Double,
     ) -> [PairCellSummary] {
-        var buckets: [String: (left: String, right: String, wins: Int, battles: Int)] = [:]
-        for record in records {
-            let lhs = record[keyPath: left]
-            let rhs = record[keyPath: right]
-            let key = "\(lhs)|\(rhs)"
-            var bucket = buckets[key] ?? (lhs, rhs, 0, 0)
-            bucket.battles += 1
-            if record.result.isVictory {
-                bucket.wins += 1
-            }
-            buckets[key] = bucket
-        }
-        return buckets.values.compactMap { bucket in
+        let buckets = tally(records) { [PairID(left: $0[keyPath: left], right: $0[keyPath: right])] }
+        return buckets.compactMap { pair, bucket in
             guard bucket.battles >= BalanceSweepConfig.identityFlagMinBattles else { return nil }
-            let rate = Double(bucket.wins) / Double(bucket.battles)
+            let rate = bucket.rate
             let delta = rate - peerRate
             let ci = BalanceStatsAggregator.wilson(wins: bucket.wins, battles: bucket.battles)
             let flagged = abs(delta) >= threshold && (ci.low > peerRate || ci.high < peerRate)
             guard flagged else { return nil }
             return PairCellSummary(
-                leftID: bucket.left,
-                rightID: bucket.right,
+                leftID: pair.left,
+                rightID: pair.right,
                 wins: bucket.wins,
                 battles: bucket.battles,
                 winRate: rate,
@@ -139,7 +178,12 @@ enum BalanceIdentityMargins {
                 flagReason: delta > 0 ? "HIGH" : "LOW",
             )
         }
-        .sorted { abs($0.deltaVsPeer) > abs($1.deltaVsPeer) }
+        .sorted { lhs, rhs in
+            if abs(lhs.deltaVsPeer) != abs(rhs.deltaVsPeer) {
+                return abs(lhs.deltaVsPeer) > abs(rhs.deltaVsPeer)
+            }
+            return (lhs.leftID, lhs.rightID) < (rhs.leftID, rhs.rightID)
+        }
     }
 
     private struct Tally {
@@ -148,6 +192,13 @@ enum BalanceIdentityMargins {
 
         var rate: Double {
             battles == 0 ? 0 : Double(wins) / Double(battles)
+        }
+
+        mutating func record(_ result: BattleSimResult) {
+            battles += 1
+            if result.isVictory {
+                wins += 1
+            }
         }
     }
 
@@ -161,10 +212,7 @@ enum BalanceIdentityMargins {
         for record in records {
             for key in Set(keys(record)) {
                 var bucket = buckets[key] ?? Tally()
-                bucket.battles += 1
-                if record.result.isVictory {
-                    bucket.wins += 1
-                }
+                bucket.record(record.result)
                 buckets[key] = bucket
             }
         }
@@ -186,7 +234,7 @@ enum BalanceIdentityMargins {
         return (lhs.ownerID ?? "") < (rhs.ownerID ?? "")
     }
 
-    static func makeWinRate(_ spec: WinRateSpec) -> WinRateSummary {
+    private static func makeWinRate(_ spec: WinRateSpec) -> WinRateSummary {
         let rate = spec.battles == 0 ? 0 : Double(spec.wins) / Double(spec.battles)
         let ci = BalanceStatsAggregator.wilson(wins: spec.wins, battles: spec.battles)
         let delta = rate - spec.peerRate

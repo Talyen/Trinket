@@ -112,13 +112,25 @@ struct PlayBattleLaunchTests {
         #expect(launch.presentation.labyrinthModifiers == modifiers)
     }
 
-    @Test func `shared node combat effects reach the enemy profile`() {
-        let ids = ["shieldedArrival", "bloodHunger", "sunderedGuard", "unbindingStrike", "cinderWard"]
+    @Test func `shared node modifiers reach combat rewards and presentation`() throws {
+        let ids = ["shieldedArrival", "bloodHunger", "sunderedGuard", "unbindingStrike", "cinderWard", "scholarsToll"]
             .map { LabyrinthModifierID($0) }
         let definitions = ids.compactMap(GameContent.labyrinthModifier(id:))
         #expect(definitions.count == ids.count)
-        let effects = LabyrinthModifierEffects.combining(definitions)
-        let profile = CombatModifierProfile(modifiers: LabyrinthPlayMode.combatModifiers(from: effects))
+        let modifiers = ModeBattleModifiers(definitions: definitions)
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        let item = try #require(GameContent.uniqueItems.first)
+        let input = ModeBattleSpec.launchInput(
+            origin: .labyrinth(nodeID: "test-node"),
+            encounter: (enemy, 5),
+            loot: BattleLootResult(item: item, gold: 0, materials: []),
+            roster: .testSeed,
+            modifiers: modifiers,
+        )
+        let launch = makeLaunch(input)
+        let profile = launch.configuration.enemyModifiers
+        #expect(launch.presentation.labyrinthModifiers == definitions)
+        #expect(launch.presentation.experienceBonusPercent == RewardModifier.bonusPercent)
         #expect(profile.triggers.startBattleBlock == 6)
         #expect(profile.triggers.attackLeechPercent == Effect.abilityLeechPercent)
         #expect(profile.triggers.attackBlockRemoval == 2)

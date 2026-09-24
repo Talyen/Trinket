@@ -121,7 +121,7 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
         pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
         pinnedLabyrinthEventID: String? = nil,
         pinnedJourneyEventID: String? = nil,
-    ) -> (session: MysteryEncounterSession, resolvedEventID: String) {
+    ) -> MysteryEncounterSession {
         let event = resolveEvent(
             origin: origin,
             forcedEventID: forcedEventID,
@@ -130,13 +130,12 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
             pinnedLabyrinthEventID: pinnedLabyrinthEventID,
             pinnedJourneyEventID: pinnedJourneyEventID,
         )
-        let session = MysteryEncounterSession(
+        return MysteryEncounterSession(
             origin: origin,
             encounter: encounter,
             event: event,
             combatant: GameContent.combatant(forMysteryEvent: event),
         )
-        return (session, event.id)
     }
 
     var resolutionRequest: MysteryEncounterRequest {

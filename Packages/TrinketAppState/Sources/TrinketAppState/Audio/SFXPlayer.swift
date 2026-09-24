@@ -77,6 +77,9 @@ private actor SFXPlayback {
     private var failedBufferIDs: Set<String> = []
     private var nextVoiceIndexByID: [String: Int] = [:]
     private var catalogWarmTask: Task<Void, Never>?
+    // Actor reentrancy lets a decode finish after stop or release; stale work
+    // must not rebuild voices or restart the engine.
+    private var resourceGeneration: UInt64 = 0
     private let logger = AudioSupport.logger()
 
     isolated deinit {
@@ -87,7 +90,8 @@ private actor SFXPlayback {
         guard volume > 0 else { return }
         guard !ids.isEmpty else { return }
 
-        guard await ensureReady(for: ids) else {
+        let generation = resourceGeneration
+        guard await ensureReady(for: ids), generation == resourceGeneration else {
             return
         }
         for id in ids {
@@ -103,6 +107,8 @@ private actor SFXPlayback {
     }
 
     func warm(_ ids: [String], concurrentPlayerCount: Int) async {
+        guard !Task.isCancelled else { return }
+        let generation = resourceGeneration
         let desiredCount = max(1, concurrentPlayerCount)
         let idsNeedingWork = ids.filter { id in
             (preparedVoicesByID[id]?.count ?? 0) < desiredCount
@@ -116,7 +122,9 @@ private actor SFXPlayback {
 
         for id in idsNeedingWork {
             guard let clip = SFXCatalog.clipsByID[id] else { continue }
-            guard let buffer = await preparedBuffer(for: clip) else { continue }
+            let buffer = await preparedBuffer(for: clip)
+            guard generation == resourceGeneration, !Task.isCancelled else { return }
+            guard let buffer else { continue }
             var voices = preparedVoicesByID[id, default: []]
             while voices.count < desiredCount {
                 let node = AVAudioPlayerNode()
@@ -133,38 +141,16 @@ private actor SFXPlayback {
 
     func warmAllCatalog(concurrentPlayerCount: Int) {
         let ids = SFXCatalog.clips.map(\.id)
-        let clips = SFXCatalog.clips
         catalogWarmTask?.cancel()
         catalogWarmTask = Task.detached(priority: .utility) { [weak self] in
-            var decoded: [String: AVAudioPCMBuffer] = [:]
-            for clip in clips {
-                if Task.isCancelled {
-                    return
-                }
-                guard let url = Self.resourceURL(for: clip),
-                      let buffer = Self.decodePCMBuffer(at: url)
-                else { continue }
-                decoded[clip.id] = buffer
-                await Task.yield()
-            }
-            await self?.finishCatalogWarmup(decoded, ids: ids, concurrentPlayerCount: concurrentPlayerCount)
+            await self?.warm(ids, concurrentPlayerCount: concurrentPlayerCount)
         }
     }
 
-    private func finishCatalogWarmup(
-        _ decoded: [String: AVAudioPCMBuffer],
-        ids: [String],
-        concurrentPlayerCount: Int,
-    ) async {
-        // Task identity is preserved across the actor hop: this still refers to
-        // the detached decode task, so a cancel-after-decode still discards the
-        // stale batch here before it can install voices.
-        guard !Task.isCancelled else { return }
-        buffersByID.merge(decoded) { existing, _ in existing }
-        await warm(ids, concurrentPlayerCount: concurrentPlayerCount)
-    }
-
     func stopAll() {
+        resourceGeneration &+= 1
+        catalogWarmTask?.cancel()
+        catalogWarmTask = nil
         for voices in preparedVoicesByID.values {
             for voice in voices {
                 voice.node.stop()
@@ -176,8 +162,6 @@ private actor SFXPlayback {
     }
 
     func releaseResources() {
-        catalogWarmTask?.cancel()
-        catalogWarmTask = nil
         stopAll()
         for voices in preparedVoicesByID.values {
             for voice in voices {
@@ -194,10 +178,12 @@ private actor SFXPlayback {
     }
 
     private func ensureReady(for ids: [String]) async -> Bool {
+        let generation = resourceGeneration
         let missing = ids.filter { preparedVoicesByID[$0] == nil && !failedBufferIDs.contains($0) }
         if !missing.isEmpty {
             await warm(missing, concurrentPlayerCount: 1)
         }
+        guard generation == resourceGeneration, !Task.isCancelled else { return false }
         configureSessionIfNeeded()
         return ensureStarted()
     }
@@ -218,9 +204,12 @@ private actor SFXPlayback {
             )
             return nil
         }
-        guard let buffer = await Task.detached(priority: .utility, operation: {
+        let generation = resourceGeneration
+        let decoded = await Task.detached(priority: .utility, operation: {
             SendableAudioBuffer(value: Self.decodePCMBuffer(at: url))
-        }).value.value else {
+        }).value.value
+        guard generation == resourceGeneration, !Task.isCancelled else { return nil }
+        guard let buffer = decoded else {
             failedBufferIDs.insert(clip.id)
             return nil
         }

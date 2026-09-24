@@ -218,7 +218,9 @@ public enum BalanceStatsAggregator {
             companions: context.companions,
             companionsTrash: splits.companionsTrash,
             companionsBoss: splits.companionsBoss,
-            enemies: enemyMargins(records: decided, tier: tier),
+            enemies: BalanceIdentityMargins.enemyMargins(records: decided) {
+                targetBand(isBoss: $0, tier: tier)
+            },
             items: loadout.items,
             abilities: loadout.abilities,
             talents: loadout.talents,
@@ -467,58 +469,6 @@ private extension BalanceStatsAggregator {
         companionIDs: [String],
     ) -> [(String, String)] {
         heroIDs.map { (record.heroID, $0) } + companionIDs.map { (record.companionID, $0) }
-    }
-
-    /// Enemy rows flag against the tier's boss/trash target band rather than a
-    /// flat peer rate, so they keep their own bucketing pass.
-    private static func enemyMargins(
-        records: [BalanceBattleRecord],
-        tier: SimulationPowerTier,
-    ) -> [WinRateSummary] {
-        var buckets: [String: (wins: Int, battles: Int, boss: Bool)] = [:]
-        for record in records {
-            var bucket = buckets[record.enemyID] ?? (0, 0, record.isBoss)
-            bucket.battles += 1
-            if record.result.isVictory {
-                bucket.wins += 1
-            }
-            bucket.boss = record.isBoss
-            buckets[record.enemyID] = bucket
-        }
-
-        return buckets.sorted { $0.key < $1.key }.map { id, bucket in
-            let rate = bucket.battles == 0 ? 0 : Double(bucket.wins) / Double(bucket.battles)
-            let ci = wilson(wins: bucket.wins, battles: bucket.battles)
-            let band = targetBand(isBoss: bucket.boss, tier: tier)
-            let sampleTooLow = bucket.battles < BalanceSweepConfig.identityFlagMinBattles
-            let isHard = ci.high < band.lower
-            let isEasy = ci.low > band.upper
-            let flagged = (isHard || isEasy) && !sampleTooLow
-            let reason: String? = if flagged {
-                isEasy ? "EASY" : "HARD"
-            } else {
-                nil
-            }
-            return WinRateSummary(
-                id: id,
-                ownerID: nil,
-                wins: bucket.wins,
-                battles: bucket.battles,
-                winRate: rate,
-                wilsonLow: ci.low,
-                wilsonHigh: ci.high,
-                deltaVsPeer: rate - ((band.lower + band.upper) / 2),
-                flagged: flagged,
-                flagReason: reason,
-                sampleTooLow: sampleTooLow,
-            )
-        }
-        .sorted { lhs, rhs in
-            if lhs.flagged != rhs.flagged {
-                return lhs.flagged && !rhs.flagged
-            }
-            return lhs.id < rhs.id
-        }
     }
 
     private static func targetBand(
