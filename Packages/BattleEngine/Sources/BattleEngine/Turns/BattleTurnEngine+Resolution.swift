@@ -50,6 +50,7 @@ extension BattleTurnEngine {
                 abilityTarget: abilityTarget,
                 in: context,
             )
+            guard context.roster.health(for: damageTarget) > 0 else { continue }
 
             var amount: Int
             if let scaling = component.scaling {

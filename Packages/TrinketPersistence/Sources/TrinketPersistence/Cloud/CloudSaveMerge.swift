@@ -30,7 +30,8 @@ enum CloudSaveMerge {
         }
 
         func selected<Value: Equatable>(_ incoming: Value?, _ existing: Value?, base: Value?) -> Value? {
-            guard base != nil else { return prefersIncoming ? incoming : existing }
+            // A missing field is still a meaningful baseline when the shared save exists.
+            guard self.base != nil else { return prefersIncoming ? incoming : existing }
             if incoming == base {
                 return existing
             }
@@ -51,16 +52,14 @@ enum CloudSaveMerge {
         mergeRoster(into: &merged, branches: branches)
         mergeSelections(into: &merged, branches: branches)
         mergeInventory(into: &merged, from: branches.other, base: branches.base)
+        preserveRecentWeaponPairs(into: &merged, recent: branches.recent, base: branches.base)
         mergeEconomy(into: &merged, branches: branches)
         mergeExploration(into: &merged, branches: branches)
-        merged.contracts.recordVictory(encounterLevel: branches.other.contracts.highestWonEncounterLevel)
-        merged.contracts.reconcileRefreshAvailability(branches.selected(
-            incoming.contracts.refreshAvailable, existing.contracts.refreshAvailable,
-            base: base?.contracts.refreshAvailable,
-        ) ?? merged.contracts.refreshAvailable)
-        merged.corruptionAltarCooldownRemaining = max(
-            merged.corruptionAltarCooldownRemaining, branches.other.corruptionAltarCooldownRemaining,
-        )
+        mergeContracts(into: &merged, branches: branches)
+        merged.corruptionAltarCooldownRemaining = branches.selected(
+            incoming.corruptionAltarCooldownRemaining, existing.corruptionAltarCooldownRemaining,
+            base: base?.corruptionAltarCooldownRemaining,
+        ) ?? merged.corruptionAltarCooldownRemaining
         merged.modifiedAt = max(incoming.modifiedAt, existing.modifiedAt)
         return merged
     }
@@ -69,7 +68,9 @@ enum CloudSaveMerge {
         merged.journey.completedStageIDs.formUnion(other.journey.completedStageIDs)
         merged.journey.claimedRewardStageIDs.formUnion(other.journey.claimedRewardStageIDs)
         merged.journey.pinnedMysteryEventIDs.merge(other.journey.pinnedMysteryEventIDs) { current, _ in current }
-        merged.journey.mysteryOfferPayloads.merge(other.journey.mysteryOfferPayloads) { current, _ in current }
+        merged.journey.mysteryOfferPayloads.merge(other.journey.mysteryOfferPayloads) { current, peer in
+            MysteryOfferPersistence.mergedPayload(preferred: current, other: peer) ?? current
+        }
         for (id, payload) in other.journey.shopPayloads {
             merged.journey.shopPayloads[id] = ShopStockPersistence.mergedPayload(
                 preferred: merged.journey.shopPayloads[id], other: payload,
@@ -77,6 +78,31 @@ enum CloudSaveMerge {
         }
         if let last = GameContent.chapters.flatMap(\.stages).last(where: { merged.journey.completedStageIDs.contains($0.id) }) {
             merged.journey.complete(last, in: GameContent.chapters)
+        }
+    }
+
+    private static func mergeContracts(into merged: inout PlayerSave, branches: Branches) {
+        let offers = ContractDifficulty.allCases.compactMap { difficulty in
+            branches.selected(
+                branches.incoming.contracts.offer(for: difficulty),
+                branches.existing.contracts.offer(for: difficulty),
+                base: branches.base?.contracts.offer(for: difficulty),
+            )
+        }
+        merged.contracts = PlayerContractsState(
+            offers: offers,
+            refreshAvailable: branches.selected(
+                branches.incoming.contracts.refreshAvailable,
+                branches.existing.contracts.refreshAvailable,
+                base: branches.base?.contracts.refreshAvailable,
+            ) ?? merged.contracts.refreshAvailable,
+            highestWonEncounterLevel: max(
+                branches.incoming.contracts.highestWonEncounterLevel,
+                branches.existing.contracts.highestWonEncounterLevel,
+            ),
+        ).sanitized()
+        if !offers.isEmpty {
+            merged.contracts.ensureBoard(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: merged.inventory))
         }
     }
 
@@ -156,12 +182,52 @@ enum CloudSaveMerge {
             }
             merged.roster.equipmentLoadouts[id] = EquipmentLoadout(itemIDsBySlot: slots)
         }
+        // Two branches can place one item in different slots or on different heroes.
+        // Keep the recent assignment before roster sanitization deduplicates by ID order.
+        for (ownerID, recentLoadout) in branches.recent.roster.equipmentLoadouts {
+            guard var chosenLoadout = merged.roster.equipmentLoadouts[ownerID] else { continue }
+            for slot in ItemSlot.allCases {
+                guard let itemID = recentLoadout.itemID(for: slot), chosenLoadout.itemID(for: slot) == itemID else { continue }
+                for otherSlot in ItemSlot.allCases where otherSlot != slot && chosenLoadout.itemID(for: otherSlot) == itemID {
+                    chosenLoadout.unequip(otherSlot)
+                }
+            }
+            merged.roster.equipmentLoadouts[ownerID] = chosenLoadout
+            let retained = Set(recentLoadout.itemIDsBySlot.values)
+                .intersection(chosenLoadout.itemIDsBySlot.values)
+            guard !retained.isEmpty else { continue }
+            for otherID in combatantIDs where otherID != ownerID {
+                guard var loadout = merged.roster.equipmentLoadouts[otherID] else { continue }
+                for slot in ItemSlot.allCases where loadout.itemID(for: slot).map(retained.contains) == true {
+                    loadout.unequip(slot)
+                }
+                merged.roster.equipmentLoadouts[otherID] = loadout
+            }
+        }
         let abilityIDs = Set(incoming.roster.abilityLoadouts.keys).union(existing.roster.abilityLoadouts.keys)
         for id in abilityIDs {
             merged.roster.abilityLoadouts[id] = branches.selected(
                 incoming.roster.abilityLoadouts[id], existing.roster.abilityLoadouts[id],
                 base: base?.roster.abilityLoadouts[id],
             )
+        }
+    }
+
+    private static func preserveRecentWeaponPairs(into merged: inout PlayerSave, recent: PlayerSave, base: PlayerSave?) {
+        for (id, recentLoadout) in recent.roster.equipmentLoadouts {
+            guard let secondaryID = recentLoadout.itemID(for: .secondaryWeapon),
+                  base == nil || base?.roster.equipmentLoadouts[id]?.itemID(for: .secondaryWeapon) != secondaryID,
+                  var chosen = merged.roster.equipmentLoadouts[id],
+                  chosen.itemID(for: .secondaryWeapon) == secondaryID,
+                  let combatant = GameContent.combatant(matching: id),
+                  chosen.sanitized(for: combatant, inventory: merged.inventory.items)
+                  .itemID(for: .secondaryWeapon) != secondaryID,
+                  recentLoadout.sanitized(for: combatant, inventory: merged.inventory.items)
+                  .itemID(for: .secondaryWeapon) == secondaryID
+            else { continue }
+            // The other branch's primary made this newer secondary unusable.
+            chosen.itemIDsBySlot[.weapon] = recentLoadout.itemID(for: .weapon)
+            merged.roster.equipmentLoadouts[id] = chosen
         }
     }
 
@@ -206,7 +272,10 @@ enum CloudSaveMerge {
                     current.shopPayload = ShopStockPersistence.mergedPayload(
                         preferred: current.shopPayload, other: node.shopPayload,
                     )
-                    current.mysteryOffersPayload = current.mysteryOffersPayload ?? node.mysteryOffersPayload
+                    current.mysteryEventID = current.mysteryEventID ?? node.mysteryEventID
+                    current.mysteryOffersPayload = MysteryOfferPersistence.mergedPayload(
+                        preferred: current.mysteryOffersPayload, other: node.mysteryOffersPayload,
+                    )
                 }
             }
         }
@@ -237,7 +306,10 @@ enum CloudSaveMerge {
                 current.outgoingIDs.append(successor)
             }
             current.shopPayload = ShopStockPersistence.mergedPayload(preferred: current.shopPayload, other: node.shopPayload)
-            current.mysteryOffersPayload = current.mysteryOffersPayload ?? node.mysteryOffersPayload
+            current.mysteryEventID = current.mysteryEventID ?? node.mysteryEventID
+            current.mysteryOffersPayload = MysteryOfferPersistence.mergedPayload(
+                preferred: current.mysteryOffersPayload, other: node.mysteryOffersPayload,
+            )
             merged.labyrinth.nodes[id] = current
         }
     }

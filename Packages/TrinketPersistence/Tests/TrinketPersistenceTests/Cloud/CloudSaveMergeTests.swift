@@ -17,6 +17,72 @@ struct CloudSaveMergeTests {
         #expect(merged.contracts.offers == spent.contracts.offers)
     }
 
+    @Test func `a Mystery completion advances an altar cooldown across devices`() {
+        var base = PlayerSave.testSeed
+        base.corruptionAltarCooldownRemaining = 3
+        base.modifiedAt = Date(timeIntervalSince1970: 1)
+        var completed = base
+        ItemCorruptionApplier.noteMysteryCompleted(save: &completed)
+        completed.modifiedAt = Date(timeIntervalSince1970: 100)
+        var later = base
+        later.roster.gold += 5
+        later.modifiedAt = Date(timeIntervalSince1970: 200)
+
+        let merged = CloudSaveMerge.merge(incoming: completed, existing: later, base: base, preferIncoming: false)
+
+        #expect(merged.corruptionAltarCooldownRemaining == 2)
+
+        var altar = base
+        ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &altar)
+        altar.modifiedAt = Date(timeIntervalSince1970: 300)
+        let reset = CloudSaveMerge.merge(incoming: altar, existing: completed, base: base, preferIncoming: true)
+        #expect(reset.corruptionAltarCooldownRemaining == PlayerSave.corruptionAltarCooldownAfterEncounter)
+    }
+
+    @Test(arguments: [false, true])
+    func `a readable Mystery offer survives a damaged preferred cloud payload`(decodableButUnusable: Bool) throws {
+        var base = PlayerSave.testSeed
+        let stageID = "chapter-1-stage-4"
+        let eventID = "mana-berries"
+        base.journey.activeStageID = stageID
+        base.journey.pinnedMysteryEventIDs[stageID] = eventID
+        let stage = try #require(GameContent.stage(id: stageID))
+        let event = try #require(GameContent.mysteryEvent(matching: eventID))
+        var peer = base
+        var initialRandom = SeededRandomNumberGenerator(seed: 11)
+        let pinnedOffers = try MysteryOfferPersistence.prepare(
+            event: event, stage: stage, labyrinthNodeID: nil, save: &peer, using: &initialRandom,
+        )
+        #expect(!pinnedOffers.isEmpty)
+        let readable = try #require(peer.journey.mysteryOfferPayloads[stageID])
+        var damaged = base
+        if decodableButUnusable {
+            var snapshot = try #require(JSONSerialization.jsonObject(with: readable) as? [String: Any])
+            var offers = try #require(snapshot["offers"] as? [[String: Any]])
+            for index in offers.indices {
+                var item = try #require(offers[index]["item"] as? [String: Any])
+                item["baseTypeID"] = "unknown-base-type"
+                offers[index]["item"] = item
+            }
+            snapshot["offers"] = offers
+            damaged.journey.mysteryOfferPayloads[stageID] = try JSONSerialization.data(withJSONObject: snapshot)
+        } else {
+            damaged.journey.mysteryOfferPayloads[stageID] = Data([0xFF])
+        }
+        damaged.modifiedAt = Date(timeIntervalSince1970: 200)
+        peer.modifiedAt = Date(timeIntervalSince1970: 100)
+
+        let merged = CloudSaveMerge.merge(incoming: damaged, existing: peer, base: base, preferIncoming: true)
+        var reopened = merged
+        var random = SeededRandomNumberGenerator(seed: 1)
+        let offers = try MysteryOfferPersistence.prepare(
+            event: event, stage: stage, labyrinthNodeID: nil, save: &reopened, using: &random,
+        )
+
+        #expect(merged.journey.mysteryOfferPayloads[stageID] == readable)
+        #expect(offers == pinnedOffers)
+    }
+
     @Test func `different offline Mystery choices preserve both earned items and secondary Gold`() throws {
         var base = PlayerSave.testSeed
         base.inventory.items = []
@@ -103,6 +169,59 @@ struct CloudSaveMergeTests {
         #expect(merged.roster.gold == 20)
     }
 
+    @Test func `completed Contract offers stay replaced after another device acts`() throws {
+        var base = PlayerSave.testSeed
+        base.modifiedAt = Date(timeIntervalSince1970: 1)
+        base.contracts.ensureBoard()
+        let easy = try #require(base.contracts.offer(for: .easy))
+        let standard = try #require(base.contracts.offer(for: .standard))
+        let availableEnemies = GameContent.nonBossEnemies.filter {
+            !base.contracts.offers.map(\.enemyID).contains($0.id)
+        }
+        let easyEnemy = try #require(availableEnemies.first)
+        let standardEnemy = try #require(availableEnemies.dropFirst().first)
+        var completed = base
+        let didReplaceEasy = completed.contracts.replace(offerID: easy.id) { difficulty, _, _ in
+            ContractOffer(id: "replacement-easy", difficulty: difficulty, enemyID: easyEnemy.id)
+        }
+        #expect(didReplaceEasy)
+        let replacement = try #require(completed.contracts.offer(for: .easy))
+        completed.modifiedAt = Date(timeIntervalSince1970: 100)
+        var later = base
+        later.roster.gold += 5
+        later.modifiedAt = Date(timeIntervalSince1970: 200)
+
+        let merged = CloudSaveMerge.merge(incoming: completed, existing: later, base: base, preferIncoming: true)
+
+        #expect(merged.contracts.offer(for: .easy) == replacement)
+        #expect(merged.contracts.offers.allSatisfy { $0.id != easy.id })
+        #expect(merged.roster.gold == base.roster.gold + 5)
+
+        var otherCompletion = later
+        let didReplaceStandard = otherCompletion.contracts.replace(offerID: standard.id) { difficulty, _, _ in
+            ContractOffer(id: "replacement-standard", difficulty: difficulty, enemyID: standardEnemy.id)
+        }
+        #expect(didReplaceStandard)
+        let otherReplacement = try #require(otherCompletion.contracts.offer(for: .standard))
+        let both = CloudSaveMerge.merge(incoming: completed, existing: otherCompletion, base: base, preferIncoming: true)
+        #expect(both.contracts.offer(for: .easy) == replacement)
+        #expect(both.contracts.offer(for: .standard) == otherReplacement)
+
+        let commonEnemyID = easyEnemy.id
+        let easyReplacement = ContractOffer(id: "new-easy", difficulty: .easy, enemyID: commonEnemyID)
+        let standardReplacement = ContractOffer(id: "new-standard", difficulty: .standard, enemyID: commonEnemyID)
+        completed.contracts = PlayerContractsState(offers: base.contracts.offers.map {
+            $0.difficulty == .easy ? easyReplacement : $0
+        })
+        otherCompletion.contracts = PlayerContractsState(offers: base.contracts.offers.map {
+            $0.difficulty == .standard ? standardReplacement : $0
+        })
+        let collision = CloudSaveMerge.merge(incoming: completed, existing: otherCompletion, base: base, preferIncoming: true)
+        #expect(collision.contracts.offers.count == ContractDifficulty.allCases.count)
+        #expect(Set(collision.contracts.offers.map(\.enemyID)).count == ContractDifficulty.allCases.count)
+        #expect(!collision.contracts.offers.contains { $0.id == easy.id || $0.id == standard.id })
+    }
+
     @Test func `latest party choice wins while both devices keep earned inventory`() throws {
         var base = PlayerSave.testSeed
         base.inventory.items = []
@@ -149,7 +268,9 @@ struct CloudSaveMergeTests {
         #expect(merged.inventory.item(matching: item.id) == nil)
         #expect(merged.roster.gold == base.roster.gold + 5)
     }
+}
 
+struct CloudSaveMergeItemsAndRoutesTests {
     @Test(arguments: [true, false])
     func `corrupted gear survives a later unrelated device action`(corruptionIsIncoming: Bool) throws {
         let baseType = try #require(GameContent.itemBaseType(matching: "longsword"))
@@ -307,6 +428,54 @@ struct CloudSaveMergeTests {
         progressed.modifiedAt = Date(timeIntervalSince1970: 200)
         let racing = CloudSaveMerge.merge(incoming: progressed, existing: abandoned, base: base, preferIncoming: true)
         #expect(racing.voyage.activeRun == nil)
+    }
+
+    @Test func `a Voyage Mystery stays pinned after a later device action`() throws {
+        var base = PlayerSave.testSeed
+        base.modifiedAt = Date(timeIntervalSince1970: 1)
+        base.voyage.ensureBoard(access: .fullGame)
+        let offer = try #require(base.voyage.offers.first)
+        let embarked = base.voyage.embark(offerID: offer.id, eligibleRecruitEventIDs: [], access: .fullGame)
+        #expect(embarked)
+        let run = try #require(base.voyage.activeRun)
+        let mystery = try #require(run.nodes.first { $0.type == .mystery })
+        var opened = base
+        opened.voyage.updateNode(runID: run.id, nodeID: mystery.id) { $0.mysteryEventID = "mana-berries" }
+        opened.modifiedAt = Date(timeIntervalSince1970: 100)
+        var later = base
+        let battle = try #require(run.nodes.first { $0.type == .battle })
+        later.voyage.updateNode(runID: run.id, nodeID: battle.id) { $0.isCleared = true }
+        later.roster.gold += 5
+        later.modifiedAt = Date(timeIntervalSince1970: 200)
+
+        let merged = CloudSaveMerge.merge(incoming: opened, existing: later, base: base, preferIncoming: true)
+
+        #expect(merged.voyage.node(runID: run.id, nodeID: mystery.id)?.mysteryEventID == "mana-berries")
+        #expect(merged.voyage.node(runID: run.id, nodeID: battle.id)?.isCleared == true)
+        #expect(merged.roster.gold == base.roster.gold + 5)
+
+        var laterPinned = later
+        laterPinned.voyage.updateNode(runID: run.id, nodeID: mystery.id) { $0.mysteryEventID = "fairy-ring" }
+        let conflict = CloudSaveMerge.merge(incoming: opened, existing: laterPinned, base: base, preferIncoming: true)
+        #expect(conflict.voyage.node(runID: run.id, nodeID: mystery.id)?.mysteryEventID == "fairy-ring")
+    }
+
+    @Test func `a Labyrinth Mystery stays pinned after a later device action`() throws {
+        var base = PlayerSave.testSeed
+        base.modifiedAt = Date(timeIntervalSince1970: 1)
+        base.labyrinth.ensureMap(seed: base.worldSeed)
+        let mystery = try #require(base.labyrinth.nodes.values.first { $0.type == .mystery })
+        var opened = base
+        #expect(MysteryEventPinApplier.pinLabyrinthEvent(nodeID: mystery.id, eventID: "mana-berries", save: &opened))
+        opened.modifiedAt = Date(timeIntervalSince1970: 100)
+        var later = base
+        later.roster.gold += 5
+        later.modifiedAt = Date(timeIntervalSince1970: 200)
+
+        let merged = CloudSaveMerge.merge(incoming: opened, existing: later, base: base, preferIncoming: true)
+
+        #expect(merged.labyrinth.node(id: mystery.id)?.mysteryEventID == "mana-berries")
+        #expect(merged.roster.gold == base.roster.gold + 5)
     }
 
     @Test func `a newly unlocked Labyrinth floor keeps its clusters after cloud merge`() throws {

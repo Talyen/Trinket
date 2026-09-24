@@ -43,9 +43,20 @@ private enum HeuristicCardScoring {
         let selfDamage = ability.damageComponents.reduce(0) { total, component in
             component.target == .actor ? total + component.amount : total
         }
+        let guaranteedDamage = if let branches = ability.outcomeBranches, !branches.isEmpty {
+            branches.map { branch in
+                branch.damageComponents.reduce(0) { total, component in
+                    component.target == .abilityTarget ? total + component.amount : total
+                }
+            }.min() ?? 0
+        } else {
+            damage
+        }
 
-        if damage > 0, damage >= enemyHP {
-            return 10000 + damage
+        let enemyBlock = DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.enemy))
+        let unblockedDamage = max(0, guaranteedDamage - enemyBlock)
+        if unblockedDamage > 0, unblockedDamage >= enemyHP {
+            return 10000 + unblockedDamage
         }
         if selfDamage > 0, selfDamage >= actorHP {
             return -10000

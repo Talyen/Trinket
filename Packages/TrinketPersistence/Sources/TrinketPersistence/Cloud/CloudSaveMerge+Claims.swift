@@ -20,17 +20,30 @@ extension CloudSaveMerge {
                 return true
             }
         }
-        for (spireID, floor) in base.spires.highestClearedFloorBySpireID {
-            if incoming.spires.highestClearedFloorBySpireID[spireID, default: 0] > floor,
-               existing.spires.highestClearedFloorBySpireID[spireID, default: 0] > floor {
+        let sharedSpireIDs = Set(incoming.spires.highestClearedFloorBySpireID.keys)
+            .intersection(existing.spires.highestClearedFloorBySpireID.keys)
+        for spireID in sharedSpireIDs {
+            let baseFloor = base.spires.highestClearedFloor(for: spireID)
+            if incoming.spires.highestClearedFloor(for: spireID) > baseFloor,
+               existing.spires.highestClearedFloor(for: spireID) > baseFloor {
                 return true
             }
         }
-        if hasSharedNodeClaim(incoming: incoming, existing: existing, base: base),
+        if hasSharedNodeClaim(incoming: incoming, existing: existing, base: base, onlyCombat: true) {
+            return true
+        }
+        if hasSharedNodeClaim(incoming: incoming, existing: existing, base: base, onlyCombat: false),
            !distinctNewItems(incoming: incoming, existing: existing, priorIDs: existingItemIDs) {
             return true
         }
         if hasSharedShopPurchase(incoming: incoming, existing: existing, base: base) {
+            return true
+        }
+        if base.inventory.items.contains(where: { item in
+            ItemSalvage.isEligible(item)
+                && incoming.inventory.item(matching: item.id) == nil
+                && existing.inventory.item(matching: item.id) == nil
+        }) {
             return true
         }
         return false
@@ -47,8 +60,7 @@ extension CloudSaveMerge {
         }) {
             return true
         }
-        if base.labyrinth.worldSeed == incoming.labyrinth.worldSeed,
-           base.labyrinth.worldSeed == existing.labyrinth.worldSeed {
+        if sharesLabyrinthMap(incoming: incoming, existing: existing, base: base) {
             let nodes = Set(incoming.labyrinth.nodes.keys).intersection(existing.labyrinth.nodes.keys)
             if nodes.contains(where: { id in
                 hasSharedPurchase(
@@ -81,22 +93,27 @@ extension CloudSaveMerge {
         return !first.isDisjoint(with: second)
     }
 
-    private static func hasSharedNodeClaim(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave) -> Bool {
-        if base.labyrinth.worldSeed == incoming.labyrinth.worldSeed,
-           base.labyrinth.worldSeed == existing.labyrinth.worldSeed {
-            for (id, node) in base.labyrinth.nodes where !node.isCleared {
-                if incoming.labyrinth.nodes[id]?.isCleared == true,
+    private static func hasSharedNodeClaim(
+        incoming: PlayerSave, existing: PlayerSave, base: PlayerSave, onlyCombat: Bool,
+    ) -> Bool {
+        if sharesLabyrinthMap(incoming: incoming, existing: existing, base: base) {
+            for (id, node) in incoming.labyrinth.nodes where node.isCleared && node.type != .entrance
+                && (!onlyCombat || node.type.isCombat) {
+                if base.labyrinth.nodes[id]?.isCleared != true,
                    existing.labyrinth.nodes[id]?.isCleared == true {
                     return true
                 }
             }
         }
-        guard let run = base.voyage.activeRun,
-              incoming.voyage.activeRun?.id == run.id,
-              existing.voyage.activeRun?.id == run.id else { return false }
+        guard let run = incoming.voyage.activeRun,
+              let otherRun = existing.voyage.activeRun,
+              otherRun.id == run.id,
+              base.voyage.activeRun?.id == run.id || base.voyage.offers.contains(where: { $0.id == run.id })
+        else { return false }
         return run.nodes.contains { node in
-            !node.isCleared && incoming.voyage.activeRun?.nodes.contains { $0.id == node.id && $0.isCleared } == true
-                && existing.voyage.activeRun?.nodes.contains { $0.id == node.id && $0.isCleared } == true
+            node.isCleared && (!onlyCombat || node.type.isCombat)
+                && base.voyage.node(runID: run.id, nodeID: node.id)?.isCleared != true
+                && otherRun.node(id: node.id)?.isCleared == true
         }
     }
 
@@ -106,5 +123,10 @@ extension CloudSaveMerge {
         let first = Set(incoming.inventory.items.map(\.id)).subtracting(priorIDs)
         let second = Set(existing.inventory.items.map(\.id)).subtracting(priorIDs)
         return !first.isEmpty && !second.isEmpty && first.isDisjoint(with: second)
+    }
+
+    private static func sharesLabyrinthMap(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave) -> Bool {
+        incoming.labyrinth.worldSeed == existing.labyrinth.worldSeed
+            && (base.labyrinth.hasMap ? base.labyrinth.worldSeed : base.worldSeed) == incoming.labyrinth.worldSeed
     }
 }

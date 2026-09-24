@@ -3,6 +3,23 @@ import TrinketContent
 import TrinketCore
 
 public enum MysteryOfferPersistence {
+    static func mergedPayload(preferred: Data?, other: Data?) -> Data? {
+        guard let preferred, let other else { return preferred ?? other }
+        if hasReadableOffers(preferred) {
+            return preferred
+        }
+        return hasReadableOffers(other) ? other : preferred
+    }
+
+    private static func hasReadableOffers(_ data: Data) -> Bool {
+        do {
+            let snapshot = try JSONDecoder().decode(MysteryOfferSnapshot.self, from: data)
+            return try snapshot.resolvedOffers().count == snapshot.offers.count
+        } catch {
+            return false
+        }
+    }
+
     struct MysteryLevelInputs {
         let rewardLevel: Int
         let encounterLevel: Int

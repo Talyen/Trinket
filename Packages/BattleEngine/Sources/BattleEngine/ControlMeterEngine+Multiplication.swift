@@ -18,7 +18,6 @@ package extension ControlMeterEngine {
         else {
             return []
         }
-
         var currentEffects = context.roster.activeEffects(for: combatant)
         guard let existingIndex = currentEffects.firstIndex(where: { activeEffect in
             guard case let .controlMeter(meterKeyword, _, _) = activeEffect.effect else { return false }
@@ -30,6 +29,7 @@ package extension ControlMeterEngine {
         else {
             return []
         }
+        guard !isProtected(currentEffects[existingIndex].effect, on: combatant, in: context) else { return [] }
 
         let newAmount = min(currentAmount * factor, threshold)
         guard newAmount > currentAmount else { return [] }
@@ -75,5 +75,11 @@ package extension ControlMeterEngine {
             in: &context,
         )
         return [amplificationEvent]
+    }
+
+    private static func isProtected(_ effect: Effect, on combatant: Combatant, in context: BattleState) -> Bool {
+        let blocked = context.modifiers(for: combatant.id).triggers.blockedControlPrevention
+            && DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: combatant)) > 0
+        return blocked || CombatTriggerEngine.preventsDebuff(effect, on: combatant, in: context)
     }
 }

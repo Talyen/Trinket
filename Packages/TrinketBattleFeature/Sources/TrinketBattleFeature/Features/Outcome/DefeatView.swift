@@ -10,7 +10,6 @@ struct DefeatView: View {
     let settlement: BattleRewardSettlement
     let onAction: (BattleDefeatAction) -> Bool
 
-    @State private var completedExperienceBars = 0
     @State private var isCompleting = false
 
     var body: some View {
@@ -22,14 +21,12 @@ struct DefeatView: View {
             titleAccessibilityIdentifier: AccessibilityID.Battle.defeat,
             titleColor: TrinketDesign.Colors.accent,
             content: {
-                RewardRevealExperienceSection(awards: experienceAwards) {
-                    completedExperienceBars += 1
-                }
-                .accessibilityIdentifier(AccessibilityID.Battle.experience)
+                RewardRevealExperienceSection(awards: experienceAwards)
+                    .accessibilityIdentifier(AccessibilityID.Battle.experience)
             },
             primaryActionTitle: "Continue",
             primaryActionAccessibilityIdentifier: AccessibilityID.Battle.defeatLeaveButton,
-            isPrimaryActionDisabled: isCompleting || completedExperienceBars < experienceAwards.count,
+            isPrimaryActionDisabled: isCompleting,
             onPrimaryAction: { complete(.leave) },
             contentTopPadding: TrinketDesign.Spacing.extraSmall,
             contentStackSpacing: TrinketDesign.Spacing.large,
@@ -38,7 +35,7 @@ struct DefeatView: View {
     }
 
     private func complete(_ action: BattleDefeatAction) {
-        guard !isCompleting, completedExperienceBars >= experienceAwards.count else { return }
+        guard !isCompleting else { return }
         isCompleting = true
         isCompleting = onAction(action)
     }

@@ -76,6 +76,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
     let primaryActionTitle: String
     let primaryActionAccessibilityIdentifier: String
     let action: RewardRevealAction
+    let allowsImmediatePrimaryAction: Bool
     var contentTopPadding: CGFloat
     var contentStackSpacing: CGFloat
 
@@ -96,6 +97,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         primaryActionTitle: String,
         primaryActionAccessibilityIdentifier: String,
         action: RewardRevealAction,
+        allowsImmediatePrimaryAction: Bool = false,
         contentTopPadding: CGFloat = TrinketDesign.Spacing.small,
         contentStackSpacing: CGFloat = TrinketDesign.Spacing.large,
         @ViewBuilder emptyExperience: @escaping () -> EmptyExperience,
@@ -111,6 +113,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         self.primaryActionTitle = primaryActionTitle
         self.primaryActionAccessibilityIdentifier = primaryActionAccessibilityIdentifier
         self.action = action
+        self.allowsImmediatePrimaryAction = allowsImmediatePrimaryAction
         self.contentTopPadding = contentTopPadding
         self.contentStackSpacing = contentStackSpacing
         _focusedItemID = State(initialValue: loot.items.first?.id)
@@ -152,13 +155,13 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                 },
                 primaryActionTitle: primaryActionTitle,
                 primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
-                isPrimaryActionDisabled: collection.isCompleting || !revealSequence.isSequenceComplete,
+                isPrimaryActionDisabled: collection.isCompleting || !isPrimaryActionReady,
                 isPrimaryActionConfirmed: collection.isCollected,
                 onPrimaryAction: complete,
                 contentTopPadding: contentTopPadding,
                 contentStackSpacing: contentStackSpacing,
                 pinsPrimaryActionToBottom: false,
-                primaryActionOpacity: revealSequence.areItemsVisible ? 1 : 0,
+                primaryActionOpacity: allowsImmediatePrimaryAction || revealSequence.areItemsVisible ? 1 : 0,
                 primaryActionEntranceOffset: 0,
             )
         }
@@ -212,8 +215,12 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
     }
 
     private func complete() {
-        guard revealSequence.isSequenceComplete else { return }
+        guard isPrimaryActionReady else { return }
         collection.perform(action)
+    }
+
+    private var isPrimaryActionReady: Bool {
+        allowsImmediatePrimaryAction || revealSequence.isSequenceComplete
     }
 
     private var walletRewardCount: Int {
@@ -233,6 +240,7 @@ public extension RewardRevealExperienceScreen where EmptyExperience == EmptyView
         primaryActionTitle: String,
         primaryActionAccessibilityIdentifier: String,
         action: RewardRevealAction,
+        allowsImmediatePrimaryAction: Bool = false,
         contentTopPadding: CGFloat = TrinketDesign.Spacing.small,
         contentStackSpacing: CGFloat = TrinketDesign.Spacing.large,
     ) {
@@ -247,6 +255,7 @@ public extension RewardRevealExperienceScreen where EmptyExperience == EmptyView
             primaryActionTitle: primaryActionTitle,
             primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
             action: action,
+            allowsImmediatePrimaryAction: allowsImmediatePrimaryAction,
             contentTopPadding: contentTopPadding,
             contentStackSpacing: contentStackSpacing,
             emptyExperience: { EmptyView() },

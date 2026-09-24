@@ -30,9 +30,11 @@ package extension DamagePipeline {
             }
         }
         if lost > 0 {
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentHealthLoss(
-                target: state.combatant, sourceID: state.sourceActorID, keyword: state.damageKeyword, in: &context,
-            ))
+            if state.combatant.role != .hero || context.roster.health(for: state.combatant) > 0 {
+                state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentHealthLoss(
+                    target: state.combatant, sourceID: state.sourceActorID, keyword: state.damageKeyword, in: &context,
+                ))
+            }
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHealthDropped(
                 target: state.combatant,
                 in: &context,

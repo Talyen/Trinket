@@ -13,7 +13,7 @@ public extension AbilityCatalog {
 
     static let blessedAegis = Ability(
         id: "blessed-aegis", name: "Blessed Aegis", tier: .ultimate,
-        description: "Gain 5 Block and Health\nDeal 5 Holy damage",
+        description: "Gain 5 Block\nRestore 5 Health to the lowest-Health ally\nDeal 5 Holy damage",
         operations: [
             .effect(TargetedEffect(.shield(.block, 5), target: .actor)),
             .effect(TargetedEffect(.instantHeal(.health, 5))),

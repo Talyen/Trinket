@@ -209,6 +209,8 @@ buffering, and control restrictions apply.
 
 Card-triggered elemental reactions use the selected random outcome. A defeated
 card owner cannot continue firing on-play rewards or reactions.
+Frost Circuit restores Mana for each Freeze Critical Hit, and Rimewind rolls
+for each Freeze hit that removes Health, including both hits of Ray of Frost.
 
 ### Next-card preparations
 
@@ -343,7 +345,8 @@ attack each combat. Ongoing damage and Dodged attacks do not consume it.
 
 Warning Bark preserves one enemy attack per combat (including multi-hit),
 routed through Dodge feedback and ordinary Dodge reactions for the protected
-target. Claim the combat allowance before resolving reactions.
+target. Claim the combat allowance before resolving reactions. The dodged
+attack still advances the enemy's ability cadence.
 
 ### Dense Bones
 
@@ -389,6 +392,8 @@ Resonant Shell consumes Thorns normally and resolves their damage as Stun with n
 
 Interdict prevents reapplication of the buff kinds actually Purged until the
 next party turn, including Block but excluding instant healing and resources.
+Steadfast and Perfect Purity also stop Cold Snap from multiplying existing
+Freeze build-up while their protection applies.
 Blinding Light retains the strongest half-Holy-hit reduction, counting Health
 damage and absorbed Block, and spends it across the next enemy attack's hits;
 ongoing damage does not consume it. Subzero Mist grants Dodge when the enemy

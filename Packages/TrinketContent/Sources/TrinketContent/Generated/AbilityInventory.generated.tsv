@@ -46,7 +46,7 @@ tithe	Tithe	skill	Deal 2 Holy damage\nSteal 2 Gold
 venom-fangs	Venom Fangs	skill	Deal 2 Poison damage\nLeech
 astral-arrow	Astral Arrow	ultimate	Deal 7 Burn, Freeze, or Bleed damage
 avatar-of-justice	Avatar	ultimate	Deal 6 Holy damage\nYour next attack deals Holy damage\nGain 6 Block
-blessed-aegis	Blessed Aegis	ultimate	Gain 5 Block and Health\nDeal 5 Holy damage
+blessed-aegis	Blessed Aegis	ultimate	Gain 5 Block\nRestore 5 Health to the lowest-Health ally\nDeal 5 Holy damage
 blizzard	Blizzard	ultimate	Deal 6 Freeze damage this turn and next
 bloodthorn	Bloodthorn	ultimate	Deal 2 Bleed damage\nDeal 2 Poison damage\nLeech
 combustion	Combustion	ultimate	Deal 6 Burn damage\nDetonate all enemy Burn

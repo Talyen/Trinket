@@ -33,8 +33,7 @@ package extension CombatTriggerEngine {
         if keyword == .freeze {
             events.append(contentsOf: drawOnFreezeCardHit(healthLost: healthLost, actor: actor, in: &context))
         }
-        if keyword == .freeze, critical, triggers.freezeCriticalRestoreMana > 0,
-           context.claimHeroCardBonus("Frost Circuit", actorID: sourceID) {
+        if keyword == .freeze, critical, triggers.freezeCriticalRestoreMana > 0 {
             events.append(contentsOf: heroTalentMana(to: actor, source: actor, name: "Frost Circuit", in: &context))
         }
         if keyword == .poison, critical, triggers.poisonCritPreparesBleedCrit {

@@ -29,6 +29,7 @@ struct VictoryView: View {
             primaryActionTitle: primaryActionTitle,
             primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
             action: action,
+            allowsImmediatePrimaryAction: true,
             contentTopPadding: TrinketDesign.Spacing.extraSmall,
             contentStackSpacing: TrinketDesign.Spacing.large,
             emptyExperience: {

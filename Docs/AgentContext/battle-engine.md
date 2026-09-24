@@ -28,6 +28,8 @@ rewards. Enemy action delays precede preparation, while attack-only interception
 uses the selected outcome and rechecks control after reactions. Recovery rewards
 require the final skipped action to finish. Committed damage consequences retain
 their own source/target rules, including periodic damage from defeated sources.
+Health-loss Mana and card-draw rewards wait for Death's Door or another lethal
+protection to restore their owner; a final defeat grants neither reward.
 
 `BattleRoster.hasAffliction` distinguishes
 active debuffs from keyword-associated buffs for conditions and damage rules.

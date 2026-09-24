@@ -5,6 +5,29 @@ import TrinketCore
 @testable import BattleEngine
 
 struct AbilityEffectIntegrationTests {
+    @Test func `a finishing hit cannot steal Gold again from the defeated enemy`() throws {
+        var triggers = CombatTraitTriggers()
+        triggers.criticalGoldStealFlat = 2
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyMaxHealth: 1,
+            companionModifiers: CombatModifierProfile(triggers: triggers),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        let attack = Ability(
+            id: "finishing-double-hit", name: "Finishing Double Hit", tier: .basic,
+            damageComponents: [DamageComponent(1), DamageComponent(1)],
+            criticalChanceBonus: 1,
+        )
+
+        let card = BattleCardCombatEngine.deal(attack, owner: .companion, context: &battle)
+        let events = try battle.playCard(cardID: card.id)
+
+        #expect(battle.isEnemyDefeated)
+        #expect(events.count { $0.kind == .abilityDamage && $0.abilityID == attack.id } == 1)
+        #expect(battle.gold == 2)
+    }
+
     @Test(arguments: [Keyword.burn, .poison, .bleed])
     func `dodging an enemy attack prevents its damage over time`(keyword: Keyword) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)

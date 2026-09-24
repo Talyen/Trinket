@@ -57,8 +57,9 @@ Visible hand caps at **three** cards (`BattleHand.maxSize`); overflow draws enqu
 
 Pack Tactics deals 3 Physical damage, then draws and plays one card from the
 caster's ally's deck. It falls back to the caster's deck when the ally is defeated,
-unable to play, or has no card to draw. Other draw-and-play effects retain their
-own target and alternating-deck rules.
+unable to pay the drawn card's Health cost, or has no card to draw. Shadowstep
+draws only from the caster's deck; a missing card does not borrow the partner's.
+Other multi-card draw-and-play effects retain their alternating-deck rules.
 
 Unique card returns move the played ability to hand instead of also cycling it
 into the deck; Dodge-triggered Gale returns move the tracked ability from deck

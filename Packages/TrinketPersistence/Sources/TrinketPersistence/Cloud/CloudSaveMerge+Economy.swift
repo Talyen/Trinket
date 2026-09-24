@@ -46,6 +46,11 @@ extension CloudSaveMerge {
         into merged: inout PlayerSave, incoming: PlayerSave, existing: PlayerSave,
         base: PlayerSave?, overlappingProduction: Bool,
     ) {
+        let sameProductionInterval = overlappingProduction && base.map {
+            incoming.homestead.lastProductionAt == existing.homestead.lastProductionAt
+                && incoming.homestead.nodeTiers == $0.homestead.nodeTiers
+                && existing.homestead.nodeTiers == $0.homestead.nodeTiers
+        } == true
         for resource in HomesteadResource.allCases {
             let current = incoming.homestead.pendingProduction[resource, default: 0]
             let amount = existing.homestead.pendingProduction[resource, default: 0]
@@ -55,7 +60,15 @@ extension CloudSaveMerge {
             let collected = overlappingProduction && baseBalance.map {
                 incomingBalance > $0 || existingBalance > $0
             } == true
-            let pending = collected ? min(current, amount) : max(current, amount)
+            let pending: Double = if collected || sameProductionInterval {
+                min(current, amount)
+            } else if let basePending = base?.homestead.pendingProduction[resource, default: 0], current == basePending {
+                amount
+            } else if let basePending = base?.homestead.pendingProduction[resource, default: 0], amount == basePending {
+                current
+            } else {
+                max(current, amount)
+            }
             if pending > 0 {
                 merged.homestead.pendingProduction[resource] = pending
             } else {

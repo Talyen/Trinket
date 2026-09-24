@@ -66,7 +66,11 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         let drawOwner: BattleParticipant = ability.id == Ability.packTactics.id
             ? (firstOwner == .hero ? .companion : .hero)
             : firstOwner
-        let drawnCards = collectDrawnCards(targetCount: count, firstOwner: drawOwner, in: &context)
+        let drawnCards = collectDrawnCards(
+            targetCount: count, firstOwner: drawOwner,
+            allowFallback: ability.id == Ability.packTactics.id || count > 1,
+            in: &context,
+        )
         guard !drawnCards.isEmpty else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
@@ -89,14 +93,20 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         return EffectApplyOutcome(events: events, didApply: true)
     }
 
-    private func collectDrawnCards(targetCount: Int, firstOwner: BattleParticipant, in context: inout BattleState) -> [BattleCard] {
+    private func collectDrawnCards(
+        targetCount: Int,
+        firstOwner: BattleParticipant,
+        allowFallback: Bool,
+        in context: inout BattleState,
+    ) -> [BattleCard] {
         var drawnCards: [BattleCard] = []
         let otherOwner: BattleParticipant = firstOwner == .hero ? .companion : .hero
 
         for index in 0 ..< targetCount {
             let owner = index.isMultiple(of: 2) ? firstOwner : otherOwner
             let fallback: BattleParticipant = owner == .hero ? .companion : .hero
-            for candidate in [owner, fallback] where canDrawAndPlay(candidate, in: context) {
+            let candidates = allowFallback ? [owner, fallback] : [owner]
+            for candidate in candidates where canDrawAndPlay(candidate, in: context) {
                 guard let card = BattleCardCombatEngine.drawOne(for: candidate, context: &context) else { continue }
                 drawnCards.append(card)
                 break
@@ -109,8 +119,9 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
     private func canDrawAndPlay(_ owner: BattleParticipant, in context: BattleState) -> Bool {
         guard context.roster[owner].isAlive else { return false }
         guard !context.ownersSkippingThisPlayerTurn.contains(owner) else { return false }
-        let deckCount = owner == .hero ? context.heroDeck.count : context.companionDeck.count
-        return deckCount > 0
+        let ability = owner == .hero ? context.heroDeck.abilities.first : context.companionDeck.abilities.first
+        guard let ability else { return false }
+        return BattleAbilityRules.canPayHealthCost(ability, actor: context.roster[owner].combatant, in: context)
     }
 
     private func autoPlayDrawnCards(

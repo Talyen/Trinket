@@ -187,7 +187,8 @@ package extension CombatTriggerEngine {
     }
 
     static func drawAfterHealthLoss(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
-        guard let owner = context.roster.participant(for: actor), owner.isPartyMember else { return [] }
+        guard let owner = context.roster.participant(for: actor), owner.isPartyMember,
+              context.roster.health(for: actor) > 0 else { return [] }
         let count = context.modifiers(for: actor.id).triggers.drawOnHealthLoss
         guard count > 0, context.turnCadence.healthLossDrawOwners.insert(owner).inserted else { return [] }
         return drawClaimedCards(

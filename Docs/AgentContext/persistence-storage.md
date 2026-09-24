@@ -94,6 +94,11 @@ An abandoned or dismissed Voyage must not be restored from stale route progress.
 Labyrinth floor reconciliation carries clusters and boss exits with nodes so the
 next floor stays reachable. Merge Shop purchase markers only for the same pinned
 item and price; use a readable stock copy when its preferred peer is unreadable.
+Preserve a Mystery event pinned on either Labyrinth or Voyage branch, and use a
+readable offer snapshot when the preferred copy is damaged. Reconcile Contract
+offers by difficulty against the shared base so a completed offer cannot return
+after an unrelated action on another device. A one-sided completed Mystery also
+advances the corruption altar cooldown across the merge.
 Combine independent balance changes from a shared base and floor concurrent
 overspending at zero. On first attachment of unrelated older saves, take the larger
 balance per resource. Archive conflicting snapshots in the same atomic server

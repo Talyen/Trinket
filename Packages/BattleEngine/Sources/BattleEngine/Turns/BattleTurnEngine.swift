@@ -116,9 +116,15 @@ package enum BattleTurnEngine {
             }
         }
         if entry == .enemyTurn {
+            let actionsBeforeInterception = context.roster.enemy.actionCount
             let interception = CombatTriggerEngine.beforeEnemyAttack(facts, in: &context)
             events.append(contentsOf: interception.events)
-            guard !interception.cancelled else { return (events, false) }
+            guard !interception.cancelled else {
+                if context.roster.enemy.actionCount == actionsBeforeInterception {
+                    recordAction(for: actor, context: &context)
+                }
+                return (events, false)
+            }
         }
         committed = true
         context.cardPlayRecording?.beginAction(

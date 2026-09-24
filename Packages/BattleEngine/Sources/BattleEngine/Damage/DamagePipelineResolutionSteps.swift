@@ -554,16 +554,6 @@ package extension DamagePipeline {
         ))
     }
 
-    static func applyDeathsDoor(
-        to state: inout DamageResolutionState,
-        in context: inout BattleState,
-    ) {
-        state.damageEvents.append(contentsOf: DeathsDoorEngine.resolveAfterDamage(
-            to: state.combatant,
-            in: &context,
-        ))
-    }
-
     private static func applyPassiveMitigations(
         _ remaining: Int,
         defenderTriggers: CombatTraitTriggers,

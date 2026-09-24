@@ -5,7 +5,6 @@ package extension CombatTriggerEngine {
     static func drawOnFreezeCardHit(healthLost: Int, actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         let chance = context.modifiers(for: actor.id).triggers.freezeAttackDrawChancePercent
         guard healthLost > 0, chance > 0,
-              context.claimTalentAbility("Rimewind", actorID: actor.id),
               BattleChance.succeeds(probability: chance, using: &context.rng),
               let owner = context.roster.participant(for: actor)
         else { return [] }

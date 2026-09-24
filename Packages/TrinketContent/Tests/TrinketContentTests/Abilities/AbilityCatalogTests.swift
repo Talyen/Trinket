@@ -140,7 +140,7 @@ struct AbilityCatalogTests {
     @Test func `ultimate reworks match player facing summaries`() throws {
         let expected: [Ability: String] = [
             .avatarOfJustice: "Deal 6 Holy damage\nYour next attack deals Holy damage\nGain 6 Block",
-            .blessedAegis: "Gain 5 Block and Health\nDeal 5 Holy damage",
+            .blessedAegis: "Gain 5 Block\nRestore 5 Health to the lowest-Health ally\nDeal 5 Holy damage",
             .blizzard: "Deal 6 Freeze damage this turn and next",
             .combustion: "Deal 6 Burn damage\nDetonate all enemy Burn",
             .earthquake: "Deal 6 Stun damage this turn and next",

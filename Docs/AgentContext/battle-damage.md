@@ -15,6 +15,8 @@ subtracting it and clamping damage. Burn detonation preserves the original
 source's decay rate and ticks per turn. Blackfletch's Poison detonation likewise
 preserves the original source's slower decay. Resolution depth limits recursion, never changes
 the meaning of a request.
+Later damage components skip a target already defeated by the same action, so
+post-defeat hits cannot trigger another on-hit reward; later support effects still resolve.
 Turn ticks and detonations share `Effect.potencyAfterTurn` for deterministic decay;
 random growth remains a turn-processing rule.
 
