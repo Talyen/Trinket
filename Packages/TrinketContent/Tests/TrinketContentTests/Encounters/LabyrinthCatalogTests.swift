@@ -59,6 +59,25 @@ struct LabyrinthCatalogTests {
         #expect(effects.shopDiscountPercent == 0)
     }
 
+    @Test func `resistance catalog covers every damage type regardless of enemy attacks`() throws {
+        let resistances = LabyrinthCatalog.modifiers.compactMap { modifier -> Keyword? in
+            if case let .damageTakenReduction(keyword, percent) = modifier.effect {
+                #expect(percent == 50)
+                #expect(modifier.relevantKeyword == nil)
+                return keyword
+            }
+            return nil
+        }
+        #expect(Set(resistances) == Set(Keyword.damageTypes))
+        let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
+        let pool = LabyrinthCatalog.combatModifiers(for: enemy.id, nodeType: .battle)
+        let poolResistances = pool.filter { modifier in
+            guard case .damageTakenReduction = modifier.effect else { return false }
+            return true
+        }
+        #expect(poolResistances.count == Keyword.damageTypes.count)
+    }
+
     @Test func `resolved modifiers keep an applicable existing modifier`() throws {
         let shopPool = LabyrinthCatalog.modifiers.filter { $0.applies(to: .shop) }
         let keep = try #require(shopPool.first).id

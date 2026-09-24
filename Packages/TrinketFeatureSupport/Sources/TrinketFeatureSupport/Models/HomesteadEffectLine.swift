@@ -121,6 +121,10 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         case .dodgeChanceBonus: "Dodge"
         case .rangedDamageDealt: "Bow and Crossbow damage"
         case .maximumManaPercent: "Mana"
+        case .startBattleBlock: "Starting Block"
+        case .attackLeechPercent: "Attack Leech"
+        case .attackBlockRemoval: "Block removed on attack"
+        case .attackPurgeCount: "Attack Purge"
         }
     }
 }

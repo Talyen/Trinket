@@ -55,6 +55,9 @@ package extension HealingEngine {
         if leechPct == 0, keywordGrantsLeech {
             leechPct = Effect.abilityLeechPercent
         }
+        if attackHit {
+            leechPct = max(leechPct, profile.triggers.attackLeechPercent)
+        }
         let typedChance: Double = switch damageKeyword {
         case .poison: profile.triggers.poisonDamageLeechChancePercent
         case .freeze: profile.triggers.freezeDamageLeechChancePercent

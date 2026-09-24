@@ -271,7 +271,7 @@ private struct HomesteadEffectStyle {
             self.init(keyword: .poison)
         case let .damageTakenPercent(keyword, _), let .damageTakenFlat(keyword, _), let .damageTakenVulnerability(keyword, _):
             self.init(keyword: keyword, symbol: "shield.fill")
-        case .incomingDamageReductionPercent, .blockGained:
+        case .incomingDamageReductionPercent, .blockGained, .startBattleBlock, .attackBlockRemoval:
             self.init(keyword: .block)
         case .outgoingDamagePercent:
             self.init(keyword: .physical)
@@ -281,8 +281,10 @@ private struct HomesteadEffectStyle {
             self.init(keyword: .physical, symbol: "pawprint.fill")
         case .dodgeChanceBonus:
             self.init(keyword: .dodge)
-        case .leechGainedPercent, .leechHealing:
+        case .leechGainedPercent, .leechHealing, .attackLeechPercent:
             self.init(keyword: .leech)
+        case .attackPurgeCount:
+            self.init(keyword: .purge)
         case .goldGained, .goldGainedPercent:
             self.init(keyword: .gold)
         case .bleedDuration, .companionBleedDamageDealt:

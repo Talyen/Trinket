@@ -582,6 +582,13 @@
       "default": "0",
       "merge": "add",
       "affix_roll": { "kind": "int", "order": 79 }
+    },
+    {
+      "name": "attackBlockRemoval",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "reason": "Encounter-only attack rule, not an equipment roll." }
     }
   ]
 }

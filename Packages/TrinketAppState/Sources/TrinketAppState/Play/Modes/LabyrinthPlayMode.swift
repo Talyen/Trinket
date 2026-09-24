@@ -279,6 +279,18 @@ extension LabyrinthPlayMode {
         if effects.leechGainedPercent != 0 {
             modifiers.append(.leechGainedPercent(Double(effects.leechGainedPercent) / 100))
         }
+        if effects.startBattleBlock != 0 {
+            modifiers.append(.startBattleBlock(effects.startBattleBlock))
+        }
+        if effects.attackLeech {
+            modifiers.append(.attackLeechPercent(Effect.abilityLeechPercent))
+        }
+        if effects.attackBlockRemoval != 0 {
+            modifiers.append(.attackBlockRemoval(effects.attackBlockRemoval))
+        }
+        if effects.attackPurgeCount != 0 {
+            modifiers.append(.attackPurgeCount(effects.attackPurgeCount))
+        }
         return modifiers
     }
 

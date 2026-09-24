@@ -25,6 +25,10 @@ Saved IDs stay stable; exhausted collectible bonuses resolve to Gold consistentl
 in artwork/details and launch loot. Keyword guarantees occupy one normal affix
 slot on matching Basic/Astral equipment. New reward modifiers apply only to combat;
 existing Mystery quantity bonuses remain supported.
+Item-family guarantees filter the normal single item to Weapon, Armor, Ring, or
+Amulet bases at Basic/Astral tier odds; guaranteed Astral, Trinket, and Unique
+tiers use their named tier directly. Exhausted collectible guarantees use the
+same Gold fallback as collectible weight bonuses.
 
 Shared battle XP scales per recipient with enemy level. The existing smoothstep
 penalty reaches zero at ten levels below the recipient; its mirrored bonus reaches

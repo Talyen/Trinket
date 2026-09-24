@@ -30,6 +30,13 @@ public struct ModifierCaptionPresentation: Identifiable {
             case .astral: Keyword.VisualStyle(color: TrinketDesign.Colors.arcane, icon: .system("sparkles"))
             case .trinket: Keyword.VisualStyle(color: TrinketDesign.Colors.keywordMana, icon: .system("diamond.circle.fill"))
             case .unique: Keyword.VisualStyle(color: TrinketDesign.Colors.accent, icon: .system("crown.fill"))
+            case .armsHoard: Keyword.physical.visualStyle
+            case .armorHoard: Keyword.block.visualStyle
+            case .ringHoard: Keyword.VisualStyle(color: TrinketDesign.Colors.arcane, icon: .system("circle"))
+            case .amuletHoard: Keyword.VisualStyle(color: TrinketDesign.Colors.arcane, icon: .system("sparkle"))
+            case .astralHoard: Keyword.VisualStyle(color: TrinketDesign.Colors.arcane, icon: .system("sparkles"))
+            case .trinketHoard: Keyword.VisualStyle(color: TrinketDesign.Colors.keywordMana, icon: .system("diamond.circle.fill"))
+            case .uniqueHoard: Keyword.VisualStyle(color: TrinketDesign.Colors.accent, icon: .system("crown.fill"))
             case let .keyword(keyword): keyword.visualStyle
             default: Keyword.gold.visualStyle
             }

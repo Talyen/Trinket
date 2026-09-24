@@ -205,6 +205,14 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
             rangedDamageDealtBonus += amount
         case let .maximumManaPercent(amount):
             maximumManaPercentBonus += amount
+        case let .startBattleBlock(amount):
+            triggers.startBattleBlock += amount
+        case let .attackLeechPercent(amount):
+            triggers.attackLeechPercent += amount
+        case let .attackBlockRemoval(amount):
+            triggers.attackBlockRemoval += amount
+        case let .attackPurgeCount(count):
+            triggers.attackPurgeCount += count
         default:
             return false
         }

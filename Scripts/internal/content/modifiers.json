@@ -142,5 +142,29 @@
     "case": "maximumManaPercent",
     "type": "Double",
     "keyword": false
+  },
+  {
+    "token": "start_battle_block",
+    "case": "startBattleBlock",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "attack_leech_percent",
+    "case": "attackLeechPercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "attack_block_removal",
+    "case": "attackBlockRemoval",
+    "type": "Int",
+    "keyword": false
+  },
+  {
+    "token": "attack_purge_count",
+    "case": "attackPurgeCount",
+    "type": "Int",
+    "keyword": false
   }
 ]

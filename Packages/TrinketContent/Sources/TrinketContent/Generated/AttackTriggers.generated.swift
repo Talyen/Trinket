@@ -114,6 +114,7 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var firstHolyHitAllyBlockPerTurn: Int = 0
     public var redHarvestPhysicalCriticalDetonatesBleed: Bool = false
     public var huntsmasterPhysicalCriticalDrawsCompanion: Bool = false
+    public var attackPurgeCount: Int = 0
 
     public init(
         firstCriticalHitRepeatsPerTurn: Bool = false,
@@ -225,7 +226,8 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         stunDamageMultiplierWhileThorns: Double = 1,
         firstHolyHitAllyBlockPerTurn: Int = 0,
         redHarvestPhysicalCriticalDetonatesBleed: Bool = false,
-        huntsmasterPhysicalCriticalDrawsCompanion: Bool = false
+        huntsmasterPhysicalCriticalDrawsCompanion: Bool = false,
+        attackPurgeCount: Int = 0
     ) {
         self.firstCriticalHitRepeatsPerTurn = firstCriticalHitRepeatsPerTurn
         self.heldCardNextAttackDamage = heldCardNextAttackDamage
@@ -337,10 +339,11 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.firstHolyHitAllyBlockPerTurn = firstHolyHitAllyBlockPerTurn
         self.redHarvestPhysicalCriticalDetonatesBleed = redHarvestPhysicalCriticalDetonatesBleed
         self.huntsmasterPhysicalCriticalDrawsCompanion = huntsmasterPhysicalCriticalDrawsCompanion
+        self.attackPurgeCount = attackPurgeCount
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "heldCardNextAttackDamage", "partnerFirstAttackDamage", "dazingSwipeChancePercent", "dazingSwipeStunDamage", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "cleanCut", "crackedGuard", "blockedAttackNextPhysicalDouble", "poisonCritPreparesBleedCrit", "leechCriticalVsBleedingBonus", "burnAttackCritDrawCard", "burnPreparesBleedDamageBonus", "physicalElementChancePercent", "physicalElementDamage", "standardDeviation", "physicalVsFrozenCritBonus", "blockBreakNextPhysicalBonus", "physicalDamageVsStunnedMultiplier", "physicalCritChanceBelowHalfBonus", "physicalCritRemoveEnemyBlock", "firstPhysicalAttackBlockDamagePercent", "poisonCriticalHasLeech", "poisonAttackStunChancePercent", "bleedCriticalPoisonDamage", "bleedCriticalThorns", "bleedCriticalDrawChancePercent", "criticalGoldStealFlat", "bleedAttackDamageBonus", "bleedAttackCriticalBonus", "attackVsBleedingBelowHalfMultiplier", "bleedCriticalDamageMultiplier", "belowHalfHealthNextBleedDouble", "partyCritChanceWhileCompanionFullHealth", "holyCriticalAllyIgnoreBlock", "holyAttackCriticalBonus", "holyAttackEnemyMissChance", "holyAttackDrawChancePercent", "holyCriticalPurgeCount", "holyAttackCleanseAllyChancePercent", "attackDamageVsStunnedMultiplier", "bleedDamageVsPoisonedMultiplier", "burnCriticalDamageMultiplier", "burnCriticalIgnoreBlock", "firstBleedAttackLeechPerTurn", "firstHolyAttackBlockPerTurn", "firstHolyAttackBonusPerTurn", "firstHolyHitDamageMultiplierPerTurn", "firstPhysicalAttackBattleMultiplier", "firstPhysicalAttackBlockPerTurn", "freezeAttackCriticalBonus", "freezeCriticalDamageMultiplier", "holyCriticalStunDamage", "holyDamageMultiplierWhileBlocked", "holyDamageVsStunnedMultiplier", "leechAttackDamageVsBleedingMultiplier", "partyBleedCritChanceBonus", "partyFirstPhysicalCriticalBonus", "partyHolyAttackCriticalBonus", "partyHolyDamageMultiplier", "physicalAttackBurstChancePercent", "physicalAttackBurstMultiplier", "physicalCritVsBleedingBonus", "physicalCriticalBleedDamage", "physicalCriticalDamageVsBleedingMultiplier", "physicalCriticalDamageVsPoisonedMultiplier", "stunAttackCriticalBonus", "stunCriticalIgnoreBlock", "stunDamageMultiplierWhileThorns", "firstHolyHitAllyBlockPerTurn", "redHarvestPhysicalCriticalDetonatesBleed", "huntsmasterPhysicalCriticalDrawsCompanion"]
+    public static let fieldNames: [String] = ["firstCriticalHitRepeatsPerTurn", "heldCardNextAttackDamage", "partnerFirstAttackDamage", "dazingSwipeChancePercent", "dazingSwipeStunDamage", "secondCardDrawAndDodgePercent", "thirdCardReturnsToHand", "recoverLastAttackCardEachTurn", "attacksApplyPoison", "physicalAttackApplyBleed", "physicalAttackApplyBleedAndStun", "basicAttackApplyBleed", "basicAttackFreezeBuildup", "criticalApplyPoison", "criticalApplyBurn", "holyAttackApplyBurnAndStunBuildup", "onAttackStealGold", "basicAttackStealGold", "onAttackFrozenEnemyGainMana", "onAttackFrozenEnemyGainBlock", "onAttackStunnedEnemyGold", "onAttackStunnedEnemyBlock", "holyDamageNextHitBonus", "holyDamageNextAttackHolyBonus", "onBleedDamageNextBasicGuaranteedCrit", "onBleedDamageNextBasicCritBonus", "nextAttackBonusOnFullHealth", "leechOverhealDamageBonus", "onHeroSpendManaCompanionNextAttackBonus", "partyBasicAttackHolyBonus", "partyHolyDamageBonusWhileCompanionFullHealth", "partyDamageBonusWhileCompanionFullHealth", "partyPhysicalDamageBonusFirstTurns", "partyPhysicalDamageBonusFirstTurnCount", "attackBurstChancePercent", "attackBurstDamage", "attackBurstBlock", "directHitBleedChancePercent", "attackApplyBleed", "onHeroAttackPoisonedEnemyApplyPoison", "onPhysicalDamageGainBlock", "critStealEnemyBlock", "criticalPurgeCount", "criticalPurgeAll", "cleanCut", "crackedGuard", "blockedAttackNextPhysicalDouble", "poisonCritPreparesBleedCrit", "leechCriticalVsBleedingBonus", "burnAttackCritDrawCard", "burnPreparesBleedDamageBonus", "physicalElementChancePercent", "physicalElementDamage", "standardDeviation", "physicalVsFrozenCritBonus", "blockBreakNextPhysicalBonus", "physicalDamageVsStunnedMultiplier", "physicalCritChanceBelowHalfBonus", "physicalCritRemoveEnemyBlock", "firstPhysicalAttackBlockDamagePercent", "poisonCriticalHasLeech", "poisonAttackStunChancePercent", "bleedCriticalPoisonDamage", "bleedCriticalThorns", "bleedCriticalDrawChancePercent", "criticalGoldStealFlat", "bleedAttackDamageBonus", "bleedAttackCriticalBonus", "attackVsBleedingBelowHalfMultiplier", "bleedCriticalDamageMultiplier", "belowHalfHealthNextBleedDouble", "partyCritChanceWhileCompanionFullHealth", "holyCriticalAllyIgnoreBlock", "holyAttackCriticalBonus", "holyAttackEnemyMissChance", "holyAttackDrawChancePercent", "holyCriticalPurgeCount", "holyAttackCleanseAllyChancePercent", "attackDamageVsStunnedMultiplier", "bleedDamageVsPoisonedMultiplier", "burnCriticalDamageMultiplier", "burnCriticalIgnoreBlock", "firstBleedAttackLeechPerTurn", "firstHolyAttackBlockPerTurn", "firstHolyAttackBonusPerTurn", "firstHolyHitDamageMultiplierPerTurn", "firstPhysicalAttackBattleMultiplier", "firstPhysicalAttackBlockPerTurn", "freezeAttackCriticalBonus", "freezeCriticalDamageMultiplier", "holyCriticalStunDamage", "holyDamageMultiplierWhileBlocked", "holyDamageVsStunnedMultiplier", "leechAttackDamageVsBleedingMultiplier", "partyBleedCritChanceBonus", "partyFirstPhysicalCriticalBonus", "partyHolyAttackCriticalBonus", "partyHolyDamageMultiplier", "physicalAttackBurstChancePercent", "physicalAttackBurstMultiplier", "physicalCritVsBleedingBonus", "physicalCriticalBleedDamage", "physicalCriticalDamageVsBleedingMultiplier", "physicalCriticalDamageVsPoisonedMultiplier", "stunAttackCriticalBonus", "stunCriticalIgnoreBlock", "stunDamageMultiplierWhileThorns", "firstHolyHitAllyBlockPerTurn", "redHarvestPhysicalCriticalDetonatesBleed", "huntsmasterPhysicalCriticalDrawsCompanion", "attackPurgeCount"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -455,6 +458,7 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         if self.firstHolyHitAllyBlockPerTurn != other.firstHolyHitAllyBlockPerTurn { names.append("firstHolyHitAllyBlockPerTurn") }
         if self.redHarvestPhysicalCriticalDetonatesBleed != other.redHarvestPhysicalCriticalDetonatesBleed { names.append("redHarvestPhysicalCriticalDetonatesBleed") }
         if self.huntsmasterPhysicalCriticalDrawsCompanion != other.huntsmasterPhysicalCriticalDrawsCompanion { names.append("huntsmasterPhysicalCriticalDrawsCompanion") }
+        if self.attackPurgeCount != other.attackPurgeCount { names.append("attackPurgeCount") }
         return names
     }
 }
@@ -571,6 +575,7 @@ extension AttackTriggers {
         firstHolyHitAllyBlockPerTurn += other.firstHolyHitAllyBlockPerTurn
         redHarvestPhysicalCriticalDetonatesBleed = redHarvestPhysicalCriticalDetonatesBleed || other.redHarvestPhysicalCriticalDetonatesBleed
         huntsmasterPhysicalCriticalDrawsCompanion = huntsmasterPhysicalCriticalDrawsCompanion || other.huntsmasterPhysicalCriticalDrawsCompanion
+        attackPurgeCount += other.attackPurgeCount
     }
 }
 
@@ -687,7 +692,8 @@ extension AttackTriggers {
             stunDamageMultiplierWhileThorns: values.decode(Double.self, "stunDamageMultiplierWhileThorns", default: 1),
             firstHolyHitAllyBlockPerTurn: values.decode(Int.self, "firstHolyHitAllyBlockPerTurn", default: 0),
             redHarvestPhysicalCriticalDetonatesBleed: values.decode(Bool.self, "redHarvestPhysicalCriticalDetonatesBleed", default: false),
-            huntsmasterPhysicalCriticalDrawsCompanion: values.decode(Bool.self, "huntsmasterPhysicalCriticalDrawsCompanion", default: false)
+            huntsmasterPhysicalCriticalDrawsCompanion: values.decode(Bool.self, "huntsmasterPhysicalCriticalDrawsCompanion", default: false),
+            attackPurgeCount: values.decode(Int.self, "attackPurgeCount", default: 0)
         )
     }
 
@@ -802,5 +808,6 @@ extension AttackTriggers {
         try container.encodeNonDefault(firstHolyHitAllyBlockPerTurn, "firstHolyHitAllyBlockPerTurn", default: 0)
         try container.encodeNonDefault(redHarvestPhysicalCriticalDetonatesBleed, "redHarvestPhysicalCriticalDetonatesBleed", default: false)
         try container.encodeNonDefault(huntsmasterPhysicalCriticalDrawsCompanion, "huntsmasterPhysicalCriticalDrawsCompanion", default: false)
+        try container.encodeNonDefault(attackPurgeCount, "attackPurgeCount", default: 0)
     }
 }

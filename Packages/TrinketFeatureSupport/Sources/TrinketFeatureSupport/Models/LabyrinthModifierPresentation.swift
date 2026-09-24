@@ -17,6 +17,12 @@ public enum LabyrinthModifierPresentation {
             Keyword.block.visualStyle
         case .leechGainedPercent:
             Keyword.leech.visualStyle
+        case .startBattleBlock, .attackBlockRemoval:
+            Keyword.block.visualStyle
+        case .attackLeech:
+            Keyword.leech.visualStyle
+        case .attackPurge:
+            Keyword.purge.visualStyle
         case let .reward(modifier):
             ModifierCaptionPresentation(modifier).style
         case .shopDiscountPercent:

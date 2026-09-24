@@ -29,6 +29,7 @@ public struct ActionEvent: Identifiable, Equatable {
         case leechHeal
         case partyDamagePreparationApplied
         case blockSpent
+        case blockStripped
         case shieldApplied
         case shieldAbsorbed
         case controlActionSkipped

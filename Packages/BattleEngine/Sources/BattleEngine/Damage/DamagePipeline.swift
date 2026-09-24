@@ -44,6 +44,7 @@ package enum DamagePipeline {
             ) == 0
         }
         state.targetStatus = DamageTargetStatus(for: state.combatant, in: context)
+        applyEnemyAttackBlockRemoval(to: &state, in: &context)
         reserveCompanionBlockIgnore(to: &state, in: &context)
         applyOutgoingDamage(to: &state, in: &context)
         applyPreparedAttackReduction(to: &state, in: &context)
@@ -59,7 +60,7 @@ package enum DamagePipeline {
     }
 
     /// Committed-damage reaction order (load-bearing, do not reorder):
-    /// card-hit → enemy traits → DoT mirrors/ticks → leech → attacker on-hit
+    /// card-hit → enemy traits → DoT mirrors/ticks → leech → enemy Purge → attacker on-hit
     /// applications → attacker mirrors → control meter/fang → retaliation-gated
     /// reactive/keyword/crit → uniques. DoT mirrors must precede leech so
     /// mirrored ticks count toward the same hit; keyword reactions stay last
@@ -79,6 +80,7 @@ package enum DamagePipeline {
         applyDoTDamageReactions(to: &state, in: &context)
         applyCompanionDamageRetaliation(to: &state, in: &context)
         applyLeech(to: &state, in: &context)
+        applyEnemyAttackPurge(to: &state, in: &context)
         applyFinalCompanionHolyHitRewards(to: &state, in: &context)
         applyCompanionLeechCriticalBlock(to: &state, in: &context)
         applyAttackerOnHitApplications(to: &state, in: &context)

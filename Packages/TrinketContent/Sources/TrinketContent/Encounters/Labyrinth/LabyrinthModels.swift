@@ -22,6 +22,10 @@ public enum LabyrinthModifierEffect: Hashable, Sendable {
     case damageTakenReduction(keyword: Keyword, percent: Int)
     case blockGained(Int)
     case leechGainedPercent(Int)
+    case startBattleBlock(Int)
+    case attackLeech
+    case attackBlockRemoval(Int)
+    case attackPurge(Int)
     case reward(RewardModifier)
     case shopDiscountPercent(Int)
     case astralShopOffers
@@ -36,6 +40,14 @@ public enum LabyrinthModifierEffect: Hashable, Sendable {
             "Block gained is increased by \(amount)"
         case let .leechGainedPercent(percent):
             "Leech gained is increased by \(percent)%"
+        case let .startBattleBlock(amount):
+            "Enemy starts with \(amount) Block"
+        case .attackLeech:
+            "Enemy attacks have Leech"
+        case let .attackBlockRemoval(amount):
+            "Enemy attacks remove \(amount) Block"
+        case let .attackPurge(count):
+            "Enemy attacks Purge \(count) buff"
         case let .reward(modifier):
             modifier.description
         case let .shopDiscountPercent(percent):
@@ -71,8 +83,6 @@ public struct LabyrinthModifierDefinition: Identifiable, Hashable, Sendable {
     public var relevantKeyword: Keyword? {
         switch effect {
         case let .damageDealt(keyword, _):
-            keyword
-        case let .damageTakenReduction(keyword, _):
             keyword
         default:
             nil
@@ -260,6 +270,10 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
     public var damageTakenReduction: [Keyword: Int]
     public var blockGainedBonus: Int
     public var leechGainedPercent: Int
+    public var startBattleBlock: Int
+    public var attackLeech: Bool
+    public var attackBlockRemoval: Int
+    public var attackPurgeCount: Int
     public var goldFoundPercent: Int
     public var experienceEarnedPercent: Int
     public var materialsFoundPercent: Int
@@ -272,6 +286,10 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
         damageTakenReduction: [:],
         blockGainedBonus: 0,
         leechGainedPercent: 0,
+        startBattleBlock: 0,
+        attackLeech: false,
+        attackBlockRemoval: 0,
+        attackPurgeCount: 0,
         goldFoundPercent: 0,
         experienceEarnedPercent: 0,
         materialsFoundPercent: 0,
@@ -284,6 +302,10 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
         damageTakenReduction: [Keyword: Int] = [:],
         blockGainedBonus: Int = 0,
         leechGainedPercent: Int = 0,
+        startBattleBlock: Int = 0,
+        attackLeech: Bool = false,
+        attackBlockRemoval: Int = 0,
+        attackPurgeCount: Int = 0,
         goldFoundPercent: Int = 0,
         experienceEarnedPercent: Int = 0,
         materialsFoundPercent: Int = 0,
@@ -295,6 +317,10 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
         self.damageTakenReduction = damageTakenReduction
         self.blockGainedBonus = blockGainedBonus
         self.leechGainedPercent = leechGainedPercent
+        self.startBattleBlock = startBattleBlock
+        self.attackLeech = attackLeech
+        self.attackBlockRemoval = attackBlockRemoval
+        self.attackPurgeCount = attackPurgeCount
         self.goldFoundPercent = goldFoundPercent
         self.experienceEarnedPercent = experienceEarnedPercent
         self.materialsFoundPercent = materialsFoundPercent
@@ -315,6 +341,14 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
                 effects.blockGainedBonus += amount
             case let .leechGainedPercent(percent):
                 effects.leechGainedPercent += percent
+            case let .startBattleBlock(amount):
+                effects.startBattleBlock += amount
+            case .attackLeech:
+                effects.attackLeech = true
+            case let .attackBlockRemoval(amount):
+                effects.attackBlockRemoval += amount
+            case let .attackPurge(count):
+                effects.attackPurgeCount += count
             case let .reward(modifier):
                 effects.rewardModifier = modifier
                 effects.goldFoundPercent += modifier.goldBonusPercent

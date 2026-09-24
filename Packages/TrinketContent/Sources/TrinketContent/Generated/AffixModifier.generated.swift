@@ -27,6 +27,10 @@ public enum AffixModifier: Equatable, Hashable, Codable, Sendable {
     case dodgeChanceBonus(Double)
     case rangedDamageDealt(Int)
     case maximumManaPercent(Double)
+    case startBattleBlock(Int)
+    case attackLeechPercent(Double)
+    case attackBlockRemoval(Int)
+    case attackPurgeCount(Int)
 }
 
 public extension AffixModifier {
@@ -56,6 +60,10 @@ public extension AffixModifier {
         case .dodgeChanceBonus: true
         case .rangedDamageDealt: false
         case .maximumManaPercent: true
+        case .startBattleBlock: false
+        case .attackLeechPercent: true
+        case .attackBlockRemoval: false
+        case .attackPurgeCount: false
         }
     }
 
@@ -85,6 +93,10 @@ public extension AffixModifier {
         case let .dodgeChanceBonus(v): v
         case let .rangedDamageDealt(v): Double(v)
         case let .maximumManaPercent(v): v
+        case let .startBattleBlock(v): Double(v)
+        case let .attackLeechPercent(v): v
+        case let .attackBlockRemoval(v): Double(v)
+        case let .attackPurgeCount(v): Double(v)
         }
     }
 
@@ -105,6 +117,9 @@ public extension AffixModifier {
         case let .companionPhysicalDamageDealt(v): .companionPhysicalDamageDealt(transform(v))
         case let .companionBleedDamageDealt(v): .companionBleedDamageDealt(transform(v))
         case let .rangedDamageDealt(v): .rangedDamageDealt(transform(v))
+        case let .startBattleBlock(v): .startBattleBlock(transform(v))
+        case let .attackBlockRemoval(v): .attackBlockRemoval(transform(v))
+        case let .attackPurgeCount(v): .attackPurgeCount(transform(v))
         default: self
         }
     }
@@ -120,6 +135,7 @@ public extension AffixModifier {
         case let .incomingDamageReductionPercent(v): .incomingDamageReductionPercent(transform(v))
         case let .dodgeChanceBonus(v): .dodgeChanceBonus(transform(v))
         case let .maximumManaPercent(v): .maximumManaPercent(transform(v))
+        case let .attackLeechPercent(v): .attackLeechPercent(transform(v))
         default: self
         }
     }

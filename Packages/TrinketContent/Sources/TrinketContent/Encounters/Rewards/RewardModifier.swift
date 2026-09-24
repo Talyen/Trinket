@@ -4,10 +4,13 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
     case gold, experience, materials
     case wood, stone, iron, food, herbs, hide, gems
     case astral, trinket, unique
+    case armsHoard, armorHoard, ringHoard, amuletHoard
+    case astralHoard, trinketHoard, uniqueHoard
     case keyword(Keyword)
 
     public static let allCases: [Self] = [
         .gold, .experience, .materials, .wood, .stone, .iron, .food, .herbs, .hide, .gems, .astral, .trinket, .unique,
+        .armsHoard, .armorHoard, .ringHoard, .amuletHoard, .astralHoard, .trinketHoard, .uniqueHoard,
     ] + Keyword.allCases.map(Self.keyword)
 
     private static let keywordsBySuffix: [String: Keyword] = {
@@ -33,6 +36,13 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
         case .astral: "astral"
         case .trinket: "trinket"
         case .unique: "unique"
+        case .armsHoard: "hoard.arms"
+        case .armorHoard: "hoard.armor"
+        case .ringHoard: "hoard.ring"
+        case .amuletHoard: "hoard.amulet"
+        case .astralHoard: "hoard.astral"
+        case .trinketHoard: "hoard.trinket"
+        case .uniqueHoard: "hoard.unique"
         case let .keyword(keyword): "keyword." + (keyword == .deathsDoor ? "deathsDoor" : keyword.rawValue.lowercased())
         }
     }
@@ -52,6 +62,13 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
         case "astral": self = .astral
         case "trinket": self = .trinket
         case "unique": self = .unique
+        case "hoard.arms": self = .armsHoard
+        case "hoard.armor": self = .armorHoard
+        case "hoard.ring": self = .ringHoard
+        case "hoard.amulet": self = .amuletHoard
+        case "hoard.astral": self = .astralHoard
+        case "hoard.trinket": self = .trinketHoard
+        case "hoard.unique": self = .uniqueHoard
         default:
             if rawValue.hasPrefix("keyword.") {
                 let suffix = String(rawValue.dropFirst("keyword.".count))
@@ -111,6 +128,13 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
         case .astral: "Astral Omen"
         case .trinket: "Relic Seeker"
         case .unique: "Lost Legacy"
+        case .armsHoard: "Arms Hoard"
+        case .armorHoard: "Armor Hoard"
+        case .ringHoard: "Ring Hoard"
+        case .amuletHoard: "Amulet Hoard"
+        case .astralHoard: "Astral Hoard"
+        case .trinketHoard: "Trinket Hoard"
+        case .uniqueHoard: "Unique Hoard"
         case let .keyword(keyword):
             switch keyword {
             case .physical: "Iron Writ"
@@ -149,6 +173,13 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
         case .astral: "Better Astral Odds"
         case .trinket: "Better Trinket Odds"
         case .unique: "Better Unique Odds"
+        case .armsHoard: "Drops a Weapon"
+        case .armorHoard: "Drops Armor"
+        case .ringHoard: "Drops a Ring"
+        case .amuletHoard: "Drops an Amulet"
+        case .astralHoard: "Drops an Astral item"
+        case .trinketHoard: "Drops a Trinket"
+        case .uniqueHoard: "Drops a Unique item"
         case let .keyword(keyword): "Drops \(keyword.rawValue) items"
         }
     }
@@ -175,6 +206,32 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
         }
     }
 
+    public var requiredItemTier: ItemDropTier? {
+        switch self {
+        case .astralHoard: .astral
+        case .trinketHoard: .trinket
+        case .uniqueHoard: .unique
+        default: nil
+        }
+    }
+
+    public var requiredBaseTypeIDs: Set<String>? {
+        let eligible: [ItemBaseType]
+        switch self {
+        case .armsHoard:
+            eligible = GameContent.itemBaseTypes.filter { $0.slot == .weapon }
+        case .armorHoard:
+            eligible = GameContent.itemBaseTypes.filter { $0.slot == .armor }
+        case .ringHoard:
+            eligible = GameContent.itemBaseTypes.filter { $0.slot == .accessory && $0.id.hasSuffix("_ring") }
+        case .amuletHoard:
+            eligible = GameContent.itemBaseTypes.filter { $0.slot == .accessory && $0.id.hasSuffix("_amulet") }
+        default:
+            return nil
+        }
+        return Set(eligible.map(\.id))
+    }
+
     public var experienceBonusPercent: Int {
         self == .experience ? Self.bonusPercent : 0
     }
@@ -182,8 +239,10 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
     public static func eligible(ownedTrinketIDs: Set<String>, ownedUniqueIDs: Set<String>) -> [Self] {
         allCases.filter { modifier in
             switch modifier {
-            case .trinket: GameContent.trinketItems.contains { !ownedTrinketIDs.contains($0.templateID) }
-            case .unique: GameContent.uniqueItems.contains { !ownedUniqueIDs.contains($0.templateID) }
+            case .trinket, .trinketHoard: GameContent.trinketItems.contains { !ownedTrinketIDs.contains($0.templateID) }
+            case .unique, .uniqueHoard: GameContent.uniqueItems.contains { !ownedUniqueIDs.contains($0.templateID) }
+            case .armsHoard, .armorHoard, .ringHoard, .amuletHoard:
+                modifier.requiredBaseTypeIDs?.isEmpty == false
             default: true
             }
         }

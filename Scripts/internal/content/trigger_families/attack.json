@@ -668,6 +668,13 @@
       "type": "Bool",
       "default": "false",
       "merge": "or"
+    },
+    {
+      "name": "attackPurgeCount",
+      "type": "Int",
+      "default": "0",
+      "merge": "add",
+      "affix_roll": { "reason": "Encounter-only attack rule, not an equipment roll." }
     }
   ]
 }

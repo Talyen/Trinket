@@ -44,6 +44,12 @@ to that encounter. Combat includes the shared
 including guaranteed keyword equipment. Preserve the original combat/reward category
 ratio, then choose within that category while avoiding the preceding modifier when
 alternatives exist. Shops and Mysteries retain their existing modifier pools.
+Combat modifiers include enemy opening Block, attack Leech, extra Block removal,
+Purge, and 50% resistance to each damage type. Attack riders apply on every
+landed direct hit; resistance reduces typed damage, including damage-over-time
+ticks. Because Stun and Freeze buildup follows resolved damage, those wards
+also reduce buildup. Physical and Freeze resistance
+retain their existing saved IDs at the new 50% strength.
 Recruit stops have no modifier. If no eligible recruit remains, replace that stop
 with a Mystery; a mid-route eligibility change preserves the announced route order,
 so this replacement can create adjacent Mysteries.

@@ -48,6 +48,8 @@ enum BattleLoot {
         materialFocus: HomesteadResource? = nil,
         favoredItemTier: ItemDropTier? = nil,
         itemTierWeightBonusPercent: Int = 0,
+        requiredItemTier: ItemDropTier? = nil,
+        requiredBaseTypeIDs: Set<String>? = nil,
         requiredKeyword: Keyword? = nil,
         astralChanceBonusPercent: Int = 0,
         using randomNumberGenerator: inout some RandomNumberGenerator,
@@ -70,17 +72,30 @@ enum BattleLoot {
             return ResourceAmount($0.resource, CombatRounding.scaled($0.quantity, byPercent: bonus))
         }
 
+        let eligibleBaseTypes = requiredBaseTypeIDs.map { ids in
+            GameContent.itemBaseTypes.filter { ids.contains($0.id) }
+        } ?? GameContent.itemBaseTypes
+        precondition(!eligibleBaseTypes.isEmpty, "Guaranteed item family needs a matching base")
+        let allowedTiers: Set<ItemDropTier> = if let requiredItemTier {
+            [requiredItemTier]
+        } else if requiredBaseTypeIDs != nil {
+            [.basic, .astral]
+        } else {
+            Set(ItemDropTier.allCases)
+        }
         let item = ItemRewardGenerator.generate(
             id: itemID,
             rewardLevel: rewardLevel,
             bossContent: enemyIsBoss,
             astralChanceBonusPercent: astralChanceBonusPercent,
+            allowedTiers: allowedTiers,
             favoredTier: favoredItemTier,
             tierWeightBonusPercent: itemTierWeightBonusPercent,
             requiredKeyword: requiredKeyword,
             ownedTrinketIDs: ownedTrinketIDs,
             ownedUniqueIDs: ownedUniqueIDs,
             keywordBias: keywordBias,
+            baseTypes: eligibleBaseTypes,
             using: &randomNumberGenerator,
         )
 

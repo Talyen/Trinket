@@ -6,7 +6,7 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct BattleLootTests {
-    @Test(arguments: [RewardModifier.keyword(.freeze), .wood, .gold, .unique])
+    @Test(arguments: [RewardModifier.keyword(.freeze), .wood, .gold, .unique, .trinketHoard, .uniqueHoard])
     func `all battle modes apply shared reward modifiers`(modifier: RewardModifier) throws {
         var save = SaveTestSupport.makeSave()
         // Exhausted collectibles must become Gold through every mode's loot path.
@@ -42,6 +42,43 @@ struct BattleLootTests {
                     byPercent: 25,
                 )
                 #expect(boosted.contains(loot.gold))
+            }
+        }
+    }
+
+    @Test(arguments: [
+        RewardModifier.armsHoard, .armorHoard, .ringHoard, .amuletHoard,
+        .astralHoard, .trinketHoard, .uniqueHoard,
+    ])
+    func `hoards guarantee their advertised item across all battle modes`(modifier: RewardModifier) throws {
+        let save = SaveTestSupport.makeSave()
+        let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
+        let ids = [LabyrinthCatalog.rewardID(modifier)]
+        let node = LabyrinthNode(id: "hoard-node", type: .battle, enemyID: enemy.id, depth: 10, clusterID: "cluster", modifierIDs: ids)
+        let voyage = VoyageNode(id: node.id, type: .battle, enemyID: enemy.id, modifierIDs: ids, recruitEventID: nil)
+        let offer = ContractOffer(id: node.id, difficulty: .standard, enemyID: enemy.id, rewardModifier: modifier)
+        let effects = LabyrinthModifierEffects.combining(LabyrinthCatalog.modifiers(ids: ids))
+        let labyrinth = try #require(LabyrinthCompletion.resolveCombatLoot(
+            for: node, effects: effects, worldSeed: save.worldSeed,
+            ownedTrinketIDs: [], ownedUniqueIDs: [],
+        ))
+        for loot in [
+            labyrinth,
+            VoyageCompletion.resolveLoot(node: voyage, encounterLevel: 10, save: save),
+            ContractsCompletion.resolveLoot(for: offer, encounterLevel: 10, save: save),
+        ] {
+            switch modifier {
+            case .armsHoard, .armorHoard, .ringHoard, .amuletHoard:
+                #expect(modifier.requiredBaseTypeIDs?.contains(loot.item.baseType.id) == true)
+                #expect(loot.item.rarity == .basic || loot.item.rarity == .astral)
+            case .astralHoard:
+                #expect(loot.item.rarity == .astral)
+            case .trinketHoard:
+                #expect(loot.item.isTrinket)
+            case .uniqueHoard:
+                #expect(loot.item.rarity == .unique)
+            default:
+                Issue.record("Unexpected modifier")
             }
         }
     }

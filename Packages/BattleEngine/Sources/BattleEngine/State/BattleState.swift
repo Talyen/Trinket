@@ -263,6 +263,14 @@ public struct BattleState {
 
         _ = appendMilestone(.battleStarted(heroName: hero.name, companionName: companion.name))
 
+        if enemyModifiers.triggers.startBattleBlock > 0 {
+            _ = applyBlock(
+                enemyModifiers.triggers.startBattleBlock,
+                to: resolvedEnemy, source: resolvedEnemy,
+                abilityName: "Shielded Arrival", amountBasis: .resolved,
+            )
+        }
+
         if dealOpeningHand {
             BattleCardCombatEngine.bootstrapDecksAndOpeningHand(context: &self)
         } else {

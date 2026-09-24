@@ -76,6 +76,9 @@ and `eye.fill`. Modifier icons and names share the same themed color in map
 inspector captions and combatant-detail Labyrinth entries: combat keyword colors,
 informational blue for XP, wood for materials, Gold for discounts, and arcane for
 Astral offers. Warded Flesh retains its shield icon with Physical coloring.
+New hoards use Physical, Block, ring, amulet, Astral, Trinket, or Unique imagery
+for their advertised item; enemy attack riders reuse Block, Leech, and Purge
+keyword imagery. Other typed wards use their damage keyword color and icon.
 Native navigation, settings, filters, alerts, and other UI retain their existing
 SF selections and symbol animations.
 

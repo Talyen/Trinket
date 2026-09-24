@@ -114,6 +114,7 @@ enum CombatFeedbackEffectPresentation {
         ),
         .partyDamagePreparationApplied: Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .amount),
         .blockSpent: Descriptor(.buff, labelRule: .negatedAmount),
+        .blockStripped: Descriptor(.block, labelRule: .negatedAmount),
         .shieldApplied: Descriptor(.buff, isAdditive: true, labelRule: .amount),
         .shieldAbsorbed: Descriptor(.block, isAdditive: true, labelRule: .negatedAmount),
         .dodgeApplied: Descriptor(.dodge, labelRule: .dodgeWord),

@@ -68,6 +68,8 @@ public enum BattleLogReducer {
             "\(event.targetName) Cleanses \(event.keyword.rawValue) (\(event.abilityName))."
         case .purgeApplied where !event.abilityName.isEmpty:
             "\(event.targetName)'s \(event.keyword.rawValue) is Purged (\(event.abilityName))."
+        case .blockStripped where event.amount > 0:
+            "\(event.actorName) removes \(event.amount) Block from \(event.targetName) (\(event.abilityName))."
         case .hemorrhageTriggered where event.amount > 0:
             "\(event.targetName) suffers \(event.amount) Bleed damage from Hemorrhage."
         default:

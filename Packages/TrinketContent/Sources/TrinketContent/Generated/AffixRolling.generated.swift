@@ -92,7 +92,9 @@ extension CombatTraitTriggers {
         "damageBelowHealthPercentThreshold": "Threshold gates the condition, not the reward.",
         "stunnedDamageMultiplier": "Word-described magnitude has no patchable number in the card text.",
         "criticalPurgeAll": "On/off rule with no rollable magnitude.",
+        "attackPurgeCount": "Encounter-only attack rule, not an equipment roll.",
         "sunderingBlockMultiplier": "Word-described magnitude has no patchable number in the card text.",
+        "attackBlockRemoval": "Encounter-only attack rule, not an equipment roll.",
         "poisonDamageLeech": "On/off rule with no rollable magnitude.",
         "enemyStunnedApplyMarked": "On/off rule with no rollable magnitude.",
         "enemyStunnedPurgeAll": "On/off rule with no rollable magnitude.",
@@ -104,6 +106,7 @@ extension CombatTraitTriggers {
         "forbiddenKnowledge": "On/off rule with no rollable magnitude.",
         "victoryGoldCoin": "On/off rule with no rollable magnitude.",
         "physicalAttackLeechBelowHalfHealth": "On/off Leech rule with no rollable magnitude.",
+        "attackLeechPercent": "Encounter-only attack rule, not an equipment roll.",
     ]
 }
 

@@ -64,6 +64,15 @@ The guarantee uses a normal affix slot, carries no additional percentage bonus,
 and leaves Gold, XP, and materials unchanged. Basic/Astral relative tier weights
 retain progression, boss, and Homestead adjustments; collectible tiers are excluded.
 
+Arms, Armor, Ring, and Amulet Hoards guarantee the normal victory item belongs
+to that family, using only Basic/Astral tiers with their ordinary relative
+weights and affixes. Arms includes off-hand Weapon-slot bases; Rings and Amulets
+are distinct Accessory bases. Astral, Trinket, and Unique Hoards instead
+guarantee the named tier. They grant the normal single item, not an extra item.
+The existing Astral Omen, Relic Seeker, and Lost Legacy remain weight bonuses,
+not guarantees. Exhausted Trinket/Unique Hoards follow the same Bonus Gold
+fallback as their weight-bonus counterparts.
+
 Legacy offers without a modifier retain their IDs and targets and gain Bonus Gold.
 Party changes and retries retain the saved modifier; refresh and victory replacement
 roll a new one. XP bonuses are baked into the launch reward plan, including the

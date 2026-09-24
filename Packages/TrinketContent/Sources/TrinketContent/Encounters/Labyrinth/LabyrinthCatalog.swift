@@ -2,6 +2,12 @@ import Foundation
 import TrinketCore
 
 public enum LabyrinthCatalog {
+    /// These combat entries set the original combat/reward category odds.
+    private static let originalCombatIDs: Set<LabyrinthModifierID> = Set([
+        "ironPressure", "ashTithe", "bloodMarket", "serpentBloom", "rimeTax", "sunTithe", "concussionToll",
+        "bulwarkBargain", "vampiricLedger", "wardedFlesh", "frostboundWard",
+    ].map { LabyrinthModifierID($0) })
+
     public static let modifiers: [LabyrinthModifierDefinition] = [
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("ironPressure"),
@@ -60,13 +66,73 @@ public enum LabyrinthCatalog {
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("wardedFlesh"),
             title: "Warded Flesh",
-            effect: .damageTakenReduction(keyword: .physical, percent: 20),
+            effect: .damageTakenReduction(keyword: .physical, percent: 50),
+            nodeTypes: [.battle, .boss],
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("cinderWard"),
+            title: "Cinder Ward",
+            effect: .damageTakenReduction(keyword: .burn, percent: 50),
+            nodeTypes: [.battle, .boss],
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("venomWard"),
+            title: "Venom Ward",
+            effect: .damageTakenReduction(keyword: .poison, percent: 50),
+            nodeTypes: [.battle, .boss],
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("crimsonWard"),
+            title: "Crimson Ward",
+            effect: .damageTakenReduction(keyword: .bleed, percent: 50),
+            nodeTypes: [.battle, .boss],
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("sunward"),
+            title: "Sunward",
+            effect: .damageTakenReduction(keyword: .holy, percent: 50),
             nodeTypes: [.battle, .boss],
         ),
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("frostboundWard"),
             title: "Frostbound Ward",
-            effect: .damageTakenReduction(keyword: .freeze, percent: 30),
+            effect: .damageTakenReduction(keyword: .freeze, percent: 50),
+            nodeTypes: [.battle, .boss],
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("thunderWard"),
+            title: "Thunder Ward",
+            effect: .damageTakenReduction(keyword: .stun, percent: 50),
+            nodeTypes: [.battle, .boss],
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("briarWard"),
+            title: "Briar Ward",
+            effect: .damageTakenReduction(keyword: .thorns, percent: 50),
+            nodeTypes: [.battle, .boss],
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("shieldedArrival"),
+            title: "Shielded Arrival",
+            effect: .startBattleBlock(6),
+            nodeTypes: [.battle, .boss],
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("bloodHunger"),
+            title: "Blood Hunger",
+            effect: .attackLeech,
+            nodeTypes: [.battle, .boss],
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("sunderedGuard"),
+            title: "Sundered Guard",
+            effect: .attackBlockRemoval(2),
+            nodeTypes: [.battle, .boss],
+        ),
+        LabyrinthModifierDefinition(
+            id: LabyrinthModifierID("unbindingStrike"),
+            title: "Unbinding Strike",
+            effect: .attackPurge(1),
             nodeTypes: [.battle, .boss],
         ),
         LabyrinthModifierDefinition(
@@ -173,11 +239,22 @@ public enum LabyrinthCatalog {
                 true
             }
         }
-        let pool: [LabyrinthModifierDefinition] = if type.isCombat, !rewards.isEmpty {
-            // Three reward entries competed with combat effects before the shared catalog expanded.
-            Int.random(in: 0 ..< combat.count + 3, using: &rng) < 3 ? rewards : combat
+        let pool: [LabyrinthModifierDefinition]
+        if type.isCombat, !rewards.isEmpty {
+            // Keep the category odds from the original pool as new combat rules arrive.
+            // Its Physical and Freeze wards were eligible only for matching enemies.
+            let enemyKeywords = enemyID.map { enemyDamageKeywords(for: $0) } ?? []
+            let originalCombatCount = combat.count { modifier in
+                guard originalCombatIDs.contains(modifier.id) else { return false }
+                return switch modifier.id.rawValue {
+                case "wardedFlesh": enemyKeywords.contains(.physical)
+                case "frostboundWard": enemyKeywords.contains(.freeze)
+                default: true
+                }
+            }
+            pool = Int.random(in: 0 ..< originalCombatCount + 3, using: &rng) < 3 ? rewards : combat
         } else {
-            combat + rewards
+            pool = combat + rewards
         }
         let different = pool.filter { $0.id != previousID }
         return (different.isEmpty ? pool : different).randomElement(using: &rng)?.id

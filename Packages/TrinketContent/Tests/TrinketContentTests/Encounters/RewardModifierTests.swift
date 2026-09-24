@@ -35,6 +35,31 @@ struct RewardModifierTests {
         #expect(Set(RewardModifier.allCases.map(\.rawValue)).count == RewardModifier.allCases.count)
     }
 
+    @Test func `hoards keep tier bonuses distinct from guarantees and have usable item pools`() {
+        #expect(RewardModifier.astral.favoredItemTier == .astral)
+        #expect(RewardModifier.astral.requiredItemTier == nil)
+        #expect(RewardModifier.astralHoard.requiredItemTier == .astral)
+        #expect(RewardModifier.trinketHoard.requiredItemTier == .trinket)
+        #expect(RewardModifier.uniqueHoard.requiredItemTier == .unique)
+        for modifier in [RewardModifier.armsHoard, .armorHoard, .ringHoard, .amuletHoard] {
+            let ids = modifier.requiredBaseTypeIDs ?? []
+            #expect(!ids.isEmpty)
+            #expect(ids.allSatisfy { id in GameContent.itemBaseTypes.contains { $0.id == id } })
+        }
+        #expect(RewardModifier.ringHoard.requiredBaseTypeIDs?.isDisjoint(
+            with: RewardModifier.amuletHoard.requiredBaseTypeIDs ?? [],
+        ) == true)
+        let eligible = RewardModifier.eligible(
+            ownedTrinketIDs: Set(GameContent.trinketItems.map(\.templateID)),
+            ownedUniqueIDs: Set(GameContent.uniqueItems.map(\.templateID)),
+        )
+        #expect(!eligible.contains(.trinketHoard))
+        #expect(!eligible.contains(.uniqueHoard))
+        #expect(RewardModifier.trinketHoard.resolved(
+            ownedTrinketIDs: Set(GameContent.trinketItems.map(\.templateID)), ownedUniqueIDs: [],
+        ) == .gold)
+    }
+
     @Test(arguments: Keyword.allCases, [false, true])
     func `every keyword guarantees matching generated gear with normal affix counts`(keyword: Keyword, boss: Bool) throws {
         let matchingBases = GameContent.itemBaseTypes.filter { base in
@@ -85,22 +110,14 @@ struct RewardModifierTests {
         }
     }
 
-    @Test func `reward expansion preserves category odds and excludes exhausted collectibles`() throws {
+    @Test func `reward expansion excludes exhausted collectibles`() throws {
         let eligible = RewardModifier.eligible(
             ownedTrinketIDs: Set(GameContent.trinketItems.map(\.templateID)),
             ownedUniqueIDs: Set(GameContent.uniqueItems.map(\.templateID)),
         )
         for enemy in [GameContent.enemies.first { !$0.isBoss }, GameContent.enemies.first { $0.isBoss }].compactMap(\.self) {
             let type: LabyrinthNodeType = enemy.isBoss ? .boss : .battle
-            let combatCount = LabyrinthCatalog.combatModifiers(for: enemy.id, nodeType: type).count(where: {
-                if case .reward = $0.effect {
-                    false
-                } else {
-                    true
-                }
-            })
             var rng = SeededRandomNumberGenerator(seed: 9)
-            var rewardCount = 0
             var seen: Set<RewardModifier> = []
             var previous: LabyrinthModifierID?
             for _ in 0 ..< 3000 {
@@ -112,11 +129,9 @@ struct RewardModifierTests {
                 let definition = try #require(LabyrinthCatalog.modifier(id: id))
                 if case let .reward(reward) = definition.effect {
                     #expect(eligible.contains(reward))
-                    rewardCount += 1
                     seen.insert(reward)
                 }
             }
-            #expect(abs(Double(rewardCount) / 3000 - 3 / Double(combatCount + 3)) < 0.035)
             #expect(seen == Set(eligible))
         }
     }

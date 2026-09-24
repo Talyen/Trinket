@@ -203,6 +203,8 @@ public enum VictoryRewardApplier {
             materialFocus: modifier?.materialFocus,
             favoredItemTier: modifier?.favoredItemTier,
             itemTierWeightBonusPercent: modifier?.favoredItemTier != nil ? RewardModifier.rareTierWeightBonusPercent : 0,
+            requiredItemTier: modifier?.requiredItemTier,
+            requiredBaseTypeIDs: modifier?.requiredBaseTypeIDs,
             requiredKeyword: modifier?.requiredKeyword,
             astralChanceBonusPercent: astralChanceBonusPercent,
             using: &rng,

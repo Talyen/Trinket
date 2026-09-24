@@ -110,8 +110,9 @@ unchanged inputs and pool availability across the displayed reward count.
 
 ## Shared reward modifiers
 
-`RewardModifier` owns 13 quantity/material/item-tier bonuses and 17 keyword
-item guarantees shared by Contracts and Labyrinth/Voyage combat nodes. Contract
+`RewardModifier` owns 13 quantity/material/item-tier bonuses, seven item-family
+or tier guarantees, and 17 keyword item guarantees shared by Contracts and
+Labyrinth/Voyage combat nodes. Contract
 saves retain their `rewardModifier` field and existing string values; keyword
 values use `keyword.<keyword>` (including `keyword.deathsDoor`). Labyrinth/Voyage
 retain saved modifier IDs, including `bountyMark`, `scholarsToll`, and
@@ -130,6 +131,13 @@ combat/reward ratio. Selection within the chosen category is uniform; Voyage
 excludes its preceding modifier there when an alternative exists. Contracts select
 uniformly among eligible rewards. New combat rewards do not enter Mystery or Shop
 pools; the original three Mystery reward bonuses remain supported.
+
+Arms, Armor, Ring, and Amulet Hoards restrict the ordinary single item to that
+base family and Basic/Astral tiers. Astral, Trinket, and Unique Hoards guarantee
+their named tier rather than changing its weight. Secondary equipment positions
+share these base families, so they do not have separate modifiers. Trinket/Unique
+guarantees are excluded once their unowned pool is empty; saved exhausted IDs
+resolve to Bonus Gold without changing the saved ID.
 
 Generation excludes exhausted Trinket/Unique rewards. A saved exhausted reward
 resolves to Bonus Gold for presentation and payout without rewriting its ID.

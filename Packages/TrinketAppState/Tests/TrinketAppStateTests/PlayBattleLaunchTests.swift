@@ -112,6 +112,20 @@ struct PlayBattleLaunchTests {
         #expect(launch.presentation.labyrinthModifiers == modifiers)
     }
 
+    @Test func `shared node combat effects reach the enemy profile`() {
+        let ids = ["shieldedArrival", "bloodHunger", "sunderedGuard", "unbindingStrike", "cinderWard"]
+            .map { LabyrinthModifierID($0) }
+        let definitions = ids.compactMap(GameContent.labyrinthModifier(id:))
+        #expect(definitions.count == ids.count)
+        let effects = LabyrinthModifierEffects.combining(definitions)
+        let profile = CombatModifierProfile(modifiers: LabyrinthPlayMode.combatModifiers(from: effects))
+        #expect(profile.triggers.startBattleBlock == 6)
+        #expect(profile.triggers.attackLeechPercent == Effect.abilityLeechPercent)
+        #expect(profile.triggers.attackBlockRemoval == 2)
+        #expect(profile.triggers.attackPurgeCount == 1)
+        #expect(profile.damageTakenReduction(for: .burn) == 0.5)
+    }
+
     @Test func `assemble bakes gold find and claimed stage policy`() throws {
         let (knight, wolf) = try knightAndWolf()
         let stage = try #require(GameContent.chapters[0].stages.first)
