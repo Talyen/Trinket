@@ -2,7 +2,7 @@ public extension AccessibilityID {
     enum Voyage {
         public static let modeCard = "Voyage Mode Card"
         public static let screen = "Voyage Screen"
-        public static let progress = "Voyage Progress"
+        public static let destinationReward = "Voyage Destination Reward"
         public static let options = "Voyage Options"
         public static let confirmAbandon = "Confirm Abandon Voyage"
         public static let refresh = "Refresh Voyages"

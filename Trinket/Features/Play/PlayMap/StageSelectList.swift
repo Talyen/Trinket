@@ -8,6 +8,7 @@ import TrinketFeatureSupport
 struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View>: View {
     let rows: [StageSelectRowPresentation<Item>]
     var rowSpacing: CGFloat = TrinketDesign.Spacing.extraSmall * 2
+    var primaryActionLabelColor: Color = TrinketDesign.Colors.Overlay.paper
     let isPrimaryActionDisabled: (Item) -> Bool
     var isLockedContent: (Item) -> Bool = { _ in false }
     let onArtworkTap: (Item) -> Void
@@ -22,6 +23,7 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
                     presentation: presentation,
                     isPrimaryActionDisabled: isPrimaryActionDisabled(presentation.item),
                     isLockedContent: isLockedContent(presentation.item),
+                    primaryActionLabelColor: primaryActionLabelColor,
                     onArtworkTap: { onArtworkTap(presentation.item) },
                     onPrimaryAction: { onPrimaryAction(presentation.item) },
                     artwork: { artwork(presentation.item, presentation.isActive) },
@@ -38,6 +40,7 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
     let presentation: StageSelectRowPresentation<Item>
     let isPrimaryActionDisabled: Bool
     let isLockedContent: Bool
+    let primaryActionLabelColor: Color
     let onArtworkTap: () -> Void
     let onPrimaryAction: () -> Bool
     @ViewBuilder let artwork: () -> Artwork
@@ -50,6 +53,7 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
                     presentation: presentation,
                     isPrimaryActionDisabled: isPrimaryActionDisabled,
                     isLockedContent: isLockedContent,
+                    primaryActionLabelColor: primaryActionLabelColor,
                     onArtworkTap: onArtworkTap,
                     onPrimaryAction: onPrimaryAction,
                     artwork: artwork,

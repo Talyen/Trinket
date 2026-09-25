@@ -46,6 +46,8 @@ enum BattleLoot {
         goldFoundPercent: Int = 0,
         materialsFoundPercent: Int = 0,
         materialFocus: HomesteadResource? = nil,
+        additionalMaterialFocus: HomesteadResource? = nil,
+        materialBonusPercents: [HomesteadResource: Int]? = nil,
         favoredItemTier: ItemDropTier? = nil,
         itemTierWeightBonusPercent: Int = 0,
         requiredItemTier: ItemDropTier? = nil,
@@ -64,11 +66,12 @@ enum BattleLoot {
             count: 2,
             range: range,
             quantityMultiplier: multiplier,
-            focus: materialFocus,
+            focuses: [materialFocus, additionalMaterialFocus].compactMap(\.self),
             using: &randomNumberGenerator,
         )
         materials = materials.map {
-            let bonus = materialFocus == nil || $0.resource == materialFocus ? materialsFoundPercent : 0
+            let bonus = materialBonusPercents?[$0.resource]
+                ?? (materialFocus == nil || $0.resource == materialFocus ? materialsFoundPercent : 0)
             return ResourceAmount($0.resource, CombatRounding.scaled($0.quantity, byPercent: bonus))
         }
 
@@ -106,14 +109,14 @@ enum BattleLoot {
         count: Int,
         range: ClosedRange<Int>,
         quantityMultiplier: Int,
-        focus: HomesteadResource?,
+        focuses: [HomesteadResource],
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> [ResourceAmount] {
         var pool = materialResources
         var picked: [ResourceAmount] = []
-        for _ in 0 ..< count {
+        for slot in 0 ..< count {
             guard !pool.isEmpty else { break }
-            let index: Int = if picked.isEmpty, let focus, let focusIndex = pool.firstIndex(of: focus) {
+            let index: Int = if focuses.indices.contains(slot), let focusIndex = pool.firstIndex(of: focuses[slot]) {
                 focusIndex
             } else {
                 Int.random(in: 0 ..< pool.count, using: &randomNumberGenerator)

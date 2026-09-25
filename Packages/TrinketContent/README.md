@@ -117,6 +117,8 @@ saves retain their `rewardModifier` field and existing string values; keyword
 values use `keyword.<keyword>` (including `keyword.deathsDoor`). Labyrinth/Voyage
 retain saved modifier IDs, including `bountyMark`, `scholarsToll`, and
 `scavengersLuck`. Existing maps/routes are not rerolled.
+Voyage destination offers also save a shared reward modifier for their final boss
+reward. Missing offer modifiers decode as Bonus Gold.
 
 Keyword rewards choose uniformly among non-Trinket bases that have the advertised
 keyword affinity and a positive-weight eligible affix for it. Generation reserves

@@ -34,12 +34,23 @@ public struct VoyageOffer: Identifiable, Codable, Equatable, Sendable {
     public let chapterID: String
     public let difficulty: VoyageDifficulty
     public let seed: UInt64
+    public let rewardModifier: RewardModifier
 
-    public init(id: String, chapterID: String, difficulty: VoyageDifficulty, seed: UInt64) {
+    public init(id: String, chapterID: String, difficulty: VoyageDifficulty, seed: UInt64, rewardModifier: RewardModifier = .gold) {
         self.id = id
         self.chapterID = chapterID
         self.difficulty = difficulty
         self.seed = seed
+        self.rewardModifier = rewardModifier
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        chapterID = try values.decode(String.self, forKey: .chapterID)
+        difficulty = try values.decode(VoyageDifficulty.self, forKey: .difficulty)
+        seed = try values.decode(UInt64.self, forKey: .seed)
+        rewardModifier = try values.decodeIfPresent(RewardModifier.self, forKey: .rewardModifier) ?? .gold
     }
 }
 

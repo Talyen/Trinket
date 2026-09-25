@@ -10,15 +10,17 @@ locations. Offers draw only from accessible Chapters: Forest, Dungeon, and Deser
 for free players; full-game owners draw three of those plus Tundra. Chapter
 completion is not required. Refresh is free before embarking.
 
-Each card reuses Chapter art, with difficulty above the location name, the shared
-Party picker, and Embark (`location.north.fill`). The Explore card and board hero
+Each card reuses Chapter art, with difficulty above the location name, a distinct
+eligible reward modifier when possible, the shared Party picker, and Embark
+(`location.north.fill`). Refresh rerolls all three modifiers. The Explore card and board hero
 use the compass-and-map Voyage artwork; the title is native UI text.
 
 One Voyage can be active. Embark persists the complete generated route before
 navigation. Returning from Explore resumes it directly. The route uses Campaign's
-hero and stage layout, a difficulty/Voyage eyebrow, location title, and completed
-node count. All node types, enemies, and modifiers are visible; Mystery outcomes
-remain concealed. Only the next uncleared node can be played.
+hero and stage layout, a difficulty/Voyage eyebrow, location title, and the saved
+destination reward modifier on the hero artwork. The current node shows its modifier;
+future nodes show their type and enemy without a modifier preview or node number.
+Mystery outcomes remain concealed. Only the next uncleared node can be played.
 
 The party can change between battles. Each attempt starts fresh. Defeat and retreat
 retain the route for retry; shared defeat XP and retreat rules apply. Abandon
@@ -76,6 +78,15 @@ before wallet-cap conversion, and excludes shops, Mysteries, defeat rewards, and
 the completion bonus itself. Apply capacity/overflow rules to the final award;
 do not multiply the completion bonus again. The final victory displays and commits
 the combined payout atomically with Voyage completion.
+
+Each offer saves one shared reward modifier. It applies to the final boss's normal
+victory reward only; retreat, defeat, and abandonment do not pay it. Compatible
+Gold, XP, and material bonuses add to the boss node's modifier. Two different
+material focuses occupy the two material slots. If both modifiers affect items,
+the boss rolls one item for each rule, with distinct saved IDs and collectible
+ownership respected between rolls. The route's 20% completion bonus remains
+separate. Exhausted collectible modifiers resolve to Bonus Gold, including on
+legacy offers whose saved modifier is missing.
 
 No entry costs, timers, separate currencies, or health carryover are introduced.
 

@@ -236,6 +236,13 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
         self == .experience ? Self.bonusPercent : 0
     }
 
+    public var isItemFocused: Bool {
+        switch self {
+        case .gold, .experience, .materials, .wood, .stone, .iron, .food, .herbs, .hide, .gems: false
+        default: true
+        }
+    }
+
     public static func eligible(ownedTrinketIDs: Set<String>, ownedUniqueIDs: Set<String>) -> [Self] {
         allCases.filter { modifier in
             switch modifier {

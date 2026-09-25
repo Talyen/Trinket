@@ -13,6 +13,7 @@ public struct LootRequest: Equatable, Sendable {
     public var goldFoundPercent: Int
     public var materialsFoundPercent: Int
     public var rewardModifier: RewardModifier?
+    public var additionalRewardModifier: RewardModifier?
 
     public init(
         rewardLevel: Int,
@@ -22,6 +23,7 @@ public struct LootRequest: Equatable, Sendable {
         goldFoundPercent: Int = 0,
         materialsFoundPercent: Int = 0,
         rewardModifier: RewardModifier? = nil,
+        additionalRewardModifier: RewardModifier? = nil,
     ) {
         self.rewardLevel = rewardLevel
         self.seedSalt = seedSalt
@@ -30,6 +32,7 @@ public struct LootRequest: Equatable, Sendable {
         self.goldFoundPercent = goldFoundPercent
         self.materialsFoundPercent = materialsFoundPercent
         self.rewardModifier = rewardModifier
+        self.additionalRewardModifier = additionalRewardModifier
     }
 }
 
@@ -92,12 +95,16 @@ public extension LootRequest {
         )
     }
 
-    static func voyage(node: VoyageNode, rewardLevel: Int, effects: LabyrinthModifierEffects) -> LootRequest {
+    static func voyage(
+        node: VoyageNode, rewardLevel: Int, effects: LabyrinthModifierEffects,
+        additionalRewardModifier: RewardModifier? = nil,
+    ) -> LootRequest {
         LootRequest(
             rewardLevel: rewardLevel, seedSalt: node.id, itemID: "voyage-\(node.id)",
             goldFoundPercent: effects.goldFoundPercent - (effects.rewardModifier?.goldBonusPercent ?? 0),
             materialsFoundPercent: effects.materialsFoundPercent - (effects.rewardModifier?.materialsBonusPercent ?? 0),
             rewardModifier: effects.rewardModifier,
+            additionalRewardModifier: additionalRewardModifier,
         )
     }
 
@@ -190,6 +197,20 @@ public enum VictoryRewardApplier {
         let modifier = request.rewardModifier?.resolved(
             ownedTrinketIDs: ownership.ownedTrinketIDs, ownedUniqueIDs: ownership.ownedUniqueIDs,
         )
+        let additionalModifier = request.additionalRewardModifier?.resolved(
+            ownedTrinketIDs: ownership.ownedTrinketIDs, ownedUniqueIDs: ownership.ownedUniqueIDs,
+        )
+        let itemModifier = modifier?.isItemFocused == true ? modifier
+            : additionalModifier?.isItemFocused == true ? additionalModifier : nil
+        let focuses = [modifier?.materialFocus, additionalModifier?.materialFocus].compactMap(\.self)
+        let materialBonusPercents: [HomesteadResource: Int]? = additionalModifier.map { _ in
+            Dictionary(uniqueKeysWithValues: BattleLoot.materialResources.map { resource in
+                let bonus = [modifier, additionalModifier].compactMap(\.self).reduce(request.materialsFoundPercent) { total, modifier in
+                    total + (modifier == .materials || modifier.materialFocus == resource ? RewardModifier.bonusPercent : 0)
+                }
+                return (resource, bonus)
+            })
+        }
         return BattleLoot.resolve(
             encounterLevel: encounterLevel,
             rewardLevel: max(1, encounterLevel),
@@ -198,14 +219,17 @@ public enum VictoryRewardApplier {
             keywordBias: request.keywordBias,
             ownedTrinketIDs: ownership.ownedTrinketIDs,
             ownedUniqueIDs: ownership.ownedUniqueIDs,
-            goldFoundPercent: request.goldFoundPercent + (modifier?.goldBonusPercent ?? 0),
+            goldFoundPercent: request.goldFoundPercent + (modifier?.goldBonusPercent ?? 0)
+                + (additionalModifier?.goldBonusPercent ?? 0),
             materialsFoundPercent: request.materialsFoundPercent + (modifier?.materialsBonusPercent ?? 0),
-            materialFocus: modifier?.materialFocus,
-            favoredItemTier: modifier?.favoredItemTier,
-            itemTierWeightBonusPercent: modifier?.favoredItemTier != nil ? RewardModifier.rareTierWeightBonusPercent : 0,
-            requiredItemTier: modifier?.requiredItemTier,
-            requiredBaseTypeIDs: modifier?.requiredBaseTypeIDs,
-            requiredKeyword: modifier?.requiredKeyword,
+            materialFocus: focuses.first,
+            additionalMaterialFocus: focuses.dropFirst().first,
+            materialBonusPercents: materialBonusPercents,
+            favoredItemTier: itemModifier?.favoredItemTier,
+            itemTierWeightBonusPercent: itemModifier?.favoredItemTier != nil ? RewardModifier.rareTierWeightBonusPercent : 0,
+            requiredItemTier: itemModifier?.requiredItemTier,
+            requiredBaseTypeIDs: itemModifier?.requiredBaseTypeIDs,
+            requiredKeyword: itemModifier?.requiredKeyword,
             astralChanceBonusPercent: astralChanceBonusPercent,
             using: &rng,
         )

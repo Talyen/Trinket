@@ -38,9 +38,15 @@ struct VoyageView: View {
         StageSelectScreen(
             eyebrow: run.map { "\($0.offer.difficulty.title.uppercased()) VOYAGE" },
             title: run.flatMap { GameContent.chapter(id: $0.offer.chapterID)?.title } ?? "Voyage",
-            subtitle: run.map { "\($0.nodes.filter(\.isCleared).count) of \($0.nodes.count) completed" },
+            subtitle: nil,
+            heroModifier: run.map { run in
+                ModifierCaptionPresentation(run.offer.rewardModifier.resolved(
+                    ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
+                    ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
+                ))
+            },
             titleAccessibilityIdentifier: nil,
-            subtitleAccessibilityIdentifier: AccessibilityID.Voyage.progress,
+            subtitleAccessibilityIdentifier: AccessibilityID.Voyage.destinationReward,
         ) {
             if let art = ArtCatalog.backgroundArtByID[heroID], pinnedArtwork.contains(art.imageName) {
                 FocalBackgroundArtwork(art: art)
@@ -125,7 +131,9 @@ struct VoyageView: View {
 
     private func board(_ offers: [VoyageOffer]) -> some View {
         StageSelectList(
-            rows: StageSelectRowPresentation<VoyageOffer>.voyageOffers(offers), rowSpacing: TrinketDesign.Spacing.large,
+            rows: StageSelectRowPresentation<VoyageOffer>.voyageOffers(offers, inventory: playerSave.inventory),
+            rowSpacing: TrinketDesign.Spacing.large,
+            primaryActionLabelColor: TrinketDesign.Colors.canvas,
             isPrimaryActionDisabled: { _ in !isReady }, onArtworkTap: { _ in },
             onPrimaryAction: { offer in
                 guard isReady else { return false }

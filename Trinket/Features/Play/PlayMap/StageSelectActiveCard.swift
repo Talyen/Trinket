@@ -17,6 +17,7 @@ struct StageSelectActiveCard<
     let presentation: StageSelectRowPresentation<Item>
     let isPrimaryActionDisabled: Bool
     let isLockedContent: Bool
+    let primaryActionLabelColor: Color
     let onArtworkTap: () -> Void
     let onPrimaryAction: () -> Bool
     @ViewBuilder let artwork: () -> Artwork
@@ -31,6 +32,7 @@ struct StageSelectActiveCard<
         presentation: StageSelectRowPresentation<Item>,
         isPrimaryActionDisabled: Bool,
         isLockedContent: Bool = false,
+        primaryActionLabelColor: Color = TrinketDesign.Colors.Overlay.paper,
         onArtworkTap: @escaping () -> Void,
         onPrimaryAction: @escaping () -> Bool,
         @ViewBuilder artwork: @escaping () -> Artwork,
@@ -40,6 +42,7 @@ struct StageSelectActiveCard<
         self.presentation = presentation
         self.isPrimaryActionDisabled = isPrimaryActionDisabled
         self.isLockedContent = isLockedContent
+        self.primaryActionLabelColor = primaryActionLabelColor
         self.onArtworkTap = onArtworkTap
         self.onPrimaryAction = onPrimaryAction
         self.artwork = artwork
@@ -78,6 +81,17 @@ struct StageSelectActiveCard<
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
                     .trinketLockedCardEffect(isLocked: isLockedContent)
+            }
+            .overlay {
+                if !presentation.modifiers.isEmpty {
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0.45),
+                            .init(color: TrinketDesign.Colors.Overlay.ink.opacity(0.68), location: 1),
+                        ], startPoint: .top, endPoint: .bottom,
+                    )
+                    .allowsHitTesting(false)
+                }
             }
             .overlay(alignment: .bottomLeading) {
                 artworkAccessory()
@@ -118,10 +132,12 @@ struct StageSelectActiveCard<
 
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
-            Text(balanced: presentation.activeEyebrow.uppercased())
-                .trinketTypography(.eyebrow)
-                .foregroundStyle(.secondary)
-                .trinketSingleLineFittedText()
+            if !presentation.activeEyebrow.isEmpty {
+                Text(balanced: presentation.activeEyebrow.uppercased())
+                    .trinketTypography(.eyebrow)
+                    .foregroundStyle(.secondary)
+                    .trinketSingleLineFittedText()
+            }
 
             Text(balanced: presentation.title)
                 .trinketTypography(.sectionDisplay)
@@ -166,7 +182,7 @@ struct StageSelectActiveCard<
         .trinketPrimaryActionButton(
             controlSize: .regular,
             tint: isLockedContent ? TrinketDesign.Colors.accent : presentation.tint,
-            labelColor: TrinketDesign.Colors.Overlay.paper,
+            labelColor: primaryActionLabelColor,
             accessibilityIdentifier: presentation.actionAccessibilityID,
         )
         .accessibilityLabel(isLockedContent ? "Unlock" : presentation.primaryActionTitle)
@@ -202,6 +218,7 @@ extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
         presentation: StageSelectRowPresentation<Item>,
         isPrimaryActionDisabled: Bool,
         isLockedContent: Bool = false,
+        primaryActionLabelColor: Color = TrinketDesign.Colors.Overlay.paper,
         onArtworkTap: @escaping () -> Void,
         onPrimaryAction: @escaping () -> Bool,
         @ViewBuilder artwork: @escaping () -> Artwork,
@@ -211,6 +228,7 @@ extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
             presentation: presentation,
             isPrimaryActionDisabled: isPrimaryActionDisabled,
             isLockedContent: isLockedContent,
+            primaryActionLabelColor: primaryActionLabelColor,
             onArtworkTap: onArtworkTap,
             onPrimaryAction: onPrimaryAction,
             artwork: artwork,
@@ -225,8 +243,10 @@ struct StageSelectMetaLine<Item: Identifiable>: View {
 
     var body: some View {
         HStack(spacing: TrinketDesign.Spacing.extraSmall) {
-            Text(presentation.mapLabel)
-            Text("·")
+            if !presentation.mapLabel.isEmpty {
+                Text(presentation.mapLabel)
+                Text("·")
+            }
             Text(presentation.encounterTypeTitle)
                 .foregroundStyle(presentation.tint)
             GameIconImage(presentation.icon)

@@ -48,6 +48,7 @@ struct VoyagePersistenceTests {
         state.ensureBoard(access: .free)
         #expect(Set(state.offers.map(\.chapterID)) == ["chapter-1", "chapter-2", "chapter-3"])
         #expect(state.offers.map(\.difficulty) == VoyageDifficulty.allCases)
+        #expect(Set(state.offers.map(\.rewardModifier)).count == 3)
         let original = state
         state.ensureBoard(access: .free)
         #expect(state == original)
@@ -65,6 +66,111 @@ struct VoyagePersistenceTests {
         #expect(state.offers[0].id != offer.id)
         #expect(Array(state.offers.dropFirst()) == Array(original.offers.dropFirst()))
         #expect(!state.isPlayable(runID: offer.id, nodeID: embarked.activeRun?.nodes.first?.id ?? ""))
+    }
+
+    @Test func `destination modifiers survive refresh, replacement, and reload`() throws {
+        var state = PlayerVoyageState()
+        let choices: [RewardModifier] = [.gold, .experience, .wood]
+        state.ensureBoard(access: .free, eligibleModifiers: choices)
+        #expect(Set(state.offers.map(\.rewardModifier)) == Set(choices))
+        state.refresh(access: .free, eligibleModifiers: choices)
+        #expect(Set(state.offers.map(\.rewardModifier)) == Set(choices))
+        let offer = try #require(state.offers.first)
+        let embarked = state.embark(offerID: offer.id, eligibleRecruitEventIDs: [], access: .free)
+        #expect(embarked)
+        let run = try #require(state.activeRun)
+        #expect(run.offer.rewardModifier == offer.rewardModifier)
+        let abandoned = state.abandon(runID: run.id, access: .free, eligibleModifiers: choices)
+        #expect(abandoned)
+        #expect(Set(state.offers.map(\.rewardModifier)) == Set(choices))
+        #expect(try PlayerVoyageState.decodePayload(JSONEncoder().encode(state)) == state)
+    }
+
+    @Test func `legacy Voyage offer receives Bonus Gold without changing identity`() throws {
+        let offer = VoyageOffer(id: "legacy", chapterID: "chapter-1", difficulty: .easy, seed: 17)
+        var json = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(offer)) as? [String: Any])
+        json.removeValue(forKey: "rewardModifier")
+        let restored = try JSONDecoder().decode(VoyageOffer.self, from: JSONSerialization.data(withJSONObject: json))
+        #expect(restored == offer)
+        #expect(restored.rewardModifier == .gold)
+    }
+
+    @Test func `final destination and node Gold bonuses add on the boss reward`() {
+        let save = SaveTestSupport.makeSave()
+        let offer = VoyageOffer(id: "gold-run", chapterID: "chapter-1", difficulty: .easy, seed: 17, rewardModifier: .gold)
+        let plain = VoyageNode(id: "gold-boss", type: .boss, enemyID: "the_blight_treant", modifierIDs: [], recruitEventID: nil)
+        var marked = plain
+        marked.modifierIDs = [LabyrinthCatalog.rewardID(.gold)]
+        let baseline = VoyageCompletion.resolveLoot(node: plain, encounterLevel: 10, save: save)
+        let enhanced = VoyageCompletion.resolveFinalLoot(node: marked, offer: offer, encounterLevel: 10, save: save)
+        #expect(enhanced.primary.gold == CombatRounding.scaled(baseline.gold, byPercent: 50))
+        #expect(enhanced.additionalItem == nil)
+        #expect(enhanced.primary.materials == baseline.materials)
+    }
+
+    @Test func `two material focuses fill both boss slots`() {
+        let save = SaveTestSupport.makeSave()
+        let offer = VoyageOffer(id: "material-run", chapterID: "chapter-1", difficulty: .easy, seed: 17, rewardModifier: .stone)
+        let node = VoyageNode(
+            id: "material-boss", type: .boss, enemyID: "the_blight_treant",
+            modifierIDs: [LabyrinthCatalog.rewardID(.wood)], recruitEventID: nil,
+        )
+        let loot = VoyageCompletion.resolveFinalLoot(node: node, offer: offer, encounterLevel: 10, save: save)
+        #expect(Set(loot.primary.materials.map(\.resource)) == [.wood, .stone])
+        let raw = BattleLoot.quantityRange(forLevel: 10)
+        let possible = Set(raw.map { CombatRounding.scaled($0 * 2, byPercent: RewardModifier.bonusPercent) })
+        #expect(loot.primary.materials.allSatisfy { possible.contains($0.quantity) })
+    }
+
+    @Test func `two item modifiers make deterministic independent boss rolls`() throws {
+        let save = SaveTestSupport.makeSave()
+        let offer = VoyageOffer(id: "item-run", chapterID: "chapter-1", difficulty: .easy, seed: 17, rewardModifier: .armorHoard)
+        let node = VoyageNode(
+            id: "item-boss", type: .boss, enemyID: "the_blight_treant",
+            modifierIDs: [LabyrinthCatalog.rewardID(.armsHoard)], recruitEventID: nil,
+        )
+        let first = VoyageCompletion.resolveFinalLoot(node: node, offer: offer, encounterLevel: 10, save: save)
+        let second = VoyageCompletion.resolveFinalLoot(node: node, offer: offer, encounterLevel: 10, save: save)
+        #expect(first.primary == second.primary)
+        #expect(first.additionalItem == second.additionalItem)
+        #expect(first.primary.item.baseType.slot == .weapon)
+        #expect(try #require(first.additionalItem).baseType.slot == .armor)
+        #expect(first.primary.item.id != first.additionalItem?.id)
+    }
+
+    @Test func `exhausted destination collectible resolves to Bonus Gold`() {
+        var save = SaveTestSupport.makeSave()
+        for item in GameContent.trinketItems {
+            save.inventory.appendUniqueItem(item)
+        }
+        let offer = VoyageOffer(id: "exhausted", chapterID: "chapter-1", difficulty: .easy, seed: 17, rewardModifier: .trinketHoard)
+        let node = VoyageNode(id: "exhausted-boss", type: .boss, enemyID: "the_blight_treant", modifierIDs: [], recruitEventID: nil)
+        let baseline = VoyageCompletion.resolveLoot(node: node, encounterLevel: 10, save: save)
+        let final = VoyageCompletion.resolveFinalLoot(node: node, offer: offer, encounterLevel: 10, save: save)
+        #expect(offer.rewardModifier.resolved(
+            ownedTrinketIDs: save.inventory.ownedTrinketIDs,
+            ownedUniqueIDs: save.inventory.ownedUniqueIDs,
+        ) == .gold)
+        #expect(final.primary.gold == CombatRounding.scaled(baseline.gold, byPercent: RewardModifier.bonusPercent))
+        #expect(final.additionalItem == nil)
+    }
+
+    @Test func `second collectible roll converts to Gold when the first takes the last item`() throws {
+        var save = SaveTestSupport.makeSave()
+        let remaining = try #require(GameContent.uniqueItems.last)
+        for item in GameContent.uniqueItems where item.templateID != remaining.templateID {
+            save.inventory.appendUniqueItem(item)
+        }
+        let offer = VoyageOffer(id: "last-unique", chapterID: "chapter-1", difficulty: .easy, seed: 17, rewardModifier: .uniqueHoard)
+        let node = VoyageNode(
+            id: "last-unique-boss", type: .boss, enemyID: "the_blight_treant",
+            modifierIDs: [LabyrinthCatalog.rewardID(.uniqueHoard)], recruitEventID: nil,
+        )
+        let ordinary = VoyageCompletion.resolveLoot(node: node, encounterLevel: 10, save: save)
+        let final = VoyageCompletion.resolveFinalLoot(node: node, offer: offer, encounterLevel: 10, save: save)
+        #expect(final.primary.item.templateID == remaining.templateID)
+        #expect(final.additionalItem == nil)
+        #expect(final.primary.gold == CombatRounding.scaled(ordinary.gold, byPercent: RewardModifier.bonusPercent))
     }
 
     @Test @MainActor func `active route stock and mystery pins survive reload`() throws {

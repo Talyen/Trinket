@@ -20,6 +20,10 @@ passive accrual cannot silently shrink a displayed award. Unprepared rewards use
 the same settlement path. Modes retain their existing one-time claim ownership.
 
 Contracts and Labyrinth/Voyage combat share Content's `RewardModifier` catalog.
+Voyage destination offers save a separate modifier for the final boss victory;
+its XP bonus is excluded from partial-defeat XP. When both destination and node
+modifiers affect items, the final reward plan carries both rolls so the reveal
+and committed award remain identical.
 Rare-tier odds bonuses double the named eligible tier's weight.
 Saved IDs stay stable; exhausted collectible bonuses resolve to Gold consistently
 in artwork/details and launch loot. Keyword guarantees occupy one normal affix

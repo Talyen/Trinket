@@ -80,8 +80,10 @@ enum ModeBattleSpec {
         roster: PlayerRosterState,
         stageRewardsAlreadyClaimed: Bool = false,
         experienceBonusPercent: Int = 0,
+        victoryOnlyExperienceBonusPercent: Int = 0,
         modifiers: ModeBattleModifiers = .none,
         completionBonus: VoyageCompletionBonus? = nil,
+        additionalRewardItems: [InventoryItem] = [],
     ) -> BattleLaunchInput {
         BattleLaunchInput(
             origin: origin,
@@ -91,7 +93,9 @@ enum ModeBattleSpec {
             enemyEncounterLevel: encounter.level,
             stageReward: loot.asStageReward,
             experienceBonusPercent: experienceBonusPercent + modifiers.experienceBonusPercent,
+            victoryOnlyExperienceBonusPercent: victoryOnlyExperienceBonusPercent,
             pendingRewardItem: loot.item,
+            additionalRewardItems: additionalRewardItems,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             universalModifiers: modifiers.universalModifiers,
             labyrinthModifiers: modifiers.definitions,

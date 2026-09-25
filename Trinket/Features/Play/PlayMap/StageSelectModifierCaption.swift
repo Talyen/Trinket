@@ -10,22 +10,7 @@ struct StageSelectModifierCaption: View {
         if !modifiers.isEmpty {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                 ForEach(modifiers) { modifier in
-                    VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
-                        HStack(spacing: TrinketDesign.Spacing.small) {
-                            GameIconImage(modifier.style.icon)
-                                .symbolRenderingMode(.hierarchical)
-                                .accessibilityHidden(true)
-                            Text(balanced: modifier.title.uppercased()).trinketFittedText()
-                        }
-                        .trinketTypography(.body)
-                        .bold()
-                        .foregroundStyle(modifier.style.color)
-                        .trinketOnArtText(.title)
-                        KeywordDescriptionText(text: modifier.description)
-                            .trinketTypography(.body)
-                            .trinketOnArtText(.eyebrow)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                    StageSelectModifierLine(modifier: modifier)
                 }
             }
             .padding(.horizontal, TrinketDesign.Spacing.medium)
@@ -34,5 +19,23 @@ struct StageSelectModifierCaption: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .allowsHitTesting(false)
         }
+    }
+}
+
+struct StageSelectModifierLine: View {
+    let modifier: ModifierCaptionPresentation
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.small) {
+            GameIconImage(modifier.style.icon)
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(modifier.style.color)
+                .accessibilityHidden(true)
+            KeywordDescriptionText(text: modifier.description)
+                .fixedSize(horizontal: false, vertical: true)
+                .trinketOnArtText(.eyebrow)
+        }
+        .trinketTypography(.body)
+        .accessibilityElement(children: .combine)
     }
 }

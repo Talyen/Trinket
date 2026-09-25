@@ -30,7 +30,7 @@ public final class VoyagePlayMode {
         }
         let access = playerSave.contentAccess
         persist(key: "voyage-enter") { save in
-            save.voyage.ensureBoard(access: access)
+            save.voyage.ensureBoard(access: access, eligibleModifiers: RewardOwnership(save).eligibleModifiers)
             Self.refreshRecruit(save: &save, access: access)
         }
         return nil
@@ -39,7 +39,9 @@ public final class VoyagePlayMode {
     public func refresh() {
         guard encounters.canBeginTransientEncounter else { return }
         let access = playerSave.contentAccess
-        persist(key: "voyage-refresh") { $0.voyage.refresh(access: access) }
+        persist(key: "voyage-refresh") { save in
+            save.voyage.refresh(access: access, eligibleModifiers: RewardOwnership(save).eligibleModifiers)
+        }
     }
 
     public func embark(offerID: String) {
@@ -58,7 +60,9 @@ public final class VoyagePlayMode {
         guard encounters.canBeginTransientEncounter else { return }
         let access = playerSave.contentAccess
         persist(key: "voyage-abandon-\(runID)") { save in
-            _ = save.voyage.abandon(runID: runID, access: access)
+            _ = save.voyage.abandon(
+                runID: runID, access: access, eligibleModifiers: RewardOwnership(save).eligibleModifiers,
+            )
         }
         prunePrepared()
     }
@@ -136,12 +140,21 @@ public final class VoyagePlayMode {
         let modifiers = ModeBattleModifiers(
             definitions: RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs),
         )
-        let loot = VoyageCompletion.resolveLoot(node: node, encounterLevel: encounter.level, save: playerSave.currentSave)
+        let finalLoot = node.type == .boss ? VoyageCompletion.resolveFinalLoot(
+            node: node, offer: run.offer, encounterLevel: encounter.level, save: playerSave.currentSave,
+        ) : nil
+        let loot = finalLoot?.primary
+            ?? VoyageCompletion.resolveLoot(node: node, encounterLevel: encounter.level, save: playerSave.currentSave)
         let origin = PlayBattleOrigin.voyage(runID: runID, nodeID: node.id)
         let input = ModeBattleSpec.launchInput(
             origin: origin, encounter: encounter, loot: loot, roster: playerSave.roster,
+            victoryOnlyExperienceBonusPercent: node.type == .boss ? run.offer.rewardModifier.resolved(
+                ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
+                ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
+            ).experienceBonusPercent : 0,
             modifiers: modifiers,
             completionBonus: node.type == .boss ? VoyageCompletionBonus(gold: run.earnedGold, materials: run.earnedMaterials) : nil,
+            additionalRewardItems: finalLoot?.additionalItem.map { [$0] } ?? [],
         )
         let access = playerSave.contentAccess
         let route = PlayBattleRoute.makeModeRoute(

@@ -9,6 +9,8 @@ public struct BattleRewardPlan: Equatable, Sendable {
     public let goldOverflowExperience: Int
     public let heroExperience: Int
     public let companionExperience: Int
+    public let defeatHeroExperience: Int
+    public let defeatCompanionExperience: Int
     public let materials: [ResourceAmount]
     public let items: [InventoryItem]
 
@@ -20,6 +22,8 @@ public struct BattleRewardPlan: Equatable, Sendable {
         goldOverflowExperience: Int = 0,
         heroExperience: Int,
         companionExperience: Int,
+        defeatHeroExperience: Int? = nil,
+        defeatCompanionExperience: Int? = nil,
         materials: [ResourceAmount],
         items: [InventoryItem],
         completionBonus: VoyageCompletionBonus? = nil,
@@ -32,6 +36,8 @@ public struct BattleRewardPlan: Equatable, Sendable {
         self.goldOverflowExperience = goldOverflowExperience
         self.heroExperience = heroExperience
         self.companionExperience = companionExperience
+        self.defeatHeroExperience = defeatHeroExperience ?? heroExperience
+        self.defeatCompanionExperience = defeatCompanionExperience ?? companionExperience
         self.materials = materials
         self.items = items
     }
@@ -39,8 +45,8 @@ public struct BattleRewardPlan: Equatable, Sendable {
     public func settleDefeat(progress: BattleDefeatProgress, inputs: RewardSettlementInputs) -> BattleRewardSettlement {
         Self(
             stageGold: 0, goldFindPercent: 0,
-            heroExperience: progress.experienceAward(from: heroExperience),
-            companionExperience: progress.experienceAward(from: companionExperience),
+            heroExperience: progress.experienceAward(from: defeatHeroExperience),
+            companionExperience: progress.experienceAward(from: defeatCompanionExperience),
             materials: [], items: [],
         ).settle(battleGold: .init(), inputs: inputs)
     }

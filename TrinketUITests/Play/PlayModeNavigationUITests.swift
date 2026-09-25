@@ -62,20 +62,16 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         let embark = app.buttons[AccessibilityID.Voyage.action("easy")]
         scrollUntilVisible(embark, swipingUp: true, maxAttempts: 3, requireHittable: true)
         tapWhenReady(embark)
-        assertExists(AccessibilityID.Voyage.progress)
-        let progress = app.staticTexts[AccessibilityID.Voyage.progress].label
-        XCTAssertFalse(progress.isEmpty, "Embarking must show route progress")
+        assertExists(AccessibilityID.Voyage.destinationReward)
+        let reward = app.descendants(matching: .any)[AccessibilityID.Voyage.destinationReward].label
+        XCTAssertFalse(reward.isEmpty, "Embarking must show the destination reward")
         attachSuccessScreenshot(named: "Voyage route")
         XCTAssertFalse(app.buttons[AccessibilityID.Voyage.refresh].exists)
-        let backButtons = app.navigationBars.buttons.matching(
-            NSPredicate(format: "identifier != %@", AccessibilityID.Voyage.options),
-        )
-        XCTAssertEqual(backButtons.count, 1, "Expected only the navigation back button beside Voyage options")
-        tapWhenReady(backButtons.firstMatch)
+        goBack()
         scrollUntilVisible(mode, swipingUp: true, maxAttempts: 3, requireHittable: true)
         tapWhenReady(mode)
-        assertExists(AccessibilityID.Voyage.progress)
-        XCTAssertEqual(app.staticTexts[AccessibilityID.Voyage.progress].label, progress)
+        assertExists(AccessibilityID.Voyage.destinationReward)
+        XCTAssertEqual(app.descendants(matching: .any)[AccessibilityID.Voyage.destinationReward].label, reward)
         tapWhenReady(app.buttons[AccessibilityID.Voyage.options])
         tapWhenReady(app.buttons[AccessibilityID.Voyage.abandon])
         tapWhenReady(app.buttons.matching(identifier: AccessibilityID.Voyage.confirmAbandon).firstMatch)

@@ -53,7 +53,9 @@ struct BattleLaunchInput: Equatable {
     let enemyEncounterLevel: Int?
     let stageReward: StageReward?
     let experienceBonusPercent: Int
+    let victoryOnlyExperienceBonusPercent: Int
     let pendingRewardItem: InventoryItem?
+    let additionalRewardItems: [InventoryItem]
     let stageRewardsAlreadyClaimed: Bool
     let universalModifiers: [AffixModifier]
     let labyrinthModifiers: [LabyrinthModifierDefinition]
@@ -66,7 +68,9 @@ struct BattleLaunchInput: Equatable {
         enemyEncounterLevel: Int? = nil,
         stageReward: StageReward? = nil,
         experienceBonusPercent: Int = 0,
+        victoryOnlyExperienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil,
+        additionalRewardItems: [InventoryItem] = [],
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = [],
         labyrinthModifiers: [LabyrinthModifierDefinition] = [],
@@ -80,7 +84,9 @@ struct BattleLaunchInput: Equatable {
         self.enemyEncounterLevel = enemyEncounterLevel
         self.stageReward = stageReward
         self.experienceBonusPercent = experienceBonusPercent
+        self.victoryOnlyExperienceBonusPercent = victoryOnlyExperienceBonusPercent
         self.pendingRewardItem = pendingRewardItem
+        self.additionalRewardItems = additionalRewardItems
         self.stageRewardsAlreadyClaimed = stageRewardsAlreadyClaimed
         self.universalModifiers = universalModifiers
         self.labyrinthModifiers = labyrinthModifiers
@@ -151,37 +157,46 @@ extension PlayBattleLaunch {
         let heroMember = configuration.hero
         let companionMember = configuration.companion
         let enemyLevel = configuration.enemyEncounterLevel ?? heroMember.progression.level
+        let victoryPercent = input.experienceBonusPercent + input.victoryOnlyExperienceBonusPercent
         return BattlePresentationContext(
             inventoryItems: inventoryState.items,
             stageReward: input.stageReward,
             rewardItems: resolvedRewardItems(
                 stageReward: input.stageReward,
                 pendingRewardItem: input.pendingRewardItem,
+                additionalRewardItems: input.additionalRewardItems,
             ),
+            additionalRewardItems: input.additionalRewardItems,
             pendingRewardItem: input.pendingRewardItem,
             experienceBonusPercent: input.experienceBonusPercent,
+            victoryOnlyExperienceBonusPercent: input.victoryOnlyExperienceBonusPercent,
             goldFindPercent: homesteadEffects.goldFindPercent,
             goldFindFlat: homesteadEffects.goldFindFlat,
             gemsFindBonus: homesteadEffects.gemsFindBonus,
             stageRewardsAlreadyClaimed: input.stageRewardsAlreadyClaimed,
             hasProgressionRewards: inputs.hasProgressionRewards,
             musicStageID: nil,
-            heroExperienceAward: VictoryRewardApplier.battleExperienceAward(
-                playerLevel: heroMember.progression.level,
-                enemyLevel: enemyLevel,
-                highestLevel: rosterState.highestHeroLevel,
-                experienceEarnedPercent: input.experienceBonusPercent,
-            ) + homesteadEffects.experienceBonus,
-            companionExperienceAward: VictoryRewardApplier.battleExperienceAward(
-                playerLevel: companionMember.progression.level,
-                enemyLevel: enemyLevel,
-                highestLevel: rosterState.highestCompanionLevel,
-                experienceEarnedPercent: input.experienceBonusPercent,
-            ) + homesteadEffects.experienceBonus,
+            heroExperienceAward: experienceAward(
+                heroMember.progression.level, rosterState.highestHeroLevel, enemyLevel,
+                victoryPercent, homesteadEffects.experienceBonus,
+            ),
+            companionExperienceAward: experienceAward(
+                companionMember.progression.level, rosterState.highestCompanionLevel, enemyLevel,
+                victoryPercent, homesteadEffects.experienceBonus,
+            ),
+            defeatHeroExperienceAward: experienceAward(
+                heroMember.progression.level, rosterState.highestHeroLevel, enemyLevel,
+                input.experienceBonusPercent, homesteadEffects.experienceBonus,
+            ),
+            defeatCompanionExperienceAward: experienceAward(
+                companionMember.progression.level, rosterState.highestCompanionLevel, enemyLevel,
+                input.experienceBonusPercent, homesteadEffects.experienceBonus,
+            ),
             materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: input.stageReward ?? .empty),
             labyrinthModifiers: input.labyrinthModifiers,
             goldOverflowExperience: RewardExperiencePolicy.encounterAward(
-                encounterLevel: enemyLevel, roster: rosterState, percent: input.experienceBonusPercent,
+                encounterLevel: enemyLevel, roster: rosterState,
+                percent: victoryPercent,
             ),
             rewardInputs: RewardSettlementInputs(
                 gold: rosterState.gold,
@@ -192,6 +207,15 @@ extension PlayBattleLaunch {
             ),
             completionBonus: input.completionBonus,
         )
+    }
+
+    private static func experienceAward(
+        _ playerLevel: Int, _ highestLevel: Int, _ enemyLevel: Int, _ bonusPercent: Int, _ homesteadBonus: Int,
+    ) -> Int {
+        VictoryRewardApplier.battleExperienceAward(
+            playerLevel: playerLevel, enemyLevel: enemyLevel,
+            highestLevel: highestLevel, experienceEarnedPercent: bonusPercent,
+        ) + homesteadBonus
     }
 
     private static func makePartyMembers(
@@ -262,9 +286,10 @@ extension PlayBattleLaunch {
     private static func resolvedRewardItems(
         stageReward: StageReward?,
         pendingRewardItem: InventoryItem?,
+        additionalRewardItems: [InventoryItem],
     ) -> [InventoryItem] {
         if let pendingRewardItem {
-            return [pendingRewardItem]
+            return [pendingRewardItem] + additionalRewardItems
         }
         guard let stageReward else { return [] }
         return stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))

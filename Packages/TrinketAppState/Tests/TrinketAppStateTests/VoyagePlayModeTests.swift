@@ -104,6 +104,76 @@ struct VoyagePlayModeTests {
         #expect(play.playerSave.voyage.activeRun == nil)
     }
 
+    @Test func `destination and boss item promises appear and commit together once`() throws {
+        let play = try context.makePlaySession()
+        #expect(play.voyage.enter() == nil)
+        let original = try #require(play.playerSave.voyage.offers.first)
+        let offer = VoyageOffer(
+            id: original.id, chapterID: original.chapterID, difficulty: original.difficulty,
+            seed: original.seed, rewardModifier: .armorHoard,
+        )
+        var nodes = VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: [])
+        for index in nodes.indices.dropLast() {
+            nodes[index].isCleared = true
+        }
+        nodes[nodes.count - 1].modifierIDs = [LabyrinthCatalog.rewardID(.armsHoard)]
+        #expect(play.playerSave.persistBatch(logging: "Prepare final Voyage") { save in
+            save.voyage.activeRun = VoyageRun(offer: offer, nodes: nodes)
+        })
+        let run = try #require(play.playerSave.voyage.activeRun)
+        let boss = try #require(run.nextNode)
+        #expect(play.voyage.handleNode(runID: run.id, nodeID: boss.id) == nil)
+        let battle = try #require(play.battle.activeBattle)
+        let presentation = try #require(play.battlePresentation(for: battle))
+        let items = presentation.rewardPlan.resolve(battleGold: .init()).items
+        #expect(items.count == 2)
+        #expect(items[0].baseType.slot == .weapon)
+        #expect(items[1].baseType.slot == .armor)
+        #expect(play.completeActiveBattle(battle, battleGold: .init()).didComplete)
+        let after = play.playerSave.currentSave
+        #expect(items.allSatisfy { item in after.inventory.items.contains { $0.id == item.id } })
+        #expect(after.voyage.activeRun?.isComplete == true)
+        #expect(!play.completeActiveBattle(battle, battleGold: .init()).didComplete)
+        #expect(play.playerSave.currentSave == after)
+    }
+
+    @Test func `destination experience is victory only and abandonment forfeits it`() throws {
+        let play = try context.makePlaySession()
+        #expect(play.voyage.enter() == nil)
+        let original = try #require(play.playerSave.voyage.offers.first)
+        let offer = VoyageOffer(
+            id: original.id, chapterID: original.chapterID, difficulty: original.difficulty,
+            seed: original.seed, rewardModifier: .experience,
+        )
+        var nodes = VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: [])
+        for index in nodes.indices.dropLast() {
+            nodes[index].isCleared = true
+        }
+        nodes[nodes.count - 1].modifierIDs = [LabyrinthCatalog.rewardID(.experience)]
+        #expect(play.playerSave.persistBatch(logging: "Prepare XP Voyage") { save in
+            save.voyage.activeRun = VoyageRun(offer: offer, nodes: nodes)
+        })
+        let run = try #require(play.playerSave.voyage.activeRun)
+        let boss = try #require(run.nextNode)
+        #expect(play.voyage.handleNode(runID: run.id, nodeID: boss.id) == nil)
+        let battle = try #require(play.battle.activeBattle)
+        let presentation = try #require(play.battlePresentation(for: battle))
+        #expect(presentation.experienceBonusPercent == 25)
+        #expect(presentation.victoryOnlyExperienceBonusPercent == 25)
+        #expect(presentation.rewardPlan.heroExperience > presentation.rewardPlan.defeatHeroExperience)
+        let inputs = try #require(presentation.rewardInputs)
+        let defeat = presentation.rewardPlan.settleDefeat(
+            progress: .init(remainingHealth: 0, maximumHealth: 100),
+            inputs: inputs,
+        )
+        #expect(defeat.award.items.isEmpty)
+        let inventory = play.playerSave.inventory
+        play.endBattleReturningToOrigin()
+        play.voyage.abandon(runID: run.id)
+        #expect(play.playerSave.voyage.activeRun == nil)
+        #expect(play.playerSave.inventory == inventory)
+    }
+
     @Test func `exhausted recruit becomes modified mystery without rerolling route`() throws {
         let play = try context.makePlaySession()
         _ = play.voyage.enter()

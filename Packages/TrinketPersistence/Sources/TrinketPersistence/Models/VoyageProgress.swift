@@ -46,21 +46,25 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
 
     public init() {}
 
-    public mutating func ensureBoard(access: ContentAccessPolicy) {
+    public mutating func ensureBoard(access: ContentAccessPolicy, eligibleModifiers: [RewardModifier] = RewardModifier.allCases) {
         guard !isUnreadable, activeRun == nil else { return }
         let allowed = Self.chapterIDs(access: access)
         if offers.count != 3 || Set(offers.map(\.chapterID)).count != 3
             || offers.contains(where: { !allowed.contains($0.chapterID) }) {
-            refresh(access: access)
+            refresh(access: access, eligibleModifiers: eligibleModifiers)
         }
     }
 
-    public mutating func refresh(access: ContentAccessPolicy) {
+    public mutating func refresh(access: ContentAccessPolicy, eligibleModifiers: [RewardModifier] = RewardModifier.allCases) {
         guard !isUnreadable, activeRun == nil else { return }
         var chapters = Self.chapterIDs(access: access).shuffled()
+        var modifiers = eligibleModifiers.isEmpty ? [.gold] : eligibleModifiers.shuffled()
         offers = VoyageDifficulty.allCases.compactMap { difficulty in
             guard let chapterID = chapters.popLast() else { return nil }
-            return Self.offer(chapterID: chapterID, difficulty: difficulty)
+            if modifiers.isEmpty {
+                modifiers = eligibleModifiers.shuffled()
+            }
+            return Self.offer(chapterID: chapterID, difficulty: difficulty, modifier: modifiers.popLast() ?? .gold)
         }
     }
 
@@ -78,18 +82,28 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
         return true
     }
 
-    public mutating func replaceOffer(runID: String, access: ContentAccessPolicy) {
+    public mutating func replaceOffer(
+        runID: String, access: ContentAccessPolicy, eligibleModifiers: [RewardModifier] = RewardModifier.allCases,
+    ) {
         guard let index = offers.firstIndex(where: { $0.id == runID }) else { return }
         let previous = offers[index]
         let used = Set(offers.map(\.chapterID))
         let candidates = Self.chapterIDs(access: access).filter { !used.contains($0) }
-        offers[index] = Self.offer(chapterID: candidates.randomElement() ?? previous.chapterID, difficulty: previous.difficulty)
+        let usedModifiers = Set(offers.enumerated().filter { $0.offset != index }.map(\.element.rewardModifier))
+        let pool = eligibleModifiers.filter { !usedModifiers.contains($0) }
+        let modifier = (pool.isEmpty ? eligibleModifiers : pool).randomElement() ?? .gold
+        offers[index] = Self.offer(
+            chapterID: candidates.randomElement() ?? previous.chapterID,
+            difficulty: previous.difficulty, modifier: modifier,
+        )
     }
 
     @discardableResult
-    public mutating func abandon(runID: String, access: ContentAccessPolicy) -> Bool {
+    public mutating func abandon(
+        runID: String, access: ContentAccessPolicy, eligibleModifiers: [RewardModifier] = RewardModifier.allCases,
+    ) -> Bool {
         guard !isUnreadable, let run = activeRun, run.id == runID, !run.isComplete else { return false }
-        replaceOffer(runID: runID, access: access)
+        replaceOffer(runID: runID, access: access, eligibleModifiers: eligibleModifiers)
         activeRun = nil
         return true
     }
@@ -176,7 +190,10 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
         GameContent.chapters.filter { access.allowsChapter($0.number) && VoyageCatalog.bossID(chapterID: $0.id) != nil }.map(\.id)
     }
 
-    private static func offer(chapterID: String, difficulty: VoyageDifficulty) -> VoyageOffer {
-        VoyageOffer(id: UUID().uuidString, chapterID: chapterID, difficulty: difficulty, seed: UInt64.random(in: .min ... .max))
+    private static func offer(chapterID: String, difficulty: VoyageDifficulty, modifier: RewardModifier) -> VoyageOffer {
+        VoyageOffer(
+            id: UUID().uuidString, chapterID: chapterID, difficulty: difficulty,
+            seed: UInt64.random(in: .min ... .max), rewardModifier: modifier,
+        )
     }
 }
