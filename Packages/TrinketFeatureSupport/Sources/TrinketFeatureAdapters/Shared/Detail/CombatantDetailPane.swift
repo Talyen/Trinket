@@ -24,7 +24,7 @@ public struct CombatantDetailPane: View {
     var battleMaxHealth: Int?
     var battleMaxMana: Int?
     var activeEffectSummaries: [EffectSummary] = []
-    var labyrinthModifiers: [LabyrinthModifierDefinition] = []
+    var nodeModifiers: [NodeModifierDefinition] = []
     var hidesNavigationBar = false
     var onEdit: ((CombatantDetailEdit) -> Bool)?
     var onUnlockTalent: ((TalentNode, TalentTree) -> TalentUnlockResult)?
@@ -288,8 +288,8 @@ public struct CombatantDetailPane: View {
             .equatable()
         }
 
-        if !labyrinthModifiers.isEmpty {
-            CombatantLabyrinthSection(labyrinthModifiers: labyrinthModifiers)
+        if !nodeModifiers.isEmpty {
+            CombatantModifiersSection(nodeModifiers: nodeModifiers)
                 .equatable()
         }
 
@@ -379,7 +379,7 @@ public extension CombatantDetailPane {
             battleMaxHealth: snapshot.maxHealth,
             battleMaxMana: snapshot.maxMana,
             activeEffectSummaries: snapshot.activeEffectSummaries,
-            labyrinthModifiers: snapshot.labyrinthModifiers,
+            nodeModifiers: snapshot.nodeModifiers,
             hidesNavigationBar: hidesNavigationBar,
         )
     }

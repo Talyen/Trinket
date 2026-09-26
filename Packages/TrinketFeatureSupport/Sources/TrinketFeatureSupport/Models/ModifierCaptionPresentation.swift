@@ -9,11 +9,11 @@ public struct ModifierCaptionPresentation: Identifiable {
     public let description: String
     public let style: Keyword.VisualStyle
 
-    public init(_ modifier: LabyrinthModifierDefinition) {
+    public init(_ modifier: NodeModifierDefinition) {
         id = modifier.id.rawValue
         title = modifier.title
         description = modifier.effect.description
-        style = LabyrinthModifierPresentation.style(for: modifier)
+        style = NodeModifierPresentation.style(for: modifier)
     }
 
     public init(_ modifier: RewardModifier) {

@@ -36,7 +36,7 @@ Mode cards; Campaign and Spires retain their compact stage spacing. Enemy artwor
 opens enemy details at the resolved encounter level.
 Each card has a Party control beside Battle that opens the existing party picker
 for the shared active Hero and Companion. Each offer overlays its reward modifier on the artwork using the shared
-Labyrinth/Voyage caption style: colored icon and concise effect text without
+Node modifier caption style: colored icon and concise effect text without
 thematic modifier names or percentages. Exact payouts appear after battle. Reuse Explore art
 and existing enemy portraits.
 

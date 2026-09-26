@@ -134,7 +134,7 @@ struct AppStateLabyrinthTests {
         #expect(state.playerSave.persistBatch(logging: "Keyword Labyrinth reward") { save in
             save.labyrinth.nodes[nodeID] = LabyrinthNode(
                 id: node.id, type: node.type, enemyID: node.enemyID, depth: node.depth, clusterID: node.clusterID,
-                gridPosition: node.gridPosition, modifierIDs: [LabyrinthCatalog.rewardID(.keyword(.purge))],
+                gridPosition: node.gridPosition, modifierIDs: [NodeModifierCatalog.rewardID(.keyword(.purge))],
                 outgoingIDs: node.outgoingIDs, isRevealed: true,
             )
         })
@@ -144,7 +144,7 @@ struct AppStateLabyrinthTests {
         let item = try #require(presentation.pendingRewardItem)
         #expect(item.baseType.keywordAffinities.contains(.purge))
         #expect(item.affixes.contains { $0.keywords.contains(.purge) })
-        #expect(presentation.labyrinthModifiers.first?.effect == .reward(.keyword(.purge)))
+        #expect(presentation.nodeModifiers.first?.effect == .reward(.keyword(.purge)))
         #expect(state.completeActiveBattle(battle, battleGold: .init()).didComplete)
         #expect(state.playerSave.inventory.item(matching: item.id) == item)
         #expect(!state.completeActiveBattle(battle, battleGold: .init()).didComplete)
@@ -154,14 +154,14 @@ struct AppStateLabyrinthTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let node = try #require(state.playerSave.labyrinth.nodes[combatNodeID])
-        let expectedModifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+        let expectedModifiers = NodeModifierCatalog.modifiers(ids: node.modifierIDs)
         let message = state.labyrinth.startBattle(nodeID: combatNodeID)
         #expect(message == nil)
         let battle = try #require(state.battle.activeBattle)
         let presentation = try #require(state.battlePresentation(for: battle.runKey))
         #expect(presentation.hasProgressionRewards)
-        #expect(presentation.labyrinthModifiers == expectedModifiers)
-        #expect(!presentation.labyrinthModifiers.isEmpty)
+        #expect(presentation.nodeModifiers == expectedModifiers)
+        #expect(!presentation.nodeModifiers.isEmpty)
         #expect(battle.runKey == PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey)
     }
 
@@ -329,10 +329,10 @@ struct AppStateLabyrinthTests {
         let state = try context.makePlaySession(arguments: ["-test-seed", "-reset-state"])
         _ = state.labyrinth.enter()
         _ = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .mystery, in: state))
-        let economyIDs: Set<LabyrinthModifierID> = [
-            LabyrinthModifierID("bountyMark"),
-            LabyrinthModifierID("scholarsToll"),
-            LabyrinthModifierID("scavengersLuck"),
+        let economyIDs: Set<NodeModifierID> = [
+            NodeModifierID("bountyMark"),
+            NodeModifierID("scholarsToll"),
+            NodeModifierID("scavengersLuck"),
         ]
         let mysteryNodes = state.playerSave.labyrinth.nodes.values
             .filter { $0.type == .mystery && !$0.isCleared }
@@ -349,9 +349,9 @@ struct AppStateLabyrinthTests {
     @Test func `labyrinth shop nodes carry exactly one shop modifier`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
-        let shopIDs: Set<LabyrinthModifierID> = [
-            LabyrinthModifierID("shopDiscount"),
-            LabyrinthModifierID("appraisersEye"),
+        let shopIDs: Set<NodeModifierID> = [
+            NodeModifierID("shopDiscount"),
+            NodeModifierID("appraisersEye"),
         ]
         for node in state.playerSave.labyrinth.nodes.values where node.type == .shop {
             let ids = node.modifierIDs

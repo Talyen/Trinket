@@ -11,22 +11,6 @@ public struct BattleSimResult: Equatable, Codable, Sendable {
     public var partyHPRemainingFraction: Double
     public var enemyHPRemainingFraction: Double
 
-    public init(
-        outcome: BattleSimulationOutcome,
-        rounds: Int,
-        actions: Int,
-        timedOut: Bool,
-        partyHPRemainingFraction: Double,
-        enemyHPRemainingFraction: Double,
-    ) {
-        self.outcome = outcome
-        self.rounds = rounds
-        self.actions = actions
-        self.timedOut = timedOut
-        self.partyHPRemainingFraction = partyHPRemainingFraction
-        self.enemyHPRemainingFraction = enemyHPRemainingFraction
-    }
-
     public var isVictory: Bool {
         !timedOut && outcome == .victory
     }

@@ -33,7 +33,7 @@ struct HomesteadBenefitsView: View {
     var previousTier: HomesteadNodeTier?
 
     private var lines: [HomesteadEffectLine] {
-        HomesteadEffectLine.lines(for: tier)
+        HomesteadEffectLine.lines(for: tier, nodeID: nodeID)
     }
 
     var body: some View {
@@ -52,7 +52,7 @@ struct HomesteadBenefitsView: View {
             title: HomesteadBenefitNames.title(nodeID: nodeID, effect: effect),
             effect: effect,
             previousEffect: previousTier.flatMap { previous in
-                HomesteadEffectLine.lines(for: previous).first { $0.id == effect.id }
+                HomesteadEffectLine.lines(for: previous, nodeID: nodeID).first { $0.id == effect.id }
             },
             isHighlighted: effect.resource == nil ? highlightedEffects.contains(effect.id) : highlightsProduction,
         )
@@ -134,6 +134,7 @@ private enum HomesteadBenefitNames {
         case (.culinaryArts, .modifier(.healthRestored, _)): "Hearty Fare"
         case (.culinaryArts, .production(.food)): "Daily Bread"
         case (.blacksmithForge, .modifier(.damageDealt(.physical, _), _)): "Forged Edge"
+        case (.blacksmithForge, .forgeAstralOdds): "Astral Forging"
         case (.blacksmithForge, .production(.iron)): "Fresh Ingots"
         case (.woolTailoring, .modifier(.damageTakenFlat(.freeze, _), _)): "Winter Weave"
         case (.woolTailoring, .modifier(.damageTakenFlat(.burn, _), _)): "Emberguard Stitch"
@@ -233,7 +234,7 @@ private struct HomesteadEffectStyle {
         switch key {
         case let .modifier(modifier, _):
             self.init(modifier: modifier)
-        case .astralFind:
+        case .astralFind, .forgeAstralOdds:
             self.init(symbol: "sparkles", tint: TrinketDesign.Colors.arcane)
         case .experience:
             self.init(symbol: "book.fill", tint: TrinketDesign.Colors.arcane)

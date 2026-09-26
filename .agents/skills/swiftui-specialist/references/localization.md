@@ -48,7 +48,14 @@ Use `Text(verbatim:)` to opt out of localization for a string literal — most o
 
 # Localizing Variables and Custom Types
 
-When a `String` variable is passed to `Text`, the `StringProtocol` overload runs and the string is NOT localized. Wrapping the variable in `LocalizedStringKey(_:)` at the call site does not help either — Xcode cannot extract a literal from a runtime value, so the entry never lands in the catalog. To localize a value chosen from a known set of keys, model the set with a type that exposes `LocalizedStringResource`:
+When a `String` variable is passed to `Text`, the `StringProtocol` overload displays
+it verbatim. `Text(LocalizedStringKey(value))` instead looks up that runtime key
+in the selected table and bundle, as described by
+[Apple's LocalizedStringKey reference](https://developer.apple.com/documentation/swiftui/localizedstringkey).
+Runtime lookup and automatic extraction are separate: Xcode cannot extract a key
+from a runtime value, so its catalog entry must already exist or be maintained
+explicitly. For a known set of statically authored translatable values, prefer
+a type that exposes literal `LocalizedStringResource` values:
 
 ```swift
 enum Category {
@@ -65,7 +72,10 @@ enum Category {
 Text(category.name)
 ```
 
-When a view or view model exposes user-facing text, type the property as `LocalizedStringKey` or `LocalizedStringResource` instead of `String`. Every SwiftUI view that takes localized text accepts both, so deferring resolution costs nothing at the display site and preserves locale and bundle context end-to-end.
+For statically authored translatable copy, use `LocalizedStringKey` or
+`LocalizedStringResource` where the consuming API supports it; the latter also
+carries table and bundle context. Keep user-provided or deliberately verbatim
+text as `String`.
 
 ```swift
 // AVOID: String properties lose localization context.
@@ -223,7 +233,13 @@ Prefer `String(localized:)` over `String(format:)` and `String.localizedStringWi
 
 # LocalizedStringResource for Non-View Types
 
-When a non-view type carries a user-facing string — a model object, a tip, a queued notification — use `LocalizedStringResource` instead of `String`. The string is resolved at display time, not creation time, so it honors the locale active when the value actually renders. Whenever a `String` would otherwise be passed between view models, modules, or into a view, `LocalizedStringResource` is the right type. Apply this when designing new types or changing user-facing text — don't sweep through existing `String` properties as part of unrelated edits.
+Use `LocalizedStringResource` when a non-view type carries statically authored
+translatable copy for later display, such as a tip or queued notification.
+It retains localization context without eagerly resolving a `String`.
+Runtime content and deliberately verbatim text can remain `String`; a runtime
+catalog key uses the explicit lookup described above. Apply this when designing
+new types or changing translatable copy, without sweeping through unrelated
+`String` properties.
 
 ```swift
 // AVOID: Resolving at creation time loses the ability to display

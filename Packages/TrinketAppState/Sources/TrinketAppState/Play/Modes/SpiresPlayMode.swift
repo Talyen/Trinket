@@ -36,7 +36,11 @@ public final class SpiresPlayMode {
         PlayBattlePreparation.spireEncounter(for: floor)
     }
 
-    private func battleLoot(for floor: SpireFloor, encounterLevel: Int) -> BattleLootResult {
+    private func battleLoot(
+        for floor: SpireFloor,
+        encounterLevel: Int,
+        modifier: NodeModifierDefinition?,
+    ) -> BattleLootResult {
         let loot = BattleLootContext(playerSave: playerSave)
         return SpireCompletion.resolveLoot(
             for: floor,
@@ -45,6 +49,7 @@ public final class SpiresPlayMode {
             ownedTrinketIDs: loot.ownedTrinketIDs,
             ownedUniqueIDs: loot.ownedUniqueIDs,
             astralChanceBonusPercent: loot.astralChanceBonusPercent,
+            modifier: modifier,
         )
     }
 
@@ -147,12 +152,16 @@ public final class SpiresPlayMode {
         for floor: SpireFloor,
         encounter: ScaledEncounter,
     ) -> (input: BattleLaunchInput, route: PlayBattleRoute) {
-        let loot = battleLoot(for: floor, encounterLevel: encounter.level)
+        let selected = GameContent.spireModifier(for: floor, worldSeed: playerSave.worldSeed)
+        let modifiers = ModeBattleModifiers(definitions: RewardOwnership(playerSave.inventory)
+            .modifiers(ids: selected.map { [$0.id] } ?? []))
+        let loot = battleLoot(for: floor, encounterLevel: encounter.level, modifier: selected)
         let input = ModeBattleSpec.launchInput(
             origin: .spire(spireID: floor.spireID, floor: floor.floor),
             encounter: encounter,
             loot: loot,
             roster: playerSave.roster,
+            modifiers: modifiers,
         )
         return (input, battleRoute(floor: floor))
     }

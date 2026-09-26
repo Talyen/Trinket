@@ -273,21 +273,21 @@ public struct PairedContrastSummary: Equatable, Codable, Sendable {
     public var baselineID: String
     public var ownerID: String
     public var tier: SimulationPowerTier
-    public var baselineKind: ContrastBaselineKind
+    public var baselineKind: ContrastBaselineKind = .sibling
     public var pairs: Int
     public var decidedPairs: Int
     public var winsWithEntity: Int
     public var winsWithBaseline: Int
-    public var entityOnlyWins: Int
-    public var baselineOnlyWins: Int
-    public var entityTimeouts: Int
-    public var baselineTimeouts: Int
+    public var entityOnlyWins: Int = 0
+    public var baselineOnlyWins: Int = 0
+    public var entityTimeouts: Int = 0
+    public var baselineTimeouts: Int = 0
     public var lift: Double
-    public var meanDeltaPartyHP: Double
-    public var meanDeltaRounds: Double
+    public var meanDeltaPartyHP: Double = 0
+    public var meanDeltaRounds: Double = 0
     public var flagged: Bool
     public var flagReason: String?
-    public var nonCombat: Bool
+    public var nonCombat: Bool = false
 
     public var entityWinRate: Double {
         decidedPairs == 0 ? 0 : Double(winsWithEntity) / Double(decidedPairs)
@@ -295,48 +295,6 @@ public struct PairedContrastSummary: Equatable, Codable, Sendable {
 
     public var baselineWinRate: Double {
         decidedPairs == 0 ? 0 : Double(winsWithBaseline) / Double(decidedPairs)
-    }
-
-    public init(
-        entityID: String,
-        baselineID: String,
-        ownerID: String,
-        tier: SimulationPowerTier,
-        baselineKind: ContrastBaselineKind = .sibling,
-        pairs: Int,
-        decidedPairs: Int,
-        winsWithEntity: Int,
-        winsWithBaseline: Int,
-        entityOnlyWins: Int = 0,
-        baselineOnlyWins: Int = 0,
-        entityTimeouts: Int = 0,
-        baselineTimeouts: Int = 0,
-        lift: Double,
-        meanDeltaPartyHP: Double = 0,
-        meanDeltaRounds: Double = 0,
-        flagged: Bool,
-        flagReason: String? = nil,
-        nonCombat: Bool = false,
-    ) {
-        self.entityID = entityID
-        self.baselineID = baselineID
-        self.ownerID = ownerID
-        self.tier = tier
-        self.baselineKind = baselineKind
-        self.pairs = pairs
-        self.decidedPairs = decidedPairs
-        self.winsWithEntity = winsWithEntity
-        self.winsWithBaseline = winsWithBaseline
-        self.entityOnlyWins = entityOnlyWins
-        self.baselineOnlyWins = baselineOnlyWins
-        self.entityTimeouts = entityTimeouts
-        self.baselineTimeouts = baselineTimeouts
-        self.lift = lift
-        self.meanDeltaPartyHP = meanDeltaPartyHP
-        self.meanDeltaRounds = meanDeltaRounds
-        self.flagged = flagged
-        self.flagReason = flagReason
-        self.nonCombat = nonCombat
     }
 }
 

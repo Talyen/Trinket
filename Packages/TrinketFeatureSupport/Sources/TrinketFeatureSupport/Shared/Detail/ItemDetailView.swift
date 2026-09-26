@@ -39,12 +39,20 @@ public struct ItemDetailView: View {
 
     let item: InventoryItem
     private let action: Action
+    private var heroNote: String?
+    private var heroNoteAccessibilityID: String?
 
     @State private var isSalvageConfirmationPresented = false
 
-    public init(item: InventoryItem) {
+    public init(
+        item: InventoryItem,
+        heroNote: String? = nil,
+        heroNoteAccessibilityID: String? = nil,
+    ) {
         self.item = item
         action = .none
+        self.heroNote = heroNote
+        self.heroNoteAccessibilityID = heroNoteAccessibilityID
     }
 
     public init(
@@ -113,7 +121,15 @@ public struct ItemDetailView: View {
                     baseHeight: baseHeight,
                 ) {
                     ItemArtwork(item: item)
+                } footer: {
+                    if let heroNote {
+                        Label(heroNote, systemImage: "checkmark.circle.fill")
+                            .trinketTypography(.rowTitle)
+                            .trinketOnArtText(.eyebrow)
+                            .accessibilityIdentifier(heroNoteAccessibilityID ?? heroNote)
+                    }
                 }
+                .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemDetail(item.id))
             },
             bodyContent: {

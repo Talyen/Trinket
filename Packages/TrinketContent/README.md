@@ -112,11 +112,13 @@ unchanged inputs and pool availability across the displayed reward count.
 
 `RewardModifier` owns 13 quantity/material/item-tier bonuses, seven item-family
 or tier guarantees, and 17 keyword item guarantees shared by Contracts and
-Labyrinth/Voyage combat nodes. Contract
+node modifiers in Labyrinth, Voyage, and Spires. Contract
 saves retain their `rewardModifier` field and existing string values; keyword
 values use `keyword.<keyword>` (including `keyword.deathsDoor`). Labyrinth/Voyage
 retain saved modifier IDs, including `bountyMark`, `scholarsToll`, and
-`scavengersLuck`. Existing maps/routes are not rerolled.
+`scavengersLuck`. Existing maps/routes are not rerolled. Each Spire floor derives
+one keyword-matched node modifier from the saved world seed and its floor identity,
+so no new save field is required.
 Voyage destination offers also save a shared reward modifier for their final boss
 reward. Missing offer modifiers decode as Bonus Gold.
 

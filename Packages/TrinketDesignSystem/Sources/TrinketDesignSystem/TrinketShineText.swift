@@ -5,7 +5,7 @@ private struct ShineTextModifier: ViewModifier {
     @Environment(\.isDecorativeMotionActive) private var isMotionActive
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var clock = ShineClock()
+    @State private var clock = DecorativeLoopClock()
 
     func body(content: Content) -> some View {
         if colors.isEmpty {
@@ -36,28 +36,6 @@ private struct ShineTextModifier: ViewModifier {
                 clock.setActive(!isPaused, at: Date())
             }
             .onDisappear { clock.setActive(false, at: Date()) }
-        }
-    }
-}
-
-/// Frozen-phase clock mirroring `KeywordPlasmaBackground.PlasmaClock` so the
-/// two decorative loops park identically.
-private struct ShineClock {
-    private var accumulated: TimeInterval = 0
-    private var runningSince: Date?
-
-    func elapsed(at date: Date) -> TimeInterval {
-        accumulated + (runningSince.map { max(0, date.timeIntervalSince($0)) } ?? 0)
-    }
-
-    mutating func setActive(_ active: Bool, at date: Date) {
-        if active {
-            if runningSince == nil {
-                runningSince = date
-            }
-        } else if runningSince != nil {
-            accumulated = elapsed(at: date)
-            runningSince = nil
         }
     }
 }

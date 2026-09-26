@@ -1,6 +1,7 @@
 import SwiftUI
 import TrinketAppState
 import TrinketContent
+import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureAdapters
 import TrinketFeatureSupport
@@ -252,7 +253,11 @@ struct HomesteadNodeDetailView: View {
     private func buildOrUpgrade(_ expectedTier: Int) {
         guard !purchaseCommitted, !build.isPending,
               let nextTier = status.nextTier, nextTier.tier == expectedTier else { return }
-        let presentation = HomesteadPurchasePresentation(previousTier: status.currentStage, targetTier: nextTier)
+        let presentation = HomesteadPurchasePresentation(
+            nodeID: definition.id,
+            previousTier: status.currentStage,
+            targetTier: nextTier,
+        )
         build.isPending = true
         Task {
             guard let result = await playerSave.retryingTransientOperation({ () async -> HomesteadBuildResult in
@@ -315,6 +320,7 @@ struct HomesteadNodeDetailView: View {
 }
 
 private struct HomesteadPurchasePresentation {
+    let nodeID: HomesteadNodeID
     let previousTier: HomesteadNodeTier?
     let targetTier: HomesteadNodeTier
     var displayedTier: HomesteadNodeTier
@@ -322,7 +328,8 @@ private struct HomesteadPurchasePresentation {
     var highlightedEffects: Set<HomesteadEffectLine.Key> = []
     var highlightsProduction = false
 
-    init(previousTier: HomesteadNodeTier?, targetTier: HomesteadNodeTier) {
+    init(nodeID: HomesteadNodeID, previousTier: HomesteadNodeTier?, targetTier: HomesteadNodeTier) {
+        self.nodeID = nodeID
         self.previousTier = previousTier
         self.targetTier = targetTier
         displayedTier = previousTier ?? targetTier
@@ -330,8 +337,8 @@ private struct HomesteadPurchasePresentation {
     }
 
     mutating func revealValues() {
-        let previous = previousTier.map(HomesteadEffectLine.lines(for:)) ?? []
-        highlightedEffects = Set(HomesteadEffectLine.lines(for: targetTier).filter { line in
+        let previous = previousTier.map { HomesteadEffectLine.lines(for: $0, nodeID: nodeID) } ?? []
+        highlightedEffects = Set(HomesteadEffectLine.lines(for: targetTier, nodeID: nodeID).filter { line in
             line.resource == nil && !previous.contains { $0.id == line.id && $0.value == line.value }
         }.map(\.id))
         highlightsProduction = targetTier.production.contains { output in

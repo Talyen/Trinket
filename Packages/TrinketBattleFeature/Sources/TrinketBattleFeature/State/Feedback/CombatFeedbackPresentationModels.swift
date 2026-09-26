@@ -156,35 +156,6 @@ struct CombatReactionKeyframes: Equatable {
     }
 }
 
-/// Shared keyframe-channel forwarding for hit and attack recipes.
-/// Timing semantics stay on each recipe: hit reactions read impact/recovery
-/// from the first two samples, attacks read wind-up/swing/recover poses.
-protocol CombatReactionKeyframeHost {
-    var keyframes: CombatReactionKeyframes { get }
-}
-
-extension CombatReactionKeyframeHost {
-    var scaleX: [CombatFeedbackKeyframeSample] {
-        keyframes.scaleX
-    }
-
-    var scaleY: [CombatFeedbackKeyframeSample] {
-        keyframes.scaleY
-    }
-
-    var offsetX: [CombatFeedbackKeyframeSample] {
-        keyframes.offsetX
-    }
-
-    var offsetY: [CombatFeedbackKeyframeSample] {
-        keyframes.offsetY
-    }
-
-    var rotation: [CombatFeedbackKeyframeSample] {
-        keyframes.rotation
-    }
-}
-
 struct CombatantHitReactionRecipe: Equatable {
     let kind: CombatantHitReactionKind
     let keyframes: CombatReactionKeyframes
@@ -209,49 +180,7 @@ struct CombatantHitReactionRecipe: Equatable {
         )
         self.duration = duration
     }
-
-    var impactDuration: TimeInterval {
-        keyframes.impactDuration
-    }
-
-    var recoveryDuration: TimeInterval {
-        keyframes.recoveryDuration
-    }
-
-    var rawImpactScaleX: Double {
-        keyframes.rawImpactScaleX
-    }
-
-    var rawImpactScaleY: Double {
-        keyframes.rawImpactScaleY
-    }
-
-    var rawImpactOffsetX: Double {
-        keyframes.rawImpactOffsetX
-    }
-
-    var rawImpactOffsetY: Double {
-        keyframes.rawImpactOffsetY
-    }
-
-    var recoveryScaleX: Double {
-        keyframes.recoveryScaleX
-    }
-
-    var recoveryScaleY: Double {
-        keyframes.recoveryScaleY
-    }
-
-    var recoverOffsetX: Double {
-        keyframes.recoverOffsetX
-    }
-
-    var recoverOffsetY: Double {
-        keyframes.recoverOffsetY
-    }
 }
-
-extension CombatantHitReactionRecipe: CombatReactionKeyframeHost {}
 
 enum CombatantAttackPhase: String, CaseIterable, Equatable {
     case windUp
@@ -321,15 +250,15 @@ struct CombatantAttackReactionRecipe: Equatable {
     }
 
     var windUpDuration: TimeInterval {
-        scaleX[safe: 0]?.duration ?? 0.01
+        keyframes.scaleX[safe: 0]?.duration ?? 0.01
     }
 
     var swingDuration: TimeInterval {
-        scaleX[safe: 1]?.duration ?? 0.01
+        keyframes.scaleX[safe: 1]?.duration ?? 0.01
     }
 
     var recoverDuration: TimeInterval {
-        scaleX[safe: 2]?.duration ?? 0.01
+        keyframes.scaleX[safe: 2]?.duration ?? 0.01
     }
 
     func windUpPose(aim: CombatantAttackAim) -> CombatantAttackPose {
@@ -342,16 +271,14 @@ struct CombatantAttackReactionRecipe: Equatable {
 
     private func pose(at index: Int, aim: CombatantAttackAim) -> CombatantAttackPose {
         CombatantAttackPose(
-            scaleX: scaleX[safe: index]?.value ?? 1,
-            scaleY: scaleY[safe: index]?.value ?? 1,
-            offsetX: offsetX[safe: index]?.value ?? 0,
-            offsetY: aim.aimedOffsetY(offsetY[safe: index]?.value ?? 0),
-            rotation: rotation[safe: index]?.value ?? 0,
+            scaleX: keyframes.scaleX[safe: index]?.value ?? 1,
+            scaleY: keyframes.scaleY[safe: index]?.value ?? 1,
+            offsetX: keyframes.offsetX[safe: index]?.value ?? 0,
+            offsetY: aim.aimedOffsetY(keyframes.offsetY[safe: index]?.value ?? 0),
+            rotation: keyframes.rotation[safe: index]?.value ?? 0,
         )
     }
 }
-
-extension CombatantAttackReactionRecipe: CombatReactionKeyframeHost {}
 
 enum CombatantHitRecoilDirection: String, CaseIterable, Equatable {
     case up

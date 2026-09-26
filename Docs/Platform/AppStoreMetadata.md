@@ -83,18 +83,19 @@ copy for the existing local-only build. Activation belongs to the
 
 **What to Test:** Progress now syncs automatically between devices signed into the
 same iCloud account. Play on one device, then reopen Trinket on the other. Check
-Campaign progress, your party, equipment, and Homestead. Offline adventures remain
-available; Homestead collection and upgrades need a connection while using iCloud.
+Campaign progress, your party, equipment, and Homestead. Adventures, Homestead
+collection, and upgrades remain available offline; reconnect to sync your progress.
+Check that progress earned separately on both devices merges automatically.
 Reset Game Progress applies across your synced devices, including a device that
 reconnects later. This is a development beta; use test progress.
 
 **Replacement account paragraph:** No Trinket account is required. With iCloud
-signed in, progress syncs automatically across your devices. Play adventures offline
-and reconnect to sync your progress. Homestead collection and upgrades require a
-connection while using iCloud.
+signed in, progress syncs automatically across your devices. Play adventures,
+collect Homestead production, and build or upgrade offline, then reconnect to
+sync your progress.
 
 **Review-note replacement:** Trinket uses the device's iCloud account for automatic
 progress sync and has no in-app login. Without iCloud, progress remains local.
-Conflicting progress is resolved automatically using a complete save, with the
-other save retained as a recovery backup. Reset Game Progress propagates to synced
+Independent earned progress merges automatically, with conflicting saves retained
+as recovery backups. Reset Game Progress propagates to synced
 devices and does not remove Full Game ownership.

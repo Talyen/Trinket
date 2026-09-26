@@ -13,7 +13,7 @@ public final class LabyrinthPlayMode {
         let nodeID: String
         let combatantID: String
         let encounterLevel: Int
-        let modifierIDs: [LabyrinthModifierID]
+        let modifierIDs: [NodeModifierID]
     }
 
     private struct PreparationInputs: Equatable {

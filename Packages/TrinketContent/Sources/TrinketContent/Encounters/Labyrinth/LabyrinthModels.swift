@@ -1,95 +1,6 @@
 import Foundation
 import TrinketCore
 
-public struct LabyrinthModifierID: RawRepresentable, Hashable, Codable, Sendable, Identifiable {
-    public let rawValue: String
-
-    public var id: String {
-        rawValue
-    }
-
-    public init(rawValue: String) {
-        self.rawValue = rawValue
-    }
-
-    public init(_ rawValue: String) {
-        self.rawValue = rawValue
-    }
-}
-
-public enum LabyrinthModifierEffect: Hashable, Sendable {
-    case damageDealt(keyword: Keyword, amount: Int)
-    case damageTakenReduction(keyword: Keyword, percent: Int)
-    case blockGained(Int)
-    case leechGainedPercent(Int)
-    case startBattleBlock(Int)
-    case attackLeech
-    case attackBlockRemoval(Int)
-    case attackPurge(Int)
-    case reward(RewardModifier)
-    case shopDiscountPercent(Int)
-    case astralShopOffers
-
-    public var description: String {
-        switch self {
-        case let .damageDealt(keyword, amount):
-            "\(keyword.rawValue.capitalized) damage is increased by \(amount)"
-        case let .damageTakenReduction(keyword, percent):
-            "\(keyword.rawValue.capitalized) damage taken is decreased by \(percent)%"
-        case let .blockGained(amount):
-            "Block gained is increased by \(amount)"
-        case let .leechGainedPercent(percent):
-            "Leech gained is increased by \(percent)%"
-        case let .startBattleBlock(amount):
-            "Enemy starts with \(amount) Block"
-        case .attackLeech:
-            "Enemy attacks have Leech"
-        case let .attackBlockRemoval(amount):
-            "Enemy attacks remove \(amount) Block"
-        case let .attackPurge(count):
-            "Enemy attacks Purge \(count) buff"
-        case let .reward(modifier):
-            modifier.description
-        case let .shopDiscountPercent(percent):
-            "Decreases Shop prices by \(percent)%"
-        case .astralShopOffers:
-            "Shop offers are all Astral items"
-        }
-    }
-}
-
-public struct LabyrinthModifierDefinition: Identifiable, Hashable, Sendable {
-    public let id: LabyrinthModifierID
-    public let title: String
-    public let effect: LabyrinthModifierEffect
-    public let nodeTypes: Set<LabyrinthNodeType>
-
-    public init(
-        id: LabyrinthModifierID,
-        title: String,
-        effect: LabyrinthModifierEffect,
-        nodeTypes: Set<LabyrinthNodeType>,
-    ) {
-        self.id = id
-        self.title = title
-        self.effect = effect
-        self.nodeTypes = nodeTypes
-    }
-
-    public func applies(to type: LabyrinthNodeType) -> Bool {
-        nodeTypes.contains(type)
-    }
-
-    public var relevantKeyword: Keyword? {
-        switch effect {
-        case let .damageDealt(keyword, _):
-            keyword
-        default:
-            nil
-        }
-    }
-}
-
 public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable {
     case battle
     case boss
@@ -184,7 +95,7 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
     public let depth: Int
     public let clusterID: String
     public let gridPosition: LabyrinthGridPosition?
-    public let modifierIDs: [LabyrinthModifierID]
+    public let modifierIDs: [NodeModifierID]
     public let recruitEventID: String?
     public var mysteryEventID: String?
     public var mysteryOffersPayload: Data?
@@ -200,7 +111,7 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         depth: Int,
         clusterID: String,
         gridPosition: LabyrinthGridPosition? = nil,
-        modifierIDs: [LabyrinthModifierID] = [],
+        modifierIDs: [NodeModifierID] = [],
         recruitEventID: String? = nil,
         mysteryEventID: String? = nil,
         mysteryOffersPayload: Data? = nil,
@@ -233,7 +144,7 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         depth = try container.decode(Int.self, forKey: .depth)
         clusterID = try container.decode(String.self, forKey: .clusterID)
         gridPosition = try container.decodeIfPresent(LabyrinthGridPosition.self, forKey: .gridPosition)
-        modifierIDs = try container.decodeIfPresent([LabyrinthModifierID].self, forKey: .modifierIDs) ?? []
+        modifierIDs = try container.decodeIfPresent([NodeModifierID].self, forKey: .modifierIDs) ?? []
         recruitEventID = try container.decodeIfPresent(String.self, forKey: .recruitEventID)
         mysteryEventID = try container.decodeIfPresent(String.self, forKey: .mysteryEventID)
         mysteryOffersPayload = try container.decodeIfPresent(Data.self, forKey: .mysteryOffersPayload)
@@ -262,104 +173,5 @@ public struct LabyrinthCluster: Identifiable, Hashable, Codable, Sendable {
         self.id = id
         self.depthBand = depthBand
         self.nodeIDs = nodeIDs
-    }
-}
-
-public struct LabyrinthModifierEffects: Equatable, Sendable {
-    public var damageDealtBonus: [Keyword: Int]
-    public var damageTakenReduction: [Keyword: Int]
-    public var blockGainedBonus: Int
-    public var leechGainedPercent: Int
-    public var startBattleBlock: Int
-    public var attackLeech: Bool
-    public var attackBlockRemoval: Int
-    public var attackPurgeCount: Int
-    public var goldFoundPercent: Int
-    public var experienceEarnedPercent: Int
-    public var materialsFoundPercent: Int
-    public var shopDiscountPercent: Int
-    public var astralShopOffers: Bool
-    public var rewardModifier: RewardModifier?
-
-    public static let zero = Self(
-        damageDealtBonus: [:],
-        damageTakenReduction: [:],
-        blockGainedBonus: 0,
-        leechGainedPercent: 0,
-        startBattleBlock: 0,
-        attackLeech: false,
-        attackBlockRemoval: 0,
-        attackPurgeCount: 0,
-        goldFoundPercent: 0,
-        experienceEarnedPercent: 0,
-        materialsFoundPercent: 0,
-        shopDiscountPercent: 0,
-        astralShopOffers: false,
-    )
-
-    public init(
-        damageDealtBonus: [Keyword: Int],
-        damageTakenReduction: [Keyword: Int] = [:],
-        blockGainedBonus: Int = 0,
-        leechGainedPercent: Int = 0,
-        startBattleBlock: Int = 0,
-        attackLeech: Bool = false,
-        attackBlockRemoval: Int = 0,
-        attackPurgeCount: Int = 0,
-        goldFoundPercent: Int = 0,
-        experienceEarnedPercent: Int = 0,
-        materialsFoundPercent: Int = 0,
-        shopDiscountPercent: Int = 0,
-        astralShopOffers: Bool = false,
-        rewardModifier: RewardModifier? = nil,
-    ) {
-        self.damageDealtBonus = damageDealtBonus
-        self.damageTakenReduction = damageTakenReduction
-        self.blockGainedBonus = blockGainedBonus
-        self.leechGainedPercent = leechGainedPercent
-        self.startBattleBlock = startBattleBlock
-        self.attackLeech = attackLeech
-        self.attackBlockRemoval = attackBlockRemoval
-        self.attackPurgeCount = attackPurgeCount
-        self.goldFoundPercent = goldFoundPercent
-        self.experienceEarnedPercent = experienceEarnedPercent
-        self.materialsFoundPercent = materialsFoundPercent
-        self.shopDiscountPercent = shopDiscountPercent
-        self.astralShopOffers = astralShopOffers
-        self.rewardModifier = rewardModifier
-    }
-
-    public static func combining(_ modifiers: [LabyrinthModifierDefinition]) -> Self {
-        var effects = Self.zero
-        for modifier in modifiers {
-            switch modifier.effect {
-            case let .damageDealt(keyword, amount):
-                effects.damageDealtBonus[keyword, default: 0] += amount
-            case let .damageTakenReduction(keyword, percent):
-                effects.damageTakenReduction[keyword, default: 0] += percent
-            case let .blockGained(amount):
-                effects.blockGainedBonus += amount
-            case let .leechGainedPercent(percent):
-                effects.leechGainedPercent += percent
-            case let .startBattleBlock(amount):
-                effects.startBattleBlock += amount
-            case .attackLeech:
-                effects.attackLeech = true
-            case let .attackBlockRemoval(amount):
-                effects.attackBlockRemoval += amount
-            case let .attackPurge(count):
-                effects.attackPurgeCount += count
-            case let .reward(modifier):
-                effects.rewardModifier = modifier
-                effects.goldFoundPercent += modifier.goldBonusPercent
-                effects.experienceEarnedPercent += modifier.experienceBonusPercent
-                effects.materialsFoundPercent += modifier.materialsBonusPercent
-            case let .shopDiscountPercent(percent):
-                effects.shopDiscountPercent += percent
-            case .astralShopOffers:
-                effects.astralShopOffers = true
-            }
-        }
-        return effects
     }
 }

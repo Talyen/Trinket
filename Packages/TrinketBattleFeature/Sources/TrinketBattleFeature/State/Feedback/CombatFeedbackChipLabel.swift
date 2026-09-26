@@ -60,12 +60,13 @@ enum CombatFeedbackChipLabel: Hashable {
         effectKind: ActionEvent.EffectOutcome,
         event: ActionEvent,
     ) -> Self? {
-        guard let rule = CombatFeedbackEffectPresentation.descriptor(for: effectKind).labelRule else {
+        let descriptor = CombatFeedbackEffectPresentation.descriptor(for: effectKind)
+        guard let rule = descriptor.labelRule else {
             return nil
         }
         switch rule {
         case .amount:
-            return .amount(event.amount, additive: CombatFeedbackEffectPresentation.descriptor(for: effectKind).isAdditive)
+            return .amount(event.amount, additive: descriptor.isAdditive)
         case .negatedAmount:
             return .amount(-event.amount)
         case .dodgeWord:

@@ -74,22 +74,25 @@ final class PlayBattleCompletion {
             return .unavailable
         }
 
+        // A settled award already includes material bonuses. With a supplied
+        // settlement, validate against the launch plan's unadjusted materials.
+        let baseMaterials = settlement == nil ? materialRewards : nil
         let resolved = settleRewards(
-            configuration, battleGold: battleGold, materialRewards: materialRewards, presentation: presentation,
+            configuration, battleGold: battleGold, materialRewards: baseMaterials, presentation: presentation,
             at: settlement?.inputs.productionDate ?? Date(),
         )
         guard settlement == nil || settlement == resolved else { return .staleSettlement(resolved) }
         let origin = route?.origin
         let loot = Self.preparedLoot(
             from: presentation,
-            materialRewards: materialRewards,
+            materialRewards: baseMaterials,
         )
         let result: BattleCompletionResult = if let route, let presentation {
             route.complete(
                 configuration,
                 presentation,
                 settlement ?? resolved,
-                materialRewards,
+                baseMaterials,
                 loot,
             )
         } else {

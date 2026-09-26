@@ -26,7 +26,7 @@ public enum LabyrinthCompletion {
 
     public static func resolveCombatLoot(
         for node: LabyrinthNode,
-        effects: LabyrinthModifierEffects,
+        effects: NodeModifierEffects,
         encounterLevel: Int? = nil,
         worldSeed: UInt64,
         ownedTrinketIDs: Set<String> = [],

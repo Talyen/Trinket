@@ -173,24 +173,12 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public var damageKeyword: Keyword {
-        logDamageKeyword
-    }
-
-    public var logDamageKeyword: Keyword {
         let targetComponents = damageComponents.filter { $0.target == .abilityTarget }
         let keywords = Set(targetComponents.map(\.keyword))
         if keywords.count == 1, let keyword = keywords.first {
             return keyword
         }
         return targetComponents.first?.keyword ?? .physical
-    }
-
-    public var damage: Int {
-        directDamage
-    }
-
-    public var damageType: Keyword {
-        damageKeyword
     }
 
     public var keywords: [Keyword] {

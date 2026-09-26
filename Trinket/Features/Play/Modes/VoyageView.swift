@@ -71,6 +71,7 @@ struct VoyageView: View {
             }
             .padding(.bottom, TrinketDesign.Layout.compactTabBarContentClearance)
         }
+        .id(run?.id ?? "voyage-board")
         .accessibilityIdentifier(AccessibilityID.Voyage.screen)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -181,7 +182,7 @@ struct VoyageView: View {
             presentPlayCombatantDetail(makePlayEnemyDetail(
                 combatant: encounter.combatant,
                 level: encounter.level,
-                labyrinthModifiers: modifiers,
+                nodeModifiers: modifiers,
             ))
         } else {
             message = StageMapMessage(

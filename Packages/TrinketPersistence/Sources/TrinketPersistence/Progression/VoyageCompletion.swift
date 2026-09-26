@@ -9,7 +9,7 @@ public struct VoyageResolvedLoot: Sendable {
 public enum VoyageCompletion {
     public static func resolveLoot(node: VoyageNode, encounterLevel: Int, save: PlayerSave) -> BattleLootResult {
         let ownership = RewardOwnership(save)
-        let effects = LabyrinthModifierEffects.combining(ownership.modifiers(ids: node.modifierIDs))
+        let effects = NodeModifierEffects.combining(ownership.modifiers(ids: node.modifierIDs))
         return VictoryRewardApplier.resolveLoot(
             .voyage(node: node, rewardLevel: ContractsCompletion.campaignRewardLevel(in: save), effects: effects),
             encounterLevel: encounterLevel, enemyIsBoss: node.type == .boss,
@@ -22,7 +22,7 @@ public enum VoyageCompletion {
         node: VoyageNode, offer: VoyageOffer, encounterLevel: Int, save: PlayerSave,
     ) -> VoyageResolvedLoot {
         let ownership = RewardOwnership(save)
-        let effects = LabyrinthModifierEffects.combining(ownership.modifiers(ids: node.modifierIDs))
+        let effects = NodeModifierEffects.combining(ownership.modifiers(ids: node.modifierIDs))
         let destination = offer.rewardModifier.resolved(
             ownedTrinketIDs: ownership.ownedTrinketIDs, ownedUniqueIDs: ownership.ownedUniqueIDs,
         )

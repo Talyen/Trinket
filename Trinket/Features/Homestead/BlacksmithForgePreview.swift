@@ -12,6 +12,7 @@ struct BlacksmithForgePreview: View {
     @State private var result: InventoryItem?
     @State private var displayedItem: InventoryItem?
     @State private var artworkLease: PreparedArtworkLease?
+    @State private var previewArtworkLease: PreparedArtworkLease?
     @State private var isPending = false
     @State private var isVisible = false
     @State private var hasOpenedResult = false
@@ -45,6 +46,7 @@ struct BlacksmithForgePreview: View {
         .navigationTitle(displayedItem == nil ? "Forge" : "Forged")
         .navigationBarTitleDisplayMode(.inline)
         .trinketFailureAlert("Unable to Forge", message: $error)
+        .task(id: recipe.id) { await preparePreviewArtwork() }
         .task(id: result?.id) { await prepareArtwork() }
         .onChange(of: displayedItem?.id) { _, _ in
             guard let displayedItem, !hasOpenedResult else { return }
@@ -77,7 +79,7 @@ struct BlacksmithForgePreview: View {
             ProductCardShell {
                 ZStack {
                     if let artwork = recipe.forgeArtwork {
-                        Image.preparedAsset(artwork, displaySize: .full)
+                        Image.preparedAsset(artwork, displaySize: previewArtworkLease == nil ? .compact : .full)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .decorativePreparedArtwork()
@@ -116,14 +118,6 @@ struct BlacksmithForgePreview: View {
                 }
                 .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.forgeDone)
             } else {
-                let forgeBonus = BlacksmithRecipe.astralWeightBonusPercent(
-                    blacksmithTier: playerSave.homestead.tier(for: .blacksmithForge),
-                )
-                if forgeBonus > 0 {
-                    Text("Forge Astral odds +\(forgeBonus)%")
-                        .trinketTypography(.body)
-                        .foregroundStyle(.primary)
-                }
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), alignment: .leading)], alignment: .leading) {
                     ForEach(recipe.cost) { amount in
                         HomesteadMaterialValue(
@@ -173,6 +167,13 @@ struct BlacksmithForgePreview: View {
         artworkLease = prepared
         displayedItem = result
     }
+
+    private func preparePreviewArtwork() async {
+        let names = [recipe.forgeArtwork?.imageName].compactMap(\.self)
+        let prepared = await PreparedArtworkLease(names: names)
+        guard !Task.isCancelled else { return }
+        previewArtworkLease = prepared
+    }
 }
 
 struct BlacksmithForgedItemView: View {
@@ -183,35 +184,22 @@ struct BlacksmithForgedItemView: View {
 
     let item: InventoryItem
     let celebrates: Bool
-    let onDone: () -> Void
 
     var body: some View {
-        ItemDetailView(item: item)
-            .accessibilityElement(children: .contain)
-            .accessibilityIdentifier(AccessibilityID.Homestead.forgeDetail)
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                VStack(spacing: TrinketDesign.Spacing.medium) {
-                    Label("Added to Inventory", systemImage: "checkmark.circle.fill")
-                        .trinketTypography(.rowTitle)
-                        .foregroundStyle(TrinketDesign.Colors.accent)
-                        .symbolEffect(.bounce, value: successCount)
-                        .accessibilityIdentifier(AccessibilityID.Homestead.forgeAdded)
-                    Button(action: onDone) {
-                        Text("Done").frame(maxWidth: .infinity)
-                    }
-                    .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.forgeDone)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(TrinketDesign.Layout.contentMargin)
-                .background(TrinketDesign.Colors.sheet)
+        ItemDetailView(
+            item: item,
+            heroNote: "Added to Inventory",
+            heroNoteAccessibilityID: AccessibilityID.Homestead.forgeAdded,
+        )
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Homestead.forgeDetail)
+        .trinketSensoryFeedback(.success, trigger: successCount, enabled: options.hapticsEnabled)
+        .onAppear {
+            guard !hasAppeared else { return }
+            hasAppeared = true
+            if celebrates, scenePhase == .active {
+                successCount += 1
             }
-            .trinketSensoryFeedback(.success, trigger: successCount, enabled: options.hapticsEnabled)
-            .onAppear {
-                guard !hasAppeared else { return }
-                hasAppeared = true
-                if celebrates, scenePhase == .active {
-                    successCount += 1
-                }
-            }
+        }
     }
 }

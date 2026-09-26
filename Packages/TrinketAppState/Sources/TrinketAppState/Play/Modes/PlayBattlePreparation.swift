@@ -28,17 +28,17 @@ struct BattleLootContext {
 }
 
 /// Keeps the combat, experience, and presentation views of one set of node
-/// modifiers together when Labyrinth or Voyage builds a battle.
+/// modifiers together when Spires, Labyrinth, or Voyage builds a battle.
 struct ModeBattleModifiers {
     static let none = Self(definitions: [])
 
-    let definitions: [LabyrinthModifierDefinition]
+    let definitions: [NodeModifierDefinition]
     let experienceBonusPercent: Int
     let universalModifiers: [AffixModifier]
 
-    init(definitions: [LabyrinthModifierDefinition]) {
+    init(definitions: [NodeModifierDefinition]) {
         self.definitions = definitions
-        let effects = LabyrinthModifierEffects.combining(definitions)
+        let effects = NodeModifierEffects.combining(definitions)
         experienceBonusPercent = effects.experienceEarnedPercent
 
         var modifiers: [AffixModifier] = effects.damageDealtBonus
@@ -98,7 +98,7 @@ enum ModeBattleSpec {
             additionalRewardItems: additionalRewardItems,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             universalModifiers: modifiers.universalModifiers,
-            labyrinthModifiers: modifiers.definitions,
+            nodeModifiers: modifiers.definitions,
             completionBonus: completionBonus,
         )
     }

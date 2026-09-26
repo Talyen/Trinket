@@ -21,7 +21,7 @@ Defer the sensitive portion while continuing independent authorized work.
 
 | Owning audit | Proposal | Evidence pointer | Implementation boundary | Proposed |
 |--------------|----------|------------------|-------------------------|----------|
-| Performance playbook | Full `PlayerSave` snapshot on every `performBatchMutation` | `PlayerSaveStore.performBatchMutation` (`PlayerSaveStore.swift`, not the `PlayerSaveStore+Reset.swift` reset snapshots) | High-risk rewrite; measure Instruments first | 2026-08-19 |
+| Performance playbook | Full `PlayerSave` snapshot on every `performBatchMutation` | `PlayerSaveStore.performBatchMutation` and its shared `commit` path in [PlayerSaveStore+Persistence.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore+Persistence.swift) | High-risk rewrite; measure Instruments first | 2026-08-19 |
 
 The snapshot proposal is a measurement-led investigation under the
 [performance playbook](../Platform/PerformanceInvestigationPlaybook.md), not evidence
@@ -47,7 +47,5 @@ reason. Reuse that conclusion while its assumptions hold.
 | 06 | `TrinketFeatureAdapters` module split | Enforced package DAG boundary | 2026-08-05 |
 | 06 | `PlayerSaveSanitizer` / labyrinth regeneration | Current-data validation and unreadable-map recovery remain required under the [storage contract](../AgentContext/persistence-storage.md); retired development-save migrations do not | 2026-09-11 |
 | 06 | `StageSelectRowPresentation` stage/spire/labyrinth builders | Mode-specific field sources; shared config object would add ceremony | 2026-08-05 |
-| 06 | `PlayModeGraph` / `LaunchRunCallbacks` | Documented Play assembly owner; not deferred-bind theater | 2026-08-05 |
 | 06 | `check-build-cache-paths.sh` divergent path lists | Intentional CI vs local freshness differences; documented | 2026-08-05 |
-| 06 | `KeywordShineBorder` vs `CombatantBuffAuraBorder` | Parallel shimmer, but buff aura uses `TrinketDesign.cardShape` (battle 3:4 identity) vs rounded keyword shine | 2026-08-17 |
 | 01 | Stage-select placeholder SF Symbols using `Font.system(size:)` | Already `@ScaledMetric`; intentional decorative sizing under audit 01 | 2026-08-17 |

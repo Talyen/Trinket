@@ -8,9 +8,9 @@ What the player sees, in player terms. Locked rules live in
 |---|---|
 | Play | Choose Campaign or Explore, then enter encounters and three-card-hand combat with a Hero and Companion. |
 | Campaign | A guided sequence of chapters and encounters with permanent completion. Named Journey in the underlying save and mode types. |
-| Explore | The hub for The Spires, Labyrinth, Contracts, and Voyage. |
+| Explore | The hub for Spires, Labyrinth, Contracts, and Voyage. |
 | Labyrinth | A persistent expedition through infinite floors. |
-| The Spires | Ascending challenge gauntlets with fixed floor levels and permanent completion. |
+| Spires | Ascending challenge gauntlets with fixed floor levels, keyword modifiers, and permanent completion. See [Spires.md](Spires.md). |
 | Contracts | Three renewable single-battle jobs under Explore, with regular rewards and party-based levels. See [Contracts.md](Contracts.md). |
 | Collection | The party's equipment and talents: hero and companion loadouts plus drill-in detail screens. |
 | Homestead | Permanent progression from gathered resources: art-led overview, category galleries (Farming / Crafting / Alchemy / Training / Arcana), and immediate tier-path builds. See [Homestead.md](Homestead.md). |

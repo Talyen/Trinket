@@ -107,6 +107,7 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
         for spire: SpireDefinition,
         floors: [SpireFloor],
         progress: PlayerSpiresState,
+        worldSeed: UInt64,
     ) -> [Self] {
         let highestCleared = progress.highestClearedFloor(for: spire.id.rawValue)
         guard highestCleared < spire.floorCount else { return [] }
@@ -124,6 +125,10 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
             let encounter = StageEncounter.battle(enemyID: floor.enemyID)
             let encounterTypeTitle = enemy.isBoss ? "Boss" : encounter.title
             let mapLabel = "Floor \(floor.floor)"
+            let selected = floor.floor == activeFloor
+                ? GameContent.spireModifier(for: floor, worldSeed: worldSeed)
+                : nil
+            let modifiers = selected.map { [ModifierCaptionPresentation($0)] } ?? []
             return Self(
                 item: floor,
                 isActive: floor.floor == activeFloor,
@@ -154,6 +159,7 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
                 partyControlAccessibilityID: AccessibilityID.Play.spirePartyControl(
                     spire.id.rawValue,
                 ),
+                modifiers: modifiers,
             )
         }
     }

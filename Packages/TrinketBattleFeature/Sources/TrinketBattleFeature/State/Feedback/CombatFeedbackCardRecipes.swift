@@ -69,10 +69,10 @@ enum CombatFeedbackCardRecipes {
 
     static let blockCardReaction = CombatantHitReactionRecipe(
         kind: .block,
-        scaleX: damageCardReaction.scaleX,
-        scaleY: damageCardReaction.scaleY,
-        offsetX: damageCardReaction.offsetX,
-        offsetY: damageCardReaction.offsetY,
+        scaleX: damageCardReaction.keyframes.scaleX,
+        scaleY: damageCardReaction.keyframes.scaleY,
+        offsetX: damageCardReaction.keyframes.offsetX,
+        offsetY: damageCardReaction.keyframes.offsetY,
         duration: damageCardReaction.duration,
     )
 

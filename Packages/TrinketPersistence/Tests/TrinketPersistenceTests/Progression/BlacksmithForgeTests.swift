@@ -6,7 +6,7 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct BlacksmithForgeTests {
-    @Test func `forge Astral weight rises with Blacksmith tier and stacks with Moonlit Sanctum`() throws {
+    @Test func `forge Astral weight comes only from Blacksmith tier`() throws {
         #expect((0 ... 4).map(BlacksmithRecipe.astralWeightBonusPercent) == [0, 0, 10, 20, 30])
         #expect(BlacksmithRecipe.astralWeightBonusPercent(blacksmithTier: Int.min) == 0)
         #expect(BlacksmithRecipe.astralWeightBonusPercent(blacksmithTier: Int.max) == 30)
@@ -17,10 +17,15 @@ struct BlacksmithForgeTests {
         let recipe = try #require(BlacksmithRecipe.matching("blacksmith-longsword"))
         var actualRandom = SeededRandomNumberGenerator(seed: 41)
         let actual = try BlacksmithForgeAttempt.prepare(recipeID: recipe.id, save: save, using: &actualRandom).get().item
+        save.homestead.nodeTiers[.moonlitSanctum] = nil
+        var withoutSanctumRandom = SeededRandomNumberGenerator(seed: 41)
+        let withoutSanctum = try BlacksmithForgeAttempt.prepare(recipeID: recipe.id, save: save, using: &withoutSanctumRandom).get().item
+        #expect(actual.rarity == withoutSanctum.rarity)
+        #expect(actual.affixes == withoutSanctum.affixes)
         var expectedRandom = SeededRandomNumberGenerator(seed: 41)
         let expected = ItemRewardGenerator.generate(
             id: actual.id, rewardLevel: 40,
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent + 30,
+            astralChanceBonusPercent: 30,
             allowedTiers: [.basic, .astral, .unique],
             ownedTrinketIDs: [], ownedUniqueIDs: [],
             eligibleUniqueIDs: Set(GameContent.uniqueItems.filter { $0.baseType.id == recipe.baseID }.map(\.templateID)),
@@ -71,7 +76,7 @@ struct BlacksmithForgeTests {
                 let expected = ItemRewardGenerator.generate(
                     id: attempt.item.id,
                     rewardLevel: CampaignRewardLevel.resolve(in: save),
-                    astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
+                    astralChanceBonusPercent: 0,
                     allowedTiers: [.basic, .astral, .unique],
                     ownedTrinketIDs: [], ownedUniqueIDs: [],
                     eligibleUniqueIDs: Set(GameContent.uniqueItems.filter { $0.baseType.id == recipe.baseID }.map(\.templateID)),

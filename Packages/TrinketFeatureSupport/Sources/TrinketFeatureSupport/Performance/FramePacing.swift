@@ -8,118 +8,24 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
     public var completionStatus: String?
 
     public var measurementDuration: TimeInterval?
-    public var sampleCount: Int
-    public var expectedFPS: Double
-    public var averageFPS: Double
-    public var p95FrameMs: Double
-    public var p99FrameMs: Double
-    public var onePercentLowFPS: Double
-    public var maxFrameMs: Double
-    public var missedDeadlineCount: Int
-    public var estimatedMissedFrameCount: Int
-    public var severeStallCount: Int
-    public var missedDeadlineRatio: Double
+    public var sampleCount: Int = 0
+    public var expectedFPS: Double = 0
+    public var averageFPS: Double = 0
+    public var p95FrameMs: Double = 0
+    public var p99FrameMs: Double = 0
+    public var onePercentLowFPS: Double = 0
+    public var maxFrameMs: Double = 0
+    public var missedDeadlineCount: Int = 0
+    public var estimatedMissedFrameCount: Int = 0
+    public var severeStallCount: Int = 0
+    public var missedDeadlineRatio: Double = 0
 
     public var sampledDuration: TimeInterval {
         guard sampleCount > 0, averageFPS > 0, averageFPS.isFinite else { return 0 }
         return Double(sampleCount) / averageFPS
     }
 
-    private enum CodingKeys: String, CodingKey {
-        case captureStartedAt
-        case captureEndedAt
-        case completionStatus
-        case measurementDuration
-        case sampleCount
-        case expectedFPS
-        case averageFPS
-        case p95FrameMs
-        case p99FrameMs
-        case onePercentLowFPS
-        case maxFrameMs
-        case missedDeadlineCount
-        case estimatedMissedFrameCount
-        case severeStallCount
-        case missedDeadlineRatio
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        captureStartedAt = try container.decodeIfPresent(TimeInterval.self, forKey: .captureStartedAt)
-        captureEndedAt = try container.decodeIfPresent(TimeInterval.self, forKey: .captureEndedAt)
-        completionStatus = try container.decodeIfPresent(String.self, forKey: .completionStatus)
-        measurementDuration = try container.decodeIfPresent(TimeInterval.self, forKey: .measurementDuration)
-        sampleCount = try container.decodeIfPresent(Int.self, forKey: .sampleCount) ?? 0
-        expectedFPS = try container.decodeIfPresent(Double.self, forKey: .expectedFPS) ?? 0
-        averageFPS = try container.decodeIfPresent(Double.self, forKey: .averageFPS) ?? 0
-        p95FrameMs = try container.decodeIfPresent(Double.self, forKey: .p95FrameMs) ?? 0
-        p99FrameMs = try container.decodeIfPresent(Double.self, forKey: .p99FrameMs) ?? 0
-        onePercentLowFPS = try container.decodeIfPresent(Double.self, forKey: .onePercentLowFPS) ?? 0
-        maxFrameMs = try container.decodeIfPresent(Double.self, forKey: .maxFrameMs) ?? 0
-        missedDeadlineCount = try container.decodeIfPresent(Int.self, forKey: .missedDeadlineCount) ?? 0
-        estimatedMissedFrameCount = try container.decodeIfPresent(Int.self, forKey: .estimatedMissedFrameCount) ?? 0
-        severeStallCount = try container.decodeIfPresent(Int.self, forKey: .severeStallCount) ?? 0
-        missedDeadlineRatio = try container.decodeIfPresent(Double.self, forKey: .missedDeadlineRatio) ?? 0
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(captureStartedAt, forKey: .captureStartedAt)
-        try container.encodeIfPresent(captureEndedAt, forKey: .captureEndedAt)
-        try container.encodeIfPresent(completionStatus, forKey: .completionStatus)
-        try container.encodeIfPresent(measurementDuration, forKey: .measurementDuration)
-        try container.encode(sampleCount, forKey: .sampleCount)
-        try container.encode(expectedFPS, forKey: .expectedFPS)
-        try container.encode(averageFPS, forKey: .averageFPS)
-        try container.encode(p95FrameMs, forKey: .p95FrameMs)
-        try container.encode(p99FrameMs, forKey: .p99FrameMs)
-        try container.encode(onePercentLowFPS, forKey: .onePercentLowFPS)
-        try container.encode(maxFrameMs, forKey: .maxFrameMs)
-        try container.encode(missedDeadlineCount, forKey: .missedDeadlineCount)
-        try container.encode(estimatedMissedFrameCount, forKey: .estimatedMissedFrameCount)
-        try container.encode(severeStallCount, forKey: .severeStallCount)
-        try container.encode(missedDeadlineRatio, forKey: .missedDeadlineRatio)
-    }
-
-    public static let empty = Self(
-        sampleCount: 0,
-        expectedFPS: 0,
-        averageFPS: 0,
-        p95FrameMs: 0,
-        p99FrameMs: 0,
-        onePercentLowFPS: 0,
-        maxFrameMs: 0,
-        missedDeadlineCount: 0,
-        estimatedMissedFrameCount: 0,
-        severeStallCount: 0,
-        missedDeadlineRatio: 0,
-    )
-
-    public init(
-        sampleCount: Int,
-        expectedFPS: Double,
-        averageFPS: Double,
-        p95FrameMs: Double,
-        p99FrameMs: Double,
-        onePercentLowFPS: Double,
-        maxFrameMs: Double,
-        missedDeadlineCount: Int,
-        estimatedMissedFrameCount: Int,
-        severeStallCount: Int,
-        missedDeadlineRatio: Double,
-    ) {
-        self.sampleCount = sampleCount
-        self.expectedFPS = expectedFPS
-        self.averageFPS = averageFPS
-        self.p95FrameMs = p95FrameMs
-        self.p99FrameMs = p99FrameMs
-        self.onePercentLowFPS = onePercentLowFPS
-        self.maxFrameMs = maxFrameMs
-        self.missedDeadlineCount = missedDeadlineCount
-        self.estimatedMissedFrameCount = estimatedMissedFrameCount
-        self.severeStallCount = severeStallCount
-        self.missedDeadlineRatio = missedDeadlineRatio
-    }
+    public static let empty = Self()
 
     public var accessibilityValue: String {
         let encoder = JSONEncoder()

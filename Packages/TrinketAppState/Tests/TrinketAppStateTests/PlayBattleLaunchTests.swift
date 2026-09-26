@@ -94,7 +94,7 @@ struct PlayBattleLaunchTests {
         let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let modifiers = try [
-            #require(GameContent.labyrinthModifier(id: LabyrinthModifierID("ironPressure"))),
+            #require(GameContent.nodeModifier(id: NodeModifierID("ironPressure"))),
         ]
 
         let launch = PlayBattleLaunch.assembleLaunch(
@@ -102,20 +102,20 @@ struct PlayBattleLaunchTests {
                 hero: hero,
                 companion: companion,
                 enemy: enemy,
-                labyrinthModifiers: modifiers,
+                nodeModifiers: modifiers,
             ),
             rngSeed: 0,
             rosterState: .testSeed,
             inventoryState: .testSeed,
         )
 
-        #expect(launch.presentation.labyrinthModifiers == modifiers)
+        #expect(launch.presentation.nodeModifiers == modifiers)
     }
 
     @Test func `shared node modifiers reach combat rewards and presentation`() throws {
         let ids = ["shieldedArrival", "bloodHunger", "sunderedGuard", "unbindingStrike", "cinderWard", "scholarsToll"]
-            .map { LabyrinthModifierID($0) }
-        let definitions = ids.compactMap(GameContent.labyrinthModifier(id:))
+            .map { NodeModifierID($0) }
+        let definitions = ids.compactMap(GameContent.nodeModifier(id:))
         #expect(definitions.count == ids.count)
         let modifiers = ModeBattleModifiers(definitions: definitions)
         let enemy = try #require(GameContent.enemies.first?.combatant)
@@ -129,7 +129,7 @@ struct PlayBattleLaunchTests {
         )
         let launch = makeLaunch(input)
         let profile = launch.configuration.enemyModifiers
-        #expect(launch.presentation.labyrinthModifiers == definitions)
+        #expect(launch.presentation.nodeModifiers == definitions)
         #expect(launch.presentation.experienceBonusPercent == RewardModifier.bonusPercent)
         #expect(profile.triggers.startBattleBlock == 6)
         #expect(profile.triggers.attackLeechPercent == Effect.abilityLeechPercent)

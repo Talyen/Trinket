@@ -6,6 +6,7 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
     public enum Key: Hashable, Sendable {
         case modifier(AffixModifier, companion: Bool)
         case astralFind
+        case forgeAstralOdds
         case goldFind
         case experience
         case gemsFind
@@ -17,7 +18,7 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
     public let value: String
     public let resource: HomesteadResource?
 
-    public static func lines(for tier: HomesteadNodeTier) -> [Self] {
+    public static func lines(for tier: HomesteadNodeTier, nodeID: HomesteadNodeID? = nil) -> [Self] {
         let bonus = tier.combatBonus
         var lines = bonus.heroModifiers.map { line(for: $0, companion: false) }
         lines += bonus.companionModifiers
@@ -30,6 +31,17 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
                 value: "\(bonus.astralChanceBonusPercent)%",
                 resource: nil,
             ))
+        }
+        if nodeID == .blacksmithForge {
+            let forgeBonus = BlacksmithRecipe.astralWeightBonusPercent(blacksmithTier: tier.tier)
+            if forgeBonus > 0 {
+                lines.append(Self(
+                    id: .forgeAstralOdds,
+                    label: "Forge Astral odds",
+                    value: "\(forgeBonus)%",
+                    resource: nil,
+                ))
+            }
         }
         if bonus.goldFindPercent != 0 {
             lines.append(Self(

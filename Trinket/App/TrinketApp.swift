@@ -141,7 +141,7 @@ struct TrinketApp: App {
             completeVictory: { [weak play] configuration, gold, settlement, defersExit in
                 play?.completeActiveBattle(
                     configuration, battleGold: gold,
-                    materialRewards: settlement?.award.materials, settlement: settlement,
+                    settlement: settlement,
                     defersPresentationExit: defersExit,
                 ) ?? .unavailable
             },

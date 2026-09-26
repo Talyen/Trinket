@@ -58,7 +58,7 @@ struct BattleLaunchInput: Equatable {
     let additionalRewardItems: [InventoryItem]
     let stageRewardsAlreadyClaimed: Bool
     let universalModifiers: [AffixModifier]
-    let labyrinthModifiers: [LabyrinthModifierDefinition]
+    let nodeModifiers: [NodeModifierDefinition]
 
     init(
         origin: PlayBattleOrigin? = nil,
@@ -73,7 +73,7 @@ struct BattleLaunchInput: Equatable {
         additionalRewardItems: [InventoryItem] = [],
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = [],
-        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
+        nodeModifiers: [NodeModifierDefinition] = [],
         completionBonus: VoyageCompletionBonus? = nil,
     ) {
         self.completionBonus = completionBonus
@@ -89,7 +89,7 @@ struct BattleLaunchInput: Equatable {
         self.additionalRewardItems = additionalRewardItems
         self.stageRewardsAlreadyClaimed = stageRewardsAlreadyClaimed
         self.universalModifiers = universalModifiers
-        self.labyrinthModifiers = labyrinthModifiers
+        self.nodeModifiers = nodeModifiers
     }
 }
 
@@ -193,7 +193,7 @@ extension PlayBattleLaunch {
                 input.experienceBonusPercent, homesteadEffects.experienceBonus,
             ),
             materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: input.stageReward ?? .empty),
-            labyrinthModifiers: input.labyrinthModifiers,
+            nodeModifiers: input.nodeModifiers,
             goldOverflowExperience: RewardExperiencePolicy.encounterAward(
                 encounterLevel: enemyLevel, roster: rosterState,
                 percent: victoryPercent,

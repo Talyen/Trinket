@@ -2,49 +2,18 @@ import Foundation
 import TrinketCore
 
 enum SpireCatalog {
+    private static func spire(_ id: SpireID, _ title: String, _ epithet: String, _ keyword: Keyword) -> SpireDefinition {
+        SpireDefinition(id: id, title: title, epithet: epithet, keyword: keyword)
+    }
+
     static let spires: [SpireDefinition] = [
-        SpireDefinition(
-            id: .ironVein,
-            title: "Iron Vein",
-            epithet: "Strike without ornament",
-            keyword: .physical,
-        ),
-        SpireDefinition(
-            id: .cinderSpire,
-            title: "Cinder Spire",
-            epithet: "Heat that refuses to die",
-            keyword: .burn,
-        ),
-        SpireDefinition(
-            id: .serpentHollow,
-            title: "Serpent Hollow",
-            epithet: "Slow certainty",
-            keyword: .poison,
-        ),
-        SpireDefinition(
-            id: .sanguineCourt,
-            title: "Sanguine Court",
-            epithet: "Every cut remembers",
-            keyword: .bleed,
-        ),
-        SpireDefinition(
-            id: .aureateChoir,
-            title: "Aureate Choir",
-            epithet: "Light that judges",
-            keyword: .holy,
-        ),
-        SpireDefinition(
-            id: .rimeVault,
-            title: "Rime Vault",
-            epithet: "Stillness that binds",
-            keyword: .freeze,
-        ),
-        SpireDefinition(
-            id: .resonanceHall,
-            title: "Resonance Hall",
-            epithet: "One blow that stops the world",
-            keyword: .stun,
-        ),
+        spire(.ironVein, "Iron Vein", "Strike without ornament", .physical),
+        spire(.cinderSpire, "Cinder Spire", "Heat that refuses to die", .burn),
+        spire(.serpentHollow, "Serpent Hollow", "Slow certainty", .poison),
+        spire(.sanguineCourt, "Sanguine Court", "Every cut remembers", .bleed),
+        spire(.aureateChoir, "Aureate Choir", "Light that judges", .holy),
+        spire(.rimeVault, "Rime Vault", "Stillness that binds", .freeze),
+        spire(.resonanceHall, "Resonance Hall", "One blow that stops the world", .stun),
     ]
 
     static let spiresByID: [SpireID: SpireDefinition] = Dictionary(uniqueKeysWithValues: spires.map { ($0.id, $0) })
@@ -61,6 +30,17 @@ enum SpireCatalog {
         let allFloors = floors(for: spireID)
         guard floor >= 1, floor <= allFloors.count else { return nil }
         return allFloors[floor - 1]
+    }
+
+    static func modifier(for floor: SpireFloor, worldSeed: UInt64) -> NodeModifierDefinition? {
+        guard let spire = spire(id: floor.spireID) else { return nil }
+        let nodeType: LabyrinthNodeType = floor.floor.isMultiple(of: 10) || floor.floor == spire.floorCount ? .boss : .battle
+        let pool = NodeModifierCatalog.keywordModifiers(for: spire.keyword, nodeType: nodeType)
+        var rng = SeededRandomNumberGenerator(seed: GameContent.encounterSeed(
+            worldSeed,
+            salt: "spire-modifier-\(floor.spireID.rawValue)-\(floor.floor)",
+        ))
+        return pool.randomElement(using: &rng)
     }
 
     private static let enemyPools: [Keyword: [String]] = [
@@ -85,13 +65,7 @@ enum SpireCatalog {
                 } else {
                     pool[(floorIndex - 1) % max(pool.count - 1, 1)]
                 }
-                floors.append(
-                    SpireFloor(
-                        spireID: spire.id,
-                        floor: floorIndex,
-                        enemyID: enemyID,
-                    ),
-                )
+                floors.append(SpireFloor(spireID: spire.id, floor: floorIndex, enemyID: enemyID))
             }
             result[spire.id] = floors
         }

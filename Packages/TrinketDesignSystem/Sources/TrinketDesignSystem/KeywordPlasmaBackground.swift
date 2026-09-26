@@ -9,7 +9,7 @@ public struct KeywordPlasmaBackground: View {
     @Environment(\.isDecorativeMotionActive) private var isPresentationMotionActive
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var clock = PlasmaClock()
+    @State private var clock = DecorativeLoopClock()
 
     public init(keywords: [Keyword], focalYOffset: CGFloat = 75, isMotionActive: Bool = true) {
         self.keywords = keywords
@@ -94,25 +94,25 @@ public struct KeywordPlasmaBackground: View {
     }
 }
 
-extension KeywordPlasmaBackground {
-    struct PlasmaClock {
-        private var accumulated: TimeInterval = 0
-        private var runningSince: Date?
+/// Frozen-phase clock for decorative loops. Shine text and plasma share this so
+/// parking behind presentations or toggling Reduce Motion resumes seamlessly.
+struct DecorativeLoopClock {
+    private var accumulated: TimeInterval = 0
+    private var runningSince: Date?
 
-        func elapsed(at date: Date) -> TimeInterval {
-            accumulated + (runningSince.map { max(0, date.timeIntervalSince($0)) } ?? 0)
-        }
+    func elapsed(at date: Date) -> TimeInterval {
+        accumulated + (runningSince.map { max(0, date.timeIntervalSince($0)) } ?? 0)
+    }
 
-        mutating func setActive(_ active: Bool, at date: Date) {
-            if active {
-                if runningSince == nil {
-                    runningSince = date
-                }
-            } else if runningSince != nil {
-                // Freeze the current shader phase and exclude time spent behind presentations.
-                accumulated = elapsed(at: date)
-                runningSince = nil
+    mutating func setActive(_ active: Bool, at date: Date) {
+        if active {
+            if runningSince == nil {
+                runningSince = date
             }
+        } else if runningSince != nil {
+            // Freeze the current phase and exclude time spent behind presentations.
+            accumulated = elapsed(at: date)
+            runningSince = nil
         }
     }
 }

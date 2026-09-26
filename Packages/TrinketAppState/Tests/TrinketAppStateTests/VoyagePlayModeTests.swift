@@ -23,7 +23,7 @@ struct VoyagePlayModeTests {
         let firstNode = try #require(play.playerSave.voyage.activeRun?.nextNode)
         #expect(play.playerSave.persistBatch(logging: "Keyword Voyage reward") { save in
             save.voyage.updateNode(runID: offer.id, nodeID: firstNode.id) {
-                $0.modifierIDs = [LabyrinthCatalog.rewardID(.keyword(.freeze))]
+                $0.modifierIDs = [NodeModifierCatalog.rewardID(.keyword(.freeze))]
             }
         })
         let run = try #require(play.playerSave.voyage.activeRun)
@@ -116,7 +116,7 @@ struct VoyagePlayModeTests {
         for index in nodes.indices.dropLast() {
             nodes[index].isCleared = true
         }
-        nodes[nodes.count - 1].modifierIDs = [LabyrinthCatalog.rewardID(.armsHoard)]
+        nodes[nodes.count - 1].modifierIDs = [NodeModifierCatalog.rewardID(.armsHoard)]
         #expect(play.playerSave.persistBatch(logging: "Prepare final Voyage") { save in
             save.voyage.activeRun = VoyageRun(offer: offer, nodes: nodes)
         })
@@ -149,7 +149,7 @@ struct VoyagePlayModeTests {
         for index in nodes.indices.dropLast() {
             nodes[index].isCleared = true
         }
-        nodes[nodes.count - 1].modifierIDs = [LabyrinthCatalog.rewardID(.experience)]
+        nodes[nodes.count - 1].modifierIDs = [NodeModifierCatalog.rewardID(.experience)]
         #expect(play.playerSave.persistBatch(logging: "Prepare XP Voyage") { save in
             save.voyage.activeRun = VoyageRun(offer: offer, nodes: nodes)
         })

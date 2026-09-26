@@ -60,6 +60,7 @@ struct SpireClimbView: View {
             for: spire,
             floors: floors,
             progress: playerSave.spires,
+            worldSeed: playerSave.worldSeed,
         )
 
         return StageSelectScreen(
@@ -120,7 +121,7 @@ struct SpireClimbView: View {
         StageSelectCompletionPanel(
             title: "Spire Cleared",
             description: "All \(spire.floorCount) floors are complete.",
-            buttonTitle: "Back to The Spires",
+            buttonTitle: "Back to Spires",
             tint: spire.keyword.visualStyle.color,
             accessibilityIdentifier: AccessibilityID.Play.spireCompletionBack(spire.id.rawValue),
             onBack: { dismiss() },
@@ -141,9 +142,11 @@ struct SpireClimbView: View {
 
     private func showEnemyDetails(for floor: SpireFloor) {
         guard let encounter = spires.resolvedEncounter(for: floor) else { return }
+        let modifier = GameContent.spireModifier(for: floor, worldSeed: playerSave.worldSeed)
         presentPlayCombatantDetail(makePlayEnemyDetail(
             combatant: encounter.combatant,
             level: encounter.level,
+            nodeModifiers: RewardOwnership(playerSave.inventory).modifiers(ids: modifier.map { [$0.id] } ?? []),
         ))
     }
 

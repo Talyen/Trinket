@@ -70,7 +70,7 @@ Spikes and direct Thorns motifs use `asterisk`; explosive impacts retain
 Standalone XP rewards use the [two-book artwork](ArtworkStyleGuide.md#xp-rewards).
 XP bars and character progress totals keep their existing text treatment.
 
-Labyrinth modifiers reuse their associated keyword imagery; scholar, scavenger,
+Node modifiers reuse their associated keyword imagery; scholar, scavenger,
 discount, and appraisal modifiers use `book.fill`, `shippingbox.fill`, `percent`,
 and `eye.fill`. Modifier icons and names share the same themed color in map
 inspector captions and combatant-detail Labyrinth entries: combat keyword colors,

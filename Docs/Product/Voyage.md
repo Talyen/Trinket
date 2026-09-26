@@ -40,7 +40,7 @@ location if one is available without duplicating the other two offers.
 Seeded generation starts with combat and ends with a boss. Middle ordering avoids
 consecutive identical noncombat stops and more than two ordinary battles in a row.
 Enemy bags exhaust before reshuffling and avoid repeating across bag boundaries.
-Each battle, shop, and Mystery gets one applicable Labyrinth modifier, restricted
+Each battle, shop, and Mystery gets one applicable node modifier, restricted
 to that encounter. Combat includes the shared
 [reward modifiers](../../Packages/TrinketContent/README.md#shared-reward-modifiers),
 including guaranteed keyword equipment. Preserve the original combat/reward category

@@ -41,7 +41,7 @@ public extension EncounterIdentity {
 }
 
 public extension EncounterIdentity {
-    func modifierEffects(in save: PlayerSave) -> LabyrinthModifierEffects {
+    func modifierEffects(in save: PlayerSave) -> NodeModifierEffects {
         switch location {
         case .journey: .zero
         case let .labyrinth(nodeID): save.labyrinth.effects(for: nodeID)

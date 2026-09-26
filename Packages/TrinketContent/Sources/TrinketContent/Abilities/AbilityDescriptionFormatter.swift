@@ -9,7 +9,7 @@ enum AbilityDescriptionFormatter {
     static func format(_ ability: Ability) -> String {
         if let branches = ability.outcomeBranches, !branches.isEmpty {
             let branchTexts = branches.map(formatBranch)
-            return ([joinOr(branchTexts)] + riderLines(for: ability)).joined(separator: "\n")
+            return ([joinOr(branchTexts)] + riderLines(for: ability).map(capitalize)).joined(separator: "\n")
         }
         return formatFixed(ability)
     }
@@ -19,13 +19,7 @@ enum AbilityDescriptionFormatter {
             let amount = branch.damageComponents.first?.amount ?? 0
             return amount > 0 ? "Deal \(amount) Random damage" : ""
         }
-        let ability = Ability(
-            id: "branch",
-            name: "branch",
-            tier: .basic,
-            operations: branch.operations,
-        )
-        return formatFixed(ability)
+        return formatOperations(branch.operations).map(capitalize).joined(separator: "\n")
     }
 
     private static func riderLines(for ability: Ability) -> [String] {
@@ -39,7 +33,7 @@ enum AbilityDescriptionFormatter {
         if ability.hasLeech {
             riders.append("leech")
         }
-        return riders.map(capitalize)
+        return riders
     }
 
     private static func criticalClause(for ability: Ability) -> String? {
@@ -53,9 +47,14 @@ enum AbilityDescriptionFormatter {
     }
 
     private static func formatFixed(_ ability: Ability) -> String {
-        var lines: [String] = []
+        var lines = formatOperations(ability.operations)
+        lines.append(contentsOf: riderLines(for: ability))
+        return lines.map(capitalize).joined(separator: "\n")
+    }
 
-        for operation in ability.operations {
+    private static func formatOperations(_ operations: [AbilityOperation]) -> [String] {
+        var lines: [String] = []
+        for operation in operations {
             switch operation {
             case let .damage(component):
                 if component.target == .actor {
@@ -67,19 +66,7 @@ enum AbilityDescriptionFormatter {
                 lines.append(formatTargetedEffect(targeted))
             }
         }
-
-        if let critical = criticalClause(for: ability) {
-            lines.append(critical)
-        }
-
-        if ability.repeatsManaEmpowerment {
-            lines.append(manaEmpowermentRider)
-        }
-
-        if ability.hasLeech {
-            lines.append("Leech")
-        }
-        return lines.map(capitalize).joined(separator: "\n")
+        return lines
     }
 
     private static func formatEnemyDamage(

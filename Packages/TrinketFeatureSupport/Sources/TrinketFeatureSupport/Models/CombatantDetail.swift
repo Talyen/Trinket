@@ -12,7 +12,7 @@ public struct CombatantCardDetail: Hashable, Identifiable {
     public let maxHealth: Int?
     public let maxMana: Int?
     public let activeEffectSummaries: [EffectSummary]
-    public let labyrinthModifiers: [LabyrinthModifierDefinition]
+    public let nodeModifiers: [NodeModifierDefinition]
 
     public var id: String {
         combatant.id
@@ -29,7 +29,7 @@ public struct CombatantCardDetail: Hashable, Identifiable {
         maxHealth: Int? = nil,
         maxMana: Int? = nil,
         activeEffectSummaries: [EffectSummary] = [],
-        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
+        nodeModifiers: [NodeModifierDefinition] = [],
     ) {
         self.combatant = combatant
         self.progression = progression
@@ -41,6 +41,6 @@ public struct CombatantCardDetail: Hashable, Identifiable {
         self.maxHealth = maxHealth
         self.maxMana = maxMana
         self.activeEffectSummaries = activeEffectSummaries
-        self.labyrinthModifiers = labyrinthModifiers
+        self.nodeModifiers = nodeModifiers
     }
 }

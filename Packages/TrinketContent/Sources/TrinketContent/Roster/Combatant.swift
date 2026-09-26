@@ -71,11 +71,11 @@ public struct Combatant: Identifiable, Hashable, Sendable {
     }
 
     public func withAbilityLoadoutPreservingEmptyTiers(_ loadout: AbilityLoadout) -> Self {
-        replacing(abilityChoices: abilityChoices.withSelectedLoadoutPreservingEmptyTiers(loadout))
+        replacing(abilityChoices: abilityChoices.withSelectedLoadout(loadout, fillsMissingSelections: false))
     }
 
     private func replacing(
-        abilityChoices: AbilityChoices? = nil,
+        abilityChoices: AbilityChoices,
     ) -> Self {
         Self(
             id: id,
@@ -84,7 +84,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
             maxHealth: maxHealth,
             maxMana: maxMana,
             actionIntervalTurns: actionIntervalTurns,
-            abilityChoices: abilityChoices ?? self.abilityChoices,
+            abilityChoices: abilityChoices,
         )
     }
 }

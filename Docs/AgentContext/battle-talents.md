@@ -30,13 +30,16 @@ while the owner has unspent Mana.
 
 ### Companion chance cadence
 
-Rimewind and the Mana-spend draw/refund talents roll once per eligible
-ability, not per component. Healing Flames, Flame Shield, Radiant Wisdom,
+Mana-spend draw/refund talents roll once per eligible ability, not per
+component. Healing Flames, Flame Shield, Radiant Wisdom,
 Purifying Light, Aether Shield, Font of Magic, Living Archive, and Treasure
 Hoard use the same ability cadence. Chilling Scales and Blazing Feathers roll
 once per enemy ability or natural-damage turn. Venom Spores and Ignition Spark
 roll separately at each natural Poison or Burn decay; detonations do not run
 those preservation rolls.
+
+Rimewind rolls for each Freeze card hit that removes Health, including both
+hits of Ray of Frost.
 
 ### Final Companion Talent cadence
 
@@ -45,13 +48,11 @@ Physical attack bonus is tracked separately for each ally; Dodge preparations
 refresh rather than stack. Bloodrush rolls once per Bleed ability that Critically
 Hits. Risen Skeleton's Deathrattle draws on Death's Door entry, allowing the
 Door Talents to work together. Weaken Soul refreshes one enemy attack-hit
-reduction; ongoing damage cannot consume it. Marrowmend converts half the first
-excess Leech restoration each turn to Block.
+reduction; ongoing damage cannot consume it.
 
 Mana Moth's Arcane Reservoir and Prismatic Spark roll once per Mana-restoring
 ability after actual Mana is restored. Arcane Burst rolls once per empowered
-ability; Prismatic Scales increases its existing Burn and Freeze damage without
-adding hits. Pixie's Lingering Blessing repeats actual Health restored to one
+ability. Pixie's Lingering Blessing repeats actual Health restored to one
 recipient next turn as resolved healing; that repeat cannot start another
 Talent reaction chain. Wishspring prepares a later free Mana empowerment.
 
@@ -209,8 +210,7 @@ buffering, and control restrictions apply.
 
 Card-triggered elemental reactions use the selected random outcome. A defeated
 card owner cannot continue firing on-play rewards or reactions.
-Frost Circuit restores Mana for each Freeze Critical Hit, and Rimewind rolls
-for each Freeze hit that removes Health, including both hits of Ray of Frost.
+Frost Circuit restores Mana for each Freeze Critical Hit.
 
 ### Next-card preparations
 
@@ -277,8 +277,8 @@ from Mana-empowered Critical Hits within the existing hit.
 ### Dragon’s Patronage and Prismatic Scales
 
 Dragon’s Patronage grants 2 Block to Frost Whelp's ally once per Mana-empowered
-ability. Prismatic Scales empowers existing Burn and Freeze damage and
-supplies a missing element as a damaging hit, charging Mana once.
+ability. Mana Moth's Prismatic Scales strengthens existing Burn and Freeze
+damage during Mana empowerment, without adding hits or another Mana payment.
 
 ## Healing and overflow
 
@@ -312,8 +312,9 @@ Critical Hits or apply healing magnitude bonuses a second time.
 
 Living Archive rolls once per Health-restoring ability and gives 3 Thorns to
 one healed ally on success. Wishspring uses the original overhealing amount
-alongside existing Block and maximum-Health conversions. Marrowmend fills
-existing Block only to 6.
+alongside existing Block and maximum-Health conversions. Marrowmend converts
+half the first excess Leech restoration each turn into resolved Block; later
+turns can add to existing Block.
 
 ### Shelter Seed, Shared Prescription, and Thorn Shedding
 

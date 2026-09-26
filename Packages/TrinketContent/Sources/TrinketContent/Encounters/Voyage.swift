@@ -58,14 +58,14 @@ public struct VoyageNode: Identifiable, Codable, Equatable, Sendable {
     public let id: String
     public var type: LabyrinthNodeType
     public let enemyID: String?
-    public var modifierIDs: [LabyrinthModifierID]
+    public var modifierIDs: [NodeModifierID]
     public var recruitEventID: String?
     public var mysteryEventID: String?
     public var mysteryOffersPayload: Data?
     public var shopPayload: Data?
     public var isCleared = false
 
-    public init(id: String, type: LabyrinthNodeType, enemyID: String?, modifierIDs: [LabyrinthModifierID], recruitEventID: String?) {
+    public init(id: String, type: LabyrinthNodeType, enemyID: String?, modifierIDs: [NodeModifierID], recruitEventID: String?) {
         self.id = id
         self.type = type
         self.enemyID = enemyID
@@ -73,8 +73,8 @@ public struct VoyageNode: Identifiable, Codable, Equatable, Sendable {
         self.recruitEventID = recruitEventID
     }
 
-    public var effects: LabyrinthModifierEffects {
-        .combining(LabyrinthCatalog.modifiers(ids: modifierIDs))
+    public var effects: NodeModifierEffects {
+        .combining(NodeModifierCatalog.modifiers(ids: modifierIDs))
     }
 }
 
@@ -99,11 +99,11 @@ public enum VoyageCatalog {
         }
     }
 
-    public static func modifiers(type: LabyrinthNodeType, enemyID: String?) -> [LabyrinthModifierDefinition] {
+    public static func modifiers(type: LabyrinthNodeType, enemyID: String?) -> [NodeModifierDefinition] {
         if type.isCombat, let enemyID {
-            return LabyrinthCatalog.combatModifiers(for: enemyID, nodeType: type)
+            return NodeModifierCatalog.combatModifiers(for: enemyID, nodeType: type)
         }
-        return LabyrinthCatalog.modifiers.filter { $0.applies(to: type) }
+        return NodeModifierCatalog.modifiers.filter { $0.applies(to: type) }
     }
 }
 
@@ -119,9 +119,7 @@ public enum VoyageGenerator {
         }
         let shops = offer.difficulty == .hard ? 2 : 1
         let mysteries = offer.difficulty == .easy ? 2 : 3
-        var remaining: [LabyrinthNodeType: Int] = [
-            .battle: battles - 1, .shop: shops, .mystery: mysteries, .recruit: 1,
-        ]
+        var remaining: [LabyrinthNodeType: Int] = [.battle: battles - 1, .shop: shops, .mystery: mysteries, .recruit: 1]
         if eligibleRecruitEventIDs.isEmpty {
             remaining[.recruit] = 0
             remaining[.mystery, default: 0] += 1
@@ -133,7 +131,7 @@ public enum VoyageGenerator {
         let types: [LabyrinthNodeType] = [.battle] + middle + [.boss]
         var bag: [String] = []
         var previousEnemy: String?
-        var previousModifier: LabyrinthModifierID?
+        var previousModifier: NodeModifierID?
         return types.enumerated().map { index, type in
             let enemyID: String?
             if type == .battle {
@@ -148,7 +146,7 @@ public enum VoyageGenerator {
             } else {
                 enemyID = type == .boss ? VoyageCatalog.bossID(chapterID: offer.chapterID) : nil
             }
-            let modifier = LabyrinthCatalog.pickModifier(
+            let modifier = NodeModifierCatalog.pickModifier(
                 for: type, enemyID: enemyID, eligibleRewards: eligibleRewards, excluding: previousModifier, using: &rng,
             )
             previousModifier = modifier

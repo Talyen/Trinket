@@ -16,34 +16,6 @@ public struct WinRateSummary: Equatable, Sendable {
     public var flagged: Bool
     public var flagReason: String?
     public var sampleTooLow: Bool
-
-    public init(
-        id: String,
-        ownerID: String? = nil,
-        wins: Int,
-        battles: Int,
-        winRate: Double,
-        wilsonLow: Double,
-        wilsonHigh: Double,
-        deltaVsPeer: Double,
-        targetBandDelta: Double? = nil,
-        flagged: Bool,
-        flagReason: String? = nil,
-        sampleTooLow: Bool,
-    ) {
-        self.id = id
-        self.ownerID = ownerID
-        self.wins = wins
-        self.battles = battles
-        self.winRate = winRate
-        self.wilsonLow = wilsonLow
-        self.wilsonHigh = wilsonHigh
-        self.deltaVsPeer = deltaVsPeer
-        self.targetBandDelta = targetBandDelta
-        self.flagged = flagged
-        self.flagReason = flagReason
-        self.sampleTooLow = sampleTooLow
-    }
 }
 
 public struct PairCellSummary: Equatable, Sendable {

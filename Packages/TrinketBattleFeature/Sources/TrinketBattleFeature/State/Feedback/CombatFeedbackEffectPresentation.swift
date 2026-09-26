@@ -59,40 +59,37 @@ enum CombatFeedbackEffectPresentation {
         }
     }
 
-    enum StatusChipLayout: Equatable {
-        case dualBeneficial(trailing: Keyword)
-        case dualNegative(trailing: Keyword)
-        case dualNegativeEventKeyword
-        case dualBeneficialEventKeyword
-        case iconOnlyNegative
-    }
-
-    private static let statusChipLayouts: [CombatFeedbackStatusLabel: StatusChipLayout] = [
-        .consecrated: .dualBeneficial(trailing: .holy),
-        .nextHolyStrike: .dualBeneficial(trailing: .holy),
-        .avatar: .dualBeneficial(trailing: .holy),
-        .nextStrikeDouble: .dualBeneficial(trailing: .physical),
-        .kindled: .dualBeneficial(trailing: .burn),
-        .evadeNextHit: .dualBeneficial(trailing: .dodge),
-        .manaShield: .dualBeneficial(trailing: .mana),
-        .criticalUp: .dualBeneficial(trailing: .physical),
-        .thorns: .dualBeneficial(trailing: .thorns),
-        .leech: .dualBeneficial(trailing: .leech),
-        .amplified: .dualNegativeEventKeyword,
-        .ward: .dualBeneficialEventKeyword,
-        .blockDown: .dualNegative(trailing: .block),
-        .marked: .iconOnlyNegative,
-        .hemorrhage: .dualNegative(trailing: .bleed),
-    ]
-
     static func chipPresentation(
         for status: CombatFeedbackStatusLabel,
         keyword: Keyword,
     ) -> CombatFeedbackChipPresentation {
-        guard let layout = statusChipLayouts[status] else {
-            preconditionFailure("Every status label needs chip layout metadata; missing \(status)")
+        switch status {
+        case .consecrated, .nextHolyStrike, .avatar:
+            CombatFeedbackChipPresentation.dualAction(leading: .beneficialStatus, trailing: .keyword(.holy))
+        case .nextStrikeDouble, .criticalUp:
+            CombatFeedbackChipPresentation.dualAction(leading: .beneficialStatus, trailing: .keyword(.physical))
+        case .kindled:
+            CombatFeedbackChipPresentation.dualAction(leading: .beneficialStatus, trailing: .keyword(.burn))
+        case .evadeNextHit:
+            CombatFeedbackChipPresentation.dualAction(leading: .beneficialStatus, trailing: .keyword(.dodge))
+        case .manaShield:
+            CombatFeedbackChipPresentation.dualAction(leading: .beneficialStatus, trailing: .keyword(.mana))
+        case .thorns:
+            CombatFeedbackChipPresentation.dualAction(leading: .beneficialStatus, trailing: .keyword(.thorns))
+        case .leech, .ward:
+            CombatFeedbackChipPresentation.dualAction(
+                leading: .beneficialStatus,
+                trailing: .keyword(status == .leech ? .leech : keyword),
+            )
+        case .amplified:
+            CombatFeedbackChipPresentation.dualAction(leading: .negativeStatus, trailing: .keyword(keyword))
+        case .blockDown:
+            CombatFeedbackChipPresentation.dualAction(leading: .negativeStatus, trailing: .keyword(.block))
+        case .marked:
+            CombatFeedbackChipPresentation.iconOnly(trailing: .negativeStatus)
+        case .hemorrhage:
+            CombatFeedbackChipPresentation.dualAction(leading: .negativeStatus, trailing: .keyword(.bleed))
         }
-        return layout.chipPresentation(keyword: keyword)
     }
 
     private static let table: [ActionEvent.EffectOutcome: Descriptor] = [
@@ -151,34 +148,5 @@ enum CombatFeedbackEffectPresentation {
             preconditionFailure("Every EffectOutcome needs a presentation entry; missing \(effectKind)")
         }
         return descriptor
-    }
-}
-
-private extension CombatFeedbackEffectPresentation.StatusChipLayout {
-    func chipPresentation(keyword: Keyword) -> CombatFeedbackChipPresentation {
-        switch self {
-        case let .dualBeneficial(trailing):
-            CombatFeedbackChipPresentation.dualAction(
-                leading: .beneficialStatus,
-                trailing: .keyword(trailing),
-            )
-        case let .dualNegative(trailing):
-            CombatFeedbackChipPresentation.dualAction(
-                leading: .negativeStatus,
-                trailing: .keyword(trailing),
-            )
-        case .dualNegativeEventKeyword:
-            CombatFeedbackChipPresentation.dualAction(
-                leading: .negativeStatus,
-                trailing: .keyword(keyword),
-            )
-        case .dualBeneficialEventKeyword:
-            CombatFeedbackChipPresentation.dualAction(
-                leading: .beneficialStatus,
-                trailing: .keyword(keyword),
-            )
-        case .iconOnlyNegative:
-            CombatFeedbackChipPresentation.iconOnly(trailing: .negativeStatus)
-        }
     }
 }

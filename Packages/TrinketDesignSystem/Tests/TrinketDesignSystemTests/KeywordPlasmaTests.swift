@@ -8,7 +8,7 @@ import UIKit
 struct KeywordPlasmaTests {
     @Test func `plasma clock preserves phase across repeated pauses`() {
         let origin = Date(timeIntervalSinceReferenceDate: 0)
-        var clock = KeywordPlasmaBackground.PlasmaClock()
+        var clock = DecorativeLoopClock()
         clock.setActive(true, at: origin)
         #expect(clock.elapsed(at: origin.addingTimeInterval(5)) == 5)
         clock.setActive(false, at: origin.addingTimeInterval(5))
@@ -25,7 +25,7 @@ struct KeywordPlasmaTests {
 
     @Test func `plasma clock starts paused and handles stale timeline dates`() {
         let origin = Date(timeIntervalSinceReferenceDate: 0)
-        var clock = KeywordPlasmaBackground.PlasmaClock()
+        var clock = DecorativeLoopClock()
         clock.setActive(false, at: origin)
         #expect(clock.elapsed(at: origin.addingTimeInterval(20)) == 0)
         clock.setActive(true, at: origin.addingTimeInterval(30))

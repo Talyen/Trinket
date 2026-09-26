@@ -329,8 +329,8 @@ struct BattleFieldLane: View {
                 maxHealth: combatantPresentation.maxHealth,
                 maxMana: combatantPresentation.maxMana,
                 activeEffectSummaries: effectSummaries,
-                labyrinthModifiers: combatant.role == .enemy
-                    ? presentationContext.labyrinthModifiers
+                nodeModifiers: combatant.role == .enemy
+                    ? presentationContext.nodeModifiers
                     : [],
             ),
         )

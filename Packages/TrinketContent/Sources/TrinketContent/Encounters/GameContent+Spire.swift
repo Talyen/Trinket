@@ -17,4 +17,8 @@ public extension GameContent {
     static func spireFloor(spireID: SpireID, floor: Int) -> SpireFloor? {
         SpireCatalog.floor(spireID: spireID, floor: floor)
     }
+
+    static func spireModifier(for floor: SpireFloor, worldSeed: UInt64) -> NodeModifierDefinition? {
+        SpireCatalog.modifier(for: floor, worldSeed: worldSeed)
+    }
 }

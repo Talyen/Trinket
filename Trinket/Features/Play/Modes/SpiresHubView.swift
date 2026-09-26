@@ -11,7 +11,7 @@ struct SpiresHubView: View {
 
     var body: some View {
         HubGridScaffold(
-            title: "The Spires",
+            title: "Spires",
             accessibilityIdentifier: AccessibilityID.Play.spiresHub,
         ) {
             ForEach(orderedSpires) { spire in

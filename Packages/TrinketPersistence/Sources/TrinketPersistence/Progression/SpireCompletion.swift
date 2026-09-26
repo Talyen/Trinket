@@ -10,18 +10,23 @@ public enum SpireCompletion {
         ownedTrinketIDs: Set<String> = [],
         ownedUniqueIDs: Set<String> = [],
         astralChanceBonusPercent: Int = 0,
+        modifier: NodeModifierDefinition? = nil,
     ) -> BattleLootResult {
         let level = encounterLevel ?? EncounterLevelResolver.spireEnemyLevel(for: floor)
         let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: floor.enemyID)
+        let ownership = RewardOwnership(
+            ownedTrinketIDs: ownedTrinketIDs,
+            ownedUniqueIDs: ownedUniqueIDs,
+        )
+        let selected = modifier ?? GameContent.spireModifier(for: floor, worldSeed: worldSeed)
+        let definitions = ownership.modifiers(ids: selected.map { [$0.id] } ?? [])
+        let effects = NodeModifierEffects.combining(definitions)
         return VictoryRewardApplier.resolveLoot(
-            .spire(floor: floor),
+            .spire(floor: floor, rewardModifier: effects.rewardModifier),
             encounterLevel: level,
             enemyIsBoss: enemyIsBoss,
             worldSeed: worldSeed,
-            ownership: RewardOwnership(
-                ownedTrinketIDs: ownedTrinketIDs,
-                ownedUniqueIDs: ownedUniqueIDs,
-            ),
+            ownership: ownership,
             astralChanceBonusPercent: astralChanceBonusPercent,
         )
     }

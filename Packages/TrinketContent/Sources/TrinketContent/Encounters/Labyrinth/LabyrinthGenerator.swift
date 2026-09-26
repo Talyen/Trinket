@@ -160,7 +160,7 @@ public enum LabyrinthGenerator {
         )
         let positions = LabyrinthFloorGeometry.positions(nodeCount: count, using: &rng)
         let types = LabyrinthFloorTypePlacement.separatedTypes(planned, positions: positions, using: &rng)
-        let payloads = types.enumerated().map { index, type in
+        let nodes = types.enumerated().map { index, type in
             let nodeID = "\(clusterID)-n\(index)"
             let enemyID: String? = if type.isCombat {
                 type == .boss
@@ -169,31 +169,21 @@ public enum LabyrinthGenerator {
             } else {
                 nil
             }
-            let recruitEventID = type == .recruit ? remainingRecruitIDs.popLast() : nil
-            return (
+            return LabyrinthNode(
+                id: nodeID,
                 type: type,
-                nodeID: nodeID,
                 enemyID: enemyID,
-                modifierIDs: LabyrinthCatalog.modifierIDs(
+                depth: number,
+                clusterID: clusterID,
+                gridPosition: positions[index],
+                modifierIDs: NodeModifierCatalog.modifierIDs(
                     for: type,
                     enemyID: enemyID,
                     worldSeed: worldSeed,
                     nodeID: nodeID,
                     eligibleRewards: eligibleRewards,
                 ),
-                recruitEventID: recruitEventID,
-            )
-        }
-        let nodes = payloads.enumerated().map { index, payload in
-            LabyrinthNode(
-                id: payload.nodeID,
-                type: payload.type,
-                enemyID: payload.enemyID,
-                depth: number,
-                clusterID: clusterID,
-                gridPosition: positions[index],
-                modifierIDs: payload.modifierIDs,
-                recruitEventID: payload.recruitEventID,
+                recruitEventID: type == .recruit ? remainingRecruitIDs.popLast() : nil,
                 isRevealed: true,
             )
         }

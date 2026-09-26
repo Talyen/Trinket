@@ -205,7 +205,7 @@ public final class VoyagePlayMode {
                 } else {
                     updated.type = .mystery
                     updated.recruitEventID = nil
-                    updated.modifierIDs = LabyrinthCatalog.modifierIDs(
+                    updated.modifierIDs = NodeModifierCatalog.modifierIDs(
                         for: .mystery,
                         enemyID: nil,
                         worldSeed: run.offer.seed,

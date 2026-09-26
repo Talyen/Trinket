@@ -162,7 +162,7 @@ package enum BattleTurnEngine {
         }
 
         var totalDealt = 0
-        var logKeyword = resolvedAbility.logDamageKeyword
+        var logKeyword = resolvedAbility.damageKeyword
         var appliedEffectLogs: [String] = []
         var reservedKeywordOverride: Keyword?
         for operation in resolvedAbility.operations {

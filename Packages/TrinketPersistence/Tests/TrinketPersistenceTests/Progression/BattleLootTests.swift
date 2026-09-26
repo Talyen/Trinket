@@ -12,11 +12,11 @@ struct BattleLootTests {
         // Exhausted collectibles must become Gold through every mode's loot path.
         save.inventory = PlayerInventoryState(items: GameContent.trinketItems + GameContent.uniqueItems)
         let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
-        let ids = [LabyrinthCatalog.rewardID(modifier)]
+        let ids = [NodeModifierCatalog.rewardID(modifier)]
         let node = LabyrinthNode(id: "reward-node", type: .battle, enemyID: enemy.id, depth: 10, clusterID: "cluster", modifierIDs: ids)
         let voyage = VoyageNode(id: node.id, type: .battle, enemyID: enemy.id, modifierIDs: ids, recruitEventID: nil)
         let offer = ContractOffer(id: node.id, difficulty: .standard, enemyID: enemy.id, rewardModifier: modifier)
-        let effects = LabyrinthModifierEffects.combining(LabyrinthCatalog.modifiers(ids: ids))
+        let effects = NodeModifierEffects.combining(NodeModifierCatalog.modifiers(ids: ids))
         let labyrinthLoot = try #require(LabyrinthCompletion.resolveCombatLoot(
             for: node, effects: effects, worldSeed: save.worldSeed,
             ownedTrinketIDs: save.inventory.ownedTrinketIDs, ownedUniqueIDs: save.inventory.ownedUniqueIDs,
@@ -53,11 +53,11 @@ struct BattleLootTests {
     func `hoards guarantee their advertised item across all battle modes`(modifier: RewardModifier) throws {
         let save = SaveTestSupport.makeSave()
         let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
-        let ids = [LabyrinthCatalog.rewardID(modifier)]
+        let ids = [NodeModifierCatalog.rewardID(modifier)]
         let node = LabyrinthNode(id: "hoard-node", type: .battle, enemyID: enemy.id, depth: 10, clusterID: "cluster", modifierIDs: ids)
         let voyage = VoyageNode(id: node.id, type: .battle, enemyID: enemy.id, modifierIDs: ids, recruitEventID: nil)
         let offer = ContractOffer(id: node.id, difficulty: .standard, enemyID: enemy.id, rewardModifier: modifier)
-        let effects = LabyrinthModifierEffects.combining(LabyrinthCatalog.modifiers(ids: ids))
+        let effects = NodeModifierEffects.combining(NodeModifierCatalog.modifiers(ids: ids))
         let labyrinth = try #require(LabyrinthCompletion.resolveCombatLoot(
             for: node, effects: effects, worldSeed: save.worldSeed,
             ownedTrinketIDs: [], ownedUniqueIDs: [],
@@ -243,6 +243,25 @@ struct BattleLootTests {
         #expect(encounter.rewardLevel(in: save) == 1)
         save.contracts.recordVictory(encounterLevel: 25)
         #expect(encounter.rewardLevel(in: save) == 25)
+    }
+
+    @Test func `spire keyword reward guarantees matching gear and retains keyword bias`() throws {
+        for spire in GameContent.spires {
+            let floor = try #require(GameContent.spireFloor(spireID: spire.id, floor: 10))
+            let seed = try #require((0 ..< 128).map(UInt64.init).first { candidate in
+                GameContent.spireModifier(for: floor, worldSeed: candidate)?.effect == .reward(.keyword(spire.keyword))
+            })
+            let selected = try #require(GameContent.spireModifier(for: floor, worldSeed: seed))
+            let request = LootRequest.spire(floor: floor, rewardModifier: .keyword(spire.keyword))
+            #expect(request.keywordBias == [spire.keyword])
+            #expect(request.rewardModifier == .keyword(spire.keyword))
+
+            let loot = SpireCompletion.resolveLoot(for: floor, worldSeed: seed)
+            #expect(loot == SpireCompletion.resolveLoot(for: floor, worldSeed: seed, modifier: selected))
+            let item = try #require(loot.item)
+            #expect(item.baseType.keywordAffinities.contains(spire.keyword))
+            #expect(item.affixes.contains { $0.keywords.contains(spire.keyword) })
+        }
     }
 
     @Test func `battle item roll uses encountered level and sanctum through settlement preparation`() throws {

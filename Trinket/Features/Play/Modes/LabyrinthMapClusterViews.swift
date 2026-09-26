@@ -28,16 +28,6 @@ struct LabyrinthFloorMap: View {
         let nodes = nodes
         let layout = LabyrinthFloorLayout(nodes: nodes, availableWidth: availableWidth)
         let reachableNodeIDs = state.reachableNodeIDSet()
-        let displayNodes = nodes.map { node in
-            let visualState = LabyrinthMapPresentation.state(for: node, reachableNodeIDs: reachableNodeIDs)
-            return LabyrinthMapNodePresentation(
-                node: node,
-                visualState: visualState,
-                type: snapshot.type(for: node),
-                position: layout.point(for: node.gridPosition),
-                renderPriority: node.id == selectedNodeID ? 2 : visualState == .reachable ? 1 : 0,
-            )
-        }
 
         ZStack {
             Button(action: onDismissSelection) {
@@ -49,39 +39,29 @@ struct LabyrinthFloorMap: View {
             .accessibilityLabel("Dismiss selection")
             .accessibilityIdentifier(AccessibilityID.Play.labyrinthDismissSelection)
 
-            ForEach(displayNodes) { presentation in
+            ForEach(nodes) { node in
+                let visualState = LabyrinthMapPresentation.state(for: node, reachableNodeIDs: reachableNodeIDs)
+                let type = snapshot.type(for: node)
                 LabyrinthMapNodeSeal(
-                    node: presentation.node,
-                    visualState: presentation.visualState,
-                    type: presentation.type,
-                    isSelected: selectedNodeID == presentation.id,
+                    node: node,
+                    visualState: visualState,
+                    type: type,
+                    isSelected: selectedNodeID == node.id,
                     layout: layout,
-                    resolvedMysteryEvent: snapshot.events[presentation.id],
-                    recruitArtwork: snapshot.recruitArtwork(for: presentation.node),
+                    resolvedMysteryEvent: snapshot.events[node.id],
+                    recruitArtwork: snapshot.recruitArtwork(for: node),
                     floorDepthBand: cluster.depthBand,
                     onActivate: {
-                        if presentation.visualState == .reachable {
-                            onSelectNode(presentation.id)
+                        if visualState == .reachable {
+                            onSelectNode(node.id)
                         }
                     },
                 )
-                .position(presentation.position)
-                .zIndex(Double(presentation.renderPriority))
+                .position(layout.point(for: node.gridPosition))
+                .zIndex(Double(node.id == selectedNodeID ? 2 : visualState == .reachable ? 1 : 0))
             }
         }
         .frame(width: availableWidth, height: layout.height)
-    }
-}
-
-private struct LabyrinthMapNodePresentation: Identifiable {
-    let node: LabyrinthNode
-    let visualState: LabyrinthMapNodeState
-    let type: LabyrinthNodeType
-    let position: CGPoint
-    let renderPriority: Int
-
-    var id: String {
-        node.id
     }
 }
 
@@ -267,11 +247,27 @@ struct LabyrinthNodeArtwork: View {
         style == .hexSeal
     }
 
+    /// Single source for artwork selection: both the inspector and the hex
+    /// seal resolve the same combat/recruit/mystery/destination precedence.
+    /// Styles differ only in rendering (full artwork vs focal crop).
+    private var combatEnemy: Enemy? {
+        guard type.isCombat, let enemyID = node.enemyID else { return nil }
+        return GameContent.enemy(matching: enemyID)
+    }
+
+    private var effectiveMysteryEvent: MysteryEvent? {
+        guard let event = resolvedMysteryEvent, !event.isRecruit else { return nil }
+        return event
+    }
+
+    private var destinationArt: EncounterArtReference? {
+        guard let artID = LabyrinthMapPresentation.destinationEncounterArtID(for: type) else { return nil }
+        return ArtCatalog.encounterArtByID[artID]
+    }
+
     @ViewBuilder
     private var resolvedContent: some View {
-        if type.isCombat,
-           let enemyID = node.enemyID,
-           let enemy = GameContent.enemy(matching: enemyID) {
+        if let enemy = combatEnemy {
             CombatantArtwork(
                 combatant: enemy.combatant,
                 variant: prefersThumbnail ? .card : .battle,
@@ -279,14 +275,13 @@ struct LabyrinthNodeArtwork: View {
         } else if type == .recruit,
                   let art = recruitArtwork {
             MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
-        } else if let event = resolvedMysteryEvent, !event.isRecruit {
+        } else if let event = effectiveMysteryEvent {
             MysteryEventHeroArtwork(
                 event: event,
                 chapterID: EncounterArtIDs.labyrinthChapterID,
                 prefersThumbnail: prefersThumbnail,
             )
-        } else if let artID = LabyrinthMapPresentation.destinationEncounterArtID(for: type),
-                  let art = ArtCatalog.encounterArtByID[artID] {
+        } else if let art = destinationArt {
             MapTileArtwork(art: art, prefersThumbnail: prefersThumbnail)
         } else {
             fallbackSymbol
@@ -295,55 +290,46 @@ struct LabyrinthNodeArtwork: View {
 
     @ViewBuilder
     private var hexSealContent: some View {
-        if type.isCombat,
-           let enemyID = node.enemyID,
-           let enemy = GameContent.enemy(matching: enemyID),
-           let art = enemy.combatant.artReference {
-            combatFocal(art)
+        if let art = combatEnemy?.combatant.artReference {
+            LabyrinthFocalImage(
+                imageName: art.imageName,
+                thumbnailName: art.thumbnailImageName,
+                focalPoint: art.focalPoint,
+                displaySize: .compact,
+                zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom,
+            )
         } else if type == .recruit,
                   let art = recruitArtwork {
-            encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: ArtFocalPoint(x: 0.5, y: 0.5))
-        } else if let event = resolvedMysteryEvent, !event.isRecruit {
-            hexMysteryFocalContent(for: event)
-        } else if let artID = LabyrinthMapPresentation.destinationEncounterArtID(for: type),
-                  let art = ArtCatalog.encounterArtByID[artID] {
-            encounterFocal(imageName: art.imageName, thumbnailName: art.thumbnailImageName, focalPoint: ArtFocalPoint(x: 0.5, y: 0.5))
-        } else {
-            fallbackSymbol
-        }
-    }
-
-    @ViewBuilder
-    private func hexMysteryFocalContent(for event: MysteryEvent) -> some View {
-        if let resolved = MysteryEventArtwork.focalContent(event: event, chapterID: EncounterArtIDs.labyrinthChapterID) {
-            encounterFocal(
-                imageName: resolved.imageName,
-                thumbnailName: resolved.thumbnailName,
-                focalPoint: resolved.focalPoint,
+            LabyrinthFocalImage(
+                imageName: art.imageName,
+                thumbnailName: art.thumbnailImageName,
+                focalPoint: ArtFocalPoint(x: 0.5, y: 0.5),
+                displaySize: .compact,
+                zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom,
+            )
+        } else if let event = effectiveMysteryEvent {
+            if let resolved = MysteryEventArtwork.focalContent(event: event, chapterID: EncounterArtIDs.labyrinthChapterID) {
+                LabyrinthFocalImage(
+                    imageName: resolved.imageName,
+                    thumbnailName: resolved.thumbnailName,
+                    focalPoint: resolved.focalPoint,
+                    displaySize: .compact,
+                    zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom,
+                )
+            } else {
+                fallbackSymbol
+            }
+        } else if let art = destinationArt {
+            LabyrinthFocalImage(
+                imageName: art.imageName,
+                thumbnailName: art.thumbnailImageName,
+                focalPoint: ArtFocalPoint(x: 0.5, y: 0.5),
+                displaySize: .compact,
+                zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom,
             )
         } else {
             fallbackSymbol
         }
-    }
-
-    private func combatFocal(_ art: CombatantArtReference) -> some View {
-        LabyrinthFocalImage(
-            imageName: art.imageName,
-            thumbnailName: art.thumbnailImageName,
-            focalPoint: art.focalPoint,
-            displaySize: .compact,
-            zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom,
-        )
-    }
-
-    private func encounterFocal(imageName: String, thumbnailName: String?, focalPoint: ArtFocalPoint) -> some View {
-        LabyrinthFocalImage(
-            imageName: imageName,
-            thumbnailName: thumbnailName,
-            focalPoint: focalPoint,
-            displaySize: .compact,
-            zoom: LabyrinthNodeArtworkMetrics.hexFocalZoom,
-        )
     }
 
     private var fallbackSymbol: some View {

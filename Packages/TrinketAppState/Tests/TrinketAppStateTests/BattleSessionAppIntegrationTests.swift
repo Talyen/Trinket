@@ -125,7 +125,7 @@ struct BattleSessionAppIntegrationTests {
             enemyEncounterLevel: (original.enemyEncounterLevel ?? 1) + (changedEncounter ? 1 : 0),
             stageReward: original.stageReward, experienceBonusPercent: original.experienceBonusPercent,
             pendingRewardItem: original.pendingRewardItem, stageRewardsAlreadyClaimed: original.stageRewardsAlreadyClaimed,
-            universalModifiers: original.universalModifiers, labyrinthModifiers: original.labyrinthModifiers,
+            universalModifiers: original.universalModifiers, nodeModifiers: original.nodeModifiers,
         )
         #expect(state.battleLaunch.activateBattle(input, route: registration.route))
         let active = try #require(state.battle.activeBattle)
@@ -147,7 +147,7 @@ struct BattleSessionAppIntegrationTests {
         LabyrinthTestSupport.store(
             LabyrinthTestSupport.remade(
                 node, type: .battle, recruitEventID: nil, enemyID: node.enemyID,
-                modifierIDs: [LabyrinthModifierID("scholarsToll")],
+                modifierIDs: [NodeModifierID("scholarsToll")],
             ),
             in: state,
         )

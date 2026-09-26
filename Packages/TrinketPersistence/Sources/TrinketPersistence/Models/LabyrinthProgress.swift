@@ -159,9 +159,9 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
         }
     }
 
-    public func effects(for nodeID: String) -> LabyrinthModifierEffects {
+    public func effects(for nodeID: String) -> NodeModifierEffects {
         guard let node = node(id: nodeID) else { return .zero }
-        let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
-        return LabyrinthModifierEffects.combining(modifiers)
+        let modifiers = NodeModifierCatalog.modifiers(ids: node.modifierIDs)
+        return NodeModifierEffects.combining(modifiers)
     }
 }

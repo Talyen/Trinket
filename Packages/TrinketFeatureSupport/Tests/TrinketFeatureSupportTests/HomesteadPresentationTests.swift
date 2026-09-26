@@ -6,6 +6,17 @@ import TrinketPersistence
 @testable import TrinketFeatureSupport
 
 struct HomesteadPresentationTests {
+    @Test func `Blacksmith forge Astral bonus appears with tier benefits`() throws {
+        let blacksmith = try #require(GameContent.homesteadNode(matching: .blacksmithForge))
+        for tierNumber in 1 ... 4 {
+            let tier = try #require(blacksmith.tier(tierNumber))
+            let lines = HomesteadEffectLine.lines(for: tier, nodeID: .blacksmithForge)
+            let bonus = lines.first { $0.id == .forgeAstralOdds }
+            #expect(bonus?.displayValue == (tierNumber == 1 ? nil : "+\((tierNumber - 1) * 10)%"))
+            #expect(bonus?.label == (tierNumber == 1 ? nil : "Forge Astral odds"))
+        }
+    }
+
     enum LifecycleCase {
         case independentUnbuilt
         case unbuiltAffordable

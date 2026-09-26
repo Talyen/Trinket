@@ -9,20 +9,6 @@ public struct ProgressionBattleRecord: Equatable, Codable, Sendable {
     public var enemyLevel: Int
     public var seed: UInt64
     public var result: BattleSimResult
-
-    public init(
-        step: ModeProgressionStep,
-        playerLevel: Int,
-        enemyLevel: Int,
-        seed: UInt64,
-        result: BattleSimResult,
-    ) {
-        self.step = step
-        self.playerLevel = playerLevel
-        self.enemyLevel = enemyLevel
-        self.seed = seed
-        self.result = result
-    }
 }
 
 public enum HotspotStatus: String, CaseIterable, Codable, Sendable {
@@ -53,32 +39,6 @@ public struct NodeHotspotSummary: Equatable, Codable, Sendable {
     public var averageEnemyPowerRating: Double
     public var status: HotspotStatus
     public var flagReason: String?
-
-    public init(
-        step: ModeProgressionStep,
-        battles: Int,
-        wins: Int,
-        winRate: Double,
-        wilsonLow: Double,
-        wilsonHigh: Double,
-        averagePlayerLevel: Double,
-        averageEnemyLevel: Double,
-        averageEnemyPowerRating: Double,
-        status: HotspotStatus,
-        flagReason: String? = nil,
-    ) {
-        self.step = step
-        self.battles = battles
-        self.wins = wins
-        self.winRate = winRate
-        self.wilsonLow = wilsonLow
-        self.wilsonHigh = wilsonHigh
-        self.averagePlayerLevel = averagePlayerLevel
-        self.averageEnemyLevel = averageEnemyLevel
-        self.averageEnemyPowerRating = averageEnemyPowerRating
-        self.status = status
-        self.flagReason = flagReason
-    }
 
     public var isFlagged: Bool {
         status != .smooth

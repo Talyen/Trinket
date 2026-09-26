@@ -28,12 +28,12 @@ public extension StageSelectRowPresentation where Item == VoyageOffer {
 
 public extension StageSelectRowPresentation where Item == VoyageNode {
     static func voyageNodes(_ run: VoyageRun, inventory: PlayerInventoryState) -> [Self] {
-        run.nodes.map { node in
+        run.nodes.filter { !$0.isCleared }.map { node in
             let isActive = node.id == run.nextNode?.id
             return Self(
                 item: node, isActive: isActive, activeEyebrow: "",
                 mapLabel: "", title: node.enemyID.flatMap { GameContent.enemy(matching: $0)?.name } ?? node.type.title,
-                encounterTypeTitle: node.isCleared ? "Completed" : node.type.title,
+                encounterTypeTitle: node.type.title,
                 icon: GameIcon(id: node.type.iconID), tint: LabyrinthMapPresentation.tint(for: node.type),
                 primaryActionTitle: node.type.isCombat ? "Battle" : node.type.primaryActionTitle,
                 showsPartyPicker: node.type.isCombat, isArtworkInteractive: true,

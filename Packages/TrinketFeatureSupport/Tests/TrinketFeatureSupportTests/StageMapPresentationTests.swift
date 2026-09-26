@@ -35,6 +35,21 @@ struct StageMapPresentationTests {
         #expect(rows.contains { $0.item.id == progress.activeStageID && $0.isActive })
     }
 
+    @Test func `voyage rows omit cleared nodes and keep the next node active`() {
+        let offer = VoyageOffer(id: "voyage", chapterID: "chapter-1", difficulty: .easy, seed: 1)
+        var cleared = VoyageNode(id: "cleared", type: .battle, enemyID: "slime", modifierIDs: [], recruitEventID: nil)
+        cleared.isCleared = true
+        let next = VoyageNode(id: "next", type: .battle, enemyID: "goblin", modifierIDs: [], recruitEventID: nil)
+        let boss = VoyageNode(id: "boss", type: .boss, enemyID: "the_blight_treant", modifierIDs: [], recruitEventID: nil)
+        let run = VoyageRun(offer: offer, nodes: [cleared, next, boss])
+
+        let rows = StageSelectRowPresentation<VoyageNode>.voyageNodes(run, inventory: .init(items: []))
+
+        #expect(rows.map(\.item.id) == [next.id, boss.id])
+        #expect(rows.first?.isActive == true)
+        #expect(rows.last?.isActive == false)
+    }
+
     @Test func `boss and recruitment presentation are derived from live content`() {
         let chapter = GameContent.chapters[0]
         let recruit = chapter.stages[1]
@@ -160,6 +175,7 @@ struct StageMapPresentationTests {
             for: spire,
             floors: floors,
             progress: progress,
+            worldSeed: 7,
         )
 
         #expect(rows.map(\.item.floor) == Array(3 ... spire.floorCount))
@@ -167,6 +183,10 @@ struct StageMapPresentationTests {
         #expect(rows.dropFirst().allSatisfy { !$0.isActive })
         #expect(rows.first?.activeEyebrow == "Floor 3 · Battle")
         #expect(rows.last?.encounterTypeTitle == "Boss")
+        let selected = try #require(GameContent.spireModifier(for: rows[0].item, worldSeed: 7))
+        #expect(rows.first?.modifiers.map(\.id) == [selected.id.rawValue])
+        let futureRowsHaveNoModifiers = rows.dropFirst().allSatisfy(\.modifiers.isEmpty)
+        #expect(futureRowsHaveNoModifiers)
 
         for floor in 3 ... spire.floorCount {
             _ = progress.markFloorCleared(floor, spireID: spire.id.rawValue)
@@ -175,6 +195,7 @@ struct StageMapPresentationTests {
             for: spire,
             floors: floors,
             progress: progress,
+            worldSeed: 7,
         )
         #expect(completedRows.isEmpty)
     }

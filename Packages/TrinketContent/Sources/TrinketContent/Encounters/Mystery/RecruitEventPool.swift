@@ -22,82 +22,31 @@ private func recruit(
 }
 
 enum RecruitEventPool {
+    /// NOTE: content codegen scrapes these `recruit(id: "...")` literals
+    /// (see collect_recruit_event_ids); keep one literal per event. Every ID
+    /// is `recruit-` plus its combatant ID with underscores as hyphens.
     static let all: [MysteryEvent] = [
-        recruit(
-            id: "recruit-knight",
-            combatantID: "knight",
-        ),
-        recruit(
-            id: "recruit-bear",
-            combatantID: "bear",
-        ),
-        recruit(
-            id: "recruit-ranger",
-            combatantID: "ranger",
-        ),
-        recruit(
-            id: "recruit-rogue",
-            combatantID: "rogue",
-        ),
-        recruit(
-            id: "recruit-wizard",
-            combatantID: "wizard",
-        ),
-        recruit(
-            id: "recruit-warlock",
-            combatantID: "warlock",
-        ),
+        recruit(id: "recruit-knight", combatantID: "knight"),
+        recruit(id: "recruit-bear", combatantID: "bear"),
+        recruit(id: "recruit-ranger", combatantID: "ranger"),
+        recruit(id: "recruit-rogue", combatantID: "rogue"),
+        recruit(id: "recruit-wizard", combatantID: "wizard"),
+        recruit(id: "recruit-warlock", combatantID: "warlock"),
         recruit(id: "recruit-alchemist", combatantID: "alchemist"),
         recruit(id: "recruit-druid", combatantID: "druid"),
         recruit(id: "recruit-wildcard", combatantID: "wildcard"),
-        recruit(
-            id: "recruit-frost-whelp",
-            combatantID: "frost_whelp",
-        ),
-        recruit(
-            id: "recruit-lizard-scout",
-            combatantID: "lizard_scout",
-        ),
-        recruit(
-            id: "recruit-panther",
-            combatantID: "panther",
-        ),
-        recruit(
-            id: "recruit-phoenix",
-            combatantID: "phoenix",
-        ),
-        recruit(
-            id: "recruit-wolf",
-            combatantID: "wolf",
-        ),
-        recruit(
-            id: "recruit-golden-retriever",
-            combatantID: "golden_retriever",
-        ),
-        recruit(
-            id: "recruit-library-owl",
-            combatantID: "library_owl",
-        ),
-        recruit(
-            id: "recruit-risen-skeleton",
-            combatantID: "risen_skeleton",
-        ),
-        recruit(
-            id: "recruit-mana-moth",
-            combatantID: "mana_moth",
-        ),
-        recruit(
-            id: "recruit-pixie",
-            combatantID: "pixie",
-        ),
-        recruit(
-            id: "recruit-shield-scarab",
-            combatantID: "shield_scarab",
-        ),
-        recruit(
-            id: "recruit-fox",
-            combatantID: "fox",
-        ),
+        recruit(id: "recruit-frost-whelp", combatantID: "frost_whelp"),
+        recruit(id: "recruit-lizard-scout", combatantID: "lizard_scout"),
+        recruit(id: "recruit-panther", combatantID: "panther"),
+        recruit(id: "recruit-phoenix", combatantID: "phoenix"),
+        recruit(id: "recruit-wolf", combatantID: "wolf"),
+        recruit(id: "recruit-golden-retriever", combatantID: "golden_retriever"),
+        recruit(id: "recruit-library-owl", combatantID: "library_owl"),
+        recruit(id: "recruit-risen-skeleton", combatantID: "risen_skeleton"),
+        recruit(id: "recruit-mana-moth", combatantID: "mana_moth"),
+        recruit(id: "recruit-pixie", combatantID: "pixie"),
+        recruit(id: "recruit-shield-scarab", combatantID: "shield_scarab"),
+        recruit(id: "recruit-fox", combatantID: "fox"),
     ]
 
     private static let eventsByID: [String: MysteryEvent] = Dictionary(

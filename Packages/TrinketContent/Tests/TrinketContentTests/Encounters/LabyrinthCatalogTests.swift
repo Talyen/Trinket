@@ -6,8 +6,8 @@ import TrinketCore
 @Suite("LabyrinthCatalog")
 struct LabyrinthCatalogTests {
     @Test func `modifiers are authored with player facing content`() {
-        #expect(!GameContent.labyrinthModifiers.isEmpty)
-        for modifier in GameContent.labyrinthModifiers {
+        #expect(!GameContent.nodeModifiers.isEmpty)
+        for modifier in GameContent.nodeModifiers {
             #expect(!modifier.title.isEmpty)
             #expect(modifier.title.split(separator: " ").count <= 2)
             #expect(!modifier.effect.description.isEmpty)
@@ -53,14 +53,14 @@ struct LabyrinthCatalogTests {
     }
 
     @Test func `modifier effects combine damage and reward bonuses`() throws {
-        let iron = try #require(GameContent.labyrinthModifier(id: LabyrinthModifierID("ironPressure")))
-        let effects = LabyrinthModifierEffects.combining([iron])
+        let iron = try #require(GameContent.nodeModifier(id: NodeModifierID("ironPressure")))
+        let effects = NodeModifierEffects.combining([iron])
         #expect(effects.damageDealtBonus == [.physical: 1])
         #expect(effects.shopDiscountPercent == 0)
     }
 
     @Test func `resistance catalog covers every damage type regardless of enemy attacks`() throws {
-        let resistances = LabyrinthCatalog.modifiers.compactMap { modifier -> Keyword? in
+        let resistances = NodeModifierCatalog.modifiers.compactMap { modifier -> Keyword? in
             if case let .damageTakenReduction(keyword, percent) = modifier.effect {
                 #expect(percent == 50)
                 #expect(modifier.relevantKeyword == nil)
@@ -70,7 +70,7 @@ struct LabyrinthCatalogTests {
         }
         #expect(Set(resistances) == Set(Keyword.damageTypes))
         let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
-        let pool = LabyrinthCatalog.combatModifiers(for: enemy.id, nodeType: .battle)
+        let pool = NodeModifierCatalog.combatModifiers(for: enemy.id, nodeType: .battle)
         let poolResistances = pool.filter { modifier in
             guard case .damageTakenReduction = modifier.effect else { return false }
             return true
@@ -79,50 +79,50 @@ struct LabyrinthCatalogTests {
     }
 
     @Test func `resolved modifiers keep an applicable existing modifier`() throws {
-        let shopPool = LabyrinthCatalog.modifiers.filter { $0.applies(to: .shop) }
+        let shopPool = NodeModifierCatalog.modifiers.filter { $0.applies(to: .shop) }
         let keep = try #require(shopPool.first).id
-        let kept = LabyrinthCatalog.resolvedModifierIDs(
+        let kept = NodeModifierCatalog.resolvedModifierIDs(
             for: .shop, enemyID: nil, existingModifierIDs: [keep], worldSeed: 7, nodeID: "n",
         )
         #expect(kept == [keep])
-        let fresh = LabyrinthCatalog.resolvedModifierIDs(
-            for: .shop, enemyID: nil, existingModifierIDs: [LabyrinthModifierID("bogus")],
+        let fresh = NodeModifierCatalog.resolvedModifierIDs(
+            for: .shop, enemyID: nil, existingModifierIDs: [NodeModifierID("bogus")],
             worldSeed: 7, nodeID: "n",
         )
         #expect(
-            fresh == LabyrinthCatalog.modifierIDs(for: .shop, enemyID: nil, worldSeed: 7, nodeID: "n"),
+            fresh == NodeModifierCatalog.modifierIDs(for: .shop, enemyID: nil, worldSeed: 7, nodeID: "n"),
         )
     }
 
     @Test func `shop nodes resolve one shop modifier`() {
-        let shopPool = LabyrinthCatalog.modifiers.filter { $0.applies(to: .shop) }
+        let shopPool = NodeModifierCatalog.modifiers.filter { $0.applies(to: .shop) }
         #expect(!shopPool.isEmpty)
-        #expect(shopPool.contains(where: { $0.id == LabyrinthModifierID("shopDiscount") }))
-        #expect(shopPool.contains(where: { $0.id == LabyrinthModifierID("appraisersEye") }))
+        #expect(shopPool.contains(where: { $0.id == NodeModifierID("shopDiscount") }))
+        #expect(shopPool.contains(where: { $0.id == NodeModifierID("appraisersEye") }))
         for seed in [1, 7, 42, 99, 1001] as [UInt64] {
-            let ids = LabyrinthCatalog.modifierIDs(for: .shop, enemyID: nil, worldSeed: seed, nodeID: "n-\(seed)")
+            let ids = NodeModifierCatalog.modifierIDs(for: .shop, enemyID: nil, worldSeed: seed, nodeID: "n-\(seed)")
             #expect(ids.count == 1)
             #expect(ids.allSatisfy { id in shopPool.contains(where: { $0.id == id }) })
         }
         for type in LabyrinthNodeType.allCases
             where !type.isCombat && type != .shop && type != .mystery {
-            let ids = LabyrinthCatalog.modifierIDs(for: type, enemyID: nil, worldSeed: 1, nodeID: "n")
+            let ids = NodeModifierCatalog.modifierIDs(for: type, enemyID: nil, worldSeed: 1, nodeID: "n")
             #expect(ids.isEmpty)
         }
     }
 
     @Test func `mystery nodes resolve exactly one economy modifier`() {
-        let economyIDs: Set<LabyrinthModifierID> = [
-            LabyrinthModifierID("bountyMark"),
-            LabyrinthModifierID("scholarsToll"),
-            LabyrinthModifierID("scavengersLuck"),
+        let economyIDs: Set<NodeModifierID> = [
+            NodeModifierID("bountyMark"),
+            NodeModifierID("scholarsToll"),
+            NodeModifierID("scavengersLuck"),
         ]
         for seed in [1, 7, 42, 99, 1001] as [UInt64] {
-            let ids = LabyrinthCatalog.modifierIDs(for: .mystery, enemyID: nil, worldSeed: seed, nodeID: "n-\(seed)")
+            let ids = NodeModifierCatalog.modifierIDs(for: .mystery, enemyID: nil, worldSeed: seed, nodeID: "n-\(seed)")
             #expect(ids.count == 1)
             #expect(economyIDs.contains(ids[0]))
         }
-        let pool = LabyrinthCatalog.modifiers.filter { $0.applies(to: .mystery) }
+        let pool = NodeModifierCatalog.modifiers.filter { $0.applies(to: .mystery) }
         #expect(!pool.isEmpty)
         #expect(economyIDs.isSubset(of: Set(pool.map(\.id))))
         #expect(pool.allSatisfy { economyIDs.contains($0.id) || $0.applies(to: .mystery) })
@@ -131,8 +131,8 @@ struct LabyrinthCatalogTests {
     @Test func `combat modifiers match enemy ability keywords`() {
         for enemy in GameContent.enemies {
             for nodeType in [LabyrinthNodeType.battle, LabyrinthNodeType.boss] {
-                let pool = LabyrinthCatalog.combatModifiers(for: enemy.id, nodeType: nodeType)
-                let enemyKeywords = LabyrinthCatalog.enemyDamageKeywords(for: enemy.id)
+                let pool = NodeModifierCatalog.combatModifiers(for: enemy.id, nodeType: nodeType)
+                let enemyKeywords = NodeModifierCatalog.enemyDamageKeywords(for: enemy.id)
                 for modifier in pool {
                     #expect(modifier.relevantKeyword.map(enemyKeywords.contains) != false)
                 }
@@ -145,9 +145,9 @@ struct LabyrinthCatalogTests {
             let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
             for node in generated.nodes.values where node.type.isCombat {
                 guard let enemyID = node.enemyID else { continue }
-                let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+                let modifiers = NodeModifierCatalog.modifiers(ids: node.modifierIDs)
                 #expect(modifiers.count == 1)
-                let enemyKeywords = LabyrinthCatalog.enemyDamageKeywords(for: enemyID)
+                let enemyKeywords = NodeModifierCatalog.enemyDamageKeywords(for: enemyID)
                 for modifier in modifiers {
                     #expect(modifier.relevantKeyword.map(enemyKeywords.contains) != false)
                 }
@@ -185,7 +185,7 @@ struct LabyrinthCatalogTests {
     }
 
     @Test func `modifier catalog has unique I ds and non empty copy`() {
-        let modifiers = GameContent.labyrinthModifiers
+        let modifiers = GameContent.nodeModifiers
         #expect(!modifiers.isEmpty)
         #expect(Set(modifiers.map(\.id)).count == modifiers.count)
         #expect(modifiers.allSatisfy { !$0.title.isEmpty && !$0.effect.description.isEmpty })
@@ -214,7 +214,7 @@ struct LabyrinthCatalogTests {
                     nodes.count(where: { source.id != $0.id && source.isAdjacent(to: $0) }) == 4
                 }
                 for node in nodes {
-                    let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+                    let modifiers = NodeModifierCatalog.modifiers(ids: node.modifierIDs)
                     #expect(modifiers.allSatisfy { $0.applies(to: node.type) })
                     let expectsModifier = switch node.type {
                     case .shop, .mystery:

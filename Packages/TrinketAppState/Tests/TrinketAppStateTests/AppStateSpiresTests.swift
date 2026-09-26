@@ -16,11 +16,27 @@ struct AppStateSpiresTests {
     @Test func `start spire battle succeeds for fresh and attuned parties`() throws {
         let state = try context.makePlaySession()
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+        let selected = try #require(GameContent.spireModifier(for: floor, worldSeed: state.playerSave.worldSeed))
+        state.spires.prepareBattle(for: floor)
+        #expect(state.battle.hasPreparedRun(PlayBattleOrigin.spire(spireID: .ironVein, floor: 1).runKey))
         let message = state.spires.startBattle(for: floor)
         #expect(message == nil)
         #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.spire(spireID: .ironVein, floor: 1).runKey)
         #expect(state.battle.activeBattle?.enemy != nil)
         #expect(state.battlePresentation(for: state.battle.activeBattle?.runKey)?.pendingRewardItem != nil)
+        let presentation = try #require(state.battlePresentation(for: state.battle.activeBattle?.runKey))
+        #expect(presentation.nodeModifiers.map(\.id) == [selected.id])
+        let enemyModifiers = try #require(state.battle.activeBattle).enemyModifiers
+        switch selected.effect {
+        case let .damageDealt(keyword, amount):
+            #expect(enemyModifiers.damageDealtBonus(for: keyword) == amount)
+        case let .damageTakenReduction(keyword, percent):
+            #expect(enemyModifiers.damageTakenReduction(for: keyword) == Double(percent) / 100)
+        case .reward(.keyword):
+            #expect(presentation.pendingRewardItem != nil)
+        default:
+            Issue.record("Unexpected Spire modifier: \(selected.id.rawValue)")
+        }
     }
 
     @Test func `start spire battle requires attunement`() throws {

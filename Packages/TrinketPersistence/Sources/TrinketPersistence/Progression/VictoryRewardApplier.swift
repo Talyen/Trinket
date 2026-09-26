@@ -41,8 +41,8 @@ public struct RewardOwnership: Equatable, Sendable {
         RewardModifier.eligible(ownedTrinketIDs: ownedTrinketIDs, ownedUniqueIDs: ownedUniqueIDs)
     }
 
-    public func modifiers(ids: [LabyrinthModifierID]) -> [LabyrinthModifierDefinition] {
-        LabyrinthCatalog.modifiers(ids: ids, eligibleRewards: eligibleModifiers)
+    public func modifiers(ids: [NodeModifierID]) -> [NodeModifierDefinition] {
+        NodeModifierCatalog.modifiers(ids: ids, eligibleRewards: eligibleModifiers)
     }
 
     public var ownedTrinketIDs: Set<String>
@@ -71,7 +71,7 @@ public extension LootRequest {
         )
     }
 
-    static func spire(floor: SpireFloor) -> LootRequest {
+    static func spire(floor: SpireFloor, rewardModifier: RewardModifier? = nil) -> LootRequest {
         var keywordBias: Set<Keyword> = []
         if let spire = GameContent.spire(id: floor.spireID) {
             keywordBias.insert(spire.keyword)
@@ -81,10 +81,11 @@ public extension LootRequest {
             seedSalt: "battle-loot-spire-\(floor.spireID.rawValue)-\(floor.floor)",
             itemID: "spire-\(floor.spireID.rawValue)-floor-\(floor.floor)-loot",
             keywordBias: keywordBias,
+            rewardModifier: rewardModifier,
         )
     }
 
-    static func labyrinth(node: LabyrinthNode, effects: LabyrinthModifierEffects) -> LootRequest {
+    static func labyrinth(node: LabyrinthNode, effects: NodeModifierEffects) -> LootRequest {
         LootRequest(
             rewardLevel: EncounterLevelResolver.labyrinthEnemyLevel(for: node),
             seedSalt: "battle-loot-labyrinth-\(node.id)",
@@ -96,7 +97,7 @@ public extension LootRequest {
     }
 
     static func voyage(
-        node: VoyageNode, rewardLevel: Int, effects: LabyrinthModifierEffects,
+        node: VoyageNode, rewardLevel: Int, effects: NodeModifierEffects,
         additionalRewardModifier: RewardModifier? = nil,
     ) -> LootRequest {
         LootRequest(

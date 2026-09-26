@@ -23,7 +23,7 @@ public enum MysteryOfferPersistence {
     struct MysteryLevelInputs {
         let rewardLevel: Int
         let encounterLevel: Int
-        let bonuses: LabyrinthModifierEffects
+        let bonuses: NodeModifierEffects
     }
 
     static func levelInputs(

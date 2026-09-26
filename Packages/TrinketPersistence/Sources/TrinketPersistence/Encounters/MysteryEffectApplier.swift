@@ -108,7 +108,7 @@ public enum MysteryEffectApplier {
         encounterLevel: Int,
         rewardLevel: Int,
         save: PlayerSave,
-        bonuses: LabyrinthModifierEffects = .zero,
+        bonuses: NodeModifierEffects = .zero,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> MysteryOffer? {
         guard let pool = choice.itemPool,

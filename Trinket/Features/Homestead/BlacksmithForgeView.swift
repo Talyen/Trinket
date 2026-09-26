@@ -9,8 +9,6 @@ struct BlacksmithForgeView: View {
     @State private var browsingDetent: PresentationDetent = .medium
     @State private var detent: PresentationDetent = .medium
     @State private var visibleIDs: Set<String> = []
-    @State private var requestedRecipe: BlacksmithRecipe?
-    @State private var selectedRecipe: BlacksmithRecipe?
 
     private static let workDetent = PresentationDetent.height(520)
 
@@ -28,10 +26,8 @@ struct BlacksmithForgeView: View {
                             }
                         }
                     case let .result(recipeID, item, celebrates):
-                        BlacksmithForgedItemView(item: item, celebrates: celebrates) {
-                            withAnimation { path.removeAll() }
-                        }
-                        .navigationTransition(.zoom(sourceID: recipeID, in: resultNamespace))
+                        BlacksmithForgedItemView(item: item, celebrates: celebrates)
+                            .navigationTransition(.zoom(sourceID: recipeID, in: resultNamespace))
                     }
                 }
         }
@@ -43,7 +39,6 @@ struct BlacksmithForgeView: View {
             withAnimation {
                 switch path.last {
                 case nil:
-                    selectedRecipe = nil
                     detent = browsingDetent
                 case .recipe:
                     detent = Self.workDetent
@@ -64,7 +59,7 @@ struct BlacksmithForgeView: View {
         ScrollView {
             LazyVGrid(columns: TrinketDesign.Layout.collectionGridItems, spacing: TrinketDesign.Spacing.large) {
                 ForEach(BlacksmithRecipe.all) { recipe in
-                    Button { requestedRecipe = recipe } label: {
+                    Button { withAnimation { path.append(.recipe(recipe)) } } label: {
                         BlacksmithBaseCard(recipe: recipe, thumbnail: true)
                     }
                     .trinketArtworkCardButtonStyle()
@@ -78,13 +73,6 @@ struct BlacksmithForgeView: View {
         }
         .trinketScreenBackground()
         .scrollEdgeEffectStyle(.soft, for: .top)
-        .preparingArtwork(request: $requestedRecipe, presentation: $selectedRecipe) { recipe in
-            [recipe.forgeArtwork?.imageName, recipe.forgeArtwork?.thumbnailImageName].compactMap(\.self)
-        }
-        .onChange(of: selectedRecipe) { _, recipe in
-            guard let recipe else { return }
-            withAnimation { path.append(.recipe(recipe)) }
-        }
         .accessibilityIdentifier(AccessibilityID.Homestead.forgeGrid)
         .task(id: visibleIDs) {
             await ArtworkViewportPrewarm.prewarm(

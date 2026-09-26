@@ -295,7 +295,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.stone, 6), ResourceAmount(.iron, 14)],
                     bonus: HomesteadBonus(
                         title: "Physical damage +2",
-                        description: "Physical damage +2\n+2 Iron per Day"
+                        description: "Physical damage +2\n+2 Iron per Day\nForge Astral odds +10%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.physical, 2)], companionModifiers: [.damageDealt(.physical, 2)]),
                     production: [ResourceAmount(.iron, 2)]
@@ -306,7 +306,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.stone, 13), ResourceAmount(.iron, 28)],
                     bonus: HomesteadBonus(
                         title: "Physical damage +3",
-                        description: "Physical damage +3\n+3 Iron per Day"
+                        description: "Physical damage +3\n+3 Iron per Day\nForge Astral odds +20%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.physical, 3)], companionModifiers: [.damageDealt(.physical, 3)]),
                     production: [ResourceAmount(.iron, 3)]
@@ -317,7 +317,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.stone, 26), ResourceAmount(.iron, 55)],
                     bonus: HomesteadBonus(
                         title: "Physical damage +4",
-                        description: "Physical damage +4\n+4 Iron per Day"
+                        description: "Physical damage +4\n+4 Iron per Day\nForge Astral odds +30%"
                     ),
                     combatBonus: HomesteadTierCombatBonus(heroModifiers: [.damageDealt(.physical, 4)], companionModifiers: [.damageDealt(.physical, 4)]),
                     production: [ResourceAmount(.iron, 4)]

@@ -151,8 +151,10 @@ and Kite Shield cost 32 Iron + 16 Wood; Greatsword, Double Axe, and Maul cost
 40 Iron + 20 Wood; Plate Armor costs 40 Iron + 20 Hide. These fixed initial prices
 preserve a net material sink when ordinary forged gear is salvaged.
 
-Selecting a base uses ordinary navigation inside that same sheet, with a compact
+Selecting a base immediately uses ordinary navigation inside that same sheet, with a compact
 520-point working detent for its artwork/name, material cost, and Forge button.
+The prepared thumbnail appears while the full artwork finishes preparing; artwork
+readiness does not delay the Forge button.
 Selecting a recipe always fits the preview to that working detent, even after
 browsing at large height. Artwork and costs stay grouped at the top if the preview
 is expanded manually. Returning to the grid restores its chosen browsing height.
@@ -163,16 +165,16 @@ rarity, powers, or explanatory copy.
 After commitment and artwork preparation, the result replaces the source artwork
 in place, without removing or sliding the card. A native source-linked zoom opens
 the actual Item detail in the same navigation stack while the sheet expands to
-large. Its sticky footer says **Added to Inventory** and provides Done; one success
-haptic accompanies the first visible reveal. Done returns to the recipe grid.
+large. **Added to Inventory** appears below the item name on the hero art; one success
+haptic accompanies the first visible reveal.
 Back returns to the saved result card, which can reopen details without another
 craft or success haptic. Swiping down returns to the Blacksmith. Interrupted or
-backgrounded preparation retains the item without launching a late detail view.
+backgrounded preparation retains the item without launching a late detail view;
+the saved result card retains Done for this recovery path.
 
-Forging uses the shared non-boss item generator at the highest won encounter level,
-including Homestead Astral-find bonuses. Blacksmith tiers 2–4 add a forge-only
-Astral tier-weight bonus of 10%, 20%, and 30% respectively, shown in the Forge
-preview and stacked additively with Moonlit Sanctum. Basic and Astral outcomes retain normal
+Forging uses the shared non-boss item generator at the highest won encounter level.
+Blacksmith tiers 2–4 add a forge-only Astral tier-weight bonus of 10%, 20%, and
+30% respectively, shown with the Blacksmith's benefits. Basic and Astral outcomes retain normal
 rolls. Unique outcomes use only the chosen base's authored, unowned Unique;
 Trinkets never appear. Removing unavailable categories renormalizes loot weights.
 Building upgrades do not change recipes or prices.

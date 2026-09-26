@@ -96,12 +96,12 @@ struct CombatFeedbackEffectPresentationTests {
 
     @Test func `hit reaction recipe computed properties and fallbacks`() {
         let defaultDamage = CombatFeedbackCardRecipes.cardReaction(for: .damage)
-        #expect(defaultDamage.impactDuration > 0)
-        #expect(defaultDamage.recoveryDuration > 0)
-        #expect(defaultDamage.rawImpactScaleX > 0)
-        #expect(defaultDamage.rawImpactScaleY > 0)
-        #expect(defaultDamage.recoveryScaleX > 0)
-        #expect(defaultDamage.recoveryScaleY > 0)
+        #expect(defaultDamage.keyframes.impactDuration > 0)
+        #expect(defaultDamage.keyframes.recoveryDuration > 0)
+        #expect(defaultDamage.keyframes.rawImpactScaleX > 0)
+        #expect(defaultDamage.keyframes.rawImpactScaleY > 0)
+        #expect(defaultDamage.keyframes.recoveryScaleX > 0)
+        #expect(defaultDamage.keyframes.recoveryScaleY > 0)
 
         let emptyRecipe = CombatantHitReactionRecipe(
             kind: .none,
@@ -111,15 +111,15 @@ struct CombatFeedbackEffectPresentationTests {
             offsetY: [],
             duration: 0.24,
         )
-        #expect(emptyRecipe.impactDuration == 0.08)
-        #expect(emptyRecipe.recoveryDuration == 0.16)
-        #expect(emptyRecipe.rawImpactScaleX == 1.0)
-        #expect(emptyRecipe.rawImpactScaleY == 1.0)
-        #expect(emptyRecipe.recoveryScaleX == 1.0)
-        #expect(emptyRecipe.recoveryScaleY == 1.0)
-        #expect(emptyRecipe.rawImpactOffsetX == 0.0)
-        #expect(emptyRecipe.rawImpactOffsetY == 0.0)
-        #expect(emptyRecipe.recoverOffsetX == 0.0)
-        #expect(emptyRecipe.recoverOffsetY == 0.0)
+        #expect(emptyRecipe.keyframes.impactDuration == 0.08)
+        #expect(emptyRecipe.keyframes.recoveryDuration == 0.16)
+        #expect(emptyRecipe.keyframes.rawImpactScaleX == 1.0)
+        #expect(emptyRecipe.keyframes.rawImpactScaleY == 1.0)
+        #expect(emptyRecipe.keyframes.recoveryScaleX == 1.0)
+        #expect(emptyRecipe.keyframes.recoveryScaleY == 1.0)
+        #expect(emptyRecipe.keyframes.rawImpactOffsetX == 0.0)
+        #expect(emptyRecipe.keyframes.rawImpactOffsetY == 0.0)
+        #expect(emptyRecipe.keyframes.recoverOffsetX == 0.0)
+        #expect(emptyRecipe.keyframes.recoverOffsetY == 0.0)
     }
 }

@@ -10,7 +10,7 @@ completion, and shell exits use that owner rather than mutating runtime lifecycl
 and registration separately. It exposes no independent registration mutation.
 `PlayBattleLaunch` owns save-backed input assembly and access policy. Play validates the current hero, companion, and enemy IDs against the baked run before requesting activation. A mismatch fails closed: Play must not fall through to a fresh `activate`, which would re-roll RNG and wipe sibling labyrinth prepares. `activatePreparedBattle(runKey:configurationID:)` consumes only the matched prepared resource. Production launches prepare, register metadata, then activate; failed activation retains a coherent retryable preparation. Other prepared runs remain until pruning, restart, or end; ending clears their registrations along with their runtime resources. Standalone launches without a mode origin still use `activate`. Pruning while active must leave both runtime resources and registrations untouched.
 
-Mode launch requests resolve only after the shared access, active-battle, and transient-encounter gates. A mode can return its specific eligibility message or the common missing-encounter message. Spires uses one floor eligibility decision for both prewarming and launch, so locked floors and unattuned parties cannot be prepared and cannot launch through a stale preparation. Contracts looks up the chosen offer inside that same gate, so a stale offer cannot bypass access or busy precedence. Labyrinth and Voyage resolve owned node modifiers once through `ModeBattleModifiers`; combat effects, experience bonus, and reward presentation must come from that same definition set.
+Mode launch requests resolve only after the shared access, active-battle, and transient-encounter gates. A mode can return its specific eligibility message or the common missing-encounter message. Spires uses one floor eligibility decision for both prewarming and launch, so locked floors and unattuned parties cannot be prepared and cannot launch through a stale preparation. Contracts looks up the chosen offer inside that same gate, so a stale offer cannot bypass access or busy precedence. Spires, Labyrinth, and Voyage resolve node modifiers through `ModeBattleModifiers`; combat effects, experience bonus, and reward presentation must come from that same definition set. Spire loot uses the same world-seeded modifier as battle launch.
 
 `BattleLaunchAssembly` retains the exact `BattlePreparationInputs` used to build
 its configuration and reward presentation. These include the launch request,
@@ -62,6 +62,8 @@ encounter. Active battle claims are transient; no battle-resume schema is added.
 The [progression contract](persistence-progression.md) owns the reward formula.
 
 Loot All persists the settled award before its shared collection presentation.
+Completion validates that award against the launch plan's base materials; the
+displayed materials already include Homestead bonuses and must not be settled again.
 Interactive claims defer the exit for that presentation; automatic completion
 continues to exit immediately. Play retains a transient exit keyed to the battle
 configuration and refuses duplicate claims while it is pending. Finishing restores

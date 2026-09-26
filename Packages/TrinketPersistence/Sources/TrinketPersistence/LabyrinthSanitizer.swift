@@ -139,7 +139,7 @@ enum LabyrinthSanitizer {
             depth: depth,
             clusterID: node.clusterID,
             gridPosition: node.gridPosition ?? fallbackGridPosition(for: node, in: cluster),
-            modifierIDs: LabyrinthCatalog.resolvedModifierIDs(
+            modifierIDs: NodeModifierCatalog.resolvedModifierIDs(
                 for: type,
                 enemyID: enemyID,
                 existingModifierIDs: node.modifierIDs,

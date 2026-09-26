@@ -16,7 +16,7 @@ enum LabyrinthTestSupport {
         recruitEventID: String?,
         enemyID: String? = nil,
         depth: Int? = nil,
-        modifierIDs: [LabyrinthModifierID]? = nil,
+        modifierIDs: [NodeModifierID]? = nil,
         mysteryEventID: String? = nil,
         isCleared: Bool? = nil,
         isRevealed: Bool? = nil,
@@ -103,9 +103,9 @@ enum LabyrinthTestSupport {
         }
         guard let existingNode = state.playerSave.labyrinth.node(id: targetID) else { return nil }
         let enemyID = type.isCombat ? "goblin_scout" : nil
-        let modifierIDs: [LabyrinthModifierID] = switch type {
-        case .shop: [LabyrinthModifierID("shopDiscount")]
-        case .mystery: [LabyrinthModifierID("bountyMark")]
+        let modifierIDs: [NodeModifierID] = switch type {
+        case .shop: [NodeModifierID("shopDiscount")]
+        case .mystery: [NodeModifierID("bountyMark")]
         default: []
         }
         let updatedNode = remade(

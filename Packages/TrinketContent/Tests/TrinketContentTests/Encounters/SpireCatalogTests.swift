@@ -87,4 +87,28 @@ struct SpireCatalogTests {
             #expect(GameContent.spireFloor(spireID: spire.id, floor: -1) == nil)
         }
     }
+
+    @Test func `every floor rolls one stable modifier from its keyword pool`() throws {
+        for spire in GameContent.spires {
+            let pool = NodeModifierCatalog.keywordModifiers(for: spire.keyword, nodeType: .battle)
+            #expect(pool.count == 3)
+            #expect(Set(pool.map(\.id)).count == 3)
+            #expect(NodeModifierCatalog.keywordModifiers(for: spire.keyword, nodeType: .boss) == pool)
+            #expect(pool.contains { $0.effect == .damageDealt(keyword: spire.keyword, amount: 1) })
+            #expect(pool.contains { $0.effect == .damageTakenReduction(keyword: spire.keyword, percent: 50) })
+            #expect(pool.contains { $0.effect == .reward(.keyword(spire.keyword)) })
+
+            for floor in GameContent.spireFloors(for: spire.id) {
+                let first = try #require(GameContent.spireModifier(for: floor, worldSeed: 42))
+                #expect(pool.contains(first))
+                #expect(GameContent.spireModifier(for: floor, worldSeed: 42) == first)
+            }
+
+            let firstFloor = try #require(GameContent.spireFloor(spireID: spire.id, floor: 1))
+            let seen = Set((0 ..< 96).compactMap { seed in
+                GameContent.spireModifier(for: firstFloor, worldSeed: UInt64(seed))?.id
+            })
+            #expect(seen == Set(pool.map(\.id)))
+        }
+    }
 }

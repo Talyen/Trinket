@@ -192,7 +192,7 @@ struct LabyrinthProgressTests {
             depth: 2,
             clusterID: "econ",
         )
-        let resolve: (LabyrinthModifierEffects) -> BattleLootResult = { effects in
+        let resolve: (NodeModifierEffects) -> BattleLootResult = { effects in
             VictoryRewardApplier.resolveLoot(
                 .labyrinth(node: node, effects: effects),
                 encounterLevel: 3,
@@ -206,14 +206,14 @@ struct LabyrinthProgressTests {
         #expect(base.gold > 0)
         #expect(!base.materials.isEmpty)
 
-        let bounty = resolve(LabyrinthModifierEffects.combining(
-            LabyrinthCatalog.modifiers(ids: [LabyrinthModifierID("bountyMark")]),
+        let bounty = resolve(NodeModifierEffects.combining(
+            NodeModifierCatalog.modifiers(ids: [NodeModifierID("bountyMark")]),
         ))
         #expect(bounty.gold == base.gold + (base.gold * 25) / 100)
         #expect(bounty.materials == base.materials)
 
-        let scavenger = resolve(LabyrinthModifierEffects.combining(
-            LabyrinthCatalog.modifiers(ids: [LabyrinthModifierID("scavengersLuck")]),
+        let scavenger = resolve(NodeModifierEffects.combining(
+            NodeModifierCatalog.modifiers(ids: [NodeModifierID("scavengersLuck")]),
         ))
         #expect(scavenger.gold == base.gold)
         for (boosted, original) in zip(scavenger.materials, base.materials) {

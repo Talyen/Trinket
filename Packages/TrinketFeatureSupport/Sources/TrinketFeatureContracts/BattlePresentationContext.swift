@@ -23,7 +23,7 @@ public struct BattlePresentationContext: Sendable {
     public let defeatHeroExperienceAward: Int
     public let defeatCompanionExperienceAward: Int
     public let materialRewards: [ResourceAmount]
-    public let labyrinthModifiers: [LabyrinthModifierDefinition]
+    public let nodeModifiers: [NodeModifierDefinition]
 
     public var rewardPlan: BattleRewardPlan {
         BattleRewardPlan(
@@ -61,7 +61,7 @@ public struct BattlePresentationContext: Sendable {
         defeatHeroExperienceAward: Int? = nil,
         defeatCompanionExperienceAward: Int? = nil,
         materialRewards: [ResourceAmount],
-        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
+        nodeModifiers: [NodeModifierDefinition] = [],
         goldOverflowExperience: Int = 0,
         rewardInputs: RewardSettlementInputs? = nil,
         completionBonus: VoyageCompletionBonus? = nil,
@@ -87,7 +87,7 @@ public struct BattlePresentationContext: Sendable {
         self.defeatHeroExperienceAward = defeatHeroExperienceAward ?? heroExperienceAward
         self.defeatCompanionExperienceAward = defeatCompanionExperienceAward ?? companionExperienceAward
         self.materialRewards = materialRewards
-        self.labyrinthModifiers = labyrinthModifiers
+        self.nodeModifiers = nodeModifiers
     }
 
     public static let empty = Self(
@@ -103,6 +103,6 @@ public struct BattlePresentationContext: Sendable {
         heroExperienceAward: 0,
         companionExperienceAward: 0,
         materialRewards: [],
-        labyrinthModifiers: [],
+        nodeModifiers: [],
     )
 }

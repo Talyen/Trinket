@@ -123,7 +123,7 @@ Keep `BattleState` and `PlayerSaveStore` as thin facades. Keep `AppState` as com
 |-----|-------------------|----------|
 | `BattleState` | `EffectHandlers/`, `*Engine`, `DamagePipeline`, or `BattleState+*.swift` for shared mutation plumbing | Catalog-specific branches; app/feature call sites for engine mutations |
 | `PlayerSaveStore` | Value-type rules in `Models/`; cross-slice actions in `PlayerSaveStore+Homestead.swift` / `PlayerSaveStore+Roster.swift`; open/config in `PlayerSaveStoreConfiguration` | Feature-specific methods on the hub class; empty pass-through facades |
-| `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation via `play.battle`; `PlayModeGraph` assembly; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion` | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; a parallel `AppState.battle` handle |
+| `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation via `play.battle`; mode construction in the `PlaySession` initializer; run lifecycle in `PlayBattleRuns`; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion` | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; a parallel `AppState.battle` handle |
 | Combat triggers | Authored `CombatTraitTriggers` (Content + codegen); nested on `CombatModifierProfile.triggers` | Parallel flat fields on `CombatModifierProfile` |
 
 `BattleState` public mutation API is card/turn/opening-hand commands and log lifecycle.

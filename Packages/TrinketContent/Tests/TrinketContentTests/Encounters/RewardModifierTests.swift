@@ -119,14 +119,14 @@ struct RewardModifierTests {
             let type: LabyrinthNodeType = enemy.isBoss ? .boss : .battle
             var rng = SeededRandomNumberGenerator(seed: 9)
             var seen: Set<RewardModifier> = []
-            var previous: LabyrinthModifierID?
+            var previous: NodeModifierID?
             for _ in 0 ..< 3000 {
-                let id = try #require(LabyrinthCatalog.pickModifier(
+                let id = try #require(NodeModifierCatalog.pickModifier(
                     for: type, enemyID: enemy.id, eligibleRewards: eligible, excluding: previous, using: &rng,
                 ))
                 #expect(id != previous)
                 previous = id
-                let definition = try #require(LabyrinthCatalog.modifier(id: id))
+                let definition = try #require(NodeModifierCatalog.modifier(id: id))
                 if case let .reward(reward) = definition.effect {
                     #expect(eligible.contains(reward))
                     seen.insert(reward)
@@ -138,17 +138,17 @@ struct RewardModifierTests {
 
     @Test func `repair excludes exhausted rewards without rerolling valid saved IDs`() throws {
         let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
-        let exhaustedID = LabyrinthCatalog.rewardID(.unique)
-        #expect(LabyrinthCatalog.resolvedModifierIDs(
+        let exhaustedID = NodeModifierCatalog.rewardID(.unique)
+        #expect(NodeModifierCatalog.resolvedModifierIDs(
             for: .battle, enemyID: enemy.id, existingModifierIDs: [exhaustedID],
             worldSeed: 7, nodeID: "saved", eligibleRewards: [.gold],
         ) == [exhaustedID])
         for seed in UInt64(1) ... 64 {
-            let repaired = LabyrinthCatalog.resolvedModifierIDs(
-                for: .battle, enemyID: enemy.id, existingModifierIDs: [LabyrinthModifierID("unknown")],
+            let repaired = NodeModifierCatalog.resolvedModifierIDs(
+                for: .battle, enemyID: enemy.id, existingModifierIDs: [NodeModifierID("unknown")],
                 worldSeed: seed, nodeID: "repaired", eligibleRewards: [.gold],
             )
-            let definition = try #require(LabyrinthCatalog.modifiers(ids: repaired).first)
+            let definition = try #require(NodeModifierCatalog.modifiers(ids: repaired).first)
             if case let .reward(reward) = definition.effect {
                 #expect(reward == .gold)
             }
@@ -157,11 +157,11 @@ struct RewardModifierTests {
 
     @Test func `shared rewards retain legacy node IDs and combat-only eligibility`() throws {
         for (reward, id) in [(RewardModifier.gold, "bountyMark"), (.experience, "scholarsToll"), (.materials, "scavengersLuck")] {
-            #expect(LabyrinthCatalog.rewardID(reward).rawValue == id)
+            #expect(NodeModifierCatalog.rewardID(reward).rawValue == id)
         }
         for reward in RewardModifier.allCases {
-            let id = LabyrinthCatalog.rewardID(reward)
-            let definition = try #require(LabyrinthCatalog.modifier(id: id))
+            let id = NodeModifierCatalog.rewardID(reward)
+            let definition = try #require(NodeModifierCatalog.modifier(id: id))
             #expect(definition.effect == .reward(reward))
             #expect(definition.applies(to: .battle) && definition.applies(to: .boss))
             #expect(!definition.applies(to: .shop) && !definition.applies(to: .recruit) && !definition.applies(to: .entrance))

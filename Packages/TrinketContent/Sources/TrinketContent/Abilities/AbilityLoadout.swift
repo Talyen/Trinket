@@ -93,22 +93,16 @@ public struct AbilityChoices: Hashable, Sendable {
         }
     }
 
-    public func withSelectedLoadout(_ loadout: AbilityLoadout) -> Self {
+    public func withSelectedLoadout(
+        _ loadout: AbilityLoadout,
+        fillsMissingSelections: Bool = true,
+    ) -> Self {
         Self(
             basics: basics,
             skills: skills,
             ultimates: ultimates,
             selected: loadout,
-        )
-    }
-
-    public func withSelectedLoadoutPreservingEmptyTiers(_ loadout: AbilityLoadout) -> Self {
-        Self(
-            basics: basics,
-            skills: skills,
-            ultimates: ultimates,
-            selected: loadout,
-            fillsMissingSelections: false,
+            fillsMissingSelections: fillsMissingSelections,
         )
     }
 

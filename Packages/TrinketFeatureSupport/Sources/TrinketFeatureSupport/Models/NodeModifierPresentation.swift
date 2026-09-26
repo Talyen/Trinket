@@ -3,8 +3,8 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
-public enum LabyrinthModifierPresentation {
-    public static func style(for modifier: LabyrinthModifierDefinition) -> Keyword.VisualStyle {
+public enum NodeModifierPresentation {
+    public static func style(for modifier: NodeModifierDefinition) -> Keyword.VisualStyle {
         switch modifier.effect {
         case let .damageDealt(keyword, _):
             keyword.visualStyle

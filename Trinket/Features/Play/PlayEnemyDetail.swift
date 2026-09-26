@@ -7,12 +7,12 @@ extension CombatantCardDetail {
     static func playEnemy(
         combatant: Combatant,
         level: Int,
-        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
+        nodeModifiers: [NodeModifierDefinition] = [],
     ) -> CombatantCardDetail {
         CombatantCardDetail(
             combatant: combatant,
             progression: .at(level: level),
-            labyrinthModifiers: labyrinthModifiers,
+            nodeModifiers: nodeModifiers,
         )
     }
 }
@@ -26,11 +26,11 @@ extension CombatantCardDetail {
 func makePlayEnemyDetail(
     combatant: Combatant,
     level: Int,
-    labyrinthModifiers: [LabyrinthModifierDefinition] = [],
+    nodeModifiers: [NodeModifierDefinition] = [],
 ) -> CombatantCardDetail {
     CombatantCardDetail.playEnemy(
         combatant: combatant,
         level: level,
-        labyrinthModifiers: labyrinthModifiers,
+        nodeModifiers: nodeModifiers,
     )
 }

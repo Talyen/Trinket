@@ -217,7 +217,7 @@ final class PlayBattleLaunch {
                 additionalRewardItems: presentation?.additionalRewardItems ?? [],
                 stageRewardsAlreadyClaimed: presentation?.stageRewardsAlreadyClaimed ?? false,
                 universalModifiers: universalModifiers,
-                labyrinthModifiers: presentation?.labyrinthModifiers ?? [],
+                nodeModifiers: presentation?.nodeModifiers ?? [],
                 completionBonus: presentation?.completionBonus,
             ),
         )

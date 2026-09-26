@@ -20,21 +20,21 @@ struct CombatantTraitsSection: View, Equatable {
     }
 }
 
-struct CombatantLabyrinthSection: View, Equatable {
-    let labyrinthModifiers: [LabyrinthModifierDefinition]
+struct CombatantModifiersSection: View, Equatable {
+    let nodeModifiers: [NodeModifierDefinition]
 
     var body: some View {
         TraitListSection(
             title: "Modifiers",
-            sectionID: AccessibilityID.CombatantDetail.labyrinthModifiersSection,
-            items: labyrinthModifiers,
+            sectionID: AccessibilityID.CombatantDetail.nodeModifiersSection,
+            items: nodeModifiers,
         ) { modifier in
             DetailTraitRow(
                 title: modifier.title,
                 description: trimmed(modifier.effect.description),
-                descriptionAccessibilityID: AccessibilityID.CombatantDetail.labyrinthModifierDescription,
-                leadingIcon: LabyrinthModifierPresentation.style(for: modifier).icon,
-                titleColor: LabyrinthModifierPresentation.style(for: modifier).color,
+                descriptionAccessibilityID: AccessibilityID.CombatantDetail.nodeModifierDescription,
+                leadingIcon: NodeModifierPresentation.style(for: modifier).icon,
+                titleColor: NodeModifierPresentation.style(for: modifier).color,
             )
         }
     }

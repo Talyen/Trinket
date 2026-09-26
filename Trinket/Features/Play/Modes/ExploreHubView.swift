@@ -15,7 +15,7 @@ struct ExploreHubView: View {
         ) {
             HubArtworkNavigationLink(
                 destination: PlayLaunchDestination.spiresHub,
-                title: "The Spires",
+                title: "Spires",
                 subtitle: spiresProgressSubtitle,
                 artID: "gameModeSpires",
                 fallbackArtID: EncounterArtIDs.explorePlayModeID,

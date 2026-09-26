@@ -79,11 +79,11 @@ struct LabyrinthNodeInspector: View {
         return makePlayEnemyDetail(
             combatant: encounter.combatant,
             level: encounter.level,
-            labyrinthModifiers: RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs),
+            nodeModifiers: RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs),
         )
     }
 
-    private var modifiers: [LabyrinthModifierDefinition] {
+    private var modifiers: [NodeModifierDefinition] {
         RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs)
     }
 

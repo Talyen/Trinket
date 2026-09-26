@@ -17,6 +17,9 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
 
         tapButton(AccessibilityID.Play.spireRow("ironVein"))
         assertExists(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 1))
+        tapButton(AccessibilityID.Play.spireFloorEnemyArt("ironVein", floor: 1))
+        assertExists(AccessibilityID.CombatantDetail.nodeModifiersSection)
+        assertExists(AccessibilityID.CombatantDetail.nodeModifierDescription)
     }
 
     func testLabyrinthMapNodeInspectorInteractions() {

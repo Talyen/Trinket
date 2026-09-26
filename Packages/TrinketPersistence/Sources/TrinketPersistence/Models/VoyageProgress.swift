@@ -179,7 +179,7 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
             if node.type.isCombat, node.enemyID.flatMap({ GameContent.enemy(matching: $0) }) == nil {
                 return false
             }
-            if node.modifierIDs.contains(where: { LabyrinthCatalog.modifier(id: $0) == nil }) {
+            if node.modifierIDs.contains(where: { NodeModifierCatalog.modifier(id: $0) == nil }) {
                 return false
             }
         }

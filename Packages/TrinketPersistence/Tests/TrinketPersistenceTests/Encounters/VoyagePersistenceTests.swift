@@ -100,7 +100,7 @@ struct VoyagePersistenceTests {
         let offer = VoyageOffer(id: "gold-run", chapterID: "chapter-1", difficulty: .easy, seed: 17, rewardModifier: .gold)
         let plain = VoyageNode(id: "gold-boss", type: .boss, enemyID: "the_blight_treant", modifierIDs: [], recruitEventID: nil)
         var marked = plain
-        marked.modifierIDs = [LabyrinthCatalog.rewardID(.gold)]
+        marked.modifierIDs = [NodeModifierCatalog.rewardID(.gold)]
         let baseline = VoyageCompletion.resolveLoot(node: plain, encounterLevel: 10, save: save)
         let enhanced = VoyageCompletion.resolveFinalLoot(node: marked, offer: offer, encounterLevel: 10, save: save)
         #expect(enhanced.primary.gold == CombatRounding.scaled(baseline.gold, byPercent: 50))
@@ -113,7 +113,7 @@ struct VoyagePersistenceTests {
         let offer = VoyageOffer(id: "material-run", chapterID: "chapter-1", difficulty: .easy, seed: 17, rewardModifier: .stone)
         let node = VoyageNode(
             id: "material-boss", type: .boss, enemyID: "the_blight_treant",
-            modifierIDs: [LabyrinthCatalog.rewardID(.wood)], recruitEventID: nil,
+            modifierIDs: [NodeModifierCatalog.rewardID(.wood)], recruitEventID: nil,
         )
         let loot = VoyageCompletion.resolveFinalLoot(node: node, offer: offer, encounterLevel: 10, save: save)
         #expect(Set(loot.primary.materials.map(\.resource)) == [.wood, .stone])
@@ -127,7 +127,7 @@ struct VoyagePersistenceTests {
         let offer = VoyageOffer(id: "item-run", chapterID: "chapter-1", difficulty: .easy, seed: 17, rewardModifier: .armorHoard)
         let node = VoyageNode(
             id: "item-boss", type: .boss, enemyID: "the_blight_treant",
-            modifierIDs: [LabyrinthCatalog.rewardID(.armsHoard)], recruitEventID: nil,
+            modifierIDs: [NodeModifierCatalog.rewardID(.armsHoard)], recruitEventID: nil,
         )
         let first = VoyageCompletion.resolveFinalLoot(node: node, offer: offer, encounterLevel: 10, save: save)
         let second = VoyageCompletion.resolveFinalLoot(node: node, offer: offer, encounterLevel: 10, save: save)
@@ -164,7 +164,7 @@ struct VoyagePersistenceTests {
         let offer = VoyageOffer(id: "last-unique", chapterID: "chapter-1", difficulty: .easy, seed: 17, rewardModifier: .uniqueHoard)
         let node = VoyageNode(
             id: "last-unique-boss", type: .boss, enemyID: "the_blight_treant",
-            modifierIDs: [LabyrinthCatalog.rewardID(.uniqueHoard)], recruitEventID: nil,
+            modifierIDs: [NodeModifierCatalog.rewardID(.uniqueHoard)], recruitEventID: nil,
         )
         let ordinary = VoyageCompletion.resolveLoot(node: node, encounterLevel: 10, save: save)
         let final = VoyageCompletion.resolveFinalLoot(node: node, offer: offer, encounterLevel: 10, save: save)
