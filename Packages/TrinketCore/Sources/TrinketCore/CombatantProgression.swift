@@ -11,17 +11,9 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         // Quadratic curve 10 + 5·steps + steps²/2 with saturation instead of
         // trapping; steps is non-negative here so saturation only goes upward.
         let fiveSteps = SaturatedArithmetic.saturatingMul(steps, 5)
-        if fiveSteps == Int.max {
-            return Int.max
-        }
         let square = SaturatedArithmetic.saturatingMul(steps, steps)
-        if square == Int.max {
-            return Int.max
-        }
+        guard fiveSteps < Int.max, square < Int.max else { return Int.max }
         let base = SaturatedArithmetic.saturatingAdd(10, fiveSteps)
-        if base == Int.max {
-            return Int.max
-        }
         return SaturatedArithmetic.saturatingAdd(base, square / 2)
     }
 
@@ -61,8 +53,8 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         var nextRequiredXP = requiredXP
 
         while nextRequiredXP > 0, nextXP >= nextRequiredXP {
-            nextXP -= nextRequiredXP
             guard nextLevel < Int.max else { break }
+            nextXP -= nextRequiredXP
             nextLevel += 1
             nextRequiredXP = Self.requiredXP(forLevel: nextLevel)
         }
@@ -83,5 +75,18 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         // Clamp negative counts (impossible from real callers, previously
         // trapping on Int.min) before subtracting so no input can trap.
         max(totalTalentPoints - max(unlockedCount, 0), 0)
+    }
+
+    /// Total cumulative experience earned across all prior levels plus currentXP.
+    public var totalEarnedExperience: Int {
+        guard level > 1 else { return max(0, currentXP) }
+        var total = max(0, currentXP)
+        for lvl in 1 ..< level {
+            total = SaturatedArithmetic.saturatingAdd(total, Self.requiredXP(forLevel: lvl))
+            if total == Int.max {
+                break
+            }
+        }
+        return total
     }
 }

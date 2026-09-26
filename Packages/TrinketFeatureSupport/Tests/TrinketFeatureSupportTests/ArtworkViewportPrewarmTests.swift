@@ -59,4 +59,16 @@ struct ArtworkViewportPrewarmTests {
         )
         #expect(names == ["same", "other"])
     }
+
+    @Test func `dispersed visible items prewarm per cluster`() {
+        let items = (0 ..< 20).map { ViewportItem(id: "\($0)", thumbnail: "thumb\($0)") }
+        let names = ArtworkViewportPrewarm.windowNames(
+            orderedItems: items,
+            visibleIDs: ["0", "10"],
+            thumbnailName: { $0.thumbnail },
+            prefetchRows: 1,
+            estimatedColumns: 1,
+        )
+        #expect(names == ["thumb0", "thumb1", "thumb9", "thumb10", "thumb11"])
+    }
 }

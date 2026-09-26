@@ -94,6 +94,38 @@ struct ItemResolutionTests {
         #expect(decoded.restored() != nil)
     }
 
+    @Test func `stored inventory item decodes both legacy powers and modern affixPowers keys`() throws {
+        let power = ItemAffixPower(description: "Test Power", modifiers: [])
+        let encodedPower = try JSONSerialization.jsonObject(with: JSONEncoder().encode(power))
+
+        let jsonLegacy = try JSONSerialization.data(withJSONObject: [
+            "id": "legacy-item",
+            "templateID": "test-template",
+            "baseTypeID": "longsword",
+            "rarity": "rare",
+            "displayName": "Legacy Sword",
+            "isCorrupted": false,
+            "affixes": [],
+            "powers": [encodedPower],
+        ])
+        let jsonModern = try JSONSerialization.data(withJSONObject: [
+            "id": "modern-item",
+            "templateID": "test-template",
+            "baseTypeID": "longsword",
+            "rarity": "rare",
+            "displayName": "Modern Sword",
+            "isCorrupted": false,
+            "affixes": [],
+            "affixPowers": [encodedPower],
+        ])
+
+        let decodedLegacy = try JSONDecoder().decode(StoredInventoryItem.self, from: jsonLegacy)
+        let decodedModern = try JSONDecoder().decode(StoredInventoryItem.self, from: jsonModern)
+
+        #expect(decodedLegacy.affixPowers == [power])
+        #expect(decodedModern.affixPowers == [power])
+    }
+
     @Test func `trinket overwrite drops stored powers`() throws {
         let template = try #require(GameContent.trinketItems.first)
         let stored = InventoryItem(

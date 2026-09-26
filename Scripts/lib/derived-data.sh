@@ -43,11 +43,19 @@ trinket_derived_data_age_prune() {
         fi
       done
     done
+    if [[ -d "$shared_root/TestFlight" ]]; then
+      find "$shared_root/TestFlight" -mindepth 1 -maxdepth 1 -mtime "+${max_age_days}" \
+        -exec rm -rf {} + 2>/dev/null || true
+    fi
   fi
 
   local package_dir
   if [[ -d "$repo_root/BalanceSweepReports" ]]; then
     find "$repo_root/BalanceSweepReports" -mindepth 1 -maxdepth 1 -mtime "+${max_age_days}" \
+      -exec rm -rf {} + 2>/dev/null || true
+  fi
+  if [[ -d "$repo_root/PlaythroughReports" ]]; then
+    find "$repo_root/PlaythroughReports" -mindepth 1 -maxdepth 1 -mtime "+${max_age_days}" \
       -exec rm -rf {} + 2>/dev/null || true
   fi
   if [[ -d "$repo_root/Packages" ]]; then

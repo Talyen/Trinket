@@ -44,12 +44,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
     /// Damage types plus Health and Leech roll crits (healing crits exist);
     /// resources and utility keywords never do.
     public var allowsCriticalHits: Bool {
-        switch self {
-        case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun, .health, .leech, .thorns:
-            true
-        case .block, .dodge, .purge, .cleanse, .gold, .mana, .deathsDoor:
-            false
-        }
+        category == .damageType || self == .health || self == .leech
     }
 
     public var statusAlias: String? {
@@ -62,6 +57,10 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         case .deathsDoor: "Death's Door"
         default: nil
         }
+    }
+
+    public var statusName: String {
+        statusAlias ?? rawValue
     }
 
     public var inflections: [String] {

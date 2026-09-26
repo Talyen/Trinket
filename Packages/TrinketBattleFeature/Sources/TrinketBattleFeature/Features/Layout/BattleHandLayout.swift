@@ -9,6 +9,7 @@ enum BattleCoordinateSpace {
 enum BattleHandLayout {
     static let minCardWidth: CGFloat = 156
     static let maxCardWidth: CGFloat = 220
+    /// Portrait height-to-width ratio for cards (4:3 portrait, height = width * aspectRatio).
     static let aspectRatio: CGFloat = 4.0 / 3.0
     static let widthRatio: CGFloat = 0.45
     static let horizontalInset: CGFloat = 20

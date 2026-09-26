@@ -142,6 +142,28 @@ class CIPathFilterTests(unittest.TestCase):
         self.assertFalse(assets)
         self.assertTrue(infra)
 
+    def test_smoke_path_classification(self) -> None:
+        smoke_cases = {
+            "Trinket/App/TrinketApp.swift": True,
+            "TrinketUITests/Smoke/SmokePlayTests.swift": True,
+            "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/BattleView.swift": True,
+            "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shine.swift": True,
+            "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Colors.swift": True,
+            "StoreKit/Trinket.storekit": True,
+            "Smoke.xctestplan": True,
+            "Scripts/test.sh": True,
+            "Packages/BattleEngine/Sources/BattleEngine/Combatant.swift": False,
+            "Packages/TrinketCore/Sources/TrinketCore/Effect.swift": False,
+            "Packages/TrinketPersistence/Sources/TrinketPersistence/Save.swift": False,
+            "ContentManifest/README.md": False,
+            "Docs/Platform/Verification.md": False,
+        }
+        for path, expected in smoke_cases.items():
+            with self.subTest(path=path):
+                self.assertEqual(self.filter.is_smoke_path(path), expected)
+        self.assertTrue(self.filter.needs_smoke(["Trinket/App/App.swift", "Packages/BattleEngine/Foo.swift"]))
+        self.assertFalse(self.filter.needs_smoke(["Packages/BattleEngine/Foo.swift", "Packages/TrinketCore/Bar.swift"]))
+
     def test_changes_yml_has_no_full_checkout(self) -> None:
         text = (ROOT / ".github" / "workflows" / "changes.yml").read_text(encoding="utf-8")
         self.assertIn("ci-path-filter.py", text)

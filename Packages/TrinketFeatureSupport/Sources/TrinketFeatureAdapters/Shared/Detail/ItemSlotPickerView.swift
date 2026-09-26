@@ -141,14 +141,13 @@ struct ItemSlotPickerView: View {
                 detailArtworkLease = nil
             }
         }
-        .onChange(of: inventoryItems, initial: true) { _, _ in
-            model.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot)
-            displayItems = model.matching(filter)
-        }
-        .onChange(of: equipmentLoadout) { _, _ in
-            model.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot)
-            displayItems = model.matching(filter)
-        }
+        .onChange(of: inventoryItems) { _, _ in updateItems() }
+        .onChange(of: equipmentLoadout) { _, _ in updateItems() }
+    }
+
+    private func updateItems() {
+        model.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot)
+        displayItems = model.matching(filter)
     }
 
     private func presentReadyItem() {

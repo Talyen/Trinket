@@ -26,6 +26,10 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Codable, Sen
         }
     }
 
+    public var isSecondary: Bool {
+        baseItemSlot != self
+    }
+
     /// Secondary slots share their base slot's display name ("Secondary Weapon"
     /// shows as "Weapon"); `accessibilityIdentifier` keeps the full name so
     /// overlapping slots stay distinguishable to assistive tech.

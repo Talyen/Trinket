@@ -69,6 +69,12 @@ public protocol PreparedArtworkReference {
     var preparedThumbnailImageName: String? { get }
 }
 
+public extension PreparedArtworkReference {
+    var preparedThumbnailImageName: String? {
+        nil
+    }
+}
+
 extension CombatantArtReference: PreparedArtworkReference {
     public var preparedThumbnailImageName: String? {
         thumbnailImageName
@@ -99,17 +105,9 @@ extension BackgroundArtReference: PreparedArtworkReference {
     }
 }
 
-extension SlotBackgroundArtReference: PreparedArtworkReference {
-    public var preparedThumbnailImageName: String? {
-        nil
-    }
-}
+extension SlotBackgroundArtReference: PreparedArtworkReference {}
 
-extension ResourceArtReference: PreparedArtworkReference {
-    public var preparedThumbnailImageName: String? {
-        nil
-    }
-}
+extension ResourceArtReference: PreparedArtworkReference {}
 
 extension TalentArtReference: PreparedArtworkReference {
     public var preparedThumbnailImageName: String? {

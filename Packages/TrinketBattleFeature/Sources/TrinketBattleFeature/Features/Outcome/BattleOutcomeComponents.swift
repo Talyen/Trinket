@@ -5,7 +5,8 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 /// Shared hero/companion experience-award construction for the victory and
-/// defeat reveals. Both rows stay visible even at zero XP.
+/// defeat reveals. Produces both party member awards; VictoryView gates
+/// presentation on hasExperienceAwards, while DefeatView retains both rows.
 struct BattleExperienceAwardInput {
     let id: String
     let combatantName: String

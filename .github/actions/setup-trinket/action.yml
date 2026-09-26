@@ -1,6 +1,12 @@
 name: Setup Trinket CI
 description: Select the newest installed Xcode and pinned tooling for Trinket CI
 
+inputs:
+  metal:
+    description: Ensure Metal toolchain is downloaded and installed (needed only for jobs compiling shaders/app targets)
+    required: false
+    default: 'false'
+
 runs:
   using: composite
   steps:
@@ -62,6 +68,7 @@ runs:
         echo "XCODE_BUILD=$best_build" >> "$GITHUB_ENV"
 
     - name: Ensure Metal toolchain
+      if: inputs.metal == 'true'
       shell: bash
       run: |
         # Slim preview images (e.g. xcode-27 beta) omit the Metal toolchain,

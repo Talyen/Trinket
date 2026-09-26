@@ -83,12 +83,6 @@ public extension StageSelectRowPresentation where Item == Stage {
                 stage: stage.stageNumber,
             )
         }
-        if case .mysteryEvent = stage.encounter {
-            return AccessibilityID.Play.mysteryArt(
-                chapter: stage.chapterNumber,
-                stage: stage.stageNumber,
-            )
-        }
         if stage.encounter.eventID != nil {
             return AccessibilityID.Play.mysteryArt(
                 chapter: stage.chapterNumber,

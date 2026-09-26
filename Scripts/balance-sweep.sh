@@ -23,12 +23,37 @@ if ! command -v swift >/dev/null 2>&1; then
   exit 1
 fi
 
+usage() {
+  cat <<'USAGE'
+Usage: ./Scripts/balance-sweep.sh [options]
+
+Headless balance sweep. Writes findings markdown under BalanceSweepReports/ (gitignored).
+
+Options:
+  --samples N        Number of simulations per combat matchup
+  --seed N           RNG seed for simulation reproducibility
+  --jobs N           Parallel worker jobs
+  --mode MODE        Sweep mode (ability-contrast, talent-contrast, identity, all)
+  --tiers TIERS      Tiers to test (early, mid, late, all)
+  --output-dir DIR   Directory for sweep reports
+  --no-build         Skip rebuild and execute cached binary
+  --help, -h         Show this help message
+USAGE
+}
+
 OUTPUT_DIR="${BALANCE_SWEEP_OUTPUT_DIR:-BalanceSweepReports}"
 ARGS=()
 HAS_OUTPUT=0
 NO_BUILD=0
-WANT_HELP=0
 for arg in "$@"; do
+  if [[ "$arg" == "--help" || "$arg" == "-h" ]]; then
+    CACHED="$ROOT/Packages/BattleEngine/.build/${BALANCE_SWEEP_CONFIGURATION:-release}/BalanceSweepCLI"
+    if [[ -x "$CACHED" ]]; then
+      exec "$CACHED" --help
+    fi
+    usage
+    exit 0
+  fi
   if [[ "$arg" == "--output-dir" ]]; then
     HAS_OUTPUT=1
   fi
@@ -36,20 +61,8 @@ for arg in "$@"; do
     NO_BUILD=1
     continue
   fi
-  if [[ "$arg" == "--help" ]]; then
-    WANT_HELP=1
-  fi
   ARGS+=("$arg")
 done
-
-# `--help` alone needs no sweep: prefer the cached binary so help does not
-# trigger a rebuild. Falls through to the normal path when unbuilt.
-if [[ "$WANT_HELP" -eq 1 && "$NO_BUILD" -eq 0 && "$HAS_OUTPUT" -eq 0 && "${#ARGS[@]}" -le 1 ]]; then
-  CACHED="$ROOT/Packages/BattleEngine/.build/${BALANCE_SWEEP_CONFIGURATION:-release}/BalanceSweepCLI"
-  if [[ -x "$CACHED" ]]; then
-    exec "$CACHED" --help
-  fi
-fi
 
 if [[ "$HAS_OUTPUT" -eq 0 ]]; then
   ARGS+=(--output-dir "$OUTPUT_DIR")

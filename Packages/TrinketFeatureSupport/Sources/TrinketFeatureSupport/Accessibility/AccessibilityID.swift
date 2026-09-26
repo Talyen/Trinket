@@ -1,5 +1,6 @@
 import Foundation
 import TrinketContent
+import TrinketCore
 
 public enum AccessibilityID {
     public enum Onboarding {
@@ -377,7 +378,11 @@ public enum AccessibilityID {
     }
 
     public enum Equipment {
-        public static let basicAbilitySlot = "Basic ability slot"
+        public static let basicAbilitySlot = abilitySlot(for: .basic)
+
+        public static func abilitySlot(for tier: AbilityTier) -> String {
+            "\(tier.rawValue) ability slot"
+        }
     }
 
     public enum LoadoutPicker {

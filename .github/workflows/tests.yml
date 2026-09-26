@@ -45,7 +45,11 @@ jobs:
   build:
     name: Build for testing
     needs: [changes]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      inputs.include-exhaustive ||
+      needs.changes.outputs.smoke == 'true'
     runs-on: xcode-27
     timeout-minutes: 30
     outputs:
@@ -84,6 +88,8 @@ jobs:
           test -f FullUI.xctestplan
           test -f BattlePerformance.xctestplan
       - uses: ./.github/actions/setup-trinket
+        with:
+          metal: 'true'
       - name: Read UI test shards
         id: ui-matrices
         shell: bash
@@ -138,6 +144,8 @@ jobs:
           test -f FullUI.xctestplan
           test -f BattlePerformance.xctestplan
       - uses: ./.github/actions/setup-trinket
+        with:
+          metal: 'true'
       - name: Compile unsigned device Release
         env:
           SKIP_GENERATE: 1
@@ -199,16 +207,18 @@ jobs:
           test -f FullUI.xctestplan
           test -f BattlePerformance.xctestplan
       - uses: ./.github/actions/setup-trinket
+        with:
+          metal: ${{ matrix.name == 'Features' }}
       - uses: ./.github/actions/test-job
         with:
           artifact-name: ${{ inputs.artifact-prefix }}unit-${{ matrix.name }}
           command: ./Scripts/test-package.sh ${{ matrix.packages }}
-          preboot-simulator: 'true'
+          preboot-simulator: 'false'
 
   smoke:
     name: Smoke tests (${{ matrix.name }})
     needs: [changes, build]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || needs.changes.outputs.smoke == 'true'
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build.outputs.smoke-matrix) }}

@@ -10,6 +10,23 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 1
+          sparse-checkout-cone-mode: true
+          # Cone mode keeps root files (project.yml, *.xctestplan). Skip Raw Assets.
+          sparse-checkout: |
+            Scripts
+            Packages
+            Trinket
+            TrinketUITests
+            Trinket.xcodeproj
+            StoreKit
+            ContentManifest
+            ArtManifest
+            MusicManifest
+            SoundManifest
+            CinematicManifest
+            .github
       - uses: ./.github/actions/setup-trinket
       # Same semantics as local ./Scripts/ci-gate.sh (single owner).
       - name: CI gate

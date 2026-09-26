@@ -26,11 +26,11 @@ public enum DamageCondition: CaseIterable, Hashable, Sendable {
         switch self {
         case .enemyBleeding: Self.statusFragment(for: .bleed)
         case .enemyBurning: Self.statusFragment(for: .burn)
-        case .enemyNotBurning: "the enemy is not \(Keyword.burn.statusAlias ?? Keyword.burn.rawValue)"
+        case .enemyNotBurning: "the enemy is not \(Keyword.burn.statusName)"
         case .enemyPoisoned: Self.statusFragment(for: .poison)
         case .enemyFrozen: Self.statusFragment(for: .freeze)
         case .enemyStunned: Self.statusFragment(for: .stun)
-        case .enemyStunnedOrFrozen: "the enemy is \(Keyword.stun.statusAlias ?? Keyword.stun.rawValue) or \(Keyword.freeze.statusAlias ?? Keyword.freeze.rawValue)"
+        case .enemyStunnedOrFrozen: "the enemy is \(Keyword.stun.statusName) or \(Keyword.freeze.statusName)"
         case .enemyMarked: "the enemy is Marked"
         case .enemyLowerHealthThanActor: "the enemy has less Health than you"
         case .allyBelowHalfHealth: "your Hero or Companion is below half Health"
@@ -43,6 +43,6 @@ public enum DamageCondition: CaseIterable, Hashable, Sendable {
     }
 
     private static func statusFragment(for keyword: Keyword) -> String {
-        "the enemy is \(keyword.statusAlias ?? keyword.rawValue)"
+        "the enemy is \(keyword.statusName)"
     }
 }

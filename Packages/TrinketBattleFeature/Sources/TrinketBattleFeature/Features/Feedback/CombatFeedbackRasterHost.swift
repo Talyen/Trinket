@@ -150,7 +150,6 @@ final class CombatFeedbackRasterUIView: UIView {
                 existing.item = item
                 continue
             }
-            recycleLayer(id: item.id)
             insert(item: item, raster: raster)
         }
 

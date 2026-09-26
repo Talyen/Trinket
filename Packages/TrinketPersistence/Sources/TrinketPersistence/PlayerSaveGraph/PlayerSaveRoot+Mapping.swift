@@ -30,12 +30,10 @@ enum PlayerSaveSection: Int, CaseIterable {
         PlayerSaveSlice(rawValue: 1 << rawValue)
     }
 
-    func differs(between snapshot: PlayerSave, and candidate: PlayerSave) -> Bool {
+    func domainDiffers(between snapshot: PlayerSave, and candidate: PlayerSave) -> Bool {
         switch self {
         case .root:
             snapshot.schemaVersion != candidate.schemaVersion
-                || snapshot.modifiedAt != candidate.modifiedAt
-                || snapshot.sessionGeneration != candidate.sessionGeneration
                 || snapshot.worldSeed != candidate.worldSeed
                 || snapshot.starterSelection != candidate.starterSelection
                 || snapshot.corruptionAltarCooldownRemaining != candidate.corruptionAltarCooldownRemaining
@@ -48,6 +46,15 @@ enum PlayerSaveSection: Int, CaseIterable {
         case .contracts: snapshot.contracts != candidate.contracts
         case .voyage: snapshot.voyage != candidate.voyage
         }
+    }
+
+    func differs(between snapshot: PlayerSave, and candidate: PlayerSave) -> Bool {
+        if self == .root {
+            return domainDiffers(between: snapshot, and: candidate)
+                || snapshot.modifiedAt != candidate.modifiedAt
+                || snapshot.sessionGeneration != candidate.sessionGeneration
+        }
+        return domainDiffers(between: snapshot, and: candidate)
     }
 
     func copy(from source: PlayerSave, into destination: inout PlayerSave) {
@@ -89,7 +96,10 @@ struct PlayerSaveSlice: OptionSet {
         within candidates: Self = .all,
     ) -> Self {
         var slices: Self = []
-        for section in candidates.sections where section.differs(between: snapshot, and: candidate) {
+        for section in PlayerSaveSection.allCases {
+            guard candidates.contains(section.slice),
+                  section.differs(between: snapshot, and: candidate)
+            else { continue }
             slices.insert(section.slice)
         }
         return slices
@@ -189,6 +199,12 @@ extension PlayerSaveRoot {
            payload != sanitizedSave.contracts.encodedPayload,
            PlayerContractsState.decodePayload(payload) == sanitizedSave.contracts {
             slices.insert(.contracts)
+        }
+        if let payload = voyagePayload,
+           !sanitizedSave.voyage.isUnreadable,
+           payload != sanitizedSave.voyage.encodedPayload,
+           PlayerVoyageState.decodePayload(payload) == sanitizedSave.voyage {
+            slices.insert(.voyage)
         }
         return slices
     }

@@ -152,10 +152,7 @@ public final class PreparedArtworkCache {
         }
         await decode(unique, priority: .imminent, countsTowardLaunch: false)
         for name in unique {
-            pinResidentImage(named: name)
-        }
-        for name in unique {
-            balanceFailedPin(named: name)
+            finalizePin(named: name)
         }
         return unique.filter { pinnedImages[$0] != nil }
     }
@@ -184,15 +181,13 @@ public final class PreparedArtworkCache {
         }
     }
 
-    private func pinResidentImage(named name: String) {
+    private func finalizePin(named name: String) {
         guard pinCountsByName[name] != nil, pinnedImages[name] == nil else { return }
-        guard let image = images.object(forKey: name as NSString) else { return }
-        pinnedImages[name] = image
-    }
-
-    private func balanceFailedPin(named name: String) {
-        guard pinnedImages[name] == nil, images.object(forKey: name as NSString) == nil else { return }
-        decrementPinDemand(named: name, dropResident: false)
+        if let image = images.object(forKey: name as NSString) {
+            pinnedImages[name] = image
+        } else {
+            decrementPinDemand(named: name, dropResident: false)
+        }
     }
 
     public func prepareAll(priorityImageNames: [String]) async {
@@ -220,10 +215,7 @@ public final class PreparedArtworkCache {
             guard let self else { return }
             await decode(plan.priorityNames, priority: .imminent, countsTowardLaunch: true)
             for name in plan.priorityNames {
-                pinResidentImage(named: name)
-            }
-            for name in plan.priorityNames {
-                balanceFailedPin(named: name)
+                finalizePin(named: name)
             }
             launchPinnedNames = plan.priorityNames.filter { pinnedImages[$0] != nil }
             isLaunchWarmupComplete = true

@@ -40,7 +40,7 @@ struct BlacksmithForgeAttempt {
     }
 
     static func affordable(_ recipe: BlacksmithRecipe, in save: PlayerSave) -> Bool {
-        recipe.cost.allSatisfy { save.homestead.balance(for: $0.resource, roster: save.roster) >= $0.quantity }
+        save.homestead.canAfford(cost: recipe.cost, roster: save.roster)
     }
 
     func apply(to save: inout PlayerSave) -> Result<InventoryItem, BlacksmithForgeFailure> {
@@ -49,9 +49,7 @@ struct BlacksmithForgeAttempt {
             return .failure(.alreadyOwned)
         }
         guard Self.affordable(recipe, in: save) else { return .failure(.insufficientResources) }
-        for amount in recipe.cost {
-            save.homestead.resources[amount.resource, default: 0] -= amount.quantity
-        }
+        save.homestead.deductCost(recipe.cost, roster: &save.roster)
         save.inventory.appendUniqueItem(item)
         return .success(item)
     }

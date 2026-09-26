@@ -197,8 +197,43 @@ def is_code_path(path: str) -> bool:
             or is_generation_input(path, content_inputs + asset_inputs + project_inputs))
 
 
+SMOKE_INCLUDES = (
+    "Trinket/**",
+    "TrinketUITests/**",
+    "Packages/TrinketBattleFeature/**",
+    "Packages/TrinketFeatureSupport/**",
+    "Packages/TrinketDesignSystem/**",
+    "StoreKit/**",
+    "project.yml",
+    "Smoke.xctestplan",
+    "FullUI.xctestplan",
+    "Scripts/build-for-testing.sh",
+    "Scripts/test.sh",
+    "Scripts/ensure-simulator.sh",
+    "Scripts/run-env.sh",
+    "Scripts/xcode-runner.sh",
+    "Scripts/ci-path-filter.py",
+    "Scripts/lib/app-build.sh",
+    "Scripts/lib/simctl.sh",
+    "Scripts/lib/slots.sh",
+    ".github/actions/setup-trinket/**",
+    ".github/actions/checkout-trinket/**",
+    ".github/actions/restore-and-build/**",
+    ".github/actions/test-job/**",
+    ".github/workflows/tests.yml",
+    ".github/workflows/ci.yml",
+)
+SMOKE_EXCLUDES = ("**/*.md",)
+
+
 def is_infra_path(path: str) -> bool:
     return matches_any(path, INFRA_INCLUDES) and not matches_any(path, INFRA_EXCLUDES)
+
+
+def is_smoke_path(path: str) -> bool:
+    if matches_any(path, SMOKE_EXCLUDES):
+        return False
+    return matches_any(path, SMOKE_INCLUDES)
 
 
 def is_asset_path(path: str) -> bool:
@@ -214,11 +249,16 @@ def classify(paths: list[str]) -> tuple[bool, bool, bool]:
     )
 
 
-def write_output(code: bool, assets: bool, infra: bool) -> None:
+def needs_smoke(paths: list[str]) -> bool:
+    return any(is_smoke_path(p) for p in paths)
+
+
+def write_output(code: bool, assets: bool, infra: bool, smoke: bool = False) -> None:
     payload = (
         f"code={'true' if code else 'false'}\n"
         f"assets={'true' if assets else 'false'}\n"
         f"infra={'true' if infra else 'false'}\n"
+        f"smoke={'true' if smoke else 'false'}\n"
     )
     output_path = os.environ.get("GITHUB_OUTPUT")
     if output_path:
@@ -263,15 +303,15 @@ def compare_filenames(repo: str, before: str, sha: str, token: str) -> list[str]
 def main() -> None:
     event_name = os.environ.get("EVENT_NAME") or os.environ.get("GITHUB_EVENT_NAME", "")
     if event_name == "workflow_dispatch":
-        print("workflow_dispatch: treating code, assets, and infra as changed.")
-        write_output(True, True, True)
+        print("workflow_dispatch: treating code, assets, infra, and smoke as changed.")
+        write_output(True, True, True, True)
         return
 
     before = os.environ.get("BEFORE") or os.environ.get("GITHUB_EVENT_BEFORE", "")
     sha = os.environ.get("SHA") or os.environ.get("GITHUB_SHA", "")
     if not sha or before in ("", Z40):
-        print("No previous commit; treating code, assets, and infra as changed.")
-        write_output(True, True, True)
+        print("No previous commit; treating code, assets, infra, and smoke as changed.")
+        write_output(True, True, True, True)
         return
 
     repo = os.environ.get("GITHUB_REPOSITORY", "")
@@ -281,13 +321,14 @@ def main() -> None:
 
     filenames = compare_filenames(repo, before, sha, token)
     if filenames is None:
-        print("Compare result truncated; treating code, assets, and infra as changed.")
-        write_output(True, True, True)
+        print("Compare result truncated; treating code, assets, infra, and smoke as changed.")
+        write_output(True, True, True, True)
         return
 
     code, assets, infra = classify(filenames)
-    print(f"Changed files: {len(filenames)}; code={code}; assets={assets}; infra={infra}")
-    write_output(code, assets, infra)
+    smoke = needs_smoke(filenames)
+    print(f"Changed files: {len(filenames)}; code={code}; assets={assets}; infra={infra}; smoke={smoke}")
+    write_output(code, assets, infra, smoke)
 
 
 if __name__ == "__main__":

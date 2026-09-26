@@ -111,4 +111,22 @@ struct KeywordCoreTests {
         #expect(Keyword.referenced(in: "Survive while on Death’s Door.") == [.deathsDoor])
         #expect(Keyword.referenced(in: "death's door or death’s door") == [.deathsDoor])
     }
+
+    @Test(arguments: Keyword.allCases)
+    func `keyword critical hit legality aligns with category and restoration rules`(keyword: Keyword) {
+        let expected = keyword.category == .damageType || keyword == .health || keyword == .leech
+        #expect(keyword.allowsCriticalHits == expected, "\(keyword) crit legality should be \(expected)")
+    }
+
+    @Test func `statusName resolves alias when present or falls back to raw value`() {
+        #expect(Keyword.burn.statusName == "Burning")
+        #expect(Keyword.freeze.statusName == "Frozen")
+        #expect(Keyword.stun.statusName == "Stunned")
+        #expect(Keyword.poison.statusName == "Poisoned")
+        #expect(Keyword.bleed.statusName == "Bleeding")
+        #expect(Keyword.deathsDoor.statusName == "Death's Door")
+        #expect(Keyword.physical.statusName == "Physical")
+        #expect(Keyword.block.statusName == "Block")
+        #expect(Keyword.holy.statusName == "Holy")
+    }
 }

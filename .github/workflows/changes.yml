@@ -12,6 +12,9 @@ on:
       infra:
         description: Whether Scripts, workflows, or style config changed
         value: ${{ jobs.changes.outputs.infra }}
+      smoke:
+        description: Whether app, UI, feature wiring, or test orchestration changed
+        value: ${{ jobs.changes.outputs.smoke }}
 
 jobs:
   changes:
@@ -22,6 +25,7 @@ jobs:
       code: ${{ steps.filter.outputs.code }}
       assets: ${{ steps.filter.outputs.assets }}
       infra: ${{ steps.filter.outputs.infra }}
+      smoke: ${{ steps.filter.outputs.smoke }}
     steps:
       # Push events cannot use dorny REST mode (PR-only). Fetch the filter
       # script and the compare file list from the API so this job does not

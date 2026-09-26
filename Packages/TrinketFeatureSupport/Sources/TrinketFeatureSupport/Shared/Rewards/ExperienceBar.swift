@@ -141,7 +141,7 @@ public struct ExperienceBar: View {
             let offsetX = (0.5 - artworkFocalX) * overflowX
             let offsetY = (0.5 - artworkFocalY) * overflowY
 
-            Image(artworkName)
+            Image.preparedAsset(named: artworkName)
                 .resizable()
                 .interpolation(.low)
                 .scaledToFill()

@@ -40,8 +40,8 @@ extension BattleSession {
     }
 
     func clearUltimateHighlight(for actorID: String) {
-        invalidateUltimateHighlightTask(for: actorID)
-        spectacle.pendingUltimateHighlightTasksByActorID[actorID] = nil
+        var entry = spectacle.pendingUltimateHighlightTasksByActorID.removeValue(forKey: actorID)
+        entry?.invalidate()
         if let highlight = spectacle.ultimateHighlightsByActorID.removeValue(forKey: actorID) {
             spectacle.cinematics.pause(actorID: actorID, abilityID: highlight.abilityID)
         }
@@ -274,8 +274,8 @@ extension BattleSession {
     }
 
     func cancelUltimateHighlightWatchdogs() {
-        for key in spectacle.pendingUltimateHighlightTasksByActorID.keys {
-            invalidateUltimateHighlightTask(for: key)
+        for var entry in spectacle.pendingUltimateHighlightTasksByActorID.values {
+            entry.invalidate()
         }
         spectacle.pendingUltimateHighlightTasksByActorID.removeAll()
     }

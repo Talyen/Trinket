@@ -213,14 +213,14 @@ public enum Effect: Hashable, Sendable {
     }
 
     public func withManaEmpowerment(_ amount: Int = manaEmpowermentBonus) -> Self {
+        guard isManaEmpowerableBurnOrFreezeDamage else { return self }
         switch self {
         case let .burn(potency):
-            .burn(SaturatedArithmetic.saturatingAdd(potency, amount))
-        case let .recurringDamage(keyword, potency, turns)
-            where keyword == .burn || keyword == .freeze:
-            .recurringDamage(keyword, SaturatedArithmetic.saturatingAdd(potency, amount), turns)
+            return .burn(SaturatedArithmetic.saturatingAdd(potency, amount))
+        case let .recurringDamage(keyword, potency, turns):
+            return .recurringDamage(keyword, SaturatedArithmetic.saturatingAdd(potency, amount), turns)
         default:
-            self
+            return self
         }
     }
 
@@ -261,7 +261,7 @@ public enum Effect: Hashable, Sendable {
             let normalNext = potency / 2
             let loss = potency - normalNext
             let adjustedLoss = CombatRounding.scaled(loss, multiplier: 1 - clamped01(burnDecaySlowPercent))
-            return potency - adjustedLoss
+            return max(0, SaturatedArithmetic.saturatingSub(potency, adjustedLoss))
         case let .poison(potency):
             let loss = Self.poisonDecayAmount(for: potency)
             let adjustedLoss = CombatRounding.scaled(loss, multiplier: 1 - clamped01(poisonDecaySlowPercent))

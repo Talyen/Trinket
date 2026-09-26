@@ -23,9 +23,40 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
+  schedule-guard:
+    name: Check nightly commit activity
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Check for new commits since last scheduled run
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          last_sha="$(gh api "repos/${REPO}/actions/workflows/ci.yml/runs?event=schedule&status=completed&per_page=5" \
+            --jq '[.workflow_runs[] | select(.id != '${{ github.run_id }}')][0].head_sha // empty' 2>/dev/null || true)"
+          echo "Current SHA: $SHA"
+          echo "Last scheduled SHA: $last_sha"
+          if [[ -n "$last_sha" && "$last_sha" == "$SHA" ]]; then
+            echo "No new commits on main since last scheduled run ($last_sha). Skipping idle nightly run."
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New commits detected on main or initial schedule; proceeding with exhaustive nightly run."
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+          fi
+
   tests:
+    needs: [schedule-guard]
+    if: always() && (github.event_name != 'schedule' || needs.schedule-guard.outputs.should-run == 'true')
     uses: ./.github/workflows/tests.yml
     with:
       include-exhaustive: ${{ github.event_name == 'schedule' || inputs.scope == 'exhaustive' }}

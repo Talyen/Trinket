@@ -268,6 +268,25 @@ struct BattleSpectacleSessionTests {
 
         #expect(session.spectacle.celebrateTask.task == nil)
         #expect(session.spectacle.outcomeTask.task == nil)
+        #expect(session.spectacle.pendingUltimateHighlightTasksByActorID.isEmpty)
+    }
+
+    @Test func `cancel ultimate highlight watchdogs invalidates all tasks and clears collection`() throws {
+        let session = BattleSessionTestSupport.makeUltimateSession()
+        let now = Date()
+        let ultimate = try #require(
+            BattleSessionTestSupport.drawUntilPlayable(
+                Ability.avatarOfJustice.id,
+                on: session,
+                at: now,
+            ),
+        )
+        _ = session.playCard(cardID: ultimate.id, at: now)
+        #expect(!session.spectacle.pendingUltimateHighlightTasksByActorID.isEmpty)
+
+        session.cancelUltimateHighlightWatchdogs()
+
+        #expect(session.spectacle.pendingUltimateHighlightTasksByActorID.isEmpty)
     }
 
     private func presentPendingImpacts(in session: BattleSession) {

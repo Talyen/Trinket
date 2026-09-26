@@ -62,9 +62,7 @@ enum CombatSFXMapper {
         var hasSuppressibleGenericHit = false
         var hasHitAsKeywordSFX = false
 
-        let candidates = items.compactMap { item in clipID(for: item).map { (item.keyword, $0) } }
-            + damageKeywords.map { ($0, damageClipID(for: $0)) }
-        for (keyword, clipID) in candidates {
+        func process(keyword: Keyword, clipID: String) {
             if typedHitClipIDs.contains(clipID) {
                 hasTypedHit = true
             }
@@ -76,8 +74,17 @@ enum CombatSFXMapper {
                 }
             }
 
-            guard seen.insert(clipID).inserted else { continue }
+            guard seen.insert(clipID).inserted else { return }
             clips.append(clipID)
+        }
+
+        for item in items {
+            if let clip = clipID(for: item) {
+                process(keyword: item.keyword, clipID: clip)
+            }
+        }
+        for keyword in damageKeywords {
+            process(keyword: keyword, clipID: damageClipID(for: keyword))
         }
 
         if hasTypedHit, hasSuppressibleGenericHit, !hasHitAsKeywordSFX {

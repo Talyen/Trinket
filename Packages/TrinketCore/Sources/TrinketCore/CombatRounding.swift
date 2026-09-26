@@ -16,7 +16,6 @@ public enum CombatRounding {
     }
 
     public static func scaled(_ value: Int, byPercent percent: Int) -> Int {
-        guard value > 0, percent != 0 else { return max(0, value) }
-        return scaled(value, multiplier: 1.0 + Double(percent) / 100.0)
+        SaturatedArithmetic.scaled(value, byPercent: percent)
     }
 }

@@ -31,7 +31,7 @@ public enum EffectPresentation {
                 ? "detonate all remaining \(keyword.rawValue) at once, doubled"
                 : "detonate all remaining \(keyword.rawValue) at once with ×\(factor) damage"
         case let .controlMeter(keyword, _, _):
-            "builds toward \(keyword.statusAlias ?? keyword.rawValue)"
+            "builds toward \(keyword.statusName)"
         case .freezeNextAttacker:
             "Freeze the next attacker"
         case let .onHitDamage(keyword, amount):
@@ -40,8 +40,6 @@ public enum EffectPresentation {
             factor == 2
                 ? "double the enemy's \(keyword.rawValue) build-up"
                 : "multiply the enemy's \(keyword.rawValue) build-up by \(factor)"
-        case let .shield(.block, buffer):
-            "gain \(buffer) Block"
         case let .shield(keyword, buffer):
             "gain \(buffer) \(keyword.rawValue)"
         case let .thorns(stacks):
@@ -74,8 +72,6 @@ public enum EffectPresentation {
             "gain 1 Block for every \(goldPerBlock) Gold"
         case .deathsDoor:
             "survive fatal blows at 1 Health"
-        case let .instantHeal(.health, amount):
-            "restore \(amount) Health"
         case let .instantHeal(keyword, amount):
             "restore \(amount) \(keyword.rawValue)"
         case let .resourceGain(.gold, amount):
@@ -93,7 +89,7 @@ public enum EffectPresentation {
         case let .revive(amount):
             "revive an Ally to \(amount) Health"
         case let .cleanse(keyword?):
-            "cleanse \(keyword.statusAlias ?? keyword.rawValue)"
+            "cleanse \(keyword.statusName)"
         case .cleanse(nil):
             "cleanse all debuffs"
         case let .cleanseHealPerDebuff(healPerRemoved):
@@ -108,8 +104,6 @@ public enum EffectPresentation {
             "purge all buffs"
         case .purgeRandom:
             "purge a random buff"
-        case .halveShield(.block):
-            "halve the enemy's Block"
         case let .halveShield(keyword):
             "halve the enemy's \(keyword.rawValue)"
         case .marked:
@@ -150,8 +144,10 @@ public enum EffectPresentation {
             "Critical Focus: Next attack is a guaranteed Critical Hit."
         case .nextStrikeLeech:
             "Leech Focus: Next attack Leeches."
-        case .nextStrikeDamageKeywordOverride:
-            "Avatar: Next attack deals Holy damage."
+        case let .nextStrikeDamageKeywordOverride(keyword):
+            keyword == .holy
+                ? "Avatar: Next attack deals Holy damage."
+                : "Next attack deals \(keyword.rawValue) damage."
         case .partyDamageBonus:
             "Sniff Out: Partner's next attack deals additional damage."
         case .freezeNextAttacker:
@@ -175,7 +171,6 @@ public enum EffectPresentation {
     }
 
     private static func statusPhrase(for keyword: Keyword, amount: Int) -> String {
-        let alias = keyword.statusAlias ?? keyword.rawValue
-        return "applies \(alias): \(amount) damage"
+        "applies \(keyword.statusName): \(amount) damage"
     }
 }

@@ -275,4 +275,32 @@ struct HomesteadStateTests {
         try #expect(save.roster.gold == PlayerRosterState.maxGoldBalance - 1)
         try #expect(save.homestead.pendingProduction[.gold] == 1)
     }
+
+    @Test func `canAfford and deductCost handle mixed resources and gold`() {
+        var homestead = PlayerHomesteadState(resources: [.wood: 10, .iron: 5], nodeTiers: [:])
+        var roster = PlayerRosterState.freshStart
+        roster.gold = 50
+
+        let cost = [
+            ResourceAmount(.gold, 20),
+            ResourceAmount(.wood, 4),
+            ResourceAmount(.iron, 5),
+        ]
+
+        #expect(homestead.canAfford(cost: cost, roster: roster))
+
+        // Exceeding gold
+        let tooExpensiveGold = [ResourceAmount(.gold, 60)]
+        #expect(!homestead.canAfford(cost: tooExpensiveGold, roster: roster))
+
+        // Exceeding resource
+        let tooExpensiveResource = [ResourceAmount(.wood, 15)]
+        #expect(!homestead.canAfford(cost: tooExpensiveResource, roster: roster))
+
+        // Successful deduction
+        homestead.deductCost(cost, roster: &roster)
+        #expect(roster.gold == 30)
+        #expect(homestead.resources[.wood] == 6)
+        #expect(homestead.resources[.iron] == 0)
+    }
 }

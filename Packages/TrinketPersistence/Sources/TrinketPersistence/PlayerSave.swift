@@ -124,18 +124,7 @@ public struct PlayerSave: Equatable, Sendable {
     /// diverges (worth a `previous.json` forensic copy) versus merely being
     /// newer by clock alone.
     public func hasDomainDifference(from other: Self) -> Bool {
-        schemaVersion != other.schemaVersion
-            || worldSeed != other.worldSeed
-            || starterSelection != other.starterSelection
-            || journey != other.journey
-            || roster != other.roster
-            || inventory != other.inventory
-            || homestead != other.homestead
-            || spires != other.spires
-            || labyrinth != other.labyrinth
-            || contracts != other.contracts
-            || voyage != other.voyage
-            || corruptionAltarCooldownRemaining != other.corruptionAltarCooldownRemaining
+        PlayerSaveSection.allCases.contains { $0.domainDiffers(between: self, and: other) }
     }
 
     public static func makeWorldSeed() -> UInt64 {

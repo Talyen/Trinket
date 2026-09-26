@@ -65,23 +65,23 @@ final class ArtworkDecodeScheduler {
 
     private func startAvailableJobs() {
         while activeCount < 2 {
-            var candidates: [(name: String, job: Job, priority: Priority)] = []
+            var best: (name: String, job: Job, priority: Priority)?
             for (name, job) in jobs {
                 guard job.startedPriority == nil else { continue }
                 let jobPriority: Priority = priority(of: job)
                 guard jobPriority != Priority.deferred || activeDeferredCount == 0 else { continue }
-                candidates.append((name, job, jobPriority))
-            }
-            guard var next = candidates.first else { return }
-            for candidate in candidates.dropFirst() {
-                let candidateComesFirst = candidate.priority.rawValue < next.priority.rawValue
-                    || (candidate.priority == next.priority && candidate.job.order < next.job.order)
-                if candidateComesFirst {
-                    next = candidate
+                if let current = best {
+                    let comesFirst = jobPriority.rawValue < current.priority.rawValue
+                        || (jobPriority == current.priority && job.order < current.job.order)
+                    if comesFirst {
+                        best = (name, job, jobPriority)
+                    }
+                } else {
+                    best = (name, job, jobPriority)
                 }
             }
+            guard let next = best else { return }
             let name = next.name
-            let job = next.job
             let priority = next.priority
             jobs[name]?.startedPriority = priority
             activeCount += 1

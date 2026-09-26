@@ -31,6 +31,14 @@ struct CombatantProgressionTests {
         #expect(CombatantProgression.requiredXP(forLevel: Int.max) == Int.max)
     }
 
+    @Test func `adding experience at max level retains accumulated experience`() {
+        let maxLevelProgression = CombatantProgression(level: Int.max, currentXP: 50, requiredXP: 100)
+        let result = maxLevelProgression.addingExperience(200)
+        #expect(result.level == Int.max)
+        #expect(result.currentXP == 250)
+        #expect(result.requiredXP == 100)
+    }
+
     @Test func `adding experience preserves exact multi level remainder`() {
         let progression = CombatantProgression(level: 1, currentXP: 9, requiredXP: 10)
         let leveled = progression.addingExperience(2)
@@ -85,5 +93,16 @@ struct CombatantProgressionTests {
 
         let clamped = CombatantProgression.at(level: 0)
         #expect(clamped == .initial)
+    }
+
+    @Test func `totalEarnedExperience accumulates previous level requirements and current XP`() {
+        let level1 = CombatantProgression(level: 1, currentXP: 7, requiredXP: 10)
+        #expect(level1.totalEarnedExperience == 7)
+
+        let level2 = CombatantProgression(level: 2, currentXP: 3, requiredXP: 15)
+        #expect(level2.totalEarnedExperience == 10 + 3)
+
+        let level3 = CombatantProgression(level: 3, currentXP: 5, requiredXP: 22)
+        #expect(level3.totalEarnedExperience == 10 + 15 + 5)
     }
 }

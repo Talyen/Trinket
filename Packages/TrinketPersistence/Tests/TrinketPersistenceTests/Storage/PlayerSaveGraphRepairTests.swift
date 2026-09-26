@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketCore
 @testable import TrinketPersistence
@@ -77,5 +78,19 @@ struct PlayerSaveGraphRepairTests {
         root.spires?.floors?.removeAll { $0.spireID.isEmpty }
         root.starterSelectionPhaseRawValue = "removed-phase"
         #expect(root.repairSlices(for: save).contains(.root))
+    }
+
+    @Test func `unaligned voyage payload requests voyage slice repair`() throws {
+        var save = PlayerSave.testSeed
+        let voyage = PlayerVoyageState()
+        save.voyage = voyage
+        let root = PlayerSaveRoot(save: save)
+        #expect(root.repairSlices(for: save).isEmpty)
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted]
+        root.voyagePayload = try encoder.encode(voyage)
+
+        #expect(root.repairSlices(for: save).contains(.voyage))
     }
 }

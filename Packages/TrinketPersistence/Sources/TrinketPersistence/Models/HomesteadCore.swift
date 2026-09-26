@@ -232,7 +232,21 @@ public extension PlayerHomesteadState {
     }
 
     func canAfford(_ tier: HomesteadNodeTier, roster: PlayerRosterState) -> Bool {
-        tier.cost.allSatisfy { balance(for: $0.resource, roster: roster) >= $0.quantity }
+        canAfford(cost: tier.cost, roster: roster)
+    }
+
+    func canAfford(cost: [ResourceAmount], roster: PlayerRosterState) -> Bool {
+        cost.allSatisfy { balance(for: $0.resource, roster: roster) >= $0.quantity }
+    }
+
+    mutating func deductCost(_ cost: [ResourceAmount], roster: inout PlayerRosterState) {
+        for amount in cost {
+            if amount.resource == .gold {
+                roster.gold -= amount.quantity
+            } else {
+                resources[amount.resource, default: 0] -= amount.quantity
+            }
+        }
     }
 
     func isComplete(_ definition: HomesteadNodeDefinition) -> Bool {
@@ -244,13 +258,7 @@ public extension PlayerHomesteadState {
               canAfford(tier, roster: roster)
         else { return false }
 
-        for amount in tier.cost {
-            if amount.resource == .gold {
-                roster.gold -= amount.quantity
-            } else {
-                resources[amount.resource, default: 0] -= amount.quantity
-            }
-        }
+        deductCost(tier.cost, roster: &roster)
         nodeTiers[definition.id, default: 0] += 1
         return true
     }

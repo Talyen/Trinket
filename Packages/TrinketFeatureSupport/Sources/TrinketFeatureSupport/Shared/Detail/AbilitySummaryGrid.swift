@@ -43,7 +43,7 @@ public struct AbilitySummaryGrid: View {
                     onInspectAbility?(ability)
                 }
             },
-            accessibilityIdentifier: { "\($0.rawValue) ability slot" },
+            accessibilityIdentifier: { AccessibilityID.Equipment.abilitySlot(for: $0) },
             card: { tier in
                 if let ability = selectedAbility(for: tier) {
                     AbilityChoiceCard(ability: ability)

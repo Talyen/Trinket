@@ -10,7 +10,7 @@ public enum SaturatedArithmetic {
     public static func saturatingAdd(_ lhs: Int, _ rhs: Int) -> Int {
         let (result, overflow) = lhs.addingReportingOverflow(rhs)
         guard overflow else { return result }
-        return (lhs >= 0 && rhs >= 0) ? Int.max : Int.min
+        return lhs >= 0 ? Int.max : Int.min
     }
 
     /// Subtracts without trapping. Positive overflow saturates at `Int.max`;
@@ -29,16 +29,19 @@ public enum SaturatedArithmetic {
         guard overflow else { return result }
         // Overflow sign follows operand signs; XP/ledger call sites only
         // saturate upward, so map positive overflow to Int.max.
-        if (lhs >= 0 && rhs >= 0) || (lhs < 0 && rhs < 0) {
-            return Int.max
-        }
-        return Int.min
+        return (lhs > 0) == (rhs > 0) ? Int.max : Int.min
     }
 
     /// Scales a non-positive base to zero; saturates at `Int.max` instead of trapping.
     public static func scaled(_ value: Int, multiplier: Double) -> Int {
         guard value > 0 else { return 0 }
         return rounded(Double(value) * multiplier)
+    }
+
+    /// Scales a value by an integer percentage, clamping non-positive bases to zero.
+    public static func scaled(_ value: Int, byPercent percent: Int) -> Int {
+        guard value > 0, percent != 0 else { return max(0, value) }
+        return scaled(value, multiplier: 1.0 + Double(percent) / 100.0)
     }
 
     /// Clamps negatives and non-finite inputs to zero; saturates at `Int.max`.

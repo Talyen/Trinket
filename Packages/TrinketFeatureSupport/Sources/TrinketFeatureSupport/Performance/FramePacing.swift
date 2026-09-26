@@ -120,14 +120,27 @@ public enum FramePacingAnalyzer {
         let sorted = intervals.filter { $0 > 0 && $0.isFinite }.sorted()
         guard !sorted.isEmpty else { return .empty }
 
-        let averageDuration = sorted.reduce(0, +) / Double(sorted.count)
         let missedDeadlineThreshold = expectedFrameDuration * missedDeadlinePeriodMultiplier
         let severeStallThreshold = expectedFrameDuration * severeStallPeriodMultiplier
-        let missedDeadlineCount = sorted.count { $0 >= missedDeadlineThreshold }
-        let estimatedMissedFrameCount = sorted.reduce(into: 0) { total, interval in
+
+        var totalDuration = 0.0
+        var missedDeadlineCount = 0
+        var estimatedMissedFrameCount = 0
+        var severeStallCount = 0
+
+        for interval in sorted {
+            totalDuration += interval
+            if interval >= missedDeadlineThreshold {
+                missedDeadlineCount += 1
+            }
+            if interval >= severeStallThreshold {
+                severeStallCount += 1
+            }
             let deliveredPeriods = max(1, Int((interval / expectedFrameDuration).rounded()))
-            total += max(0, deliveredPeriods - 1)
+            estimatedMissedFrameCount += max(0, deliveredPeriods - 1)
         }
+
+        let averageDuration = totalDuration / Double(sorted.count)
 
         return FramePacingReport(
             sampleCount: sorted.count,
@@ -139,7 +152,7 @@ public enum FramePacingAnalyzer {
             maxFrameMs: (sorted.last ?? 0) * 1000,
             missedDeadlineCount: missedDeadlineCount,
             estimatedMissedFrameCount: estimatedMissedFrameCount,
-            severeStallCount: sorted.count { $0 >= severeStallThreshold },
+            severeStallCount: severeStallCount,
             missedDeadlineRatio: Double(missedDeadlineCount) / Double(sorted.count),
         )
     }

@@ -10,7 +10,7 @@ public struct BattleGoldFlow: Equatable, Hashable, Sendable {
     }
 
     public var net: Int {
-        gained - spent
+        SaturatedArithmetic.saturatingSub(gained, spent)
     }
 
     public mutating func record(delta: Int) {

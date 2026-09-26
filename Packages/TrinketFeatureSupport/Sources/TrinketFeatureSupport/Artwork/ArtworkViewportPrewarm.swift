@@ -54,7 +54,7 @@ public enum ArtworkViewportPrewarm {
         estimatedColumns: Int,
     ) -> [String] {
         guard !orderedItems.isEmpty else { return [] }
-        guard let minVisible = visibleIndices.min(), let maxVisible = visibleIndices.max() else {
+        guard let minVisible = visibleIndices.first, let maxVisible = visibleIndices.last else {
             return initialWindowNames(
                 orderedItems: orderedItems,
                 thumbnailName: thumbnailName,

@@ -328,21 +328,9 @@ private extension CloudSaveMerge {
         base: CombatantProgression?, fallback: CombatantProgression,
     ) -> CombatantProgression {
         guard let incoming, let existing, let base else { return fallback }
-        let starting = totalExperience(base)
-        let left = max(0, SaturatedArithmetic.saturatingSub(totalExperience(incoming), starting))
-        let right = max(0, SaturatedArithmetic.saturatingSub(totalExperience(existing), starting))
+        let starting = base.totalEarnedExperience
+        let left = max(0, SaturatedArithmetic.saturatingSub(incoming.totalEarnedExperience, starting))
+        let right = max(0, SaturatedArithmetic.saturatingSub(existing.totalEarnedExperience, starting))
         return base.addingExperience(SaturatedArithmetic.saturatingAdd(left, right))
-    }
-
-    private static func totalExperience(_ progression: CombatantProgression) -> Int {
-        guard progression.level > 1 else { return max(0, progression.currentXP) }
-        var total = max(0, progression.currentXP)
-        for level in 1 ..< progression.level {
-            total = SaturatedArithmetic.saturatingAdd(total, CombatantProgression.requiredXP(forLevel: level))
-            if total == Int.max {
-                break
-            }
-        }
-        return total
     }
 }

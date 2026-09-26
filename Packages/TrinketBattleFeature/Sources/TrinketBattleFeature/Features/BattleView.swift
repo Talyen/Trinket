@@ -404,61 +404,48 @@ private struct BattleInfrastructureLane: View {
     @State private var preparedConfigurationID: UUID?
 
     var body: some View {
-        Color.clear
-            .frame(width: 0, height: 0)
-            .accessibilityHidden(true)
-            .onAppear {
-                battleSession.feedback.installBridge(
-                    ownerID: ownerID,
-                    onChange: { [weak feedback = battleSession.feedback] update in
-                        CombatFeedbackChipBridge.publish(update, onEvict: { [weak feedback] ids in
-                            feedback?.evictedItemIDs.formUnion(ids)
-                        })
-                    },
-                )
-                battleSession.feedback.prepareScheduler()
-                CombatFeedbackRasterUIView.prewarmMotionClock()
-            }
-            .onDisappear {
-                battleSession.feedback.uninstallBridge(ownerID: ownerID)
-            }
-            .task(id: prewarmKey) {
-                guard let prewarmKey,
-                      preparedConfigurationID != prewarmKey.configurationID
-                else { return }
+        Group {
+            Color.clear
+                .frame(width: 0, height: 0)
+                .accessibilityHidden(true)
 
-                preparedConfigurationID = prewarmKey.configurationID
-                artworkName = prewarmKey.artworkName
-            }
-            .onChange(of: presentation.configurationID) { _, newID in
-                if newID != preparedConfigurationID {
-                    preparedConfigurationID = nil
-                    artworkName = nil
+            if let artworkName {
+                CardCastEffectsPrewarmView(artworkName: artworkName) {
+                    self.artworkName = nil
                 }
             }
+        }
+        .onAppear {
+            battleSession.feedback.installBridge(
+                ownerID: ownerID,
+                onChange: { [weak feedback = battleSession.feedback] update in
+                    CombatFeedbackChipBridge.publish(update, onEvict: { [weak feedback] ids in
+                        feedback?.evictedItemIDs.formUnion(ids)
+                    })
+                },
+            )
+            battleSession.feedback.prepareScheduler()
+            CombatFeedbackRasterUIView.prewarmMotionClock()
+        }
+        .onDisappear {
+            battleSession.feedback.uninstallBridge(ownerID: ownerID)
+        }
+        .task(id: presentation.configurationID) {
+            guard let configurationID = presentation.configurationID,
+                  preparedConfigurationID != configurationID,
+                  let name = presentation.hand.lazy.compactMap(\.ability.artReference?.imageName).first
+            else { return }
 
-        if let artworkName {
-            CardCastEffectsPrewarmView(artworkName: artworkName) {
-                self.artworkName = nil
+            preparedConfigurationID = configurationID
+            artworkName = name
+        }
+        .onChange(of: presentation.configurationID) { _, newID in
+            if newID != preparedConfigurationID {
+                preparedConfigurationID = nil
+                artworkName = nil
             }
         }
     }
-
-    private var prewarmKey: BattleCastPrewarmKey? {
-        guard let configurationID = presentation.configurationID,
-              preparedConfigurationID != configurationID,
-              let artworkName = presentation.hand.lazy.compactMap(\.ability.artReference?.imageName).first
-        else { return nil }
-        return BattleCastPrewarmKey(
-            configurationID: configurationID,
-            artworkName: artworkName,
-        )
-    }
-}
-
-private struct BattleCastPrewarmKey: Equatable {
-    let configurationID: UUID
-    let artworkName: String
 }
 
 private extension BattleView {

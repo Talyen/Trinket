@@ -2,6 +2,7 @@ import CoreGraphics
 import TrinketFeatureSupport
 
 enum BattleCardGridLayout {
+    /// Width-to-height aspect ratios for combatant frames (width / height).
     static let enemyAspectRatio: CGFloat = 4.0 / 3.0
     static let partyAspectRatio: CGFloat = 3.0 / 4.0
     static let outerPadding: CGFloat = 0

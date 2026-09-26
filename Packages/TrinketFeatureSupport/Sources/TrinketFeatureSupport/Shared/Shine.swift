@@ -9,19 +9,6 @@ public enum Shine: Equatable, Sendable {
     case unique
     case corruption
 
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        switch (lhs, rhs) {
-        case (.none, .none), (.unique, .unique), (.corruption, .corruption):
-            true
-        case let (.keywords(a), .keywords(b)):
-            a == b
-        case let (.colors(a), .colors(b)):
-            a == b
-        default:
-            false
-        }
-    }
-
     public static let uniqueBorderColors: [Color] = [
         TrinketDesign.Colors.warning,
     ]
