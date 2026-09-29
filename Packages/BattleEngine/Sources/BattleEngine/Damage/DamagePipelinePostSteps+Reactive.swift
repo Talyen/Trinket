@@ -81,7 +81,7 @@ package extension DamagePipeline {
                 potency: defenderTriggers.onHitAttackerBleedPotency,
                 to: attacker.combatant,
                 sourceActorID: state.combatant.id,
-                application: .attached,
+                application: .reaction,
                 durationTurns: defenderTriggers.onHitAttackerBleedTurns > 0
                     ? defenderTriggers.onHitAttackerBleedTurns
                     : nil,

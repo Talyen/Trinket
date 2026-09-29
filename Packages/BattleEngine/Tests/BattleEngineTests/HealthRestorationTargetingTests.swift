@@ -76,7 +76,7 @@ struct HealthRestorationTargetingTests {
         ))
         var battle = battle(heroModifiers: profile)
         battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 1)
-        _ = CleanseOperation.resolve(
+        _ = EffectRemovalOperation.resolveCleanse(
             .all(.poison), source: battle.hero, target: battle.hero,
             abilityName: "Cleanse", in: &battle,
         )

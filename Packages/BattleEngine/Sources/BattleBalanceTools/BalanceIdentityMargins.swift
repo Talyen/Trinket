@@ -21,27 +21,19 @@ enum BalanceIdentityMargins {
         threshold: Double,
         targetBand: (lower: Double, upper: Double)? = nil,
     ) -> [WinRateSummary] {
-        tally(records) { [$0[keyPath: id]] }
-            .sorted { $0.key < $1.key }
-            .map { id, bucket in
-                let targetDelta = targetBand.map { band in
-                    bucket.rate - ((band.lower + band.upper) / 2)
-                }
-                return makeWinRate(
-                    WinRateSpec(
-                        id: id,
-                        ownerID: nil,
-                        wins: bucket.wins,
-                        battles: bucket.battles,
-                        peerRate: peerRate,
-                        threshold: threshold,
-                        positiveFlag: "HIGH",
-                        negativeFlag: "LOW",
-                        targetBandDelta: targetDelta,
-                    ),
-                )
-            }
-            .sorted(by: flaggedFirst)
+        margins(buckets: tally(records) { [$0[keyPath: id]] }.sorted { $0.key < $1.key }) { id, bucket in
+            WinRateSpec(
+                id: id,
+                ownerID: nil,
+                wins: bucket.wins,
+                battles: bucket.battles,
+                peerRate: peerRate,
+                threshold: threshold,
+                positiveFlag: "HIGH",
+                negativeFlag: "LOW",
+                targetBandDelta: targetBand.map { bucket.rate - (($0.lower + $0.upper) / 2) },
+            )
+        }
     }
 
     static func margin(
@@ -53,23 +45,18 @@ enum BalanceIdentityMargins {
         negativeFlag: String = "LOW",
         ownerID: String? = nil,
     ) -> [WinRateSummary] {
-        tally(records) { ids($0) }
-            .sorted { $0.key < $1.key }
-            .map { id, bucket in
-                makeWinRate(
-                    WinRateSpec(
-                        id: id,
-                        ownerID: ownerID,
-                        wins: bucket.wins,
-                        battles: bucket.battles,
-                        peerRate: peerRate,
-                        threshold: threshold,
-                        positiveFlag: positiveFlag,
-                        negativeFlag: negativeFlag,
-                    ),
-                )
-            }
-            .sorted(by: flaggedFirst)
+        margins(buckets: tally(records) { ids($0) }.sorted { $0.key < $1.key }) { id, bucket in
+            WinRateSpec(
+                id: id,
+                ownerID: ownerID,
+                wins: bucket.wins,
+                battles: bucket.battles,
+                peerRate: peerRate,
+                threshold: threshold,
+                positiveFlag: positiveFlag,
+                negativeFlag: negativeFlag,
+            )
+        }
     }
 
     static func withinOwnerMargins(
@@ -78,23 +65,25 @@ enum BalanceIdentityMargins {
         ownerRates: [String: Double],
         threshold: Double,
     ) -> [WinRateSummary] {
-        tally(records) { ownerAndIDs($0).map { OwnerID(owner: $0.0, id: $0.1) } }
-            .sorted { ($0.key.id, $0.key.owner) < ($1.key.id, $1.key.owner) }
-            .map { key, bucket in
-                makeWinRate(
-                    WinRateSpec(
-                        id: key.id,
-                        ownerID: key.owner,
-                        wins: bucket.wins,
-                        battles: bucket.battles,
-                        peerRate: ownerRates[key.owner] ?? 0,
-                        threshold: threshold,
-                        positiveFlag: "HIGH",
-                        negativeFlag: "LOW",
-                    ),
-                )
-            }
-            .sorted(by: flaggedFirst)
+        margins(
+            buckets: tally(records) { ownerAndIDs($0).map { OwnerID(owner: $0.0, id: $0.1) } }
+                .sorted { ($0.key.id, $0.key.owner) < ($1.key.id, $1.key.owner) },
+        ) { key, bucket in
+            WinRateSpec(
+                id: key.id,
+                ownerID: key.owner,
+                wins: bucket.wins,
+                battles: bucket.battles,
+                peerRate: ownerRates[key.owner] ?? 0,
+                threshold: threshold,
+                positiveFlag: "HIGH",
+                negativeFlag: "LOW",
+            )
+        }
+    }
+
+    private static func margins<Key>(buckets: [(key: Key, value: Tally)], spec: (Key, Tally) -> WinRateSpec) -> [WinRateSummary] {
+        buckets.map { spec($0.key, $0.value) }.map(makeWinRate).sorted(by: flaggedFirst)
     }
 
     private struct OwnerID: Hashable {

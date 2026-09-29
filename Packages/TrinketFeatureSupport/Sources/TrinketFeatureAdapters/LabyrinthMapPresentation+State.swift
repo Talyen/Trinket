@@ -9,8 +9,8 @@ public extension LabyrinthMapPresentation {
     ) -> [LabyrinthNode] {
         cluster.nodeIDs.compactMap { state.nodes[$0] }.sorted {
             LabyrinthGridPosition.isOrderedBefore(
-                $0.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1),
-                $1.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1),
+                $0.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0),
+                $1.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0),
             )
         }
     }

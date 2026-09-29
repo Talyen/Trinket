@@ -122,25 +122,19 @@ struct MarkedHandler: BattleEffectHandler {
             }
             return nil
         }
-        let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
+        guard bonus > 0 else {
+            return EffectSummary(keyword: keyword, text: "Marked: The next attack deals extra damage and removes Marked.")
+        }
+        let suffix = TimedBuffSummary.durationSuffix(in: stacks, separator: ";") { effect in
             if case let .marked(_, duration) = effect {
                 return duration
             }
             return nil
         }
-        if bonus > 0 {
-            if maxTicks > 0 {
-                return EffectSummary(
-                    keyword: keyword,
-                    text: "Marked: The next attack deals +\(bonus) damage and removes Marked; \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
-                )
-            }
-            return EffectSummary(
-                keyword: keyword,
-                text: "Marked: The next attack deals +\(bonus) damage and removes Marked.",
-            )
-        }
-        return EffectSummary(keyword: keyword, text: "Marked: The next attack deals extra damage and removes Marked.")
+        return EffectSummary(
+            keyword: keyword,
+            text: "Marked: The next attack deals +\(bonus) damage and removes Marked\(suffix).",
+        )
     }
 
     func apply(
@@ -176,21 +170,15 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
             return nil
         }
         guard percent > 0 else { return nil }
-        let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
+        let suffix = TimedBuffSummary.durationSuffix(in: stacks) { effect in
             if case let .criticalChanceBonus(_, duration) = effect {
                 return duration
             }
             return nil
         }
-        if maxTicks > 0 {
-            return EffectSummary(
-                keyword: keyword,
-                text: "Focused: Increases Critical chance by +\(Int(percent * 100))%, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
-            )
-        }
         return EffectSummary(
             keyword: keyword,
-            text: "Focused: Increases Critical chance by +\(Int(percent * 100))%.",
+            text: "Focused: Increases Critical chance by +\(Int(percent * 100))%\(suffix).",
         )
     }
 
@@ -227,21 +215,15 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
             return nil
         }
         guard amount > 0 else { return nil }
-        let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
+        let suffix = TimedBuffSummary.durationSuffix(in: stacks) { effect in
             if case let .restoreManaOnHit(_, duration) = effect {
                 return duration
             }
             return nil
         }
-        if maxTicks > 0 {
-            return EffectSummary(
-                keyword: keyword,
-                text: "Mana Shield: Restores \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
-            )
-        }
         return EffectSummary(
             keyword: keyword,
-            text: "Mana Shield: Restores \(amount) Mana when hit.",
+            text: "Mana Shield: Restores \(amount) Mana when hit\(suffix).",
         )
     }
 
@@ -277,21 +259,15 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         guard let active = stacks.first,
               case let .damageKeywordOverride(overrideKeyword, bonus, _) = active.effect
         else { return nil }
-        let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
+        let suffix = TimedBuffSummary.durationSuffix(in: stacks) { effect in
             if case let .damageKeywordOverride(_, _, duration) = effect {
                 return duration
             }
             return nil
         }
-        if maxTicks > 0 {
-            return EffectSummary(
-                keyword: keyword,
-                text: "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus)), \(BattleTiming.remainingDurationLabel(turns: maxTicks)).",
-            )
-        }
         return EffectSummary(
             keyword: keyword,
-            text: "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus)).",
+            text: "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus))\(suffix).",
         )
     }
 
@@ -398,10 +374,6 @@ struct NextBurnBonusHandler: BattleEffectHandler {
 
 struct PartyDamageBonusHandler: BattleEffectHandler {
     let kind: EffectKind = .partyDamageBonus
-
-    func summary(for _: [ActiveEffect], keyword _: Keyword) -> EffectSummary? {
-        nil
-    }
 
     func apply(
         _ effect: Effect,

@@ -138,11 +138,6 @@ public enum AccessibilityID {
         public static let labyrinthModeCard = "Labyrinth Mode Card"
         public static let labyrinthMap = "Labyrinth Map"
         public static let labyrinthEnter = "Labyrinth Enter"
-        public static let labyrinthCraft = "Labyrinth Craft"
-        public static let labyrinthCraftForge = "Labyrinth Craft Forge"
-        public static let labyrinthCraftSkip = "Labyrinth Craft Skip"
-        public static let labyrinthCraftLeave = "Labyrinth Craft Leave"
-        public static let labyrinthCraftFailure = "Labyrinth Craft Failure"
         public static let labyrinthFloorMenu = "Labyrinth Floor Menu"
         public static let labyrinthDismissSelection = "Labyrinth Dismiss Selection"
         public static let labyrinthNodeInspector = "Labyrinth Node Inspector"
@@ -213,14 +208,6 @@ public enum AccessibilityID {
         public static func corruptItemCard(itemID: String) -> String {
             "Mystery Corrupt Item \(itemID)"
         }
-
-        public static func corruptionBeforeCard(itemID: String) -> String {
-            "Mystery Corruption Before \(itemID)"
-        }
-
-        public static func corruptionAfterCard(itemID: String) -> String {
-            "Mystery Corruption After \(itemID)"
-        }
     }
 
     public enum Shop {
@@ -244,18 +231,13 @@ public enum AccessibilityID {
 
     public enum CombatantDetail {
         public static let vitalBarsSection = "Combatant Vital Bars Section"
-        public static let statsSection = "Combatant Stats Section"
-        public static let healthStat = "Combatant Health Stat"
         public static let healthBar = "Combatant Health Bar"
         public static let manaBar = "Combatant Mana Bar"
-        public static let traitSection = "Combatant Trait Section"
-        public static let traitDescription = "Combatant Trait Description"
         public static let enemyTraitsSection = "Combatant Enemy Traits Section"
         public static let enemyTraitDescription = "Combatant Enemy Trait Description"
         public static let nodeModifiersSection = "Combatant Labyrinth Modifiers Section"
         public static let nodeModifierDescription = "Combatant Labyrinth Modifier Description"
         public static let talentsSection = "Combatant Talents Section"
-        public static let talentsButton = "Combatant Talents Button"
         public static let talentsUnlockButton = "Talents Unlock Button"
         public static let talentsResetButton = "Talents Reset Button"
 

@@ -139,16 +139,24 @@ public final class AppState {
     }
 
     public var persistenceStatusMessage: String? {
-        switch playerSave.lastPersistenceError {
-        case .writeFailed:
-            nil
-        case let .invalidSave(message):
-            message
-        case let .storeUnavailable(message):
-            message
-        case .none:
-            nil
+        Self.statusMessage(
+            for: playerSave.lastPersistenceError,
+            isDegraded: playerSave.isPersistenceDegraded,
+        )
+    }
+
+    /// Progress Status reports a specific persistence error when there is one,
+    /// and stays up while storage is degraded even after a later save clears the
+    /// error — the session is then still running on a fallback or a pending
+    /// write, so hiding it would tell the player their progress is safe.
+    static func statusMessage(
+        for error: PlayerSavePersistenceError?,
+        isDegraded: Bool,
+    ) -> String? {
+        if let message = error?.statusMessage {
+            return message
         }
+        return isDegraded ? PlayerSaveStore.memoryFallbackError.statusMessage : nil
     }
 
     @discardableResult

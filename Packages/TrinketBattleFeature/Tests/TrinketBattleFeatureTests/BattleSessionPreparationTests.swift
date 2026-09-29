@@ -315,6 +315,32 @@ struct BattleSessionPreparationTests {
         #expect(!session.isDealingOpeningHand)
         #expect(session.activeBattle?.id == replacementConfiguration.id)
     }
+
+    @Test func `hand play gate follows the command window instead of the projection list`() async throws {
+        let party = BattlePartyFixtures.quickWinParty()
+        let session = BattleSession()
+        let (configuration, _) = BattleRunConfigurationTestSupport.make(
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy,
+        )
+
+        #expect(session.activate(configuration))
+        #expect(try await BattleSessionTestSupport.waitUntil { !session.isDealingOpeningHand })
+
+        let card = try #require(session.hand.first(where: session.isCardPlayable))
+        try #expect(session.presentation.playableCardIDs.contains(card.id))
+        try #expect(session.isHandCardPlayable(card))
+
+        // A refused-command window keeps the projection list but must not
+        // advertise a play accessibility activation would be rejected for.
+        session.setSuspendedForScenePhase(true)
+        try #expect(session.presentation.playableCardIDs.contains(card.id))
+        try #expect(!session.isHandCardPlayable(card))
+
+        session.setSuspendedForScenePhase(false)
+        try #expect(session.isHandCardPlayable(card))
+    }
 }
 
 /// Pins `BattleSessionTestSupport` construction defaults so silent drift

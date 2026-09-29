@@ -10,8 +10,8 @@ extension TalentCatalogRoundTripTests {
             [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0)],
             for: battle.hero, on: &battle,
         )
-        let first = CleanseOperation.resolve(
-            .random, source: battle.companion, target: battle.hero,
+        let first = EffectRemovalOperation.resolveCleanse(
+            .randomDebuff, source: battle.companion, target: battle.hero,
             abilityName: "Cleanse", in: &battle,
         )
         #expect(first.removed.count == 1)
@@ -23,8 +23,8 @@ extension TalentCatalogRoundTripTests {
             ],
             for: battle.hero, on: &battle,
         )
-        let second = CleanseOperation.resolve(
-            .random, source: battle.companion, target: battle.hero,
+        let second = EffectRemovalOperation.resolveCleanse(
+            .randomDebuff, source: battle.companion, target: battle.hero,
             abilityName: "Cleanse", in: &battle,
         )
         #expect(second.removed.count == 1)
@@ -43,7 +43,7 @@ extension TalentCatalogRoundTripTests {
                 ],
                 for: battle.hero, on: &battle,
             )
-            let result = CleanseOperation.resolve(
+            let result = EffectRemovalOperation.resolveCleanse(
                 .all(.poison), source: battle.companion, target: battle.hero,
                 abilityName: "Cleanse", in: &battle,
             )

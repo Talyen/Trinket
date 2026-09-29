@@ -279,7 +279,9 @@ public final class PreparedArtworkCache {
         var pinnedCount = 0
         var pinnedByteCount = 0
 
-        let names = Set(launchWarmupNames).union(decodedCostsByName.keys)
+        let names = Set(launchWarmupNames)
+            .union(decodedCostsByName.keys)
+            .union(pinnedImages.keys)
         for name in names {
             let cost = decodedCostsByName[name] ?? 0
             if pinnedImages[name] != nil {

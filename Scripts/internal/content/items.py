@@ -150,6 +150,29 @@ def validate_item_base_rows(rows: list[ItemBaseRow]) -> None:
         _validate_keywords(row.keywords, f"item base {row.id}")
 
 
+def _keyword_set(raw: str) -> set[str]:
+    return {part.strip() for part in raw.split(",") if part.strip()}
+
+
+def validate_affix_reachability(affix_rows: list[AffixRow], item_base_rows: list[ItemBaseRow]) -> None:
+    """Every affix must be rollable on at least one base of its slot.
+
+    Eligibility is a slot match plus a shared keyword (`ItemAffixDefinition.
+    isEligible`), so an affix no base can host never enters a roll pool and
+    silently skews the weights of the affixes that remain.
+    """
+    affinities: dict[str, list[set[str]]] = {}
+    for row in item_base_rows:
+        affinities.setdefault(row.slot, []).append(_keyword_set(row.keywords))
+    for row in affix_rows:
+        keywords = _keyword_set(row.keywords)
+        if any(not keywords.isdisjoint(base) for base in affinities.get(row.slot, [])):
+            continue
+        raise ValueError(
+            f"affix '{row.id}' ({row.slot}) shares no keyword with any {row.slot} item base"
+        )
+
+
 def generate_item_bases_catalog(rows: list[ItemBaseRow]) -> None:
     entries: list[str] = []
     swift_weapon_kinds = {

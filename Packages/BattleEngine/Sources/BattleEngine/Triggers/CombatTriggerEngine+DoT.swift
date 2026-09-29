@@ -65,9 +65,10 @@ package extension CombatTriggerEngine {
                     ),
                 ).events)
             }
-            let detonateChance = sourceTriggers.onBurnDamageDetonateBleedChancePercent > 0
-                ? sourceTriggers.onBurnDamageDetonateBleedChancePercent
-                : (sourceTriggers.onBurnDamageDetonateBleed ? 1 : 0)
+            let detonateChance = chanceOrGuaranteed(
+                sourceTriggers.onBurnDamageDetonateBleedChancePercent,
+                guaranteed: sourceTriggers.onBurnDamageDetonateBleed,
+            )
             if detonateChance > 0, healthLost > 0,
                BattleChance.succeeds(probability: min(1, detonateChance), using: &context.rng) {
                 events.append(contentsOf: detonateBleed(
@@ -114,7 +115,7 @@ package extension CombatTriggerEngine {
                   return false
               })
         else { return [] }
-        let chance = sourceTriggers.poisonStunChancePercent > 0 ? sourceTriggers.poisonStunChancePercent : 1
+        let chance = chanceOrGuaranteed(sourceTriggers.poisonStunChancePercent, guaranteed: true)
         guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return [] }
         return ControlMeterEngine.applyMeterCharge(
             ControlMeterEngine.threshold(for: target, in: context),

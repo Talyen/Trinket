@@ -23,7 +23,7 @@ extension AttackerOnHitEngine {
     ) {
         let triggers = hit.triggers
         let target = state.combatant
-        if triggers.attacksApplyPoison > 0, state.options.isBasicAttackHit,
+        if triggers.attacksApplyPoison > 0, state.options.isAttackHit,
            context.roster.health(for: target) > 0 {
             state.damageEvents.append(contentsOf: context.applyDecayingDoT(
                 keyword: .poison,

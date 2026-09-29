@@ -23,4 +23,16 @@ public enum PlayerSavePersistenceError: Error, Equatable, Sendable {
             false
         }
     }
+
+    /// Copy for the player-facing Progress Status row. `.writeFailed` has none
+    /// because a transient write retries silently; a degraded store is reported
+    /// through `PlayerSaveStore.memoryFallbackError` instead.
+    public var statusMessage: String? {
+        switch self {
+        case .writeFailed:
+            nil
+        case let .invalidSave(message), let .storeUnavailable(message):
+            message
+        }
+    }
 }

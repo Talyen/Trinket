@@ -10,35 +10,18 @@ public enum ItemSalvageActionResult: Equatable, Sendable {
 }
 
 public struct ItemDetailView: View {
-    private struct PurchaseAction {
-        let price: Int
-        let canAfford: Bool
-        let isDisabled: Bool
-        let titleOverride: String?
-        let accessibilityID: String
-        let onPurchase: () -> Void
-    }
-
-    private enum Action {
-        case none
-        case purchase(PurchaseAction)
-        case primaryAction(
-            title: String,
-            accessibilityID: String?,
-            onAction: () -> Void,
-        )
-        case salvage(
-            yields: [ResourceAmount],
-            equippedByName: String?,
-            onSalvage: () -> ItemSalvageActionResult,
-            onSalvageFinished: ((ItemSalvageActionResult) -> Void)?,
-        )
+    private struct SalvageConfiguration {
+        let yields: [ResourceAmount]
+        let equippedByName: String?
+        let onSalvage: () -> ItemSalvageActionResult
+        let onSalvageFinished: ((ItemSalvageActionResult) -> Void)?
     }
 
     @Environment(\.dismiss) private var dismiss
 
     let item: InventoryItem
-    private let action: Action
+    private let primaryAction: DetailPrimaryAction?
+    private let salvage: SalvageConfiguration?
     private var heroNote: String?
     private var heroNoteAccessibilityID: String?
 
@@ -50,7 +33,8 @@ public struct ItemDetailView: View {
         heroNoteAccessibilityID: String? = nil,
     ) {
         self.item = item
-        action = .none
+        primaryAction = nil
+        salvage = nil
         self.heroNote = heroNote
         self.heroNoteAccessibilityID = heroNoteAccessibilityID
     }
@@ -65,14 +49,14 @@ public struct ItemDetailView: View {
         onPurchase: @escaping () -> Void,
     ) {
         self.item = item
-        action = .purchase(PurchaseAction(
-            price: purchasePrice,
-            canAfford: canAfford,
-            isDisabled: isPurchaseDisabled,
-            titleOverride: purchaseButtonTitleOverride,
-            accessibilityID: accessibilityIdentifier,
-            onPurchase: onPurchase,
-        ))
+        primaryAction = DetailPrimaryAction(
+            title: purchaseButtonTitleOverride
+                ?? (canAfford ? "Buy for \(purchasePrice) Gold" : "Need \(purchasePrice) Gold"),
+            accessibilityIdentifier: accessibilityIdentifier,
+            isDisabled: !canAfford || isPurchaseDisabled,
+            action: onPurchase,
+        )
+        salvage = nil
     }
 
     public init(
@@ -82,11 +66,12 @@ public struct ItemDetailView: View {
         onPrimaryAction: @escaping () -> Void,
     ) {
         self.item = item
-        action = .primaryAction(
+        primaryAction = DetailPrimaryAction(
             title: primaryActionTitle,
-            accessibilityID: primaryActionAccessibilityID,
-            onAction: onPrimaryAction,
+            accessibilityIdentifier: primaryActionAccessibilityID,
+            action: onPrimaryAction,
         )
+        salvage = nil
     }
 
     public init(
@@ -97,7 +82,8 @@ public struct ItemDetailView: View {
         onSalvageFinished: ((ItemSalvageActionResult) -> Void)? = nil,
     ) {
         self.item = item
-        action = .salvage(
+        primaryAction = nil
+        salvage = SalvageConfiguration(
             yields: salvageYields,
             equippedByName: equippedByName,
             onSalvage: onSalvage,
@@ -106,7 +92,7 @@ public struct ItemDetailView: View {
     }
 
     private var showsSalvageAction: Bool {
-        guard case .salvage = action else { return false }
+        guard salvage != nil else { return false }
         return !item.isTrinket && item.rarity != .unique
     }
 
@@ -115,7 +101,7 @@ public struct ItemDetailView: View {
             title: item.displayName,
             header: { baseHeight in
                 DetailHeroHeader(
-                    eyebrow: ItemDetailContent.eyebrow(for: item),
+                    eyebrow: Self.eyebrow(for: item),
                     title: item.displayName,
                     titleShine: item.displayTextShine,
                     baseHeight: baseHeight,
@@ -133,15 +119,13 @@ public struct ItemDetailView: View {
                 .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemDetail(item.id))
             },
             bodyContent: {
-                ItemDetailContent(
-                    item: item,
-                    showsSalvageAction: showsSalvageAction,
-                    onSalvageTapped: { isSalvageConfirmationPresented = true },
-                )
+                traitsSection
             },
         )
         .safeAreaInset(edge: .bottom) {
-            footerView
+            if let primaryAction {
+                DetailPrimaryActionFooter(primaryAction: primaryAction)
+            }
         }
         .alert(
             "Salvage \(item.displayName)?",
@@ -157,77 +141,13 @@ public struct ItemDetailView: View {
         }
     }
 
-    @ViewBuilder
-    private var footerView: some View {
-        switch action {
-        case .none, .salvage:
-            EmptyView()
-        case let .primaryAction(title, accessibilityID, onAction):
-            DetailPrimaryActionFooter(
-                title: title,
-                accessibilityIdentifier: accessibilityID,
-                action: onAction,
-            )
-        case let .purchase(purchase):
-            DetailPrimaryActionFooter(
-                title: purchaseButtonTitle(
-                    price: purchase.price,
-                    canAfford: purchase.canAfford,
-                    titleOverride: purchase.titleOverride,
-                ),
-                accessibilityIdentifier: purchase.accessibilityID,
-                isDisabled: !purchase.canAfford || purchase.isDisabled,
-                action: purchase.onPurchase,
-            )
-        }
-    }
-
-    private func purchaseButtonTitle(
-        price: Int,
-        canAfford: Bool,
-        titleOverride: String?,
-    ) -> String {
-        if let titleOverride {
-            return titleOverride
-        }
-        return canAfford ? "Buy for \(price) Gold" : "Need \(price) Gold"
-    }
-
-    private var salvageConfirmationMessage: String {
-        guard case let .salvage(yields, equippedByName, _, _) = action else { return "" }
-        let message = "You will receive \(yields.formattedYieldList)."
-        if let equippedByName {
-            return message + " This unequips it from \(equippedByName)."
-        }
-        return message
-    }
-
-    private func confirmSalvage() {
-        guard case let .salvage(_, _, onSalvage, onSalvageFinished) = action else { return }
-        switch onSalvage() {
-        case let .success(yields):
-            onSalvageFinished?(.success(yields: yields))
-            dismiss()
-        case .itemNotFound:
-            onSalvageFinished?(.itemNotFound)
-            dismiss()
-        case .persistenceFailure:
-            onSalvageFinished?(.persistenceFailure)
-        }
-    }
-}
-
-struct ItemDetailContent: View {
-    let item: InventoryItem
-    let showsSalvageAction: Bool
-    let onSalvageTapped: () -> Void
-
-    static func eyebrow(for item: InventoryItem) -> String {
+    private static func eyebrow(for item: InventoryItem) -> String {
         let tag = item.isTrinket ? "TRINKET" : item.rarity.label.uppercased()
         return item.isCorrupted ? "\(tag) · CORRUPTED" : tag
     }
 
-    var body: some View {
+    @ViewBuilder
+    private var traitsSection: some View {
         DetailSection("Traits") {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                 ForEach(Array(item.displayedAffixes.enumerated()), id: \.element.id) { index, affix in
@@ -242,7 +162,7 @@ struct ItemDetailContent: View {
 
         if showsSalvageAction {
             Button("Salvage") {
-                onSalvageTapped()
+                isSalvageConfirmationPresented = true
             }
             .frame(maxWidth: .infinity)
             .trinketSecondaryActionButton(
@@ -250,6 +170,29 @@ struct ItemDetailContent: View {
                 accessibilityIdentifier: AccessibilityID.Collection.salvageButton,
             )
             .padding(.top, TrinketDesign.Layout.sectionSpacing)
+        }
+    }
+
+    private var salvageConfirmationMessage: String {
+        guard let salvage else { return "" }
+        let message = "You will receive \(salvage.yields.formattedYieldList)."
+        if let equippedByName = salvage.equippedByName {
+            return message + " This unequips it from \(equippedByName)."
+        }
+        return message
+    }
+
+    private func confirmSalvage() {
+        guard let salvage else { return }
+        switch salvage.onSalvage() {
+        case let .success(yields):
+            salvage.onSalvageFinished?(.success(yields: yields))
+            dismiss()
+        case .itemNotFound:
+            salvage.onSalvageFinished?(.itemNotFound)
+            dismiss()
+        case .persistenceFailure:
+            salvage.onSalvageFinished?(.persistenceFailure)
         }
     }
 }

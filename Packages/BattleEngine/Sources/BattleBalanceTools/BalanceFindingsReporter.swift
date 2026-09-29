@@ -13,8 +13,7 @@ public enum BalanceFindingsReporter {
         var lines: [String] = []
         appendHeader(report, into: &lines)
         appendSnapshot(report, snapshots: snapshots, into: &lines)
-        let findings = collectFindings(report, snapshots: snapshots)
-        appendFindings(findings, into: &lines)
+        appendFindings(collectFindings(report, snapshots: snapshots), into: &lines)
         lines.append(
             "Win rates are under `\(report.policyID)` autoplay; "
                 + "see `Packages/BattleEngine/README.md`. "
@@ -53,34 +52,12 @@ public enum BalanceFindingsReporter {
         snapshots: BalanceTierSnapshots,
         into lines: inout [String],
     ) {
-        let tiers = snapshots.tiers
-        let comparedTiers = snapshots.comparedTiers
-        let identityTiers = tiers.filter { $0.battles > 0 }
-        if !identityTiers.isEmpty {
+        let tiers = snapshots.tiers.filter { $0.battles > 0 }
+        if !tiers.isEmpty {
             lines.append("## Snapshot")
             lines.append("")
-            for tier in identityTiers {
-                let winPct = BalanceStatsAggregator.winPercent(wins: tier.wins, decided: tier.decidedBattles)
-                var line = String(
-                    format: "- %@: %d battles, %.1f%% win, %d timeouts, avg %.1f rounds",
-                    tier.tier.displayName,
-                    tier.battles,
-                    winPct,
-                    tier.timeouts,
-                    tier.averageRounds,
-                )
-                if let comparedID = report.comparedPolicyID {
-                    if let compared = comparedTiers.first(where: { $0.tier == tier.tier }) {
-                        let comparedPct = BalanceStatsAggregator.winPercent(wins: compared.wins, decided: compared.decidedBattles)
-                        line += String(
-                            format: " · `%@` %.1f%% win (Δ%+.1f)",
-                            comparedID,
-                            comparedPct,
-                            comparedPct - winPct,
-                        )
-                    }
-                }
-                lines.append(line)
+            for tier in tiers {
+                lines.append(snapshotLine(tier, report: report, comparedTiers: snapshots.comparedTiers))
             }
             lines.append("")
         }
@@ -92,6 +69,24 @@ public enum BalanceFindingsReporter {
             )
             lines.append("")
         }
+    }
+
+    private static func snapshotLine(_ tier: BalanceTierStats, report: BalanceSweepReport, comparedTiers: [BalanceTierStats]) -> String {
+        let winPct = BalanceStatsAggregator.winPercent(wins: tier.wins, decided: tier.decidedBattles)
+        var line = String(
+            format: "- %@: %d battles, %.1f%% win, %d timeouts, avg %.1f rounds",
+            tier.tier.displayName,
+            tier.battles,
+            winPct,
+            tier.timeouts,
+            tier.averageRounds,
+        )
+        if let comparedID = report.comparedPolicyID,
+           let compared = comparedTiers.first(where: { $0.tier == tier.tier }) {
+            let comparedPct = BalanceStatsAggregator.winPercent(wins: compared.wins, decided: compared.decidedBattles)
+            line += String(format: " · `%@` %.1f%% win (Δ%+.1f)", comparedID, comparedPct, comparedPct - winPct)
+        }
+        return line
     }
 
     private static func appendFindings(_ findings: [Finding], into lines: inout [String]) {
@@ -110,8 +105,7 @@ public enum BalanceFindingsReporter {
 
     private static func collectFindings(_ report: BalanceSweepReport, snapshots: BalanceTierSnapshots) -> [Finding] {
         var findings: [Finding] = []
-        let tiers = snapshots.tiers
-        for tier in tiers where tier.battles > 0 {
+        for tier in snapshots.tiers where tier.battles > 0 {
             findings.append(contentsOf: identityFindings(tier: tier, records: report.records))
             findings.append(contentsOf: stallFindings(tier: tier, records: report.records))
         }
@@ -119,59 +113,32 @@ public enum BalanceFindingsReporter {
             findings.append(contentsOf: contrastFindings(section.rows, kind: section.kind))
         }
         findings.append(contentsOf: progressionFindings(report.progressionHotspots))
-        findings.append(contentsOf: crossTierFindings(tiers: tiers))
-        return findings.sorted { lhs, rhs in
-            if lhs.score != rhs.score {
-                return lhs.score > rhs.score
-            }
-            return lhs.line < rhs.line
+        findings.append(contentsOf: crossTierFindings(tiers: snapshots.tiers))
+        return findings.sorted {
+            $0.score != $1.score ? $0.score > $1.score : $0.line < $1.line
         }
     }
 }
 
 extension BalanceFindingsReporter {
     private static func identityFindings(tier: BalanceTierStats, records: [BalanceBattleRecord]) -> [Finding] {
-        var findings: [Finding] = []
-        findings.append(contentsOf: durationFinding(tier.trashDuration, bucket: "trash", tier: tier.tier))
-        findings.append(contentsOf: durationFinding(tier.bossDuration, bucket: "boss", tier: tier.tier))
-        findings.append(contentsOf: enemyDurationFindings(tier.enemyDurations, tier: tier.tier))
-        findings.append(contentsOf: combatantDurationFindings(tier.heroDurations, kind: "hero", tier: tier.tier))
-        findings.append(contentsOf: combatantDurationFindings(tier.companionDurations, kind: "companion", tier: tier.tier))
+        var findings = durationFinding(tier.trashDuration, bucket: "trash", tier: tier.tier)
+        findings += durationFinding(tier.bossDuration, bucket: "boss", tier: tier.tier)
+        findings += enemyDurationFindings(tier.enemyDurations, tier: tier.tier)
+        findings += combatantDurationFindings(tier.heroDurations, kind: "hero", tier: tier.tier)
+        findings += combatantDurationFindings(tier.companionDurations, kind: "companion", tier: tier.tier)
         for (rows, kind) in [
-            (tier.heroes, "hero"),
-            (tier.companions, "companion"),
-            (tier.items, "item"),
-            (tier.abilities, "ability"),
-            (tier.talents, "talent"),
-            (tier.affixes, "affix"),
-            (tier.enemyAbilities, "enemy ability"),
-            (tier.enemyTraits, "enemy trait"),
+            (tier.heroes, "hero"), (tier.companions, "companion"), (tier.items, "item"),
+            (tier.abilities, "ability"), (tier.talents, "talent"), (tier.affixes, "affix"),
+            (tier.enemyAbilities, "enemy ability"), (tier.enemyTraits, "enemy trait"),
         ] {
-            findings.append(contentsOf: rosterFindings(rows, kind: kind, tier: tier.tier))
+            findings += rosterFindings(rows, kind: kind, tier: tier.tier)
         }
-        findings.append(contentsOf: rosterFindings(tier.enemies, kind: "enemy", tier: tier.tier, records: records))
-        findings.append(contentsOf: collapsedSplit(
-            split: tier.heroesBoss,
-            kind: "hero",
-            vs: "bosses",
-            tier: tier.tier,
-        ))
-        findings.append(contentsOf: collapsedSplit(
-            split: tier.companionsBoss,
-            kind: "companion",
-            vs: "bosses",
-            tier: tier.tier,
-        ))
-        findings.append(contentsOf: pairingFindings(
-            tier.heroCompanionCells,
-            labels: ("hero", "companion"),
-            tier: tier.tier,
-        ))
-        findings.append(contentsOf: pairingFindings(
-            tier.heroEnemyCells,
-            labels: ("hero", "enemy"),
-            tier: tier.tier,
-        ))
+        findings += rosterFindings(tier.enemies, kind: "enemy", tier: tier.tier, records: records)
+        findings += collapsedSplit(split: tier.heroesBoss, kind: "hero", vs: "bosses", tier: tier.tier)
+        findings += collapsedSplit(split: tier.companionsBoss, kind: "companion", vs: "bosses", tier: tier.tier)
+        findings += pairingFindings(tier.heroCompanionCells, labels: ("hero", "companion"), tier: tier.tier)
+        findings += pairingFindings(tier.heroEnemyCells, labels: ("hero", "enemy"), tier: tier.tier)
         return findings
     }
 
@@ -234,8 +201,6 @@ extension BalanceFindingsReporter {
         let reasons = Set(flagged.compactMap(\.flagReason))
         guard reasons.count == 1, let reason = reasons.first else { return [] }
         let rates = flagged.map(\.winRate)
-        let minRate = (rates.min() ?? 0) * 100
-        let maxRate = (rates.max() ?? 0) * 100
         let meanDelta = flagged.map(\.deltaVsPeer).reduce(0, +) / Double(flagged.count)
         return [
             Finding(
@@ -246,8 +211,8 @@ extension BalanceFindingsReporter {
                     vs,
                     tier.displayName,
                     reason,
-                    minRate,
-                    maxRate,
+                    (rates.min() ?? 0) * 100,
+                    (rates.max() ?? 0) * 100,
                     flagged.first?.battles ?? 0,
                 ),
             ),
@@ -260,7 +225,6 @@ extension BalanceFindingsReporter {
         tier: SimulationPowerTier,
     ) -> [Finding] {
         guard bucket.flagged else { return [] }
-        let worst = bucket.worstEnemyID.map { "`\($0)`" } ?? "-"
         return [
             Finding(
                 score: max(bucket.shortRate, bucket.longRate),
@@ -272,7 +236,7 @@ extension BalanceFindingsReporter {
                     bucket.shortRate * 100,
                     bucket.longRate * 100,
                     bucket.averageRounds,
-                    worst,
+                    bucket.worstEnemyID.map { "`\($0)`" } ?? "-",
                 ),
             ),
         ]
@@ -283,9 +247,11 @@ extension BalanceFindingsReporter {
         labels: (String, String),
         tier: SimulationPowerTier,
     ) -> [Finding] {
-        let explained = cells.filter(\.flagged)
-            .sorted { abs($0.deltaVsPeer) > abs($1.deltaVsPeer) }
-        return Array(explained.prefix(pairingCap)).map { cell in
+        Array(
+            cells.filter(\.flagged)
+                .sorted { abs($0.deltaVsPeer) > abs($1.deltaVsPeer) }
+                .prefix(pairingCap),
+        ).map { cell in
             Finding(
                 score: abs(cell.deltaVsPeer) * 0.5,
                 line: String(
@@ -308,21 +274,10 @@ extension BalanceFindingsReporter {
         _ rows: [BalanceEnemyDurationStats],
         tier: SimulationPowerTier,
     ) -> [Finding] {
-        rows.filter(\.flagged).map { row in
-            Finding(
-                score: max(row.shortRate, row.longRate),
-                line: String(
-                    format: "Enemy `%@` (%@ duration): ⚠ %@ · avg %.1f rounds · SHORT %.0f%% · LONG %.0f%% · n=%d",
-                    row.enemyID,
-                    tier.displayName,
-                    row.flagReason ?? "",
-                    row.averageRounds,
-                    row.shortRate * 100,
-                    row.longRate * 100,
-                    row.battles,
-                ),
-            )
-        }
+        durationFindings(
+            rows.filter(\.flagged).map { ($0.enemyID, "Enemy", $0.averageRounds, $0.shortRate, $0.longRate, $0.battles, $0.flagReason) },
+            tier: tier,
+        )
     }
 
     private static func combatantDurationFindings(
@@ -330,19 +285,37 @@ extension BalanceFindingsReporter {
         kind: String,
         tier: SimulationPowerTier,
     ) -> [Finding] {
-        rows.filter(\.flagged).map { row in
+        durationFindings(
+            rows.filter(\.flagged).map { (
+                $0.combatantID,
+                kind.capitalized,
+                $0.averageRounds,
+                $0.shortRate,
+                $0.longRate,
+                $0.battles,
+                $0.flagReason,
+            ) },
+            tier: tier,
+        )
+    }
+
+    private static func durationFindings(
+        _ rows: [(String, String, Double, Double, Double, Int, String?)],
+        tier: SimulationPowerTier,
+    ) -> [Finding] {
+        rows.map { id, kind, avg, short, long, battles, reason in
             Finding(
-                score: max(row.shortRate, row.longRate),
+                score: max(short, long),
                 line: String(
                     format: "%@ `%@` (%@ duration): ⚠ %@ · avg %.1f rounds · SHORT %.0f%% · LONG %.0f%% · n=%d",
-                    kind.capitalized,
-                    row.combatantID,
+                    kind,
+                    id,
                     tier.displayName,
-                    row.flagReason ?? "",
-                    row.averageRounds,
-                    row.shortRate * 100,
-                    row.longRate * 100,
-                    row.battles,
+                    reason ?? "",
+                    avg,
+                    short * 100,
+                    long * 100,
+                    battles,
                 ),
             )
         }
@@ -367,7 +340,6 @@ extension BalanceFindingsReporter {
 
     private static func contrastFindings(_ rows: [PairedContrastSummary], kind: String) -> [Finding] {
         let flagged = rows.filter(\.flagged).sorted(by: BalanceContrastFlags.summarySort)
-        let extra = max(0, flagged.count - contrastCap)
         var findings = Array(flagged.prefix(contrastCap)).map { row -> Finding in
             Finding(
                 score: max(abs(row.lift), abs(row.meanDeltaPartyHP), abs(row.meanDeltaRounds) / 10),
@@ -391,10 +363,9 @@ extension BalanceFindingsReporter {
                 ),
             )
         }
+        let extra = max(0, flagged.count - contrastCap)
         if extra > 0 {
-            findings.append(
-                Finding(score: 0, line: "\(extra) more flagged \(kind) contrasts; see JSON."),
-            )
+            findings.append(Finding(score: 0, line: "\(extra) more flagged \(kind) contrasts; see JSON."))
         }
         return findings
     }
@@ -431,12 +402,9 @@ extension BalanceFindingsReporter {
     private static func enemyWhy(_ enemyID: String, records: [BalanceBattleRecord]) -> String {
         let mine = records.filter { $0.enemyID == enemyID }
         let others = records.filter { $0.enemyID != enemyID }
-        let mineAbilities = Set(mine.flatMap(\.enemyAbilityIDs))
-        let otherAbilities = Set(others.flatMap(\.enemyAbilityIDs))
-        let unique = mineAbilities.subtracting(otherAbilities).sorted()
+        let unique = Set(mine.flatMap(\.enemyAbilityIDs)).subtracting(Set(others.flatMap(\.enemyAbilityIDs))).sorted()
         if !unique.isEmpty {
-            let listed = unique.map { "`\($0)`" }.joined(separator: ", ")
-            return "only enemy with \(listed)"
+            return "only enemy with " + unique.map { "`\($0)`" }.joined(separator: ", ")
         }
         if let traits = mine.first?.enemyTraitIDs, !traits.isEmpty {
             return "traits " + traits.map { "`\($0)`" }.joined(separator: ", ")

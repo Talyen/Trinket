@@ -83,9 +83,9 @@ struct HeadlessPlaythroughTests {
             #expect(play.journey.handleStagePrimaryAction(for: shopStage) == nil)
             let shop = try #require(play.encounters.activeShopEncounter)
             let offer = try #require(shop.offers.first)
-            #expect(play.encounters.purchaseActiveShopOffer(offerID: offer.id))
+            #expect(play.encounters.purchaseActiveShopOffer(offerID: offer.id) == .committed)
             let purchased = save.currentSave
-            #expect(!play.encounters.purchaseActiveShopOffer(offerID: offer.id))
+            #expect(play.encounters.purchaseActiveShopOffer(offerID: offer.id) == .rejected)
             #expect(save.currentSave == purchased)
             #expect(play.encounters.finishActiveShopEncounter())
             let recruit = try #require(GameContent.stage(id: "chapter-1-stage-2"))

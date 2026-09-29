@@ -55,6 +55,25 @@ package enum EnemyTraitEngine {
         )).events
     }
 
+    static func attacksApplyPoison(from state: DamageResolutionState, context: inout BattleState) -> [ActionEvent] {
+        guard state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
+              let sourceActorID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID),
+              source.role == .enemy,
+              context.roster.health(for: source.combatant) > 0,
+              context.roster.health(for: state.combatant) > 0
+        else { return [] }
+        let triggers = context.modifiers(for: sourceActorID).triggers
+        guard triggers.attacksApplyPoison > 0 else { return [] }
+        return context.applyDecayingDoT(
+            keyword: .poison,
+            potency: triggers.attacksApplyPoison,
+            to: state.combatant,
+            sourceActorID: sourceActorID,
+            application: .reaction,
+        )
+    }
+
     package static func turnFreeze(
         for combatant: Combatant,
         context: inout BattleState,

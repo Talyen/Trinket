@@ -77,6 +77,7 @@ package enum DamagePipeline {
 
         state.damageEvents.append(contentsOf: EnemyTraitEngine.basicFreezeDamage(from: state, context: &context))
         state.damageEvents.append(contentsOf: EnemyTraitEngine.firstAttackBleedBonus(from: state, context: &context))
+        state.damageEvents.append(contentsOf: EnemyTraitEngine.attacksApplyPoison(from: state, context: &context))
         applyDoTDamageReactions(to: &state, in: &context)
         applyCompanionDamageRetaliation(to: &state, in: &context)
         applyLeech(to: &state, in: &context)

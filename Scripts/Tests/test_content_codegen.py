@@ -126,3 +126,20 @@ class ContentCodegenTests(ScriptRegressionTestCase):
                 TraitRow("other", "guard", "Gain Block.", "", "blockPerTurn:1")]
         with self.assertRaisesRegex(ValueError, "trait name"):
             validate_trait_rows(rows)
+
+    def test_affixes_must_share_a_keyword_with_a_base_of_their_slot(self) -> None:
+        sys.path.insert(0, str(ROOT / "Scripts"))
+        from internal.content.items import AffixRow, ItemBaseRow, validate_affix_reachability
+
+        base = ItemBaseRow("emerald_ring", "Emerald Ring", "accessory", "", "poison,health")
+        reachable = AffixRow(
+            "venomous", "Venomous", "accessory", "poison", "8", "b", "a", "", "", "", "",
+        )
+        orphan = AffixRow(
+            "keen", "Keen", "accessory", "physical", "8", "b", "a", "", "", "", "",
+        )
+        validate_affix_reachability([reachable], [base])
+        with self.assertRaisesRegex(ValueError, "shares no keyword"):
+            validate_affix_reachability([orphan, reachable], [base])
+        with self.assertRaisesRegex(ValueError, "shares no keyword"):
+            validate_affix_reachability([reachable], [])

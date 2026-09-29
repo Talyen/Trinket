@@ -46,8 +46,8 @@ only if that attack removes enemy Health.
 Keep ordered
 damage checkpoints in `DamagePipeline`; commit mutations before their dependent
 reactions. Reserve next-hit resources before nested reactions and never write a
-cached effects array back after a reaction. `CleanseOperation` owns removal and
-all cleanse consequences together. `PurgeOperation` likewise commits removals
+cached effects array back after a reaction. `EffectRemovalOperation` owns removal and
+all cleanse consequences together. Its purge path likewise commits removals
 before protection and rewards; dependent damage reads its actual removed effects.
 Affix rewards for Purge require at least one buff removed from an enemy; an empty
 Purge never grants Block or deals Holy damage.

@@ -24,8 +24,8 @@ package extension CombatTriggerEngine {
         guard count > 0, context.roster.health(for: target) > 0 else { return [] }
         var events: [ActionEvent] = []
         for _ in 0 ..< count {
-            let outcome = CleanseOperation.resolve(
-                .random, source: source, target: target, abilityName: abilityName, in: &context,
+            let outcome = EffectRemovalOperation.resolveCleanse(
+                .randomDebuff, source: source, target: target, abilityName: abilityName, in: &context,
             )
             events.append(contentsOf: outcome.events)
             if outcome.removed.isEmpty {
@@ -44,37 +44,39 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         var events: [ActionEvent] = []
-        if removedCount > 0, triggers.cleanseNextAttackCriticalBonus > 0 {
-            let preparedCardSerial = context.resolution.cardTalents?.playSerial
-            context.roster.mutateRuntime(for: target) {
-                $0.talents.pending.nextCleanseCriticalBonus = max(
-                    $0.talents.pending.nextCleanseCriticalBonus,
-                    triggers.cleanseNextAttackCriticalBonus,
-                )
-                $0.talents.pending.nextCleanseCriticalPreparedCardSerial = preparedCardSerial
+        if removedCount > 0 {
+            if triggers.cleanseNextAttackCriticalBonus > 0 {
+                let preparedCardSerial = context.resolution.cardTalents?.playSerial
+                context.roster.mutateRuntime(for: target) {
+                    $0.talents.pending.nextCleanseCriticalBonus = max(
+                        $0.talents.pending.nextCleanseCriticalBonus,
+                        triggers.cleanseNextAttackCriticalBonus,
+                    )
+                    $0.talents.pending.nextCleanseCriticalPreparedCardSerial = preparedCardSerial
+                }
             }
-        }
-        if removedCount > 0, triggers.cleanseSelfBlockFlat > 0 {
-            events.append(contentsOf: context.applyBlock(
-                triggers.cleanseSelfBlockFlat * removedCount,
-                to: source, source: source,
-                abilityName: triggerAbilityName("cleanseSelfBlockFlat", for: source, fallback: "Clearheaded", in: context),
+            if triggers.cleanseSelfBlockFlat > 0 {
+                events.append(contentsOf: context.applyBlock(
+                    triggers.cleanseSelfBlockFlat * removedCount,
+                    to: source, source: source,
+                    abilityName: triggerAbilityName("cleanseSelfBlockFlat", for: source, fallback: "Clearheaded", in: context),
+                ))
+            }
+            if triggers.onCleanseRestoreMana > 0 {
+                events.append(contentsOf: emitMana(
+                    "onCleanseRestoreMana", "Solace",
+                    amount: triggers.onCleanseRestoreMana * removedCount, to: source, in: &context,
+                ))
+            }
+            events.append(contentsOf: cleanseShieldBonuses(
+                triggers: triggers,
+                source: source,
+                target: target,
+                removedCount: removedCount,
+                allowPartyBlock: allowMassCleanse,
+                in: &context,
             ))
         }
-        if removedCount > 0, triggers.onCleanseRestoreMana > 0 {
-            events.append(contentsOf: emitMana(
-                "onCleanseRestoreMana", "Solace",
-                amount: triggers.onCleanseRestoreMana * removedCount, to: source, in: &context,
-            ))
-        }
-        events.append(contentsOf: cleanseShieldBonuses(
-            triggers: triggers,
-            source: source,
-            target: target,
-            removedCount: removedCount,
-            allowPartyBlock: allowMassCleanse,
-            in: &context,
-        ))
         if allowMassCleanse {
             events.append(contentsOf: dispelMagicPurge(triggers: triggers, source: source, in: &context))
             events.append(contentsOf: cleansePartyReactions(
@@ -122,14 +124,15 @@ package extension CombatTriggerEngine {
         allowPartyBlock: Bool,
         in context: inout BattleState,
     ) -> [ActionEvent] {
+        guard removedCount > 0 else { return [] }
         var events: [ActionEvent] = []
-        if triggers.cleanseBlockPerStack > 0, removedCount > 0 {
+        if triggers.cleanseBlockPerStack > 0 {
             events.append(contentsOf: emitBlock(
                 "cleanseBlockPerStack", "Spellbreak Shield",
                 amount: triggers.cleanseBlockPerStack * removedCount, to: target, source: source, in: &context,
             ))
         }
-        if triggers.cleanseTargetBlockFlat > 0, removedCount > 0 {
+        if triggers.cleanseTargetBlockFlat > 0 {
             events.append(contentsOf: context.applyBlock(
                 triggers.cleanseTargetBlockFlat,
                 to: target, source: source, abilityName: "Cleansing Ward",
@@ -213,10 +216,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         if triggers.cleanseDodgeChanceBonus > 0 {
-            let duration = max(1, triggers.cleanseDodgeChanceBonusTurns)
-            context.roster.mutateRuntime(for: target) {
-                $0.talents.grantTimedDodge(triggers.cleanseDodgeChanceBonus, untilTurn: context.turnCount + duration)
-            }
+            EffectRemovalOperation.grantSecondaryCleanseDodge(source: source, target: target, in: &context)
         }
         return cleanseOtherPartyMember(source: source, target: target, in: &context)
     }
@@ -241,21 +241,23 @@ package extension CombatTriggerEngine {
             fallback: "Mass Cleanse",
             in: context,
         )
-        return CleanseOperation.resolve(
+        return EffectRemovalOperation.resolveCleanse(
             .all(nil), source: source, target: other, abilityName: abilityName,
             propagation: .secondary, in: &context,
         ).events
     }
 
-    static func healAfterCleanse(
+    static func bonusHealAfterCleanse(
         source: Combatant,
-        target _: Combatant,
+        amount: Int,
+        requireWoundedTarget: Bool,
         in context: inout BattleState,
     ) -> CombatOutcome {
-        let amount = context.modifiers(for: source.id).triggers.cleanseBonusHeal
         guard amount > 0 else { return .empty }
         let healTarget = BattleTargetResolver.lowestHealthAlly(for: source, in: context)
-        guard context.roster.health(for: healTarget) < context.roster.maxHealth(for: healTarget) else { return .empty }
+        if requireWoundedTarget {
+            guard context.roster.health(for: healTarget) < context.roster.maxHealth(for: healTarget) else { return .empty }
+        }
         return resolveBonusHeal(
             amount: amount,
             source: source,
@@ -264,25 +266,12 @@ package extension CombatTriggerEngine {
         )
     }
 
-    static func healWearerAfterCleanse(
-        source: Combatant,
-        in context: inout BattleState,
-    ) -> CombatOutcome {
-        let amount = context.modifiers(for: source.id).triggers.cleanseSelfHeal
-        guard amount > 0 else { return .empty }
-        let target = BattleTargetResolver.lowestHealthAlly(for: source, in: context)
-        return resolveBonusHeal(
-            amount: amount,
-            source: source,
-            target: target,
-            in: &context,
-        )
-    }
-
     static func drawAfterCleanse(
         source: Combatant,
+        removedCount: Int,
         in context: inout BattleState,
     ) -> [ActionEvent] {
+        guard removedCount > 0 else { return [] }
         let count = context.modifiers(for: source.id).triggers.cleanseBonusDraw
         guard count > 0,
               context.claimHeroTalent("Purifying Wisdom", actorID: source.id, battle: true)
@@ -294,7 +283,7 @@ package extension CombatTriggerEngine {
             count,
             for: owner,
             actor: source,
-            abilityName: triggerAbilityName("cleanseBonusDraw", for: source, fallback: "Trait", in: context),
+            abilityName: triggerAbilityName("cleanseBonusDraw", for: source, fallback: "Purifying Wisdom", in: context),
             in: &context,
         )
     }

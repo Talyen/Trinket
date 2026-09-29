@@ -67,9 +67,10 @@ struct PlayBattleOverlay: View {
                     battle.claimVictory(configurationID: configuration.id, summary: summary, defersPresentationExit: true)
                 },
                 restartBattle: { [weak play, stageMessage = $stageMessage] in
-                    if let message = play?.restartActiveBattle() {
-                        stageMessage.wrappedValue = message
-                    }
+                    guard let play else { return false }
+                    guard let message = play.restartActiveBattle() else { return true }
+                    stageMessage.wrappedValue = message
+                    return false
                 },
                 retreat: { [weak play] in
                     play?.endBattleReturningToOrigin()

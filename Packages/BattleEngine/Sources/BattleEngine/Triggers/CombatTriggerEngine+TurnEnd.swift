@@ -15,7 +15,9 @@ package extension CombatTriggerEngine {
                     abilityName: "Arcane Cleansing", in: &context,
                 ))
             }
-            events.append(contentsOf: endOfTurnHealing(actor: actor, triggers: triggers, in: &context))
+            events.append(contentsOf: hibernationHeal(actor: actor, triggers: triggers, in: &context))
+            events.append(contentsOf: campfireComfortHeal(actor: actor, triggers: triggers, in: &context))
+            events.append(contentsOf: partyRegenHeal(actor: actor, triggers: triggers, in: &context))
             events.append(contentsOf: hoardArmorBlock(actor: actor, triggers: triggers, in: &context))
         }
         return events
@@ -49,18 +51,6 @@ package extension CombatTriggerEngine {
         )
     }
 
-    private static func endOfTurnHealing(
-        actor: Combatant,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        var events: [ActionEvent] = []
-        events.append(contentsOf: hibernationHeal(actor: actor, triggers: triggers, in: &context))
-        events.append(contentsOf: cheerUpHeal(actor: actor, triggers: triggers, in: &context))
-        events.append(contentsOf: campfireComfortHeal(actor: actor, triggers: triggers, in: &context))
-        return events
-    }
-
     private static func hibernationHeal(
         actor: Combatant,
         triggers: CombatTraitTriggers,
@@ -77,7 +67,7 @@ package extension CombatTriggerEngine {
         )
     }
 
-    private static func cheerUpHeal(
+    private static func campfireComfortHeal(
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
@@ -88,12 +78,12 @@ package extension CombatTriggerEngine {
         let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
         guard context.roster.health(for: lowest) < context.roster.maxHealth(for: lowest) else { return [] }
         return emitHeal(
-            "endOfTurnHealLowestAlly", "Cheer Up",
+            "endOfTurnHealLowestAlly", "Campfire Comfort",
             amount: triggers.endOfTurnHealLowestAlly, to: lowest, source: actor, in: &context,
         )
     }
 
-    private static func campfireComfortHeal(
+    private static func partyRegenHeal(
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
@@ -103,7 +93,7 @@ package extension CombatTriggerEngine {
         for (_, member) in livingPartyMembers(in: context) {
             guard member.currentHealth < member.maxHealth else { continue }
             events.append(contentsOf: emitHeal(
-                "partyRegenPerRound", "Campfire Comfort",
+                "partyRegenPerRound", "Regeneration",
                 amount: triggers.partyRegenPerRound, to: member.combatant, source: actor, in: &context,
             ))
         }

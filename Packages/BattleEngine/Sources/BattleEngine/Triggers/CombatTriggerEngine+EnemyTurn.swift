@@ -2,6 +2,26 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
+    /// Single owner for enemy-avoidance events: the enemy is always the named
+    /// actor, and only the outcome, ability name, target, and keyword vary.
+    private static func avoidanceEvent(
+        effectKind: ActionEvent.EffectOutcome,
+        abilityName: String,
+        target: Combatant,
+        keyword: Keyword,
+        in context: inout BattleState,
+    ) -> ActionEvent {
+        context.nextEvent(
+            kind: .effect,
+            effectKind: effectKind,
+            actorName: context.roster.enemy.name,
+            abilityName: abilityName,
+            target: target,
+            amount: 0,
+            keyword: keyword,
+        )
+    }
+
     /// Total of a trigger magnitude across living allies plus the first ally
     /// carrying it (nil when nobody does). Shared by the bleed/poison
     /// enemy-action gates, which differ only in the key they sum.
@@ -29,10 +49,8 @@ package extension CombatTriggerEngine {
         if skipChance > 0,
            BattleChance.succeeds(probability: skipChance, using: &context.rng) {
             let source = skipSource ?? context.roster.hero.combatant
-            events.append(context.nextEvent(
-                kind: .effect,
+            events.append(avoidanceEvent(
                 effectKind: .controlActionSkipped,
-                actorName: context.roster.enemy.name,
                 abilityName: triggerAbilityName(
                     "bleedingEnemyActionSkipChancePercent",
                     for: source,
@@ -40,8 +58,8 @@ package extension CombatTriggerEngine {
                     in: context,
                 ),
                 target: enemy,
-                amount: 0,
                 keyword: .bleed,
+                in: &context,
             ))
             return (events, true)
         }
@@ -139,14 +157,12 @@ package extension CombatTriggerEngine {
         let delays = context.additionalControlSkipsByCombatantID[enemy.id, default: 0]
         if delays > 0 {
             context.additionalControlSkipsByCombatantID[enemy.id] = delays - 1
-            return ([context.nextEvent(
-                kind: .effect,
+            return ([avoidanceEvent(
                 effectKind: .controlActionSkipped,
-                actorName: enemy.name,
                 abilityName: "Delay",
                 target: enemy,
-                amount: 0,
                 keyword: .stun,
+                in: &context,
             )], true)
         }
         return ([], false)
@@ -200,14 +216,12 @@ package extension CombatTriggerEngine {
             $0.talents.pending.nextAttackMissAbilityName = nil
         }
         guard BattleChance.succeeds(probability: chance, using: &context.rng) else { return nil }
-        return ([context.nextEvent(
-            kind: .effect,
+        return ([avoidanceEvent(
             effectKind: .dodgeApplied,
-            actorName: enemy.name,
             abilityName: pending?.nextAttackMissAbilityName ?? "Blinding Light",
             target: abilityTarget,
-            amount: 0,
             keyword: .dodge,
+            in: &context,
         )], true)
     }
 
@@ -224,10 +238,8 @@ package extension CombatTriggerEngine {
             return nil
         }
         let source = missSource ?? context.roster.hero.combatant
-        return ([context.nextEvent(
-            kind: .effect,
+        return ([avoidanceEvent(
             effectKind: .dodgeApplied,
-            actorName: context.roster.enemy.name,
             abilityName: triggerAbilityName(
                 "poisonedEnemyMissChancePercent",
                 for: source,
@@ -235,8 +247,8 @@ package extension CombatTriggerEngine {
                 in: context,
             ),
             target: abilityTarget,
-            amount: 0,
             keyword: .dodge,
+            in: &context,
         )], true)
     }
 
@@ -276,22 +288,16 @@ package extension CombatTriggerEngine {
             }
             if triggers.onEnemyStunRecoverApplyAfflictions > 0, context.roster.health(for: enemy) > 0 {
                 let potency = triggers.onEnemyStunRecoverApplyAfflictions
-                for keyword in [Keyword.poison, .burn] {
-                    events.append(contentsOf: context.applyDecayingDoT(
+                for keyword in [Keyword.poison, .burn, .bleed] {
+                    events.append(contentsOf: applyDoT(
                         keyword: keyword,
                         potency: potency,
                         to: enemy,
                         sourceActorID: member.id,
                         application: .attached,
+                        in: &context,
                     ))
                 }
-                events.append(contentsOf: DoTApplicator.applyBleed(
-                    potency: potency,
-                    to: enemy,
-                    sourceActorID: member.id,
-                    application: .attached,
-                    in: &context,
-                ))
             }
             if triggers.onStunExpirePoisonDamage > 0, context.roster.health(for: enemy) > 0 {
                 events.append(contentsOf: heroTalentDamage(

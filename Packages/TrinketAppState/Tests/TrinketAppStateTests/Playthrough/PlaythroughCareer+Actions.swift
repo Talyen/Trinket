@@ -31,7 +31,7 @@ extension PlaythroughCareer {
                 "mystery completion",
             )
         case let .shop(id):
-            try require(play.encounters.purchaseActiveShopOffer(offerID: id), "shop purchase")
+            try require(play.encounters.purchaseActiveShopOffer(offerID: id) == .committed, "shop purchase")
         case .finishShop:
             try require(play.encounters.finishActiveShopEncounter(), "shop completion")
         case .reopen:

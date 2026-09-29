@@ -76,43 +76,22 @@ package extension CombatTriggerEngine {
             }
         }
 
-        for owner in [BattleParticipant.hero, .companion] {
-            events.append(contentsOf: afterEnemyDefeatedReactions(for: owner, in: &context))
+        for (_, member) in livingPartyMembers(in: context) {
+            events.append(contentsOf: afterEnemyDefeatedReactions(for: member.combatant, in: &context))
         }
         return events
     }
 
     private static func afterEnemyDefeatedReactions(
-        for owner: BattleParticipant,
+        for actor: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        let runtime = context.roster[owner]
-        guard runtime.isAlive else { return [] }
-        let actor = runtime.combatant
+        guard context.roster.health(for: actor) > 0, context.lastEnemyDefeatWasCritical else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
-        var events: [ActionEvent] = []
-        if context.lastEnemyDefeatWasCritical {
-            events.append(contentsOf: critOnDefeatRewards(
-                triggers: triggers,
-                actor: actor,
-                in: &context,
-            ))
-        }
-        return events
-    }
-
-    private static func critOnDefeatRewards(
-        triggers: CombatTraitTriggers,
-        actor: Combatant,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        var events: [ActionEvent] = []
-        if triggers.critOnDefeatGold > 0 {
-            events.append(contentsOf: emitGold(
-                "critOnDefeatGold", "Bounty Hunter", amount: triggers.critOnDefeatGold, to: actor, in: &context,
-            ))
-        }
-        return events
+        guard triggers.critOnDefeatGold > 0 else { return [] }
+        return emitGold(
+            "critOnDefeatGold", "Bounty Hunter", amount: triggers.critOnDefeatGold, to: actor, in: &context,
+        )
     }
 
     static func afterVictory(in context: inout BattleState) -> [ActionEvent] {
@@ -126,15 +105,10 @@ package extension CombatTriggerEngine {
                 ))
             }
             if triggers.victoryGoldCoin {
-                if BattleChance.succeeds(probability: 0.5, using: &context.rng) {
-                    events.append(contentsOf: emitGold(
-                        "victoryGoldCoin", "Wishing Well Coin", amount: 7, to: actor, in: &context,
-                    ))
-                } else {
-                    events.append(contentsOf: emitGold(
-                        "victoryGoldCoin", "Wishing Well Coin", amount: 3, to: actor, in: &context,
-                    ))
-                }
+                let amount = BattleChance.succeeds(probability: 0.5, using: &context.rng) ? 7 : 3
+                events.append(contentsOf: emitGold(
+                    "victoryGoldCoin", "Wishing Well Coin", amount: amount, to: actor, in: &context,
+                ))
             }
         }
         return events
@@ -235,7 +209,8 @@ package extension CombatTriggerEngine {
         }
         if granted > 0 {
             for (_, member) in livingPartyMembers(in: context) {
-                let percent = context.modifiers(for: member.id).triggers.goldGainBlockPercent
+                let memberTriggers = context.modifiers(for: member.id).triggers
+                let percent = memberTriggers.goldGainBlockPercent
                 if percent > 0 {
                     let block = Int((Double(granted) * percent).rounded(.down))
                     if block > 0 {
@@ -246,7 +221,7 @@ package extension CombatTriggerEngine {
                     }
                     continue
                 }
-                let every = context.modifiers(for: member.id).triggers.blockPerGoldEarnedEvery
+                let every = memberTriggers.blockPerGoldEarnedEvery
                 guard every > 0 else { continue }
                 let newlyGranted = currentEarned / every - previousEarned / every
                 if newlyGranted > 0 {

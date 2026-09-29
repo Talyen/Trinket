@@ -2,6 +2,13 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
+    /// Explicit trigger chance, falling back to guaranteed (1) when only the
+    /// flat enabler is present. Shared by the bleed/burn conversion gates,
+    /// which differ only in the key they read.
+    static func chanceOrGuaranteed(_ explicitChance: Double, guaranteed: Bool) -> Double {
+        explicitChance > 0 ? explicitChance : (guaranteed ? 1 : 0)
+    }
+
     /// Reactions to a bleed stack being attached (may convert to poison/burn).
     /// Contrast `DoT.afterBleedDamage` (reactions to bleed damage ticks) and
     /// `afterDecayingDoTApplied` (decaying-DoT attach reactions).
@@ -15,9 +22,10 @@ package extension CombatTriggerEngine {
             let profile = context.modifiers(for: sourceActorID)
             var events: [ActionEvent] = []
 
-            let bleedPoisonChance = profile.triggers.onBleedDealPoisonChancePercent > 0
-                ? profile.triggers.onBleedDealPoisonChancePercent
-                : (profile.triggers.onBleedApplyPoison > 0 ? 1 : 0)
+            let bleedPoisonChance = chanceOrGuaranteed(
+                profile.triggers.onBleedDealPoisonChancePercent,
+                guaranteed: profile.triggers.onBleedApplyPoison > 0,
+            )
             if profile.triggers.onBleedApplyPoison > 0, bleedPoisonChance > 0,
                BattleChance.succeeds(probability: min(1, bleedPoisonChance), using: &context.rng) {
                 events.append(contentsOf: context.applyDecayingDoT(
@@ -29,9 +37,10 @@ package extension CombatTriggerEngine {
                 ))
             }
 
-            let bleedBurnChance = profile.triggers.onBleedDealBurnChancePercent > 0
-                ? profile.triggers.onBleedDealBurnChancePercent
-                : (profile.triggers.onBleedDealBurnDamage > 0 ? 1 : 0)
+            let bleedBurnChance = chanceOrGuaranteed(
+                profile.triggers.onBleedDealBurnChancePercent,
+                guaranteed: profile.triggers.onBleedDealBurnDamage > 0,
+            )
             if profile.triggers.onBleedDealBurnDamage > 0, bleedBurnChance > 0,
                BattleChance.succeeds(probability: min(1, bleedBurnChance), using: &context.rng) {
                 events.append(contentsOf: DoTDamage.resolveDamage(
@@ -54,10 +63,11 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         withDoTRecursionScope(site: "afterDecayingDoTApplied", context: &context) { context in
+            let triggers = context.modifiers(for: sourceActorID).triggers
             var events: [ActionEvent] = []
             if keyword == .burn,
                let source = context.roster.combatant(for: sourceActorID) {
-                let dodgeBonus = context.modifiers(for: sourceActorID).triggers.onApplyBurnDodgeChanceUntilNextTurn
+                let dodgeBonus = triggers.onApplyBurnDodgeChanceUntilNextTurn
                 if dodgeBonus > 0 {
                     context.roster.mutateRuntime(for: source.combatant) {
                         $0.talents.grantDodgeUntilNextTurn(dodgeBonus)
@@ -65,11 +75,9 @@ package extension CombatTriggerEngine {
                 }
             }
             guard keyword == .burn else { return events }
-            let potency = context.modifiers(for: sourceActorID).triggers.onBurnApplyPoison
+            let potency = triggers.onBurnApplyPoison
             guard potency > 0 else { return events }
-            let burnPoisonChance = context.modifiers(for: sourceActorID).triggers.onBurnDealPoisonChancePercent > 0
-                ? context.modifiers(for: sourceActorID).triggers.onBurnDealPoisonChancePercent
-                : 1
+            let burnPoisonChance = chanceOrGuaranteed(triggers.onBurnDealPoisonChancePercent, guaranteed: true)
             guard BattleChance.succeeds(probability: min(1, burnPoisonChance), using: &context.rng) else { return events }
             events.append(contentsOf: context.applyDecayingDoT(
                 keyword: .poison,

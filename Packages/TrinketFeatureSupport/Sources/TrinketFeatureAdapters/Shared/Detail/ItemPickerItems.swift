@@ -52,7 +52,11 @@ struct ItemPickerItems {
             }
         }
         eligible = candidates.sorted { order[$0.id, default: 0] < order[$1.id, default: 0] }
-        keywords = Set(candidates.flatMap(\.keywords)).sorted {
+        var candidateKeywords = Set<Keyword>()
+        for candidate in candidates {
+            candidateKeywords.formUnion(candidate.keywords)
+        }
+        keywords = candidateKeywords.sorted {
             $0.rawValue.localizedStandardCompare($1.rawValue) == .orderedAscending
         }
         lastLoadout = loadout

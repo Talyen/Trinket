@@ -3,21 +3,12 @@ import TrinketContent
 import TrinketDesignSystem
 
 public struct AbilityDetailView: View {
-    private enum Action {
-        case none
-        case primaryAction(
-            title: String,
-            accessibilityID: String?,
-            onAction: () -> Void,
-        )
-    }
-
     let ability: Ability
-    private let action: Action
+    private let primaryAction: DetailPrimaryAction?
 
     public init(ability: Ability) {
         self.ability = ability
-        action = .none
+        primaryAction = nil
     }
 
     public init(
@@ -27,10 +18,10 @@ public struct AbilityDetailView: View {
         onPrimaryAction: @escaping () -> Void,
     ) {
         self.ability = ability
-        action = .primaryAction(
+        primaryAction = DetailPrimaryAction(
             title: primaryActionTitle,
-            accessibilityID: primaryActionAccessibilityID,
-            onAction: onPrimaryAction,
+            accessibilityIdentifier: primaryActionAccessibilityID,
+            action: onPrimaryAction,
         )
     }
 
@@ -59,12 +50,8 @@ public struct AbilityDetailView: View {
             },
         )
         .safeAreaInset(edge: .bottom) {
-            if case let .primaryAction(title, accessibilityID, onAction) = action {
-                DetailPrimaryActionFooter(
-                    title: title,
-                    accessibilityIdentifier: accessibilityID,
-                    action: onAction,
-                )
+            if let primaryAction {
+                DetailPrimaryActionFooter(primaryAction: primaryAction)
             }
         }
     }

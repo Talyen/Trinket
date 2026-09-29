@@ -40,6 +40,13 @@ package extension DamagePipeline {
             return
         }
 
+        // Corrosive Venom strips Block before this packet is absorbed, so a
+        // packet larger than the defender's Block gains penetration instead of
+        // soaking the strip against an already-depleted pool.
+        let stripBeforeAbsorption = state.damageKeyword == .poison
+            ? sourceTriggers?.poisonStripsBlockBeforeHealth ?? 0
+            : 0
+
         let doublesPhysical = defenderTriggers.doublePhysicalBlockAbsorption && state.damageKeyword == .physical
         let belowHalfHealth = context.roster.health(for: state.combatant) * 2
             < context.roster.maxHealth(for: state.combatant)
@@ -52,7 +59,9 @@ package extension DamagePipeline {
         let absorptionMultiplier = (doublesPhysical ? 2.0 : 1.0) * max(1, oathMultiplier)
             * max(1, defenderTriggers.doubleAllBlockAbsorption ? 2 : 1)
             * max(1, manaMultiplier) * max(1, burningMultiplier)
-        let absorptionBuffer = CombatRounding.scaled(effectiveBuffer, multiplier: absorptionMultiplier)
+        let absorbableBuffer = max(0, buffer - stripBeforeAbsorption)
+        let absorbableEffectiveBuffer = max(0, CombatRounding.scaled(absorbableBuffer, multiplier: blockMultiplier))
+        let absorptionBuffer = CombatRounding.scaled(absorbableEffectiveBuffer, multiplier: absorptionMultiplier)
 
         let absorption = applyAbsorption(
             to: &state,
@@ -152,16 +161,19 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) -> ShieldAbsorption {
         let absorbed = min(state.remaining, effectiveBuffer)
-        state.blockedAmount += absorbed
-        appendAbsorption(
-            absorbed,
-            abilityName: keyword.rawValue,
-            keyword: keyword,
-            actorName: keyword.rawValue,
-            target: state.combatant,
-            to: &state,
-            in: &context,
-        )
+        // A strip that exhausts the pool absorbs nothing; skip the log entry.
+        if absorbed > 0 {
+            state.blockedAmount += absorbed
+            appendAbsorption(
+                absorbed,
+                abilityName: keyword.rawValue,
+                keyword: keyword,
+                actorName: keyword.rawValue,
+                target: state.combatant,
+                to: &state,
+                in: &context,
+            )
+        }
         let extraRemoved = extraBlockRemoval(
             absorbed: absorbed,
             buffer: buffer,

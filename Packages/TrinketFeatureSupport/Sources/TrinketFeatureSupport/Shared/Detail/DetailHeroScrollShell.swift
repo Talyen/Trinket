@@ -135,20 +135,29 @@ public struct DetailSection<Content: View>: View {
     }
 }
 
-struct DetailPrimaryActionFooter: View {
+/// Shared primary-action configuration for detail screens. Item and ability
+/// detail previously carried twin private `Action` enums plus a separate
+/// purchase struct to express the same shape: an optional footer button with
+/// a computed title, an accessibility identifier, and a disabled state.
+/// One value type keeps the two screens' footers identical by construction.
+struct DetailPrimaryAction {
     let title: String
     var accessibilityIdentifier: String?
     var isDisabled: Bool = false
     let action: () -> Void
+}
+
+struct DetailPrimaryActionFooter: View {
+    let primaryAction: DetailPrimaryAction
 
     var body: some View {
-        Button(action: action) {
-            Text(title)
+        Button(action: primaryAction.action) {
+            Text(primaryAction.title)
                 .frame(maxWidth: .infinity)
         }
-        .trinketPrimaryActionButton(accessibilityIdentifier: accessibilityIdentifier ?? title)
+        .trinketPrimaryActionButton(accessibilityIdentifier: primaryAction.accessibilityIdentifier ?? primaryAction.title)
         .trinketCenteredPrimaryAction()
-        .disabled(isDisabled)
+        .disabled(primaryAction.isDisabled)
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)
         .trinketSheetChromeIgnoresDismissDrag()

@@ -32,10 +32,8 @@ package extension CombatTriggerEngine {
         events.append(contentsOf: HealingEngine.resolveHealingEchoes(in: &context))
         guard !context.isBattleOver else { return events }
         events.append(contentsOf: cleanseTeamIfNeeded(in: &context))
-        for owner in [BattleParticipant.hero, .companion] {
+        for (owner, runtime) in livingPartyMembers(in: context) {
             guard !context.isBattleOver else { break }
-            let runtime = context.roster[owner]
-            guard runtime.isAlive else { continue }
             events.append(contentsOf: startOfTurnCadence(for: owner, runtime: runtime, in: &context))
         }
         return events
@@ -52,10 +50,8 @@ package extension CombatTriggerEngine {
 
     private static func cleanseTeamIfNeeded(in context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        for owner in [BattleParticipant.hero, .companion] {
+        for (owner, sourceRuntime) in livingPartyMembers(in: context) {
             guard !context.isBattleOver else { break }
-            let sourceRuntime = context.roster[owner]
-            guard sourceRuntime.isAlive else { continue }
             let count = context.modifiers(for: sourceRuntime.id).triggers.autoCleanseTeamPerTurn
             guard count > 0 else { continue }
             let abilityName = triggerAbilityName(
@@ -80,6 +76,9 @@ package extension CombatTriggerEngine {
         return events
     }
 
+    /// The ordered start-of-turn cadence. Steps run in list order with a
+    /// battle-over/alive recheck between each, since earlier reactions can
+    /// defeat members or end the battle.
     private static func startOfTurnCadence(
         for owner: BattleParticipant,
         runtime: CombatantRuntime,
@@ -87,23 +86,21 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         let actor = runtime.combatant
         let triggers = context.modifiers(for: actor.id).triggers
+        let steps: [(inout BattleState) -> [ActionEvent]] = [
+            { startOfTurnRegen(runtime: runtime, actor: actor, triggers: triggers, in: &$0) },
+            { forbiddenKnowledgeIfNeeded(for: owner, actor: actor, triggers: triggers, in: &$0) },
+            { companionCardsIfNeeded(for: owner, actor: actor, triggers: triggers, in: &$0) },
+            { purifyingAuraIfNeeded(actor: actor, triggers: triggers, in: &$0) },
+            { startOfTurnAfflictionCadence(actor: actor, triggers: triggers, in: &$0) },
+            { startOfTurnResourceCadence(for: owner, actor: actor, triggers: triggers, in: &$0) },
+            { startOfTurnDrawCadence(for: owner, actor: actor, triggers: triggers, in: &$0) },
+            { battleStartBonuses(actor: actor, triggers: triggers, in: &$0) },
+        ]
         var events: [ActionEvent] = []
-        events.append(contentsOf: startOfTurnRegen(runtime: runtime, actor: actor, triggers: triggers, in: &context))
-        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
-        events.append(contentsOf: forbiddenKnowledgeIfNeeded(for: owner, actor: actor, triggers: triggers, in: &context))
-        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
-        events.append(contentsOf: companionCardsIfNeeded(for: owner, actor: actor, triggers: triggers, in: &context))
-        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
-        events.append(contentsOf: purifyingAuraIfNeeded(actor: actor, triggers: triggers, in: &context))
-        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
-        events.append(contentsOf: startOfTurnAfflictionCadence(for: owner, actor: actor, triggers: triggers, in: &context))
-        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
-        events.append(contentsOf: startOfTurnResourceCadence(for: owner, actor: actor, triggers: triggers, in: &context))
-        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
-        events.append(contentsOf: startOfTurnDrawCadence(for: owner, actor: actor, triggers: triggers, in: &context))
-        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
-        events.append(contentsOf: battleStartBonuses(for: owner, actor: actor, triggers: triggers, in: &context))
-        guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
+        for step in steps {
+            events.append(contentsOf: step(&context))
+            guard !context.isBattleOver, context.roster[owner].isAlive else { return events }
+        }
         applyDamageRamp(for: actor, triggers: triggers, in: &context)
         return events
     }
@@ -141,19 +138,20 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
         if context.isPlayerTurn(every: 2, startingAt: 1), triggers.drawEveryOtherTurn > 0 {
-            return drawCards(
+            events.append(contentsOf: drawCards(
                 triggers.drawEveryOtherTurn,
                 for: owner,
                 actor: actor,
                 abilityName: triggerAbilityName("drawEveryOtherTurn", for: actor, fallback: "Tattered Pages", in: context),
                 in: &context,
-            )
+            ))
         }
         let companionCards = triggers.companionCardsPerTurn
             + (context.isPlayerTurn(every: 2, startingAt: 1) ? triggers.companionCardsEveryOtherTurn : 0)
-        guard companionCards > 0 else { return [] }
-        return drawCards(
+        guard companionCards > 0 else { return events }
+        events.append(contentsOf: drawCards(
             companionCards,
             for: .companion,
             actor: actor,
@@ -165,7 +163,8 @@ package extension CombatTriggerEngine {
                 in: context,
             ),
             in: &context,
-        )
+        ))
+        return events
     }
 
     private static func purifyingAuraIfNeeded(
@@ -181,9 +180,7 @@ package extension CombatTriggerEngine {
             in: context,
         )
         var events: [ActionEvent] = []
-        for targetOwner in [BattleParticipant.hero, .companion] {
-            let target = context.roster[targetOwner]
-            guard target.isAlive else { continue }
+        for (_, target) in livingPartyMembers(in: context) {
             events.append(contentsOf: performRandomCleanses(
                 source: actor,
                 target: target.combatant,
@@ -200,27 +197,17 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) {
-        let burnPerRound: Int = triggers.burnDamageRampPerRound
-        let burnCap: Int = triggers.burnDamageRampCap
-        let bleedPerRound: Int = triggers.bleedDamageRampPerRound
-        let bleedCap: Int = triggers.bleedDamageRampCap
-        bumpDamageRamp(for: actor, keyword: Keyword.burn, perRound: burnPerRound, cap: burnCap, in: &context)
-        bumpDamageRamp(for: actor, keyword: Keyword.bleed, perRound: bleedPerRound, cap: bleedCap, in: &context)
-    }
-
-    private static func bumpDamageRamp(
-        for actor: Combatant,
-        keyword: Keyword,
-        perRound: Int,
-        cap: Int,
-        in context: inout BattleState,
-    ) {
-        guard perRound > 0 else { return }
-        context.roster.mutateRuntime(for: actor) { runtime in
-            let current: Int = runtime.talents.battle.keywordDamageRamp[keyword, default: 0]
-            var ramp: [Keyword: Int] = runtime.talents.battle.keywordDamageRamp
-            ramp[keyword] = cap > 0 ? min(current + perRound, cap) : current + perRound
-            runtime.talents.battle.keywordDamageRamp = ramp
+        for (keyword, perRound, cap) in [
+            (Keyword.burn, triggers.burnDamageRampPerRound, triggers.burnDamageRampCap),
+            (Keyword.bleed, triggers.bleedDamageRampPerRound, triggers.bleedDamageRampCap),
+        ] {
+            guard perRound > 0 else { continue }
+            context.roster.mutateRuntime(for: actor) { runtime in
+                let current: Int = runtime.talents.battle.keywordDamageRamp[keyword, default: 0]
+                var ramp: [Keyword: Int] = runtime.talents.battle.keywordDamageRamp
+                ramp[keyword] = cap > 0 ? min(current + perRound, cap) : current + perRound
+                runtime.talents.battle.keywordDamageRamp = ramp
+            }
         }
     }
 
@@ -269,7 +256,6 @@ package extension CombatTriggerEngine {
     }
 
     private static func startOfTurnAfflictionCadence(
-        for _: BattleParticipant,
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
@@ -377,7 +363,6 @@ package extension CombatTriggerEngine {
     }
 
     private static func battleStartBonuses(
-        for owner: BattleParticipant,
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
@@ -417,9 +402,7 @@ package extension CombatTriggerEngine {
             }
         }
         if firedStunDamage, triggers.everyNTurnsTeamBlockAmount > 0 {
-            for memberOwner in [BattleParticipant.hero, .companion] {
-                let member = context.roster[memberOwner]
-                guard member.isAlive else { continue }
+            for (_, member) in livingPartyMembers(in: context) {
                 events.append(contentsOf: emitBlock(
                     "everyNTurnsTeamBlockAmount", "Quaking Carapace",
                     amount: triggers.everyNTurnsTeamBlockAmount,
@@ -427,12 +410,11 @@ package extension CombatTriggerEngine {
                 ))
             }
         }
-        events.append(contentsOf: turnZeroBonuses(for: owner, actor: actor, triggers: triggers, in: &context))
+        events.append(contentsOf: turnZeroBonuses(actor: actor, triggers: triggers, in: &context))
         return events
     }
 
     private static func turnZeroBonuses(
-        for _: BattleParticipant,
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,

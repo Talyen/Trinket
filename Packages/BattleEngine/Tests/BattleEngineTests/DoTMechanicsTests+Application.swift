@@ -126,4 +126,17 @@ extension DoTMechanicsTests {
         #expect(before - battle.health(of: battle.enemy) == 15)
         #expect(!battle.roster.hasAffliction(.burn, on: battle.enemy))
     }
+
+    @Test func `defender on hit attacker bleed applies reaction damage to attacker`() {
+        let defenderTriggers = CombatTraitTriggers(onHit: OnHitTriggers(onHitAttackerBleedPotency: 3))
+        var battle = BattleTestFixtures.makePipelineContext(enemyModifiers: CombatModifierProfile(triggers: defenderTriggers))
+        battle.appliesFightPacing = false
+        let heroBefore = battle.health(of: battle.hero)
+
+        let strike = Ability(id: "strike", name: "Strike", tier: .basic, directDamage: 5, damageKeyword: .physical)
+        _ = BattleTurnEngine.performAction(ability: strike, actor: battle.hero, abilityTarget: battle.enemy, context: &battle)
+
+        #expect(battle.roster.hasAffliction(.bleed, on: battle.hero))
+        #expect(heroBefore - battle.health(of: battle.hero) == 3)
+    }
 }

@@ -2,20 +2,6 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    private static func hallowguardBlock(
-        for source: Combatant,
-        amount: Int,
-        attackHit: Bool,
-        sourceHadNoBlock: Bool,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard attackHit, sourceHadNoBlock, amount > 0 else { return [] }
-        return emitBlock(
-            "holyAttackBlockIfNone", "Hallowguard",
-            amount: amount, to: source, source: source, in: &context,
-        )
-    }
-
     // swiftlint:disable:next function_body_length - holy triggers share one ordered cadence
     static func afterHolyDamageDealt(
         to enemy: Combatant,
@@ -26,22 +12,7 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: source.id)
         var events: [ActionEvent] = []
-        if enemy.role == .enemy, !context.roster.companion.isAlive,
-           profile.triggers.holyDamageReviveCompanionChancePercent > 0 {
-            let canRoll = !context.hasHeroCard(for: source.id)
-                || context.claimHeroCardBonus("Divine Blessing", actorID: source.id)
-            if canRoll, BattleChance.succeeds(
-                probability: profile.triggers.holyDamageReviveCompanionChancePercent,
-                using: &context.rng,
-            ) {
-                events.append(contentsOf: context.reviveEmitting(
-                    context.roster.companion.combatant,
-                    health: 1,
-                    source: source,
-                    abilityName: "Divine Blessing",
-                ))
-            }
-        }
+        events.append(contentsOf: reviveCompanionIfNeeded(to: enemy, source: source, in: &context))
 
         if profile.triggers.holyDamageBlockFlat > 0 {
             events.append(contentsOf: emitBlock(
@@ -49,10 +20,12 @@ package extension CombatTriggerEngine {
                 amount: profile.triggers.holyDamageBlockFlat, to: source, source: source, in: &context,
             ))
         }
-        events.append(contentsOf: hallowguardBlock(
-            for: source, amount: profile.triggers.holyAttackBlockIfNone,
-            attackHit: attackHit, sourceHadNoBlock: sourceHadNoBlock, in: &context,
-        ))
+        if attackHit, sourceHadNoBlock, profile.triggers.holyAttackBlockIfNone > 0 {
+            events.append(contentsOf: emitBlock(
+                "holyAttackBlockIfNone", "Hallowguard",
+                amount: profile.triggers.holyAttackBlockIfNone, to: source, source: source, in: &context,
+            ))
+        }
 
         if profile.triggers.holyDamageCleanseCount > 0 {
             events.append(contentsOf: performRandomCleanses(
@@ -153,5 +126,27 @@ package extension CombatTriggerEngine {
         }
 
         return events
+    }
+
+    private static func reviveCompanionIfNeeded(
+        to enemy: Combatant,
+        source: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard enemy.role == .enemy, !context.roster.companion.isAlive,
+              context.modifiers(for: source.id).triggers.holyDamageReviveCompanionChancePercent > 0
+        else { return [] }
+        let canRoll = !context.hasHeroCard(for: source.id)
+            || context.claimHeroCardBonus("Divine Blessing", actorID: source.id)
+        guard canRoll, BattleChance.succeeds(
+            probability: context.modifiers(for: source.id).triggers.holyDamageReviveCompanionChancePercent,
+            using: &context.rng,
+        ) else { return [] }
+        return context.reviveEmitting(
+            context.roster.companion.combatant,
+            health: 1,
+            source: source,
+            abilityName: "Divine Blessing",
+        )
     }
 }

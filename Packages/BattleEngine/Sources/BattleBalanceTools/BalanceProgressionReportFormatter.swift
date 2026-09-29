@@ -42,9 +42,10 @@ public enum BalanceProgressionReportFormatter {
         lines.append("- **Total Battles Simulated**: \(records.count)")
         lines.append("- **Elapsed Time**: \(String(format: "%.2f", elapsedSeconds))s")
         if truncatedRuns > 0 {
-            lines.append(
-                "- **Truncated Runs**: \(truncatedRuns) (hit \(BalanceProgressionRunner.maxBattlesPerRun)-battle safety cap before completion)",
-            )
+            lines
+                .append(
+                    "- **Truncated Runs**: \(truncatedRuns) (hit \(BalanceProgressionRunner.maxBattlesPerRun)-battle safety cap before completion)",
+                )
         }
         lines.append("")
     }
@@ -54,21 +55,27 @@ public enum BalanceProgressionReportFormatter {
         playerStates: [PlayerProgressionState],
         into lines: inout [String],
     ) {
-        let avgEndLevel = playerStates.isEmpty
-            ? 0
-            : Double(playerStates.map(\.heroLevel).reduce(0, +)) / Double(playerStates.count)
-        let totalBounces = playerStates.map(\.modeBounces).reduce(0, +)
-        let flaggedCount = hotspots.filter(\.isFlagged).count
-
+        let avgEndLevel = playerStates.isEmpty ? 0 : Double(playerStates.map(\.heroLevel).reduce(0, +)) / Double(playerStates.count)
         lines.append("## Progression Summary")
         lines.append("")
         lines.append("| Metric | Value |")
         lines.append("| :--- | :--- |")
         lines.append("| Avg End Hero Level | \(String(format: "%.1f", avgEndLevel)) |")
-        lines.append("| Total Mode Bounces (Level Walls) | \(totalBounces) |")
+        lines.append("| Total Mode Bounces (Level Walls) | \(playerStates.map(\.modeBounces).reduce(0, +)) |")
         lines.append("| Total Nodes Evaluated | \(hotspots.count) |")
-        lines.append("| Difficulty Hotspots Flagged | \(flaggedCount) |")
+        lines.append("| Difficulty Hotspots Flagged | \(hotspots.filter(\.isFlagged).count) |")
         lines.append("")
+    }
+
+    private static func cells(_ hotspot: NodeHotspotSummary)
+        -> (win: String, confidence: String, player: String, enemy: String, power: String) {
+        (
+            String(format: "%.1f%%", hotspot.winRate * 100),
+            String(format: "%.1f-%.1f%%", hotspot.wilsonLow * 100, hotspot.wilsonHigh * 100),
+            String(format: "%.1f", hotspot.averagePlayerLevel),
+            String(format: "%.1f", hotspot.averageEnemyLevel),
+            String(format: "%.0f", hotspot.averageEnemyPowerRating),
+        )
     }
 
     private static func appendFlaggedHotspots(
@@ -78,26 +85,20 @@ public enum BalanceProgressionReportFormatter {
         if flaggedHotspots.isEmpty {
             lines.append("## Difficulty Hotspots")
             lines.append("")
-            lines.append(
-                "No difficulty hotspots flagged. All node win rates fall within the 80% – 95% design envelope.",
-            )
+            lines.append("No difficulty hotspots flagged. All node win rates fall within the 80% – 95% design envelope.")
             lines.append("")
             return
         }
-
         lines.append("## Difficulty Hotspots (<80% or >95% Win Rate)")
         lines.append("")
         lines.append("| Mode | Location | Step | Enemy | Win Rate | Player Lvl | Enemy Lvl | Power | Status | Reason |")
         lines.append("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
         for hotspot in flaggedHotspots {
-            let winPct = String(format: "%.1f%%", hotspot.winRate * 100)
-            let playerLevel = String(format: "%.1f", hotspot.averagePlayerLevel)
-            let enemyLevel = String(format: "%.1f", hotspot.averageEnemyLevel)
-            let powerRating = String(format: "%.0f", hotspot.averageEnemyPowerRating)
-            let reason = hotspot.flagReason ?? "-"
-            lines.append(
-                "| \(hotspot.step.mode.displayName) | \(hotspot.step.containerTitle) | \(hotspot.step.displayTitle) | \(hotspot.step.enemyID) | \(winPct) | \(playerLevel) | \(enemyLevel) | \(powerRating) | **\(hotspot.status.displayName)** | \(reason) |",
-            )
+            let c = cells(hotspot)
+            lines
+                .append(
+                    "| \(hotspot.step.mode.displayName) | \(hotspot.step.containerTitle) | \(hotspot.step.displayTitle) | \(hotspot.step.enemyID) | \(c.win) | \(c.player) | \(c.enemy) | \(c.power) | **\(hotspot.status.displayName)** | \(hotspot.flagReason ?? "-") |",
+                )
         }
         lines.append("")
     }
@@ -109,24 +110,16 @@ public enum BalanceProgressionReportFormatter {
         for mode in SimulationGameMode.allCases {
             let modeHotspots = hotspots.filter { $0.step.mode == mode }
             guard !modeHotspots.isEmpty else { continue }
-
             lines.append("## \(mode.displayName) Progression Detail")
             lines.append("")
             lines.append("| Location | Step | Enemy | Win Rate | CI (95%) | Player Lvl | Enemy Lvl | Power | Status |")
             lines.append("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
             for hotspot in modeHotspots {
-                let winPct = String(format: "%.1f%%", hotspot.winRate * 100)
-                let confidence = String(
-                    format: "%.1f-%.1f%%",
-                    hotspot.wilsonLow * 100,
-                    hotspot.wilsonHigh * 100,
-                )
-                let playerLevel = String(format: "%.1f", hotspot.averagePlayerLevel)
-                let enemyLevel = String(format: "%.1f", hotspot.averageEnemyLevel)
-                let powerRating = String(format: "%.0f", hotspot.averageEnemyPowerRating)
-                lines.append(
-                    "| \(hotspot.step.containerTitle) | \(hotspot.step.displayTitle) | \(hotspot.step.enemyID) | \(winPct) | \(confidence) | \(playerLevel) | \(enemyLevel) | \(powerRating) | \(hotspot.status.displayName) |",
-                )
+                let c = cells(hotspot)
+                lines
+                    .append(
+                        "| \(hotspot.step.containerTitle) | \(hotspot.step.displayTitle) | \(hotspot.step.enemyID) | \(c.win) | \(c.confidence) | \(c.player) | \(c.enemy) | \(c.power) | \(hotspot.status.displayName) |",
+                    )
             }
             lines.append("")
         }

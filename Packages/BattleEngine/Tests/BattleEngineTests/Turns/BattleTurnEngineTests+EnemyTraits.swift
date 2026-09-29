@@ -214,6 +214,15 @@ extension BattleTurnEngineTests {
         }
     }
 
+    @Test func `giant spider venomous strikes applies poison on skill attack hits`() throws {
+        var context = try enemyTraitContext("giant_spider")
+        let enemy = context.enemy
+        let target = context.hero
+        let skillAttack = Ability(id: "spider-skill", name: "Venom Strike", tier: .skill, directDamage: 5, damageKeyword: .physical)
+        _ = BattleTurnEngine.performAction(ability: skillAttack, actor: enemy, abilityTarget: target, context: &context)
+        #expect(context.roster.hasAffliction(.poison, on: target))
+    }
+
     private func enemyTraitContext(_ enemyID: String, heroModifiers: CombatModifierProfile = .zero) throws -> BattleState {
         let definition = try #require(GameContent.enemy(matching: enemyID))
         let build = CombatBuildResolver.build(enemy: definition)

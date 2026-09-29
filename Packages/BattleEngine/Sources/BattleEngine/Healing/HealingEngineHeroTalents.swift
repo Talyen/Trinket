@@ -221,7 +221,7 @@ extension HealingEngine {
             }
         }
         if sourceTriggers.cleansingDew, context.roster.hasAffliction(.poison, on: request.target) {
-            events.append(contentsOf: CleanseOperation.resolve(
+            events.append(contentsOf: EffectRemovalOperation.resolveCleanse(
                 .all(.poison), source: source, target: request.target,
                 abilityName: "Cleansing Dew", in: &context,
             ).events)
@@ -283,7 +283,7 @@ extension HealingEngine {
                 ))
             }
             if sourceTriggers.coolingSalve, context.roster.hasAffliction(.burn, on: request.target) {
-                events.append(contentsOf: CleanseOperation.resolve(
+                events.append(contentsOf: EffectRemovalOperation.resolveCleanse(
                     .all(.burn), source: source, target: request.target,
                     abilityName: "Cooling Salve", in: &context,
                 ).events)

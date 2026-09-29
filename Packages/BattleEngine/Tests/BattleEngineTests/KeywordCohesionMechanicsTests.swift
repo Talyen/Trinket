@@ -428,7 +428,8 @@ extension KeywordCohesionMechanicsTests {
             companionHealth: 10, companionModifiers: profile,
         )
         battle.appliesFightPacing = false
-        _ = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
+        let events = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
+        #expect(events.contains { $0.abilityName == "Campfire Comfort" && $0.effectKind == .instantHeal })
         #expect(battle.roster.health(for: battle.companion) == 12)
         #expect(battle.roster.health(for: battle.hero) == 20)
         battle.turnCount = 1
@@ -502,5 +503,27 @@ extension KeywordCohesionMechanicsTests {
             options: .attack(),
         ))
         try #expect(battle.roster.activeEffects(for: battle.hero).contains { $0.effect == .nextStrikeCritical })
+    }
+
+    @Test func `companion cards per turn draws alongside draw every other turn`() {
+        let heroProfile = CombatModifierProfile(triggers: CombatTraitTriggers(mana: ManaTriggers(
+            drawEveryOtherTurn: 1,
+            companionCardsPerTurn: 1,
+        )))
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroModifiers: heroProfile,
+        )
+        battle.hand = BattleHand()
+        battle.heroDeck = CombatDeck(abilities: [.slash, .smite, .block])
+        battle.companionDeck = CombatDeck(abilities: [.slash, .smite, .block])
+        battle.turnCount = 0
+
+        let events = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        #expect(events.contains { $0.abilityName == "Tattered Pages" })
+        #expect(events.contains { $0.abilityName == "Companion's Collar" })
+        #expect(battle.hand.cards.contains { $0.owner == BattleParticipant.hero })
+        #expect(battle.hand.cards.contains { $0.owner == BattleParticipant.companion })
     }
 }

@@ -505,7 +505,7 @@ enum ItemAffixCatalogGenerated {
         ItemAffixCatalog.affix(
             id: "shredding",
             title: "Shredding",
-            slot: .accessory,
+            slot: .weapon,
             keywords: [.physical],
             weight: 8,
             basic: ItemAffixPower(description: "Your Physical damage ignores 10% of enemy damage reduction.", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(physicalIgnoreMitigationPercent: 0.10))),
@@ -541,7 +541,7 @@ enum ItemAffixCatalogGenerated {
         ItemAffixCatalog.affix(
             id: "elusive",
             title: "Elusive",
-            slot: .accessory,
+            slot: .armor,
             keywords: [.dodge],
             weight: 8,
             basic: ItemAffixPower(description: "Gain 5% Dodge chance.", modifiers: [], triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeChanceBonus: 0.05))),

@@ -129,17 +129,19 @@ public struct PreviewLabView: View {
         labSession.endBattle()
     }
 
-    private func restart() {
+    @discardableResult
+    private func restart() -> Bool {
         configuration = PreviewLab.makeConfiguration(
             enemyID: selectedEnemyID,
             heroID: selectedHeroID,
             companionID: selectedCompanionID,
         )
-        _ = labSession.restart(configuration, presentation: .empty)
+        let didRestart = labSession.restart(configuration, presentation: .empty)
         warmSelectedCinematics()
         Task { @MainActor in
             await warmArtwork()
         }
+        return didRestart
     }
 
     private func warmSelectedCinematics() {

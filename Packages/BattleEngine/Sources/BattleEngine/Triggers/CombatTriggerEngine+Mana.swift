@@ -72,8 +72,7 @@ package extension CombatTriggerEngine {
             { spendManaDamageBonusIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
             { zeroManaRestoreIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
             { drawOnLastManaIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
-            { closedCircuitIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
-            { lastManaStunIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
+            { spendManaStunIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, spentLastMana: spentLastMana, in: &$0) },
             { autoPlayAfterManaSpend(by: actor, amountSpent: amountSpent, in: &$0) },
             { spendManaRandomDoTIfNeeded(actor: actor, triggers: triggers, in: &$0) },
             { afterFinalCompanionManaSpend(actor: actor, amountSpent: amountSpent, in: &$0) },
@@ -299,25 +298,21 @@ package extension CombatTriggerEngine {
         )
     }
 
-    private static func closedCircuitIfNeeded(
+    private static func spendManaStunIfNeeded(
         actor: Combatant,
         triggers: CombatTraitTriggers,
         amountSpent: Int,
-        in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard triggers.closedCircuit, amountSpent > 0 else { return [] }
-        return spendManaStunDamage(amount: amountSpent, actor: actor, in: &context)
-    }
-
-    private static func lastManaStunIfNeeded(
-        actor: Combatant,
-        triggers: CombatTraitTriggers,
         spentLastMana: Bool,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard triggers.spendLastManaStunDamage > 0,
-              spentLastMana else { return [] }
-        return spendManaStunDamage(amount: triggers.spendLastManaStunDamage, actor: actor, in: &context)
+        var events: [ActionEvent] = []
+        if triggers.closedCircuit, amountSpent > 0 {
+            events.append(contentsOf: spendManaStunDamage(amount: amountSpent, actor: actor, in: &context))
+        }
+        if triggers.spendLastManaStunDamage > 0, spentLastMana {
+            events.append(contentsOf: spendManaStunDamage(amount: triggers.spendLastManaStunDamage, actor: actor, in: &context))
+        }
+        return events
     }
 
     private static func spendManaStunDamage(

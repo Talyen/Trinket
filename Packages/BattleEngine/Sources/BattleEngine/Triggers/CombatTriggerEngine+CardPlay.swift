@@ -124,6 +124,16 @@ package extension CombatTriggerEngine {
         )
     }
 
+    /// Keywords that repeat this turn when primed: burn primes both, and the
+    /// matching physical/freeze card consumes the priming. Shared by the prime
+    /// and repeat steps, which differ only in which side they check.
+    private static func repeatPairs(triggers: CombatTraitTriggers) -> [(keyword: Keyword, enabled: Bool)] {
+        [
+            (Keyword.physical, triggers.furnaceRhythm),
+            (Keyword.freeze, triggers.temperCycle),
+        ]
+    }
+
     private static func talentPrimeIfNeeded(
         keywords: Set<Keyword>,
         actor: Combatant,
@@ -133,10 +143,7 @@ package extension CombatTriggerEngine {
               !context.resolution.isAutomaticPlay else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         if keywords.contains(.burn) {
-            for (keyword, enabled) in [
-                (Keyword.physical, triggers.furnaceRhythm),
-                (Keyword.freeze, triggers.temperCycle),
-            ] where enabled {
+            for (keyword, enabled) in repeatPairs(triggers: triggers) where enabled {
                 context.primedRepeatKeywords.insert(keyword)
             }
         }
@@ -154,10 +161,7 @@ package extension CombatTriggerEngine {
               !context.resolution.isAutomaticPlay
         else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
-        for (keyword, enabled) in [
-            (Keyword.physical, triggers.furnaceRhythm),
-            (Keyword.freeze, triggers.temperCycle),
-        ] where keywords.contains(keyword) && enabled
+        for (keyword, enabled) in repeatPairs(triggers: triggers) where keywords.contains(keyword) && enabled
             && context.primedRepeatKeywords.remove(keyword) != nil {
             context.resolution.enter(.damage)
             defer { context.resolution.leave(.damage) }

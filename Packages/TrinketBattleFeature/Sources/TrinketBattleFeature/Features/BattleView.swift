@@ -19,7 +19,7 @@ public struct BattleView: View {
     private let presentation: BattlePresentationState
     private let spectacle: BattleSpectacleState
     private let completeVictory: (BattleVictorySummary) -> Bool
-    private let restartBattle: () -> Void
+    private let restartBattle: () -> Bool
     private let retreat: () -> Void
     #if DEBUG
     private let performanceScenario: BattlePerformanceScenario?
@@ -30,7 +30,7 @@ public struct BattleView: View {
         presentationContext: BattlePresentationContext,
         battleSession: BattleSession,
         completeVictory: @escaping (BattleVictorySummary) -> Bool,
-        restartBattle: @escaping () -> Void,
+        restartBattle: @escaping () -> Bool,
         retreat: @escaping () -> Void,
         performanceScenario: BattlePerformanceScenario? = nil,
     ) {
@@ -137,10 +137,11 @@ public struct BattleView: View {
                 DefeatView(configuration: configuration, settlement: settlement) { action in
                     if battleSession.progression == nil {
                         switch action {
-                        case .retry: restartBattle()
-                        case .leave: retreat()
+                        case .retry: return restartBattle()
+                        case .leave:
+                            retreat()
+                            return true
                         }
-                        return true
                     }
                     return battleSession.claimDefeat(configurationID: configuration.id, settlement: settlement, action: action)
                 }
@@ -179,8 +180,9 @@ public struct BattleView: View {
 
     private func completeVictoryPrimaryAction(summary: BattleVictorySummary) -> Bool {
         guard hasStageProgression else {
-            restartBattle()
-            return true
+            // A failed restart must leave the reward sequence in `.ready`, so
+            // the primary action re-arms instead of locking on completion.
+            return restartBattle()
         }
         let didPersist = completeVictory(summary)
         if didPersist {
@@ -356,12 +358,14 @@ private struct BattleHandProjectionLane: View {
 
     var body: some View {
         let hand = presentation.hand
-        let playableIDs = presentation.playableCardIDs
         ZStack(alignment: .bottom) {
             BattleHandView(
                 cards: hand,
                 isDetailPresented: battleSession.overlayAbilityDetail != nil,
-                isPlayable: { presentation.isBattleOver || playableIDs.contains($0.id) },
+                // One play-intent gate for tap, drag, and accessibility
+                // activation: the session's own eligibility, plus the
+                // visual-only finishing taps a finished battle still accepts.
+                isPlayable: { battleSession.isHandCardPlayable($0) },
                 onInspect: { card in
                     battleSession.presentAbilityDetail(card.ability)
                 },

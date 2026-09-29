@@ -141,6 +141,7 @@ public enum FramePacingAnalyzer {
         }
 
         let averageDuration = totalDuration / Double(sorted.count)
+        guard averageDuration > 0, averageDuration.isFinite else { return .empty }
 
         return FramePacingReport(
             sampleCount: sorted.count,

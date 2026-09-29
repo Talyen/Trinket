@@ -354,7 +354,7 @@ package enum BattleCardCombatEngine {
 
 extension BattleCardCombatEngine {
     /// Returns an owner's hand cards to the bottom of their deck ("purge"
-    /// is reserved for stripping enemy buffs via `PurgeOperation`).
+    /// is reserved for stripping enemy buffs via `EffectRemovalOperation`).
     static func recycleControlledOwnerCards(
         for owner: BattleParticipant,
         context: inout BattleState,

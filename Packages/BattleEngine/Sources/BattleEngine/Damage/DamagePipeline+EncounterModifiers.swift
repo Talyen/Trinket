@@ -36,7 +36,7 @@ package extension DamagePipeline {
         else { return }
         let count = context.modifiers(for: sourceID).triggers.attackPurgeCount
         guard count > 0 else { return }
-        let purge = PurgeOperation.resolve(
+        let purge = EffectRemovalOperation.resolvePurge(
             .randomBuffs(count), source: source.combatant, target: state.combatant,
             abilityName: "Unbinding Strike", in: &context,
         )

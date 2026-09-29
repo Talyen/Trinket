@@ -9,15 +9,10 @@ struct AvatarHandler: BattleEffectHandler {
         guard let active = stacks.first,
               case let .avatar(holyDamage, blockPerTurn, _) = active.effect
         else { return nil }
-        if blockPerTurn > 0 {
-            return EffectSummary(
-                keyword: keyword,
-                text: "Avatar: Deals \(holyDamage) Holy damage and gains \(blockPerTurn) Block each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns)).",
-            )
-        }
+        let blockClause = blockPerTurn > 0 ? " and gains \(blockPerTurn) Block each turn" : " each turn"
         return EffectSummary(
             keyword: keyword,
-            text: "Avatar: Deals \(holyDamage) Holy damage each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns)).",
+            text: "Avatar: Deals \(holyDamage) Holy damage\(blockClause), \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns)).",
         )
     }
 

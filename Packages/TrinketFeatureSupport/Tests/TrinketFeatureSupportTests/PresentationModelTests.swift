@@ -225,4 +225,69 @@ struct PresentationModelTests {
         #expect(AccessibilityID.FullGame.offer == "Full Game Offer")
         #expect(AccessibilityID.Play.contractsModeCard == "Contracts Mode Card")
     }
+
+    @Test func `labyrinth floor nodes sorts using grid positions and fallbacks`() {
+        let nodeA = LabyrinthNode(
+            id: "node-a",
+            type: .battle,
+            depth: 1,
+            clusterID: "cluster-1",
+            gridPosition: LabyrinthGridPosition(row: 1, column: 0),
+        )
+        let nodeB = LabyrinthNode(
+            id: "node-b",
+            type: .shop,
+            depth: 1,
+            clusterID: "cluster-1",
+            gridPosition: nil,
+        )
+        let nodeC = LabyrinthNode(
+            id: "node-c",
+            type: .mystery,
+            depth: 1,
+            clusterID: "cluster-1",
+            gridPosition: LabyrinthGridPosition(row: 0, column: 2),
+        )
+        let cluster = LabyrinthCluster(
+            id: "cluster-1",
+            depthBand: 1,
+            nodeIDs: ["node-a", "node-b", "node-c"],
+        )
+        let state = PlayerLabyrinthState(nodes: ["node-a": nodeA, "node-b": nodeB, "node-c": nodeC])
+
+        let sortedNodes: [LabyrinthNode] = LabyrinthMapPresentation.floorNodes(for: cluster, in: state)
+        // Node B falls back to (row 0, column 0), node C is at (0, 2), node A is at (1, 0)
+        #expect(sortedNodes.map(\.id) == ["node-b", "node-c", "node-a"])
+    }
+
+    @Test func `frame pacing report round trip and duration properties`() {
+        var report = FramePacingReport(
+            captureStartedAt: 100.0,
+            captureEndedAt: 102.0,
+            completionStatus: "completed",
+            measurementDuration: 2.0,
+            sampleCount: 120,
+            expectedFPS: 60.0,
+            averageFPS: 59.8,
+            p95FrameMs: 16.9,
+            p99FrameMs: 17.5,
+            onePercentLowFPS: 55.0,
+            maxFrameMs: 18.2,
+            missedDeadlineCount: 1,
+            estimatedMissedFrameCount: 1,
+            severeStallCount: 0,
+            missedDeadlineRatio: 1.0 / 120.0,
+        )
+        #expect(abs(report.sampledDuration - (120.0 / 59.8)) < 0.001)
+
+        let encoded = report.accessibilityValue
+        let parsed = FramePacingReport.parseAccessibilityValue(encoded)
+        #expect(parsed == report)
+
+        let emptyParsed = FramePacingReport.parseAccessibilityValue("invalid;format")
+        #expect(emptyParsed == nil)
+
+        let zeroReport = FramePacingReport.empty
+        #expect(zeroReport.sampledDuration == 0)
+    }
 }

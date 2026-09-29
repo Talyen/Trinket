@@ -121,6 +121,20 @@ struct ItemAffixCatalogTests {
         }
     }
 
+    /// Runtime mirror of codegen's `validate_affix_reachability`: eligibility is
+    /// a slot match plus a shared keyword, so an affix no base of its slot can
+    /// host never enters a roll pool and skews the weights that remain.
+    @Test func `each affix can roll on some base of its slot`() throws {
+        let basesBySlot = Dictionary(grouping: GameContent.itemBaseTypes, by: \.slot)
+        for definition in GameContent.itemAffixDefinitions {
+            let hosts = basesBySlot[definition.slot] ?? []
+            try #expect(
+                hosts.contains { !definition.keywords.isDisjoint(with: $0.keywordAffinities) },
+                "\(definition.id) should be rollable on a \(definition.slot) base",
+            )
+        }
+    }
+
     @Test func `each affix defines basic and astral powers`() throws {
         for definition in GameContent.itemAffixDefinitions {
             try #expect(!definition.basic.description.isEmpty, "\(definition.id) basic description")

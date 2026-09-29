@@ -126,6 +126,42 @@ struct RewardRevealSequenceStateTests {
         #expect(exits == 1)
     }
 
+    @Test func `immediate action failure allows retry`() {
+        let state = RewardCollectionState()
+        var attempts = 0
+        state.perform(.immediate {
+            attempts += 1
+            return false
+        })
+        #expect(!state.isCompleting)
+        #expect(!state.isCollected)
+        #expect(attempts == 1)
+
+        state.perform(.immediate {
+            attempts += 1
+            return true
+        })
+        #expect(state.isCompleting)
+        #expect(attempts == 2)
+    }
+
+    @Test func `cancel before start does not mark sequence complete`() {
+        let state = makeState()
+        state.cancel(walletCount: 5)
+        #expect(!state.isSequenceComplete)
+        #expect(!state.areItemsVisible)
+        #expect(state.visibleWalletRewardCount == 0)
+    }
+
+    @Test func `reward reveal action haptics property`() {
+        let collectEnabled = RewardRevealAction.collect(hapticsEnabled: true, claim: { true }, finish: {})
+        let collectDisabled = RewardRevealAction.collect(hapticsEnabled: false, claim: { true }, finish: {})
+        let immediate = RewardRevealAction.immediate { true }
+        #expect(collectEnabled.hapticsEnabled)
+        #expect(!collectDisabled.hapticsEnabled)
+        #expect(!immediate.hapticsEnabled)
+    }
+
     private func waitUntil(
         timeout: Duration = .seconds(5),
         condition: @MainActor () -> Bool,

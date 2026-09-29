@@ -94,9 +94,9 @@ public final class EncounterPlayMode {
     }
 
     @discardableResult
-    public func purchaseActiveShopOffer(offerID: String) -> Bool {
-        guard let shopSession = activeShopEncounter else { return false }
-        guard !shopSession.isPurchasing else { return false }
+    public func purchaseActiveShopOffer(offerID: String) -> ShopPurchaseOutcome {
+        guard let shopSession = activeShopEncounter else { return .rejected }
+        guard !shopSession.isPurchasing else { return .rejected }
         shopSession.markPurchaseStarted()
         switch playerSave.persistTransaction(logging: "Failed to purchase shop offer", { save in
             ShopPurchaseApplier.purchase(offerID: offerID, encounter: shopSession.encounter, save: &save)
@@ -104,18 +104,21 @@ public final class EncounterPlayMode {
         case .committed:
             shopSession.markPurchaseFinished()
             sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
-            return true
+            return .committed
         case let .rejected(reason):
             shopSession.markPurchaseFailed(message: reason.message)
             sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
-            return false
+            return .rejected
         case .persistFailed:
+            // The mutation rolled back and the store retries silently, so this
+            // attempt is accepted rather than failed; the board is already
+            // disabled while `isRetryingSaveAction`.
             shopSession.markPurchaseFinished()
             playerSave.retrySaveAction(key: SaveRetryKey.shopPurchase(offerID)) { [weak self] in
                 guard let self, activeShopEncounter === shopSession else { return }
                 _ = purchaseActiveShopOffer(offerID: offerID)
             }
-            return false
+            return .retrying
         }
     }
 

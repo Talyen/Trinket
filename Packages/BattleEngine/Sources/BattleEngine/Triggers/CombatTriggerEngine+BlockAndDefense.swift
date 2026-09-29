@@ -1,7 +1,7 @@
 import TrinketContent
 import TrinketCore
 
-// MARK: - Block gained
+// MARK: - Block gained, broken, and defense
 
 package extension CombatTriggerEngine {
     static func afterBlockGained(
@@ -133,11 +133,9 @@ package extension CombatTriggerEngine {
         ))
         return events
     }
-}
 
-// MARK: - Block broken and defense
+    // MARK: - Block broken and defense
 
-package extension CombatTriggerEngine {
     static func afterBlockBroken(
         on target: Combatant,
         attackerID: String?,
@@ -160,14 +158,7 @@ package extension CombatTriggerEngine {
                 $0.talents.pending.nextHolyHitPreparedCardSerial = serial
             }
         }
-        if profile.triggers.firstBlockBreakNextStunDouble,
-           context.claimHeroTalent("Quaking Carapace", actorID: target.id, battle: true) {
-            let serial = context.resolution.cardTalents?.playSerial
-            context.roster.mutateRuntime(for: target) {
-                $0.talents.pending.nextStunAttackDouble = true
-                $0.talents.pending.nextStunAttackPreparedCardSerial = serial
-            }
-        }
+        prepareQuakingStunDouble(on: target, triggers: profile.triggers, in: &context)
         if target.role == .companion, context.roster.hero.isAlive,
            profile.triggers.blockBreakAllyBlockFlat > 0 {
             events.append(contentsOf: context.applyBlock(
@@ -190,9 +181,13 @@ package extension CombatTriggerEngine {
                 amount: profile.triggers.blockBrokenBlockFlat, to: target, source: target, in: &context,
             ))
         }
-        events.append(contentsOf: blockBreakThorns(
-            profile.triggers.blockBrokenThornsFlat, on: target, in: &context,
-        ))
+        if profile.triggers.blockBrokenThornsFlat > 0 {
+            events.append(contentsOf: heroTalentThorns(
+                to: target, source: target, amount: profile.triggers.blockBrokenThornsFlat,
+                name: triggerAbilityName("blockBrokenThornsFlat", for: target, fallback: "Briarward", in: context),
+                in: &context,
+            ))
+        }
 
         events.append(contentsOf: saintfallAfterBlockBroken(
             on: target,
@@ -203,22 +198,24 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    private static func blockBreakThorns(
-        _ amount: Int,
+    private static func prepareQuakingStunDouble(
         on target: Combatant,
+        triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard amount > 0 else { return [] }
-        return heroTalentThorns(
-            to: target, source: target, amount: amount,
-            name: triggerAbilityName("blockBrokenThornsFlat", for: target, fallback: "Briarward", in: context),
-            in: &context,
-        )
+    ) {
+        guard triggers.firstBlockBreakNextStunDouble,
+              context.claimHeroTalent("Quaking Carapace", actorID: target.id, battle: true) else { return }
+        let serial = context.resolution.cardTalents?.playSerial
+        context.roster.mutateRuntime(for: target) {
+            $0.talents.pending.nextStunAttackDouble = true
+            $0.talents.pending.nextStunAttackPreparedCardSerial = serial
+        }
     }
 
     static func afterEnemyStunned(sourceActorID: String?, in context: inout BattleState) -> [ActionEvent] {
-        if let sourceActorID, context.roster.enemy.isAlive {
-            let triggers = context.modifiers(for: sourceActorID).triggers
+        // Pure read: hoisted so the three source-gated blocks below share one fetch.
+        let triggers = sourceActorID.map { context.modifiers(for: $0).triggers }
+        if let sourceActorID, let triggers, context.roster.enemy.isAlive {
             if triggers.stunnedEnemyLoseAllBlock {
                 DefensePoolEngine.set(0, on: context.roster.enemy.combatant, in: &context)
             }
@@ -233,14 +230,13 @@ package extension CombatTriggerEngine {
                 }
             }
         }
-        if let sourceActorID,
+        if let sourceActorID, let triggers,
            let source = context.roster.combatant(for: sourceActorID), source.isAlive,
-           context.modifiers(for: sourceActorID).triggers.stunNextBlockGainMultiplier > 1 {
-            let multiplier = context.modifiers(for: sourceActorID).triggers.stunNextBlockGainMultiplier
+           triggers.stunNextBlockGainMultiplier > 1 {
             let preparedCardSerial = context.resolution.cardTalents?.playSerial
             context.roster.mutateRuntime(for: source.combatant) {
                 $0.talents.pending.nextBlockGainMultiplier = max(
-                    $0.talents.pending.nextBlockGainMultiplier, multiplier,
+                    $0.talents.pending.nextBlockGainMultiplier, triggers.stunNextBlockGainMultiplier,
                 )
                 $0.talents.pending.nextBlockGainPreparedCardSerial = preparedCardSerial
             }
@@ -255,20 +251,18 @@ package extension CombatTriggerEngine {
             }
         }
         var events: [ActionEvent] = []
-        for owner in [BattleParticipant.hero, .companion] {
-            events.append(contentsOf: afterEnemyStunnedReactions(for: owner, sourceActorID: sourceActorID, in: &context))
+        for (_, member) in livingPartyMembers(in: context) {
+            events.append(contentsOf: afterEnemyStunnedReactions(for: member, sourceActorID: sourceActorID, in: &context))
         }
         return events
     }
 
     private static func afterEnemyStunnedReactions(
-        for owner: BattleParticipant,
+        for member: CombatantRuntime,
         sourceActorID: String?,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        let runtime = context.roster[owner]
-        guard runtime.isAlive else { return [] }
-        let profile = context.modifiers(for: runtime.id)
+        let profile = context.modifiers(for: member.id)
         let triggers = profile.triggers
         let shouldReact = triggers.stunDealPhysicalFlat > 0
             || triggers.enemyStunnedApplyMarked
@@ -277,7 +271,7 @@ package extension CombatTriggerEngine {
             || triggers.stunPurgeDealHolyPerEffect > 0
         guard shouldReact else { return [] }
 
-        let actor = runtime.combatant
+        let actor = member.combatant
         let enemy = context.roster.enemy.combatant
         guard context.roster.health(for: enemy) > 0 else { return [] }
 
@@ -337,7 +331,7 @@ package extension CombatTriggerEngine {
         enemy: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        let purge = PurgeOperation.resolve(
+        let purge = EffectRemovalOperation.resolvePurge(
             .all(nil),
             source: actor,
             target: enemy,
@@ -443,7 +437,7 @@ package extension CombatTriggerEngine {
         purgeAll: Bool,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        PurgeOperation.resolve(
+        EffectRemovalOperation.resolvePurge(
             purgeAll ? .all(nil) : .randomBuffs(count), source: source, target: target,
             abilityName: abilityName, in: &context,
         ).events

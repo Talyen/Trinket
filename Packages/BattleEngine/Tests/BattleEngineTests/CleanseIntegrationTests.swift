@@ -288,4 +288,81 @@ struct CleanseIntegrationTests {
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 2)
         try #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
     }
+
+    @Test func `cleanse party block does not grant block on empty cleanse`() throws {
+        let cleanseAll = Ability(
+            id: "cleanse-all",
+            name: "Cleanse All",
+            tier: .basic,
+            directDamage: 0,
+            description: "Cleanse all debuffs.",
+            effects: [.cleanse(nil)],
+        )
+        let hero = CombatantFixtures.combatant(
+            id: "hero", name: "Hero", role: .hero, maxHealth: 50,
+            abilities: [cleanseAll],
+        )
+        let companion = CombatantFixtures.passiveCompanion()
+        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        let triggers = CombatTraitTriggers(cleanse: CleanseTriggers(cleansePartyBlock: 2))
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            activeHeroEffects: [],
+            heroModifiers: CombatModifierProfile(triggers: triggers),
+        )
+
+        _ = try BattleTestFixtures.playCardNamed("Cleanse All", owner: .hero, on: &battle)
+
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 0)
+    }
+
+    @Test func `purifying wisdom does not draw or consume claim on empty cleanse`() {
+        let cleanseAbility = Ability(
+            id: "cleanse-one",
+            name: "Cleanse",
+            tier: .basic,
+            directDamage: 0,
+            effects: [.cleanse(nil)],
+        )
+        let hero = CombatantFixtures.combatant(
+            id: "hero", name: "Hero", role: .hero, maxHealth: 50,
+            abilities: [cleanseAbility, .slash, .smite, .block, .apple, .heal],
+        )
+        let companion = CombatantFixtures.passiveCompanion()
+        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        let triggers = CombatTraitTriggers(cleanse: CleanseTriggers(cleanseBonusDraw: 1))
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            activeHeroEffects: [],
+            heroModifiers: CombatModifierProfile(triggers: triggers),
+            dealOpeningHand: false,
+        )
+        battle.heroDeck = CombatDeck(abilities: [.slash, .smite, .block])
+
+        let initialHandCount = battle.hand.count
+        _ = EffectHandlersTestSupport.dispatch(
+            .cleanse(nil), source: battle.hero, target: battle.hero, battle: &battle,
+        )
+
+        #expect(battle.hand.count == initialHandCount)
+
+        battle.appendEffect(.poison(3), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        _ = EffectHandlersTestSupport.dispatch(
+            .cleanse(nil), source: battle.hero, target: battle.hero, battle: &battle,
+        )
+
+        #expect(battle.hand.count == initialHandCount + 1)
+
+        // Third cleanse with a new debuff does not draw again (once per combat)
+        battle.appendEffect(.bleed(3), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 1)
+        _ = EffectHandlersTestSupport.dispatch(
+            .cleanse(nil), source: battle.hero, target: battle.hero, battle: &battle,
+        )
+        #expect(battle.hand.count == initialHandCount + 1)
+    }
 }

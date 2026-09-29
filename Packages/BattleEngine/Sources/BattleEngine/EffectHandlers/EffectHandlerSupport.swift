@@ -95,9 +95,13 @@ enum TimedBuffSummary {
         }.min() ?? 0
     }
 
-    static func durationSuffix(in stacks: [ActiveEffect], duration: (Effect) -> Int?) -> String {
+    static func durationSuffix(
+        in stacks: [ActiveEffect],
+        separator: String = ",",
+        duration: (Effect) -> Int?,
+    ) -> String {
         let turns = minRemainingTurns(in: stacks, duration: duration)
-        return turns > 0 ? ", \(BattleTiming.remainingDurationLabel(turns: turns))" : ""
+        return turns > 0 ? "\(separator) \(BattleTiming.remainingDurationLabel(turns: turns))" : ""
     }
 
     static func summedAmount(in stacks: [ActiveEffect], amount: (Effect) -> Int?) -> Int {

@@ -102,21 +102,13 @@ package extension CombatTriggerEngine {
 
         events.append(contentsOf: applySidestepHeal(for: combatant, profile: profile, in: &context))
         if allowsCounterattacks, context.roster.enemy.isAlive {
-            if triggers.dodgeBleedDamage > 0,
-               BattleChance.succeeds(probability: triggers.dodgeBleedChancePercent, using: &context.rng) {
+            for (keyword, chance, potency) in [
+                (Keyword.bleed, triggers.dodgeBleedChancePercent, triggers.dodgeBleedDamage),
+                (Keyword.burn, triggers.dodgeBurnChancePercent, triggers.dodgeBurnDamage),
+            ] where potency > 0 && BattleChance.succeeds(probability: chance, using: &context.rng) {
                 events.append(contentsOf: applyDoT(
-                    keyword: .bleed,
-                    potency: triggers.dodgeBleedDamage,
-                    to: context.roster.enemy.combatant,
-                    sourceActorID: combatant.id,
-                    in: &context,
-                ))
-            }
-            if triggers.dodgeBurnDamage > 0,
-               BattleChance.succeeds(probability: triggers.dodgeBurnChancePercent, using: &context.rng) {
-                events.append(contentsOf: applyDoT(
-                    keyword: .burn,
-                    potency: triggers.dodgeBurnDamage,
+                    keyword: keyword,
+                    potency: potency,
                     to: context.roster.enemy.combatant,
                     sourceActorID: combatant.id,
                     in: &context,
@@ -177,23 +169,18 @@ package extension CombatTriggerEngine {
                 events.append(contentsOf: counterWithBasicAttack(by: combatant, in: &context))
             }
             if triggers.onDodgeApplyPoisonOrBleed > 0 {
-                if BattleChance.succeeds(probability: 0.5, using: &context.rng) {
-                    events.append(contentsOf: context.applyDecayingDoT(
-                        keyword: .poison,
-                        potency: triggers.onDodgeApplyPoisonOrBleed,
-                        to: target,
-                        sourceActorID: combatant.id,
-                        application: .reaction,
-                    ))
-                } else {
-                    events.append(contentsOf: DoTApplicator.applyBleed(
-                        potency: triggers.onDodgeApplyPoisonOrBleed,
-                        to: target,
-                        sourceActorID: combatant.id,
-                        application: .reaction,
-                        in: &context,
-                    ))
-                }
+                // `applyDoT` routes bleed to its dedicated applicator and
+                // everything else to decaying DoTs, matching the two direct
+                // calls this replaces with one RNG draw either way.
+                let keyword: Keyword = BattleChance.succeeds(probability: 0.5, using: &context.rng) ? .poison : .bleed
+                events.append(contentsOf: applyDoT(
+                    keyword: keyword,
+                    potency: triggers.onDodgeApplyPoisonOrBleed,
+                    to: target,
+                    sourceActorID: combatant.id,
+                    application: .reaction,
+                    in: &context,
+                ))
             }
             if triggers.onDodgeAttackerStunBuildup > 0 {
                 events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
@@ -228,7 +215,6 @@ package extension CombatTriggerEngine {
         }
 
         events.append(contentsOf: afterCompanionDodge(by: combatant, in: &context))
-        events.append(contentsOf: afterFinalCompanionDodge(by: combatant, in: &context))
         return events
     }
 

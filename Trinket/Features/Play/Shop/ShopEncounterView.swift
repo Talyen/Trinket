@@ -196,16 +196,19 @@ struct ShopEncounterView: View {
     }
 
     private func attemptPurchase(offerID: String, dismissDetail: Bool) {
-        if encounters.purchaseActiveShopOffer(offerID: offerID) {
+        switch encounters.purchaseActiveShopOffer(offerID: offerID) {
+        case .committed:
             purchaseFeedbackTrigger += 1
             if dismissDetail {
                 selectedOffer = nil
             }
-        } else {
+        case .rejected:
             purchaseErrorFeedbackTrigger += 1
             if dismissDetail {
                 detailPurchaseError = session.lastPurchaseError ?? "Purchase failed. Try again."
             }
+        case .retrying:
+            break
         }
     }
 }

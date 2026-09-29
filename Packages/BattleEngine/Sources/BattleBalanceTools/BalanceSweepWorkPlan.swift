@@ -5,12 +5,6 @@ public struct BalanceSweepWorkerJob: Equatable, Sendable {
     public var mode: BalanceSweepMode
     public var offset: Int
     public var limit: Int
-
-    public init(mode: BalanceSweepMode, offset: Int, limit: Int) {
-        self.mode = mode
-        self.offset = offset
-        self.limit = limit
-    }
 }
 
 public enum BalanceSweepWorkPlan {
@@ -46,14 +40,9 @@ public enum BalanceSweepWorkPlan {
     public static func chunkRanges(workCount: Int, chunkSize: Int) -> [(offset: Int, limit: Int)] {
         guard workCount > 0 else { return [] }
         let size = max(1, chunkSize)
-        var ranges: [(offset: Int, limit: Int)] = []
-        var offset = 0
-        while offset < workCount {
-            let limit = min(size, workCount - offset)
-            ranges.append((offset, limit))
-            offset += limit
+        return stride(from: 0, to: workCount, by: size).map { offset in
+            (offset, min(size, workCount - offset))
         }
-        return ranges
     }
 
     public static func workerJobs(config: BalanceSweepConfig) -> [BalanceSweepWorkerJob] {

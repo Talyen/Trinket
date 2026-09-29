@@ -233,4 +233,54 @@ struct BattleMechanicsTests {
         )
         try #expect(outcome.events.contains { $0.effectKind == .markedConsumed })
     }
+
+    @Test func `corrosive venom strips block before the poison packet is absorbed`() throws {
+        let venom = CombatModifierProfile(triggers: CombatTraitTriggers(
+            block: BlockTriggers(poisonStripsBlockBeforeHealth: 1),
+        ))
+        let hero = CombatantFixtures.passiveHero(maxHealth: 30)
+
+        var blocking = BattleStateTestFactory.makeMinimalBattle(
+            hero: hero,
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 30),
+            heroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 0)],
+            enemyModifiers: venom,
+            nextEffectID: 2,
+        )
+        blocking.appliesFightPacing = false
+
+        // The strip lands before absorption, so a packet larger than the
+        // defender's Block reaches Health in full.
+        let penetrated = blocking.resolveDamage(DamageRequest(
+            amount: 5,
+            target: blocking.hero,
+            keyword: .poison,
+            sourceActorID: blocking.enemy.id,
+            options: .attack(accuracy: .unavoidable),
+        ))
+        try #expect(penetrated.healthLost == 5)
+        try #expect(BattleTestFixtures.shieldPoints(for: blocking.hero, in: blocking) == 0)
+
+        var absorbed = BattleStateTestFactory.makeMinimalBattle(
+            hero: hero,
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 30),
+            heroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
+            enemyModifiers: venom,
+            nextEffectID: 2,
+        )
+        absorbed.appliesFightPacing = false
+
+        let stopped = absorbed.resolveDamage(DamageRequest(
+            amount: 3,
+            target: absorbed.hero,
+            keyword: .poison,
+            sourceActorID: absorbed.enemy.id,
+            options: .attack(accuracy: .unavoidable),
+        ))
+        try #expect(stopped.healthLost == 0)
+        // Absorb 3, strip 1: Block drops by exactly absorbed + strip.
+        try #expect(BattleTestFixtures.shieldPoints(for: absorbed.hero, in: absorbed) == 6)
+    }
 }

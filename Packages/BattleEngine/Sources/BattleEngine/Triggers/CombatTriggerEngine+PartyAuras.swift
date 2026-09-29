@@ -15,50 +15,50 @@ package extension CombatTriggerEngine {
             bonus += enrageAuraBonus(in: context)
         }
         let living = livingAllyModifiers(in: context)
-        if source.role == .companion {
-            if targetIsPoisoned {
-                bonus += living.reduce(0) { $0 + $1.triggers.companionDamageVsPoisonedBonus }
-            }
-            if targetIsBurning {
-                bonus += living.reduce(0) { $0 + $1.triggers.companionDamageVsBurningBonus }
-            }
-        }
+        let companion = context.roster.companion.combatant
+        let companionFullHealth = source.role != .enemy && context.roster.companion.isAlive
+            && context.roster.maxHealth(for: companion) > 0
+            && context.roster.health(for: companion) == context.roster.maxHealth(for: companion)
         let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(
             for: damageKeyword,
             triggers: context.modifiers(for: source.id).triggers,
         )
-        if source.role != .enemy, damageKeyword == .physical || sharedKeyword == .physical {
-            for profile in living {
-                let triggers = profile.triggers
-                if triggers.partyPhysicalDamageBonusFirstTurns > 0,
-                   context.turnCount < triggers.partyPhysicalDamageBonusFirstTurnCount {
-                    bonus += triggers.partyPhysicalDamageBonusFirstTurns
+        for profile in living {
+            let triggers = profile.triggers
+            if source.role == .companion {
+                if targetIsPoisoned {
+                    bonus += triggers.companionDamageVsPoisonedBonus
+                }
+                if targetIsBurning {
+                    bonus += triggers.companionDamageVsBurningBonus
                 }
             }
-        }
-        if source.role != .enemy, context.roster.companion.isAlive,
-           context.roster.maxHealth(for: context.roster.companion.combatant) > 0,
-           context.roster.health(for: context.roster.companion.combatant) == context.roster
-           .maxHealth(for: context.roster.companion.combatant) {
-            bonus += living.reduce(0) { $0 + $1.triggers.partyDamageBonusWhileCompanionFullHealth }
-            if damageKeyword == .holy {
-                bonus += living.reduce(0) { $0 + $1.triggers.partyHolyDamageBonusWhileCompanionFullHealth }
+            if source.role != .enemy, damageKeyword == .physical || sharedKeyword == .physical,
+               triggers.partyPhysicalDamageBonusFirstTurns > 0,
+               context.turnCount < triggers.partyPhysicalDamageBonusFirstTurnCount {
+                bonus += triggers.partyPhysicalDamageBonusFirstTurns
             }
-        }
-        if state.options.isBasicAttackHit, source.role != .enemy, damageKeyword == .holy {
-            bonus += living.reduce(0) { $0 + $1.triggers.partyBasicAttackHolyBonus }
+            if companionFullHealth {
+                bonus += triggers.partyDamageBonusWhileCompanionFullHealth
+                if damageKeyword == .holy {
+                    bonus += triggers.partyHolyDamageBonusWhileCompanionFullHealth
+                }
+            }
+            if state.options.isBasicAttackHit, source.role != .enemy, damageKeyword == .holy {
+                bonus += triggers.partyBasicAttackHolyBonus
+            }
         }
         return bonus
     }
 
     private static func enrageAuraBonus(in context: BattleState) -> Int {
         var bonus = 0
-        for member in [context.roster.hero, context.roster.companion] where member.isAlive {
-            let aura = context.modifiers(for: member.id).triggers
+        for (combatant, profile) in livingAllies(in: context) {
+            let aura = profile.triggers
             if aura.partyAllStatsBonusBelowHealthAmount > 0,
-               context.roster.maxHealth(for: member.combatant) > 0 {
-                let percent = Double(context.roster.health(for: member.combatant))
-                    / Double(context.roster.maxHealth(for: member.combatant))
+               context.roster.maxHealth(for: combatant) > 0 {
+                let percent = Double(context.roster.health(for: combatant))
+                    / Double(context.roster.maxHealth(for: combatant))
                 if percent < aura.partyAllStatsBonusBelowHealthThreshold {
                     bonus += aura.partyAllStatsBonusBelowHealthAmount
                 }

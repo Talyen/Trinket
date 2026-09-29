@@ -37,8 +37,8 @@ applications during damage resolution, while `CombatTriggerEngine` owns post-hit
 cadence. Do not fold one into the other. Unconditional hero/companion loops
 (stored-damage drain, healing-echo drain) must visit dead members too; the
 `livingPartyMembers`/`livingAllies` helpers are only for living-only passes.
-`CleanseOperation` and `PurgeOperation` each own their removal plus consequences;
-share handler dispatch, not the operations.
+`EffectRemovalOperation` owns effect stripping (cleanse for debuffs, purge for
+buffs) plus each path's consequences; share handler dispatch, not the paths.
 
 Enemy abilities resolve offensive effect targets and opponent conditions against
 the selected party member. Conditions keep that target throughout the action,

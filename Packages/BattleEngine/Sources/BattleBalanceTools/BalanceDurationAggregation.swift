@@ -156,9 +156,13 @@ enum BalanceDurationAggregation {
             let recs = grouped[id] ?? []
             guard !recs.isEmpty else { return nil }
             let short = recs.count { rec in
-                rec.result.isDecided && rec.result.rounds < minRounds(isBoss: rec.isBoss)
+                let floor = rec.isBoss ? BalanceDurationThresholds.bossMinRounds : BalanceDurationThresholds.trashMinRounds
+                return rec.result.isDecided && rec.result.rounds < floor
             }
-            let long = recs.count { $0.result.rounds > maxRounds(isBoss: $0.isBoss) }
+            let long = recs.count {
+                let ceiling = $0.isBoss ? BalanceDurationThresholds.bossMaxRounds : BalanceDurationThresholds.trashMaxRounds
+                return $0.result.rounds > ceiling
+            }
             let avg = recs.reduce(0.0) { $0 + Double($1.result.rounds) } / Double(recs.count)
             let shortRate = Double(short) / Double(recs.count)
             let longRate = Double(long) / Double(recs.count)
@@ -183,13 +187,5 @@ enum BalanceDurationAggregation {
                 flagReason: flags.isEmpty ? nil : flags.joined(separator: " "),
             )
         }
-    }
-
-    private static func minRounds(isBoss: Bool) -> Int {
-        isBoss ? BalanceDurationThresholds.bossMinRounds : BalanceDurationThresholds.trashMinRounds
-    }
-
-    private static func maxRounds(isBoss: Bool) -> Int {
-        isBoss ? BalanceDurationThresholds.bossMaxRounds : BalanceDurationThresholds.trashMaxRounds
     }
 }

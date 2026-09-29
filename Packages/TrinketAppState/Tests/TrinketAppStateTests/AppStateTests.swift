@@ -220,6 +220,29 @@ struct AppStateTests {
         #expect(state.playerSave.inventory == .testSeed)
     }
 
+    @Test func `progress status stays up while storage is degraded`() {
+        // A healthy store reports nothing, and a transient write failure still
+        // hides behind the silent retry.
+        #expect(AppState.statusMessage(for: nil, isDegraded: false) == nil)
+        #expect(AppState.statusMessage(for: .writeFailed, isDegraded: false) == nil)
+
+        // A later successful save clears the error but not the degradation, so
+        // the row must keep reporting the fallback store.
+        #expect(AppState.statusMessage(for: nil, isDegraded: true) != nil)
+        #expect(AppState.statusMessage(for: .writeFailed, isDegraded: true) != nil)
+
+        #expect(
+            AppState.statusMessage(for: .invalidSave("Save unreadable."), isDegraded: false)
+                == "Save unreadable.",
+        )
+        let unavailable = PlayerSavePersistenceError.storeUnavailable("Restoring progress on this device.")
+        #expect(
+            AppState.statusMessage(for: unavailable, isDegraded: false)
+                == "Restoring progress on this device.",
+        )
+        #expect(AppState.statusMessage(for: unavailable, isDegraded: true) == unavailable.statusMessage)
+    }
+
     @Test(arguments: [
         (stageIDs: "chapter-1-stage-1", known: true),
         (stageIDs: "missing-stage", known: false),

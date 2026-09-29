@@ -25,6 +25,7 @@ id	title	slot	keywords	weight	basic_description	astral_description	basic_modifie
 
 - `slot`: `weapon`, `armor`, `accessory`, or `trinket`.
 - `keywords`: comma-separated keyword names (e.g. `physical,bleed`).
+- `slot` + `keywords` must be rollable: the affix shares at least one keyword with an item base of its slot, or `validate_affix_reachability` rejects it because no roll pool can ever host it.
 - `*_modifiers`: pipe-separated DSL tokens (e.g. `maximum_health:6|damage_dealt:physical:1`). Empty when the affix is trigger-only.
 - `*_triggers`: pipe-separated combat trigger tokens (e.g. `on_bleed_apply_poison:1`, `block_per_turn:2`). Empty for flat modifier affixes. Trailing trigger columns may be omitted (no trailing tabs required); extra columns are rejected.
 - One value per field in a cell: repeating a modifier or trigger field is rejected, as are non-numeric amounts and unknown keywords. Trigger value types follow the schema field types.

@@ -385,4 +385,13 @@ public final class BattleSession: BattleRuntime {
     func isCardPlayable(_ card: BattleCard) -> Bool {
         canAcceptBattleCommands && presentation.playableCardIDs.contains(card.id)
     }
+
+    /// Single play-intent gate for tap, drag, and accessibility activation.
+    /// Outside a finished battle it is the session's own eligibility, so a
+    /// refused-command window never advertises a play it would reject; once
+    /// the battle is over, the visual-only finishing taps stay available while
+    /// the hand is still interactable.
+    func isHandCardPlayable(_ card: BattleCard) -> Bool {
+        isCardPlayable(card) || (presentation.isBattleOver && canInteractWithHand)
+    }
 }

@@ -301,17 +301,17 @@ public struct PairedContrastSummary: Equatable, Codable, Sendable {
 public struct BalanceSweepReport: Codable, Sendable {
     public var config: BalanceSweepConfig
     public var policyID: String
-    public var records: [BalanceBattleRecord]
+    public var records: [BalanceBattleRecord] = []
     public var comparedPolicyID: String?
-    public var comparedRecords: [BalanceBattleRecord]
-    public var abilityContrasts: [PairedContrastSummary]
-    public var affixContrasts: [PairedContrastSummary]
-    public var talentContrasts: [PairedContrastSummary]
-    public var talentKitContrasts: [PairedContrastSummary]
-    public var progressionHotspots: [NodeHotspotSummary]
-    public var progressionRecords: [ProgressionBattleRecord]
-    public var progressionPlayerStates: [PlayerProgressionState]
-    public var progressionTruncatedRuns: Int
+    public var comparedRecords: [BalanceBattleRecord] = []
+    public var abilityContrasts: [PairedContrastSummary] = []
+    public var affixContrasts: [PairedContrastSummary] = []
+    public var talentContrasts: [PairedContrastSummary] = []
+    public var talentKitContrasts: [PairedContrastSummary] = []
+    public var progressionHotspots: [NodeHotspotSummary] = []
+    public var progressionRecords: [ProgressionBattleRecord] = []
+    public var progressionPlayerStates: [PlayerProgressionState] = []
+    public var progressionTruncatedRuns = 0
     public var elapsedSeconds: Double
 
     /// The four contrast sections in canonical order. Both the markdown tables
@@ -326,38 +326,6 @@ public struct BalanceSweepReport: Codable, Sendable {
         ]
     }
 
-    public init(
-        config: BalanceSweepConfig,
-        policyID: String,
-        records: [BalanceBattleRecord] = [],
-        comparedPolicyID: String? = nil,
-        comparedRecords: [BalanceBattleRecord] = [],
-        abilityContrasts: [PairedContrastSummary] = [],
-        affixContrasts: [PairedContrastSummary] = [],
-        talentContrasts: [PairedContrastSummary] = [],
-        talentKitContrasts: [PairedContrastSummary] = [],
-        progressionHotspots: [NodeHotspotSummary] = [],
-        progressionRecords: [ProgressionBattleRecord] = [],
-        progressionPlayerStates: [PlayerProgressionState] = [],
-        progressionTruncatedRuns: Int = 0,
-        elapsedSeconds: Double,
-    ) {
-        self.config = config
-        self.policyID = policyID
-        self.records = records
-        self.comparedPolicyID = comparedPolicyID
-        self.comparedRecords = comparedRecords
-        self.abilityContrasts = abilityContrasts
-        self.affixContrasts = affixContrasts
-        self.talentContrasts = talentContrasts
-        self.talentKitContrasts = talentKitContrasts
-        self.progressionHotspots = progressionHotspots
-        self.progressionRecords = progressionRecords
-        self.progressionPlayerStates = progressionPlayerStates
-        self.progressionTruncatedRuns = max(0, progressionTruncatedRuns)
-        self.elapsedSeconds = elapsedSeconds
-    }
-
     /// Merges per-worker slice reports back into one report. Contrast
     /// summaries re-bucket through the parent config so worker-local flag
     /// thresholds cannot leak into the merged output.
@@ -368,28 +336,19 @@ public struct BalanceSweepReport: Codable, Sendable {
         elapsedSeconds: Double,
     ) -> Self {
         let progressionRecords = slices.flatMap(\.progressionRecords)
+        func merge(_ keyPath: KeyPath<Self, [PairedContrastSummary]>) -> [PairedContrastSummary] {
+            BalanceContrastSupport.mergeSummaries(slices.flatMap { $0[keyPath: keyPath] }, config: config)
+        }
         return Self(
             config: config,
             policyID: policyID,
             records: slices.flatMap(\.records),
             comparedPolicyID: slices.first(where: { $0.comparedPolicyID != nil })?.comparedPolicyID,
             comparedRecords: slices.flatMap(\.comparedRecords),
-            abilityContrasts: BalanceContrastSupport.mergeSummaries(
-                slices.flatMap(\.abilityContrasts),
-                config: config,
-            ),
-            affixContrasts: BalanceContrastSupport.mergeSummaries(
-                slices.flatMap(\.affixContrasts),
-                config: config,
-            ),
-            talentContrasts: BalanceContrastSupport.mergeSummaries(
-                slices.flatMap(\.talentContrasts),
-                config: config,
-            ),
-            talentKitContrasts: BalanceContrastSupport.mergeSummaries(
-                slices.flatMap(\.talentKitContrasts),
-                config: config,
-            ),
+            abilityContrasts: merge(\.abilityContrasts),
+            affixContrasts: merge(\.affixContrasts),
+            talentContrasts: merge(\.talentContrasts),
+            talentKitContrasts: merge(\.talentKitContrasts),
             progressionHotspots: HotspotAnalyzer.analyze(records: progressionRecords),
             progressionRecords: progressionRecords,
             progressionPlayerStates: slices.flatMap(\.progressionPlayerStates),

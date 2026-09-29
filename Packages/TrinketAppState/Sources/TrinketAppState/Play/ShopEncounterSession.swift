@@ -11,6 +11,15 @@ enum ShopEncounterOpenResult {
     case failed(StageMapMessage)
 }
 
+/// One purchase attempt's result. `.retrying` means the durable write failed
+/// and `PlayerSaveStore` is retrying it with backoff: the attempt is accepted,
+/// so callers must not surface it as a purchase failure.
+public enum ShopPurchaseOutcome: Equatable {
+    case committed
+    case rejected
+    case retrying
+}
+
 @MainActor
 @Observable
 public final class ShopEncounterSession: Identifiable, EncounterSession {

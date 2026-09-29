@@ -51,7 +51,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
         default:
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        return CleanseOperation.resolve(
+        return EffectRemovalOperation.resolveCleanse(
             .all(targetKeyword), source: source, target: target, abilityName: ability.name,
             healPerDebuff: healPerDebuff, origin: .direct, in: &context,
         ).application
@@ -63,8 +63,10 @@ struct CleansePurgeHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        CleanseOperation.resolve(.random, source: source, target: target, abilityName: ability.name, origin: .direct, in: &context)
-            .application
+        EffectRemovalOperation.resolveCleanse(
+            .randomDebuff, source: source, target: target, abilityName: ability.name,
+            origin: .direct, in: &context,
+        ).application
     }
 
     private func applyPurge(
@@ -77,7 +79,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
         guard case let .purge(keyword) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        return PurgeOperation.resolve(
+        return EffectRemovalOperation.resolvePurge(
             .all(keyword), source: source, target: target, abilityName: ability.name, origin: .direct, in: &context,
         ).application
     }
@@ -88,7 +90,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        PurgeOperation.resolve(
+        EffectRemovalOperation.resolvePurge(
             .randomBuffs(1), source: source, target: target, abilityName: ability.name, origin: .direct, in: &context,
         ).application
     }
@@ -109,7 +111,7 @@ struct PanaceaHandler: BattleEffectHandler {
         }
         let action = BattleActionContext(actor: source, in: context)
         let cleanseTarget = BattleActionContext.mostDebuffed(in: action.allies(in: context), state: context)
-        return CleanseOperation.resolve(
+        return EffectRemovalOperation.resolveCleanse(
             .all(nil), source: source, target: cleanseTarget, abilityName: ability.name,
             baseHeal: baseHeal, healPerDebuff: healPerDebuff,
             healTarget: action.target(.lowestHealthAlly, in: context), origin: .direct, in: &context,

@@ -59,7 +59,9 @@ public final class PlayerSaveStore {
     @ObservationIgnored public var prepareExternalProgress: (@MainActor (PlayerSave) async throws -> @MainActor (Bool) -> Void)?
     @ObservationIgnored var cloudDeviceState = CloudDeviceState()
     var preservesUnreadableCloudState = false
-    static let memoryFallbackError = PlayerSavePersistenceError.storeUnavailable(
+    /// Copy used when the store runs degraded (in-memory fallback or a pending
+    /// write) and has no newer error to surface.
+    public static let memoryFallbackError = PlayerSavePersistenceError.storeUnavailable(
         "Restoring progress on this device.",
     )
 

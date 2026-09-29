@@ -36,7 +36,7 @@ struct AppStateShopEncounterTests {
             save.roster.gold = offer.price * 3
         }
 
-        #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id))
+        #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id) == .committed)
         let goldAfterFirst = state.playerSave.roster.gold
         let itemsAfterFirst = state.playerSave.inventory.items.count
 
@@ -46,7 +46,7 @@ struct AppStateShopEncounterTests {
         let secondSession = try #require(state.encounters.activeShopEncounter)
         #expect(secondSession.offers.first?.id == offer.id)
 
-        #expect(!state.encounters.purchaseActiveShopOffer(offerID: offer.id))
+        #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id) == .rejected)
         #expect(state.playerSave.roster.gold == goldAfterFirst)
         #expect(state.playerSave.inventory.items.count == itemsAfterFirst)
     }
@@ -140,6 +140,31 @@ struct AppStateShopEncounterTests {
     }
 
     #if DEBUG
+    @Test func `purchase reports retrying when persist fails and the silent retry completes it`() async throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+        #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
+        let session = try #require(state.encounters.activeShopEncounter)
+        let offer = try #require(session.offers.first)
+        try playerSave.performBatchMutation { save in
+            save.roster.gold = offer.price * 3
+        }
+        let itemsBefore = playerSave.inventory.items.count
+
+        playerSave.forcesNextSaveFailure = true
+        #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id) == .retrying)
+        // The attempt is accepted rather than failed: no session error for the
+        // shop UI to alert on, and the rolled-back write left the save intact.
+        #expect(session.lastPurchaseError == nil)
+        #expect(playerSave.roster.gold == offer.price * 3)
+        #expect(playerSave.inventory.items.count == itemsBefore)
+
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
+        #expect(playerSave.roster.gold == offer.price * 2)
+        #expect(playerSave.inventory.items.count == itemsBefore + 1)
+    }
+
     @Test func `finish shop encounter retries silently when persist fails`() async throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)

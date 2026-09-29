@@ -29,6 +29,7 @@ from internal.content.items import (
     generate_item_bases_catalog,
     parse_affix_rows,
     parse_item_base_rows,
+    validate_affix_reachability,
     validate_affix_rows,
     validate_item_base_rows,
 )
@@ -106,6 +107,7 @@ def validate_manifests() -> tuple[
     )
     validate_homestead_node_rows(homestead_rows)
     validate_item_base_rows(item_base_rows)
+    validate_affix_reachability(affix_rows, item_base_rows)
     return (
         affix_rows,
         trait_rows,

@@ -1,6 +1,5 @@
 import SwiftUI
 import TrinketDesignSystem
-import TrinketFeatureSupport
 
 struct CombatantSliceEffectConfig: Equatable {
     var intensity: CGFloat = 0.5
@@ -157,11 +156,6 @@ struct CombatantSliceEffect<Content: View>: View {
                 .mask {
                     CardDissolveThresholdMask(
                         progress: wipeProgress,
-                        edgeDepthWeight: dissolveConfig.dissolveEdgeDepthWeight,
-                        noiseWeight: dissolveConfig.dissolveNoiseWeight,
-                        cellSize: Int(dissolveConfig.dissolveCellSize.rounded()),
-                        thresholdMidpoint: dissolveConfig.dissolveThresholdMidpoint,
-                        thresholdContrast: dissolveConfig.dissolveThresholdContrast,
                         cutAngleDegrees: CombatantSliceGeometry.angleDegrees,
                     )
                 }

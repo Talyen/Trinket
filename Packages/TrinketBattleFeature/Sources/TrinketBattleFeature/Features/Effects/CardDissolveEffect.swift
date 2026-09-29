@@ -1,6 +1,5 @@
 import SwiftUI
 import TrinketCore
-import TrinketDesignSystem
 
 struct DissolveParticleNoise: Equatable {
     let distance: CGFloat
@@ -20,11 +19,6 @@ struct DissolveParticleSample {
 struct CardDissolveConfiguration {
     var dissolveDuration: CGFloat = 0.35
     var dissolveShrink: CGFloat = 0.06
-    var dissolveEdgeDepthWeight: CGFloat = 0.86
-    var dissolveNoiseWeight: CGFloat = 0.18
-    var dissolveCellSize: CGFloat = 1
-    var dissolveThresholdMidpoint: CGFloat = 0.46
-    var dissolveThresholdContrast: CGFloat = 100
 
     var particleDistance: CGFloat = 150
     var particleDistanceVariation: CGFloat = 0
@@ -207,7 +201,6 @@ struct CardDissolveEffect<Content: View>: View {
 
     var body: some View {
         let dissolveProgress = min(progress / max(configuration.dissolveDuration, 0.01), 1)
-        let cellSize = Int(configuration.dissolveCellSize.rounded())
 
         ZStack {
             if dissolveProgress < 1 {
@@ -219,14 +212,7 @@ struct CardDissolveEffect<Content: View>: View {
                         content
                             .frame(width: size.width, height: size.height)
                             .mask {
-                                CardDissolveThresholdMask(
-                                    progress: dissolveProgress,
-                                    edgeDepthWeight: configuration.dissolveEdgeDepthWeight,
-                                    noiseWeight: configuration.dissolveNoiseWeight,
-                                    cellSize: cellSize,
-                                    thresholdMidpoint: configuration.dissolveThresholdMidpoint,
-                                    thresholdContrast: configuration.dissolveThresholdContrast,
-                                )
+                                CardDissolveThresholdMask(progress: dissolveProgress)
                             }
                     }
                 }
