@@ -12,8 +12,8 @@ import sys
 import tempfile
 
 
-def capture(*args):
-    return subprocess.check_output(args, text=True, stderr=subprocess.PIPE, timeout=30).strip()
+def capture(*args, timeout=120):
+    return subprocess.check_output(args, text=True, stderr=subprocess.PIPE, timeout=timeout).strip()
 
 
 def identity(sdk="iphonesimulator", configuration="Debug"):
@@ -24,12 +24,22 @@ def identity(sdk="iphonesimulator", configuration="Debug"):
         if ci:
             raise
         commit = None
+    sdk_version = (
+        os.environ.get("TRINKET_SDK_VERSION")
+        if (ci and sdk == "iphonesimulator" and os.environ.get("TRINKET_SDK_VERSION"))
+        else capture("xcrun", "--sdk", sdk, "--show-sdk-version")
+    )
+    sdk_build = (
+        os.environ.get("TRINKET_SDK_BUILD")
+        if (ci and sdk == "iphonesimulator" and os.environ.get("TRINKET_SDK_BUILD"))
+        else capture("xcrun", "--sdk", sdk, "--show-sdk-build-version")
+    )
     return {
         "version": 1,
         "xcode": capture("xcodebuild", "-version"),
         "sdk": sdk,
-        "sdk_version": capture("xcrun", "--sdk", sdk, "--show-sdk-version"),
-        "sdk_build": capture("xcrun", "--sdk", sdk, "--show-sdk-build-version"),
+        "sdk_version": sdk_version,
+        "sdk_build": sdk_build,
         "host_architecture": platform.machine(),
         "configuration": configuration,
         "architecture_policy": "sdk-default" if ci else "host",
