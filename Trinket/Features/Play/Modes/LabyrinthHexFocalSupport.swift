@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketFeatureSupport
 
 enum LabyrinthNodeArtworkMetrics {
-    static let hexFocalZoom: CGFloat = 1.18
+    static let hexFocalZoom: CGFloat = 1.33
 }
 
 struct LabyrinthHexagon: InsettableShape {

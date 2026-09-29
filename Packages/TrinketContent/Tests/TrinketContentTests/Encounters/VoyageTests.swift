@@ -52,6 +52,46 @@ struct VoyageTests {
         }
     }
 
+    @Test func `chapter affinities cover every keyword exactly once`() {
+        let chapters = GameContent.chapters
+        #expect(!chapters.isEmpty)
+        var seen: Set<Keyword> = []
+        for chapter in chapters {
+            let affinities = VoyageCatalog.affinityKeywords(chapterID: chapter.id)
+            #expect(!affinities.isEmpty)
+            #expect(affinities.count <= 5)
+            #expect(seen.isDisjoint(with: affinities))
+            seen.formUnion(affinities)
+        }
+        #expect(seen == Set(Keyword.allCases))
+        #expect(VoyageCatalog.affinityKeywords(chapterID: "unknown").isEmpty)
+    }
+
+    @Test func `voyage reward writs favor chapter affinity`() {
+        for chapter in GameContent.chapters {
+            let affinities = VoyageCatalog.affinityKeywords(chapterID: chapter.id)
+            #expect(!affinities.isEmpty)
+            var keywordHits = 0
+            var affinityHits = 0
+            for seed in UInt64(0) ..< 100 {
+                for difficulty in VoyageDifficulty.allCases {
+                    let offer = VoyageOffer(id: "run", chapterID: chapter.id, difficulty: difficulty, seed: seed)
+                    let nodes = VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: ["recruit-bear"])
+                    for definition in NodeModifierCatalog.modifiers(ids: nodes.flatMap(\.modifierIDs)) {
+                        if case let .reward(reward) = definition.effect, let keyword = reward.requiredKeyword {
+                            keywordHits += 1
+                            if affinities.contains(keyword) {
+                                affinityHits += 1
+                            }
+                        }
+                    }
+                }
+            }
+            #expect(keywordHits > 0)
+            #expect(Double(affinityHits) > Double(keywordHits) * 0.5)
+        }
+    }
+
     @Test func `completion bonus rounds once and is not multiplied again`() {
         let plan = BattleRewardPlan(
             stageGold: 10, goldFindPercent: 100, gemsFindBonus: 1, goldOverflowExperience: 5,

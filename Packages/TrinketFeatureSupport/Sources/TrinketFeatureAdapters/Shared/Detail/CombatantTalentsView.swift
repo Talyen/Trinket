@@ -195,6 +195,19 @@ public struct CombatantTalentsView: View {
         )
     }
 
+    private func nextUnlockableNodeID(after nodeID: String) -> String? {
+        guard allowsEditing else { return nil }
+        guard let currentIndex = displayedNodes.firstIndex(where: { $0.id == nodeID }) else { return nil }
+        // The parent-driven unlockedTalents is still stale at tap time, so assume
+        // the just-unlocked node when scoring later candidates and row gates.
+        let updatedUnlocks = unlockedTalents.union([nodeID])
+        let remainingPoints = progression.availableTalentPoints(unlockedCount: updatedUnlocks.count)
+        guard remainingPoints > 0 else { return nil }
+        return displayedNodes.dropFirst(currentIndex + 1).first(where: {
+            tree.canUnlock(node: $0, unlockedNodeIDs: updatedUnlocks, availablePoints: remainingPoints)
+        })?.id
+    }
+
     private func talentNodeCard(node: TalentNode, isRowLocked: Bool) -> some View {
         let isUnlocked = unlockedTalents.contains(node.id)
         let isSelected = selectedNodeID == node.id
@@ -327,6 +340,10 @@ public struct CombatantTalentsView: View {
                 case .unlocked:
                     confirmedNodeID = node.id
                     unlockSuccessTrigger &+= 1
+                    if let nextID = nextUnlockableNodeID(after: node.id) {
+                        selectedNodeID = nextID
+                        selectionFeedbackTrigger &+= 1
+                    }
                 case .persistenceFailed:
                     break
                 case .unavailable:

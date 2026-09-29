@@ -112,7 +112,7 @@ struct PresentationModelTests {
     }
 
     @Test func `labyrinth hex radius and destination art`() {
-        let radius = LabyrinthMapPresentation.hexRadius(forAvailableWidth: 346.41016, edgePad: 0)
+        let radius = LabyrinthMapPresentation.hexRadius(forAvailableWidth: 346.41016)
         #expect(radius > 0)
 
         #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .shop) == "destination-merchant-shop")
@@ -126,13 +126,21 @@ struct PresentationModelTests {
             let narrow = LabyrinthMapPresentation.hexRadius(
                 forAvailableWidth: width, projectedHalfColumnSpan: 2,
             )
-            #expect(abs(narrow - baseline * 1.2) < 0.001)
+            #expect(abs(narrow - baseline * LabyrinthMapPresentation.mapTargetScale) < 0.001)
             for span in 0 ... LabyrinthMapLayout.maxProjectedSpan {
                 let radius = LabyrinthMapPresentation.hexRadius(
                     forAvailableWidth: width, projectedHalfColumnSpan: span,
                 )
                 let selectedWidth = radius * CGFloat(3).squareRoot() * (CGFloat(span) / 2 + 1.035) + 3
-                #expect(selectedWidth <= width - 12 + 0.001)
+                // Viewport is the content width plus both 20pt content margins.
+                #expect(selectedWidth <= width + 40 - LabyrinthMapPresentation.mapViewportGap + 0.001)
+                if span == LabyrinthMapLayout.maxProjectedSpan {
+                    // Three side-by-side hexes nearly touch the viewport edges.
+                    let viewport = width + 40
+                    let unselectedWidth = radius * CGFloat(3).squareRoot() * (CGFloat(span) / 2 + 1)
+                    #expect(viewport - unselectedWidth >= LabyrinthMapPresentation.mapViewportGap)
+                    #expect(viewport - unselectedWidth < 20)
+                }
             }
         }
     }
@@ -157,10 +165,13 @@ struct PresentationModelTests {
             let right = try #require(points.map(\.x).max())
             #expect(abs((left + right) / 2 - width / 2) < 0.001)
             let selectedHalfWidth = layout.hexWidth * 1.035 / 2 + 1.5
-            #expect(left - selectedHalfWidth >= 6 - 0.001)
-            #expect(right + selectedHalfWidth <= width - 6 + 0.001)
+            // Selected seals may bleed into the 20pt content margins but must
+            // stay 3pt inside the viewport edges (viewport = width + 40).
+            let viewportInset = 20 - LabyrinthMapPresentation.mapViewportGap / 2
+            #expect(left - selectedHalfWidth >= -viewportInset - 0.001)
+            #expect(right + selectedHalfWidth <= width + viewportInset + 0.001)
             let lastPoint = try #require(points.last)
-            #expect(layout.height == lastPoint.y + layout.hexHeight / 2 + layout.hitExpansion)
+            #expect(abs(layout.height - (lastPoint.y + layout.hexHeight / 2 + layout.hitExpansion)) < 0.001)
         }
     }
 

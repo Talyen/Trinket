@@ -105,6 +105,21 @@ public enum VoyageCatalog {
         }
         return NodeModifierCatalog.modifiers.filter { $0.applies(to: type) }
     }
+
+    /// Reward-keyword affinity per voyage destination. Stored as keywords (never
+    /// modifier IDs) so future reward modifiers for an affinity keyword are
+    /// included automatically via `RewardModifier.requiredKeyword` matching.
+    /// Union covers every keyword; Gold stays weighted (not exclusive) since it
+    /// is also the global fallback reward.
+    public static func affinityKeywords(chapterID: String) -> Set<Keyword> {
+        switch chapterID {
+        case "chapter-1": [.poison, .thorns, .leech, .cleanse]
+        case "chapter-2": [.bleed, .physical, .purge, .deathsDoor]
+        case "chapter-3": [.burn, .holy, .mana, .gold]
+        case "chapter-4": [.freeze, .stun, .block, .dodge, .health]
+        default: []
+        }
+    }
 }
 
 public enum VoyageGenerator {
@@ -129,6 +144,7 @@ public enum VoyageGenerator {
             preconditionFailure("Voyage encounter counts must admit a valid route")
         }
         let types: [LabyrinthNodeType] = [.battle] + middle + [.boss]
+        let affinities = VoyageCatalog.affinityKeywords(chapterID: offer.chapterID)
         var bag: [String] = []
         var previousEnemy: String?
         var previousModifier: NodeModifierID?
@@ -147,7 +163,8 @@ public enum VoyageGenerator {
                 enemyID = type == .boss ? VoyageCatalog.bossID(chapterID: offer.chapterID) : nil
             }
             let modifier = NodeModifierCatalog.pickModifier(
-                for: type, enemyID: enemyID, eligibleRewards: eligibleRewards, excluding: previousModifier, using: &rng,
+                for: type, enemyID: enemyID, eligibleRewards: eligibleRewards, affinityKeywords: affinities,
+                excluding: previousModifier, using: &rng,
             )
             previousModifier = modifier
             return VoyageNode(

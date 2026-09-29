@@ -133,6 +133,7 @@ public enum NodeModifierCatalog {
         for type: LabyrinthNodeType,
         enemyID: String?,
         eligibleRewards: [RewardModifier] = RewardModifier.allCases,
+        affinityKeywords: Set<Keyword> = [],
         excluding previousID: NodeModifierID? = nil,
         using rng: inout some RandomNumberGenerator,
     ) -> NodeModifierID? {
@@ -164,12 +165,36 @@ public enum NodeModifierCatalog {
                 default: true
                 }
             }
-            pool = Int.random(in: 0 ..< originalCombatCount + 3, using: &rng) < 3 ? rewards : combat
+            let rewardPool = affinityBiasedRewards(rewards, affinityKeywords: affinityKeywords, using: &rng)
+            pool = Int.random(in: 0 ..< originalCombatCount + 3, using: &rng) < 3 ? rewardPool : combat
         } else {
             pool = combat + rewards
         }
         let different = pool.filter { $0.id != previousID }
         return (different.isEmpty ? pool : different).randomElement(using: &rng)?.id
+    }
+
+    /// Favor reward modifiers whose keyword belongs to the chapter affinity set.
+    /// Matching is by `RewardModifier.requiredKeyword`, so future reward
+    /// modifiers for an affinity keyword are included without catalog edits.
+    /// Non-keyword rewards (gold, materials) never match and stay in the shared
+    /// fallback pool. Empty affinities consume no extra RNG, preserving legacy
+    /// sequences for non-voyage callers.
+    private static func affinityBiasedRewards(
+        _ rewards: [NodeModifierDefinition],
+        affinityKeywords: Set<Keyword>,
+        using rng: inout some RandomNumberGenerator,
+    ) -> [NodeModifierDefinition] {
+        guard !affinityKeywords.isEmpty else { return rewards }
+        let affinity = rewards.filter {
+            if case let .reward(reward) = $0.effect, let keyword = reward.requiredKeyword {
+                affinityKeywords.contains(keyword)
+            } else {
+                false
+            }
+        }
+        guard !affinity.isEmpty else { return rewards }
+        return Int.random(in: 0 ..< 4, using: &rng) < 3 ? affinity : rewards
     }
 
     public static func modifierIDs(
@@ -178,9 +203,12 @@ public enum NodeModifierCatalog {
         worldSeed: UInt64,
         nodeID: String,
         eligibleRewards: [RewardModifier] = RewardModifier.allCases,
+        affinityKeywords: Set<Keyword> = [],
     ) -> [NodeModifierID] {
         var rng = SeededRandomNumberGenerator(seed: GameContent.encounterSeed(worldSeed, salt: "labyrinth-modifier-\(nodeID)"))
-        return pickModifier(for: type, enemyID: enemyID, eligibleRewards: eligibleRewards, using: &rng).map { [$0] } ?? []
+        return pickModifier(
+            for: type, enemyID: enemyID, eligibleRewards: eligibleRewards, affinityKeywords: affinityKeywords, using: &rng,
+        ).map { [$0] } ?? []
     }
 
     public static func resolvedModifierIDs(
@@ -190,6 +218,7 @@ public enum NodeModifierCatalog {
         worldSeed: UInt64,
         nodeID: String,
         eligibleRewards: [RewardModifier] = RewardModifier.allCases,
+        affinityKeywords: Set<Keyword> = [],
     ) -> [NodeModifierID] {
         let applicable = applicableModifiers(for: type, enemyID: enemyID)
         if let existing = existingModifierIDs.compactMap({ id in
@@ -197,6 +226,9 @@ public enum NodeModifierCatalog {
         }).first {
             return [existing.id]
         }
-        return modifierIDs(for: type, enemyID: enemyID, worldSeed: worldSeed, nodeID: nodeID, eligibleRewards: eligibleRewards)
+        return modifierIDs(
+            for: type, enemyID: enemyID, worldSeed: worldSeed, nodeID: nodeID, eligibleRewards: eligibleRewards,
+            affinityKeywords: affinityKeywords,
+        )
     }
 }

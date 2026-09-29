@@ -157,6 +157,7 @@ struct LabyrinthMapView: View {
                         1,
                         proxy.size.width - 2 * TrinketDesign.Layout.contentMargin,
                     ),
+                    viewportWidth: proxy.size.width,
                     onSelectNode: { selectedNodeID = $0 },
                     onDismissSelection: { selectedNodeID = nil },
                 )

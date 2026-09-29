@@ -17,6 +17,7 @@ struct LabyrinthFloorMap: View {
 
     let selectedNodeID: String?
     let availableWidth: CGFloat
+    let viewportWidth: CGFloat?
     let onSelectNode: (String) -> Void
     let onDismissSelection: () -> Void
 
@@ -26,7 +27,7 @@ struct LabyrinthFloorMap: View {
 
     var body: some View {
         let nodes = nodes
-        let layout = LabyrinthFloorLayout(nodes: nodes, availableWidth: availableWidth)
+        let layout = LabyrinthFloorLayout(nodes: nodes, availableWidth: availableWidth, viewportWidth: viewportWidth)
         let reachableNodeIDs = state.reachableNodeIDSet()
 
         ZStack {

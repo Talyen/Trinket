@@ -27,13 +27,14 @@ public struct LabyrinthFloorLayout {
         radius * 1.5
     }
 
-    public init(nodes: [LabyrinthNode], availableWidth: CGFloat) {
+    public init(nodes: [LabyrinthNode], availableWidth: CGFloat, viewportWidth: CGFloat? = nil) {
         self.availableWidth = availableWidth
         let positions = nodes.map { $0.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0) }
         let halfColumns = nodes.compactMap(\.gridPosition?.projectedHalfColumn)
         let resolvedRadius = LabyrinthMapPresentation.hexRadius(
             forAvailableWidth: availableWidth,
             projectedHalfColumnSpan: (halfColumns.max() ?? 0) - (halfColumns.min() ?? 0),
+            viewportWidth: viewportWidth,
         )
         radius = resolvedRadius
         let projectedXs = positions.map { position in

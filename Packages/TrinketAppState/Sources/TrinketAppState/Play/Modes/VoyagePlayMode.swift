@@ -219,6 +219,7 @@ public final class VoyagePlayMode {
                         enemyID: nil,
                         worldSeed: run.offer.seed,
                         nodeID: node.id,
+                        affinityKeywords: VoyageCatalog.affinityKeywords(chapterID: run.offer.chapterID),
                     )
                 }
             }
