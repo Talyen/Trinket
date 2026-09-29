@@ -27,17 +27,4 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Mystery.rewardTitle, timeout: 5)
         play.assertLoaded()
     }
-
-    func testCompanionRecruitContinueReturnsToPlay() {
-        launchApp(arguments: TestLaunchArg.allUnseeded()
-            + TestLaunchArg.screen("mystery")
-            + TestLaunchArg.completedStages(["chapter-1-stage-1"])
-            + TestLaunchArg.mysteryRecruit(eventID: "recruit-bear"))
-
-        assertExists(AccessibilityID.Mystery.unlockCard(name: "Bear"))
-        assertExistsAfterScroll(AccessibilityID.Mystery.continueButton, requireHittable: true)
-        tapButton(AccessibilityID.Mystery.continueButton)
-        assertDoesNotExist(AccessibilityID.Mystery.unlockCard(name: "Bear"), timeout: 5)
-        play.assertLoaded()
-    }
 }

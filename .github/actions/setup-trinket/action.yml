@@ -63,14 +63,7 @@ runs:
         export DEVELOPER_DIR="$best_path/Contents/Developer"
         echo "DEVELOPER_DIR=$DEVELOPER_DIR" >> "$GITHUB_ENV"
         xcodebuild -version
-        sdk_version="$(xcrun --sdk iphonesimulator --show-sdk-version 2>/dev/null || true)"
-        sdk_build="$(xcrun --sdk iphonesimulator --show-sdk-build-version 2>/dev/null || true)"
-        if [ -n "$sdk_version" ]; then
-          echo "TRINKET_SDK_VERSION=$sdk_version" >> "$GITHUB_ENV"
-        fi
-        if [ -n "$sdk_build" ]; then
-          echo "TRINKET_SDK_BUILD=$sdk_build" >> "$GITHUB_ENV"
-        fi
+        xcrun --sdk iphonesimulator --show-sdk-version >/dev/null 2>&1 || true
         echo "XCODE_PATH=$best_path" >> "$GITHUB_ENV"
         echo "XCODE_VERSION=$best_version" >> "$GITHUB_ENV"
         echo "XCODE_BUILD=$best_build" >> "$GITHUB_ENV"

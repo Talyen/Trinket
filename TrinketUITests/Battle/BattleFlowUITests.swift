@@ -13,6 +13,20 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Battle.abilityDetail)
         XCTAssertEqual(cards.count, inspectCountBefore, "Inspecting a card must not play it")
         dismissSheet()
+
+        let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Knight")]
+        assertExists(hero)
+        battle.hand.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.2, thenDragTo: hero.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
+        let detailHeader = combatantDetail.header(for: "Knight")
+        XCTAssertFalse(
+            detailHeader.trinketWaitForExistence(timeout: 1),
+            "Releasing a hand-card drag on a combatant must not open details",
+        )
+        battle.openCombatantCard(named: "Knight")
+        combatantDetail.assertLoaded(for: "Knight")
+        dismissSheet()
+
         inspectedCard.tap()
         XCTAssertTrue(
             waitForCardCount(cards, droppingFrom: inspectCountBefore),
@@ -40,26 +54,6 @@ final class BattleFlowUITests: TrinketUITestCase {
             "Auto Battle must reduce the hand",
         )
         tapWhenReady(battle.autoBattleToggle)
-    }
-
-    func testHandDragSafetyAndCombatantDetail() {
-        launchMidBattleAndStart()
-
-        let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Knight")]
-        assertExists(hero)
-
-        battle.hand.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-            .press(forDuration: 0.2, thenDragTo: hero.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
-
-        let detailHeader = combatantDetail.header(for: "Knight")
-        XCTAssertFalse(
-            detailHeader.trinketWaitForExistence(timeout: 1),
-            "Releasing a hand-card drag on a combatant must not open details",
-        )
-
-        battle.openCombatantCard(named: "Knight")
-        combatantDetail.assertLoaded(for: "Knight")
-        dismissSheet()
     }
 
     private func launchMidBattleAndStart() {

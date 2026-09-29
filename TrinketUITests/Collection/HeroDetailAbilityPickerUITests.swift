@@ -4,7 +4,7 @@ import XCTest
 
 final class HeroDetailAbilityPickerUITests: TrinketUITestCase {
     @MainActor
-    func testHeroDetailAbilitySelectAndDismiss() {
+    func testHeroDetailAbilityAndItemEquip() {
         launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
         combatantDetail.assertLoaded(for: "Knight", timeout: 8)
 
@@ -25,12 +25,7 @@ final class HeroDetailAbilityPickerUITests: TrinketUITestCase {
         let selectedAbility = button(AccessibilityID.LoadoutPicker.abilityCandidate("block"))
         assertExists(selectedAbility)
         XCTAssertTrue(selectedAbility.isSelected, "Block must remain equipped after the picker closes")
-    }
-
-    @MainActor
-    func testHeroDetailItemSearchEquipAndDismiss() {
-        launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
-        combatantDetail.assertLoaded(for: "Knight", timeout: 8)
+        dismissSheet()
 
         let weaponSlot = ItemSlot.weapon.accessibilityIdentifier
         scrollUntilVisible(button(weaponSlot), swipingUp: true, maxAttempts: 6, requireHittable: true)
