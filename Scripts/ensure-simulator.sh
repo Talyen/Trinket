@@ -69,7 +69,7 @@ resolve_or_create_simulator() {
 
   local resolved
   resolved="$(python3 - "$SIMULATOR_NAME" <<'PY'
-import json, subprocess, sys
+import json, os, subprocess, sys
 
 def simctl_json(*args):
     return json.loads(subprocess.check_output(["xcrun", "simctl", *args], text=True))
@@ -130,7 +130,25 @@ if not chosen_type_id:
     sys.exit(1)
 
 sim_name = sys.argv[1]
-udid = subprocess.check_output(["xcrun", "simctl", "create", sim_name, chosen_type_id, runtime_id], text=True).strip()
+is_ci = os.environ.get("GITHUB_ACTIONS") == "true" or os.environ.get("CI") == "true"
+existing_udid = None
+
+if is_ci:
+    for name in preferred:
+        for d in compatible_devices:
+            if name in d.get("name", "") and d.get("isAvailable", True):
+                existing_udid = d.get("udid")
+                chosen_type_id = d.get("deviceTypeIdentifier", chosen_type_id)
+                break
+        if existing_udid:
+            break
+
+if existing_udid:
+    subprocess.check_call(["xcrun", "simctl", "rename", existing_udid, sim_name])
+    udid = existing_udid
+else:
+    udid = subprocess.check_output(["xcrun", "simctl", "create", sim_name, chosen_type_id, runtime_id], text=True).strip()
+
 print(f"{udid}\t{chosen_type_id}\t{runtime_id}\t{runtime_build}")
 PY
 )"
@@ -212,9 +230,9 @@ ensure_test_simulator() {
   local max_attempts=2
   if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
     max_attempts=3
-    # TRINKET_-prefixed knob controls SIMULATOR_BOOT_TIMEOUT_SECONDS (150 default -> 180 on CI).
+    # TRINKET_-prefixed knob controls SIMULATOR_BOOT_TIMEOUT_SECONDS (150 default -> 240 on CI).
     if [[ "${TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS:-}" == "" ]]; then
-      SIMULATOR_BOOT_TIMEOUT_SECONDS=180
+      SIMULATOR_BOOT_TIMEOUT_SECONDS=240
     fi
   fi
   local owned_name="${TRINKET_SIMULATOR_NAME:-Trinket Run}"
@@ -239,8 +257,8 @@ ensure_test_simulator() {
       echo "Simulator ready after erase: $SIMULATOR_DESTINATION"
       return 0
     fi
-    if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-      echo "::warning title=Simulator infrastructure retry::Cold boot failed; retrying after erase/recreate."
+    if [[ "${GITHUB_ACTIONS:-}" == "true" && "$attempt" -gt 1 ]]; then
+      echo "::warning title=Simulator infrastructure retry::Cold boot failed; retrying after erase/recreate (attempt $attempt/$max_attempts)."
     fi
     [[ -n "${SIMULATOR_UDID:-}" ]] && discard_simulator
     if resolve_or_create_simulator && boot_simulator; then

@@ -101,7 +101,7 @@ runs:
       with:
         name: ${{ steps.ids.outputs.artifact-name }}
         path: .DerivedData/ci-test-artifact.tar
-        compression-level: 1
+        compression-level: 0
         include-hidden-files: true
         retention-days: 7
         if-no-files-found: error

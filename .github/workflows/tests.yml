@@ -213,8 +213,10 @@ jobs:
       - uses: ./.github/actions/test-job
         with:
           artifact-name: ${{ inputs.artifact-prefix }}unit-${{ matrix.name }}
+          artifact-prefix: ${{ inputs.artifact-prefix }}
           command: ./Scripts/test-package.sh ${{ matrix.packages }}
-          preboot-simulator: 'false'
+          preboot-simulator: 'true'
+          restore-cache: 'true'
 
   smoke:
     name: Smoke tests (${{ matrix.name }})
