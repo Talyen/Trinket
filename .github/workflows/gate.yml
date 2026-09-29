@@ -14,7 +14,8 @@ jobs:
           fetch-depth: 1
           sparse-checkout-cone-mode: true
           # Cone mode keeps root files (project.yml, *.xctestplan). Skip Raw Assets.
-          # Docs, Performance baselines, .agents, and .githooks are read by the gate suite.
+          # Docs, Performance baselines, .agents, Website, .cursor, and
+          # .githooks are read by the gate suite.
           sparse-checkout: |
             Scripts
             Packages
@@ -29,7 +30,9 @@ jobs:
             CinematicManifest
             Docs
             Performance
+            Website
             .agents
+            .cursor
             .githooks
             .github
       - uses: ./.github/actions/setup-trinket
