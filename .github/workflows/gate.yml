@@ -11,7 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
-          fetch-depth: 1
+          # Full history for changelog validation; the sparse cone below keeps
+          # the working tree (and transferred blobs) lean.
+          fetch-depth: 0
           sparse-checkout-cone-mode: true
           # Cone mode keeps root files (project.yml, *.xctestplan). Skip Raw Assets.
           # Docs, Performance baselines, .agents, Website, .cursor, and
