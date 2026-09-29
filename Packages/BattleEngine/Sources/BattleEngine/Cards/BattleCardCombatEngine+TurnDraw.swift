@@ -20,15 +20,9 @@ package extension BattleCardCombatEngine {
         context.phase = .playerTurn
         events.append(contentsOf: UniqueCombatEngine.startTurn(in: &context))
 
-        var plannedDraws: [BattleParticipant] = []
-        if context.roster.hero.isAlive, context.roster.companion.isAlive {
-            let randomOwner: BattleParticipant = Bool.random(using: &context.rng) ? .hero : .companion
-            plannedDraws = [.hero, randomOwner, .companion]
-        } else if context.roster.hero.isAlive {
-            plannedDraws = [.hero, .hero, .hero]
-        } else if context.roster.companion.isAlive {
-            plannedDraws = [.companion, .companion, .companion]
-        }
+        context.heroDeck.recycleDiscards()
+        context.companionDeck.recycleDiscards()
+        let plannedDraws = scheduledDraws(in: &context)
 
         context.pendingTurnDrawState = TurnDrawState(plannedDraws: plannedDraws)
 
@@ -79,7 +73,7 @@ package extension BattleCardCombatEngine {
         let isAlive: (BattleParticipant) -> Bool = { context.roster[$0].isAlive }
         let result = context.hand.promoteNextFromBuffer(isOwnerAlive: isAlive)
         for card in result.discarded {
-            putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
+            putCardOnBottom(card, context: &context)
         }
         return result.promoted
     }

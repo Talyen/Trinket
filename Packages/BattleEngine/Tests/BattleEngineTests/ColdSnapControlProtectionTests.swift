@@ -5,7 +5,7 @@ import TrinketCore
 @testable import BattleEngine
 
 struct ColdSnapControlProtectionTests {
-    @Test func `Steadfast blocks Cold Snap from doubling existing Freeze buildup`() throws {
+    @Test func `Steadfast blocks control multiplication from doubling existing Freeze buildup`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.passiveCompanion()
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, abilities: [.coldSnap])
@@ -22,7 +22,12 @@ struct ColdSnapControlProtectionTests {
         battle.appliesFightPacing = false
 
         _ = BattleTurnEngine.performAction(
-            ability: .coldSnap, actor: enemy, abilityTarget: hero, context: &battle,
+            ability: Ability(
+                id: "multiply-freeze",
+                name: "Multiply Freeze",
+                tier: .skill,
+                effects: [.multiplyControlMeter(.freeze, 2)],
+            ), actor: enemy, abilityTarget: hero, context: &battle,
         )
 
         let meter = try #require(battle.activeEffects(of: hero).first { $0.keyword == .freeze })
@@ -30,7 +35,7 @@ struct ColdSnapControlProtectionTests {
         #expect(!battle.roster.hasPendingActionSkip(for: hero, keyword: .freeze))
     }
 
-    @Test func `Perfect Purity blocks Cold Snap from doubling existing Freeze buildup`() throws {
+    @Test func `Perfect Purity blocks control multiplication from doubling existing Freeze buildup`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, abilities: [.coldSnap])
         var battle = BattleStateTestFactory.makeBattle(
@@ -42,7 +47,12 @@ struct ColdSnapControlProtectionTests {
         battle.appliesFightPacing = false
 
         _ = BattleTurnEngine.performAction(
-            ability: .coldSnap, actor: enemy, abilityTarget: hero, context: &battle,
+            ability: Ability(
+                id: "multiply-freeze",
+                name: "Multiply Freeze",
+                tier: .skill,
+                effects: [.multiplyControlMeter(.freeze, 2)],
+            ), actor: enemy, abilityTarget: hero, context: &battle,
         )
 
         let meter = try #require(battle.activeEffects(of: hero).first { $0.keyword == .freeze })

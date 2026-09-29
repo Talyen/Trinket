@@ -88,6 +88,12 @@ the latest offer snapshot may publish, with actions bound to those same identiti
 Outgoing pins survive the board crossfade. Superseded preparation, navigation away,
 and failed refreshes must not expose mismatched offers or leak artwork pins.
 
+Voyage Embark crossfades the prepared board into the route using the shared screen
+crossfade. Preparation and cleanup belong outside the replaced screen identity.
+Retain outgoing artwork pins through the fade; superseded preparation transfers
+cleanup to the latest generation. Outgoing content has no interaction or
+accessibility exposure. Resume and ordinary progress reconciliation stay immediate.
+
 Memory targets and enforcement: [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) Artwork Budgets.
 
 For players who completed starter selection, the selected tab and every hidden

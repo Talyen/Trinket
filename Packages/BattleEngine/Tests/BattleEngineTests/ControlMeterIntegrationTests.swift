@@ -237,7 +237,7 @@ struct ControlMeterIntegrationTests {
             ],
         )
 
-        try #expect(battle.hand.count == 3)
+        try #expect(battle.hand.count == 1)
         try #expect(battle.hand.cards.allSatisfy { $0.owner == .companion })
         try #expect(battle.heroDeck.count == CombatDeck.defaultAbilities(from: battle.hero.abilityLoadout).count)
     }

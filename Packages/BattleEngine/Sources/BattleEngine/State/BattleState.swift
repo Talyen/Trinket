@@ -104,6 +104,7 @@ public struct BattleState {
     public package(set) var heroDeck: CombatDeck
     public package(set) var companionDeck: CombatDeck
     public package(set) var openingHandDealPlan: [OpeningHandDraw]
+    var nextScheduledDrawOwner: BattleParticipant = .hero
     public package(set) var nextCardID: Int
     public package(set) var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
     public package(set) var turnCadence: BattleTurnCadence
@@ -114,8 +115,8 @@ public struct BattleState {
     /// the order of 70KB of stack in Debug, and this path runs on 512KB
     /// worker-thread stacks (tests, sweep workers) where the shared
     /// damage/DoT budget of 10 overflows the stack guard. Chains this deep
-    /// are pathological Pack-Tactics mirrors (played cards recycle to deck
-    /// bottoms); ordinary play nests one or two levels.
+    /// are pathological automatic chains; ordinary play nests one or two levels.
+    /// Played deck copies remain discarded until the next turn.
     public static let maxDrawAndPlayDepth = 4
     public let enemyFaction: EnemyFaction
     public package(set) var storedBlockedDamageByActorID: [String: Int] = [:]
@@ -231,14 +232,14 @@ public struct BattleState {
                     combatant: hero,
                     initialHealth: heroStartingHealth,
                     initialActiveEffects: activeHeroEffects,
-                    maximumHealthBonus: heroModifiers.maximumHealthBonus,
+                    maximumHealthBonus: CombatantMaxValues.maxHealth(for: hero, modifiers: heroModifiers) - hero.maxHealth,
                     maximumManaBonus: heroModifiers.maximumManaBonus,
                 ),
                 companion: CombatantRuntime(
                     combatant: companion,
                     initialHealth: companionStartingHealth,
                     initialActiveEffects: activeCompanionEffects,
-                    maximumHealthBonus: companionModifiers.maximumHealthBonus,
+                    maximumHealthBonus: CombatantMaxValues.maxHealth(for: companion, modifiers: companionModifiers) - companion.maxHealth,
                     maximumManaBonus: companionModifiers.maximumManaBonus,
                 ),
                 enemy: CombatantRuntime(combatant: resolvedEnemy, initialActiveEffects: activeEnemyEffects),

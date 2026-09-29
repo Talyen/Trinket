@@ -27,7 +27,7 @@ extension AbilityEffectIntegrationTests {
         let events = BattleTurnEngine.performAction(
             ability: .packTactics, actor: context.hero, abilityTarget: context.enemy, context: &context,
         )
-        #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.holy, .physical])
+        #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.holy])
     }
 
     @Test func `recurring damage does not spend avatar attack conversion`() {
@@ -75,7 +75,7 @@ extension AbilityEffectIntegrationTests {
         #expect(damage?.amount == 4)
     }
 
-    @Test func `shadowstep plays an attack from the actor deck and dodges the next hit`() throws {
+    @Test func `shadowstep draws a manual card and dodges the next hit`() throws {
         var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         context.appliesFightPacing = false
         context.heroDeck = CombatDeck(abilities: [.slash])
@@ -87,9 +87,10 @@ extension AbilityEffectIntegrationTests {
             abilityTarget: context.enemy,
             context: &context,
         )
-        try #expect(shadowstepEvents.contains { $0.abilityID == Ability.slash.id && $0.kind == .abilityDamage })
-        try #expect(context.health(of: context.enemy) < enemyBefore)
-        try #expect(context.heroDeck.abilities.map(\.id) == [Ability.slash.id])
+        try #expect(!shadowstepEvents.contains { $0.abilityID == Ability.slash.id && $0.kind == .abilityDamage })
+        try #expect(context.health(of: context.enemy) == enemyBefore)
+        try #expect(context.heroDeck.isEmpty)
+        try #expect(context.hand.cards.map(\.ability.id) == [Ability.slash.id])
         try #expect(context.activeEffects(of: context.hero).contains { $0.effect == .evadeNextHit })
 
         let enemyAttack = Ability(
@@ -324,7 +325,7 @@ extension AbilityEffectIntegrationTests {
         #expect(components.first?.amount == 2)
     }
 
-    @Test func `cold snap doubles freeze buildup after its damage`() {
+    @Test func `control multiplication doubles buildup after damage`() {
         var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         context.appliesFightPacing = false
         BattleStateTestFactory.seedActiveEffects(
@@ -334,7 +335,11 @@ extension AbilityEffectIntegrationTests {
         )
 
         let events = BattleTurnEngine.performAction(
-            ability: .coldSnap,
+            ability: Ability(
+                id: "control-multiplier", name: "Control Multiplier", tier: .skill,
+                directDamage: 1, damageKeyword: .freeze,
+                targetedEffects: [TargetedEffect(.multiplyControlMeter(.freeze, 2), target: .enemy)],
+            ),
             actor: context.hero,
             abilityTarget: context.enemy,
             context: &context,
@@ -345,7 +350,7 @@ extension AbilityEffectIntegrationTests {
         #expect(events.contains { $0.effectKind == .dotAmplified && $0.keyword == .freeze })
     }
 
-    @Test func `cold snap triggers freeze when doubling reaches threshold`() {
+    @Test func `control multiplication triggers freeze at threshold`() {
         var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         context.appliesFightPacing = false
         BattleStateTestFactory.seedActiveEffects(
@@ -355,7 +360,11 @@ extension AbilityEffectIntegrationTests {
         )
 
         let events = BattleTurnEngine.performAction(
-            ability: .coldSnap,
+            ability: Ability(
+                id: "control-multiplier", name: "Control Multiplier", tier: .skill,
+                directDamage: 1, damageKeyword: .freeze,
+                targetedEffects: [TargetedEffect(.multiplyControlMeter(.freeze, 2), target: .enemy)],
+            ),
             actor: context.hero,
             abilityTarget: context.enemy,
             context: &context,

@@ -91,7 +91,9 @@ package extension BattleState {
         let profile = modifiers(for: combatant.id)
         let deepRoots = amount > 0 && profile.triggers.deepRoots &&
             roster.activeEffects(for: combatant).contains { $0.effect.kind == .thorns }
-        let requested = amount > 0 ? amount + profile.manaRestoredBonus + (deepRoots ? 1 : 0) : amount
+        let requested = amount > 0
+            ? CombatRounding.scaled(amount + profile.manaRestoredBonus, multiplier: 1 + profile.manaRestoredPercent)
+            + (deepRoots ? 1 : 0) : amount
         let actual = runtime.restoreMana(requested)
         var total = actual
         var overflow = max(0, requested - actual)

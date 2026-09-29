@@ -14,7 +14,6 @@ struct CollectionView: View {
     @Environment(OptionsStore.self) private var options
     @State private var salvageDetail = SalvageDetailState()
     @State private var selectedCombatant: CombatantDetailContext?
-    @State private var showMissingItem = false
     @State private var pinnedDetailArtwork: [String] = []
     @Namespace private var zoomNamespace
 
@@ -41,11 +40,6 @@ struct CollectionView: View {
             .onDisappear {
                 PreparedArtworkCache.shared.releasePins(names: pinnedDetailArtwork)
                 pinnedDetailArtwork = []
-            }
-            .alert("Item Not Found", isPresented: $showMissingItem) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text("That item isn't in your collection.")
             }
             .salvageInventoryPresentation(
                 salvageDetail: $salvageDetail,
@@ -215,7 +209,7 @@ struct CollectionView: View {
                 } else if let template = GameContent.itemTemplate(matching: itemID) {
                     salvageDetail.select(template, inventory: playerSave.inventory.items)
                 } else {
-                    showMissingItem = true
+                    return
                 }
             }
         }

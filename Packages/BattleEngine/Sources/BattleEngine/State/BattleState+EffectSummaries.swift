@@ -23,7 +23,7 @@ package extension BattleState {
         if talents.turn.negativeStatusImmune {
             summaries.append(EffectSummary(
                 keyword: .cleanse,
-                text: "Perfect Purity: Negative status effects cannot affect you until next turn.",
+                text: "Perfect Purity: Immune to debuffs until next turn.",
             ))
         }
         if !talents.turn.negativeStatusImmune, talents.turn.cleansedKeywordProtection.contains(.poison) {

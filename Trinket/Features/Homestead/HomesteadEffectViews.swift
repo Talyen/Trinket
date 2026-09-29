@@ -30,8 +30,6 @@ struct HomesteadBenefitsView: View {
     var highlightedEffects: Set<HomesteadEffectLine.Key> = []
     var highlightsProduction = false
 
-    var previousTier: HomesteadNodeTier?
-
     private var lines: [HomesteadEffectLine] {
         HomesteadEffectLine.lines(for: tier, nodeID: nodeID)
     }
@@ -51,9 +49,6 @@ struct HomesteadBenefitsView: View {
         HomesteadBenefitItem(
             title: HomesteadBenefitNames.title(nodeID: nodeID, effect: effect),
             effect: effect,
-            previousEffect: previousTier.flatMap { previous in
-                HomesteadEffectLine.lines(for: previous, nodeID: nodeID).first { $0.id == effect.id }
-            },
             isHighlighted: effect.resource == nil ? highlightedEffects.contains(effect.id) : highlightsProduction,
         )
     }
@@ -62,30 +57,19 @@ struct HomesteadBenefitsView: View {
 private struct HomesteadBenefitItem: View {
     let title: String
     let effect: HomesteadEffectLine
-    let previousEffect: HomesteadEffectLine?
     let isHighlighted: Bool
 
-    private var displayedValue: String {
-        if let previousEffect, previousEffect.value != effect.value {
-            return "\(previousEffect.displayValue) → \(effect.displayValue)"
-        }
-        return effect.displayValue
-    }
-
     private var description: AttributedString {
-        var value = AttributedString(displayedValue)
-        value.inlinePresentationIntent = .stronglyEmphasized
-        value.foregroundColor = isHighlighted ? TrinketDesign.Colors.accent : .primary
-        if let resource = effect.resource {
-            var output = AttributedString(" \(resource.displayName)")
-            output.inlinePresentationIntent = .stronglyEmphasized
-            output.foregroundColor = resource.productionNameColor
-            return value + output + AttributedString(" per Day")
+        var text = KeywordDescriptionText.attributedText(for: effect.description)
+        if let range = text.range(of: effect.value) {
+            text[range].inlinePresentationIntent = .stronglyEmphasized
+            text[range].foregroundColor = isHighlighted ? TrinketDesign.Colors.accent : .primary
         }
-        if effect.id == .gemsFind {
-            return value + AttributedString(" ") + KeywordDescriptionText.attributedText(for: effect.label)
+        if let resource = effect.resource, let range = text.range(of: resource.displayName) {
+            text[range].inlinePresentationIntent = .stronglyEmphasized
+            text[range].foregroundColor = resource.productionNameColor
         }
-        return KeywordDescriptionText.attributedText(for: effect.label) + AttributedString(" ") + value
+        return text
     }
 
     var body: some View {
@@ -123,47 +107,47 @@ private struct HomesteadBenefitItem: View {
 private enum HomesteadBenefitNames {
     static func title(nodeID: HomesteadNodeID, effect: HomesteadEffectLine) -> String {
         switch (nodeID, effect.id) {
-        case (.wheatField, .modifier(.maximumHealth, _)): "Harvest’s Strength"
+        case (.wheatField, .modifier(.maximumHealthPercent, _)): "Harvest’s Strength"
         case (.wheatField, .production(.food)): "Golden Harvest"
-        case (.herbGarden, .modifier(.damageTakenFlat(.poison, _), _)): "Bitter Remedy"
+        case (.herbGarden, .modifier(.damageTakenPercent(.poison, _), _)): "Bitter Remedy"
         case (.herbGarden, .production(.herbs)): "Fresh Pickings"
-        case (.chickenCoop, .modifier(.maximumHealth, _)): "Coop’s Comfort"
+        case (.chickenCoop, .modifier(.maximumHealthPercent, _)): "Coop’s Comfort"
         case (.chickenCoop, .production(.food)): "Morning Eggs"
-        case (.pasture, .modifier(.damageTakenFlat(.physical, _), _)): "Thick Hide"
+        case (.pasture, .modifier(.damageTakenPercent(.physical, _), _)): "Thick Hide"
         case (.pasture, .production(.hide)): "Gathered Hides"
-        case (.culinaryArts, .modifier(.healthRestored, _)): "Hearty Fare"
+        case (.culinaryArts, .modifier(.healthRestoredPercent, _)): "Hearty Fare"
         case (.culinaryArts, .production(.food)): "Daily Bread"
-        case (.blacksmithForge, .modifier(.damageDealt(.physical, _), _)): "Forged Edge"
+        case (.blacksmithForge, .modifier(.damageDealtPercent(.physical, _), _)): "Forged Edge"
         case (.blacksmithForge, .forgeAstralOdds): "Astral Forging"
         case (.blacksmithForge, .production(.iron)): "Fresh Ingots"
-        case (.woolTailoring, .modifier(.damageTakenFlat(.freeze, _), _)): "Winter Weave"
-        case (.woolTailoring, .modifier(.damageTakenFlat(.burn, _), _)): "Emberguard Stitch"
+        case (.woolTailoring, .modifier(.damageTakenPercent(.freeze, _), _)): "Winter Weave"
+        case (.woolTailoring, .modifier(.damageTakenPercent(.burn, _), _)): "Emberguard Stitch"
         case (.woolTailoring, .production(.gold)): "Tailor’s Trade"
-        case (.runesmithWorkshop, .modifier(.damageDealt(.freeze, _), _)): "Frost Inscription"
-        case (.runesmithWorkshop, .modifier(.damageDealt(.holy, _), _)): "Hallowed Script"
+        case (.runesmithWorkshop, .modifier(.damageDealtPercent(.freeze, _), _)): "Frost Inscription"
+        case (.runesmithWorkshop, .modifier(.damageDealtPercent(.holy, _), _)): "Hallowed Script"
         case (.runesmithWorkshop, .production(.gems)): "Runic Crystals"
-        case (.alchemyLab, .modifier(.damageDealt(.poison, _), _)): "Potent Venom"
+        case (.alchemyLab, .modifier(.damageDealtPercent(.poison, _), _)): "Potent Venom"
         case (.alchemyLab, .production(.herbs)): "Cultured Reagents"
-        case (.crystalGarden, .modifier(.criticalDamage, _)): "Perfect Facet"
+        case (.crystalGarden, .modifier(.criticalDamagePercent, _)): "Perfect Facet"
         case (.crystalGarden, .production(.gems)): "Crystal Bloom"
         case (.crystalGarden, .production(.stone)): "Mineral Growth"
-        case (.transmutationCrucible, .modifier(.damageDealt(.burn, _), _)): "Alchemical Flame"
+        case (.transmutationCrucible, .modifier(.damageDealtPercent(.burn, _), _)): "Alchemical Flame"
         case (.transmutationCrucible, .production(.iron)): "Metal Transmutation"
-        case (.mycologyCellar, .modifier(.leechHealing, _)): "Siphoning Spores"
+        case (.mycologyCellar, .modifier(.leechHealingPercent, _)): "Siphoning Spores"
         case (.mycologyCellar, .production(.herbs)): "Fungal Harvest"
-        case (.hunterLodge, .modifier(.companionDamageDealt, _)): "Pack Instinct"
+        case (.hunterLodge, .modifier(.companionDamageDealtPercent, _)): "Pack Instinct"
         case (.hunterLodge, .production(.hide)): "Hunter’s Haul"
         case (.agilityTraining, .modifier(.dodgeChanceBonus, _)): "Nimble Paws"
-        case (.sparringGrounds, .modifier(.blockGained, _)): "Steady Guard"
+        case (.sparringGrounds, .modifier(.blockGainedPercent, _)): "Steady Guard"
         case (.sparringGrounds, .production(.iron)): "Salvaged Steel"
-        case (.archeryRange, .modifier(.rangedDamageDealt, _)): "True Aim"
+        case (.archeryRange, .modifier(.rangedDamageDealtPercent, _)): "True Aim"
         case (.archeryRange, .production(.wood)): "Seasoned Timber"
         case (.moonlitSanctum, .astralFind): "Astral Attunement"
         case (.moonlitSanctum, .gemsFind): "Moonlit Fortune"
         case (.wishingWell, .goldFind): "Wishful Fortune"
         case (.wishingWell, .production(.gold)): "Wishing Coins"
         case (.library, .experience): "Lessons of the Past"
-        case (.leylineEnergy, .modifier(.manaRestored, _)): "Arcane Renewal"
+        case (.leylineEnergy, .modifier(.manaRestoredPercent, _)): "Arcane Renewal"
         case (.leylineEnergy, .production(.gems)): "Leyline Crystallization"
         default: effect.resource?.displayName ?? effect.label
         }
@@ -258,31 +242,31 @@ private struct HomesteadEffectStyle {
 
     private init(modifier: AffixModifier) {
         switch modifier {
-        case .maximumHealth:
+        case .maximumHealth, .maximumHealthPercent:
             self.init(keyword: .health)
-        case .healthRestored:
+        case .healthRestored, .healthRestoredPercent:
             self.init(keyword: .health, symbol: "heart.circle.fill")
-        case .criticalDamage:
+        case .criticalDamage, .criticalDamagePercent:
             self.init(keyword: .physical, symbol: "scope")
-        case .manaRestored, .maximumMana, .maximumManaPercent:
+        case .manaRestored, .manaRestoredPercent, .maximumMana, .maximumManaPercent:
             self.init(keyword: .mana)
-        case let .damageDealt(keyword, _):
+        case let .damageDealt(keyword, _), let .damageDealtPercent(keyword, _):
             self.init(keyword: keyword)
         case .poisonDamageDealtPercent:
             self.init(keyword: .poison)
         case let .damageTakenPercent(keyword, _), let .damageTakenFlat(keyword, _), let .damageTakenVulnerability(keyword, _):
             self.init(keyword: keyword, symbol: "shield.fill")
-        case .incomingDamageReductionPercent, .blockGained, .startBattleBlock, .attackBlockRemoval:
+        case .incomingDamageReductionPercent, .blockGained, .blockGainedPercent, .startBattleBlock, .attackBlockRemoval:
             self.init(keyword: .block)
         case .outgoingDamagePercent:
             self.init(keyword: .physical)
-        case .rangedDamageDealt:
+        case .rangedDamageDealt, .rangedDamageDealtPercent:
             self.init(keyword: .physical, symbol: "figure.archery")
-        case .companionDamageDealt, .companionPhysicalDamageDealt:
+        case .companionDamageDealt, .companionDamageDealtPercent, .companionPhysicalDamageDealt:
             self.init(keyword: .physical, symbol: "pawprint.fill")
         case .dodgeChanceBonus:
             self.init(keyword: .dodge)
-        case .leechGainedPercent, .leechHealing, .attackLeechPercent:
+        case .leechGainedPercent, .leechHealing, .leechHealingPercent, .attackLeechPercent:
             self.init(keyword: .leech)
         case .attackPurgeCount:
             self.init(keyword: .purge)

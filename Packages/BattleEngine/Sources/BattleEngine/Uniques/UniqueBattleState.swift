@@ -8,7 +8,8 @@ package struct UniqueBattleState {
         var answeredBlock = false
         var usedFinalSpark = false
         var lastAttack: Ability?
-        var lastOrdinaryAbility: Ability?
+        var lastOrdinaryCopyID: Int?
+        var returnedGaleThisTurn = false
         var returnedFlightThisTurn = false
         var hasAttacked = false
         var viperReady = false
@@ -23,7 +24,8 @@ package struct UniqueBattleState {
             answeredBlock = false
             usedFinalSpark = false
             lastAttack = nil
-            lastOrdinaryAbility = nil
+            lastOrdinaryCopyID = nil
+            returnedGaleThisTurn = false
             returnedFlightThisTurn = false
             wrenflightDodge = 0
         }
@@ -31,7 +33,7 @@ package struct UniqueBattleState {
 
     struct CardPlay {
         let owner: BattleParticipant
-        let originalAbility: Ability
+        let originalCopyID: Int
         var returnName: String?
         var draws: [String] = []
         var attackBonus = 0

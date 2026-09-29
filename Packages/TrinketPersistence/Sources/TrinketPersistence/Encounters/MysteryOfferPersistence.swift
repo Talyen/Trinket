@@ -81,15 +81,18 @@ public enum MysteryOfferPersistence {
                 bonuses: bonuses,
                 using: &randomNumberGenerator,
             ) else { return nil }
-            if saved != nil {
+            if saved != nil, offer.homesteadReward == nil {
                 return offer
             }
+            var remainders = save.homestead.rewardRemainders ?? .zero
+            let nominal = offer.homesteadReward?.resolve(remainders: &remainders) ?? offer.bonus
             return MysteryOffer(
                 choiceID: offer.choiceID, item: offer.item,
                 bonus: MysteryEffectApplier.settledBonus(
-                    offer.bonus, encounterLevel: level, save: save,
+                    nominal, encounterLevel: level, save: save,
                     experiencePercent: bonuses.experienceEarnedPercent, at: date,
                 ),
+                homesteadReward: offer.homesteadReward,
             )
         }
         if offers != previous {
@@ -132,6 +135,7 @@ public enum MysteryOfferPersistence {
         }
         let level = inputs.encounterLevel
         let bonuses = inputs.bonuses
+        guard MysteryEffectApplier.hasCurrentHomesteadReward(offer, save: candidate) else { return MysteryEffectResult() }
         let result = MysteryEffectApplier.apply(
             offer, save: &candidate, at: grantDate,
             goldOverflowExperience: RewardExperiencePolicy.encounterAward(

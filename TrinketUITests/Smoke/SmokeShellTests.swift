@@ -20,7 +20,12 @@ final class SmokeShellTests: TrinketUITestCase {
         assertExists(AccessibilityID.LoadoutPicker.itemDetail(itemID))
         assertExistsAfterScroll(AccessibilityID.Collection.salvageButton, requireHittable: true)
         tapButton(AccessibilityID.Collection.salvageButton)
-        tapWhenReady(app.alerts.buttons.matching(identifier: AccessibilityID.Collection.salvageConfirmButton).firstMatch)
+        XCTAssertFalse(app.alerts.firstMatch.exists)
+        tapWhenReady(app.buttons[AccessibilityID.Collection.salvageCancelButton])
+        assertExists(AccessibilityID.LoadoutPicker.itemDetail(itemID))
+        tapButton(AccessibilityID.Collection.salvageButton)
+        assertExistsAfterScroll(AccessibilityID.Collection.salvageConfirmButton, requireHittable: true)
+        tapButton(AccessibilityID.Collection.salvageConfirmButton)
         assertDoesNotExist(AccessibilityID.LoadoutPicker.itemDetail(itemID), timeout: 3)
         assertDoesNotExist(card, timeout: 3)
     }

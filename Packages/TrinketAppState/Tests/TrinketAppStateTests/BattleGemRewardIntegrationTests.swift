@@ -23,6 +23,7 @@ struct BattleGemRewardIntegrationTests {
         #expect(state.playerSave.persistBatch(logging: "Test setup") { save in
             save.worldSeed = UInt64(seed)
             save.homestead.nodeTiers[.moonlitSanctum] = 1
+            save.homestead.rewardRemainders = .init(gems: 95)
             save.homestead.lastProductionAt = .now
         })
 
@@ -49,6 +50,7 @@ struct BattleGemRewardIntegrationTests {
         #expect(didClaim)
         #expect(state.playerSave.journey.hasClaimedRewards(for: stage))
         #expect(state.playerSave.homestead.resources[.gems, default: 0] == startingGems + awardedGems)
+        #expect(state.playerSave.homestead.rewardRemainders?.gems == (95 + baseGems * 5) % 100)
         let claimedSave = state.playerSave.currentSave
         #expect(!battle.claimVictory(configurationID: configuration.id, summary: summary, defersPresentationExit: true))
         #expect(state.playerSave.currentSave == claimedSave)

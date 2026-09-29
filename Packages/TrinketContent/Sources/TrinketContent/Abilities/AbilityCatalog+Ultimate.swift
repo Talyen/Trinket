@@ -120,16 +120,16 @@ public extension AbilityCatalog {
 
     static let packTactics = Ability(
         id: "pack-tactics", name: "Pack Tactics", tier: .ultimate,
-        description: "Deal 3 Physical damage\nDraw and play 1 card from your ally's deck",
+        description: "Deal 3 Physical damage\nDraw a card from your ally's deck",
         damageComponents: [DamageComponent(3, keyword: .physical)],
         targetedEffects: [
-            TargetedEffect(.drawAndPlayCards(1)),
+            TargetedEffect(.drawCards(1)),
         ],
     )
 
     static let panaceaPotion = Ability(
         id: "panacea-potion", name: "Panacea Potion", tier: .ultimate,
-        description: "Cleanse the ally with the most status effects\nRestore 6 Health",
+        description: "Cleanse the ally with the most debuffs\nRestore 6 Health",
         targetedEffects: [
             TargetedEffect(.panacea(baseHeal: 6, healPerDebuff: 0)),
         ],
@@ -145,9 +145,9 @@ public extension AbilityCatalog {
 
     static let shadowstep = Ability(
         id: "shadowstep", name: "Shadowstep", tier: .ultimate,
-        description: "Draw and play 1 card from your deck\nDodge the next attack against you",
+        description: "Draw a card\nDodge the next attack against you",
         targetedEffects: [
-            TargetedEffect(.drawAndPlayCards(1), target: .actor),
+            TargetedEffect(.drawCards(1), target: .actor),
             TargetedEffect(.evadeNextHit, target: .actor),
         ],
     )

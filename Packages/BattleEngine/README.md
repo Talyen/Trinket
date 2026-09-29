@@ -61,7 +61,7 @@ integration surface above.
 | `BattleActionContext` / `CombatResolution` | BattleEngine | Actor-relative targets, shared selected outcomes, nested action/card identity, and cadence ownership |
 | `CombatCheckpoint` / `ManaPayment` | BattleEngine | Reaction continuation rules and immutable payment facts |
 | `HealingResult` / `DamageDefensePolicy` | BattleEngine | Healing delivery facts and consistent defense bypass |
-| `BattleCard` / `BattleHand` / `CombatDeck` | BattleEngine | Player ability cards drawn from Hero/Companion loadout decks; overflow waits in hand buffer |
+| `BattleCard` / `BattleHand` / `CombatDeck` | BattleEngine | Three alternating draws from one-copy Hero/Companion decks; FIFO overflow and next-turn discard recycling |
 | `BattleCardCombatEngine` | BattleEngine | Opening draw, play resolution, enemy turn, end-of-round effect pass |
 | `BattleEffectHandler` | BattleEngine | Protocol for effect application and turn-advance logic |
 | `EffectHandlers` | BattleEngine | Registry of all handlers, keyed by `EffectKind` |

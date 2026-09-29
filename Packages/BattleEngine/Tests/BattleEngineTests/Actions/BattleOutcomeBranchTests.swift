@@ -63,7 +63,9 @@ struct BattleOutcomeBranchTests {
             enemyMaxHealth: 500,
             rngSeed: rngSeed,
         )
-        let card = try #require(battle.hand.cards.first { $0.ability.name == name })
+        let ability = try #require((heroAbilities + companionAbilities).first { $0.name == name })
+        battle.hand = BattleHand()
+        let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
         let events = try battle.playCard(cardID: card.id)
         return (battle, events)
     }

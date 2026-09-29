@@ -3,6 +3,15 @@ import TrinketContent
 import TrinketCore
 
 public struct CombatModifierProfile: Equatable, Hashable, Sendable {
+    public var damageDealtPercents: [Keyword: Double] = [:]
+    public var maximumHealthPercentBonus: Double = 0
+    public var criticalDamagePercent: Double = 0
+    public var healthRestoredPercent: Double = 0
+    public var manaRestoredPercent: Double = 0
+    public var leechHealingPercent: Double = 0
+    public var blockGainedPercent: Double = 0
+    public var companionDamageDealtPercent: Double = 0
+    public var rangedDamageDealtPercent: Double = 0
     public var maximumHealthBonus: Int
     public var maximumManaBonus: Int
     public var criticalDamageBonus: Int
@@ -33,6 +42,15 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public static let zero = Self()
 
     public init(
+        damageDealtPercents: [Keyword: Double] = [:],
+        maximumHealthPercentBonus: Double = 0,
+        criticalDamagePercent: Double = 0,
+        healthRestoredPercent: Double = 0,
+        manaRestoredPercent: Double = 0,
+        leechHealingPercent: Double = 0,
+        blockGainedPercent: Double = 0,
+        companionDamageDealtPercent: Double = 0,
+        rangedDamageDealtPercent: Double = 0,
         maximumHealthBonus: Int = 0,
         maximumManaBonus: Int = 0,
         criticalDamageBonus: Int = 0,
@@ -59,6 +77,15 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         triggers: CombatTraitTriggers = CombatTraitTriggers(),
         triggerAbilityNames: [String: String] = [:],
     ) {
+        self.damageDealtPercents = damageDealtPercents
+        self.maximumHealthPercentBonus = maximumHealthPercentBonus
+        self.criticalDamagePercent = criticalDamagePercent
+        self.healthRestoredPercent = healthRestoredPercent
+        self.manaRestoredPercent = manaRestoredPercent
+        self.leechHealingPercent = leechHealingPercent
+        self.blockGainedPercent = blockGainedPercent
+        self.companionDamageDealtPercent = companionDamageDealtPercent
+        self.rangedDamageDealtPercent = rangedDamageDealtPercent
         self.maximumHealthBonus = maximumHealthBonus
         self.maximumManaBonus = maximumManaBonus
         self.criticalDamageBonus = criticalDamageBonus
@@ -98,6 +125,17 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     }
 
     public mutating func merge(_ other: Self) {
+        for (keyword, amount) in other.damageDealtPercents {
+            damageDealtPercents[keyword, default: 0] += amount
+        }
+        maximumHealthPercentBonus += other.maximumHealthPercentBonus
+        criticalDamagePercent += other.criticalDamagePercent
+        healthRestoredPercent += other.healthRestoredPercent
+        manaRestoredPercent += other.manaRestoredPercent
+        leechHealingPercent += other.leechHealingPercent
+        blockGainedPercent += other.blockGainedPercent
+        companionDamageDealtPercent += other.companionDamageDealtPercent
+        rangedDamageDealtPercent += other.rangedDamageDealtPercent
         maximumHealthBonus += other.maximumHealthBonus
         maximumManaBonus += other.maximumManaBonus
         criticalDamageBonus += other.criticalDamageBonus
@@ -151,6 +189,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
 
     mutating func applyMaximumAffixStat(_ modifier: AffixModifier) -> Bool {
         switch modifier {
+        case let .maximumHealthPercent(amount):
+            maximumHealthPercentBonus += amount
         case let .maximumHealth(amount):
             maximumHealthBonus += amount
         case let .maximumMana(amount):
@@ -161,7 +201,33 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         return true
     }
 
+    private mutating func applyAffixPercentBonus(_ modifier: AffixModifier) -> Bool {
+        switch modifier {
+        case let .damageDealtPercent(keyword, amount):
+            damageDealtPercents[keyword, default: 0] += amount
+        case let .criticalDamagePercent(amount):
+            criticalDamagePercent += amount
+        case let .healthRestoredPercent(amount):
+            healthRestoredPercent += amount
+        case let .manaRestoredPercent(amount):
+            manaRestoredPercent += amount
+        case let .leechHealingPercent(amount):
+            leechHealingPercent += amount
+        case let .blockGainedPercent(amount):
+            blockGainedPercent += amount
+        case let .companionDamageDealtPercent(amount):
+            companionDamageDealtPercent += amount
+        case let .rangedDamageDealtPercent(amount):
+            rangedDamageDealtPercent += amount
+        default: return false
+        }
+        return true
+    }
+
     mutating func applyAffixCombatBonus(_ modifier: AffixModifier) -> Bool {
+        if applyAffixPercentBonus(modifier) {
+            return true
+        }
         switch modifier {
         case let .damageDealt(keyword, amount):
             damageDealtBonus[keyword, default: 0] += amount
@@ -230,7 +296,12 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     }
 
     public func damageDealtPercent(for keyword: Keyword) -> Double {
-        keyword == .poison ? max(0, poisonDamageDealtPercent) : 0
+        max(
+            0,
+            damageDealtPercents[keyword, default: 0]
+                + companionDamageDealtPercent
+                + (keyword == .poison ? poisonDamageDealtPercent : 0),
+        )
     }
 
     public func damageTakenReduction(for keyword: Keyword) -> Double {
@@ -278,7 +349,10 @@ public struct CombatBuild: Equatable, Hashable, Sendable {
 
 public enum CombatantMaxValues {
     public static func maxHealth(for combatant: Combatant, modifiers: CombatModifierProfile) -> Int {
-        combatant.maxHealth + modifiers.maximumHealthBonus
+        CombatRounding.scaled(
+            combatant.maxHealth + modifiers.maximumHealthBonus,
+            multiplier: 1 + modifiers.maximumHealthPercentBonus,
+        )
     }
 
     public static func maxMana(for combatant: Combatant, modifiers: CombatModifierProfile) -> Int {

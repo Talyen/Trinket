@@ -18,7 +18,9 @@ package extension CombatTriggerEngine {
            BattleChance.succeeds(probability: triggers.goldTheftDrawChancePercent, using: &context.rng),
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: drawCards(
-                1, for: owner, actor: actor, abilityName: "Scavenger’s Cache", in: &context,
+                1, for: owner, actor: actor, abilityName: triggerAbilityName(
+                    "goldTheftDrawChancePercent", for: actor, fallback: "Scavenger’s Cache", in: context,
+                ), in: &context,
             ))
         }
         if triggers.goldTheftDodgeBonus > 0,

@@ -60,7 +60,7 @@ extension CombatTriggerTalentDamageTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxMana: 12, heroMana: amount, heroModifiers: profile, dealOpeningHand: false,
         )
-        battle.heroDeck = CombatDeck(abilities: [.block])
+        battle.heroDeck = CombatDeck(abilities: Array(repeating: .block, count: amount / 5))
         let payment = battle.payMana(amount, for: battle.hero)
         let events = CombatTriggerEngine.afterSpendMana(payment, in: &battle)
         #expect(events.count { $0.kind == .ability && $0.abilityID == Ability.block.id } == amount / 5)

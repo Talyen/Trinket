@@ -31,6 +31,15 @@ public enum AffixModifier: Equatable, Hashable, Codable, Sendable {
     case attackLeechPercent(Double)
     case attackBlockRemoval(Int)
     case attackPurgeCount(Int)
+    case maximumHealthPercent(Double)
+    case damageDealtPercent(Keyword, Double)
+    case criticalDamagePercent(Double)
+    case healthRestoredPercent(Double)
+    case manaRestoredPercent(Double)
+    case leechHealingPercent(Double)
+    case blockGainedPercent(Double)
+    case companionDamageDealtPercent(Double)
+    case rangedDamageDealtPercent(Double)
 }
 
 public extension AffixModifier {
@@ -64,6 +73,15 @@ public extension AffixModifier {
         case .attackLeechPercent: true
         case .attackBlockRemoval: false
         case .attackPurgeCount: false
+        case .maximumHealthPercent: true
+        case .damageDealtPercent: true
+        case .criticalDamagePercent: true
+        case .healthRestoredPercent: true
+        case .manaRestoredPercent: true
+        case .leechHealingPercent: true
+        case .blockGainedPercent: true
+        case .companionDamageDealtPercent: true
+        case .rangedDamageDealtPercent: true
         }
     }
 
@@ -97,6 +115,15 @@ public extension AffixModifier {
         case let .attackLeechPercent(v): v
         case let .attackBlockRemoval(v): Double(v)
         case let .attackPurgeCount(v): Double(v)
+        case let .maximumHealthPercent(v): v
+        case let .damageDealtPercent(_, v): v
+        case let .criticalDamagePercent(v): v
+        case let .healthRestoredPercent(v): v
+        case let .manaRestoredPercent(v): v
+        case let .leechHealingPercent(v): v
+        case let .blockGainedPercent(v): v
+        case let .companionDamageDealtPercent(v): v
+        case let .rangedDamageDealtPercent(v): v
         }
     }
 
@@ -136,6 +163,15 @@ public extension AffixModifier {
         case let .dodgeChanceBonus(v): .dodgeChanceBonus(transform(v))
         case let .maximumManaPercent(v): .maximumManaPercent(transform(v))
         case let .attackLeechPercent(v): .attackLeechPercent(transform(v))
+        case let .maximumHealthPercent(v): .maximumHealthPercent(transform(v))
+        case let .damageDealtPercent(kw, v): .damageDealtPercent(kw, transform(v))
+        case let .criticalDamagePercent(v): .criticalDamagePercent(transform(v))
+        case let .healthRestoredPercent(v): .healthRestoredPercent(transform(v))
+        case let .manaRestoredPercent(v): .manaRestoredPercent(transform(v))
+        case let .leechHealingPercent(v): .leechHealingPercent(transform(v))
+        case let .blockGainedPercent(v): .blockGainedPercent(transform(v))
+        case let .companionDamageDealtPercent(v): .companionDamageDealtPercent(transform(v))
+        case let .rangedDamageDealtPercent(v): .rangedDamageDealtPercent(transform(v))
         default: self
         }
     }

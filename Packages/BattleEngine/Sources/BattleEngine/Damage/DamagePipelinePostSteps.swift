@@ -3,6 +3,21 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
+    static func applyResourceful(to state: inout DamageResolutionState, in context: inout BattleState) {
+        guard state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
+              let attackerID = state.sourceActorID,
+              context.roster.combatant(for: attackerID)?.role == .enemy else { return }
+        for wearer in state.brokenBlockOwners {
+            guard context.modifiers(for: wearer.id).triggers.blockBreakDrawBelowHalf,
+                  let runtime = context.roster.runtime(for: wearer), runtime.isAlive,
+                  Double(runtime.currentHealth) < Double(runtime.maxHealth) / 2,
+                  let owner = context.roster.participant(for: wearer) else { continue }
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.drawCards(
+                1, for: owner, actor: wearer, abilityName: "Resourceful", in: &context,
+            ))
+        }
+    }
+
     static func applyLeech(
         to state: inout DamageResolutionState,
         in context: inout BattleState,

@@ -89,7 +89,7 @@ struct ContractsBoardView: View {
             }
         }
         .disabled(playerSave.isRetryingSaveAction)
-        .trinketMessageAlert($message)
+        .trinketPlayActionResult($message)
         .trinketSensoryFeedback(.selection, trigger: feedbackTrigger, enabled: options.hapticsEnabled)
         .task {
             guard !isBattleActive else { return }

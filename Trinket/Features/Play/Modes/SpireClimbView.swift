@@ -44,12 +44,11 @@ struct SpireClimbView: View {
             if let spire {
                 climbContent(spire)
             } else {
-                ContentUnavailableView("Spire Missing", systemImage: "sparkles")
-                    .trinketScreenBackground()
+                Color.clear.onAppear { dismiss() }
             }
         }
         .accessibilityIdentifier(AccessibilityID.Play.spireClimb(spireID.rawValue))
-        .trinketMessageAlert($floorMessage)
+        .trinketPlayActionResult($floorMessage)
         .task(id: prepareBattleDependency) {
             prepareActiveFloorBattle()
         }

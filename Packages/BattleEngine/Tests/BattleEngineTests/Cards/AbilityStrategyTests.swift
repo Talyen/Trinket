@@ -246,7 +246,12 @@ struct AbilityStrategyTests {
         #expect(state.resolution.pendingPartyDamage(for: state.companion.id) == 1)
         state.companionDeck = CombatDeck(abilities: [attack])
         let before = state.roster.enemy.currentHealth
-        _ = try play(.packTactics, in: &state)
+        let automaticFollowup = Ability(
+            id: "automatic-followup", name: "Automatic Followup", tier: .ultimate,
+            directDamage: 3,
+            targetedEffects: [TargetedEffect(.drawAndPlayCards(1), target: .companion)],
+        )
+        _ = try play(automaticFollowup, in: &state)
         #expect(before - state.roster.enemy.currentHealth == 6)
         #expect(state.resolution.pendingPartyDamage(for: state.companion.id) == 0)
     }

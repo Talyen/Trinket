@@ -136,6 +136,8 @@ HOMESTEAD_META_FIELDS = {
     "gold_find_flat": "goldFindFlat",
     "experience": "experienceBonus",
     "gems_find": "gemsFindBonus",
+    "gems_find_percent": "gemsFindPercent",
+    "experience_percent": "experienceBonusPercent",
 }
 
 

@@ -156,12 +156,12 @@ public enum VictoryRewardApplier {
         battleGold: BattleGoldFlow,
         homestead: PlayerHomesteadState,
     ) -> Int {
-        resolvedGoldReward(
-            stageGold: stageGold,
-            battleGold: battleGold,
-            goldFoundPercent: homestead.effects.goldFindPercent,
+        BattleRewardPlan(
+            stageGold: stageGold, goldFindPercent: homestead.effects.goldFindPercent,
             goldFindFlat: homestead.effects.goldFindFlat,
-        )
+            initialRewardRemainders: homestead.rewardRemainders ?? .zero,
+            heroExperience: 0, companionExperience: 0, materials: [], items: [],
+        ).resolve(battleGold: battleGold).goldDelta
     }
 
     public static func battleExperienceAward(
@@ -285,16 +285,19 @@ public enum VictoryRewardApplier {
             goldFindPercent: save.homestead.effects.goldFindPercent,
             goldFindFlat: save.homestead.effects.goldFindFlat,
             gemsFindBonus: save.homestead.effects.gemsFindBonus,
+            gemsFindPercent: save.homestead.effects.gemsFindPercent,
             goldOverflowExperience: RewardExperiencePolicy.encounterAward(
                 encounterLevel: encounterLevel, roster: save.roster, percent: experienceEarnedPercent,
             ),
             heroExperience: grantsCombatExperience ? battleExperienceAward(
                 playerLevel: save.roster.progression(for: hero).level, enemyLevel: encounterLevel,
-                highestLevel: save.roster.highestHeroLevel, experienceEarnedPercent: experienceEarnedPercent,
+                highestLevel: save.roster.highestHeroLevel,
+                experienceEarnedPercent: experienceEarnedPercent + save.homestead.effects.experienceBonusPercent,
             ) + save.homestead.effects.experienceBonus : 0,
             companionExperience: grantsCombatExperience ? battleExperienceAward(
                 playerLevel: save.roster.progression(for: companion).level, enemyLevel: encounterLevel,
-                highestLevel: save.roster.highestCompanionLevel, experienceEarnedPercent: experienceEarnedPercent,
+                highestLevel: save.roster.highestCompanionLevel,
+                experienceEarnedPercent: experienceEarnedPercent + save.homestead.effects.experienceBonusPercent,
             ) + save.homestead.effects.experienceBonus : 0,
             materials: materialRewards, items: payableItem.map { [$0] } ?? [],
         ).settle(
@@ -318,6 +321,9 @@ public enum VictoryRewardApplier {
         save: inout PlayerSave,
     ) {
         let award = settlement.award
+        if let remainders = award.rewardRemainders {
+            save.homestead.rewardRemainders = remainders == .zero ? nil : remainders
+        }
         let now = settlement.inputs.productionDate
         save.applyGoldDelta(award.goldDelta, at: now)
         BattleExperienceReward.apply(settlement, hero: hero, companion: companion, save: &save)

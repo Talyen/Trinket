@@ -55,6 +55,7 @@ package enum DamagePipeline {
         applyDeathsDoor(to: &state, in: &context)
 
         CombatCheckpoint.committedDamage.perform(in: &context) { context in
+            applyResourceful(to: &state, in: &context)
             applyCommittedDamageReactions(to: &state, in: &context)
         }
     }

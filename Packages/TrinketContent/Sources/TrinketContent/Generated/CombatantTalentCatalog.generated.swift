@@ -77,9 +77,9 @@ public extension CombatantTalentCatalog {
             "knight_holy_t3_1": CombatantTalentEffect(
                 name: "Smite the Wicked",
                 iconID: "sf:sun.max.fill",
-                description: "Purging an enemy doubles your next Holy attack",
+                description: "Purge draws a card while you're\nbelow half Health",
                 modifiers: [],
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(purgePreparesDoubleHolyAttack: true))
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(purgeDrawBelowHalf: true))
             ),
             "knight_holy_t3_2": CombatantTalentEffect(
                 name: "Divine Blessing",
@@ -562,7 +562,7 @@ public extension CombatantTalentCatalog {
             "wizard_mana_t2_2": CombatantTalentEffect(
                 name: "Arcane Cleansing",
                 iconID: "sf:sparkles",
-                description: "Ending a turn at 0 Mana Cleanses 1 negative status effect",
+                description: "Ending a turn at 0 Mana Cleanses a debuff",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mana: ManaTriggers(endTurnZeroManaCleanse: true))
             ),
@@ -862,7 +862,7 @@ public extension CombatantTalentCatalog {
             "warlock_mana_t2_2": CombatantTalentEffect(
                 name: "Hexing Rune",
                 iconID: "sf:atom",
-                description: "Mana empowerment Purges 1 positive status effect",
+                description: "Mana empowerment Purges a buff",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mana: ManaTriggers(manaEmpowerPurgeCount: 1))
             ),
@@ -963,14 +963,14 @@ public extension CombatantTalentCatalog {
             "alchemist_cleanse_t1_1": CombatantTalentEffect(
                 name: "Clear Solution",
                 iconID: "sf:flask.fill",
-                description: "Abilities that restore Health also Cleanse 1 negative status effect",
+                description: "Abilities that restore Health also Cleanse a debuff",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(clearSolution: true))
             ),
             "alchemist_cleanse_t1_2": CombatantTalentEffect(
                 name: "Fresh Batch",
                 iconID: "sf:flask.fill",
-                description: "Cleansing a negative status effect restores 2 Health",
+                description: "Cleansing a debuff restores 2 Health",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(freshBatch: true))
             ),
@@ -991,21 +991,21 @@ public extension CombatantTalentCatalog {
             "alchemist_cleanse_t3_1": CombatantTalentEffect(
                 name: "Clear Mind",
                 iconID: "sf:brain.head.profile",
-                description: "Cleansing an ally reduces your next Mana empowerment cost by 1",
+                description: "Draw a card when you Cleanse\nwhile out of Mana",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(clearMind: true))
             ),
             "alchemist_cleanse_t3_2": CombatantTalentEffect(
                 name: "Clean Break",
                 iconID: "sf:sparkles",
-                description: "Cleansing an ally’s last negative status effect draws a card",
+                description: "Cleansing an ally’s last debuff draws a card",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanBreak: true))
             ),
             "alchemist_cleanse_t4_1": CombatantTalentEffect(
                 name: "Perfect Purity",
                 iconID: "sf:sparkles",
-                description: "Cleanse grants its target 1 turn of negative status immunity",
+                description: "Cleanse grants its target 1 turn of debuff immunity",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(perfectPurity: true))
             ),
@@ -1064,9 +1064,9 @@ public extension CombatantTalentCatalog {
             "wildcard_gold_t1_1": CombatantTalentEffect(
                 name: "Consolation Prize",
                 iconID: "sf:gift.fill",
-                description: "Gain 3 Gold the first time an enemy fully Blocks your attack",
+                description: "Your first fully Blocked attack each combat\nadds a random card to your hand",
                 modifiers: [],
-                triggers: CombatTraitTriggers(gold: GoldTriggers(blockedAttackFirstGold: 3))
+                triggers: CombatTraitTriggers(gold: GoldTriggers(blockedAttackFirstRandomCard: true))
             ),
             "wildcard_gold_t1_2": CombatantTalentEffect(
                 name: "Health is Wealth",
@@ -1085,7 +1085,7 @@ public extension CombatantTalentCatalog {
             "wildcard_gold_t2_2": CombatantTalentEffect(
                 name: "Lucky Charm",
                 iconID: "sf:suit.club.fill",
-                description: "Gaining Gold has a 20% chance to Cleanse 1 negative status effect",
+                description: "Gaining Gold has a 20% chance to Cleanse a debuff",
                 modifiers: [],
                 triggers: CombatTraitTriggers(gold: GoldTriggers(goldGainCleanseChancePercent: 0.20))
             ),
@@ -2104,14 +2104,14 @@ public extension CombatantTalentCatalog {
             "phoenix_deathsdoor_t3_2": CombatantTalentEffect(
                 name: "Ashen Ward",
                 iconID: "sf:checkmark.shield.fill",
-                description: "Death's Door prevents negative status effects",
+                description: "Death's Door prevents debuffs",
                 modifiers: [],
                 triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorNegativeStatusImmune: true))
             ),
             "phoenix_health_t4_1": CombatantTalentEffect(
                 name: "Clean Slate",
                 iconID: "sf:eraser.fill",
-                description: "Excess Health restoration Cleanses 1 negative status effect",
+                description: "Excess Health restoration Cleanses a debuff",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(cleanSlate: true))
             ),
@@ -2254,7 +2254,7 @@ public extension CombatantTalentCatalog {
             "golden_retriever_health_t3_2": CombatantTalentEffect(
                 name: "Protective Lick",
                 iconID: "sf:heart.fill",
-                description: "Restoring Health also Cleanses 1 negative status effect",
+                description: "Restoring Health also Cleanses a debuff",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(healthRestorationCleansesOne: true))
             ),
@@ -2313,7 +2313,7 @@ public extension CombatantTalentCatalog {
             "library_owl_holy_t3_1": CombatantTalentEffect(
                 name: "Bane of Evil",
                 iconID: "sf:sun.max.fill",
-                description: "Holy Critical Hits Purge a positive status effect",
+                description: "Holy Critical Hits Purge a buff",
                 modifiers: [],
                 triggers: CombatTraitTriggers(attack: AttackTriggers(holyCriticalPurgeCount: 1))
             ),
@@ -2341,7 +2341,7 @@ public extension CombatantTalentCatalog {
             "library_owl_cleanse_t2_1": CombatantTalentEffect(
                 name: "Spellbreak Shield",
                 iconID: "sf:xmark.shield.fill",
-                description: "Cleansing a negative effect grants 2 Block per effect removed.",
+                description: "Cleansing a debuff grants 2 Block per effect removed.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseBlockPerStack: 2))
             ),
@@ -2355,7 +2355,7 @@ public extension CombatantTalentCatalog {
             "library_owl_cleanse_t3_1": CombatantTalentEffect(
                 name: "Reflective Ward",
                 iconID: "sf:arrow.uturn.backward",
-                description: "Cleansing a negative effect reflects it onto the enemy who applied it.",
+                description: "Cleansing a debuff reflects it onto the enemy who applied it.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseReflectDebuffToEnemy: true))
             ),
@@ -2411,7 +2411,7 @@ public extension CombatantTalentCatalog {
             "library_owl_holy_t4_1": CombatantTalentEffect(
                 name: "Interdict",
                 iconID: "sf:nosign",
-                description: "Purging with Holy prevents that positive status effect from returning next turn",
+                description: "Purging with Holy prevents that buff from returning next turn",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(interdict: true))
             ),
@@ -2749,7 +2749,7 @@ public extension CombatantTalentCatalog {
             "pixie_cleanse_t1_2": CombatantTalentEffect(
                 name: "Dispel Magic",
                 iconID: "sf:wand.and.stars",
-                description: "Cleansing has a 20% chance to Purge an enemy's positive status effect",
+                description: "Cleansing has a 20% chance to Purge a buff from an enemy",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleansePurgeChancePercent: 0.20))
             ),
@@ -2770,14 +2770,14 @@ public extension CombatantTalentCatalog {
             "pixie_cleanse_t3_1": CombatantTalentEffect(
                 name: "Fae Ward",
                 iconID: "sf:shield.lefthalf.filled",
-                description: "Your first Cleanse each turn removes one extra negative status effect",
+                description: "Your first Cleanse each turn removes one extra debuff",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(firstCleanseExtraRemovalPerTurn: 1))
             ),
             "pixie_cleanse_t3_2": CombatantTalentEffect(
                 name: "Purifying Aura",
                 iconID: "sf:sun.max.fill",
-                description: "Cleanse 1 negative effect from each ally every other turn.",
+                description: "Cleanse a debuff from each ally every other turn.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(purifyingAura: true))
             ),
@@ -2875,7 +2875,7 @@ public extension CombatantTalentCatalog {
             "pixie_cleanse_t4_1": CombatantTalentEffect(
                 name: "Purifying Waters",
                 iconID: "sf:water.waves",
-                description: "Cleansing restores 4 Health per negative status effect removed",
+                description: "Cleansing restores 4 Health per debuff removed",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(purifyingWaters: true))
             ),

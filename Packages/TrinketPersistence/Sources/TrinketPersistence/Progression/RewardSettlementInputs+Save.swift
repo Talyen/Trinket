@@ -13,6 +13,7 @@ public extension RewardSettlementInputs {
             heroProgression: save.roster.progression(for: hero),
             companionProgression: save.roster.progression(for: companion),
             productionDate: homestead.lastProductionAt,
+            rewardRemainders: homestead.rewardRemainders ?? .zero,
         )
     }
 }

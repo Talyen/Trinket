@@ -38,10 +38,35 @@ public struct MysteryOffer: Hashable, Sendable {
     public let choiceID: String
     public let item: InventoryItem
     public let bonus: MysteryRewardBonus
+    public let homesteadReward: HomesteadMysteryReward?
 
-    public init(choiceID: String, item: InventoryItem, bonus: MysteryRewardBonus) {
+    public init(
+        choiceID: String, item: InventoryItem, bonus: MysteryRewardBonus,
+        homesteadReward: HomesteadMysteryReward? = nil,
+    ) {
         self.choiceID = choiceID
         self.item = item
         self.bonus = bonus
+        self.homesteadReward = homesteadReward
+    }
+}
+
+/// Keeps the pinned reward basis so an offer can refresh unpaid fractions without rerolling its item.
+public struct HomesteadMysteryReward: Codable, Equatable, Hashable, Sendable {
+    public let resource: HomesteadResource
+    public let amount: Int
+    public let percent: Int
+
+    public init(resource: HomesteadResource, amount: Int, percent: Int) {
+        self.resource = resource
+        self.amount = amount
+        self.percent = percent
+    }
+
+    public func resolve(remainders: inout HomesteadRewardRemainders) -> MysteryRewardBonus {
+        let total = SaturatedArithmetic.saturatingAdd(
+            amount, remainders.bonus(for: resource, amount: amount, percent: percent),
+        )
+        return resource == .gold ? .gold(total) : .material(resource, total)
     }
 }

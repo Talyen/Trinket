@@ -96,6 +96,7 @@ package extension HealingEngine {
            context.roster.hasControlStatus(for: target, keyword: .stun) {
             restored += profile.triggers.leechBonusHealVsStunned
         }
+        restored = CombatRounding.scaled(restored, multiplier: 1 + profile.leechHealingPercent)
         if let target, profile.triggers.leechHealingVsAfflictedMultiplier > 1 {
             let afflicted = context.roster.hasAffliction(.poison, on: target) || context.roster.hasAffliction(.bleed, on: target)
             if afflicted {

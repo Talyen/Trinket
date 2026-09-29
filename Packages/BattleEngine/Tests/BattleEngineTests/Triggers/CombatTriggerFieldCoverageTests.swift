@@ -9,7 +9,10 @@ struct CombatTriggerFieldCoverageTests {
         try #expect(Set(names).count == names.count, "duplicate trigger field names: \(duplicateNames(names))")
 
         let referencedIdentifiers = try engineReferencedIdentifiers()
-        let legacyInventoryFields: Set = ["heldCardNextAttackDamage"]
+        // Retained serialized fields whose approved replacements no longer execute.
+        let legacyInventoryFields: Set = [
+            "heldCardNextAttackDamage", "blockedAttackFirstGold", "purgePreparesDoubleHolyAttack",
+        ]
         let missing = names.filter { name in
             !referencedIdentifiers.contains(name) && !legacyInventoryFields.contains(name)
         }

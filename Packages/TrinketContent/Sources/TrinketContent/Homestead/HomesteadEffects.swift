@@ -9,6 +9,8 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
     public var goldFindFlat: Int
     public var experienceBonus: Int
     public var gemsFindBonus: Int
+    public var gemsFindPercent: Int
+    public var experienceBonusPercent: Int
 
     public static let zero = Self(
         heroModifiers: [],
@@ -25,6 +27,8 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
         goldFindFlat: Int = 0,
         experienceBonus: Int = 0,
         gemsFindBonus: Int = 0,
+        gemsFindPercent: Int = 0,
+        experienceBonusPercent: Int = 0,
     ) {
         self.heroModifiers = heroModifiers
         self.companionModifiers = companionModifiers
@@ -33,6 +37,8 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
         self.goldFindFlat = goldFindFlat
         self.experienceBonus = experienceBonus
         self.gemsFindBonus = gemsFindBonus
+        self.gemsFindPercent = gemsFindPercent
+        self.experienceBonusPercent = experienceBonusPercent
     }
 
     public static func from(nodeTiers: [HomesteadNodeID: Int]) -> Self {
@@ -49,21 +55,47 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
             effects.goldFindFlat += bonus.goldFindFlat
             effects.experienceBonus += bonus.experienceBonus
             effects.gemsFindBonus += bonus.gemsFindBonus
+            effects.gemsFindPercent += bonus.gemsFindPercent
+            effects.experienceBonusPercent += bonus.experienceBonusPercent
         }
         return effects
     }
 
     public func adjustedMaterials(_ amounts: [ResourceAmount]) -> [ResourceAmount] {
+        var remainders = HomesteadRewardRemainders.zero
+        return adjustedMaterials(amounts, remainders: &remainders)
+    }
+
+    public func adjustedMaterials(
+        _ amounts: [ResourceAmount], remainders: inout HomesteadRewardRemainders,
+    ) -> [ResourceAmount] {
+        let gems = amounts.filter { $0.resource == .gems && $0.quantity > 0 }
+            .reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.quantity) }
+        let bonus = SaturatedArithmetic.saturatingAdd(
+            gemsFindBonus, remainders.bonus(for: .gems, amount: gems, percent: gemsFindPercent),
+        )
         var applied = false
         return amounts.map { amount in
             guard amount.resource == .gems, amount.quantity > 0, !applied else { return amount }
             applied = true
-            return ResourceAmount(.gems, amount.quantity + gemsFindBonus)
+            return ResourceAmount(.gems, SaturatedArithmetic.saturatingAdd(amount.quantity, bonus))
         }
     }
 
     public func adjustedGold(_ amount: Int) -> Int {
+        var remainders = HomesteadRewardRemainders.zero
+        return adjustedGold(amount, remainders: &remainders)
+    }
+
+    public func adjustedGold(_ amount: Int, remainders: inout HomesteadRewardRemainders) -> Int {
         guard amount > 0 else { return 0 }
-        return amount + (amount * goldFindPercent) / 100 + goldFindFlat
+        if goldFindPercent < 0 {
+            return SaturatedArithmetic.saturatingAdd(CombatRounding.scaled(amount, byPercent: goldFindPercent), goldFindFlat)
+        }
+        return SaturatedArithmetic.saturatingAdd(
+            amount, SaturatedArithmetic.saturatingAdd(
+                goldFindFlat, remainders.bonus(for: .gold, amount: amount, percent: goldFindPercent),
+            ),
+        )
     }
 }

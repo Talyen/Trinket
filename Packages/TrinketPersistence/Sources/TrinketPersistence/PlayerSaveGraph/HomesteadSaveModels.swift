@@ -14,6 +14,8 @@ public final class HomesteadModel {
     @Relationship(deleteRule: .cascade, inverse: \HomesteadNodeTierModel.homestead)
     public var nodeTiers: [HomesteadNodeTierModel]?
     public var lastProductionAt: Date = Date()
+    public var goldRewardRemainder: Int = 0
+    public var gemsRewardRemainder: Int = 0
 
     public init() {}
 }

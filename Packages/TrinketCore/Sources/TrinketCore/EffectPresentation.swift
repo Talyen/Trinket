@@ -97,7 +97,7 @@ public enum EffectPresentation {
         case let .panacea(baseHeal, healPerDebuff):
             "cleanse all debuffs and restore \(baseHeal) Health plus \(healPerDebuff) Health for each debuff cleansed"
         case .cleanseRandom:
-            "cleanse a harmful status effect"
+            "cleanse a debuff"
         case let .purge(keyword?):
             "purge \(keyword.rawValue)"
         case .purge(nil):

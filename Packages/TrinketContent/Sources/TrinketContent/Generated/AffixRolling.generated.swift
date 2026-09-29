@@ -95,6 +95,7 @@ extension CombatTraitTriggers {
         "attackPurgeCount": "Encounter-only attack rule, not an equipment roll.",
         "sunderingBlockMultiplier": "Word-described magnitude has no patchable number in the card text.",
         "attackBlockRemoval": "Encounter-only attack rule, not an equipment roll.",
+        "blockBreakDrawBelowHalf": "Boolean card-draw signature with no magnitude roll.",
         "poisonDamageLeech": "On/off rule with no rollable magnitude.",
         "enemyStunnedApplyMarked": "On/off rule with no rollable magnitude.",
         "enemyStunnedPurgeAll": "On/off rule with no rollable magnitude.",
@@ -105,6 +106,7 @@ extension CombatTraitTriggers {
         "healCompanionDrawsCompanionCard": "On/off rule with no rollable magnitude.",
         "forbiddenKnowledge": "On/off rule with no rollable magnitude.",
         "victoryGoldCoin": "On/off rule with no rollable magnitude.",
+        "goldTheftDrawChancePercent": "Fixed Trinket draw chance, not a rolled magnitude.",
         "physicalAttackLeechBelowHalfHealth": "On/off Leech rule with no rollable magnitude.",
         "attackLeechPercent": "Encounter-only attack rule, not an equipment roll.",
     ]

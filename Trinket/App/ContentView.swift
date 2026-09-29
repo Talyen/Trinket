@@ -180,11 +180,11 @@ struct ContentView: View {
                 HomesteadNodeDetailView(definition: definition)
                     .navigationTransition(.zoom(sourceID: nodeID, in: homesteadZoomNamespace))
             } else {
-                ContentUnavailableView(
-                    "Project Unavailable",
-                    systemImage: "hammer.fill",
-                    description: Text("This homestead project is no longer available."),
-                )
+                Color.clear.onAppear {
+                    if shellSession.homesteadPath.last == route {
+                        shellSession.homesteadPath.removeLast()
+                    }
+                }
             }
         }
     }

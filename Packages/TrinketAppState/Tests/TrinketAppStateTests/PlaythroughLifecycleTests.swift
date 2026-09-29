@@ -49,7 +49,20 @@ struct PlaythroughLifecycleTests {
         defer { career.close() }
         try await career.perform(.starterHero("knight"))
         try await career.perform(.starterCompanion("wolf"))
+        try #require(career.store.persistBatch(logging: "Winning persistence fixture") { save in
+            save.homestead.nodeTiers[.wheatField] = 4
+            save.homestead.nodeTiers[.chickenCoop] = 4
+            save.homestead.nodeTiers[.blacksmithForge] = 4
+            save.homestead.nodeTiers[.hunterLodge] = 4
+            let hero = save.roster.activeHero
+            let companion = save.roster.activeCompanion
+            save.roster.setLoadout(.init(basic: AbilityCatalog.slash), for: hero)
+            save.roster.setLoadout(.init(basic: AbilityCatalog.rendingSlash), for: companion)
+        })
         try await career.perform(.campaign("chapter-1-stage-1", 42))
+        let prepared = try #require(career.battle.activeBattle)
+        #expect(prepared.hero.modifiers.maximumHealthPercentBonus == 0.4)
+        #expect(prepared.hero.combatant.abilityLoadout.basic?.id == AbilityCatalog.slash.id)
         try await career.fight(settle: false)
         #expect(career.battle.outcome == .victory)
         let config = try #require(career.battle.activeBattle)

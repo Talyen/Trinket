@@ -37,6 +37,7 @@ public struct VoyageCompletionBonus: Equatable, Sendable {
                 let quantity = rewards[resource, default: 0]
                 return quantity > 0 ? ResourceAmount(resource, quantity) : nil
             }, items: award.items,
+            rewardRemainders: award.rewardRemainders,
         )
     }
 }

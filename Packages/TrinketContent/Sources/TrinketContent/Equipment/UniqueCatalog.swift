@@ -8,7 +8,7 @@ enum UniqueCatalog {
             name: "Wardbreaker",
             base: "flail",
             keywords: [.stun, .holy],
-            description: "Purge all beneficial status effects when you Stun an enemy. Deal 2 Holy damage for each effect removed.",
+            description: "Purge all buffs when you Stun an enemy. Deal 2 Holy damage per buff removed.",
             triggers: CombatTraitTriggers(
                 control: ControlTriggers(
                     stunPurgeDealHolyPerEffect: 2,

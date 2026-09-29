@@ -38,10 +38,9 @@ wrapping body-size description; both retain primary contrast. Benefits are separ
 by 16 points. Names remain stable across tiers and are owned by the Homestead feature's
 building/effect-key lookup. Details and offers share this layout; offers retain
 their solid sheet background. Each effect keeps its own block, including buildings
-with multiple bonuses or outputs. Descriptions contain bold values and inline
-upgrade comparisons, preserve keyword formatting, and name production resources
-explicitly (for example, “+1 Food per Day”). Panel content scrolls as needed without
-truncating descriptions or comparisons. Completed buildings keep benefits and omit the build/upgrade action.
+with multiple bonuses or outputs. Descriptions contain bold values, preserve keyword formatting, and name production resources
+explicitly (for example, “Produce 1 Food per Day”). Panel content scrolls as needed without
+truncating descriptions. Completed buildings keep benefits and omit the build/upgrade action.
 
 Bonus symbols reuse keyword identities and colors: Health uses heart.fill; healing
 uses heart.circle.fill; damage uses its keyword symbol; damage resistance uses
@@ -59,10 +58,11 @@ checkmark, or Tier N label appears.
 
 ## Next-stage offers
 
-Build/Upgrade opens the next-stage offer. Titles use **Build {building name}**
-for the first tier and **Upgrade {building name}** thereafter, never authored
-stage names. Changed existing benefits and production show current → resulting
-values; initial builds and newly introduced benefits show resulting values only.
+Build/Upgrade opens the next-stage offer. First builds use **Build {building name}**
+and show the resulting bonuses and production. Upgrade offers use only the building
+name and show **Upgrade cost**, resource icons and costs, and the Upgrade button.
+They omit benefits and current → resulting comparisons. Authored stage names are
+not shown. Current benefits remain on the building detail screen.
 
 Build cost/Upgrade cost shows large material artwork, names, and required amounts:
 white when affordable, destructive red when insufficient. Do not show owned
@@ -113,21 +113,40 @@ Preserve existing pins and memory limits.
 
 Each building has four tiers. Every numeric bonus and each material output
 increases at every tier; tier values replace lower tiers. Crystal Garden grants
-flat Critical damage and produces both Gems and Stone. Library and Agility
+percentage Critical damage and produces both Gems and Stone. Library and Agility
 Training intentionally have no production. All material types have a producer.
 
-Descriptions use concise labels and signed values: Health, Mana, Experience,
-Physical damage, and Poison damage taken. Hero and Companion scopes remain
-explicit where they differ. Production uses the existing daily clock and shows
-per Day; collecting multiple resources preserves each resource's fractional
-progress independently. Multiple outputs stack as individual benefit rows.
+Descriptions use the same player-directed voice as affixes: Increase, Take,
+Restore, Gain, Find, and Produce. They have no trailing periods. Hero and Companion
+scopes remain explicit where they differ. Full-width descriptions target one line
+at 393-point portrait width and the default text size; smaller screens and larger
+text sizes retain natural wrapping. Production remains an absolute quantity per Day
+and uses the existing clock; collecting multiple resources preserves each resource's
+fractional production independently. Multiple outputs remain individual rows.
 
-Critical damage and Mana restored modify existing outcomes without additional
-combat-text events. Library adds flat Experience to earned reward awards;
-Wishing Well adds flat Gold to positive earned Gold rewards. Neither changes
-production, purchase refunds, or initial balances. Moonlit Sanctum adds its Gem
-bonus once to encounter rewards that already contain Gems. Reward previews and
-settlement share these adjustments, including overridden battle loot.
+Homestead bonuses replace lower tiers. Maximum Hero and Companion Health use
+10/20/30/40%; damage-type bonuses use 10/15/20/25%; Critical damage, Health restored,
+Block gained, and Mana restored use 10/20/30/40%. Leech healing, Companion damage,
+ranged damage, and typed resistance use 5/10/15/20%. Dodge remains an additive
+2/4/6/8 percentage-point Companion chance bonus. Damage-type, Companion, and ranged
+bonuses add before rounding; the Critical bonus multiplies the existing Critical
+result separately. Ranged bonuses retain the equipped Bow/Crossbow Physical-damage
+scope. Burn/Poison's stored potency is not scaled again on later ticks. General
+restoration and Leech-specific bonuses each apply once to Leech healing; the
+Leech percentage includes flat equipment and conditional Leech healing bonuses. Resolved
+Block transfers do not repeat gain bonuses. No percentage grants a minimum +1.
+
+Library increases earned Experience by 5/10/15/20%, added to other XP percentages
+before existing recipient caps. Wishing Well increases positive earned Gold and
+Moonlit Sanctum increases existing Gem rewards by 5/10/15/20%. Neither changes
+production, purchase refunds, or initial balances; the Gem bonus cannot create Gems
+in rewards without Gems. Unpaid Gold/Gem hundredths persist separately from production,
+so repeated small rewards eventually pay their full percentage. Pure previews do not
+consume those fractions; settlement captures them and claim advances them atomically.
+Mystery offers pin their reward basis and refresh fractional payouts without rerolling
+the item. Older pinned offers remain claimable. Reward previews and settlement share
+these adjustments, including overridden battle loot. Existing tiers, save identifiers,
+and flat equipment modifier cases remain readable.
 
 Upgrade costs are fixed authored values. Their material proportions account for
 production support and total upgrade demand; prices do not depend on which

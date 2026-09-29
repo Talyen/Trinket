@@ -61,6 +61,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var firstGoldTheftDoubleBattle: Bool = false
     public var goldTheftNextAttackCriticalBonus: Double = 0
     public var goldTheftStealEnemyBlockChancePercent: Double = 0
+    public var blockedAttackFirstRandomCard: Bool = false
 
     public init(
         carrionClaim: Bool = false,
@@ -119,7 +120,8 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         dodgeGoldChancePercent: Double = 0,
         firstGoldTheftDoubleBattle: Bool = false,
         goldTheftNextAttackCriticalBonus: Double = 0,
-        goldTheftStealEnemyBlockChancePercent: Double = 0
+        goldTheftStealEnemyBlockChancePercent: Double = 0,
+        blockedAttackFirstRandomCard: Bool = false
     ) {
         self.carrionClaim = carrionClaim
         self.lightFingered = lightFingered
@@ -178,10 +180,11 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.firstGoldTheftDoubleBattle = firstGoldTheftDoubleBattle
         self.goldTheftNextAttackCriticalBonus = goldTheftNextAttackCriticalBonus
         self.goldTheftStealEnemyBlockChancePercent = goldTheftStealEnemyBlockChancePercent
+        self.blockedAttackFirstRandomCard = blockedAttackFirstRandomCard
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "firstGoldTheftHeal", "goldDoubledWhileFullHealth", "firstGoldTheftDraw", "bountyBlade", "blockedAttackFirstGold", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold", "stunCriticalStealGold", "dodgePreparesDoubleGoldSteal", "criticalGoldStealDrawCard", "goldStealNextPhysicalBonus", "goldGainHealChancePercent", "goldGainHealAmount", "criticalGoldTheftBonus", "goldGainCleanseChancePercent", "goldGainBelowHalfDrawCard", "goldTheftDodgeBonus", "goldGainDrawChancePercent", "goldTheftBlockChancePercent", "goldTheftBlockAmount", "goldTheftDrawChancePercent", "goldStealFlatBonus", "goldTheftNextBlockMultiplier", "firstGoldTheftDrawBattle", "allyCriticalChancePerCombatGold", "blockBreakStealGoldFlat", "goldTheftHealAllyFlat", "attackGoldStealAmount", "attackGoldStealChancePercent", "belowHalfFirstGoldGainHealPerTurn", "criticalGoldStealAmount", "criticalGoldStealChancePercent", "dodgeGoldAmount", "dodgeGoldChancePercent", "firstGoldTheftDoubleBattle", "goldTheftNextAttackCriticalBonus", "goldTheftStealEnemyBlockChancePercent"]
+    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "firstGoldTheftHeal", "goldDoubledWhileFullHealth", "firstGoldTheftDraw", "bountyBlade", "blockedAttackFirstGold", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold", "stunCriticalStealGold", "dodgePreparesDoubleGoldSteal", "criticalGoldStealDrawCard", "goldStealNextPhysicalBonus", "goldGainHealChancePercent", "goldGainHealAmount", "criticalGoldTheftBonus", "goldGainCleanseChancePercent", "goldGainBelowHalfDrawCard", "goldTheftDodgeBonus", "goldGainDrawChancePercent", "goldTheftBlockChancePercent", "goldTheftBlockAmount", "goldTheftDrawChancePercent", "goldStealFlatBonus", "goldTheftNextBlockMultiplier", "firstGoldTheftDrawBattle", "allyCriticalChancePerCombatGold", "blockBreakStealGoldFlat", "goldTheftHealAllyFlat", "attackGoldStealAmount", "attackGoldStealChancePercent", "belowHalfFirstGoldGainHealPerTurn", "criticalGoldStealAmount", "criticalGoldStealChancePercent", "dodgeGoldAmount", "dodgeGoldChancePercent", "firstGoldTheftDoubleBattle", "goldTheftNextAttackCriticalBonus", "goldTheftStealEnemyBlockChancePercent", "blockedAttackFirstRandomCard"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -243,6 +246,7 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         if self.firstGoldTheftDoubleBattle != other.firstGoldTheftDoubleBattle { names.append("firstGoldTheftDoubleBattle") }
         if self.goldTheftNextAttackCriticalBonus != other.goldTheftNextAttackCriticalBonus { names.append("goldTheftNextAttackCriticalBonus") }
         if self.goldTheftStealEnemyBlockChancePercent != other.goldTheftStealEnemyBlockChancePercent { names.append("goldTheftStealEnemyBlockChancePercent") }
+        if self.blockedAttackFirstRandomCard != other.blockedAttackFirstRandomCard { names.append("blockedAttackFirstRandomCard") }
         return names
     }
 }
@@ -306,6 +310,7 @@ extension GoldTriggers {
         firstGoldTheftDoubleBattle = firstGoldTheftDoubleBattle || other.firstGoldTheftDoubleBattle
         goldTheftNextAttackCriticalBonus += other.goldTheftNextAttackCriticalBonus
         goldTheftStealEnemyBlockChancePercent += other.goldTheftStealEnemyBlockChancePercent
+        blockedAttackFirstRandomCard = blockedAttackFirstRandomCard || other.blockedAttackFirstRandomCard
     }
 }
 
@@ -369,7 +374,8 @@ extension GoldTriggers {
             dodgeGoldChancePercent: values.decode(Double.self, "dodgeGoldChancePercent", default: 0),
             firstGoldTheftDoubleBattle: values.decode(Bool.self, "firstGoldTheftDoubleBattle", default: false),
             goldTheftNextAttackCriticalBonus: values.decode(Double.self, "goldTheftNextAttackCriticalBonus", default: 0),
-            goldTheftStealEnemyBlockChancePercent: values.decode(Double.self, "goldTheftStealEnemyBlockChancePercent", default: 0)
+            goldTheftStealEnemyBlockChancePercent: values.decode(Double.self, "goldTheftStealEnemyBlockChancePercent", default: 0),
+            blockedAttackFirstRandomCard: values.decode(Bool.self, "blockedAttackFirstRandomCard", default: false)
         )
     }
 
@@ -431,5 +437,6 @@ extension GoldTriggers {
         try container.encodeNonDefault(firstGoldTheftDoubleBattle, "firstGoldTheftDoubleBattle", default: false)
         try container.encodeNonDefault(goldTheftNextAttackCriticalBonus, "goldTheftNextAttackCriticalBonus", default: 0)
         try container.encodeNonDefault(goldTheftStealEnemyBlockChancePercent, "goldTheftStealEnemyBlockChancePercent", default: 0)
+        try container.encodeNonDefault(blockedAttackFirstRandomCard, "blockedAttackFirstRandomCard", default: false)
     }
 }

@@ -127,18 +127,6 @@ public struct ItemDetailView: View {
                 DetailPrimaryActionFooter(primaryAction: primaryAction)
             }
         }
-        .alert(
-            "Salvage \(item.displayName)?",
-            isPresented: $isSalvageConfirmationPresented,
-        ) {
-            Button("Salvage", role: .destructive) {
-                confirmSalvage()
-            }
-            .accessibilityIdentifier(AccessibilityID.Collection.salvageConfirmButton)
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text(salvageConfirmationMessage)
-        }
     }
 
     private static func eyebrow(for item: InventoryItem) -> String {
@@ -161,14 +149,29 @@ public struct ItemDetailView: View {
         }
 
         if showsSalvageAction {
-            Button("Salvage") {
-                isSalvageConfirmationPresented = true
+            VStack(spacing: TrinketDesign.Spacing.medium) {
+                if isSalvageConfirmationPresented {
+                    Text(salvageConfirmationMessage)
+                        .trinketTypography(.secondaryBody)
+                    Button("Cancel") { isSalvageConfirmationPresented = false }
+                        .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Collection.salvageCancelButton)
+                    Button("Salvage", role: .destructive) {
+                        guard isSalvageConfirmationPresented else { return }
+                        isSalvageConfirmationPresented = false
+                        confirmSalvage()
+                    }
+                    .trinketPrimaryActionButton(
+                        tint: TrinketDesign.Colors.destructive,
+                        accessibilityIdentifier: AccessibilityID.Collection.salvageConfirmButton,
+                    )
+                } else {
+                    Button("Salvage") { isSalvageConfirmationPresented = true }
+                        .trinketSecondaryActionButton(
+                            tint: TrinketDesign.Colors.destructive,
+                            accessibilityIdentifier: AccessibilityID.Collection.salvageButton,
+                        )
+                }
             }
-            .frame(maxWidth: .infinity)
-            .trinketSecondaryActionButton(
-                tint: TrinketDesign.Colors.destructive,
-                accessibilityIdentifier: AccessibilityID.Collection.salvageButton,
-            )
             .padding(.top, TrinketDesign.Layout.sectionSpacing)
         }
     }

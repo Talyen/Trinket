@@ -17,61 +17,34 @@ struct VoyageView: View {
     @State private var pinnedArtwork: [String] = []
     @State private var message: StageMapMessage?
     @State private var abandonRunID: String?
+    @State private var embarkedOfferID: String?
+    @State private var isCrossfading = false
+    @State private var preparationGeneration = UUID()
+    @Environment(\.dismiss) private var dismiss
 
     private var hasEncounter: Bool {
         encounters.activeShopEncounter != nil || encounters.activeMysteryEncounter != nil
     }
 
     private var isReady: Bool {
-        displayed == playerSave.voyage && !isBattleActive && !hasEncounter
+        displayed == playerSave.voyage && !isBattleActive && !hasEncounter && !isCrossfading
     }
 
     private var run: VoyageRun? {
         displayed?.activeRun
     }
 
-    private var heroID: String {
-        run?.offer.chapterID ?? "gameModeVoyage"
-    }
-
     var body: some View {
-        StageSelectScreen(
-            eyebrow: run.map { "\($0.offer.difficulty.title.uppercased()) VOYAGE" },
-            title: run.flatMap { GameContent.chapter(id: $0.offer.chapterID)?.title } ?? "Voyage",
-            subtitle: nil,
-            heroModifier: run.map { run in
-                ModifierCaptionPresentation(run.offer.rewardModifier.resolved(
-                    ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
-                    ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
-                ))
-            },
-            titleAccessibilityIdentifier: nil,
-            subtitleAccessibilityIdentifier: AccessibilityID.Voyage.destinationReward,
-        ) {
-            if let art = ArtCatalog.backgroundArtByID[heroID], pinnedArtwork.contains(art.imageName) {
-                FocalBackgroundArtwork(art: art)
+        ZStack {
+            if let displayed {
+                voyageScreen(displayed)
+                    .id(displayed.activeRun?.id ?? "voyage-board")
+                    .transition(.opacity)
+                    .trinketPresentationVisibility(displayed == playerSave.voyage && !isCrossfading, opacity: 1)
             } else {
-                TrinketDesign.Colors.canvas
+                ProgressView()
             }
-        } content: {
-            Group {
-                if playerSave.voyage.isUnreadable {
-                    ContentUnavailableView(
-                        "Voyage Unavailable",
-                        systemImage: "map",
-                        description: Text("Your progress is preserved. Try again later."),
-                    )
-                } else if let run, !run.isComplete {
-                    route(run)
-                } else if let displayed {
-                    board(displayed.offers)
-                } else {
-                    ProgressView().padding()
-                }
-            }
-            .padding(.bottom, TrinketDesign.Layout.compactTabBarContentClearance)
         }
-        .id(run?.id ?? "voyage-board")
         .accessibilityIdentifier(AccessibilityID.Voyage.screen)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -91,22 +64,30 @@ struct VoyageView: View {
                 }
             }
         }
-        .confirmationDialog("Abandon Voyage?", isPresented: Binding(
-            get: { abandonRunID != nil }, set: {
-                if !$0 {
-                    abandonRunID = nil
+        .safeAreaInset(edge: .bottom) {
+            if let abandonRunID, run?.id == abandonRunID, run?.isComplete == false {
+                VStack(spacing: TrinketDesign.Spacing.medium) {
+                    Text("Keep rewards already earned. Remaining progress and the completion bonus will be lost.")
+                        .trinketTypography(.secondaryBody)
+                    HStack {
+                        Button("Cancel") { self.abandonRunID = nil }
+                            .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Voyage.cancelAbandon)
+                        Button("Abandon Voyage", role: .destructive) {
+                            guard isReady, run?.id == abandonRunID, run?.isComplete == false else { return }
+                            self.abandonRunID = nil
+                            voyage.abandon(runID: abandonRunID)
+                        }
+                        .trinketPrimaryActionButton(
+                            tint: TrinketDesign.Colors.destructive,
+                            accessibilityIdentifier: AccessibilityID.Voyage.confirmAbandon,
+                        )
+                    }
                 }
-            },
-        ), titleVisibility: .visible) {
-            Button("Abandon Voyage", role: .destructive) {
-                if let abandonRunID {
-                    voyage.abandon(runID: abandonRunID)
-                }
-                abandonRunID = nil
+                .padding(TrinketDesign.Layout.contentMargin)
+                .trinketScreenBackground()
             }
-            .accessibilityIdentifier(AccessibilityID.Voyage.confirmAbandon)
-        } message: { Text("Keep rewards already earned. Remaining progress and the completion bonus will be lost.") }
-        .trinketMessageAlert($message)
+        }
+        .trinketPlayActionResult($message)
         .disabled(playerSave.isRetryingSaveAction)
         .task { message = voyage.enter() }
         .task(id: RefreshInput(state: playerSave.voyage, hasEncounter: hasEncounter)) {
@@ -127,6 +108,50 @@ struct VoyageView: View {
             PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
             pinnedArtwork = []
             displayed = nil
+            embarkedOfferID = nil
+            isCrossfading = false
+            abandonRunID = nil
+            preparationGeneration = UUID()
+        }
+    }
+
+    private func voyageScreen(_ state: PlayerVoyageState) -> some View {
+        let run = state.activeRun
+        let heroID = run?.offer.chapterID ?? "gameModeVoyage"
+        return StageSelectScreen(
+            eyebrow: run.map { "\($0.offer.difficulty.title.uppercased()) VOYAGE" },
+            title: run.flatMap { GameContent.chapter(id: $0.offer.chapterID)?.title } ?? "Voyage",
+            subtitle: nil,
+            heroModifier: run.map { run in
+                ModifierCaptionPresentation(run.offer.rewardModifier.resolved(
+                    ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
+                    ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
+                ))
+            },
+            titleAccessibilityIdentifier: nil,
+            subtitleAccessibilityIdentifier: AccessibilityID.Voyage.destinationReward,
+        ) {
+            if let art = ArtCatalog.backgroundArtByID[heroID], pinnedArtwork.contains(art.imageName) {
+                FocalBackgroundArtwork(art: art)
+            } else {
+                TrinketDesign.Colors.canvas
+            }
+        } content: {
+            Group {
+                if state.isUnreadable {
+                    HStack {
+                        Button("Back") { dismiss() }
+                        Button("Retry") { message = voyage.enter() }
+                            .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Voyage.retry)
+                    }
+                    .trinketSecondaryActionButton()
+                } else if let run, !run.isComplete {
+                    route(run)
+                } else {
+                    board(state.offers)
+                }
+            }
+            .padding(.bottom, TrinketDesign.Layout.compactTabBarContentClearance)
         }
     }
 
@@ -138,6 +163,7 @@ struct VoyageView: View {
             isPrimaryActionDisabled: { _ in !isReady }, onArtworkTap: { _ in },
             onPrimaryAction: { offer in
                 guard isReady else { return false }
+                embarkedOfferID = offer.id
                 voyage.embark(offerID: offer.id)
                 return true
             }, artwork: { offer, _ in
@@ -191,6 +217,9 @@ struct VoyageView: View {
     }
 
     private func prepareDisplay(_ state: PlayerVoyageState) async {
+        let generation = UUID()
+        preparationGeneration = generation
+        isCrossfading = false
         var names: Set<String> = []
         let backgrounds = ["gameModeVoyage"] + state.offers.map(\.chapterID) + [state.activeRun?.offer.chapterID].compactMap(\.self)
         for id in backgrounds {
@@ -210,12 +239,29 @@ struct VoyageView: View {
             PreparedArtworkCache.shared.releasePins(names: Array(added))
             return
         }
+        let shouldCrossfade = embarkedOfferID != nil
+            && state.activeRun?.offer.id == embarkedOfferID
+            && displayed?.activeRun?.id != state.activeRun?.id
+            && displayed != nil
+        pinnedArtwork = Array(Set(pinnedArtwork).union(names)).sorted()
+        if shouldCrossfade {
+            embarkedOfferID = nil
+            isCrossfading = true
+            withAnimation(TrinketMotion.Screen.crossfade) { displayed = state }
+            do {
+                try await Task.sleep(for: .seconds(TrinketMotion.Screen.crossfadeDuration))
+                try Task.checkCancellation()
+                guard generation == preparationGeneration else { return }
+            } catch { return }
+            isCrossfading = false
+        } else {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) { displayed = state }
+        }
         let outgoing = Set(pinnedArtwork).subtracting(names)
-        pinnedArtwork = names.sorted()
-        var transaction = Transaction()
-        transaction.disablesAnimations = true
-        withTransaction(transaction) { displayed = state }
         PreparedArtworkCache.shared.releasePins(names: Array(outgoing))
+        pinnedArtwork = names.sorted()
     }
 
     private struct RefreshInput: Equatable {

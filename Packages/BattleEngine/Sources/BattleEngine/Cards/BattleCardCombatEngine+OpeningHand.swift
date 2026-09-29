@@ -8,7 +8,7 @@ extension BattleCardCombatEngine {
         owner: BattleParticipant,
         context: inout BattleState,
     ) -> BattleCard? {
-        drawSelecting(for: owner, context: &context) { $0.drawFirst(where: { $0.tier == tier }) }
+        drawSelecting(for: owner, context: &context) { $0.drawFirstEntry(where: { $0.tier == tier }) }
     }
 
     static func deal(
@@ -16,32 +16,68 @@ extension BattleCardCombatEngine {
         owner: BattleParticipant,
         context: inout BattleState,
     ) -> BattleCard {
-        context.nextCardID += 1
-        let card = BattleCard(id: context.nextCardID, ability: ability, owner: owner)
+        deal(CombatDeck.Entry(ability: ability, copyID: nil), owner: owner, context: &context)
+    }
+
+    static func deal(
+        _ entry: CombatDeck.Entry,
+        owner: BattleParticipant,
+        context: inout BattleState,
+    ) -> BattleCard {
+        let heldMaximum = (context.hand.cards + context.hand.buffer).map(\.id).max() ?? 0
+        context.nextCardID = max(context.nextCardID, heldMaximum) + 1
+        let card = BattleCard(
+            id: context.nextCardID, ability: entry.ability, owner: owner,
+            deckCopyID: entry.copyID ?? context.nextCardID,
+        )
         context.hand.append(card)
         return card
     }
 
-    static func makeOpeningHandDealPlan(in context: BattleState) -> [OpeningHandDraw] {
-        var planRng = SeededRandomNumberGenerator(
-            seed: context.rng.seed &+ 0x9E37_79B9_7F4A_7C15,
-        )
-        func hasTier(_ tier: AbilityTier, for owner: BattleParticipant) -> Bool {
-            context.roster[owner].combatant.abilityLoadout.ability(for: tier) != nil
+    static func makeOpeningHandDealPlan(in context: inout BattleState) -> [OpeningHandDraw] {
+        scheduledDraws(in: &context).map { OpeningHandDraw(owner: $0) }
+    }
+
+    static func scheduledDraws(in context: inout BattleState) -> [BattleParticipant] {
+        var draws: [BattleParticipant] = []
+        for _ in 0 ..< 3 {
+            let scheduled = context.nextScheduledDrawOwner
+            context.nextScheduledDrawOwner = scheduled == .hero ? .companion : .hero
+            if context.roster.hero.isAlive, context.roster.companion.isAlive {
+                draws.append(scheduled)
+            } else if context.roster.hero.isAlive {
+                draws.append(.hero)
+            } else if context.roster.companion.isAlive {
+                draws.append(.companion)
+            }
         }
-        var plan: [OpeningHandDraw] = []
-        if context.roster.hero.isAlive, hasTier(.basic, for: .hero) {
-            plan.append(OpeningHandDraw(owner: .hero, tier: .basic))
+        return draws
+    }
+
+    static func discardPlayedCard(_ card: BattleCard, context: inout BattleState) {
+        context.nextCardID = max(context.nextCardID, max(card.id, card.deckCopyID))
+        switch card.owner {
+        case .hero: context.heroDeck.discard(card)
+        case .companion: context.companionDeck.discard(card)
+        case .enemy: break
         }
-        let skillOwners = [BattleParticipant.hero, .companion].filter {
-            context.roster[$0].isAlive && hasTier(.skill, for: $0)
+    }
+
+    static func putCardOnBottom(_ card: BattleCard, context: inout BattleState) {
+        switch card.owner {
+        case .hero: context.heroDeck.putOnBottom(card)
+        case .companion: context.companionDeck.putOnBottom(card)
+        case .enemy: break
         }
-        if let owner = skillOwners.randomElement(using: &planRng) {
-            plan.append(OpeningHandDraw(owner: owner, tier: .skill))
+    }
+
+    static func recoverCard(copyID: Int, owner: BattleParticipant, context: inout BattleState) -> BattleCard? {
+        let entry: CombatDeck.Entry? = switch owner {
+        case .hero: context.heroDeck.recover(copyID: copyID)
+        case .companion: context.companionDeck.recover(copyID: copyID)
+        case .enemy: nil
         }
-        if context.roster.companion.isAlive, hasTier(.basic, for: .companion) {
-            plan.append(OpeningHandDraw(owner: .companion, tier: .basic))
-        }
-        return plan
+        guard let entry else { return nil }
+        return deal(entry, owner: owner, context: &context)
     }
 }

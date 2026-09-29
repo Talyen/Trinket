@@ -10,7 +10,6 @@ struct MysteryScaffold<Footer: View>: View {
     let title: String
     let titleAccessibilityIdentifier: String
     let narrative: String
-    let persistFailureMessage: String?
     let items: [InventoryItem]
     let selectedItemID: String?
     let isDisabled: Bool
@@ -31,8 +30,6 @@ struct MysteryScaffold<Footer: View>: View {
                         .trinketTypography(.body)
                         .foregroundStyle(.primary)
                         .fixedSize(horizontal: false, vertical: true)
-
-                    mysteryPersistFailureBanner(persistFailureMessage)
                 }
 
                 LazyVGrid(
@@ -90,7 +87,6 @@ struct MysteryCorruptItemChoiceContent: View {
             title: "Offer an Item",
             titleAccessibilityIdentifier: AccessibilityID.Mystery.corruptItemTitle,
             narrative: "Choose gear to corrupt. The altar remakes it once, forever.",
-            persistFailureMessage: session.persistFailureMessage,
             items: session.corruptibleItems,
             selectedItemID: selectedItemID,
             isDisabled: session.isResolvingChoice,
@@ -128,6 +124,11 @@ struct MysteryCorruptItemChoiceContent: View {
                 }
             },
         )
+        .onChange(of: session.corruptibleItems.map(\.id)) { _, ids in
+            if let selectedItemID, !ids.contains(selectedItemID) {
+                self.selectedItemID = nil
+            }
+        }
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,

@@ -21,7 +21,21 @@ struct DrawCardsHandler: BattleEffectHandler {
         guard case let .drawCards(count) = effect, count > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let drawTarget = target
+        let drawTarget: Combatant
+        if ability.id == Ability.packTactics.id,
+           let sourceOwner = context.roster.participant(for: source), sourceOwner.isPartyMember {
+            let allyOwner: BattleParticipant = sourceOwner == .hero ? .companion : .hero
+            let ally = context.roster[allyOwner]
+            let next = BattleCardCombatEngine.deck(for: allyOwner, in: context).abilities.first
+            if ally.isAlive, BattleCardCombatEngine.canDrawFromDeck(for: allyOwner, in: context),
+               let next, BattleAbilityRules.canPayHealthCost(next, actor: ally.combatant, in: context) {
+                drawTarget = ally.combatant
+            } else {
+                drawTarget = source
+            }
+        } else {
+            drawTarget = target
+        }
         guard let owner = context.roster.participant(for: drawTarget), owner.isPartyMember else {
             return EffectApplyOutcome(events: [], didApply: false)
         }

@@ -202,10 +202,13 @@ struct DeathsDoorEngineTests {
             combatantID: "phoenix",
             talents: "phoenix_health_t2_1", "phoenix_deathsdoor_t2_2",
         )
+        var modifiers = phoenix.modifiers
+        // Keep this expiry test independent of the draw sequence's critical rolls.
+        modifiers.triggers.criticalChanceBonus = -0.10
         var battle = BattleStateTestFactory.makeBattle(
             companion: phoenix.combatant,
             enemy: CombatantFixtures.passiveEnemy(),
-            companionModifiers: phoenix.modifiers,
+            companionModifiers: modifiers,
         )
         battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 1

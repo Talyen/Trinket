@@ -42,8 +42,14 @@ struct StarterRouletteScreen: View {
         _scrollEntryID = State(initialValue: initialID ?? combatants.first?.id)
     }
 
+    private var choices: [Combatant] {
+        combatants.isEmpty
+            ? ContentAccessPolicy.freeFirst(role == .hero ? GameContent.heroes : GameContent.companions)
+            : combatants
+    }
+
     private var selectedCombatant: Combatant? {
-        combatants.first(where: { $0.id == scrollEntryID })
+        choices.first(where: { $0.id == scrollEntryID })
     }
 
     var body: some View {
@@ -60,13 +66,10 @@ struct StarterRouletteScreen: View {
 
                     Spacer(minLength: TrinketDesign.Spacing.small)
 
-                    if combatants.isEmpty {
-                        ContentUnavailableView(
-                            "No \(role.rawValue) Choices",
-                            systemImage: "person.fill.questionmark",
-                            description: Text("Starter choices are unavailable right now. Try relaunching."),
-                        )
-                        .frame(height: layout.bandHeight)
+                    if choices.isEmpty {
+                        Button("Retry") { scrollEntryID = choices.first?.id }
+                            .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Onboarding.retry(role: role))
+                            .frame(height: layout.bandHeight)
                     } else {
                         wheelBand(layout: layout)
 
@@ -136,7 +139,7 @@ struct StarterRouletteScreen: View {
     private func wheelBand(layout: RouletteLayout) -> some View {
         ScrollView(.horizontal) {
             HStack(spacing: TrinketDesign.Spacing.medium) {
-                ForEach(combatants) { combatant in
+                ForEach(choices) { combatant in
                     wheelCard(combatant, layout: layout)
                         .id(combatant.id)
                 }
@@ -193,7 +196,7 @@ struct StarterRouletteScreen: View {
 
     private var pageIndicator: some View {
         HStack(spacing: TrinketDesign.Spacing.small) {
-            ForEach(combatants) { combatant in
+            ForEach(choices) { combatant in
                 let isSelected = selectedCombatant?.id == combatant.id
                 Circle()
                     .fill(isSelected ? TrinketDesign.Colors.accent : Color.secondary.opacity(0.35))

@@ -36,7 +36,7 @@ public extension BattleState {
         }
         let selected = BattleAbilityRules.resolveConditionalOutcome(card.ability, actor: actor, in: self)
         let outcomes = BattleAbilityRules.assessmentOutcomes(selected)
-        let candidates = outcomes.map { assessmentTargets($0, actor: actor) }
+        let candidates = outcomes.map { assessmentTargets($0, actor: actor, abilityID: selected.id) }
         let common = (candidates.first ?? []).filter { target in candidates.allSatisfy { $0.contains(target) } }
         var targets: [BattleCardAssessment.Target] = []
         for target in common where !targets.contains(target) {
@@ -60,7 +60,7 @@ extension BattleAbilityRules {
 }
 
 private extension BattleState {
-    func assessmentTargets(_ branch: AbilityOutcomeBranch, actor: Combatant) -> [BattleCardAssessment.Target] {
+    func assessmentTargets(_ branch: AbilityOutcomeBranch, actor: Combatant, abilityID: String) -> [BattleCardAssessment.Target] {
         let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: self)
         let keywordOverride = BattleTurnEngine.activeDamageKeywordOverride(for: actor, in: self)?.keyword
         var targets: [BattleCardAssessment.Target] = []
@@ -83,6 +83,10 @@ private extension BattleState {
                 continue
             }
             if case .drawAndPlayCards = targeted.effect {
+                continue
+            }
+            // Pack Tactics chooses its draw owner after the hit and its reactions.
+            if abilityID == Ability.packTactics.id, case .drawCards = targeted.effect {
                 continue
             }
             let recipientCanChange = !branch.damageComponents.isEmpty || index > 0

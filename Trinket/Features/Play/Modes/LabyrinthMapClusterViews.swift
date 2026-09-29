@@ -106,11 +106,20 @@ private struct LabyrinthMapNodeSeal: View {
                 .scaleEffect(visualState == .cleared ? 0.97 : 1)
 
                 LabyrinthHexagon()
+                    .inset(by: isSelected ? 1.5 : 1)
+                    .strokeBorder(TrinketDesign.Colors.Overlay.ink.opacity(0.75), lineWidth: 1)
+                    .opacity(visualState == .reachable ? 1 : 0)
+
+                LabyrinthHexagon()
                     .stroke(
                         isSelected ? TrinketDesign.Colors.accent :
-                            visualState == .cleared ? TrinketDesign.Colors.subtleStroke.opacity(0.55) :
-                            visualState == .locked ? TrinketDesign.Colors.subtleStroke : tint,
-                        lineWidth: isSelected ? 3 : visualState == .cleared ? 1 : visualState == .reachable ? 2 : 1.5,
+                            visualState == .reachable ? tint : TrinketDesign.Colors.subtleStroke.opacity(0.5),
+                        lineWidth: isSelected ? 3 : visualState == .reachable ? 2 : 1,
+                    )
+                    .opacity(visualState == .cleared && !isSelected ? 0 : 1)
+                    .shadow(
+                        color: TrinketDesign.Colors.accent.opacity(isSelected ? 0.3 : 0),
+                        radius: 4,
                     )
 
                 LabyrinthHexagon()

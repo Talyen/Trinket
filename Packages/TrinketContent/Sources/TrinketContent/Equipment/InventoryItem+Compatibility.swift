@@ -5,6 +5,14 @@ extension InventoryItem {
     static func normalizedPower(_ original: ItemAffixPower, affixID: String) -> ItemAffixPower {
         var power = original
         switch affixID {
+        case "smugglers_map":
+            var triggers = power.triggers
+            triggers.victoryGoldFlat = 0
+            triggers.goldTheftDrawChancePercent = 0.20
+            power = ItemAffixPower(
+                description: "Stealing Gold has a 20% chance\nto draw a card.",
+                modifiers: power.modifiers, triggers: triggers,
+            )
         case "companions_collar":
             power = Self.normalizedLoyalCompanion(power)
         case "beastbond":
@@ -15,6 +23,11 @@ extension InventoryItem {
             power = Self.normalizedGrovesFavor(power)
         case "tattered_pages":
             power = Self.normalizedForbiddenKnowledge(power)
+        case "the_returning_gale":
+            power = ItemAffixPower(
+                description: "Once per turn, Dodging returns the last card you played to your hand.",
+                modifiers: power.modifiers, triggers: power.triggers,
+            )
         case "the_patient_edge":
             power = Self.normalizedPatientEdge(power)
         case "red_harvest", "huntsmasters_call", "threefold_grace", "golden_verdict":

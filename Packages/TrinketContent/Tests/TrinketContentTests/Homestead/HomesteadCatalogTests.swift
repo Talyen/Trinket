@@ -21,8 +21,8 @@ struct HomesteadCatalogTests {
                     #expect(new.numericValue > old.numericValue)
                 }
                 for (old, new) in zip(
-                    [a.astralChanceBonusPercent, a.goldFindFlat, a.experienceBonus, a.gemsFindBonus],
-                    [b.astralChanceBonusPercent, b.goldFindFlat, b.experienceBonus, b.gemsFindBonus],
+                    [a.astralChanceBonusPercent, a.goldFindPercent, a.experienceBonusPercent, a.gemsFindPercent],
+                    [b.astralChanceBonusPercent, b.goldFindPercent, b.experienceBonusPercent, b.gemsFindPercent],
                 ) where old > 0 {
                     #expect(new > old)
                 }
@@ -37,12 +37,12 @@ struct HomesteadCatalogTests {
     @Test func `farms separate hero and companion health and crystal garden covers stone`() throws {
         let wheat = HomesteadEffects.from(nodeTiers: [.wheatField: 4])
         let coop = HomesteadEffects.from(nodeTiers: [.chickenCoop: 4])
-        #expect(wheat.heroModifiers == [.maximumHealth(16)])
+        #expect(wheat.heroModifiers == [.maximumHealthPercent(0.4)])
         #expect(wheat.companionModifiers.isEmpty)
         #expect(coop.heroModifiers.isEmpty)
-        #expect(coop.companionModifiers == [.maximumHealth(16)])
+        #expect(coop.companionModifiers == [.maximumHealthPercent(0.4)])
         let crystal = try #require(GameContent.homesteadNode(matching: .crystalGarden)?.tier(4))
-        #expect(crystal.combatBonus.heroModifiers == [.criticalDamage(4)])
+        #expect(crystal.combatBonus.heroModifiers == [.criticalDamagePercent(0.4)])
         #expect(crystal.production == [.init(.gems, 4), .init(.stone, 4)])
         let resources = Set(GameContent.homesteadNodes.flatMap { $0.tiers.flatMap { $0.production.map(\.resource) } })
         #expect(resources == Set(HomesteadResource.allCases))
@@ -61,14 +61,49 @@ struct HomesteadCatalogTests {
         #expect(plan.resolve(battleGold: .init(), materials: override) == award)
     }
 
-    @Test func `meta rewards are flat and do not create absent rewards`() {
+    @Test func `percentage rewards do not create absent rewards`() {
         let bonuses = HomesteadEffects.from(nodeTiers: [.wishingWell: 4, .library: 4, .moonlitSanctum: 4])
-        #expect(bonuses.experienceBonus == 20)
-        #expect(bonuses.adjustedGold(100) == 104)
+        #expect(bonuses.experienceBonusPercent == 20)
+        #expect(bonuses.adjustedGold(100) == 120)
         #expect(bonuses.adjustedGold(0) == 0)
         #expect(bonuses.adjustedMaterials([.init(.gems, 2), .init(.gems, 3), .init(.wood, 1)]) == [
-            .init(.gems, 6), .init(.gems, 3), .init(.wood, 1),
+            .init(.gems, 3), .init(.gems, 3), .init(.wood, 1),
         ])
         #expect(bonuses.adjustedMaterials([.init(.wood, 1)]) == [.init(.wood, 1)])
+    }
+
+    @Test func `small reward fractions accumulate without previews consuming them`() {
+        let plan = BattleRewardPlan(
+            stageGold: 1, goldFindPercent: 5, gemsFindPercent: 5,
+            heroExperience: 0, companionExperience: 0, materials: [.init(.gems, 1)], items: [],
+        )
+        var remainder = HomesteadRewardRemainders.zero
+        var gold = 0
+        var gems = 0
+        for _ in 0 ..< 20 {
+            let first = plan.resolve(battleGold: .init(), rewardRemainders: remainder)
+            #expect(plan.resolve(battleGold: .init(), rewardRemainders: remainder) == first)
+            gold += first.goldGained
+            gems += first.materials.first?.quantity ?? 0
+            remainder = first.rewardRemainders ?? .zero
+        }
+        #expect(gold == 21)
+        #expect(gems == 21)
+        #expect(remainder == .zero)
+        let empty = plan.resolve(battleGold: .init(), materials: [], rewardRemainders: .init(gems: 95))
+        #expect(empty.materials.isEmpty)
+        #expect(empty.rewardRemainders?.gems == 95)
+    }
+
+    @Test func `Voyage completion preserves unpaid fractions without boosting them again`() {
+        let plan = BattleRewardPlan(
+            stageGold: 1, goldFindPercent: 5, gemsFindPercent: 5,
+            heroExperience: 0, companionExperience: 0, materials: [.init(.gems, 1)], items: [],
+            completionBonus: .init(gold: 50, materials: [.gems: 50]),
+        )
+        let award = plan.resolve(battleGold: .init())
+        #expect(award.rewardRemainders == .init(gold: 5, gems: 5))
+        #expect(award.goldGained == 11)
+        #expect(award.materials == [.init(.gems, 11)])
     }
 }

@@ -589,6 +589,15 @@
       "default": "0",
       "merge": "add",
       "affix_roll": { "reason": "Encounter-only attack rule, not an equipment roll." }
+    },
+    {
+      "name": "blockBreakDrawBelowHalf",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or",
+      "affix_roll": {
+        "reason": "Boolean card-draw signature with no magnitude roll."
+      }
     }
   ]
 }

@@ -166,5 +166,59 @@
     "case": "attackPurgeCount",
     "type": "Int",
     "keyword": false
+  },
+  {
+    "token": "maximum_health_percent",
+    "case": "maximumHealthPercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "damage_dealt_percent",
+    "case": "damageDealtPercent",
+    "type": "Double",
+    "keyword": true
+  },
+  {
+    "token": "critical_damage_percent",
+    "case": "criticalDamagePercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "health_restored_percent",
+    "case": "healthRestoredPercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "mana_restored_percent",
+    "case": "manaRestoredPercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "leech_healing_percent",
+    "case": "leechHealingPercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "block_gained_percent",
+    "case": "blockGainedPercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "companion_damage_dealt_percent",
+    "case": "companionDamageDealtPercent",
+    "type": "Double",
+    "keyword": false
+  },
+  {
+    "token": "ranged_damage_dealt_percent",
+    "case": "rangedDamageDealtPercent",
+    "type": "Double",
+    "keyword": false
   }
 ]

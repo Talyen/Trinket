@@ -30,6 +30,7 @@ extension BattleCardCombatEngine {
         } else {
             _ = context.hand.remove(id: card.id)
         }
+        discardPlayedCard(card, context: &context)
         context.recordCardPlay(.cardPlayed(card))
         let events = resolvePlayedCard(card, actor: actor, context: &context)
         context.recordCardPlay(.cardActions(card))
@@ -79,8 +80,6 @@ extension BattleCardCombatEngine {
         events.append(contentsOf: UniqueCombatEngine.finishCardDraws(in: &context))
         if let returned = UniqueCombatEngine.returnPlayedCard(card, in: &context) {
             events.append(returned)
-        } else {
-            putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
         }
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)

@@ -9,7 +9,7 @@ knight_holy_t1_1	Oathbound	sf:checkmark.seal.fill	Holy damage is increased by 25
 knight_holy_t1_2	Pure Radiance	sf:sunrise.fill	Holy damage is increased by 50% against enemy Block		holyBlockBreakMultiplier:1.5
 knight_holy_t2_1	Holy Infusion	sf:cross.fill	Your Thorns deal Holy instead of Physical damage		thornsDealHoly:true
 knight_holy_t2_2	Shield Shatter	sf:shield.slash.fill	Holy attacks ignore half enemy Block		holyBlockIgnorePercent:0.5
-knight_holy_t3_1	Smite the Wicked	sf:sun.max.fill	Purging an enemy doubles your next Holy attack		purgePreparesDoubleHolyAttack:true
+knight_holy_t3_1	Smite the Wicked	sf:sun.max.fill	Purge draws a card while you're\nbelow half Health		purgeDrawBelowHalf:true
 knight_holy_t3_2	Divine Blessing	sf:heart.fill	Holy damage has a 10% chance to revive your Companion		holyDamageReviveCompanionChancePercent:0.10
 knight_stun_t1_1	Heavy Flail	sf:hammer.fill	Deal 3 additional damage to Stunned enemies		damageWhileTargetStunnedBonus:3
 knight_stun_t1_2	Concussive Blow	sf:bolt.fill	Stunned enemies deal half damage when they recover		stunnedEnemyNextTurnDamageMultiplier:0.5
@@ -50,7 +50,7 @@ wizard_burn_t3_2	Pyromancer's Spark	sf:sparkles	Empowering Burn attacks costs 1 
 wizard_mana_t1_1	Arcane Focus	sf:scope	Mana empowerment increases attack damage by 1		empowermentDamageBonus:1
 wizard_mana_t1_2	Mana Shield	sf:shield.fill	At the end of your turn, gain 1 Block for each unspent Mana.		unspentManaConvertsToBlock:true
 wizard_mana_t2_1	Overcharge	sf:bolt.fill	Mana empowerment increases your next attack's damage by 20%		manaEmpowerNextAttackPercent:0.20
-wizard_mana_t2_2	Arcane Cleansing	sf:sparkles	Ending a turn at 0 Mana Cleanses 1 negative status effect		endTurnZeroManaCleanse:true
+wizard_mana_t2_2	Arcane Cleansing	sf:sparkles	Ending a turn at 0 Mana Cleanses a debuff		endTurnZeroManaCleanse:true
 wizard_mana_t3_1	Arcane Surge	sf:wand.and.stars	Spending your last Mana draws a card		spendLastManaDrawCard:true
 wizard_mana_t3_2	Spell Echo	sf:repeat	Mana-empowered attacks have a 10% chance to deal double damage		manaEmpoweredAttackDoubleChancePercent:0.10
 ranger_poison_t1_1	Venomous Arrows	sf:figure.archery	Poison attacks deal 2 additional damage to Bleeding enemies		poisonAttackVsBleedingBonus:2
@@ -86,7 +86,7 @@ warlock_leech_t3_2	Soul Ward	sf:shield.fill	Leech also grants Block when below h
 warlock_mana_t1_1	Dark Recovery	sf:arrow.counterclockwise	At 0 Mana, Leech restores 50% more Health		darkRecoveryMultiplier:1.5
 warlock_mana_t1_2	Forbidden Lore	sf:book.fill	Gain 1 Mana when you lose Health		healthLossManaGain:1
 warlock_mana_t2_1	Eldritch Shield	sf:shield.lefthalf.filled	Spending Mana grants 2 Block.		spendManaBlockFlat:2
-warlock_mana_t2_2	Hexing Rune	sf:atom	Mana empowerment Purges 1 positive status effect		manaEmpowerPurgeCount:1
+warlock_mana_t2_2	Hexing Rune	sf:atom	Mana empowerment Purges a buff		manaEmpowerPurgeCount:1
 warlock_mana_t3_1	Chaos Rift	sf:burst.fill	Mana-empowered Critical Hits deal 50% more damage		manaEmpoweredCriticalMultiplier:1.5
 warlock_mana_t3_2	Life Tap	sf:heart.fill	Health costs reduce your next Mana empowerment cost by 1		healthCostEmpowerDiscount:1
 bear_block_t1_1	Thick Hide	sf:shield.fill	While you have Block, take 2 less Physical damage		physicalMitigationWhileBlockedFlat:2
@@ -178,7 +178,7 @@ phoenix_deathsdoor_t1_2	Lingering Spirit	sf:hourglass.bottomhalf.filled	Death's 
 phoenix_deathsdoor_t2_1	Blazing Rebirth	sf:flame.fill	Entering Death's Door deals 4 Burn damage to the enemy		enterDeathsDoorBurnDamage:4
 phoenix_deathsdoor_t2_2	Phoenix Vigor	sf:dumbbell.fill	Surviving Death's Door doubles your next attack		surviveDeathsDoorNextAttackDouble:true
 phoenix_deathsdoor_t3_1	Fortified Rebirth	sf:shield.fill	Death's Door halves damage you take		deathsDoorIncomingDamageMultiplier:0.5
-phoenix_deathsdoor_t3_2	Ashen Ward	sf:checkmark.shield.fill	Death's Door prevents negative status effects		deathsDoorNegativeStatusImmune:true
+phoenix_deathsdoor_t3_2	Ashen Ward	sf:checkmark.shield.fill	Death's Door prevents debuffs		deathsDoorNegativeStatusImmune:true
 wolf_bleed_t1_1	Pack Ferocity	sf:pawprint.fill	Both allies' Bleed attacks gain +10% Critical Hit chance		partyBleedCritChanceBonus:0.10
 wolf_bleed_t1_2	Deep Bite	sf:burst.fill	Enemies below half Health take 25% increased Bleed damage		bleedDamageBelowHalfMultiplier:1.25
 wolf_bleed_t2_1	Hamstring	sf:figure.fall	Bleeding enemies deal 20% less Physical damage		bleedingEnemyPhysicalDamageMultiplier:0.8
@@ -214,18 +214,18 @@ golden_retriever_health_t1_2	Playful Energy	sf:bolt.fill	Restoring Health has a 
 golden_retriever_health_t2_1	Campfire Comfort	sf:flame.fill	Every other turn, Restore 2 Health		endOfTurnHealLowestAlly:2
 golden_retriever_health_t2_2	Man's Best Friend	sf:dog.fill	Intercept the first damage each combat that would reduce your ally's Health to zero		firstAllyFatalIntercept:true
 golden_retriever_health_t3_1	Inspirational Vigor	sf:dumbbell.fill	Below half Health, both allies gain +15% Critical Hit chance		partyCritChanceWhileCompanionBelowHalf:0.15
-golden_retriever_health_t3_2	Protective Lick	sf:heart.fill	Restoring Health also Cleanses 1 negative status effect		healthRestorationCleansesOne:true
+golden_retriever_health_t3_2	Protective Lick	sf:heart.fill	Restoring Health also Cleanses a debuff		healthRestorationCleansesOne:true
 library_owl_holy_t1_1	Revealed Flaw	sf:eye.fill	Holy Critical Hits make your ally's next attack ignore enemy Block		holyCriticalAllyIgnoreBlock:true
 library_owl_holy_t1_2	Scholarly Smite	sf:book.fill	Holy attacks gain +15% Critical Hit chance		holyAttackCriticalBonus:0.15
 library_owl_holy_t2_1	Blinding Light	sf:eye.slash.fill	Holy attacks reduce the enemy's next attack accuracy by 20%		holyAttackEnemyMissChance:0.20
 library_owl_holy_t2_2	Radiant Wisdom	sf:book.fill	Holy attacks have a 10% chance to draw a card		holyAttackDrawChancePercent:0.10
-library_owl_holy_t3_1	Bane of Evil	sf:sun.max.fill	Holy Critical Hits Purge a positive status effect		holyCriticalPurgeCount:1
+library_owl_holy_t3_1	Bane of Evil	sf:sun.max.fill	Holy Critical Hits Purge a buff		holyCriticalPurgeCount:1
 library_owl_holy_t3_2	Purifying Light	sf:sun.max.fill	Holy attacks have a 10% chance to Cleanse your ally		holyAttackCleanseAllyChancePercent:0.10
 library_owl_cleanse_t1_1	Purifying Wisdom	sf:book.fill	Your first successful Cleanse each combat draws a card		cleanseBonusDraw:1
 library_owl_cleanse_t1_2	Healing Hymn	sf:music.note	Cleansing an ally restores 2 Health		cleanseBonusHeal:2
-library_owl_cleanse_t2_1	Spellbreak Shield	sf:xmark.shield.fill	Cleansing a negative effect grants 2 Block per effect removed.		cleanseBlockPerStack:2
+library_owl_cleanse_t2_1	Spellbreak Shield	sf:xmark.shield.fill	Cleansing a debuff grants 2 Block per effect removed.		cleanseBlockPerStack:2
 library_owl_cleanse_t2_2	Mass Cleanse	sf:person.2.fill	Your first successful Cleanse each turn also Cleanses your ally		cleanseAffectsBothHeroAndCompanion:true
-library_owl_cleanse_t3_1	Reflective Ward	sf:arrow.uturn.backward	Cleansing a negative effect reflects it onto the enemy who applied it.		cleanseReflectDebuffToEnemy:true
+library_owl_cleanse_t3_1	Reflective Ward	sf:arrow.uturn.backward	Cleansing a debuff reflects it onto the enemy who applied it.		cleanseReflectDebuffToEnemy:true
 library_owl_cleanse_t3_2	Sanctified Scroll	sf:scroll.fill	Cleansing an ally grants +20% Critical Hit chance on their next attack		cleanseNextAttackCriticalBonus:0.20
 library_owl_health_t1_1	Safe Perch	sf:bird.fill	At full Health, gain +10% Dodge chance		dodgeAtFullHealthBonus:0.10
 library_owl_health_t1_2	Warded Roost	sf:house.fill	Restoring Health reduces that ally's next incoming damage by 20%		healthRestoreNextIncomingDamageMultiplier:0.8
@@ -270,11 +270,11 @@ mana_moth_burn_t2_2	Cinderstrike	sf:burst.fill	Burn Critical Hits deal 25% more 
 mana_moth_burn_t3_1	Ember Persistence	sf:hourglass.bottomhalf.filled	Burn has a 20% chance to not decay		burnPreventDecayChancePercent:0.20
 mana_moth_burn_t3_2	Scorching Dust	sf:sun.max.fill	+10% Critical Hit chance against Burning enemies		criticalVsBurningBonus:0.10
 pixie_cleanse_t1_1	Fae Mending	sf:heart.fill	Restore 2 Health to the lowest Health ally when you Cleanse.		cleanseSelfHeal:2
-pixie_cleanse_t1_2	Dispel Magic	sf:wand.and.stars	Cleansing has a 20% chance to Purge an enemy's positive status effect		cleansePurgeChancePercent:0.20
+pixie_cleanse_t1_2	Dispel Magic	sf:wand.and.stars	Cleansing has a 20% chance to Purge a buff from an enemy		cleansePurgeChancePercent:0.20
 pixie_cleanse_t2_1	Fae Swiftness	sf:wind	Cleansing also removes all Freeze build-up from the target		cleanseRemovesFreezeBuildup:true
 pixie_cleanse_t2_2	Cleansing Ward	sf:shield.fill	Cleansing grants the target 3 Block		cleanseTargetBlockFlat:3
-pixie_cleanse_t3_1	Fae Ward	sf:shield.lefthalf.filled	Your first Cleanse each turn removes one extra negative status effect		firstCleanseExtraRemovalPerTurn:1
-pixie_cleanse_t3_2	Purifying Aura	sf:sun.max.fill	Cleanse 1 negative effect from each ally every other turn.		purifyingAura:true
+pixie_cleanse_t3_1	Fae Ward	sf:shield.lefthalf.filled	Your first Cleanse each turn removes one extra debuff		firstCleanseExtraRemovalPerTurn:1
+pixie_cleanse_t3_2	Purifying Aura	sf:sun.max.fill	Cleanse a debuff from each ally every other turn.		purifyingAura:true
 pixie_health_t1_1	Sprite Touch	sf:heart.fill	Your first Health restoration each turn restores 2 additional Health		firstHealthRestorationBonusPerTurn:2
 pixie_health_t1_2	Emergency Mend	sf:cross.fill	Restore 25% more Health to allies below half Health		healingBelowHealthPercentThreshold:0.5|healingBelowHealthPercentMultiplier:1.25
 pixie_health_t2_1	Lingering Blessing	sf:hourglass.bottomhalf.filled	Restoring Health has a 10% chance to repeat next turn		healthRestorationRepeatNextTurnChancePercent:0.10
@@ -329,7 +329,7 @@ knight_holy_t4_1	Sunwall	sf:shield.fill	Holy damage has a 10% chance to grant eq
 pixie_holy_t4_1	Unbroken Vow	sf:checkmark.seal.fill	While you have Block, Holy attacks ignore enemy Block		unbrokenVow:true
 wolf_physical_t4_1	Alpha Strike	sf:shield.fill	Your first Physical attack each combat deals double damage		firstPhysicalAttackBattleMultiplier:2
 bear_physical_t4_1	Battering Ram	sf:hammer.fill	Your first Physical attack each turn gains half your Block as damage		firstPhysicalAttackBlockDamagePercent:0.5
-library_owl_holy_t4_1	Interdict	sf:nosign	Purging with Holy prevents that positive status effect from returning next turn		interdict:true
+library_owl_holy_t4_1	Interdict	sf:nosign	Purging with Holy prevents that buff from returning next turn		interdict:true
 shield_scarab_holy_t4_1	Crownfall	sf:crown.fill	Your first Holy hit each turn deals 50% more damage		firstHolyHitDamageMultiplierPerTurn:1.5
 ranger_poison_t4_1	Toxic Transfusion	sf:eyedropper	Companion Critical Hits double your next Poison attack		toxicTransfusion:true
 risen_skeleton_physical_t4_1	Pressure Point	sf:scope	Physical Critical Hits deal 50% more damage to Poisoned enemies		physicalCriticalDamageVsPoisonedMultiplier:1.5
@@ -345,8 +345,8 @@ lizard_scout_poison_t4_2	Cross-Contamination	sf:arrow.triangle.merge	Bleed Criti
 wolf_bleed_t4_1	Septicemia	sf:drop.fill	Poisoned enemies take 25% increased Bleed damage		bleedDamageVsPoisonedMultiplier:1.25
 wolf_dodge_t4_1	Phantom Counter	sf:arrow.uturn.backward	Dodging makes your next Physical attack deal 50% more damage		dodgeNextPhysicalDamageMultiplier:1.5
 fox_dodge_t4_1	Perfect Tempo	sf:metronome.fill	Dodging increases your next Critical Hit's damage by 50%		dodgeNextCriticalDamageMultiplier:1.5
-pixie_cleanse_t4_1	Purifying Waters	sf:water.waves	Cleansing restores 4 Health per negative status effect removed		purifyingWaters:true
-phoenix_health_t4_1	Clean Slate	sf:eraser.fill	Excess Health restoration Cleanses 1 negative status effect		cleanSlate:true
+pixie_cleanse_t4_1	Purifying Waters	sf:water.waves	Cleansing restores 4 Health per debuff removed		purifyingWaters:true
+phoenix_health_t4_1	Clean Slate	sf:eraser.fill	Excess Health restoration Cleanses a debuff		cleanSlate:true
 ranger_burn_t4_1	Firebrand	sf:flame.fill	Companion attacks gain +15% Critical chance against Burning enemies		companionCriticalVsBurningBonus:0.15
 wizard_burn_t4_1	Backdraft	sf:wind	Burning enemies take 25% increased Critical Hit damage		criticalDamageVsBurningMultiplier:1.25
 warlock_burn_t4_1	Ashen Arsenal	sf:burst.fill	Burn attacks that Critically Hit draw a card		burnAttackCritDrawCard:true
@@ -370,13 +370,13 @@ alchemist_poison_t2_2	Spent Reagents	sf:flask.fill	Poison fading completely rest
 alchemist_poison_t3_1	Dissolving Fumes	sf:cloud.fog.fill	Poison deals 50% more damage to enemy Block		poisonDamageVsBlockMultiplier:1.5
 alchemist_poison_t3_2	Unstable Culture	sf:microbe.fill	When Poison fades, your next Poison attack deals double damage		unstableCulture:true
 alchemist_poison_t4_1	Sealed Vial	sf:flask.fill	Your first Poison attack each combat deals double damage		sealedVial:true
-alchemist_cleanse_t1_1	Clear Solution	sf:flask.fill	Abilities that restore Health also Cleanse 1 negative status effect		clearSolution:true
-alchemist_cleanse_t1_2	Fresh Batch	sf:flask.fill	Cleansing a negative status effect restores 2 Health		freshBatch:true
+alchemist_cleanse_t1_1	Clear Solution	sf:flask.fill	Abilities that restore Health also Cleanse a debuff		clearSolution:true
+alchemist_cleanse_t1_2	Fresh Batch	sf:flask.fill	Cleansing a debuff restores 2 Health		freshBatch:true
 alchemist_cleanse_t2_1	Heat Recovery	sf:thermometer.sun.fill	Cleansing Burn adds 2 damage to your next Burn attack		heatRecovery:true
 alchemist_cleanse_t2_2	Antitoxin Coating	sf:asterisk	Cleansing Poison prevents Poison for 1 turn		antitoxinCoating:true
-alchemist_cleanse_t3_1	Clear Mind	sf:brain.head.profile	Cleansing an ally reduces your next Mana empowerment cost by 1		clearMind:true
-alchemist_cleanse_t3_2	Clean Break	sf:sparkles	Cleansing an ally’s last negative status effect draws a card		cleanBreak:true
-alchemist_cleanse_t4_1	Perfect Purity	sf:sparkles	Cleanse grants its target 1 turn of negative status immunity		perfectPurity:true
+alchemist_cleanse_t3_1	Clear Mind	sf:brain.head.profile	Draw a card when you Cleanse\nwhile out of Mana		clearMind:true
+alchemist_cleanse_t3_2	Clean Break	sf:sparkles	Cleansing an ally’s last debuff draws a card		cleanBreak:true
+alchemist_cleanse_t4_1	Perfect Purity	sf:sparkles	Cleanse grants its target 1 turn of debuff immunity		perfectPurity:true
 alchemist_health_t1_1	Fortifying Tonic	sf:flask.fill	Allies below half Health restore 2 additional Health		fortifyingTonic:true
 alchemist_health_t1_2	Lifeline	sf:eyedropper	Restoring Health has a 10% chance to draw a card		healthRestoreDrawChancePercent:0.10
 alchemist_health_t2_1	Cooling Salve	sf:snowflake	Restoring Health also Cleanses Burn		coolingSalve:true
@@ -405,10 +405,10 @@ druid_mana_t2_2	Living Conduit	sf:leaf.fill	Excess Mana restored is converted in
 druid_mana_t3_1	Shared Current	sf:waveform	Mana empowerment adds 2 damage to your Companion’s next attack		sharedCurrentCompanionNextAttackBonus:2
 druid_mana_t3_2	Deep Roots	sf:tree.fill	Restore 1 additional Mana while you have Thorns		deepRoots:true
 druid_mana_t4_1	Grove Accord	sf:tree.fill	Both allies spending Mana in the same turn grants each 1 Thorns.		groveAccord:true
-wildcard_gold_t1_1	Consolation Prize	sf:gift.fill	Gain 3 Gold the first time an enemy fully Blocks your attack		blockedAttackFirstGold:3
+wildcard_gold_t1_1	Consolation Prize	sf:gift.fill	Your first fully Blocked attack each combat\nadds a random card to your hand		blockedAttackFirstRandomCard:true
 wildcard_gold_t1_2	Health is Wealth	sf:heart.fill	Gaining Gold has a 10% chance to restore 3 Health		goldGainHealChancePercent:0.10|goldGainHealAmount:3
 wildcard_gold_t2_1	Jackpot	sf:rectangle.3.group.fill	Critical Hits that steal Gold grant 5 additional Gold		criticalGoldTheftBonus:5
-wildcard_gold_t2_2	Lucky Charm	sf:suit.club.fill	Gaining Gold has a 20% chance to Cleanse 1 negative status effect		goldGainCleanseChancePercent:0.20
+wildcard_gold_t2_2	Lucky Charm	sf:suit.club.fill	Gaining Gold has a 20% chance to Cleanse a debuff		goldGainCleanseChancePercent:0.20
 wildcard_gold_t3_1	Last Wager	sf:die.face.5.fill	Gaining Gold while below half Health draws a card		goldGainBelowHalfDrawCard:true
 wildcard_gold_t3_2	Sleight of Coin	sf:hand.pinch.fill	Stealing Gold grants +15% Dodge until your next turn		goldTheftDodgeBonus:0.15
 wildcard_gold_t4_1	Lucky Break	sf:suit.club.fill	Gaining Gold has a 10% chance to draw a card		goldGainDrawChancePercent:0.10

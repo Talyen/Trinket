@@ -25,7 +25,7 @@ extension UniqueCatalog {
             name: "The Returning Gale",
             base: "recurve_bow",
             keywords: [.dodge],
-            description: "Dodging returns the last card you played to your hand.",
+            description: "Once per turn, Dodging returns the last card you played to your hand.",
             triggers: CombatTraitTriggers(attack: AttackTriggers(thirdCardReturnsToHand: true)),
             supports: ["keen", "serrated", "lingering"],
         ),

@@ -53,20 +53,40 @@ remains zero-based.
 
 ## Hand contract
 
-Visible hand caps at **three** cards (`BattleHand.maxSize`); overflow draws enqueue a hidden FIFO buffer in `BattleHand` and promote after effects / end-turn draws. Played cards return to the bottom of that owner’s deck **after** the card’s effects and on-play triggers finish, so a draw during resolve cannot fetch the card still being played.
+Each player turn schedules three ordinary draws, including the opening turn.
+Hero–Companion–Hero alternates with Companion–Hero–Companion; effect draws do not
+advance this sequence. Each owner starts with one shuffled Basic, Skill, and
+Ultimate. A sole living party member receives all scheduled draws; blocked or
+empty decks do not borrow the living partner's draw. Cards remain in arrival order.
 
-Pack Tactics deals 3 Physical damage, then draws and plays one card from the
-caster's ally's deck. It falls back to the caster's deck when the ally is defeated,
-unable to pay the drawn card's Health cost, or has no card to draw. Shadowstep
-draws only from the caster's deck; a missing card does not borrow the partner's.
-Other multi-card draw-and-play effects retain their alternating-deck rules.
+Visible hand caps at **three** cards (`BattleHand.maxSize`); overflow draws enqueue
+a hidden FIFO buffer and promote after effects / end-turn draws. Unplayed cards
+survive turn changes. Played physical copies enter their owner's discard pile in
+play order, before resolving effects. After the enemy turn and round effects,
+discards append behind undrawn cards before new-turn draws. Empty draw piles never
+refill mid-turn; decks do not reshuffle after battle start.
 
-Unique card returns move the played ability to hand instead of also cycling it
-into the deck; Dodge-triggered Gale returns move the tracked ability from deck
-to hand (hand/buffer FIFO preserved across the turn change). Ordinary card plays
-own Unique allowances, while automatic abilities and damage repeats cannot
-consume them. Full item and interaction rules live in
-[Unique equipment](../Product/UniqueItems.md).
+Pack Tactics deals 3 Physical damage, then draws a manual card from the caster's
+ally's deck. It falls back to the caster's deck when the ally is defeated, blocked
+from drawing, unable to pay the drawn card's Health cost, or has no card to draw.
+Shadowstep draws a manual card from the caster's deck and prepares Dodge; a missing
+card does not borrow the partner's. Other draw-and-play effects retain automatic
+play and their existing alternating-deck rules.
+
+Unique returns move the exact physical copy from discard or draw pile into hand,
+never adding another deck copy. The Returning Flight returns the first Physical
+card once per wearer per player turn. The Returning Gale recovers the last ordinary
+copy on Dodge at most once per wearer per player-turn cycle, including the enemy
+turn. Both allowances reset at the next player-turn start. Presentation IDs are
+fresh on arrival while the physical copy's identity survives draws and returns.
+Full equipment rules live in [Unique equipment](../Product/UniqueItems.md).
+
+Consolation Prize creates one uniformly random card from `AbilityCatalog.all` on
+the owner's first fully Blocked attack per combat. Claim before generation; the
+new copy belongs to that owner, respects FIFO overflow, and follows ordinary
+cycling for this battle without changing the saved loadout. Battle preparation
+pins the possible card artwork only when Consolation Prize is equipped, preserving
+immediate card play without mid-battle on-demand decoding.
 
 Presentation layout (3:4 art, no top chrome, health anchors): [TrinketBattleFeature README](../../Packages/TrinketBattleFeature/README.md).
 
@@ -114,3 +134,6 @@ action frame. Do not toggle a separate automatic-play flag.
   consumes the reservation once; support cards, the other partner's attacks,
   periodic damage, and counterattacks cannot spend it. The recipient owns the
   visible preparation and detail summary, independently of the source's survival.
+
+Cold Snap deals Freeze damage before checking Frozen for its draw; newly applied
+Frozen qualifies. Blood Offering pays 2 Health, deals 1 Bleed, then draws a card.

@@ -16,7 +16,6 @@ struct BlacksmithForgePreview: View {
     @State private var isPending = false
     @State private var isVisible = false
     @State private var hasOpenedResult = false
-    @State private var error: String?
 
     let recipe: BlacksmithRecipe
     let resultNamespace: Namespace.ID
@@ -45,7 +44,6 @@ struct BlacksmithForgePreview: View {
         .trinketScreenBackground()
         .navigationTitle(displayedItem == nil ? "Forge" : "Forged")
         .navigationBarTitleDisplayMode(.inline)
-        .trinketFailureAlert("Unable to Forge", message: $error)
         .task(id: recipe.id) { await preparePreviewArtwork() }
         .task(id: result?.id) { await prepareArtwork() }
         .onChange(of: displayedItem?.id) { _, _ in
@@ -128,7 +126,13 @@ struct BlacksmithForgePreview: View {
                     }
                 }
                 Button(action: forge) {
-                    Text(isPending ? "Finishing…" : "Forge").frame(maxWidth: .infinity)
+                    HStack {
+                        if isPending {
+                            ProgressView()
+                        }
+                        Text("Forge")
+                    }
+                    .frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.forgeButton)
                 .disabled(!canAfford || isPending || result != nil || playerSave.homestead.tier(for: .blacksmithForge) == 0)
@@ -145,9 +149,9 @@ struct BlacksmithForgePreview: View {
             isPending = false
             switch outcome {
             case let .success(item): result = item
-            case .failure(.insufficientResources): error = "Not enough materials."
-            case .failure(.unavailable): error = "Build the Blacksmith to forge equipment."
-            case .failure(.alreadyOwned): error = "This item is already in your Inventory."
+            case .failure(.insufficientResources): break
+            case .failure(.unavailable): break
+            case .failure(.alreadyOwned): break
             case .failure(.invalidated): break
             }
         }

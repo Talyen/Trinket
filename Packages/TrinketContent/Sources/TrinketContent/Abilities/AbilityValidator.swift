@@ -15,6 +15,8 @@ enum AbilityValidator {
         "astral-arrow",
         "bash",
         "blessed-aegis",
+        "blood-offering",
+        "cold-snap",
         "cinderbloom",
         "combustion",
         "earthquake",
@@ -139,7 +141,7 @@ enum AbilityValidator {
         switch abilityID {
         case "bash":
             total == 3
-        case "cold-snap", "dark-pact", "predators-focus":
+        case "blood-offering", "cold-snap", "dark-pact", "predators-focus":
             total == 1
         case "fireball":
             (1 ... 5).contains(total)

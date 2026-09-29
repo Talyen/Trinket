@@ -161,7 +161,8 @@ struct PlayBattleLaunchTests {
         )
 
         #expect(launch.presentation.goldFindPercent == homestead.effects.goldFindPercent)
-        #expect(launch.presentation.goldFindFlat > 0)
+        #expect(launch.presentation.goldFindPercent > 0)
+        #expect(launch.presentation.goldFindFlat == 0)
         #expect(launch.presentation.stageRewardsAlreadyClaimed)
     }
 

@@ -12,14 +12,15 @@ struct DrawAndPlayRegressionTests {
         battle.companionDeck = CombatDeck(abilities: [.bloodOffering])
 
         let outcome = EffectHandlersTestSupport.dispatch(
-            .drawAndPlayCards(1),
+            .drawCards(1),
             ability: .packTactics,
             source: battle.hero,
             target: battle.hero,
             battle: &battle,
         )
 
-        #expect(outcome.events.contains { $0.kind == .abilityDamage && $0.abilityID == Ability.slash.id })
+        #expect(!outcome.events.contains { $0.kind == .abilityDamage })
+        #expect(battle.hand.cards.map(\.ability.id) == [Ability.slash.id])
         #expect(!outcome.events.contains { $0.abilityID == Ability.bloodOffering.id })
         #expect(battle.companionDeck.abilities.first?.id == Ability.bloodOffering.id)
     }

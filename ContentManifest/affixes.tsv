@@ -45,7 +45,7 @@ frostburn	Frostburn	accessory	burn,freeze	8	Increase Freeze damage by 2 against 
 aetherward	Aetherward	accessory	mana	8	Gain 1 Block when you spend Mana.	Gain 2 Block when you spend Mana.			on_spend_mana_block:1	on_spend_mana_block:2
 martyrs	Martyr's	armor	holy	10	Take 10% less Holy damage.	Take 25% less Holy damage.	damage_taken_percent:holy:0.10	damage_taken_percent:holy:0.25
 sanctum	Sanctum	armor	holy,block	8	Gain 1 Block when you deal Holy damage.	Gain 2 Block when you deal Holy damage.			on_holy_damage_block:1	on_holy_damage_block:2
-absolving	Absolving	accessory	holy,cleanse	8	Cleanse 1 status effect when you deal Holy damage.	Cleanse 1 status effect when you deal Holy damage.			on_holy_damage_cleanse:1	on_holy_damage_cleanse:1
+absolving	Absolving	accessory	holy,cleanse	8	Cleanse a debuff when you deal Holy damage.	Cleanse a debuff when you deal Holy damage.			on_holy_damage_cleanse:1	on_holy_damage_cleanse:1
 beacon	Beacon	accessory	holy,health	8	Restore 1 Health when you deal Holy damage.	Restore 3 Health when you deal Holy damage.			on_holy_damage_heal:1	on_holy_damage_heal:3
 windfall	Windfall	accessory	gold	8	Restore 1 Health when you gain Gold.	Restore 2 Health when you gain Gold.			on_gain_gold_heal:1	on_gain_gold_heal:2
 payday	Payday	accessory	gold,dodge	8	Gain 1 Gold when you Dodge.	Gain 2 Gold when you Dodge.			on_dodge_gold:1	on_dodge_gold:2
@@ -57,9 +57,9 @@ dazed	Dazed	weapon	stun	8	Deal 2 additional damage while the enemy is Stunned.	D
 branding	Branding	accessory	stun	8	Mark the enemy when they are Stunned.	Mark the enemy when they are Stunned.			on_enemy_stunned_apply_marked:true	on_enemy_stunned_apply_marked:true
 elusive	Elusive	armor	dodge	8	Gain 5% Dodge chance.	Gain 12% Dodge chance.			dodge_chance_bonus:0.05	dodge_chance_bonus:0.12
 untouchable	Untouchable	armor	dodge,block	8	Gain 2 Block when you Dodge.	Gain 4 Block when you Dodge.			on_dodge_block:2	on_dodge_block:4
-nullifying	Nullifying	weapon	purge,holy	8	Purge 1 status effect when you deal Holy damage.	Purge 1 status effect when you deal Holy damage.			on_holy_damage_purge:1	on_holy_damage_purge:1
-disrupting	Disrupting	weapon	purge,stun	8	Purge 1 status effect when you Stun the enemy.	Purge all status effects when you Stun the enemy.			on_enemy_stunned_purge:1	on_enemy_stunned_purge_all:true
-unmaking	Unmaking	weapon	purge,physical	8	Purge 1 status effect from the enemy when you Critically Hit.	Purge all status effects from the enemy when you Critically Hit.			on_critical_purge:1	on_critical_purge_all:true
+nullifying	Nullifying	weapon	purge,holy	8	Purge a buff when you deal Holy damage.	Purge a buff when you deal Holy damage.			on_holy_damage_purge:1	on_holy_damage_purge:1
+disrupting	Disrupting	weapon	purge,stun	8	Purge a buff when you Stun the enemy.	Purge all buffs when you Stun the enemy.			on_enemy_stunned_purge:1	on_enemy_stunned_purge_all:true
+unmaking	Unmaking	weapon	purge,physical	8	Purge a buff from the enemy when you Critically Hit.	Purge all buffs from the enemy when you Critically Hit.			on_critical_purge:1	on_critical_purge_all:true
 siphoning	Siphoning	accessory	mana,leech	8	Restore 1 Mana when you Leech.	Restore 2 Mana when you Leech.			on_leech_restore_mana:1	on_leech_restore_mana:2
 arcane_ward	Arcane Ward	armor	mana,block	8	Gain 1 Block when you gain Mana.	Gain 2 Block when you gain Mana.			on_gain_mana_block:1	on_gain_mana_block:2
 gilded	Gilded	accessory	gold	8	Increase Gold gained by 10%.	Increase Gold gained by 20%.	gold_gained_percent:0.10	gold_gained_percent:0.20
@@ -85,8 +85,8 @@ parasitic_bloom	Symbiotic Venom	trinket	poison,leech	1	Poison damage gains Leech
 plague_doctors_mask	Plagueward	trinket	poison,health	1	Take 50% less Poison damage.	Take 50% less Poison damage.	damage_taken_percent:poison:0.50	damage_taken_percent:poison:0.50
 resonant_chimes	Resonance	trinket	mana	1	Gain 1 Mana when you play your second card each turn.	Gain 1 Mana when you play your second card each turn.			cards_played_mana:2:1	cards_played_mana:2:1
 runic_quill	Arcane Script	trinket	mana	1	Draw a card the first time you spend Mana each turn.	Draw a card the first time you spend Mana each turn.			draw_on_spend_mana:1	draw_on_spend_mana:1
-sin_eaters_lantern	Absolution	trinket	holy,health	1	Restore 3 Health when you remove a harmful status effect.	Restore 3 Health when you remove a harmful status effect.			on_cleanse_self_heal:3	on_cleanse_self_heal:3
-smugglers_map	Hidden Cache	trinket	gold	1	Gain 4 additional Gold on victory.	Gain 4 additional Gold on victory.			victory_gold_flat:4	victory_gold_flat:4
+sin_eaters_lantern	Absolution	trinket	holy,health	1	Restore 3 Health when you remove a debuff.	Restore 3 Health when you remove a debuff.			on_cleanse_self_heal:3	on_cleanse_self_heal:3
+smugglers_map	Hidden Cache	trinket	gold	1	Stealing Gold has a 20% chance\nto draw a card.	Stealing Gold has a 20% chance\nto draw a card.			goldTheftDrawChancePercent:0.20	goldTheftDrawChancePercent:0.20
 sundering_charm	Shatterguard	trinket	physical,block	1	Physical and Stun damage remove twice as much Block.	Physical and Stun damage remove twice as much Block.			sundering_block_multiplier:1.00	sundering_block_multiplier:1.00
 tattered_pages	Forbidden Knowledge	trinket	mana	1	Every other turn, lose 1 Health and draw a card	Every other turn, lose 1 Health and draw a card			forbiddenKnowledge:true	forbiddenKnowledge:true
 thunderstone	Stormbreak	trinket	physical,stun	1	Deal double damage to Stunned enemies.	Deal double damage to Stunned enemies.			stunned_damage_multiplier:2.00	stunned_damage_multiplier:2.00
@@ -97,10 +97,10 @@ thornwrought	Thornwrought	armor	thorns,block	8	Gain 1 Thorns at the start of com
 barbed	Barbed	armor	thorns,physical	8	Increase Thorns damage by 1.	Increase Thorns damage by 3.			thorns_damage_flat:1	thorns_damage_flat:3
 briarward	Briarward	armor	thorns,block	8	When your Block is broken, gain 2 Thorns.	When your Block is broken, gain 4 Thorns.			block_broken_thorns_flat:2	block_broken_thorns_flat:4
 bloodward	Bloodward	accessory	leech,block	8	Leech has a 10% chance to also grant an equal amount of Block.	Leech has a 20% chance to also grant an equal amount of Block.			leech_block_chance_percent:0.10	leech_block_chance_percent:0.20
-clearheaded	Clearheaded	accessory	cleanse,block	8	Gain 2 Block when you Cleanse a status effect.	Gain 4 Block when you Cleanse a status effect.			cleanse_self_block_flat:2	cleanse_self_block_flat:4
-restorative	Restorative	accessory	cleanse,health	8	Restoring Health has a 10% chance to Cleanse 1 status effect from the target.	Restoring Health has a 20% chance to Cleanse 1 status effect from the target.			on_heal_cleanse_target_chance:0.10	on_heal_cleanse_target_chance:0.20
-solace	Solace	accessory	cleanse,mana	8	Gain 1 Mana when you Cleanse a status effect.	Gain 2 Mana when you Cleanse a status effect.			on_cleanse_restore_mana:1	on_cleanse_restore_mana:2
-spellrending	Spellrending	weapon	purge,mana	8	Purge 1 status effect from the enemy when you empower a card with Mana.	Purge 2 status effects from the enemy when you empower a card with Mana.			mana_empower_purge_count:1	mana_empower_purge_count:2
+clearheaded	Clearheaded	accessory	cleanse,block	8	Gain 2 Block when you Cleanse a debuff.	Gain 4 Block when you Cleanse a debuff.			cleanse_self_block_flat:2	cleanse_self_block_flat:4
+restorative	Restorative	accessory	cleanse,health	8	Restoring Health has a 10% chance to Cleanse a debuff from the target.	Restoring Health has a 20% chance to Cleanse a debuff from the target.			on_heal_cleanse_target_chance:0.10	on_heal_cleanse_target_chance:0.20
+solace	Solace	accessory	cleanse,mana	8	Gain 1 Mana when you Cleanse a debuff.	Gain 2 Mana when you Cleanse a debuff.			on_cleanse_restore_mana:1	on_cleanse_restore_mana:2
+spellrending	Spellrending	weapon	purge,mana	8	Purge a buff from the enemy when you empower a card with Mana.	Purge 2 buffs from the enemy when you empower a card with Mana.			mana_empower_purge_count:1	mana_empower_purge_count:2
 unraveling	Unraveling	weapon	purge,block	8	Gain 2 Block when you Purge an enemy.	Gain 4 Block when you Purge an enemy.			on_purge_gain_block:2	on_purge_gain_block:4
 denouncing	Denouncing	weapon	purge,holy	8	Deal 2 Holy damage when you Purge an enemy.	Deal 4 Holy damage when you Purge an enemy.			on_purge_deal_holy_damage:2	on_purge_deal_holy_damage:4
 emberwake	Emberwake	accessory	deathsDoor,burn	8	Deal 3 Burn damage when you enter Death's Door.	Deal 6 Burn damage when you enter Death's Door.			enter_deaths_door_burn_damage:3	enter_deaths_door_burn_damage:6
@@ -116,3 +116,4 @@ heartshock	Heartshock	accessory	leech,health,stun	8	When Leech restores Health w
 venomtrail	Venomtrail	weapon	poison,bleed	8	Poison deals 1 additional damage against Bleeding enemies	Poison deals 3 additional damage against Bleeding enemies			poisonDamageVsBleedingFlat:1	poisonDamageVsBleedingFlat:3
 hallowguard	Hallowguard	armor	holy,block	8	When a Holy attack damages an enemy while you have no Block, gain 3 Block	When a Holy attack damages an enemy while you have no Block, gain 5 Block			holyAttackBlockIfNone:3	holyAttackBlockIfNone:5
 hallowbreak	Hallowbreak	weapon	holy,stun	8	Stunned enemies take 25% more Holy damage	Stunned enemies take 35% more Holy damage			holyDamageVsStunnedPercent:0.25	holyDamageVsStunnedPercent:0.35
+resourceful	Resourceful	armor	block,health	8	Draw a card when your Block breaks\nwhile below half Health.	Draw a card when your Block breaks\nwhile below half Health.			blockBreakDrawBelowHalf:true	blockBreakDrawBelowHalf:true

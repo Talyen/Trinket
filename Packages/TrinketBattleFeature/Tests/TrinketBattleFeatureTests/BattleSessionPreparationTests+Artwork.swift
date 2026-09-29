@@ -30,6 +30,22 @@ extension BattleSessionPreparationTests {
         #expect(names.contains(ultimate))
     }
 
+    @Test(arguments: [false, true])
+    func `Consolation Prize prepares its possible cards without expanding ordinary battle pins`(enabled: Bool) {
+        let party = BattlePartyFixtures.quickWinParty(heroAbilities: [.slash, .heal, .blizzard])
+        var profile = CombatModifierProfile.zero
+        profile.triggers.blockedAttackFirstRandomCard = enabled
+        let configuration = BattleRunConfigurationTestSupport.make(
+            hero: party.hero, companion: party.companion, enemy: party.enemy,
+            heroModifiers: profile,
+        ).configuration
+        let names = BattleArtworkPreparation.artworkNames(for: configuration)
+        let pool = Set(AbilityCatalog.all.flatMap { ability in
+            [ability.artReference?.imageName, ability.artReference?.thumbnailImageName].compactMap(\.self)
+        })
+        #expect(pool.isSubset(of: names) == enabled)
+    }
+
     @Test func `pruning prepared artwork releases only discarded runs`() async throws {
         let pins = ArtworkPinRecorder()
         let session = BattleSession()

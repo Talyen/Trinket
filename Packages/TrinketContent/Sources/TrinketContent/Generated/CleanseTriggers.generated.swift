@@ -40,6 +40,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
     public var onCleanseRestoreMana: Int = 0
     public var onPurgeGainBlock: Int = 0
     public var onPurgeDealHolyDamage: Int = 0
+    public var purgeDrawBelowHalf: Bool = false
 
     public init(
         interdict: Bool = false,
@@ -77,7 +78,8 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         cleanseSelfBlockFlat: Int = 0,
         onCleanseRestoreMana: Int = 0,
         onPurgeGainBlock: Int = 0,
-        onPurgeDealHolyDamage: Int = 0
+        onPurgeDealHolyDamage: Int = 0,
+        purgeDrawBelowHalf: Bool = false
     ) {
         self.interdict = interdict
         self.lessonLearned = lessonLearned
@@ -115,10 +117,11 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         self.onCleanseRestoreMana = onCleanseRestoreMana
         self.onPurgeGainBlock = onPurgeGainBlock
         self.onPurgeDealHolyDamage = onPurgeDealHolyDamage
+        self.purgeDrawBelowHalf = purgeDrawBelowHalf
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["interdict", "lessonLearned", "cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "purifyingAura", "onCleansePoisonDealDamagePerStack", "crownfall", "clearSolution", "freshBatch", "heatRecovery", "antitoxinCoating", "clearMind", "cleanBreak", "perfectPurity", "purgePreparesDoubleHolyAttack", "cleanseNextAttackCriticalBonus", "cleansePurgeChancePercent", "cleanseRemovesFreezeBuildup", "cleanseTargetBlockFlat", "firstCleanseExtraRemovalPerTurn", "cleanseSelfBlockFlat", "onCleanseRestoreMana", "onPurgeGainBlock", "onPurgeDealHolyDamage"]
+    public static let fieldNames: [String] = ["interdict", "lessonLearned", "cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "purifyingAura", "onCleansePoisonDealDamagePerStack", "crownfall", "clearSolution", "freshBatch", "heatRecovery", "antitoxinCoating", "clearMind", "cleanBreak", "perfectPurity", "purgePreparesDoubleHolyAttack", "cleanseNextAttackCriticalBonus", "cleansePurgeChancePercent", "cleanseRemovesFreezeBuildup", "cleanseTargetBlockFlat", "firstCleanseExtraRemovalPerTurn", "cleanseSelfBlockFlat", "onCleanseRestoreMana", "onPurgeGainBlock", "onPurgeDealHolyDamage", "purgeDrawBelowHalf"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -159,6 +162,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         if self.onCleanseRestoreMana != other.onCleanseRestoreMana { names.append("onCleanseRestoreMana") }
         if self.onPurgeGainBlock != other.onPurgeGainBlock { names.append("onPurgeGainBlock") }
         if self.onPurgeDealHolyDamage != other.onPurgeDealHolyDamage { names.append("onPurgeDealHolyDamage") }
+        if self.purgeDrawBelowHalf != other.purgeDrawBelowHalf { names.append("purgeDrawBelowHalf") }
         return names
     }
 }
@@ -201,6 +205,7 @@ extension CleanseTriggers {
         onCleanseRestoreMana += other.onCleanseRestoreMana
         onPurgeGainBlock += other.onPurgeGainBlock
         onPurgeDealHolyDamage += other.onPurgeDealHolyDamage
+        purgeDrawBelowHalf = purgeDrawBelowHalf || other.purgeDrawBelowHalf
     }
 }
 
@@ -243,7 +248,8 @@ extension CleanseTriggers {
             cleanseSelfBlockFlat: values.decode(Int.self, "cleanseSelfBlockFlat", default: 0),
             onCleanseRestoreMana: values.decode(Int.self, "onCleanseRestoreMana", default: 0),
             onPurgeGainBlock: values.decode(Int.self, "onPurgeGainBlock", default: 0),
-            onPurgeDealHolyDamage: values.decode(Int.self, "onPurgeDealHolyDamage", default: 0)
+            onPurgeDealHolyDamage: values.decode(Int.self, "onPurgeDealHolyDamage", default: 0),
+            purgeDrawBelowHalf: values.decode(Bool.self, "purgeDrawBelowHalf", default: false)
         )
     }
 
@@ -284,5 +290,6 @@ extension CleanseTriggers {
         try container.encodeNonDefault(onCleanseRestoreMana, "onCleanseRestoreMana", default: 0)
         try container.encodeNonDefault(onPurgeGainBlock, "onPurgeGainBlock", default: 0)
         try container.encodeNonDefault(onPurgeDealHolyDamage, "onPurgeDealHolyDamage", default: 0)
+        try container.encodeNonDefault(purgeDrawBelowHalf, "purgeDrawBelowHalf", default: false)
     }
 }

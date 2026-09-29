@@ -5,6 +5,7 @@ import TrinketAppState
 import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
+import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -17,9 +18,9 @@ private let trinketAppLogger = Logger(
 struct TrinketApp: App {
     @UIApplicationDelegateAdaptor(CloudNotificationDelegate.self) private var cloudNotifications
     @State private var appState: AppState?
-    @State private var bootstrapFailureMessage: String?
-    /// Computed once from the resolved state during init; never mutated after.
-    private let launchPriorityImageNames: [String]
+    @State private var isRetryingBootstrap = false
+    @State private var launchPriorityImageNames: [String]
+    private let makeInitialState: (PlayerSaveStore?) throws -> AppState
 
     static let battleRuntimeTypeMessage = "AppState battle runtime must be BattleSession"
 
@@ -51,21 +52,19 @@ struct TrinketApp: App {
             return state
         }
 
-        // Resolve state first (with in-memory fallback), then compute the
-        // launch artwork census once from the resolved state. Bootstrap is a
-        // pure static step so init assigns every property (including the
-        // launch census let) before touching self.
+        // Resolve storage before collecting and pinning the first-screen artwork.
+        // A successful bootstrap retry installs its own launch census.
+        makeInitialState = makeState
         let bootstrap = Self.bootstrapState(makeState: makeState)
         if let state = bootstrap.state {
             let initialNames = Self.priorityArtworkNames(for: state.playerSave.currentSave, in: state)
-            launchPriorityImageNames = initialNames
+            _launchPriorityImageNames = State(initialValue: initialNames)
             _appState = State(initialValue: state)
             Self.installCloudArtworkPreparation(in: state, initialNames: initialNames)
             cloudNotifications.store = state.playerSave
         } else {
-            launchPriorityImageNames = []
+            _launchPriorityImageNames = State(initialValue: [])
             _appState = State(initialValue: nil)
-            _bootstrapFailureMessage = State(initialValue: bootstrap.failureMessage)
         }
         MetricKitSubscriber.shared.start()
     }
@@ -97,7 +96,6 @@ struct TrinketApp: App {
 
     private struct BootstrapResult {
         var state: AppState?
-        var failureMessage = "Progress storage could not be started on this device."
     }
 
     /// Bootstrap with in-memory fallback. Extracted so the primary and fallback
@@ -119,10 +117,7 @@ struct TrinketApp: App {
                 trinketAppLogger.fault(
                     "AppState in-memory fallback failed: \(error.localizedDescription, privacy: .public)",
                 )
-                return BootstrapResult(
-                    state: nil,
-                    failureMessage: "Progress storage could not be started on this device. Try freeing space or reinstalling, then launch again.",
-                )
+                return BootstrapResult(state: nil)
             }
         }
     }
@@ -157,6 +152,21 @@ struct TrinketApp: App {
         )
     }
 
+    private func retryBootstrap() {
+        guard !isRetryingBootstrap else { return }
+        isRetryingBootstrap = true
+        Task { @MainActor in
+            await Task.yield()
+            defer { isRetryingBootstrap = false }
+            guard let state = Self.bootstrapState(makeState: makeInitialState).state else { return }
+            let names = Self.priorityArtworkNames(for: state.playerSave.currentSave, in: state)
+            launchPriorityImageNames = names
+            Self.installCloudArtworkPreparation(in: state, initialNames: names)
+            cloudNotifications.store = state.playerSave
+            appState = state
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             Group {
@@ -170,10 +180,7 @@ struct TrinketApp: App {
                     // them without product approval.
                     .scrollIndicators(.never)
                 } else {
-                    AppBootstrapFailureView(
-                        message: bootstrapFailureMessage
-                            ?? "Progress storage could not be started on this device.",
-                    )
+                    AppBootstrapRecoveryView(isRetrying: isRetryingBootstrap, retry: retryBootstrap)
                 }
             }
             .scrollEdgeEffectStyle(.soft, for: .top)
@@ -185,16 +192,28 @@ struct TrinketApp: App {
     }
 }
 
-private struct AppBootstrapFailureView: View {
-    let message: String
+private struct AppBootstrapRecoveryView: View {
+    let isRetrying: Bool
+    let retry: () -> Void
 
     var body: some View {
-        ContentUnavailableView(
-            "Can't Open Trinket",
-            systemImage: "exclamationmark.triangle",
-            description: Text(message),
-        )
+        VStack(spacing: TrinketDesign.Spacing.large) {
+            Text("TRINKET")
+                .trinketTypography(.screenDisplay)
+                .foregroundStyle(TrinketDesign.Colors.accent)
+            if isRetrying {
+                ProgressView()
+            } else {
+                Button("Retry", action: retry)
+                    .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Screen.bootstrapRetry)
+                Link("Support", destination: TrinketPublicPages.support)
+                    .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Screen.bootstrapSupport)
+            }
+        }
+        .padding(TrinketDesign.Layout.contentMargin)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .trinketScreenBackground()
+        .accessibilityIdentifier(AccessibilityID.Screen.bootstrapRecovery)
     }
 }
 

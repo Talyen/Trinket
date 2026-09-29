@@ -147,8 +147,8 @@ struct AbilityCatalogTests {
             .hemorrhage: "Deal 6 Bleed damage\nDetonate all Bleed",
             .luckPotion: "Roll a 12-sided die\nGain that much Block, Thorns, or Health",
             .moltenBulwark: "Deal 3 Burn damage\nGain 4 Block and Thorns",
-            .panaceaPotion: "Cleanse the ally with the most status effects\nRestore 6 Health",
-            .shadowstep: "Draw and play 1 card from your deck\nDodge the next attack against you",
+            .panaceaPotion: "Cleanse the ally with the most debuffs\nRestore 6 Health",
+            .shadowstep: "Draw a card\nDodge the next attack against you",
             .sunburst: "Deal 6 Holy or Burn damage\nRestore 3 Health to each ally",
             .thornMail: "Gain 6 Block\nGain Thorns equal to half your Block",
         ]
@@ -325,8 +325,8 @@ struct AbilityCatalogTests {
     @Test func `ability rework summaries match player facing text`() throws {
         let expected: [Ability: String] = [
             .bountyShot: "Deal 3 Stun damage\nSteal 2 Gold",
-            .cleanse: "Cleanse a harmful status effect\nRestore 3 Health",
-            .coldSnap: "Deal 1 Freeze damage\nDouble the enemy's Freeze build-up",
+            .cleanse: "Cleanse a debuff\nRestore 3 Health",
+            .coldSnap: "Deal 1 Freeze damage\nDraw a card if the enemy is Frozen",
             .darkPact: "Deal 1 Burn damage\nLose 1 Health\nDraw 2 cards",
             .fireball: "Deal 1 to 5 Burn damage",
             .frostbolt: "Deal 4 Freeze damage",

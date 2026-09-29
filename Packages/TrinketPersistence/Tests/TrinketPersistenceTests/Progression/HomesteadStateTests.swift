@@ -85,16 +85,16 @@ struct HomesteadStateTests {
         let tier1 = HomesteadEffects.from(nodeTiers: [.wheatField: 1])
         let tier3 = HomesteadEffects.from(nodeTiers: [.wheatField: 3])
 
-        try #expect(tier1.heroModifiers == [.maximumHealth(4)])
+        try #expect(tier1.heroModifiers == [.maximumHealthPercent(0.1)])
         try #expect(tier1.companionModifiers.isEmpty)
-        try #expect(tier3.heroModifiers == [.maximumHealth(12)])
+        try #expect(tier3.heroModifiers == [.maximumHealthPercent(0.3)])
         try #expect(tier3.companionModifiers.isEmpty)
     }
 
-    @Test func `wishing well adds flat gold to positive rewards`() throws {
+    @Test func `wishing well scales positive earned gold`() throws {
         let effects = HomesteadEffects.from(nodeTiers: [.wishingWell: 2])
-        try #expect(effects.goldFindFlat == 2)
-        try #expect(effects.adjustedGold(100) == 102)
+        try #expect(effects.goldFindPercent == 10)
+        try #expect(effects.adjustedGold(100) == 110)
     }
 
     @Test func `moonlit sanctum increases astral chance percent`() throws {

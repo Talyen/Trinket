@@ -70,7 +70,7 @@ struct FullGameOfferView: View {
                     .onInAppPurchaseStart { _ in store.purchaseStarted() }
                     .onInAppPurchaseCompletion { _, result in await store.purchaseCompleted(result) }
             } else if store.isLoading {
-                ProgressView("Loading purchase…")
+                ProgressView()
                     .trinketTypography(.body)
                     .frame(maxWidth: .infinity)
             } else {
@@ -79,23 +79,16 @@ struct FullGameOfferView: View {
                     .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.FullGame.retry)
             }
 
-            if !AppStore.canMakePayments {
-                Text("Purchases are disabled on this device.")
-                    .trinketTypography(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            if let message = store.message {
-                Text(message)
-                    .trinketTypography(.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier(AccessibilityID.FullGame.status)
-            }
-
             HStack(spacing: TrinketDesign.Spacing.small) {
-                Button(store.isRestoring ? "Restoring…" : "Restore Purchases") {
+                Button {
                     Task { await store.restore() }
+                } label: {
+                    HStack {
+                        if store.isRestoring {
+                            ProgressView()
+                        }
+                        Text("Restore Purchases")
+                    }
                 }
                 .disabled(store.isRestoring || store.isPurchasing)
                 .accessibilityIdentifier(AccessibilityID.FullGame.restore)

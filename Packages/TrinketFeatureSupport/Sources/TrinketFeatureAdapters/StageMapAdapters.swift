@@ -1,4 +1,5 @@
 import Foundation
+import os
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
@@ -7,35 +8,26 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 public extension View {
-    func trinketMessageAlert(_ message: Binding<StageMapMessage?>) -> some View {
-        modifier(StageMessageModifier(message: message))
+    func trinketPlayActionResult(_ message: Binding<StageMapMessage?>) -> some View {
+        modifier(PlayActionResultModifier(message: message))
     }
 }
 
-private struct StageMessageModifier: ViewModifier {
+private struct PlayActionResultModifier: ViewModifier {
     @Environment(\.requestFullGameOffer) private var requestFullGameOffer
     @Binding var message: StageMapMessage?
 
     func body(content: Content) -> some View {
-        content.alert(
-            message?.title ?? "",
-            isPresented: Binding(
-                get: { message != nil && message?.fullGameOffer == nil },
-                set: { isPresented in
-                    if !isPresented {
-                        message = nil
-                    }
-                },
-            ),
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(message?.message ?? "")
-        }
-        .onChange(of: message) { _, current in
-            guard let origin = current?.fullGameOffer else { return }
+        content.onChange(of: message) { _, current in
+            guard let current else { return }
             message = nil
-            requestFullGameOffer(origin)
+            if let origin = current.fullGameOffer {
+                requestFullGameOffer(origin)
+            } else {
+                Logger(subsystem: "Trinket", category: "PlayAction").notice(
+                    "\(current.title, privacy: .public): \(current.message, privacy: .public)",
+                )
+            }
         }
     }
 }

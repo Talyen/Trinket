@@ -229,6 +229,12 @@
       "default": "0",
       "merge": "add",
       "affix_roll": { "kind": "int", "order": 68 }
+    },
+    {
+      "name": "purgeDrawBelowHalf",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
     }
   ]
 }

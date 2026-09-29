@@ -245,26 +245,13 @@ extension UniqueCombatEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.modifiers(for: actor.id).triggers.thirdCardReturnsToHand,
-              let tracked = context.uniques.owners[owner]?.lastOrdinaryAbility,
+              !context.uniques.owners[owner, default: .init()].returnedGaleThisTurn,
+              let copyID = context.uniques.owners[owner]?.lastOrdinaryCopyID,
               !context.isBattleOver,
               BattleCardCombatEngine.canDrawFromDeck(for: owner, in: context)
         else { return [] }
-        // Do nothing if already held or buffered, absent from the deck, or unavailable.
-        if (context.hand.cards + context.hand.buffer).contains(where: {
-            $0.owner == owner && $0.ability.id == tracked.id
-        }) {
-            return []
-        }
-        let recovered: Ability? = switch owner {
-        case .hero:
-            context.heroDeck.drawFirst { $0.id == tracked.id }
-        case .companion:
-            context.companionDeck.drawFirst { $0.id == tracked.id }
-        case .enemy:
-            nil
-        }
-        guard let recovered else { return [] }
-        _ = BattleCardCombatEngine.deal(recovered, owner: owner, context: &context)
+        guard BattleCardCombatEngine.recoverCard(copyID: copyID, owner: owner, context: &context) != nil else { return [] }
+        context.uniques.owners[owner, default: .init()].returnedGaleThisTurn = true
         return [context.nextEvent(
             kind: .effect,
             effectKind: .cardsDrawn,

@@ -97,7 +97,11 @@ struct MysteryEncounterView: View {
         .disabled(playerSave.isRetryingSaveAction)
         .onChange(of: session.persistFailureMessage) { _, newMessage in
             if newMessage != nil {
+                selectedChoiceID = nil
                 mysteryPersistErrorTrigger &+= 1
+                if let id = session.event.unlockCombatantID, !playerSave.contentAccess.allowsCombatant(id) {
+                    requestOffer(.combatant(id))
+                }
             }
         }
         .preparedArtworkSheet(item: $selectedItem, artworkNames: {
@@ -173,8 +177,6 @@ struct MysteryEncounterView: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier(AccessibilityID.Mystery.encounterNarrative)
 
-                    mysteryPersistFailureBanner(session.persistFailureMessage)
-
                     MysteryOfferChoices(
                         offers: session.offers,
                         choices: session.event.choices,
@@ -200,7 +202,6 @@ struct MysteryEncounterView: View {
         } bodyContent: {
             VStack(alignment: .leading, spacing: TrinketDesign.Layout.contentMargin) {
                 narrativeCard
-                mysteryPersistFailureBanner(session.persistFailureMessage)
                 mysteryChoices
             }
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
@@ -280,22 +281,6 @@ struct MysteryEncounterView: View {
 
     private var heroArtwork: some View {
         MysteryEventHeroArtwork(event: session.event, chapterID: session.stage.chapterID)
-    }
-}
-
-@MainActor
-@ViewBuilder
-func mysteryPersistFailureBanner(
-    _ message: String?,
-    centered: Bool = false,
-) -> some View {
-    if let message {
-        Text(message)
-            .trinketTypography(.badge)
-            .foregroundStyle(TrinketDesign.Colors.warning)
-            .multilineTextAlignment(centered ? .center : .leading)
-            .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
-            .transition(.opacity)
     }
 }
 

@@ -107,9 +107,9 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         case .dodge:
             "Dodge avoids an attack completely"
         case .purge:
-            "Purge removes a helpful effect from an enemy"
+            "Purge removes a buff from an enemy"
         case .cleanse:
-            "Cleanse removes a negative effect from a party member"
+            "Cleanse removes a debuff from a party member"
         case .mana:
             // Cost lives in BattleTurnEngine.manaEmpowermentCost/Bonus; the +1
             // bonus is Effect.manaEmpowermentBonus. Update together.

@@ -12,6 +12,8 @@ public struct BattlePresentationContext: Sendable {
     public let victoryOnlyExperienceBonusPercent: Int
     public let goldFindPercent: Int
     public let goldFindFlat: Int
+    public let gemsFindPercent: Int
+    public let rewardRemainders: HomesteadRewardRemainders
     public let gemsFindBonus: Int
     public let goldOverflowExperience: Int
     public let rewardInputs: RewardSettlementInputs?
@@ -31,6 +33,8 @@ public struct BattlePresentationContext: Sendable {
             goldFindPercent: goldFindPercent,
             goldFindFlat: goldFindFlat,
             gemsFindBonus: gemsFindBonus,
+            gemsFindPercent: gemsFindPercent,
+            initialRewardRemainders: rewardRemainders,
             goldOverflowExperience: goldOverflowExperience,
             heroExperience: stageRewardsAlreadyClaimed ? 0 : heroExperienceAward,
             companionExperience: stageRewardsAlreadyClaimed ? 0 : companionExperienceAward,
@@ -53,6 +57,8 @@ public struct BattlePresentationContext: Sendable {
         goldFindPercent: Int,
         goldFindFlat: Int = 0,
         gemsFindBonus: Int = 0,
+        gemsFindPercent: Int = 0,
+        rewardRemainders: HomesteadRewardRemainders = .zero,
         stageRewardsAlreadyClaimed: Bool,
         hasProgressionRewards: Bool,
         musicStageID: String?,
@@ -77,6 +83,8 @@ public struct BattlePresentationContext: Sendable {
         self.goldFindPercent = goldFindPercent
         self.goldFindFlat = goldFindFlat
         self.gemsFindBonus = gemsFindBonus
+        self.gemsFindPercent = gemsFindPercent
+        self.rewardRemainders = rewardRemainders
         self.goldOverflowExperience = goldOverflowExperience
         self.rewardInputs = rewardInputs
         self.stageRewardsAlreadyClaimed = stageRewardsAlreadyClaimed

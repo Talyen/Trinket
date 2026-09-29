@@ -139,6 +139,7 @@ package extension DamagePipeline {
         }
 
         if blockBroken {
+            state.brokenBlockOwners.append(state.combatant)
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBlockBroken(
                 on: state.combatant,
                 attackerID: state.sourceActorID,
@@ -229,6 +230,7 @@ package extension DamagePipeline {
             in: &context,
         ))
         if reduced.broken {
+            state.brokenBlockOwners.append(protector)
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBlockBroken(
                 on: protector,
                 attackerID: state.sourceActorID,

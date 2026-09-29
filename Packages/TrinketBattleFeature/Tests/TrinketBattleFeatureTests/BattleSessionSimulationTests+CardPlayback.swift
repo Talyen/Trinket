@@ -7,18 +7,43 @@ import TrinketContentTestSupport
 @testable import TrinketBattleFeature
 
 extension BattleSessionSimulationTests {
+    @Test(arguments: [Ability.packTactics, .shadowstep])
+    func `manual draw followups remain playable while earlier attacks animate`(ability: Ability) throws {
+        let session = BattleSessionTestSupport.makePassiveSession()
+        defer { session.endBattle() }
+        var state = try #require(session.engineState)
+        state.hand = BattleHand()
+        state.heroDeck = CombatDeck(abilities: [.slash])
+        state.companionDeck = CombatDeck(abilities: [.slash])
+        let previous = BattleCardCombatEngine.deal(.bash, owner: .hero, context: &state)
+        let drawing = BattleCardCombatEngine.deal(ability, owner: .hero, context: &state)
+        _ = BattleCardCombatEngine.deal(.block, owner: .companion, context: &state)
+        session.engineState = state
+        session.installSimulationPresentation()
+        session.feedback.clear()
+        #expect(session.playCard(cardID: previous.id) == .committed)
+        #expect(!session.feedback.scheduledActions.isEmpty)
+        #expect(session.playCard(cardID: drawing.id) == .committed)
+        #expect(session.cardPlayback.casts.isEmpty)
+        let followup = try #require(session.hand.first { $0.ability.id == Ability.slash.id })
+        #expect(followup.owner == (ability.id == Ability.packTactics.id ? .companion : .hero))
+        #expect(session.canAcceptBattleCommands)
+        #expect(session.playCard(cardID: followup.id) == .committed)
+        #expect(!session.hand.contains { $0.id == followup.id })
+    }
+
     @Test(arguments: [false, true])
     func `automatic plays never block the next hand command`(nested: Bool) throws {
         let session = BattleSessionTestSupport.makePassiveSession()
         defer { session.endBattle() }
-        let card = try installPackTactics(in: session, nested: nested)
+        let card = try installAutomaticDraw(in: session, nested: nested)
         var immediate = try #require(session.engineState)
         _ = try immediate.playCard(cardID: card.id)
         #expect(session.playCard(cardID: card.id) == .committed)
         #expect(session.hand == immediate.hand.cards)
         #expect(session.canEndTurn)
         #expect(session.cardPlayback.casts.map(\.card.ability.id) == (nested
-                ? [Ability.packTactics.id, Ability.slash.id] : [Ability.bash.id]))
+                ? [BattleSessionTestSupport.automaticDrawCard(owner: .companion).id, Ability.slash.id] : [Ability.bash.id]))
         let next = try #require(session.hand.first)
         _ = try immediate.playCard(cardID: next.id)
         #expect(session.playCard(cardID: next.id) == .committed)
@@ -94,7 +119,7 @@ extension BattleSessionSimulationTests {
     @Test func `automatic visual completion cannot restore a stale hand`() throws {
         let session = BattleSessionTestSupport.makePassiveSession()
         defer { session.endBattle() }
-        let card = try installPackTactics(in: session)
+        let card = try installAutomaticDraw(in: session)
         #expect(session.playCard(cardID: card.id) == .committed)
         let cast = try #require(session.cardPlayback.casts.first)
         session.setSuspendedForScenePhase(true)
@@ -155,17 +180,20 @@ extension BattleSessionSimulationTests {
         #expect(casts.requests.count == 6)
     }
 
-    private func installPackTactics(in session: BattleSession, nested: Bool = false) throws -> BattleCard {
+    private func installAutomaticDraw(in session: BattleSession, nested: Bool = false) throws -> BattleCard {
         var state = try #require(session.engineState)
         state.hand = BattleHand()
-        let card = BattleCardCombatEngine.deal(.packTactics, owner: .hero, context: &state)
+        let card = BattleCardCombatEngine.deal(BattleSessionTestSupport.automaticDrawCard(), owner: .hero, context: &state)
         _ = BattleCardCombatEngine.deal(.block, owner: .hero, context: &state)
         _ = BattleCardCombatEngine.deal(.block, owner: .companion, context: &state)
         if nested {
             _ = BattleCardCombatEngine.deal(.block, owner: .hero, context: &state)
         }
         state.heroDeck = CombatDeck(abilities: [.slash, .block])
-        state.companionDeck = CombatDeck(abilities: [nested ? .packTactics : .bash, .block])
+        state.companionDeck = CombatDeck(abilities: [
+            nested ? BattleSessionTestSupport.automaticDrawCard(owner: .companion) : .bash,
+            .block,
+        ])
         session.engineState = state
         session.installSimulationPresentation()
         session.feedback.clear()

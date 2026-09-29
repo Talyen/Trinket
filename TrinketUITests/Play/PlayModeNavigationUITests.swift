@@ -77,7 +77,12 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         XCTAssertEqual(app.descendants(matching: .any)[AccessibilityID.Voyage.destinationReward].label, reward)
         tapWhenReady(app.buttons[AccessibilityID.Voyage.options])
         tapWhenReady(app.buttons[AccessibilityID.Voyage.abandon])
-        tapWhenReady(app.buttons.matching(identifier: AccessibilityID.Voyage.confirmAbandon).firstMatch)
+        XCTAssertFalse(app.alerts.firstMatch.exists)
+        tapWhenReady(app.buttons[AccessibilityID.Voyage.cancelAbandon])
+        assertExists(AccessibilityID.Voyage.destinationReward)
+        tapWhenReady(app.buttons[AccessibilityID.Voyage.options])
+        tapWhenReady(app.buttons[AccessibilityID.Voyage.abandon])
+        tapWhenReady(app.buttons[AccessibilityID.Voyage.confirmAbandon])
         assertExists(AccessibilityID.Voyage.action("easy"))
         assertExists(AccessibilityID.Voyage.refresh)
     }

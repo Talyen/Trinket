@@ -44,6 +44,15 @@ final class BattleArtworkPreparation {
         insertCombatant(configuration.hero.combatant)
         insertCombatant(configuration.companion.combatant)
         insertCombatant(configuration.enemy)
+        // Consolation Prize can add any catalog card; decoding cannot delay its play.
+        if configuration.hero.modifiers.triggers.blockedAttackFirstRandomCard
+            || configuration.companion.modifiers.triggers.blockedAttackFirstRandomCard {
+            for ability in AbilityCatalog.all {
+                if let ref = ability.artReference {
+                    insert(ref.imageName, ref.thumbnailImageName)
+                }
+            }
+        }
         return names
     }
 

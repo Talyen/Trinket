@@ -4,6 +4,10 @@ import TrinketContent
 extension PlayerSaveSanitizer {
     static func sanitizeHomestead(_ homestead: PlayerHomesteadState) -> PlayerHomesteadState {
         var sanitized = homestead
+        if let remainders = homestead.rewardRemainders {
+            let valid = HomesteadRewardRemainders(gold: remainders.gold, gems: remainders.gems)
+            sanitized.rewardRemainders = valid == .zero ? nil : valid
+        }
         let beforePending = homestead.pendingProduction.count
         sanitized.pendingProduction = Dictionary(
             uniqueKeysWithValues: homestead.validPendingProduction.map { resource, quantity in

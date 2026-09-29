@@ -10,6 +10,14 @@ import TrinketFeatureSupport
 
 @MainActor
 enum BattleSessionTestSupport {
+    static func automaticDrawCard(owner: BattleParticipant = .hero) -> Ability {
+        Ability(
+            id: "automatic-draw-\(owner)", name: "Automatic Draw", tier: .ultimate,
+            directDamage: 3,
+            targetedEffects: [TargetedEffect(.drawAndPlayCards(1), target: owner == .hero ? .companion : .hero)],
+        )
+    }
+
     /// Session-level default enemy is `passiveEnemy()`'s 100 HP parked enemy —
     /// not `quickWinParty`'s 1 HP default, which is substituted explicitly below
     /// so the divergence stays visible. Pass `enemy:` to override.

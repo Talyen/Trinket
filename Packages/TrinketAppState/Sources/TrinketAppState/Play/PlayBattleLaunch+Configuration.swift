@@ -173,24 +173,26 @@ extension PlayBattleLaunch {
             goldFindPercent: homesteadEffects.goldFindPercent,
             goldFindFlat: homesteadEffects.goldFindFlat,
             gemsFindBonus: homesteadEffects.gemsFindBonus,
+            gemsFindPercent: homesteadEffects.gemsFindPercent,
+            rewardRemainders: inputs.party.homestead.rewardRemainders ?? .zero,
             stageRewardsAlreadyClaimed: input.stageRewardsAlreadyClaimed,
             hasProgressionRewards: inputs.hasProgressionRewards,
             musicStageID: nil,
             heroExperienceAward: experienceAward(
                 heroMember.progression.level, rosterState.highestHeroLevel, enemyLevel,
-                victoryPercent, homesteadEffects.experienceBonus,
+                victoryPercent, homesteadEffects.experienceBonusPercent,
             ),
             companionExperienceAward: experienceAward(
                 companionMember.progression.level, rosterState.highestCompanionLevel, enemyLevel,
-                victoryPercent, homesteadEffects.experienceBonus,
+                victoryPercent, homesteadEffects.experienceBonusPercent,
             ),
             defeatHeroExperienceAward: experienceAward(
                 heroMember.progression.level, rosterState.highestHeroLevel, enemyLevel,
-                input.experienceBonusPercent, homesteadEffects.experienceBonus,
+                input.experienceBonusPercent, homesteadEffects.experienceBonusPercent,
             ),
             defeatCompanionExperienceAward: experienceAward(
                 companionMember.progression.level, rosterState.highestCompanionLevel, enemyLevel,
-                input.experienceBonusPercent, homesteadEffects.experienceBonus,
+                input.experienceBonusPercent, homesteadEffects.experienceBonusPercent,
             ),
             materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: input.stageReward ?? .empty),
             nodeModifiers: input.nodeModifiers,
@@ -214,8 +216,8 @@ extension PlayBattleLaunch {
     ) -> Int {
         VictoryRewardApplier.battleExperienceAward(
             playerLevel: playerLevel, enemyLevel: enemyLevel,
-            highestLevel: highestLevel, experienceEarnedPercent: bonusPercent,
-        ) + homesteadBonus
+            highestLevel: highestLevel, experienceEarnedPercent: bonusPercent + homesteadBonus,
+        )
     }
 
     private static func makePartyMembers(

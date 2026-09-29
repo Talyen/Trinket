@@ -6,6 +6,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 public struct RosterCombatantDetailView: View {
+    @Environment(\.dismiss) private var dismiss
     @Environment(PlayerSaveStore.self) private var playerSave
 
     let kind: CombatantDetailContext.Kind
@@ -67,11 +68,7 @@ public struct RosterCombatantDetailView: View {
             )
             .disabled(playerSave.isRetryingSaveAction)
         } else {
-            ContentUnavailableView(
-                kind == .hero ? "Hero Not Found" : "Companion Not Found",
-                systemImage: "questionmark.circle",
-            )
-            .accessibilityIdentifier("Combatant Not Found")
+            Color.clear.onAppear { dismiss() }
         }
     }
 

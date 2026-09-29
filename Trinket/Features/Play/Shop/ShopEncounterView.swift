@@ -15,7 +15,6 @@ struct ShopEncounterView: View {
     let onLeave: () -> Bool
 
     @State private var selectedOffer: ShopOffer?
-    @State private var detailPurchaseError: String?
     @State private var artAppeared = false
     @State private var contentAppeared = false
     @State private var offersAppeared = false
@@ -35,14 +34,6 @@ struct ShopEncounterView: View {
                         Text(session.stage.encounterSubjectName(worldSeed: playerSave.worldSeed))
                             .trinketTypography(.screenTitle)
                             .accessibilityIdentifier(AccessibilityID.Shop.encounterTitle)
-
-                        if let errorMessage = session.lastPurchaseError {
-                            Text(errorMessage)
-                                .trinketTypography(.badge)
-                                .foregroundStyle(.secondary)
-                                .accessibilityIdentifier(AccessibilityID.Shop.purchaseError)
-                                .transition(.opacity)
-                        }
                     }
                 },
                 content: {
@@ -92,7 +83,6 @@ struct ShopEncounterView: View {
                 )
             }
             .trinketDetailSheet()
-            .trinketFailureAlert("Purchase Failed", message: $detailPurchaseError)
         })
         .task {
             await EncounterReadingEntrance.present(
@@ -204,9 +194,6 @@ struct ShopEncounterView: View {
             }
         case .rejected:
             purchaseErrorFeedbackTrigger += 1
-            if dismissDetail {
-                detailPurchaseError = session.lastPurchaseError ?? "Purchase failed. Try again."
-            }
         case .retrying:
             break
         }

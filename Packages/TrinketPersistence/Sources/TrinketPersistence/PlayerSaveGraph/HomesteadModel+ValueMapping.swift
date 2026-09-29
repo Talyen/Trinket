@@ -27,11 +27,15 @@ extension HomesteadModel {
             nodeTiers: resolvedNodeTiers,
             pendingProduction: resolvedPendingProduction,
             lastProductionAt: lastProductionAt,
+            rewardRemainders: goldRewardRemainder == 0 && gemsRewardRemainder == 0 ? nil
+                : .init(gold: goldRewardRemainder, gems: gemsRewardRemainder),
         )
     }
 
     func update(from homestead: PlayerHomesteadState, context: ModelContext?) {
         lastProductionAt = homestead.lastProductionAt
+        goldRewardRemainder = homestead.rewardRemainders?.gold ?? 0
+        gemsRewardRemainder = homestead.rewardRemainders?.gems ?? 0
 
         let resourceValues = homestead.resources
             .map { (resourceID: $0.key.rawValue, quantity: $0.value) }

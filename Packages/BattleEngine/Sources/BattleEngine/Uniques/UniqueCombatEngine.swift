@@ -17,7 +17,7 @@ package enum UniqueCombatEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         var owner = context.uniques.owners[card.owner, default: .init()]
         owner.cardsPlayed += 1
-        let play = UniqueBattleState.CardPlay(owner: card.owner, originalAbility: card.ability)
+        let play = UniqueBattleState.CardPlay(owner: card.owner, originalCopyID: card.deckCopyID)
         if triggers.secondCardDrawAndDodgePercent > 0, owner.cardsPlayed == 2 {
             owner.wrenflightDodge = triggers.secondCardDrawAndDodgePercent
             var mutablePlay = play
@@ -40,7 +40,7 @@ package enum UniqueCombatEngine {
         }
         // The Returning Gale tracks the last ordinary card play, including non-damaging cards.
         if triggers.thirdCardReturnsToHand {
-            owner.lastOrdinaryAbility = play.originalAbility
+            owner.lastOrdinaryCopyID = play.originalCopyID
         }
         if triggers.dodgeDrawPoisonAndReadyCritical,
            owner.wildheartReady, facts.damageKeywords.contains(.poison) {
@@ -83,7 +83,9 @@ package enum UniqueCombatEngine {
               !context.isBattleOver,
               BattleCardCombatEngine.canDrawFromDeck(for: card.owner, in: context)
         else { return nil }
-        _ = BattleCardCombatEngine.deal(card.ability, owner: card.owner, context: &context)
+        guard BattleCardCombatEngine.recoverCard(
+            copyID: card.deckCopyID, owner: card.owner, context: &context,
+        ) != nil else { return nil }
         return cardReturnEvent(owner: card.owner, name: name, in: &context)
     }
 

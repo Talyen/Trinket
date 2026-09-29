@@ -6,13 +6,13 @@
     {
       "layers" : [
         {
-          "image-name" : "8.jpeg",
-          "name" : "Art",
+          "image-name" : "Trinket App Icon.jpg",
+          "name" : "Trinket App Icon",
           "position" : {
-            "scale" : 0.55,
+            "scale" : 0.5,
             "translation-in-points" : [
               0,
-              51.200000000000045
+              0
             ]
           }
         }

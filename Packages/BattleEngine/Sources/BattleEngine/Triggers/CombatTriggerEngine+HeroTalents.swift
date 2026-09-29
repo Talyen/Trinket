@@ -119,10 +119,15 @@ package extension CombatTriggerEngine {
                 name: "Bloodfire", in: &context,
             ))
         }
-        if fullyBlocked, triggers.blockedAttackFirstGold > 0,
-           context.claimHeroTalent("Consolation Prize", actorID: actor.id, battle: true) {
-            events.append(contentsOf: context.grantGoldEvent(
-                triggers.blockedAttackFirstGold, to: actor, abilityName: "Consolation Prize",
+        if fullyBlocked, triggers.blockedAttackFirstRandomCard,
+           !context.isBattleOver,
+           context.claimHeroTalent("Consolation Prize", actorID: actor.id, battle: true),
+           let owner = context.roster.participant(for: actor), owner.isPartyMember,
+           let ability = AbilityCatalog.all.randomElement(using: &context.rng) {
+            _ = BattleCardCombatEngine.deal(ability, owner: owner, context: &context)
+            events.append(context.nextEvent(
+                kind: .effect, effectKind: .cardsDrawn, actorName: actor.name,
+                abilityName: "Consolation Prize", target: actor, amount: 1, keyword: .physical,
             ))
         }
         if fullyBlocked, triggers.blockedAttackNextPhysicalDouble {
@@ -242,11 +247,6 @@ package extension CombatTriggerEngine {
                 events.append(contentsOf: heroTalentHeal(
                     to: healTarget, source: source, amount: 2, name: "Fresh Batch", in: &context,
                 ))
-            }
-            if triggers.clearMind {
-                context.roster.mutateRuntime(for: source) {
-                    $0.talents.pending.nextManaEmpowerDiscount = max($0.talents.pending.nextManaEmpowerDiscount, 1)
-                }
             }
             if !context.hasTalentDebuff(on: target), triggers.cleanBreak,
                let owner = context.roster.participant(for: source) {

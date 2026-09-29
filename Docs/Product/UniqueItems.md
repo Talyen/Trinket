@@ -48,7 +48,7 @@ identifiers use underscores.
 | Mace | The Lingering Bell | Stunning an enemy preserves a quarter of the Stun buildup that triggered it. |
 | Longbow | Huntsmaster’s Call | Your Physical Critical Hits draw from your Companion's deck. |
 | Shortbow | Wrenflight | Playing your second card each turn draws a card and grants 10% Dodge until your next turn. |
-| Recurve Bow | The Returning Gale | Dodging returns the last card you played to your hand. |
+| Recurve Bow | The Returning Gale | Once per turn, Dodging returns the last card you played to your hand. |
 | Wand | The Final Spark | Once per turn, spending your last Mana to empower a Burn or Freeze card repeats its damage. |
 | Leather Buckler | Laughing Guard | Keep Block between turns. Dodging spends half your Block to deal that much Physical damage. |
 | Kite Shield | The Knight’s Answer | The first time each turn your Block absorbs attack damage, immediately use your Basic ability. |
@@ -69,21 +69,16 @@ Critical-hit triggers require a damage hit, not critical healing or a DoT tick.
 Readied Dodge effects do not accumulate charges and survive until used or battle
 end. Once-per-turn allowances reset for each wearer at the next player turn.
 
-Card returns move abilities instead of creating deck copies. Finish the played
-card's effects and on-play draws before returning it. The existing visible hand
-and FIFO buffer both accept returned cards. The Returning Flight returns the wearer's first played
-Physical card each player turn after effects and on-play draws (count Physical
-via shared card identity; claim before returning so replaying cannot return
-again; move the actual card, never cycle into the deck). The Returning Gale
-tracks the wearer's last ordinary card play (including non-damaging; automatic
-abilities never replace it) through the enemy turn. On the wearer's Dodge, move
-that exact ability from its deck back to hand via normal card-return rules (do
-nothing if already held/buffered, absent, or unavailable; repeated Dodges create
-no copies). The hand survives into the next player turn (visible or buffered,
-FIFO preserved) through normal turn-start draws. The two card-return signatures
-work together without duplicating the same ability. Existing saved signatures
-resolve to the new rules (Patient Edge held-card/partner-damage fields migrate
-to Block-prepares-Crit; Loyal Companion per-turn fields migrate to heal-draw).
+Card returns move exact physical copies instead of creating copies. Ordinary
+played cards wait in discard until next turn. The Returning Flight returns the
+wearer's first Physical card each player turn after effects and on-play draws;
+claim before returning so replay cannot return again. The Returning Gale tracks
+the last ordinary physical copy, including support cards, through the enemy turn.
+On Dodge it moves that copy from discard or draw pile to hand at most once per
+player-turn cycle. An identical ability held as a different copy does not prevent
+recovery. Already-held, unavailable, or absent copies produce no return. Both
+allowances reset at the next player turn. Hand and FIFO buffer survive turn changes.
+Existing saved signatures resolve these rules without changing item identity.
 
 Everkeen retains one repeat per wearer per player turn but requires a Physical
 Critical Hit (earlier non-Physical Crits never spend the allowance). It reuses
@@ -144,3 +139,17 @@ Battle-local counters and readiness live in BattleEngine's in-memory state.
 Inventory powers persist through the existing save graph; this collection does
 not add a saved-battle schema. Verification ownership and the hand contract live
 in the [BattleEngine guide](../../Packages/BattleEngine/README.md).
+
+## Three-card draw additions
+
+Hidden Cache now reads **Stealing Gold has a 20% chance to draw a card.** It rolls
+once per successful stealing ability, with no combat or turn limit. Zero theft
+and ordinary Gold gains do not qualify. Existing saved Smuggler's Map powers
+normalize to this signature, removing its legacy victory Gold while retaining
+unrelated modifiers and triggers.
+
+Resourceful is an ordinary armor affix at both Basic and Astral tiers: **Draw a
+card when your Block breaks while below half Health.** Enemy attack damage must
+break positive Block; assess the living wearer's Health after damage and lethal
+protection. Decay, voluntary Block spending, and self-damage never qualify. There
+is no chance roll or turn allowance.

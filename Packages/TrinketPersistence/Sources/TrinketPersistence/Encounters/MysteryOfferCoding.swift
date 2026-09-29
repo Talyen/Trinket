@@ -21,11 +21,13 @@ struct MysteryOfferSnapshot: Codable {
     struct StoredOffer: Codable {
         let choiceID: String
         let bonus: MysteryRewardBonus
+        let homesteadReward: HomesteadMysteryReward?
         let item: StoredInventoryItem
 
         init(_ offer: MysteryOffer) {
             choiceID = offer.choiceID
             bonus = offer.bonus
+            homesteadReward = offer.homesteadReward
             item = StoredInventoryItem(offer.item)
         }
 
@@ -39,7 +41,11 @@ struct MysteryOfferSnapshot: Codable {
                       fullOverflowExperience >= experience else { throw MysteryOfferError.invalidSnapshot }
             }
             guard let item = item.resolved() else { return nil }
-            return MysteryOffer(choiceID: choiceID, item: item, bonus: bonus)
+            if let reward = homesteadReward {
+                guard reward.resource == .gold || reward.resource == .gems, reward.amount >= 0,
+                      (0 ... 100).contains(reward.percent) else { throw MysteryOfferError.invalidSnapshot }
+            }
+            return MysteryOffer(choiceID: choiceID, item: item, bonus: bonus, homesteadReward: homesteadReward)
         }
     }
 }

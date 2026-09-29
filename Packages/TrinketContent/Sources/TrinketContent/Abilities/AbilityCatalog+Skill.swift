@@ -12,10 +12,12 @@ public extension AbilityCatalog {
 
     static let bloodOffering = Ability(
         id: "blood-offering", name: "Blood Offering", tier: .skill,
+        description: "Lose 2 Health\nDeal 1 Bleed damage\nDraw a card",
         damageComponents: [
-            DamageComponent(1, keyword: .physical, target: .actor),
-            DamageComponent(3, keyword: .bleed),
+            DamageComponent(2, keyword: .physical, target: .actor),
+            DamageComponent(1, keyword: .bleed),
         ],
+        targetedEffects: [TargetedEffect(.drawCards(1), target: .actor)],
     )
 
     static let bountyShot = Ability(
@@ -52,10 +54,9 @@ public extension AbilityCatalog {
 
     static let coldSnap = Ability(
         id: "cold-snap", name: "Cold Snap", tier: .skill,
+        description: "Deal 1 Freeze damage\nDraw a card if the enemy is Frozen",
         damageComponents: [DamageComponent(1, keyword: .freeze)],
-        targetedEffects: [
-            TargetedEffect(.multiplyControlMeter(.freeze, 2), target: .enemy),
-        ],
+        targetedEffects: [TargetedEffect(.drawCards(1), target: .actor, condition: .enemyFrozen)],
     )
 
     static let darkPact = Ability(
@@ -147,7 +148,7 @@ public extension AbilityCatalog {
 
     static let smite = Ability(
         id: "smite", name: "Smite", tier: .skill,
-        description: "Deal 4 Holy damage\nPurge a positive status effect from the enemy",
+        description: "Deal 4 Holy damage\nPurge a buff from the enemy",
         damageComponents: [DamageComponent(4, keyword: .holy)],
         targetedEffects: [TargetedEffect(.purgeRandom, target: .enemy)],
     )

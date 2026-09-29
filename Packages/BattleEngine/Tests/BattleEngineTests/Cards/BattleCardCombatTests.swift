@@ -25,20 +25,21 @@ struct BattleCardCombatTests {
         )
     }
 
-    @Test func `opening hand draws three cards with hero on left companion on right`() throws {
+    @Test func `opening hand draws three cards in alternating arrival order`() throws {
         let battle = makeBattle(
-            heroAbilities: [.slash, .heal, .smite],
-            companionAbilities: [.bash, .fangs, .bloodthorn],
+            heroAbilities: [.slash, .heal, .avatarOfJustice],
+            companionAbilities: [.bash, .serratedEdge, .bloodthorn],
         )
-        try #expect(battle.hand.count == BattleHand.maxSize)
+        try #expect(battle.hand.count == 3)
         try #expect(battle.hand.buffer.isEmpty)
         try #expect(battle.phase == .playerTurn)
 
         let heroDrawn = battle.hand.cards.count(where: { $0.owner == .hero })
         let companionDrawn = battle.hand.cards.count(where: { $0.owner == .companion })
-        try #expect(heroDrawn + companionDrawn == BattleHand.maxSize)
+        try #expect(heroDrawn == 2)
+        try #expect(companionDrawn == 1)
         try #expect(battle.hand.cards[0].owner == .hero)
-        try #expect(battle.hand.cards[2].owner == .companion)
+        try #expect(battle.hand.cards[1].owner == .companion)
         try #expect(battle.heroDeck.count == CombatDeck.defaultAbilities(from: battle.hero.abilityLoadout).count - heroDrawn)
         try #expect(battle.companionDeck.count == CombatDeck.defaultAbilities(from: battle.companion.abilityLoadout).count - companionDrawn)
     }
@@ -85,16 +86,16 @@ struct BattleCardCombatTests {
         }
         paced.finalizeOpeningHand()
 
-        try #expect(draws == BattleHand.maxSize)
+        try #expect(draws == 3)
         try #expect(paced.hand.cards.map(\.ability.id) == immediate.hand.cards.map(\.ability.id))
         try #expect(paced.hand.cards.map(\.owner) == immediate.hand.cards.map(\.owner))
         try #expect(paced.ownersSkippingThisPlayerTurn == immediate.ownersSkippingThisPlayerTurn)
     }
 
-    @Test func `play puts card on bottom of owner deck`() throws {
+    @Test func `play discards card without making it drawable`() throws {
         var battle = makeBattle(
-            heroAbilities: [.slash, .heal, .smite],
-            companionAbilities: [.bash, .fangs, .bloodthorn],
+            heroAbilities: [.slash, .heal, .avatarOfJustice],
+            companionAbilities: [.bash, .serratedEdge, .bloodthorn],
         )
         battle.hand = BattleHand()
         battle.nextCardID += 1
@@ -105,8 +106,8 @@ struct BattleCardCombatTests {
         _ = try battle.playCard(cardID: card.id)
 
         try #expect(battle.hand.card(id: card.id) == nil)
-        try #expect(battle.heroDeck.count == deckBefore + 1)
-        try #expect(battle.heroDeck.abilities.last?.id == Ability.slash.id)
+        try #expect(battle.heroDeck.count == deckBefore)
+        try #expect(battle.heroDeck.discarded.last?.ability.id == Ability.slash.id)
     }
 
     @Test(arguments: [1, 2, 3])
@@ -140,7 +141,7 @@ struct BattleCardCombatTests {
     @Test func `dark pact draws two cards for owner`() throws {
         var battle = makeBattle(
             heroAbilities: [.darkPact, .slash, .heal, .smite],
-            companionAbilities: [.bash, .fangs, .bloodthorn],
+            companionAbilities: [.bash, .serratedEdge, .bloodthorn],
             enemyMaxHealth: 500,
         )
         battle.heroDeck.putOnBottom(.heal)
@@ -197,8 +198,8 @@ struct BattleCardCombatTests {
 
     @Test func `end turn at full hand draws into buffer`() throws {
         var battle = makeBattle(
-            heroAbilities: [.slash, .heal, .smite],
-            companionAbilities: [.bash, .fangs, .bloodthorn],
+            heroAbilities: [.slash, .heal, .avatarOfJustice],
+            companionAbilities: [.bash, .serratedEdge, .bloodthorn],
             enemyAbilities: [],
             enemyMaxHealth: 500,
         )
@@ -222,8 +223,8 @@ struct BattleCardCombatTests {
 
     @Test func `playing card promotes oldest buffered card FIFO`() throws {
         var battle = makeBattle(
-            heroAbilities: [.slash, .heal, .smite],
-            companionAbilities: [.bash, .fangs, .bloodthorn],
+            heroAbilities: [.slash, .heal, .avatarOfJustice],
+            companionAbilities: [.bash, .serratedEdge, .bloodthorn],
             enemyMaxHealth: 500,
         )
         battle.hand = BattleHand()
@@ -264,36 +265,34 @@ struct BattleCardCombatTests {
         try #expect(battle.hand.cards == [visible])
     }
 
-    @Test func `turn draw draws three cards with hero on left companion on right random in middle`() throws {
+    @Test func `turn draw continues alternating owner sequence`() throws {
         var battle = makeBattle(
-            heroAbilities: [.slash, .heal, .smite],
-            companionAbilities: [.bash, .fangs, .bloodthorn],
+            heroAbilities: [.slash, .heal, .avatarOfJustice],
+            companionAbilities: [.bash, .serratedEdge, .bloodthorn],
             enemyMaxHealth: 500,
         )
         battle.hand = BattleHand()
         _ = battle.endTurn()
 
-        try #expect(battle.hand.count == BattleHand.maxSize)
+        try #expect(battle.hand.count == 3)
         try #expect(battle.hand.buffer.isEmpty)
-        try #expect(battle.hand.cards[0].owner == .hero)
-        try #expect(battle.hand.cards[2].owner == .companion)
-        let middleOwner = try #require(battle.hand.cards[1].owner)
-        try #expect(middleOwner == .hero || middleOwner == .companion)
+        try #expect(battle.hand.cards.map(\.owner) == [.companion, .hero, .companion])
     }
 
-    @Test func `turn draw draws three cards for survivor when one party member is defeated`() throws {
+    @Test func `turn draw schedules three cards for sole survivor`() throws {
         var battle = makeBattle(
-            heroAbilities: [.slash, .heal, .smite],
-            companionAbilities: [.bash, .fangs, .bloodthorn],
+            heroAbilities: [.slash, .heal, .avatarOfJustice],
+            companionAbilities: [.bash, .serratedEdge, .bloodthorn],
             enemyMaxHealth: 500,
         )
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 0 }
         }
         battle.hand = BattleHand()
+        battle.heroDeck = CombatDeck(abilities: [.slash, .heal, .smite])
         _ = battle.endTurn()
 
-        try #expect(battle.hand.count == BattleHand.maxSize)
+        try #expect(battle.hand.count == 3)
         try #expect(battle.hand.cards.allSatisfy { $0.owner == .hero })
     }
 
@@ -334,7 +333,7 @@ struct BattleCardCombatTests {
         try #expect(battle.isCardPlayable(companionCard))
     }
 
-    @Test func `played card returns to deck after effects so draw cannot fetch it`() throws {
+    @Test func `Pack Tactics draws ally card manually and stays discarded`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(
                 id: "hero",
@@ -358,8 +357,9 @@ struct BattleCardCombatTests {
         let packTacticsID = try #require(battle.hand.cards.first?.id)
         let events = try battle.playCard(cardID: packTacticsID)
 
-        try #expect(battle.heroDeck.abilities.last?.id == Ability.packTactics.id)
-        try #expect(events.contains { $0.kind == .abilityDamage && $0.abilityName == Ability.slash.name })
+        try #expect(battle.heroDeck.discarded.last?.ability.id == Ability.packTactics.id)
+        try #expect(!events.contains { $0.kind == .abilityDamage && $0.abilityName == Ability.slash.name })
+        try #expect(battle.hand.cards.contains { $0.ability.id == Ability.slash.id })
         try #expect(events.count(where: { $0.kind == .ability && $0.abilityID == Ability.packTactics.id }) == 1)
         try #expect(battle.resolution.depth(.draw) == 0)
     }
@@ -445,19 +445,10 @@ extension BattleCardCombatTests {
     }
 
     @Test(arguments: [false, true])
-    func `recorded pack tactics preserves nested play and overflow rules`(nested: Bool) throws {
-        var recorded = BattleStateTestFactory.makeBattle(
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
-            dealOpeningHand: false,
-        )
-        let initiating = BattleCardCombatEngine.deal(.packTactics, owner: .hero, context: &recorded)
-        _ = BattleCardCombatEngine.deal(.block, owner: .hero, context: &recorded)
-        _ = BattleCardCombatEngine.deal(.block, owner: .companion, context: &recorded)
-        if nested {
-            _ = BattleCardCombatEngine.deal(.block, owner: .hero, context: &recorded)
-        }
-        recorded.heroDeck = CombatDeck(abilities: [.slash, .block])
-        recorded.companionDeck = CombatDeck(abilities: [nested ? .packTactics : .bash, .block])
+    func `recorded automatic draws preserve nested play and overflow rules`(nested: Bool) throws {
+        let fixture = automaticDrawFixture(nested: nested)
+        var recorded = fixture.state
+        let initiating = fixture.card
         var immediate = recorded
         let startingEventID = recorded.nextEventID
         var checkpoints: [BattleTransitionCheckpoint] = []
@@ -508,6 +499,31 @@ extension BattleCardCombatTests {
         #expect(recorded.rng.next() == immediate.rng.next())
     }
 
+    private func automaticDrawFixture(nested: Bool) -> (state: BattleState, card: BattleCard) {
+        var recorded = BattleStateTestFactory.makeBattle(
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
+            dealOpeningHand: false,
+        )
+        let opening = automaticDraw(target: .companion)
+        let partner = automaticDraw(target: .hero)
+        let initiating = BattleCardCombatEngine.deal(opening, owner: .hero, context: &recorded)
+        _ = BattleCardCombatEngine.deal(.block, owner: .hero, context: &recorded)
+        _ = BattleCardCombatEngine.deal(.block, owner: .companion, context: &recorded)
+        if nested {
+            _ = BattleCardCombatEngine.deal(.block, owner: .hero, context: &recorded)
+        }
+        recorded.heroDeck = CombatDeck(abilities: [.slash, .block])
+        recorded.companionDeck = CombatDeck(abilities: [nested ? partner : .bash, .block])
+        return (recorded, initiating)
+    }
+
+    private func automaticDraw(target: EffectTarget) -> Ability {
+        Ability(
+            id: "automatic-\(target)", name: "Automatic Draw", tier: .ultimate,
+            directDamage: 3, targetedEffects: [TargetedEffect(.drawAndPlayCards(1), target: target)],
+        )
+    }
+
     private func assertResolvedAttacks(_ actions: [BattleResolvedAction], playedIDs: [Int], events: [ActionEvent]) {
         #expect(Set(events.map(\.id)).count == events.count)
         #expect(Set(playedIDs).count == playedIDs.count)
@@ -526,7 +542,7 @@ extension BattleCardCombatTests {
     }
 
     @Test(arguments: [BattleParticipant.hero, .companion])
-    func `pack tactics hits first then plays exactly one ally card`(owner: BattleParticipant) throws {
+    func `pack tactics hits first then draws one manual ally card`(owner: BattleParticipant) throws {
         var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000), dealOpeningHand: false,
         )
@@ -537,15 +553,15 @@ extension BattleCardCombatTests {
         let events = try battle.playCard(cardID: card.id)
         let hit = try #require(events.firstIndex { $0.kind == .abilityDamage && $0.abilityID == Ability.packTactics.id })
         #expect(events[hit].amount == 3)
-        let follows = events.indices.filter { events[$0].kind == .ability && events[$0].abilityID == Ability.block.id }
-        #expect(follows.count == 1)
-        let follow = try #require(follows.first)
-        #expect(hit < follow)
-        let ally = owner == .hero ? battle.companion : battle.hero
-        #expect(events[follow].actorID == ally.id)
+        let draw = try #require(events.firstIndex { $0.effectKind == .cardsDrawn })
+        #expect(hit < draw)
+        #expect(!events.contains { $0.kind == .ability && $0.abilityID == Ability.block.id })
+        let ally: BattleParticipant = owner == .hero ? .companion : .hero
+        #expect(battle.hand.cards.first?.owner == ally)
+        #expect(battle.hand.cards.first?.ability.id == Ability.block.id)
     }
 
-    @Test func `pack tactics draws one card from survivor deck`() throws {
+    @Test func `pack tactics draws one manual card from survivor deck`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         battle.appliesFightPacing = false
         battle.roster.companion.currentHealth = 0
@@ -553,8 +569,9 @@ extension BattleCardCombatTests {
         battle.companionDeck = CombatDeck(abilities: [.slash])
         let card = BattleCardCombatEngine.deal(.packTactics, owner: .hero, context: &battle)
         let events = try BattleCardCombatEngine.playDrawnCard(card, context: &battle)
-        #expect(events.count { $0.kind == .ability && $0.abilityID == Ability.block.id } == 1)
-        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 3)
-        #expect(!events.contains { $0.kind == .ability && $0.actorID == battle.companion.id })
+        #expect(!events.contains { $0.kind == .ability && $0.abilityID == Ability.block.id })
+        #expect(battle.hand.cards.map(\.ability.id) == [Ability.block.id])
+        #expect(battle.hand.cards.first?.owner == .hero)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 0)
     }
 }

@@ -5,7 +5,7 @@ import TrinketCore
 enum ItemAffixCatalogGenerated {
     static let definitions: [ItemAffixDefinition] = {
         var list = [ItemAffixDefinition]()
-        list.reserveCapacity(117)
+        list.reserveCapacity(118)
         list.append(contentsOf: chunk0())
         list.append(contentsOf: chunk1())
         list.append(contentsOf: chunk2())
@@ -449,8 +449,8 @@ enum ItemAffixCatalogGenerated {
             slot: .accessory,
             keywords: [.holy, .cleanse],
             weight: 8,
-            basic: ItemAffixPower(description: "Cleanse 1 status effect when you deal Holy damage.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamageCleanseCount: 1))),
-            astral: ItemAffixPower(description: "Cleanse 1 status effect when you deal Holy damage.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamageCleanseCount: 1)))
+            basic: ItemAffixPower(description: "Cleanse a debuff when you deal Holy damage.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamageCleanseCount: 1))),
+            astral: ItemAffixPower(description: "Cleanse a debuff when you deal Holy damage.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamageCleanseCount: 1)))
         ),
         ItemAffixCatalog.affix(
             id: "beacon",
@@ -562,8 +562,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.purge, .holy],
             weight: 8,
-            basic: ItemAffixPower(description: "Purge 1 status effect when you deal Holy damage.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamagePurgeCount: 1))),
-            astral: ItemAffixPower(description: "Purge 1 status effect when you deal Holy damage.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamagePurgeCount: 1)))
+            basic: ItemAffixPower(description: "Purge a buff when you deal Holy damage.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamagePurgeCount: 1))),
+            astral: ItemAffixPower(description: "Purge a buff when you deal Holy damage.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamagePurgeCount: 1)))
         ),
         ItemAffixCatalog.affix(
             id: "disrupting",
@@ -571,8 +571,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.purge, .stun],
             weight: 8,
-            basic: ItemAffixPower(description: "Purge 1 status effect when you Stun the enemy.", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers(enemyStunnedPurgeCount: 1))),
-            astral: ItemAffixPower(description: "Purge all status effects when you Stun the enemy.", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers(enemyStunnedPurgeAll: true)))
+            basic: ItemAffixPower(description: "Purge a buff when you Stun the enemy.", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers(enemyStunnedPurgeCount: 1))),
+            astral: ItemAffixPower(description: "Purge all buffs when you Stun the enemy.", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers(enemyStunnedPurgeAll: true)))
         ),
         ItemAffixCatalog.affix(
             id: "unmaking",
@@ -580,8 +580,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.purge, .physical],
             weight: 8,
-            basic: ItemAffixPower(description: "Purge 1 status effect from the enemy when you Critically Hit.", modifiers: [], triggers: CombatTraitTriggers(attack: AttackTriggers(criticalPurgeCount: 1))),
-            astral: ItemAffixPower(description: "Purge all status effects from the enemy when you Critically Hit.", modifiers: [], triggers: CombatTraitTriggers(attack: AttackTriggers(criticalPurgeAll: true)))
+            basic: ItemAffixPower(description: "Purge a buff from the enemy when you Critically Hit.", modifiers: [], triggers: CombatTraitTriggers(attack: AttackTriggers(criticalPurgeCount: 1))),
+            astral: ItemAffixPower(description: "Purge all buffs from the enemy when you Critically Hit.", modifiers: [], triggers: CombatTraitTriggers(attack: AttackTriggers(criticalPurgeAll: true)))
         ),
         ItemAffixCatalog.affix(
             id: "siphoning",
@@ -824,8 +824,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.holy, .health],
             weight: 1,
-            basic: ItemAffixPower(description: "Restore 3 Health when you remove a harmful status effect.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(cleanseSelfHeal: 3))),
-            astral: ItemAffixPower(description: "Restore 3 Health when you remove a harmful status effect.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(cleanseSelfHeal: 3)))
+            basic: ItemAffixPower(description: "Restore 3 Health when you remove a debuff.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(cleanseSelfHeal: 3))),
+            astral: ItemAffixPower(description: "Restore 3 Health when you remove a debuff.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(cleanseSelfHeal: 3)))
         ),
         ItemAffixCatalog.affix(
             id: "smugglers_map",
@@ -833,8 +833,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.gold],
             weight: 1,
-            basic: ItemAffixPower(description: "Gain 4 additional Gold on victory.", modifiers: [], triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldFlat: 4))),
-            astral: ItemAffixPower(description: "Gain 4 additional Gold on victory.", modifiers: [], triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldFlat: 4)))
+            basic: ItemAffixPower(description: "Stealing Gold has a 20% chance\nto draw a card.", modifiers: [], triggers: CombatTraitTriggers(gold: GoldTriggers(goldTheftDrawChancePercent: 0.20))),
+            astral: ItemAffixPower(description: "Stealing Gold has a 20% chance\nto draw a card.", modifiers: [], triggers: CombatTraitTriggers(gold: GoldTriggers(goldTheftDrawChancePercent: 0.20)))
         ),
         ItemAffixCatalog.affix(
             id: "sundering_charm",
@@ -937,8 +937,8 @@ enum ItemAffixCatalogGenerated {
             slot: .accessory,
             keywords: [.cleanse, .block],
             weight: 8,
-            basic: ItemAffixPower(description: "Gain 2 Block when you Cleanse a status effect.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseSelfBlockFlat: 2))),
-            astral: ItemAffixPower(description: "Gain 4 Block when you Cleanse a status effect.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseSelfBlockFlat: 4)))
+            basic: ItemAffixPower(description: "Gain 2 Block when you Cleanse a debuff.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseSelfBlockFlat: 2))),
+            astral: ItemAffixPower(description: "Gain 4 Block when you Cleanse a debuff.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseSelfBlockFlat: 4)))
         ),
         ItemAffixCatalog.affix(
             id: "restorative",
@@ -946,8 +946,8 @@ enum ItemAffixCatalogGenerated {
             slot: .accessory,
             keywords: [.cleanse, .health],
             weight: 8,
-            basic: ItemAffixPower(description: "Restoring Health has a 10% chance to Cleanse 1 status effect from the target.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(onHealCleanseTargetChance: 0.10))),
-            astral: ItemAffixPower(description: "Restoring Health has a 20% chance to Cleanse 1 status effect from the target.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(onHealCleanseTargetChance: 0.20)))
+            basic: ItemAffixPower(description: "Restoring Health has a 10% chance to Cleanse a debuff from the target.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(onHealCleanseTargetChance: 0.10))),
+            astral: ItemAffixPower(description: "Restoring Health has a 20% chance to Cleanse a debuff from the target.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(onHealCleanseTargetChance: 0.20)))
         ),
         ItemAffixCatalog.affix(
             id: "solace",
@@ -955,8 +955,8 @@ enum ItemAffixCatalogGenerated {
             slot: .accessory,
             keywords: [.cleanse, .mana],
             weight: 8,
-            basic: ItemAffixPower(description: "Gain 1 Mana when you Cleanse a status effect.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(onCleanseRestoreMana: 1))),
-            astral: ItemAffixPower(description: "Gain 2 Mana when you Cleanse a status effect.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(onCleanseRestoreMana: 2)))
+            basic: ItemAffixPower(description: "Gain 1 Mana when you Cleanse a debuff.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(onCleanseRestoreMana: 1))),
+            astral: ItemAffixPower(description: "Gain 2 Mana when you Cleanse a debuff.", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers(onCleanseRestoreMana: 2)))
         ),
         ItemAffixCatalog.affix(
             id: "spellrending",
@@ -964,8 +964,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.purge, .mana],
             weight: 8,
-            basic: ItemAffixPower(description: "Purge 1 status effect from the enemy when you empower a card with Mana.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(manaEmpowerPurgeCount: 1))),
-            astral: ItemAffixPower(description: "Purge 2 status effects from the enemy when you empower a card with Mana.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(manaEmpowerPurgeCount: 2)))
+            basic: ItemAffixPower(description: "Purge a buff from the enemy when you empower a card with Mana.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(manaEmpowerPurgeCount: 1))),
+            astral: ItemAffixPower(description: "Purge 2 buffs from the enemy when you empower a card with Mana.", modifiers: [], triggers: CombatTraitTriggers(mana: ManaTriggers(manaEmpowerPurgeCount: 2)))
         ),
         ItemAffixCatalog.affix(
             id: "unraveling",
@@ -1106,6 +1106,15 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Stunned enemies take 25% more Holy damage", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(holyDamageVsStunnedPercent: 0.25))),
             astral: ItemAffixPower(description: "Stunned enemies take 35% more Holy damage", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(holyDamageVsStunnedPercent: 0.35)))
+        ),
+        ItemAffixCatalog.affix(
+            id: "resourceful",
+            title: "Resourceful",
+            slot: .armor,
+            keywords: [.block, .health],
+            weight: 8,
+            basic: ItemAffixPower(description: "Draw a card when your Block breaks\nwhile below half Health.", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers(blockBreakDrawBelowHalf: true))),
+            astral: ItemAffixPower(description: "Draw a card when your Block breaks\nwhile below half Health.", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers(blockBreakDrawBelowHalf: true)))
         )
         ]
     }

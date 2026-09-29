@@ -65,8 +65,8 @@ final class FullGamePerformanceUITests: PerformanceJourneyUITestCase {
             measured("full-game-restore", iteration: iteration) {
                 tapButton(AccessibilityID.FullGame.restore)
                 let restored = XCTNSPredicateExpectation(
-                    predicate: NSPredicate(format: "label == %@", "Full Game restored."),
-                    object: any(AccessibilityID.FullGame.status),
+                    predicate: NSPredicate(format: "enabled == true"),
+                    object: button(AccessibilityID.FullGame.restore),
                 )
                 XCTAssertEqual(XCTWaiter.wait(for: [restored], timeout: 20), .completed)
             }

@@ -48,20 +48,17 @@ Autoplay keeps its sequenced combat feedback.
 
 ## Automatic cards stay full-size
 
-Pack Tactics and other automatic effects still visibly draw and play real-sized
-cards. Each automatic card sweeps in from its owner's side, reveals its full
-artwork above the hand, then casts and dissolves. Entrances and departures may
-overlap. These cards do not enter the interactive hand just for presentation,
-change its spacing, or become floating text or thumbnails. The hand stays in
-front wherever they overlap.
+Effects that automatically draw and play cards still show full-sized artwork above
+the hand before casting. They do not enter the interactive hand for presentation.
+Automatic chains finish in the engine before the next manual card, without waiting
+for their visuals.
 
-Pack Tactics reads: **Deal 3 Physical damage. Draw and play 1 card from your
-ally's deck.** Its opening hit happens first; the ally supplies the follow-up.
-Use the caster's deck if the ally is defeated, unable to play, or has no card
-available. Other automatic-play abilities retain their existing combat rules.
-
-The whole automatic chain resolves before the next manual card, even when its
-visuals are still playing. The player never waits for that visual sequence.
+Pack Tactics and Shadowstep instead draw playable cards into the hand. Pack Tactics
+reads: **Deal 3 Physical damage. Draw a card from your ally's deck.** Its opening
+hit happens first; normal ally-deck fallback rules apply. Shadowstep reads:
+**Draw a card. Dodge the next attack against you.** Neither casts its drawn card.
+New and returned cards preserve arrival order and immediate interaction while
+joining the hand, with the ordinary three-card fan and FIFO overflow promotion.
 
 ## Turns and battlefield effects
 

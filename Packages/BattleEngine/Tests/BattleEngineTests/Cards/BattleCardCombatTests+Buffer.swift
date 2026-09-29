@@ -60,6 +60,6 @@ extension BattleCardCombatTests {
 
         #expect(battle.hand.cards.map(\.id) == [2, 3, waiting.id])
         #expect(battle.hand.buffer.map(\.ability.id) == [Ability.apple.id])
-        #expect(battle.heroDeck.abilities.map(\.id) == [Ability.darkPact.id])
+        #expect(battle.heroDeck.discarded.map(\.ability.id) == [Ability.darkPact.id])
     }
 }

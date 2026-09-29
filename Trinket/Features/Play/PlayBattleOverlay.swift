@@ -120,7 +120,7 @@ struct PlaySessionPresentationModifier: ViewModifier {
                         .trinketDetailSheet()
                 },
             )
-            .trinketMessageAlert($stageMessage)
+            .trinketPlayActionResult($stageMessage)
     }
 }
 

@@ -8,6 +8,11 @@ final class BattleFlowUITests: TrinketUITestCase {
         let cards = battle.handCards
         let inspectedCard = cards.firstMatch
         XCTAssertTrue(inspectedCard.trinketWaitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertEqual(cards.count, 3, "The opening turn must show three playable cards")
+        let opening = XCTAttachment(screenshot: app.screenshot())
+        opening.name = "Three-card opening hand"
+        opening.lifetime = .keepAlways
+        add(opening)
         let inspectCountBefore = cards.count
         inspectedCard.press(forDuration: 0.7)
         assertExists(AccessibilityID.Battle.abilityDetail)
@@ -27,9 +32,10 @@ final class BattleFlowUITests: TrinketUITestCase {
         combatantDetail.assertLoaded(for: "Knight")
         dismissSheet()
 
+        let tapCountBefore = cards.count
         inspectedCard.tap()
         XCTAssertTrue(
-            waitForCardCount(cards, droppingFrom: inspectCountBefore),
+            waitForCardCount(cards, droppingFrom: tapCountBefore),
             "The first tap after dismissing ability details must play the card",
         )
 
@@ -46,14 +52,17 @@ final class BattleFlowUITests: TrinketUITestCase {
             waitForCardCount(cards, droppingFrom: dragCountBefore),
             "A successful drag play must remove one card",
         )
+    }
 
-        let autoCountBefore = cards.count
+    func testAutoBattlePlaysFromThreeCardOpening() {
+        launchMidBattleAndStart()
+        let cards = battle.handCards
+        XCTAssertEqual(cards.count, 3)
         tapWhenReady(battle.autoBattleToggle)
-        XCTAssertTrue(
-            waitForCardCountBelow(cards, autoCountBefore),
-            "Auto Battle must reduce the hand",
-        )
-        tapWhenReady(battle.autoBattleToggle)
+        XCTAssertTrue(waitForCardCountBelow(cards, 3), "Auto Battle must play from the opening hand")
+        if battle.autoBattleToggle.exists {
+            tapWhenReady(battle.autoBattleToggle)
+        }
     }
 
     private func launchMidBattleAndStart() {

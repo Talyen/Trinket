@@ -177,12 +177,12 @@ struct HomesteadPresentationTests {
         let alchemy = try #require(GameContent.homesteadNode(matching: .alchemyLab))
         let alchemyTier = try #require(alchemy.tier(3))
         let alchemyEffects = HomesteadEffectLine.lines(for: alchemyTier)
-        #expect(alchemyEffects.map(\.displayValue) == ["+3", "+3"])
+        #expect(alchemyEffects.map(\.displayValue) == ["+20%", "+3"])
 
         let mycology = try #require(GameContent.homesteadNode(matching: .mycologyCellar))
         let mycologyTier = try #require(mycology.tier(3))
         let mycologyEffects = HomesteadEffectLine.lines(for: mycologyTier)
-        #expect(mycologyEffects.map(\.displayValue) == ["+3", "+3"])
+        #expect(mycologyEffects.map(\.displayValue) == ["+15%", "+3"])
     }
 
     @Test func `every affix modifier renders a labeled effect line`() {

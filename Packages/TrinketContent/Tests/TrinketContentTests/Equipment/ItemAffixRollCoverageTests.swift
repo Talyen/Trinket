@@ -68,6 +68,37 @@ struct ItemAffixRollCoverageTests {
         #expect(max.isAtOrAboveRollMax(of: power))
     }
 
+    @Test(arguments: ["absolving", "nullifying", "disrupting", "unmaking", "spellrending"])
+    func `single status removal displays plural count at roll max`(id: String) throws {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: id))
+        let noun = id == "absolving" ? "debuff" : "buff"
+        #expect(definition.basic.description.contains("a \(noun)"))
+        #expect(definition.basic.rolledMax().description.contains("2 \(noun)s"))
+        #expect(definition.basic.scaled(by: 3).description.contains("3 \(noun)s"))
+    }
+
+    @Test func `status removal bump restores singular wording`() throws {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: "nullifying"))
+        let target = try #require(definition.basic.bumpCandidates(direction: .up).first)
+        let increased = definition.basic.bumped(target: target, direction: .up)
+        #expect(increased.triggers.holyDamagePurgeCount == 2)
+        #expect(increased.description == "Purge 2 buffs when you deal Holy damage.")
+        let decreased = increased.bumped(target: target, direction: .down)
+        #expect(decreased == definition.basic)
+    }
+
+    @Test func `status quantity follows earlier modifier magnitude`() {
+        let power = ItemAffixPower(
+            description: "Gain 1 Block and Purge a buff.",
+            modifiers: [.blockGained(1)],
+            triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamagePurgeCount: 1)),
+        )
+        let max = power.rolledMax()
+        #expect(max.modifiers == [.blockGained(2)])
+        #expect(max.triggers.holyDamagePurgeCount == 2)
+        #expect(max.description == "Gain 2 Block and Purge 2 buffs.")
+    }
+
     @Test func `sundering charm stays frozen to match its wording`() throws {
         let sundering = try #require(GameContent.itemAffixDefinition(matching: "sundering_charm"))
         #expect(!sundering.basic.hasRollableMagnitudes)

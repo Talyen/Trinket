@@ -300,6 +300,8 @@ struct ManaEmpowermentTests {
             heroMaxMana: 5,
             heroMana: 5,
         )
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .manaShield, owner: .hero))
         let kindling = try #require(battle.hand.cards.first { $0.ability.id == Ability.kindling.id })
         _ = try battle.playCard(cardID: kindling.id)
         try #expect(battle.mana(of: battle.hero) == 2)

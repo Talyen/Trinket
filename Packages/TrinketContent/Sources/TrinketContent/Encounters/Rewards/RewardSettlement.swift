@@ -7,6 +7,7 @@ public struct RewardSettlementInputs: Equatable, Sendable {
     public let goldLimit: Int
     public let heroProgression: CombatantProgression
     public let companionProgression: CombatantProgression
+    public let rewardRemainders: HomesteadRewardRemainders
     public let productionDate: Date
 
     public var goldCapacity: Int {
@@ -19,6 +20,7 @@ public struct RewardSettlementInputs: Equatable, Sendable {
         gold: Int, reservedGold: Int, goldLimit: Int,
         heroProgression: CombatantProgression, companionProgression: CombatantProgression,
         productionDate: Date,
+        rewardRemainders: HomesteadRewardRemainders = .zero,
     ) {
         self.gold = gold
         self.reservedGold = reservedGold
@@ -26,6 +28,7 @@ public struct RewardSettlementInputs: Equatable, Sendable {
         self.heroProgression = heroProgression
         self.companionProgression = companionProgression
         self.productionDate = productionDate
+        self.rewardRemainders = rewardRemainders
     }
 }
 

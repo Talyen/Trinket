@@ -11,55 +11,103 @@ public struct BattleCard: Identifiable, Hashable, Sendable {
     public let id: Int
     public let ability: Ability
     public let owner: BattleParticipant
+    package let deckCopyID: Int
 
     public init(id: Int, ability: Ability, owner: BattleParticipant) {
         self.id = id
         self.ability = ability
         self.owner = owner
+        deckCopyID = id
+    }
+
+    package init(id: Int, ability: Ability, owner: BattleParticipant, deckCopyID: Int) {
+        self.id = id
+        self.ability = ability
+        self.owner = owner
+        self.deckCopyID = deckCopyID
     }
 }
 
 public struct OpeningHandDraw: Hashable, Sendable {
     public let owner: BattleParticipant
-    public let tier: AbilityTier
+    public let tier: AbilityTier?
 
-    public init(owner: BattleParticipant, tier: AbilityTier) {
+    public init(owner: BattleParticipant, tier: AbilityTier? = nil) {
         self.owner = owner
         self.tier = tier
     }
 }
 
 public struct CombatDeck: Hashable, Sendable {
-    public private(set) var abilities: [Ability]
+    package struct Entry: Hashable, Sendable {
+        let ability: Ability
+        let copyID: Int?
+    }
+
+    private var drawPile: [Entry]
+    package private(set) var discarded: [Entry] = []
+
+    public var abilities: [Ability] {
+        drawPile.map(\.ability)
+    }
 
     public init(abilities: [Ability] = []) {
-        self.abilities = abilities
+        drawPile = abilities.map { Entry(ability: $0, copyID: nil) }
     }
 
     public var isEmpty: Bool {
-        abilities.isEmpty
+        drawPile.isEmpty
     }
 
     public var count: Int {
-        abilities.count
+        drawPile.count
     }
 
     public mutating func draw() -> Ability? {
-        guard !abilities.isEmpty else { return nil }
-        return abilities.removeFirst()
+        drawEntry()?.ability
     }
 
     public mutating func drawFirst(where predicate: (Ability) -> Bool) -> Ability? {
-        guard let index = abilities.firstIndex(where: predicate) else { return nil }
-        return abilities.remove(at: index)
+        drawFirstEntry(where: predicate)?.ability
+    }
+
+    package mutating func drawEntry() -> Entry? {
+        guard !drawPile.isEmpty else { return nil }
+        return drawPile.removeFirst()
+    }
+
+    package mutating func drawFirstEntry(where predicate: (Ability) -> Bool) -> Entry? {
+        guard let index = drawPile.firstIndex(where: { predicate($0.ability) }) else { return nil }
+        return drawPile.remove(at: index)
     }
 
     public mutating func putOnBottom(_ ability: Ability) {
-        abilities.append(ability)
+        drawPile.append(Entry(ability: ability, copyID: nil))
     }
 
-    public static let standardBasicsCount = 3
-    public static let standardSkillsCount = 2
+    package mutating func putOnBottom(_ card: BattleCard) {
+        drawPile.append(Entry(ability: card.ability, copyID: card.deckCopyID))
+    }
+
+    package mutating func discard(_ card: BattleCard) {
+        discarded.append(Entry(ability: card.ability, copyID: card.deckCopyID))
+    }
+
+    package mutating func recycleDiscards() {
+        drawPile.append(contentsOf: discarded)
+        discarded.removeAll(keepingCapacity: true)
+    }
+
+    package mutating func recover(copyID: Int) -> Entry? {
+        if let index = discarded.firstIndex(where: { $0.copyID == copyID }) {
+            return discarded.remove(at: index)
+        }
+        guard let index = drawPile.firstIndex(where: { $0.copyID == copyID }) else { return nil }
+        return drawPile.remove(at: index)
+    }
+
+    public static let standardBasicsCount = 1
+    public static let standardSkillsCount = 1
     public static let standardUltimatesCount = 1
 
     public static func defaultAbilities(from loadout: AbilityLoadout) -> [Ability] {
@@ -211,13 +259,6 @@ public struct BattleHand: Hashable, Sendable {
 
     public var isFull: Bool {
         cards.count >= Self.maxSize
-    }
-
-    public mutating func arrangeByParticipantOrder() {
-        let heroCards = cards.filter { $0.owner == .hero }
-        let companionCards = cards.filter { $0.owner == .companion }
-        let otherCards = cards.filter { $0.owner != .hero && $0.owner != .companion }
-        cards = heroCards + otherCards + companionCards
     }
 }
 

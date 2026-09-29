@@ -13,7 +13,8 @@ package enum BattleCardCombatEngine {
             rng: &context.rng,
         )
         context.hand = BattleHand()
-        context.openingHandDealPlan = makeOpeningHandDealPlan(in: context)
+        context.nextScheduledDrawOwner = .hero
+        context.openingHandDealPlan = makeOpeningHandDealPlan(in: &context)
         context.phase = .playerTurn
         context.ownersSkippingThisPlayerTurn = []
     }
@@ -38,28 +39,20 @@ package enum BattleCardCombatEngine {
 
     @discardableResult
     package static func drawNextOpeningHandCard(context: inout BattleState) -> Bool {
-        guard context.hand.count < BattleHand.maxSize else { return false }
-
         while !context.openingHandDealPlan.isEmpty {
             let slot = context.openingHandDealPlan.removeFirst()
-            if dealCard(matching: slot.tier, owner: slot.owner, context: &context) != nil {
+            let card = if let tier = slot.tier {
+                dealCard(matching: tier, owner: slot.owner, context: &context)
+                    ?? drawOne(for: slot.owner, context: &context)
+            } else {
+                drawOne(for: slot.owner, context: &context)
+            }
+            if card != nil {
                 return true
             }
         }
 
-        let eligible = [BattleParticipant.hero, .companion].filter { owner in
-            context.roster[owner].isAlive
-                && !isDeckDrawBlocked(for: owner, in: context)
-                && !deck(for: owner, in: context).isEmpty
-        }
-        guard !eligible.isEmpty else { return false }
-        // Rechecked (not redundant with the entry guard): the deal-plan loop
-        // above deals via deal(), which appends unconditionally, so the hand
-        // may have filled since entry.
-        guard context.hand.count < BattleHand.maxSize else { return false }
-        // Single eligible owner skips the random pick so survivor draws don't advance the RNG stream.
-        guard let owner = eligible.count == 1 ? eligible.first : eligible.randomElement(using: &context.rng) else { return false }
-        return drawOne(for: owner, context: &context) != nil
+        return false
     }
 
     @discardableResult
@@ -73,7 +66,6 @@ package enum BattleCardCombatEngine {
     static func finishPlayerTurnStart(context: inout BattleState) -> [ActionEvent] {
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
-        context.hand.arrangeByParticipantOrder()
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         let events = context.appendDefeatMilestonesIfNeeded()
         context.phase = context.isBattleOver ? .ended : .playerTurn
@@ -272,7 +264,7 @@ package enum BattleCardCombatEngine {
 
     @discardableResult
     static func drawOne(for owner: BattleParticipant, context: inout BattleState) -> BattleCard? {
-        drawSelecting(for: owner, context: &context) { $0.draw() }
+        drawSelecting(for: owner, context: &context) { $0.drawEntry() }
     }
 
     static func drawFirstCard(
@@ -280,23 +272,23 @@ package enum BattleCardCombatEngine {
         for owner: BattleParticipant,
         context: inout BattleState,
     ) -> BattleCard? {
-        drawSelecting(for: owner, context: &context) { $0.drawFirst(where: { $0.keywords.contains(keyword) }) }
+        drawSelecting(for: owner, context: &context) { $0.drawFirstEntry(where: { $0.keywords.contains(keyword) }) }
     }
 
     /// Shared guard, deck selection, and deal for every deck-draw path.
     static func drawSelecting(
         for owner: BattleParticipant,
         context: inout BattleState,
-        select: (inout CombatDeck) -> Ability?,
+        select: (inout CombatDeck) -> CombatDeck.Entry?,
     ) -> BattleCard? {
         guard canDrawFromDeck(for: owner, in: context) else { return nil }
-        let ability: Ability? = switch owner {
+        let entry: CombatDeck.Entry? = switch owner {
         case .hero: select(&context.heroDeck)
         case .companion: select(&context.companionDeck)
         case .enemy: nil
         }
-        guard let ability else { return nil }
-        return deal(ability, owner: owner, context: &context)
+        guard let entry else { return nil }
+        return deal(entry, owner: owner, context: &context)
     }
 
     static func canDrawFromDeck(for owner: BattleParticipant, in context: BattleState) -> Bool {
@@ -319,18 +311,6 @@ package enum BattleCardCombatEngine {
         case .enemy: CombatDeck()
         }
     }
-
-    static func putAbilityOnBottom(
-        _ ability: Ability,
-        owner: BattleParticipant,
-        context: inout BattleState,
-    ) {
-        switch owner {
-        case .hero: context.heroDeck.putOnBottom(ability)
-        case .companion: context.companionDeck.putOnBottom(ability)
-        case .enemy: return
-        }
-    }
 }
 
 // MARK: - Hand maintenance
@@ -346,7 +326,7 @@ extension BattleCardCombatEngine {
 
         let removed = context.hand.removeAll { $0.owner == owner }
         for card in removed {
-            putAbilityOnBottom(card.ability, owner: owner, context: &context)
+            putCardOnBottom(card, context: &context)
         }
         promoteFromBuffer(context: &context)
     }
@@ -356,7 +336,7 @@ extension BattleCardCombatEngine {
 
         let removed = context.hand.removeAll { !context.roster[$0.owner].isAlive }
         for card in removed {
-            putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
+            putCardOnBottom(card, context: &context)
         }
     }
 
@@ -364,7 +344,7 @@ extension BattleCardCombatEngine {
         let isAlive: (BattleParticipant) -> Bool = { context.roster[$0].isAlive }
         let discarded = context.hand.promoteFromBuffer(isOwnerAlive: isAlive)
         for card in discarded {
-            putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
+            putCardOnBottom(card, context: &context)
         }
     }
 }

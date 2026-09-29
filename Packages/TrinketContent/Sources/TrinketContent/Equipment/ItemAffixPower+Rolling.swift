@@ -200,6 +200,7 @@ public extension ItemAffixPower {
     ) -> String {
         let oldText = isPercent ? "\(Int((old * 100).rounded()))%" : "\(Int(old.rounded()))"
         let newText = isPercent ? "\(Int((new * 100).rounded()))%" : "\(Int(new.rounded()))"
+        var magnitudeRange: Range<String.Index>?
         var searchStart = description.startIndex
         while let range = description.range(of: oldText, range: searchStart ..< description.endIndex) {
             let hasDigitBefore = range.lowerBound > description.startIndex
@@ -209,9 +210,27 @@ public extension ItemAffixPower {
             let trailingText = description[range.upperBound...]
             let isHealthThreshold = isPercent && trailingText.hasPrefix(" Health")
             if !hasDigitBefore, !hasDigitAfter, !isHealthThreshold {
-                return description.replacingCharacters(in: range, with: newText)
+                magnitudeRange = range
+                break
             }
             searchStart = range.upperBound
+        }
+        if !isPercent {
+            let quantity = old == 1 ? "(?:a|1)" : oldText
+            let suffix = old == 1 ? "" : "s"
+            let statusRange = description.range(
+                of: "\\b\(quantity) (?:buff|debuff)\(suffix)\\b",
+                options: .regularExpression,
+            )
+            // Preserve magnitude order while treating "a buff" as a count of one.
+            if let statusRange, magnitudeRange.map({ statusRange.lowerBound <= $0.lowerBound }) ?? true {
+                let noun = description[statusRange].contains("debuff") ? "debuff" : "buff"
+                let replacement = new == 1 ? "a \(noun)" : "\(newText) \(noun)s"
+                return description.replacingCharacters(in: statusRange, with: replacement)
+            }
+        }
+        if let magnitudeRange {
+            return description.replacingCharacters(in: magnitudeRange, with: newText)
         }
         return description
     }

@@ -21,15 +21,6 @@ struct OptionsView: View {
         @Bindable var options = optionsStore
 
         Form {
-            if let message = appState.persistenceStatusMessage {
-                Section("Progress Status") {
-                    Label(message, systemImage: "externaldrive.badge.exclamationmark")
-                        .trinketTypography(.secondaryBody)
-                        .foregroundStyle(TrinketDesign.Colors.destructive)
-                        .accessibilityIdentifier(AccessibilityID.Options.progressStatusMessage)
-                }
-            }
-
             Section("Audio") {
                 VolumeOptionRow(
                     title: "Music",
@@ -96,31 +87,6 @@ struct OptionsView: View {
         .navigationTitle("Options")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier(AccessibilityID.Screen.options)
-        .alert(
-            "Reset Game Progress?",
-            isPresented: $isResetConfirmationPresented,
-        ) {
-            Button("Reset Game Progress", role: .destructive) {
-                if !appState.resetGameplayProgress() {
-                    appState.playerSave.retrySaveAction(key: "reset-progress") {
-                        _ = appState.resetGameplayProgress()
-                    }
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-                .accessibilityIdentifier(AccessibilityID.Options.resetProgressCancel)
-        } message: {
-            Text(
-                appState.playerSave.resetAffectsCloudProgress ? """
-                This permanently clears your game progress on this device and your synced devices when iCloud is available. \
-                You'll choose a new starter Hero again. Options settings and Full Game ownership are kept.
-                """ : """
-                This permanently clears your Campaign stages, Explore runs, Heroes and Companions, \
-                Items, and Homestead upgrades on this device. You'll choose a new starter Hero again. \
-                Options settings are kept.
-                """,
-            )
-        }
         .disabled(appState.playerSave.isRetryingSaveAction)
     }
 
@@ -137,18 +103,19 @@ struct OptionsView: View {
                     .trinketTypography(.body)
                     .accessibilityIdentifier(AccessibilityID.FullGame.options)
             }
-            Button(fullGame.isRestoring ? "Restoring…" : "Restore Purchases") {
+            Button {
                 Task { await fullGame.restore() }
+            } label: {
+                HStack {
+                    if fullGame.isRestoring {
+                        ProgressView()
+                    }
+                    Text("Restore Purchases")
+                }
             }
             .trinketTypography(.body)
             .disabled(fullGame.isRestoring || fullGame.isPurchasing)
             .accessibilityIdentifier(AccessibilityID.FullGame.restore)
-            if let message = fullGame.message {
-                Text(message)
-                    .trinketTypography(.caption)
-                    .foregroundStyle(.secondary)
-                    .accessibilityIdentifier(AccessibilityID.FullGame.status)
-            }
         }
     }
 
@@ -165,10 +132,36 @@ struct OptionsView: View {
     @ViewBuilder
     private var gameDataSection: some View {
         Section("Game Data") {
-            Button("Reset Game Progress", role: .destructive) {
-                isResetConfirmationPresented = true
+            if isResetConfirmationPresented {
+                Text(
+                    appState.playerSave.resetAffectsCloudProgress ? """
+                    This permanently clears your game progress on this device and your synced devices when iCloud is available. \
+                    You'll choose a new starter Hero again. Options settings and Full Game ownership are kept.
+                    """ : """
+                    This permanently clears your Campaign stages, Explore runs, Heroes and Companions, \
+                    Items, and Homestead upgrades on this device. You'll choose a new starter Hero again. \
+                    Options settings are kept.
+                    """,
+                )
+                .trinketTypography(.secondaryBody)
+                Button("Cancel") { isResetConfirmationPresented = false }
+                    .accessibilityIdentifier(AccessibilityID.Options.resetProgressCancel)
+                Button("Reset Game Progress", role: .destructive) {
+                    guard isResetConfirmationPresented, !appState.playerSave.isRetryingSaveAction else { return }
+                    isResetConfirmationPresented = false
+                    if !appState.resetGameplayProgress() {
+                        appState.playerSave.retrySaveAction(key: "reset-progress") {
+                            _ = appState.resetGameplayProgress()
+                        }
+                    }
+                }
+                .accessibilityIdentifier(AccessibilityID.Options.resetProgressConfirmation)
+            } else {
+                Button("Reset Game Progress", role: .destructive) {
+                    isResetConfirmationPresented = true
+                }
+                .accessibilityIdentifier(AccessibilityID.Options.resetProgressButton)
             }
-            .accessibilityIdentifier(AccessibilityID.Options.resetProgressButton)
         }
 
         #if DEBUG

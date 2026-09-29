@@ -273,7 +273,10 @@
       "name": "goldTheftDrawChancePercent",
       "type": "Double",
       "default": "0",
-      "merge": "add"
+      "merge": "add",
+      "affix_roll": {
+        "reason": "Fixed Trinket draw chance, not a rolled magnitude."
+      }
     },
     {
       "name": "goldStealFlatBonus",
@@ -370,6 +373,12 @@
       "type": "Double",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "blockedAttackFirstRandomCard",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
     }
   ]
 }

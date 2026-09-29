@@ -19,6 +19,8 @@ public struct HomesteadTierCombatBonus: Equatable, Hashable, Sendable {
     public var goldFindFlat: Int
     public var experienceBonus: Int
     public var gemsFindBonus: Int
+    public var gemsFindPercent: Int
+    public var experienceBonusPercent: Int
 
     public static let empty = Self()
 
@@ -30,6 +32,8 @@ public struct HomesteadTierCombatBonus: Equatable, Hashable, Sendable {
         goldFindFlat: Int = 0,
         experienceBonus: Int = 0,
         gemsFindBonus: Int = 0,
+        gemsFindPercent: Int = 0,
+        experienceBonusPercent: Int = 0,
     ) {
         self.heroModifiers = heroModifiers
         self.companionModifiers = companionModifiers
@@ -38,6 +42,8 @@ public struct HomesteadTierCombatBonus: Equatable, Hashable, Sendable {
         self.goldFindFlat = goldFindFlat
         self.experienceBonus = experienceBonus
         self.gemsFindBonus = gemsFindBonus
+        self.gemsFindPercent = gemsFindPercent
+        self.experienceBonusPercent = experienceBonusPercent
     }
 }
 

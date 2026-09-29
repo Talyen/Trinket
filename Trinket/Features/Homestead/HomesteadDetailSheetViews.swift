@@ -29,7 +29,6 @@ struct HomesteadDetailSheetView: View {
         // possible: the detail flow presents wallet through its purchase
         // orchestration sheet, while the gallery presents it standalone.
         root
-            .trinketFailureAlert("Build Failed", message: $build.error)
     }
 
     @MainActor
@@ -53,14 +52,15 @@ struct HomesteadDetailSheetView: View {
     private func improvement(_ tier: HomesteadNodeTier) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-                Text("\(tier.tier == 1 ? "Build" : "Upgrade") \(definition.title)")
+                Text(tier.tier == 1 ? "Build \(definition.title)" : definition.title)
                     .trinketTypography(.sectionDisplay)
-                HomesteadBenefitsView(
-                    nodeID: definition.id,
-                    tier: tier,
-                    effectsIdentifier: AccessibilityID.Homestead.upgradeEffects,
-                    previousTier: status.currentStage,
-                )
+                if tier.tier == 1 {
+                    HomesteadBenefitsView(
+                        nodeID: definition.id,
+                        tier: tier,
+                        effectsIdentifier: AccessibilityID.Homestead.upgradeEffects,
+                    )
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
@@ -98,8 +98,13 @@ struct HomesteadDetailSheetView: View {
             .accessibilityIdentifier(AccessibilityID.Homestead.upgradeCost)
 
             Button { onPurchase(tier.tier) } label: {
-                Text(build.isPending ? "Finishing…" : (tier.tier == 1 ? "Build" : "Upgrade"))
-                    .frame(maxWidth: .infinity)
+                HStack {
+                    if build.isPending {
+                        ProgressView()
+                    }
+                    Text(tier.tier == 1 ? "Build" : "Upgrade")
+                }
+                .frame(maxWidth: .infinity)
             }
             .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.upgradeButton)
             .disabled(!status.canBuildOrUpgrade || status.nextTier?.tier != tier.tier || purchaseCommitted || build.isPending)

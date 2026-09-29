@@ -63,6 +63,7 @@ package struct DamageResolutionState {
     public var damageEvents: [ActionEvent] = []
 
     var heroCardBlockBroken = false
+    var brokenBlockOwners: [Combatant] = []
     var additionalHolyDamage = 0
     var additionalPhysicalDamage = 0
     var pendingAttackBonus = 0

@@ -16,37 +16,24 @@ struct BattleOpeningHandTests {
         )
     }
 
-    @Test func `opening hand guarantees basic per owner plus one skill`() throws {
-        var skillOwners: Set<BattleParticipant> = []
+    @Test func `opening hand uses shuffled tiers and one copy per loadout ability`() {
+        var observedTiers: Set<AbilityTier> = []
         for seed: UInt64 in 0 ..< 24 {
             let battle = makeBattle(
                 heroAbilities: [.maul, .smite, .hemorrhage],
                 companionAbilities: [.bash, .serratedEdge, .bloodthorn],
                 rngSeed: seed,
             )
-            #expect(battle.hand.count == BattleHand.maxSize)
-            try #expect(battle.hand.buffer.isEmpty)
-
-            let heroBasics = battle.hand.cards.filter { $0.owner == .hero && $0.ability.tier == .basic }
-            let companionBasics = battle.hand.cards.filter { $0.owner == .companion && $0.ability.tier == .basic }
-            try #expect(heroBasics.count == 1)
-            try #expect(companionBasics.count == 1)
-
-            let skills = battle.hand.cards.filter { $0.ability.tier == .skill }
-            try #expect(skills.count == 1)
-            try skillOwners.insert(#require(skills.first?.owner))
-
-            #expect(battle.hand.cards[0].owner == .hero)
-            #expect(battle.hand.cards[0].ability.tier == .basic)
-            #expect(battle.hand.cards[1].ability.tier == .skill)
-            #expect(battle.hand.cards[2].owner == .companion)
-            #expect(battle.hand.cards[2].ability.tier == .basic)
-
-            let heroHandCount = battle.hand.cards.count(where: { $0.owner == .hero })
-            let companionHandCount = battle.hand.cards.count(where: { $0.owner == .companion })
-            try #expect(battle.heroDeck.count == 6 - heroHandCount)
-            try #expect(battle.companionDeck.count == 6 - companionHandCount)
+            #expect(battle.hand.count == 3)
+            #expect(battle.hand.buffer.isEmpty)
+            #expect(battle.hand.cards.map(\.owner) == [.hero, .companion, .hero])
+            observedTiers.formUnion(battle.hand.cards.map(\.ability.tier))
+            let heroCards = battle.heroDeck.abilities + battle.hand.cards.filter { $0.owner == .hero }.map(\.ability)
+            let companionCards = battle.companionDeck.abilities + battle.hand.cards.filter { $0.owner == .companion }.map(\.ability)
+            #expect(Set(heroCards.map(\.id)) == Set([Ability.maul.id, Ability.smite.id, Ability.hemorrhage.id]))
+            #expect(heroCards.count == 3)
+            #expect(companionCards.count == 3)
         }
-        try #expect(skillOwners == [.hero, .companion])
+        #expect(observedTiers == [.basic, .skill, .ultimate])
     }
 }

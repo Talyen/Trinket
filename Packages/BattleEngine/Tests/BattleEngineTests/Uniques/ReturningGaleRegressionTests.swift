@@ -58,11 +58,12 @@ struct ReturningGaleRegressionTests {
         )
         // 1. Play an ordinary card (goes to deck bottom, tracked as last ordinary).
         try play(attack(id: "played"), owner: .hero, in: &context)
-        try #require(context.uniques.owners[.hero]?.lastOrdinaryAbility?.id == "played")
+        try #require(context.uniques.owners[.hero]?.lastOrdinaryCopyID == context.heroDeck.discarded.last?.copyID)
         // 2. Force the wearer to Dodge during the enemy turn.
         context.prependEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
         let heroDeckBefore = context.heroDeck.abilities.map(\.id)
-        try #require(heroDeckBefore.contains("played"))
+        try #require(!heroDeckBefore.contains("played"))
+        try #require(context.heroDeck.discarded.contains { $0.ability.id == "played" })
         _ = BattleTurnEngine.performAction(
             ability: attack(id: "enemy-hit"), actor: context.enemy,
             abilityTarget: context.hero, context: &context,
@@ -139,7 +140,8 @@ struct ReturningGaleRegressionTests {
         // Already held -> do nothing (no duplicate).
         context = try battle(["the_returning_gale"], heroDeck: [attack(id: "played")])
         try play(attack(id: "played"), owner: .hero, in: &context)
-        _ = BattleCardCombatEngine.deal(attack(id: "played"), owner: .hero, context: &context)
+        let trackedCopyID = try #require(context.uniques.owners[.hero]?.lastOrdinaryCopyID)
+        _ = BattleCardCombatEngine.recoverCard(copyID: trackedCopyID, owner: .hero, context: &context)
         let totalBefore = context.hand.totalCount + context.heroDeck.count
         context.prependEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
         _ = BattleTurnEngine.performAction(
@@ -198,7 +200,7 @@ struct ReturningGaleRegressionTests {
         _ = try BattleCardCombatEngine.playDrawnCard(returnedCard, context: &context)
         try #expect(!(context.hand.cards + context.hand.buffer).contains { $0.ability.id == "played" })
         // Second play cycled to deck (not returned).
-        try #expect(context.heroDeck.abilities.contains { $0.id == "played" })
+        try #expect(context.heroDeck.discarded.contains { $0.ability.id == "played" })
     }
 
     @Test func `gale tracks non-damaging ordinary but not automatic`() throws {
@@ -208,12 +210,14 @@ struct ReturningGaleRegressionTests {
         )
         // Non-damaging ordinary support qualifies (Sniff Out / Predator's Focus style).
         try play(support(id: "tracked"), owner: .hero, in: &context)
-        try #expect(context.uniques.owners[.hero]?.lastOrdinaryAbility?.id == "tracked")
+        try #expect(context.uniques.owners[.hero]?.lastOrdinaryCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
+            .copyID)
         // Automatic abilities do not replace tracked ordinary card.
         _ = try context.withAutomaticPlay { context in
             let card = BattleCardCombatEngine.deal(attack(id: "auto"), owner: .hero, context: &context)
             return try BattleCardCombatEngine.playDrawnCard(card, context: &context)
         }
-        try #expect(context.uniques.owners[.hero]?.lastOrdinaryAbility?.id == "tracked")
+        try #expect(context.uniques.owners[.hero]?.lastOrdinaryCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
+            .copyID)
     }
 }

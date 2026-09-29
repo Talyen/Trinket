@@ -124,11 +124,20 @@ enum EffectRemovalOperation {
         if propagation == .secondary {
             grantSecondaryCleanseDodge(source: source, target: target, in: &context)
         }
-        let events = cleanseReactions(
+        var events: [ActionEvent] = []
+        if source.role != .enemy, target.role != .enemy,
+           context.modifiers(for: source.id).triggers.clearMind,
+           context.roster.runtime(for: source)?.currentMana == 0,
+           let owner = context.roster.participant(for: source) {
+            events.append(contentsOf: CombatTriggerEngine.drawCards(
+                1, for: owner, actor: source, abilityName: "Clear Mind", in: &context,
+            ))
+        }
+        events.append(contentsOf: cleanseReactions(
             removed: removed, abilityName: abilityName, source: source, target: target,
             healAmount: healAmount, healTarget: healTarget ?? target,
             allowMassCleanse: propagation == .primary, origin: origin, in: &context,
-        )
+        ))
         return Outcome(removed: removed, application: EffectApplyOutcome(events: events, didApply: true))
     }
 
@@ -214,9 +223,6 @@ enum EffectRemovalOperation {
         context.roster.setActiveEffects(effects, for: target)
         CombatTriggerEngine.protectPurgedEffects(removed, source: source, target: target, in: &context)
         let triggers = context.modifiers(for: source.id).triggers
-        if target.role == .enemy, triggers.purgePreparesDoubleHolyAttack {
-            context.roster.mutateRuntime(for: source) { $0.talents.pending.doubleNextHolyAttack = true }
-        }
         // One event per removed buff (sorted for determinism), so direct
         // purges report what was actually removed instead of collapsing to
         // a single generic line. This matches the long-standing triggered
@@ -226,6 +232,14 @@ enum EffectRemovalOperation {
             removed, effectKind: .purgeApplied, source: source, target: target,
             abilityName: abilityName, origin: origin, in: &context,
         )
+        if target.role == .enemy, source.role != .enemy, triggers.purgeDrawBelowHalf,
+           let runtime = context.roster.runtime(for: source), runtime.isAlive,
+           Double(runtime.currentHealth) < Double(runtime.maxHealth) / 2,
+           let owner = context.roster.participant(for: source) {
+            events.append(contentsOf: CombatTriggerEngine.drawCards(
+                1, for: owner, actor: source, abilityName: "Smite the Wicked", in: &context,
+            ))
+        }
         events.append(contentsOf: CombatTriggerEngine.crownfallDamage(
             removedCount: removed.count, source: source, target: target, in: &context,
         ))

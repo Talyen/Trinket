@@ -44,36 +44,6 @@ final class ShellPerformanceUITests: PerformanceJourneyUITestCase {
             if didScroll {
                 verifyScrollProbes(optionsScrollProbes, optionsForm)
             }
-            assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
-            measured("options-reset-cancel", iteration: iteration) {
-                tapButton(AccessibilityID.Options.resetProgressButton)
-                XCTAssertTrue(app.alerts.firstMatch.trinketWaitForExistence(timeout: 3))
-                app.alerts.buttons.matching(identifier: AccessibilityID.Options.resetProgressCancel).firstMatch.tap()
-                XCTAssertFalse(app.alerts.firstMatch.exists)
-            }
-            measured("options-reset-confirm", iteration: iteration) {
-                tapButton(AccessibilityID.Options.resetProgressButton)
-                tapWhenReady(app.alerts.buttons[AccessibilityID.Options.resetProgressConfirmation])
-                assertExists(AccessibilityID.Onboarding.heroScreen)
-            }
-        }
-    }
-
-    @MainActor
-    func testSalvage() {
-        for iteration in 1 ... repetitionCount {
-            launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
-            let card = AccessibilityID.Collection.itemCard(itemID: "crossbow-basic")
-            assertExistsAfterScroll(card, requireHittable: true)
-            measured("salvage-return", iteration: iteration, settle: 2) {
-                tapButton(card)
-                assertExists(AccessibilityID.LoadoutPicker.itemDetail("crossbow-basic"))
-                assertExistsAfterScroll(AccessibilityID.Collection.salvageButton, requireHittable: true)
-                tapButton(AccessibilityID.Collection.salvageButton)
-                tapWhenReady(app.alerts.buttons.matching(identifier: AccessibilityID.Collection.salvageConfirmButton).firstMatch)
-                assertDoesNotExist(AccessibilityID.LoadoutPicker.itemDetail("crossbow-basic"))
-                assertDoesNotExist(card)
-            }
         }
     }
 

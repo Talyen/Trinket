@@ -82,8 +82,6 @@ struct MysteryUnlockContent: View {
                         .scaleEffect(ceremony.artScale)
                         .frame(maxWidth: 430)
                         .trinketPresentationVisibility(ceremony.allowsDetail, opacity: 1)
-
-                        mysteryPersistFailureBanner(session.persistFailureMessage, centered: true)
                     }
                 },
                 primaryActionTitle: "Recruit",

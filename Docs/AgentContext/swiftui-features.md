@@ -54,3 +54,10 @@ rule, and card tap, drag, and accessibility activation share one play-intent gat
 Party pickers capture selected-first ordering once per presentation and share it
 between shelves and grids. Selection changes animate emphasis without reordering
 the choices; reopening captures the new selection order. Eligibility stays live.
+
+Player-facing failures use no error or operation-status text and no authored native
+alerts or confirmation dialogs. Keep diagnostics internal, action eligibility
+visible before a tap, and rejected/pending outcomes distinct from success. Use
+unlabeled progress only during active work, with Retry/Back controls when blocked.
+Destructive actions expand inline consequences with Cancel and a final action;
+revalidate on that final action. Apple-managed purchase authorization is unchanged.

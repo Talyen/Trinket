@@ -28,6 +28,10 @@ public enum CombatBuildResolver {
             profile.damageDealtBonus[.physical, default: 0] += profile.rangedDamageDealtBonus
         }
 
+        if profile.rangedDamageDealtPercent > 0, equippedItems.contains(where: \.baseType.isRanged) {
+            profile.damageDealtPercents[.physical, default: 0] += profile.rangedDamageDealtPercent
+        }
+
         return CombatBuild(combatant: combatant, modifiers: profile)
     }
 

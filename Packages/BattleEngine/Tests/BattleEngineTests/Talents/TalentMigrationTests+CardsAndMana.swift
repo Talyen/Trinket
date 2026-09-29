@@ -79,7 +79,7 @@ extension TalentMigrationTests {
         )
         #expect(battle.roster.enemy.currentHealth < healthBefore)
         #expect(battle.hand.isEmpty)
-        #expect(battle.heroDeck.abilities.map(\.id) == [Ability.slash.id])
+        #expect(battle.heroDeck.discarded.map(\.ability.id) == [Ability.slash.id])
         #expect(battle.uniques.owners[.hero]?.cardsPlayed == 2)
         #expect(!events.contains { $0.abilityName == "The Returning Gale" })
         #expect(battle.resolution.depth(.draw) == 0)

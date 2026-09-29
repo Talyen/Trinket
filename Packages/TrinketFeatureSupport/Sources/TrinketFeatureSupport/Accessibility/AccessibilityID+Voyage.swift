@@ -5,6 +5,8 @@ public extension AccessibilityID {
         public static let destinationReward = "Voyage Destination Reward"
         public static let options = "Voyage Options"
         public static let confirmAbandon = "Confirm Abandon Voyage"
+        public static let cancelAbandon = "Cancel Abandon Voyage"
+        public static let retry = "Retry Voyage"
         public static let refresh = "Refresh Voyages"
         public static let abandon = "Abandon Voyage"
         public static let completed = "Voyage Complete"

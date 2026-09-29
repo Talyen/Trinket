@@ -115,7 +115,6 @@ struct HomesteadView: View {
                 cancelDeposit()
             }
         }
-        .trinketFailureAlert("Collection Failed", message: $collection.error)
         .trinketSensoryFeedback(
             .success,
             trigger: collectionSuccessTrigger,
@@ -156,7 +155,12 @@ struct HomesteadView: View {
 
     private var collectLabel: some View {
         Label {
-            Text(collection.isPending ? "Collecting…" : "Collect")
+            HStack {
+                if collection.isPending {
+                    ProgressView()
+                }
+                Text("Collect")
+            }
         } icon: {
             GameIconImage(.system("gift.fill"))
                 .imageScale(.large)

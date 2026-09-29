@@ -195,7 +195,7 @@ struct BattleActionPresentationTests {
         var state = try #require(session.engineState)
         state.hand = BattleHand()
         state.companionDeck = CombatDeck(abilities: [.slash])
-        let card = BattleCardCombatEngine.deal(.packTactics, owner: .hero, context: &state)
+        let card = BattleCardCombatEngine.deal(BattleSessionTestSupport.automaticDrawCard(), owner: .hero, context: &state)
         session.engineState = state
         session.installSimulationPresentation()
         session.feedback.clear()

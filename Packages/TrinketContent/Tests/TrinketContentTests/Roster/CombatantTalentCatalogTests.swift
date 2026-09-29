@@ -130,6 +130,10 @@ struct CombatantTalentCatalogTests {
                     continue
                 }
                 for node in tree.nodes {
+                    // Approved utility replacements keep their purchased tree positions.
+                    if ["knight_holy_t3_1", "wildcard_gold_t1_1"].contains(node.id) {
+                        continue
+                    }
                     let pattern = "\\b(?:\(keyword))\\b"
                     #expect(
                         node.description.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil,

@@ -250,10 +250,21 @@ extra Gold into a Critical Hit's Gold steal, producing one Gold gain event.
 
 ### Consolation Prize and Feigned Miss
 
-Consolation Prize grants 3 Gold on the first fully Blocked attack each combat.
-Feigned Miss prepares double damage for the next Physical attack after an
-attack is fully Blocked. Neither reward requires the blocked attack to deal
-Health damage, and a later hit in the same ability cannot spend the preparation.
+Consolation Prize adds one uniformly random player ability to its owner's hand
+on the first fully Blocked attack each combat. The new physical copy remains in
+that owner's deck for the battle; no Gold is granted. Feigned Miss still prepares
+double damage for the next Physical attack after an attack is fully Blocked.
+Neither reward requires Health damage, and the creating card cannot consume the
+prepared attack bonus.
+
+### Clear Mind and Smite the Wicked
+
+Clear Mind draws once per successful Cleanse operation while its source has zero
+Mana at removal, before healing or Mana reactions. Self and ally removals qualify;
+empty Cleanse does not. It grants no empowerment discount. Smite the Wicked draws
+once per successful enemy Purge operation while its living source is below half
+Health, replacing Holy damage preparation. Removing several effects in one
+operation still draws once; separate successful operations have no turn limit.
 
 ## Mana and empowerment
 
@@ -393,8 +404,8 @@ Resonant Shell consumes Thorns normally and resolves their damage as Stun with n
 
 Interdict prevents reapplication of the buff kinds actually Purged until the
 next party turn, including Block but excluding instant healing and resources.
-Steadfast and Perfect Purity also stop Cold Snap from multiplying existing
-Freeze build-up while their protection applies.
+Steadfast and Perfect Purity also stop control-multiplication effects from
+increasing existing Freeze build-up while their protection applies.
 Blinding Light retains the strongest half-Holy-hit reduction, counting Health
 damage and absorbed Block, and spends it across the next enemy attack's hits;
 ongoing damage does not consume it. Subzero Mist grants Dodge when the enemy

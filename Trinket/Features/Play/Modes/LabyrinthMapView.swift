@@ -11,6 +11,7 @@ import TrinketPersistence
 struct LabyrinthMapView: View {
     private static let inspectorScrollClearance: CGFloat = 360
 
+    @Environment(\.dismiss) private var dismiss
     @Environment(LabyrinthPlayMode.self) private var labyrinth
     @Environment(EncounterPlayMode.self) private var encounters
     @Environment(\.isBattleActive) private var isBattleActive
@@ -55,6 +56,13 @@ struct LabyrinthMapView: View {
                         playerSave: playerSave, labyrinth: labyrinth, cluster: viewedCluster,
                     ),
                 )
+            } else if state.isMapPayloadUnreadable {
+                HStack {
+                    Button("Back") { dismiss() }
+                    Button("Retry") { nodeMessage = labyrinth.enter() }
+                        .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Play.labyrinthEnter)
+                }
+                .trinketSecondaryActionButton()
             } else {
                 emptyState
             }
@@ -99,7 +107,7 @@ struct LabyrinthMapView: View {
         .onDisappear {
             labyrinth.battle.preferredPreparedRunKey = nil
         }
-        .trinketMessageAlert($nodeMessage)
+        .trinketPlayActionResult($nodeMessage)
     }
 
     private func accessibleFloor(_ floor: Int) -> Int {

@@ -42,9 +42,6 @@ struct MysteryCorruptionRevealContent: View {
                             }
                         }
                     }
-
-                    mysteryPersistFailureBanner(session.persistFailureMessage)
-                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
                 }
             },
         )

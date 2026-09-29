@@ -15,6 +15,10 @@ public enum AccessibilityID {
             "Confirm Starter \(role.rawValue)"
         }
 
+        public static func retry(role: Combatant.Role) -> String {
+            "Retry Starter \(role.rawValue)"
+        }
+
         public static func detail(combatantID: String) -> String {
             "Starter Combatant Detail \(combatantID)"
         }
@@ -22,6 +26,9 @@ public enum AccessibilityID {
 
     public enum Screen {
         public static let launchWarmup = "Launch Warmup"
+        public static let bootstrapRecovery = "Startup Recovery"
+        public static let bootstrapRetry = "Retry Startup"
+        public static let bootstrapSupport = "Startup Support"
         public static let play = "Play Screen"
         public static let collection = "Collection Screen"
         public static let homestead = "Homestead Screen"
@@ -283,6 +290,7 @@ public enum AccessibilityID {
         public static let gearFilter = "Collection gear filter"
         public static let salvageButton = "Salvage Item Button"
         public static let salvageConfirmButton = "Confirm Salvage Button"
+        public static let salvageCancelButton = "Cancel Salvage Button"
 
         public static func gearFilterOption(slot: String) -> String {
             "Collection gear filter \(slot)"
