@@ -100,6 +100,15 @@ struct PresentationModelTests {
 
         let cinematicClampedMax = HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 600)
         #expect(cinematicClampedMax == 344)
+
+        let talentTreeHeight = HeroHeaderLayout.HeightPolicy.talentTree.height(forWidth: 400)
+        #expect(talentTreeHeight == 368)
+
+        let talentTreeClampedMin = HeroHeaderLayout.HeightPolicy.talentTree.height(forWidth: 200)
+        #expect(talentTreeClampedMin == 336)
+
+        let talentTreeClampedMax = HeroHeaderLayout.HeightPolicy.talentTree.height(forWidth: 600)
+        #expect(talentTreeClampedMax == 392)
     }
 
     @Test func `labyrinth hex radius and destination art`() {

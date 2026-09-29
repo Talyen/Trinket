@@ -53,6 +53,8 @@ public struct EncounterArtReference: Hashable, Sendable {
 public struct TalentArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
+    public let sourceAspectRatio: Double
+    public let focalPoint: ArtFocalPoint
 }
 
 
@@ -1488,67 +1490,99 @@ public enum ArtCatalog {
         var dict = [Keyword: TalentArtReference]()
         dict[.physical] = TalentArtReference(
             imageName: "talent_physical",
-            thumbnailImageName: "talent_physical_thumb"
+            thumbnailImageName: "talent_physical_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.46)
         )
         dict[.burn] = TalentArtReference(
             imageName: "talent_burn",
-            thumbnailImageName: "talent_burn_thumb"
+            thumbnailImageName: "talent_burn_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.44)
         )
         dict[.stun] = TalentArtReference(
             imageName: "talent_stun",
-            thumbnailImageName: "talent_stun_thumb"
+            thumbnailImageName: "talent_stun_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.40)
         )
         dict[.block] = TalentArtReference(
             imageName: "talent_block",
-            thumbnailImageName: "talent_block_thumb"
+            thumbnailImageName: "talent_block_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.44)
         )
         dict[.health] = TalentArtReference(
             imageName: "talent_health",
-            thumbnailImageName: "talent_health_thumb"
+            thumbnailImageName: "talent_health_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.48)
         )
         dict[.gold] = TalentArtReference(
             imageName: "talent_gold",
-            thumbnailImageName: "talent_gold_thumb"
+            thumbnailImageName: "talent_gold_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.48)
         )
         dict[.holy] = TalentArtReference(
             imageName: "talent_holy",
-            thumbnailImageName: "talent_holy_thumb"
+            thumbnailImageName: "talent_holy_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.49)
         )
         dict[.poison] = TalentArtReference(
             imageName: "talent_poison",
-            thumbnailImageName: "talent_poison_thumb"
+            thumbnailImageName: "talent_poison_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.47)
         )
         dict[.bleed] = TalentArtReference(
             imageName: "talent_bleed",
-            thumbnailImageName: "talent_bleed_thumb"
+            thumbnailImageName: "talent_bleed_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.46)
         )
         dict[.leech] = TalentArtReference(
             imageName: "talent_leech",
-            thumbnailImageName: "talent_leech_thumb"
+            thumbnailImageName: "talent_leech_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.42)
         )
         dict[.freeze] = TalentArtReference(
             imageName: "talent_freeze",
-            thumbnailImageName: "talent_freeze_thumb"
+            thumbnailImageName: "talent_freeze_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         )
         dict[.dodge] = TalentArtReference(
             imageName: "talent_dodge",
-            thumbnailImageName: "talent_dodge_thumb"
+            thumbnailImageName: "talent_dodge_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.48)
         )
         dict[.purge] = TalentArtReference(
             imageName: "talent_purge",
-            thumbnailImageName: "talent_purge_thumb"
+            thumbnailImageName: "talent_purge_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.47)
         )
         dict[.cleanse] = TalentArtReference(
             imageName: "talent_cleanse",
-            thumbnailImageName: "talent_cleanse_thumb"
+            thumbnailImageName: "talent_cleanse_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.48)
         )
         dict[.mana] = TalentArtReference(
             imageName: "talent_mana",
-            thumbnailImageName: "talent_mana_thumb"
+            thumbnailImageName: "talent_mana_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.49)
         )
         dict[.deathsDoor] = TalentArtReference(
             imageName: "talent_deaths_door",
-            thumbnailImageName: "talent_deaths_door_thumb"
+            thumbnailImageName: "talent_deaths_door_thumb",
+            sourceAspectRatio: 0.745833333333,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.51)
         )
         return dict
     }()

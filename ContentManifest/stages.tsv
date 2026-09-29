@@ -7,7 +7,7 @@ chapter-1	1	Forest	forest	5	recruit	recruit-ranger
 chapter-1	1	Forest	forest	6	battle	goblin		
 chapter-1	1	Forest	forest	7	mystery			
 chapter-1	1	Forest	forest	8	battle	will_o_wisp		
-chapter-1	1	Forest	forest	9	shop		destination-merchant-shop	Merchant's Shop
+chapter-1	1	Forest	forest	9	shop		destination-merchant-shop	Merchant
 chapter-1	1	Forest	forest	10	battle	the_blight_treant		
 chapter-2	2	Dungeon	dungeon	1	battle	skeleton		
 chapter-2	2	Dungeon	dungeon	2	recruit	recruit-rogue		
@@ -16,7 +16,7 @@ chapter-2	2	Dungeon	dungeon	4	mystery
 chapter-2	2	Dungeon	dungeon	5	battle	necromancer		
 chapter-2	2	Dungeon	dungeon	6	recruit	random-companion		
 chapter-2	2	Dungeon	dungeon	7	battle	living_armor		
-chapter-2	2	Dungeon	dungeon	8	shop		destination-merchant-shop	Merchant's Shop
+chapter-2	2	Dungeon	dungeon	8	shop		destination-merchant-shop	Merchant
 chapter-2	2	Dungeon	dungeon	9	mystery			
 chapter-2	2	Dungeon	dungeon	10	battle	the_iron_bear		
 chapter-3	3	Desert	desert	1	battle	fire_elemental		
@@ -26,7 +26,7 @@ chapter-3	3	Desert	desert	4	recruit	recruit-wizard
 chapter-3	3	Desert	desert	5	random_battle			
 chapter-3	3	Desert	desert	6	mystery			
 chapter-3	3	Desert	desert	7	recruit			
-chapter-3	3	Desert	desert	8	shop		destination-merchant-shop	Merchant's Shop
+chapter-3	3	Desert	desert	8	shop		destination-merchant-shop	Merchant
 chapter-3	3	Desert	desert	9	random_battle			
 chapter-3	3	Desert	desert	10	battle	the_forge_golem		
 chapter-4	4	Tundra	tundra	1	battle	frost_elemental		
@@ -36,6 +36,6 @@ chapter-4	4	Tundra	tundra	4	mystery
 chapter-4	4	Tundra	tundra	5	random_battle			
 chapter-4	4	Tundra	tundra	6	recruit			
 chapter-4	4	Tundra	tundra	7	mystery			
-chapter-4	4	Tundra	tundra	8	shop		destination-merchant-shop	Merchant's Shop
+chapter-4	4	Tundra	tundra	8	shop		destination-merchant-shop	Merchant
 chapter-4	4	Tundra	tundra	9	random_battle			
 chapter-4	4	Tundra	tundra	10	battle	the_frostwarden		

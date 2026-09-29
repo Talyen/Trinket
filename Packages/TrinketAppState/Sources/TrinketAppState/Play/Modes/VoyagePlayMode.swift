@@ -24,6 +24,9 @@ public final class VoyagePlayMode {
 
     @discardableResult
     public func enter() -> StageMapMessage? {
+        if playerSave.voyage.activeRun?.isComplete == true {
+            dismissCompleted()
+        }
         guard encounters.canBeginTransientEncounter else { return nil }
         guard !playerSave.voyage.isUnreadable else {
             return StageMapMessage(title: "Voyage Unavailable", message: "Your Voyage could not be read. Your progress is preserved.")
@@ -78,6 +81,12 @@ public final class VoyagePlayMode {
             enemyID: node.enemyID,
             level: run.offer.difficulty.encounterLevel(partyLevel: playerSave.roster.activePartyAverageLevel),
         )
+    }
+
+    public func previewMysteryEvent(for node: VoyageNode, runID: String? = nil) -> MysteryEvent? {
+        guard node.type == .mystery else { return nil }
+        guard let resolvedRunID = runID ?? playerSave.voyage.activeRun?.id, !resolvedRunID.isEmpty else { return nil }
+        return encounters.previewMysteryEvent(origin: .voyage(runID: resolvedRunID, nodeID: node.id))
     }
 
     @discardableResult

@@ -36,10 +36,16 @@ struct BattleOpeningHandTests {
             try #expect(skills.count == 1)
             try skillOwners.insert(#require(skills.first?.owner))
 
+            #expect(battle.hand.cards[0].owner == .hero)
+            #expect(battle.hand.cards[0].ability.tier == .basic)
+            #expect(battle.hand.cards[1].ability.tier == .skill)
+            #expect(battle.hand.cards[2].owner == .companion)
+            #expect(battle.hand.cards[2].ability.tier == .basic)
+
             let heroHandCount = battle.hand.cards.count(where: { $0.owner == .hero })
             let companionHandCount = battle.hand.cards.count(where: { $0.owner == .companion })
-            try #expect(battle.heroDeck.count == 3 - heroHandCount)
-            try #expect(battle.companionDeck.count == 3 - companionHandCount)
+            try #expect(battle.heroDeck.count == 6 - heroHandCount)
+            try #expect(battle.companionDeck.count == 6 - companionHandCount)
         }
         try #expect(skillOwners == [.hero, .companion])
     }

@@ -61,7 +61,7 @@ struct VoyageView: View {
                         systemImage: "map",
                         description: Text("Your progress is preserved. Try again later."),
                     )
-                } else if let run {
+                } else if let run, !run.isComplete {
                     route(run)
                 } else if let displayed {
                     board(displayed.offers)
@@ -83,7 +83,7 @@ struct VoyageView: View {
                         .accessibilityLabel("Voyage options")
                         .accessibilityIdentifier(AccessibilityID.Voyage.options)
                         .disabled(!isReady)
-                } else if run == nil {
+                } else if run == nil || run?.isComplete == true {
                     Button("Refresh Voyages", systemImage: "dice.fill") { voyage.refresh() }
                         .labelStyle(.iconOnly)
                         .accessibilityIdentifier(AccessibilityID.Voyage.refresh)
@@ -148,56 +148,44 @@ struct VoyageView: View {
         )
     }
 
-    @ViewBuilder
     private func route(_ run: VoyageRun) -> some View {
-        if run.isComplete {
-            StageSelectCompletionPanel(
-                title: "Voyage Complete", description: "Your completion bonus was included in the final battle rewards.",
-                buttonTitle: "Back to Voyages", tint: TrinketDesign.Colors.accent,
-                accessibilityIdentifier: AccessibilityID.Voyage.completed, onBack: { voyage.dismissCompleted() },
-            )
-        } else {
-            StageSelectList(
-                rows: StageSelectRowPresentation<VoyageNode>.voyageNodes(run, inventory: playerSave.inventory),
-                isPrimaryActionDisabled: { _ in !isReady }, onArtworkTap: inspect,
-                onPrimaryAction: { node in
-                    guard isReady else { return false }
-                    message = voyage.handleNode(runID: run.id, nodeID: node.id)
-                    return message == nil
-                }, artwork: { node, isActive in
-                    if let art = Self.artwork(node) {
-                        MapTileArtwork(art: art, prefersThumbnail: !isActive)
-                    } else {
-                        MapTilePlaceholder(tint: LabyrinthMapPresentation.tint(for: node.type), icon: GameIcon(id: node.type.iconID))
-                    }
-                }, partyPickerSheet: { _ in StageBattlePartyPickerSheet() },
-            )
-        }
+        StageSelectList(
+            rows: StageSelectRowPresentation<VoyageNode>.voyageNodes(run, inventory: playerSave.inventory),
+            isPrimaryActionDisabled: { _ in !isReady }, onArtworkTap: inspect,
+            onPrimaryAction: { node in
+                guard isReady else { return false }
+                message = voyage.handleNode(runID: run.id, nodeID: node.id)
+                return message == nil
+            }, artwork: { node, isActive in
+                if let art = artwork(for: node, in: run) {
+                    MapTileArtwork(art: art, prefersThumbnail: !isActive)
+                } else {
+                    MapTilePlaceholder(tint: LabyrinthMapPresentation.tint(for: node.type), icon: GameIcon(id: node.type.iconID))
+                }
+            }, partyPickerSheet: { _ in StageBattlePartyPickerSheet() },
+        )
     }
 
     private func inspect(_ node: VoyageNode) {
-        guard isReady else { return }
+        guard isReady, let encounter = voyage.resolvedEncounter(for: node) else { return }
         let modifiers = RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs)
-        if let encounter = voyage.resolvedEncounter(for: node) {
-            presentPlayCombatantDetail(makePlayEnemyDetail(
-                combatant: encounter.combatant,
-                level: encounter.level,
-                nodeModifiers: modifiers,
-            ))
-        } else {
-            message = StageMapMessage(
-                title: node.type.title,
-                message: modifiers.map { "\($0.title): \($0.effect.description)" }.joined(separator: "\n"),
-            )
-        }
+        presentPlayCombatantDetail(makePlayEnemyDetail(
+            combatant: encounter.combatant,
+            level: encounter.level,
+            nodeModifiers: modifiers,
+        ))
     }
 
-    private static func artwork(_ node: VoyageNode) -> (any PreparedArtworkReference)? {
+    private func artwork(for node: VoyageNode, in run: VoyageRun) -> (any PreparedArtworkReference)? {
         if let enemyID = node.enemyID {
             return GameContent.enemy(matching: enemyID)?.combatant.artReference
         }
         if node.type == .recruit {
             return GameContent.recruitEncounterArtReference(forEventID: node.recruitEventID)
+        }
+        if node.type == .mystery,
+           let event = voyage.previewMysteryEvent(for: node, runID: run.id) {
+            return MysteryEventArtwork.preparedReference(event: event, chapterID: run.offer.chapterID)
         }
         return LabyrinthMapPresentation.destinationEncounterArtID(for: node.type).flatMap { ArtCatalog.encounterArtByID[$0] }
     }
@@ -210,9 +198,9 @@ struct VoyageView: View {
                 names.insert(art.imageName)
             }
         }
-        if let run = state.activeRun {
+        if let run = state.activeRun, !run.isComplete {
             for node in run.nodes {
-                guard let art = Self.artwork(node) else { continue }
+                guard let art = artwork(for: node, in: run) else { continue }
                 names.insert(node.id == run.nextNode?.id ? art.imageName : art.preparedThumbnailImageName ?? art.imageName)
             }
         }

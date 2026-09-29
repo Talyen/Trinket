@@ -95,13 +95,13 @@ struct VoyagePlayModeTests {
                     #expect(play.encounters.finishActiveMysteryEncounter())
                 }
             }
-            #expect(play.playerSave.voyage.activeRun?.node(id: node.id)?.isCleared == true)
+            if node.type != .boss {
+                #expect(play.playerSave.voyage.activeRun?.node(id: node.id)?.isCleared == true)
+            }
         }
-        #expect(play.playerSave.voyage.activeRun?.isComplete == true)
+        #expect(play.playerSave.voyage.activeRun == nil)
         #expect(play.playerSave.voyage.offers[0].id != offer.id)
         #expect(Array(play.playerSave.voyage.offers.dropFirst()) == Array(offers.dropFirst()))
-        play.voyage.dismissCompleted()
-        #expect(play.playerSave.voyage.activeRun == nil)
     }
 
     @Test func `destination and boss item promises appear and commit together once`() throws {
@@ -132,7 +132,7 @@ struct VoyagePlayModeTests {
         #expect(play.completeActiveBattle(battle, battleGold: .init()).didComplete)
         let after = play.playerSave.currentSave
         #expect(items.allSatisfy { item in after.inventory.items.contains { $0.id == item.id } })
-        #expect(after.voyage.activeRun?.isComplete == true)
+        #expect(after.voyage.activeRun == nil)
         #expect(!play.completeActiveBattle(battle, battleGold: .init()).didComplete)
         #expect(play.playerSave.currentSave == after)
     }
@@ -213,4 +213,31 @@ struct VoyagePlayModeTests {
         #expect(play.playerSave.voyage.activeRun?.nodes.first?.isCleared == true)
     }
     #endif
+
+    @Test func `preview mystery event matches resolved encounter`() throws {
+        let play = try context.makePlaySession()
+        #expect(play.voyage.enter() == nil)
+        let offer = try #require(play.playerSave.voyage.offers.first)
+        play.voyage.embark(offerID: offer.id)
+        let run = try #require(play.playerSave.voyage.activeRun)
+        let mysteryIndex = try #require(run.nodes.firstIndex { $0.type == .mystery })
+        let mysteryNode = run.nodes[mysteryIndex]
+        let preview = try #require(play.voyage.previewMysteryEvent(for: mysteryNode, runID: run.id))
+        #expect(!preview.id.isEmpty)
+
+        for node in run.nodes.prefix(mysteryIndex) {
+            _ = play.playerSave.persistBatch(logging: "Clear node") { save in
+                save.voyage.updateNode(runID: run.id, nodeID: node.id) { $0.isCleared = true }
+            }
+        }
+
+        #expect(play.voyage.handleNode(runID: run.id, nodeID: mysteryNode.id) == nil)
+        let session = try #require(play.encounters.activeMysteryEncounter)
+        #expect(session.event.id == preview.id)
+        if !session.event.isRecruit {
+            let choice = session.event.choices.first { $0.effects.contains(.leave) } ?? session.event.choices.first
+            #expect(play.encounters.resolveActiveMysteryChoice(choiceID: choice?.id))
+        }
+        #expect(play.encounters.finishActiveMysteryEncounter())
+    }
 }

@@ -57,7 +57,8 @@ package enum BattleCardCombatEngine {
         // above deals via deal(), which appends unconditionally, so the hand
         // may have filled since entry.
         guard context.hand.count < BattleHand.maxSize else { return false }
-        guard let owner = eligible.randomElement(using: &context.rng) else { return false }
+        // Single eligible owner skips the random pick so survivor draws don't advance the RNG stream.
+        guard let owner = eligible.count == 1 ? eligible.first : eligible.randomElement(using: &context.rng) else { return false }
         return drawOne(for: owner, context: &context) != nil
     }
 
@@ -72,6 +73,7 @@ package enum BattleCardCombatEngine {
     static func finishPlayerTurnStart(context: inout BattleState) -> [ActionEvent] {
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
+        context.hand.arrangeByParticipantOrder()
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         let events = context.appendDefeatMilestonesIfNeeded()
         context.phase = context.isBattleOver ? .ended : .playerTurn
@@ -215,25 +217,6 @@ package enum BattleCardCombatEngine {
             }
         }
         return skipping
-    }
-
-    static func pickBalancedOwner(
-        candidates: [BattleParticipant],
-        isHandFull: Bool,
-        tieWinner: BattleParticipant,
-        heroHandCount: Int,
-        companionHandCount: Int,
-    ) -> BattleParticipant {
-        if isHandFull {
-            return candidates.contains(tieWinner) ? tieWinner : candidates[0]
-        }
-        if candidates.count == 1 {
-            return candidates[0]
-        }
-        if heroHandCount == companionHandCount {
-            return tieWinner
-        }
-        return heroHandCount < companionHandCount ? .hero : .companion
     }
 
     static func advanceRoundCommon(context: inout BattleState) -> [ActionEvent] {

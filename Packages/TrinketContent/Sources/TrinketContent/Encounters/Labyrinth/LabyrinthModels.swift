@@ -13,7 +13,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         switch self {
         case .battle: "Battle"
         case .boss: "Boss"
-        case .shop: "Merchant's Shop"
+        case .shop: "Merchant"
         case .mystery: "Mystery"
         case .recruit: "Recruit"
         case .entrance: "Labyrinth Entrance"
@@ -36,7 +36,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         case .battle, .boss:
             "Fight"
         case .shop:
-            "Visit"
+            "Shop"
         case .mystery:
             "Approach"
         case .recruit:

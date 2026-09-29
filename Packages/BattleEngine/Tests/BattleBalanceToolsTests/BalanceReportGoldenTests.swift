@@ -52,15 +52,15 @@ struct BalanceReportGoldenTests {
     }
 
     @Test func `identity sweep is stable`() {
-        #expect(Self.fingerprint(Self.config(mode: .identity)) == 2310943200920752773)
+        #expect(Self.fingerprint(Self.config(mode: .identity)) == 18391727822218655272)
     }
 
     @Test func `ability contrast is stable`() {
-        #expect(Self.fingerprint(Self.config(mode: .abilityContrast, focus: ["bash"])) == 4690713114281795359)
+        #expect(Self.fingerprint(Self.config(mode: .abilityContrast, focus: ["bash"])) == 14738002420385257413)
     }
 
     @Test func `affix contrast is stable`() {
-        #expect(Self.fingerprint(Self.config(mode: .affixContrast, focus: ["keen"])) == 13816565801020347870)
+        #expect(Self.fingerprint(Self.config(mode: .affixContrast, focus: ["keen"])) == 6974299016015283840)
     }
 
     @Test func `talent contrast is stable`() {
@@ -70,6 +70,6 @@ struct BalanceReportGoldenTests {
             samples: 1,
             focus: ["knight_block_t1_1", "full-kit"],
         )
-        #expect(Self.fingerprint(config) == 10699409587651809804)
+        #expect(Self.fingerprint(config) == 8007660921645543619)
     }
 }

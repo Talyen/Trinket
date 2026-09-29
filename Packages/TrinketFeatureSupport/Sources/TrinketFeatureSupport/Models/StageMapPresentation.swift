@@ -112,7 +112,7 @@ public extension Stage {
         case .randomBattle:
             resolvedBattleEnemyID(worldSeed: worldSeed).flatMap { GameContent.enemy(matching: $0)?.name } ?? "Battle"
         case .shop:
-            GameContent.encounterArtTitle(for: self) ?? "Merchant's Shop"
+            GameContent.encounterArtTitle(for: self) ?? "Merchant"
         case .mysteryEvent:
             mysteryEvent?.title ?? "Mystery"
         case .recruit:

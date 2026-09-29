@@ -237,9 +237,9 @@ struct ControlMeterIntegrationTests {
             ],
         )
 
-        try #expect(battle.hand.count == 2)
+        try #expect(battle.hand.count == 3)
         try #expect(battle.hand.cards.allSatisfy { $0.owner == .companion })
-        try #expect(battle.heroDeck.count == battle.hero.abilityLoadout.abilities.count)
+        try #expect(battle.heroDeck.count == CombatDeck.defaultAbilities(from: battle.hero.abilityLoadout).count)
     }
 
     @Test(arguments: [Keyword.freeze, Keyword.stun])

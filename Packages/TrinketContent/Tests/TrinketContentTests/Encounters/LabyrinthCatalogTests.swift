@@ -14,6 +14,11 @@ struct LabyrinthCatalogTests {
         }
     }
 
+    @Test func `shop node presentation uses Merchant title and Shop primary action`() {
+        #expect(LabyrinthNodeType.shop.title == "Merchant")
+        #expect(LabyrinthNodeType.shop.primaryActionTitle == "Shop")
+    }
+
     @Test func `generator is deterministic for seed`() {
         let first = LabyrinthGenerator.makeInitialMap(seed: 42)
         let second = LabyrinthGenerator.makeInitialMap(seed: 42)

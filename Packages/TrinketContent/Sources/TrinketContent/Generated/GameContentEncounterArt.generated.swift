@@ -6,10 +6,10 @@ enum GameContentEncounterArtGenerated {
     static let stageEncounterArt: [String: (id: String, title: String)] = {
         var dict = [String: (id: String, title: String)]()
         dict.reserveCapacity(4)
-        dict["chapter-1-stage-9"] = (id: "destination-merchant-shop", title: "Merchant's Shop")
-        dict["chapter-2-stage-8"] = (id: "destination-merchant-shop", title: "Merchant's Shop")
-        dict["chapter-3-stage-8"] = (id: "destination-merchant-shop", title: "Merchant's Shop")
-        dict["chapter-4-stage-8"] = (id: "destination-merchant-shop", title: "Merchant's Shop")
+        dict["chapter-1-stage-9"] = (id: "destination-merchant-shop", title: "Merchant")
+        dict["chapter-2-stage-8"] = (id: "destination-merchant-shop", title: "Merchant")
+        dict["chapter-3-stage-8"] = (id: "destination-merchant-shop", title: "Merchant")
+        dict["chapter-4-stage-8"] = (id: "destination-merchant-shop", title: "Merchant")
         return dict
     }()
 }

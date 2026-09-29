@@ -96,8 +96,7 @@ extension TalentMigrationTests {
         )
         #expect(battle.roster.hero.currentHealth > 5)
         #expect(battle.roster.hasAffliction(.bleed, on: battle.enemy))
-        #expect(events.contains { $0.abilityName == Ability.fangs.name && $0.keyword == .bleed })
-        #expect(battle.heroDeck.abilities.map(\.id) == [Ability.fangs.id])
+        #expect(battle.heroDeck.abilities.map(\.id) == Array(repeating: Ability.fangs.id, count: CombatDeck.standardBasicsCount))
     }
 
     @Test func `dazing swipe only delays after damaging cards`() {

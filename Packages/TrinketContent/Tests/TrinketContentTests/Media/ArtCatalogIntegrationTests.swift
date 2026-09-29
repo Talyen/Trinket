@@ -138,6 +138,10 @@ struct ArtCatalogIntegrationTests {
             #expect((0 ... 1).contains(art.focalPoint.x))
             #expect((0 ... 1).contains(art.focalPoint.y))
         }
+        for art in ArtCatalog.talentArtByID.values {
+            #expect((0 ... 1).contains(art.focalPoint.x))
+            #expect((0 ... 1).contains(art.focalPoint.y))
+        }
     }
 
     private func referencedAbilityIDs() -> Set<String> {

@@ -139,7 +139,10 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
     public static func decodePayload(_ data: Data?) -> Self {
         guard let data else { return .freshStart }
         do {
-            let state = try JSONDecoder().decode(Self.self, from: data)
+            var state = try JSONDecoder().decode(Self.self, from: data)
+            if state.activeRun?.isComplete == true {
+                state.activeRun = nil
+            }
             if state.isValid {
                 return state
             }

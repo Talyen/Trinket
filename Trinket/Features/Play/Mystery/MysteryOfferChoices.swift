@@ -112,8 +112,7 @@ struct MysteryOfferChoices: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, TrinketDesign.Spacing.extraLarge)
+        .padding(.horizontal, TrinketDesign.Spacing.medium)
         .padding(.vertical, TrinketDesign.Spacing.extraSmall)
         .trinketMaterial(.bottomBar)
     }

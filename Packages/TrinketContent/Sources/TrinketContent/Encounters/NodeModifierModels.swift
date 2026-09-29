@@ -52,7 +52,7 @@ public enum NodeModifierEffect: Hashable, Sendable {
         case let .reward(modifier):
             modifier.description
         case .shopDiscountPercent:
-            "Price Discount"
+            "Reduced Gold Prices"
         case .astralShopOffers:
             "Astral inventory"
         }

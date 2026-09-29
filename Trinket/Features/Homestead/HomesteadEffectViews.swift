@@ -110,10 +110,10 @@ private struct HomesteadBenefitItem: View {
                     .fixedSize(horizontal: false, vertical: true)
                 Text(description)
                     .trinketTypography(.body)
+                    .monospacedDigit()
                     .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
                     .contentTransition(.numericText())
-                    .scaleEffect(isHighlighted ? 1.03 : 1, anchor: .leading)
             }
         }
         .accessibilityElement(children: .combine)

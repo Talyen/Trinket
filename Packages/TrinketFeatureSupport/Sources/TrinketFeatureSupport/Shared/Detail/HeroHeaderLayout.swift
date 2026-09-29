@@ -5,6 +5,7 @@ public enum HeroHeaderLayout {
         case portrait
         case square
         case cinematicLandscape
+        case talentTree
 
         public func height(forWidth width: CGFloat) -> CGFloat {
             switch self {
@@ -14,6 +15,8 @@ public enum HeroHeaderLayout {
                 max(width, HeroHeaderLayout.minimumHeaderHeight)
             case .cinematicLandscape:
                 min(max(width * 0.78, 288), 344)
+            case .talentTree:
+                min(max(width * 0.92, 336), 392)
             }
         }
     }

@@ -101,6 +101,7 @@ public enum VoyageCompletion {
             save.voyage.replaceOffer(
                 runID: runID, access: access, eligibleModifiers: RewardOwnership(save).eligibleModifiers,
             )
+            save.voyage.activeRun = nil
         }
         return .completed
     }

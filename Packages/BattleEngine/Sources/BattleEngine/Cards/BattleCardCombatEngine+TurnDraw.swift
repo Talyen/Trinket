@@ -20,12 +20,17 @@ package extension BattleCardCombatEngine {
         context.phase = .playerTurn
         events.append(contentsOf: UniqueCombatEngine.startTurn(in: &context))
 
-        context.pendingTurnDrawState = TurnDrawState(
-            remaining: [.hero: 1, .companion: 1],
-            tieWinner: context.turnCount.isMultiple(of: 2) ? .hero : .companion,
-            heroHandCount: context.hand.cards.count { $0.owner == .hero },
-            companionHandCount: context.hand.cards.count { $0.owner == .companion },
-        )
+        var plannedDraws: [BattleParticipant] = []
+        if context.roster.hero.isAlive, context.roster.companion.isAlive {
+            let randomOwner: BattleParticipant = Bool.random(using: &context.rng) ? .hero : .companion
+            plannedDraws = [.hero, randomOwner, .companion]
+        } else if context.roster.hero.isAlive {
+            plannedDraws = [.hero, .hero, .hero]
+        } else if context.roster.companion.isAlive {
+            plannedDraws = [.companion, .companion, .companion]
+        }
+
+        context.pendingTurnDrawState = TurnDrawState(plannedDraws: plannedDraws)
 
         return events
     }
@@ -38,43 +43,16 @@ package extension BattleCardCombatEngine {
             return false
         }
 
-        while true {
-            let candidates = [BattleParticipant.hero, .companion].filter {
-                state.remaining[$0, default: 0] > 0
-            }
-            guard !candidates.isEmpty else {
-                context.pendingTurnDrawState = nil
-                return false
-            }
-
-            let owner = pickBalancedOwner(
-                candidates: candidates,
-                isHandFull: context.hand.isFull,
-                tieWinner: state.tieWinner,
-                heroHandCount: state.heroHandCount,
-                companionHandCount: state.companionHandCount,
-            )
-
-            state.remaining[owner, default: 0] -= 1
-            let wasFull = context.hand.isFull
-            if let card = drawOne(for: owner, context: &context) {
-                if !wasFull {
-                    if card.owner == .hero {
-                        state.heroHandCount += 1
-                    } else if card.owner == .companion {
-                        state.companionHandCount += 1
-                    }
-                }
-                context.pendingTurnDrawState = state
-                if state.remaining.values.allSatisfy({ $0 <= 0 }) {
-                    context.pendingTurnDrawState = nil
-                }
+        while !state.plannedDraws.isEmpty {
+            let nextOwner = state.plannedDraws.removeFirst()
+            context.pendingTurnDrawState = state.plannedDraws.isEmpty ? nil : state
+            if drawOne(for: nextOwner, context: &context) != nil {
                 return true
             }
-            state.remaining[owner] = 0
-            context.pendingTurnDrawState = state
-            continue
         }
+
+        context.pendingTurnDrawState = nil
+        return false
     }
 
     @discardableResult

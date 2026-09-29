@@ -1,5 +1,6 @@
 import Testing
 import TrinketContent
+import TrinketCore
 import TrinketFeatureAdapters
 import TrinketPersistence
 @testable import TrinketFeatureSupport
@@ -34,7 +35,9 @@ struct StageMapPresentationTests {
         #expect(!(rows.map(\.item.id).contains(chapter.stages[0].id)))
         #expect(rows.contains { $0.item.id == progress.activeStageID && $0.isActive })
     }
+}
 
+struct VoyageMapPresentationTests {
     @Test func `voyage rows omit cleared nodes and keep the next node active`() {
         let offer = VoyageOffer(id: "voyage", chapterID: "chapter-1", difficulty: .easy, seed: 1)
         var cleared = VoyageNode(id: "cleared", type: .battle, enemyID: "slime", modifierIDs: [], recruitEventID: nil)
@@ -50,6 +53,36 @@ struct StageMapPresentationTests {
         #expect(rows.last?.isActive == false)
     }
 
+    @Test func `voyage rows only make combat nodes interactive`() {
+        let offer = VoyageOffer(id: "voyage", chapterID: "chapter-1", difficulty: .easy, seed: 1)
+        let battle = VoyageNode(id: "battle", type: .battle, enemyID: "goblin", modifierIDs: [], recruitEventID: nil)
+        let shop = VoyageNode(id: "shop", type: .shop, enemyID: nil, modifierIDs: [], recruitEventID: nil)
+        let mystery = VoyageNode(id: "mystery", type: .mystery, enemyID: nil, modifierIDs: [], recruitEventID: nil)
+        let boss = VoyageNode(id: "boss", type: .boss, enemyID: "the_blight_treant", modifierIDs: [], recruitEventID: nil)
+        let run = VoyageRun(offer: offer, nodes: [battle, shop, mystery, boss])
+
+        let rows = StageSelectRowPresentation<VoyageNode>.voyageNodes(run, inventory: .init(items: []))
+        #expect(rows.count == 4)
+        #expect(rows[0].isArtworkInteractive == true)
+        #expect(rows[0].allowsCompactInspection == true)
+        #expect(rows[1].isArtworkInteractive == false)
+        #expect(rows[1].allowsCompactInspection == false)
+        #expect(rows[2].isArtworkInteractive == false)
+        #expect(rows[2].allowsCompactInspection == false)
+        #expect(rows[3].isArtworkInteractive == true)
+        #expect(rows[3].allowsCompactInspection == true)
+    }
+
+    @Test func `shop discount modifier presentation uses reduced gold prices and gold keyword style`() throws {
+        let modifier = try #require(GameContent.nodeModifier(id: NodeModifierID("shopDiscount")))
+        #expect(modifier.effect.description == "Reduced Gold Prices")
+        let style = NodeModifierPresentation.style(for: modifier)
+        #expect(style.icon == Keyword.gold.visualStyle.icon)
+        #expect(style.color == Keyword.gold.visualStyle.color)
+    }
+}
+
+extension StageMapPresentationTests {
     @Test func `boss and recruitment presentation are derived from live content`() {
         let chapter = GameContent.chapters[0]
         let recruit = chapter.stages[1]
@@ -134,7 +167,7 @@ struct StageMapPresentationTests {
 
         #expect(GameContent.encounterArtID(for: stage) == nil)
         #expect(stage.encounterArtReference?.imageName == "encounter_destination_merchant_shop")
-        #expect(stage.encounterSubjectName(worldSeed: 0) == "Merchant's Shop")
+        #expect(stage.encounterSubjectName(worldSeed: 0) == "Merchant")
     }
 
     @Test func `mapped event stages resolve encounter art without pinning catalog I ds`() throws {

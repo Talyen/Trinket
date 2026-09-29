@@ -270,7 +270,11 @@ struct DeathsDoorEngineTests {
         let owl = try BattleTestFixtures.catalogBuild(
             combatantID: "library_owl", talents: "library_owl_health_t3_1",
         )
-        var battle = BattleStateTestFactory.makeBattle(companion: owl.combatant, companionModifiers: owl.modifiers)
+        var battle = BattleStateTestFactory.makeBattle(
+            companion: owl.combatant,
+            companionModifiers: owl.modifiers,
+            rngSeed: 2,
+        )
         battle.appliesFightPacing = false
         let target = battle.roster[owner].combatant
         battle.roster.mutateRuntime(for: target) { $0.currentHealth = 1 }

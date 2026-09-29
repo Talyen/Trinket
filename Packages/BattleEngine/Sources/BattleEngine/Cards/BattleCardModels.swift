@@ -58,12 +58,33 @@ public struct CombatDeck: Hashable, Sendable {
         abilities.append(ability)
     }
 
+    public static let standardBasicsCount = 3
+    public static let standardSkillsCount = 2
+    public static let standardUltimatesCount = 1
+
+    public static func defaultAbilities(from loadout: AbilityLoadout) -> [Ability] {
+        var abilities: [Ability] = []
+        if let basic = loadout.basic {
+            abilities.append(contentsOf: repeatElement(basic, count: standardBasicsCount))
+        }
+        if let skill = loadout.skill {
+            abilities.append(contentsOf: repeatElement(skill, count: standardSkillsCount))
+        }
+        if let ultimate = loadout.ultimate {
+            abilities.append(contentsOf: repeatElement(ultimate, count: standardUltimatesCount))
+        }
+        return abilities
+    }
+
     public static func shuffled(
         from loadout: AbilityLoadout,
         rng: inout SeededRandomNumberGenerator,
     ) -> Self {
-        var abilities = loadout.abilities
-        abilities.shuffle(using: &rng)
+        var abilities = defaultAbilities(from: loadout)
+        // Uniform decks hold identical cards, so skipping the shuffle keeps the RNG stream stable.
+        if Set(abilities.map(\.id)).count > 1 {
+            abilities.shuffle(using: &rng)
+        }
         return Self(abilities: abilities)
     }
 }
@@ -190,6 +211,13 @@ public struct BattleHand: Hashable, Sendable {
 
     public var isFull: Bool {
         cards.count >= Self.maxSize
+    }
+
+    public mutating func arrangeByParticipantOrder() {
+        let heroCards = cards.filter { $0.owner == .hero }
+        let companionCards = cards.filter { $0.owner == .companion }
+        let otherCards = cards.filter { $0.owner != .hero && $0.owner != .companion }
+        cards = heroCards + otherCards + companionCards
     }
 }
 

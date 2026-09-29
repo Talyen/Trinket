@@ -75,7 +75,7 @@ public struct CombatantTalentsView: View {
     }
 
     public var body: some View {
-        DetailHeroScrollShell(title: tree.name, heroHeightPolicy: .cinematicLandscape) { baseHeight in
+        DetailHeroScrollShell(title: tree.name, heroHeightPolicy: .talentTree) { baseHeight in
             DetailHeroHeader(
                 eyebrow: "TALENTS",
                 title: tree.name,
@@ -140,12 +140,26 @@ public struct CombatantTalentsView: View {
     @ViewBuilder
     private var talentArtwork: some View {
         if let artReference = tree.keyword.artReference {
-            Image.preparedAsset(artReference, displaySize: .full)
-                .resizable()
-                .interpolation(.medium)
-                .aspectRatio(contentMode: .fill)
-                .clipped()
-                .decorativePreparedArtwork()
+            GeometryReader { geometry in
+                let container = geometry.size
+                let sourceAspect = max(CGFloat(artReference.sourceAspectRatio), 0.001)
+                let scale = max(container.width / sourceAspect, container.height)
+                let renderedWidth = sourceAspect * scale
+                let renderedHeight = scale
+                let overflowX = max(renderedWidth - container.width, 0)
+                let overflowY = max(renderedHeight - container.height, 0)
+                let offsetX = (0.5 - artReference.focalPoint.x) * overflowX
+                let offsetY = (0.5 - artReference.focalPoint.y) * overflowY
+
+                Image.preparedAsset(artReference, displaySize: .full)
+                    .resizable()
+                    .interpolation(.medium)
+                    .scaledToFill()
+                    .frame(width: container.width, height: container.height)
+                    .offset(x: offsetX, y: offsetY)
+                    .decorativePreparedArtwork()
+            }
+            .clipped()
         } else {
             PlaceholderArtwork(
                 tree.keyword.visualStyle,

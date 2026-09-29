@@ -25,7 +25,7 @@ struct BattleCardCombatTests {
         )
     }
 
-    @Test func `opening hand draws three cards from random owners`() throws {
+    @Test func `opening hand draws three cards with hero on left companion on right`() throws {
         let battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
             companionAbilities: [.bash, .fangs, .bloodthorn],
@@ -37,9 +37,10 @@ struct BattleCardCombatTests {
         let heroDrawn = battle.hand.cards.count(where: { $0.owner == .hero })
         let companionDrawn = battle.hand.cards.count(where: { $0.owner == .companion })
         try #expect(heroDrawn + companionDrawn == BattleHand.maxSize)
-        try #expect(battle.hand.cards.allSatisfy { $0.owner == .hero || $0.owner == .companion })
-        try #expect(battle.heroDeck.count == battle.hero.abilityLoadout.abilities.count - heroDrawn)
-        try #expect(battle.companionDeck.count == battle.companion.abilityLoadout.abilities.count - companionDrawn)
+        try #expect(battle.hand.cards[0].owner == .hero)
+        try #expect(battle.hand.cards[2].owner == .companion)
+        try #expect(battle.heroDeck.count == CombatDeck.defaultAbilities(from: battle.hero.abilityLoadout).count - heroDrawn)
+        try #expect(battle.companionDeck.count == CombatDeck.defaultAbilities(from: battle.companion.abilityLoadout).count - companionDrawn)
     }
 
     @Test func `paced opening hand matches immediate draw for same seed`() throws {
@@ -216,7 +217,7 @@ struct BattleCardCombatTests {
         let countAtCap = battle.hand.count
         _ = battle.endTurn()
         try #expect(battle.hand.count == countAtCap)
-        try #expect(battle.hand.bufferCount == 2)
+        try #expect(battle.hand.bufferCount == 3)
     }
 
     @Test func `playing card promotes oldest buffered card FIFO`() throws {
@@ -263,54 +264,37 @@ struct BattleCardCombatTests {
         try #expect(battle.hand.cards == [visible])
     }
 
-    @Test func `automatic open slot goes to owner with fewer cards`() throws {
+    @Test func `turn draw draws three cards with hero on left companion on right random in middle`() throws {
         var battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
             companionAbilities: [.bash, .fangs, .bloodthorn],
             enemyMaxHealth: 500,
         )
         battle.hand = BattleHand()
-        battle.nextCardID += 1
-        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
-        battle.nextCardID += 1
-        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero))
-        battle.heroDeck.putOnBottom(.smite)
-        battle.companionDeck.putOnBottom(.fangs)
-
         _ = battle.endTurn()
 
         try #expect(battle.hand.count == BattleHand.maxSize)
-        try #expect(battle.hand.cards.count { $0.owner == .hero } == 2)
-        try #expect(battle.hand.cards.count { $0.owner == .companion } == 1)
-        try #expect(battle.hand.cards.last?.owner == .companion)
-        try #expect(battle.hand.bufferCount == 1)
-        try #expect(battle.hand.buffer.first?.owner == .hero)
+        try #expect(battle.hand.buffer.isEmpty)
+        try #expect(battle.hand.cards[0].owner == .hero)
+        try #expect(battle.hand.cards[2].owner == .companion)
+        let middleOwner = try #require(battle.hand.cards[1].owner)
+        try #expect(middleOwner == .hero || middleOwner == .companion)
     }
 
-    @Test(arguments: [(0, BattleParticipant.companion), (1, BattleParticipant.hero)])
-    func `automatic open slot alternates tied owner by round`(
-        startingRound: Int,
-        expectedOwner: BattleParticipant,
-    ) throws {
+    @Test func `turn draw draws three cards for survivor when one party member is defeated`() throws {
         var battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
             companionAbilities: [.bash, .fangs, .bloodthorn],
             enemyMaxHealth: 500,
         )
-        battle.turnCount = startingRound
+        battle.withEngineContext { context in
+            context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 0 }
+        }
         battle.hand = BattleHand()
-        battle.nextCardID += 1
-        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
-        battle.nextCardID += 1
-        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .bash, owner: .companion))
-        battle.heroDeck.putOnBottom(.slash)
-        battle.companionDeck.putOnBottom(.bash)
-
         _ = battle.endTurn()
 
         try #expect(battle.hand.count == BattleHand.maxSize)
-        try #expect(battle.hand.cards.last?.owner == expectedOwner)
-        try #expect(battle.hand.bufferCount == 1)
+        try #expect(battle.hand.cards.allSatisfy { $0.owner == .hero })
     }
 
     @Test func `end of round advances effects once`() throws {

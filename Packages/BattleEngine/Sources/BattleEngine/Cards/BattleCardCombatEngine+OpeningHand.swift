@@ -30,11 +30,8 @@ extension BattleCardCombatEngine {
             context.roster[owner].combatant.abilityLoadout.ability(for: tier) != nil
         }
         var plan: [OpeningHandDraw] = []
-        let basicOwners = [BattleParticipant.hero, .companion].filter {
-            context.roster[$0].isAlive && hasTier(.basic, for: $0)
-        }
-        for owner in basicOwners {
-            plan.append(OpeningHandDraw(owner: owner, tier: .basic))
+        if context.roster.hero.isAlive, hasTier(.basic, for: .hero) {
+            plan.append(OpeningHandDraw(owner: .hero, tier: .basic))
         }
         let skillOwners = [BattleParticipant.hero, .companion].filter {
             context.roster[$0].isAlive && hasTier(.skill, for: $0)
@@ -42,7 +39,9 @@ extension BattleCardCombatEngine {
         if let owner = skillOwners.randomElement(using: &planRng) {
             plan.append(OpeningHandDraw(owner: owner, tier: .skill))
         }
-        plan.shuffle(using: &planRng)
+        if context.roster.companion.isAlive, hasTier(.basic, for: .companion) {
+            plan.append(OpeningHandDraw(owner: .companion, tier: .basic))
+        }
         return plan
     }
 }

@@ -28,7 +28,16 @@ enum MysteryEventArtwork {
         if let artID = event.artID, let art = ArtCatalog.backgroundArtByID[artID] {
             return art
         }
+        if event.isRecruit, let art = GameContent.recruitEncounterArtReference(for: event) {
+            return art
+        }
         if let art = ArtCatalog.backgroundArtByID[chapterID] {
+            return art
+        }
+        if chapterID == "labyrinth", let art = ArtCatalog.backgroundArtByID["gameModeLabyrinth"] {
+            return art
+        }
+        if chapterID == "voyage", let art = ArtCatalog.backgroundArtByID["gameModeVoyage"] {
             return art
         }
         return nil
@@ -44,7 +53,16 @@ enum MysteryEventArtwork {
         if let artID = event.artID, let art = ArtCatalog.backgroundArtByID[artID] {
             return (art.imageName, art.thumbnailImageName, art.focalPoint)
         }
+        if event.isRecruit, let art = GameContent.recruitEncounterArtReference(for: event) {
+            return (art.imageName, art.thumbnailImageName, ArtFocalPoint(x: 0.5, y: 0.5))
+        }
         if let art = ArtCatalog.backgroundArtByID[chapterID] {
+            return (art.imageName, art.thumbnailImageName, art.focalPoint)
+        }
+        if chapterID == "labyrinth", let art = ArtCatalog.backgroundArtByID["gameModeLabyrinth"] {
+            return (art.imageName, art.thumbnailImageName, art.focalPoint)
+        }
+        if chapterID == "voyage", let art = ArtCatalog.backgroundArtByID["gameModeVoyage"] {
             return (art.imageName, art.thumbnailImageName, art.focalPoint)
         }
         return nil

@@ -16,10 +16,7 @@ package enum TalentClaim: Hashable, Sendable {
 }
 
 public struct TurnDrawState: Hashable, Sendable {
-    var remaining: [BattleParticipant: Int]
-    var tieWinner: BattleParticipant
-    var heroHandCount: Int
-    var companionHandCount: Int
+    var plannedDraws: [BattleParticipant]
 }
 
 // swiftlint:disable:next type_body_length - BattleState is intentional battle facade

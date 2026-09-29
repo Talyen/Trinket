@@ -291,7 +291,7 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
     rm -rf "$thumb_imageset"
   fi
 
-  if [[ "$kind" == "background" || "$kind" == "portrait_background" ]]; then
+  if [[ "$kind" == "background" || "$kind" == "portrait_background" || "$kind" == "talent" ]]; then
     source_aspect_ratio="$(sips -g pixelWidth -g pixelHeight "$output_file" | awk '/pixelWidth:/{w=$2} /pixelHeight:/{h=$2} END {printf "%.12f", w/h}')"
     if [[ ! "$source_aspect_ratio" =~ ^[0-9]+\.[0-9]+$ ]]; then
       echo "Could not determine aspect ratio for '$id' from '$output_file'." >&2
@@ -372,7 +372,9 @@ SWIFT
     cat >> "$scratch/talents" <<SWIFT
         dict[.$id] = TalentArtReference(
             imageName: "$escaped_asset",
-            thumbnailImageName: "$escaped_thumb"
+            thumbnailImageName: "$escaped_thumb",
+            sourceAspectRatio: $source_aspect_ratio,
+            focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y)
         )
 SWIFT
   fi
@@ -440,6 +442,8 @@ public struct EncounterArtReference: Hashable, Sendable {
 public struct TalentArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
+    public let sourceAspectRatio: Double
+    public let focalPoint: ArtFocalPoint
 }
 
 

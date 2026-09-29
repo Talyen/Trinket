@@ -36,7 +36,7 @@ public extension StageSelectRowPresentation where Item == VoyageNode {
                 encounterTypeTitle: node.type.title,
                 icon: GameIcon(id: node.type.iconID), tint: LabyrinthMapPresentation.tint(for: node.type),
                 primaryActionTitle: node.type.isCombat ? "Battle" : node.type.primaryActionTitle,
-                showsPartyPicker: node.type.isCombat, isArtworkInteractive: true,
+                showsPartyPicker: node.type.isCombat, isArtworkInteractive: node.type.isCombat,
                 rowAccessibilityID: AccessibilityID.Voyage.row(node.id),
                 artworkAccessibilityID: AccessibilityID.Voyage.artwork(node.id),
                 actionAccessibilityID: AccessibilityID.Voyage.action(node.id),
@@ -45,7 +45,7 @@ public extension StageSelectRowPresentation where Item == VoyageNode {
                 modifiers: isActive
                     ? RewardOwnership(inventory).modifiers(ids: node.modifierIDs).map(ModifierCaptionPresentation.init)
                     : [],
-                allowsCompactInspection: true,
+                allowsCompactInspection: node.type.isCombat,
             )
         }
     }

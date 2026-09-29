@@ -26,7 +26,7 @@ public enum NodeModifierPresentation {
         case let .reward(modifier):
             ModifierCaptionPresentation(modifier).style
         case .shopDiscountPercent:
-            Keyword.VisualStyle(color: Keyword.gold.visualStyle.color, icon: .system("percent"))
+            Keyword.gold.visualStyle
         case .astralShopOffers:
             Keyword.VisualStyle(color: TrinketDesign.Colors.arcane, icon: .system("eye.fill"))
         }
