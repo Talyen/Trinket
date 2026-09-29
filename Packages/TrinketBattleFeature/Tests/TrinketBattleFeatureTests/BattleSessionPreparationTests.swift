@@ -283,10 +283,12 @@ struct BattleSessionPreparationTests {
 
     @Test func `replacement opening hand deal retains task ownership after cancellation`() async throws {
         let party = BattlePartyFixtures.quickWinParty(heroAbilities: [.slash, .heal, .smite])
+        // 3-2-1 decks deal copies, so the opening hand fills to maxSize from
+        // total deck copies — not from unique loadout counts.
         let expectedOpeningHandCount = min(
             BattleHand.maxSize,
-            party.hero.abilityLoadout.abilities.count
-                + party.companion.abilityLoadout.abilities.count,
+            CombatDeck.defaultAbilities(from: party.hero.abilityLoadout).count
+                + CombatDeck.defaultAbilities(from: party.companion.abilityLoadout).count,
         )
         let session = BattleSession()
         let (initialConfiguration, _) = BattleRunConfigurationTestSupport.make(

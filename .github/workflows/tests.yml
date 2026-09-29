@@ -208,7 +208,8 @@ jobs:
           test -f BattlePerformance.xctestplan
       - uses: ./.github/actions/setup-trinket
         with:
-          metal: ${{ matrix.name == 'Features' }}
+          # State builds TrinketFeatureSupport, which compiles TrinketDesignSystem shaders.
+          metal: ${{ matrix.name == 'Features' || matrix.name == 'State' }}
       - uses: ./.github/actions/test-job
         with:
           artifact-name: ${{ inputs.artifact-prefix }}unit-${{ matrix.name }}

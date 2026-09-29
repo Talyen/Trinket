@@ -14,6 +14,7 @@ jobs:
           fetch-depth: 1
           sparse-checkout-cone-mode: true
           # Cone mode keeps root files (project.yml, *.xctestplan). Skip Raw Assets.
+          # Docs is read by the script-regression suite (agent context).
           sparse-checkout: |
             Scripts
             Packages
@@ -26,6 +27,7 @@ jobs:
             MusicManifest
             SoundManifest
             CinematicManifest
+            Docs
             .github
       - uses: ./.github/actions/setup-trinket
       # Same semantics as local ./Scripts/ci-gate.sh (single owner).
