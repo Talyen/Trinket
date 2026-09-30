@@ -44,6 +44,38 @@ final class ShellPerformanceUITests: PerformanceJourneyUITestCase {
             if didScroll {
                 verifyScrollProbes(optionsScrollProbes, optionsForm)
             }
+            assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
+            measured("options-reset-cancel", iteration: iteration) {
+                tapButton(AccessibilityID.Options.resetProgressButton)
+                assertExistsAfterScroll(AccessibilityID.Options.resetProgressCancel, requireHittable: true)
+                tapButton(AccessibilityID.Options.resetProgressCancel)
+                assertDoesNotExist(AccessibilityID.Options.resetProgressCancel)
+            }
+            measured("options-reset-confirm", iteration: iteration) {
+                tapButton(AccessibilityID.Options.resetProgressButton)
+                assertExistsAfterScroll(AccessibilityID.Options.resetProgressConfirmation, requireHittable: true)
+                tapButton(AccessibilityID.Options.resetProgressConfirmation)
+                assertExists(AccessibilityID.Onboarding.heroScreen, timeout: 20)
+            }
+        }
+    }
+
+    @MainActor
+    func testSalvage() {
+        for iteration in 1 ... repetitionCount {
+            launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
+            let card = AccessibilityID.Collection.itemCard(itemID: "crossbow-basic")
+            assertExistsAfterScroll(card, requireHittable: true)
+            measured("salvage-return", iteration: iteration, settle: 2) {
+                tapButton(card)
+                assertExists(AccessibilityID.LoadoutPicker.itemDetail("crossbow-basic"))
+                assertExistsAfterScroll(AccessibilityID.Collection.salvageButton, requireHittable: true)
+                tapButton(AccessibilityID.Collection.salvageButton)
+                assertExistsAfterScroll(AccessibilityID.Collection.salvageConfirmButton, requireHittable: true)
+                tapButton(AccessibilityID.Collection.salvageConfirmButton)
+                assertDoesNotExist(AccessibilityID.LoadoutPicker.itemDetail("crossbow-basic"))
+                assertDoesNotExist(card)
+            }
         }
     }
 

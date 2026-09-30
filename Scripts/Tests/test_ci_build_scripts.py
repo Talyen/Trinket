@@ -233,6 +233,12 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
         job = (ROOT / ".github/actions/test-job/action.yml").read_text()
         self.assertIn("./Scripts/restore-ci-test-products.sh", job)
         self.assertLess(job.index("./Scripts/restore-ci-test-products.sh"), job.index("- name: Run tests"))
+        workflow = (ROOT / '.github/workflows/tests.yml').read_text()
+        for name, following in (('smoke', 'exhaustive-ui'), ('exhaustive-ui', 'diff-review')):
+            with self.subTest(job=name):
+                consumer = workflow.split(f'  {name}:\n', 1)[1].split(f'  {following}:\n', 1)[0]
+                self.assertIn('rebuild-command: ./Scripts/build-for-testing.sh --app-only', consumer)
+                self.assertRegex(consumer, r'uses: \./\.github/actions/setup-trinket\n\s+with:\n(?:\s+#.*\n)*\s+metal: \'true\'')
 
     def test_package_registry_has_no_compile_only_split(self) -> None:
         owner = (ROOT / "Scripts" / "build-inputs.env").read_text(encoding="utf-8")

@@ -12,6 +12,15 @@ full log path. Failed Python/shell regression logs survive command exit under
 logs are removed. Inspect the retained file only for details missing from the
 excerpt. These logs do not use Xcode invocation manifests.
 
+Failed hosted gates upload `gate-failure-<run>-<attempt>` artifacts containing
+the gate transcript and retained script regression reports. Large logs keep
+their beginning and end within the artifact budget owned by
+`Scripts/diagnostic_maintenance.py`; local originals remain complete.
+
+The exhaustive advisory summary reads actual shard conclusions for the current
+run attempt. Failed or cancelled shards produce warnings and links while remaining
+outside `CI OK`; unavailable results are reported as unknown.
+
 ## Emitted reports
 
 Every test or package invocation writes an atomically completed

@@ -115,6 +115,8 @@ These helpers are sourced or invoked by commands, Git hooks, or CI workflows. Li
 | `./Scripts/stage-ci-test-artifact.sh` | Archive Products + build stamps/environment metadata in a tar file for CI `--no-build` test jobs |
 | `./Scripts/agent-push-gate.sh` | Internal pre-push generation completeness; invoked automatically by pre-push, not a manual post-commit step |
 | `./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>` | Stage structured artifacts outside the source results tree and its ancestors, adding raw failure evidence only when needed |
+| `./Scripts/ci-diagnostics.sh --stage-gate-artifacts <RESULTS_DIR> <ARTIFACT_DIR>` | Stage the gate transcript and script regression logs within fixed upload size limits |
+| `python3 Scripts/report-exhaustive-ci.py <jobs.json>` | Report actual advisory shard conclusions from paginated GitHub job results; invoked by the exhaustive summary job |
 | `./Scripts/lint-analyze.sh [SwiftPath ...]` | On-demand clean app build and analysis; optional file/directory scope, fails on unused imports or zero analyzed files; never CI, handoff, or style |
 | `./Scripts/run-env.sh`, `./Scripts/xcode-runner.sh`, `./Scripts/build-freshness.sh` | Run environment, Xcode execution, generated-input freshness, and `--no-build` stamps for `build` / `test` / `generate` / `run-simulator` / `lint-analyze` / `install-device` / `ci-gate` stamp alignment / `assert-generated-output` idempotence |
 | `./Scripts/change-classification.sh` | Sourced by `handoff` / `agent-context` / `agent-push-gate` |

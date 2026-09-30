@@ -255,6 +255,9 @@ jobs:
           test -f FullUI.xctestplan
           test -f BattlePerformance.xctestplan
       - uses: ./.github/actions/setup-trinket
+        with:
+          # This runner may rebuild missing/incompatible app test products.
+          metal: 'true'
       - uses: ./.github/actions/test-job
         with:
           build-artifact: ${{ needs.build.outputs.build-artifact }}
@@ -303,6 +306,8 @@ jobs:
           test -f FullUI.xctestplan
           test -f BattlePerformance.xctestplan
       - uses: ./.github/actions/setup-trinket
+        with:
+          metal: 'true'
       - uses: ./.github/actions/test-job
         with:
           build-artifact: ${{ needs.build.outputs.build-artifact }}
@@ -389,21 +394,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        if: inputs.include-exhaustive
+        with:
+          fetch-depth: 1
+          sparse-checkout: Scripts
       - name: Report exhaustive status
         env:
-          RESULTS: ${{ join(needs.exhaustive-ui.result, ' ') }}
           INCLUDED: ${{ inputs.include-exhaustive }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
-          echo "Exhaustive included: $INCLUDED"
-          echo "Exhaustive results: $RESULTS"
+          set -euo pipefail
           if [ "$INCLUDED" != "true" ]; then
             echo "Exhaustive was not requested for this run — advisory OK."
             exit 0
           fi
-          for result in $RESULTS; do
-            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
-              echo "::warning::Advisory exhaustive shard failed: $RESULTS"
-              exit 0
-            fi
-          done
-          echo "Advisory exhaustive passed."
+          # continue-on-error can mask needs.*.result. Read the actual job
+          # conclusions for this attempt, including every matrix shard.
+          jobs="$RUNNER_TEMP/exhaustive-jobs.json"
+          if gh api --paginate --slurp \
+            "repos/$REPO/actions/runs/$RUN_ID/attempts/$RUN_ATTEMPT/jobs?per_page=100" > "$jobs"; then
+            python3 Scripts/report-exhaustive-ci.py "$jobs"
+          else
+            echo "::warning::Could not retrieve exhaustive shard results; advisory status is unknown."
+            echo "### Exhaustive UI: status unknown (job results unavailable)" >> "$GITHUB_STEP_SUMMARY"
+          fi

@@ -12,20 +12,52 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from internal.cli import ROOT, read_json
 
 
+def test_measurements(source: str) -> dict[str, list[str]]:
+    # Test methods end at the next method declaration; nested measurement
+    # closures stay inside their owner. Interpolated category names retain
+    # their literal prefix/suffix when matching inventory entries.
+    source = re.sub(
+        r'"(?:\\.|[^"\\])*"|//[^\n]*|/\*[\s\S]*?\*/',
+        lambda token: token[0] if token[0].startswith('"') else '', source,
+    )
+    methods = list(re.finditer(r'\bfunc\s+(\w+)\s*\(', source))
+    result = {}
+    for index, method in enumerate(methods):
+        end = methods[index + 1].start() if index + 1 < len(methods) else len(source)
+        body = source[method.end():end]
+        result[method[1]] = re.findall(
+            r'(?:\bmeasured\s*\(|\bfinishMeasurement\s*\(|\brun\s*\(\s*scenario\s*:)\s*"((?:\\.|[^"\\])*)"',
+            body,
+        )
+    return result
+
+
+def matches_measurement(scenario: str, measurement: str) -> bool:
+    parts = re.split(r'\\\([^)]*\)', measurement)
+    return re.fullmatch('.+'.join(re.escape(part) for part in parts), scenario) is not None
+
+
 def select(baseline: dict, selectors: list[str]) -> dict:
     inventory = baseline['coverage']
     if set(inventory) != set(baseline['scenarios']):
         raise ValueError('coverage inventory and baseline scenarios differ')
     plan = read_json(ROOT / 'BattlePerformance.xctestplan')
     classes = set(plan['testTargets'][0]['selectedTests'])
+    measurements = {
+        source.stem: test_measurements(source.read_text())
+        for source in (ROOT / 'TrinketUITests/Performance').glob('*UITests.swift')
+    }
     for scenario, entry in inventory.items():
         owner, method = entry['test'].split('/')
-        source = ROOT / 'TrinketUITests/Performance' / f'{owner}.swift'
-        if owner not in classes or not source.exists() or f'func {method}(' not in source.read_text():
+        methods = measurements.get(owner, {})
+        if owner not in classes or method not in methods:
             raise ValueError(f'{scenario}: unregistered test {entry["test"]}')
-    declared: set[str] = set()
-    for source in (ROOT / 'TrinketUITests/Performance').glob('*UITests.swift'):
-        declared.update(value for value in re.findall(r'(?:measured\(|run\(scenario: |finishMeasurement\()"([^"\\]+)"', source.read_text()))
+        if not any(matches_measurement(scenario, value) for value in methods[method]):
+            raise ValueError(f'{scenario}: missing measurement in {entry["test"]}')
+    declared = {
+        value for methods in measurements.values() for values in methods.values()
+        for value in values if '\\(' not in value
+    }
     missing = declared - set(inventory)
     if missing:
         raise ValueError(f'measured scenarios missing from inventory: {sorted(missing)}')

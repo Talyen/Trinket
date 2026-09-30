@@ -165,8 +165,13 @@ class BuildMetadataTests(unittest.TestCase):
         self.assertTrue((products / 'current-app').is_symlink())
         self.assertTrue(os.access(products / 'Debug-iphonesimulator/Trinket.app/Trinket', os.X_OK))
         for variable in ('FAKE_COMMIT', 'FAKE_XCODE', 'FAKE_SDK'):
-            self.prepare({**ci, variable: 'different'})
-            self.assertFalse((products / 'current-app').exists())
+            with self.subTest(mismatch=variable):
+                result = self.prepare({**ci, variable: 'different'})
+                evidence = result.stdout + result.stderr
+                self.assertIn('rebuilding on this runner', result.stdout, evidence)
+                self.assertIn('Build metadata mismatch', result.stderr, evidence)
+                self.assertFalse((products / 'current-app').is_symlink(), evidence)
+                self.assertFalse((products / 'current-app').exists(), evidence)
         self.assertEqual((self.root / 'rebuild-count').read_text().splitlines(), ['rebuilt'] * 3)
 
     def test_ci_missing_corrupt_or_legacy_transfer_rebuilds_and_checks_replacement(self):

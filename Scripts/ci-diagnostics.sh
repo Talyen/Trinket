@@ -15,17 +15,18 @@ POSITIONAL=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --help|-h)
-      echo "Usage: ./Scripts/ci-diagnostics.sh [--reset | --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR> | --cleanup [--keep]] [RESULTS_DIR]"
+      echo "Usage: ./Scripts/ci-diagnostics.sh [--reset | --stage-artifacts | --stage-gate-artifacts | --cleanup [--keep]] [RESULTS_DIR] [ARTIFACT_DIR]"
       echo "Aggregate structured diagnostics emitted by each CI test invocation (read-only for test output)."
       exit 0
       ;;
     --reset) MODE="reset" ;;
     --stage-artifacts) MODE="stage" ;;
+    --stage-gate-artifacts) MODE="stage-gate" ;;
     --cleanup) MODE="cleanup" ;;
     --keep) KEEP=true ;;
     -*)
       echo "Unknown argument: $1" >&2
-      echo "Usage: ./Scripts/ci-diagnostics.sh [--reset | --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR> | --cleanup [--keep]] [RESULTS_DIR]" >&2
+      echo "Usage: ./Scripts/ci-diagnostics.sh [--reset | --stage-artifacts | --stage-gate-artifacts | --cleanup [--keep]] [RESULTS_DIR] [ARTIFACT_DIR]" >&2
       exit 2
       ;;
     *) POSITIONAL+=("$1") ;;
@@ -34,9 +35,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$MODE" in
-  stage)
+  stage|stage-gate)
     if [[ ${#POSITIONAL[@]} -ne 2 ]]; then
-      echo "Usage: ./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>" >&2
+      echo "Usage: ./Scripts/ci-diagnostics.sh --stage[-gate]-artifacts <RESULTS_DIR> <ARTIFACT_DIR>" >&2
       exit 2
     fi
     ;;
@@ -57,13 +58,13 @@ if [[ "$MODE" == "reset" ]]; then
   exit 0
 fi
 
-if [[ "$MODE" == "stage" ]]; then
+if [[ "$MODE" == "stage" || "$MODE" == "stage-gate" ]]; then
   ARTIFACT_DIR="${POSITIONAL[1]:-}"
   if [[ -z "$ARTIFACT_DIR" || "$ARTIFACT_DIR" == "$RESULTS_DIR" || "$ARTIFACT_DIR" == "/" ]]; then
-    echo "Usage: ./Scripts/ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>" >&2
+    echo "Usage: ./Scripts/ci-diagnostics.sh --stage[-gate]-artifacts <RESULTS_DIR> <ARTIFACT_DIR>" >&2
     exit 2
   fi
-  python3 Scripts/diagnostic_maintenance.py stage "$RESULTS_DIR" "$ARTIFACT_DIR"
+  python3 Scripts/diagnostic_maintenance.py "$MODE" "$RESULTS_DIR" "$ARTIFACT_DIR"
   exit 0
 fi
 

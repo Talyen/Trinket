@@ -9,10 +9,13 @@ SCRIPT_INPUTS = (
     'Scripts/lib/args.sh',
     'Scripts/lib/cheap-slices.sh',
     'Scripts/lib/gate.sh',
+    'Scripts/report-exhaustive-ci.py',
 )
 
 
 import os
+import importlib.util
+import json
 import subprocess
 import unittest
 
@@ -22,6 +25,56 @@ import tempfile
 from pathlib import Path
 
 class CIGateScriptTests(ScriptRegressionTestCase):
+    def test_gate_transcript_keeps_the_original_failure_exit(self) -> None:
+        workflow = (ROOT / '.github/workflows/gate.yml').read_text()
+        command = workflow.split('        run: |\n', 1)[1].split('      - name:', 1)[0]
+        command = '\n'.join(line[10:] for line in command.splitlines())
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / 'Scripts'
+            scripts.mkdir()
+            gate = scripts / 'ci-gate.sh'
+            gate.write_text('#!/bin/bash\necho original failure >&2\nexit 65\n')
+            gate.chmod(0o755)
+            results = root / 'TestResults'
+            result = subprocess.run(['bash', '-c', command], cwd=root, capture_output=True, text=True,
+                                    env={**os.environ, 'RESULTS_DIR': str(results)})
+            self.assertEqual(result.returncode, 65, result.stdout + result.stderr)
+            self.assertIn('original failure', (results / 'gate.log').read_text())
+        stage = workflow.split('      - name: Stage bounded gate failure diagnostics', 1)[1]
+        self.assertIn('if: failure()', stage)
+        self.assertIn('--stage-gate-artifacts', stage)
+        self.assertIn('retention-days: 7', stage)
+
+    def test_advisory_report_uses_actual_paginated_shard_conclusions(self) -> None:
+        spec = importlib.util.spec_from_file_location('exhaustive_report', ROOT / 'Scripts/report-exhaustive-ci.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        def job(name, outcome):
+            return {'name': name, 'conclusion': outcome, 'status': 'completed', 'html_url': 'https://example.com/job'}
+        for outcome, title, warning in (('success', 'passed', False), ('skipped', 'not run', False),
+                                        ('failure', 'attention required', True), ('cancelled', 'attention required', True)):
+            with self.subTest(outcome=outcome):
+                pages = [{'jobs': [job('tests / CI OK', 'success')]},
+                         {'jobs': [job('tests / Exhaustive UI (Collection)', outcome)]}]
+                summary, warnings = module.report(pages)
+                self.assertIn(f'Exhaustive UI: {title}', summary)
+                self.assertIn(f'| {outcome} |', summary)
+                self.assertEqual(bool(warnings), warning)
+                self.assertNotIn('CI OK](', summary)
+        self.assertTrue(module.report([{'jobs': []}])[1])
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            jobs = root / 'jobs.json'
+            jobs.write_text(json.dumps([{'jobs': [job('tests / Exhaustive UI (Battle)', 'failure')]}]))
+            summary_path = root / 'summary.md'
+            result = subprocess.run(['python3', str(ROOT / 'Scripts/report-exhaustive-ci.py'), str(jobs)],
+                                    capture_output=True, text=True,
+                                    env={**os.environ, 'GITHUB_STEP_SUMMARY': str(summary_path)})
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('::warning::Advisory exhaustive shard', result.stdout)
+            self.assertIn('attention required', summary_path.read_text())
+
     def test_ci_diff_review_is_advisory(self) -> None:
         text = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
         self.assertRegex(text, r"diff-review:\n(?:.*\n){0,8}    continue-on-error: true")

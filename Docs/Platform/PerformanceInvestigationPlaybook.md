@@ -54,7 +54,8 @@ The current runtime does not reliably export `XCTHitchMetric`; the broken export
 
 `Performance/Baselines/simulator-60.json` maps each measured step to its XCTest
 method and group. `performance-scenarios.py` checks test-plan registration, source
-methods, missing measured scenarios, and coverage of every `AppTab` and
+methods, a matching measurement inside each registered method, missing measured
+scenarios, and coverage of every `AppTab` and
 `PlayLaunchDestination` case. Add coverage when adding a shipping destination or
 materially different interaction; an unchanged shared view does not need a test
 for every catalog entry.

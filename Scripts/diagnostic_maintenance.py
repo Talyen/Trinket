@@ -40,18 +40,57 @@ def reset(root: Path) -> None:
     print(f"Cleared prior CI diagnostic/status artifacts in {root}")
 
 
-def stage(root: Path, artifact_dir: Path) -> None:
+def prepare_artifact_dir(root: Path, artifact_dir: Path) -> None:
     root = root.resolve()
     destination = artifact_dir.resolve()
     if destination == root or destination in root.parents or root in destination.parents:
         raise SystemExit("artifact directory must not overlap TestResults")
+    shutil.rmtree(artifact_dir, ignore_errors=True)
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+
+
+def stage_gate(root: Path, artifact_dir: Path) -> None:
+    prepare_artifact_dir(root, artifact_dir)
+    # Gate logs have no invocation manifests. Keep complete small reports and
+    # both ends of large logs, with a fixed aggregate bound for hosted uploads.
+    maximum_file_bytes = 1024 * 1024
+    policy = (
+        'Gate diagnostics: at most 128 files, 1 MiB per file, 16 MiB total; '
+        'large files retain their beginning and end.\n'
+    ).encode()
+    remaining_bytes = 16 * maximum_file_bytes - len(policy)
+    paths = [root / 'gate.log']
+    paths += sorted(root.glob('script-tests.*/*'))
+    for path in paths[:127]:
+        if path.is_symlink() or not path.is_file() or path.parent.is_symlink():
+            continue
+        budget = min(maximum_file_bytes, remaining_bytes)
+        if budget < 1024:
+            break
+        with path.open('rb') as stream:
+            if path.stat().st_size > budget:
+                marker = b'\n... diagnostic middle omitted by artifact size budget ...\n'
+                half = (budget - len(marker)) // 2
+                content = stream.read(half)
+                stream.seek(-half, 2)
+                content += marker + stream.read(half)
+            else:
+                content = stream.read(budget)
+        target = artifact_dir / path.relative_to(root)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(content)
+        remaining_bytes -= len(content)
+    (artifact_dir / 'artifact-policy.txt').write_bytes(policy)
+    print(f'Staged bounded gate diagnostics in {artifact_dir}')
+
+
+def stage(root: Path, artifact_dir: Path) -> None:
+    prepare_artifact_dir(root, artifact_dir)
     category_path = root / "ci-diagnostics.json"
     try:
         category = json.loads(category_path.read_text(encoding="utf-8")).get("category", "unknown")
     except (OSError, json.JSONDecodeError):
         category = "unknown"
-    shutil.rmtree(artifact_dir, ignore_errors=True)
-    artifact_dir.mkdir(parents=True, exist_ok=True)
     names = {"ci-diagnostics.json", "timing-log.jsonl", "simulator.log"}
     for path in root.iterdir():
         if path.is_file() and (path.name in names or path.name.endswith(("-invocation.json", "-diagnostics.json", "-diagnostics.md", "-diagnostics.annotations"))):
@@ -173,15 +212,16 @@ def cleanup(root: Path, keep: bool) -> None:
 
 def main(argv: list[str]) -> int:
     if len(argv) < 2:
-        raise SystemExit("Usage: diagnostic_maintenance.py <reset|stage|cleanup> RESULTS_DIR [ARTIFACT_DIR] [--keep]")
+        raise SystemExit("Usage: diagnostic_maintenance.py <reset|stage|stage-gate|cleanup> RESULTS_DIR [ARTIFACT_DIR] [--keep]")
     mode = argv[0]
     root = require_results_dir(argv[1])
     if mode == "reset":
         reset(root)
-    elif mode == "stage":
+    elif mode in ("stage", "stage-gate"):
         if len(argv) < 3 or not argv[2]:
             raise SystemExit("stage requires an artifact directory")
-        stage(root, Path(argv[2]).resolve())
+        stager = stage_gate if mode == "stage-gate" else stage
+        stager(root, Path(argv[2]).resolve())
     elif mode == "cleanup":
         cleanup(root, "--keep" in argv[2:])
     else:

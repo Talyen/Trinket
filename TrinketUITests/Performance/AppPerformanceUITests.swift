@@ -23,6 +23,30 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
+    func test01TabRoundTrip() {
+        for iteration in 1 ... repetitionCount {
+            launchApp(arguments: TestLaunchArg.allForAppPerformance())
+            play.assertLoaded()
+            let collectionTab = tabCoordinate(named: "Collection")
+            let homesteadTab = tabCoordinate(named: "Homestead")
+            let optionsTab = tabCoordinate(named: "Options")
+            let playTab = tabCoordinate(named: "Play")
+
+            measured("tab-round-trip", iteration: iteration) {
+                collectionTab.tap()
+                collection.assertLoaded()
+                homesteadTab.tap()
+                homestead.assertLoaded()
+                optionsTab.tap()
+                options.assertLoaded()
+                playTab.tap()
+                play.assertLoaded()
+            }
+            play.assertLoaded()
+        }
+    }
+
+    @MainActor
     func test02CollectionNavigation() {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
@@ -155,5 +179,11 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
                 }
             }
         }
+    }
+
+    private func tabCoordinate(named name: String) -> XCUICoordinate {
+        let tab = app.tabBars.buttons[name]
+        XCTAssertTrue(tab.trinketWaitForExistence(timeout: Self.defaultTimeout))
+        return tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
     }
 }

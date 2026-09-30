@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/ci-diagnostics.sh',
+    'Scripts/diagnostic_maintenance.py',
     'Scripts/config/infrastructure-patterns.env',
     'Scripts/config/simulator-names.env',
     'Scripts/ensure-simulator.sh',
@@ -46,6 +48,40 @@ import shutil
 import signal
 
 class CISessionScriptTests(ScriptRegressionTestCase):
+    def test_gate_artifact_keeps_failure_logs_with_size_bounds(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            results = root / 'TestResults'
+            logs = results / 'script-tests.fixture'
+            logs.mkdir(parents=True)
+            (results / 'gate.log').write_text('gate failed\n')
+            (logs / 'python-test.log').write_bytes(b'first error\n' + b'x' * (2 * 1024 * 1024) + b'\nlast error\n')
+            (logs / 'docs.log').write_text('missing target\n')
+            external = root / 'foreign.log'
+            external.write_text('unrelated evidence')
+            (logs / 'foreign.log').symlink_to(external)
+            artifact = root / 'artifact'
+            result = subprocess.run([str(ROOT / 'Scripts/ci-diagnostics.sh'), '--stage-gate-artifacts',
+                                     str(results), str(artifact)], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            retained = (artifact / 'script-tests.fixture/python-test.log').read_bytes()
+            self.assertLessEqual(len(retained), 1024 * 1024)
+            self.assertTrue(retained.startswith(b'first error'))
+            self.assertTrue(retained.endswith(b'last error\n'))
+            self.assertIn(b'diagnostic middle omitted', retained)
+            self.assertEqual((artifact / 'script-tests.fixture/docs.log').read_text(), 'missing target\n')
+            self.assertEqual((artifact / 'gate.log').read_text(), 'gate failed\n')
+            self.assertFalse((artifact / 'script-tests.fixture/foreign.log').exists())
+            self.assertGreater((logs / 'python-test.log').stat().st_size, len(retained))
+            for index in range(20):
+                (logs / f'z-large-{index:02}.log').write_bytes(b'x' * (1024 * 1024))
+            repeated = subprocess.run([str(ROOT / 'Scripts/ci-diagnostics.sh'), '--stage-gate-artifacts',
+                                      str(results), str(artifact)], capture_output=True, text=True)
+            self.assertEqual(repeated.returncode, 0, repeated.stderr)
+            files = [path for path in artifact.rglob('*') if path.is_file()]
+            self.assertLessEqual(len(files), 128)
+            self.assertLessEqual(sum(path.stat().st_size for path in files), 16 * 1024 * 1024)
+
     def test_ci_diagnostics_stages_structured_artifacts_and_failure_forensics(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             results = Path(directory) / "TestResults"

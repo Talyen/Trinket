@@ -44,4 +44,21 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       # Same semantics as local ./Scripts/ci-gate.sh (single owner).
       - name: CI gate
-        run: ./Scripts/ci-gate.sh
+        env:
+          RESULTS_DIR: ${{ github.workspace }}/.DerivedData/TestResults
+          TRINKET_CLEANUP_TEST_ARTIFACTS: 0
+        run: |
+          set -euo pipefail
+          mkdir -p "$RESULTS_DIR"
+          ./Scripts/ci-gate.sh 2>&1 | tee "$RESULTS_DIR/gate.log"
+      - name: Stage bounded gate failure diagnostics
+        if: failure()
+        run: ./Scripts/ci-diagnostics.sh --stage-gate-artifacts .DerivedData/TestResults .DerivedData/GateResults-artifact
+      - name: Upload gate failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: gate-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/GateResults-artifact/
+          retention-days: 7
+          if-no-files-found: ignore

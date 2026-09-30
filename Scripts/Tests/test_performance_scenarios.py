@@ -15,6 +15,7 @@ import copy
 import importlib.util
 import json
 import unittest
+from unittest import mock
 from pathlib import Path
 
 import os
@@ -64,6 +65,35 @@ class PerformanceScenarioTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'differ'):
             module.select(broken, [])
 
+    def test_inventory_requires_measurement_in_its_registered_method(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            tests = root / 'TrinketUITests/Performance'
+            tests.mkdir(parents=True)
+            (root / 'BattlePerformance.xctestplan').write_text(json.dumps({
+                'testTargets': [{'selectedTests': ['FixtureUITests']}],
+            }))
+            source = tests / 'FixtureUITests.swift'
+            baseline = {
+                'scenarios': ['options-reset-cancel'],
+                'coverage': {'options-reset-cancel': {'group': 'app', 'test': 'FixtureUITests/testOptions'}},
+            }
+            for body in ('', 'measured("options-controls") {}',
+                         '// measured("options-reset-cancel") {}\n',
+                         '/* measured("options-reset-cancel") {} */'):
+                with self.subTest(body=body), mock.patch.object(module, 'ROOT', root):
+                    # A measurement in a different test cannot satisfy this owner.
+                    source.write_text('func testOptions() { ' + body + ' }\n'
+                                      'func testOther() { measured("options-reset-cancel") {} }')
+                    with self.assertRaisesRegex(ValueError, 'missing measurement in FixtureUITests/testOptions'):
+                        module.select(baseline, [])
+            for call in ('measured(\n "options-reset-cancel") {}',
+                         'finishMeasurement("options-reset-cancel", iteration: 1)',
+                         'run(scenario: "options-reset-cancel")',
+                         'measured("options-reset-\\(action)") {}'):
+                with self.subTest(call=call), mock.patch.object(module, 'ROOT', root):
+                    source.write_text('func testOptions() { ' + call + ' }')
+                    self.assertEqual(module.select(baseline, [])['scenarios'], baseline['scenarios'])
 
     def test_performance_runner_retains_success_and_partial_failure_evidence(self) -> None:
         for test_status in (0, 1):
@@ -89,7 +119,7 @@ class PerformanceScenarioTests(unittest.TestCase):
                 }))
                 tests = root / "TrinketUITests/Performance"
                 tests.mkdir(parents=True)
-                (tests / "AppPerformanceUITests.swift").write_text("func testNavigation() {}")
+                (tests / "AppPerformanceUITests.swift").write_text('func testNavigation() { measured("navigation") {} }')
                 report = {
                     "scenario": "navigation", "schemaVersion": 5, "iteration": 1,
                     "averageFPS": 30, "onePercentLowFPS": 20, "p95FrameMs": 50,
