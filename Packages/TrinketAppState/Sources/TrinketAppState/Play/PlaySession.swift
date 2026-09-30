@@ -136,16 +136,12 @@ public final class PlaySession {
         restoreBattleOrigin(from: origin)
         shellSession.selectedTab = .play
         battleRuns.endBattle()
-        if let configuration, !battleCompletion.deferredDefeatTalentProgressions.isEmpty {
+        if let configuration {
             queuePostBattleTalentChoices(
                 for: [configuration.hero.combatant, configuration.companion.combatant],
-                progressionsBefore: [:],
             )
         }
-        // Clear any deferred victory exit and stale defeat claim. Talent
-        // choices above already consumed the deferred progressions, so this
-        // only drops the pending exit and claim slot.
-        battleCompletion.cancelPendingExit()
+        battleCompletion.reset()
     }
 
     @discardableResult
@@ -157,11 +153,6 @@ public final class PlaySession {
         defersPresentationExit: Bool = false,
     ) -> BattleCompletionResult {
         let combatants = [configuration.hero.combatant, configuration.companion.combatant]
-        let progressionsBefore = Dictionary(
-            uniqueKeysWithValues: combatants.map { combatant in
-                (combatant.id, playerSave.roster.progression(for: combatant))
-            },
-        )
         let result = battleCompletion.completeActiveBattle(
             configuration,
             battleGold: battleGold,
@@ -173,7 +164,6 @@ public final class PlaySession {
             onFinished: { [weak self] in
                 self?.queuePostBattleTalentChoices(
                     for: combatants,
-                    progressionsBefore: progressionsBefore,
                 )
             },
             restoreOrigin: { [weak self] origin in
@@ -226,7 +216,7 @@ public final class PlaySession {
     }
 
     func clearTransientState() {
-        battleCompletion.cancelPendingExit()
+        battleCompletion.reset()
         battleRuns.endBattle()
         dismissPostBattleTalentChoice()
         encounters.activeMysteryEncounter = nil
@@ -260,14 +250,11 @@ public final class PlaySession {
 
     private func queuePostBattleTalentChoices(
         for combatants: [Combatant],
-        progressionsBefore: [String: CombatantProgression],
     ) {
         postBattleTalentChoices.queue(
             for: combatants,
-            progressionsBefore: progressionsBefore,
-            deferredProgressions: battleCompletion.deferredDefeatTalentProgressions,
+            progressionsBefore: battleCompletion.takeTalentProgressions(),
             roster: playerSave.roster,
         )
-        battleCompletion.deferredDefeatTalentProgressions.removeAll()
     }
 }

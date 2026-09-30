@@ -61,7 +61,10 @@ an action completed before a durable write succeeds.
 SwiftData always opens the local graph at its existing URL with CloudKit mirroring
 set to `.none`. `PlayerSaveCloudSync` and `CloudKitSaveTransport`, owned by
 Persistence, exchange versioned complete snapshots in the existing private
-container. The authored `CLOUDKIT_SYNC_ENABLED` build setting defaults to `NO`;
+container. Device account, request and receipt transitions are computed without
+side effects in `CloudSaveTransitions`; `PlayerSaveCloudSync` owns network work and
+applies those plans through one preparation, stale-state check and durable commit
+path. The authored `CLOUDKIT_SYNC_ENABLED` build setting defaults to `NO`;
 an explicitly enabled build requests automatic sync through its Info.plist value.
 Debug also supports an opt-in retained until disabled; Release ignores that
 development argument/preference. Test, reset, named, explicit-URL, and in-memory

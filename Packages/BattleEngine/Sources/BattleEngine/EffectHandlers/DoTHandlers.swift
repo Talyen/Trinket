@@ -3,41 +3,28 @@ import TrinketContent
 import TrinketCore
 
 struct DecayingDoTHandler: BattleEffectHandler {
-    let keyword: Keyword
-    let kind: EffectKind
+    let type: DecayingDoT
+
+    var keyword: Keyword {
+        type.keyword
+    }
+
+    var kind: EffectKind {
+        type.kind
+    }
 
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> [ActionEvent] {
         guard matches(active.effect) else { return [] }
-        let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
-        let slowPercent = (sourceTriggers?.burnDecaySlowPercent ?? 0)
-            + (context.roster.hasAffliction(.bleed, on: target)
-                ? (sourceTriggers?.burnDecaySlowVsBleedingPercent ?? 0) : 0)
-        let nextPotency: Int
-        if keyword == .burn {
-            let decayed = active.effect.potencyAfterTurn(burnDecaySlowPercent: slowPercent)
-            if let sourceTriggers, sourceTriggers.burnPreventDecayChancePercent > 0,
-               BattleChance.succeeds(probability: sourceTriggers.burnPreventDecayChancePercent, using: &context.rng),
-               let potency = active.effect.potency {
-                nextPotency = potency
-            } else if let sourceTriggers, sourceTriggers.burnIncreaseChancePercent > 0,
-                      BattleChance.succeeds(probability: sourceTriggers.burnIncreaseChancePercent, using: &context.rng),
-                      let potency = active.effect.potency {
-                nextPotency = potency + 1
-            } else {
-                nextPotency = decayed
-            }
-        } else if keyword == .poison {
-            nextPotency = poisonPotencyAfterTurn(active, sourceTriggers: sourceTriggers, in: &context)
-        } else {
-            nextPotency = active.effect.potencyAfterTurn()
-        }
+        let progression = DecayingDoTProgression(
+            type: type, sourceActorID: active.sourceActorID, target: target, in: context,
+        )
+        let nextPotency = progression.turnPotency(from: active.effect.potency ?? 0, using: &context.rng)
         var updated = active
-        updated.effect = Effect.decayingDoT(keyword: keyword, potency: nextPotency)
+        updated.effect = type.effect(potency: nextPotency)
         ActiveEffectMutation.finishTurn(active, replacement: nextPotency > 0 ? updated : nil, on: target, in: &context)
         if nextPotency > 0 {
-            let tickCount = (keyword == .burn && sourceTriggers?.burnTicksTwicePerTurn == true) ? 2 : 1
             var events: [ActionEvent] = []
-            for _ in 0 ..< tickCount {
+            for _ in 0 ..< progression.ticksPerTurn {
                 let outcome = DoTDamage.resolveDamage(
                     basePotency: nextPotency,
                     keyword: keyword,
@@ -103,34 +90,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
     }
 
     private func matches(_ effect: Effect) -> Bool {
-        switch (keyword, effect) {
-        case (.burn, .burn), (.poison, .poison): true
-        default: false
-        }
-    }
-
-    private func poisonPotencyAfterTurn(
-        _ active: ActiveEffect,
-        sourceTriggers: CombatTraitTriggers?,
-        in context: inout BattleState,
-    ) -> Int {
-        guard case let .poison(potency) = active.effect else {
-            return active.effect.potencyAfterTurn()
-        }
-        if BattleChance.succeeds(
-            probability: sourceTriggers?.poisonPreventDecayChancePercent ?? 0, using: &context.rng,
-        ) {
-            return potency
-        }
-        let chance: Double = if let sourceActorID = active.sourceActorID {
-            context.modifiers(for: sourceActorID).triggers.poisonDecayIncreaseChance
-        } else {
-            0
-        }
-        if BattleChance.succeeds(probability: chance, using: &context.rng) {
-            return potency + 1
-        }
-        return active.effect.potencyAfterTurn(poisonDecaySlowPercent: sourceTriggers?.poisonDecaySlowPercent ?? 0)
+        effect.kind == type.kind
     }
 }
 
@@ -397,32 +357,14 @@ struct DetonateDoTHandler: BattleEffectHandler {
                 provenance: context.resolution.damageProvenance(for: source.id), in: &context,
             )
         }
-        let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
-        let slowBurn = (sourceTriggers?.burnDecaySlowPercent ?? 0)
-            + (context.roster.hasAffliction(.bleed, on: target)
-                ? (sourceTriggers?.burnDecaySlowVsBleedingPercent ?? 0) : 0)
-        let tickCount = active.keyword == .burn && sourceTriggers?.burnTicksTwicePerTurn == true ? 2 : 1
-        var remaining = active.effect
-        var events: [ActionEvent] = []
-        while context.roster.health(for: target) > 0 {
-            let next = remaining.potencyAfterTurn(
-                burnDecaySlowPercent: slowBurn, poisonDecaySlowPercent: sourceTriggers?.poisonDecaySlowPercent ?? 0,
-            )
-            guard next > 0 else { break }
-            remaining = .decayingDoT(keyword: active.keyword, potency: next)
-            for _ in 0 ..< tickCount where context.roster.health(for: target) > 0 {
-                events.append(contentsOf: DoTDamage.resolveDamage(
-                    basePotency: next * factor,
-                    keyword: active.keyword,
-                    target: target,
-                    sourceActorID: source.id,
-                    provenance: context.resolution.damageProvenance(for: source.id),
-                    operation: .resolvedPeriodic,
-                    in: &context,
-                ).events)
-            }
-        }
-        return events
+        return DecayingDoTDetonation.resolve(
+            active,
+            factor: factor,
+            target: target,
+            sourceActorID: source.id,
+            provenance: context.resolution.damageProvenance(for: source.id),
+            in: &context,
+        )
     }
 }
 

@@ -49,8 +49,14 @@ struct PostBattleTalentChoiceTests {
         #expect(state.postBattleTalentConfirmationID != nil)
     }
 
-    @Test(arguments: [false, true])
-    func `victory queues only combatant who earned talent point`(defersExit: Bool) throws {
+    enum VictoryExit: CaseIterable {
+        case immediate
+        case presentation
+        case leave
+    }
+
+    @Test(arguments: VictoryExit.allCases)
+    func `victory queues only combatant who earned talent point`(exit: VictoryExit) throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
@@ -66,11 +72,17 @@ struct PostBattleTalentChoiceTests {
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
 
-        #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 0), defersPresentationExit: defersExit).didComplete)
-        if defersExit {
+        #expect(state.completeActiveBattle(
+            configuration, battleGold: .init(gained: 0), defersPresentationExit: exit != .immediate,
+        ).didComplete)
+        if exit != .immediate {
             #expect(state.currentPostBattleTalentCombatantID == nil)
             #expect(state.playerSave.roster.progression(for: hero).level == 2)
-            state.finishBattleRewardPresentation(configurationID: configuration.id)
+            switch exit {
+            case .leave: state.endBattleReturningToOrigin()
+            case .presentation: state.finishBattleRewardPresentation(configurationID: configuration.id)
+            case .immediate: break
+            }
         }
         #expect(state.battle.activeBattle == nil)
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
@@ -90,6 +102,9 @@ struct PostBattleTalentChoiceTests {
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
         #expect(state.isGameplayActive)
         let confirmation = try #require(state.postBattleTalentConfirmationID)
+        state.finishBattleRewardPresentation(configurationID: configuration.id)
+        #expect(state.postBattleTalentConfirmationID == confirmation)
+        #expect(state.currentPostBattleTalentCombatantID == hero.id)
         state.finishPostBattleTalentConfirmation(id: confirmation)
         #expect(state.currentPostBattleTalentCombatantID == nil)
         #expect(!state.isGameplayActive)

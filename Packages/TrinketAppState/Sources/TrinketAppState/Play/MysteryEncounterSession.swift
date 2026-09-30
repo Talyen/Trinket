@@ -28,14 +28,67 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
 
     public let event: MysteryEvent
     public let combatant: Combatant?
-    private(set) var phase: MysteryEncounterPhase = .reading
-    public private(set) var unlockedCombatantID: String?
-    public private(set) var corruptibleItems: [InventoryItem] = []
-    public private(set) var corruptionResult: ItemCorruptionDetail?
-    public private(set) var applyResult: MysteryEffectResult?
-    public private(set) var isResolvingChoice = false
-    public private(set) var persistFailureMessage: String?
     public private(set) var offers: [MysteryOffer] = []
+
+    /// Each screen owns its payload; leaving it releases the previous result.
+    private enum Presentation {
+        case reading
+        case reveal(combatantID: String)
+        case corruptItemChoice([InventoryItem])
+        case corruptionReveal(ItemCorruptionDetail)
+        case reward(MysteryEffectResult)
+    }
+
+    private enum ChoiceAttempt {
+        case ready
+        case resolving
+        case failed(String)
+    }
+
+    private var presentation: Presentation = .reading
+    private var choiceAttempt: ChoiceAttempt = .ready
+
+    var phase: MysteryEncounterPhase {
+        switch presentation {
+        case .reading: .reading
+        case .reveal: .revealing
+        case .corruptItemChoice: .selectingCorruptItem
+        case .corruptionReveal: .revealingCorruption
+        case .reward: .reward
+        }
+    }
+
+    public var unlockedCombatantID: String? {
+        guard case let .reveal(id) = presentation else { return nil }
+        return id
+    }
+
+    public var corruptibleItems: [InventoryItem] {
+        guard case let .corruptItemChoice(items) = presentation else { return [] }
+        return items
+    }
+
+    public var corruptionResult: ItemCorruptionDetail? {
+        guard case let .corruptionReveal(result) = presentation else { return nil }
+        return result
+    }
+
+    public var applyResult: MysteryEffectResult? {
+        guard case let .reward(result) = presentation else { return nil }
+        return result
+    }
+
+    public var isResolvingChoice: Bool {
+        if case .resolving = choiceAttempt {
+            return true
+        }
+        return false
+    }
+
+    public var persistFailureMessage: String? {
+        guard case let .failed(message) = choiceAttempt else { return nil }
+        return message
+    }
 
     public var narrative: String {
         event.narrative(for: offers)
@@ -44,7 +97,7 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
     static let choiceUnavailableMessage = "That choice isn't available anymore."
 
     public var showsReveal: Bool {
-        phase == .revealing && unlockedCombatantID != nil
+        phase == .revealing
     }
 
     public var showsCorruptItemChoice: Bool {
@@ -52,11 +105,11 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
     }
 
     public var showsCorruptionReveal: Bool {
-        phase == .revealingCorruption && corruptionResult != nil
+        phase == .revealingCorruption
     }
 
     public var showsReward: Bool {
-        phase == .reward && applyResult != nil
+        phase == .reward
     }
 
     public var isCorruptionAltar: Bool {
@@ -149,51 +202,20 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
 
 extension MysteryEncounterSession {
     func markChoiceStarted() {
-        isResolvingChoice = true
-        persistFailureMessage = nil
+        choiceAttempt = .resolving
     }
 
-    func presentReveal(unlockedCombatantID: String) {
-        self.unlockedCombatantID = unlockedCombatantID
-        phase = .revealing
-        isResolvingChoice = false
-        persistFailureMessage = nil
-    }
-
-    func presentCorruptItemChoice(items: [InventoryItem]) {
-        corruptibleItems = items
-        phase = .selectingCorruptItem
-        isResolvingChoice = false
-        persistFailureMessage = nil
-    }
-
-    func presentCorruptionReveal(result: ItemCorruptionDetail) {
-        corruptionResult = result
-        phase = .revealingCorruption
-        isResolvingChoice = false
-        persistFailureMessage = nil
-    }
-
-    func presentReward(result: MysteryEffectResult) {
-        applyResult = result
-        phase = .reward
-        isResolvingChoice = false
-        persistFailureMessage = nil
+    private func present(_ presentation: Presentation) {
+        self.presentation = presentation
+        choiceAttempt = .ready
     }
 
     func returnToReading() {
-        phase = .reading
-        isResolvingChoice = false
-        persistFailureMessage = nil
-    }
-
-    func markResolvedWithoutReveal() {
-        isResolvingChoice = false
+        present(.reading)
     }
 
     func markPersistFailed(_ message: String) {
-        isResolvingChoice = false
-        persistFailureMessage = message
+        choiceAttempt = .failed(message)
     }
 
     func markChoiceUnavailable() {
@@ -201,26 +223,28 @@ extension MysteryEncounterSession {
     }
 
     func clearPersistFailure() {
-        persistFailureMessage = nil
+        if case .failed = choiceAttempt {
+            choiceAttempt = .ready
+        }
     }
 
     func applyOutcome(_ outcome: MysteryChoiceOutcome, inventory: PlayerInventoryState? = nil) {
         switch outcome {
         case let .reveal(unlockedCombatantID):
-            presentReveal(unlockedCombatantID: unlockedCombatantID)
+            present(.reveal(combatantID: unlockedCombatantID))
         case .selectCorruptItem:
             let items = inventory.map(ItemCorruption.eligibleTargets(in:)) ?? []
-            presentCorruptItemChoice(items: items)
+            present(.corruptItemChoice(items))
         case let .corruptionReveal(result):
-            presentCorruptionReveal(result: result)
+            present(.corruptionReveal(result))
         case let .reward(result):
-            presentReward(result: result)
+            present(.reward(result))
         case let .refreshedOffers(offers):
             installOffers(offers)
             returnToReading()
             markPersistFailed("Your rewards changed. Review the offers and choose again.")
         case .dismiss:
-            markResolvedWithoutReveal()
+            present(.reading)
         }
     }
 }

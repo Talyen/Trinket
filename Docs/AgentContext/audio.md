@@ -13,5 +13,6 @@ Shared bundle lookup lives in `TrinketContent.MediaResourceLocator`. Battle feed
 Keep audio ownership layered: catalog metadata in `TrinketContent`, player
 state/preferences and routing/playback in `TrinketAppState`, and battle event
 interpretation in `TrinketBattleFeature`. Do not unit-test AVFoundation playback or
-real device audio output; test deterministic routing/mapping logic instead. Current
+real device audio output. Test routing/mapping logic and audio-actor lifecycle policy
+with controlled backends; keep native engine behavior in the system backend. Current
 playback behavior is documented in `Packages/TrinketAppState/README.md`.

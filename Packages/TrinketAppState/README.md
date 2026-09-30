@@ -17,7 +17,9 @@ encounter orchestration plus `Modes/`; `Purchases/` owns StoreKit access;
 - `PlayBattleRuns`: paired runtime/route metadata lifecycle; preparation, activation,
   restart rollback, pruning, and exit. Its registration storage is private.
 - `PlayBattleLaunch`: access policy and save-backed launch assembly
-- `PlayBattleCompletion`: reward settlement, persistence, and deferred exit timing
+- `PlayBattleCompletion`: reward settlement and persistence, mutually exclusive
+  victory/defeat claim transitions, keyed deferred exits, and Talent baselines
+  retained across Retry attempts and consumed on reward exit
 - Mode coordinators (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
   `ContractsPlayMode`, `VoyagePlayMode`, `EncounterPlayMode`): constructor-injected
   collaborators, no `PlaySession` back-pointer
@@ -76,7 +78,9 @@ setup; deterministic transition tests use controlled loads and silent fake voice
 
 SFX use a prestarted `AVAudioEngine`. Battle event mapping stays in
 `TrinketBattleFeature` via `BattleRuntimeDependencies`.
-SFX engine setup, warmup, and playback run on a private audio actor. Commands from
+The audio actor owns buffer caching, shared in-flight loads, voice pools, and typed
+play/warm/stop/release commands. Its internal backend owns AVFoundation decoding,
+engine recovery, and native voice operations. Commands from
 main-actor callers are chained in submission order, so play, stop, and resource release
 cannot overtake one another. Catalog prewarming and individual sounds use the same
 asynchronous buffer preparation path. Stop and resource release invalidate in-flight

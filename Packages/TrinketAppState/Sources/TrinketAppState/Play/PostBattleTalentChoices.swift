@@ -27,12 +27,10 @@ struct PostBattleTalentChoices {
     mutating func queue(
         for combatants: [Combatant],
         progressionsBefore: [String: CombatantProgression],
-        deferredProgressions: [String: CombatantProgression],
         roster: PlayerRosterState,
     ) {
-        let before = progressionsBefore.merging(deferredProgressions) { _, deferred in deferred }
         queuedCombatantIDs = combatants.compactMap { combatant in
-            guard let previous = before[combatant.id] else { return nil }
+            guard let previous = progressionsBefore[combatant.id] else { return nil }
             let current = roster.progression(for: combatant)
             guard current.totalTalentPoints > previous.totalTalentPoints,
                   roster.hasUnlockableTalent(for: combatant.id)

@@ -46,6 +46,15 @@ unavailable runs, and storage failure. A stale settlement refreshes the reveal;
 storage failure retains the award and retries the chosen completion internally. Already-claimed victories use
 the same completion capability without waiting for an overlay. BattleFeature never
 imports Persistence or AppState; these capabilities stay outside `BattleRuntime`.
+`PlayBattleCompletion` owns one claim state: unclaimed, committed defeat, or
+committed victory awaiting its keyed exit. A configuration cannot claim both
+outcomes. Failed writes do not advance this state; failed Retry retains its
+committed defeat so Leave cannot award XP again. It also privately retains the
+earliest saved progression baseline across defeat retries and victory. Every
+reward exit consumes that baseline once to queue Talent choices, including an
+explicit leave during victory collection. Shell code never mutates claim or
+baseline storage.
+
 Capacity, reservations, and transaction rules live in
 [persistence context](persistence.md). Current combat content only grants Gold;
 it must not debit the battle wallet.

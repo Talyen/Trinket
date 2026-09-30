@@ -4,8 +4,8 @@ import TrinketCore
 
 package enum EffectHandlers {
     package static let all: [EffectKind: any BattleEffectHandler] = [
-        .burn: DecayingDoTHandler(keyword: .burn, kind: .burn),
-        .poison: DecayingDoTHandler(keyword: .poison, kind: .poison),
+        .burn: DecayingDoTHandler(type: .burn),
+        .poison: DecayingDoTHandler(type: .poison),
         .bleed: BleedHandler(),
         .controlMeter: ControlMeterHandler(),
         .shield: BlockBuffHandler(),

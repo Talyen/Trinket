@@ -120,6 +120,9 @@ struct DefeatCompletionTests {
         #expect(battle.activeBattle?.id == configuration.id)
         #expect(play.playerSave.roster.progression(for: configuration.hero.combatant) == settlement.heroProgressionAfter)
         let claimed = play.playerSave.currentSave
+        #expect(play.completeActiveBattle(configuration, battleGold: .init(gained: 0)) == .unavailable)
+        #expect(play.playerSave.currentSave == claimed)
+        #expect(battle.activeBattle?.id == configuration.id)
         #expect(battle.claimDefeat(configurationID: configuration.id, settlement: settlement, action: .leave))
         #expect(play.playerSave.currentSave == claimed)
         #expect(battle.activeBattle == nil)

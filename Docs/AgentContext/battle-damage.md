@@ -25,8 +25,11 @@ preserves the original source's slower decay. Resolution depth limits recursion,
 the meaning of a request.
 Later damage components skip a target already defeated by the same action, so
 post-defeat hits cannot trigger another on-hit reward; later support effects still resolve.
-Turn ticks and detonations share `Effect.potencyAfterTurn` for deterministic decay;
-random growth remains a turn-processing rule.
+`DecayingDoTProgression` captures the original stack owner’s decay and tick rules
+for Burn and Poison. Turn handlers and `DecayingDoTDetonation` use that same
+policy and `Effect.potencyAfterTurn`; preservation and growth rolls remain exclusive
+to live turns. Ability and critical-hit detonations share the executor; callers
+commit stack removal and own recursion scope before executing damage.
 
 Burn and Poison attached by damaging attacks or effect applications store the
 actual Health damage dealt by that damage instance, after offensive bonuses,

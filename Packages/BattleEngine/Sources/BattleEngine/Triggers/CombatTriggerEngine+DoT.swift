@@ -199,20 +199,9 @@ package extension CombatTriggerEngine {
         events.append(contentsOf: Self.detonateBleedStacks(bleeds, on: target, sourceActorID: sourceActorID, in: &context))
 
         for active in poisons {
-            let slowPercent = active.sourceActorID.map { context.modifiers(for: $0).triggers.poisonDecaySlowPercent } ?? 0
-            var potency = active.effect.potency ?? 0
-            while potency > 0, context.roster.health(for: target) > 0 {
-                potency = Effect.poison(potency).potencyAfterTurn(poisonDecaySlowPercent: slowPercent)
-                guard potency > 0 else { break }
-                events.append(contentsOf: DoTDamage.resolveDamage(
-                    basePotency: potency,
-                    keyword: .poison,
-                    target: target,
-                    sourceActorID: sourceActorID,
-                    operation: .resolvedPeriodic,
-                    in: &context,
-                ).events)
-            }
+            events.append(contentsOf: DecayingDoTDetonation.resolve(
+                active, factor: 1, target: target, sourceActorID: sourceActorID, in: &context,
+            ))
         }
         return events
     }

@@ -54,7 +54,12 @@ after the save commits. `MysteryEncounterResolution` owns choice effects and
 progress together, including required item/unlock validation. An opened offer
 stays claimable; a duplicate Unique already earned on another device is kept
 once while its secondary reward and encounter completion proceed. Deliberate
-leave is an explicit outcome.
+leave is an explicit outcome. `MysteryEncounterSession` owns transient screen
+state with a payload per presentation; returning to choices releases prior reveal
+and reward data. Choice-attempt status is separate so a save failure retains the
+current screen and its payload for retry. Views read projections of these states;
+phase, result payloads, resolving status, and failure text are not independently
+mutable.
 
 `EncounterIdentity` scopes Journey stages and Labyrinth nodes to their world seed
 and save generation. Shop offers are pinned on first opening; stock and purchased
