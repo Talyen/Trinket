@@ -5,6 +5,74 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct CloudSaveMergeEconomyRegressionTests {
+    @Test(arguments: [false, true])
+    func `a shared build preserves Food spent on another building`(reverseBranches: Bool) throws {
+        let date = Date(timeIntervalSince1970: 2000000000)
+        var base = PlayerSave.testSeed
+        base.homestead.nodeTiers = [:]
+        base.homestead.lastProductionAt = date
+        let field = try #require(GameContent.homesteadNode(matching: .wheatField))
+        let coop = try #require(GameContent.homesteadNode(matching: .chickenCoop))
+        var first = base
+        var second = base
+        guard case .success = HomesteadBuildMutation.apply(field, targetTier: 1, at: date, to: &first),
+              case .success = HomesteadBuildMutation.apply(field, targetTier: 1, at: date, to: &second),
+              case .success = HomesteadBuildMutation.apply(coop, targetTier: 1, at: date, to: &first)
+        else {
+            Issue.record("Both devices should afford the Wheat Field and one should afford the Chicken Coop")
+            return
+        }
+        #expect(second.homestead.resources[.food] == base.homestead.resources[.food])
+        #expect(first.homestead.resources[.food] == 13)
+
+        let merged = CloudSaveMerge.merge(
+            incoming: reverseBranches ? second : first, existing: reverseBranches ? first : second,
+            base: base, preferIncoming: true,
+        )
+        #expect(merged.homestead.resources[.food] == 13)
+        #expect(merged.homestead.tier(for: .wheatField) == 1)
+        #expect(merged.homestead.tier(for: .chickenCoop) == 1)
+    }
+
+    @Test(arguments: [false, true]) @MainActor
+    func `shared salvage preserves unrelated Gold spending through reload`(reverseBranches: Bool) throws {
+        let item = try #require(GameContent.sampleInventoryItems.first { ItemSalvage.isEligible($0) })
+        let well = try #require(GameContent.homesteadNode(matching: .wishingWell))
+        let date = Date(timeIntervalSince1970: 2000000000)
+        var base = PlayerSave.testSeed
+        base.roster.gold = 100
+        base.inventory.items = [item]
+        base.homestead = PlayerHomesteadState(resources: [.gems: 10], nodeTiers: [:], lastProductionAt: date)
+        var first = base
+        var second = base
+        let firstSalvage = ItemSalvageApplier.salvage(itemID: item.id, save: &first)
+        let secondSalvage = ItemSalvageApplier.salvage(itemID: item.id, save: &second)
+        guard case let .success(yields) = firstSalvage,
+              case .success = HomesteadBuildMutation.apply(well, targetTier: 1, at: date, to: &first)
+        else {
+            Issue.record("Salvage and the Wishing Well build should succeed")
+            return
+        }
+        #expect(secondSalvage == firstSalvage)
+        #expect(second.roster.gold == base.roster.gold)
+        #expect(first.roster.gold == 95)
+        #expect(CloudSaveMerge.hasDuplicateClaim(incoming: first, existing: second, base: base))
+
+        let merged = CloudSaveMerge.merge(
+            incoming: reverseBranches ? second : first, existing: reverseBranches ? first : second,
+            base: base, preferIncoming: true,
+        )
+        let restored = try CloudSaveSnapshot(merged).restored()
+        let context = try PersistenceTestContext()
+        let reloaded = try context.seedAndReload(restored)
+        #expect(reloaded.roster.gold == 95)
+        #expect(reloaded.homestead.tier(for: .wishingWell) == 1)
+        #expect(reloaded.inventory.item(matching: item.id) == nil)
+        for yield in yields where yield.resource != .gems {
+            #expect(reloaded.homestead.resources[yield.resource, default: 0] == yield.quantity)
+        }
+    }
+
     @Test func `spending collected Gold does not hide a shared production claim`() {
         let start = Date(timeIntervalSince1970: 2000000000)
         let date = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)

@@ -95,12 +95,19 @@ public enum ShopStockPersistence {
         }
     }
 
-    static func purchasedOfferIDs(in payload: Data?) -> Set<String> {
-        guard let payload else { return [] }
-        do {
-            return try JSONDecoder().decode(ShopStockSnapshot.self, from: payload).resolve().purchasedOfferIDs
-        } catch {
-            return []
+    static func hasSharedNewPurchase(base: Data?, incoming: Data?, existing: Data?) -> Bool {
+        guard let incoming, let existing,
+              let first = validSnapshot(incoming), let second = validSnapshot(existing),
+              first.snapshot.encounter.location == second.snapshot.encounter.location,
+              first.snapshot.encounter.worldSeed == second.snapshot.encounter.worldSeed
+        else { return false }
+        let priorIDs = base.flatMap { validSnapshot($0)?.stock.purchasedOfferIDs } ?? []
+        let secondOffers = Dictionary(uniqueKeysWithValues: second.stock.offers.map { ($0.id, $0) })
+        return first.stock.offers.contains { offer in
+            !priorIDs.contains(offer.id)
+                && first.stock.purchasedOfferIDs.contains(offer.id)
+                && second.stock.purchasedOfferIDs.contains(offer.id)
+                && secondOffers[offer.id] == offer
         }
     }
 

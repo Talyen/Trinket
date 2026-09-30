@@ -120,7 +120,11 @@ package extension DamagePipeline {
               let damageKeyword = state.damageKeyword
         else { return }
         let profile = context.modifiers(for: sourceActorID)
-        let percent = profile.damageDealtPercent(for: damageKeyword)
+        var percent = profile.damageDealtPercent(for: damageKeyword)
+        if let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: damageKeyword, triggers: profile.triggers) {
+            percent += profile.damageDealtPercents[sharedKeyword, default: 0]
+        }
+        percent = max(0, percent)
         let percentBonus = CombatRounding.scaled(max(0, state.remaining), multiplier: percent)
         state.itemBonus += percentBonus
         state.remaining += percentBonus

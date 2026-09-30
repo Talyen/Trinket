@@ -18,6 +18,7 @@ struct ManaEmpowermentBudget {
     private(set) var partnerMana: Int
     private var block: Int
     private var hasEmpowered: Bool
+    private var preparedDiscount: Int
 
     init(ability: Ability, actor: Combatant, in context: BattleState) {
         let runtime = context.roster.runtime(for: actor)
@@ -36,23 +37,23 @@ struct ManaEmpowermentBudget {
         let reduction = ability.keywords.contains(.health) && triggers.healingEmpowermentCostReduction > 0
             ? triggers.healingEmpowermentCostReduction : triggers.empowermentCostReduction
         let burnReduction = ability.hasManaEmpowerableBurnDamage ? triggers.empowerBurnCostReduction : 0
-        let preparedReduction = runtime?.talents.pending.nextManaEmpowerDiscount ?? 0
+        preparedDiscount = max(0, runtime?.talents.pending.nextManaEmpowerDiscount ?? 0)
         baseCost = max(
             0,
             BattleTurnEngine.manaEmpowermentCost - max(0, reduction)
-                - max(0, burnReduction) - max(0, preparedReduction),
+                - max(0, burnReduction),
         )
         let maxMana = (runtime?.maxMana ?? 0) + (patron?.maxMana ?? 0)
         hasCapacity = maxMana > 0 || blockRate > 0
         let repeats = ability.repeatsManaEmpowerment
             || (ability.hasManaEmpowerableBurnDamage && triggers.repeatManaEmpowerment)
-        let discountPurchase = !hasEmpowered && firstDiscount > 0 ? 1 : 0
+        let discountPurchase = preparedDiscount > 0 || (!hasEmpowered && firstDiscount > 0) ? 1 : 0
         purchaseLimit = repeats && baseCost > 0 ? max(1, maxMana / baseCost + discountPurchase) : 1
     }
 
     mutating func nextPayment() -> Payment? {
         guard hasCapacity else { return nil }
-        let cost = max(0, baseCost - (hasEmpowered ? 0 : firstDiscount))
+        let cost = max(0, baseCost - preparedDiscount - (hasEmpowered ? 0 : firstDiscount))
         let own = min(cost, ownMana)
         let shared = min(cost - own, partnerMana)
         let shortfall = cost - own - shared
@@ -63,6 +64,7 @@ struct ManaEmpowermentBudget {
         partnerMana -= shared
         block -= blockCost
         hasEmpowered = true
+        preparedDiscount = 0
         return Payment(ownMana: own, partnerMana: shared, block: blockCost)
     }
 }

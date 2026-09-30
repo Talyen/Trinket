@@ -84,6 +84,24 @@ struct HealthRestorationTargetingTests {
         #expect(battle.health(of: battle.hero) == 20)
     }
 
+    @Test func `Panacea heals the lowest ally after Fresh Batch changes Health`() throws {
+        var profile = CombatantTalentCatalog.profile(for: ["alchemist_cleanse_t1_2"])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = battle(heroModifiers: profile, heroHealth: 5, companionHealth: 6)
+        battle.appendEffect(.poison(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
+        battle.nextCardID += 1
+        let card = BattleCard(id: battle.nextCardID, ability: .panaceaPotion, owner: .hero)
+        battle.hand.append(card)
+
+        let events = try battle.playCard(cardID: card.id)
+
+        #expect(battle.health(of: battle.hero) == 7)
+        #expect(battle.health(of: battle.companion) == 12)
+        #expect(!battle.activeEffects(of: battle.companion).contains { $0.effect.isRemovableDebuff })
+        #expect(events.contains { $0.abilityName == "Fresh Batch" && $0.effectKind == .instantHeal && $0.amount == 2 })
+        #expect(events.contains { $0.abilityName == Ability.panaceaPotion.name && $0.effectKind == .instantHeal && $0.amount == 6 })
+    }
+
     @Test func `saintfall heals the lowest ally after Block breaks`() {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(
             block: BlockTriggers(blockBrokenSaintfallPower: 6),

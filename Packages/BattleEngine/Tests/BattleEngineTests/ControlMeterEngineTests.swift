@@ -386,3 +386,22 @@ struct ControlMeterEngineTests {
         try #expect((missContext.additionalControlSkipsByCombatantID[missEnemy.id] ?? 0) == 1)
     }
 }
+
+extension ControlMeterEngineTests {
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `glacial barrier rewards its wearer when either ally freezes the enemy`(source: BattleParticipant) {
+        var battle = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatantTalentCatalog.profile(for: ["wizard_freeze_t2_2"]),
+        )
+        battle.appliesFightPacing = false
+
+        _ = ControlMeterEngine.applyMeterCharge(
+            10, keyword: .freeze, to: battle.enemy, sourceActorID: battle.roster[source].id,
+            applyFightPacing: false, in: &battle,
+        )
+
+        #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .freeze))
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 3)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.companion)) == 0)
+    }
+}

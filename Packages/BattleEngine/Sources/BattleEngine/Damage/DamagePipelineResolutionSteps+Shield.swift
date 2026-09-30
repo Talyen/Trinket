@@ -47,18 +47,7 @@ package extension DamagePipeline {
             ? sourceTriggers?.poisonStripsBlockBeforeHealth ?? 0
             : 0
 
-        let doublesPhysical = defenderTriggers.doublePhysicalBlockAbsorption && state.damageKeyword == .physical
-        let belowHalfHealth = context.roster.health(for: state.combatant) * 2
-            < context.roster.maxHealth(for: state.combatant)
-        let oathMultiplier = belowHalfHealth ? defenderTriggers.blockAbsorptionMultiplierBelowHalfHealth : 1
-        let manaMultiplier = (context.roster.runtime(for: state.combatant)?.currentMana ?? 0) > 0
-            ? defenderTriggers.blockAbsorptionMultiplierWhileMana : 1
-        let attackerIsBurning = state.sourceActorID.flatMap { context.roster.combatant(for: $0)?.combatant }
-            .map { context.roster.hasAffliction(.burn, on: $0) } ?? false
-        let burningMultiplier = attackerIsBurning ? defenderTriggers.blockAbsorptionVsBurningMultiplier : 1
-        let absorptionMultiplier = (doublesPhysical ? 2.0 : 1.0) * max(1, oathMultiplier)
-            * max(1, defenderTriggers.doubleAllBlockAbsorption ? 2 : 1)
-            * max(1, manaMultiplier) * max(1, burningMultiplier)
+        let absorptionMultiplier = blockAbsorptionMultiplier(for: state.combatant, state: state, in: context)
         let absorbableBuffer = max(0, buffer - stripBeforeAbsorption)
         let absorbableEffectiveBuffer = max(0, CombatRounding.scaled(absorbableBuffer, multiplier: blockMultiplier))
         let absorptionBuffer = CombatRounding.scaled(absorbableEffectiveBuffer, multiplier: absorptionMultiplier)
@@ -88,24 +77,7 @@ package extension DamagePipeline {
         state.heroCardBlockBroken = blockBroken
         context.roster.setActiveEffects(effects, for: state.combatant)
 
-        // The Patient Edge: actual attack damage absorbed by Block prepares a Critical Hit.
-        if absorption.absorbed > 0,
-           state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
-           defenderTriggers.blockPreparesCritical {
-            ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
-                if case .nextStrikeCritical = $0 {
-                    return true
-                }
-                return false
-            }
-            _ = context.insertEffect(
-                .nextStrikeCritical,
-                to: state.combatant,
-                sourceID: state.combatant.id,
-                remainingTurns: 0,
-                replacing: { $0 == .nextStrikeCritical },
-            )
-        }
+        recordBlockAbsorption(absorption.absorbed, owner: state.combatant, to: &state, in: &context)
 
         state.damageEvents.append(contentsOf: applyBlockAbsorptionReactions(
             absorbed: absorption.absorbed,
@@ -207,10 +179,12 @@ package extension DamagePipeline {
             return
         }
         let protectorEffects = context.roster.activeEffects(for: protector)
-        let available = CombatRounding.scaled(DefensePoolEngine.blockPoints(in: protectorEffects), multiplier: blockMultiplier)
-        guard let reduced = DefensePoolEngine.reduce(min(state.remaining, available), in: protectorEffects)
-        else { return }
-        let absorbed = reduced.absorbed
+        let absorptionMultiplier = blockAbsorptionMultiplier(for: protector, state: state, in: context)
+        let effectiveBlock = CombatRounding.scaled(DefensePoolEngine.blockPoints(in: protectorEffects), multiplier: blockMultiplier)
+        let available = CombatRounding.scaled(effectiveBlock, multiplier: absorptionMultiplier)
+        let absorbed = min(state.remaining, available)
+        let blockRemoval = max(absorbed > 0 ? 1 : 0, CombatRounding.scaled(absorbed, multiplier: 1 / absorptionMultiplier))
+        guard let reduced = DefensePoolEngine.reduce(blockRemoval, in: protectorEffects) else { return }
         state.blockedAmount += absorbed
         appendAbsorption(
             absorbed,
@@ -222,6 +196,7 @@ package extension DamagePipeline {
             in: &context,
         )
         context.roster.setActiveEffects(reduced.effects, for: protector)
+        recordBlockAbsorption(absorbed, owner: protector, to: &state, in: &context)
         state.damageEvents.append(contentsOf: handleTalentBlockedDamage(
             absorbed: absorbed,
             blockBroken: reduced.broken,
@@ -237,6 +212,47 @@ package extension DamagePipeline {
                 in: &context,
             ))
         }
+    }
+
+    private static func blockAbsorptionMultiplier(
+        for owner: Combatant,
+        state: DamageResolutionState,
+        in context: BattleState,
+    ) -> Double {
+        let defenderTriggers = context.modifiers(for: owner.id).triggers
+        let doublesPhysical = defenderTriggers.doublePhysicalBlockAbsorption && state.damageKeyword == .physical
+        let belowHalfHealth = context.roster.health(for: owner) * 2
+            < context.roster.maxHealth(for: owner)
+        let oathMultiplier = belowHalfHealth ? defenderTriggers.blockAbsorptionMultiplierBelowHalfHealth : 1
+        let manaMultiplier = (context.roster.runtime(for: owner)?.currentMana ?? 0) > 0
+            ? defenderTriggers.blockAbsorptionMultiplierWhileMana : 1
+        let attackerIsBurning = state.sourceActorID.flatMap { context.roster.combatant(for: $0)?.combatant }
+            .map { context.roster.hasAffliction(.burn, on: $0) } ?? false
+        let burningMultiplier = attackerIsBurning ? defenderTriggers.blockAbsorptionVsBurningMultiplier : 1
+        return (doublesPhysical ? 2.0 : 1.0) * max(1, oathMultiplier)
+            * max(1, defenderTriggers.doubleAllBlockAbsorption ? 2 : 1)
+            * max(1, manaMultiplier) * max(1, burningMultiplier)
+    }
+
+    private static func recordBlockAbsorption(
+        _ absorbed: Int,
+        owner: Combatant,
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard absorbed > 0 else { return }
+        state.blockAbsorbingOwners.append(owner)
+        guard state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
+              context.modifiers(for: owner.id).triggers.blockPreparesCritical
+        else { return }
+        ActiveEffectMutation.removeMatching(from: owner, in: &context) { $0 == .nextStrikeCritical }
+        _ = context.insertEffect(
+            .nextStrikeCritical,
+            to: owner,
+            sourceID: owner.id,
+            remainingTurns: 0,
+            replacing: { $0 == .nextStrikeCritical },
+        )
     }
 
     private static func handleTalentBlockedDamage(

@@ -103,9 +103,6 @@ package extension DamagePipeline {
         if state.damageKeyword == .bleed, state.targetStatus.isPoisoned {
             multiplier *= triggers.bleedDamageVsPoisonedMultiplier
         }
-        if state.damageKeyword == .burn, state.targetStatus.isFrozen {
-            multiplier *= triggers.burnDamageVsFrozenMultiplier
-        }
         if state.damageKeyword == .holy, state.targetStatus.isStunned {
             multiplier *= triggers.holyDamageVsStunnedMultiplier
         }
@@ -113,7 +110,7 @@ package extension DamagePipeline {
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source)) > 0 {
             multiplier *= triggers.holyDamageMultiplierWhileBlocked
         }
-        if state.damageKeyword == .stun,
+        if state.damageKeyword == .stun, state.options.isAttackHit,
            context.roster.activeEffects(for: source).contains(where: {
                $0.effect.kind == .thorns && ($0.effect.potency ?? 0) > 0
            }) {

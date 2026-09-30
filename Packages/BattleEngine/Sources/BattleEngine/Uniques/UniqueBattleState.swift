@@ -39,7 +39,12 @@ package struct UniqueBattleState {
         var attackBonus = 0
         var guaranteedCritical = false
         var repeatDamage = false
-        var damageRequests: [DamageRequest] = []
+        var damageRequests: [RepeatedDamage] = []
+    }
+
+    struct RepeatedDamage {
+        let request: DamageRequest
+        let stackPotency: Int
     }
 
     var owners: [BattleParticipant: OwnerState] = [:]

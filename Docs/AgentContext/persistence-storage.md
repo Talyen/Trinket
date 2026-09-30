@@ -90,17 +90,20 @@ receipt. A successful receipt removes only its included local actions. Union ear
 items, unlocks, talents, claims, and completion; use the latest valid party/loadout
 edit, retaining displaced gear in Inventory. A one-sided change to an existing item,
 including corruption or salvage, survives unrelated progress on the other branch.
+New recruits use initial progression as the shared baseline when independent XP
+awards arrive before that baseline has a roster row.
 An abandoned or dismissed Voyage must not be restored from stale route progress.
 Labyrinth floor reconciliation carries clusters and boss exits with nodes so the
-next floor stays reachable. Merge Shop purchase markers only for the same pinned
+next floor stays reachable. Merge Shop purchase markers and deduplicate charges only for the same pinned
 item and price; use a readable stock copy when its preferred peer is unreadable.
 Preserve a Mystery event pinned on either Labyrinth or Voyage branch, and use a
 readable offer snapshot when the preferred copy is damaged. Reconcile Contract
 offers by difficulty against the shared base so a completed offer cannot return
-after an unrelated action on another device. A one-sided completed Mystery also
-advances the corruption altar cooldown across the merge.
+after an unrelated action on another device. Independent Mystery completions
+combine their corruption altar cooldown reductions; duplicate completions count once.
 Combine independent balance changes from a shared base and floor concurrent
-overspending at zero. On first attachment of unrelated older saves, take the larger
+overspending at zero. A resource changed on only one branch retains that change
+even when another shared action disables reward combination. On first attachment of unrelated older saves, take the larger
 balance per resource. Archive conflicting snapshots in the same atomic server
 operation before installing the merge. A failed archive leaves
 the local snapshot and outbox intact.

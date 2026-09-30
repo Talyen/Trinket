@@ -60,6 +60,56 @@ struct MusicPlayerTests {
         #expect(resumed.currentTime == 27)
     }
 
+    @Test func `unmuting a requested replacement previews the new route and preserves the old position`() async throws {
+        let backend = ControlledMusicBackend()
+        let player = MusicPlayer(isDisabled: false, backend: backend)
+        let battle = try request("battle")
+        let menuID = try #require(MusicCatalog.menuTrackIDs.first)
+        let menuTrack = try #require(MusicCatalog.track(matching: menuID))
+        let menu = MusicPlaybackRequest.resumable(track: menuTrack, contextKind: .menu, enemyID: nil)
+        let outgoing = try await start(battle, player: player, backend: backend)
+        outgoing.currentTime = 27
+        player.update(route: .track(menu), volume: 1)
+        try await eventually { backend.loads.count == 2 }
+        player.setVolume(0)
+        let prepared = TestMusicVoice()
+        backend.completeLoad(1, with: prepared)
+        try await eventually { prepared.configurations > 0 }
+        #expect(prepared.starts == 0)
+        player.setVolume(0.5)
+        #expect(outgoing.stops == 1)
+        #expect(!outgoing.isPlaying)
+        #expect(prepared.starts == 1)
+        #expect(prepared.volume == AudioSupport.targetVolume(appVolume: 0.5, gain: menu.track.volumeGain))
+        #expect(backend.steps.isEmpty)
+        player.silenceImmediately(preservingPosition: true)
+        let resumed = try await start(battle, player: player, backend: backend)
+        #expect(resumed.currentTime == 27)
+    }
+
+    @Test(arguments: [0.0, 0.5])
+    func `volume preview leaves an intentional prewarm inactive while the current route plays`(loadingVolume: Double) async throws {
+        let backend = ControlledMusicBackend()
+        let player = MusicPlayer(isDisabled: false, backend: backend)
+        let first = try request("first")
+        let second = try request("second")
+        let outgoing = try await start(first, player: player, backend: backend)
+        player.prepare(second)
+        try await eventually { backend.loads.count == 2 }
+        player.setVolume(loadingVolume)
+        let prepared = TestMusicVoice()
+        backend.completeLoad(1, with: prepared)
+        try await eventually { prepared.configurations > 0 }
+        player.setVolume(0.5)
+        #expect(outgoing.stops == 0)
+        #expect(outgoing.isPlaying)
+        #expect(outgoing.volume == AudioSupport.targetVolume(appVolume: 0.5, gain: first.track.volumeGain))
+        #expect(prepared.starts == 0)
+        player.update(route: .track(second), volume: 0.5)
+        #expect(outgoing.stops == 1)
+        #expect(prepared.starts == 1)
+    }
+
     @Test func `slider wins over cancellation during final fade suspension`() async throws {
         let backend = ControlledMusicBackend()
         let player = MusicPlayer(isDisabled: false, backend: backend)

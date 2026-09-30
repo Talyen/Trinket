@@ -76,7 +76,7 @@ enum EffectRemovalOperation {
         abilityName: String,
         baseHeal: Int = 0,
         healPerDebuff: Int = 0,
-        healTarget: Combatant? = nil,
+        healTarget: EffectTarget? = nil,
         propagation: Propagation = .primary,
         origin: ActionEvent.Origin = .automatic,
         in context: inout BattleState,
@@ -114,8 +114,9 @@ enum EffectRemovalOperation {
         guard !removed.isEmpty else {
             var events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
             if healAmount > 0 {
+                let recipient = healTarget.map { BattleActionContext(actor: source, in: context).target($0, in: context) } ?? target
                 events.append(contentsOf: context.healEmitting(
-                    amount: healAmount, target: healTarget ?? target, source: source, abilityName: abilityName,
+                    amount: healAmount, target: recipient, source: source, abilityName: abilityName,
                     isDirectCardHeal: context.hasHeroCard(for: source.id),
                 ))
             }
@@ -135,7 +136,7 @@ enum EffectRemovalOperation {
         }
         events.append(contentsOf: cleanseReactions(
             removed: removed, abilityName: abilityName, source: source, target: target,
-            healAmount: healAmount, healTarget: healTarget ?? target,
+            healAmount: healAmount, healTarget: healTarget,
             allowMassCleanse: propagation == .primary, origin: origin, in: &context,
         ))
         return Outcome(removed: removed, application: EffectApplyOutcome(events: events, didApply: true))
@@ -147,7 +148,7 @@ enum EffectRemovalOperation {
         source: Combatant,
         target: Combatant,
         healAmount: Int? = nil,
-        healTarget: Combatant? = nil,
+        healTarget: EffectTarget? = nil,
         allowMassCleanse: Bool = true,
         origin: ActionEvent.Origin = .automatic,
         in context: inout BattleState,
@@ -161,10 +162,11 @@ enum EffectRemovalOperation {
             removed, effectKind: .cleanseApplied, source: source, target: target,
             abilityName: abilityName, origin: origin, in: &context,
         ))
-        if let healAmount, let healTarget, healAmount > 0 {
+        if let healAmount, healAmount > 0 {
+            let recipient = healTarget.map { BattleActionContext(actor: source, in: context).target($0, in: context) } ?? target
             events.append(contentsOf: context.healEmitting(
                 amount: healAmount,
-                target: healTarget,
+                target: recipient,
                 source: source,
                 abilityName: abilityName,
                 isDirectCardHeal: context.hasHeroCard(for: source.id),

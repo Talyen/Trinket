@@ -4,6 +4,47 @@ import TrinketContent
 @testable import TrinketPersistence
 
 struct CloudSaveMergeClaimsRegressionTests {
+    @Test(arguments: [true, false])
+    func `offline purchases sharing an offer ID retain each pinned purchase charge`(differentItem: Bool) throws {
+        var base = PlayerSave.testSeed
+        base.roster.gold = PlayerRosterState.maxGoldBalance
+        base.inventory.items = []
+        let encounter = EncounterIdentity(
+            location: .journey(stageID: ShopOfferGenerator.starterShopStageID), save: base,
+        )
+        let items = GameContent.trinketItems
+        let firstItem = try #require(items.first)
+        let secondItem = differentItem ? try #require(items.first { $0.id != firstItem.id }) : firstItem
+        let firstOffer = ShopOffer(id: "offline-offer", item: firstItem, price: 20)
+        let secondOffer = ShopOffer(id: firstOffer.id, item: secondItem, price: 25)
+        var first = base
+        var second = base
+        let firstPayload = try ShopStockPersistence.encode(ShopStock(offers: [firstOffer]), encounter: encounter)
+        let secondPayload = try ShopStockPersistence.encode(ShopStock(offers: [secondOffer]), encounter: encounter)
+        ShopStockPersistence.setPayload(firstPayload, encounter: encounter, save: &first)
+        ShopStockPersistence.setPayload(secondPayload, encounter: encounter, save: &second)
+        _ = try ShopPurchaseApplier.purchase(offerID: firstOffer.id, encounter: encounter, save: &first).get()
+        _ = try ShopPurchaseApplier.purchase(offerID: secondOffer.id, encounter: encounter, save: &second).get()
+
+        #expect(!CloudSaveMerge.hasDuplicateClaim(incoming: first, existing: second, base: base))
+        for preferIncoming in [true, false] {
+            let merged = CloudSaveMerge.merge(incoming: first, existing: second, base: base, preferIncoming: preferIncoming)
+            let data = try JSONEncoder().encode(CloudSaveSnapshot(merged))
+            let snapshot = try JSONDecoder().decode(CloudSaveSnapshot.self, from: data)
+            let restored = try snapshot.restored()
+            #expect(restored.roster.gold == base.roster.gold - firstOffer.price - secondOffer.price)
+            #expect(restored.inventory.items.contains(firstItem))
+            #expect(restored.inventory.items.contains(secondItem))
+            let expectedOffer = preferIncoming ? firstOffer : secondOffer
+            let loadedStock = try ShopStockPersistence.stock(encounter: encounter, save: restored)
+            let stock = try #require(loadedStock)
+            #expect(stock.offers == [expectedOffer])
+            #expect(stock.purchasedOfferIDs == [expectedOffer.id])
+            #expect(ShopPurchaseApplier
+                .availability(offerID: expectedOffer.id, encounter: encounter, save: restored) == .unavailable(.soldOut))
+        }
+    }
+
     @Test func `two first-floor Spire wins grant their shared reward once`() throws {
         let spire = try #require(GameContent.spires.first)
         var base = PlayerSave.testSeed

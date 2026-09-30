@@ -91,7 +91,7 @@ final class MusicPlayer {
     func setVolume(_ volume: Double) {
         guard !isDisabled else { return }
         let volume = AudioSupport.clampedVolume(volume)
-        if case var .loading(load) = pending {
+        if case var .loading(load) = pending, load.startVolume != nil || current == nil {
             load.startVolume = volume
             pending = .loading(load)
         }
@@ -170,6 +170,10 @@ final class MusicPlayer {
         if let volume = load.startVolume, volume > 0 {
             activate(track, volume: volume, crossfade: true)
         } else {
+            if load.startVolume != nil {
+                // A muted route replacement still owns the handoff; a prewarm does not.
+                silence(preservingPosition: true, immediate: true)
+            }
             configure(voice, request: load.request, volume: 0)
             pending = .prepared(track)
         }

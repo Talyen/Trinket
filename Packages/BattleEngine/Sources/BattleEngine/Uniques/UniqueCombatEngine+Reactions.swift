@@ -10,10 +10,11 @@ extension UniqueCombatEngine {
         context.resolution.enter(.uniqueReaction)
         defer { context.resolution.leave(.uniqueReaction) }
         var events: [ActionEvent] = []
-        for var request in play.damageRequests where !context.isBattleOver && context.roster.health(for: actor) > 0 {
-            request.options = request.options.repeated()
-            request.provenance = nil
-            events.append(contentsOf: repeatHit(request, actor: actor, name: "The Final Spark", attachDoT: true, in: &context))
+        for damage in play.damageRequests where !context.isBattleOver && context.roster.health(for: actor) > 0 {
+            events.append(contentsOf: repeatHit(
+                damage.request, actor: actor, name: "The Final Spark",
+                attachDoT: true, stackPotency: damage.stackPotency, in: &context,
+            ))
         }
         return events
     }
@@ -100,23 +101,26 @@ extension UniqueCombatEngine {
         _ damage: DamageResolutionState,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard damage.blockedAmount > 0, damage.options.isAttackHit,
-              damage.sourceActorID == context.roster.enemy.id,
-              let owner = context.roster.participant(for: damage.combatant), owner.isPartyMember,
-              context.modifiers(for: damage.combatant.id).triggers.blockedAttackBasicOncePerTurn,
-              context.uniques.owners[owner]?.answeredBlock != true
-        else { return [] }
-        context.uniques.owners[owner, default: .init()].answeredBlock = true
-        // Never nest a full Basic inside damage resolution.
-        guard context.resolution.depth(.damage) == 0 else {
-            if !context.uniques.pendingBlockAnswerOwners.contains(owner) {
-                context.uniques.pendingBlockAnswerOwners.append(owner)
+        guard damage.options.isAttackHit, damage.sourceActorID == context.roster.enemy.id else { return [] }
+        var events: [ActionEvent] = []
+        for actor in damage.blockAbsorbingOwners {
+            guard let owner = context.roster.participant(for: actor), owner.isPartyMember,
+                  context.modifiers(for: actor.id).triggers.blockedAttackBasicOncePerTurn,
+                  context.uniques.owners[owner]?.answeredBlock != true
+            else { continue }
+            context.uniques.owners[owner, default: .init()].answeredBlock = true
+            // Never nest a full Basic inside damage resolution.
+            if context.resolution.depth(.damage) > 0 {
+                if !context.uniques.pendingBlockAnswerOwners.contains(owner) {
+                    context.uniques.pendingBlockAnswerOwners.append(owner)
+                }
+            } else {
+                context.resolution.enter(.uniqueReaction)
+                events.append(contentsOf: useBasic(owner: owner, in: &context))
+                context.resolution.leave(.uniqueReaction)
             }
-            return []
         }
-        context.resolution.enter(.uniqueReaction)
-        defer { context.resolution.leave(.uniqueReaction) }
-        return useBasic(owner: owner, in: &context)
+        return events
     }
 
     private static func useBasic(owner: BattleParticipant, in context: inout BattleState) -> [ActionEvent] {
@@ -153,6 +157,7 @@ extension UniqueCombatEngine {
         actor: Combatant,
         name: String,
         attachDoT: Bool = false,
+        stackPotency: Int? = nil,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard !context.isBattleOver, context.roster.health(for: actor) > 0,
@@ -171,8 +176,8 @@ extension UniqueCombatEngine {
         if attachDoT, request.options.isAttackHit, case .landed = result.damageImpact, let keyword = request.keyword {
             events.append(contentsOf: BattleTurnEngine.applyDoTStackFromDamage(
                 keyword: keyword,
-                potency: keyword == .burn || keyword == .poison ? result.healthLost : request.amount,
-                to: request.target, sourceActorID: actor.id, context: &context,
+                potency: keyword == .burn || keyword == .poison ? result.healthLost : (stackPotency ?? request.amount),
+                to: request.target, sourceActorID: actor.id, isCritical: result.isCritical, context: &context,
             ))
         }
         return events

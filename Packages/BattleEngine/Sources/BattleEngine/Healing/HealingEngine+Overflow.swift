@@ -57,6 +57,7 @@ extension HealingEngine {
                 to: request.target,
                 source: request.target,
                 abilityName: "Barrier Blessing",
+                amountBasis: .resolved,
             ))
         } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealFirstBlockPerTurn > 0,
                   allocation.remaining > 0,

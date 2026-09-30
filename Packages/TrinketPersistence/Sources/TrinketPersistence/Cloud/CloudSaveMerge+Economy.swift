@@ -132,7 +132,16 @@ extension CloudSaveMerge {
     }
 
     private static func balance(_ lhs: Int, _ rhs: Int, base: Int?, combine: Bool) -> Int {
-        guard combine, let base else { return max(lhs, rhs) }
+        guard let base else { return max(lhs, rhs) }
+        if lhs == base {
+            return rhs
+        }
+        if rhs == base {
+            return lhs
+        }
+        guard combine else {
+            return max(lhs, rhs)
+        }
         let left = SaturatedArithmetic.saturatingSub(lhs, base)
         let right = SaturatedArithmetic.saturatingSub(rhs, base)
         return max(0, SaturatedArithmetic.saturatingAdd(base, SaturatedArithmetic.saturatingAdd(left, right)))

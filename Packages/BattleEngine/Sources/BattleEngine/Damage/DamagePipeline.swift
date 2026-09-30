@@ -45,7 +45,9 @@ package enum DamagePipeline {
         }
         state.targetStatus = DamageTargetStatus(for: state.combatant, in: context)
         applyEnemyAttackBlockRemoval(to: &state, in: &context)
-        reserveCompanionBlockIgnore(to: &state, in: &context)
+        if !state.options.isResolvedCardRepeat {
+            reserveCompanionBlockIgnore(to: &state, in: &context)
+        }
         applyOutgoingDamage(to: &state, in: &context)
         applyPreparedAttackReduction(to: &state, in: &context)
         applyTakenFlatAdjustments(to: &state, in: &context)
@@ -63,7 +65,7 @@ package enum DamagePipeline {
     /// Committed-damage reaction order (load-bearing, do not reorder):
     /// card-hit → enemy traits → DoT mirrors/ticks → leech → enemy Purge → attacker on-hit
     /// applications → attacker mirrors → control meter/fang → retaliation-gated
-    /// reactive/keyword/crit → uniques. DoT mirrors must precede leech so
+    /// reactive/keyword → Threefold Grace → crit → uniques. DoT mirrors must precede leech so
     /// mirrored ticks count toward the same hit; keyword reactions stay last
     /// among pipeline-owned steps so wards see final healthLost.
     private static func applyCommittedDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) {
@@ -93,6 +95,9 @@ package enum DamagePipeline {
         if !state.options.isRetaliation {
             applyReactiveOnHit(to: &state, in: &context)
             applyKeywordReactions(to: &state, in: &context)
+        }
+        applyThreefoldGrace(to: &state, in: &context)
+        if !state.options.isRetaliation {
             applyCriticalReaction(to: &state, in: &context)
         }
         state.damageEvents.append(contentsOf: UniqueCombatEngine.afterDamage(state, in: &context))
@@ -162,8 +167,10 @@ package enum DamagePipeline {
             state.remaining = state.amount
             state.dealt = state.amount
             state.isCritical = state.options.guaranteedCritical
-            applyVenomtrail(to: &state, in: context)
-            applyFinalCompanionOutgoingBonuses(to: &state, in: &context)
+            if !state.options.isResolvedCardRepeat {
+                applyVenomtrail(to: &state, in: context)
+                applyPreparedPoisonDamage(to: &state, in: &context)
+            }
         } else {
             reserveAttackEmpowers(to: &state, in: &context)
             UniqueCombatEngine.captureEnemyBlock(for: &state, in: context)
@@ -179,11 +186,28 @@ package enum DamagePipeline {
                 multiplier: state.isCritical ? criticalMultiplier(for: state.sourceActorID, in: context) : 1,
             )
         }
+        // Freeze offense for Final Spark; the repeat rechecks recipient defenses.
+        let cardRepeatAmount: Int = {
+            guard state.options.capturesCardRepeat else { return 0 }
+            var outgoing = state
+            if !state.options.usesResolvedOutgoingDamage {
+                applyCriticalMultiply(to: &outgoing, in: &context)
+            }
+            return outgoing.remaining
+        }()
         applyTakenPercentAdjustments(to: &state, in: &context)
         if !state.options.usesResolvedOutgoingDamage {
             applyCriticalMultiply(to: &state, in: &context)
         }
-        applyBackdraftBonus(to: &state, in: &context)
+        let outgoingBeforeBackdraft = state.unique.outgoingDamage
+        if !state.options.isResolvedCardRepeat {
+            applyBackdraftBonus(to: &state, in: &context)
+        }
+        UniqueCombatEngine.captureCardDamage(
+            state,
+            outgoingAmount: cardRepeatAmount + state.unique.outgoingDamage - outgoingBeforeBackdraft,
+            in: &context,
+        )
     }
 
     /// Single choke point for nested reaction damage (retaliation, wards,

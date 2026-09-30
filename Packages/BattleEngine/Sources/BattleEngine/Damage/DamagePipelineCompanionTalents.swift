@@ -167,7 +167,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        guard state.options.isCardAttack, state.combatant.role == .enemy,
+        guard state.options.isAttackHit, state.combatant.role == .enemy,
               let keyword = state.damageKeyword,
               let sourceActorID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceActorID), source.role == .companion

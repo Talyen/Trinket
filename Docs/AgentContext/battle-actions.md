@@ -46,7 +46,10 @@ remaining support rewards. New actions cannot start after battle ends.
 
 `payMana` returns a `ManaPayment` with actual before/after balances. Capture every
 contribution to an empowerment purchase before payment reactions; last-Mana rules
-read receipts even after refunds or nested actions. Arcane Burst keeps excess
+read receipts even after refunds or nested actions. A prepared empowerment discount
+applies to one purchase; Meteor and Falling Star can then buy their normal paid
+repeats. Permanently free empowerment remains bounded to one purchase.
+Arcane Burst keeps excess
 progress across cards and turns separately from cadence claims. Periodic rewards
 use `playerTurnNumber` and `isPlayerTurn(every:startingAt:)`; stored `turnCount`
 remains zero-based.
@@ -80,6 +83,15 @@ copy on Dodge at most once per wearer per player-turn cycle, including the enemy
 turn. Both allowances reset at the next player-turn start. Presentation IDs are
 fresh on arrival while the physical copy's identity survives draws and returns.
 Full equipment rules live in [Unique equipment](../Product/UniqueItems.md).
+
+Dance of Blades continues its draw-and-play chain only after the drawn attack
+Critically Hits; critical healing or Leech restoration cannot extend it.
+
+Combatant effect details include active talent preparations and readied Unique
+powers, including Wrenflight's temporary Dodge and accumulated Golden Crucible
+damage. Entries follow the same consumption and expiry rules as their bonuses.
+Full automatic Basic abilities use ordinary attack damage talents such as Razor
+Claws, Ground Slam, and Battering Ram; card-only cadences retain their restrictions.
 
 Consolation Prize creates one uniformly random card from `AbilityCatalog.all` on
 the owner's first fully Blocked attack per combat. Claim before generation; the

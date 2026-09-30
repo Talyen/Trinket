@@ -274,7 +274,9 @@ package extension CombatTriggerEngine {
             )
             guard played.didApply else { break }
             events.append(contentsOf: played.events)
-            guard played.events.contains(where: \.isCritical) else { break }
+            guard played.events.contains(where: {
+                $0.kind == .abilityDamage && $0.actorID == combatant.id && $0.isCritical
+            }) else { break }
         }
         return events
     }

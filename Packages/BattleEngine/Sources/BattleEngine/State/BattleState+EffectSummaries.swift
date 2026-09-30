@@ -11,6 +11,7 @@ package extension BattleState {
         )
         return pending + timedEffectSummaries(runtime.talents)
             + preparedEffectSummaries(heroTalents.history[combatant.id])
+            + uniqueEffectSummaries(of: combatant)
     }
 
     private func timedEffectSummaries(_ talents: CombatantTalentState) -> [EffectSummary] {
@@ -120,6 +121,67 @@ private extension CombatantTalentState.Pending {
         if healing > 0 {
             summaries.append(EffectSummary(keyword: .health, text: "Living Archive: Restore \(healing) Health next round."))
         }
-        return summaries
+        return summaries + additionalPreparationSummaries()
+    }
+
+    private func additionalPreparationSummaries() -> [EffectSummary] {
+        let prepared: [(Bool, Keyword, String)] = [
+            (doubleNextBleedAttack, .bleed, "Redline: Your next Bleed attack deals double damage."),
+            (nextStunAttackDouble, .stun, "Quaking Carapace: Your next Stun attack deals double damage."),
+            (doubleNextPhysicalAttack, .physical, "Feigned Miss: Your next Physical attack deals double damage."),
+            (nextHolyHitDouble, .holy, "Sun-Struck Shell: Your next Holy damage is doubled."),
+            (doubleNextAttackAfterDeathsDoor, .physical, "Phoenix Vigor: Your next attack deals double damage."),
+            (nextFreezeIgnoresBlock, .freeze, "Winter’s Wake: Your next Freeze attack ignores enemy Block."),
+            (nextAttackIgnoresBlock, .physical, "Your next attack ignores enemy Block."),
+            (nextStunPreparedCritical, .physical, "Stolen Thunder: Your next attack Critically Hits."),
+            (
+                overchargePercent > 0,
+                .physical,
+                "Overcharge: Your next attack deals \(Int((overchargePercent * 100).rounded()))% more damage.",
+            ),
+            (
+                nextBleedAttackMultiplier > 1,
+                .bleed,
+                "Nimble Fang: Your next Bleed attack deals \(Int(((nextBleedAttackMultiplier - 1) * 100).rounded()))% more damage.",
+            ),
+            (
+                nextPhysicalAttackMultiplier > 1,
+                .physical,
+                "Phantom Counter: Your next Physical attack deals \(Int(((nextPhysicalAttackMultiplier - 1) * 100).rounded()))% more damage.",
+            ),
+            (
+                nextCriticalHitMultiplier > 1,
+                .physical,
+                "Perfect Tempo: Your next Critical Hit deals \(Int(((nextCriticalHitMultiplier - 1) * 100).rounded()))% more damage.",
+            ),
+            (
+                nextManaSpendAttackBonus > 0,
+                .physical,
+                "Aetherial Flow: Your next attack deals \(nextManaSpendAttackBonus) additional damage.",
+            ),
+            (
+                nextBlockGainMultiplier > 1,
+                .block,
+                "Your next Block gain is increased by \(Int(((nextBlockGainMultiplier - 1) * 100).rounded()))%.",
+            ),
+            (
+                nextIncomingDamageMultiplier < 1,
+                .block,
+                "Warded Roost: Your next incoming damage is reduced by \(Int(((1 - nextIncomingDamageMultiplier) * 100).rounded()))%.",
+            ),
+            (
+                nextOutgoingAttackMultiplier < 1,
+                .physical,
+                "Weaken Soul: Your next attack deals \(Int(((1 - nextOutgoingAttackMultiplier) * 100).rounded()))% less damage.",
+            ),
+            (
+                nextAttackMissChance > 0,
+                .dodge,
+                "\(nextAttackMissAbilityName ?? "Blinding Light"): Your next attack has a \(Int((nextAttackMissChance * 100).rounded()))% chance to miss.",
+            ),
+        ]
+        return prepared.compactMap { active, keyword, text in
+            active ? EffectSummary(keyword: keyword, text: text) : nil
+        }
     }
 }

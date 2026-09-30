@@ -4,8 +4,9 @@ Use with [engine ownership](battle-engine.md) for healing, overflow, bounded gai
 
 `HealingResult` carries `HealingAllocation`: resolved healing, direct restoration,
 transferred overflow, maximum-Health and Block allocations, and unspent overflow.
-Each consuming consequence allocates from the remainder. Transfers offer at most
-the recipient's missing Health so nested healing cannot convert overflow already
+Each consuming consequence allocates from the remainder. Barrier Blessing converts
+the remainder to resolved Block, without repeating Block bonuses or fight pacing.
+Transfers offer at most the recipient's missing Health so nested healing cannot convert overflow already
 owned by the parent. Echoes and Leech success read actual restoration. Independent
 observers such as Wishspring read original overflow without consuming it.
 Healing emits original overflow as an `overheal` event, including at full Health.
@@ -38,6 +39,12 @@ current abilities, talents, and equipment selects the living ally with the
 lowest current Health on the source's side. Leech and its shares, party-wide
 heals, revivals and self-preservation at a Health threshold, attached repeats,
 and explicit overflow or partner transfers keep their intended recipients.
+Resolved transfers and echoes do not apply Sprite Touch again or consume its
+first-restoration allowance. Bloodprice reduces enemy healing while its Companion
+is alive, independently of the Hero.
+
+Panacea chooses its healing recipient at the healing checkpoint, after preceding
+Cleanse reactions such as Fresh Batch have changed Health.
 
 Verdant Renewal retains its saved `healthPerTurn` trigger field and restores
 2 Health on alternate player turns beginning on turn 1.

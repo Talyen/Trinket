@@ -25,8 +25,8 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         case healthCost
     }
 
-    private let kind: Kind
-    private let scaling: Scaling
+    private var kind: Kind
+    private var scaling: Scaling
     private let accuracy: Accuracy
     public var abilityCriticalChanceBonus: Double = 0
     public var guaranteedCriticalIfEnemyBuffed = false
@@ -34,6 +34,11 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
     public var abilityHasLeech = false
     var suppressLeech = false
     var partnerFirstAttackBonus = 0
+    var capturesCardRepeat = false
+
+    var isResolvedCardRepeat: Bool {
+        capturesCardRepeat && usesResolvedOutgoingDamage
+    }
 
     public static func attack(
         tier: AbilityTier = .skill,
@@ -146,21 +151,20 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         return false
     }
 
-    /// Re-keys an attack operation to a repeat origin, preserving tier/scaling.
-    /// Non-attack operations pass through unchanged: repeat paths (e.g. Final
-    /// Spark replays of stored card requests) may carry effect operations.
+    /// Repeats retain their operation kind and accuracy, including periodic pulses.
     func repeated(
         origin: AttackOrigin = .repeatedAttack,
         scaling: Scaling? = nil,
         guaranteedCritical: Bool? = nil,
     ) -> Self {
-        guard case let .attack(tier, _) = kind else { return self }
-        return .attack(
-            tier: tier, origin: origin, scaling: scaling ?? self.scaling, accuracy: accuracy,
-            abilityCriticalChanceBonus: abilityCriticalChanceBonus,
-            guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
-            guaranteedCritical: guaranteedCritical ?? self.guaranteedCritical,
-            abilityHasLeech: abilityHasLeech,
-        )
+        var repeated = self
+        if case let .attack(tier, _) = kind {
+            repeated.kind = .attack(tier, origin)
+        }
+        repeated.scaling = scaling ?? self.scaling
+        repeated.guaranteedCritical = guaranteedCritical ?? self.guaranteedCritical
+        repeated.partnerFirstAttackBonus = 0
+        repeated.capturesCardRepeat = false
+        return repeated
     }
 }

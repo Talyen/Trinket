@@ -4,6 +4,61 @@ import TrinketCore
 @testable import BattleEngine
 
 struct ManaEmpowermentTests {
+    @Test(arguments: [6, 9])
+    func `Wishspring grants one free Meteor empowerment before its paid repeats`(mana: Int) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxMana: mana, companionMana: mana,
+            companionModifiers: CombatantTalentCatalog.profile(for: ["pixie_health_t4_1"]),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        let companion = battle.companion
+        _ = HealingEngine.resolveHealing(HealRequest(
+            amount: 1, target: companion, sourceActorID: companion.id,
+            origin: .restoration(.health), logAs: .silent,
+        ), in: &battle)
+        #expect(battle.roster.companion.talents.pending.nextManaEmpowerDiscount == 3)
+        battle.nextCardID += 1
+        let card = BattleCard(id: battle.nextCardID, ability: .meteor, owner: .companion)
+        battle.hand.append(card)
+        let assessment = battle.assessCard(card)
+        #expect(assessment.denial == nil)
+        #expect(assessment.resources.contains { $0.keyword == .mana && $0.combatantID == companion.id })
+
+        var budget = ManaEmpowermentBudget(ability: .meteor, actor: companion, in: battle)
+        var payments: [Int] = []
+        for _ in 0 ..< budget.purchaseLimit {
+            guard let payment = budget.nextPayment() else { break }
+            payments.append(payment.ownMana)
+        }
+        #expect(payments == [0] + Array(repeating: 3, count: mana / 3))
+        #expect(battle.roster.companion.talents.pending.nextManaEmpowerDiscount == 3)
+
+        var ability = Ability.meteor
+        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &ability, actor: companion, context: &battle,
+        )
+        #expect(battle.mana(of: companion) == 0)
+        #expect(ability.directDamage == Ability.meteor.directDamage + 1 + mana / 3)
+        #expect(battle.roster.companion.talents.pending.nextManaEmpowerDiscount == 0)
+    }
+
+    @Test func `persistent free empowerment remains limited to one Meteor purchase`() {
+        var battle = makeBattle(
+            heroAbilities: [], heroMaxMana: 9, heroMana: 9,
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                mana: ManaTriggers(empowermentCostReduction: 3),
+            )),
+        )
+        #expect(ManaEmpowermentBudget(ability: .meteor, actor: battle.hero, in: battle).purchaseLimit == 1)
+        var ability = Ability.meteor
+        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &ability, actor: battle.hero, context: &battle,
+        )
+        #expect(battle.mana(of: battle.hero) == 9)
+        #expect(ability.directDamage == Ability.meteor.directDamage + 1)
+    }
+
     @Test func `shared payment keeps the patrons last mana fact through an automatic refill`() {
         var heroProfile = CombatModifierProfile.zero
         heroProfile.triggers.spendManaThresholdAutoPlayCard = 1

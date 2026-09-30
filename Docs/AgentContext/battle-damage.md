@@ -9,7 +9,10 @@ or reaction damage preserves its operation kind. Redirected damage enters the
 recipient's defenses with outgoing scaling already resolved. `DamageDefensePolicy`
 owns mitigation and Block bypass multipliers, while the shield steps in
 `DamagePipeline` own Intercede absorption on top of those multipliers,
-preserving each checkpoint's order and rounding. Multiple partial Block bypasses
+preserving each checkpoint's order and rounding. Ally protection uses the actual
+Block owner's absorption bonuses and records that owner for The Patient Edge and
+The Knight's Answer; borrowed Block does not claim the recipient's allowance.
+Multiple partial Block bypasses
 use the strongest applicable fraction. Partial bypass scales each defense before
 subtracting it and clamping damage. Burn detonation preserves the original
 source's decay rate and ticks per turn. Blackfletch's Poison detonation likewise
@@ -31,6 +34,17 @@ Explicit non-damaging stack grants and reflection retain their specified potency
 neither gains outgoing bonuses. Ticks never attach new stacks. Bleed and authored
 recurring damage retain their separate rules. Combustion still adds its Burn before
 detonating all remaining Burn, including the fresh application.
+Resolved outgoing packets also skip source talent multipliers already included in
+their magnitude. Newly readied Toxic Backlash still doubles the next Poison damage
+event once, including a stored tick; Venomtrail retains its per-event rule below.
+Oathkeeper and Bloodember share keyword percentage bonuses as well as flat bonuses,
+counting universal bonuses once. Thermal Shock and Frostfire apply once per new hit.
+
+The Final Spark snapshots each original packet's outgoing magnitude and Critical
+Hit result before recipient defenses. Its repeat uses current defenses without
+rerolling or consuming another source preparation. Threefold Grace checks every
+positive qualifying Health-damage packet, including periodic and reaction damage,
+without enabling other keyword reactions on those paths.
 Barbed adds flat damage to a consumed Thorns stack before blocked or poisoned
 Thorns multipliers; it does nothing without an active Thorns stack.
 Bristling checks Block remaining after the incoming hit. Spiteful heals only
@@ -63,6 +77,9 @@ their tick, and Death's Door is removed before expiry reactions. `EffectTurnEngi
 only schedules existing effect IDs and never writes a returned snapshot back.
 
 For a named talent change, look up its rule in [talent interactions](battle-talents.md).
+
+Glacial Barrier and Rimeguard reward each living owner when an opponent becomes
+Frozen, including freezes applied by an ally.
 
 `DamageDefensePolicy` applies damage caps
 to ordinary damage operations, exempting Health costs.

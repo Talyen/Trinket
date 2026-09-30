@@ -317,7 +317,8 @@ hit. Overhealing keeps its emitted reactions even when no Health is restored.
 
 Symbiosis shares a fraction of actual Leech restoration. Shared Feast transfers
 only excess Leech restoration from Panther to its living ally. Do not reroll
-Critical Hits or apply healing magnitude bonuses a second time.
+Critical Hits or apply healing magnitude bonuses a second time. Soul Sharing
+shares the first actual Leech restoration each turn even when its hit defeats the enemy.
 
 ### Living Archive, Wishspring, and Marrowmend
 
@@ -398,7 +399,8 @@ Stolen Thunder spends Block once per attack.
 
 ### Resonant Shell
 
-Resonant Shell consumes Thorns normally and resolves their damage as Stun with normal buildup.
+Resonant Shell increases Stun attack damage while its owner has Thorns. Recurring
+Stun damage and reaction damage do not receive this attack bonus.
 
 ### Interdict, Blinding Light, and Subzero Mist
 

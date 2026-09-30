@@ -64,6 +64,7 @@ package struct DamageResolutionState {
 
     var heroCardBlockBroken = false
     var brokenBlockOwners: [Combatant] = []
+    var blockAbsorbingOwners: [Combatant] = []
     var additionalHolyDamage = 0
     var additionalPhysicalDamage = 0
     var pendingAttackBonus = 0

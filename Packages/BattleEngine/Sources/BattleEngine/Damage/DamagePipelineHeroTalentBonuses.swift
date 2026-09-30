@@ -2,6 +2,15 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
+    static func applyPreparedPoisonDamage(to state: inout DamageResolutionState, in context: inout BattleState) {
+        guard state.remaining > 0, state.damageKeyword == .poison, state.combatant.role == .enemy,
+              let sourceID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceID),
+              source.talents.pending.doubleNextPoisonDamage else { return }
+        state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
+        context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.doubleNextPoisonDamage = false }
+    }
+
     static func applyOvercharge(
         to state: inout DamageResolutionState,
         source: Combatant,
@@ -147,10 +156,7 @@ package extension DamagePipeline {
                 state.itemBonus += bonus
                 context.roster.mutateRuntime(for: source) { $0.talents.pending.nextPoisonDamageBonus = 0 }
             }
-            if context.roster.runtime(for: source)?.talents.pending.doubleNextPoisonDamage == true {
-                state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
-                context.roster.mutateRuntime(for: source) { $0.talents.pending.doubleNextPoisonDamage = false }
-            }
+            applyPreparedPoisonDamage(to: &state, in: &context)
             if state.options.isAttackHit,
                context.roster.runtime(for: source)?.talents.pending.doubleNextPoisonAttack == true {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)

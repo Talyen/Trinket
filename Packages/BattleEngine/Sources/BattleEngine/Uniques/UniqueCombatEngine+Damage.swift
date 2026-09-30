@@ -9,12 +9,33 @@ extension UniqueCombatEngine {
         if context.uniques.card?.guaranteedCritical == true {
             prepared.options.guaranteedCritical = true
         }
-        context.uniques.card?.damageRequests.append(prepared)
+        prepared.options.capturesCardRepeat = context.uniques.card?.repeatDamage == true
         if request.target.role == .enemy, request.amount > 0 {
             prepared.options.partnerFirstAttackBonus = context.uniques.card?.attackBonus ?? 0
             context.uniques.card?.attackBonus = 0
         }
         return prepared
+    }
+
+    static func captureCardDamage(
+        _ damage: DamageResolutionState,
+        outgoingAmount: Int,
+        in context: inout BattleState,
+    ) {
+        guard context.uniques.card?.repeatDamage == true,
+              damage.options.capturesCardRepeat, !damage.options.isResolvedCardRepeat,
+              let sourceID = damage.sourceActorID,
+              isOrdinaryAction(actorID: sourceID, in: context) else { return }
+        var options = damage.options.repeated(scaling: .resolved, guaranteedCritical: damage.isCritical)
+        options.capturesCardRepeat = true
+        let request = DamageRequest(
+            amount: outgoingAmount,
+            target: damage.combatant,
+            keyword: damage.damageKeyword,
+            sourceActorID: sourceID,
+            options: options,
+        )
+        context.uniques.card?.damageRequests.append(.init(request: request, stackPotency: damage.amount))
     }
 
     static func sharedDamageKeyword(for keyword: Keyword, triggers: CombatTraitTriggers) -> Keyword? {

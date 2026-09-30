@@ -24,7 +24,7 @@ extension HealingEngine {
         in context: inout BattleState,
     ) -> Int {
         var amount = baseAmount
-        if amount > 0, request.target.role != .enemy, !request.isHoTTick,
+        if amount > 0, request.amountBasis != .resolved, request.target.role != .enemy, !request.isHoTTick,
            let sourceID = request.sourceActorID,
            context.roster.health(for: request.target) < context.roster.maxHealth(for: request.target),
            context.modifiers(for: sourceID).triggers.firstHealthRestorationBonusPerTurn > 0,
@@ -58,16 +58,14 @@ extension HealingEngine {
             }
         }
         var enemyMultiplier = 1.0
-        if request.target.role == .enemy, context.roster.hero.isAlive {
-            let hero = context.heroModifiers.triggers
+        if request.target.role == .enemy {
             if context.roster.hasAffliction(.bleed, on: request.target) {
-                enemyMultiplier *= hero.bleedingEnemyHealingMultiplier
-                if context.roster.companion.isAlive {
-                    enemyMultiplier *= context.companionModifiers.triggers.bleedingEnemyHealingMultiplier
+                for profile in CombatTriggerEngine.livingAllyModifiers(in: context) {
+                    enemyMultiplier *= profile.triggers.bleedingEnemyHealingMultiplier
                 }
             }
-            if context.roster.hasAffliction(.burn, on: request.target) {
-                enemyMultiplier *= hero.burningEnemyHealingMultiplier
+            if context.roster.hero.isAlive, context.roster.hasAffliction(.burn, on: request.target) {
+                enemyMultiplier *= context.heroModifiers.triggers.burningEnemyHealingMultiplier
             }
         }
         return CombatRounding.scaled(amount, multiplier: enemyMultiplier)

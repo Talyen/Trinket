@@ -191,3 +191,50 @@ extension HealingReductionTests {
         #expect(battle.roster[recipient].currentHealth == 22)
     }
 }
+
+extension HealingReductionTests {
+    @Test(arguments: [0, 10])
+    func `bloodprice reduces enemy healing while its companion survives`(heroHealth: Int) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 40),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
+            heroHealth: heroHealth,
+            companionModifiers: CombatantTalentCatalog.profile(for: ["panther_bleed_t3_2"]),
+        )
+        battle.appliesFightPacing = false
+        battle.roster.enemy.currentHealth = 10
+        battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
+
+        let outcome = battle.resolveHeal(HealRequest(amount: 8, target: battle.enemy, sourceActorID: battle.enemy.id))
+
+        #expect(outcome.healthRestored == 4)
+    }
+
+    @Test func `soul sharing heals the ally on a killing leech hit`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 40),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
+            heroHealth: 10, companionHealth: 10,
+            companionModifiers: CombatantTalentCatalog.profile(for: ["risen_skeleton_leech_t2_2"]),
+        )
+        battle.appliesFightPacing = false
+        battle.roster.enemy.currentHealth = 8
+        battle.roster.enemy.hasConsumedDeathsDoor = true
+        let outcome = battle.resolveDamage(DamageRequest(
+            amount: 8, target: battle.enemy, keyword: .physical, sourceActorID: battle.companion.id,
+            options: .effect(abilityHasLeech: true),
+        ))
+
+        #expect(outcome.healthLost == 8)
+        #expect(battle.health(of: battle.enemy) == 0)
+        #expect(battle.health(of: battle.hero) == 14)
+        #expect(battle.health(of: battle.companion) == 14)
+        _ = HealingEngine.leechFromDamage(
+            8, sourceActorID: battle.companion.id, target: battle.enemy,
+            abilityHasLeech: true, in: &battle,
+        )
+        #expect(battle.health(of: battle.hero) == 14)
+    }
+}

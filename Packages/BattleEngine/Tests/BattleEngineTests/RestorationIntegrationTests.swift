@@ -205,3 +205,45 @@ struct RestorationIntegrationTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 3)
     }
 }
+
+extension RestorationIntegrationTests {
+    @Test func `sprite touch does not increase resolved healing or spend its allowance`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 40),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
+            enemy: CombatantFixtures.passiveEnemy(),
+            heroHealth: 10, companionHealth: 10,
+            companionModifiers: CombatantTalentCatalog.profile(for: ["pixie_health_t1_1"]),
+        )
+        battle.appliesFightPacing = false
+        var transfer = HealRequest(amount: 3, target: battle.hero, sourceActorID: battle.companion.id)
+        transfer.amountBasis = .resolved
+
+        let transferred = battle.resolveHeal(transfer)
+        let fresh = battle.resolveHeal(HealRequest(amount: 3, target: battle.hero, sourceActorID: battle.companion.id))
+
+        #expect(transferred.healthRestored == 3)
+        #expect(fresh.healthRestored == 5)
+        #expect(battle.health(of: battle.hero) == 18)
+    }
+
+    @Test func `barrier blessing converts overflow without scaling Block again`() {
+        var profile = CombatantTalentCatalog.profile(for: ["pixie_health_t3_2"])
+        profile.blockGainedBonus = 7
+        profile.blockGainedPercent = 1
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 40),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
+            enemy: CombatantFixtures.passiveEnemy(),
+            heroModifiers: profile,
+        )
+        battle.appliesFightPacing = false
+        var request = HealRequest(amount: 4, target: battle.hero, sourceActorID: battle.hero.id)
+        request.amountBasis = .resolved
+
+        let result = HealingEngine.resolveHealing(request, in: &battle)
+
+        #expect(result.allocation.block == 4)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 4)
+    }
+}

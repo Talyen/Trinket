@@ -252,7 +252,6 @@ package extension HealingEngine {
         }
         if actorCombatant.role == .companion, context.roster.hero.isAlive,
            actualRestored > 0, profile.triggers.firstLeechRestorationShareAlly,
-           context.roster.enemy.isAlive,
            context.claimHeroTalent("Soul Sharing", actorID: actorCombatant.id) {
             var request = HealRequest(
                 amount: actualRestored,

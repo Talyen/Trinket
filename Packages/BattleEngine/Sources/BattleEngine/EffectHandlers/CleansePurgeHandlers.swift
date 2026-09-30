@@ -114,7 +114,7 @@ struct PanaceaHandler: BattleEffectHandler {
         return EffectRemovalOperation.resolveCleanse(
             .all(nil), source: source, target: cleanseTarget, abilityName: ability.name,
             baseHeal: baseHeal, healPerDebuff: healPerDebuff,
-            healTarget: action.target(.lowestHealthAlly, in: context), origin: .direct, in: &context,
+            healTarget: .lowestHealthAlly, origin: .direct, in: &context,
         ).application
     }
 }

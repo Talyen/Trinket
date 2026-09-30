@@ -56,12 +56,23 @@ enum CloudSaveMerge {
         mergeEconomy(into: &merged, branches: branches)
         mergeExploration(into: &merged, branches: branches)
         mergeContracts(into: &merged, branches: branches)
-        merged.corruptionAltarCooldownRemaining = branches.selected(
-            incoming.corruptionAltarCooldownRemaining, existing.corruptionAltarCooldownRemaining,
-            base: base?.corruptionAltarCooldownRemaining,
-        ) ?? merged.corruptionAltarCooldownRemaining
+        mergeCorruptionAltarCooldown(into: &merged, branches: branches)
         merged.modifiedAt = max(incoming.modifiedAt, existing.modifiedAt)
         return merged
+    }
+
+    private static func mergeCorruptionAltarCooldown(into merged: inout PlayerSave, branches: Branches) {
+        let incoming = branches.incoming.corruptionAltarCooldownRemaining
+        let existing = branches.existing.corruptionAltarCooldownRemaining
+        if branches.canCombineIndependentRewards, let base = branches.base?.corruptionAltarCooldownRemaining,
+           incoming < base, existing < base {
+            let completed = SaturatedArithmetic.saturatingAdd(base - incoming, base - existing)
+            merged.corruptionAltarCooldownRemaining = max(0, base - completed)
+        } else {
+            merged.corruptionAltarCooldownRemaining = branches.selected(
+                incoming, existing, base: branches.base?.corruptionAltarCooldownRemaining,
+            ) ?? merged.corruptionAltarCooldownRemaining
+        }
     }
 
     private static func mergeJourney(into merged: inout PlayerSave, from other: PlayerSave) {
@@ -117,7 +128,8 @@ enum CloudSaveMerge {
             if let current = merged.roster.progressions[id] {
                 merged.roster.progressions[id] = mergedProgression(
                     branches.incoming.roster.progressions[id], branches.existing.roster.progressions[id],
-                    base: branches.canCombineIndependentRewards ? branches.base?.roster.progressions[id] : nil,
+                    // Recruiting starts at level one with no XP, even when the shared save has no row yet.
+                    base: branches.canCombineIndependentRewards ? (branches.base?.roster.progressions[id] ?? .initial) : nil,
                     fallback: maxProgression(current, progression),
                 )
             } else {

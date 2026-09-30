@@ -52,7 +52,7 @@ extension CloudSaveMerge {
     private static func hasSharedShopPurchase(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave) -> Bool {
         let stages = Set(incoming.journey.shopPayloads.keys).intersection(existing.journey.shopPayloads.keys)
         if stages.contains(where: { id in
-            hasSharedPurchase(
+            ShopStockPersistence.hasSharedNewPurchase(
                 base: base.journey.shopPayloads[id],
                 incoming: incoming.journey.shopPayloads[id],
                 existing: existing.journey.shopPayloads[id],
@@ -63,7 +63,7 @@ extension CloudSaveMerge {
         if sharesLabyrinthMap(incoming: incoming, existing: existing, base: base) {
             let nodes = Set(incoming.labyrinth.nodes.keys).intersection(existing.labyrinth.nodes.keys)
             if nodes.contains(where: { id in
-                hasSharedPurchase(
+                ShopStockPersistence.hasSharedNewPurchase(
                     base: base.labyrinth.nodes[id]?.shopPayload,
                     incoming: incoming.labyrinth.nodes[id]?.shopPayload,
                     existing: existing.labyrinth.nodes[id]?.shopPayload,
@@ -76,7 +76,7 @@ extension CloudSaveMerge {
            incoming.voyage.activeRun?.id == run.id,
            existing.voyage.activeRun?.id == run.id {
             return run.nodes.contains { node in
-                hasSharedPurchase(
+                ShopStockPersistence.hasSharedNewPurchase(
                     base: node.shopPayload,
                     incoming: incoming.voyage.node(runID: run.id, nodeID: node.id)?.shopPayload,
                     existing: existing.voyage.node(runID: run.id, nodeID: node.id)?.shopPayload,
@@ -84,13 +84,6 @@ extension CloudSaveMerge {
             }
         }
         return false
-    }
-
-    private static func hasSharedPurchase(base: Data?, incoming: Data?, existing: Data?) -> Bool {
-        let prior = ShopStockPersistence.purchasedOfferIDs(in: base)
-        let first = ShopStockPersistence.purchasedOfferIDs(in: incoming).subtracting(prior)
-        let second = ShopStockPersistence.purchasedOfferIDs(in: existing).subtracting(prior)
-        return !first.isDisjoint(with: second)
     }
 
     private static func hasSharedNodeClaim(

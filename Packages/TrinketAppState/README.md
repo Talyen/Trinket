@@ -66,6 +66,8 @@ mute reconciliation. Track metadata and encoding belong to
 `MusicPlayer` owns track transitions: each voice stays paired with its request,
 pending work is either loading or prepared, and an outgoing fade has one explicit
 teardown owner. Replacing a track saves its position at the actual handoff.
+Requested replacements still own that handoff when muted during decoding, so
+unmuting previews the requested track. Prewarming alone does not replace a playing route.
 Cancelled loads cannot install voices, and cancelled fades cannot overwrite a
 new slider gain. `MusicPlaybackBackend` isolates decoding and ambient session
 setup; deterministic transition tests use controlled loads and silent fake voices.

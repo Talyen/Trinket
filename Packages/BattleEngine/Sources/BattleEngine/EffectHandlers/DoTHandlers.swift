@@ -464,21 +464,16 @@ struct RecurringDamageHandler: BattleEffectHandler {
             event: (.recurringDamageApplied, potency, keyword),
         )
         guard application.didApply else { return application }
-        if UniqueCombatEngine.isOrdinaryAction(actorID: source.id, in: context) {
-            context.uniques.card?.damageRequests.append(DamageRequest(
-                amount: potency,
-                target: target,
-                keyword: keyword,
-                sourceActorID: source.id,
-                options: .periodic,
-            ))
-        }
+        var operation = DamageOperation.periodic
+        operation.capturesCardRepeat = context.uniques.card?.repeatDamage == true
+            && UniqueCombatEngine.isOrdinaryAction(actorID: source.id, in: context)
         let events = DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: keyword,
             target: target,
             sourceActorID: source.id,
             provenance: context.resolution.damageProvenance(for: source.id),
+            operation: operation,
             in: &context,
         ).events
         return EffectApplyOutcome(events: application.events + events, didApply: true)

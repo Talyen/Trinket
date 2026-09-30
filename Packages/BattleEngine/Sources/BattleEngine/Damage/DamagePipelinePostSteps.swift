@@ -85,8 +85,16 @@ package extension DamagePipeline {
         default:
             break
         }
+    }
 
-        guard state.combatant.role == .enemy, source.combatant.role != .enemy,
+    static func applyThreefoldGrace(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard state.healthLost > 0,
+              let keyword = state.damageKeyword,
+              state.partySource(in: context) != nil,
+              state.combatant.role == .enemy,
               keyword == .burn || keyword == .freeze || keyword == .holy else { return }
         for owner in [BattleParticipant.hero, .companion] {
             let wearer = context.roster[owner]

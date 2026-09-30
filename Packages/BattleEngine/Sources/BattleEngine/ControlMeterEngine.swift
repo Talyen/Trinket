@@ -244,16 +244,8 @@ package enum ControlMeterEngine {
         if keyword == .freeze, combatant.id == context.roster.enemy.id {
             events.append(contentsOf: CombatTriggerEngine.afterEnemyFrozen(sourceActorID: sourceActorID, in: &context))
         }
-        if keyword == .freeze,
-           let sourceActorID,
-           let source = context.roster.combatant(for: sourceActorID),
-           context.modifiers(for: sourceActorID).triggers.onEnemyFrozenGainBlock > 0 {
-            events.append(contentsOf: context.applyBlock(
-                context.modifiers(for: sourceActorID).triggers.onEnemyFrozenGainBlock,
-                to: source.combatant,
-                source: source.combatant,
-                abilityName: "Glacial Barrier",
-            ))
+        if keyword == .freeze {
+            events.append(contentsOf: frozenOpponentBlock(on: combatant, in: &context))
         }
         if keyword == .freeze,
            combatant.role == .enemy,
@@ -299,6 +291,25 @@ package enum ControlMeterEngine {
                 to: combatant,
                 sourceActorID: sourceActorID,
                 application: .reaction,
+            ))
+        }
+        return events
+    }
+
+    private static func frozenOpponentBlock(
+        on target: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
+        let observers = BattleActionContext(actor: target, in: context).opponents(in: context)
+        for actor in observers {
+            let amount = context.modifiers(for: actor.id).triggers.onEnemyFrozenGainBlock
+            guard context.health(of: actor) > 0, amount > 0 else { continue }
+            events.append(contentsOf: context.applyBlock(
+                amount, to: actor, source: actor,
+                abilityName: context.modifiers(for: actor.id).triggerAbilityName(
+                    "onEnemyFrozenGainBlock", fallback: "Glacial Barrier",
+                ),
             ))
         }
         return events
