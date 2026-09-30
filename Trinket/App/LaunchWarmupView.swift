@@ -4,9 +4,11 @@ import TrinketDesignSystem
 struct LaunchWarmupView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.isLaunchPresentationReady) private var isLaunchPresentationReady
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isVisible = false
     @State private var loadingStartDate: Date?
     @State private var currentTermIndex = 0
+    @State private var loadingArtwork: LaunchLoadingArtwork?
     let isMinimumLoadingTimeComplete: Bool
     let onMinimumLoadingTimeComplete: @MainActor () -> Void
 
@@ -33,7 +35,8 @@ struct LaunchWarmupView: View {
     private var loadingTitle: some View {
         TimelineView(.animation(
             minimumInterval: 1.0 / 60.0,
-            paused: !isVisible || loadingStartDate == nil || scenePhase != .active || isLaunchPresentationReady,
+            paused: !isVisible || loadingStartDate == nil || scenePhase != .active || isLaunchPresentationReady
+                || (reduceMotion && isMinimumLoadingTimeComplete),
         )) { context in
             let elapsed = loadingStartDate.map { max(0, context.date.timeIntervalSince($0)) } ?? 0
             let fill = isMinimumLoadingTimeComplete ? 1 : min(1, elapsed / Self.minimumLoadingDuration)
@@ -52,6 +55,15 @@ struct LaunchWarmupView: View {
                         .accessibilityHidden(true)
                 }
                 .trinketTypography(.screenDisplay)
+                .overlay(alignment: .top) {
+                    if let loadingArtwork {
+                        LaunchLoadingDecoration(
+                            artwork: loadingArtwork,
+                            elapsed: isMinimumLoadingTimeComplete ? max(Self.minimumLoadingDuration, elapsed) : elapsed,
+                            reduceMotion: reduceMotion,
+                        )
+                    }
+                }
                 .accessibilityLabel("Loading Trinket")
         }
     }
@@ -69,6 +81,11 @@ struct LaunchWarmupView: View {
         .padding(TrinketDesign.Layout.contentMargin)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketScreenBackground()
+        .task {
+            let prepared = await LaunchLoadingArtwork.preparation.value
+            guard !Task.isCancelled else { return }
+            loadingArtwork = prepared
+        }
         .onAppear {
             isVisible = true
             if loadingStartDate == nil {

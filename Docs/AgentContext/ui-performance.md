@@ -18,6 +18,16 @@ visible with the title fully gold until they are ready. The title animation
 timeline stops when launch readiness completes, including retained encounter
 underlays.
 
+The launch title carries a small right-facing slime and windblown leaves. Its two
+hops share the title's elapsed clock, settle at two seconds, and continue with a
+gentle idle while preparation takes longer. Reduced Motion keeps the slime still
+and hides the leaves. Decorative rendering parks with scene inactivity and launch
+readiness, including retained encounter underlays. The authored PNG layers in
+`Trinket/LaunchArtwork/` are decoded once off the main actor by
+`LaunchLoadingArtwork`, independently of the game artwork cache and readiness
+gates; keep decoding out of the animation timeline. Source sheets are preserved
+under `Raw Assets/Launch/`.
+
 Artwork decoding and battle texture/raster preparation start during the hold.
 `PreparedAppRoot` launches them concurrently after enqueueing audio warmup.
 `PreparedArtworkCache.prepareAll` decodes pinned first-paint artwork first, then

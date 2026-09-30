@@ -62,6 +62,8 @@ targets:
         excludes:
           - "**/*.md"
       - path: Trinket/Assets.xcassets
+      - path: Trinket/LaunchArtwork
+        type: folder
       - path: Trinket/Media
         type: folder
       - path: Trinket/AppIcon.icon
