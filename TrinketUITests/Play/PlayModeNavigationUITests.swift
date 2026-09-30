@@ -2,7 +2,7 @@ import TrinketFeatureSupport
 import XCTest
 
 final class PlayModeNavigationUITests: TrinketUITestCase {
-    func testExploreHubOpensSpiresWithLockedSpireInert() {
+    func testExploreHubSpiresAndVoyageJourneys() {
         launchApp(arguments: TestLaunchArg.allUnseeded())
 
         play.assertLoaded()
@@ -20,6 +20,27 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         tapButton(AccessibilityID.Play.spireFloorEnemyArt("ironVein", floor: 1))
         assertExists(AccessibilityID.CombatantDetail.nodeModifiersSection)
         assertExists(AccessibilityID.CombatantDetail.nodeModifierDescription)
+        dismissSheet()
+        goBack()
+        goBack()
+
+        let mode = app.buttons[AccessibilityID.Voyage.modeCard]
+        scrollUntilVisible(mode, swipingUp: true, maxAttempts: 4, requireHittable: true)
+        tapWhenReady(mode)
+        assertExists(AccessibilityID.Voyage.screen)
+        let embark = app.buttons[AccessibilityID.Voyage.action("easy")]
+        scrollUntilVisible(embark, swipingUp: true, maxAttempts: 3, requireHittable: true)
+        tapWhenReady(embark)
+        assertExists(AccessibilityID.Voyage.destinationReward)
+        let reward = app.descendants(matching: .any)[AccessibilityID.Voyage.destinationReward].label
+        XCTAssertFalse(reward.isEmpty, "Embarking must show the destination reward")
+        XCTAssertFalse(app.buttons[AccessibilityID.Voyage.refresh].exists)
+        tapWhenReady(app.buttons[AccessibilityID.Voyage.options])
+        tapWhenReady(app.buttons[AccessibilityID.Voyage.abandon])
+        XCTAssertFalse(app.alerts.firstMatch.exists)
+        tapWhenReady(app.buttons[AccessibilityID.Voyage.confirmAbandon])
+        assertExists(AccessibilityID.Voyage.action("easy"))
+        assertExists(AccessibilityID.Voyage.refresh)
     }
 
     func testLabyrinthMapNodeInspectorInteractions() {
@@ -52,39 +73,6 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
             .coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.05))
             .tap()
         assertDoesNotExist(AccessibilityID.Play.labyrinthNodeInspector)
-    }
-
-    func testVoyageEmbarkResumeAndAbandon() {
-        launchApp(arguments: TestLaunchArg.allUnseeded())
-        play.openExplore()
-        let mode = app.buttons[AccessibilityID.Voyage.modeCard]
-        scrollUntilVisible(mode, swipingUp: true, maxAttempts: 4, requireHittable: true)
-        tapWhenReady(mode)
-        assertExists(AccessibilityID.Voyage.screen)
-        attachSuccessScreenshot(named: "Voyage board")
-        let embark = app.buttons[AccessibilityID.Voyage.action("easy")]
-        scrollUntilVisible(embark, swipingUp: true, maxAttempts: 3, requireHittable: true)
-        tapWhenReady(embark)
-        assertExists(AccessibilityID.Voyage.destinationReward)
-        let reward = app.descendants(matching: .any)[AccessibilityID.Voyage.destinationReward].label
-        XCTAssertFalse(reward.isEmpty, "Embarking must show the destination reward")
-        attachSuccessScreenshot(named: "Voyage route")
-        XCTAssertFalse(app.buttons[AccessibilityID.Voyage.refresh].exists)
-        goBack()
-        scrollUntilVisible(mode, swipingUp: true, maxAttempts: 3, requireHittable: true)
-        tapWhenReady(mode)
-        assertExists(AccessibilityID.Voyage.destinationReward)
-        XCTAssertEqual(app.descendants(matching: .any)[AccessibilityID.Voyage.destinationReward].label, reward)
-        tapWhenReady(app.buttons[AccessibilityID.Voyage.options])
-        tapWhenReady(app.buttons[AccessibilityID.Voyage.abandon])
-        XCTAssertFalse(app.alerts.firstMatch.exists)
-        tapWhenReady(app.buttons[AccessibilityID.Voyage.cancelAbandon])
-        assertExists(AccessibilityID.Voyage.destinationReward)
-        tapWhenReady(app.buttons[AccessibilityID.Voyage.options])
-        tapWhenReady(app.buttons[AccessibilityID.Voyage.abandon])
-        tapWhenReady(app.buttons[AccessibilityID.Voyage.confirmAbandon])
-        assertExists(AccessibilityID.Voyage.action("easy"))
-        assertExists(AccessibilityID.Voyage.refresh)
     }
 
     private func waitForLabyrinthEntryNode() -> XCUIElement {

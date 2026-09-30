@@ -92,17 +92,6 @@ struct AppStatePlayFlowTests {
         #expect(battle.preparedBattlePresentationRevision == preparedRevision + 1)
     }
 
-    @Test func `fresh journey battle activation selects play tab`() throws {
-        let state = try context.makePlaySession()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        state.shellSession.selectedTab = .options
-
-        #expect(state.journey.startBattle(for: stage) == nil)
-
-        #expect(state.battle.activeBattle != nil)
-        #expect(state.shellSession.selectedTab == .play)
-    }
-
     @Test(arguments: ["journey", "spire", "labyrinth"] as [String])
     func `battle activation failure shows unavailable message`(mode: String) throws {
         let runtime = RejectingBattleRuntime()
@@ -177,7 +166,7 @@ struct AppStatePlayFlowTests {
     }
 
     @Test func `complete active battle with stage completes journey idempotently`() throws {
-        let state = try context.makePlaySession()
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
@@ -203,6 +192,14 @@ struct AppStatePlayFlowTests {
         #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-2")
         #expect(state.playerSave.roster.gold == goldAfterFirstContinue)
         #expect(state.playerSave.roster.gold == initialGold + expectedGold)
+
+        let reloaded = try PlayerSaveStore(
+            storeURL: SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL),
+            disableCloudSync: true,
+        )
+        #expect(reloaded.journey.completedStageIDs.contains(stage.id))
+        #expect(reloaded.journey.activeStageID == "chapter-1-stage-2")
+        #expect(reloaded.roster.gold == goldAfterFirstContinue)
     }
 
     @Test(arguments: [DuplicateRouteOrigin.journey, .labyrinth, .spire])

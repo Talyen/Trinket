@@ -29,10 +29,8 @@ class UIRegistrationTests(unittest.TestCase):
             {'name': 'Play', 'target': 'SmokeBattleTests SmokeShopTests'},
         ]})
         self.assertEqual(REGISTRY.matrix(rows, 'FullUI'), {'include': [
-            {'name': 'Battle', 'target': 'BattleFlowUITests ShopLaunchPreparationUITests'},
-            {'name': 'Collection', 'target': 'TabNavigationUITests HeroDetailAbilityPickerUITests FullGamePurchaseUITests'},
-            {'name': 'Homestead', 'target': 'HomesteadNodeDetailUITests'},
-            {'name': 'Play', 'target': 'PlayMapUITests PlayModeNavigationUITests MysteryRecruitUITests'},
+            {'name': 'Play', 'target': 'BattleFlowUITests PlayModeNavigationUITests'},
+            {'name': 'Shell', 'target': 'HomesteadNodeDetailUITests FullGamePurchaseUITests'},
         ]})
         output = subprocess.check_output(['bash', '-c', 'source Scripts/lib/smoke-classes.sh; env'], cwd=ROOT, text=True)
         for row in rows:

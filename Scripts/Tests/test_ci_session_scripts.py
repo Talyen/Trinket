@@ -39,6 +39,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 from script_test_support import ROOT, ScriptRegressionTestCase
 
@@ -593,10 +594,10 @@ trinket_dir_lock_acquire "$2" 0
 
 
     def test_cancellation_stops_workers_before_releasing_resources(self) -> None:
-        for owner in ("lock", "run-env"):
-            for sig in (signal.SIGINT, signal.SIGTERM):
-                with self.subTest(owner=owner, signal=sig), tempfile.TemporaryDirectory() as directory:
-                    script = '''
+        def check(case: tuple[str, signal.Signals]) -> None:
+            owner, sig = case
+            with tempfile.TemporaryDirectory() as directory:
+                script = '''
 source Scripts/run-env.sh
 trap 'test ! -e "$resource"; ! kill -0 "$worker" 2>/dev/null' EXIT
 if [[ "$1" == lock ]]; then
@@ -608,24 +609,37 @@ else
   trinket_run_env_init
   resource="$TRINKET_SIM_SLOT_PATH"
 fi
-bash -c 'trap "" INT TERM; while :; do sleep 1; done' &
+bash -c 'trap "" INT TERM; printf "%s %s\\n" "$1" "$$"; while :; do sleep 1; done' _ "$resource" &
 worker=$!
-printf '%s\\n' "$resource"
 wait "$worker"
 echo continued > "$2/continued"
 '''
-                    env = {key: value for key, value in os.environ.items()
-                           if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR"}}
-                    process = subprocess.Popen(["bash", "-eu", "-c", script, "_", owner, directory],
-                                               cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                    resource = Path(process.stdout.readline().strip())
-                    self.assertTrue(resource.exists())
-                    process.send_signal(sig)
-                    stdout, stderr = process.communicate(timeout=10)
-                    self.assertEqual(process.returncode, 128 + sig, stdout + stderr)
-                    self.assertFalse(resource.exists())
-                    self.assertFalse((Path(directory) / "continued").exists())
+                env = {key: value for key, value in os.environ.items()
+                       if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR"}}
+                process = subprocess.Popen(["bash", "-eu", "-c", script, "_", owner, directory],
+                                           cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                resource_path, worker_pid = process.stdout.readline().split()
+                resource = Path(resource_path)
+                self.assertTrue(resource.exists())
+                os.kill(int(worker_pid), 0)
+                process.send_signal(sig)
+                stdout, stderr = process.communicate(timeout=10)
+                self.assertEqual(process.returncode, 128 + sig, stdout + stderr)
+                self.assertFalse(resource.exists())
+                self.assertFalse((Path(directory) / "continued").exists())
+                with self.assertRaises(ProcessLookupError):
+                    os.kill(int(worker_pid), 0)
 
+
+        cases = [(owner, sig) for owner in ("lock", "run-env") for sig in (signal.SIGINT, signal.SIGTERM)]
+        # Each process owns a separate fixture root and lease; only fake workers
+        # run concurrently. Readiness comes from the child after installing its
+        # signal traps, so every case exercises forced cleanup rather than a race.
+        with ThreadPoolExecutor(max_workers=len(cases)) as executor:
+            futures = [executor.submit(check, case) for case in cases]
+            for case, future in zip(cases, futures):
+                with self.subTest(owner=case[0], signal=case[1]):
+                    future.result()
 
     def test_mirror_uses_its_build_and_only_the_human_simulator(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

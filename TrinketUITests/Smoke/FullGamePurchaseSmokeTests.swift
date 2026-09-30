@@ -10,7 +10,7 @@ final class FullGamePurchaseSmokeTests: FullGameStoreKitUITestCase {
             tapButton(AccessibilityID.FullGame.options)
         }
         tapButton(AccessibilityID.FullGame.purchase)
-        assertDoesNotExist(AccessibilityID.FullGame.offer, timeout: 20)
+        assertDoesNotExist(AccessibilityID.FullGame.offer, timeout: 10)
         assertDoesNotExist(AccessibilityID.FullGame.options, timeout: 10)
 
         tabBar.selectCollection()

@@ -281,7 +281,10 @@ package enum HealingEngine {
         in context: inout BattleState,
     ) -> Int {
         if request.amountBasis == .resolved {
-            return max(0, request.amount)
+            return CombatRounding.scaled(
+                max(0, request.amount),
+                multiplier: CombatTriggerEngine.incomingHealMultiplier(for: request.target, in: context),
+            )
         }
         let bonus = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
         let percent = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredPercent } ?? 0

@@ -19,13 +19,23 @@ package enum EnemyTraitEngine {
         context.roster.mutateRuntime(for: source.combatant) { $0.hasTriggeredFirstHitBonus = true }
         var events: [ActionEvent] = []
         let amount = triggers.firstAttackBleedBonus
-        events.append(contentsOf: context.resolveDamage(DamageRequest(
+        let outcome = context.resolveDamage(DamageRequest(
             amount: amount,
             target: state.combatant,
             keyword: .bleed,
             sourceActorID: sourceActorID,
             options: .reaction(),
-        )).events)
+        ))
+        events.append(contentsOf: outcome.events)
+        if outcome.healthLost > 0 {
+            events.append(context.nextEvent(
+                kind: .status, actorName: source.name,
+                abilityName: context.modifiers(for: sourceActorID).triggerAbilityName(
+                    "firstAttackBleedBonus", fallback: "Hidden Fangs",
+                ),
+                target: state.combatant, amount: outcome.healthLost, keyword: .bleed,
+            ))
+        }
         events.append(contentsOf: DoTApplicator.applyBleed(
             potency: amount,
             to: state.combatant,
@@ -186,16 +196,9 @@ package enum EnemyTraitEngine {
                 options: .reaction(),
             ),
         )
-        let events = outcome.events.map { event in
-            event.with(
-                effectKind: .thornsTriggered,
-                actorID: defender.id,
-                actorName: defender.name,
-                abilityName: profile.triggerAbilityName("thornsPercent", fallback: "Trait"),
-            )
-        }
-        if events.isEmpty, outcome.healthLost > 0 {
-            return [context.nextEvent(
+        var events = outcome.events
+        if outcome.healthLost > 0 {
+            events.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .thornsTriggered,
                 actorName: defender.name,
@@ -203,7 +206,7 @@ package enum EnemyTraitEngine {
                 target: attacker,
                 amount: outcome.healthLost,
                 keyword: .physical,
-            )]
+            ))
         }
         return events
     }

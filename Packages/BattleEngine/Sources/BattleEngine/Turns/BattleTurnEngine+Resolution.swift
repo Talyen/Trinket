@@ -159,6 +159,7 @@ extension BattleTurnEngine {
         var events = damageOutcome.events
         let componentEvent = context.nextEvent(
             kind: .abilityDamage,
+            actionID: context.resolution.actionID,
             actorID: actor.id,
             actorName: actor.name,
             abilityID: ability.id,

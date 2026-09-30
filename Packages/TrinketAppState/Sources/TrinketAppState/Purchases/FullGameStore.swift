@@ -23,7 +23,6 @@ public final class FullGameStore {
     public private(set) var isLoading = false
     public private(set) var isPurchasing = false
     public private(set) var isRestoring = false
-    public private(set) var message: String?
     private var listener: Task<Void, Never>?
     private var revision = 0
 
@@ -53,9 +52,8 @@ public final class FullGameStore {
         defer { isLoading = false }
         do {
             product = try await Product.products(for: [Self.productID]).first { $0.id == Self.productID }
-            message = product == nil ? "Purchases are unavailable right now. Try again later." : nil
         } catch {
-            message = "Couldn't load the purchase. Check your connection and try again."
+            product = nil
         }
     }
 
@@ -66,9 +64,6 @@ public final class FullGameStore {
         let resolved = await Self.resolveCurrentOwnership()
         guard revision == startedAt, !Task.isCancelled else { return }
         ownership = resolved
-        if resolved == .unverified {
-            message = "Couldn't verify Full Game. Try Restore Purchases."
-        }
     }
 
     /// Reads the current entitlement set off the main actor.
@@ -91,7 +86,6 @@ public final class FullGameStore {
 
     public func purchaseStarted() {
         isPurchasing = true
-        message = nil
     }
 
     public func purchaseCompleted(_ result: Result<Product.PurchaseResult, any Error>) async {
@@ -99,14 +93,8 @@ public final class FullGameStore {
         switch result {
         case let .success(.success(verification)):
             await receive(verification)
-        case .success(.pending):
-            message = "Waiting for purchase approval. You can keep playing."
-        case .success(.userCancelled):
-            message = nil
-        case .success:
-            message = "The purchase hasn't completed. Try again later."
-        case .failure:
-            message = "Couldn't complete the purchase. Try again."
+        case .success, .failure:
+            break
         }
     }
 
@@ -116,20 +104,10 @@ public final class FullGameStore {
         defer { isRestoring = false }
         do {
             try await AppStore.sync()
-            await refreshOwnership()
-            switch ownership {
-            case .purchased, .familyShared:
-                message = "Full Game restored."
-            case .free:
-                message = "No Full Game purchase was found for this Apple Account."
-            case .checking, .unverified:
-                message = "Couldn't verify the purchase. Try again later."
-            }
-        } catch StoreKitError.userCancelled {
-            message = nil
         } catch {
-            message = "Couldn't restore purchases. Check your connection and try again."
+            return
         }
+        await refreshOwnership()
     }
 
     private func receive(_ result: VerificationResult<Transaction>) async {
@@ -141,12 +119,10 @@ public final class FullGameStore {
                 await refreshOwnership()
             } else {
                 ownership = transaction.ownershipType == .familyShared ? .familyShared : .purchased
-                message = nil
             }
             await transaction.finish()
-        case let .unverified(transaction, _):
-            guard transaction.productID == Self.productID else { return }
-            message = "Couldn't verify the purchase. Try Restore Purchases."
+        case .unverified:
+            break
         }
     }
 }

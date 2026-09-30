@@ -9,10 +9,6 @@ final class BattleFlowUITests: TrinketUITestCase {
         let inspectedCard = cards.firstMatch
         XCTAssertTrue(inspectedCard.trinketWaitForExistence(timeout: Self.defaultTimeout))
         XCTAssertEqual(cards.count, 3, "The opening turn must show three playable cards")
-        let opening = XCTAttachment(screenshot: app.screenshot())
-        opening.name = "Three-card opening hand"
-        opening.lifetime = .keepAlways
-        add(opening)
         let inspectCountBefore = cards.count
         inspectedCard.press(forDuration: 0.7)
         assertExists(AccessibilityID.Battle.abilityDetail)
@@ -52,17 +48,9 @@ final class BattleFlowUITests: TrinketUITestCase {
             waitForCardCount(cards, droppingFrom: dragCountBefore),
             "A successful drag play must remove one card",
         )
-    }
 
-    func testAutoBattlePlaysFromThreeCardOpening() {
-        launchMidBattleAndStart()
-        let cards = battle.handCards
-        XCTAssertEqual(cards.count, 3)
         tapWhenReady(battle.autoBattleToggle)
-        XCTAssertTrue(waitForCardCountBelow(cards, 3), "Auto Battle must play from the opening hand")
-        if battle.autoBattleToggle.exists {
-            tapWhenReady(battle.autoBattleToggle)
-        }
+        XCTAssertTrue(waitForCardCountBelow(cards, 1), "Auto Battle must play from the opening hand")
     }
 
     private func launchMidBattleAndStart() {
@@ -98,12 +86,12 @@ final class BattleFlowUITests: TrinketUITestCase {
     private func waitForCardCount(_ cards: XCUIElementQuery, droppingFrom initial: Int) -> Bool {
         let predicate = NSPredicate(format: "count == %d", initial - 1)
         let expectation = XCTNSPredicateExpectation(predicate: predicate, object: cards)
-        return XCTWaiter().wait(for: [expectation], timeout: 10) == .completed
+        return XCTWaiter().wait(for: [expectation], timeout: 6) == .completed
     }
 
     private func waitForCardCountBelow(_ cards: XCUIElementQuery, _ initial: Int) -> Bool {
         let predicate = NSPredicate(format: "count < %d", initial)
         let expectation = XCTNSPredicateExpectation(predicate: predicate, object: cards)
-        return XCTWaiter().wait(for: [expectation], timeout: 10) == .completed
+        return XCTWaiter().wait(for: [expectation], timeout: 6) == .completed
     }
 }

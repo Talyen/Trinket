@@ -121,8 +121,17 @@ enum CloudSaveMerge {
         let other = branches.other
         merged.roster.unlockedHeroIDs.formUnion(other.roster.unlockedHeroIDs)
         merged.roster.unlockedCompanionIDs.formUnion(other.roster.unlockedCompanionIDs)
-        for (id, talents) in other.roster.unlockedTalents {
-            merged.roster.unlockedTalents[id, default: []].formUnion(talents)
+        let talentCombatantIDs = Set(branches.incoming.roster.unlockedTalents.keys)
+            .union(branches.existing.roster.unlockedTalents.keys)
+        for id in talentCombatantIDs {
+            let incoming = branches.incoming.roster.unlockedTalents(for: id)
+            let existing = branches.existing.roster.unlockedTalents(for: id)
+            var talents = incoming.union(existing)
+            if let base = branches.base?.roster.unlockedTalents[id] {
+                // Reset removes shared purchases; independently purchased talents still survive.
+                talents.subtract(base.subtracting(incoming).union(base.subtracting(existing)))
+            }
+            merged.roster.unlockedTalents[id] = talents.isEmpty ? nil : talents
         }
         for (id, progression) in other.roster.progressions {
             if let current = merged.roster.progressions[id] {

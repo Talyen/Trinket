@@ -317,14 +317,16 @@ package extension CombatTriggerEngine {
         var events = outcome.events.map { event in
             event.keyword == keyword ? event.with(abilityName: name) : event
         }
-        if outcome.healthLost > 0, !events.contains(where: { $0.abilityName == name }) {
+        if outcome.healthLost > 0 {
             events.append(context.nextEvent(
-                kind: .effect,
+                kind: .abilityDamage,
+                actorID: combatant.id,
                 actorName: combatant.name,
                 abilityName: name,
                 target: enemy,
                 amount: outcome.healthLost,
                 keyword: keyword,
+                isCritical: outcome.isCritical,
             ))
         }
         return events

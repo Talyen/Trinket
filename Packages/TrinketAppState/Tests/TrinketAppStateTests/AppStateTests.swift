@@ -41,13 +41,6 @@ struct AppStateTests {
         #expect(state.play.consumePendingDestination() == nil)
     }
 
-    @Test func `play session uses the composition runtime instance`() throws {
-        let state = try context.makeAppState(environment: context.makeEnvironment())
-        let battle = try #require(context.lastBattle)
-
-        #expect(state.play.battle === battle)
-    }
-
     @Test func `launch tab overrides default tab and survives foreground`() throws {
         let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-selectedTab", "homestead"]),

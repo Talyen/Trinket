@@ -121,12 +121,11 @@ package extension CombatTriggerEngine {
         if damageKeyword == .freeze, status.isBurning {
             bonus += triggers.freezeDamageWhileBurningBonus
         }
-        let controlTriggers = source.role == .enemy ? triggers : context.partyTriggers
         if status.isFrozen {
-            bonus += controlTriggers.damageWhileTargetFrozenBonus
+            bonus += triggers.damageWhileTargetFrozenBonus
         }
         if status.isStunned {
-            bonus += controlTriggers.damageWhileTargetStunnedBonus
+            bonus += triggers.damageWhileTargetStunnedBonus
         }
 
         if triggers.damageBelowHealthPercentBonus > 0,

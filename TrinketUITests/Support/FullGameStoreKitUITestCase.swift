@@ -24,7 +24,7 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
         launchApp(arguments: arguments)
         open()
         assertExists(AccessibilityID.FullGame.offer)
-        if waitForProductLoaded(timeout: 20) {
+        if waitForProductLoaded(timeout: 8) {
             return
         }
 
@@ -37,11 +37,11 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
         launchApp(arguments: arguments)
         open()
         assertExists(AccessibilityID.FullGame.offer)
-        XCTAssertTrue(waitForProductLoaded(timeout: 20), "Full Game purchase product did not load")
+        XCTAssertTrue(waitForProductLoaded(timeout: 8), "Full Game purchase product did not load")
     }
 
     func assertPurchaseProductLoaded() {
-        XCTAssertTrue(waitForProductLoaded(timeout: 20), "Full Game purchase product did not load")
+        XCTAssertTrue(waitForProductLoaded(timeout: 8), "Full Game purchase product did not load")
     }
 
     func startStoreSession() throws {

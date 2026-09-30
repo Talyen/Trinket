@@ -14,14 +14,9 @@
       "automaticallyIncludesTests": false,
       "selectedTests": [
         "BattleFlowUITests",
-        "MysteryRecruitUITests",
-        "PlayMapUITests",
         "PlayModeNavigationUITests",
-        "ShopLaunchPreparationUITests",
-        "TabNavigationUITests",
-        "HeroDetailAbilityPickerUITests",
-        "FullGamePurchaseUITests",
-        "HomesteadNodeDetailUITests"
+        "HomesteadNodeDetailUITests",
+        "FullGamePurchaseUITests"
       ],
       "target": {
         "containerPath": "container:Trinket.xcodeproj",

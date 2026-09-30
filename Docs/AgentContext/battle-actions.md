@@ -44,6 +44,10 @@ binds the selected target for an action and resolves allies/opponents relative t
 its actor. A defeated actor cannot continue; a winning card may still resolve its
 remaining support rewards. New actions cannot start after battle ends.
 
+Combat logs summarize committed damage by recipient and keyword, with self-paid
+Health costs reported separately. Damage packets and their summary share the
+resolved action identity so nested actions do not combine their totals.
+
 `payMana` returns a `ManaPayment` with actual before/after balances. Capture every
 contribution to an empowerment purchase before payment reactions; last-Mana rules
 read receipts even after refunds or nested actions. A prepared empowerment discount

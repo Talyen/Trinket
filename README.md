@@ -13,7 +13,7 @@ holds device preferences without gating play or progress behind an account.
 ## Start here
 
 - **Humans:** setup below → `./Scripts/generate.sh` → `./Scripts/build.sh` → `./Scripts/run-simulator.sh`. Command details: [Scripts/README.md](Scripts/README.md).
-- **Agents:** [AGENTS.md](AGENTS.md), then `./Scripts/agent-context.sh --agent --status --paths <changed-paths...>` for safeguards, ownership constraints, and relevant behavior references. Test semantics: [Testing.md](Docs/Platform/Testing.md).
+- **Agents:** Read [AGENTS.md](AGENTS.md), find the owning files with `python3 Scripts/agent-search.py --overview` when their location is unknown, then run `./Scripts/agent-context.sh --agent --status --paths <changed-paths...>` for safeguards, ownership constraints, and relevant behavior references. Test semantics: [Testing.md](Docs/Platform/Testing.md).
 - **Designers:** player decisions in [Decisions.md](Docs/Product/Decisions.md), surfaces in [Overview.md](Docs/Product/Overview.md), visual direction in [ArtworkStyleGuide.md](Docs/Product/ArtworkStyleGuide.md).
 
 ## Requirements

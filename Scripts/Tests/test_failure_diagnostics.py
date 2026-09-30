@@ -262,6 +262,7 @@ class ReporterTests(unittest.TestCase):
 
     def test_log_fallback_covers_crash_timeout_configuration_and_tooling(self) -> None:
         cases = (
+            ("Trinket/Play/PlayTests.swift:42: error: XCTAssertTrue failed - value was false", "test-failure"),
             ("Test process crashed: signal SIGABRT", "test-failure"),
             ("Test execution timed out after 60 seconds", "test-failure"),
             (

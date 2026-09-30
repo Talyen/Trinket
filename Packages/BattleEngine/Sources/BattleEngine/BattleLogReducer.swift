@@ -3,6 +3,23 @@ import TrinketContent
 import TrinketCore
 
 public enum BattleLogReducer {
+    private struct ActionKey: Hashable {
+        let actionID: Int
+        let actorID: String
+        let abilityID: String
+
+        init(_ event: ActionEvent) {
+            actionID = event.actionID
+            actorID = event.actorID
+            abilityID = event.abilityID
+        }
+    }
+
+    private struct DamageKey: Hashable {
+        let targetID: String
+        let keyword: Keyword
+    }
+
     public static func entries(
         from events: [ActionEvent],
     ) -> [LogEntry] {
@@ -14,15 +31,57 @@ public enum BattleLogReducer {
         startingAt startIndex: Int,
     ) -> [LogEntry] {
         guard startIndex < events.count else { return [] }
+        // Include preceding packets when an incremental update starts at the action summary.
+        let packets = Dictionary(grouping: events.filter {
+            $0.kind == .abilityDamage && !$0.abilityID.isEmpty && $0.amount > 0
+        }, by: ActionKey.init)
         var result: [LogEntry] = []
         result.reserveCapacity((events.count - startIndex + 1) / 2)
         for index in startIndex ..< events.count {
             let event = events[index]
-            if let text = line(for: event) {
+            let text = if event.kind == .ability, let damage = packets[ActionKey(event)] {
+                actionLine(for: event, damage: damage)
+            } else {
+                line(for: event)
+            }
+            if let text {
                 result.append(LogEntry(id: index, text: text))
             }
         }
         return result
+    }
+
+    private static func actionLine(for event: ActionEvent, damage: [ActionEvent]) -> String {
+        var order: [DamageKey] = []
+        var amounts: [DamageKey: Int] = [:]
+        var targetNames: [String: String] = [:]
+        var healthCost = 0
+        for packet in damage {
+            if packet.targetID == event.actorID {
+                healthCost += packet.amount
+                continue
+            }
+            let key = DamageKey(targetID: packet.targetID, keyword: packet.keyword)
+            if amounts[key] == nil {
+                order.append(key)
+            }
+            amounts[key, default: 0] += packet.amount
+            targetNames[packet.targetID] = packet.targetName
+        }
+        var text = "\(event.actorName) uses \(event.abilityName)"
+        let damageClauses = order.map { key in
+            "\(amounts[key, default: 0]) \(key.keyword.rawValue) damage to \(targetNames[key.targetID, default: event.targetName])"
+        }
+        if !damageClauses.isEmpty {
+            text += " for " + damageClauses.joined(separator: " and ")
+        }
+        if healthCost > 0 {
+            text += " and loses \(healthCost) Health"
+        }
+        if !event.appliedEffectSummaries.isEmpty {
+            text += " and " + event.appliedEffectSummaries.joined(separator: ", ")
+        }
+        return text + "."
     }
 
     public static func line(for event: ActionEvent) -> String? {

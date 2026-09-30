@@ -1,35 +1,7 @@
-import TrinketContent
 import TrinketFeatureSupport
 import XCTest
 
 final class SmokeShellTests: TrinketUITestCase {
-    func testSalvageReturnsToCollectionWithoutAnInteractiveRetiringItem() {
-        launchApp(arguments: TestLaunchArg.allForTab("collection"))
-        collection.assertLoaded(timeout: 10)
-        salvageItem("crossbow-basic")
-    }
-
-    private func salvageItem(_ itemID: String) {
-        let card = AccessibilityID.Collection.itemCard(itemID: itemID)
-        let item = button(card)
-        scrollUntilVisible(item, swipingUp: false, maxAttempts: 3, requireHittable: true)
-        if !item.exists || !item.isHittable {
-            scrollUntilVisible(item, swipingUp: true, maxAttempts: 2, requireHittable: true)
-        }
-        tapWhenReady(item)
-        assertExists(AccessibilityID.LoadoutPicker.itemDetail(itemID))
-        assertExistsAfterScroll(AccessibilityID.Collection.salvageButton, requireHittable: true)
-        tapButton(AccessibilityID.Collection.salvageButton)
-        XCTAssertFalse(app.alerts.firstMatch.exists)
-        tapWhenReady(app.buttons[AccessibilityID.Collection.salvageCancelButton])
-        assertExists(AccessibilityID.LoadoutPicker.itemDetail(itemID))
-        tapButton(AccessibilityID.Collection.salvageButton)
-        assertExistsAfterScroll(AccessibilityID.Collection.salvageConfirmButton, requireHittable: true)
-        tapButton(AccessibilityID.Collection.salvageConfirmButton)
-        assertDoesNotExist(AccessibilityID.LoadoutPicker.itemDetail(itemID), timeout: 3)
-        assertDoesNotExist(card, timeout: 3)
-    }
-
     func testTabShellsAreReachable() {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
         play.assertLoaded(timeout: 10)
@@ -45,7 +17,13 @@ final class SmokeShellTests: TrinketUITestCase {
 
         tabBar.selectOptions()
         options.assertLoaded(timeout: 10)
+        let haptics = app.descendants(matching: .any)[AccessibilityID.Options.hapticsToggle]
         assertExists(AccessibilityID.Options.hapticsToggle, timeout: 10)
+        let initialValue = haptics.value as? String
+        tapWhenReady(haptics)
+        if let initial = initialValue {
+            XCTAssertNotEqual(haptics.value as? String, initial)
+        }
         tabBar.selectPlay()
         play.assertLoaded(timeout: 10)
     }

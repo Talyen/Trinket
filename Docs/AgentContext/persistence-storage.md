@@ -87,7 +87,9 @@ deferred mutations remain in the complete save projection. Upload requests
 carry those actions, their acknowledged base snapshot, and a stable request ID;
 the server replays the actions into one complete projected save and an immutable
 receipt. A successful receipt removes only its included local actions. Union earned
-items, unlocks, talents, claims, and completion; use the latest valid party/loadout
+items, unlocks, claims, and completion. Union talent purchases while honoring
+removals from the shared base, so a talent reset survives unrelated progress;
+unrelated saves without a shared base union talents. Use the latest valid party/loadout
 edit, retaining displaced gear in Inventory. A one-sided change to an existing item,
 including corruption or salvage, survives unrelated progress on the other branch.
 New recruits use initial progression as the shared baseline when independent XP

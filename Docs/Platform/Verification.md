@@ -176,14 +176,15 @@ plan, the idempotence proof, the gate, the deploy gate). Only the
 generation, and only when content, project, and asset inputs are all unchanged.
 
 The shared build job produces app test products for smoke and exhaustive UI
-fan-out, while package unit tests compile their own schemes in parallel. Exact
-shards, artifact contracts, cache inputs, and remaining advisory job behavior belong to
-the checked-in workflows ([tests.yml](../../.github/workflows/tests.yml) and
+fan-out. Package unit jobs compile in separate per-package DerivedData tenants;
+they skip the app build cache transfer because it does not contain their test
+products. Exact shards, artifact contracts, cache inputs, and remaining advisory
+job behavior belong to the checked-in workflows ([tests.yml](../../.github/workflows/tests.yml) and
 related workflow files); update this guide only when the verification policy
 changes.
 
 Ordinary `build.sh` compiles only the app; it does not produce reusable test
-bundles. CI keeps incremental build state in its warm cache and transfers only
+bundles. CI keeps app incremental build state in its warm cache and transfers only
 products, build stamps, and versioned environment metadata in a tar archive to preserve executable permissions.
 Local reuse requires matching Xcode, SDK, architecture policy, configuration, and
 test fingerprint as well as unchanged sources. Missing or legacy metadata requires

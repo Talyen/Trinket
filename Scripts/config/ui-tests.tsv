@@ -4,12 +4,7 @@ Smoke|SHELL|SmokeShellTests|Shell|0|0
 Smoke|SHOP|SmokeShopTests|Play|1|1
 Smoke|ONBOARDING|StarterOnboardingSmokeTests|Shell|0|1
 Smoke|MONETIZATION|FullGamePurchaseSmokeTests|Shell|0|2
-FullUI||BattleFlowUITests|Battle|0|0
-FullUI||MysteryRecruitUITests|Play|3|2
-FullUI||PlayMapUITests|Play|3|0
-FullUI||PlayModeNavigationUITests|Play|3|1
-FullUI||ShopLaunchPreparationUITests|Battle|0|1
-FullUI||TabNavigationUITests|Collection|1|0
-FullUI||HeroDetailAbilityPickerUITests|Collection|1|1
-FullUI||FullGamePurchaseUITests|Collection|1|2
-FullUI||HomesteadNodeDetailUITests|Homestead|2|0
+FullUI||BattleFlowUITests|Play|0|0
+FullUI||PlayModeNavigationUITests|Play|0|1
+FullUI||HomesteadNodeDetailUITests|Shell|1|0
+FullUI||FullGamePurchaseUITests|Shell|1|1

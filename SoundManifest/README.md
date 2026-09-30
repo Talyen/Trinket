@@ -39,6 +39,6 @@ Set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.
 
 ## Runtime Routing
 
-`SFXCatalog.clipsByID` looks up clips by stable `id`. Playback is owned by `Packages/TrinketAppState/.../Audio/SFXPlayer.swift`, which applies `OptionsStore.effectsVolume` × `volumeGain`.
+`SFXCatalog.clipsByID` looks up clips by stable `id`. Playback is owned by [SFXPlayer.swift](../Packages/TrinketAppState/Sources/TrinketAppState/Audio/SFXPlayer.swift), which applies `OptionsStore.effectsVolume` × `volumeGain`.
 
 Stable IDs cover UI chrome, ability draw/play, keyword-typed combat feedback, and outcome / mystery stingers — not per-ability, enemy, hero, or companion content.

@@ -10,6 +10,7 @@ SCRIPT_INPUTS = (
     'Scripts/lib/cheap-slices.sh',
     'Scripts/lib/gate.sh',
     'Scripts/report-exhaustive-ci.py',
+    'Scripts/build-inputs.env',
 )
 
 
@@ -25,6 +26,23 @@ import tempfile
 from pathlib import Path
 
 class CIGateScriptTests(ScriptRegressionTestCase):
+    def test_every_unit_package_in_exactly_one_shard(self) -> None:
+        workflow = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+        from internal.cli import read_env_arrays
+        import re
+
+        packages = read_env_arrays(ROOT / "Scripts/build-inputs.env", ["TRINKET_TEST_PACKAGES"])["TRINKET_TEST_PACKAGES"]
+        # Extract shard package lists — only the unit job includes
+        unit_section = workflow.split("name: Unit tests")[1].split("smoke:")[0]
+        shard_packages: list[str] = []
+        for match in re.finditer(r"packages:\s*([A-Za-z0-9 ]+)", unit_section):
+            shard_packages.extend(match.group(1).strip().split())
+        self.assertEqual(sorted(packages), sorted(shard_packages), "missing or duplicate package across shards")
+
+    def test_concurrency_groups_distinct_by_event_type(self) -> None:
+        ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+        self.assertIn("ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}", ci)
+
     def test_gate_transcript_keeps_the_original_failure_exit(self) -> None:
         workflow = (ROOT / '.github/workflows/gate.yml').read_text()
         command = workflow.split('        run: |\n', 1)[1].split('      - name:', 1)[0]

@@ -229,12 +229,15 @@ extension HealingEngine {
             let amount = CombatRounding.scaled(restored, multiplier: sourceTriggers.sharedRootsHealPercent)
             if amount > 0 {
                 events.append(contentsOf: CombatTriggerEngine.withHeroReaction(in: &context) { context in
-                    context.healEmitting(
+                    var share = HealRequest(
                         amount: amount,
                         target: context.roster.hero.combatant,
-                        source: source,
-                        abilityName: "Shared Roots",
+                        sourceActorID: source.id,
+                        origin: .restoration(.health),
+                        logAs: .instantHeal(actorName: source.name, abilityName: "Shared Roots", keyword: .health),
                     )
+                    share.amountBasis = .resolved
+                    return Self.resolveHeal(share, in: &context).events
                 })
             }
         }

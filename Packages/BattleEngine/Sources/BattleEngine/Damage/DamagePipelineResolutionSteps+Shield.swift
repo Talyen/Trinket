@@ -16,7 +16,7 @@ package extension DamagePipeline {
         // effects (talent blocked-damage, block-broken) would no-op.
         guard blockMultiplier > 0 else { return }
 
-        applyAllyBlockProtection(to: &state, blockMultiplier: blockMultiplier, in: &context)
+        let borrowedStrip = applyAllyBlockProtection(to: &state, blockMultiplier: blockMultiplier, in: &context)
         effects = context.roster.activeEffects(for: state.combatant)
 
         guard let index = effects.firstIndex(where: {
@@ -32,7 +32,10 @@ package extension DamagePipeline {
             return
         }
 
-        let sourceTriggers = state.sourceActorID.map { context.modifiers(for: $0).triggers }
+        var sourceTriggers = state.sourceActorID.map { context.modifiers(for: $0).triggers }
+        if let strip = sourceTriggers?.poisonStripsBlockBeforeHealth {
+            sourceTriggers?.poisonStripsBlockBeforeHealth = max(0, strip - borrowedStrip)
+        }
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
 
         let effectiveBuffer = max(0, CombatRounding.scaled(buffer, multiplier: blockMultiplier))
@@ -52,19 +55,24 @@ package extension DamagePipeline {
         let absorbableEffectiveBuffer = max(0, CombatRounding.scaled(absorbableBuffer, multiplier: blockMultiplier))
         let absorptionBuffer = CombatRounding.scaled(absorbableEffectiveBuffer, multiplier: absorptionMultiplier)
 
-        let absorption = applyAbsorption(
+        let absorbed = applyAbsorption(
             to: &state,
             keyword: keyword,
-            buffer: buffer,
             effectiveBuffer: absorptionBuffer,
-            sourceTriggers: sourceTriggers,
             in: &context,
         )
 
-        let blockRemoval = max(
-            absorption.absorbed > 0 ? 1 : 0,
-            CombatRounding.scaled(absorption.absorbed, multiplier: 1 / absorptionMultiplier),
-        ) + max(0, absorption.extraRemoved)
+        let consumedBlock = max(
+            absorbed > 0 ? 1 : 0,
+            CombatRounding.scaled(absorbed, multiplier: 1 / absorptionMultiplier),
+        )
+        let blockRemoval = consumedBlock + extraBlockRemoval(
+            consumedBlock: consumedBlock,
+            buffer: buffer,
+            sourceTriggers: sourceTriggers,
+            damageKeyword: state.damageKeyword,
+            isAttackHit: state.options.isAttackHit,
+        )
 
         var blockBroken = false
         if let reduced = DefensePoolEngine.reduce(
@@ -77,10 +85,10 @@ package extension DamagePipeline {
         state.heroCardBlockBroken = blockBroken
         context.roster.setActiveEffects(effects, for: state.combatant)
 
-        recordBlockAbsorption(absorption.absorbed, owner: state.combatant, to: &state, in: &context)
+        recordBlockAbsorption(absorbed, owner: state.combatant, to: &state, in: &context)
 
         state.damageEvents.append(contentsOf: applyBlockAbsorptionReactions(
-            absorbed: absorption.absorbed,
+            absorbed: absorbed,
             blockBroken: blockBroken,
             defenderTriggers: defenderTriggers,
             sourceTriggers: sourceTriggers,
@@ -88,7 +96,7 @@ package extension DamagePipeline {
             in: &context,
         ))
         state.damageEvents.append(contentsOf: handleTalentBlockedDamage(
-            absorbed: absorption.absorbed,
+            absorbed: absorbed,
             blockBroken: blockBroken,
             defender: state.combatant,
             attackerID: state.sourceActorID,
@@ -120,19 +128,12 @@ package extension DamagePipeline {
         }
     }
 
-    private struct ShieldAbsorption {
-        var absorbed: Int
-        var extraRemoved: Int
-    }
-
     private static func applyAbsorption(
         to state: inout DamageResolutionState,
         keyword: Keyword,
-        buffer: Int,
         effectiveBuffer: Int,
-        sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
-    ) -> ShieldAbsorption {
+    ) -> Int {
         let absorbed = min(state.remaining, effectiveBuffer)
         // A strip that exhausts the pool absorbs nothing; skip the log entry.
         if absorbed > 0 {
@@ -147,54 +148,48 @@ package extension DamagePipeline {
                 in: &context,
             )
         }
-        let extraRemoved = extraBlockRemoval(
-            absorbed: absorbed,
-            buffer: buffer,
-            sourceTriggers: sourceTriggers,
-            damageKeyword: state.damageKeyword,
-            isAttackHit: state.options.isAttackHit,
-        )
-        return ShieldAbsorption(absorbed: absorbed, extraRemoved: extraRemoved)
+        return absorbed
     }
 
     private static func applyAllyBlockProtection(
         to state: inout DamageResolutionState,
         blockMultiplier: Double,
         in context: inout BattleState,
-    ) {
-        guard state.remaining > 0, !state.options.isHealthCost else { return }
-        let protector: Combatant
-        let abilityName: String
-        if state.combatant.role == .companion,
-           context.roster.hero.isAlive,
-           context.heroModifiers.triggers.blockAbsorbsCompanionDamage {
-            protector = context.roster.hero.combatant
-            abilityName = "Intercede"
-        } else if state.combatant.role == .hero,
-                  context.roster.companion.isAlive,
-                  context.companionModifiers.triggers.companionBlockAbsorbsHeroDamage {
-            protector = context.roster.companion.combatant
-            abilityName = "Sacrificial Guard"
-        } else {
-            return
-        }
+    ) -> Int {
+        guard state.remaining > 0, !state.options.isHealthCost else { return 0 }
+        guard let protection = allyBlockProtector(for: state.combatant, in: context) else { return 0 }
+        let protector = protection.owner
         let protectorEffects = context.roster.activeEffects(for: protector)
+        let buffer = DefensePoolEngine.blockPoints(in: protectorEffects)
+        let sourceTriggers = state.sourceActorID.map { context.modifiers(for: $0).triggers }
+        let stripBeforeAbsorption = state.damageKeyword == .poison
+            ? sourceTriggers?.poisonStripsBlockBeforeHealth ?? 0
+            : 0
         let absorptionMultiplier = blockAbsorptionMultiplier(for: protector, state: state, in: context)
-        let effectiveBlock = CombatRounding.scaled(DefensePoolEngine.blockPoints(in: protectorEffects), multiplier: blockMultiplier)
+        let effectiveBlock = CombatRounding.scaled(max(0, buffer - stripBeforeAbsorption), multiplier: blockMultiplier)
         let available = CombatRounding.scaled(effectiveBlock, multiplier: absorptionMultiplier)
         let absorbed = min(state.remaining, available)
-        let blockRemoval = max(absorbed > 0 ? 1 : 0, CombatRounding.scaled(absorbed, multiplier: 1 / absorptionMultiplier))
-        guard let reduced = DefensePoolEngine.reduce(blockRemoval, in: protectorEffects) else { return }
-        state.blockedAmount += absorbed
-        appendAbsorption(
-            absorbed,
-            abilityName: abilityName,
-            keyword: reduced.keyword,
-            actorName: reduced.keyword.rawValue,
-            target: protector,
-            to: &state,
-            in: &context,
+        let consumedBlock = max(absorbed > 0 ? 1 : 0, CombatRounding.scaled(absorbed, multiplier: 1 / absorptionMultiplier))
+        let blockRemoval = consumedBlock + extraBlockRemoval(
+            consumedBlock: consumedBlock,
+            buffer: buffer,
+            sourceTriggers: sourceTriggers,
+            damageKeyword: state.damageKeyword,
+            isAttackHit: state.options.isAttackHit,
         )
+        guard let reduced = DefensePoolEngine.reduce(blockRemoval, in: protectorEffects) else { return 0 }
+        if absorbed > 0 {
+            state.blockedAmount += absorbed
+            appendAbsorption(
+                absorbed,
+                abilityName: protection.abilityName,
+                keyword: reduced.keyword,
+                actorName: reduced.keyword.rawValue,
+                target: protector,
+                to: &state,
+                in: &context,
+            )
+        }
         context.roster.setActiveEffects(reduced.effects, for: protector)
         recordBlockAbsorption(absorbed, owner: protector, to: &state, in: &context)
         state.damageEvents.append(contentsOf: handleTalentBlockedDamage(
@@ -212,6 +207,24 @@ package extension DamagePipeline {
                 in: &context,
             ))
         }
+        return min(buffer, max(0, stripBeforeAbsorption))
+    }
+
+    private static func allyBlockProtector(
+        for combatant: Combatant,
+        in context: BattleState,
+    ) -> (owner: Combatant, abilityName: String)? {
+        if combatant.role == .companion,
+           context.roster.hero.isAlive,
+           context.heroModifiers.triggers.blockAbsorbsCompanionDamage {
+            return (context.roster.hero.combatant, "Intercede")
+        }
+        if combatant.role == .hero,
+           context.roster.companion.isAlive,
+           context.companionModifiers.triggers.companionBlockAbsorbsHeroDamage {
+            return (context.roster.companion.combatant, "Sacrificial Guard")
+        }
+        return nil
     }
 
     private static func blockAbsorptionMultiplier(
@@ -315,21 +328,22 @@ package extension DamagePipeline {
     }
 
     private static func extraBlockRemoval(
-        absorbed: Int,
+        consumedBlock: Int,
         buffer: Int,
         sourceTriggers: CombatTraitTriggers?,
         damageKeyword: Keyword?,
         isAttackHit: Bool,
     ) -> Int {
+        let remainingBlock = max(0, buffer - consumedBlock)
         let canSunder = damageKeyword == .physical || damageKeyword == .stun
         var extraRemoved = canSunder
-            ? min(buffer - absorbed, CombatRounding.scaled(absorbed, multiplier: sourceTriggers?.sunderingBlockMultiplier ?? 0))
+            ? CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers?.sunderingBlockMultiplier ?? 0)
             : 0
         if damageKeyword == .physical, let sourceTriggers, sourceTriggers.physicalBlockBreakMultiplier > 0 {
-            extraRemoved += CombatRounding.scaled(absorbed, multiplier: sourceTriggers.physicalBlockBreakMultiplier - 1)
+            extraRemoved += CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers.physicalBlockBreakMultiplier - 1)
         }
         if damageKeyword == .holy, let sourceTriggers, sourceTriggers.holyBlockBreakMultiplier > 0 {
-            extraRemoved += CombatRounding.scaled(absorbed, multiplier: sourceTriggers.holyBlockBreakMultiplier - 1)
+            extraRemoved += CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers.holyBlockBreakMultiplier - 1)
         }
         if damageKeyword == .poison, let sourceTriggers, sourceTriggers.poisonStripsBlockBeforeHealth > 0 {
             extraRemoved += sourceTriggers.poisonStripsBlockBeforeHealth
@@ -340,25 +354,25 @@ package extension DamagePipeline {
         if damageKeyword == .poison, let sourceTriggers,
            sourceTriggers.poisonDamageVsBlockMultiplier > 1 {
             extraRemoved += CombatRounding.scaled(
-                absorbed,
+                consumedBlock,
                 multiplier: sourceTriggers.poisonDamageVsBlockMultiplier - 1,
             )
         }
         if isAttackHit, damageKeyword == .burn, let sourceTriggers,
            sourceTriggers.burnAttackBlockBreakMultiplier > 1 {
             extraRemoved += CombatRounding.scaled(
-                absorbed,
+                consumedBlock,
                 multiplier: sourceTriggers.burnAttackBlockBreakMultiplier - 1,
             )
         }
         if isAttackHit, damageKeyword == .bleed, let sourceTriggers,
            sourceTriggers.bleedAttackBlockBreakMultiplier > 1 {
             extraRemoved += CombatRounding.scaled(
-                absorbed,
+                consumedBlock,
                 multiplier: sourceTriggers.bleedAttackBlockBreakMultiplier - 1,
             )
         }
-        return extraRemoved
+        return min(remainingBlock, max(0, extraRemoved))
     }
 
     private static func applyBlockAbsorptionReactions(

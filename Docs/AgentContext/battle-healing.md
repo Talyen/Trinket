@@ -39,8 +39,11 @@ current abilities, talents, and equipment selects the living ally with the
 lowest current Health on the source's side. Leech and its shares, party-wide
 heals, revivals and self-preservation at a Health threshold, attached repeats,
 and explicit overflow or partner transfers keep their intended recipients.
-Resolved transfers and echoes do not apply Sprite Touch again or consume its
-first-restoration allowance. Bloodprice reduces enemy healing while its Companion
+Resolved transfers and echoes apply the recipient's current healing reductions,
+without repeating outgoing healing bonuses, Critical Hits, fight pacing, or Sprite
+Touch, and do not consume its first-restoration allowance. Shared Roots offers half
+the Companion's actual restoration to the Hero, rounded once before recipient reductions.
+Bloodprice reduces enemy healing while its Companion
 is alive, independently of the Hero.
 
 Panacea chooses its healing recipient at the healing checkpoint, after preceding

@@ -276,6 +276,88 @@ extension KeywordCohesionMechanicsTests {
         try #expect(burn.healthLost == 1)
     }
 
+    @Test(arguments: [false, true])
+    func `shieldbreaker strips borrowed block as well as direct block`(companionProtectsHero: Bool) throws {
+        let ogre = try #require(GameContent.enemies.first { $0.id == "ogre" })
+        let protection = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(
+            blockAbsorbsCompanionDamage: !companionProtectsHero,
+            companionBlockAbsorbsHeroDamage: companionProtectsHero,
+        )))
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroModifiers: companionProtectsHero ? .zero : protection,
+            companionModifiers: companionProtectsHero ? protection : .zero,
+            enemyModifiers: CombatBuildResolver.build(enemy: ogre).modifiers,
+        )
+        battle.appliesFightPacing = false
+        let protector = companionProtectsHero ? battle.companion : battle.hero
+        let protected = companionProtectsHero ? battle.hero : battle.companion
+        DefensePoolEngine.set(10, on: protector, in: &battle)
+
+        let borrowed = battle.resolveDamage(DamageRequest(
+            amount: 3, target: protected, keyword: .physical,
+            sourceActorID: battle.enemy.id, options: .attack(),
+        ))
+
+        #expect(borrowed.healthLost == 0)
+        #expect(BattleTestFixtures.shieldPoints(for: protector, in: battle) == 4)
+        DefensePoolEngine.set(10, on: protector, in: &battle)
+        let direct = battle.resolveDamage(DamageRequest(
+            amount: 3, target: protector, keyword: .physical,
+            sourceActorID: battle.enemy.id, options: .attack(),
+        ))
+        #expect(direct.healthLost == 0)
+        #expect(BattleTestFixtures.shieldPoints(for: protector, in: battle) == 4)
+    }
+
+    @Test func `shieldbreaker doubles consumed block after dense bones absorption`() throws {
+        let ogre = try #require(GameContent.enemies.first { $0.id == "ogre" })
+        let denseBones = CombatantTalentCatalog.profile(for: ["risen_skeleton_physical_t2_2"])
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            companionModifiers: denseBones,
+            enemyModifiers: CombatBuildResolver.build(enemy: ogre).modifiers,
+        )
+        battle.appliesFightPacing = false
+        DefensePoolEngine.set(10, on: battle.companion, in: &battle)
+
+        let damage = battle.resolveDamage(DamageRequest(
+            amount: 8, target: battle.companion, keyword: .physical,
+            sourceActorID: battle.enemy.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ))
+
+        #expect(damage.healthLost == 0)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
+    }
+
+    @Test(arguments: [0, 1])
+    func `corrosive venom strips borrowed block once before absorbing poison`(recipientBlock: Int) throws {
+        let snake = try #require(GameContent.enemies.first { $0.id == "giant_snake" })
+        let protection = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(
+            blockAbsorbsCompanionDamage: true,
+        )))
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100), heroModifiers: protection,
+            enemyModifiers: CombatBuildResolver.build(enemy: snake).modifiers,
+        )
+        battle.appliesFightPacing = false
+        DefensePoolEngine.set(1, on: battle.hero, in: &battle)
+        DefensePoolEngine.set(recipientBlock, on: battle.companion, in: &battle)
+
+        let damage = battle.resolveDamage(DamageRequest(
+            amount: 3, target: battle.companion, keyword: .poison,
+            sourceActorID: battle.enemy.id, options: .attack(),
+        ))
+
+        #expect(damage.healthLost == 3 - recipientBlock)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 0)
+    }
+
     @Test func `loyal companion draws on real heal once per turn`() throws {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(mana: ManaTriggers(healCompanionDrawsCompanionCard: true)))
         var battle = BattleStateTestFactory.makeBattleWithAbilities(

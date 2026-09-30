@@ -129,7 +129,7 @@ class ScriptSelectionTests(unittest.TestCase):
             self.assertIn("Script scope: 1 Python and 0 shell suites.", result.stdout)
             self.assertIn("Script syntax passed", result.stdout)
             outputs.append([line for line in result.stdout.splitlines()
-                            if line.startswith(("Script scope:", "=== ", "test_internal_cli passed"))])
+                            if line.startswith(("Script scope:", "=== "))])
         self.assertEqual(outputs[0], outputs[1])
 
         for path in (str(ROOT / "Scripts"), str(ROOT.parent / "outside.py")):

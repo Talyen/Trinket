@@ -187,6 +187,7 @@ package enum BattleTurnEngine {
         events.append(
             context.nextEvent(
                 kind: .ability,
+                actionID: context.resolution.actionID,
                 effectKind: nil,
                 actorID: actor.id,
                 actorName: actor.name,

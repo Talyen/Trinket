@@ -49,56 +49,38 @@ fi
 exit 0
 FAKE_XCODE
 
-cat > "$TMP_DIR/fake-slow-finalization" <<'FAKE_FINALIZATION'
+# Each mode has isolated logs, reports, and process trees. Real waits exercise
+# the watchdog; concurrent cases keep those waits off the suite's critical path.
+cat > "$TMP_DIR/fake-watched-command" <<'FAKE_WATCHED'
 #!/usr/bin/env bash
 set -euo pipefail
-echo "Test Suite 'Selected tests' passed."
-sleep 12
-echo "** TEST SUCCEEDED **"
-FAKE_FINALIZATION
-
-cat > "$TMP_DIR/fake-hang-success" <<'FAKE_HANG'
-#!/usr/bin/env bash
-set -euo pipefail
-echo "** TEST SUCCEEDED **"
-echo "Testing started completed."
-echo " Executed 1 test, with 0 failures (0 unexpected) in 1.0 seconds"
-# Simulate post-result xcresult/simctl hang.
+case "$WATCHDOG_CASE" in
+  finalization)
+    echo "Test Suite 'Selected tests' passed."
+    sleep 12
+    echo "** TEST SUCCEEDED **"
+    exit 0 ;;
+  success)
+    echo "** TEST SUCCEEDED **"
+    echo " Executed 1 test, with 0 failures (0 unexpected) in 1.0 seconds" ;;
+  selected|zero)
+    echo "Test Suite 'Selected tests' passed at 2026-08-07 12:38:46.504."
+    count=1
+    [[ "$WATCHDOG_CASE" != zero ]] || count=0
+    echo " Executed $count tests, with 0 failures (0 unexpected) in 1.0 seconds" ;;
+  failure)
+    echo "Restarting after unexpected exit, crash, or test timeout; summary will include totals from previous launches."
+    echo "✔ Test run with 2 tests in 1 suite passed after 0.1 seconds." ;;
+  late-failure)
+    echo "** TEST SUCCEEDED **"
+    sleep 1
+    echo "Example.swift:12: error: XCTAssertEqual failed" ;;
+  growing)
+    while true; do echo "compiling..."; sleep 0.2; done ;;
+  silent) echo "compiling..." ;;
+esac
 while true; do sleep 60; done
-FAKE_HANG
-
-# Reproduces the real smoke hang: XCTest outer suite finishes, then xcodebuild
-# idles ~600s collecting simulator diagnostics before printing ** TEST SUCCEEDED **.
-cat > "$TMP_DIR/fake-hang-selected-suite" <<'FAKE_HANG_SUITE'
-#!/usr/bin/env bash
-set -euo pipefail
-echo "Test Suite 'Selected tests' passed at 2026-08-07 12:38:46.504."
-echo "	 Executed 1 test, with 0 failures (0 unexpected) in 10.489 (10.493) seconds"
-while true; do sleep 60; done
-FAKE_HANG_SUITE
-
-cat > "$TMP_DIR/fake-hang-fail" <<'FAKE_HANG_FAIL'
-#!/usr/bin/env bash
-set -euo pipefail
-echo "Restarting after unexpected exit, crash, or test timeout; summary will include totals from previous launches."
-echo "✔ Test run with 2 tests in 1 suite passed after 0.1 seconds."
-while true; do sleep 60; done
-FAKE_HANG_FAIL
-
-cat > "$TMP_DIR/fake-hang-silent" <<'FAKE_HANG_SILENT'
-#!/usr/bin/env bash
-set -euo pipefail
-echo "compiling..."
-while true; do sleep 60; done
-FAKE_HANG_SILENT
-
-cat > "$TMP_DIR/fake-hang-zero-tests" <<'FAKE_HANG_ZERO'
-#!/usr/bin/env bash
-set -euo pipefail
-echo "Test Suite 'Selected tests' passed at 2026-08-07 12:38:46.504."
-echo " Executed 0 tests, with 0 failures (0 unexpected) in 0.0 seconds"
-while true; do sleep 60; done
-FAKE_HANG_ZERO
+FAKE_WATCHED
 
 cat > "$TMP_DIR/fake-reporter" <<'FAKE_REPORTER'
 #!/usr/bin/env bash
@@ -106,9 +88,7 @@ set -euo pipefail
 printf '%s\n' "$*" > "${REPORT_CAPTURE:?}"
 exit 0
 FAKE_REPORTER
-chmod +x "$TMP_DIR/fake-slow-finalization" "$TMP_DIR/fake-xcodebuild" "$TMP_DIR/fake-reporter" \
-  "$TMP_DIR/fake-hang-success" "$TMP_DIR/fake-hang-selected-suite" \
-  "$TMP_DIR/fake-hang-fail" "$TMP_DIR/fake-hang-silent" "$TMP_DIR/fake-hang-zero-tests"
+chmod +x "$TMP_DIR/fake-watched-command" "$TMP_DIR/fake-xcodebuild" "$TMP_DIR/fake-reporter"
 
 REPORT_CAPTURE="$TMP_DIR/result-args" XCODE_RUNNER_REPORTER="$TMP_DIR/fake-reporter" \
   bash -eu -c '
@@ -199,144 +179,75 @@ FAKE_XCODE_STATE="$retry_state" FAKE_XCODE_MODE=retry \
     grep -F -- "\"diagnostics_json\":\"\"" "$manifest"
   ' _ "$RUNNER" "$retry_results" "$TMP_DIR/fake-xcodebuild"
 
-env -u TRINKET_XCODE_IDLE_TIMEOUT_SECONDS GITHUB_ACTIONS=false bash -c '
-  set -euo pipefail
-  source "$1"
-  xcode_runner_execute_watched "$2" "" "$3"
-  [[ "$XCODE_RUNNER_COMPLETION_SOURCE" == "process-exit" ]]
-' _ "$RUNNER" "$TMP_DIR/finalization.log" "$TMP_DIR/fake-slow-finalization"
+run_watchdog_case() (
+  mode="$1"
+  results="$TMP_DIR/watchdog-$mode"
+  mkdir -p "$results"
+  export WATCHDOG_CASE="$mode"
+  export REPORT_CAPTURE="$results/reporter-args"
+  export XCODE_RUNNER_REPORTER="$TMP_DIR/fake-reporter"
+  export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=0
+  export TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=2
+  expected=0
+  completion=watchdog-log-inference
+  case "$mode" in
+    finalization)
+      unset TRINKET_XCODE_IDLE_TIMEOUT_SECONDS
+      completion=process-exit ;;
+    zero) expected=1 ;;
+    failure|late-failure) expected=65 ;;
+    silent|growing)
+      export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=2
+      export TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=0
+      expected=124
+      completion=process-exit ;;
+  esac
+  source "$RUNNER"
+  xcode_runner_prepare "$mode" "$results"
+  status=0
+  xcode_runner_run --label "$mode" \
+    --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
+    --log "$XCODE_RUNNER_LOG_PATH" --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" \
+    --quiet -- "$TMP_DIR/fake-watched-command" test || status=$?
+  [[ "$status" == "$expected" ]] || return 1
+  python3 - "$XCODE_RUNNER_MANIFEST_PATH" "$status" "$completion" "$mode" <<'PY_MANIFEST' || return 1
+import json, sys
+manifest = json.load(open(sys.argv[1]))
+assert manifest["exit_code"] == int(sys.argv[2]), manifest
+assert manifest["completion_source"] == sys.argv[3], manifest
+if sys.argv[4] in {"success", "selected"}:
+    assert manifest["test_execution_proven"] and not manifest["result_bundle_complete"], manifest
+PY_MANIFEST
+  case "$mode" in
+    selected) ! grep -F -- "** TEST SUCCEEDED **" "$XCODE_RUNNER_LOG_PATH" || return 1 ;;
+    zero) grep -F -- "did not prove that any tests executed" "$results/terminal.log" || return 1 ;;
+    late-failure) grep -F -- "XCTAssertEqual failed" "$XCODE_RUNNER_LOG_PATH" || return 1 ;;
+  esac
+)
 
-idle_results="$TMP_DIR/idle-results"
-idle_terminal="$TMP_DIR/idle-terminal"
-REPORT_CAPTURE="$TMP_DIR/idle-args" \
-  TRINKET_XCODE_WALL_TIMEOUT_SECONDS=0 \
-  TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=2 \
-  XCODE_RUNNER_REPORTER="$TMP_DIR/fake-reporter" \
-  bash -c '
-    set -euo pipefail
-    source "$1"
-    xcode_runner_prepare idle-success "$2"
-    if xcode_runner_run --label idle-success \
-      --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
-      --log "$XCODE_RUNNER_LOG_PATH" \
-      --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" \
-      --quiet -- "$3"; then
-      status=0
-    else
-      status=$?
-    fi
-    [[ "$status" -eq 0 ]]
-    grep -F -- "** TEST SUCCEEDED **" "$XCODE_RUNNER_LOG_PATH"
-    manifest="$(find "$(dirname "$XCODE_RUNNER_RESULT_BUNDLE_PATH")" -maxdepth 1 -type f -name 'idle-success-*-invocation.json' | sort | tail -1)"
-    grep -F -- "\"completion_source\":\"watchdog-log-inference\"" "$manifest"
-    grep -F -- "\"test_execution_proven\":true" "$manifest"
-    grep -F -- "\"result_bundle_complete\":false" "$manifest"
-  ' _ "$RUNNER" "$idle_results" "$TMP_DIR/fake-hang-success" >"$idle_terminal" 2>&1
-grep -F -- "killing hung command" "$idle_terminal"
-grep -F -- "inferred exit 0" "$idle_terminal"
-
-suite_idle_results="$TMP_DIR/suite-idle-results"
-suite_idle_terminal="$TMP_DIR/suite-idle-terminal"
-REPORT_CAPTURE="$TMP_DIR/suite-idle-args" \
-  TRINKET_XCODE_WALL_TIMEOUT_SECONDS=0 \
-  TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=2 \
-  XCODE_RUNNER_REPORTER="$TMP_DIR/fake-reporter" \
-  bash -c '
-    set -euo pipefail
-    source "$1"
-    xcode_runner_prepare idle-selected "$2"
-    if xcode_runner_run --label idle-selected \
-      --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
-      --log "$XCODE_RUNNER_LOG_PATH" \
-      --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" \
-      --quiet -- "$3"; then
-      status=0
-    else
-      status=$?
-    fi
-    [[ "$status" -eq 0 ]]
-    grep -F -- "Test Suite '\''Selected tests'\'' passed" "$XCODE_RUNNER_LOG_PATH"
-    # Must not require the late banner — that is what the diagnostics hang delays.
-    ! grep -F -- "** TEST SUCCEEDED **" "$XCODE_RUNNER_LOG_PATH"
-  ' _ "$RUNNER" "$suite_idle_results" "$TMP_DIR/fake-hang-selected-suite" >"$suite_idle_terminal" 2>&1
-grep -F -- "killing hung command" "$suite_idle_terminal"
-grep -F -- "inferred exit 0" "$suite_idle_terminal"
-
-zero_test_results="$TMP_DIR/zero-test-results"
-zero_test_terminal="$TMP_DIR/zero-test-terminal"
-TRINKET_XCODE_WALL_TIMEOUT_SECONDS=0 \
-  TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=2 \
-  XCODE_RUNNER_REPORTER="$TMP_DIR/fake-reporter" \
-  bash -c '
-    set -euo pipefail
-    source "$1"
-    xcode_runner_prepare zero-tests "$2"
-    if xcode_runner_run --label zero-tests \
-      --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
-      --log "$XCODE_RUNNER_LOG_PATH" \
-      --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" \
-      --quiet -- "$3" test; then
-      echo "zero-test watchdog result unexpectedly succeeded" >&2
-      exit 1
-    else
-      status=$?
-    fi
-    [[ "$status" -eq 1 ]]
-  ' _ "$RUNNER" "$zero_test_results" "$TMP_DIR/fake-hang-zero-tests" >"$zero_test_terminal" 2>&1
-grep -F -- "did not prove that any tests executed" "$zero_test_terminal"
-
-fail_idle_results="$TMP_DIR/fail-idle-results"
-fail_idle_terminal="$TMP_DIR/fail-idle-terminal"
-REPORT_CAPTURE="$TMP_DIR/fail-idle-args" \
-  TRINKET_XCODE_WALL_TIMEOUT_SECONDS=0 \
-  TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=2 \
-  XCODE_RUNNER_REPORTER="$TMP_DIR/fake-reporter" \
-  bash -c '
-    set -euo pipefail
-    source "$1"
-    xcode_runner_prepare idle-fail "$2"
-    if xcode_runner_run --label idle-fail \
-      --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
-      --log "$XCODE_RUNNER_LOG_PATH" \
-      --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" \
-      --quiet -- "$3"; then
-      echo "idle-fail unexpectedly succeeded" >&2
-      exit 1
-    else
-      status=$?
-    fi
-    [[ "$status" -eq 65 ]]
-  ' _ "$RUNNER" "$fail_idle_results" "$TMP_DIR/fake-hang-fail" >"$fail_idle_terminal" 2>&1
-grep -F -- "inferred exit 65" "$fail_idle_terminal"
-
-wall_results="$TMP_DIR/wall-results"
-wall_terminal="$TMP_DIR/wall-terminal"
-REPORT_CAPTURE="$TMP_DIR/wall-args" \
-  TRINKET_XCODE_WALL_TIMEOUT_SECONDS=2 \
-  TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=0 \
-  XCODE_RUNNER_REPORTER="$TMP_DIR/fake-reporter" \
-  bash -c '
-    set -euo pipefail
-    source "$1"
-    xcode_runner_prepare wall "$2"
-    if xcode_runner_run --label wall \
-      --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
-      --log "$XCODE_RUNNER_LOG_PATH" \
-      --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" \
-      --quiet -- "$3"; then
-      echo "wall timeout unexpectedly succeeded" >&2
-      exit 1
-    else
-      status=$?
-    fi
-    [[ "$status" -eq 124 ]]
-  ' _ "$RUNNER" "$wall_results" "$TMP_DIR/fake-hang-silent" >"$wall_terminal" 2>&1
-grep -F -- "wall-clock" "$wall_terminal"
-grep -F -- "exit 124" "$wall_terminal"
+watchdog_cases=(finalization success selected zero failure late-failure silent growing)
+watchdog_pids=()
+for mode in "${watchdog_cases[@]}"; do
+  mkdir -p "$TMP_DIR/watchdog-$mode"
+  run_watchdog_case "$mode" >"$TMP_DIR/watchdog-$mode/terminal.log" 2>&1 &
+  watchdog_pids+=("$!")
+done
+watchdog_failed=0
+for index in "${!watchdog_cases[@]}"; do
+  mode="${watchdog_cases[$index]}"
+  if wait "${watchdog_pids[$index]}"; then
+    echo "Watchdog $mode passed"
+  else
+    cat "$TMP_DIR/watchdog-$mode/terminal.log" >&2
+    echo "Watchdog $mode failed" >&2
+    watchdog_failed=1
+  fi
+done
+[[ "$watchdog_failed" == 0 ]] || exit 1
 
 # --- bounded runner: hung helpers die at the cap, fast commands pass through ---
 bounded_run_terminal="$TMP_DIR/bounded-run-terminal"
-bash -c '
+WATCHDOG_CASE=silent bash -c '
   set -euo pipefail
   source "$1"
   xcode_runner_run_bounded 30 true
@@ -344,7 +255,7 @@ bash -c '
     echo "bounded run unexpectedly succeeded" >&2
     exit 1
   fi
-' _ "$RUNNER" "$TMP_DIR/fake-hang-silent" >"$bounded_run_terminal" 2>&1
+' _ "$RUNNER" "$TMP_DIR/fake-watched-command" >"$bounded_run_terminal" 2>&1
 
 # Build manifests identify compile-only proof; targeted checks use the bounded query.
 bash -eu -c '

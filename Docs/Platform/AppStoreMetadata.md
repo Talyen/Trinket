@@ -49,7 +49,7 @@ rpg,turn based,cards,strategy,deck,heroes,companions,fantasy,adventure,dungeon,o
 
 Trinket does not require an in-app account or sign-in. The current build stores progress locally and supports offline gameplay. iCloud progress sync remains disabled in distributed builds.
 
-To inspect the Full Game offer, open Options → Full Game. The non-consumable product identifier, ownership, and reset rules live in [Purchases.md](Purchases.md). Options → Restore Purchases restores eligible verified ownership.
+To review Full Game, open Options → Unlock Full Game. This one-time, non-consumable purchase unlocks the remaining chapters, modes, Heroes, and Companions; characters and upgrades are still earned through play. Options → Restore Purchases restores verified ownership, including eligible Family Sharing access. Options → Reset Game Progress clears gameplay progress but keeps Full Game ownership.
 
 ## Owner checks before submission
 
@@ -94,8 +94,40 @@ signed in, progress syncs automatically across your devices. Play adventures,
 collect Homestead production, and build or upgrade offline, then reconnect to
 sync your progress.
 
-**Review-note replacement:** Trinket uses the device's iCloud account for automatic
+**Replacement for the opening review-note paragraph:** Trinket uses the device's iCloud account for automatic
 progress sync and has no in-app login. Without iCloud, progress remains local.
 Independent earned progress merges automatically, with conflicting saves retained
 as recovery backups. Reset Game Progress propagates to synced
-devices and does not remove Full Game ownership.
+devices and does not remove Full Game ownership. Keep the Full Game review-note
+paragraph above for either build.
+
+## Prepared cloud-enabled website copy
+
+Keep the published support and privacy pages local-only until an iCloud-enabled
+build is distributed. At that rollout, replace their saved-progress sections with
+the copy below, update the privacy policy's date, and reconcile App Privacy answers
+with the exact build. The purchase, diagnostics, support-message, and website
+sections of the privacy policy remain applicable.
+
+**Privacy policy — Your saved game:** Your progress, characters, equipment, and
+preferences are stored on your device. When iCloud progress sync is enabled in
+your build and you are signed in to iCloud, saved progress also syncs through
+your private iCloud storage across devices using the same Apple Account. You can
+keep playing offline; changes sync after you reconnect. No Trinket account is
+required, and the developer does not operate a game-save server.
+
+You can reset gameplay progress in Options. When linked to iCloud, the reset also
+clears synced progress on your other devices when they reconnect. Resetting does
+not remove Full Game ownership. Deleting the app removes local data but may leave
+saved progress in iCloud; you can manage the app's iCloud data in your device's
+settings.
+
+**Support page — Saved progress:** Progress is stored on your device. When iCloud
+progress sync is enabled in your build and you are signed in to iCloud, it syncs
+automatically across devices using the same Apple Account. You can play offline;
+changes sync after you reconnect. If progress has not appeared on another device,
+check that both devices use the same iCloud account and have a connection, then
+reopen the app. Options → Reset Game Progress clears progress on this device and,
+when linked to iCloud, on synced devices when they reconnect. It does not remove
+Full Game ownership. Deleting the app can remove local progress, so do not
+reinstall as a first troubleshooting step.

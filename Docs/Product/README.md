@@ -12,9 +12,9 @@ Player-facing standing policy. Engineering policy lives in
 | [Overview.md](Overview.md) | Game surfaces and modes in player terms |
 | [Homestead.md](Homestead.md) | Homestead layout and immediate-build rule |
 | [MysteryEvents.md](MysteryEvents.md) | Mystery choices, themed rewards, and saved offers |
+| [Spires.md](Spires.md) | Keyword-gated floors, deterministic modifiers, and completion |
+| [Voyage.md](Voyage.md) | Finite regional routes, offers, difficulty, and completion bonuses |
 | [UniqueItems.md](UniqueItems.md) | Complete equipment Unique collection and combat interactions |
 | [Identity.md](Identity.md) | Identity model, guest-first rules, deletion posture |
 | [ArtworkStyleGuide.md](ArtworkStyleGuide.md) | Visual direction and delivery constraints |
 | [GameIcons.md](GameIcons.md) | Game icon selections and links to authored node mappings |
-
-[Voyage](Voyage.md) owns finite regional routes, offers, difficulty, and completion bonuses.

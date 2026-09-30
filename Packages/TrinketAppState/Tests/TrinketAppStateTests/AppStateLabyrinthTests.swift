@@ -17,7 +17,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `enter labyrinth creates map and reuses it on repeat`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         let message = state.labyrinth.enter()
         #expect(message == nil)
         #expect(state.playerSave.labyrinth.hasMap)
@@ -31,7 +31,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `unreadable map heals on write and enter succeeds`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.labyrinth = PlayerLabyrinthState(
             worldSeed: 55,
             hasEntered: true,
@@ -45,7 +45,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `unchanged labyrinth inputs reuse prepared battles`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         _ = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let battle = try #require(context.lastBattle)
 
@@ -58,7 +58,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `relevant labyrinth input change replaces prepared battles`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         _ = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let battle = try #require(context.lastBattle)
         state.labyrinth.prepareReachableBattles()
@@ -73,7 +73,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `returning from battle prepares unchanged labyrinth inputs again`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let battle = try #require(context.lastBattle)
         state.labyrinth.prepareReachableBattles()
@@ -88,7 +88,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `labyrinth prepare drops unreachable combat runs`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let battle = try #require(context.lastBattle)
         state.labyrinth.prepareReachableBattles()
@@ -112,7 +112,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `labyrinth prepare preserves sibling journey run`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         let journeyKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
         let battle = try #require(context.lastBattle)
@@ -128,7 +128,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `keyword labyrinth launch pays the displayed guaranteed item`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         let nodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let node = try #require(state.playerSave.labyrinth.nodes[nodeID])
         #expect(state.playerSave.persistBatch(logging: "Keyword Labyrinth reward") { save in
@@ -151,7 +151,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `start labyrinth battle sets configuration and in memory origin`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let node = try #require(state.playerSave.labyrinth.nodes[combatNodeID])
         let expectedModifiers = NodeModifierCatalog.modifiers(ids: node.modifierIDs)
@@ -167,7 +167,7 @@ struct AppStateLabyrinthTests {
 
     @Test(arguments: [LabyrinthNodeType.shop, .mystery])
     func `labyrinth encounter finish clears node`(nodeType: LabyrinthNodeType) throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: nodeType, in: state))
 
@@ -204,7 +204,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `finish labyrinth mystery ignores reading phase`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .mystery, in: state))
 
@@ -218,7 +218,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `recruit node uses concealed recruit event`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         _ = state.labyrinth.enter()
         let event = try #require(LabyrinthTestSupport.firstUnrecruitedEvent(in: state))
         let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: event.id, in: state))
@@ -229,7 +229,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `recruit node falls back to mystery only for completed roster`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: "recruit-bear", in: state))
         #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = .testSeed })
@@ -239,7 +239,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `recruit node preview falls back to mystery event when pool is exhausted`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: "recruit-bear", in: state))
         #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = .testSeed })
@@ -306,7 +306,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `labyrinth battle always starts at full baseline health`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         _ = state.labyrinth.startBattle(nodeID: combatNodeID)
         let battle = try #require(state.battle.activeBattle)
@@ -315,7 +315,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `completing labyrinth battle clears node`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         let combatNodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         _ = state.labyrinth.startBattle(nodeID: combatNodeID)
         let configuration = try #require(state.battle.activeBattle)
@@ -347,7 +347,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `labyrinth shop nodes carry exactly one shop modifier`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         _ = state.labyrinth.enter()
         let shopIDs: Set<NodeModifierID> = [
             NodeModifierID("shopDiscount"),
@@ -361,7 +361,7 @@ struct AppStateLabyrinthTests {
     }
 
     @Test func `missing labyrinth node pin fails closed`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let state = try context.makePlaySession()
         _ = state.labyrinth.enter()
         let message = try #require(
             state.encounters.beginMysteryEncounter(origin: .labyrinth(nodeID: "missing-node")),

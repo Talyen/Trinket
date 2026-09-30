@@ -12,6 +12,11 @@ owns mitigation and Block bypass multipliers, while the shield steps in
 preserving each checkpoint's order and rounding. Ally protection uses the actual
 Block owner's absorption bonuses and records that owner for The Patient Edge and
 The Knight's Answer; borrowed Block does not claim the recipient's allowance.
+Incoming Block-breaking rules also apply to borrowed Block, including Corrosive
+Venom stripping its owner's Block before absorption. Its fixed strip amount is
+shared by the borrowed and recipient Block pools within one damage packet.
+Block-breaking multipliers scale the Block points consumed after the owner's
+absorption efficiency, capped at the remaining pool; absorbed damage stays unchanged.
 Multiple partial Block bypasses
 use the strongest applicable fraction. Partial bypass scales each defense before
 subtracting it and clamping damage. Burn detonation preserves the original
@@ -30,6 +35,9 @@ zero-Health-damage applications attach no stacks. This rule is identical for
 party members and enemies. Subsequent Burn/Poison ticks, consumed-stack damage
 and detonations use resolved potency: do not repeat outgoing flat/percent bonuses,
 critical multipliers or fight pacing. Current recipient defenses still apply.
+Reaction damage reports its own Health loss separately from nested control,
+Block, or healing events; those events retain their original meaning. Hidden Fangs
+likewise reports its immediate Bleed loss before attaching its opening stack.
 Explicit non-damaging stack grants and reflection retain their specified potency;
 neither gains outgoing bonuses. Ticks never attach new stacks. Bleed and authored
 recurring damage retain their separate rules. Combustion still adds its Burn before
@@ -54,6 +62,8 @@ Poison only from Health actually lost to that hit.
 Venomtrail checks Bleed at each Poison damage event, including resolved ticks;
 it adds flat damage without replaying general outgoing bonuses. Hallowbreak
 increases Holy damage against Stunned targets, stacking with talent bonuses.
+Shatter, Dazed, and Heavy Flail's damage bonuses against Frozen or Stunned targets
+belong to the attacker with the affix or talent; they do not amplify partner damage.
 Hallowguard snapshots the attacker's Block before a Holy attack and grants Block
 only if that attack removes enemy Health.
 

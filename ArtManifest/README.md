@@ -48,7 +48,9 @@ The pipeline writes **HEIC** (HEVC-based) images per manifest row. Which variant
 
 HEIC is Apple's native image format, ~30–50% smaller than JPEG at the same perceptual quality, with hardware-accelerated decode on iOS. Each output is stripped of EXIF/XMP/ICC metadata.
 
-`CombatantArtReference`, `AbilityArtReference`, `ItemArtReference`, `EncounterArtReference`, and `BackgroundArtReference` expose both `imageName` (full) and `thumbnailImageName`. Callers select the right variant at the call site (see `CombatantArtwork.Variant` in `Packages/TrinketFeatureSupport/.../Shared/Cards/CombatantArtwork.swift`): large surfaces (battle hand, detail heroes, stage/spire encounter art, cinematic backgrounds) use `imageName`; grid and mode cards use `thumbnailImageName`. Resource callers always use the full `imageName`.
+`CombatantArtReference`, `AbilityArtReference`, `ItemArtReference`, `EncounterArtReference`, and `BackgroundArtReference` expose both `imageName` (full) and `thumbnailImageName`. Callers select the right variant at the call site (see `CombatantArtwork.Variant` in [CombatantArtwork.swift](../Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Cards/CombatantArtwork.swift)): large surfaces (battle hand, detail heroes, stage/spire encounter art, cinematic backgrounds) use `imageName`; grid and mode cards use `thumbnailImageName`. Resource callers always use the full `imageName`.
+
+The curated XP resource has a separate [source and usage-rights record](experience-provenance.md).
 
 Portrait backgrounds use `ArtCatalog.portraitBackgroundArtByID` with the same node
 IDs as landscape backgrounds. They preserve the portrait source resolution for
