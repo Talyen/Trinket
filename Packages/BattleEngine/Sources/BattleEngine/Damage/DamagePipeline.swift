@@ -78,6 +78,11 @@ package enum DamagePipeline {
             ))
         }
 
+        if state.options.isAttackHit, !state.options.isCardAttack, state.isCritical,
+           state.amount > 0, state.damageKeyword == .physical, state.combatant.role == .enemy {
+            CombatTriggerEngine.removeBlockAfterPhysicalCriticalHit(by: state.sourceActorID, in: &context)
+        }
+
         state.damageEvents.append(contentsOf: EnemyTraitEngine.basicFreezeDamage(from: state, context: &context))
         state.damageEvents.append(contentsOf: EnemyTraitEngine.firstAttackBleedBonus(from: state, context: &context))
         state.damageEvents.append(contentsOf: EnemyTraitEngine.attacksApplyPoison(from: state, context: &context))
@@ -109,6 +114,11 @@ package enum DamagePipeline {
             state.damageEvents.append(contentsOf: DoTMirrorCascade.resolve(
                 keyword: keyword, initialHealthLost: state.healthLost, target: state.combatant,
                 sourceActorID: sourceActorID, in: &context,
+            ))
+        }
+        if state.damageKeyword == .burn, state.healthLost > 0, let sourceID = state.sourceActorID {
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBurnDamageConversion(
+                to: state.combatant, sourceActorID: sourceID, in: &context,
             ))
         }
         if state.damageKeyword == .bleed {
@@ -181,10 +191,10 @@ package enum DamagePipeline {
             applyFightPacing(to: &state, in: &context)
             applyMarkedBonus(to: &state, in: &context)
             UniqueCombatEngine.applyStoredDamage(to: &state, in: &context)
-            state.unique.outgoingDamage = CombatRounding.scaled(
-                state.remaining - state.options.partnerFirstAttackBonus,
-                multiplier: state.isCritical ? criticalMultiplier(for: state.sourceActorID, in: context) : 1,
-            )
+            var outgoing = state
+            outgoing.remaining -= state.options.partnerFirstAttackBonus
+            applyCriticalMultiply(to: &outgoing, in: &context)
+            state.unique.outgoingDamage = outgoing.remaining
         }
         // Freeze offense for Final Spark; the repeat rechecks recipient defenses.
         let cardRepeatAmount: Int = {

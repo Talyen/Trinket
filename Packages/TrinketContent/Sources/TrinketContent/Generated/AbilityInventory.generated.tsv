@@ -13,7 +13,7 @@ maul	Maul	basic	Deal 3 Bleed damage\nDeal Stun instead against enemies with Bloc
 pixie-dust	Pixie Dust	basic	Deal 1 Burn damage\nRestore 1 Mana
 ray-of-frost	Ray of Frost	basic	Deal 1 Freeze damage, twice
 rending-slash	Rend	basic	Deal 2 Bleed damage
-shield-bash	Shield Bash	basic	Gain 1 Block\nDeal Stun damage equal to half your Block
+shield-bash	Shield Bash	basic	Gain 1 Block\nDeal Stun damage equal to half your Block (minimum 1)
 slash	Slash	basic	Deal 3 Physical damage
 sniff-out	Sniff Out	basic	Deal 1 Bleed damage\nYour partner's next attack deals 1 additional damage
 stab	Stab	basic	Deal 2 Physical damage\nCritically Hit enemies at full Health

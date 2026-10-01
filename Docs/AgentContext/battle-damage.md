@@ -23,6 +23,12 @@ subtracting it and clamping damage. Burn detonation preserves the original
 source's decay rate and ticks per turn. Blackfletch's Poison detonation likewise
 preserves the original source's slower decay. Resolution depth limits recursion, never changes
 the meaning of a request.
+Watchful Guard grants Block in the opening round as well as later rounds.
+Blood Scent, Bulwark Force, Dread Exploitation, and Fan the Flames amplify enemy
+attacks, not ongoing damage. Stormbreak's damage multiplier also applies to Bleed
+ticks against Stunned enemies; resolved Burn and Poison keep their stored potency.
+Infected, Cauterize, and Ashen Wake react to positive Health damage, including
+ticks, rather than stack attachment. Silent stack grants do not trigger them.
 Later damage components skip a target already defeated by the same action, so
 post-defeat hits cannot trigger another on-hit reward; later support effects still resolve.
 `DecayingDoTProgression` captures the original stack owner’s decay and tick rules
@@ -88,6 +94,8 @@ Turn handlers commit their own effect updates and return only events. Decaying
 DoTs commit decay before ticking; duration-based effects age the live effect after
 their tick, and Death's Door is removed before expiry reactions. `EffectTurnEngine`
 only schedules existing effect IDs and never writes a returned snapshot back.
+Burn and Poison details show current potency and explain decay before turn damage;
+current potency is not a guaranteed next-turn damage amount.
 
 For a named talent change, look up its rule in [talent interactions](battle-talents.md).
 

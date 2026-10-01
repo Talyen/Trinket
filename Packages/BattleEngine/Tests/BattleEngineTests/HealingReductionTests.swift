@@ -149,7 +149,7 @@ struct HealingReductionTests {
     @Test func `healing triggered cleanse rewards the healer`() {
         var battle = BattleStateTestFactory.makeBattle(
             companionModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                healing: HealingTriggers(cleanseBonusHeal: 3, onHealCleanseTargetChance: 1),
+                healing: HealingTriggers(cleanseSelfHeal: 3, onHealCleanseTargetChance: 1),
             )),
         )
         battle.appliesFightPacing = false

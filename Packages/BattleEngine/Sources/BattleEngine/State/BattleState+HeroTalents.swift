@@ -33,6 +33,8 @@ package extension BattleState {
             .card(serial)
         } else if let actionID = resolution.actionID {
             .action(actionID)
+        } else if let restorationID = resolution.standaloneRestorationID {
+            .standaloneRestoration(restorationID)
         } else {
             .standaloneAction(actionCount)
         }

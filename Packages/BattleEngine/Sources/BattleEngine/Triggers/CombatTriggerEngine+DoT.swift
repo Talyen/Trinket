@@ -20,7 +20,7 @@ package extension CombatTriggerEngine {
                 $0.talents.pending.basicCriticalBonus = max($0.talents.pending.basicCriticalBonus, triggers.onBleedDamageNextBasicCritBonus)
             }
         }
-        var events: [ActionEvent] = []
+        var events = afterBleedDamageConversions(to: target, sourceActorID: sourceActorID, in: &context)
         if triggers.onBleedDamageHealSelf > 0 {
             events.append(contentsOf: HealingEngine.resolveHeal(
                 HealRequest(amount: triggers.onBleedDamageHealSelf, target: caster.combatant, sourceActorID: sourceActorID),

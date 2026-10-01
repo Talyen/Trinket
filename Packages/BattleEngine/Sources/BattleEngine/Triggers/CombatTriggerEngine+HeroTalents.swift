@@ -76,6 +76,12 @@ package extension CombatTriggerEngine {
         return events
     }
 
+    static func removeBlockAfterPhysicalCriticalHit(by sourceID: String?, in context: inout BattleState) {
+        guard let sourceID, let source = context.roster.combatant(for: sourceID), source.isAlive,
+              source.role != .enemy, context.modifiers(for: sourceID).triggers.physicalCritRemoveEnemyBlock else { return }
+        DefensePoolEngine.set(0, on: context.enemy, in: &context)
+    }
+
     private static func afterPhysicalCardHit(
         actor: Combatant,
         sourceID: String,
@@ -84,8 +90,8 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        if critical, triggers.physicalCritRemoveEnemyBlock {
-            DefensePoolEngine.set(0, on: context.roster.enemy.combatant, in: &context)
+        if critical {
+            removeBlockAfterPhysicalCriticalHit(by: sourceID, in: &context)
         }
         if blockBroken, triggers.crackedGuard {
             context.roster.mutateRuntime(for: actor) { $0.talents.pending.nextAttackGuaranteedCritical = true }
@@ -286,8 +292,9 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.returningBloomHeal > 0 {
+            let healTarget = BattleTargetResolver.lowestHealthAlly(for: source.combatant, in: context)
             events.append(contentsOf: heroTalentHeal(
-                to: context.roster.companion.combatant,
+                to: healTarget,
                 source: source.combatant,
                 amount: triggers.returningBloomHeal,
                 name: "Returning Bloom",

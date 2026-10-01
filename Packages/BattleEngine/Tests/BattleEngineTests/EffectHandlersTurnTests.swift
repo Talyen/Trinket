@@ -34,6 +34,7 @@ struct EffectHandlersTurnTests {
         triggers.blockPerTurn = 2
         var battle = BattleStateTestFactory.makeBattle(
             heroModifiers: CombatModifierProfile(blockGainedBonus: 3, triggers: triggers),
+            dealOpeningHand: false,
         )
         battle.withEngineContext { $0.appliesFightPacing = false }
         let effect = Effect.avatar(holyDamage: 1, blockPerTurn: 2, turns: 2)

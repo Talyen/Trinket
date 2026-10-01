@@ -51,8 +51,10 @@ struct CompanionTalentReviewTests {
         )
         battle.roster.hero.currentHealth = 10
 
+        _ = battle.resolution.beginAction(BattleActionContext(actor: battle.companion, in: battle), origin: .ability)
         _ = battle.healEmitting(amount: 2, target: battle.hero, source: battle.companion, abilityName: "Heal")
         _ = battle.healEmitting(amount: 2, target: battle.hero, source: battle.companion, abilityName: "Heal")
+        battle.resolution.endAction()
 
         #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == .thorns(3) })
     }

@@ -87,6 +87,12 @@ package extension BattleState {
 
     @discardableResult
     mutating func restoreMana(_ amount: Int, to combatant: Combatant) -> Int {
+        let standalone = resolution.beginStandaloneRestoration()
+        defer {
+            if standalone {
+                resolution.endStandaloneRestoration()
+            }
+        }
         guard var runtime = roster.runtime(for: combatant) else { return 0 }
         let profile = modifiers(for: combatant.id)
         let deepRoots = amount > 0 && profile.triggers.deepRoots &&
@@ -126,6 +132,12 @@ package extension BattleState {
         abilityName: String,
         actorName: String? = nil,
     ) -> [ActionEvent] {
+        let standalone = resolution.beginStandaloneRestoration()
+        defer {
+            if standalone {
+                resolution.endStandaloneRestoration()
+            }
+        }
         let restored = restoreMana(amount, to: combatant)
         let overflowEvents = CombatTriggerEngine.consumeManaOverflowTalents(
             for: combatant, restoredMana: restored > 0, in: &self,

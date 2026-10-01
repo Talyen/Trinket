@@ -394,7 +394,7 @@ druid_health_t4_1	Verdant Shelter	sf:asterisk	Allies with Thorns take 25% less d
 druid_poison_t1_1	Barbed Spores	sf:asterisk	Poisoned enemies take 25% increased Thorns damage		barbedSporesThornsVsPoisonedMultiplier:1.25
 druid_poison_t1_2	Living Bark	sf:tree.fill	Take half Poison damage while you have Thorns		livingBark:true
 druid_poison_t2_1	Cool Moss	sf:leaf.fill	Poisoned enemies take 1 additional Freeze damage		coolMossFreezeBonus:1
-druid_poison_t2_2	Returning Bloom	sf:camera.macro	Poison fading completely restores 3 Health to your Companion		returningBloomHeal:3
+druid_poison_t2_2	Returning Bloom	sf:camera.macro	Poison fading completely restores 3 Health to the lowest-Health living ally		returningBloomHeal:3
 druid_poison_t3_1	Root Passage	sf:point.topleft.down.to.point.bottomright.curvepath	Poison attacks ignore enemy Block		rootPassage:true
 druid_poison_t3_2	Entangling Growth	sf:leaf.fill	Poisoned enemies take 25% more Stun build-up		poisonedEnemyStunBuildupMultiplier:1.25
 druid_poison_t4_1	Thorn Shedding	sf:leaf.fill	Allied Thorns deal Poison instead of Physical damage		thornShedding:true

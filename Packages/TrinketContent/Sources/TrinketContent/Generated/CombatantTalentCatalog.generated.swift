@@ -677,7 +677,7 @@ public extension CombatantTalentCatalog {
             "druid_poison_t2_2": CombatantTalentEffect(
                 name: "Returning Bloom",
                 iconID: "sf:camera.macro",
-                description: "Poison fading completely restores 3 Health to your Companion",
+                description: "Poison fading completely restores 3 Health to the lowest-Health living ally",
                 modifiers: [],
                 triggers: CombatTraitTriggers(healing: HealingTriggers(returningBloomHeal: 3))
             ),

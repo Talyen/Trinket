@@ -60,11 +60,10 @@ struct DecayingDoTHandler: BattleEffectHandler {
             return sum
         }
         guard total > 0 else { return nil }
-        let decayDescription = keyword == .burn ? "decaying over time" : "decaying slowly"
         let alias = keyword.statusAlias ?? keyword.rawValue
         return EffectSummary(
             keyword: keyword,
-            text: "\(alias): Takes \(total) \(keyword.rawValue) damage each turn, \(decayDescription).",
+            text: "\(alias): \(total) \(keyword.rawValue) potency. Normally decays before each turn's damage.",
         )
     }
 

@@ -164,7 +164,7 @@ struct AbilityCatalogTests {
 
     @Test func `shield bash describes ordered block-scaled stun damage`() throws {
         let shieldBash = try #require(AbilityCatalog.ability(id: "shield-bash"))
-        try #expect(shieldBash.summary == "Gain 1 Block\nDeal Stun damage equal to half your Block")
+        try #expect(shieldBash.summary == "Gain 1 Block\nDeal Stun damage equal to half your Block (minimum 1)")
         try #expect(shieldBash.operations == [
             .effect(TargetedEffect(.shield(.block, 1))),
             .damage(DamageComponent(

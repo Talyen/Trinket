@@ -66,7 +66,8 @@ package extension BattleState {
         } else {
             (keyword, buffer) = (.block, amount)
         }
-        let (adjustedBuffer, spendsPreparation) = adjustedBlockGain(buffer, to: target)
+        let (adjustedBuffer, spendsPreparation) = amountBasis == .base
+            ? adjustedBlockGain(buffer, to: target) : (buffer, false)
         let applied = DefensePoolEngine.add(
             adjustedBuffer,
             to: target,

@@ -149,13 +149,7 @@ package extension DamagePipeline {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.manaEmpoweredCriticalMultiplier)
         }
         if keyword == .poison {
-            if state.options.isAttackHit,
-               let bonus = context.roster.runtime(for: source)?.talents.pending.nextPoisonDamageBonus,
-               bonus > 0 {
-                state.remaining += bonus
-                state.itemBonus += bonus
-                context.roster.mutateRuntime(for: source) { $0.talents.pending.nextPoisonDamageBonus = 0 }
-            }
+            applyPreparedPoisonAttackBonus(to: &state, source: source, in: &context)
             applyPreparedPoisonDamage(to: &state, in: &context)
             if state.options.isAttackHit,
                context.roster.runtime(for: source)?.talents.pending.doubleNextPoisonAttack == true {
@@ -164,6 +158,32 @@ package extension DamagePipeline {
             }
         }
         applyPreparedBurnAttackBonus(to: &state, source: source, in: &context)
+    }
+
+    private static func applyPreparedPoisonAttackBonus(
+        to state: inout DamageResolutionState,
+        source: Combatant,
+        in context: inout BattleState,
+    ) {
+        if state.options.isAttackHit,
+           let pending = context.roster.runtime(for: source)?.talents.pending,
+           pending.nextPoisonDamageBonus > 0,
+           CombatantTalentState.Pending.isLaterAbility(
+               preparedCardSerial: pending.nextPoisonDamagePreparedCardSerial,
+               currentCardSerial: context.resolution.cardTalents?.playSerial,
+           ),
+           CombatantTalentState.Pending.isLaterAction(
+               preparedActionID: pending.nextPoisonDamagePreparedActionID,
+               currentActionID: context.resolution.actionID,
+           ) {
+            state.remaining += pending.nextPoisonDamageBonus
+            state.itemBonus += pending.nextPoisonDamageBonus
+            context.roster.mutateRuntime(for: source) {
+                $0.talents.pending.nextPoisonDamageBonus = 0
+                $0.talents.pending.nextPoisonDamagePreparedCardSerial = nil
+                $0.talents.pending.nextPoisonDamagePreparedActionID = nil
+            }
+        }
     }
 
     private static func applyBlockAndHolyBonuses(

@@ -399,6 +399,7 @@ extension BattleTurnEngine {
                 continue
             }
             var didApply = false
+            var grantedGold = 0
             for effectTarget in effectTargets {
                 guard action.canContinue(in: context) else { break }
                 if shouldSkipEffectOnDefeatedTarget(effect, target: effectTarget, actor: actor, context: context)
@@ -413,10 +414,17 @@ extension BattleTurnEngine {
                     in: &context,
                 )
                 events.append(contentsOf: outcome.events)
+                grantedGold += outcome.events.filter {
+                    $0.effectKind == .resourceGain && $0.keyword == .gold && $0.origin == .direct
+                }.reduce(0) { $0 + $1.amount }
                 didApply = didApply || outcome.didApply
             }
             if didApply {
-                appliedEffectLogs.append(effect.summary)
+                if case .resourceGain(.gold, _) = effect {
+                    appliedEffectLogs.append("\(ability.stealsGold ? "steal" : "gain") \(grantedGold) Gold")
+                } else {
+                    appliedEffectLogs.append(effect.summary)
+                }
             }
         }
         return appliedEffectLogs

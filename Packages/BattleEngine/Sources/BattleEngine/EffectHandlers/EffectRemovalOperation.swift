@@ -173,10 +173,11 @@ enum EffectRemovalOperation {
             ))
         }
         events.append(contentsOf: CombatTriggerEngine.bonusHealAfterCleanse(
-            source: source, amount: triggers.cleanseBonusHeal, requireWoundedTarget: true, in: &context,
+            source: source, target: target, amount: triggers.cleanseBonusHeal, requireWoundedTarget: true, in: &context,
         ).events)
         events.append(contentsOf: CombatTriggerEngine.bonusHealAfterCleanse(
-            source: source, amount: triggers.cleanseSelfHeal, requireWoundedTarget: false, in: &context,
+            source: source, target: BattleTargetResolver.lowestHealthAlly(for: source, in: context),
+            amount: triggers.cleanseSelfHeal, requireWoundedTarget: false, in: &context,
         ).events)
         events.append(contentsOf: CombatTriggerEngine.drawAfterCleanse(source: source, removedCount: removed.count, in: &context))
         events.append(contentsOf: CombatTriggerEngine.afterCleanseAction(

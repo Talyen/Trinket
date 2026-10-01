@@ -26,6 +26,7 @@ struct CombatResolution {
         case turn(Int)
         case action(Int)
         case standaloneAction(Int)
+        case standaloneRestoration(Int)
         case card(Int)
     }
 
@@ -61,11 +62,26 @@ struct CombatResolution {
     private var depths: [Scope: Int] = [:]
     private var frames: [Frame] = []
     private var nextActionID = 0
+    private var nextStandaloneRestorationID = 0
+    private(set) var standaloneRestorationID: Int?
     private var cards: [Card] = []
     private var partyCardDamageBySource: [String: Int] = [:]
     private var partyDamageByRecipient: [String: Int] = [:]
     private(set) var nextCardID = 0
     private var claims: Set<ClaimKey> = []
+
+    mutating func beginStandaloneRestoration() -> Bool {
+        guard currentAction == nil, cards.isEmpty, standaloneRestorationID == nil else { return false }
+        standaloneRestorationID = nextStandaloneRestorationID
+        nextStandaloneRestorationID += 1
+        return true
+    }
+
+    mutating func endStandaloneRestoration() {
+        guard let id = standaloneRestorationID else { preconditionFailure() }
+        claims = claims.filter { $0.cadence != .standaloneRestoration(id) }
+        standaloneRestorationID = nil
+    }
 
     var actionID: Int? {
         currentAction?.id

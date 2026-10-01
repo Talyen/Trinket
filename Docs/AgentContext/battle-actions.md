@@ -31,6 +31,9 @@ reconstruct its outcome from another talent's bookkeeping. Keep these immutable
 records shared so nested actions do not copy their full payload onto the stack.
 `BattleActionContext` likewise shares immutable participants while preserving value
 equality; payment receipts and checkpoint eligibility retain actor IDs.
+Independent passive restoration operations have separate talent-roll allowances;
+nested restoration reactions share their parent allowance. Card and action
+restoration still use their existing per-card and per-action claims.
 
 Ability definitions share immutable storage so nested automatic casts and combat
 snapshots do not copy the complete definition through each stack frame.
@@ -47,12 +50,20 @@ remaining support rewards. New actions cannot start after battle ends.
 Combat logs summarize committed damage by recipient and keyword, with self-paid
 Health costs reported separately. Damage packets and their summary share the
 resolved action identity so nested actions do not combine their totals.
+Gold effect summaries use the ability's theft marker: Golden Plate gains Gold,
+while Steal and the other theft cards steal it. Gold summaries report the actual
+grant after equipment and talent bonuses.
+
+End-of-player-turn talents resolve before the enemy action. Mana Shield's Block
+can absorb that action, and end-turn healing and Cleanse finish before it begins.
+Round effects and passive Block decay follow the enemy action.
 
 `payMana` returns a `ManaPayment` with actual before/after balances. Capture every
 contribution to an empowerment purchase before payment reactions; last-Mana rules
 read receipts even after refunds or nested actions. A prepared empowerment discount
 applies to one purchase; Meteor and Falling Star can then buy their normal paid
-repeats. Permanently free empowerment remains bounded to one purchase.
+repeats. A reaction that ends combat stops further empowerment purchases.
+Permanently free empowerment remains bounded to one purchase.
 Arcane Burst keeps excess
 progress across cards and turns separately from cadence claims. Periodic rewards
 use `playerTurnNumber` and `isPlayerTurn(every:startingAt:)`; stored `turnCount`

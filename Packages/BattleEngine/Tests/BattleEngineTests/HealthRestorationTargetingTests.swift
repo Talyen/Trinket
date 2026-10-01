@@ -5,6 +5,21 @@ import TrinketCore
 @testable import BattleEngine
 
 struct HealthRestorationTargetingTests {
+    @Test func `Spiteful heals a wounded partner when the wearer is full`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.firstThornsDamageHealPerTurn = 2
+        profile.triggers.criticalChanceBonus = -1
+        var battle = battle(heroModifiers: profile)
+        DefensePoolEngine.set(1, on: battle.hero, in: &battle)
+        battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 1, target: battle.hero, keyword: .physical,
+            sourceActorID: battle.enemy.id, options: .attack(accuracy: .unavoidable),
+        ))
+        #expect(battle.health(of: battle.companion) == 3)
+        #expect(battle.health(of: battle.hero) == 20)
+    }
+
     private func battle(
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,
@@ -80,7 +95,7 @@ struct HealthRestorationTargetingTests {
             .all(.poison), source: battle.hero, target: battle.hero,
             abilityName: "Cleanse", in: &battle,
         )
-        #expect(battle.health(of: battle.companion) == 11)
+        #expect(battle.health(of: battle.companion) == 9)
         #expect(battle.health(of: battle.hero) == 20)
     }
 

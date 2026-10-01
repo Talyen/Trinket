@@ -73,7 +73,7 @@ enum DamageDefensePolicy {
             if state.damageKeyword == .stun, state.options.isAttackHit {
                 ignored = max(ignored, triggers.stunBlockIgnorePercent)
             }
-            if state.options.isAttackHit, state.options.abilityHasLeech {
+            if state.options.isAttackHit, state.options.abilityHasLeech || state.talentAttackHasLeech {
                 ignored = max(ignored, triggers.leechAttackBlockIgnorePercent)
             }
         }

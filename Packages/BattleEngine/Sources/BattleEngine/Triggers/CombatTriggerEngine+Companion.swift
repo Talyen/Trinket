@@ -78,7 +78,7 @@ package extension CombatTriggerEngine {
                 triggers.holyAttackEnemyMissChance, abilityName: "Blinding Light", in: &context,
             )
         }
-        if triggers.holyAttackDrawChancePercent > 0, context.roster.enemy.isAlive,
+        if triggers.holyAttackDrawChancePercent > 0,
            context.claimTalentAbility("Radiant Wisdom", actorID: actor.id),
            BattleChance.succeeds(probability: triggers.holyAttackDrawChancePercent, using: &context.rng),
            let owner = context.roster.participant(for: actor) {
@@ -123,7 +123,7 @@ package extension CombatTriggerEngine {
             }
         }
         let manaName = triggerAbilityName("burnCriticalRestoreMana", for: actor, fallback: "Furnace Rhythm", in: context)
-        if critical, triggers.burnCriticalRestoreMana > 0, context.roster.enemy.isAlive,
+        if critical, triggers.burnCriticalRestoreMana > 0,
            context.claimTalentAbility(manaName, actorID: actor.id) {
             events.append(contentsOf: context.restoreManaEmitting(
                 triggers.burnCriticalRestoreMana, to: actor, abilityName: manaName,
@@ -153,7 +153,7 @@ package extension CombatTriggerEngine {
         let drawName = triggerAbilityName(
             "bleedCriticalDrawChancePercent", for: actor, fallback: "Frenzied Tail", in: context,
         )
-        if triggers.bleedCriticalDrawChancePercent > 0, context.roster.enemy.isAlive,
+        if triggers.bleedCriticalDrawChancePercent > 0,
            context.claimTalentAbility(drawName, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.bleedCriticalDrawChancePercent, using: &context.rng),
            let owner = context.roster.participant(for: actor) {
@@ -175,7 +175,6 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         events.append(contentsOf: finalCompanionGoldFromAttack(actor: actor, critical: critical, triggers: triggers, in: &context))
-        guard context.roster.enemy.isAlive else { return events }
         if keyword == .physical {
             if triggers.firstPhysicalAttackBlockPerTurn > 0,
                context.claimHeroTalent("Bone Shield", actorID: actor.id) {
@@ -184,7 +183,7 @@ package extension CombatTriggerEngine {
                     to: actor, source: actor, abilityName: "Bone Shield",
                 ))
             }
-            if critical, triggers.physicalCriticalBleedDamage > 0 {
+            if critical, triggers.physicalCriticalBleedDamage > 0, context.roster.enemy.isAlive {
                 events.append(contentsOf: heroTalentDamage(
                     .bleed, amount: triggers.physicalCriticalBleedDamage,
                     source: actor, name: "Cleaving Bones", in: &context,
@@ -199,19 +198,20 @@ package extension CombatTriggerEngine {
                     to: actor, source: actor, abilityName: "Radiant Barrier",
                 ))
             }
-            if critical, triggers.holyCriticalStunDamage > 0 {
+            if critical, triggers.holyCriticalStunDamage > 0, context.roster.enemy.isAlive {
                 events.append(contentsOf: heroTalentDamage(
                     .stun, amount: triggers.holyCriticalStunDamage,
                     source: actor, name: "Stun Flare", in: &context,
                 ))
             }
-            if critical, triggers.holyCritEnemyNextAttackMissChance > 0 {
+            if critical, triggers.holyCritEnemyNextAttackMissChance > 0, context.roster.enemy.isAlive {
                 prepareEnemyNextAttackMiss(
                     triggers.holyCritEnemyNextAttackMissChance, abilityName: "Dazzling Guard", in: &context,
                 )
             }
         }
-        if keyword == .freeze, critical, triggers.freezeCritEnemyNextAttackMissChance > 0 {
+        if keyword == .freeze, critical, triggers.freezeCritEnemyNextAttackMissChance > 0,
+           context.roster.enemy.isAlive {
             prepareEnemyNextAttackMiss(
                 triggers.freezeCritEnemyNextAttackMissChance, abilityName: "Blinding Frost", in: &context,
             )

@@ -93,6 +93,8 @@ struct CombatantTalentState: Hashable, Sendable {
         var nextBurnDamageBonus = 0
         var nextBurnDamagePreparedCardSerial: Int?
         var nextPoisonDamageBonus = 0
+        var nextPoisonDamagePreparedCardSerial: Int?
+        var nextPoisonDamagePreparedActionID: Int?
         var manaOverflowThorns = 0
         var manaOverflowBlock = 0
         var nextAttackCriticalBonus = 0.0

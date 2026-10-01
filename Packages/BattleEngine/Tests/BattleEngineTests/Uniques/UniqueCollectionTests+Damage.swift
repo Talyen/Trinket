@@ -4,6 +4,16 @@ import TrinketCore
 @testable import BattleEngine
 
 extension UniqueCollectionTests {
+    @Test func `Everkeen repeats Crystal Garden Critical damage before defenses`() throws {
+        var extra = CombatModifierProfile.zero
+        extra.criticalDamagePercent = 0.4
+        var context = try battle(["everkeen"], extra: extra)
+        block(5, owner: .enemy, in: &context)
+        let events = try play(attack(), critical: true, in: &context)
+        #expect(context.roster.enemy.currentHealth == 1949)
+        #expect(events.contains { $0.abilityName == "Everkeen" && $0.amount == 28 })
+    }
+
     @Test(arguments: [Keyword.burn, .bleed], [false, true])
     func `bloodfire followups deal one damage and stop at the chain limit`(keyword: Keyword, chained: Bool) throws {
         var profile = CombatModifierProfile.zero

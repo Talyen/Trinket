@@ -58,7 +58,17 @@ package enum BattleCardCombatEngine {
     @discardableResult
     package static func finalizeOpeningHand(context: inout BattleState) -> [ActionEvent] {
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
-        var events = CombatTriggerEngine.atPlayerTurnStart(in: &context)
+        // Later rounds receive this grant during effect advancement; opening
+        // has no preceding round to advance.
+        var events: [ActionEvent] = []
+        for participant in BattleParticipant.effectTurnOrder {
+            guard !context.isBattleOver else { break }
+            events.append(contentsOf: CombatTriggerEngine.turnBlock(
+                for: context.roster[participant].combatant,
+                in: &context,
+            ))
+        }
+        events.append(contentsOf: CombatTriggerEngine.atPlayerTurnStart(in: &context))
         events.append(contentsOf: finishPlayerTurnStart(context: &context))
         return events
     }
@@ -230,15 +240,20 @@ package enum BattleCardCombatEngine {
             return events
         }
 
-        events.append(contentsOf: resolveEnemyTurn(context: &context))
+        events.append(contentsOf: CombatTriggerEngine.atPlayerEndTurn(in: &context))
+        context.primedRepeatKeywords.removeAll()
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
         if context.isBattleOver {
             context.phase = .ended
             return events
         }
 
-        events.append(contentsOf: CombatTriggerEngine.atPlayerEndTurn(in: &context))
-        context.primedRepeatKeywords.removeAll()
+        events.append(contentsOf: resolveEnemyTurn(context: &context))
+        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
+        if context.isBattleOver {
+            context.phase = .ended
+            return events
+        }
 
         for participant in BattleParticipant.allCases {
             context.roster.mutateRuntime(for: context.roster[participant].combatant) { runtime in

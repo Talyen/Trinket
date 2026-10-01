@@ -20,9 +20,6 @@ package extension DamagePipeline {
         default:
             break
         }
-        if context.roster.isDeathsDoorActive(for: actor.combatant) {
-            bonus += triggers.deathsDoorCriticalChanceBonus
-        }
         if context.roster.companion.isAlive {
             let party = context.companionModifiers.triggers
             if keyword == .bleed {
@@ -314,20 +311,14 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        guard state.options.isAttackHit, state.isCritical,
+        guard state.options.isAttackHit, state.isCritical, state.healthLost > 0,
               let sourceID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceID), source.role == .companion,
               context.roster.hero.isAlive
         else { return }
         let triggers = context.modifiers(for: sourceID).triggers
         guard triggers.leechCriticalAllyBlock > 0 else { return }
-        let lowHealthBleed = state.damageKeyword == .bleed
-            && triggers.bleedAttackLeechBelowHealthThreshold > 0
-            && source.currentHealth > 0 && source.maxHealth > 0
-            && Double(source.currentHealth) / Double(source.maxHealth)
-            < triggers.bleedAttackLeechBelowHealthThreshold
-        let criticalBleedLeech = state.damageKeyword == .bleed && triggers.bleedCriticalHasLeech
-        guard state.didLeech || state.options.abilityHasLeech || lowHealthBleed || criticalBleedLeech else { return }
+        guard state.didLeech || state.options.abilityHasLeech || state.talentAttackHasLeech else { return }
         state.damageEvents.append(contentsOf: context.applyBlock(
             triggers.leechCriticalAllyBlock,
             to: context.roster.hero.combatant,

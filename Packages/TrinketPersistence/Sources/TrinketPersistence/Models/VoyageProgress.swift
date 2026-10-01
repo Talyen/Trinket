@@ -39,6 +39,8 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
     public private(set) var version = 1
     public private(set) var offers: [VoyageOffer] = []
     public var activeRun: VoyageRun?
+    // Optional so existing version-one payloads decode without rewriting their route.
+    var completedRunIDs: Set<String>?
     public private(set) var unreadablePayload: Data?
     public var isUnreadable: Bool {
         unreadablePayload != nil
@@ -109,7 +111,8 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
     }
 
     public mutating func dismissCompleted() {
-        guard activeRun?.isComplete == true else { return }
+        guard let run = activeRun, run.isComplete else { return }
+        completedRunIDs = (completedRunIDs ?? []).union([run.id])
         activeRun = nil
     }
 
@@ -140,10 +143,8 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
         guard let data else { return .freshStart }
         do {
             var state = try JSONDecoder().decode(Self.self, from: data)
-            if state.activeRun?.isComplete == true {
-                state.activeRun = nil
-            }
             if state.isValid {
+                state.dismissCompleted()
                 return state
             }
         } catch {

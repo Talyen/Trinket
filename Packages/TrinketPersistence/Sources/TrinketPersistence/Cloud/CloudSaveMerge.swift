@@ -112,6 +112,12 @@ enum CloudSaveMerge {
                 branches.existing.contracts.highestWonEncounterLevel,
             ),
         ).sanitized()
+        if branches.incoming.contracts.completedOfferIDs != nil || branches.existing.contracts.completedOfferIDs != nil {
+            merged.contracts.completedOfferIDs = (branches.incoming.contracts.completedOfferIDs ?? [])
+                .union(branches.existing.contracts.completedOfferIDs ?? [])
+        } else {
+            merged.contracts.completedOfferIDs = nil
+        }
         if !offers.isEmpty {
             merged.contracts.ensureBoard(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: merged.inventory))
         }
@@ -260,10 +266,16 @@ enum CloudSaveMerge {
             )
         }
         mergeLabyrinth(into: &merged, from: other)
-        let selectedVoyage: PlayerVoyageState = if let baseRunID = branches.base?.voyage.activeRun?.id,
-                                                   branches.incoming.voyage.activeRun?.id == baseRunID,
-                                                   branches.existing.voyage.activeRun?.id != baseRunID,
-                                                   !branches.existing.voyage.isUnreadable {
+        let selectedVoyage: PlayerVoyageState = if let runID = branches.incoming.voyage.activeRun?.id,
+                                                   branches.existing.voyage.completedRunIDs?.contains(runID) == true {
+            branches.existing.voyage
+        } else if let runID = branches.existing.voyage.activeRun?.id,
+                  branches.incoming.voyage.completedRunIDs?.contains(runID) == true {
+            branches.incoming.voyage
+        } else if let baseRunID = branches.base?.voyage.activeRun?.id,
+                  branches.incoming.voyage.activeRun?.id == baseRunID,
+                  branches.existing.voyage.activeRun?.id != baseRunID,
+                  !branches.existing.voyage.isUnreadable {
             branches.existing.voyage
         } else if let baseRunID = branches.base?.voyage.activeRun?.id,
                   branches.existing.voyage.activeRun?.id == baseRunID,
@@ -285,6 +297,10 @@ enum CloudSaveMerge {
            otherVoyageCleared > currentVoyageCleared {
             merged.voyage = alternateVoyage
             mergeVoyage = selectedVoyage
+        }
+        if branches.incoming.voyage.completedRunIDs != nil || branches.existing.voyage.completedRunIDs != nil {
+            merged.voyage.completedRunIDs = (branches.incoming.voyage.completedRunIDs ?? [])
+                .union(branches.existing.voyage.completedRunIDs ?? [])
         }
         if let run = merged.voyage.activeRun, let otherRun = mergeVoyage.activeRun, run.id == otherRun.id {
             for node in otherRun.nodes {

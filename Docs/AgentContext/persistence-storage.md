@@ -104,8 +104,17 @@ item and price; use a readable stock copy when its preferred peer is unreadable.
 Preserve a Mystery event pinned on either Labyrinth or Voyage branch, and use a
 readable offer snapshot when the preferred copy is damaged. Reconcile Contract
 offers by difficulty against the shared base so a completed offer cannot return
-after an unrelated action on another device. Independent Mystery completions
-combine their corruption altar cooldown reductions; duplicate completions count once.
+after an unrelated action on another device. Contract completion receipts distinguish
+victory from board refresh, so two refreshes do not suppress independent rewards
+once their shared base tracks claims. Older peers retain conservative overlap detection.
+Completed Voyage run receipts survive route removal and deduplicate terminal payouts;
+they also prevent stale routes from reopening without an embarked shared base.
+Overlap detection checks both active runs when one device has started another Voyage.
+Abandonment records no victory receipt. These optional payload fields preserve older
+saves; retired older routes without receipts cannot reconstruct their terminal claims.
+Voyage decoding validates a completed route before normalizing it away, retaining
+malformed payload bytes through the unreadable-state path. Independent Mystery
+completions combine their corruption altar cooldown reductions; duplicate completions count once.
 Combine independent balance changes from a shared base and floor concurrent
 overspending at zero. A resource changed on only one branch retains that change
 even when another shared action disables reward combination. On first attachment of unrelated older saves, take the larger

@@ -177,13 +177,6 @@ package enum DoTApplicator {
             remainingTurns: (durationTurns ?? (Effect.bleedDoTTurnCount + sourceProfile.bleedDurationBonus))
                 + poisonDurationBonus,
         )
-        if application.triggersApplicationReactions {
-            collected.append(contentsOf: CombatTriggerEngine.afterBleedApplied(
-                to: effectTarget,
-                sourceActorID: sourceActorID,
-                in: &context,
-            ))
-        }
         return collected
     }
 

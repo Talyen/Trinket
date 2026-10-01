@@ -9,16 +9,14 @@ package extension CombatTriggerEngine {
         explicitChance > 0 ? explicitChance : (guaranteed ? 1 : 0)
     }
 
-    /// Reactions to a bleed stack being attached (may convert to poison/burn).
-    /// Contrast `DoT.afterBleedDamage` (reactions to bleed damage ticks) and
-    /// `afterDecayingDoTApplied` (decaying-DoT attach reactions).
-    static func afterBleedApplied(
+    /// Damage conversions run once per positive Health-damage packet, including ticks.
+    static func afterBleedDamageConversions(
         to target: Combatant,
         sourceActorID: String,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.roster.combatant(for: sourceActorID) != nil else { return [] }
-        return withDoTRecursionScope(site: "afterBleedApplied", context: &context) { context in
+        return withDoTRecursionScope(site: "afterBleedDamageConversions", context: &context) { context in
             let profile = context.modifiers(for: sourceActorID)
             var events: [ActionEvent] = []
 
@@ -58,35 +56,35 @@ package extension CombatTriggerEngine {
 
     static func afterDecayingDoTApplied(
         keyword: Keyword,
+        to _: Combatant,
+        sourceActorID: String,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard keyword == .burn, let source = context.roster.combatant(for: sourceActorID) else { return [] }
+        let dodgeBonus = context.modifiers(for: sourceActorID).triggers.onApplyBurnDodgeChanceUntilNextTurn
+        if dodgeBonus > 0 {
+            context.roster.mutateRuntime(for: source.combatant) {
+                $0.talents.grantDodgeUntilNextTurn(dodgeBonus)
+            }
+        }
+        return []
+    }
+
+    static func afterBurnDamageConversion(
         to target: Combatant,
         sourceActorID: String,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        withDoTRecursionScope(site: "afterDecayingDoTApplied", context: &context) { context in
-            let triggers = context.modifiers(for: sourceActorID).triggers
-            var events: [ActionEvent] = []
-            if keyword == .burn,
-               let source = context.roster.combatant(for: sourceActorID) {
-                let dodgeBonus = triggers.onApplyBurnDodgeChanceUntilNextTurn
-                if dodgeBonus > 0 {
-                    context.roster.mutateRuntime(for: source.combatant) {
-                        $0.talents.grantDodgeUntilNextTurn(dodgeBonus)
-                    }
-                }
-            }
-            guard keyword == .burn else { return events }
-            let potency = triggers.onBurnApplyPoison
-            guard potency > 0 else { return events }
-            let burnPoisonChance = chanceOrGuaranteed(triggers.onBurnDealPoisonChancePercent, guaranteed: true)
-            guard BattleChance.succeeds(probability: min(1, burnPoisonChance), using: &context.rng) else { return events }
-            events.append(contentsOf: context.applyDecayingDoT(
-                keyword: .poison,
-                potency: potency,
-                to: target,
-                sourceActorID: sourceActorID,
-                application: .reaction,
-            ))
-            return events
+        let triggers = context.modifiers(for: sourceActorID).triggers
+        let potency = triggers.onBurnApplyPoison
+        guard potency > 0 else { return [] }
+        return withDoTRecursionScope(site: "afterBurnDamageConversion", context: &context) { context in
+            let chance = chanceOrGuaranteed(triggers.onBurnDealPoisonChancePercent, guaranteed: true)
+            guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return [] }
+            return context.applyDecayingDoT(
+                keyword: .poison, potency: potency, to: target,
+                sourceActorID: sourceActorID, application: .reaction,
+            )
         }
     }
 
@@ -124,7 +122,7 @@ package extension CombatTriggerEngine {
         if status.isFrozen {
             bonus += triggers.damageWhileTargetFrozenBonus
         }
-        if status.isStunned {
+        if status.isStunned, source.role != .enemy || state.options.isAttackHit {
             bonus += triggers.damageWhileTargetStunnedBonus
         }
 
@@ -140,7 +138,7 @@ package extension CombatTriggerEngine {
             }
         }
 
-        if status.isBleeding {
+        if status.isBleeding, source.role != .enemy || state.options.isAttackHit {
             bonus += triggers.damageVsBleedingBonus
         }
         if damageKeyword == .physical,
@@ -170,7 +168,7 @@ package extension CombatTriggerEngine {
         if damageKeyword == .freeze, status.isFrozen {
             bonus += triggers.frostDamageVsFrozenBonus
         }
-        if sourceHasBlock {
+        if sourceHasBlock, source.role != .enemy || state.options.isAttackHit {
             bonus += triggers.shieldDamageBonusWhileBlocked
         }
         if context.roster.health(for: target) < context.roster.health(for: source.combatant) {
@@ -222,7 +220,7 @@ package extension CombatTriggerEngine {
             if status.isPoisoned {
                 multiplier *= triggers.damageVsPoisonedMultiplier
             }
-            if status.isBurning {
+            if status.isBurning, state.options.isAttackHit {
                 multiplier *= triggers.damageVsBurningMultiplier
             }
         }

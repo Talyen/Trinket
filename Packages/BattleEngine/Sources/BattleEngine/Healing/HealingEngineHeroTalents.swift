@@ -259,11 +259,15 @@ extension HealingEngine {
         var events: [ActionEvent] = []
         if restored > 0 {
             if sourceTriggers.healthRestoreNextPoisonBonus > 0 {
+                let serial = context.resolution.cardTalents?.playSerial
+                let actionID = context.resolution.actionID
                 context.roster.mutateRuntime(for: source) {
                     $0.talents.pending.nextPoisonDamageBonus = max(
                         $0.talents.pending.nextPoisonDamageBonus,
                         sourceTriggers.healthRestoreNextPoisonBonus,
                     )
+                    $0.talents.pending.nextPoisonDamagePreparedCardSerial = serial
+                    $0.talents.pending.nextPoisonDamagePreparedActionID = actionID
                 }
             }
             let canRoll = context.claimTalentAbility("healthRestorationChance", actorID: sourceActorID)

@@ -182,7 +182,11 @@ package extension DamagePipeline {
         var abilityBonus = state.options.abilityCriticalChanceBonus
         abilityBonus += consumePendingCriticalChanceBonus(for: state, actor: actor.combatant, in: &context)
         abilityBonus += consumeSanctifiedCriticalBonus(for: state, actor: actor.combatant, in: &context)
-        if state.options.isAttackHit, state.options.abilityHasLeech,
+        if state.options.isAttackHit,
+           state.options.abilityHasLeech || HealingEngine.grantsLeech(
+               to: actor, keyword: state.damageKeyword, criticalAttack: false,
+               attackHit: true, in: context,
+           ),
            context.roster.hasAffliction(.bleed, on: state.combatant) {
             abilityBonus += context.modifiers(for: sourceActorID).triggers.leechCriticalVsBleedingBonus
         }

@@ -175,8 +175,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        if state.options.isAttackHit,
-           let sourceActorID = state.sourceActorID,
+        if let sourceActorID = state.sourceActorID,
            state.targetStatus.isStunned {
             let profile = context.modifiers(for: sourceActorID)
             let multiplier = profile.triggers.stunnedDamageMultiplier
@@ -295,7 +294,6 @@ package extension DamagePipeline {
         guard let sourceID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceID)?.combatant else { return }
         let sourceIsFrozen = context.roster.hasControlStatus(for: source, keyword: .freeze)
-        let sourceIsStunned = context.roster.hasControlStatus(for: source, keyword: .stun)
         let sourceIsPoisoned = context.roster.hasAffliction(.poison, on: source)
         let sourceIsBleeding = context.roster.hasAffliction(.bleed, on: source)
         let sourceIsBurning = context.roster.hasAffliction(.burn, on: source)
@@ -314,9 +312,6 @@ package extension DamagePipeline {
             }
             if sourceIsBurning {
                 reductionFlat += t.burningEnemyDamageReductionFlat
-            }
-            if sourceIsStunned {
-                reductionMultiplier *= t.stunnedEnemyNextTurnDamageMultiplier
             }
             if sourceIsPoisoned {
                 reductionMultiplier *= (1 - min(1, t.poisonedEnemyAccuracyPenaltyPercent))

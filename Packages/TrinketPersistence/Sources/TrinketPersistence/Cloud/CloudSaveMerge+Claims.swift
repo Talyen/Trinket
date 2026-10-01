@@ -14,10 +14,18 @@ extension CloudSaveMerge {
                 return true
             }
         }
-        for offer in base.contracts.offers {
-            if !incoming.contracts.offers.contains(where: { $0.id == offer.id }),
-               !existing.contracts.offers.contains(where: { $0.id == offer.id }) {
+        if let starting = base.contracts.completedOfferIDs,
+           let first = incoming.contracts.completedOfferIDs, let second = existing.contracts.completedOfferIDs {
+            if !first.subtracting(starting).isDisjoint(with: second.subtracting(starting)) {
                 return true
+            }
+        } else {
+            // Older peers lack receipts; retain conservative overlap detection for them.
+            for offer in base.contracts.offers {
+                if !incoming.contracts.offers.contains(where: { $0.id == offer.id }),
+                   !existing.contracts.offers.contains(where: { $0.id == offer.id }) {
+                    return true
+                }
             }
         }
         let sharedSpireIDs = Set(incoming.spires.highestClearedFloorBySpireID.keys)
@@ -98,15 +106,22 @@ extension CloudSaveMerge {
                 }
             }
         }
-        guard let run = incoming.voyage.activeRun,
-              let otherRun = existing.voyage.activeRun,
-              otherRun.id == run.id,
-              base.voyage.activeRun?.id == run.id || base.voyage.offers.contains(where: { $0.id == run.id })
-        else { return false }
-        return run.nodes.contains { node in
-            node.isCleared && (!onlyCombat || node.type.isCombat)
-                && base.voyage.node(runID: run.id, nodeID: node.id)?.isCleared != true
-                && otherRun.node(id: node.id)?.isCleared == true
+        let incomingCompleted = (incoming.voyage.completedRunIDs ?? []).subtracting(base.voyage.completedRunIDs ?? [])
+        let existingCompleted = (existing.voyage.completedRunIDs ?? []).subtracting(base.voyage.completedRunIDs ?? [])
+        if !incomingCompleted.isDisjoint(with: existingCompleted) {
+            return true
+        }
+        return [incoming.voyage.activeRun, existing.voyage.activeRun].compactMap(\.self).contains { run in
+            guard base.voyage.activeRun?.id == run.id || base.voyage.offers.contains(where: { $0.id == run.id })
+            else { return false }
+            return run.nodes.contains { node in
+                (!onlyCombat || node.type.isCombat)
+                    && base.voyage.node(runID: run.id, nodeID: node.id)?.isCleared != true
+                    && (incoming.voyage.node(runID: run.id, nodeID: node.id)?.isCleared == true
+                        || incomingCompleted.contains(run.id))
+                    && (existing.voyage.node(runID: run.id, nodeID: node.id)?.isCleared == true
+                        || existingCompleted.contains(run.id))
+            }
         }
     }
 

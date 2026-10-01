@@ -40,6 +40,12 @@ package extension DamagePipeline {
            context.claimHeroTalent("Carnivore", actorID: sourceID) {
             state.talentAttackHasLeech = true
         }
+        if state.options.isAttackHit, HealingEngine.grantsLeech(
+            to: source, keyword: keyword, criticalAttack: state.isCritical,
+            attackHit: true, in: context,
+        ) {
+            state.talentAttackHasLeech = true
+        }
         applyFinalCompanionFlatAndPreparedBonuses(to: &state, source: source.combatant, triggers: triggers, in: &context)
         var multiplier = finalCompanionStatusMultiplier(for: state, source: source.combatant, triggers: triggers, in: context)
         multiplier *= finalCompanionKeywordMultiplier(for: state, source: source.combatant, triggers: triggers, in: &context)

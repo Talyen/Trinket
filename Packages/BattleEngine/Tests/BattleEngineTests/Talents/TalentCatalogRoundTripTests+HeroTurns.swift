@@ -12,11 +12,12 @@ extension TalentCatalogRoundTripTests {
         )
         battle.companionDeck = CombatDeck(abilities: [.bash, .fangs])
         battle.roster.hero.currentHealth = 10
+        _ = battle.resolution.beginAction(BattleActionContext(actor: battle.companion, in: battle), origin: .ability)
         let first = battle.healEmitting(amount: 2, target: battle.hero, source: battle.companion, abilityName: "Heal")
         let second = battle.healEmitting(amount: 2, target: battle.hero, source: battle.companion, abilityName: "Heal")
+        battle.resolution.endAction()
         #expect(first.contains { $0.abilityName == "Playful Energy" })
         #expect(!second.contains { $0.abilityName == "Playful Energy" })
-        battle.actionCount += 1
         let later = battle.healEmitting(amount: 2, target: battle.hero, source: battle.companion, abilityName: "Heal")
         #expect(later.contains { $0.abilityName == "Playful Energy" })
     }

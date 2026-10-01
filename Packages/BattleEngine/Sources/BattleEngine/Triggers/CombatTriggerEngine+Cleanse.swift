@@ -249,19 +249,19 @@ package extension CombatTriggerEngine {
 
     static func bonusHealAfterCleanse(
         source: Combatant,
+        target: Combatant,
         amount: Int,
         requireWoundedTarget: Bool,
         in context: inout BattleState,
     ) -> CombatOutcome {
         guard amount > 0 else { return .empty }
-        let healTarget = BattleTargetResolver.lowestHealthAlly(for: source, in: context)
         if requireWoundedTarget {
-            guard context.roster.health(for: healTarget) < context.roster.maxHealth(for: healTarget) else { return .empty }
+            guard context.roster.health(for: target) < context.roster.maxHealth(for: target) else { return .empty }
         }
         return resolveBonusHeal(
             amount: amount,
             source: source,
-            target: healTarget,
+            target: target,
             in: &context,
         )
     }

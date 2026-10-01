@@ -76,8 +76,9 @@ enum AbilityDescriptionFormatter {
         for component in components {
             let text = if let scaling = component.scaling {
                 switch scaling {
-                case let .actorBlockFraction(divisor, _):
+                case let .actorBlockFraction(divisor, minimum):
                     "deal \(component.keyword.rawValue) damage equal to \(fractionPhrase(divisor: divisor)) your Block"
+                        + (minimum > 0 ? " (minimum \(minimum))" : "")
                 }
             } else {
                 "deal \(component.amount) \(component.keyword.rawValue) damage"

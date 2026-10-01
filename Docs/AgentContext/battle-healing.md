@@ -18,6 +18,8 @@ source, and remaining duration together.
 Block grants declare a base or resolved amount through `BlockAmountBasis`.
 Duplication, transfer, and already-scaled gains use `.resolved` to avoid applying
 outgoing bonuses and fight pacing again; consequences read `BlockGain.applied`.
+Resolved Block also preserves its amount through recipient gain multipliers and
+leaves a prepared next-Block-gain bonus available for the next base grant.
 Bloodward rolls only when Leech directly restores Health, then grants a resolved
 Block amount equal to that restoration. Overflow does not fund its Block.
 Bloodroot grants Thorns after direct Leech restoration only when the wearer has
@@ -25,6 +27,12 @@ no Thorns. Scarfeast grants Leech to the wearer's Physical attacks while their
 Health was below half before the hit.
 Heartshock reacts only to direct Leech restoration below half Health. Its Stun
 follow-up cannot Leech, so it cannot trigger another Heartshock hit.
+Taste for Blood, Necrotic Bleed, Toxic Touch, Armor Pierce, and Vitality Infusion
+recognize Leech granted by equipment and talents as well as abilities. Guaranteed grants qualify at the
+attack checkpoint, before restoration can change the source's Health; a full-Health
+attacker still has a Leech attack. Chance-based Leech retains its restoration roll.
+Vitality Infusion requires a Critical Hit that removes Health, but does not
+require restoration when the attack already has guaranteed Leech.
 Restorative rolls its Cleanse chance only after Health is actually restored.
 Clearheaded and Solace reward each status effect removed, not an empty Cleanse.
 Rekindled restores Health only when its wearer survives Death's Door expiry.
@@ -39,6 +47,12 @@ current abilities, talents, and equipment selects the living ally with the
 lowest current Health on the source's side. Leech and its shares, party-wide
 heals, revivals and self-preservation at a Health threshold, attached repeats,
 and explicit overflow or partner transfers keep their intended recipients.
+Returning Bloom selects the lowest-Health living ally when Poison naturally expires.
+Incoming healing reduction applies to the complete restoration after flat talent
+bonuses, including Sprite Touch, Fortifying Tonic, and Spring Sap.
+Healing Hymn heals the cleansed ally; Fae Mending retains the lowest-Health
+recipient. Critical chance from Lastlight applies to restoration while its source
+is on Death's Door. Bonuses against Burning enemies do not apply to allied healing.
 Resolved transfers and echoes apply the recipient's current healing reductions,
 without repeating outgoing healing bonuses, Critical Hits, fight pacing, or Sprite
 Touch, and do not consume its first-restoration allowance. Shared Roots offers half

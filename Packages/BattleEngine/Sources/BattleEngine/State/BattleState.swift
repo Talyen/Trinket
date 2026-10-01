@@ -98,6 +98,7 @@ public struct BattleState {
     public package(set) var hasLoggedDefeat: Bool
     public package(set) var hasLoggedPartyDefeat: Bool
     public package(set) var lastEnemyDefeatWasCritical: Bool
+    package var lastEnemyDefeatSourceActorID: String?
 
     public package(set) var phase: BattlePhase
     public package(set) var hand: BattleHand

@@ -310,8 +310,9 @@ package extension DamagePipeline {
         let heal = context.modifiers(for: state.combatant.id).triggers.firstThornsDamageHealPerTurn
         if healthLost > 0, heal > 0,
            context.resolution.claim(.affix("spiteful"), actorID: state.combatant.id, cadence: .turn(context.turnCount)) {
+            let target = BattleTargetResolver.lowestHealthAlly(for: state.combatant, in: context)
             state.damageEvents.append(contentsOf: context.healEmitting(
-                amount: heal, target: state.combatant, source: state.combatant,
+                amount: heal, target: target, source: state.combatant,
                 abilityName: context.modifiers(for: state.combatant.id).triggerAbilityName(
                     "firstThornsDamageHealPerTurn", fallback: "Spiteful",
                 ),

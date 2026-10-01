@@ -88,7 +88,10 @@ package extension CombatTriggerEngine {
         for actor: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard context.roster.health(for: actor) > 0, context.lastEnemyDefeatWasCritical else { return [] }
+        guard context.roster.health(for: actor) > 0,
+              context.lastEnemyDefeatWasCritical,
+              context.lastEnemyDefeatSourceActorID == actor.id
+        else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         guard triggers.critOnDefeatGold > 0 else { return [] }
         return emitGold(

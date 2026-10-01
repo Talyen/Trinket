@@ -41,6 +41,9 @@ package enum BattleTurnEngine {
         )
         var events = [event]
 
+        if keyword == .stun, recovered {
+            applyStunRecoveryReduction(for: actor, context: &context)
+        }
         if actor.role == .enemy, keyword == .stun, recovered {
             events.append(contentsOf: CombatCheckpoint.controlRecovery(actor.id, .stun).resolve([
                 { CombatTriggerEngine.afterEnemyStunRecover(in: &$0) },
@@ -49,6 +52,19 @@ package enum BattleTurnEngine {
 
         recordAction(for: actor, context: &context)
         return events
+    }
+
+    private static func applyStunRecoveryReduction(for actor: Combatant, context: inout BattleState) {
+        let opponents = BattleActionContext(actor: actor, in: context).opponents(in: context)
+            .filter { context.health(of: $0) > 0 }
+        let multiplier = opponents.reduce(1.0) {
+            $0 * context.modifiers(for: $1.id).triggers.stunnedEnemyNextTurnDamageMultiplier
+        }
+        guard multiplier < 1, let source = opponents.first(where: {
+            context.modifiers(for: $0.id).triggers.stunnedEnemyNextTurnDamageMultiplier < 1
+        }) else { return }
+        // Round expiry follows this skipped action; retain the reduction through the recovery turn.
+        context.appendEffect(.damageReductionPercent(1 - multiplier, 2), to: actor, sourceID: source.id, remainingTurns: 2)
     }
 
     package static func performAction(

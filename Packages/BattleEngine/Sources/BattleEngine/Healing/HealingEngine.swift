@@ -11,14 +11,27 @@ package enum HealingEngine {
         _ request: HealRequest,
         in context: inout BattleState,
     ) -> HealingResult {
+        let standalone = context.resolution.beginStandaloneRestoration()
+        defer {
+            if standalone {
+                context.resolution.endStandaloneRestoration()
+            }
+        }
         guard context.roster.health(for: request.target) > 0 || request.revivesIfDead else { return .empty }
         if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(request.target, in: context) {
             return .empty
         }
         let sourceTriggers = request.sourceActorID.map { context.modifiers(for: $0).triggers }
         var flags: Set<CombatFlag> = []
-        let baseAmount = resolvedAmount(request, sourceTriggers: sourceTriggers, flags: &flags, in: &context)
-        let amount = adjustedHeroHealingAmount(baseAmount, request: request, in: &context)
+        let incomingMultiplier = CombatTriggerEngine.incomingHealMultiplier(for: request.target, in: context)
+        let baseAmount = incomingMultiplier > 0
+            ? resolvedAmount(request, sourceTriggers: sourceTriggers, flags: &flags, in: &context) : 0
+        let boostedAmount = incomingMultiplier > 0
+            ? adjustedHeroHealingAmount(baseAmount, request: request, in: &context) : 0
+        let amount = CombatRounding.scaled(
+            boostedAmount,
+            multiplier: incomingMultiplier,
+        )
 
         let preHealth = context.roster.health(for: request.target)
         let maxHealth = context.roster.maxHealth(for: request.target)
@@ -281,18 +294,11 @@ package enum HealingEngine {
         in context: inout BattleState,
     ) -> Int {
         if request.amountBasis == .resolved {
-            return CombatRounding.scaled(
-                max(0, request.amount),
-                multiplier: CombatTriggerEngine.incomingHealMultiplier(for: request.target, in: context),
-            )
+            return max(0, request.amount)
         }
         let bonus = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
         let percent = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredPercent } ?? 0
         var amount = CombatRounding.scaled(request.amount + bonus, multiplier: 1 + percent)
-        amount = CombatRounding.scaled(
-            amount,
-            multiplier: CombatTriggerEngine.incomingHealMultiplier(for: request.target, in: context),
-        )
         if request.origin != .leech, let sourceActorID = request.sourceActorID, !request.skipFightPacing {
             amount = context.paced(amount, sourceActorID: sourceActorID)
         }

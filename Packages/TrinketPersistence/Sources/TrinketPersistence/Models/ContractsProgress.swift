@@ -7,18 +7,21 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
     public private(set) var offers: [ContractOffer]
     public private(set) var refreshAvailable: Bool
     public private(set) var highestWonEncounterLevel: Int
+    var completedOfferIDs: Set<String>?
 
     public init(offers: [ContractOffer] = [], refreshAvailable: Bool = false, highestWonEncounterLevel: Int = 0) {
         self.offers = offers
         self.refreshAvailable = refreshAvailable
         self.highestWonEncounterLevel = max(0, highestWonEncounterLevel)
+        completedOfferIDs = []
     }
 
-    private enum CodingKeys: String, CodingKey { case offers, refreshAvailable, highestWonEncounterLevel }
+    private enum CodingKeys: String, CodingKey { case offers, refreshAvailable, highestWonEncounterLevel, completedOfferIDs }
 
     public init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         offers = try values.decode([ContractOffer].self, forKey: .offers)
+        completedOfferIDs = try values.decodeIfPresent(Set<String>.self, forKey: .completedOfferIDs)
         refreshAvailable = try values.decodeIfPresent(Bool.self, forKey: .refreshAvailable) ?? false
         highestWonEncounterLevel = try max(0, values.decodeIfPresent(Int.self, forKey: .highestWonEncounterLevel) ?? 0)
     }
@@ -47,6 +50,7 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> Bool {
         guard refreshAvailable else { return false }
+        completedOfferIDs = completedOfferIDs ?? []
         let previous = offers
         offers = []
         var excludedEnemyIDs = Set<String>()
@@ -83,6 +87,7 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
     ) -> Bool {
         guard let index = offers.firstIndex(where: { $0.id == offerID }) else { return false }
         let replacement = makeOffer(offers[index].difficulty, Set(offers.map(\.enemyID)), eligibleModifiers)
+        completedOfferIDs = (completedOfferIDs ?? []).union([offerID])
         offers[index] = replacement
         return true
     }
@@ -101,7 +106,9 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
             enemyIDs.insert(offer.enemyID)
             valid.append(offer)
         }
-        return Self(offers: valid, refreshAvailable: refreshAvailable, highestWonEncounterLevel: highestWonEncounterLevel)
+        var repaired = Self(offers: valid, refreshAvailable: refreshAvailable, highestWonEncounterLevel: highestWonEncounterLevel)
+        repaired.completedOfferIDs = completedOfferIDs
+        return repaired
     }
 
     var encodedPayload: Data {
@@ -129,7 +136,9 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
             }
             let level = fields?[CodingKeys.highestWonEncounterLevel.rawValue] as? Int ?? 0
             let refreshAvailable = fields?[CodingKeys.refreshAvailable.rawValue] as? Bool ?? false
-            return Self(refreshAvailable: refreshAvailable, highestWonEncounterLevel: level)
+            var repaired = Self(refreshAvailable: refreshAvailable, highestWonEncounterLevel: level)
+            repaired.completedOfferIDs = (fields?[CodingKeys.completedOfferIDs.rawValue] as? [String]).map { Set($0) }
+            return repaired
         }
     }
 }

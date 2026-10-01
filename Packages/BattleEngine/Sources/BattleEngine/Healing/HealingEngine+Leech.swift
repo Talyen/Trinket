@@ -3,6 +3,34 @@ import TrinketContent
 import TrinketCore
 
 package extension HealingEngine {
+    static func grantsLeech(
+        to actor: CombatantRuntime,
+        keyword damageKeyword: Keyword?,
+        criticalAttack: Bool,
+        attackHit: Bool,
+        in context: BattleState,
+    ) -> Bool {
+        let profile = context.modifiers(for: actor.id)
+        let actorCombatant = actor.combatant
+        return damageKeyword == .freeze && profile.triggers.freezeDamageLeech
+            || damageKeyword == .poison && profile.triggers.poisonDamageLeech
+            || damageKeyword == .poison && criticalAttack && profile.triggers.poisonCriticalHasLeech
+            || damageKeyword == .bleed && criticalAttack && profile.triggers.bleedCriticalHasLeech
+            || damageKeyword == .burn && profile.triggers.burnDamageLeech
+            || damageKeyword == .burn && profile.triggers.undyingEmber
+            && context.roster.isDeathsDoorActive(for: actorCombatant)
+            || damageKeyword == .bleed && profile.triggers.bleedDamageLeech
+            || damageKeyword == .bleed && attackHit
+            && actor.currentHealth > 0 && actor.maxHealth > 0
+            && Double(actor.currentHealth) / Double(actor.maxHealth)
+            < profile.triggers.bleedAttackLeechBelowHealthThreshold
+            || damageKeyword == .physical && attackHit
+            && actor.currentHealth > 0 && actor.currentHealth * 2 < actor.maxHealth
+            && profile.triggers.physicalAttackLeechBelowHalfHealth
+            || attackHit && profile.triggers.borrowedLife
+            && context.roster.isDeathsDoorActive(for: actorCombatant)
+    }
+
     // swiftlint:disable:next function_body_length cyclomatic_complexity - leech resolution is one atomic pipeline
     static func leechFromDamage(
         _ damage: Int,
@@ -35,23 +63,10 @@ package extension HealingEngine {
         if abilityHasLeech {
             leechPct = Effect.abilityLeechPercent
         }
-        let keywordGrantsLeech = damageKeyword == .freeze && profile.triggers.freezeDamageLeech
-            || damageKeyword == .poison && profile.triggers.poisonDamageLeech
-            || damageKeyword == .poison && criticalAttack && profile.triggers.poisonCriticalHasLeech
-            || damageKeyword == .bleed && criticalAttack && profile.triggers.bleedCriticalHasLeech
-            || damageKeyword == .burn && profile.triggers.burnDamageLeech
-            || damageKeyword == .burn && profile.triggers.undyingEmber
-            && context.roster.isDeathsDoorActive(for: actorCombatant)
-            || damageKeyword == .bleed && profile.triggers.bleedDamageLeech
-            || damageKeyword == .bleed && attackHit
-            && actor.currentHealth > 0 && actor.maxHealth > 0
-            && Double(actor.currentHealth) / Double(actor.maxHealth)
-            < profile.triggers.bleedAttackLeechBelowHealthThreshold
-            || damageKeyword == .physical && attackHit
-            && actor.currentHealth > 0 && actor.currentHealth * 2 < actor.maxHealth
-            && profile.triggers.physicalAttackLeechBelowHalfHealth
-            || attackHit && profile.triggers.borrowedLife
-            && context.roster.isDeathsDoorActive(for: actorCombatant)
+        let keywordGrantsLeech = grantsLeech(
+            to: actor, keyword: damageKeyword, criticalAttack: criticalAttack,
+            attackHit: attackHit, in: context,
+        )
         if leechPct == 0, keywordGrantsLeech {
             leechPct = Effect.abilityLeechPercent
         }

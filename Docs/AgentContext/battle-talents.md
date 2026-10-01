@@ -136,6 +136,13 @@ grant no damage rewards.
 
 Thick Hide reduces Physical damage by 2 only while its owner has Block.
 
+### Concussive Blow and Pulverize
+
+Concussive Blow applies its reduction after the final Stun skip and retains it
+through the recovered turn, including every hit of the recovered action.
+Pulverize removes enemy Block on Physical Critical Hits from full Basic
+counterattacks as well as played cards, including hits fully absorbed by Block.
+
 ### Dazing Swipe
 
 Dazing Swipe rolls 25% per qualifying attack to deal 3 Stun damage through
@@ -199,6 +206,13 @@ Fortified Rebirth and Ashen Ward protect Phoenix only during Death's Door.
 
 ## Card preparation and rewards
 
+### Bounty Hunter and winning hits
+
+Bounty Hunter grants Gold only when its owner delivers the critical killing blow;
+a partner's critical kill does not qualify. Companion attack rewards retain their
+Block, Mana, and draws on winning hits; enemy damage and miss preparations require
+a living enemy.
+
 ### Quick Fingers
 
 Quick Fingers draws when the owner's Critical Hit and Gold steal occur in the
@@ -225,6 +239,9 @@ Gilded Claws
 instead accumulates actual Gold stolen until the next attack. Authored
 `Ability.stealsGold` identifies theft from Steal, Bounty Shot, Blackjack,
 and Tithe; the marker survives outcome resolution and empowerment.
+
+Volatile Remedy likewise reserves its Poison bonus for a later ability;
+Leech restoration during Poison Dagger cannot strengthen that card's second hit.
 
 Aftershock Guard, Winter's Wake, Redline, Ashen Vitality, Golden Guard,
 Revealed Flaw, and Sanctified Scroll also reserve their next Block gain,

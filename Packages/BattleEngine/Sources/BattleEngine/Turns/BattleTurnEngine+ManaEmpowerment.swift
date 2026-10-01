@@ -18,7 +18,7 @@ package extension BattleTurnEngine {
         var purchases = 0
         var totalManaSpent = 0
         let purchaseLimit = ManaEmpowermentBudget(ability: ability, actor: actor, in: context).purchaseLimit
-        while purchases < purchaseLimit, context.roster.health(for: actor) > 0 {
+        while purchases < purchaseLimit, !context.isBattleOver, context.roster.health(for: actor) > 0 {
             guard let payment = payEmpowerment(ability: ability, actor: actor, in: &context) else { break }
             context.roster.mutateRuntime(for: actor) { $0.talents.battle.hasEmpoweredWithMana = true }
             context.roster.mutateRuntime(for: actor) { $0.talents.pending.nextManaEmpowerDiscount = 0 }

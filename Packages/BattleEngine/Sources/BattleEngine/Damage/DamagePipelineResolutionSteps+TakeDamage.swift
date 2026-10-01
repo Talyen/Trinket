@@ -17,6 +17,7 @@ package extension DamagePipeline {
         state.healthLost = lost
         if lost > 0, state.combatant.role == .enemy, context.roster.health(for: state.combatant) == 0 {
             context.lastEnemyDefeatWasCritical = state.isCritical
+            context.lastEnemyDefeatSourceActorID = state.sourceActorID
             if state.targetStatus.isBleeding || state.damageKeyword == .bleed,
                let source = state.partySource(in: context) {
                 // Snapshot affliction OR bleed-typed damage: a bleed hit can

@@ -38,6 +38,7 @@ extension BattleCardCombatTests {
                 blockPerTurn: 7, blockRetainsThreeQuarters: retainsMore,
             ))),
         )
+        DefensePoolEngine.set(45, on: battle.enemy, in: &battle)
         let events = battle.endTurn()
         #expect(events.contains { $0.effectKind == .controlActionSkipped } == skipped)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == (retainsMore ? 40 : 29))

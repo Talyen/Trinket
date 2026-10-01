@@ -18,6 +18,9 @@ snapshot and rejects stale settlements before any mode completion; the UI refres
 its reveal before another claim. Application uses the recorded production date so
 passive accrual cannot silently shrink a displayed award. Unprepared rewards use
 the same settlement path. Modes retain their existing one-time claim ownership.
+Contract victories record the completed offer ID before replacement; refreshing the board preserves receipts
+without creating a claim. Voyage victories record completed run IDs before
+dismissing their cleared routes.
 
 Contracts and Labyrinth/Voyage combat share Content's `RewardModifier` catalog.
 Voyage destination offers save a separate modifier for the final boss victory;
