@@ -147,7 +147,7 @@ public enum LabyrinthGenerator {
         using rng: inout some RandomNumberGenerator,
     ) -> GeneratedFloor {
         let clusterID = "labyrinth-cluster-\(number)"
-        let count = Int.random(in: 7 ... 9, using: &rng)
+        let count = Int.random(in: 15 ... 20, using: &rng)
         let planned = LabyrinthFloorTypePlacement.plannedTypes(
             count: count,
             hasEligibleRecruit: !eligibleRecruitEventIDs.isEmpty,

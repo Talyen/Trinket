@@ -187,17 +187,17 @@ struct PlayerRosterStateTests {
 
     @Test func `collection combatants place unlocked entries first and sort them by level`() throws {
         var roster = PlayerRosterState.freshStart
-        let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
 
-        roster.unlockedHeroIDs.formUnion([ranger.id, wizard.id])
+        roster.unlockedHeroIDs.formUnion([knight.id, wizard.id])
         roster.progressions[PlayerRosterState.starterHeroID] = CombatantProgression(
             level: 2,
             currentXP: 0,
             requiredXP: 100,
         )
-        roster.progressions[ranger.id] = CombatantProgression(level: 8, currentXP: 0, requiredXP: 100)
+        roster.progressions[knight.id] = CombatantProgression(level: 8, currentXP: 0, requiredXP: 100)
         roster.progressions[wizard.id] = CombatantProgression(level: 12, currentXP: 0, requiredXP: 100)
 
         roster.unlockedCompanionIDs.insert(bear.id)
@@ -206,7 +206,7 @@ struct PlayerRosterStateTests {
         let heroIDs = roster.collectionHeroes.map(\.id)
         let companionIDs = roster.collectionCompanions.map(\.id)
 
-        try #expect(Array(heroIDs.prefix(3)) == [wizard.id, ranger.id, PlayerRosterState.starterHeroID])
+        try #expect(Array(heroIDs.prefix(3)) == [wizard.id, knight.id, PlayerRosterState.starterHeroID])
         try #expect(heroIDs.dropFirst(3).allSatisfy { !roster.unlockedHeroIDs.contains($0) })
         try #expect(Array(companionIDs.prefix(2)) == [bear.id, PlayerRosterState.starterCompanionID])
         try #expect(companionIDs.dropFirst(2).allSatisfy { !roster.unlockedCompanionIDs.contains($0) })

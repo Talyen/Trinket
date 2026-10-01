@@ -151,7 +151,9 @@ reward descriptions and keyword/resource icons and colors.
 
 ## Labyrinth floor layout
 
-New floors contain 7–9 nodes within the existing three-column hex envelope.
+New floors contain 15–20 nodes, including the entry battle and boss, within the
+existing three-column hex envelope. Floors have 10–13 rows containing one or two
+nodes; approximately half the rows contain two. Entry and boss rows contain one node.
 Connected layouts have single-neighbor entry and boss nodes and at most four
 neighbors per node. Generation chooses trees 60% of the time, single loops 20%,
 and two-loop layouts 20%. Existing saved floors retain their geometry.

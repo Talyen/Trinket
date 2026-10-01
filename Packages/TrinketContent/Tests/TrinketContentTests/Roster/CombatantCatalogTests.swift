@@ -3,12 +3,18 @@ import TrinketContent
 import TrinketCore
 
 struct CombatantCatalogTests {
+    @Test func `starter hero ordering matches onboarding`() {
+        #expect(Array(ContentAccessPolicy.freeFirst(GameContent.heroes).prefix(4).map(\.id))
+            == ["ranger", "knight", "rogue", "wizard"])
+    }
+
     @Test(arguments: [
+        ("ranger", 14, 0, ["fire-arrow", "bounty-shot", "astral-arrow"]),
         ("alchemist", 14, 8, ["caustic-jab", "acid-potion", "luck-potion"]),
         ("druid", 16, 9, ["mana-berries", "cinderbloom", "bloodthorn"]),
         ("wildcard", 14, 0, ["blackjack", "bounty-shot", "astral-arrow"]),
     ])
-    func `imported heroes have approved defaults`(id: String, health: Int, mana: Int, abilities: [String]) throws {
+    func `heroes have approved defaults`(id: String, health: Int, mana: Int, abilities: [String]) throws {
         let hero = try #require(GameContent.heroes.first { $0.id == id })
         #expect(hero.maxHealth == health && hero.maxMana == mana)
         #expect(hero.abilityLoadout.abilities.map(\.id) == abilities)

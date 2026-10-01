@@ -109,10 +109,6 @@ struct HomesteadProjectTile: View {
                             )
                     }
 
-                HomesteadTierProgress(currentTier: status.currentTier, totalTiers: definition.maxTier)
-                    .frame(maxWidth: 132)
-                    .accessibilityHidden(true)
-
                 Text(balanced: definition.title)
                     .trinketTypography(.cardTitle)
                     .foregroundStyle(.primary)

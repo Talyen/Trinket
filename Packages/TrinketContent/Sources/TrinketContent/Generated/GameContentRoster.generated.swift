@@ -7,6 +7,17 @@ enum GameContentRosterGenerated {
         var list = [Combatant]()
         list.reserveCapacity(8)
         list.append(Combatant(
+            id: "ranger",
+            name: "Ranger",
+            role: .hero,
+            maxHealth: 14,
+            abilityChoices: AbilityChoices(
+                basics: [.fireArrow, .venomArrow, .sniffOut, .rendingSlash],
+                skills: [.bountyShot, .pounce, .predatorsFocus, .serratedEdge],
+                ultimates: [.astralArrow, .packTactics, .hemorrhage, .bloodthorn]
+            )
+        ))
+        list.append(Combatant(
             id: "knight",
             name: "Knight",
             role: .hero,
@@ -15,17 +26,6 @@ enum GameContentRosterGenerated {
                 basics: [.bash, .block, .shieldBash, .slash],
                 skills: [.smite, .sunder, .stoneskinPotion, .spikedShield],
                 ultimates: [.avatarOfJustice, .moltenBulwark, .blessedAegis, .earthquake]
-            )
-        ))
-        list.append(Combatant(
-            id: "ranger",
-            name: "Ranger",
-            role: .hero,
-            maxHealth: 14,
-            abilityChoices: AbilityChoices(
-                basics: [.venomArrow, .fireArrow, .sniffOut, .rendingSlash],
-                skills: [.pounce, .bountyShot, .predatorsFocus, .serratedEdge],
-                ultimates: [.packTactics, .astralArrow, .hemorrhage, .bloodthorn]
             )
         ))
         list.append(Combatant(

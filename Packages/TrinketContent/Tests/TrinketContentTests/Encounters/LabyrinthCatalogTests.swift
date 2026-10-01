@@ -1,7 +1,7 @@
 import Foundation
 import Testing
-import TrinketContent
 import TrinketCore
+@testable import TrinketContent
 
 @Suite("LabyrinthCatalog")
 struct LabyrinthCatalogTests {
@@ -20,8 +20,8 @@ struct LabyrinthCatalogTests {
     }
 
     @Test func `generator is deterministic for seed`() {
-        let first = LabyrinthGenerator.makeInitialMap(seed: 42)
-        let second = LabyrinthGenerator.makeInitialMap(seed: 42)
+        let first = LabyrinthGenerator.makeMap(seed: 42, floorCount: 3)
+        let second = LabyrinthGenerator.makeMap(seed: 42, floorCount: 3)
         #expect(first.clusters.map(\.id) == second.clusters.map(\.id))
         #expect(first.nodes.keys.sorted() == second.nodes.keys.sorted())
         for id in first.nodes.keys {
@@ -202,11 +202,11 @@ struct LabyrinthCatalogTests {
         var observedFourWayJunction = false
 
         for seed in 0 ..< 40 {
-            let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
+            let generated = LabyrinthGenerator.makeMap(seed: UInt64(seed), floorCount: 3)
             for cluster in generated.clusters where cluster.depthBand > 0 {
                 let nodes = cluster.nodeIDs.compactMap { generated.nodes[$0] }
-                #expect(nodes.count >= 7)
-                #expect(nodes.count <= 9)
+                #expect(nodes.count >= 15)
+                #expect(nodes.count <= 20)
                 #expect(nodes.count(where: { $0.type == .boss }) == 1)
                 #expect(nodes.first?.type == .battle)
                 #expect(nodes.last?.type == .boss)
@@ -230,7 +230,9 @@ struct LabyrinthCatalogTests {
                         false
                     }
                     #expect(node.modifierIDs.count == (expectsModifier ? 1 : 0))
-                    #expect(node.outgoingIDs.isEmpty)
+                    let expectedExits = node.type == .boss && node.depth < 3
+                        ? ["labyrinth-cluster-\(node.depth + 1)-n0"] : []
+                    #expect(node.outgoingIDs == expectedExits)
                 }
                 observedCycleCounts.insert(geometry.cycleCount)
                 layoutSignatures.insert(geometry.signature)
@@ -254,6 +256,13 @@ struct LabyrinthCatalogTests {
         #expect(nodes.last?.gridPosition?.row == maximumRow)
         #expect(rows.count(where: { $0 == minimumRow }) == 1)
         #expect(rows.count(where: { $0 == maximumRow }) == 1)
+
+        let rowCounts = Dictionary(grouping: positions, by: \.row).mapValues(\.count)
+        #expect(rowCounts.count == (2 * nodes.count + 1) / 3)
+        #expect(rowCounts.values.allSatisfy { (1 ... 2).contains($0) })
+        let doubleRows = rowCounts.values.count(where: { $0 == 2 })
+        #expect(doubleRows == nodes.count - rowCounts.count)
+        #expect((0.45 ... 0.55).contains(Double(doubleRows) / Double(rowCounts.count)))
 
         let projectedColumns = positions.map(\.projectedHalfColumn)
         #expect(
@@ -303,15 +312,15 @@ struct LabyrinthCatalogTests {
         #expect(foundRecruit)
     }
 
-    @Test func `generated floors separate same type neighbors when possible`() {
+    @Test func `generated floors preserve encounter guarantees`() {
         for seed in 0 ..< 32 {
             let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
-            assertMinimalSeparation(clusters: generated.clusters, nodes: generated.nodes)
+            assertEncounterContracts(clusters: generated.clusters, nodes: generated.nodes)
             let recruited = LabyrinthGenerator.makeInitialMap(
                 seed: UInt64(seed),
                 eligibleRecruitEventIDs: ["recruit-test-event"],
             )
-            assertMinimalSeparation(clusters: recruited.clusters, nodes: recruited.nodes)
+            assertEncounterContracts(clusters: recruited.clusters, nodes: recruited.nodes)
         }
         for seed in [3, 17, 99] as [UInt64] {
             let expanded = LabyrinthGenerator.makeMap(
@@ -319,17 +328,21 @@ struct LabyrinthCatalogTests {
                 floorCount: 3,
                 eligibleRecruitEventIDs: ["recruit-test-event"],
             )
-            assertMinimalSeparation(clusters: expanded.clusters, nodes: expanded.nodes)
+            assertEncounterContracts(clusters: expanded.clusters, nodes: expanded.nodes)
         }
     }
 
-    private func assertMinimalSeparation(
+    private func assertEncounterContracts(
         clusters: [LabyrinthCluster],
         nodes: [String: LabyrinthNode],
     ) {
         for cluster in clusters where cluster.depthBand > 0 {
             let floor = cluster.nodeIDs.compactMap { nodes[$0] }
-            #expect(adjacencyConflicts(in: floor) == minimalAdjacencyConflicts(for: floor))
+            #expect(floor.first?.type == .battle)
+            #expect(floor.last?.type == .boss)
+            #expect(floor.count(where: { $0.type == .shop }) == 1)
+            #expect(floor.count(where: { $0.type == .recruit }) <= 1)
+            #expect(floor.contains { $0.type == .mystery })
         }
     }
 
@@ -350,16 +363,14 @@ struct LabyrinthCatalogTests {
         let entry = nodes[0]
         let boss = nodes[nodes.count - 1]
         var middle = Array(nodes[1 ..< nodes.count - 1])
-        var seen: Set<[LabyrinthNodeType]> = []
         var best = Int.max
         func visit(index: Int) {
             if index == middle.count {
-                if seen.insert(middle.map(\.type)).inserted {
-                    best = min(best, adjacencyConflicts(in: [entry] + middle + [boss]))
-                }
+                best = min(best, adjacencyConflicts(in: [entry] + middle + [boss]))
                 return
             }
-            for i in index ..< middle.count {
+            var visitedTypes = Set<LabyrinthNodeType>()
+            for i in index ..< middle.count where visitedTypes.insert(middle[i].type).inserted {
                 middle.swapAt(index, i)
                 visit(index: index + 1)
                 middle.swapAt(index, i)
@@ -367,5 +378,82 @@ struct LabyrinthCatalogTests {
         }
         visit(index: 0)
         return best
+    }
+}
+
+extension LabyrinthCatalogTests {
+    @Test func `placement matches exhaustive optimum on small branching floors`() {
+        let positions = [
+            LabyrinthGridPosition(row: 0, column: 0),
+            LabyrinthGridPosition(row: 1, column: 0),
+            LabyrinthGridPosition(row: 2, column: -1),
+            LabyrinthGridPosition(row: 2, column: 0),
+            LabyrinthGridPosition(row: 3, column: -1),
+            LabyrinthGridPosition(row: 4, column: -2),
+            LabyrinthGridPosition(row: 4, column: -1),
+        ]
+        for hasRecruit in [false, true] {
+            for seed in 1 ... 8 {
+                var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
+                let planned = LabyrinthFloorTypePlacement.plannedTypes(
+                    count: positions.count, hasEligibleRecruit: hasRecruit, using: &rng,
+                )
+                let placed = LabyrinthFloorTypePlacement.separatedTypes(planned, positions: positions, using: &rng)
+                #expect(placed.sorted { $0.rawValue < $1.rawValue } == planned.sorted { $0.rawValue < $1.rawValue })
+                let nodes = placed.enumerated().map { index, type in
+                    LabyrinthNode(id: "n-\(index)", type: type, depth: 1, clusterID: "floor", gridPosition: positions[index])
+                }
+                #expect(adjacencyConflicts(in: nodes) == minimalAdjacencyConflicts(for: nodes))
+            }
+        }
+    }
+
+    @Test func `every supported floor size generates varied connected geometry`() {
+        for count in 15 ... 20 {
+            var signatures = Set<String>()
+            var cycles = Set<Int>()
+            for seed in 1 ... 20 {
+                var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
+                let positions = LabyrinthFloorGeometry.positions(nodeCount: count, using: &rng)
+                let nodes = positions.enumerated().map { index, position in
+                    LabyrinthNode(
+                        id: "n-\(index)", type: index == count - 1 ? .boss : .battle,
+                        depth: 1, clusterID: "floor", gridPosition: position,
+                    )
+                }
+                let geometry = validateGeometry(of: nodes)
+                signatures.insert(geometry.signature)
+                cycles.insert(geometry.cycleCount)
+            }
+            #expect(signatures.count >= 10)
+            #expect(cycles == [0, 1, 2])
+        }
+    }
+
+    @Test func `expansion preserves decoded legacy floor nodes`() throws {
+        let legacy = (0 ..< 7).map { index in
+            LabyrinthNode(
+                id: "legacy-\(index)", type: index == 6 ? .boss : .battle,
+                depth: 1, clusterID: "legacy", gridPosition: LabyrinthGridPosition(row: index, column: -index / 2),
+                isCleared: true, isRevealed: true,
+            )
+        }
+        let decoded = try JSONDecoder().decode([LabyrinthNode].self, from: JSONEncoder().encode(legacy))
+        var nodes = Dictionary(uniqueKeysWithValues: decoded.map { ($0.id, $0) })
+        var clusters = [LabyrinthCluster(id: "legacy", depthBand: 1, nodeIDs: decoded.map(\.id))]
+        let oldCluster = clusters[0]
+        LabyrinthGenerator.expandBeyondBoss(bossNodeID: "legacy-6", clusters: &clusters, nodes: &nodes, seed: 42)
+        #expect(clusters[0] == oldCluster)
+        for node in decoded.dropLast() {
+            #expect(nodes[node.id] == node)
+        }
+        var expectedBoss = decoded[6]
+        expectedBoss.outgoingIDs = nodes[expectedBoss.id]?.outgoingIDs ?? []
+        #expect(!expectedBoss.outgoingIDs.isEmpty)
+        #expect(nodes[expectedBoss.id] == expectedBoss)
+        let newFloor = try #require(clusters.first { $0.depthBand == 2 })
+        #expect((15 ... 20).contains(newFloor.nodeIDs.count))
+        _ = validateGeometry(of: newFloor.nodeIDs.compactMap { nodes[$0] })
+        #expect(LabyrinthGenerator.currentMapVersion == 6)
     }
 }

@@ -121,12 +121,15 @@ public struct CombatantTalentsView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if showsReset, allowsEditing, hasTreeUnlocks, let onResetTalents {
-                    Button("Reset All Talents") {
+                    Button {
                         _ = onResetTalents()
+                    } label: {
+                        Image(systemName: "arrow.counterclockwise")
                     }
                     .trinketTypography(.footnote)
                     .fontWeight(.semibold)
                     .foregroundStyle(TrinketDesign.Colors.accent)
+                    .accessibilityLabel("Reset All Talents")
                     .accessibilityIdentifier(AccessibilityID.CombatantDetail.talentsResetButton)
                 }
             }

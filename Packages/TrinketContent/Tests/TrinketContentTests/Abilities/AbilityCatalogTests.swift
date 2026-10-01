@@ -342,7 +342,7 @@ struct AbilityCatalogTests {
         }
         try #expect(AbilityCatalog.ability(id: "sap-arrow") == nil)
         let ranger = try #require(GameContent.hero(matching: "ranger"))
-        try #expect(ranger.abilityChoices.skills.map(\.id) == ["pounce", "bounty-shot", "predators-focus", "serrated-edge"])
+        try #expect(ranger.abilityChoices.skills.map(\.id) == ["bounty-shot", "pounce", "predators-focus", "serrated-edge"])
     }
 
     @Test func `variable damage branches resolve within locked ranges`() throws {

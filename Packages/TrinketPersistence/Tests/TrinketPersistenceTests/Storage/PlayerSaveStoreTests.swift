@@ -7,6 +7,21 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct PlayerSaveStoreTests {
+    @Test @MainActor func `Ranger defaults and explicit old loadout survive reload`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let ranger = try #require(GameContent.hero(matching: "ranger"))
+        #expect(store.roster.activeHeroID == ranger.id)
+        #expect(store.roster.activeCompanionID == "wolf")
+        #expect(store.roster.unlockedHeroIDs == [ranger.id])
+        #expect(store.roster.loadout(for: ranger).abilities.map(\.id)
+            == ["fire-arrow", "bounty-shot", "astral-arrow"])
+        let oldLoadout = AbilityLoadout(basic: .venomArrow, skill: .pounce, ultimate: .packTactics)
+        #expect(store.mutateRoster { $0.setLoadout(oldLoadout, for: ranger) })
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.loadout(for: ranger) == oldLoadout)
+    }
+
     @Test @MainActor func `unsupported development schema is rejected without replacing its stored progress`() throws {
         let context = try PersistenceTestContext()
         var save = PlayerSave.testSeed

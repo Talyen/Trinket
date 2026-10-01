@@ -3,156 +3,6 @@ import Foundation
 import TrinketCore
 
 public extension CombatantTalentCatalog {
-    static let knightTalents: [String: CombatantTalentEffect] = [
-            "knight_block_t1_1": CombatantTalentEffect(
-                name: "Bastion Stance",
-                iconID: "sf:shield.fill",
-                description: "Start combat with 6 Block",
-                modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(startBattleBlock: 6))
-            ),
-            "knight_block_t1_2": CombatantTalentEffect(
-                name: "Spiked Barricade",
-                iconID: "sf:asterisk",
-                description: "Thorns damage is doubled while you have Block",
-                modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(thornsDamageDoubleWhileBlocked: true))
-            ),
-            "knight_block_t2_1": CombatantTalentEffect(
-                name: "Intercede",
-                iconID: "sf:shield.lefthalf.filled",
-                description: "Your Block also absorbs damage dealt to your Companion",
-                modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(blockAbsorbsCompanionDamage: true))
-            ),
-            "knight_block_t2_2": CombatantTalentEffect(
-                name: "Guarded Impact",
-                iconID: "sf:bolt.shield.fill",
-                description: "Physical damage is increased by 25% of your Block",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(physicalDamageFromBlockPercent: 0.25))
-            ),
-            "knight_block_t3_1": CombatantTalentEffect(
-                name: "Consecration",
-                iconID: "sf:sparkles",
-                description: "With Block, take half Burn, Poison, and Bleed damage",
-                modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(blockHalvesDoTDamage: true))
-            ),
-            "knight_block_t3_2": CombatantTalentEffect(
-                name: "Unbreakable",
-                iconID: "sf:checkmark.shield.fill",
-                description: "Keep 75% of your Block between turns",
-                modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(blockRetainsThreeQuarters: true))
-            ),
-            "knight_holy_t1_1": CombatantTalentEffect(
-                name: "Oathbound",
-                iconID: "sf:checkmark.seal.fill",
-                description: "Holy damage is increased by 25% while you have Block",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(holyDamageWhileBlockedMultiplier: 1.25))
-            ),
-            "knight_holy_t1_2": CombatantTalentEffect(
-                name: "Pure Radiance",
-                iconID: "sf:sunrise.fill",
-                description: "Holy damage is increased by 50% against enemy Block",
-                modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(holyBlockBreakMultiplier: 1.5))
-            ),
-            "knight_holy_t2_1": CombatantTalentEffect(
-                name: "Holy Infusion",
-                iconID: "sf:cross.fill",
-                description: "Your Thorns deal Holy instead of Physical damage",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(thornsDealHoly: true))
-            ),
-            "knight_holy_t2_2": CombatantTalentEffect(
-                name: "Shield Shatter",
-                iconID: "sf:shield.slash.fill",
-                description: "Holy attacks ignore half enemy Block",
-                modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(holyBlockIgnorePercent: 0.5))
-            ),
-            "knight_holy_t3_1": CombatantTalentEffect(
-                name: "Smite the Wicked",
-                iconID: "sf:sun.max.fill",
-                description: "Purge draws a card while you're\nbelow half Health",
-                modifiers: [],
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(purgeDrawBelowHalf: true))
-            ),
-            "knight_holy_t3_2": CombatantTalentEffect(
-                name: "Divine Blessing",
-                iconID: "sf:heart.fill",
-                description: "Holy damage has a 10% chance to revive your Companion",
-                modifiers: [],
-                triggers: CombatTraitTriggers(revival: RevivalTriggers(holyDamageReviveCompanionChancePercent: 0.10))
-            ),
-            "knight_stun_t1_1": CombatantTalentEffect(
-                name: "Heavy Flail",
-                iconID: "sf:hammer.fill",
-                description: "Deal 3 additional damage to Stunned enemies",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(damageWhileTargetStunnedBonus: 3))
-            ),
-            "knight_stun_t1_2": CombatantTalentEffect(
-                name: "Concussive Blow",
-                iconID: "sf:bolt.fill",
-                description: "Stunned enemies deal half damage when they recover",
-                modifiers: [],
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(stunnedEnemyNextTurnDamageMultiplier: 0.5))
-            ),
-            "knight_stun_t2_1": CombatantTalentEffect(
-                name: "Skullcracker",
-                iconID: "sf:hammer.fill",
-                description: "Stun Critical Hits deal double damage",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(stunCriticalDamageMultiplier: 2))
-            ),
-            "knight_stun_t2_2": CombatantTalentEffect(
-                name: "Second Wind",
-                iconID: "sf:wind",
-                description: "When Stun ends, draw a card",
-                modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(onEnemyStunRecoverDrawCard: 1))
-            ),
-            "knight_stun_t3_1": CombatantTalentEffect(
-                name: "Searing Bind",
-                iconID: "sf:lock.fill",
-                description: "Stun lasts 1 extra turn on Burning enemies",
-                modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(stunExtendVsBurning: true))
-            ),
-            "knight_stun_t3_2": CombatantTalentEffect(
-                name: "Crusader's Mark",
-                iconID: "sf:target",
-                description: "Holy damage is increased by 5 against Stunned enemies",
-                modifiers: [],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(holyDamageVsStunnedBonus: 5))
-            ),
-            "knight_stun_t4_1": CombatantTalentEffect(
-                name: "Lightning Rod",
-                iconID: "sf:bolt.fill",
-                description: "Stun damage is increased by half your Block",
-                modifiers: [],
-                triggers: CombatTraitTriggers(control: ControlTriggers(lightningRod: true))
-            ),
-            "knight_holy_t4_1": CombatantTalentEffect(
-                name: "Sunwall",
-                iconID: "sf:shield.fill",
-                description: "Holy damage has a 10% chance to grant equal Block to your Companion",
-                modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(sunwallChancePercent: 0.10))
-            ),
-            "knight_block_t4_1": CombatantTalentEffect(
-                name: "Stalwart Oath",
-                iconID: "sf:checkmark.shield.fill",
-                description: "Below half Health, Block absorbs 50% more damage",
-                modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(blockAbsorptionMultiplierBelowHalfHealth: 1.5))
-            )
-    ]
-
     static let rangerTalents: [String: CombatantTalentEffect] = [
             "ranger_poison_t1_1": CombatantTalentEffect(
                 name: "Venomous Arrows",
@@ -300,6 +150,156 @@ public extension CombatantTalentCatalog {
                 description: "Companion attacks gain +15% Critical chance against Burning enemies",
                 modifiers: [],
                 triggers: CombatTraitTriggers(damage: DamageTriggers(companionCriticalVsBurningBonus: 0.15))
+            )
+    ]
+
+    static let knightTalents: [String: CombatantTalentEffect] = [
+            "knight_block_t1_1": CombatantTalentEffect(
+                name: "Bastion Stance",
+                iconID: "sf:shield.fill",
+                description: "Start combat with 6 Block",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(startBattleBlock: 6))
+            ),
+            "knight_block_t1_2": CombatantTalentEffect(
+                name: "Spiked Barricade",
+                iconID: "sf:asterisk",
+                description: "Thorns damage is doubled while you have Block",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(thornsDamageDoubleWhileBlocked: true))
+            ),
+            "knight_block_t2_1": CombatantTalentEffect(
+                name: "Intercede",
+                iconID: "sf:shield.lefthalf.filled",
+                description: "Your Block also absorbs damage dealt to your Companion",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(blockAbsorbsCompanionDamage: true))
+            ),
+            "knight_block_t2_2": CombatantTalentEffect(
+                name: "Guarded Impact",
+                iconID: "sf:bolt.shield.fill",
+                description: "Physical damage is increased by 25% of your Block",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(physicalDamageFromBlockPercent: 0.25))
+            ),
+            "knight_block_t3_1": CombatantTalentEffect(
+                name: "Consecration",
+                iconID: "sf:sparkles",
+                description: "With Block, take half Burn, Poison, and Bleed damage",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(blockHalvesDoTDamage: true))
+            ),
+            "knight_block_t3_2": CombatantTalentEffect(
+                name: "Unbreakable",
+                iconID: "sf:checkmark.shield.fill",
+                description: "Keep 75% of your Block between turns",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(blockRetainsThreeQuarters: true))
+            ),
+            "knight_holy_t1_1": CombatantTalentEffect(
+                name: "Oathbound",
+                iconID: "sf:checkmark.seal.fill",
+                description: "Holy damage is increased by 25% while you have Block",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(holyDamageWhileBlockedMultiplier: 1.25))
+            ),
+            "knight_holy_t1_2": CombatantTalentEffect(
+                name: "Pure Radiance",
+                iconID: "sf:sunrise.fill",
+                description: "Holy damage is increased by 50% against enemy Block",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(holyBlockBreakMultiplier: 1.5))
+            ),
+            "knight_holy_t2_1": CombatantTalentEffect(
+                name: "Holy Infusion",
+                iconID: "sf:cross.fill",
+                description: "Your Thorns deal Holy instead of Physical damage",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(thornsDealHoly: true))
+            ),
+            "knight_holy_t2_2": CombatantTalentEffect(
+                name: "Shield Shatter",
+                iconID: "sf:shield.slash.fill",
+                description: "Holy attacks ignore half enemy Block",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(holyBlockIgnorePercent: 0.5))
+            ),
+            "knight_holy_t3_1": CombatantTalentEffect(
+                name: "Smite the Wicked",
+                iconID: "sf:sun.max.fill",
+                description: "Purge draws a card while you're\nbelow half Health",
+                modifiers: [],
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(purgeDrawBelowHalf: true))
+            ),
+            "knight_holy_t3_2": CombatantTalentEffect(
+                name: "Divine Blessing",
+                iconID: "sf:heart.fill",
+                description: "Holy damage has a 10% chance to revive your Companion",
+                modifiers: [],
+                triggers: CombatTraitTriggers(revival: RevivalTriggers(holyDamageReviveCompanionChancePercent: 0.10))
+            ),
+            "knight_stun_t1_1": CombatantTalentEffect(
+                name: "Heavy Flail",
+                iconID: "sf:hammer.fill",
+                description: "Deal 3 additional damage to Stunned enemies",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(damageWhileTargetStunnedBonus: 3))
+            ),
+            "knight_stun_t1_2": CombatantTalentEffect(
+                name: "Concussive Blow",
+                iconID: "sf:bolt.fill",
+                description: "Stunned enemies deal half damage when they recover",
+                modifiers: [],
+                triggers: CombatTraitTriggers(mitigation: MitigationTriggers(stunnedEnemyNextTurnDamageMultiplier: 0.5))
+            ),
+            "knight_stun_t2_1": CombatantTalentEffect(
+                name: "Skullcracker",
+                iconID: "sf:hammer.fill",
+                description: "Stun Critical Hits deal double damage",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(stunCriticalDamageMultiplier: 2))
+            ),
+            "knight_stun_t2_2": CombatantTalentEffect(
+                name: "Second Wind",
+                iconID: "sf:wind",
+                description: "When Stun ends, draw a card",
+                modifiers: [],
+                triggers: CombatTraitTriggers(control: ControlTriggers(onEnemyStunRecoverDrawCard: 1))
+            ),
+            "knight_stun_t3_1": CombatantTalentEffect(
+                name: "Searing Bind",
+                iconID: "sf:lock.fill",
+                description: "Stun lasts 1 extra turn on Burning enemies",
+                modifiers: [],
+                triggers: CombatTraitTriggers(control: ControlTriggers(stunExtendVsBurning: true))
+            ),
+            "knight_stun_t3_2": CombatantTalentEffect(
+                name: "Crusader's Mark",
+                iconID: "sf:target",
+                description: "Holy damage is increased by 5 against Stunned enemies",
+                modifiers: [],
+                triggers: CombatTraitTriggers(damage: DamageTriggers(holyDamageVsStunnedBonus: 5))
+            ),
+            "knight_stun_t4_1": CombatantTalentEffect(
+                name: "Lightning Rod",
+                iconID: "sf:bolt.fill",
+                description: "Stun damage is increased by half your Block",
+                modifiers: [],
+                triggers: CombatTraitTriggers(control: ControlTriggers(lightningRod: true))
+            ),
+            "knight_holy_t4_1": CombatantTalentEffect(
+                name: "Sunwall",
+                iconID: "sf:shield.fill",
+                description: "Holy damage has a 10% chance to grant equal Block to your Companion",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(sunwallChancePercent: 0.10))
+            ),
+            "knight_block_t4_1": CombatantTalentEffect(
+                name: "Stalwart Oath",
+                iconID: "sf:checkmark.shield.fill",
+                description: "Below half Health, Block absorbs 50% more damage",
+                modifiers: [],
+                triggers: CombatTraitTriggers(block: BlockTriggers(blockAbsorptionMultiplierBelowHalfHealth: 1.5))
             )
     ]
 
@@ -3192,8 +3192,8 @@ public extension CombatantTalentCatalog {
         var combined: [String: CombatantTalentEffect] = [:]
         combined.reserveCapacity(446)
         for group in [
-            knightTalents,
             rangerTalents,
+            knightTalents,
             rogueTalents,
             wizardTalents,
             druidTalents,

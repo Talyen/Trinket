@@ -1,7 +1,7 @@
 public struct ContentAccessPolicy: Equatable, Sendable {
     public static let free = Self(hasFullGame: false)
     public static let fullGame = Self(hasFullGame: true)
-    public static let freeHeroIDs = ["knight", "ranger", "rogue", "wizard"]
+    public static let freeHeroIDs = ["ranger", "knight", "rogue", "wizard"]
     public static let freeCompanionIDs = ["wolf", "bear", "frost_whelp", "library_owl"]
     public static let freeCampaignChapterCount = 3
     public static let freeLabyrinthFloorCount = 3

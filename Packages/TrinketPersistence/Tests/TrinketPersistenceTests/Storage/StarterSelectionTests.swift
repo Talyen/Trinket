@@ -3,7 +3,7 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct StarterSelectionTests {
-    @Test(arguments: ["warlock", "alchemist", "druid", "wildcard"])
+    @Test(arguments: ["ranger", "knight", "warlock", "alchemist", "druid", "wildcard"])
     @MainActor func `starter party survives reload`(heroID: String) throws {
         let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()

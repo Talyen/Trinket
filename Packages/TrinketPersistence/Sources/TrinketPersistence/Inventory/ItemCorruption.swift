@@ -140,13 +140,18 @@ public enum ItemCorruption {
             summaries.append(.upgradedRarity)
         }
 
-        var powers: [ItemAffixPower] = affixIDs.compactMap { id in
-            resolvedPower(for: id, on: item, rarity: rarity)
+        let newAffixIndices = markCandidates.map(\.1)
+        var powers: [ItemAffixPower] = affixIDs.enumerated().compactMap { index, id in
+            if newAffixIndices.contains(index) {
+                return GameContent.itemAffixDefinition(matching: id)?.power(for: rarity)
+            }
+            return resolvedPower(for: id, on: item, rarity: rarity)
         }
         applyBumpEffects(
             kinds: kinds,
             powers: &powers,
             affixIDs: affixIDs,
+            newAffixIndices: newAffixIndices,
             summaries: &summaries,
             markCandidates: &markCandidates,
             using: &randomNumberGenerator,
@@ -238,33 +243,61 @@ public enum ItemCorruption {
         }
     }
 
+    static func bumpNewAffix(
+        power: inout ItemAffixPower,
+        using randomNumberGenerator: inout some RandomNumberGenerator,
+    ) -> ItemAffixPowerBumpDirection? {
+        guard power.hasBumpableField(direction: .up) else { return nil }
+        let ticket = Int.random(
+            in: 1 ... (bumpUpChancePercent + bumpDownChancePercent),
+            using: &randomNumberGenerator,
+        )
+        var direction: ItemAffixPowerBumpDirection = ticket <= bumpUpChancePercent ? .up : .down
+        if !power.hasBumpableField(direction: direction) {
+            direction = .up
+        }
+        guard let target = power.bumpCandidates(direction: direction)
+            .randomElement(using: &randomNumberGenerator) else { return nil }
+        power = power.bumped(target: target, direction: direction)
+        return direction
+    }
+
     private static func applyBumpEffects(
         kinds: Set<CorruptionEffectKind>,
         powers: inout [ItemAffixPower],
         affixIDs: [String],
+        newAffixIndices: [Int],
         summaries: inout [CorruptionEffectSummary],
         markCandidates: inout [(CorruptionMarkPriority, Int)],
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) {
-        if kinds.contains(.bumpUp),
-           let bump = ItemAffixPower.applyBump(
-               direction: .up,
-               to: &powers,
-               affixIDs: affixIDs,
-               using: &randomNumberGenerator,
-           ) {
-            summaries.append(.bumpedUp(affixTitle: bump.title))
-            markCandidates.append((.empowered, bump.affixIndex))
+        for index in newAffixIndices {
+            guard let direction = bumpNewAffix(power: &powers[index], using: &randomNumberGenerator) else {
+                continue
+            }
+            let title = GameContent.itemAffixDefinition(matching: affixIDs[index])?.title ?? affixIDs[index]
+            summaries.append(direction == .up ? .bumpedUp(affixTitle: title) : .bumpedDown(affixTitle: title))
         }
-        if kinds.contains(.bumpDown),
-           let bump = ItemAffixPower.applyBump(
-               direction: .down,
-               to: &powers,
-               affixIDs: affixIDs,
-               using: &randomNumberGenerator,
-           ) {
-            summaries.append(.bumpedDown(affixTitle: bump.title))
-            markCandidates.append((.weakened, bump.affixIndex))
+
+        // Structural changes have their own bump; ordinary rolls only target survivors.
+        let survivingIndices = powers.indices.filter { !newAffixIndices.contains($0) }
+        var survivingPowers = survivingIndices.map { powers[$0] }
+        let survivingIDs = survivingIndices.map { affixIDs[$0] }
+        let effects: [(CorruptionEffectKind, ItemAffixPowerBumpDirection, CorruptionMarkPriority)] = [
+            (.bumpUp, .up, .empowered),
+            (.bumpDown, .down, .weakened),
+        ]
+        for (kind, direction, priority) in effects where kinds.contains(kind) {
+            guard let bump = ItemAffixPower.applyBump(
+                direction: direction,
+                to: &survivingPowers,
+                affixIDs: survivingIDs,
+                using: &randomNumberGenerator,
+            ) else { continue }
+            let index = survivingIndices[bump.affixIndex]
+            powers[index] = survivingPowers[bump.affixIndex]
+            summaries.append(direction == .up ? .bumpedUp(affixTitle: bump.title) : .bumpedDown(affixTitle: bump.title))
+            markCandidates.append((priority, index))
         }
     }
 

@@ -8,7 +8,7 @@ import TrinketPersistenceTestSupport
 struct MysteryEffectApplierTests {
     @Test func `applying gold materials and experience mutates save`() throws {
         var save = SaveTestSupport.makeSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let hero = save.roster.activeHero
         let companion = save.roster.activeCompanion
         let heroProgressionBefore = save.roster.progression(for: hero)
         let companionProgressionBefore = save.roster.progression(for: companion)
@@ -100,7 +100,7 @@ struct MysteryEffectApplierTests {
 
     @Test func `mystery experience grants the same amount across recipient levels`() throws {
         var save = SaveTestSupport.makeSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let hero = save.roster.activeHero
         let companion = save.roster.activeCompanion
         save.roster.progressions[hero.id] = .at(level: 20)
         save.roster.progressions[companion.id] = .at(level: 5)

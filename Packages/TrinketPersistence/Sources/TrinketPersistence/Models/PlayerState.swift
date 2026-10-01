@@ -74,7 +74,7 @@ enum InventoryDuplicatePolicy {
 }
 
 public struct PlayerRosterState: Equatable, Sendable {
-    public static let starterHeroID = "knight"
+    public static let starterHeroID = "ranger"
     public static let starterCompanionID = "wolf"
 
     public var activeHeroID: String

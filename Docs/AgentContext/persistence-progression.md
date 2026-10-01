@@ -51,6 +51,15 @@ encounter completion never apply. Retreat grants nothing. `BattleExperienceRewar
 applies only the two XP awards in the same save transaction. The claim/navigation
 sequence is owned by [battle completion](battle-launch.md).
 
+Corruption gives each successfully added or replaced affix one numeric bump at the
+item's final rarity: increase/decrease odds use the existing 40:20 weights (two to
+one), changing one eligible value by 1 or one percentage point. A decrease that
+cannot respect the 1 / 1% minimum becomes an increase. On/off affixes stay eligible
+without a numeric bump. The independent item-wide 40% increase and 20% decrease
+rolls target only surviving original affixes, preventing extra bumps on new affixes.
+Existing corrupted items are unchanged; structural selection and corruption-mark
+priority retain their existing rules.
+
 Mystery opening pins the chosen event and prepares any saved offers in one
 transaction; rejected offers leave no new pin, and the session appears only
 after the save commits. `MysteryEncounterResolution` owns choice effects and

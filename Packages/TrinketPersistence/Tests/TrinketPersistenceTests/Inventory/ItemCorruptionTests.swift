@@ -228,43 +228,6 @@ struct ItemCorruptionTests {
         #expect(save.inventory.items == [trinket])
     }
 
-    @Test @MainActor func `corruption persists across reload`() throws {
-        let context = try PersistenceTestContext()
-        let store = try context.makeSaveStore()
-        let item = try makeItem(baseID: "sapphire_ring", rarity: .basic, affixCount: 2, id: "corrupt-ring")
-        try store.performBatchMutation { save in
-            save.inventory.items = [item]
-        }
-
-        var applied: ItemCorruptionDetail?
-        try store.performBatchMutation { save in
-            var rng = SeededRandomNumberGenerator(seed: 99)
-            if case let .success(result) = ItemCorruptionApplier.corrupt(
-                itemID: item.id,
-                save: &save,
-                using: &rng,
-            ) {
-                applied = result
-                ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &save)
-            }
-        }
-
-        let result = try #require(applied)
-        #expect(result.item.isCorrupted)
-        #expect(result.item.affixes.filter(\.isCorrupted).count == 1)
-        #expect(store.currentSave.corruptionAltarCooldownRemaining == 6)
-
-        let reloaded = try context.makeSaveStore()
-        let reloadedItem = try #require(reloaded.currentSave.inventory.items.first { $0.id == item.id })
-        #expect(reloadedItem.isCorrupted)
-        #expect(reloadedItem.hasCorruptedAffix)
-        #expect(reloadedItem.affixes.filter(\.isCorrupted).count == 1)
-        #expect(reloadedItem.affixPowers?.count == reloadedItem.affixes.count)
-        #expect(reloaded.currentSave.corruptionAltarCooldownRemaining == 6)
-
-        #expect(!ItemCorruption.isEligibleTarget(reloadedItem))
-    }
-
     @Test func `cooldown decrements on non altar mystery`() {
         var save = PlayerSave.testSeed
         save.corruptionAltarCooldownRemaining = 3
@@ -409,6 +372,145 @@ struct ItemCorruptionTests {
 }
 
 extension ItemCorruptionTests {
+    @Test @MainActor func `corruption persists across reload`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let item = try makeItem(baseID: "sapphire_ring", rarity: .basic, affixCount: 2, id: "corrupt-ring")
+        try store.performBatchMutation { save in
+            save.inventory.items = [item]
+        }
+
+        let seed = try #require((UInt64(1) ... 64).first { seed in
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            guard let detail = ItemCorruption.corrupt(item, using: &rng) else { return false }
+            return detail.item.affixes.contains { affix in
+                !item.affixes.contains { $0.id == affix.id }
+                    && detail.effects.contains {
+                        $0 == .bumpedUp(affixTitle: affix.title) || $0 == .bumpedDown(affixTitle: affix.title)
+                    }
+            }
+        })
+        var applied: ItemCorruptionDetail?
+        try store.performBatchMutation { save in
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            if case let .success(result) = ItemCorruptionApplier.corrupt(
+                itemID: item.id,
+                save: &save,
+                using: &rng,
+            ) {
+                applied = result
+                ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &save)
+            }
+        }
+
+        let result = try #require(applied)
+        #expect(result.item.isCorrupted)
+        #expect(result.item.affixes.filter(\.isCorrupted).count == 1)
+        #expect(store.currentSave.corruptionAltarCooldownRemaining == 6)
+
+        let reloaded = try context.makeSaveStore()
+        let reloadedItem = try #require(reloaded.currentSave.inventory.items.first { $0.id == item.id })
+        #expect(reloadedItem == result.item)
+        #expect(reloadedItem.isCorrupted)
+        #expect(reloadedItem.hasCorruptedAffix)
+        #expect(reloadedItem.affixes.filter(\.isCorrupted).count == 1)
+        #expect(reloadedItem.affixPowers?.count == reloadedItem.affixes.count)
+        #expect(reloaded.currentSave.corruptionAltarCooldownRemaining == 6)
+
+        #expect(!ItemCorruption.isEligibleTarget(reloadedItem))
+    }
+
+    @Test func `new affix direction uses the standard two to one weights`() {
+        let original = ItemAffixPower(
+            description: "Gain 5 Health.", modifiers: [.maximumHealth(5)],
+        )
+        var directions = Set<Int>()
+        for seed in UInt64(1) ... 64 {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            var reference = rng
+            let ticket = Int.random(in: 1 ... 60, using: &reference)
+            let expected: ItemAffixPowerBumpDirection = ticket <= 40 ? .up : .down
+            var power = original
+            let direction = ItemCorruption.bumpNewAffix(power: &power, using: &rng)
+            #expect(direction == expected)
+            #expect(power.modifiers == [.maximumHealth(expected == .up ? 6 : 4)])
+            #expect(power.description == "Gain \(expected == .up ? 6 : 4) Health.")
+            directions.insert(expected == .up ? 1 : -1)
+        }
+        #expect(directions == [-1, 1])
+    }
+
+    @Test func `new minimum values increase and on off powers remain unchanged`() throws {
+        let minimums = [
+            ItemAffixPower(description: "Gain 1 Health.", modifiers: [.maximumHealth(1)]),
+            ItemAffixPower(description: "Gain 1% more Gold.", modifiers: [.goldGainedPercent(0.01)]),
+        ]
+        let expected = [
+            ItemAffixPower(description: "Gain 2 Health.", modifiers: [.maximumHealth(2)]),
+            ItemAffixPower(description: "Gain 2% more Gold.", modifiers: [.goldGainedPercent(0.02)]),
+        ]
+        for (index, original) in minimums.enumerated() {
+            var power = original
+            var rng = MaximumRandomNumberGenerator()
+            #expect(ItemCorruption.bumpNewAffix(power: &power, using: &rng) == .up)
+            #expect(power == expected[index])
+        }
+        let branding = try #require(GameContent.itemAffixDefinition(matching: "branding"))
+        var power = branding.basic
+        var rng = MaximumRandomNumberGenerator()
+        #expect(ItemCorruption.bumpNewAffix(power: &power, using: &rng) == nil)
+        #expect(power == branding.basic)
+    }
+
+    @Test func `structural affixes get exactly one bump at final rarity`() throws {
+        let base = try #require(GameContent.itemBaseType(matching: "longsword"))
+        var fixtureRNG = SeededRandomNumberGenerator(seed: 1772)
+        let item = ItemGenerator().generate(
+            id: "structural-sword", baseType: base, rarity: .basic,
+            fixedAffixCount: 1, using: &fixtureRNG,
+        )
+        let combinations: [Set<CorruptionEffectKind>] = [
+            [.addAffix], [.replaceAffix], [.replaceAffix, .bumpUp, .bumpDown],
+            [.addAffix, .replaceAffix, .bumpUp, .bumpDown],
+            [.addAffix, .replaceAffix, .upgradeRarity, .bumpUp, .bumpDown],
+        ]
+        for kinds in combinations {
+            for seed in UInt64(1) ... 64 {
+                var rng = SeededRandomNumberGenerator(seed: seed)
+                let result = ItemCorruption.apply(kinds: kinds, to: item, using: &rng)
+                let powers = try #require(result.item.affixPowers)
+                for (index, affix) in result.item.affixes.enumerated() {
+                    let isNew = result.effects.contains { effect in
+                        switch effect {
+                        case let .addedAffix(title), let .replacedAffix(_, title): title == affix.title
+                        default: false
+                        }
+                    }
+                    guard isNew else { continue }
+                    let definition = try #require(GameContent.itemAffixDefinition(matching: affix.id))
+                    let baseline = definition.power(for: result.item.rarity)
+                    let bumps = result.effects.filter {
+                        $0 == .bumpedUp(affixTitle: affix.title) || $0 == .bumpedDown(affixTitle: affix.title)
+                    }
+                    if baseline.hasBumpableField(direction: .up) {
+                        #expect(bumps.count == 1)
+                        let direction: ItemAffixPowerBumpDirection = bumps.first == .bumpedUp(affixTitle: affix.title)
+                            ? .up : .down
+                        let possible = baseline.bumpCandidates(direction: direction).map {
+                            baseline.bumped(target: $0, direction: direction)
+                        }
+                        #expect(possible.contains { $0 == powers[index] })
+                        #expect(powers[index] != baseline)
+                    } else {
+                        #expect(bumps.isEmpty)
+                        #expect(powers[index] == baseline)
+                    }
+                    #expect(affix.description == powers[index].description)
+                }
+            }
+        }
+    }
+
     @Test func `bump applies integer and percent triggers correctly`() {
         var intPowers = [
             ItemAffixPower(

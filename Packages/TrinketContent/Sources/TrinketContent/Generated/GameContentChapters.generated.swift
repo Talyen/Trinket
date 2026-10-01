@@ -49,7 +49,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 5,
-                    encounter: .recruit(eventID: "recruit-ranger"),
+                    encounter: .recruit(eventID: "recruit-knight"),
                     rewards: .empty
                 ),
                 Stage(

@@ -22,7 +22,7 @@ struct ContentAccessPersistenceTests {
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.roster.unlockedHeroIDs.contains("warlock"))
         #expect(reloaded.roster.unlockedCompanionIDs.contains("phoenix"))
-        #expect(reloaded.roster.activeHeroID == "knight")
+        #expect(reloaded.roster.activeHeroID == "ranger")
         #expect(reloaded.roster.activeCompanionID == "wolf")
         #expect(reloaded.roster.progressions["warlock"] == progress["warlock"])
         #expect(reloaded.roster.gold == 41)

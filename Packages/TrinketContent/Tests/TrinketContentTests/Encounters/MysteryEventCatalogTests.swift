@@ -128,6 +128,29 @@ struct MysteryEventCatalogTests {
         try #expect(GameContent.mysteryEvents.contains(event))
     }
 
+    @Test func `Forest recruits Knight after Ranger and replaces an already chosen Knight`() throws {
+        let stage = try #require(GameContent.chapters.flatMap(\.stages).first {
+            $0.chapterNumber == 1 && $0.stageNumber == 5
+        })
+        #expect(stage.encounter.recruitEventID == "recruit-knight")
+        for starterID in ["ranger", "knight"] {
+            let resolution = GameContent.resolveRecruitEncounter(
+                configuredEventID: stage.encounter.recruitEventID,
+                encounterID: stage.id,
+                worldSeed: 3,
+                unlockedHeroIDs: [starterID],
+                unlockedCompanionIDs: ["wolf"],
+                access: .free,
+            )
+            let recruitedID = try #require(resolution.event.unlockCombatantID)
+            #expect(recruitedID != starterID && recruitedID != "wolf")
+            #expect(ContentAccessPolicy.isFreeCombatant(recruitedID))
+            if starterID == "ranger" {
+                #expect(recruitedID == "knight")
+            }
+        }
+    }
+
     @Test func `unchosen legacy starters remain eligible recruits`() throws {
         let knight = GameContent.resolveRecruitEncounter(
             configuredEventID: "recruit-knight",

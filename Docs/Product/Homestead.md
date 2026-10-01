@@ -9,17 +9,16 @@ without a confirmation dialog.
 The overview keeps its full-bleed landscape hero, compact eight-resource wallet,
 and Play Mode–style category cards: Farming, Crafting, Alchemy, Training, Arcana.
 Cards show tier-sum constructed progress and push stable two-column portrait
-building galleries. Buildings have centered names beneath their portraits and centered, 132-point-wide
-upgrade segments between each portrait and name. Segment width is capped by the
-tile width; fills use saved progress and the catalog tier count, including empty
-segments for unbuilt buildings. Buildings retain thin borders without an
+building galleries. Buildings have centered names beneath their portraits, without
+visible upgrade segments in the galleries. Gallery cards retain accessibility
+upgrade values. Buildings retain thin borders without an
 affordability glow. Every building is inspectable and has no prerequisite
 buildings: materials alone determine whether its next tier can be purchased.
 Tier-zero artwork uses 35% saturation in galleries and details; built buildings
 use full color. A successful first build restores color smoothly after its offer
 sheet dismisses. Existing built saves do not depend on other buildings. Galleries expose balances through Resources, without a
 persistent wallet or repeated category hero. Returning from an upgrade refreshes
-gallery segments without replaying the detail celebration.
+gallery artwork coloring without replaying the detail celebration.
 
 Building details use full-screen portrait artwork, the building name, and native
 gold Back/Resources toolbar controls matching the gallery. A separate Build/Upgrade

@@ -176,14 +176,16 @@ struct ItemSlotPickerView: View {
     private var filterToolbar: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
-                Picker("Rarity", selection: $filter.rarity) {
-                    Text("All Rarities").tag(nil as Rarity?)
-                    ForEach([Rarity.unique, .astral, .basic]) { rarity in
-                        Text(rarity.label).tag(Optional(rarity))
+                if slot != .trinket {
+                    Picker("Rarity", selection: $filter.rarity) {
+                        Text("All Rarities").tag(nil as Rarity?)
+                        ForEach([Rarity.unique, .astral, .basic]) { rarity in
+                            Text(rarity.label).tag(Optional(rarity))
+                        }
                     }
+                    .pickerStyle(.menu)
+                    .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemRarityFilter)
                 }
-                .pickerStyle(.menu)
-                .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemRarityFilter)
                 Picker("Keyword", selection: $filter.keyword) {
                     Text("All Keywords").tag(nil as Keyword?)
                     ForEach(model.keywords) { keyword in
