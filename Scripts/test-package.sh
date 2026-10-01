@@ -196,6 +196,8 @@ if [[ "$ACTION" != "build-for-testing" ]]; then
   fi
 fi
 
+if [[ "$ACTION" != "build-for-testing" ]]; then trinket_track_test_guests; fi
+
 mkdir -p "$RESULTS_DIR"
 if [[ "$ACTION" != "test-without-building" ]]; then
   prepare_generated_inputs "$RESULTS_DIR"

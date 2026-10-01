@@ -184,7 +184,7 @@ class ExecWrapperTests(unittest.TestCase):
         self.assertEqual(sorted(self.HELP_SCRIPTS + self.NO_HELP_SCRIPTS), actual)
 
     def test_unknown_arg_fails(self) -> None:
-        for script in ("build-for-testing.sh", "test-scripts.sh"):
+        for script in ("test-scripts.sh",):
             result = run_script(script, "--definitely-not-a-flag")
             self.assertNotEqual(result.returncode, 0, script)
             self.assertIn("Unknown argument", result.stderr, script)

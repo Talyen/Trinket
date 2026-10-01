@@ -171,6 +171,7 @@ PARALLEL_FLAGS=()
 # UI/smoke/performance tiers run serially against the managed test simulator.
 prepare_serial_test_sim() {
   ensure_test_simulator_logged
+  trinket_track_test_guests
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 }
 

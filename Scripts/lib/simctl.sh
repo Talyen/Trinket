@@ -42,6 +42,89 @@ trinket_simulator_is_leased_name() {
   }
 }
 
+# XCTest agents belong to launchd_sim, outside xcodebuild's host process tree.
+# Record the pre-run guests so lease cleanup never stops a pre-existing test.
+trinket_test_guest_processes() {
+  local processes
+  processes="$(ps -axo pid=,ppid=,lstart=,command=)" || return 1
+  printf '%s\n' "$processes" | awk -v udid="$1" '
+    $8 == "launchd_sim" && index($0, "/Devices/" udid "/data/var/run/launchd_bootstrap.plist") { guests[$1] = 1 }
+    $8 ~ /\/Agents\/xctest$|\/TrinketUITests-Runner\.app\/TrinketUITests-Runner$/ {
+      identity[NR] = $1 " " $2 " " $3 " " $4 " " $5 " " $6 " " $7; parent[NR] = $2
+    }
+    END { for (row in identity) if (parent[row] in guests) print identity[row] }
+  ' | LC_ALL=C sort
+}
+
+trinket_test_guest_cleanup_file() {
+  local record="$1" owner udid identity pid current
+  [[ -f "$record" ]] || return 0
+  read -r owner udid < "$record" || return 1
+  current="$(trinket_test_guest_processes "$udid")" || return 1
+  while IFS= read -r identity; do
+    [[ -n "$identity" ]] || continue
+    grep -Fxq -- "$identity" "$record" && continue
+    pid="${identity%% *}"
+    echo "Stopping leftover XCTest process $pid on leased simulator $udid." >&2
+    # A suspended launch cannot handle TERM. These are surviving guests after
+    # the owning run ended; identity includes start time to avoid PID reuse.
+    trinket_test_guest_processes "$udid" | grep -Fxq -- "$identity" || continue
+    kill -KILL "$pid" 2>/dev/null || true
+  done <<< "$current"
+  rm -f "$record"
+}
+
+trinket_track_test_guests_locked() {
+  local record="$1" owner="$2" prior_owner prior_udid current
+  if [[ -f "$record" ]]; then
+    read -r prior_owner prior_udid < "$record" || return 1
+    [[ "$prior_owner" =~ ^[0-9]+$ && -n "$prior_udid" ]] || return 1
+    if [[ "$prior_owner" == "$owner" && "$prior_udid" == "$SIMULATOR_UDID" ]]; then
+      return 0
+    fi
+    # Recover a killed runner only after its recorded lease owner is dead.
+    if [[ "$prior_owner" != "$owner" ]] && ! trinket_lock_pid_is_stale "$prior_owner"; then
+      return 1
+    fi
+    # A recreated device can reuse the slot, but its old UDID is no longer ours.
+    if [[ "$prior_udid" == "$SIMULATOR_UDID" ]]; then
+      trinket_test_guest_cleanup_file "$record" || return 1
+    else
+      rm -f "$record" || return 1
+    fi
+  fi
+  # Never publish an empty baseline after a failed process query.
+  current="$(trinket_test_guest_processes "$SIMULATOR_UDID")" || return 1
+  { printf '%s %s\n' "$owner" "$SIMULATOR_UDID"; [[ -z "$current" ]] || printf '%s\n' "$current"; } > "$record.tmp" || return 1
+  mv "$record.tmp" "$record"
+}
+
+trinket_track_test_guests() {
+  local lease="${TRINKET_SIM_SLOT_PATH:-${TRINKET_SHARED_SIM_SLOT_PATH:-}}"
+  local owner record status=0
+  [[ -n "${SIMULATOR_UDID:-}" && -f "$lease" ]] || return 0
+  read -r owner _ < "$lease" || return 1
+  [[ "$owner" =~ ^[0-9]+$ ]] || return 1
+  record="$lease.guest-tests"
+  trinket_dir_lock_acquire "$record.lock" 5 || return 1
+  trinket_track_test_guests_locked "$record" "$owner" || status=$?
+  trinket_dir_lock_release "$record.lock" "${BASHPID:-$$}"
+  return "$status"
+}
+
+trinket_cleanup_test_guests() {
+  local lease owner record_owner
+  for lease in "${TRINKET_SIM_SLOT_PATH:-}" "${TRINKET_SHARED_SIM_SLOT_PATH:-}"; do
+    [[ -f "$lease" ]] || continue
+    read -r owner _ < "$lease" || continue
+    [[ "$owner" == "${BASHPID:-$$}" ]] || continue
+    [[ -f "$lease.guest-tests" ]] || continue
+    read -r record_owner _ < "$lease.guest-tests" || continue
+    [[ "$record_owner" == "$owner" ]] || continue
+    trinket_test_guest_cleanup_file "$lease.guest-tests" || true
+  done
+}
+
 trinket_sim_shutdown_wait() {
   local udid="$1"
   local device_set="${2:-}"

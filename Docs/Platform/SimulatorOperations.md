@@ -133,5 +133,12 @@ without recent simulator teardown or accompanies a real boot/test failure.
 The routed runner terminates only its own hung host `xcodebuild` tree; it does
 not shut down simulators as a timeout response. Use the structured results and
 [CI diagnostics](../AgentContext/ci-diagnostics.md) before inspecting raw logs.
+Before simulator tests start, the runner records existing XCTest guests on its
+leased device. Lease-owner cleanup stops surviving guests created during that run,
+including suspended launches owned by `launchd_sim` rather than `xcodebuild`.
+Pre-existing guests and other devices remain protected. A hard-killed owner leaves
+its baseline for recovery before the next test starts on that device. A reused slot
+only recovers guests when the recorded device matches its current device; failed
+process snapshots prevent tests from starting without a trustworthy baseline.
 Relevant timeout and pool environment-variable defaults live in `Scripts/run-env.sh`
 and `Scripts/xcode-runner.sh`.

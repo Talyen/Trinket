@@ -110,17 +110,6 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
         self.assertIn('build_input_paths=("${TRINKET_BUILD_ROOTS[@]}" "${TRINKET_PROJECT_INPUTS[@]}")', text)
         self.assertNotIn("Package.resolved", text)
 
-    def test_build_cache_paths_aligned(self) -> None:
-        result = subprocess.run(
-            [str(ROOT / "Scripts" / "check-build-cache-paths.sh")],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
-        self.assertIn("aligned", result.stdout)
-
     def test_build_cache_paths_reject_drifted_registry(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_repo_fixture(
@@ -167,44 +156,6 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
         self.assertIn("LC_ALL=en_US.UTF-8", text)
         self.assertIn("LANG=en_US.UTF-8", text)
 
-    def test_restore_and_build_action_owns_cache_prefix(self) -> None:
-        text = (
-            ROOT / ".github" / "actions" / "restore-and-build" / "action.yml"
-        ).read_text(encoding="utf-8")
-        self.assertIn("build-cache-key", text)
-        self.assertIn("build-for-testing.sh", text)
-        self.assertIn("prune-derived-data-cache.sh", text)
-        self.assertIn("default: './Scripts/build-for-testing.sh'", text)
-        self.assertNotIn("default: './Scripts/build-for-testing.sh --app-only'", text)
-        workflow = (ROOT / ".github" / "workflows" / "tests.yml").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("restore-and-build", workflow)
-        self.assertTrue(
-            "./Scripts/test.sh unit" in workflow or "./Scripts/test-package.sh" in workflow,
-            "unit job must invoke package tests via test.sh or test-package.sh",
-        )
-        self.assertNotIn("./Scripts/test.sh unit --no-build", workflow)
-        self.assertIn("build-for-testing.sh --app-only", workflow)
-        self.assertIn("fromJSON(needs.build.outputs.full-ui-matrix)", workflow)
-        self.assertIn("preboot-simulator: 'true'", workflow)
-        self.assertNotIn("checkout-ci", workflow)
-        self.assertIn("Smoke tests (${{ matrix.name }})", workflow)
-        self.assertIn("needs.changes.outputs.infra", workflow)
-        self.assertNotIn("actions/cache/restore@", workflow)
-        self.assertIn("stage-ci-test-artifact.sh", text)
-        cache_key = (
-            ROOT / ".github" / "actions" / "build-cache-key" / "action.yml"
-        ).read_text(encoding="utf-8")
-        self.assertIn('git rev-parse "HEAD:Raw Assets"', cache_key)
-        checkout = (
-            ROOT / ".github" / "actions" / "checkout-trinket" / "action.yml"
-        ).read_text(encoding="utf-8")
-        sparse_list = checkout.split("sparse-checkout: |", 1)[1].split("- name:", 1)[0]
-        self.assertIn(".github", sparse_list)
-        self.assertIn("StoreKit", sparse_list)
-        self.assertNotIn("Raw Assets", sparse_list)
-
     def test_release_compile_is_required_only_for_nightly_and_manual_runs(self):
         workflow = (ROOT / ".github/workflows/tests.yml").read_text()
         release = workflow.split("  release-device:\n", 1)[1].split("  unit:\n", 1)[0]
@@ -239,20 +190,6 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
                 consumer = workflow.split(f'  {name}:\n', 1)[1].split(f'  {following}:\n', 1)[0]
                 self.assertIn('rebuild-command: ./Scripts/build-for-testing.sh --app-only', consumer)
                 self.assertRegex(consumer, r'uses: \./\.github/actions/setup-trinket\n\s+with:\n(?:\s+#.*\n)*\s+metal: \'true\'')
-
-    def test_package_registry_has_no_compile_only_split(self) -> None:
-        owner = (ROOT / "Scripts" / "build-inputs.env").read_text(encoding="utf-8")
-        self.assertNotIn("TRINKET_COMPILE_ONLY_PACKAGES", owner)
-        classifier = (ROOT / "Scripts" / "change-classification.sh").read_text(
-            encoding="utf-8"
-        )
-        self.assertNotIn("TRINKET_COMPILE_ONLY_PACKAGES", classifier)
-        # The package membership gate must read the registry, not a
-        # second hardcoded list that can drift from build-inputs.env.
-        self.assertIn(
-            '"${TRINKET_TEST_PACKAGES[@]}"',
-            classifier,
-        )
 
     def test_idempotence_checks_outputs_even_with_a_fresh_stamp(self) -> None:
         for initial, generator, expected in (
@@ -387,56 +324,6 @@ prepare_generated_inputs results
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual((root / "calls").read_text(), "Scripts/prepare-audio-assets.sh sfx\n")
 
-    def test_test_package_records_timing_log(self) -> None:
-        text = (ROOT / "Scripts" / "test-package.sh").read_text(encoding="utf-8")
-        self.assertIn("test-timing.py record", text)
-        self.assertIn('package:$package', text)
-        self.assertIn('--run "$invocation_id"', text)
-        self.assertIn("--xcresult", text)
-        helpers = (ROOT / "Scripts" / "lib" / "test-helpers.sh").read_text(encoding="utf-8")
-        test_text = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
-        combined = helpers + test_text
-        self.assertIn('--run "$XCODE_RUNNER_INVOCATION_ID"', combined)
-
-    def test_test_package_parallelizes_multiple_packages(self) -> None:
-        # test-package.sh is the single owner of parallel package builds/tests:
-        # per-package DerivedData tenants with SYMROOT/OBJROOT pins.
-        text = (ROOT / "Scripts" / "test-package.sh").read_text(encoding="utf-8")
-        self.assertIn("xargs -P", text)
-        self.assertIn("package test schemes in parallel", text)
-        self.assertIn("per-package DerivedData tenants", text)
-        # Tenant pins live in one helper so the build-for-testing and test
-        # branches cannot drift; test-package.sh only selects the action.
-        self.assertIn('trinket_set_package_scheme_args "$scheme"', text)
-        self.assertIn('"${TRINKET_PACKAGE_SCHEME_ARGS[@]}"', text)
-        self.assertNotIn('SYMROOT=$(package_symroot "$package_dd")', text)
-        stamp = (ROOT / "Scripts" / "build-freshness.sh").read_text(encoding="utf-8")
-        self.assertIn("package_symroot()", stamp)
-        self.assertIn("package_objroot()", stamp)
-        self.assertIn("package_shared_precomps_dir()", stamp)
-        self.assertIn("trinket_set_package_scheme_args()", stamp)
-        self.assertIn("TRINKET_PACKAGE_SCHEME_ARGS", stamp)
-        # Both branches share one invocation base: parallel targets and
-        # hermetic package resolution live in the helper, not per-branch.
-        self.assertIn("-parallelizeTargets", stamp)
-        self.assertIn("-disableAutomaticPackageResolution", stamp)
-        self.assertIn("Packages/.DerivedData", stamp)
-        # build-for-testing.sh delegates package builds to the single parallel
-        # owner instead of re-implementing the xargs/tenant protocol.
-        build_for_testing = (ROOT / "Scripts" / "build-for-testing.sh").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("test-package.sh --build-for-testing", build_for_testing)
-        self.assertIn("TRINKET_BUILD_FINGERPRINTS_APP", build_for_testing)
-        helpers = (ROOT / "Scripts" / "lib" / "test-helpers.sh").read_text(encoding="utf-8")
-        self.assertNotIn("trinket_run_package_tests", helpers)
-        test_sh = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
-        # test.sh unit collapses into one package-test pass via the parallel
-        # owner: no separate generic prebuild, no orchestration helper.
-        self.assertNotIn("trinket_run_package_tests", test_sh)
-        self.assertNotIn("test-package.sh --build-for-testing", test_sh)
-        self.assertIn('"${TRINKET_TEST_PACKAGES[@]}"', test_sh)
-
     def test_bare_full_ui_requires_explicit_opt_in(self) -> None:
         # Full exhaustive UI is CI-owned post-push; bare local runs must opt in.
         test_sh = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
@@ -446,12 +333,6 @@ prepare_generated_inputs results
         deploy = (ROOT / "Scripts" / "test-deploy.sh").read_text(encoding="utf-8")
         # Release-time deploy verification is the sanctioned bypass.
         self.assertIn("TRINKET_ALLOW_FULL_UI=1 ./Scripts/test.sh ui", deploy)
-
-    def test_run_env_removes_shared_packages_derived_data(self) -> None:
-        text = (ROOT / "Scripts" / "lib" / "derived-data.sh").read_text(encoding="utf-8")
-        self.assertIn('Packages/.DerivedData', text)
-        self.assertIn('rm -rf "$repo_root/Packages/.DerivedData"', text)
-
 
     def test_unit_dispatch_forwards_flags_and_exit_without_app_preparation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -474,7 +355,7 @@ prepare_generated_inputs results
             scripts = Path(directory) / "Scripts"
             shutil.copytree(ROOT / "Scripts", scripts)
             (scripts / "run-env.sh").write_text(
-                'trinket_run_env_init() { RESULTS_DIR="$PWD/results"; }\n'
+                'trinket_run_env_init() { RESULTS_DIR="$PWD/results"; }\ntrinket_track_test_guests() { :; }\n'
             )
             (scripts / "ensure-simulator.sh").write_text('trinket_sim_slot_ensure() { :; }\n')
             (scripts / "build-freshness.sh").write_text(

@@ -14,6 +14,9 @@ SCRIPT_INPUTS = (
 )
 
 
+import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -139,6 +142,69 @@ class ScriptSelectionTests(unittest.TestCase):
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("--paths", result.stderr)
+
+    def test_runner_compiles_without_execution_and_preserves_worker_failures(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / "Scripts"
+            tests = scripts / "Tests"
+            tests.mkdir(parents=True)
+            (scripts / "lib").mkdir()
+            for name in ("test-scripts.sh", "lib/args.sh", "script_diagnostics.py",
+                         "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env"):
+                (scripts / name).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(ROOT / "Scripts" / name, scripts / name)
+            (scripts / "script_test_selection.py").write_text(
+                'print("Scripts/Tests/test_first.py\\nScripts/Tests/test_last.py\\nScripts/Tests/test-peer.sh")\n')
+            (scripts / "check-build-cache-paths.sh").write_text('#!/bin/sh\nexit 0\n')
+            (scripts / "check-build-cache-paths.sh").chmod(0o755)
+            (scripts / "check-docs.py").write_text('raise RuntimeError("docs must be skipped")\n')
+            # A syntactically valid file must never execute during compilation.
+            (scripts / "syntax_probe.py").write_text('raise RuntimeError("syntax executed")\n')
+            first = tests / "test_first.py"
+            last = tests / "test_last.py"
+            first.write_text('import unittest, time\nfrom pathlib import Path\n'
+                             'class Probe(unittest.TestCase):\n'
+                             '    def test_failure(self):\n'
+                             '        deadline = time.monotonic() + 5\n'
+                             '        while not Path("shell-worker").exists() and time.monotonic() < deadline: time.sleep(0.01)\n'
+                             '        self.assertTrue(Path("shell-worker").exists(), "shell must overlap Python")\n'
+                             '        self.fail("worker failure sentinel")\n')
+            shell = tests / "test-peer.sh"
+            shell.write_text('#!/bin/sh\ntouch shell-worker\necho shell failure sentinel\nexit 7\n')
+            last.write_text('from pathlib import Path\nPath("last-worker").touch()\n')
+            environment = {**os.environ, "TRINKET_SCRIPT_TEST_JOBS": "2", "RESULTS_DIR": str(root / "logs")}
+
+            def run():
+                return subprocess.run(["bash", "Scripts/test-scripts.sh", "--skip-docs"],
+                                      cwd=root, env=environment, capture_output=True, text=True)
+
+            rejected = scripts / "broken.py"
+            rejected.write_text('def broken(\n')
+            result = run()
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("broken.py", result.stderr)
+            self.assertFalse((root / "last-worker").exists())
+            rejected.unlink()
+            result = run()
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertTrue((root / "last-worker").exists(), "failure must not suppress other selected suites")
+            self.assertIn("worker failure sentinel", result.stderr)
+            self.assertIn("Script test logs retained:", result.stderr)
+            shell_logs = list((root / "logs").glob("*/test-peer.sh.log"))
+            self.assertEqual(len(shell_logs), 1)
+            self.assertIn("shell failure sentinel", shell_logs[0].read_text())
+            first.write_text('import unittest\nclass Probe(unittest.TestCase):\n'
+                             '    def test_success(self): self.assertTrue(True)\n')
+            result = run()
+            self.assertEqual(result.returncode, 7, result.stdout + result.stderr)
+            self.assertIn("shell failure sentinel", result.stderr)
+            shell.write_text('#!/bin/sh\ntouch shell-worker\n')
+            shutil.rmtree(root / "logs")
+            environment["TRINKET_SCRIPT_TEST_JOBS"] = "1"
+            result = run()
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(list((root / "logs").iterdir()), [])
 
     def test_literal_metadata_is_not_executed_and_globs_union_consumers(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

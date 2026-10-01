@@ -609,6 +609,19 @@ else
   trinket_run_env_init
   resource="$TRINKET_SIM_SLOT_PATH"
 fi
+if [[ "$1" == run-env ]]; then
+  SIMULATOR_UDID=fixture
+  guest_pid="$3"
+  # ps is called without the fixture arguments, so retain the detached PID.
+  ps() {
+    echo "100 1 Wed Sep 30 12:00:00 2026 launchd_sim /Devices/fixture/data/var/run/launchd_bootstrap.plist"
+    if [[ "${guest_started:-0}" == 1 ]]; then
+      echo "$guest_pid 100 Wed Sep 30 12:01:00 2026 /Xcode/Agents/xctest"
+    fi
+  }
+  trinket_track_test_guests
+  guest_started=1
+fi
 bash -c 'trap "" INT TERM; printf "%s %s\\n" "$1" "$$"; while :; do sleep 1; done' _ "$resource" &
 worker=$!
 wait "$worker"
@@ -616,7 +629,10 @@ echo continued > "$2/continued"
 '''
                 env = {key: value for key, value in os.environ.items()
                        if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR"}}
-                process = subprocess.Popen(["bash", "-eu", "-c", script, "_", owner, directory],
+                guest = subprocess.Popen(["sleep", "60"])
+                self.addCleanup(lambda: guest.wait(timeout=5))
+                self.addCleanup(lambda: guest.poll() is None and guest.kill())
+                process = subprocess.Popen(["bash", "-eu", "-c", script, "_", owner, directory, str(guest.pid)],
                                            cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 resource_path, worker_pid = process.stdout.readline().split()
                 resource = Path(resource_path)
@@ -627,6 +643,9 @@ echo continued > "$2/continued"
                 self.assertEqual(process.returncode, 128 + sig, stdout + stderr)
                 self.assertFalse(resource.exists())
                 self.assertFalse((Path(directory) / "continued").exists())
+                if owner == "run-env":
+                    self.assertEqual(guest.wait(timeout=5), -signal.SIGKILL)
+                    self.assertFalse(Path(str(resource) + ".guest-tests").exists())
                 with self.assertRaises(ProcessLookupError):
                     os.kill(int(worker_pid), 0)
 

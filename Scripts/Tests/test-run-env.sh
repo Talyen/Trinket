@@ -674,4 +674,94 @@ bash -c '
   trinket_shared_sim_lease_release
 ' _ "$REPO"
 
+# --- guest cleanup is scoped to the lease, start identity, and owning shell ---
+bash -eu -c '
+  source "$1/Scripts/run-env.sh"
+  TRINKET_SIM_SLOT_PATH="$2/test.slot"
+  SIMULATOR_UDID=owned-device
+  printf "%s fixture\n" "$$" > "$TRINKET_SIM_SLOT_PATH"
+  table="$2/processes"
+  cat > "$table" <<TABLE
+100 1 Wed Sep 30 12:00:00 2026 launchd_sim /Devices/owned-device/data/var/run/launchd_bootstrap.plist
+200 1 Wed Sep 30 12:00:00 2026 launchd_sim /Devices/foreign-device/data/var/run/launchd_bootstrap.plist
+10001 100 Wed Sep 30 12:01:00 2026 /Xcode/Agents/xctest
+10002 200 Wed Sep 30 12:01:00 2026 /Xcode/Agents/xctest
+TABLE
+  ps() { if [[ "${1:-}" == -p ]]; then command ps "$@"; else cat "$table"; fi; }
+  kill() {
+    if [[ "$1" == -0 ]]; then builtin kill "$@"; return; fi
+    [[ "$1" == -KILL ]]
+    echo "$2" >> "$table.killed"
+    sed "/^$2 /d" "$table" > "$table.next"
+    mv "$table.next" "$table"
+  }
+  trinket_track_test_guests
+  echo "10003 100 Wed Sep 30 12:02:00 2026 /App/TrinketUITests-Runner.app/TrinketUITests-Runner" >> "$table"
+  ( trinket_cleanup_test_guests )
+  [[ ! -e "$table.killed" ]]
+  trinket_cleanup_test_guests
+  [[ "$(cat "$table.killed")" == 10003 ]]
+  [[ ! -e "$TRINKET_SIM_SLOT_PATH.guest-tests" ]]
+  # Ambiguous ownership stays protected even when tracking rejects the run.
+  printf "%s owned-device\n" "$PPID" > "$TRINKET_SIM_SLOT_PATH.guest-tests"
+  if trinket_track_test_guests; then exit 1; fi
+  [[ ! -e "$TRINKET_SIM_SLOT_PATH.guest-tests.lock" ]]
+  trinket_cleanup_test_guests
+  [[ -e "$TRINKET_SIM_SLOT_PATH.guest-tests" && $(wc -l < "$table.killed") -eq 1 ]]
+  # A dead owner from a hard-killed run is recovered at the next test entry.
+  printf "99999999 owned-device\n10001 100 Wed Sep 30 12:01:00 2026\n" > "$TRINKET_SIM_SLOT_PATH.guest-tests"
+  echo "10004 100 Wed Sep 30 12:02:00 2026 /Xcode/Agents/xctest -testBundle fixture" >> "$table"
+  trinket_track_test_guests
+  [[ "$(tail -n 1 "$table.killed")" == 10004 ]]
+  # A reused PID with a different launch time is a new guest, not the baseline.
+  sed "s/10001 100 Wed Sep 30 12:01:00/10001 100 Wed Sep 30 12:03:00/" "$table" > "$table.next"
+  mv "$table.next" "$table"
+  trinket_cleanup_test_guests
+  [[ "$(tail -n 1 "$table.killed")" == 10001 ]]
+  [[ $(wc -l < "$table.killed") -eq 3 ]]
+  # A reused slot does not authorize cleanup on its previous device.
+  printf "99999999 foreign-device\n" > "$TRINKET_SIM_SLOT_PATH.guest-tests"
+  trinket_track_test_guests
+  [[ $(wc -l < "$table.killed") -eq 3 ]]
+  [[ "$(head -n 1 "$TRINKET_SIM_SLOT_PATH.guest-tests")" == "$$ owned-device" ]]
+  trinket_cleanup_test_guests
+' _ "$ROOT_DIR" "$TMP_DIR"
+
+# --- failed snapshots never become empty baselines ---
+bash -eu -c '
+  source "$1/Scripts/run-env.sh"
+  TRINKET_SIM_SLOT_PATH="$2/snapshot.slot"
+  SIMULATOR_UDID=owned-device
+  printf "%s fixture\n" "$$" > "$TRINKET_SIM_SLOT_PATH"
+  ps() { return 1; }
+  if trinket_track_test_guests; then
+    echo "failed snapshot was accepted" >&2
+    exit 1
+  fi
+  [[ ! -e "$TRINKET_SIM_SLOT_PATH.guest-tests" ]]
+  [[ ! -e "$TRINKET_SIM_SLOT_PATH.guest-tests.lock" ]]
+  ps() { :; }
+  trinket_track_test_guests
+  [[ -f "$TRINKET_SIM_SLOT_PATH.guest-tests" ]]
+  trinket_cleanup_test_guests
+' _ "$ROOT_DIR" "$TMP_DIR"
+
+# --- stalled boot commands cannot bypass the shared boot deadline ---
+for stalled in boot bootstatus; do
+  bash -eu -c '
+    source "$1/Scripts/run-env.sh"
+    source "$1/Scripts/ensure-simulator.sh"
+    SIMULATOR_UDID=fixture
+    SIMULATOR_BOOT_TIMEOUT_SECONDS=1
+    xcrun() {
+      if [[ "$2" == list ]]; then echo "{\"devices\":{}}";
+      elif [[ "$2" == "$stalled_phase" ]]; then trap "" TERM; while :; do sleep 60; done; fi
+    }
+    stalled_phase="$2"
+    started=$SECONDS
+    if boot_simulator; then exit 1; fi
+    (( SECONDS - started < 5 ))
+  ' _ "$ROOT_DIR" "$stalled"
+done
+
 echo "run-env isolation tests passed"

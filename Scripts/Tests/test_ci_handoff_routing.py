@@ -11,7 +11,6 @@ SCRIPT_INPUTS = (
     'Scripts/lib/gate.sh',
 )
 
-
 import re
 import shlex
 import shutil
@@ -57,172 +56,36 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         self.assertEqual(script_only.returncode, 0, script_only.stderr)
         self.assertEqual(selected.stdout, script_only.stdout)
 
-    def test_mystery_subflow_runs_play_smoke(self) -> None:
-        # Deterministic routing: when --smoke is passed, any Play diff runs SmokeShellTests.
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--smoke",
-                "--paths",
-                "Trinket/Features/Play/Mystery/MysteryChoiceCard.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
+    def test_product_routes_preserve_package_and_smoke_owners(self) -> None:
+        support = "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport"
+        feature = "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features"
+        cases = (
+            (["Trinket/Features/Play/Mystery/MysteryChoiceCard.swift"], None, "SmokeShellTests"),
+            (["Trinket/Features/Play/Modes/PlayModeHubView.swift"], None, "SmokeShellTests"),
+            ([f"{support}/Shared/HomesteadResourceArtwork.swift"], "TrinketFeatureSupport", None),
+            ([f"{support}/Accessibility/AccessibilityID.swift"], "TrinketFeatureSupport", "SmokeShellTests"),
+            ([f"{support}/Artwork/PreparedArtwork.swift"], "TrinketFeatureSupport", "SmokeShellTests"),
+            ([f"{feature}/Effects/CombatantCardDeathEffectVariants.swift"], "TrinketBattleFeature", "SmokeBattleTests"),
+            ([f"{feature}/Battlefield/BattleCombatantPane.swift"], "TrinketBattleFeature", "SmokeBattleTests"),
+            ([f"{feature}/Effects/CombatantCardDeathEffectVariants.swift",
+              f"{feature}/Battlefield/BattleCombatantPane.swift"], "TrinketBattleFeature", "SmokeBattleTests"),
+            (["Packages/BattleEngine/Sources/BattleEngine/Runtime/BattleRuntime.swift"], "BattleEngine", None),
         )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("SmokeShellTests", result.stdout)
-
-    def test_play_shell_keeps_smoke_shell(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--smoke",
-                "--paths",
-                "Trinket/Features/Play/Modes/PlayModeHubView.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("SmokeShellTests", result.stdout)
-
-    def test_feature_support_generic_skips_app_build_when_package_tests_run(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--paths",
-                "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/HomesteadResourceArtwork.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        plan = "\n".join(result.stdout.splitlines())
-        self.assertIn("./Scripts/test-package.sh TrinketFeatureSupport", plan)
-        self.assertNotIn("./Scripts/build.sh", plan)
-
-    def test_accessibility_id_keeps_shell_smoke(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--smoke",
-                "--paths",
-                "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Accessibility/AccessibilityID.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("SmokeShellTests", result.stdout)
-
-    def test_prepared_artwork_keeps_shell_smoke(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--smoke",
-                "--paths",
-                "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtwork.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("SmokeShellTests", result.stdout)
-
-    def test_battle_feature_lab_runs_full_package_tests_and_smoke(self) -> None:
-        # With --smoke, a DEBUG variant file runs the full package
-        # suite plus the SmokeBattleTests canary.
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--smoke",
-                "--paths",
-                "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Effects/CombatantCardDeathEffectVariants.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        plan = "\n".join(result.stdout.splitlines())
-        self.assertIn("./Scripts/test-package.sh TrinketBattleFeature", plan)
-        self.assertNotIn("--build-only", plan)
-        self.assertIn("SmokeBattleTests", plan)
-
-    def test_battle_feature_shipping_keeps_package_tests_and_smoke(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--smoke",
-                "--paths",
-                "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Battlefield/BattleCombatantPane.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        plan = "\n".join(result.stdout.splitlines())
-        self.assertIn("./Scripts/test-package.sh TrinketBattleFeature", plan)
-        self.assertNotIn("--build-only TrinketBattleFeature", plan)
-        self.assertIn("SmokeBattleTests", plan)
-
-    def test_battle_feature_lab_plus_shipping_keeps_full_package_tests(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--smoke",
-                "--paths",
-                "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Effects/CombatantCardDeathEffectVariants.swift",
-                "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Battlefield/BattleCombatantPane.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        plan = "\n".join(result.stdout.splitlines())
-        self.assertIn("./Scripts/test-package.sh TrinketBattleFeature", plan)
-        self.assertNotIn("--build-only TrinketBattleFeature", plan)
-        self.assertIn("SmokeBattleTests", plan)
-
-    def test_battle_runtime_routes_to_app_build_not_test_package(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--paths",
-                "Packages/BattleEngine/Sources/BattleEngine/Runtime/BattleRuntime.swift",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        plan = "\n".join(result.stdout.splitlines())
-        self.assertIn("test-package.sh BattleEngine", plan)
+        for paths, package, smoke in cases:
+            with self.subTest(paths=paths):
+                result = subprocess.run(
+                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", *(["--smoke"] if smoke else []),
+                     "--paths", *paths], cwd=ROOT, capture_output=True, text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                commands = [line.strip() for line in result.stdout.splitlines()]
+                if package:
+                    self.assertEqual(commands.count(f"./Scripts/test-package.sh {package}"), 1)
+                    self.assertFalse(any("--build-only" in command for command in commands))
+                if package == "TrinketFeatureSupport" and smoke is None:
+                    self.assertNotIn("./Scripts/build.sh", commands)
+                if smoke:
+                    self.assertIn(smoke, result.stdout)
 
     def test_shared_fixture_verification_routes(self) -> None:
         content_support = "Packages/TrinketContent/Sources/TrinketContentTestSupport"
@@ -263,7 +126,6 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                     self.assertIn("./Scripts/check-docs.py", plan)
                     self.assertNotIn("./Scripts/test.sh style", plan)
 
-
     def test_handoff_reports_unavailable_compilation_after_available_checks(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -291,7 +153,6 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                     self.assertIn("cheap-checked", result.stdout)
                     self.assertIn("INCOMPLETE", result.stderr)
                     self.assertEqual((root / "checks").read_text(), "api\n")
-
 
     def test_handoff_reports_outcome_after_all_checks_including_quiet_mode(self) -> None:
         for selected, cheap, expected in ((0, 0, 0), (7, 0, 1), (0, 8, 8)):
@@ -330,8 +191,6 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                         self.assertIn("output omitted", result.stderr)
                     if selected:
                         self.assertNotIn("cheap-check", result.stdout)
-
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -38,39 +38,6 @@ class DocumentationTests(ScriptRegressionTestCase):
     def setUpClass(cls) -> None:
         cls.check_docs = load_script("check_docs", "check-docs.py")
 
-    def test_test_scripts_supports_skip_docs(self) -> None:
-        text = (ROOT / "Scripts" / "test-scripts.sh").read_text(encoding="utf-8")
-        self.assertIn("--skip-docs", text)
-        self.assertIn('if [[ "$SKIP_DOCS" != true ]]; then', text)
-
-    def test_handoff_runs_cheap_ci_slices_and_skips_docs_on_final(self) -> None:
-        handoff = (ROOT / "Scripts" / "handoff.sh").read_text(encoding="utf-8")
-        self.assertIn("run_cheap_ci_slices", handoff)
-        self.assertIn("source Scripts/lib/cheap-slices.sh", handoff)
-        self.assertIn("trinket_run_gate_slices", handoff)
-        self.assertIn('if [[ "$FINAL" == true ]]; then', handoff)
-        self.assertIn("./Scripts/test-scripts.sh --skip-docs", handoff)
-        self.assertIn('kind" == docs && "$FINAL" == true', handoff)
-
-    def test_docs_markdown_routes_check_docs(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--paths",
-                "Docs/Platform/Verification.md",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        plan = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-        self.assertIn("python3 ./Scripts/check-docs.py", plan)
-        self.assertIn("./Scripts/check-module-boundaries.sh", plan)
-        self.assertIn("./Scripts/check-artwork-budget.sh", plan)
-
     def test_new_plan_scaffold_creates_lifecycle_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -54,6 +54,7 @@ trinket_run_env_claim_self_clean_owner() {
 }
 
 trinket_run_env_release_slots() {
+  trinket_cleanup_test_guests
   trinket_sim_slot_release
   trinket_ui_slot_release
   trinket_shared_sim_lease_release

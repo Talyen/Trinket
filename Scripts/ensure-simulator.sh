@@ -179,18 +179,22 @@ boot_simulator() {
   fi
 
   echo "Booting $SIMULATOR_NAME ($SIMULATOR_UDID)..."
-  xcrun simctl boot "$SIMULATOR_UDID" 2>/dev/null || true
-
-  # simctl has no timeout flag, so supervise bootstatus ourselves. Use SECONDS
-  # rather than a sleep counter so a busy runner cannot silently extend it.
-  xcrun simctl bootstatus "$SIMULATOR_UDID" -b &
+  # Both boot and bootstatus can stall in CoreSimulator. Supervise the whole
+  # sequence so boot cannot prevent the timeout from starting.
+  (
+    xcrun simctl boot "$SIMULATOR_UDID" 2>/dev/null || true
+    xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+  ) &
   local boot_pid=$!
   local started_at=$SECONDS
   while kill -0 "$boot_pid" 2>/dev/null && (( SECONDS - started_at < SIMULATOR_BOOT_TIMEOUT_SECONDS )); do
     sleep 1
   done
   if kill -0 "$boot_pid" 2>/dev/null; then
-    kill "$boot_pid" 2>/dev/null || true
+    local signal_children=()
+    trinket_lock_collect_children "$boot_pid"
+    signal_children+=("$boot_pid")
+    kill -KILL "${signal_children[@]}" 2>/dev/null || true
     wait "$boot_pid" 2>/dev/null || true
     echo "Error: Simulator boot timed out after ${SIMULATOR_BOOT_TIMEOUT_SECONDS}s" >&2
     return 1

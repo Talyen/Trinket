@@ -114,6 +114,13 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                         )
                         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                         args = (root / "arguments").read_text().splitlines()
+                        if entrypoint == "test-package.sh":
+                            tenant = args[args.index("-derivedDataPath") + 1]
+                            self.assertEqual(tenant, str(root / "dd/packages/TrinketCore"))
+                            self.assertIn(f"SYMROOT={tenant}/Build/Products", args)
+                            self.assertIn(f"OBJROOT={tenant}/Build/Intermediates.noindex", args)
+                            self.assertIn("-parallelizeTargets", args)
+                            self.assertIn("-disableAutomaticPackageResolution", args)
                         self.assertEqual(args[:2], ["xcodebuild", "build-for-testing"])
                         self.assertEqual(args[args.index("-configuration") + 1], "Debug")
                         self.assertEqual([arg for arg in args if arg.startswith("ARCHS=")],
@@ -125,7 +132,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
         (scripts / "run-env.sh").write_text(
             'trinket_run_env_init() { DERIVED_DATA_PATH="$PWD/dd"; RESULTS_DIR="$PWD/results"; '
             'mkdir -p "$DERIVED_DATA_PATH" "$RESULTS_DIR"; }\n'
-            'trinket_run_env_print() { :; }\n'
+            'trinket_run_env_print() { :; }\ntrinket_track_test_guests() { :; }\n'
         )
         (scripts / "build-freshness.sh").write_text(
             'prepare_generated_inputs() { :; }\nbegin_build_stamps() { :; }\n'

@@ -28,7 +28,8 @@ a caller already ran the docs gate (for example handoff --final).
 --fast skips docs, media audio fixtures, and shell regressions for a quick
 local loop; CI runs the full suite. Failed logs are retained under RESULTS_DIR
 or .DerivedData/ScriptTestResults; terminal excerpts are bounded.
-Suites run in parallel (TRINKET_SCRIPT_TEST_JOBS caps workers, default ncpu)
+Python and shell suites share a parallel worker pool
+(TRINKET_SCRIPT_TEST_JOBS caps workers, default ncpu)
 and report in selection order; every selected suite is attempted and the
 first failure exits.
 --paths selects registered leaf-script regression families. Shared/unknown script
@@ -101,9 +102,9 @@ run_logged() {
 
 echo "=== Script syntax ==="
 syntax_started=$SECONDS
+syntax_list=()
+syntax_skipped=()
 if (( ${#requested_paths[@]} > 0 )); then
-  syntax_list=()
-  syntax_skipped=()
   for candidate in "${requested_paths[@]}"; do
     case "$candidate" in
       Scripts/*.sh|Scripts/*.env|Scripts/*.py|Scripts/*.mjs|Scripts/bin/*)
@@ -113,98 +114,70 @@ if (( ${#requested_paths[@]} > 0 )); then
         syntax_skipped+=("$candidate") ;;
     esac
   done
-  if (( ${#syntax_list[@]} == 0 )); then
-    echo "(no syntax-checkable paths selected)"
-  else
-    printf '%s\n' "${syntax_list[@]}" | LC_ALL=C sort | while IFS= read -r script; do
-      case "$script" in
-        *.py) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" python3 -c 'import pathlib, sys; compile(pathlib.Path(sys.argv[1]).read_bytes(), sys.argv[1], "exec")' "$script" ;;
-        *.mjs) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" node --check "$script" ;;
-        Scripts/bin/*) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" sh -n "$script" ;;
-        *) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" bash -n "$script" ;;
-      esac
-    done
-  fi
-  if (( ${#syntax_skipped[@]} > 0 )); then
-    printf 'Syntax scope note: %d selected path(s) live outside Scripts/ and are covered by their own owners, not script syntax.\n' "${#syntax_skipped[@]}" >&2
-  fi
 else
   while IFS= read -r script; do
-    case "$script" in
-      *.py) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" python3 -c 'import pathlib, sys; compile(pathlib.Path(sys.argv[1]).read_bytes(), sys.argv[1], "exec")' "$script" ;;
-      *.mjs) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" node --check "$script" ;;
-      Scripts/bin/*) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" sh -n "$script" ;;
-      *) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" bash -n "$script" ;;
-    esac
+    syntax_list+=("$script")
   done < <(rg --files Scripts -g '*.sh' -g '*.env' -g '*.py' -g '*.mjs' -g 'Scripts/bin/*' | LC_ALL=C sort)
+fi
+if (( ${#syntax_skipped[@]} > 0 )); then
+  printf 'Syntax scope note: %d selected path(s) live outside Scripts/ and are covered by their own owners, not script syntax.\n' "${#syntax_skipped[@]}" >&2
+fi
+python_syntax=()
+for script in "${syntax_list[@]}"; do
+  case "$script" in
+    *.py) python_syntax+=("$script") ;;
+    *.mjs) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" node --check "$script" ;;
+    Scripts/bin/*) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" sh -n "$script" ;;
+    *) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" bash -n "$script" ;;
+  esac
+done
+# Compile without importing fixtures or writing bytecode; one interpreter for all files.
+if (( ${#python_syntax[@]} > 0 )); then
+  run_logged "Python syntax" "$TEST_LOG_DIR/syntax.log" python3 -c '
+import pathlib, sys
+for name in sys.argv[1:]:
+    compile(pathlib.Path(name).read_bytes(), name, "exec")
+' "${python_syntax[@]}"
 fi
 printf 'Script syntax passed (%ds).\n' "$((SECONDS - syntax_started))"
 
-echo "=== Python script regressions ==="
-python_started=$SECONDS
-if (( ${#python_modules[@]} == 0 )); then
-  echo "(no Python regressions selected)"
+echo "=== Script regressions ==="
+regressions_started=$SECONDS
+# Start shell watchdog cases alongside Python modules instead of adding their
+# real timeout waits to the end of the Python phase. All fixtures are isolated.
+suites=("${shell_suites[@]}" "${python_modules[@]}")
+if (( ${#suites[@]} == 0 )); then
+  echo "(no regressions selected)"
 else
-  # Suites are independent unittest modules with isolated logs: run them in
-  # parallel (same xargs -P shape as test-package.sh) and report in selection
-  # order afterwards so output stays deterministic. Unlike the old sequential
-  # loop, every selected suite is attempted; the first failure still exits.
   cpu_count="$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)"
   suite_jobs="${TRINKET_SCRIPT_TEST_JOBS:-$cpu_count}"
   [[ "$suite_jobs" =~ ^[0-9]+$ ]] && (( suite_jobs >= 1 )) || suite_jobs=1
-  if [[ "$suite_jobs" -gt ${#python_modules[@]} ]]; then suite_jobs=${#python_modules[@]}; fi
-  printf '%s\n' "${python_modules[@]}" | TRINKET_TEST_LOG_DIR="$TEST_LOG_DIR" xargs -P "$suite_jobs" -I{} bash -c '
-    module="$1"
-    log="$TRINKET_TEST_LOG_DIR/python-$module.log"
+  if [[ "$suite_jobs" -gt ${#suites[@]} ]]; then suite_jobs=${#suites[@]}; fi
+  printf '%s\n' "${suites[@]}" | TRINKET_TEST_LOG_DIR="$TEST_LOG_DIR" xargs -P "$suite_jobs" -I{} bash -c '
+    suite="$1"
+    log="$TRINKET_TEST_LOG_DIR/${suite##*/}.log"
     started=$SECONDS
-    if PYTHONPATH=Scripts/Tests python3 -m unittest -b "$module" >"$log" 2>&1; then
-      printf "%s passed (%ds).\n" "$module" "$((SECONDS - started))" >"$log.status"
-    else
-      printf "%s" "$?" >"$log.failed"
-    fi
+    case "$suite" in
+      *.sh) command=(bash "$suite") ;;
+      *) command=(python3 -m unittest -b "$suite") ;;
+    esac
+    status=0
+    PYTHONPATH=Scripts/Tests "${command[@]}" >"$log" 2>&1 || status=$?
+    printf "%s\n" "$status" >"$log.exit"
+    printf "%s passed (%ds).\n" "${suite##*/}" "$((SECONDS - started))" >"$log.status"
   ' _ {} || true
-  for module in "${python_modules[@]}"; do
-    module_log="$TEST_LOG_DIR/python-$module.log"
-    if [[ -f "$module_log.failed" ]]; then
-      report_failure "Python script regressions: $module" "$module_log" "$(cat "$module_log.failed")"
-    else
-      cat "$module_log.status"
+  # Keep diagnostics deterministic and attempt every suite before reporting
+  # the first failure, including a worker that died without recording its exit.
+  for suite in "${python_modules[@]}" "${shell_suites[@]}"; do
+    suite_log="$TEST_LOG_DIR/${suite##*/}.log"
+    status=1
+    if [[ -f "$suite_log.exit" ]]; then status="$(cat "$suite_log.exit")"; fi
+    if [[ "$status" != 0 ]]; then
+      report_failure "Script regressions: $suite" "$suite_log" "$status"
     fi
+    cat "$suite_log.status"
   done
-  printf 'Python script regressions passed (%ds).\n' "$((SECONDS - python_started))"
-fi
-
-echo "=== Shell script regressions ==="
-if [[ "$FAST" == true ]]; then
-  echo "(fast: shell regressions skipped; full run covers test-*.sh)"
-elif (( ${#shell_suites[@]} == 0 )); then
-  echo "(no shell regressions selected)"
-else
-for test_script in "${shell_suites[@]}"; do
-  test_name="$(basename "$test_script")"
-  test_log="$TEST_LOG_DIR/$test_name.log"
-  TRINKET_TEST_LOG_DIR="$TEST_LOG_DIR" test_script="$test_script" test_log="$test_log" bash -c '
-    # Subshells inherit the EXIT trap that cleans TEST_LOG_DIR on success;
-    # workers must not run it (the parent owns log retention).
-    trap - EXIT
-    started=$SECONDS
-    if bash "$test_script" >"$test_log" 2>&1; then
-      printf "%s passed (%ds).\n" "$(basename "$test_script")" "$((SECONDS - started))" >"$test_log.status"
-    else
-      printf "%s" "$?" >"$test_log.failed"
-    fi
-  ' &
-done
-wait || true
-for test_script in "${shell_suites[@]}"; do
-  test_name="$(basename "$test_script")"
-  test_log="$TEST_LOG_DIR/$test_name.log"
-  if [[ -f "$test_log.failed" ]]; then
-    report_failure "$test_name" "$test_log" "$(cat "$test_log.failed")"
-  else
-    cat "$test_log.status"
-  fi
-done
+  printf 'Script regressions passed (%ds).\n' "$((SECONDS - regressions_started))"
 fi
 
 echo "=== Build input / cache-key path alignment ==="
