@@ -84,7 +84,6 @@ source ./Scripts/lib/app-build.sh
 trinket_set_app_xcodebuild_args "$DERIVED_DATA" iphoneos 'generic/platform=iOS'
 BUILD_ARGS=(
   "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
-  -configuration Debug
   -allowProvisioningUpdates
   COMPILER_INDEX_STORE_ENABLE=NO
 )

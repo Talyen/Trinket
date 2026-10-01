@@ -50,6 +50,11 @@ enum BattleMotion {
         .spring(response: 0.2, dampingFraction: 1.0)
     }
 
+    /// Retarget between touch samples without changing gesture thresholds or release coordinates.
+    static var cardTracking: Animation {
+        .interactiveSpring(response: 0.08, dampingFraction: 1.0, blendDuration: 0)
+    }
+
     static var cardReturn: Animation {
         .spring(response: 0.38, dampingFraction: 0.82)
     }

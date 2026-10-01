@@ -69,14 +69,17 @@ struct BattleAbilityCardView: View {
                     y: BattleMotion.cardHeldShadowY,
                 )
         }
-        .rotationEffect(.degrees(activeRotation), anchor: .bottom)
-        .rotation3DEffect(
-            .degrees(verticalTilt),
-            axis: (x: 1, y: 0, z: 0),
-            anchor: .bottom,
-            perspective: BattleMotion.cardPerspective,
-        )
-        .offset(activeOffset)
+        .animation(isHeld ? BattleMotion.cardTracking : BattleMotion.cardReturn) { content in
+            content
+                .rotationEffect(.degrees(activeRotation), anchor: .bottom)
+                .rotation3DEffect(
+                    .degrees(verticalTilt),
+                    axis: (x: 1, y: 0, z: 0),
+                    anchor: .bottom,
+                    perspective: BattleMotion.cardPerspective,
+                )
+                .offset(activeOffset)
+        }
         .gesture(
             DragGesture(minimumDistance: 0, coordinateSpace: .named(BattleHandView.coordinateSpaceName))
                 .updating($isGestureActive) { _, isActive, _ in
