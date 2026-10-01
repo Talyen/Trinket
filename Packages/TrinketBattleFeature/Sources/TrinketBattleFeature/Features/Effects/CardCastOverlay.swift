@@ -13,6 +13,12 @@ final class BattleCastPresentationState {
         requests.last
     }
 
+    func blocksAutoBattle(at date: Date) -> Bool {
+        requests.contains { request in
+            (request.pausedAt ?? date).timeIntervalSince(request.startedAt) < BattleMotion.autoBattleCardInterval
+        }
+    }
+
     var stuckResetDelayOverride: TimeInterval?
 
     @ObservationIgnored

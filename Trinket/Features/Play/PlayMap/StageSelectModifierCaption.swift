@@ -27,10 +27,16 @@ struct StageSelectModifierLine: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.small) {
-            GameIconImage(modifier.style.icon)
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(modifier.style.color)
-                .accessibilityHidden(true)
+            if let resource = modifier.resourceArtwork {
+                HomesteadResourceArtwork(resource: resource)
+                    .frame(width: 24, height: 24)
+                    .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
+            } else {
+                GameIconImage(modifier.style.icon)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(modifier.style.color)
+                    .accessibilityHidden(true)
+            }
             KeywordDescriptionText(text: modifier.description)
                 .fixedSize(horizontal: false, vertical: true)
                 .trinketOnArtText(.eyebrow)

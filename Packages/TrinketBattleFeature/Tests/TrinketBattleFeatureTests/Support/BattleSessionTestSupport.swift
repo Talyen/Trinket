@@ -279,13 +279,13 @@ enum BattleSessionTestSupport {
 
     static func driveAutoBattleUntilStopped(
         session: BattleSession,
-        isCardCastActive: @escaping @MainActor () -> Bool = { false },
+        isCardCastPacingBlocked: @escaping @MainActor () -> Bool = { false },
         isManualInteractionActive: @escaping @MainActor () -> Bool = { false },
         playCard: @escaping @MainActor (BattleCard) async -> Bool,
     ) async {
         session.isAutoBattleEnabled = true
         await session.driveAutoBattle(
-            isCardCastActive: isCardCastActive,
+            isCardCastPacingBlocked: isCardCastPacingBlocked,
             isManualInteractionActive: isManualInteractionActive,
             playCard: playCard,
         )

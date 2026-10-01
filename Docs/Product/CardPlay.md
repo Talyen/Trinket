@@ -42,8 +42,9 @@ intercept touches or affect gameplay.
 
 With the autoplay toggle enabled, cards commit immediately from their resting
 hand position and use the same rise and dissolve as tap-to-play. There is no
-separate pre-lift or play delay. Autoplay waits between casts and pauses for
-manual interaction, while manual plays remain available during those casts.
+separate pre-lift or play delay. Autoplay starts the next card after 0.85 seconds,
+allowing the final 0.15 seconds of the one-second departure visuals to overlap. It pauses for manual interaction,
+while manual plays remain available during those casts.
 Autoplay keeps its sequenced combat feedback.
 
 ## Automatic cards stay full-size

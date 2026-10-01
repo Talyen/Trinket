@@ -13,7 +13,6 @@ public final class VoyagePlayMode {
     private let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
-    private var preparationTracker = PlayBattlePreparationTracker<SingleBattlePreparationInputs>()
 
     init(playerSave: PlayerSaveStore, battle: any BattleRuntime, battleLaunch: PlayBattleLaunch, encounters: EncounterPlayMode) {
         self.playerSave = playerSave
@@ -106,7 +105,7 @@ public final class VoyagePlayMode {
             return battleLaunch.startBattle(origin: origin, encounters: encounters, busyMessage: nil, resolve: {
                 guard let request = request(runID: runID, node: node) else { return .missing }
                 return .ready(input: request.input, route: request.route)
-            }, onActivated: { preparationTracker.invalidate() })
+            })
         case .shop:
             return encounters.beginShopOrAutoComplete(origin: encounterOrigin, identifier: nodeID) { [self] in
                 persist(key: "voyage-shop-\(nodeID)") { save in
@@ -129,11 +128,7 @@ public final class VoyagePlayMode {
             prunePrepared()
             return
         }
-        battleLaunch.prepareSingleBattle(
-            tracker: &preparationTracker, origin: .voyage(runID: run.id, nodeID: node.id),
-            stageRewardsAlreadyClaimed: false, party: PlayBattlePartySnapshot(playerSave: playerSave),
-            makeRequest: { request },
-        )
+        battleLaunch.prepareCombat(request.input, route: request.route)
         battleLaunch.keepPreparedRuns([PlayBattleOrigin.voyage(runID: run.id, nodeID: node.id).runKey], preservingWhere: {
             if case .voyage = $0 {
                 false
@@ -189,7 +184,6 @@ public final class VoyagePlayMode {
                 true
             }
         })
-        preparationTracker.invalidate()
     }
 
     private func persist(key: String, action: @escaping (inout PlayerSave) -> Void) {

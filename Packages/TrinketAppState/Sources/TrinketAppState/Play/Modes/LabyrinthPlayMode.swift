@@ -9,23 +9,10 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class LabyrinthPlayMode {
-    private struct CombatPrepNode: Equatable {
-        let nodeID: String
-        let combatantID: String
-        let encounterLevel: Int
-        let modifierIDs: [NodeModifierID]
-    }
-
-    private struct PreparationInputs: Equatable {
-        let combatNodes: [CombatPrepNode]
-        let party: PlayBattlePartySnapshot
-    }
-
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
-    private var preparationTracker = PlayBattlePreparationTracker<PreparationInputs>()
 
     init(
         playerSave: PlayerSaveStore,
@@ -125,7 +112,6 @@ public final class LabyrinthPlayMode {
                 let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter)
                 return .ready(input: request.input, route: request.route)
             },
-            onActivated: { preparationTracker.invalidate() },
         )
     }
 
@@ -158,16 +144,6 @@ public final class LabyrinthPlayMode {
     public func prepareReachableBattles() {
         guard battle.lifecyclePhase != .active else { return }
         let labyrinth = playerSave.labyrinth
-        let inputs = preparationInputs(labyrinth: labyrinth)
-        let missingPreparedRun = labyrinth.reachableNodeIDs().contains { nodeID in
-            guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return false }
-            return !battle.hasPreparedRun(PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey)
-        }
-        guard preparationTracker.shouldPrepare(
-            for: inputs,
-            hasPreparedRun: !missingPreparedRun,
-        ) else { return }
-
         var preparedKeys: Set<BattleRunKey> = []
         for nodeID in labyrinth.reachableNodeIDs() {
             guard playerSave.accessRestriction(for: .labyrinth(nodeID: nodeID)) == nil else { continue }
@@ -177,28 +153,6 @@ public final class LabyrinthPlayMode {
             }
         }
         battleLaunch.keepPreparedRuns(preparedKeys, preservingWhere: { !$0.isLabyrinth })
-        // Always cache: correctness rides on the hasPreparedRun leg above, so
-        // a transient failure still retries via missingPreparedRun instead of
-        // re-warming on every appear.
-        preparationTracker.notePrepared(inputs)
-    }
-
-    private func preparationInputs(labyrinth: PlayerLabyrinthState) -> PreparationInputs {
-        let combatNodes = labyrinth.reachableNodeIDs().compactMap { nodeID -> CombatPrepNode? in
-            guard let node = labyrinth.node(id: nodeID), node.type.isCombat,
-                  let encounter = resolvedEncounter(for: node)
-            else { return nil }
-            return CombatPrepNode(
-                nodeID: nodeID,
-                combatantID: encounter.combatant.id,
-                encounterLevel: encounter.level,
-                modifierIDs: node.modifierIDs,
-            )
-        }
-        return PreparationInputs(
-            combatNodes: combatNodes,
-            party: PlayBattlePartySnapshot(playerSave: playerSave),
-        )
     }
 
     private func prepareBattle(

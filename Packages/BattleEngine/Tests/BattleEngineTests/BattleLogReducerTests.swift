@@ -1,8 +1,8 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
+@testable import BattleEngine
 
 struct BattleLogReducerTests {
     @Test func `line for action formats representative cases`() throws {
@@ -34,7 +34,7 @@ struct BattleLogReducerTests {
                 damageKeyword: .holy,
                 targetName: "Hero",
                 appliedEffectSummaries: ["restore 3 Health"],
-            ) == "Hero uses Smite on Hero and restore 3 Health.",
+            ) == "Hero uses Smite and restore 3 Health.",
         )
         try #expect(
             BattleLogReducer.lineForAction(
@@ -54,7 +54,7 @@ struct BattleLogReducerTests {
                 damageKeyword: .burn,
                 targetName: "Enemy",
                 appliedEffectSummaries: ["applies Burning", "gain Block"],
-            ) == "Hero uses Heat Wave on Enemy and applies Burning, gain Block.",
+            ) == "Hero uses Heat Wave and applies Burning, gain Block.",
         )
     }
 
@@ -210,6 +210,101 @@ struct BattleLogReducerTests {
             keyword: .poison,
         )
         #expect(BattleLogReducer.line(for: cleanseEvent) == "Hero Cleanses Poison (Purifying Wisdom).")
+    }
+
+    @Test func `Heal logs its actual ally recipient instead of the selected enemy`() {
+        var battle = makeSupportBattle()
+        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 10 }
+        let events = BattleTurnEngine.performAction(
+            ability: .heal, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+        )
+        #expect(battle.roster.companion.currentHealth == 16)
+        #expect(battle.roster.enemy.currentHealth == 100)
+        let lines = BattleLogReducer.entries(from: events).map(\.text)
+        #expect(lines.contains("Companion restores 6 Health (Heal)."))
+        #expect(lines.contains("Hero uses Heal and restore 6 Health."))
+        #expect(!lines.contains { $0.contains("Heal on Enemy") })
+    }
+
+    @Test func `support summary leaves Purge recipient to its committed effect line`() {
+        var battle = makeSupportBattle()
+        DefensePoolEngine.set(3, on: battle.enemy, in: &battle)
+        let ability = Ability(id: "purge", name: "Purge", tier: .skill, effects: [.purge(.block)])
+        let events = BattleTurnEngine.performAction(
+            ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+        )
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.enemy.activeEffects) == 0)
+        let lines = BattleLogReducer.entries(from: events).map(\.text)
+        #expect(lines.contains("Enemy's Block is Purged (Purge)."))
+        #expect(!lines.contains { $0.contains("uses Purge on") })
+    }
+
+    @Test(arguments: [9, 11, 12], [false, true])
+    func `Mana Potion logs only Mana actually restored`(initialMana: Int, automatic: Bool) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxMana: 12),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+            heroMana: initialMana,
+        )
+        battle.appliesFightPacing = false
+        let events: [ActionEvent] = if automatic {
+            battle.withAutomaticPlay { context in
+                BattleTurnEngine.performAction(
+                    ability: .manaPotion, actor: context.hero, abilityTarget: context.enemy, context: &context,
+                )
+            }
+        } else {
+            BattleTurnEngine.performAction(
+                ability: .manaPotion, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+            )
+        }
+        #expect(battle.roster.hero.currentMana == 12)
+        let restored = 12 - initialMana
+        let lines = BattleLogReducer.entries(from: events).map(\.text)
+        #expect(lines == [restored > 0
+                ? "Hero uses Mana Potion and restore \(restored) Mana."
+                : "Hero uses Mana Potion."])
+    }
+
+    @Test(arguments: [false, true])
+    func `direct Gold and Mana gains remain in the action summary without duplicate lines`(automatic: Bool) {
+        var battle = makeSupportBattle()
+        let ability = Ability(
+            id: "supplies", name: "Supplies", tier: .skill,
+            effects: [.resourceGain(.gold, 3), .resourceGain(.mana, 3)],
+        )
+        let events: [ActionEvent] = if automatic {
+            battle.withAutomaticPlay { context in
+                BattleTurnEngine.performAction(
+                    ability: ability, actor: context.hero, abilityTarget: context.enemy, context: &context,
+                )
+            }
+        } else {
+            BattleTurnEngine.performAction(
+                ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+            )
+        }
+        #expect(battle.gold == 3)
+        #expect(battle.roster.hero.currentMana == 3)
+        let gainEvents = events.filter { $0.effectKind == .resourceGain }
+        #expect(gainEvents.count == 2)
+        #expect(gainEvents.allSatisfy { BattleLogReducer.line(for: $0) == nil })
+        let lines = BattleLogReducer.entries(from: events).map(\.text)
+        #expect(lines.count == 1)
+        #expect(lines.first?.contains("gain 3 Gold") == true)
+        #expect(lines.first?.contains("restore 3 Mana") == true)
+    }
+
+    private func makeSupportBattle() -> BattleState {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxMana: 5),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+            heroMana: 0,
+        )
+        battle.appliesFightPacing = false
+        return battle
     }
 
     private func sampleEvents(includeDefeat: Bool) -> [ActionEvent] {

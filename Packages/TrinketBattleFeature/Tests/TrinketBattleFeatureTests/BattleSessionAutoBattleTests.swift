@@ -1,11 +1,70 @@
 import BattleEngine
 import Foundation
+import SwiftUI
 import Testing
 import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 import TrinketFeatureSupport
 @testable import TrinketBattleFeature
+
+@MainActor
+extension BattleSessionAutoBattleTests {
+    @Test func `auto battle commits the next card while the preceding cast remains visible`() async throws {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
+        defer { session.endBattle() }
+        let casts = BattleCastPresentationState()
+        defer { casts.reset() }
+        let start = Date.now
+        let card = try #require(session.hand.first)
+        casts.append(CardActivationRequest.restingRequest(
+            for: card, index: 0, cardCount: session.hand.count,
+            handFrame: BattleHandLayout.frame(in: CGSize(width: 375, height: 667)),
+            startedAt: start,
+        ))
+        var clock = start.addingTimeInterval(0.84)
+        var gateChecked = false
+        var didCommit = false
+        session.isAutoBattleEnabled = true
+        let driver = Task { @MainActor in
+            await session.driveAutoBattle(
+                isCardCastPacingBlocked: {
+                    gateChecked = true
+                    return casts.blocksAutoBattle(at: clock)
+                },
+                isManualInteractionActive: { false },
+                playCard: { card in
+                    didCommit = session.playCard(cardID: card.id).didCommit
+                    session.isAutoBattleEnabled = false
+                    return didCommit
+                },
+            )
+        }
+        defer { driver.cancel() }
+        #expect(try await BattleSessionTestSupport.waitUntil { gateChecked })
+        #expect(!didCommit)
+        clock = start.addingTimeInterval(0.86)
+        #expect(try await BattleSessionTestSupport.waitUntil { didCommit })
+        await driver.value
+        #expect(casts.request != nil)
+    }
+
+    @Test func `suspending a cast preserves its remaining autoplay pacing wait`() {
+        let casts = BattleCastPresentationState()
+        defer { casts.reset() }
+        let start = Date.now
+        casts.append(CardActivationRequest(
+            startedAt: start, artworkName: nil, center: .zero, size: .zero,
+            rotation: 0, verticalTilt: 0, scale: 1, keywords: [.physical],
+        ))
+        casts.setSuspended(true, at: start.addingTimeInterval(0.4))
+        #expect(casts.blocksAutoBattle(at: start.addingTimeInterval(10)))
+        casts.setSuspended(false, at: start.addingTimeInterval(10))
+        #expect(casts.blocksAutoBattle(at: start.addingTimeInterval(10.44)))
+        #expect(!casts.blocksAutoBattle(at: start.addingTimeInterval(10.46)))
+        #expect(casts.request != nil)
+    }
+}
 
 @MainActor
 struct BattleSessionAutoBattleTests {
@@ -19,7 +78,7 @@ struct BattleSessionAutoBattleTests {
         session.isAutoBattleEnabled = true
         let driver = Task { @MainActor in
             await session.driveAutoBattle(
-                isCardCastActive: {
+                isCardCastPacingBlocked: {
                     castChecks += 1
                     if castChecks == 1 {
                         isInteracting = true
@@ -120,7 +179,7 @@ struct BattleSessionAutoBattleTests {
         case .cardCast:
             await BattleSessionTestSupport.driveAutoBattleUntilStopped(
                 session: session,
-                isCardCastActive: {
+                isCardCastPacingBlocked: {
                     guard remainingBlocks > 0 else { return false }
                     remainingBlocks -= 1
                     return true
@@ -141,7 +200,7 @@ struct BattleSessionAutoBattleTests {
         session.isAutoBattleEnabled = true
         let driver = Task { @MainActor in
             await session.driveAutoBattle(
-                isCardCastActive: {
+                isCardCastPacingBlocked: {
                     guard remainingCastBlocks > 0 else { return false }
                     remainingCastBlocks -= 1
                     session.overlayAbilityDetail = .slash
@@ -177,7 +236,7 @@ struct BattleSessionAutoBattleTests {
         session.isAutoBattleEnabled = true
         let driver = Task { @MainActor in
             await session.driveAutoBattle(
-                isCardCastActive: { false },
+                isCardCastPacingBlocked: { false },
                 isManualInteractionActive: {
                     interactionChecks += 1
                     return interacting
@@ -219,7 +278,7 @@ struct BattleSessionAutoBattleTests {
 
         session.isAutoBattleEnabled = true
         await session.driveAutoBattle(
-            isCardCastActive: { castPresentation.request != nil },
+            isCardCastPacingBlocked: { castPresentation.request != nil },
             isManualInteractionActive: { false },
             playCard: { card in
                 let resolution = session.playCard(cardID: card.id)
@@ -240,7 +299,7 @@ struct BattleSessionAutoBattleTests {
         session.isAutoBattleEnabled = true
 
         await session.driveAutoBattle(
-            isCardCastActive: { false },
+            isCardCastPacingBlocked: { false },
             isManualInteractionActive: { false },
             playCard: { _ in false },
         )
@@ -277,7 +336,7 @@ struct BattleSessionAutoBattleTests {
         session.isAutoBattleEnabled = true
         let driver = Task { @MainActor in
             await session.driveAutoBattle(
-                isCardCastActive: { false },
+                isCardCastPacingBlocked: { false },
                 isManualInteractionActive: { false },
                 playCard: { card in
                     let resolution = session.playCard(cardID: card.id)

@@ -15,17 +15,17 @@ final class BattleFlowUITests: TrinketUITestCase {
         XCTAssertEqual(cards.count, inspectCountBefore, "Inspecting a card must not play it")
         dismissSheet()
 
-        let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Knight")]
+        let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Ranger")]
         assertExists(hero)
         battle.hand.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
             .press(forDuration: 0.2, thenDragTo: hero.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
-        let detailHeader = combatantDetail.header(for: "Knight")
+        let detailHeader = combatantDetail.header(for: "Ranger")
         XCTAssertFalse(
             detailHeader.trinketWaitForExistence(timeout: 1),
             "Releasing a hand-card drag on a combatant must not open details",
         )
-        battle.openCombatantCard(named: "Knight")
-        combatantDetail.assertLoaded(for: "Knight")
+        battle.openCombatantCard(named: "Ranger")
+        combatantDetail.assertLoaded(for: "Ranger")
         dismissSheet()
 
         let tapCountBefore = cards.count

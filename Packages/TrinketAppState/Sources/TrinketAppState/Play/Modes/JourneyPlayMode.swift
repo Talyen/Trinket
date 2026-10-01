@@ -13,7 +13,6 @@ public final class JourneyPlayMode {
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
-    private var preparationTracker = PlayBattlePreparationTracker<SingleBattlePreparationInputs>()
 
     init(
         playerSave: PlayerSaveStore,
@@ -77,7 +76,6 @@ public final class JourneyPlayMode {
                 let request = combatRequest(for: stage, encounter: encounter)
                 return .ready(input: request.input, route: request.route)
             },
-            onActivated: { preparationTracker.invalidate() },
         )
     }
 
@@ -86,16 +84,8 @@ public final class JourneyPlayMode {
         guard battle.lifecyclePhase != .active,
               let encounter = resolvedEncounter(for: stage)
         else { return }
-        battleLaunch.prepareSingleBattle(
-            tracker: &preparationTracker,
-            origin: .journey(stageID: stage.id),
-            stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
-                for: stage,
-                journey: playerSave.journey,
-            ),
-            party: PlayBattlePartySnapshot(playerSave: playerSave),
-            makeRequest: { combatRequest(for: stage, encounter: encounter) },
-        )
+        let request = combatRequest(for: stage, encounter: encounter)
+        battleLaunch.prepareCombat(request.input, route: request.route)
     }
 
     @discardableResult

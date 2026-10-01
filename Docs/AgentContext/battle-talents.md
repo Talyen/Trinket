@@ -162,6 +162,11 @@ Mimic deals one additional 2 Bleed damage hit (ordinary Bleed damage and
 application) on its first attack only, through the normal damage pipeline;
 subsequent hits and ongoing ticks do not repeat the bonus.
 
+### Lead the Hunt
+
+Lead the Hunt increases Companion attacks against Bleeding enemies by 25%; it adds
+no unconditional flat Bleed damage.
+
 ### Beastbond
 
 Beastbond restricts its Companion damage bonus to Physical damage (no separate
@@ -224,7 +229,15 @@ buffering, and control restrictions apply.
 
 Card-triggered elemental reactions use the selected random outcome. A defeated
 card owner cannot continue firing on-play rewards or reactions.
-Frost Circuit restores Mana for each Freeze Critical Hit.
+Typed Critical Hit rewards also recognize full Basic counterattacks. Frost Circuit
+restores Mana for each Freeze Critical Hit; Noxious Reaction, Cutpurse Cut, Ashen
+Arsenal, and Companion Burn Critical Hit Mana retain their existing reward cadence.
+Critical healing, ongoing damage, and non-attack effects do not qualify.
+
+Cracked Guard prepares the source's next attack after Physical damage breaks enemy
+Block, including reactive damage. The creating card or action cannot spend that
+preparation. Confounding Loot's Gold is theft, so Golden Opportunity, Master Thief,
+and other theft reactions apply.
 
 ### Next-card preparations
 

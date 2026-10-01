@@ -400,6 +400,7 @@ extension BattleTurnEngine {
             }
             var didApply = false
             var grantedGold = 0
+            var restoredMana = 0
             for effectTarget in effectTargets {
                 guard action.canContinue(in: context) else { break }
                 if shouldSkipEffectOnDefeatedTarget(effect, target: effectTarget, actor: actor, context: context)
@@ -414,20 +415,36 @@ extension BattleTurnEngine {
                     in: &context,
                 )
                 events.append(contentsOf: outcome.events)
-                grantedGold += outcome.events.filter {
-                    $0.effectKind == .resourceGain && $0.keyword == .gold && $0.origin == .direct
-                }.reduce(0) { $0 + $1.amount }
+                grantedGold += directResourceGain(by: outcome, keyword: .gold, ability: ability)
+                restoredMana += directResourceGain(by: outcome, keyword: .mana, ability: ability)
                 didApply = didApply || outcome.didApply
             }
-            if didApply {
-                if case .resourceGain(.gold, _) = effect {
-                    appliedEffectLogs.append("\(ability.stealsGold ? "steal" : "gain") \(grantedGold) Gold")
-                } else {
-                    appliedEffectLogs.append(effect.summary)
-                }
+            if didApply, let summary = appliedEffectSummary(
+                effect, ability: ability, grantedGold: grantedGold, restoredMana: restoredMana,
+            ) {
+                appliedEffectLogs.append(summary)
             }
         }
         return appliedEffectLogs
+    }
+
+    private static func directResourceGain(by outcome: EffectApplyOutcome, keyword: Keyword, ability: Ability) -> Int {
+        // The handler emits its gain before any talent reactions,
+        // including when automatic play changes its event origin.
+        guard let restoration = outcome.events.first,
+              restoration.effectKind == .resourceGain, restoration.keyword == keyword,
+              restoration.abilityName == ability.name else { return 0 }
+        return restoration.amount
+    }
+
+    private static func appliedEffectSummary(
+        _ effect: Effect, ability: Ability, grantedGold: Int, restoredMana: Int,
+    ) -> String? {
+        switch effect {
+        case .resourceGain(.gold, _): "\(ability.stealsGold ? "steal" : "gain") \(grantedGold) Gold"
+        case .resourceGain(.mana, _): restoredMana > 0 ? "restore \(restoredMana) Mana" : nil
+        default: effect.summary
+        }
     }
 
     private static func shouldSkipEffectOnDefeatedTarget(

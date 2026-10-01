@@ -18,7 +18,6 @@ public final class SpiresPlayMode {
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
-    private var preparationTracker = PlayBattlePreparationTracker<SingleBattlePreparationInputs>()
 
     init(
         playerSave: PlayerSaveStore,
@@ -89,7 +88,6 @@ public final class SpiresPlayMode {
                     return .unavailable(message)
                 }
             },
-            onActivated: { preparationTracker.invalidate() },
         )
     }
 
@@ -138,14 +136,8 @@ public final class SpiresPlayMode {
               case let .ready(encounter) = floorEligibility(for: floor)
         else { return }
 
-        let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
-        battleLaunch.prepareSingleBattle(
-            tracker: &preparationTracker,
-            origin: origin,
-            stageRewardsAlreadyClaimed: false,
-            party: PlayBattlePartySnapshot(playerSave: playerSave),
-            makeRequest: { combatRequest(for: floor, encounter: encounter) },
-        )
+        let request = combatRequest(for: floor, encounter: encounter)
+        battleLaunch.prepareCombat(request.input, route: request.route)
     }
 
     private func combatRequest(

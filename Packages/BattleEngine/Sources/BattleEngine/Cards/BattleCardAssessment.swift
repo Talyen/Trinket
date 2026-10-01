@@ -108,15 +108,27 @@ private extension BattleState {
             }
             if case let .panacea(baseHeal, _) = targeted.effect {
                 guard !recipientCanChange else { continue }
-                let cleanseTarget = BattleConditionEvaluator.mostDebuffedAlly(in: self)
-                let healTarget = BattleConditionEvaluator.lowestHealthAlly(in: self)
-                targets.append(.init(combatantID: cleanseTarget.id, intent: .effect(.cleanse(nil))))
-                targets.append(.init(combatantID: healTarget.id, intent: .effect(.instantHeal(.health, baseHeal))))
+                targets.append(contentsOf: panaceaAssessmentTargets(baseHeal: baseHeal, actor: actor))
                 continue
             }
             let target = BattleTargetResolver.effectTarget(targeted.target, actor: actor, abilityTarget: abilityTarget, in: self)
             targets.append(.init(combatantID: target.id, intent: .effect(targeted.effect)))
         }
+        return targets
+    }
+
+    func panaceaAssessmentTargets(baseHeal: Int, actor: Combatant) -> [BattleCardAssessment.Target] {
+        let cleanseTarget = BattleConditionEvaluator.mostDebuffedAlly(in: self)
+        var targets: [BattleCardAssessment.Target] = [
+            .init(combatantID: cleanseTarget.id, intent: .effect(.cleanse(nil))),
+        ]
+        // Fresh Batch and its healing reactions resolve before Panacea selects its recipient.
+        if modifiers(for: actor.id).triggers.freshBatch,
+           roster.activeEffects(for: cleanseTarget).contains(where: \.effect.isRemovableDebuff) {
+            return targets
+        }
+        let healTarget = BattleConditionEvaluator.lowestHealthAlly(in: self)
+        targets.append(.init(combatantID: healTarget.id, intent: .effect(.instantHeal(.health, baseHeal))))
         return targets
     }
 }

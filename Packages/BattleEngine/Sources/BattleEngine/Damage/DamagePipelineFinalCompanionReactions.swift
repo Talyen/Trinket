@@ -37,7 +37,7 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard state.amount > 0, state.damageKeyword == .holy,
-              state.combatant.role == .enemy, context.roster.enemy.isAlive,
+              state.combatant.role == .enemy,
               context.roster.hero.isAlive,
               let sourceID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceID), source.role == .companion,

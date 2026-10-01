@@ -19,7 +19,6 @@ package extension CombatTriggerEngine {
         critical: Bool,
         healthLost: Int,
         fullyBlocked: Bool,
-        blockBroken: Bool,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard let sourceID, context.hasHeroCard(for: sourceID),
@@ -33,27 +32,8 @@ package extension CombatTriggerEngine {
         if keyword == .freeze {
             events.append(contentsOf: drawOnFreezeCardHit(healthLost: healthLost, actor: actor, in: &context))
         }
-        if keyword == .freeze, critical, triggers.freezeCriticalRestoreMana > 0 {
-            events.append(contentsOf: heroTalentMana(to: actor, source: actor, name: "Frost Circuit", in: &context))
-        }
-        if keyword == .poison, critical, triggers.poisonCritPreparesBleedCrit {
-            context.roster.mutateRuntime(for: actor) { $0.talents.pending.guaranteedBleedCritical = true }
-        }
-        if keyword == .stun, critical, triggers.stunCriticalStealGold > 0,
-           context.claimHeroCardBonus("Cutpurse Cut", actorID: sourceID) {
-            events.append(contentsOf: context.grantGoldEvent(
-                triggers.stunCriticalStealGold,
-                to: actor,
-                abilityName: "Cutpurse Cut",
-                isTheft: true,
-            ))
-        }
-        if keyword == .burn, critical, triggers.burnAttackCritDrawCard,
-           context.claimHeroCardBonus("Ashen Arsenal", actorID: sourceID),
-           let owner = context.roster.participant(for: actor) {
-            events.append(contentsOf: drawCards(
-                1, for: owner, actor: actor, abilityName: "Ashen Arsenal", in: &context,
-            ))
+        if critical {
+            events.append(contentsOf: afterTypedCriticalAttackHit(keyword: keyword, actor: actor, in: &context))
         }
         if keyword == .burn, triggers.burnPreparesBleedDamageBonus > 0 {
             context.roster.mutateRuntime(for: actor) {
@@ -70,9 +50,45 @@ package extension CombatTriggerEngine {
         ))
         guard keyword == .physical else { return events }
         events.append(contentsOf: afterPhysicalCardHit(
-            actor: actor, sourceID: sourceID, critical: critical, blockBroken: blockBroken,
+            actor: actor, sourceID: sourceID, critical: critical,
             triggers: triggers, in: &context,
         ))
+        return events
+    }
+
+    static func afterTypedCriticalAttackHit(
+        keyword: Keyword?,
+        actor: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard context.allowsHeroTalentReaction,
+              let source = context.roster.runtime(for: actor), source.isAlive,
+              actor.role != .enemy else { return [] }
+        let sourceID = actor.id
+        let triggers = context.modifiers(for: sourceID).triggers
+        var events: [ActionEvent] = []
+        if keyword == .freeze, triggers.freezeCriticalRestoreMana > 0 {
+            events.append(contentsOf: heroTalentMana(to: actor, source: actor, name: "Frost Circuit", in: &context))
+        }
+        if keyword == .poison, triggers.poisonCritPreparesBleedCrit {
+            context.roster.mutateRuntime(for: actor) { $0.talents.pending.guaranteedBleedCritical = true }
+        }
+        if keyword == .stun, triggers.stunCriticalStealGold > 0,
+           context.claimTalentAbility("Cutpurse Cut", actorID: sourceID) {
+            events.append(contentsOf: context.grantGoldEvent(
+                triggers.stunCriticalStealGold,
+                to: actor,
+                abilityName: "Cutpurse Cut",
+                isTheft: true,
+            ))
+        }
+        if keyword == .burn, triggers.burnAttackCritDrawCard,
+           context.claimTalentAbility("Ashen Arsenal", actorID: sourceID),
+           let owner = context.roster.participant(for: actor) {
+            events.append(contentsOf: drawCards(
+                1, for: owner, actor: actor, abilityName: "Ashen Arsenal", in: &context,
+            ))
+        }
         return events
     }
 
@@ -86,15 +102,11 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         sourceID: String,
         critical: Bool,
-        blockBroken: Bool,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         if critical {
             removeBlockAfterPhysicalCriticalHit(by: sourceID, in: &context)
-        }
-        if blockBroken, triggers.crackedGuard {
-            context.roster.mutateRuntime(for: actor) { $0.talents.pending.nextAttackGuaranteedCritical = true }
         }
         guard triggers.physicalElementChancePercent > 0, triggers.physicalElementDamage > 0,
               context.claimHeroCardBonus("Prismatic Edge", actorID: sourceID),

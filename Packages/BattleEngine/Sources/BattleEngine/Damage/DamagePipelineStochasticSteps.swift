@@ -336,9 +336,21 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) -> Bool {
         var consumed = false
+        let currentCardSerial = context.resolution.cardTalents?.playSerial
+        let currentActionID = context.resolution.actionID
         context.roster.mutateRuntime(for: actor) { runtime in
-            if runtime.talents.pending.nextAttackGuaranteedCritical {
+            if runtime.talents.pending.nextAttackGuaranteedCritical,
+               CombatantTalentState.Pending.isLaterAbility(
+                   preparedCardSerial: runtime.talents.pending.nextGuaranteedCriticalPreparedCardSerial,
+                   currentCardSerial: currentCardSerial,
+               ),
+               CombatantTalentState.Pending.isLaterAction(
+                   preparedActionID: runtime.talents.pending.nextGuaranteedCriticalPreparedActionID,
+                   currentActionID: currentActionID,
+               ) {
                 runtime.talents.pending.nextAttackGuaranteedCritical = false
+                runtime.talents.pending.nextGuaranteedCriticalPreparedCardSerial = nil
+                runtime.talents.pending.nextGuaranteedCriticalPreparedActionID = nil
                 consumed = true
             } else if keyword == .bleed, runtime.talents.pending.guaranteedBleedCritical {
                 runtime.talents.pending.guaranteedBleedCritical = false

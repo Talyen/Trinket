@@ -11,7 +11,7 @@ Next-turn Dodge boosts from Pack Coordination and Smoke Screen live in turn
 state so a longer Cleanse bonus cannot extend them.
 
 Playful Energy counts both partners' cards and heals once when the party reaches
-its threshold. Feint Strike refreshes one shared next-card bonus; card preparation
+its threshold. Shared next-card Dodge bonuses refresh rather than stack; card preparation
 reserves it, and only that card's first damaging hit can spend it. A support card
 uses the preparation without carrying it forward to another card.
 `CombatResolution` owns party preparations and their per-card reservations.
@@ -50,6 +50,9 @@ remaining support rewards. New actions cannot start after battle ends.
 Combat logs summarize committed damage by recipient and keyword, with self-paid
 Health costs reported separately. Damage packets and their summary share the
 resolved action identity so nested actions do not combine their totals.
+Support-only log summaries do not assign the selected attack target to allied
+effects; committed effect events identify their actual recipients. Direct Mana
+gain summaries report the actual restoration after capacity limits and bonuses.
 Gold effect summaries use the ability's theft marker: Golden Plate gains Gold,
 while Steal and the other theft cards steal it. Gold summaries report the actual
 grant after equipment and talent bonuses.
@@ -128,7 +131,8 @@ affordability, possible outcomes, targeting, and the Mana empowerment budget wit
 resolution. Assessment never advances RNG or consumes combat preparations.
 Automatic-play recipients remain unresolved until their drawn actions execute.
 Targets that depend on preceding effects remain unresolved; Panacea exposes
-its separate cleanse and healing recipients. Branch-dependent costs and reactive repeated payments remain non-quantitative;
+its separate cleanse and healing recipients unless Fresh Batch can change the
+healing recipient after Cleanse. Branch-dependent costs and reactive repeated payments remain non-quantitative;
 only resolved combat events establish the result. The legacy
 `heldCardNextAttackDamage` trigger is retained for saved-item conversion in
 `InventoryItem.resolvedPower(at:)`, not as an active combat rule.

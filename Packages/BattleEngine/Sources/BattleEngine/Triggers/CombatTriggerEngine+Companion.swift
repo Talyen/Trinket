@@ -122,14 +122,19 @@ package extension CombatTriggerEngine {
                 ))
             }
         }
-        let manaName = triggerAbilityName("burnCriticalRestoreMana", for: actor, fallback: "Furnace Rhythm", in: context)
-        if critical, triggers.burnCriticalRestoreMana > 0,
-           context.claimTalentAbility(manaName, actorID: actor.id) {
-            events.append(contentsOf: context.restoreManaEmitting(
-                triggers.burnCriticalRestoreMana, to: actor, abilityName: manaName,
-            ))
+        if critical {
+            events.append(contentsOf: afterCompanionBurnCritical(actor: actor, in: &context))
         }
         return events
+    }
+
+    static func afterCompanionBurnCritical(actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
+        let triggers = context.modifiers(for: actor.id).triggers
+        let name = triggerAbilityName("burnCriticalRestoreMana", for: actor, fallback: "Furnace Rhythm", in: context)
+        guard context.allowsHeroTalentReaction, actor.role == .companion,
+              context.roster.health(for: actor) > 0, triggers.burnCriticalRestoreMana > 0,
+              context.claimTalentAbility(name, actorID: actor.id) else { return [] }
+        return context.restoreManaEmitting(triggers.burnCriticalRestoreMana, to: actor, abilityName: name)
     }
 
     private static func afterCompanionBleedCritical(
@@ -386,7 +391,10 @@ package extension CombatTriggerEngine {
                 $0.talents.pending.nextCriticalHitPreparedCardSerial = serial
             }
             if firstFeint {
-                $0.talents.pending.cardDamageBonus += triggers.firstDodgeNextAttackBonusPerTurn
+                $0.talents.pending.feintStrikeDamageBonus = max(
+                    $0.talents.pending.feintStrikeDamageBonus,
+                    triggers.firstDodgeNextAttackBonusPerTurn,
+                )
             }
         }
         if context.roster.hero.isAlive {

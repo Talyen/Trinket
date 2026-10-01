@@ -96,6 +96,16 @@ battle-chrome invalidation. This is an intentional performance exception to the 
 
 Do not rewrite the host for purity unless Instruments shows SwiftUI can match hitch budgets.
 
+## Debug transition lab
+
+In debug builds, open **Options → Developer → Battle Transitions**. Controls
+offers Current, Gather & Release, Soft Veil, and Arcane Aperture presets, with
+entry, victory, and combined replay. Reset returns to the encounter preview.
+The lab uses an isolated deterministic party and sample rewards; Loot All only
+previews collection. It does not save progress or change production transitions.
+Its pre-battle layout is representative, while combatant, hand, and reward views
+reuse the shipping components. Motion experiments live under `Features/TransitionLab/`.
+
 ## Testing
 
 ```sh

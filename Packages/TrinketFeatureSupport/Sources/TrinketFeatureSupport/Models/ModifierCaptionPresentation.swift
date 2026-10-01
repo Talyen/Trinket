@@ -8,18 +8,25 @@ public struct ModifierCaptionPresentation: Identifiable {
     public let title: String
     public let description: String
     public let style: Keyword.VisualStyle
+    public let resourceArtwork: HomesteadResource?
 
     public init(_ modifier: NodeModifierDefinition) {
         id = modifier.id.rawValue
         title = modifier.title
         description = modifier.effect.description
         style = NodeModifierPresentation.style(for: modifier)
+        if case let .reward(reward) = modifier.effect {
+            resourceArtwork = Self.resourceArtwork(for: reward)
+        } else {
+            resourceArtwork = nil
+        }
     }
 
     public init(_ modifier: RewardModifier) {
         id = modifier.rawValue
         title = modifier.title
         description = modifier.description
+        resourceArtwork = Self.resourceArtwork(for: modifier)
         if let resource = modifier.materialFocus {
             style = Keyword.VisualStyle(color: resource.tint, icon: resource.icon)
         } else {
@@ -41,5 +48,9 @@ public struct ModifierCaptionPresentation: Identifiable {
             default: Keyword.gold.visualStyle
             }
         }
+    }
+
+    private static func resourceArtwork(for modifier: RewardModifier) -> HomesteadResource? {
+        modifier == .gold ? .gold : modifier.materialFocus
     }
 }

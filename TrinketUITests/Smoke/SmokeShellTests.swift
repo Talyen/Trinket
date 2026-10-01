@@ -20,9 +20,14 @@ final class SmokeShellTests: TrinketUITestCase {
         let haptics = app.descendants(matching: .any)[AccessibilityID.Options.hapticsToggle]
         assertExists(AccessibilityID.Options.hapticsToggle, timeout: 10)
         let initialValue = haptics.value as? String
-        tapWhenReady(haptics)
+        // XCUITest exposes the whole Toggle row; its center falls in the gap before the switch.
+        XCTAssertTrue(haptics.isHittable)
+        haptics.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
         if let initial = initialValue {
-            XCTAssertNotEqual(haptics.value as? String, initial)
+            let changed = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "value != %@", initial), object: haptics,
+            )
+            XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: Self.defaultTimeout), .completed)
         }
         tabBar.selectPlay()
         play.assertLoaded(timeout: 10)

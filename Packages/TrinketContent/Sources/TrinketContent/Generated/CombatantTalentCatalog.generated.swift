@@ -92,7 +92,7 @@ public extension CombatantTalentCatalog {
                 name: "Lead the Hunt",
                 iconID: "sf:scope",
                 description: "Companion attacks deal 25% more damage to Bleeding enemies",
-                modifiers: [.companionBleedDamageDealt(3)],
+                modifiers: [],
                 triggers: CombatTraitTriggers(damage: DamageTriggers(companionAttackVsBleedingMultiplier: 1.25))
             ),
             "ranger_bleed_t1_2": CombatantTalentEffect(

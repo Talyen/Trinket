@@ -411,6 +411,56 @@ struct AppStatePlayFlowTests {
 }
 
 extension AppStatePlayFlowTests {
+    @Test func `revisiting A prepared journey stage preserves its battle and seed`() throws {
+        let state = try context.makePlaySession()
+        let stage = try PlayBattleLaunchTestSupport.firstJourneyStage()
+        let siblingStage = try #require(GameContent.chapters.flatMap(\.stages).first {
+            $0.encounter.isCombat && $0.id != stage.id
+        })
+        let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
+        var seedDraws = 0
+        state.battleLaunch.nextCombatSeed = {
+            seedDraws += 1
+            return UInt64(seedDraws)
+        }
+        state.journey.prepareBattle(for: stage)
+        let original = try #require(state.battleRegistration(for: runKey))
+        state.journey.prepareBattle(for: siblingStage)
+
+        state.journey.prepareBattle(for: stage)
+
+        #expect(state.battleRegistration(for: runKey)?.launch.configuration.id == original.launch.configuration.id)
+        #expect(seedDraws == 2)
+        #expect(state.journey.startBattle(for: stage) == nil)
+        #expect(state.battle.activeBattle?.rngSeed == original.launch.configuration.rngSeed)
+    }
+
+    @Test func `preparation refresh preserves seed and refreshes saved party inputs`() throws {
+        let state = try context.makePlaySession()
+        let stage = try PlayBattleLaunchTestSupport.firstJourneyStage()
+        let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
+        var seedDraws = 0
+        state.battleLaunch.nextCombatSeed = {
+            seedDraws += 1
+            return UInt64(seedDraws)
+        }
+        state.journey.prepareBattle(for: stage)
+        let original = try #require(state.battleRegistration(for: runKey))
+        #expect(state.playerSave.persistBatch(logging: "Test setup") {
+            $0.homestead.nodeTiers[.agilityTraining] = 1
+        })
+
+        state.journey.prepareBattle(for: stage)
+
+        let refreshed = try #require(state.battleRegistration(for: runKey))
+        #expect(refreshed.launch.configuration.id != original.launch.configuration.id)
+        #expect(refreshed.launch.inputs.party.homestead == state.playerSave.homestead)
+        #expect(refreshed.launch.configuration.rngSeed == original.launch.configuration.rngSeed)
+        #expect(seedDraws == 1)
+        #expect(state.journey.startBattle(for: stage) == nil)
+        #expect(state.battle.activeBattle?.id == refreshed.launch.configuration.id)
+    }
+
     @Test func `rejected preparation refresh evicts only its own run and can recover`() throws {
         let runtime = PreparedThenRejectingBattleRuntime()
         let state = try context.makePlaySession(battleRuntime: runtime)
@@ -425,6 +475,9 @@ extension AppStatePlayFlowTests {
         let siblingKey = PlayBattleOrigin.journey(stageID: siblingStage.id).runKey
         let sibling = try #require(state.battleRegistration(for: siblingKey))
 
+        #expect(state.playerSave.persistBatch(logging: "Test setup") {
+            $0.homestead.nodeTiers[.agilityTraining] = 1
+        })
         runtime.shouldRejectPreparation = true
         #expect(!state.battleLaunch.prepareCombat(original.launch.inputs.launch, route: original.route))
         #expect(!runtime.hasPreparedRun(runKey))

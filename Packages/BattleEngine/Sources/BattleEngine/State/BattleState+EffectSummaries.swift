@@ -65,6 +65,7 @@ package extension BattleState {
 private extension CombatantTalentState.Pending {
     func effectSummaries(criticalAppliesToParty: Bool, partyCardDamageBonus: Int, partyDamageBonus: Int = 0) -> [EffectSummary] {
         let criticalTarget = criticalAppliesToParty ? "party hit" : "attack"
+        let preparedDamage = cardDamageBonus + feintStrikeDamageBonus
         let prepared: [(Bool, Keyword, String)] = [
             (doubleDamageAfterDodge, .physical, "Prepared Strike: Your next attack deals double damage."),
             (guaranteedCriticalAfterDodge, .physical, "Prepared Critical: Your next \(criticalTarget) is a guaranteed Critical Hit."),
@@ -77,7 +78,7 @@ private extension CombatantTalentState.Pending {
                 .physical,
                 "Sniff Out: Your next attack deals \(partyDamageBonus) additional damage.",
             ),
-            (cardDamageBonus > 0, .physical, "Prepared Damage: Your next attack deals \(cardDamageBonus) additional damage."),
+            (preparedDamage > 0, .physical, "Prepared Damage: Your next attack deals \(preparedDamage) additional damage."),
             (
                 cardDamagePercent > 0,
                 .physical,

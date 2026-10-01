@@ -268,7 +268,7 @@ struct BattleFieldLane: View {
             .task(id: autoBattleTaskID) {
                 interactionState.suppressCombatantTaps = false
                 await battleSession.driveAutoBattle(
-                    isCardCastActive: { castPresentation.request != nil },
+                    isCardCastPacingBlocked: { castPresentation.blocksAutoBattle(at: .now) },
                     isManualInteractionActive: { interactionState.blocksCombatantTaps },
                     playCard: { card in
                         guard let measuredHandFrame, !measuredHandFrame.isEmpty else { return false }

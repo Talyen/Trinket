@@ -7,20 +7,6 @@ import TrinketPersistence
 
 @MainActor
 struct PlayBattleLaunchTests {
-    @Test func `prepare tracker caches by inputs and prepared run`() {
-        var tracker = PlayBattlePreparationTracker<String>()
-        #expect(tracker.shouldPrepare(for: "stage-1", hasPreparedRun: false))
-        #expect(tracker.shouldPrepare(for: "stage-1", hasPreparedRun: true))
-
-        tracker.notePrepared("stage-1")
-        #expect(!tracker.shouldPrepare(for: "stage-1", hasPreparedRun: true))
-        #expect(tracker.shouldPrepare(for: "stage-1", hasPreparedRun: false))
-        #expect(tracker.shouldPrepare(for: "stage-2", hasPreparedRun: true))
-
-        tracker.invalidate()
-        #expect(tracker.shouldPrepare(for: "stage-1", hasPreparedRun: true))
-    }
-
     private func makeLaunch(_ input: BattleLaunchInput) -> BattleLaunchAssembly {
         PlayBattleLaunch.assembleLaunch(
             input: input,

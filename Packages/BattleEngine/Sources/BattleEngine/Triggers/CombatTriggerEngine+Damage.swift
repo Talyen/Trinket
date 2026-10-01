@@ -423,9 +423,13 @@ package extension CombatTriggerEngine {
         }
         if profile.triggers.criticalVsStunnedEnemyGold > 0,
            context.roster.hasControlStatus(for: enemy, keyword: .stun) {
-            events.append(contentsOf: emitGold(
-                "criticalVsStunnedEnemyGold", "Confounding Loot",
-                amount: profile.triggers.criticalVsStunnedEnemyGold, to: source, in: &context,
+            events.append(contentsOf: context.grantGoldEvent(
+                profile.triggers.criticalVsStunnedEnemyGold,
+                to: source,
+                abilityName: triggerAbilityName(
+                    "criticalVsStunnedEnemyGold", for: source, fallback: "Confounding Loot", in: context,
+                ),
+                isTheft: true,
             ))
         }
 

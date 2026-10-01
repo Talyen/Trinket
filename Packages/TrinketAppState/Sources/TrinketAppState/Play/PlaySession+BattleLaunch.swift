@@ -49,11 +49,9 @@ final class PlayBattleLaunch {
     func activateRequest(
         _ input: BattleLaunchInput,
         route: PlayBattleRoute,
-        onActivated: () -> Void = {},
     ) -> StageMapMessage? {
         guard battle.lifecyclePhase != .active else { return Self.activationFailureMessage }
         guard activateCombat(input, route: route) else { return Self.activationFailureMessage }
-        onActivated()
         return nil
     }
 
@@ -67,7 +65,6 @@ final class PlayBattleLaunch {
         encounters: EncounterPlayMode,
         busyMessage: StageMapMessage?,
         resolve: () -> PlayBattleRequestResolution,
-        onActivated: () -> Void = {},
     ) -> StageMapMessage? {
         if let restriction = playerSave.accessRestriction(for: origin) {
             return restriction
@@ -83,13 +80,30 @@ final class PlayBattleLaunch {
         case let .unavailable(message):
             return message
         }
-        return activateRequest(request.input, route: request.route, onActivated: onActivated)
+        return activateRequest(request.input, route: request.route)
     }
 
     @discardableResult
     func prepareCombat(_ input: BattleLaunchInput, route: PlayBattleRoute) -> Bool {
-        guard playerSave.accessRestriction(for: input.origin) == nil else { return false }
-        let launch = makeBattleLaunch(input)
+        guard battle.lifecyclePhase != .active,
+              playerSave.accessRestriction(for: input.origin) == nil,
+              PlayBattleRoute.matches(
+                  route, runKey: input.origin?.runKey,
+                  missingLog: "Missing route for prepared battle registration",
+              ) else { return false }
+        let launch: BattleLaunchAssembly
+        if let runKey = input.origin?.runKey, battle.hasPreparedRun(runKey),
+           let registration = runs.registration(for: runKey) {
+            // The registered snapshot owns freshness and RNG for this run.
+            // Refreshing inputs must not reroll combat or rebuild sibling runs.
+            let inputs = preparationInputs(input, rngSeed: registration.launch.inputs.rngSeed)
+            if inputs == registration.launch.inputs {
+                return true
+            }
+            launch = Self.assembleLaunch(inputs)
+        } else {
+            launch = makeBattleLaunch(input)
+        }
         return runs.prepare(launch, route: route)
     }
 
@@ -102,34 +116,6 @@ final class PlayBattleLaunch {
         preservingWhere preserve: (PlayBattleOrigin) -> Bool,
     ) {
         runs.keepPreparedRuns(keys, preservingWhere: preserve)
-    }
-
-    /// Shared single-battle pre-warm for Journey/Spires. Both warm at most one
-    /// run keyed by origin. Contracts intentionally skips pre-warming: offer
-    /// IDs rotate on refresh/replace, so cached runs would rarely hit.
-    /// Sibling warms (including same-mode) are intentionally retained:
-    /// prepared runs remain until pruning, restart, or end.
-    func prepareSingleBattle(
-        tracker: inout PlayBattlePreparationTracker<SingleBattlePreparationInputs>,
-        origin: PlayBattleOrigin,
-        stageRewardsAlreadyClaimed: Bool,
-        party: PlayBattlePartySnapshot,
-        makeRequest: () -> (input: BattleLaunchInput, route: PlayBattleRoute),
-    ) {
-        guard battle.lifecyclePhase != .active else { return }
-        let inputs = SingleBattlePreparationInputs(
-            runKey: origin.runKey,
-            party: party,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-        )
-        guard tracker.shouldPrepare(
-            for: inputs,
-            hasPreparedRun: battle.hasPreparedRun(origin.runKey),
-        ) else { return }
-        let request = makeRequest()
-        if prepareCombat(request.input, route: request.route) {
-            tracker.notePrepared(inputs)
-        }
     }
 
     @discardableResult
@@ -151,14 +137,8 @@ final class PlayBattleLaunch {
                   registration.launch.configuration.hero.combatant.id == input.hero.id,
                   registration.launch.configuration.companion.combatant.id == input.companion.id,
                   registration.launch.configuration.enemy?.id == input.enemy?.id else { return false }
-            let currentInputs = preparationInputs(input, rngSeed: registration.launch.inputs.rngSeed)
-            let launch: BattleLaunchAssembly
-            if currentInputs == registration.launch.inputs {
-                launch = registration.launch
-            } else {
-                launch = Self.assembleLaunch(currentInputs)
-                guard runs.prepare(launch, route: route) else { return false }
-            }
+            guard prepareCombat(input, route: route),
+                  let launch = runs.registration(for: origin.runKey)?.launch else { return false }
             guard runs.activatePrepared(launch.configuration) else { return false }
             shellSession.selectedTab = .play
             return true

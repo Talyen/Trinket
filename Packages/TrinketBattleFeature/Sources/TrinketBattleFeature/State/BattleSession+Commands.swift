@@ -121,7 +121,7 @@ extension BattleSession {
     }
 
     func driveAutoBattle(
-        isCardCastActive: @escaping @MainActor () -> Bool,
+        isCardCastPacingBlocked: @escaping @MainActor () -> Bool,
         isManualInteractionActive: @escaping @MainActor () -> Bool,
         playCard: @MainActor (BattleCard) async -> Bool,
     ) async {
@@ -135,7 +135,7 @@ extension BattleSession {
             }
 
             await waitWhileAutoBattleBlocked(isBlocked: isManualInteractionActive)
-            await waitWhileAutoBattleBlocked(isBlocked: isCardCastActive)
+            await waitWhileAutoBattleBlocked(isBlocked: isCardCastPacingBlocked)
             guard !Task.isCancelled, isAutoBattleEnabled, hasRunnableAutoBattle else {
                 return
             }
@@ -159,7 +159,7 @@ extension BattleSession {
             }
             guard !Task.isCancelled, isAutoBattleEnabled, outcome == nil else { return }
 
-            await waitWhileAutoBattleBlocked(isBlocked: isCardCastActive)
+            await waitWhileAutoBattleBlocked(isBlocked: isCardCastPacingBlocked)
         }
     }
 

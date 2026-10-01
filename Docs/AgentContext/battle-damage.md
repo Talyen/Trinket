@@ -17,6 +17,9 @@ Venom stripping its owner's Block before absorption. Its fixed strip amount is
 shared by the borrowed and recipient Block pools within one damage packet.
 Block-breaking multipliers scale the Block points consumed after the owner's
 absorption efficiency, capped at the remaining pool; absorbed damage stays unchanged.
+Shieldbreaker, Shield Breaker, and Brittle Strike apply their Physical Block-breaking
+multiplier only to attacks. Physical retaliation retains ordinary Block consumption;
+generic Sundering and Holy damage bonuses keep their separate eligibility.
 Multiple partial Block bypasses
 use the strongest applicable fraction. Partial bypass scales each defense before
 subtracting it and clamping damage. Burn detonation preserves the original

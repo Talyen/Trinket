@@ -147,9 +147,13 @@ package extension DamagePipeline {
             state.remaining *= 2
             context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.doubleNextAttackAfterDeathsDoor = false }
         }
-        if runtime.talents.pending.cardDamageBonus > 0 {
-            state.remaining += runtime.talents.pending.cardDamageBonus
-            context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.cardDamageBonus = 0 }
+        let preparedDamage = runtime.talents.pending.cardDamageBonus + runtime.talents.pending.feintStrikeDamageBonus
+        if preparedDamage > 0 {
+            state.remaining += preparedDamage
+            context.roster.mutateRuntime(for: source.combatant) {
+                $0.talents.pending.cardDamageBonus = 0
+                $0.talents.pending.feintStrikeDamageBonus = 0
+            }
         }
         if runtime.talents.pending.cardDamagePercent > 0 {
             state.remaining = CombatRounding.scaled(

@@ -170,6 +170,11 @@ struct OptionsView: View {
                 PreviewLabView()
             }
 
+            NavigationLink("Battle Transitions") {
+                BattleTransitionLabView()
+            }
+            .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.entry)
+
             Button("Unlock All") {
                 if !appState.unlockAllContent() {
                     appState.playerSave.retrySaveAction(key: "unlock-content") {

@@ -58,23 +58,25 @@ package enum DamagePipeline {
 
         CombatCheckpoint.committedDamage.perform(in: &context) { context in
             applyResourceful(to: &state, in: &context)
+            applyCrackedGuard(to: &state, in: &context)
             applyCommittedDamageReactions(to: &state, in: &context)
         }
     }
 
     /// Committed-damage reaction order (load-bearing, do not reorder):
-    /// card-hit → enemy traits → DoT mirrors/ticks → leech → enemy Purge → attacker on-hit
+    /// card-hit (or non-card typed critical rewards) → enemy traits → DoT mirrors/ticks → leech → enemy Purge → attacker on-hit
     /// applications → attacker mirrors → control meter/fang → retaliation-gated
     /// reactive/keyword → Threefold Grace → crit → uniques. DoT mirrors must precede leech so
     /// mirrored ticks count toward the same hit; keyword reactions stay last
     /// among pipeline-owned steps so wards see final healthLost.
     private static func applyCommittedDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) {
+        applyTypedCriticalAttackRewards(to: &state, in: &context)
         if state.options.isCardAttack, state.amount > 0, state.combatant.role == .enemy {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroCardHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID, critical: state.isCritical,
                 healthLost: state.healthLost,
                 fullyBlocked: state.blockedAmount > 0 && state.remaining == 0,
-                blockBroken: state.heroCardBlockBroken, in: &context,
+                in: &context,
             ))
         }
 

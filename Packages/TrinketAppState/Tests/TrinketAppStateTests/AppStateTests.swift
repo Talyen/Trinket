@@ -20,8 +20,6 @@ struct AppStateTests {
 
         #expect(state.selectedTab == .play)
         #expect(state.playerSave.roster == .freshStart)
-        #expect(state.playerSave.roster.activeHeroID == "knight")
-        #expect(state.playerSave.roster.activeCompanionID == "wolf")
         #expect(state.playerSave.inventory == .freshStart)
         #expect(state.playerSave.starterSelection == .complete)
     }

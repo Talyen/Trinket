@@ -65,7 +65,7 @@ ranger_burn_t2_1	Woundfire	sf:flame.fill	Bleeding enemies take 25% increased Bur
 ranger_burn_t2_2	Smoke Screen	sf:cloud.fog.fill	Burning enemies grant both allies +10% Dodge		partyDodgeVsBurningBonus:0.10
 ranger_burn_t3_1	Scorched Earth	sf:flame.fill	Burning enemies gain 25% less Block		burningEnemyBlockGainMultiplier:0.75
 ranger_burn_t3_2	Inferno Barrage	sf:flame.fill	Burn Critical Hits deal 4 additional damage		burnCriticalDamageBonus:4
-ranger_bleed_t1_1	Lead the Hunt	sf:scope	Companion attacks deal 25% more damage to Bleeding enemies	companion_bleed_damage_dealt:3	companionAttackVsBleedingMultiplier:1.25
+ranger_bleed_t1_1	Lead the Hunt	sf:scope	Companion attacks deal 25% more damage to Bleeding enemies		companionAttackVsBleedingMultiplier:1.25
 ranger_bleed_t1_2	Broadhead Arrows	sf:figure.archery	Bleed attacks ignore half enemy Block		bleedAttackBlockIgnorePercent:0.5
 ranger_bleed_t2_1	Hamstring Shot	sf:figure.fall	Bleeding enemies deal 25% less damage		bleedingEnemyOutgoingDamageMultiplier:0.75
 ranger_bleed_t2_2	Bloodscent	sf:eye.fill	Bleed lasts 1 extra turn	bleed_duration:1

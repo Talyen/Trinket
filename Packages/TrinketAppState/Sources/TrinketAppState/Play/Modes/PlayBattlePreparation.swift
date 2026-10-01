@@ -104,15 +104,6 @@ enum ModeBattleSpec {
     }
 }
 
-/// Preparation cache key for single-battle modes (Journey, Spires).
-/// Both warm at most one run; the run key identifies the battle 1:1 with the
-/// mode's battle origin (stage ID, spire + floor), so cache behavior is unchanged.
-struct SingleBattlePreparationInputs: Equatable {
-    let runKey: BattleRunKey
-    let party: PlayBattlePartySnapshot
-    let stageRewardsAlreadyClaimed: Bool
-}
-
 enum PlayBattlePreparation {
     static func scaledEncounter(
         enemyID: String?,

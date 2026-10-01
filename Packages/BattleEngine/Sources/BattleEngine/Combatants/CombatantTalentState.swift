@@ -45,6 +45,7 @@ struct CombatantTalentState: Hashable, Sendable {
         var guaranteedCriticalAfterDodge = false
         var bleedAfterDodge = 0
         var cardDamageBonus = 0
+        var feintStrikeDamageBonus = 0
         var cardDamagePercent = 0.0
         var overchargePercent = 0.0
         var overchargePreparedCardSerial: Int?
@@ -103,6 +104,8 @@ struct CombatantTalentState: Hashable, Sendable {
         var nextCleanseCriticalBonus = 0.0
         var nextCleanseCriticalPreparedCardSerial: Int?
         var nextAttackGuaranteedCritical = false
+        var nextGuaranteedCriticalPreparedCardSerial: Int?
+        var nextGuaranteedCriticalPreparedActionID: Int?
         var nextStunPreparedCritical = false
         var nextStunCriticalPreparedCardSerial: Int?
         var nextStunCriticalPreparedActionID: Int?

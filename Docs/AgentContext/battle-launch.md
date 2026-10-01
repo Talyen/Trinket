@@ -17,8 +17,11 @@ its configuration and reward presentation. These include the launch request,
 party/save inputs, world seed, combat seed, run key, and presentation policy.
 Prepared activation compares that complete value with current inputs and requires
 the registered configuration ID as well as matching party/enemy identities.
+Prewarming and activation share the same snapshot comparison in `PlayBattleLaunch`;
+modes select eligible encounters and prune their runs without separate freshness caches.
 Changed inputs refresh only that run, retaining its combat seed and sibling
-preparations. Unchanged inputs reuse the original configuration and simulation;
+preparations. Unchanged inputs, including revisiting a previously warmed encounter,
+reuse the original configuration and simulation;
 missing registration or changed identities fail closed until explicitly prepared.
 
 Play screens read save slices from `PlayerSaveStore` directly. Mode types own map/node/floor selection and mode-unique completion writes; they must not re-absorb the shared victory persist→dismiss sequence. `AppState` prepares audio and requests launch state. BattleSession resolves registered presentation context before publishing activation. Restart installs the new registration before restarting the runtime and restores the previous registration if restart fails. The composition root owns the launch-victory preview; the overlay never installs progression callbacks or presentation context.

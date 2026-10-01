@@ -339,7 +339,7 @@ package extension DamagePipeline {
         var extraRemoved = canSunder
             ? CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers?.sunderingBlockMultiplier ?? 0)
             : 0
-        if damageKeyword == .physical, let sourceTriggers, sourceTriggers.physicalBlockBreakMultiplier > 0 {
+        if isAttackHit, damageKeyword == .physical, let sourceTriggers, sourceTriggers.physicalBlockBreakMultiplier > 0 {
             extraRemoved += CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers.physicalBlockBreakMultiplier - 1)
         }
         if damageKeyword == .holy, let sourceTriggers, sourceTriggers.holyBlockBreakMultiplier > 0 {

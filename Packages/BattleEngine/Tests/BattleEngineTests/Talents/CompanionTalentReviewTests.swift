@@ -5,6 +5,32 @@ import TrinketCore
 @testable import BattleEngine
 
 struct CompanionTalentReviewTests {
+    @Test(arguments: [false, true], [BattleParticipant.hero, .companion])
+    func `lead the hunt boosts only companion attacks against bleeding enemies`(
+        targetIsBleeding: Bool,
+        owner: BattleParticipant,
+    ) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyMaxHealth: 100,
+            heroModifiers: CombatantTalentCatalog.profile(for: ["ranger_bleed_t1_1"]),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        if targetIsBleeding {
+            battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        }
+        let source = owner == .hero ? battle.hero : battle.companion
+        let healthBefore = battle.roster.enemy.currentHealth
+
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 8, target: battle.enemy, keyword: .bleed, sourceActorID: source.id,
+            options: .attack(tier: .basic, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ))
+
+        let expectedDamage = owner == .companion && targetIsBleeding ? 10 : 8
+        #expect(battle.roster.enemy.currentHealth == healthBefore - expectedDamage)
+    }
+
     @Test func `paralysis can stun when block absorbs a poison attack`() throws {
         var profile = CombatantTalentCatalog.profile(for: ["lizard_scout_poison_t3_1"])
         profile.triggers.poisonAttackStunChancePercent = 1

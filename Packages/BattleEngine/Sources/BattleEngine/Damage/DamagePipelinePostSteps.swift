@@ -109,6 +109,23 @@ package extension DamagePipeline {
         }
     }
 
+    static func applyTypedCriticalAttackRewards(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard state.options.isAttackHit, !state.options.isCardAttack, state.isCritical, state.amount > 0,
+              state.combatant.role == .enemy,
+              let source = state.partySource(in: context) else { return }
+        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterTypedCriticalAttackHit(
+            keyword: state.damageKeyword, actor: source.combatant, in: &context,
+        ))
+        if state.damageKeyword == .burn {
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterCompanionBurnCritical(
+                actor: source.combatant, in: &context,
+            ))
+        }
+    }
+
     static func applyCriticalReaction(
         to state: inout DamageResolutionState,
         in context: inout BattleState,

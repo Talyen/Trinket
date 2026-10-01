@@ -167,7 +167,7 @@ public enum BattleLogReducer {
         let mainAction = if hadDamage {
             "\(actorName) uses \(abilityName) for \(dealt) \(damageKeyword.rawValue) damage to \(targetName)"
         } else {
-            "\(actorName) uses \(abilityName) on \(targetName)"
+            "\(actorName) uses \(abilityName)"
         }
 
         if hadEffects {
