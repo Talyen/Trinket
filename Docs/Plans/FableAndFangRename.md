@@ -120,7 +120,7 @@ rename into a whole-repository symbol or historical-record rewrite.
   environment variables, logging/signpost subsystems, CI names, and local tooling
   configuration paths. `DesignSystemPreview`'s `Trinket Theme` is developer-only.
 - Icon artwork: visually inspected the authored
-  [app icon image](../../Raw%20Assets/App%20Icon/Trinket%20App%20Icon.jpg);
+  app icon image at `Raw Assets/App Icon/Trinket App Icon.jpg`;
   it contains a hero and wolf with no title text. Its hash matches the installed
   Icon Composer image. Keep the artwork and internal filenames. Asset-filename
   searches found no separate logo/title asset; uploaded media still needs review.
