@@ -25,36 +25,44 @@ from pathlib import Path
 
 class CIHandoffRoutingTests(ScriptRegressionTestCase):
     def test_gemfile_changes_select_script_regressions(self) -> None:
-        for path in ("Gemfile", "Gemfile.lock"):
-            with self.subTest(path=path):
-                result = subprocess.run(
-                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", path],
-                    cwd=ROOT, capture_output=True, text=True, check=False,
-                )
-                self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertIn(f"./Scripts/test-scripts.sh --fast --paths {path}", result.stdout)
+        for hosted in (False, True):
+            for path in ("Gemfile", "Gemfile.lock"):
+                with self.subTest(path=path, hosted=hosted):
+                    result = subprocess.run(
+                        [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", path],
+                        cwd=ROOT, env=self.verification_environment(hosted=hosted),
+                        capture_output=True, text=True, check=False,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    flag = "" if hosted else " --fast"
+                    self.assertIn(f"./Scripts/test-scripts.sh{flag} --paths {path}", result.stdout)
 
     def test_mixed_script_and_product_scope_keeps_narrow_regressions(self) -> None:
-        result = subprocess.run(
-            [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths",
-             "Scripts/check-links.py", "Packages/TrinketCore/Sources/TrinketCore/Keyword.swift"],
-            cwd=ROOT, capture_output=True, text=True, check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        command = next(line.strip() for line in result.stdout.splitlines()
-                       if line.strip().startswith("./Scripts/test-scripts.sh --fast --paths"))
-        paths = shlex.split(command)[3:]
-        selected = subprocess.run(
-            ["python3", "Scripts/script_test_selection.py", "--paths", *paths],
-            cwd=ROOT, capture_output=True, text=True, check=False,
-        )
         script_only = subprocess.run(
             ["python3", "Scripts/script_test_selection.py", "--paths", "Scripts/check-links.py"],
             cwd=ROOT, capture_output=True, text=True, check=False,
         )
-        self.assertEqual(selected.returncode, 0, selected.stderr)
         self.assertEqual(script_only.returncode, 0, script_only.stderr)
-        self.assertEqual(selected.stdout, script_only.stdout)
+        for hosted in (False, True):
+            with self.subTest(hosted=hosted):
+                result = subprocess.run(
+                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths",
+                     "Scripts/check-links.py", "Packages/TrinketCore/Sources/TrinketCore/Keyword.swift"],
+                    cwd=ROOT, env=self.verification_environment(hosted=hosted),
+                    capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                command = next(line.strip() for line in result.stdout.splitlines()
+                               if line.strip().startswith("./Scripts/test-scripts.sh "))
+                arguments = shlex.split(command)
+                self.assertEqual('--fast' in arguments, not hosted)
+                paths = arguments[arguments.index('--paths') + 1:]
+                selected = subprocess.run(
+                    ["python3", "Scripts/script_test_selection.py", "--paths", *paths],
+                    cwd=ROOT, capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(selected.returncode, 0, selected.stderr)
+                self.assertEqual(selected.stdout, script_only.stdout)
 
     def test_product_routes_preserve_package_and_smoke_owners(self) -> None:
         support = "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport"

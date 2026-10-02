@@ -8,11 +8,11 @@ struct ActionPreparationRegressionTests {
     func `Heat Recovery strengthens a later Burn attack after cleansing`(card: Bool) throws {
         let ability = Ability(
             id: "cleanse-then-burn", name: "Cleanse Then Burn", tier: .basic,
+            criticalChanceBonus: -1,
             operations: [
                 .effect(TargetedEffect(.cleanse(.burn), target: .actor)),
                 .damage(DamageComponent(3, keyword: .burn)),
             ],
-            criticalChanceBonus: -1,
         )
         var profile = CombatantTalentCatalog.profile(for: ["alchemist_cleanse_t2_1"])
         profile.triggers.criticalChanceBonus = -1
@@ -77,11 +77,11 @@ struct ActionPreparationRegressionTests {
     @Test func `Aftershock Guard doubles a later Block gain after stunning`() {
         let ability = Ability(
             id: "stun-then-block", name: "Stun Then Block", tier: .basic,
+            criticalChanceBonus: -1,
             operations: [
                 .damage(DamageComponent(1, keyword: .stun)),
                 .effect(TargetedEffect(.shield(.block, 3), target: .actor)),
             ],
-            criticalChanceBonus: -1,
         )
         var profile = CombatantTalentCatalog.profile(for: ["bear_block_t4_1"])
         profile.triggers.criticalChanceBonus = -1

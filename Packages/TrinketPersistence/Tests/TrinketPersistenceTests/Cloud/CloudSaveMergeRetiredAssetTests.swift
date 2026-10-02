@@ -31,9 +31,11 @@ struct CloudSaveMergeRetiredAssetTests {
         #expect(restored.contracts.completedOfferIDs?.contains(offer.id) == true)
         #expect(!restored.contracts.offers.contains { $0.id == offer.id })
         let before = restored
-        let outcome = ContractsCompletion.complete(
+        let outcome = try ContractsCompletion.complete(
             offerID: offer.id, hero: restored.roster.activeHero, companion: restored.roster.activeCompanion,
-            encounterLevel: 1, loot: BattleLootResult(item: nil, gold: 10, materials: []), save: &restored,
+            encounterLevel: 1,
+            loot: BattleLootResult(item: #require(GameContent.sampleInventoryItems.first), gold: 10, materials: []),
+            save: &restored,
         )
         #expect(outcome == .alreadyCompleted)
         #expect(restored == before)
@@ -46,9 +48,11 @@ struct CloudSaveMergeRetiredAssetTests {
         save.contracts = PlayerContractsState(offers: [offer])
         save.contracts.completedOfferIDs = [offer.id]
         let before = save
-        let outcome = ContractsCompletion.complete(
+        let outcome = try ContractsCompletion.complete(
             offerID: offer.id, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
-            encounterLevel: 1, loot: BattleLootResult(item: nil, gold: 10, materials: []), save: &save,
+            encounterLevel: 1,
+            loot: BattleLootResult(item: #require(GameContent.sampleInventoryItems.first), gold: 10, materials: []),
+            save: &save,
         )
         #expect(outcome == .alreadyCompleted)
         #expect(save == before)

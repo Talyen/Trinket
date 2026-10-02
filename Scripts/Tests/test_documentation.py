@@ -371,43 +371,38 @@ class DocumentationTests(ScriptRegressionTestCase):
         self.assertEqual(planned[-4:], registry)
 
     def test_mixed_script_and_docs_runs_docs_once(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--paths",
-                "Scripts/build.sh",
-                "Docs/Platform/Verification.md",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-        # Mixed scope must contain docs once and scripts with --skip-docs once.
-        self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 1)
-        script_commands = [p for p in planned if p.startswith("./Scripts/test-scripts.sh")]
-        self.assertEqual(script_commands, [
-            "./Scripts/test-scripts.sh --fast --paths Docs/Platform/Verification.md Scripts/build.sh",
-        ])
+        for hosted in (False, True):
+            with self.subTest(hosted=hosted):
+                result = subprocess.run(
+                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths",
+                     "Scripts/build.sh", "Docs/Platform/Verification.md"],
+                    cwd=ROOT, env=self.verification_environment(hosted=hosted),
+                    capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
+                self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 1)
+                script_commands = [p for p in planned if p.startswith("./Scripts/test-scripts.sh")]
+                flag = "--skip-docs" if hosted else "--fast"
+                self.assertEqual(script_commands, [
+                    f"./Scripts/test-scripts.sh {flag} --paths Docs/Platform/Verification.md Scripts/build.sh",
+                ])
 
     def test_plain_script_scope_still_validates_docs(self) -> None:
-        result = subprocess.run(
-            [str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--paths", "Scripts/build.sh"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-        # Local fast script checks keep one separate cheap docs validation.
-        self.assertIn("./Scripts/test-scripts.sh --fast --paths Scripts/build.sh", planned)
-        self.assertFalse(any("--skip-docs" in command for command in planned))
-        # The fast script lane skips its embedded docs check, so handoff supplies it once.
-        self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 1)
+        for hosted in (False, True):
+            with self.subTest(hosted=hosted):
+                result = subprocess.run(
+                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", "Scripts/build.sh"],
+                    cwd=ROOT, env=self.verification_environment(hosted=hosted),
+                    capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
+                flag = "" if hosted else " --fast"
+                self.assertIn(f"./Scripts/test-scripts.sh{flag} --paths Scripts/build.sh", planned)
+                self.assertFalse(any("--skip-docs" in command for command in planned))
+                # Hosted scripts own docs; fast local scripts need one separate docs check.
+                self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 0 if hosted else 1)
 
     def test_final_handoff_preview_matches_execution_scope_without_running_docs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

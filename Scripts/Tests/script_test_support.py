@@ -26,6 +26,14 @@ def load_script(name: str, filename: str):
 
 class ScriptRegressionTestCase(unittest.TestCase):
 
+    def verification_environment(self, *, hosted: bool = False) -> dict[str, str]:
+        """Select a policy for dry runs or stubbed fixtures, independent of the test host."""
+        environment = {key: value for key, value in os.environ.items()
+                       if key not in {'CI', 'GITHUB_ACTIONS', 'TRINKET_ALLOW_HEAVY_LOCAL'}}
+        if hosted:
+            environment.update(CI='true', GITHUB_ACTIONS='true')
+        return environment
+
     def make_repo_fixture(self, directory: str, files: Iterable[str]) -> Path:
         """Create an isolated repo root holding copies of repository files.
 

@@ -21,7 +21,7 @@ struct AshenVitalityActionPreparationTests {
             ability: creatingAbility, actor: actor, abilityTarget: target, context: &battle,
         )
 
-        #expect(events.contains { $0.kind == .overheal && $0.targetID == actor.id && $0.amount == 3 })
+        #expect(events.contains { $0.effectKind == .overheal && $0.targetID == actor.id && $0.amount == 3 })
         #expect(events.filter { $0.kind == .abilityDamage && $0.keyword == .burn }.map(\.amount) == [3])
         #expect(battle.roster.companion.talents.pending.nextBurnDamageBonus?.value == 2)
         expectLaterBurnConsumesPreparation(actor: actor, target: target, in: &battle)
@@ -45,7 +45,7 @@ struct AshenVitalityActionPreparationTests {
 
         #expect(result.flags.contains(.dodged))
         #expect(result.events.filter { $0.kind == .abilityDamage && $0.abilityID == basic.id }.map(\.amount) == [4, 4])
-        #expect(result.events.count { $0.kind == .overheal && $0.targetID == actor.id } == 2)
+        #expect(result.events.count { $0.effectKind == .overheal && $0.targetID == actor.id } == 2)
         #expect(battle.roster.companion.talents.pending.nextBurnDamageBonus?.value == 2)
         expectLaterBurnConsumesPreparation(actor: actor, target: target, in: &battle)
     }
