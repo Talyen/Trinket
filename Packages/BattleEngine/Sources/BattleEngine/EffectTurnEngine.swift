@@ -14,8 +14,7 @@ package enum EffectTurnEngine {
             guard context.roster[participant].isAlive else { continue }
 
             events.append(contentsOf: advanceEffects(
-                context.roster.activeEffects(for: combatant),
-                target: combatant,
+                on: combatant,
                 context: &context,
             ))
             guard !context.isBattleOver else { break }
@@ -36,10 +35,11 @@ package enum EffectTurnEngine {
     }
 
     package static func advanceEffects(
-        _ effects: [ActiveEffect],
-        target: Combatant,
+        on target: Combatant,
         context: inout BattleState,
     ) -> [ActionEvent] {
+        // Keep the original schedule without retaining the array handlers mutate.
+        let scheduledEffectIDs = context.roster.activeEffects(for: target).map(\.id)
         let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
         let wasAdvancingEffects = context.resolution.isAdvancingEffects
         context.resolution.isAdvancingEffects = true
@@ -48,9 +48,9 @@ package enum EffectTurnEngine {
             context.resolution.isAdvancingEffects = wasAdvancingEffects
         }
         var events: [ActionEvent] = []
-        for scheduledEffect in effects {
+        for effectID in scheduledEffectIDs {
             guard !context.isBattleOver, context.roster.health(for: target) > 0 else { break }
-            guard let activeEffect = context.roster.activeEffects(for: target).first(where: { $0.id == scheduledEffect.id })
+            guard let activeEffect = context.roster.activeEffects(for: target).first(where: { $0.id == effectID })
             else { continue }
             let handler = EffectHandlers.handler(for: activeEffect.effect.kind)
             let outcome = handler.advanceTurn(activeEffect, on: target, in: &context)

@@ -16,7 +16,9 @@
         "BattleFlowUITests",
         "PlayModeNavigationUITests",
         "HomesteadNodeDetailUITests",
-        "FullGamePurchaseUITests"
+        "FullGamePurchaseUITests",
+        "CollectionLoadoutUITests",
+        "OptionsUITests"
       ],
       "target": {
         "containerPath": "container:Trinket.xcodeproj",

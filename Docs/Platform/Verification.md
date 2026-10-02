@@ -10,6 +10,8 @@ setup: [SimulatorOperations.md](SimulatorOperations.md).
 
 Choose the cheapest route that answers the question at hand. Gate composition
 is listed below; test authoring and tier ownership follow [Testing.md](Testing.md).
+Compiled routes run in CI or an expressly requested local diagnostic under the
+[local execution limits](#execution-limits). Routine local handoff stays lightweight.
 
 | Task | Route | Use |
 |---|---|---|
@@ -20,7 +22,7 @@ is listed below; test authoring and tier ownership follow [Testing.md](Testing.m
 | Focused interaction | `test.sh smoke <Class>` / `test.sh ui <Class>` | Existing journey, within the local limits below |
 | Gate-only check | `ci-gate.sh` / `ci-gate.sh --fast` | Full gate or cheap slices; neither runs unit/UI tests |
 | Local canary | `test-deploy.sh --mode smoke` | Optional human confidence run |
-| Release confidence | `release.sh` / `test-deploy.sh` | Pre-release verification; sanctioned local full-UI run |
+| Release confidence | `release.sh` / `test-deploy.sh` | Requested release verification; local execution requires explicit opt-in |
 | Performance investigation | `performance.sh` | Ad hoc measurement under the performance playbook |
 
 Path-scoped commands normalize in-repository absolute paths to repository-relative
@@ -34,18 +36,20 @@ owner. The final path list is the union of requested work and every explicitly
 adopted fix, not the task's initial path list.
 
 For shared enum or API reviews, include relevant committed changes in the
-comparison scope and follow downstream consumers beyond the dirty files. Run
-an early isolated app compilation (`TRINKET_ISOLATE=1 ./Scripts/test.sh unit --app-only`)
-when package checks do not compile those consumers; Swift compilation catches
-exhaustive-switch failures in unchanged code. Whole-tree dirty-path routing
-alone does not cover relevant committed changes.
+comparison scope and follow downstream consumers beyond the dirty files. Include
+app compilation in the CI evidence when package checks do not compile those
+consumers; it catches exhaustive-switch failures in unchanged code. An expressly
+requested local compile diagnostic uses the same isolated app-only route under
+the execution limits below. Whole-tree dirty-path routing alone does not cover
+relevant committed changes.
 
 Markdown routes to documentation checks even beneath script or manifest roots.
 For executable script changes, handoff passes the same path scope to the script
 runner. Registered leaf families run their owning and consumer regressions;
 documentation checks and their direct integration tests share a focused suite;
-shared infrastructure, unknown scripts and unscoped CI run the full suite. Syntax,
-build-input alignment and the handoff's cheap slices remain full-tree. Family
+shared infrastructure, unknown scripts and unscoped CI run the full suite. Script
+syntax follows the supplied path scope; build-input alignment and the handoff's
+cheap slices remain full-tree. Family
 ownership follows [script regression ownership](../../Scripts/README.md#script-regression-ownership):
 Python modules declare `SCRIPT_INPUTS` beside their tests; the selector retains
 shell mappings and full-suite exceptions. Update the consuming module's metadata
@@ -91,92 +95,98 @@ cache location on every invocation. Command flags live in
 [verification commands](../../Scripts/Reference.md#development), generation
 inputs in `Scripts/build-inputs.env`, and the content/asset workflow in
 [content and manifests](../AgentContext/content-and-manifests.md). When changed
-paths select generation, handoff regenerates, then forces a second generation
-to check idempotence.
+paths select generation, the full handoff plan regenerates, then forces a second
+generation to check idempotence. Routine local handoff reports that work as
+CI-owned; it does not execute generation or prove idempotence. Generate the
+outputs needed for an authored-input change through the owning workflow; broad
+freshness verification remains CI-owned.
 
 Edit the authored inputs, never the generated project or processed outputs.
 When the staged project is stale, run `./Scripts/generate.sh`, review the
 project diff, and stage the canonical output with its inputs. Staged-project
 validation and push safeguards follow
-[Release.md](Release.md#local-hooks-and-push-discipline); pre-push and CI retain
-their forced generation and comparison against committed output.
+[Release.md](Release.md#local-hooks-and-push-discipline); pre-push checks committed
+output completeness, while CI runs forced generation and compares its result
+with committed output.
 
 ## Local simulator budget
 
 ### Choosing UI verification
 
-Choose verification from the behavior changed, not merely the file or package
-touched. Logic-only changes do not require visual inspection.
+Routine local verification uses scoped formatting/lint, accessibility and boundary
+checks, selected fast script regressions, and documentation checks. It performs no
+Swift compilation, simulator boot, UI tests, performance measurements, or broad
+asset/project generation. `handoff.sh --isolate --quiet --paths <files...>` reports
+heavy checks as deferred to CI; a local PASS is not compile or interaction proof.
 
-Ordinary `handoff.sh --isolate --quiet --paths <files...>` runs the selected source,
-package, compilation, and documentation checks. It does not run UI smoke unless
-`--smoke` is supplied; a green ordinary handoff is not UI interaction evidence.
+CI owns package tests, app compilation, critical smoke, nightly/manual FullUI,
+generation/idempotence, and manual performance measurements. Review hosted results
+after the next authorized push. Keep missing CI evidence explicit in handoff; do
+not run the hosted suites on the laptop to fill that gap.
 
-For changed interaction wiring or accessibility identifiers, use
-`handoff.sh --isolate --quiet --smoke --paths <files...>` and complete the selected smoke
-checks. `agent-context.sh --agent --smoke --paths <files...>` previews that route.
-If no smoke owner is inferred, apply the [UI keep/drop rubric](Testing.md)
-to select an existing focused journey or justify a coverage change; report any
-remaining interaction gap rather than substituting the full suite. A visual-only
-change needs relevant visual inspection; it does not automatically require a new
-UI test. Test additions and retirement remain owned by [Testing.md](Testing.md).
-
-For a localized visual change, inspect the affected screen and changed states
-once. Stop when the requested result is demonstrated. Repeat only after a
-relevant implementation change, an observed defect, or inconclusive evidence;
-each additional check must answer a specific unresolved question. Evidence
-already obtained remains valid unless subsequent changes affect what it proves.
-Routine changes do not require a device matrix, recordings, before-and-after
-captures, or a general screen review. Expand inspection only when the request,
-changed behavior, or an observed defect justifies it. Report material gaps in
-verification of the requested change.
-
-Performance measurement belongs to performance investigations, not routine
-Battle or UI handoff. Use the [performance playbook](PerformanceInvestigationPlaybook.md)
-when making or validating a performance claim.
+Changed interaction wiring and accessibility identifiers require the relevant
+hosted journey evidence. `--smoke` selects the routed smoke owner for the handoff
+report; ordinary local execution still defers it. Apply the [keep/drop rubric](Testing.md#ui-keep-drop-rubric)
+when there is no existing owner. A visual change needs appropriate visual evidence;
+passing compilation or interaction tests alone do not establish visual polish.
 
 ### Execution limits
 
-Watch hosted suites with `agent-watch-ci.sh` instead of pre-running them locally.
-Their gate roles are listed below. Locally:
+- Local script regressions default to one worker; handoff uses the fast selected
+  script families. CI runs complete script coverage with its worker pool.
+- Agents do not set `CI`/`GITHUB_ACTIONS` or the heavy-local override to bypass
+  this policy. Controlled script fixtures may simulate those environments with
+  stubbed commands; they must not start real builds or simulators.
+- An expressly requested local test diagnostic may use
+  `TRINKET_ALLOW_HEAVY_LOCAL=1` with a focused test selector. The wrappers limit
+  package and UI concurrency; this is not routine verification.
+- Bare FullUI additionally requires `TRINKET_ALLOW_FULL_UI=1`; preserve the
+  deliberate full-suite distinction even for an authorized diagnostic.
+- Full deployment test suites are CI-owned. Deliberate local pre-release tests
+  require the same explicit heavy-local diagnostic opt-in; do not bypass them
+  silently or claim release readiness without their required evidence.
 
-- Run the package/unit checks selected by the changed paths. Documentation-only work does not require unit tests unless its route selects them.
-- During interaction iteration, use the routed targeted smoke class (`test.sh smoke <Class>`).
-- Select the smallest set of focused exhaustive journeys (`test.sh ui <Class>`) covering affected behavior. Additional runs should answer an unresolved question or verify a relevant change; shared fixes may need more than one class.
-- Bare full-suite UI is refused locally unless `TRINKET_ALLOW_FULL_UI=1`; routine development never sets it.
-- The full local UI run belongs to pre-release deploy verification (`release.sh` / `test-deploy.sh`).
+### Local play
 
-After a green isolated rebuild, `test.sh smoke --no-build <Class>` (or `test.sh ui --no-build <Class>`)
-is appropriate for mid-task smoke reruns in the same slot. Routine handoff is headless by default. Exact flags
-(`--smoke`, `--mirror`, `--dry-run`, `--final`) live in
-[verification commands](../../Scripts/Reference.md#verification) and each script's usage text.
+The normal `run` alias and `run-simulator.sh` continue to build and launch the
+game for the user. They do not run test suites. Local Debug simulator compilation
+uses the native architecture and two Xcode build workers to reduce pressure.
+Interactive play and explicitly requested device/simulator debugging remain
+available; the CI policy applies to automatic verification, not to playing the game.
 
 ## Gate composition
 
 | Gate | Composition |
 |---|---|
-| `handoff.sh` | Path-selected generation, style, package, app compilation, documentation, and idempotence checks, plus cheap slices; targeted smoke only with `--smoke` |
+| `handoff.sh` | Locally: scoped style, fast selected script regressions, docs and cheap static slices; reports generation, compilation, package and UI work as CI-owned |
 | `ci-gate.sh` | Pinned-tool ensure, generate/stamp alignment, assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation, artwork budget |
 | `ci-gate.sh --fast` | Only the ordered commands in [the cheap-slice registry](../../Scripts/config/cheap-slices.txt) |
 | `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
-| `test-deploy.sh` | Release-time: `ci-gate.sh`, unit, then additional UI journeys (FullUI), or the optional smoke canary; `testflight.sh` requires the full mode with simulator isolation before signing/upload |
-| Main CI | Post-push on `main` (no pull-request workflow): path filter, generation/style, app build, package unit, and smoke for product changes |
+| `test-deploy.sh` | Full CI/release test sequence; local execution requires a deliberate heavy-local diagnostic opt-in. Keep release/TestFlight evidence requirements intact |
+| Main CI | Post-push on `main` (no pull-request workflow): path filter, generation/style/full script regressions, combined app build and smoke, and package unit for product changes |
 | Clean analysis | Explicit local `lint-analyze.sh [SwiftPath ...]` cleanup using a clean app build; unused imports fail the command; never part of CI or handoff |
 | Device Release compilation | Nightly and manual CI run unsigned device Release compilation; failures block that run’s `CI OK`, ordinary pushes skip it. Signing/export/upload remain TestFlight responsibilities. |
 | Nightly exhaustive | Scheduled or manually dispatched exhaustive UI; advisory, never blocks `CI OK` |
+| Performance diagnostics | Manual `performance.yml` dispatch with a validated group/repetition selection; never part of routine local or push verification |
+
+Idle nightlies skip a commit only after its previous scheduled run succeeded and
+all actual exhaustive UI shards passed. Failed, cancelled, missing, or unreadable
+results retry on the next schedule; advisory status cannot substitute for shard
+success.
 
 `Smoke.xctestplan` and `FullUI.xctestplan` are disjoint. Default deploy verification
 runs FullUI; main CI supplies smoke coverage separately. The release workflow
 requires green main CI. Use `--mode smoke` for the optional local smoke canary.
 
-Generation is intentionally uncached: each gate invokes `generate.sh` directly,
-so a handoff → gate → deploy chain can regenerate up to four times (handoff's
-plan, the idempotence proof, the gate, the deploy gate). Only the
+Generation in full gates is intentionally uncached: CI and an explicitly enabled
+heavy handoff invoke `generate.sh` directly, including repeated generation for
+idempotence. Lightweight local handoff and pre-push do not regenerate. Only the
 `prepare_generated_inputs` freshness path inside build/test wrappers skips
 generation, and only when content, project, and asset inputs are all unchanged.
 
-The shared build job produces app test products for smoke and exhaustive UI
-fan-out. Package unit jobs compile in separate per-package DerivedData tenants;
+The combined build/smoke job runs smoke against its own app test products. Only
+nightly/manual exhaustive UI receives products for fan-out; ordinary pushes do
+not upload or download app products between build and smoke. Package unit jobs compile in separate per-package DerivedData tenants;
 they skip the app build cache transfer because it does not contain their test
 products. Exact shards, artifact contracts, cache inputs, and remaining advisory
 job behavior belong to the checked-in workflows ([tests.yml](../../.github/workflows/tests.yml) and
@@ -232,7 +242,9 @@ to bypass product chrome routing.
 
 `handoff.sh --quiet` prints one outcome per phase and retains complete child terminal
 output under `RESULTS_DIR` or `.DerivedData/HandoffResults`. Failed phases include a
-bounded diagnostic excerpt and the full log path. Agent commands select quiet mode; omitting the flag retains detailed terminal
+bounded diagnostic excerpt and the full log path. Selected-check, documentation
+and cheap-slice failures also print a shell-quoted rerun preserving the supplied
+flags and paths. Agent commands select quiet mode; omitting the flag retains detailed terminal
 output. Quiet mode does not change selected checks or failure status.
 
 Documentation/link failures are grouped with bounded location previews. Complete
@@ -241,9 +253,11 @@ use the printed paging/expansion commands to inspect every relevant failure.
 Failure status does not depend on how many locations are printed. SwiftLint
 suppresses per-file progress while retaining violations and a success summary.
 
-When Xcode is unavailable, handoff runs available checks and reports
-`INCOMPLETE` with exit code 2 if the selected app compilation could not run.
-Its dry run lists that unavailable requirement; it cannot report PASS.
+When a full handoff plan is executed and Xcode is unavailable, handoff runs
+available checks and reports `INCOMPLETE` with exit code 2 if selected app
+compilation could not run. Its dry run lists that unavailable requirement.
+Lightweight local handoff instead defers compilation to CI, including on hosts
+without Xcode; its PASS proves only the available lightweight checks.
 
 Classify a failure before changing code: task regression, pre-existing defect,
 unrelated in-flight change, or tooling/environment failure. Use the failing assertion and a bounded

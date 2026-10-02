@@ -175,6 +175,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     }
 
     private func hitReactionAnimator() -> some View {
+        let card = framedArtwork
         let layout = ReactionLayoutState(
             activeKind: activeKind,
             recoilDirection: recoilDirection,
@@ -183,7 +184,10 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
             initialValue: CardReactionAnimationState(),
             trigger: playToken,
         ) { state in
-            hitReactionArtwork(state)
+            card
+                .scaleEffect(x: state.scaleX, y: state.scaleY)
+                .rotationEffect(.degrees(state.rotation))
+                .offset(x: state.offsetX, y: state.offsetY)
         } keyframes: { _ in
             KeyframeTrack(\.scaleX) {
                 SpringKeyframe(
@@ -228,13 +232,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                 }
             }
         }
-    }
-
-    private func hitReactionArtwork(_ state: CardReactionAnimationState) -> some View {
-        framedArtwork
-            .scaleEffect(x: state.scaleX, y: state.scaleY)
-            .rotationEffect(.degrees(state.rotation))
-            .offset(x: state.offsetX, y: state.offsetY)
     }
 
     @ViewBuilder

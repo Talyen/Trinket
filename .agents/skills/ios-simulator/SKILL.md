@@ -1,6 +1,6 @@
 ---
 name: ios-simulator
-description: Launch, inspect, capture, or debug Trinket on iOS Simulator using a managed lease and Computer Use. Use before simulator operations or UI verification.
+description: Launch, inspect, capture, or debug Trinket on iOS Simulator using a managed lease and Computer Use or native Xcode tools. Use before simulator operations or UI verification.
 ---
 
 # Simulator inspection
@@ -21,12 +21,14 @@ its JavaScript calls are the supported interaction interface. Keep the terminal
 session alive throughout inspection. Send `stop\n` to that session using
 `write_stdin` when finished, and confirm the process exits.
 
-Use managed scripts for building, installing, leases, and logs; Computer Use for
-exploratory taps, drags, typing, and visual checks; existing XCTest journeys for
+Use managed scripts for building, installing, leases, and logs; Computer Use or
+the [native device-interaction skill](../device-interaction/SKILL.md) for exploratory
+taps, drags, typing, and visual checks; existing XCTest journeys for
 repeatable regression checks under [Verification.md](../../../Docs/Platform/Verification.md#choosing-ui-verification).
 Do not invent AppleScript, Swift, or event-injection programs to operate the UI.
-If Computer Use is unavailable, report that limitation and use an existing test
-for the behavior it actually covers; do not claim interactive inspection.
+If Computer Use cannot inspect Device Hub, use the native skill with the same
+managed lease. If neither route is available, report the limitation; existing
+tests establish only the behavior they cover, not interactive inspection.
 
 [Simulator operations](../../../Docs/Platform/SimulatorOperations.md) owns lease
 isolation, slot recovery, and mirror policy. This skill owns interaction

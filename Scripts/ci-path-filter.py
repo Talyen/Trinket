@@ -123,6 +123,7 @@ CODE_SCRIPT_INCLUDES = (
 CODE_EXCLUDES = ("**/*.md",)
 INFRA_INCLUDES = (
     "Scripts/**",
+    ".githooks/**",
     ".github/actions/**",
     ".github/workflows/**",
     ".swiftlint.yml",

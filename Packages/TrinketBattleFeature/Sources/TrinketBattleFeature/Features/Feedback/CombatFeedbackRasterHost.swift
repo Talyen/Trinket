@@ -62,6 +62,8 @@ final class CombatFeedbackRasterUIView: UIView {
         var rasterIdentity: ObjectIdentifier
         var reservationSize: CGSize = .zero
         var lanePush = StationaryFeedbackPush()
+        var slot: StationaryFeedbackLayout.Slot?
+        var basePosition: CGPoint = .zero
 
         init(
             layer: CALayer,
@@ -76,9 +78,16 @@ final class CombatFeedbackRasterUIView: UIView {
 
     static let preallocatedSlotCount = 12
 
-    var bottomInset: CGFloat = 0
+    var bottomInset: CGFloat = 0 {
+        didSet {
+            guard bottomInset != oldValue else { return }
+            layoutStationary()
+        }
+    }
+
     var onEvict: ((Set<Int>) -> Void)?
     private var stationaryLayout = StationaryFeedbackLayout()
+    private var riseDistance: CGFloat = 0
     private var shineLayers: [ObjectIdentifier: CALayer] = [:]
     private var layersByID: [Int: ChipLayer] = [:]
     private var orderedLayers: [ChipLayer] = []
@@ -87,6 +96,10 @@ final class CombatFeedbackRasterUIView: UIView {
     var debugLastAppliedChips: [CombatFeedbackItem] = []
     var debugVisibleChipIDs: Set<Int> {
         Set(layersByID.keys)
+    }
+
+    var debugIsMotionRegistered: Bool {
+        CombatFeedbackChipMotionClock.isRegistered(self)
     }
 
     func debugTickMotion(at date: Date) {
@@ -157,8 +170,16 @@ final class CombatFeedbackRasterUIView: UIView {
         layoutStationary()
 
         tickMotion(at: .now)
-        if layersByID.isEmpty || orderedLayers.allSatisfy({ $0.item.pausedAt != nil }) {
-            CombatFeedbackChipMotionClock.unregister(self)
+        updateMotionClock()
+    }
+
+    func stopMotion() {
+        CombatFeedbackChipMotionClock.unregister(self)
+    }
+
+    private func updateMotionClock() {
+        if orderedLayers.allSatisfy({ $0.item.pausedAt != nil }) {
+            stopMotion()
         } else {
             CombatFeedbackChipMotionClock.register(self)
         }
@@ -293,6 +314,7 @@ private extension CombatFeedbackRasterUIView {
         let key = ObjectIdentifier(chipLayer)
         guard let mask = raster.shineMask else {
             shineLayers[key]?.isHidden = true
+            shineLayers[key]?.mask?.contents = nil
             return
         }
         let shine: CALayer
@@ -326,6 +348,7 @@ private extension CombatFeedbackRasterUIView {
     }
 
     private func layoutStationary() {
+        riseDistance = min(CombatFeedbackMotionSampler.riseDistance, max(0, bounds.height / 2 - 12))
         stationaryLayout.retain(ids: Set(orderedLayers.map(\.item.id)), in: bounds)
         for chip in orderedLayers {
             let sizeScale = StationaryFeedbackLayout.sizeScale
@@ -337,7 +360,11 @@ private extension CombatFeedbackRasterUIView {
         }
         let date = Date.now
         for chip in orderedLayers {
-            guard let slot = stationaryLayout.slots.first(where: { $0.id == chip.item.id }) else { continue }
+            // Resolve after every placement, since new arrivals can push earlier slots.
+            chip.slot = stationaryLayout.slots.first(where: { $0.id == chip.item.id })
+            guard let slot = chip.slot else { continue }
+            // Fitting geometry stays fixed between layout updates; only push and rise vary per frame.
+            chip.basePosition = stationaryLayout.position(for: slot, push: 0, rise: 0, bottomInset: bottomInset)
             let elapsed = (chip.item.pausedAt ?? date).timeIntervalSince(chip.item.firstScheduledAt)
             chip.lanePush.retarget(to: slot.initialCenterY - slot.rect.midY, at: elapsed)
         }
@@ -346,16 +373,14 @@ private extension CombatFeedbackRasterUIView {
     private func tickStationary(at date: Date) {
         var evicted: Set<Int> = []
         for (index, chip) in orderedLayers.enumerated() {
-            guard let slot = stationaryLayout.slots.first(where: { $0.id == chip.item.id }) else { continue }
+            guard let slot = chip.slot else { continue }
             let state = CombatFeedbackMotionSampler.state(for: chip.item, at: date)
             let now = chip.item.pausedAt ?? date
             let elapsed = now.timeIntervalSince(chip.item.firstScheduledAt)
             let scale = slot.fitScale * state.scale
-            let position = stationaryLayout.position(
-                for: slot,
-                push: chip.lanePush.offset(at: elapsed),
-                rise: min(CombatFeedbackMotionSampler.riseDistance, max(0, bounds.height / 2 - 12)) * state.riseProgress,
-                bottomInset: bottomInset,
+            let position = CGPoint(
+                x: chip.basePosition.x,
+                y: chip.basePosition.y - chip.lanePush.offset(at: elapsed) - riseDistance * state.riseProgress,
             )
             chip.layer.position = position
             let edgeOpacity = StationaryFeedbackLayout.edgeOpacity(centerY: position.y, in: bounds)
@@ -364,25 +389,35 @@ private extension CombatFeedbackRasterUIView {
             }
             chip.layer.transform = CATransform3DMakeScale(scale, scale, 1)
             chip.layer.opacity = Float(state.opacity * edgeOpacity)
-            chip.layer.zPosition = CGFloat(index)
+            if chip.layer.zPosition != CGFloat(index) {
+                chip.layer.zPosition = CGFloat(index)
+            }
             let criticalElapsed = chip.item.criticalAt.map { max(0, now.timeIntervalSince($0)) } ?? 1
-            chip.layer.shadowOpacity = Float(1 - BattleMotion.smoothProgress(criticalElapsed / 0.48))
-            if let shine = shineLayers[ObjectIdentifier(chip.layer)] {
+            let shadowOpacity = Float(1 - BattleMotion.smoothProgress(criticalElapsed / 0.48))
+            if chip.layer.shadowOpacity != shadowOpacity {
+                chip.layer.shadowOpacity = shadowOpacity
+            }
+            if let shine = shineLayers[ObjectIdentifier(chip.layer)], shine.mask?.contents != nil {
                 let flashOpacity = Float(0.8 * (1 - BattleMotion.smoothProgress(criticalElapsed / 0.14)))
-                shine.isHidden = state.shineProgress >= 1 && flashOpacity == 0
+                let isFinished = state.shineProgress >= 1 && flashOpacity == 0
+                // Finished glints need no layer writes until a merge or critical hit restarts them.
+                if isFinished, shine.isHidden {
+                    continue
+                }
+                shine.isHidden = isFinished
                 shine.sublayers?.first?.isHidden = state.shineProgress >= 1
                 shine.sublayers?.last?.opacity = flashOpacity
                 let x = -0.35 + state.shineProgress * 1.7
                 shine.sublayers?.first?.position.x = x * chip.layer.bounds.width
             }
         }
+        guard !evicted.isEmpty else { return }
         for id in evicted {
             recycleLayer(id: id)
         }
         orderedLayers.removeAll { evicted.contains($0.item.id) }
-        if !evicted.isEmpty {
-            onEvict?(evicted)
-        }
+        updateMotionClock()
+        onEvict?(evicted)
     }
 }
 
@@ -408,6 +443,12 @@ private enum CombatFeedbackChipMotionClock {
             displayLink?.isPaused = true
         }
     }
+
+    #if DEBUG
+    static func isRegistered(_ view: CombatFeedbackRasterUIView) -> Bool {
+        hosts[ObjectIdentifier(view)]?.view === view
+    }
+    #endif
 
     static func prewarm() {
         ensureDisplayLink()

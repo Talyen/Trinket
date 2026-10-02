@@ -90,8 +90,15 @@ package enum UniqueCombatEngine {
     }
 
     static func startTurn(in context: inout BattleState) -> [ActionEvent] {
-        let activeIDs = Set(BattleParticipant.allCases.flatMap { context.roster[$0].activeEffects.map(\.id) })
-        context.uniques.retainedStunByEffectID = context.uniques.retainedStunByEffectID.filter { activeIDs.contains($0.key) }
+        if !context.uniques.retainedStunByEffectID.isEmpty {
+            var activeIDs = Set<Int>()
+            for participant in BattleParticipant.allCases {
+                for effect in context.roster[participant].activeEffects {
+                    activeIDs.insert(effect.id)
+                }
+            }
+            context.uniques.retainedStunByEffectID = context.uniques.retainedStunByEffectID.filter { activeIDs.contains($0.key) }
+        }
         for owner in [BattleParticipant.hero, .companion] {
             context.uniques.owners[owner, default: .init()].resetTurn()
         }

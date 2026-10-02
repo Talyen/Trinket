@@ -161,12 +161,12 @@ struct ContractsBoardView: View {
     private func prepareBoard(offers: [ContractOffer]) async {
         let names = artworkNames(for: offers)
         let added = Array(Set(names).subtracting(pinnedArtwork))
-        await PreparedArtworkCache.shared.prepareAndPin(names: added)
+        let acquired = await PreparedArtworkCache.shared.prepareAndPin(names: added)
         guard !Task.isCancelled, offers == playerSave.contracts.offers else {
-            PreparedArtworkCache.shared.releasePins(names: added)
+            PreparedArtworkCache.shared.releasePins(names: acquired)
             return
         }
-        pinnedArtwork = Array(Set(pinnedArtwork).union(added))
+        pinnedArtwork = Array(Set(pinnedArtwork).union(acquired))
         withAnimation(TrinketMotion.Screen.crossfade) {
             displayedOffers = offers
             hasPreparedBoard = true

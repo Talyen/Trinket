@@ -17,6 +17,8 @@ struct AutomaticCardCastView: View {
     /// manual casts in `CardCastEffectsLayer`.
     var body: some View {
         let metrics = BattleHandLayout.metrics(containerWidth: handWidth, cardCount: 3)
+        let keywords = cast.card.ability.presentationKeywords
+        let card = BattleAbilityCardFace(artworkName: cast.card.ability.artReference?.imageName)
         let center = CGPoint(
             x: stagingFrame.minX + stagingFrame.width * (cast.card.owner == .hero ? 0.38 : 0.62),
             y: stagingFrame.minY + max(
@@ -32,11 +34,11 @@ struct AutomaticCardCastView: View {
             let progress = cardActivationProgress(elapsed: max(0, elapsed - revealDuration))
             CardDissolveEffect(
                 progress: progress,
-                keywords: cast.card.ability.presentationKeywords,
+                keywords: keywords,
                 size: CGSize(width: metrics.cardWidth, height: metrics.cardHeight),
                 particles: [],
             ) {
-                BattleAbilityCardFace(artworkName: cast.card.ability.artReference?.imageName)
+                card
             }
             .rotationEffect(.degrees(direction * 18 * (1 - eased)))
             .position(

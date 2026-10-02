@@ -24,7 +24,10 @@ extension BattleCardCombatEngine {
         owner: BattleParticipant,
         context: inout BattleState,
     ) -> BattleCard {
-        let heldMaximum = (context.hand.cards + context.hand.buffer).map(\.id).max() ?? 0
+        let heldMaximum = max(
+            context.hand.cards.lazy.map(\.id).max() ?? 0,
+            context.hand.buffer.lazy.map(\.id).max() ?? 0,
+        )
         context.nextCardID = max(context.nextCardID, heldMaximum) + 1
         let card = BattleCard(
             id: context.nextCardID, ability: entry.ability, owner: owner,

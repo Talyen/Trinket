@@ -32,11 +32,13 @@ enum CombatantSliceCrack {
         return vertices
     }()
 
+    private static let segmentAspectLengths = (0 ..< (points.count - 1)).map { segmentAspectLength(index: $0) }
+
     private static let cumulativeAspectLengths: [CGFloat] = {
         var lengths: [CGFloat] = [0]
         var running: CGFloat = 0
         for index in 0 ..< (points.count - 1) {
-            running += segmentAspectLength(index: index)
+            running += segmentAspectLengths[index]
             lengths.append(running)
         }
         return lengths
@@ -84,7 +86,7 @@ enum CombatantSliceCrack {
         for index in 0 ..< (points.count - 1) {
             let a = points[index]
             let b = points[index + 1]
-            let segmentLength = segmentAspectLength(index: index)
+            let segmentLength = segmentAspectLengths[index]
             if segmentLength <= remaining {
                 result.append(CGPoint(x: b.x * size.width, y: b.y * size.height))
                 remaining -= segmentLength
@@ -113,7 +115,7 @@ enum CombatantSliceCrack {
         let b = points[segmentIndex + 1]
         let dx = (b.x - a.x) * aspectWidth
         let dy = (b.y - a.y) * aspectHeight
-        let length = hypot(dx, dy)
+        let length = segmentAspectLengths[segmentIndex]
         guard length > 0 else { return along }
         return CGVector(dx: dx / length, dy: dy / length)
     }

@@ -199,10 +199,6 @@ public struct CombatantRuntime: Hashable {
         actionCount += 1
     }
 
-    package mutating func setEffects(_ effects: [ActiveEffect]) {
-        activeEffects = effects
-    }
-
     package mutating func removeEffects(matching predicate: (ActiveEffect) -> Bool) {
         activeEffects.removeAll(where: predicate)
     }

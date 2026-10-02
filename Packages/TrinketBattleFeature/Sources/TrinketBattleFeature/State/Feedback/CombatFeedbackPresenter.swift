@@ -126,8 +126,20 @@ enum CombatFeedbackPresenter {
         let targetID: String
     }
 
+    private struct CardSourceKey: Hashable {
+        let actionID: Int
+        let abilityName: String
+        let actorName: String
+
+        init(event: ActionEvent) {
+            actionID = event.feedbackGroupID
+            abilityName = event.abilityName
+            actorName = event.actorName
+        }
+    }
+
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
-        let actions = events.filter { $0.kind == .ability }
+        let cardSources = Set(events.lazy.filter { $0.kind == .ability }.map { CardSourceKey(event: $0) })
         return events.filter { event in
             switch event.kind {
             case .ability, .milestone:
@@ -146,11 +158,7 @@ enum CombatFeedbackPresenter {
                 }
                 let descriptor = CombatFeedbackEffectPresentation.descriptor(for: effectKind)
                 if descriptor.feedbackClass == .buff || descriptor.feedbackClass == .resource, event.origin != .direct {
-                    let belongsToCard = actions.contains {
-                        $0.feedbackGroupID == event.feedbackGroupID
-                            && $0.abilityName == event.abilityName && $0.actorName == event.actorName
-                    }
-                    guard belongsToCard else { return false }
+                    guard cardSources.contains(CardSourceKey(event: event)) else { return false }
                 }
                 return descriptor.shouldDisplay(amount: event.amount)
             }
@@ -166,17 +174,14 @@ enum CombatFeedbackPresenter {
                 continue
             }
             if let index = keyIndices[key] {
-                let existing = result[index]
-                let representative = existing.event.kind == .status && source.event.kind != .status
-                    ? source.event : existing.event
-                result[index] = PreparedSource(
-                    event: representative.with(
-                        amount: existing.event.amount + source.event.amount,
-                        isCritical: existing.event.isCritical || source.event.isCritical,
-                    ),
-                    sourceEventIDs: existing.sourceEventIDs + source.sourceEventIDs,
-                    originalOrder: min(existing.originalOrder, source.originalOrder),
+                let existingEvent = result[index].event
+                let representative = existingEvent.kind == .status && source.event.kind != .status
+                    ? source.event : existingEvent
+                result[index].event = representative.with(
+                    amount: existingEvent.amount + source.event.amount,
+                    isCritical: existingEvent.isCritical || source.event.isCritical,
                 )
+                result[index].sourceEventIDs.append(contentsOf: source.sourceEventIDs)
             } else {
                 keyIndices[key] = result.count
                 result.append(source)

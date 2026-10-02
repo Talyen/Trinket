@@ -7,6 +7,48 @@ import TrinketPersistenceTestSupport
 
 @Suite("LabyrinthSaveRecovery")
 struct LabyrinthSaveRecoveryTests {
+    @Test(arguments: [LabyrinthNodeType.battle, .boss], ["missing", "unknown", "wrongType", "valid"])
+    @MainActor func `readable saved combat nodes retain playable enemy assignments`(
+        type: LabyrinthNodeType, savedEnemy: String,
+    ) throws {
+        var save = PlayerSave.testSeed
+        save.labyrinth.ensureMap(seed: 55)
+        save = PlayerSaveSanitizer.sanitize(save)
+        let original = try #require(save.labyrinth.nodes.values.sorted { $0.id < $1.id }.first { $0.type == type })
+        let wrongType = try #require(GameContent.enemies.first { $0.isBoss != (type == .boss) })
+        let enemyID: String? = switch savedEnemy {
+        case "missing": nil
+        case "unknown": "missing-saved-enemy"
+        case "wrongType": wrongType.id
+        default: original.enemyID
+        }
+        save.labyrinth.nodes[original.id] = LabyrinthNode(
+            id: original.id, type: original.type, enemyID: enemyID,
+            depth: original.depth, clusterID: original.clusterID, gridPosition: original.gridPosition,
+            modifierIDs: original.modifierIDs, recruitEventID: original.recruitEventID,
+            mysteryEventID: original.mysteryEventID, mysteryOffersPayload: original.mysteryOffersPayload,
+            shopPayload: original.shopPayload, outgoingIDs: original.outgoingIDs,
+            isCleared: original.isCleared, isRevealed: original.isRevealed,
+        )
+        let expected = PlayerSaveSanitizer.sanitize(save).labyrinth
+        let context = try PersistenceTestContext()
+        let loaded = try context.seedAndReload(save)
+        let repaired = try #require(loaded.labyrinth.node(id: original.id))
+        let enemy = try #require(repaired.enemyID.flatMap { GameContent.enemy(matching: $0) })
+
+        #expect(enemy.isBoss == (type == .boss))
+        if savedEnemy == "valid" {
+            #expect(repaired.enemyID == original.enemyID)
+        }
+        #expect(loaded.labyrinth == expected)
+        #expect(repaired.outgoingIDs == original.outgoingIDs)
+        #expect(repaired.isCleared == original.isCleared)
+        #expect(repaired.mysteryEventID == original.mysteryEventID)
+        #expect(repaired.mysteryOffersPayload == original.mysteryOffersPayload)
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.labyrinth == expected)
+    }
+
     @Test func `enter rebuilds unreadable map`() {
         var save = PlayerSave.fresh
         let expectedSeed = save.worldSeed

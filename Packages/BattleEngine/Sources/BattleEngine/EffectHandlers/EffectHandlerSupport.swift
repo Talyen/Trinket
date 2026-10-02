@@ -89,16 +89,19 @@ enum EffectRemoval {
 
 enum TimedBuffSummary {
     static func minRemainingTurns(in stacks: [ActiveEffect], duration: (Effect) -> Int?) -> Int {
-        stacks.compactMap { active -> Int? in
-            guard let baseDuration = duration(active.effect) else { return nil }
-            return active.remainingTurns > 0 ? active.remainingTurns : baseDuration
-        }.min() ?? 0
+        var minimum: Int?
+        for active in stacks {
+            guard let baseDuration = duration(active.effect) else { continue }
+            let turns = active.remainingTurns > 0 ? active.remainingTurns : baseDuration
+            minimum = min(minimum ?? turns, turns)
+        }
+        return minimum ?? 0
     }
 
     static func durationSuffix(
         in stacks: [ActiveEffect],
         separator: String = ",",
-        duration: (Effect) -> Int?,
+        duration: (Effect) -> Int? = { $0.durationTurns },
     ) -> String {
         let turns = minRemainingTurns(in: stacks, duration: duration)
         return turns > 0 ? "\(separator) \(BattleTiming.remainingDurationLabel(turns: turns))" : ""
@@ -139,9 +142,9 @@ enum ActiveEffectMutation {
         in context: inout BattleState,
         where matches: (Effect) -> Bool,
     ) {
-        var effects = context.roster.activeEffects(for: target)
-        effects.removeAll { matches($0.effect) }
-        context.roster.setActiveEffects(effects, for: target)
+        context.roster.mutateRuntime(for: target) { runtime in
+            runtime.removeEffects { matches($0.effect) }
+        }
     }
 
     static func replaceAndEmit(

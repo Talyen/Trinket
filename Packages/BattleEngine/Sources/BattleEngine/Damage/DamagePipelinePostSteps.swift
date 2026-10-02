@@ -113,9 +113,11 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        guard state.options.isAttackHit, !state.options.isCardAttack, state.isCritical, state.amount > 0,
+        guard state.options.isAttackHit, state.isCritical, state.amount > 0,
               state.combatant.role == .enemy,
               let source = state.partySource(in: context) else { return }
+        context.resolution.recordCriticalAttack(by: source.id)
+        guard !state.options.isCardAttack else { return }
         state.damageEvents.append(contentsOf: CombatTriggerEngine.afterTypedCriticalAttackHit(
             keyword: state.damageKeyword, actor: source.combatant, in: &context,
         ))

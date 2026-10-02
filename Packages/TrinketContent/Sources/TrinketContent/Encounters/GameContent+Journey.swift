@@ -12,13 +12,6 @@ public extension GameContent {
         chapters.first { $0.id == id }
     }
 
-    static func nextChapter(after chapter: Chapter) -> Chapter? {
-        guard let chapterIndex = chapters.firstIndex(where: { $0.id == chapter.id }),
-              chapters.indices.contains(chapterIndex + 1)
-        else { return nil }
-        return chapters[chapterIndex + 1]
-    }
-
     static let stages: [Stage] = chapters.flatMap(\.stages)
 
     static func stage(id: String) -> Stage? {

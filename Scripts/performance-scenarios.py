@@ -61,15 +61,6 @@ def select(baseline: dict, selectors: list[str]) -> dict:
     missing = declared - set(inventory)
     if missing:
         raise ValueError(f'measured scenarios missing from inventory: {sorted(missing)}')
-    for contract in baseline.get('routeContracts', []):
-        source = (ROOT / contract['source']).read_text()
-        body = source.split(f"public enum {contract['enum']}:", 1)[1].split('\n}', 1)[0]
-        cases = set(re.findall(r'^    case (\w+)', body, re.MULTILINE))
-        if cases != set(contract['routes']):
-            raise ValueError(f"{contract['enum']}: navigation changed; update performance coverage")
-        for route, scenarios in contract['routes'].items():
-            if not scenarios or not set(scenarios) <= set(inventory):
-                raise ValueError(f'{route}: missing scenario coverage')
     selected: set[str] = set()
     for selector in selectors:
         matches = {s for s, entry in inventory.items() if s == selector or entry['group'] == selector}

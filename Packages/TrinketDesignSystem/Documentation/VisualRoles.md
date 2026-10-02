@@ -20,10 +20,6 @@ On-art text styling uses `.trinketOnArtText(_:)`.
 
 **Enforcement:** `python3 ./Scripts/check-ui-style.py` fails style/CI on one-off colors. A nearby `UIStyleCheck: allow - reason` annotation is permitted only for a narrow content/art exception that the semantic API cannot express; do not use it to bypass product chrome routing. New colors = new `DesignColors` asset + public design-system API.
 
-```sh
-./Scripts/test-package.sh TrinketDesignSystem
-```
-
 ## Typography
 
 Use `.trinketTypography(_:)` for all readable text. Do not call raw `.font(...)` for copy. Symbol/glyph sizing (placeholder art, lock glyphs) is the exception: it uses explicit sizes since it sizes artwork rather than styling copy — placeholder art carries a narrow `UIStyleCheck: allow`, and the lock glyph sits inside the design-system helpers allowlisted in `check-ui-style.py`.

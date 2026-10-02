@@ -96,13 +96,14 @@ enum CloudSaveMerge {
                 branches.incoming.contracts.highestWonEncounterLevel,
                 branches.existing.contracts.highestWonEncounterLevel,
             ),
-        ).sanitized()
+        )
         if branches.incoming.contracts.completedOfferIDs != nil || branches.existing.contracts.completedOfferIDs != nil {
             merged.contracts.completedOfferIDs = (branches.incoming.contracts.completedOfferIDs ?? [])
                 .union(branches.existing.contracts.completedOfferIDs ?? [])
         } else {
             merged.contracts.completedOfferIDs = nil
         }
+        merged.contracts = merged.contracts.sanitized()
         if !offers.isEmpty {
             merged.contracts.ensureBoard(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: merged.inventory))
         }
@@ -142,24 +143,27 @@ enum CloudSaveMerge {
         into merged: inout PlayerSave, from other: PlayerSave,
         base: PlayerSave?,
     ) {
-        if let base {
-            for item in base.inventory.items {
-                guard let index = merged.inventory.items.firstIndex(where: { $0.id == item.id }),
-                      merged.inventory.items[index] == item else { continue }
-                if let changed = other.inventory.item(matching: item.id) {
-                    merged.inventory.items[index] = changed
-                } else {
-                    merged.inventory.removeItem(id: item.id)
-                }
+        let baseByID = Dictionary(
+            (base?.inventory.items ?? []).lazy.map { ($0.id, $0) },
+            uniquingKeysWith: { first, _ in first },
+        )
+        if !baseByID.isEmpty {
+            let otherByID = Dictionary(
+                other.inventory.items.lazy.map { ($0.id, $0) },
+                uniquingKeysWith: { first, _ in first },
+            )
+            merged.inventory.items = merged.inventory.items.compactMap { item in
+                guard let original = baseByID[item.id] else { return item }
+                // A shared physical item cannot survive its salvage on either device.
+                guard let changed = otherByID[item.id] else { return nil }
+                return item == original ? changed : item
             }
         }
-        for item in other.inventory.items {
-            if let base, base.inventory.item(matching: item.id) != nil,
-               merged.inventory.item(matching: item.id) == nil {
-                continue
-            }
-            merged.inventory.appendUniqueItem(item)
+        let retainedIDs = Set(merged.inventory.items.lazy.map(\.id))
+        let candidates = other.inventory.items.lazy.filter {
+            baseByID[$0.id] == nil || retainedIDs.contains($0.id)
         }
+        InventoryDuplicatePolicy.appendUniqueItems(candidates, to: &merged.inventory.items)
     }
 
     private static func mergeSelections(into merged: inout PlayerSave, branches: Branches) {
@@ -221,11 +225,21 @@ enum CloudSaveMerge {
             )
         }
         mergeLabyrinth(into: &merged, from: other)
-        let selectedVoyage: PlayerVoyageState = if let runID = branches.incoming.voyage.activeRun?.id,
-                                                   branches.existing.voyage.completedRunIDs?.contains(runID) == true {
+        mergeVoyage(into: &merged, branches: branches)
+    }
+
+    private static func preferredVoyage(branches: Branches) -> PlayerVoyageState {
+        let incomingRetiredRuns = (branches.incoming.voyage.completedRunIDs ?? [])
+            .union(branches.incoming.voyage.abandonedRunIDs ?? [])
+        let existingRetiredRuns = (branches.existing.voyage.completedRunIDs ?? [])
+            .union(branches.existing.voyage.abandonedRunIDs ?? [])
+        return if let runID = branches.incoming.voyage.activeRun?.id,
+                  existingRetiredRuns.contains(runID),
+                  !branches.existing.voyage.isUnreadable {
             branches.existing.voyage
         } else if let runID = branches.existing.voyage.activeRun?.id,
-                  branches.incoming.voyage.completedRunIDs?.contains(runID) == true {
+                  incomingRetiredRuns.contains(runID),
+                  !branches.incoming.voyage.isUnreadable {
             branches.incoming.voyage
         } else if let baseRunID = branches.base?.voyage.activeRun?.id,
                   branches.incoming.voyage.activeRun?.id == baseRunID,
@@ -240,6 +254,10 @@ enum CloudSaveMerge {
         } else {
             branches.selected(\.voyage)
         }
+    }
+
+    private static func mergeVoyage(into merged: inout PlayerSave, branches: Branches) {
+        let selectedVoyage = preferredVoyage(branches: branches)
         let alternateVoyage = selectedVoyage == branches.incoming.voyage
             ? branches.existing.voyage : branches.incoming.voyage
         merged.voyage = selectedVoyage
@@ -254,6 +272,10 @@ enum CloudSaveMerge {
         if branches.incoming.voyage.completedRunIDs != nil || branches.existing.voyage.completedRunIDs != nil {
             merged.voyage.completedRunIDs = (branches.incoming.voyage.completedRunIDs ?? [])
                 .union(branches.existing.voyage.completedRunIDs ?? [])
+        }
+        if branches.incoming.voyage.abandonedRunIDs != nil || branches.existing.voyage.abandonedRunIDs != nil {
+            merged.voyage.abandonedRunIDs = (branches.incoming.voyage.abandonedRunIDs ?? [])
+                .union(branches.existing.voyage.abandonedRunIDs ?? [])
         }
         if let run = merged.voyage.activeRun, let otherRun = mergeVoyage.activeRun, run.id == otherRun.id {
             for node in otherRun.nodes {

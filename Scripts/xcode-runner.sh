@@ -192,6 +192,8 @@ xcode_runner_run() {
   fi
 
   while (( attempt <= max_attempts )); do
+    XCODE_RUNNER_COMPLETION_SOURCE="process-exit"
+    XCODE_RUNNER_TEST_EXECUTION_PROVEN="false"
     if [[ "$quiet" == "true" ]] && xcode_runner_watchdog_enabled; then
       set +e
       xcode_runner_execute_watched "$log_file" "$working_directory" "${command_args[@]}"
@@ -238,7 +240,8 @@ xcode_runner_run() {
       export XCODE_RUNNER_TEST_EXECUTION_PROVEN
     fi
     if [[ "$xcode_exit" -eq 0 && "$XCODE_RUNNER_COMPLETION_SOURCE" == "watchdog-log-inference" ]]; then
-      local command_action="${command_args[1]:-}"
+      local command_action="$XCODE_RUNNER_ACTION"
+      [[ "$command_action" != unknown ]] || command_action="${command_args[1]:-}"
       if [[ "$command_action" == "test" || "$command_action" == "test-without-building" ]] \
         && [[ "$XCODE_RUNNER_TEST_EXECUTION_PROVEN" != "true" ]]; then
         echo "xcode-runner: terminal suite marker did not prove that any tests executed." >&2

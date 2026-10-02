@@ -52,6 +52,12 @@ available; valid selections within budget are unchanged. Point budget
 (`totalTalentPoints`) is owned by `CombatantProgression`; unlock legality is
 owned by `TalentModels`.
 
+## Testing
+
+Package execution and local diagnostic opt-in follow
+[Verification](../../Docs/Platform/Verification.md#execution-limits); routine local
+changes use path-scoped handoff.
+
 ```sh
 ./Scripts/test-package.sh TrinketCore
 ```

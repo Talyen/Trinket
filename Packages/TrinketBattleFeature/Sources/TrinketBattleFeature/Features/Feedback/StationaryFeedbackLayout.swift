@@ -35,7 +35,7 @@ struct StationaryFeedbackLayout {
         let maximumScale = Self.maximumScale(for: region)
         let fit = min(1, fittingArea.width / (size.width * maximumScale), fittingArea.height / (size.height * maximumScale))
         let fitted = CGSize(width: size.width * fit, height: size.height * fit)
-        let pushDistance = max(fitted.height, slots.filter { $0.region == region }.map(\.rect.height).max() ?? 0)
+        let pushDistance = max(fitted.height, slots.lazy.filter { $0.region == region }.map(\.rect.height).max() ?? 0)
             * (region == .impact ? Self.peakScale : CombatFeedbackMotionSampler.statusPeakScale) * 0.5
         for index in slots.indices where slots[index].region == region {
             slots[index].rect = slots[index].rect.offsetBy(dx: 0, dy: -pushDistance)

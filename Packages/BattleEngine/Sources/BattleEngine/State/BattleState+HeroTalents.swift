@@ -53,10 +53,6 @@ package extension BattleState {
         return resolution.claim(.heroTalent(name), actorID: actorID, cadence: cadence)
     }
 
-    func hasTalentStatus(_ kind: EffectKind, on target: Combatant) -> Bool {
-        roster.activeEffects(for: target).contains { $0.effect.kind == kind && ($0.effect.potency ?? 1) > 0 }
-    }
-
     func hasTalentDebuff(on target: Combatant) -> Bool {
         roster.activeEffects(for: target).contains { $0.effect.isRemovableDebuff }
     }

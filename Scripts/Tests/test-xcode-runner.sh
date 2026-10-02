@@ -30,6 +30,21 @@ for failure in \
   [[ "$(xcode_runner_infer_exit_from_log "$TMP_DIR/mixed-results.log")" == 65 ]]
 done
 
+# Product failures must veto launch retries, including mixed Swift/XCTest logs.
+for failure in \
+  "Example.swift:12: error: XCTAssertEqual failed" \
+  "Ability.swift:42:2: error: failed to launch macro plugin" \
+  "Shader.metal:42: error: cannot find type in scope" \
+  "✘ Test example() recorded an issue at Example.swift:12:3: Expectation failed" \
+  "✘ Suite Example failed after 1 second with 1 issue." \
+  "Test Case '-[Example example]' failed (0.1 seconds)."; do
+  printf '%s\n' "Unable to boot simulator" "$failure" > "$TMP_DIR/mixed-infra.log"
+  if trinket_xcodebuild_log_is_infrastructure_failure 65 "$TMP_DIR/mixed-infra.log"; then
+    echo "Product failure incorrectly classified as launch infrastructure: $failure" >&2
+    exit 1
+  fi
+done
+
 cat > "$TMP_DIR/fake-xcodebuild" <<'FAKE_XCODE'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -63,10 +78,14 @@ case "$WATCHDOG_CASE" in
   success)
     echo "** TEST SUCCEEDED **"
     echo " Executed 1 test, with 0 failures (0 unexpected) in 1.0 seconds" ;;
-  selected|zero)
+  split-marker)
+    printf "Test Suite 'Selected "
+    sleep 2
+    printf "tests' passed.\nExecuted 1 test, with 0 failures\n" ;;
+  selected|zero|zero-options)
     echo "Test Suite 'Selected tests' passed at 2026-08-07 12:38:46.504."
     count=1
-    [[ "$WATCHDOG_CASE" != zero ]] || count=0
+    [[ "$WATCHDOG_CASE" != zero && "$WATCHDOG_CASE" != zero-options ]] || count=0
     echo " Executed $count tests, with 0 failures (0 unexpected) in 1.0 seconds" ;;
   failure)
     echo "Restarting after unexpected exit, crash, or test timeout; summary will include totals from previous launches."
@@ -194,7 +213,8 @@ run_watchdog_case() (
     finalization)
       unset TRINKET_XCODE_IDLE_TIMEOUT_SECONDS
       completion=process-exit ;;
-    zero) expected=1 ;;
+    zero|zero-options) expected=1 ;;
+    split-marker) export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=10 ;;
     failure|late-failure) expected=65 ;;
     silent|growing)
       export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=2
@@ -203,29 +223,35 @@ run_watchdog_case() (
       completion=process-exit ;;
   esac
   source "$RUNNER"
+  command_args=("$TMP_DIR/fake-watched-command" test)
+  if [[ "$mode" == zero-options ]]; then
+    xcodebuild() { "$TMP_DIR/fake-watched-command" "$@"; }
+    command_args=(xcodebuild -project Fixture.xcodeproj -sdk iphonesimulator test)
+  fi
   xcode_runner_prepare "$mode" "$results"
   status=0
   xcode_runner_run --label "$mode" \
     --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
     --log "$XCODE_RUNNER_LOG_PATH" --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" \
-    --quiet -- "$TMP_DIR/fake-watched-command" test || status=$?
+    --quiet -- "${command_args[@]}" || status=$?
   [[ "$status" == "$expected" ]] || return 1
   python3 - "$XCODE_RUNNER_MANIFEST_PATH" "$status" "$completion" "$mode" <<'PY_MANIFEST' || return 1
 import json, sys
 manifest = json.load(open(sys.argv[1]))
 assert manifest["exit_code"] == int(sys.argv[2]), manifest
 assert manifest["completion_source"] == sys.argv[3], manifest
-if sys.argv[4] in {"success", "selected"}:
+if sys.argv[4] in {"success", "selected", "split-marker"}:
     assert manifest["test_execution_proven"] and not manifest["result_bundle_complete"], manifest
 PY_MANIFEST
   case "$mode" in
     selected) ! grep -F -- "** TEST SUCCEEDED **" "$XCODE_RUNNER_LOG_PATH" || return 1 ;;
-    zero) grep -F -- "did not prove that any tests executed" "$results/terminal.log" || return 1 ;;
+    split-marker) grep -F -- "idle log" "$results/terminal.log" || return 1 ;;
+    zero|zero-options) grep -F -- "did not prove that any tests executed" "$results/terminal.log" || return 1 ;;
     late-failure) grep -F -- "XCTAssertEqual failed" "$XCODE_RUNNER_LOG_PATH" || return 1 ;;
   esac
 )
 
-watchdog_cases=(finalization success selected zero failure late-failure silent growing)
+watchdog_cases=(finalization success selected split-marker zero zero-options failure late-failure silent growing)
 watchdog_pids=()
 for mode in "${watchdog_cases[@]}"; do
   mkdir -p "$TMP_DIR/watchdog-$mode"
@@ -244,6 +270,34 @@ for index in "${!watchdog_cases[@]}"; do
   fi
 done
 [[ "$watchdog_failed" == 0 ]] || exit 1
+
+# A failed first attempt must not supply execution proof for an empty retry.
+bash -eu -c '
+  source "$1"
+  attempts=0
+  xcode_runner_execute_watched() {
+    attempts=$((attempts + 1))
+    XCODE_RUNNER_COMPLETION_SOURCE=watchdog-log-inference
+    if [[ "$attempts" == 1 ]]; then
+      echo "Executed 1 test, with 0 failures" > "$1"
+      return 70
+    fi
+    echo "Test Suite '\''Selected tests'\'' passed" > "$1"
+    return 0
+  }
+  ensure_test_simulator_logged() { :; }
+  retryable() { [[ "$1" == 70 ]]; }
+  status=0
+  xcode_runner_run --label empty-retry --result-bundle "$2/retry.xcresult" \
+    --log "$2/retry.log" --report-prefix "$2/retry-report" \
+    --retry-callback retryable -- xcodebuild test || status=$?
+  [[ "$attempts" == 2 && "$status" == 1 ]]
+  python3 - "$XCODE_RUNNER_MANIFEST_PATH" <<"PY_MANIFEST"
+import json, sys
+manifest = json.load(open(sys.argv[1]))
+assert manifest["exit_code"] == 1 and not manifest["test_execution_proven"], manifest
+PY_MANIFEST
+' _ "$RUNNER" "$TMP_DIR/empty-retry"
 
 # --- bounded runner: hung helpers die at the cap, fast commands pass through ---
 bounded_run_terminal="$TMP_DIR/bounded-run-terminal"

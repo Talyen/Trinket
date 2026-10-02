@@ -15,37 +15,6 @@ private struct UnlockedCombatantValue {
     }
 }
 
-private struct EquipmentLoadoutValue {
-    let combatantID: String
-    let loadout: EquipmentLoadout
-}
-
-extension RosterModel {
-    private func updateEquipmentLoadout(
-        _ model: EquipmentLoadoutModel,
-        from value: EquipmentLoadoutValue,
-        context: ModelContext?,
-    ) {
-        model.combatantID = value.combatantID
-        let slots = value.loadout.itemIDsBySlot
-            .map { (slotID: $0.key.rawValue, itemID: $0.value) }
-            .sorted { $0.slotID < $1.slotID }
-        model.slots = reconcileModels(
-            existing: model.slots ?? [],
-            values: slots,
-            existingKey: \.slotID,
-            valueKey: { $0.slotID },
-            make: { _ in EquipmentSlotModel() },
-            update: { slotModel, slot in
-                slotModel.slotID = slot.slotID
-                slotModel.itemID = slot.itemID
-            },
-            link: { $0.loadout = model },
-            context: context,
-        )
-    }
-}
-
 extension RosterModel {
     func update(from roster: PlayerRosterState, context: ModelContext?) {
         activeHeroID = roster.activeHeroID
@@ -128,45 +97,26 @@ extension RosterModel {
             valueKey: { $0.combatantID },
             make: { _ in TalentLoadoutModel() },
             update: { model, value in
-                self.updateTalentLoadout(model, from: value, context: context)
+                model.combatantID = value.combatantID
+                model.update(from: value.nodeIDs, context: context)
             },
             link: { $0.roster = self },
             context: context,
         )
     }
 
-    private func updateTalentLoadout(
-        _ model: TalentLoadoutModel,
-        from value: (combatantID: String, nodeIDs: [String]),
-        context: ModelContext?,
-    ) {
-        model.combatantID = value.combatantID
-        model.unlockedNodes = reconcileModels(
-            existing: model.unlockedNodes ?? [],
-            values: value.nodeIDs,
-            existingKey: \.nodeID,
-            valueKey: { $0 },
-            make: { _ in TalentNodeUnlockModel() },
-            update: { unlockModel, nodeID in
-                unlockModel.nodeID = nodeID
-            },
-            link: { $0.loadout = model },
-            context: context,
-        )
-    }
-
     private func updateEquipmentLoadouts(from roster: PlayerRosterState, context: ModelContext?) {
         let equipmentValues = roster.equipmentLoadouts
-            .map { EquipmentLoadoutValue(combatantID: $0.key, loadout: $0.value) }
-            .sorted { $0.combatantID < $1.combatantID }
+            .sorted { $0.key < $1.key }
         equipmentLoadouts = reconcileModels(
             existing: equipmentLoadouts ?? [],
             values: equipmentValues,
             existingKey: \.combatantID,
-            valueKey: { $0.combatantID },
+            valueKey: { $0.key },
             make: { _ in EquipmentLoadoutModel() },
             update: { model, value in
-                self.updateEquipmentLoadout(model, from: value, context: context)
+                model.combatantID = value.key
+                model.update(from: value.value, context: context)
             },
             link: { $0.roster = self },
             context: context,
@@ -221,20 +171,14 @@ extension RosterModel {
             (equipmentLoadouts ?? []).map { loadoutModel in
                 (
                     loadoutModel.combatantID,
-                    EquipmentLoadout(itemIDsBySlot: Dictionary(
-                        (loadoutModel.slots ?? []).compactMap { slot in
-                            let resolvedSlot = ItemSlot(rawValue: slot.slotID)
-                            return resolvedSlot.map { ($0, slot.itemID) }
-                        },
-                        uniquingKeysWith: { _, new in new },
-                    )),
+                    loadoutModel.toEquipmentLoadout(),
                 )
             },
             uniquingKeysWith: { _, new in new },
         )
         let talentValues = Dictionary(
             (talentLoadouts ?? []).map { loadoutModel in
-                (loadoutModel.combatantID, Set((loadoutModel.unlockedNodes ?? []).map(\.nodeID)))
+                (loadoutModel.combatantID, loadoutModel.unlockedNodeIDs)
             },
             uniquingKeysWith: { _, new in new },
         )

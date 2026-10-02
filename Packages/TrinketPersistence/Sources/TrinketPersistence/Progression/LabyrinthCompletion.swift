@@ -79,8 +79,9 @@ public enum LabyrinthCompletion {
                 partyAverageLevel: save.roster.activePartyAverageLevel,
             )
 
-        if node.type.isCombat {
-            let resolvedLoot = loot ?? resolveCombatLoot(
+        let isCombat = node.type.isCombat
+        let resolvedLoot = isCombat
+            ? loot ?? resolveCombatLoot(
                 for: node,
                 effects: effects,
                 encounterLevel: encounterLevel,
@@ -89,35 +90,20 @@ public enum LabyrinthCompletion {
                 ownedUniqueIDs: save.inventory.ownedUniqueIDs,
                 astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
             )
-            VictoryRewardApplier.grantVictoryRewards(
-                hero: hero,
-                companion: companion,
-                encounterLevel: encounterLevel,
-                stageGold: resolvedLoot?.gold ?? 0,
-                battleGold: battleGold,
-                award: award,
-                experienceEarnedPercent: effects.experienceEarnedPercent,
-                materialRewards: VictoryRewardApplier.grantedMaterials(
-                    override: materialRewards,
-                    loot: resolvedLoot,
-                ),
-                item: VictoryRewardApplier.grantedItem(override: rewardItem, loot: resolvedLoot),
-                save: &save,
-            )
-        } else {
-            VictoryRewardApplier.grantVictoryRewards(
-                hero: hero,
-                companion: companion,
-                encounterLevel: encounterLevel,
-                stageGold: nonCombatGoldStipend(for: node),
-                battleGold: battleGold,
-                award: award,
-                grantsCombatExperience: false,
-                materialRewards: VictoryRewardApplier.grantedMaterials(override: materialRewards, loot: loot),
-                item: VictoryRewardApplier.grantedItem(override: rewardItem, loot: loot),
-                save: &save,
-            )
-        }
+            : loot
+        VictoryRewardApplier.grantVictoryRewards(
+            hero: hero,
+            companion: companion,
+            encounterLevel: encounterLevel,
+            stageGold: isCombat ? resolvedLoot?.gold ?? 0 : nonCombatGoldStipend(for: node),
+            battleGold: battleGold,
+            award: award,
+            grantsCombatExperience: isCombat,
+            experienceEarnedPercent: isCombat ? effects.experienceEarnedPercent : 0,
+            materialRewards: VictoryRewardApplier.grantedMaterials(override: materialRewards, loot: resolvedLoot),
+            item: VictoryRewardApplier.grantedItem(override: rewardItem, loot: resolvedLoot),
+            save: &save,
+        )
 
         save.labyrinth.markCleared(
             nodeID: nodeID,

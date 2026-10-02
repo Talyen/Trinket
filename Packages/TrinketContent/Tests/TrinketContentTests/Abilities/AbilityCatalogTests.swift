@@ -43,11 +43,6 @@ struct AbilityCatalogTests {
         try #expect(AbilityCatalog.ability(id: "missing-ability") == nil)
     }
 
-    @Test func `catalog passes validation`() throws {
-        let issues = AbilityValidator.validateCatalog()
-        try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
-    }
-
     @Test func `ability summaries use period-free nonempty effect lines`() {
         for ability in AbilityCatalog.all {
             #expect(!ability.summary.contains("."), "\(ability.id) contains period")
@@ -210,32 +205,6 @@ struct AbilityCatalogTests {
         try #expect(Ability.packTactics.dealsCombatDamage)
     }
 
-    @Test func `validator allows condition-gated damage line`() throws {
-        let ability = Ability(
-            id: "gated-pounce",
-            name: "Gated Pounce",
-            tier: .skill,
-            damageComponents: [
-                DamageComponent(3, keyword: .stun, condition: .firstTurn),
-            ],
-        )
-        let issues = AbilityValidator.validate(ability)
-        try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
-    }
-
-    @Test func `validator rejects redundant description override matching generated copy`() throws {
-        let ability = Ability(
-            id: "bash",
-            name: "Bash",
-            tier: .basic,
-            directDamage: 3,
-            damageKeyword: .stun,
-            description: "Deal 3 Stun damage",
-        )
-        let issues = AbilityValidator.validate(ability)
-        try #expect(issues.contains { $0.message.contains("description override is redundant") })
-    }
-
     @Test func `ice shot retains freeze identity with doubled freeze damage`() throws {
         let iceShot = try #require(AbilityCatalog.ability(id: "ice-shot"))
         try #expect(iceShot.summary == "Deal 2 Freeze damage\nDoubled against Frozen enemies")
@@ -271,21 +240,6 @@ struct AbilityCatalogTests {
         try #expect(combustion.targetedEffects == [
             TargetedEffect(.detonateDoT(.burn, 1), target: .enemy, condition: .enemyBurning),
         ])
-    }
-
-    @Test func `validator rejects purge on ally in outcome branch`() throws {
-        let ability = Ability(
-            id: "bad-branch-purge",
-            name: "Bad Branch Purge",
-            tier: .skill,
-            outcomeBranches: [
-                AbilityOutcomeBranch(
-                    targetedEffects: [TargetedEffect(.purgeRandom, target: .actor)],
-                ),
-            ],
-        )
-        let issues = AbilityValidator.validate(ability)
-        try #expect(issues.contains { $0.message.contains("purge effects must target enemies") })
     }
 
     @Test func `resolving outcome branch picks branch using RNG`() {

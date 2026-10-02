@@ -20,9 +20,7 @@ extension PlayerSaveSanitizer {
         if sanitized.completedStageIDs.count != beforeCompleted || sanitized.claimedRewardStageIDs.count != beforeClaimed {
             logger.info("Sanitized journey: dropped invalid stage IDs")
         }
-        for stageID in sanitized.claimedRewardStageIDs {
-            sanitized.completedStageIDs.insert(stageID)
-        }
+        sanitized.completedStageIDs.formUnion(sanitized.claimedRewardStageIDs)
         let beforePinned = journey.pinnedMysteryEventIDs.count
         sanitized.pinnedMysteryEventIDs = journey.pinnedMysteryEventIDs.filter { stageID, eventID in
             guard validStageIDs.contains(stageID), !eventID.isEmpty else { return false }
@@ -68,12 +66,10 @@ extension PlayerSaveSanitizer {
         _ spires: PlayerSpiresState,
         catalog: [SpireDefinition] = GameContent.spires,
     ) -> PlayerSpiresState {
-        let validIDs = Set(catalog.map(\.id.rawValue))
         let floorCounts = Dictionary(uniqueKeysWithValues: catalog.map { ($0.id.rawValue, $0.floorCount) })
         var sanitized: [String: Int] = [:]
         for (spireID, floor) in spires.highestClearedFloorBySpireID {
-            guard validIDs.contains(spireID) else { continue }
-            let maxFloor = floorCounts[spireID] ?? 0
+            guard let maxFloor = floorCounts[spireID] else { continue }
             sanitized[spireID] = min(max(floor, 0), maxFloor)
         }
         return PlayerSpiresState(highestClearedFloorBySpireID: sanitized)

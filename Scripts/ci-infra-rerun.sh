@@ -12,13 +12,12 @@ source ./Scripts/lib/infrastructure-patterns.sh
 
 RUN_ID=""
 DO_RERUN=false
-FAILURE_LOG_LINES="${TRINKET_CI_WATCH_FAILURE_LINES:-80}"
 
 usage() {
   cat <<'EOF'
 Usage: ./Scripts/ci-infra-rerun.sh --run-id <id> [--rerun]
 
-Exits 0 when the failed jobs look like simulator/XCUITest launch infrastructure.
+Exits 0 when every failed job has simulator/XCUITest launch infrastructure evidence.
 With --rerun, also runs `gh run rerun <id> --failed` once.
 
 Without --rerun, exit 1 means "not infra" (or could not classify).
@@ -53,51 +52,29 @@ if [[ -z "$RUN_ID" ]]; then
   exit 2
 fi
 
-repo_slug() {
-  gh repo view --json nameWithOwner -q .nameWithOwner
-}
-
-failure_jobs_contain_infra_eligible() {
-  local run_id="$1"
-  local eligible_failures
-  eligible_failures="$(
-    gh run view "$run_id" --json jobs --jq '
-      [.jobs[]?
-        | select(.conclusion == "failure")
-        | select(.name | test("UI|Smoke|ui|smoke|Unit|unit|Exhaustive") )
-      ] | length
-    ' 2>/dev/null || echo 0
-  )"
-  [[ -n "$eligible_failures" && "$eligible_failures" != "0" ]]
-}
-
-failure_evidence_looks_like_infrastructure() {
-  local run_id="$1"
-  local repo evidence
-  local pattern
-  repo="$(repo_slug)"
-  pattern="$(trinket_infrastructure_failure_pattern)"
-  evidence="$(
-    {
-      gh api "repos/${repo}/actions/runs/${run_id}/jobs" --paginate \
-        --jq '.jobs[] | select(.conclusion == "failure") | .id' 2>/dev/null \
-        | while read -r job_id; do
-            [[ -z "$job_id" ]] && continue
-            gh api "repos/${repo}/check-runs/${job_id}/annotations" --jq '
-              .[]? | .message // empty
-            ' 2>/dev/null || true
-          done
-      gh run view "$run_id" --log-failed 2>/dev/null | tail -n "$FAILURE_LOG_LINES" || true
-    } | tr '\n' ' '
-  )"
-
-  printf '%s\n' "$evidence" | grep -iqE "$pattern"
-}
-
 failure_looks_like_simulator_infrastructure() {
   local run_id="$1"
-  failure_evidence_looks_like_infrastructure "$run_id" \
-    && failure_jobs_contain_infra_eligible "$run_id"
+  local failed_jobs job_id evidence pattern
+  # --failed reruns every failed job. One launch flake must not cause a
+  # concurrent product or gate failure to be classified as infrastructure.
+  failed_jobs="$(gh run view "$run_id" --json jobs --jq '
+    [.jobs[]? | select(.conclusion == "failure")] as $failed
+    | if ($failed | length) > 0 and all($failed[];
+        .name | test("UI|Smoke|ui|smoke|Unit|unit|Exhaustive"))
+      then $failed[].databaseId else empty end
+  ' 2>/dev/null)" || return 1
+  [[ -n "$failed_jobs" ]] || return 1
+  pattern="$(trinket_infrastructure_failure_pattern)"
+  while IFS= read -r job_id; do
+    [[ "$job_id" =~ ^[0-9]+$ ]] || return 1
+    evidence="$(gh run view "$run_id" --job "$job_id" --log-failed 2>/dev/null)" || return 1
+    # A pipe into grep -q can make printf exit on SIGPIPE for large logs;
+    # pipefail would then hide the match, including a real product failure.
+    if grep -iqE "$(trinket_product_test_failure_pattern)" <<< "$evidence"; then
+      return 1
+    fi
+    grep -iqE "$pattern" <<< "$evidence" || return 1
+  done <<< "$failed_jobs"
 }
 
 if ! failure_looks_like_simulator_infrastructure "$RUN_ID"; then

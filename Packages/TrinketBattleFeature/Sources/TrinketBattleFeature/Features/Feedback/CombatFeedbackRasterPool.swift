@@ -107,7 +107,9 @@ final class CombatFeedbackRasterPool {
         var prepared: [CombatFeedbackChipComposer.ComposedRaster?] = []
         for request in requests {
             guard !Task.isCancelled else { return prepared }
-            prepared.append(CombatFeedbackChipComposer.render(request))
+            prepared.append(autoreleasepool {
+                CombatFeedbackChipComposer.render(request)
+            })
         }
         return prepared
     }

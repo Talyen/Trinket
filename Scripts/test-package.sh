@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
-SCRIPT_DIR="$(dirname "$0")"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/.."
 
 # Must match Scripts/build-for-testing.sh so CI --no-build restores the same products.
 # shellcheck source=run-env.sh
@@ -173,6 +173,9 @@ if [[ -n "$DESTINATION" ]]; then
     fi
   done
 fi
+
+source Scripts/lib/verification-policy.sh
+trinket_require_heavy_verification "Simulator package tests" || exit $?
 
 trinket_run_env_init
 

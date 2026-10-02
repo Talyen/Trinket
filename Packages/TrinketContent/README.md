@@ -44,10 +44,13 @@ normalization pass; modifier and catalog-backed Unique migrations stay separate.
 ```sh
 # Edit the relevant TSV, then:
 ./Scripts/generate.sh
-./Scripts/build.sh
+./Scripts/handoff.sh --isolate --quiet --paths <changed-files...>
 ```
 
 Generated files are committed so the app builds without rerunning the generator.
+Review the outputs alongside their authored inputs. Routine local handoff defers
+compilation, content tests, and idempotence proof to CI under
+[Verification](../../Docs/Platform/Verification.md#generated-project-consistency).
 
 ## Key types
 
@@ -75,23 +78,26 @@ relies on this encapsulation; storage references must never escape the wrapper.
 ## Random item rewards
 
 `ItemRewardGenerator` owns category selection and candidate filtering for battles,
-shops, and Mysteries. Tune the level anchors and profile multipliers in
-`Sources/TrinketContent/Equipment/ItemLootPolicy.swift`. Weights interpolate linearly and clamp
-outside the anchors. Bosses triple premium weights; Moonlit Sanctum multiplies
+shops, Mysteries, and Blacksmith forging. Tune level endpoints, tier weights,
+curvature, and the boss multiplier in `Sources/TrinketContent/Equipment/LootTuning.swift`.
+`ItemLootPolicy.swift` blends the endpoint weights using normalized curved level
+progression, clamped to levels 1–40. Bosses triple premium weights; Moonlit Sanctum multiplies
 Astral weight by `1 + bonus/100`. After ownership, reservations, keywords, and
 explicit pools remove unavailable categories, the remaining weights normalize.
 There are no category-conversion fallbacks. Guaranteed Astral rewards constrain
 the same resolver to Astral gear; exact authored item rewards remain exact.
 
-Item reward level uses the highest encounter level won, capped at level 40;
-the current battle's item roll also uses its own encounter level. Existing saves
+Battle items roll at that battle's captured encounter level, with tier odds capped
+at loot level 40. Shop, Mystery, and Blacksmith item quality uses the highest
+encounter level won, also capped at 40. Existing saves
 derive a floor from completed Campaign stages, Spire floors, and cleared Labyrinth
-battles. Roster leveling without a victory does not advance item quality; see
+battles. Roster leveling without a victory does not advance noncombat offer quality; see
 [Contracts](../../Docs/Product/Contracts.md#board) and
 [Voyage](../../Docs/Product/Voyage.md#levels-and-rewards). Voyage shops and
 Mysteries use the same highest-won level; their offers persist by run
 and node identity.
-Party-adjusted currency and experience calculations remain separate. Saved items
+Battle currency and experience continue to use the encounter level beyond the
+item-quality cap. Saved items
 and pinned offers retain their contents; newly generated rewards use current tuning.
 
 From the repository root, produce the exact balance report with:
@@ -130,12 +136,17 @@ normally. Only Basic/Astral tiers participate, with their existing relative weig
 The strict `requiredKeyword` input is separate from probabilistic `keywordBias`;
 missing matching content must never silently produce unrelated equipment.
 
-Rare-tier modifiers double the selected eligible tier's weight. Combat nodes still receive one modifier. Their reward category has weight three,
-and each eligible combat effect has weight one, preserving the pre-expansion
-combat/reward ratio. Selection within the chosen category is uniform; Voyage
-excludes its preceding modifier there when an alternative exists. Contracts select
-uniformly among eligible rewards. New combat rewards do not enter Mystery or Shop
-pools; the original three Mystery reward bonuses remain supported.
+Rare-tier modifiers double the selected eligible tier's weight. Combat nodes still
+receive one modifier. `NodeModifierCatalog.originalCombatIDs` anchors the category
+odds: the reward category has weight three against the count of originally eligible
+combat effects for that enemy. Expanding either catalog does not dilute the other
+category. Combat selection is uniform within the current eligible pool. Labyrinth
+reward selection is uniform; Voyage first favors its
+[chapter keyword affinity pool](../../Docs/Product/Voyage.md#route-generation),
+then selects uniformly within the chosen pool, excluding its preceding modifier
+when another entry exists there. Contracts select uniformly among eligible rewards.
+New combat rewards do not enter Mystery or Shop pools; the original three Mystery
+reward bonuses remain supported.
 
 Arms, Armor, Ring, and Amulet Hoards restrict the ordinary single item to that
 base family and Basic/Astral tiers. Astral, Trinket, and Unique Hoards guarantee

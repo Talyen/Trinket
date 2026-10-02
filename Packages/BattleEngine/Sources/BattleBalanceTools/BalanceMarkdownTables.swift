@@ -67,12 +67,7 @@ enum BalanceMarkdownTables {
     private static func table(into lines: inout [String], heading: String, header: String, separator: String, rows: [String]) {
         lines.append(heading)
         lines.append("")
-        lines.append(header)
-        lines.append(separator)
-        for row in rows {
-            lines.append(row)
-        }
-        lines.append("")
+        rowsTable(into: &lines, header: header, separator: separator, rows: rows)
     }
 
     static func appendDurationSection(_ tierStats: BalanceTierStats, into lines: inout [String]) {
@@ -251,7 +246,7 @@ enum BalanceMarkdownTables {
             identityLow.append(contentsOf: tier.affixes)
         }
         identityLow = identityLow.filter(\.sampleTooLow)
-        let contrastLow = (report.abilityContrasts + report.affixContrasts + report.talentContrasts + report.talentKitContrasts)
+        let contrastLow = report.contrastSections.flatMap(\.rows)
             .filter { $0.decidedPairs < BalanceSweepConfig.contrastFlagMinPairs && !$0.nonCombat }
         guard !identityLow.isEmpty || !contrastLow.isEmpty else { return }
         lines.append("## n too low to flag")

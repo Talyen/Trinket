@@ -1,6 +1,8 @@
 """Generated project and real Git hook behavior in isolated repositories."""
 
 SCRIPT_INPUTS = (
+    '.githooks/pre-push',
+    'Scripts/pre-push-paths.py',
     'Scripts/agent-push-gate.sh',
     'Scripts/apply-scheme-storekit.py',
     'Scripts/assert-generated-output.sh',
@@ -91,14 +93,15 @@ printf cached > "$cache"
         if executable:
             path.chmod(0o755)
 
-    def run_command(self, *args, expected=0):
+    def run_command(self, *args, expected=0, input_text=None):
         result = subprocess.run(
             args,
             cwd=self.root,
             env=self.env,
             text=True,
             capture_output=True,
-            stdin=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL if input_text is None else None,
+            input=input_text,
         )
         self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
         return result
@@ -224,7 +227,7 @@ printf cached > "$cache"
         self.assertEqual((self.root / 'calls').read_text(), 'called\n' * 4)
 
     def test_push_hook_keeps_commit_completeness_for_project_changes(self):
-        for relative in ('.githooks/pre-push', 'Scripts/agent-push-gate.sh',
+        for relative in ('.githooks/pre-push', 'Scripts/pre-push-paths.py', 'Scripts/agent-push-gate.sh',
                          'Scripts/assert-generated-output.sh', 'Scripts/change-classification.sh',
                          'Scripts/lib/classification-plan.sh', 'Scripts/lib/smoke-classes.sh',
                          'Scripts/lib/generated-paths.sh',
@@ -251,20 +254,26 @@ printf cached > "$cache"
         self.git('add', '.')
         self.git('-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'push fixture')
         for changed, drift, expected_calls, status in (
-            ('code.swift', False, 0, 0), ('project.yml', False, 1, 0),
-            ('project.yml', True, 1, 1),
+            ('code.swift', False, 0, 0), ('project.yml', False, 0, 0),
+            ('project.yml', True, 0, 0),
         ):
             with self.subTest(changed=changed, drift=drift):
                 calls = self.root / 'calls'
                 calls.unlink(missing_ok=True)
+                base = self.git('rev-parse', 'HEAD').stdout.strip()
                 path = self.root / changed
                 path.write_text(path.read_text() + '\n')
                 if changed == 'project.yml' and not drift:
                     self.write('Trinket.xcodeproj/project.pbxproj', path.read_text())
                 self.git('add', changed, 'Trinket.xcodeproj/project.pbxproj')
                 self.git('-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'push case')
-                result = self.run_command('bash', '.githooks/pre-push', expected=status)
+                head = self.git('rev-parse', 'HEAD').stdout.strip()
+                push_input = f'refs/heads/main {head} refs/heads/main {base}\n'
+                result = self.run_command('bash', '.githooks/pre-push', expected=status, input_text=push_input)
                 count = len(calls.read_text().splitlines()) if calls.exists() else 0
                 self.assertEqual(count, expected_calls, result.stdout + result.stderr)
+                self.assertIn('deferred to CI', result.stdout)
                 if drift:
-                    self.assertIn('Generated output is stale or uncommitted', result.stderr)
+                    self.write('Trinket.xcodeproj/project.pbxproj', (self.root / 'Trinket.xcodeproj/project.pbxproj').read_text() + '\n// uncommitted output\n')
+                    rejected = self.run_command('bash', '.githooks/pre-push', expected=1, input_text=push_input)
+                    self.assertIn('Pre-push requires a clean checkout', rejected.stderr)

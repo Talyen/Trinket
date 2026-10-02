@@ -1,0 +1,63 @@
+name: Performance diagnostics
+
+on:
+  workflow_dispatch:
+    inputs:
+      group:
+        description: Performance group from performance.sh --list; empty runs the catalog
+        type: string
+        default: ''
+      repetitions:
+        description: Measured repetitions per scenario
+        type: number
+        default: 1
+
+permissions:
+  contents: read
+
+concurrency:
+  group: performance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  performance:
+    runs-on: xcode-27
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          sparse-checkout: |
+            Scripts
+            Packages
+            Trinket
+            TrinketUITests
+            Trinket.xcodeproj
+            StoreKit
+            ContentManifest
+            ArtManifest
+            MusicManifest
+            SoundManifest
+            CinematicManifest
+            Performance
+            .github
+      - uses: ./.github/actions/setup-trinket
+        with:
+          metal: 'true'
+      - name: Measure selected workloads
+        env:
+          PERFORMANCE_GROUP: ${{ inputs.group }}
+          TRINKET_PERFORMANCE_REPETITIONS: ${{ inputs.repetitions }}
+        shell: bash
+        run: |
+          args=()
+          if [[ -n "$PERFORMANCE_GROUP" ]]; then args=(--group "$PERFORMANCE_GROUP"); fi
+          ./Scripts/performance.sh "${args[@]}"
+      - name: Keep measurements and failure evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: performance-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/PerformanceResults
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: ignore

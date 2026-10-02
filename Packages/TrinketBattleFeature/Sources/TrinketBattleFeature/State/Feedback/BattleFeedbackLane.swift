@@ -140,7 +140,7 @@ final class BattleFeedbackLane {
         damage: [BattleResolvedDamage] = [],
     ) {
         pruneExpired(at: date)
-        let knownIDs = Set(activeItems.flatMap(\.sourceEventIDs))
+        let knownIDs = Set(activeItems.lazy.flatMap(\.sourceEventIDs))
         let prepared = CombatFeedbackPresenter.makeItems(
             from: events.filter { !knownIDs.contains($0.id) },
             at: date,
@@ -282,10 +282,10 @@ final class BattleFeedbackLane {
             return nil
         }
         environment.playSFX(CombatSFXMapper.uniqueClipIDs(for: due, damageKeywords: damageKeywords))
-        let recordedTargets = Set(damage.filter { $0.reactionKind != nil }.map(\.targetID))
+        let recordedTargets = Set(damage.lazy.filter { $0.reactionKind != nil }.map(\.targetID))
         var reactions: [String: CombatantHitReaction] = [:]
         for (targetID, items) in Dictionary(grouping: due, by: \.targetID) {
-            let candidates = items.filter { item in
+            let candidates = items.lazy.filter { item in
                 item.reactionKind != .none && (!recordedTargets.contains(targetID)
                     || item.reactionKind == .heal || item.reactionKind == .celebrate)
             }

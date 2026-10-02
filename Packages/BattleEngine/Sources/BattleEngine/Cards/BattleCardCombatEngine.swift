@@ -234,24 +234,18 @@ package enum BattleCardCombatEngine {
         }
         context.ownersSkippingThisPlayerTurn = []
 
-        if context.isBattleOver {
-            events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
-            context.phase = .ended
+        if finishRoundIfBattleOver(context: &context, events: &events) {
             return events
         }
 
         events.append(contentsOf: CombatTriggerEngine.atPlayerEndTurn(in: &context))
         context.primedRepeatKeywords.removeAll()
-        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
-        if context.isBattleOver {
-            context.phase = .ended
+        if finishRoundIfBattleOver(context: &context, events: &events) {
             return events
         }
 
         events.append(contentsOf: resolveEnemyTurn(context: &context))
-        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
-        if context.isBattleOver {
-            context.phase = .ended
+        if finishRoundIfBattleOver(context: &context, events: &events) {
             return events
         }
 
@@ -267,14 +261,20 @@ package enum BattleCardCombatEngine {
         for combatant in [context.roster.hero.combatant, context.roster.companion.combatant] {
             events.append(contentsOf: DefensePoolEngine.decayBlock(on: combatant, in: &context))
         }
-        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
-        if context.isBattleOver {
-            context.phase = .ended
+        if finishRoundIfBattleOver(context: &context, events: &events) {
             return events
         }
 
         discardDefeatedOwnerCards(context: &context)
         return events
+    }
+
+    private static func finishRoundIfBattleOver(context: inout BattleState, events: inout [ActionEvent]) -> Bool {
+        // Milestones can trigger victory rewards; finish them before checking the final roster.
+        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
+        guard context.isBattleOver else { return false }
+        context.phase = .ended
+        return true
     }
 
     @discardableResult

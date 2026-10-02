@@ -12,10 +12,12 @@ incidental copy work.
   shrinking text to fit. Match existing capitalization for the kind of control.
 - Explain an unavailable action near the choice when its reason is unclear. Pair
   essential color differences with a label, symbol, shape, or native disabled state.
-- For reachable errors, state what happened and the next useful action without
-  blame or implementation jargon. Use an alert only when interruption is warranted;
-  [automatic saving and destructive-action decisions](../../../Docs/Product/Decisions.md)
-  take precedence over generic error or confirmation advice.
+- Follow the [failure and destructive-action contract](../../../Docs/AgentContext/swiftui-features.md)
+  for recovery: keep technical failures internal, expose Retry/Back when blocked,
+  and use inline consequences with Cancel and a final action for destructive choices.
+  Availability and consequence copy remains concrete; pending or rejected actions
+  must not look successful. [Automatic saving](../../../Docs/Product/Decisions.md)
+  retains silent retries rather than save-error prompts.
 
 Teach non-obvious game actions in their context, preferably through play. Keep help
 brief and dismissible; don't explain familiar iOS controls or require memorizing a

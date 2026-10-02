@@ -18,7 +18,7 @@ struct DecayingDoTDetailsTests {
         #expect(summary.text.contains("1 \(keyword.rawValue) potency"))
         #expect(summary.text.contains("decays before"))
 
-        _ = EffectTurnEngine.advanceEffects(battle.roster.enemy.activeEffects, target: battle.enemy, context: &battle)
+        _ = EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle)
         #expect(battle.health(of: battle.enemy) == 100)
         #expect(!battle.roster.hasAffliction(keyword, on: battle.enemy))
     }

@@ -18,6 +18,9 @@ Venom stripping its owner's Block before absorption. Its fixed strip amount is
 shared by the borrowed and recipient Block pools within one damage packet.
 Block-breaking multipliers scale the Block points consumed after the owner's
 absorption efficiency, capped at the remaining pool; absorbed damage stays unchanged.
+Glacial Reprieve returns damage absorbed by its owner's Block, including that
+owner's borrowed Block. Ironhide reduces overflow only from an attack that breaks
+the recipient's Block; ongoing damage and bypass damage leaving Block intact do not qualify.
 Shieldbreaker, Shield Breaker, and Brittle Strike apply their Physical Block-breaking
 multiplier only to attacks. Physical retaliation retains ordinary Block consumption;
 generic Sundering and Holy damage bonuses keep their separate eligibility.
@@ -55,6 +58,8 @@ Explicit non-damaging stack grants and reflection retain their specified potency
 neither gains outgoing bonuses. Ticks never attach new stacks. Bleed and authored
 recurring damage retain their separate rules. Combustion still adds its Burn before
 detonating all remaining Burn, including the fresh application.
+Enemy pulse traits retain their flat immediate damage and attach the corresponding
+DoT afterward: authored potency for Bleed, actual Health damage for Burn and Poison.
 Resolved outgoing packets also skip source talent multipliers already included in
 their magnitude. Newly readied Toxic Backlash still doubles the next Poison damage
 event once, including a stored tick; Venomtrail retains its per-event rule below.
@@ -105,6 +110,9 @@ For a named talent change, look up its rule in [talent interactions](battle-tale
 
 Glacial Barrier and Rimeguard reward each living owner when an opponent becomes
 Frozen, including freezes applied by an ally.
+Control extensions belong to the active Freeze or Stun that earned them. Simultaneous
+statuses retain their own skipped actions; Cleanse removes the corresponding extension
+without removing another status's extension or an independent action delay.
 
 `DamageDefensePolicy` applies damage caps
 to ordinary damage operations, exempting Health costs.

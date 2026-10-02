@@ -424,7 +424,7 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.belowHalfFirstDodgeHealPerTurn > 0,
-           context.roster.enemy.isAlive,
+           context.roster.health(for: actor) > 0,
            context.roster.health(for: actor) * 2 < context.roster.maxHealth(for: actor),
            context.claimHeroTalent("Stolen Breath", actorID: actor.id) {
             events.append(contentsOf: context.healEmitting(
@@ -464,7 +464,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let amount = context.modifiers(for: actor.id).triggers.belowHalfFirstGoldGainHealPerTurn
-        guard granted > 0, amount > 0, context.roster.enemy.isAlive,
+        guard granted > 0, amount > 0, context.roster.health(for: actor) > 0,
               context.roster.health(for: actor) * 2 < context.roster.maxHealth(for: actor),
               context.claimHeroTalent("Golden Recovery", actorID: actor.id) else { return [] }
         return context.healEmitting(amount: amount, target: actor, source: actor, abilityName: "Golden Recovery")

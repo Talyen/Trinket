@@ -44,85 +44,158 @@ package extension BattleState {
 
     private func preparedEffectSummaries(_ history: HeroTalentHistory?) -> [EffectSummary] {
         guard let history else { return [] }
-        let prepared: [(Bool, Keyword, String)] = [
-            (history.dodgeGrowth > 0, .dodge, "Improving Odds: +\(history.dodgeGrowth)% Dodge chance until you Dodge."),
-            (
-                history.stolenGoldDamage > 0,
-                .physical,
-                "Gilded Claws: Your next damaging card deals \(history.stolenGoldDamage) additional damage.",
-            ),
-            (history.blindingReduction > 0, .holy, "Blinding Light: Your next attack deals \(history.blindingReduction) less damage."),
-            (history.preparations.contains(.bleedDamage), .bleed, "Redline: Your next Physical card deals 2 additional Bleed damage."),
-            (history.preparations.contains(.doublePoison), .poison, "Unstable Culture: Your next Poison attack deals double damage."),
-            (history.preparations.contains(.ignorePhysicalBlock), .physical, "Blind Spot: Your next Physical attack ignores enemy Block."),
-        ]
-        return prepared.compactMap { active, keyword, text in
-            active ? EffectSummary(keyword: keyword, text: text) : nil
-        }
+        var summaries: [EffectSummary] = []
+        summaries.append(
+            .dodge,
+            when: history.dodgeGrowth > 0,
+            text: "Improving Odds: +\(history.dodgeGrowth)% Dodge chance until you Dodge.",
+        )
+        summaries.append(
+            .physical,
+            when: history.stolenGoldDamage > 0,
+            text: "Gilded Claws: Your next damaging card deals \(history.stolenGoldDamage) additional damage.",
+        )
+        summaries.append(
+            .holy,
+            when: history.blindingReduction > 0,
+            text: "Blinding Light: Your next attack deals \(history.blindingReduction) less damage.",
+        )
+        summaries.append(
+            .bleed,
+            when: history.preparations.contains(.bleedDamage),
+            text: "Redline: Your next Physical card deals 2 additional Bleed damage.",
+        )
+        summaries.append(
+            .poison,
+            when: history.preparations.contains(.doublePoison),
+            text: "Unstable Culture: Your next Poison attack deals double damage.",
+        )
+        summaries.append(
+            .physical,
+            when: history.preparations.contains(.ignorePhysicalBlock),
+            text: "Blind Spot: Your next Physical attack ignores enemy Block.",
+        )
+        return summaries
     }
 }
 
 private extension CombatantTalentState.Pending {
     func effectSummaries(criticalAppliesToParty: Bool, partyCardDamageBonus: Int, partyDamageBonus: Int = 0) -> [EffectSummary] {
         let criticalTarget = criticalAppliesToParty ? "party hit" : "attack"
+        var summaries: [EffectSummary] = []
+        summaries.append(.physical, when: doubleDamageAfterDodge, text: "Prepared Strike: Your next attack deals double damage.")
+        summaries.append(
+            .physical,
+            when: guaranteedCriticalAfterDodge,
+            text: "Prepared Critical: Your next \(criticalTarget) is a guaranteed Critical Hit.",
+        )
+        summaries.append(
+            .physical,
+            when: basicGuaranteedCritical,
+            text: "Prepared Basic: Your next Basic attack is a guaranteed Critical Hit.",
+        )
+        summaries.append(
+            .physical,
+            when: damageAfterDodge > 0,
+            text: "Prepared Strike: Your next attack deals \(damageAfterDodge) additional damage.",
+        )
+        summaries.append(
+            .bleed,
+            when: bleedAfterDodge > 0,
+            text: "Prepared Bleed: Your next attack deals \(bleedAfterDodge) additional Bleed damage.",
+        )
+        appendCardPreparations(to: &summaries, partyCardDamageBonus: partyCardDamageBonus, partyDamageBonus: partyDamageBonus)
+        appendAttackBonuses(to: &summaries)
+        return summaries + healingPreparationSummaries() + additionalPreparationSummaries()
+    }
+
+    private func appendCardPreparations(to summaries: inout [EffectSummary], partyCardDamageBonus: Int, partyDamageBonus: Int) {
         let preparedDamage = cardDamageBonus + feintStrikeDamageBonus
+        summaries.append(
+            .physical,
+            when: partyCardDamageBonus > 0,
+            text: "Feint Strike: The party’s next card deals \(partyCardDamageBonus) additional damage.",
+        )
+        summaries.append(
+            .physical,
+            when: partyDamageBonus > 0,
+            text: "Sniff Out: Your next attack deals \(partyDamageBonus) additional damage.",
+        )
+        summaries.append(
+            .physical,
+            when: preparedDamage > 0,
+            text: "Prepared Damage: Your next attack deals \(preparedDamage) additional damage.",
+        )
+        summaries.append(
+            .physical,
+            when: cardDamagePercent > 0,
+            text: "Prepared Damage: Your next attack deals \(Int((cardDamagePercent * 100).rounded()))% more damage.",
+        )
+        summaries.append(.physical, when: nextHitBonus > 0, text: "Prepared Hit: Your next attack deals \(nextHitBonus) additional damage.")
+        summaries.append(
+            .holy,
+            when: nextAttackHolyBonus > 0,
+            text: "Holy Infusion: Your next attack deals \(nextAttackHolyBonus) additional Holy damage.",
+        )
+        summaries.append(.holy, when: doubleNextHolyAttack, text: "Smite the Wicked: Your next Holy attack deals double damage.")
+        summaries.append(.poison, when: doubleNextPoisonAttack, text: "Toxic Transfusion: Your next Poison attack deals double damage.")
+        summaries.append(.poison, when: doubleNextPoisonDamage, text: "Toxic Backlash: Your next Poison damage is doubled.")
+        summaries.append(.bleed, when: doubleNextBleedDamage, text: "Shatterpoint: The next Bleed damage is doubled.")
+        summaries.append(.bleed, when: guaranteedBleedCritical, text: "Noxious Reaction: Your next Bleed attack Critically Hits.")
+        summaries.append(.gold, when: doubleNextGoldSteal, text: "Escape Fund: Your next Gold steal is doubled.")
+        summaries.append(
+            .physical,
+            when: nextPhysicalDamageBonus > 0,
+            text: "Your next Physical attack deals \(nextPhysicalDamageBonus) additional damage.",
+        )
+        summaries.append(
+            .mana,
+            when: nextManaEmpowerDiscount > 0,
+            text: "Your next Mana empowerment costs \(nextManaEmpowerDiscount) less Mana.",
+        )
+    }
+
+    private func appendAttackBonuses(to summaries: inout [EffectSummary]) {
         let nextBurnAttackPercent = nextBurnAttackPercent?.value ?? 0
         let nextBurnDamageBonus = nextBurnDamageBonus?.value ?? 0
         let nextPoisonDamageBonus = nextPoisonDamageBonus?.value ?? 0
         let criticalBonus = (nextAttackCriticalBonus?.value ?? 0) + (nextCleanseCriticalBonus?.value ?? 0)
-        let prepared: [(Bool, Keyword, String)] = [
-            (doubleDamageAfterDodge, .physical, "Prepared Strike: Your next attack deals double damage."),
-            (guaranteedCriticalAfterDodge, .physical, "Prepared Critical: Your next \(criticalTarget) is a guaranteed Critical Hit."),
-            (basicGuaranteedCritical, .physical, "Prepared Basic: Your next Basic attack is a guaranteed Critical Hit."),
-            (damageAfterDodge > 0, .physical, "Prepared Strike: Your next attack deals \(damageAfterDodge) additional damage."),
-            (bleedAfterDodge > 0, .bleed, "Prepared Bleed: Your next attack deals \(bleedAfterDodge) additional Bleed damage."),
-            (partyCardDamageBonus > 0, .physical, "Feint Strike: The party’s next card deals \(partyCardDamageBonus) additional damage."),
-            (
-                partyDamageBonus > 0,
-                .physical,
-                "Sniff Out: Your next attack deals \(partyDamageBonus) additional damage.",
-            ),
-            (preparedDamage > 0, .physical, "Prepared Damage: Your next attack deals \(preparedDamage) additional damage."),
-            (
-                cardDamagePercent > 0,
-                .physical,
-                "Prepared Damage: Your next attack deals \(Int((cardDamagePercent * 100).rounded()))% more damage.",
-            ),
-            (nextHitBonus > 0, .physical, "Prepared Hit: Your next attack deals \(nextHitBonus) additional damage."),
-            (nextAttackHolyBonus > 0, .holy, "Holy Infusion: Your next attack deals \(nextAttackHolyBonus) additional Holy damage."),
-            (doubleNextHolyAttack, .holy, "Smite the Wicked: Your next Holy attack deals double damage."),
-            (doubleNextPoisonAttack, .poison, "Toxic Transfusion: Your next Poison attack deals double damage."),
-            (doubleNextPoisonDamage, .poison, "Toxic Backlash: Your next Poison damage is doubled."),
-            (doubleNextBleedDamage, .bleed, "Shatterpoint: The next Bleed damage is doubled."),
-            (guaranteedBleedCritical, .bleed, "Noxious Reaction: Your next Bleed attack Critically Hits."),
-            (doubleNextGoldSteal, .gold, "Escape Fund: Your next Gold steal is doubled."),
-            (nextPhysicalDamageBonus > 0, .physical, "Your next Physical attack deals \(nextPhysicalDamageBonus) additional damage."),
-            (nextManaEmpowerDiscount > 0, .mana, "Your next Mana empowerment costs \(nextManaEmpowerDiscount) less Mana."),
-            (nextBurnAttackPercent > 0, .burn, "Your next Burn attack deals \(Int((nextBurnAttackPercent * 100).rounded()))% more damage."),
-            (nextBleedDamageBonus > 0, .bleed, "Your next Bleed attack deals \(nextBleedDamageBonus) additional damage."),
-            (nextBurnDamageBonus > 0, .burn, "Your next Burn attack deals \(nextBurnDamageBonus) additional damage."),
-            (nextPoisonDamageBonus > 0, .poison, "Your next Poison attack deals \(nextPoisonDamageBonus) additional damage."),
-            (
-                criticalBonus > 0,
-                .physical,
-                "Your next attack has +\(Int((criticalBonus * 100).rounded()))% Critical Hit chance.",
-            ),
-            (nextAttackGuaranteedCritical != nil, .physical, "Cracked Guard: Your next attack Critically Hits."),
-            (
-                basicCriticalBonus > 0,
-                .physical,
-                "Prepared Basic: Your next Basic attack has +\(Int((basicCriticalBonus * 100).rounded()))% Critical Hit chance.",
-            ),
-            (
-                attackBonusOnFullHealth > 0,
-                .physical,
-                "Prepared Strike: Your next attack deals \(attackBonusOnFullHealth) additional damage.",
-            ),
-        ]
-        let summaries = prepared.compactMap { active, keyword, text in
-            active ? EffectSummary(keyword: keyword, text: text) : nil
-        }
-        return summaries + healingPreparationSummaries() + additionalPreparationSummaries()
+        summaries.append(
+            .burn,
+            when: nextBurnAttackPercent > 0,
+            text: "Your next Burn attack deals \(Int((nextBurnAttackPercent * 100).rounded()))% more damage.",
+        )
+        summaries.append(
+            .bleed,
+            when: nextBleedDamageBonus > 0,
+            text: "Your next Bleed attack deals \(nextBleedDamageBonus) additional damage.",
+        )
+        summaries.append(
+            .burn,
+            when: nextBurnDamageBonus > 0,
+            text: "Your next Burn attack deals \(nextBurnDamageBonus) additional damage.",
+        )
+        summaries.append(
+            .poison,
+            when: nextPoisonDamageBonus > 0,
+            text: "Your next Poison attack deals \(nextPoisonDamageBonus) additional damage.",
+        )
+        summaries.append(
+            .physical,
+            when: criticalBonus > 0,
+            text: "Your next attack has +\(Int((criticalBonus * 100).rounded()))% Critical Hit chance.",
+        )
+        summaries.append(.physical, when: nextAttackGuaranteedCritical != nil, text: "Cracked Guard: Your next attack Critically Hits.")
+        summaries.append(
+            .physical,
+            when: basicCriticalBonus > 0,
+            text: "Prepared Basic: Your next Basic attack has +\(Int((basicCriticalBonus * 100).rounded()))% Critical Hit chance.",
+        )
+        summaries.append(
+            .physical,
+            when: attackBonusOnFullHealth > 0,
+            text: "Prepared Strike: Your next attack deals \(attackBonusOnFullHealth) additional damage.",
+        )
     }
 
     private func healingPreparationSummaries() -> [EffectSummary] {
@@ -132,65 +205,78 @@ private extension CombatantTalentState.Pending {
     }
 
     private func additionalPreparationSummaries() -> [EffectSummary] {
+        var summaries: [EffectSummary] = []
+        summaries.append(.bleed, when: doubleNextBleedAttack != nil, text: "Redline: Your next Bleed attack deals double damage.")
+        summaries.append(.stun, when: nextStunAttackDouble != nil, text: "Quaking Carapace: Your next Stun attack deals double damage.")
+        summaries.append(
+            .physical,
+            when: doubleNextPhysicalAttack != nil,
+            text: "Feigned Miss: Your next Physical attack deals double damage.",
+        )
+        summaries.append(.holy, when: nextHolyHitDouble != nil, text: "Sun-Struck Shell: Your next Holy damage is doubled.")
+        summaries.append(.physical, when: doubleNextAttackAfterDeathsDoor, text: "Phoenix Vigor: Your next attack deals double damage.")
+        summaries.append(.freeze, when: nextFreezeIgnoresBlock != nil, text: "Winter’s Wake: Your next Freeze attack ignores enemy Block.")
+        summaries.append(.physical, when: nextAttackIgnoresBlock != nil, text: "Your next attack ignores enemy Block.")
+        summaries.append(.physical, when: nextStunPreparedCritical != nil, text: "Stolen Thunder: Your next attack Critically Hits.")
+        appendMagnitudePreparations(to: &summaries)
+        return summaries
+    }
+
+    private func appendMagnitudePreparations(to summaries: inout [EffectSummary]) {
         let overchargePercent = overchargePercent?.value ?? 0
         let nextIncomingDamageMultiplier = nextIncomingDamageMultiplier?.value ?? 1
-        let prepared: [(Bool, Keyword, String)] = [
-            (doubleNextBleedAttack != nil, .bleed, "Redline: Your next Bleed attack deals double damage."),
-            (nextStunAttackDouble != nil, .stun, "Quaking Carapace: Your next Stun attack deals double damage."),
-            (doubleNextPhysicalAttack != nil, .physical, "Feigned Miss: Your next Physical attack deals double damage."),
-            (nextHolyHitDouble != nil, .holy, "Sun-Struck Shell: Your next Holy damage is doubled."),
-            (doubleNextAttackAfterDeathsDoor, .physical, "Phoenix Vigor: Your next attack deals double damage."),
-            (nextFreezeIgnoresBlock != nil, .freeze, "Winter’s Wake: Your next Freeze attack ignores enemy Block."),
-            (nextAttackIgnoresBlock != nil, .physical, "Your next attack ignores enemy Block."),
-            (nextStunPreparedCritical != nil, .physical, "Stolen Thunder: Your next attack Critically Hits."),
-            (
-                overchargePercent > 0,
-                .physical,
-                "Overcharge: Your next attack deals \(Int((overchargePercent * 100).rounded()))% more damage.",
-            ),
-            (
-                nextBleedAttackMultiplier != nil,
-                .bleed,
-                "Nimble Fang: Your next Bleed attack deals \(Int((((nextBleedAttackMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
-            ),
-            (
-                nextPhysicalAttackMultiplier != nil,
-                .physical,
-                "Phantom Counter: Your next Physical attack deals \(Int((((nextPhysicalAttackMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
-            ),
-            (
-                nextCriticalHitMultiplier != nil,
-                .physical,
-                "Perfect Tempo: Your next Critical Hit deals \(Int((((nextCriticalHitMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
-            ),
-            (
-                nextManaSpendAttackBonus != nil,
-                .physical,
-                "Aetherial Flow: Your next attack deals \(nextManaSpendAttackBonus?.value ?? 0) additional damage.",
-            ),
-            (
-                nextBlockGainMultiplier != nil,
-                .block,
-                "Your next Block gain is increased by \(Int((((nextBlockGainMultiplier?.value ?? 1) - 1) * 100).rounded()))%.",
-            ),
-            (
-                nextIncomingDamageMultiplier < 1,
-                .block,
-                "Warded Roost: Your next incoming damage is reduced by \(Int(((1 - nextIncomingDamageMultiplier) * 100).rounded()))%.",
-            ),
-            (
-                nextOutgoingAttackMultiplier < 1,
-                .physical,
-                "Weaken Soul: Your next attack deals \(Int(((1 - nextOutgoingAttackMultiplier) * 100).rounded()))% less damage.",
-            ),
-            (
-                nextAttackMissChance > 0,
-                .dodge,
-                "\(nextAttackMissAbilityName ?? "Blinding Light"): Your next attack has a \(Int((nextAttackMissChance * 100).rounded()))% chance to miss.",
-            ),
-        ]
-        return prepared.compactMap { active, keyword, text in
-            active ? EffectSummary(keyword: keyword, text: text) : nil
-        }
+        summaries.append(
+            .physical,
+            when: overchargePercent > 0,
+            text: "Overcharge: Your next attack deals \(Int((overchargePercent * 100).rounded()))% more damage.",
+        )
+        summaries.append(
+            .bleed,
+            when: nextBleedAttackMultiplier != nil,
+            text: "Nimble Fang: Your next Bleed attack deals \(Int((((nextBleedAttackMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
+        )
+        summaries.append(
+            .physical,
+            when: nextPhysicalAttackMultiplier != nil,
+            text: "Phantom Counter: Your next Physical attack deals \(Int((((nextPhysicalAttackMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
+        )
+        summaries.append(
+            .physical,
+            when: nextCriticalHitMultiplier != nil,
+            text: "Perfect Tempo: Your next Critical Hit deals \(Int((((nextCriticalHitMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
+        )
+        summaries.append(
+            .physical,
+            when: nextManaSpendAttackBonus != nil,
+            text: "Aetherial Flow: Your next attack deals \(nextManaSpendAttackBonus?.value ?? 0) additional damage.",
+        )
+        summaries.append(
+            .block,
+            when: nextBlockGainMultiplier != nil,
+            text: "Your next Block gain is increased by \(Int((((nextBlockGainMultiplier?.value ?? 1) - 1) * 100).rounded()))%.",
+        )
+        summaries.append(
+            .block,
+            when: nextIncomingDamageMultiplier < 1,
+            text: "Warded Roost: Your next incoming damage is reduced by \(Int(((1 - nextIncomingDamageMultiplier) * 100).rounded()))%.",
+        )
+        summaries.append(
+            .physical,
+            when: nextOutgoingAttackMultiplier < 1,
+            text: "Weaken Soul: Your next attack deals \(Int(((1 - nextOutgoingAttackMultiplier) * 100).rounded()))% less damage.",
+        )
+        summaries.append(
+            .dodge,
+            when: nextAttackMissChance > 0,
+            text: "\(nextAttackMissAbilityName ?? "Blinding Light"): Your next attack has a \(Int((nextAttackMissChance * 100).rounded()))% chance to miss.",
+        )
+    }
+}
+
+private extension [EffectSummary] {
+    /// Inactive preparations must not format descriptions or allocate summary entries.
+    mutating func append(_ keyword: Keyword, when active: Bool, text: @autoclosure () -> String) {
+        guard active else { return }
+        append(EffectSummary(keyword: keyword, text: text()))
     }
 }

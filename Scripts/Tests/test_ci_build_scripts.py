@@ -185,11 +185,26 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
         self.assertIn("./Scripts/restore-ci-test-products.sh", job)
         self.assertLess(job.index("./Scripts/restore-ci-test-products.sh"), job.index("- name: Run tests"))
         workflow = (ROOT / '.github/workflows/tests.yml').read_text()
-        for name, following in (('smoke', 'exhaustive-ui'), ('exhaustive-ui', 'diff-review')):
+        for name, following in (('exhaustive-ui', 'diff-review'),):
             with self.subTest(job=name):
                 consumer = workflow.split(f'  {name}:\n', 1)[1].split(f'  {following}:\n', 1)[0]
                 self.assertIn('rebuild-command: ./Scripts/build-for-testing.sh --app-only', consumer)
                 self.assertRegex(consumer, r'uses: \./\.github/actions/setup-trinket\n\s+with:\n(?:\s+#.*\n)*\s+metal: \'true\'')
+
+    def test_build_and_smoke_share_products_and_publish_only_for_nightly_ui(self):
+        workflow = (ROOT / '.github/workflows/tests.yml').read_text()
+        build = workflow.split('  build:\n', 1)[1].split('  release-device:\n', 1)[0]
+        self.assertIn('./Scripts/test.sh smoke --no-build ${{ steps.ui-matrices.outputs.smoke-targets }}', build)
+        self.assertNotIn('build-artifact:', build.split('artifact-name: smoke', 1)[1])
+        self.assertNotIn('\n  smoke:\n', workflow)
+        expression = next(line.split('upload-artifact:', 1)[1].strip()[3:-3]
+                          for line in build.splitlines() if 'upload-artifact:' in line)
+        for included in (False, True):
+            resolved = eval(expression.replace('inputs.include-exhaustive', repr(included))
+                            .replace('&&', 'and').replace('||', 'or'), {'__builtins__': {}})
+            self.assertEqual(resolved, 'true' if included else 'false')
+        aggregate = workflow.split('  ci-ok:\n', 1)[1].split('  exhaustive-ok:\n', 1)[0]
+        self.assertIn('build', aggregate.split('if: always()', 1)[0])
 
     def test_idempotence_checks_outputs_even_with_a_fresh_stamp(self) -> None:
         for initial, generator, expected in (
@@ -342,7 +357,7 @@ prepare_generated_inputs results
             (scripts / "test-package.sh").write_text('#!/bin/bash\nprintf "%s\\n" "$@"\nexit 17\n')
             for flags in (("--no-build", "--verbose"), ("--quiet",)):
                 result = subprocess.run([str(scripts / "test.sh"), "unit", *flags],
-                                        capture_output=True, text=True)
+                                        env={**os.environ, "GITHUB_ACTIONS": "true"}, capture_output=True, text=True)
                 self.assertEqual(result.returncode, 17, result.stdout + result.stderr)
                 args = result.stdout.splitlines()
                 self.assertEqual(args[:len(flags)], list(flags))
@@ -355,7 +370,7 @@ prepare_generated_inputs results
             scripts = Path(directory) / "Scripts"
             shutil.copytree(ROOT / "Scripts", scripts)
             (scripts / "run-env.sh").write_text(
-                'trinket_run_env_init() { RESULTS_DIR="$PWD/results"; }\ntrinket_track_test_guests() { :; }\n'
+                'source Scripts/lib/args.sh\ntrinket_run_env_init() { RESULTS_DIR="$PWD/results"; }\ntrinket_track_test_guests() { :; }\n'
             )
             (scripts / "ensure-simulator.sh").write_text('trinket_sim_slot_ensure() { :; }\n')
             (scripts / "build-freshness.sh").write_text(
@@ -370,7 +385,7 @@ prepare_generated_inputs results
                 with self.subTest(action=action):
                     result = subprocess.run(
                         [str(scripts / "test-package.sh"), *action, "BattleEngine"],
-                        capture_output=True, text=True,
+                        env={**os.environ, "GITHUB_ACTIONS": "true"}, capture_output=True, text=True,
                     )
                     self.assertEqual(result.returncode, 73, result.stdout + result.stderr)
                     self.assertIn("prepared inputs", result.stdout)

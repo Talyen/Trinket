@@ -22,21 +22,33 @@ REGISTRY = load_script('ui_registration', 'check-testplan-sync.py')
 
 
 class UIRegistrationTests(unittest.TestCase):
-    def test_shipping_shards_and_shell_routing_are_preserved(self):
+    def test_registered_classes_reach_plans_filters_and_local_routing(self):
         rows = REGISTRY.registrations()
-        self.assertEqual(REGISTRY.matrix(rows, 'Smoke'), {'include': [
-            {'name': 'Shell', 'target': 'SmokeShellTests StarterOnboardingSmokeTests FullGamePurchaseSmokeTests'},
-            {'name': 'Play', 'target': 'SmokeBattleTests SmokeShopTests'},
-        ]})
-        self.assertEqual(REGISTRY.matrix(rows, 'FullUI'), {'include': [
-            {'name': 'Play', 'target': 'BattleFlowUITests PlayModeNavigationUITests'},
-            {'name': 'Shell', 'target': 'HomesteadNodeDetailUITests FullGamePurchaseUITests'},
-        ]})
+        for suite in ('Smoke', 'FullUI'):
+            expected = [row['name'] for row in rows if row['suite'] == suite]
+            filters = subprocess.check_output(
+                ['python3', 'Scripts/check-testplan-sync.py', '--classes', suite], cwd=ROOT, text=True,
+            ).split()
+            self.assertEqual(filters, expected)
+            plan = json.loads((ROOT / f'{suite}.xctestplan').read_text())
+            self.assertEqual(REGISTRY.plan_target(plan)['selectedTests'], expected)
+            matrix_classes = [name for shard in REGISTRY.matrix(rows, suite)['include'] for name in shard['target'].split()]
+            self.assertCountEqual(matrix_classes, expected)
         output = subprocess.check_output(['bash', '-c', 'source Scripts/lib/smoke-classes.sh; env'], cwd=ROOT, text=True)
         for row in rows:
             if row['suite'] == 'Smoke':
                 self.assertIn(f"TRINKET_SMOKE_CLASS_{row['key']}={row['name']}", output)
         self.assertEqual(REGISTRY.testplan_failures(), [])
+
+    def test_matrix_preserves_group_and_class_order_from_input(self):
+        rows = [
+            dict(suite='FullUI', name='Later', shard='Play', rank=1, order=1),
+            dict(suite='FullUI', name='First', shard='Shell', rank=0, order=0),
+            dict(suite='FullUI', name='Earlier', shard='Play', rank=1, order=0),
+        ]
+        self.assertEqual(REGISTRY.matrix(rows, 'FullUI'), {'include': [
+            {'name': 'Shell', 'target': 'First'}, {'name': 'Play', 'target': 'Earlier Later'},
+        ]})
 
     def test_generation_preserves_settings_and_rejects_missing_or_duplicate_classes(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -71,11 +83,11 @@ class UIRegistrationTests(unittest.TestCase):
                 REGISTRY.generate(root, REGISTRY.registrations(root))
             self.assertEqual(before, [(root / f'{suite}.xctestplan').read_bytes() for suite in ('Smoke', 'FullUI')])
 
-    def test_workflow_must_consume_registry_matrix(self):
+    def test_workflow_rejects_smoke_that_bypasses_registry_filters(self):
         read = Path.read_text
         workflow = ROOT / '.github/workflows/tests.yml'
         original = workflow.read_text()
         def changed(path, *args, **kwargs):
-            return original.replace('fromJSON(needs.build.outputs.smoke-matrix)', 'fromJSON(needs.build.outputs.missing)') if path == workflow else read(path, *args, **kwargs)
+            return original.replace('--classes Smoke', '--classes Missing') if path == workflow else read(path, *args, **kwargs)
         with patch.object(Path, 'read_text', changed):
-            self.assertTrue(any('smoke must consume' in error for error in REGISTRY.testplan_failures()))
+            self.assertTrue(any('registry-selected smoke' in error for error in REGISTRY.testplan_failures()))

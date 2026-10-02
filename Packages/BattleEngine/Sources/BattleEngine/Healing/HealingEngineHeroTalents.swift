@@ -10,10 +10,12 @@ extension HealingEngine {
     ) {
         guard overflow > 0, triggers.overhealNextBurnBonus > 0 else { return }
         let preparedCardSerial = context.resolution.cardTalents?.playSerial
+        let preparedActionID = context.resolution.actionID
         context.roster.mutateRuntime(for: target) {
             $0.talents.pending.nextBurnDamageBonus = PreparedTalentBonus(
                 value: max($0.talents.pending.nextBurnDamageBonus?.value ?? 0, triggers.overhealNextBurnBonus),
                 cardSerial: preparedCardSerial,
+                actionID: preparedActionID,
             )
         }
     }

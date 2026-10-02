@@ -11,36 +11,24 @@ private let labyrinthMapLogger = Logger(
 
 extension LabyrinthProgressModel {
     func toPlayerLabyrinthState() -> PlayerLabyrinthState {
+        var state = PlayerLabyrinthState(
+            worldSeed: worldSeed,
+            mapVersion: mapVersion,
+            hasEntered: hasEntered,
+        )
         switch decodeMapPayload() {
         case .missing:
-            PlayerLabyrinthState(
-                worldSeed: worldSeed,
-                mapVersion: mapVersion,
-                hasEntered: hasEntered,
-                clusters: [],
-                nodes: [:],
-            )
+            break
         case let .decoded(payload):
-            PlayerLabyrinthState(
-                worldSeed: worldSeed,
-                mapVersion: mapVersion,
-                hasEntered: hasEntered,
-                clusters: payload.clusters,
-                nodes: Dictionary(
-                    payload.nodes.map { ($0.id, $0) },
-                    uniquingKeysWith: { _, new in new },
-                ),
+            state.clusters = payload.clusters
+            state.nodes = Dictionary(
+                payload.nodes.map { ($0.id, $0) },
+                uniquingKeysWith: { _, new in new },
             )
         case .unreadable:
-            PlayerLabyrinthState(
-                worldSeed: worldSeed,
-                mapVersion: mapVersion,
-                hasEntered: hasEntered,
-                clusters: [],
-                nodes: [:],
-                isMapPayloadUnreadable: true,
-            )
+            state.isMapPayloadUnreadable = true
         }
+        return state
     }
 
     func update(from state: PlayerLabyrinthState, context _: ModelContext? = nil) {

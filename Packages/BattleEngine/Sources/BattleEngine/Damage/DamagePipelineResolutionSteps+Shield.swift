@@ -100,7 +100,8 @@ package extension DamagePipeline {
             attackerID: state.sourceActorID,
             in: &context,
         ))
-        if !isBorrowed, state.remaining > 0, defenderTriggers.postBlockOverflowDamageMultiplier != 1 {
+        if !isBorrowed, state.options.isAttackHit, blockBroken, state.remaining > 0,
+           defenderTriggers.postBlockOverflowDamageMultiplier != 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: defenderTriggers.postBlockOverflowDamageMultiplier)
         }
         if blockBroken {
@@ -196,7 +197,7 @@ package extension DamagePipeline {
                 in: &context,
             ).events)
         }
-        if partyTrigger(\.glacialReprieve, defender: defender, in: context) {
+        if context.modifiers(for: defender.id).triggers.glacialReprieve {
             events.append(contentsOf: resolveNestedDamage(
                 amount: absorbed,
                 keyword: .freeze,

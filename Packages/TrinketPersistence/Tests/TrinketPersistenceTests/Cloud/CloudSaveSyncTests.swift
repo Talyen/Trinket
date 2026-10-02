@@ -84,7 +84,10 @@ struct CloudSaveSyncTests {
         #expect(await second?.cloudSync?.synchronize() == true)
         #expect(second?.inventory.item(matching: item.id) == item)
 
-        #expect(first.corruptItem(id: item.id, using: &random) != nil)
+        guard case .committed = first.corruptItem(id: item.id, using: &random) else {
+            Issue.record("Expected committed corruption")
+            return
+        }
         let corrupted = try #require(first.inventory.item(matching: item.id))
         #expect(corrupted.isCorrupted)
         try await Task.sleep(for: .milliseconds(10))

@@ -9,6 +9,11 @@ this is not a macOS/Linux port or UI verification.
 ## Running
 
 Commands and flags belong to [Scripts](../../Scripts/Reference.md#headless-playthroughs).
+Running a career, replay, baseline comparison, or crash proof builds a test product
+and uses a Simulator; it is not part of routine local handoff. An expressly requested
+local diagnostic requires `TRINKET_ALLOW_HEAVY_LOCAL=1` under
+[execution limits](Verification.md#execution-limits). `--help` remains available
+without compilation or a Simulator lease.
 The default scenario selects Knight and Wolf through onboarding, plays two settled
 Campaign attempts, spends earned talent points and equipment, considers one
 Homestead investment per attempt, advances one simulated hour, collects production,

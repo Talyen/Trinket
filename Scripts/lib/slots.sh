@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 trinket_slot_owner_token() {
-  printf '%s' "${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
+  # Assign in the owning shell: command substitution changes BASHPID on Bash 4+.
+  printf -v "$1" '%s' "${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
 }
 
 # trinket_lock_claim_file lives in lib/lock.sh next to the other file-lock
@@ -50,7 +51,7 @@ trinket_release_owned_slot() {
   local path="$1"
   local owner="$2"
   local current_owner
-  current_owner="$(trinket_slot_owner_token)"
+  trinket_slot_owner_token current_owner
   if [[ -n "$path" && "$owner" == "$current_owner" && -e "$path" ]]; then
     rm -f "$path"
   fi
@@ -69,14 +70,18 @@ trinket_ui_slot_release() {
 }
 
 trinket_shared_sim_lease_release() {
-  if [[ -n "${TRINKET_SHARED_SIM_SLOT_PATH:-}" && -e "${TRINKET_SHARED_SIM_SLOT_PATH}" ]]; then
+  local current_owner
+  trinket_slot_owner_token current_owner
+  if [[ -n "${TRINKET_SHARED_SIM_SLOT_PATH:-}" && -e "${TRINKET_SHARED_SIM_SLOT_PATH}" \
+    && "${TRINKET_SHARED_SIM_SLOT_OWNER_PID:-}" == "$current_owner" ]]; then
     local pid=""
     read -r pid _ < "${TRINKET_SHARED_SIM_SLOT_PATH}" 2>/dev/null || true
-    if [[ "$pid" == "$$" ]] || trinket_slot_entry_is_stale "${TRINKET_SHARED_SIM_SLOT_PATH}"; then
+    if [[ "$pid" == "${BASHPID:-$$}" ]]; then
       rm -f "${TRINKET_SHARED_SIM_SLOT_PATH}"
     fi
   fi
   TRINKET_SHARED_SIM_SLOT_PATH=""
+  TRINKET_SHARED_SIM_SLOT_OWNER_PID=""
 }
 
 trinket_bind_agent_slot() {
@@ -96,8 +101,8 @@ trinket_sim_slot_acquire() {
   local max="${TRINKET_MAX_AGENT_SIMS:-1}"
   local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}"
   local n slot_path owner_pid owner_token
-  owner_pid="$$"
-  owner_token="$(trinket_slot_owner_token)"
+  owner_pid="${BASHPID:-$$}"
+  trinket_slot_owner_token owner_token
   mkdir -p "$active_dir"
   trinket_sim_slot_reap
 
@@ -151,13 +156,14 @@ trinket_shared_sim_lease_acquire() {
     echo "Options: wait for the peer to finish, use --isolate for an agent-slot run, or use a git worktree (node Scripts/agent-worktree.mjs create --task <slug>)." >&2
     return 1
   fi
-  if ! trinket_lock_claim_file "$path" "$$ ${TRINKET_RUN_ID:-shared} $(date -u +%Y-%m-%dT%H:%M:%SZ)"; then
+  if ! trinket_lock_claim_file "$path" "${BASHPID:-$$} ${TRINKET_RUN_ID:-shared} $(date -u +%Y-%m-%dT%H:%M:%SZ)"; then
     echo "Trinket Run is busy: another run claimed the shared simulator lease." >&2
     echo "Options: wait for the peer to finish, use --isolate for an agent-slot run, or use a git worktree (node Scripts/agent-worktree.mjs create --task <slug>)." >&2
     return 1
   fi
   TRINKET_SHARED_SIM_SLOT_PATH="$path"
-  export TRINKET_SHARED_SIM_SLOT_PATH
+  trinket_slot_owner_token TRINKET_SHARED_SIM_SLOT_OWNER_PID
+  export TRINKET_SHARED_SIM_SLOT_PATH TRINKET_SHARED_SIM_SLOT_OWNER_PID
   trinket_run_env_install_release_trap
 }
 
@@ -165,8 +171,8 @@ trinket_ui_slot_acquire() {
   local max="${TRINKET_MAX_CONCURRENT_UI:-2}"
   local active_dir="${TRINKET_UI_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-ui}"
   local slot_name count lock_path lock_pid owner_pid owner_token
-  owner_pid="$$"
-  owner_token="$(trinket_slot_owner_token)"
+  owner_pid="${BASHPID:-$$}"
+  trinket_slot_owner_token owner_token
   mkdir -p "$active_dir"
   trinket_ui_slot_reap
 

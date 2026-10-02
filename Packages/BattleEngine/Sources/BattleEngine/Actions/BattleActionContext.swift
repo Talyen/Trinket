@@ -45,19 +45,20 @@ public struct BattleActionContext: Equatable, Sendable {
     public func target(_ target: EffectTarget, in state: BattleState) -> Combatant {
         switch target {
         case .abilityTarget, .enemy:
-            selectedTarget
+            return selectedTarget
         case .actor:
-            actor
+            return actor
         case .hero:
-            state.hero
+            return state.hero
         case .companion:
-            state.companion
+            return state.companion
         case .lowestHealthAlly:
-            Self.lowestHealth(in: allies(in: state), state: state)
+            return Self.lowestHealth(in: allies(in: state), state: state)
         case .defeatedAlly:
-            allies(in: state).reversed().first { state.health(of: $0) <= 0 } ?? allies(in: state)[0]
+            let members = allies(in: state)
+            return members.reversed().first { state.health(of: $0) <= 0 } ?? members[0]
         case .eachAlly:
-            targets(target, in: state).first ?? actor
+            return targets(target, in: state).first ?? actor
         }
     }
 
@@ -75,18 +76,34 @@ public struct BattleActionContext: Equatable, Sendable {
     }
 
     static func lowestHealth(in members: [Combatant], state: BattleState) -> Combatant {
-        members.filter { state.health(of: $0) > 0 }
-            .min { state.health(of: $0) < state.health(of: $1) } ?? members[0]
+        var selected: Combatant?
+        var lowestHealth = Int.max
+        for member in members {
+            let health = state.health(of: member)
+            guard health > 0 else { continue }
+            if selected == nil || health < lowestHealth {
+                selected = member
+                lowestHealth = health
+            }
+        }
+        return selected ?? members[0]
     }
 
     static func mostDebuffed(in members: [Combatant], state: BattleState) -> Combatant {
-        members.filter { state.health(of: $0) > 0 }.sorted {
-            let left = state.activeEffects(of: $0).count(where: \.effect.isRemovableDebuff)
-            let right = state.activeEffects(of: $1).count(where: \.effect.isRemovableDebuff)
-            if left == right {
-                return state.health(of: $0) < state.health(of: $1)
+        var selected: Combatant?
+        var mostDebuffs = 0
+        var lowestHealth = Int.max
+        for member in members {
+            let health = state.health(of: member)
+            guard health > 0 else { continue }
+            let debuffs = state.activeEffects(of: member).count(where: \.effect.isRemovableDebuff)
+            // Keep arrival order when both debuff count and Health tie.
+            if selected == nil || debuffs > mostDebuffs || debuffs == mostDebuffs && health < lowestHealth {
+                selected = member
+                mostDebuffs = debuffs
+                lowestHealth = health
             }
-            return left > right
-        }.first ?? members[0]
+        }
+        return selected ?? members[0]
     }
 }

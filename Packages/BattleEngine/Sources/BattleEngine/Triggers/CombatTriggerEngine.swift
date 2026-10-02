@@ -26,14 +26,9 @@ package enum CombatTriggerEngine {
     static func livingAllies(
         in context: BattleState,
     ) -> [(combatant: Combatant, profile: CombatModifierProfile)] {
-        var allies: [(combatant: Combatant, profile: CombatModifierProfile)] = []
-        if context.roster.hero.isAlive {
-            allies.append((context.roster.hero.combatant, context.heroModifiers))
+        livingPartyMembers(in: context).map { owner, member in
+            (member.combatant, owner == .hero ? context.heroModifiers : context.companionModifiers)
         }
-        if context.roster.companion.isAlive {
-            allies.append((context.roster.companion.combatant, context.companionModifiers))
-        }
-        return allies
     }
 
     static func livingAllyModifiers(in context: BattleState) -> [CombatModifierProfile] {

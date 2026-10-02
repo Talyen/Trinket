@@ -1,9 +1,9 @@
 name: Build and test
 
-# Pushes verify generated inputs, build once for UI tests, and test package schemes.
+# Pushes verify generated inputs, build and run smoke together, and test package schemes.
 # Build orchestration changes exercise the product jobs; lint-only changes use the gate.
 # Nightly/dispatch also run exhaustive UI outside the push path.
-# The warm cache preserves incremental state; UI jobs receive only test products
+# The warm cache preserves incremental state; nightly UI receives test products
 # and build stamps in a tar archive. Sparse checkouts omit Raw Assets.
 
 on:
@@ -43,7 +43,7 @@ jobs:
         run: ./Scripts/ci-assets-gate.sh
 
   build:
-    name: Build for testing
+    name: Build and smoke
     needs: [changes]
     if: >-
       github.event_name == 'workflow_dispatch' ||
@@ -54,7 +54,6 @@ jobs:
     timeout-minutes: 30
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
-      smoke-matrix: ${{ steps.ui-matrices.outputs.smoke }}
       full-ui-matrix: ${{ steps.ui-matrices.outputs.full-ui }}
     steps:
       # Local composite actions cannot run before the repo exists, so the
@@ -95,9 +94,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          smoke_matrix="$(python3 Scripts/check-testplan-sync.py --matrix Smoke)"
+          smoke_targets="$(python3 Scripts/check-testplan-sync.py --classes Smoke)"
           full_ui_matrix="$(python3 Scripts/check-testplan-sync.py --matrix FullUI)"
-          echo "smoke=$smoke_matrix" >> "$GITHUB_OUTPUT"
+          echo "smoke-targets=$smoke_targets" >> "$GITHUB_OUTPUT"
           echo "full-ui=$full_ui_matrix" >> "$GITHUB_OUTPUT"
       - name: Restore warm cache and build
         id: restore-and-build
@@ -107,7 +106,14 @@ jobs:
           build-command: ./Scripts/build-for-testing.sh --app-only
           prune: 'true'
           save-cache: 'true'
-          upload-artifact: 'true'
+          upload-artifact: ${{ inputs.include-exhaustive && 'true' || 'false' }}
+
+      - uses: ./.github/actions/test-job
+        with:
+          artifact-name: smoke
+          artifact-prefix: ${{ inputs.artifact-prefix }}
+          command: ./Scripts/test.sh smoke --no-build ${{ steps.ui-matrices.outputs.smoke-targets }}
+          preboot-simulator: 'true'
 
   release-device:
     name: Device Release compilation
@@ -217,54 +223,6 @@ jobs:
           command: ./Scripts/test-package.sh ${{ matrix.packages }}
           preboot-simulator: 'true'
 
-  smoke:
-    name: Smoke tests (${{ matrix.name }})
-    needs: [changes, build]
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || needs.changes.outputs.smoke == 'true'
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.build.outputs.smoke-matrix) }}
-    runs-on: xcode-27
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-        with:
-          fetch-depth: 1
-          sparse-checkout-cone-mode: true
-          sparse-checkout: |
-            Scripts
-            Packages
-            Trinket
-            TrinketUITests
-            Trinket.xcodeproj
-            StoreKit
-            ContentManifest
-            ArtManifest
-            MusicManifest
-            SoundManifest
-            CinematicManifest
-            .github
-      - name: Assert sparse checkout kept root build inputs
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -f project.yml
-          test -f StoreKit/Trinket.storekit
-          test -f Smoke.xctestplan
-          test -f FullUI.xctestplan
-          test -f BattlePerformance.xctestplan
-      - uses: ./.github/actions/setup-trinket
-        with:
-          # This runner may rebuild missing/incompatible app test products.
-          metal: 'true'
-      - uses: ./.github/actions/test-job
-        with:
-          build-artifact: ${{ needs.build.outputs.build-artifact }}
-          artifact-name: ${{ inputs.artifact-prefix }}smoke-${{ matrix.name }}
-          rebuild-command: ./Scripts/build-for-testing.sh --app-only
-          command: ./Scripts/test.sh smoke --no-build ${{ matrix.target }}
-          preboot-simulator: 'true'
-
   exhaustive-ui:
     name: Exhaustive UI (${{ matrix.name }})
     needs: [changes, build]
@@ -367,7 +325,7 @@ jobs:
   # Exhaustive UI is advisory (nightly/dispatch) so it never blocks pushes.
   ci-ok:
     name: CI OK
-    needs: [changes, gate, assets-gate, build, release-device, unit, smoke]
+    needs: [changes, gate, assets-gate, build, release-device, unit]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

@@ -83,10 +83,12 @@ struct HomesteadCategoryView: View {
     }
 
     private func refreshImminentHomesteadArtworkPins() async {
-        pinnedHomesteadArtwork = await ArtworkPinSet.refresh(
+        let refreshed = await ArtworkPinSet.refresh(
             next: Self.imminentHomesteadArtworkNames(for: definitions),
             current: pinnedHomesteadArtwork,
         )
+        guard !Task.isCancelled else { return }
+        pinnedHomesteadArtwork = refreshed
     }
 }
 

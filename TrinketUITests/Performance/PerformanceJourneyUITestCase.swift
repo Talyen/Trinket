@@ -85,19 +85,6 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
         XCTAssertTrue(element.exists && element.isHittable, "Control could not be revealed")
     }
 
-    override func dismissSheet() {
-        let close = app.navigationBars.buttons["Close"]
-        if close.exists, close.isHittable {
-            close.tap()
-        } else {
-            // Drag native sheet chrome, not scrolled detail content.
-            let bar = app.navigationBars.allElementsBoundByIndex.last { $0.isHittable }
-            let start = bar?.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
-                ?? app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.09))
-            start.press(forDuration: 0.1, thenDragTo: sheetDismissDragEnd)
-        }
-    }
-
     var horizontalScrollView: XCUIElement {
         app.scrollViews.allElementsBoundByIndex.first {
             $0.frame.width > $0.frame.height && $0.frame.minY > 100 && $0.frame.maxY < app.frame.maxY - 90
@@ -154,12 +141,6 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
             surface.swipeUp(velocity: .fast)
         }
         RunLoop.current.run(until: Date().addingTimeInterval(1))
-        if horizontal {
-            surface.swipeRight(velocity: .fast)
-        } else {
-            surface.swipeDown(velocity: .fast)
-        }
-        RunLoop.current.run(until: Date().addingTimeInterval(1))
     }
 
     @MainActor
@@ -179,23 +160,7 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
             XCTFail("Could not snapshot scrolled content: \(error)", file: file, line: line)
             return
         }
-        var moved = scrollAnchorsMoved(from: before, to: after)
-        if !moved {
-            // A round trip may end at its starting offset. Verify a separate
-            // one-way drag before concluding that the fixture cannot scroll.
-            let start = surface.coordinate(withNormalizedOffset: horizontal ? CGVector(dx: 0.8, dy: 0.5) : CGVector(dx: 0.5, dy: 0.75))
-            let end = surface.coordinate(withNormalizedOffset: horizontal ? CGVector(dx: 0.2, dy: 0.5) : CGVector(dx: 0.5, dy: 0.25))
-            for reverse in [false, true] {
-                let origin = reverse ? end : start
-                let destination = reverse ? start : end
-                origin.press(forDuration: 0.1, thenDragTo: destination, withVelocity: .slow, thenHoldForDuration: 0.1)
-                let advanced = captureScrollProbes(surface, horizontal: horizontal)
-                if scrollAnchorsMoved(from: after, to: advanced) {
-                    moved = true
-                    break
-                }
-            }
-        }
+        let moved = scrollAnchorsMoved(from: before, to: after)
         if !moved {
             let snapshot = XCTAttachment(screenshot: app.screenshot())
             snapshot.name = "scroll-did-not-move"

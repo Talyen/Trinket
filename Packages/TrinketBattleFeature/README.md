@@ -108,6 +108,10 @@ reuse the shipping components. Motion experiments live under `Features/Transitio
 
 ## Testing
 
+Package execution and local diagnostic opt-in follow
+[Verification](../../Docs/Platform/Verification.md#execution-limits); routine local
+changes use path-scoped handoff.
+
 ```sh
 ./Scripts/test-package.sh TrinketBattleFeature
 ```

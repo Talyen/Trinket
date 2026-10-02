@@ -13,12 +13,14 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
         .armsHoard, .armorHoard, .ringHoard, .amuletHoard, .astralHoard, .trinketHoard, .uniqueHoard,
     ] + Keyword.allCases.map(Self.keyword)
 
-    private static let keywordsBySuffix: [String: Keyword] = {
-        var map: [String: Keyword] = ["deathsDoor": .deathsDoor]
+    private static let modifiersByRawValue: [String: Self] = {
+        var modifiers = Dictionary(uniqueKeysWithValues: allCases.map { ($0.rawValue, $0) })
+        // Preserve the lowercase keyword spelling accepted by older saves,
+        // including Death's Door alongside its canonical deathsDoor identifier.
         for keyword in Keyword.allCases {
-            map[keyword.rawValue.lowercased()] = keyword
+            modifiers["keyword." + keyword.rawValue.lowercased()] = .keyword(keyword)
         }
-        return map
+        return modifiers
     }()
 
     public var rawValue: String {
@@ -48,36 +50,8 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
     }
 
     public init?(rawValue: String) {
-        switch rawValue {
-        case "gold": self = .gold
-        case "experience": self = .experience
-        case "materials": self = .materials
-        case "wood": self = .wood
-        case "stone": self = .stone
-        case "iron": self = .iron
-        case "food": self = .food
-        case "herbs": self = .herbs
-        case "hide": self = .hide
-        case "gems": self = .gems
-        case "astral": self = .astral
-        case "trinket": self = .trinket
-        case "unique": self = .unique
-        case "hoard.arms": self = .armsHoard
-        case "hoard.armor": self = .armorHoard
-        case "hoard.ring": self = .ringHoard
-        case "hoard.amulet": self = .amuletHoard
-        case "hoard.astral": self = .astralHoard
-        case "hoard.trinket": self = .trinketHoard
-        case "hoard.unique": self = .uniqueHoard
-        default:
-            if rawValue.hasPrefix("keyword.") {
-                let suffix = String(rawValue.dropFirst("keyword.".count))
-                guard let keyword = Self.keywordsBySuffix[suffix] else { return nil }
-                self = .keyword(keyword)
-            } else {
-                return nil
-            }
-        }
+        guard let modifier = Self.modifiersByRawValue[rawValue] else { return nil }
+        self = modifier
     }
 
     public init(from decoder: any Decoder) throws {

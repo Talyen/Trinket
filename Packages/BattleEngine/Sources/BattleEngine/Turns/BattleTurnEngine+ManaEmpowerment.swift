@@ -94,10 +94,12 @@ private extension BattleTurnEngine {
 
     static func prepareOvercharge(for actor: Combatant, percent: Double, in context: inout BattleState) {
         let preparedCardSerial = context.resolution.cardTalents?.playSerial
+        let preparedActionID = context.resolution.actionID
         context.roster.mutateRuntime(for: actor) {
             $0.talents.pending.overchargePercent = PreparedTalentBonus(
                 value: max($0.talents.pending.overchargePercent?.value ?? 0, percent),
                 cardSerial: preparedCardSerial,
+                actionID: preparedActionID,
             )
         }
     }

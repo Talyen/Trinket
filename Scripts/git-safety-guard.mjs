@@ -38,8 +38,26 @@ function isDestructive(parsedArgs) {
   if (cmd === "checkout") {
     if (parsedArgs.includes("--")) return true;
     if (parsedArgs.includes("-f") || parsedArgs.includes("--force")) return true;
-    if (parsedArgs.includes(".")) return true;
-    return false;
+    const operands = [];
+    for (let index = 1; index < parsedArgs.length; index += 1) {
+      const arg = parsedArgs[index];
+      if (/^-[qlftpm]*[fp][qlftpm]*$/.test(arg)) return true;
+      if (["-p", "--patch", "--ours", "--theirs"].includes(arg)
+          || arg.startsWith("--pathspec-from-file")) return true;
+      if (["-b", "-B", "--orphan", "--conflict"].includes(arg)) {
+        index += 1;
+      } else if (!arg.startsWith("-")) {
+        operands.push(arg);
+      }
+    }
+    // Git also restores paths without `--`: `checkout file` and
+    // `checkout HEAD file` both discard working edits.
+    if (operands.length > 1) return true;
+    if (operands.length === 0) return false;
+    const revision = spawnSync(realGit,
+      [...globalArgs, "rev-parse", "--verify", "--quiet", `${operands[0]}^{commit}`],
+      { cwd: process.cwd(), env: { ...process.env, GIT_OPTIONAL_LOCKS: "0" }, stdio: "ignore" });
+    return revision.status !== 0;
   }
   if (cmd === "restore") {
     return true;
@@ -48,14 +66,16 @@ function isDestructive(parsedArgs) {
     return parsedArgs.some((a) => a.startsWith("-") && a.includes("f"));
   }
   if (cmd === "switch") {
-    return parsedArgs.includes("-f") || parsedArgs.includes("--force") || parsedArgs.includes("--discard-changes");
+    return parsedArgs.includes("--force") || parsedArgs.includes("--discard-changes")
+      || parsedArgs.some((a) => /^-[qfm]*f[qfm]*$/.test(a));
   }
   if (cmd === "branch") {
     return parsedArgs.includes("-D");
   }
   if (cmd === "push") {
     return (
-      parsedArgs.includes("--force") || parsedArgs.includes("-f") || parsedArgs.some((a) => a.startsWith("--force"))
+      parsedArgs.some((a) => a.startsWith("--force") || a.startsWith("+")
+        || /^-[vqnfd]*f[vqnfd]*$/.test(a))
     );
   }
   return false;

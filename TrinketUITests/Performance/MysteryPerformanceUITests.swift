@@ -37,7 +37,7 @@ final class MysteryPerformanceUITests: PerformanceJourneyUITestCase {
                     NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.LoadoutPicker.itemDetail("")),
                 ).firstMatch
                 assertExists(itemDetail)
-                dismissSheet()
+                dismissSheet(itemDetail.identifier)
                 assertExists(AccessibilityID.Mystery.encounterTitle)
             }
             assertExistsAfterScroll(AccessibilityID.Mystery.choiceButton(choiceID: "harvest-remedies"), requireHittable: true)
@@ -49,23 +49,6 @@ final class MysteryPerformanceUITests: PerformanceJourneyUITestCase {
                 assertExistsAfterScroll(AccessibilityID.Mystery.continueButton, requireHittable: true)
                 tapButton(AccessibilityID.Mystery.continueButton)
                 assertDoesNotExist(AccessibilityID.Mystery.rewardTitle)
-                play.assertLoaded()
-            }
-        }
-    }
-
-    @MainActor
-    func testRecruitReturn() {
-        for iteration in 1 ... repetitionCount {
-            launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allUnseeded()
-                    + TestLaunchArg.screen("mystery")
-                    + TestLaunchArg.completedStages(["chapter-1-stage-1"])
-                    + TestLaunchArg.mysteryRecruit(eventID: "recruit-bear")))
-            assertExists(AccessibilityID.Mystery.unlockCard(name: "Bear"))
-            measured("recruit-claim-return", iteration: iteration) {
-                assertExistsAfterScroll(AccessibilityID.Mystery.continueButton, requireHittable: true)
-                tapButton(AccessibilityID.Mystery.continueButton)
-                assertDoesNotExist(AccessibilityID.Mystery.unlockCard(name: "Bear"))
                 play.assertLoaded()
             }
         }

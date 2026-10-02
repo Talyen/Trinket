@@ -4,7 +4,7 @@ import TrinketCore
 import TrinketDesignSystem
 
 @MainActor
-final class KeywordAttributedTextCache {
+private final class KeywordAttributedTextCache {
     static let shared = KeywordAttributedTextCache()
     private let cache: NSCache<NSString, CacheEntry> = {
         let c = NSCache<NSString, CacheEntry>()
@@ -13,25 +13,20 @@ final class KeywordAttributedTextCache {
     }()
 
     private final class CacheEntry: Sendable {
-        let spans: [KeywordSpan]
+        let text: AttributedString
 
-        init(_ spans: [KeywordSpan]) {
-            self.spans = spans
+        init(_ text: AttributedString) {
+            self.text = text
         }
     }
 
-    func cachedSpans(for text: String) -> [KeywordSpan]? {
-        cache.object(forKey: text as NSString)?.spans
+    func cachedText(for text: String) -> AttributedString? {
+        cache.object(forKey: text as NSString)?.text
     }
 
-    func storeSpans(_ spans: [KeywordSpan], for text: String) {
-        cache.setObject(CacheEntry(spans), forKey: text as NSString)
+    func storeText(_ attributedText: AttributedString, for text: String) {
+        cache.setObject(CacheEntry(attributedText), forKey: text as NSString)
     }
-}
-
-struct KeywordSpan: Sendable {
-    let range: NSRange
-    let keyword: Keyword
 }
 
 private let keywordHighlightRegex: NSRegularExpression? = Keyword.highlightRegex
@@ -51,34 +46,26 @@ public struct KeywordDescriptionText: View {
 
     @MainActor
     public static func attributedText(for text: String) -> AttributedString {
-        let spans: [KeywordSpan]
-        if let cached = KeywordAttributedTextCache.shared.cachedSpans(for: text) {
-            spans = cached
-        } else {
-            spans = highlightSpans(in: text)
-            KeywordAttributedTextCache.shared.storeSpans(spans, for: text)
+        if let cached = KeywordAttributedTextCache.shared.cachedText(for: text) {
+            return cached
         }
         var attr = AttributedString(text)
-        for span in spans {
-            guard let swiftRange = Range(span.range, in: text),
-                  let startIdx = AttributedString.Index(swiftRange.lowerBound, within: attr),
-                  let endIdx = AttributedString.Index(swiftRange.upperBound, within: attr)
-            else { continue }
-            let styledRange = startIdx ..< endIdx
-            attr[styledRange].foregroundColor = span.keyword.visualStyle.color
-            attr[styledRange].inlinePresentationIntent = .stronglyEmphasized
-        }
-        return attr
-    }
-
-    private static func highlightSpans(in text: String) -> [KeywordSpan] {
-        guard let regex = keywordHighlightRegex else { return [] }
         let nsText = text as NSString
         let fullRange = NSRange(location: 0, length: nsText.length)
-        return regex.matches(in: text, options: [], range: fullRange).compactMap { match in
-            let matched = nsText.substring(with: match.range).lowercased()
-            guard let keyword = keywordHighlightLookup[matched] else { return nil }
-            return KeywordSpan(range: match.range, keyword: keyword)
+        keywordHighlightRegex?.enumerateMatches(in: text, options: [], range: fullRange) { match, _, _ in
+            guard let match,
+                  let keyword = keywordHighlightLookup[nsText.substring(with: match.range).lowercased()],
+                  let swiftRange = Range(match.range, in: text),
+                  let startIdx = AttributedString.Index(swiftRange.lowerBound, within: attr),
+                  let endIdx = AttributedString.Index(swiftRange.upperBound, within: attr)
+            else { return }
+            let styledRange = startIdx ..< endIdx
+            attr[styledRange].foregroundColor = keyword.visualStyle.color
+            attr[styledRange].inlinePresentationIntent = .stronglyEmphasized
         }
+        // Retain semantic Color values, so environment resolution stays live.
+        // AttributedString copies let callers restyle without changing the cache.
+        KeywordAttributedTextCache.shared.storeText(attr, for: text)
+        return attr
     }
 }

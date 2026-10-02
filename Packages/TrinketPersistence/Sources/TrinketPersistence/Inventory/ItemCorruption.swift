@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -30,8 +29,7 @@ public struct ItemCorruptionDetail: Equatable, Sendable {
     }
 }
 
-public enum ItemCorruptionResult: Equatable, Sendable {
-    case success(ItemCorruptionDetail)
+public enum ItemCorruptionFailure: Error, Equatable, Sendable {
     case itemNotFound
     case alreadyCorrupted
     case ineligible
@@ -289,14 +287,14 @@ public enum ItemCorruptionApplier {
         itemID: String,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> ItemCorruptionResult {
+    ) -> Result<ItemCorruptionDetail, ItemCorruptionFailure> {
         guard let index = save.inventory.items.firstIndex(where: { $0.id == itemID }) else {
-            return .itemNotFound
+            return .failure(.itemNotFound)
         }
         let item = save.inventory.items[index]
-        guard !item.isCorrupted, !item.hasCorruptedAffix else { return .alreadyCorrupted }
+        guard !item.isCorrupted, !item.hasCorruptedAffix else { return .failure(.alreadyCorrupted) }
         guard let result = ItemCorruption.corrupt(item, using: &randomNumberGenerator) else {
-            return .ineligible
+            return .failure(.ineligible)
         }
         save.inventory.items[index] = result.item
         return .success(result)
@@ -318,13 +316,9 @@ public extension PlayerSaveStore {
     func corruptItem(
         id: String,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> ItemCorruptionResult? {
-        var result: ItemCorruptionResult = .itemNotFound
-        guard persistBatch(logging: "Failed to corrupt item \(id)", { save in
-            result = ItemCorruptionApplier.corrupt(itemID: id, save: &save, using: &randomNumberGenerator)
-        }) else {
-            return nil
+    ) -> SaveTransactionResult<ItemCorruptionDetail, ItemCorruptionFailure> {
+        persistTransaction(logging: "Failed to corrupt item \(id)") { save in
+            ItemCorruptionApplier.corrupt(itemID: id, save: &save, using: &randomNumberGenerator)
         }
-        return result
     }
 }

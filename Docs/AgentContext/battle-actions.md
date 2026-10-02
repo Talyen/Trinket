@@ -2,6 +2,8 @@
 
 Use with [engine ownership](battle-engine.md) for action identity, hands, preparations or Mana payments.
 
+## Shared action invariants
+
 `CombatantRuntime.talents` groups battle, turn, pending, timed, and action
 state explicitly behind copy-on-write storage. Turn start clears only turn state
 and expired timed bonuses; pending effects survive until their consuming operation.
@@ -13,6 +15,8 @@ together. The last-action empowerment receipt retains its existing checkpoint.
 Next-turn Dodge boosts from Pack Coordination and Smoke Screen live in turn
 state so a longer Cleanse bonus cannot extend them.
 
+## Card preparations
+
 Playful Energy counts both partners' cards and heals once when the party reaches
 its threshold. Shared next-card Dodge bonuses refresh rather than stack; card preparation
 reserves it, and only that card's first damaging hit can spend it. A support card
@@ -21,6 +25,8 @@ uses the preparation without carrying it forward to another card.
 Immediate card damage carries action/card provenance independently of damage
 mechanics, including the first pulse of a recurring effect. Later ticks and
 reaction damage cannot spend that reservation.
+
+## Action identity and selected outcomes
 
 `CombatResolution` owns nested action/card identity, selected outcomes, automatic-play
 ancestry, cadence claims, and associated mutable talent action/card bookkeeping.
@@ -50,6 +56,8 @@ binds the selected target for an action and resolves allies/opponents relative t
 its actor. A defeated actor cannot continue; a winning card may still resolve its
 remaining support rewards. New actions cannot start after battle ends.
 
+## Combat log projection
+
 Combat logs summarize committed damage by recipient and keyword, with self-paid
 Health costs reported separately. Damage packets and their summary share the
 resolved action identity so nested actions do not combine their totals. Packets
@@ -64,9 +72,13 @@ Gold effect summaries use the ability's theft marker: Golden Plate gains Gold,
 while Steal and the other theft cards steal it. Gold summaries report the actual
 grant after equipment and talent bonuses.
 
+## Turn ordering
+
 End-of-player-turn talents resolve before the enemy action. Mana Shield's Block
 can absorb that action, and end-turn healing and Cleanse finish before it begins.
 Round effects and passive Block decay follow the enemy action.
+
+## Mana payments and cadence
 
 `payMana` returns a `ManaPayment` with actual before/after balances. Capture every
 contribution to an empowerment purchase before payment reactions; last-Mana rules
@@ -132,6 +144,8 @@ finishing all engine work synchronously. Incremental draw helpers are package-on
 Operation and mutation contracts live in [battle-engine context](battle-engine.md);
 playback and command readiness live in [battle presentation](battle-presentation.md).
 
+## Card assessment
+
 `BattleState.assessCard(_:)` provides read-only availability, certain effect
 recipients, and resource-use quotes for the battle interaction cues. It shares
 affordability, possible outcomes, targeting, and the Mana empowerment budget with
@@ -143,6 +157,8 @@ healing recipient after Cleanse. Branch-dependent costs and reactive repeated pa
 only resolved combat events establish the result. The legacy
 `heldCardNextAttackDamage` trigger is retained for saved-item conversion in
 `InventoryItem.resolvedPower(at:)`, not as an active combat rule.
+
+## Automatic play
 
 For a named talent change, look up its rule in [talent interactions](battle-talents.md).
 

@@ -1,0 +1,328 @@
+[
+  {
+    "id": "shop",
+    "label": "Shop purchase",
+    "aliases": ["shop stock", "buy item", "purchase eligibility", "empty shop", "shop exit", "purchased offer"],
+    "symbols": ["ShopPurchaseApplier", "ShopEncounterSession"],
+    "sources": ["Packages/TrinketPersistence/Sources/TrinketPersistence/Encounters/ShopPurchaseApplier.swift", "Packages/TrinketAppState/Sources/TrinketAppState/Play/ShopEncounterSession.swift", "Trinket/Features/Play/Shop/ShopEncounterView.swift"],
+    "tests": ["Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Encounters/ShopPurchaseApplierTests.swift"],
+    "contracts": ["Docs/AgentContext/persistence-progression.md#shop-stock-and-encounter-identity", "Docs/AgentContext/persistence-progression.md#noncombat-completion", "Docs/AgentContext/persistence-progression.md#voyage-identities"]
+  },
+  {
+    "id": "victory",
+    "label": "Victory rewards",
+    "aliases": ["battle loot", "reward settlement", "battle completion", "gold overflow", "victory claim"],
+    "symbols": ["BattleLoot", "PlayBattleCompletion"],
+    "sources": ["Packages/TrinketPersistence/Sources/TrinketPersistence/Progression/BattleLoot.swift", "Packages/TrinketAppState/Sources/TrinketAppState/Play/PlayBattleCompletion.swift"],
+    "tests": ["Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Progression/BattleLootTests.swift"],
+    "contracts": ["Docs/AgentContext/battle-launch.md#reward-settlement-and-completion", "Docs/AgentContext/persistence-progression.md#reward-levels", "Docs/AgentContext/persistence-progression.md#victory-settlement", "Docs/AgentContext/persistence-progression.md#reward-modifiers", "Docs/AgentContext/persistence-progression.md#battle-experience", "Docs/AgentContext/persistence-progression.md#voyage-identities"]
+  },
+  {
+    "id": "cloud",
+    "label": "Cloud save conflict",
+    "aliases": ["cloudkit reconciliation", "cloud sync", "save merge", "cloud conflict", "cloud save reconciliation"],
+    "symbols": ["CloudSaveMerge", "PlayerSaveCloudSync"],
+    "sources": ["Packages/TrinketPersistence/Sources/TrinketPersistence/Cloud/CloudSaveMerge.swift", "Packages/TrinketPersistence/Sources/TrinketPersistence/Cloud/PlayerSaveCloudSync.swift", "Packages/TrinketAppState/Sources/TrinketAppState/App/AppState+CloudSync.swift"],
+    "tests": ["Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Cloud/CloudSaveMergeSelectionTests.swift", "Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Cloud/CloudSaveSyncTests.swift"],
+    "contracts": ["Docs/AgentContext/persistence-storage.md#save-compatibility", "Docs/AgentContext/persistence-storage.md#reconciliation"]
+  },
+  {
+    "id": "mana",
+    "label": "Mana empowerment",
+    "aliases": ["empower cost", "empowerment payment", "mana quote"],
+    "symbols": ["ManaEmpowermentBudget"],
+    "sources": ["Packages/BattleEngine/Sources/BattleEngine/ManaEmpowermentBudget.swift", "Packages/BattleEngine/Sources/BattleEngine/Turns/BattleTurnEngine+ManaEmpowerment.swift"],
+    "tests": ["Packages/BattleEngine/Tests/BattleEngineTests/ManaEmpowermentTests.swift"],
+    "contracts": ["Docs/AgentContext/battle-actions.md#shared-action-invariants", "Docs/AgentContext/battle-actions.md#mana-payments-and-cadence"]
+  },
+  {
+    "id": "talents",
+    "label": "Roster talent saves",
+    "aliases": ["unlock talent", "talent persistence", "talent sanitization"],
+    "symbols": ["unlockTalent"],
+    "sources": ["Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore+Roster.swift"],
+    "tests": ["Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Progression/TalentPersistenceTests.swift"],
+    "contracts": ["Docs/AgentContext/persistence-storage.md#save-compatibility", "Docs/AgentContext/persistence-storage.md#durable-acceptance-and-recovery", "Docs/AgentContext/persistence-storage.md#schema-and-sanitization"]
+  },
+  {
+    "id": "tooling",
+    "label": "Documentation links",
+    "aliases": ["link checker", "checker regression ownership"],
+    "symbols": ["broken_links"],
+    "sources": ["Scripts/check-links.py"],
+    "tests": ["Scripts/Tests/test_documentation.py"],
+    "contracts": ["Scripts/README.md#script-regression-ownership", "Docs/README.md#editing-guidance"]
+  },
+  {
+    "id": "voyage",
+    "label": "Voyage progress",
+    "aliases": [
+      "voyage completion",
+      "voyage saves",
+      "voyage route"
+    ],
+    "symbols": [
+      "VoyagePlayMode",
+      "VoyageCompletion",
+      "VoyageProgress"
+    ],
+    "sources": [
+      "Packages/TrinketAppState/Sources/TrinketAppState/Play/Modes/VoyagePlayMode.swift",
+      "Packages/TrinketPersistence/Sources/TrinketPersistence/Progression/VoyageCompletion.swift",
+      "Packages/TrinketPersistence/Sources/TrinketPersistence/Models/VoyageProgress.swift"
+    ],
+    "tests": [
+      "Packages/TrinketAppState/Tests/TrinketAppStateTests/VoyagePlayModeTests.swift",
+      "Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Encounters/VoyagePersistenceTests.swift"
+    ],
+    "contracts": [
+      "Docs/AgentContext/persistence-progression.md#reward-levels",
+      "Docs/AgentContext/persistence-progression.md#victory-settlement",
+      "Docs/AgentContext/persistence-progression.md#reward-modifiers",
+      "Docs/AgentContext/persistence-progression.md#battle-experience",
+      "Docs/AgentContext/persistence-progression.md#mystery-claims",
+      "Docs/AgentContext/persistence-progression.md#shop-stock-and-encounter-identity",
+      "Docs/AgentContext/persistence-progression.md#noncombat-completion",
+      "Docs/AgentContext/persistence-progression.md#voyage-identities",
+      "Docs/AgentContext/persistence-storage.md#save-compatibility",
+      "Docs/AgentContext/persistence-storage.md#durable-acceptance-and-recovery"
+    ]
+  },
+  {
+    "id": "labyrinth",
+    "label": "Labyrinth progress",
+    "aliases": [
+      "labyrinth recovery",
+      "labyrinth saves",
+      "labyrinth completion"
+    ],
+    "symbols": [
+      "LabyrinthPlayMode",
+      "LabyrinthCompletion",
+      "LabyrinthSanitizer"
+    ],
+    "sources": [
+      "Packages/TrinketAppState/Sources/TrinketAppState/Play/Modes/LabyrinthPlayMode.swift",
+      "Packages/TrinketPersistence/Sources/TrinketPersistence/Progression/LabyrinthCompletion.swift",
+      "Packages/TrinketPersistence/Sources/TrinketPersistence/LabyrinthSanitizer.swift"
+    ],
+    "tests": [
+      "Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Encounters/LabyrinthProgressTests.swift",
+      "Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Encounters/LabyrinthSaveRecoveryTests.swift",
+      "Packages/TrinketAppState/Tests/TrinketAppStateTests/AppStateLabyrinthTests.swift"
+    ],
+    "contracts": [
+      "Docs/AgentContext/persistence-progression.md#reward-levels",
+      "Docs/AgentContext/persistence-progression.md#victory-settlement",
+      "Docs/AgentContext/persistence-progression.md#reward-modifiers",
+      "Docs/AgentContext/persistence-progression.md#battle-experience",
+      "Docs/AgentContext/persistence-progression.md#mystery-claims",
+      "Docs/AgentContext/persistence-progression.md#shop-stock-and-encounter-identity",
+      "Docs/AgentContext/persistence-progression.md#noncombat-completion",
+      "Docs/AgentContext/persistence-storage.md#durable-acceptance-and-recovery",
+      "Docs/AgentContext/persistence-storage.md#schema-and-sanitization"
+    ]
+  },
+  {
+    "id": "transitions",
+    "label": "Battle transitions",
+    "aliases": [
+      "battle entry",
+      "battle transition lab",
+      "victory transition"
+    ],
+    "symbols": [
+      "BattleSession",
+      "BattleTransitionLabView",
+      "BattleVictorySummary"
+    ],
+    "sources": [
+      "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/BattleSession+Transitions.swift",
+      "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/TransitionLab/BattleTransitionLabView.swift",
+      "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Outcome/BattleVictorySummary.swift"
+    ],
+    "tests": [
+      "Packages/TrinketAppState/Tests/TrinketAppStateTests/PlayBattleLaunchTests.swift",
+      "Packages/TrinketBattleFeature/Tests/TrinketBattleFeatureTests/BattleClaimedVictoryTests.swift",
+      "Packages/TrinketBattleFeature/Tests/TrinketBattleFeatureTests/BattleVictorySummaryTests.swift"
+    ],
+    "contracts": [
+      "Docs/AgentContext/battle-runtime.md",
+      "Docs/AgentContext/battle-launch.md#preparation-and-activation",
+      "Docs/AgentContext/battle-presentation.md#display-lifetime",
+      "Docs/AgentContext/battle-presentation.md#display-work-lifecycle"
+    ]
+  },
+  {
+    "id": "audio",
+    "label": "Sound playback",
+    "aliases": [
+      "audio playback",
+      "sfx playback",
+      "sound effects", "sfx startup", "voice recovery"
+    ],
+    "symbols": [
+      "SFXPlayer",
+      "SFXPlayback"
+    ],
+    "sources": [
+      "Packages/TrinketAppState/Sources/TrinketAppState/Audio/SFXPlayer.swift",
+      "Packages/TrinketAppState/Sources/TrinketAppState/Audio/SFXPlayback.swift"
+    ],
+    "tests": [
+      "Packages/TrinketAppState/Tests/TrinketAppStateTests/SFXPlayerTests.swift",
+      "Packages/TrinketAppState/Tests/TrinketAppStateTests/SFXPlaybackTests.swift"
+    ],
+    "contracts": [
+      "Docs/AgentContext/audio.md"
+    ]
+  },
+  {
+    "id": "artwork",
+    "label": "Prepared artwork",
+    "aliases": [
+      "launch artwork",
+      "artwork pins",
+      "artwork cache"
+    ],
+    "symbols": [
+      "PreparedArtworkCache",
+      "PreparedArtworkLease"
+    ],
+    "sources": [
+      "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift",
+      "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkLease.swift",
+      "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/BattleArtworkPreparation.swift"
+    ],
+    "tests": [
+      "Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/PreparedArtworkCacheTests.swift",
+      "Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/PreparedArtworkMemoryBudgetTests.swift"
+    ],
+    "contracts": [
+      "Docs/AgentContext/ui-performance.md"
+    ]
+  },
+  {
+    "id": "particles",
+    "label": "Slice particles",
+    "aliases": [
+      "slice effect",
+      "slice sparks",
+      "particle geometry"
+    ],
+    "symbols": [
+      "SliceCutParticle",
+      "SliceBorderParticle"
+    ],
+    "sources": [
+      "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Effects/CombatantSliceParticles.swift"
+    ],
+    "tests": [
+      "Packages/TrinketBattleFeature/Tests/TrinketBattleFeatureTests/CombatantSliceParticleTests.swift"
+    ],
+    "contracts": [
+      "Docs/AgentContext/battle-presentation.md#display-lifetime",
+      "Docs/AgentContext/battle-presentation.md#attack-and-impact-presentation",
+      "Docs/AgentContext/battle-presentation.md#display-work-lifecycle"
+    ]
+  },
+  {
+    "id": "feedback",
+    "label": "Combat feedback",
+    "aliases": [
+      "battle feedback",
+      "floating damage",
+      "combat chips"
+    ],
+    "symbols": [
+      "CombatFeedbackPresenter",
+      "BattleFeedbackLane"
+    ],
+    "sources": [
+      "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/Feedback/CombatFeedbackPresenter.swift",
+      "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/Feedback/BattleFeedbackLane.swift"
+    ],
+    "tests": [
+      "Packages/TrinketBattleFeature/Tests/TrinketBattleFeatureTests/CombatFeedbackPresenterTests.swift",
+      "Packages/TrinketBattleFeature/Tests/TrinketBattleFeatureTests/BattleFeedbackLaneTests.swift"
+    ],
+    "contracts": [
+      "Docs/AgentContext/battle-presentation.md#display-lifetime",
+      "Docs/AgentContext/battle-presentation.md#floating-combat-feedback"
+    ]
+  },
+  {
+    "id": "turn-start",
+    "label": "Turn start effects",
+    "aliases": [
+      "turn start",
+      "start of turn",
+      "turn boundary",
+      "lethal damage over time"
+    ],
+    "symbols": [
+      "CombatTriggerEngine",
+      "BattleTurnEngine"
+    ],
+    "sources": [
+      "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine+TurnStart.swift"
+    ],
+    "tests": [
+      "Packages/BattleEngine/Tests/BattleEngineTests/Turns/BattleTurnEngineTests+Resolution.swift",
+      "Packages/BattleEngine/Tests/BattleEngineTests/EffectHandlersTurnTests.swift"
+    ],
+    "contracts": [
+      "Docs/AgentContext/battle-actions.md#turn-ordering",
+      "Docs/AgentContext/battle-actions.md#hand-contract"
+    ]
+  },
+  {
+    "id": "collection",
+    "label": "Collection",
+    "aliases": [
+      "inventory grid",
+      "collection artwork",
+      "collection loadout"
+    ],
+    "symbols": [
+      "CollectionView",
+      "CollectionGridShell"
+    ],
+    "sources": [
+      "Trinket/Features/Collection/CollectionView.swift",
+      "Trinket/Features/Collection/CollectionGridShell.swift"
+    ],
+    "tests": [
+      "TrinketUITests/Collection/CollectionLoadoutUITests.swift",
+      "TrinketUITests/Performance/CollectionPerformanceUITests.swift"
+    ],
+    "contracts": [
+      "Docs/AgentContext/swiftui-features.md",
+      "Docs/AgentContext/ui-performance.md"
+    ]
+  },
+  {
+    "id": "simulator",
+    "label": "Simulator diagnostics",
+    "aliases": [
+      "simulator isolation",
+      "simulator slots",
+      "guest tests",
+      "simulator lease"
+    ],
+    "symbols": [
+      "trinket_run_env_init"
+    ],
+    "sources": [
+      "Scripts/run-env.sh",
+      "Scripts/lib/simctl.sh"
+    ],
+    "tests": [
+      "Scripts/Tests/test-run-env.sh"
+    ],
+    "contracts": [
+      "Docs/Platform/Verification.md#local-simulator-budget",
+      "Docs/AgentContext/ci-diagnostics.md#script-regressions"
+    ]
+  }
+]

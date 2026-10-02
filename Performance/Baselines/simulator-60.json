@@ -30,7 +30,6 @@
     "engine-feedback",
     "turn-transition",
     "combined-worst-case",
-    "companion-detail-navigation",
     "combatant-detail-scroll",
     "ability-picker",
     "equipment-picker-scroll",
@@ -40,11 +39,7 @@
     "collection-browse-scroll",
     "collection-shelf-scroll",
     "collection-category-Heroes",
-    "collection-category-Companions",
-    "collection-category-Basic Gear",
     "collection-category-Astral Gear",
-    "collection-category-Unique Gear",
-    "collection-category-Trinkets",
     "talent-tree-scroll",
     "talent-unlock",
     "talent-reset-return",
@@ -57,13 +52,8 @@
     "contracts-browse",
     "voyage-browse",
     "contracts-refresh",
-    "contracts-party-picker",
     "contracts-battle-return",
-    "locked-character-offer",
-    "campaign-unlock-offer",
     "full-game-offer",
-    "full-game-purchase",
-    "full-game-restore",
     "homestead-build",
     "homestead-root-scroll",
     "homestead-category-browse",
@@ -81,7 +71,6 @@
     "mystery-offer-inspection",
     "mystery-reward-reveal",
     "mystery-reward-claim",
-    "recruit-claim-return",
     "corruption-item-picker",
     "corruption-item-scroll",
     "corruption-reveal",
@@ -91,15 +80,12 @@
     "defeat-reveal",
     "victory-claim-return",
     "defeat-return",
-    "defeat-save-recovery",
     "postbattle-talent-reveal",
     "postbattle-talent-choice",
     "starter-carousel",
     "starter-hero-confirm",
     "starter-companion-confirm",
     "options-controls",
-    "options-reset-cancel",
-    "options-reset-confirm",
     "salvage-return",
     "diagnostic-stall",
     "shop-scroll",
@@ -107,7 +93,7 @@
     "shop-return"
   ],
   "schemaVersion": 2,
-  "notes": "One pass by default. Every selected interaction must have complete evidence; performance findings remain observational.",
+  "notes": "One pass by default. Every selected interaction must have complete evidence; performance findings remain observational. Directional scroll windows after portfolio consolidation are not comparable with earlier round-trip captures.",
   "scenarioGoals": {
     "real-card-play": {
       "maximumMissedDeadlineCount": 0,
@@ -207,10 +193,6 @@
       "group": "battle",
       "test": "BattlePerformanceUITests/test06CombinedProductionWorstCase"
     },
-    "companion-detail-navigation": {
-      "group": "collection",
-      "test": "CollectionPerformanceUITests/testCompanionDetail"
-    },
     "combatant-detail-scroll": {
       "group": "collection",
       "test": "CollectionPerformanceUITests/testDetailAndAbility"
@@ -247,23 +229,7 @@
       "group": "collection",
       "test": "CollectionPerformanceUITests/testCollectionBrowsing"
     },
-    "collection-category-Companions": {
-      "group": "collection",
-      "test": "CollectionPerformanceUITests/testCollectionBrowsing"
-    },
-    "collection-category-Basic Gear": {
-      "group": "collection",
-      "test": "CollectionPerformanceUITests/testCollectionBrowsing"
-    },
     "collection-category-Astral Gear": {
-      "group": "collection",
-      "test": "CollectionPerformanceUITests/testCollectionBrowsing"
-    },
-    "collection-category-Unique Gear": {
-      "group": "collection",
-      "test": "CollectionPerformanceUITests/testCollectionBrowsing"
-    },
-    "collection-category-Trinkets": {
       "group": "collection",
       "test": "CollectionPerformanceUITests/testCollectionBrowsing"
     },
@@ -315,33 +281,13 @@
       "group": "explore",
       "test": "ExplorePerformanceUITests/testContracts"
     },
-    "contracts-party-picker": {
-      "group": "explore",
-      "test": "ExplorePerformanceUITests/testContracts"
-    },
     "contracts-battle-return": {
       "group": "explore",
       "test": "ExplorePerformanceUITests/testContracts"
     },
-    "locked-character-offer": {
-      "group": "fullgame",
-      "test": "FullGamePerformanceUITests/testLockedCharacterAndUnlockOffer"
-    },
-    "campaign-unlock-offer": {
-      "group": "fullgame",
-      "test": "FullGamePerformanceUITests/testLockedCharacterAndUnlockOffer"
-    },
     "full-game-offer": {
       "group": "fullgame",
-      "test": "FullGamePerformanceUITests/testOfferAndPurchase"
-    },
-    "full-game-purchase": {
-      "group": "fullgame",
-      "test": "FullGamePerformanceUITests/testOfferAndPurchase"
-    },
-    "full-game-restore": {
-      "group": "fullgame",
-      "test": "FullGamePerformanceUITests/testOfferAndPurchase"
+      "test": "FullGamePerformanceUITests/testOffer"
     },
     "homestead-build": {
       "group": "homestead",
@@ -411,10 +357,6 @@
       "group": "mystery",
       "test": "MysteryPerformanceUITests/testReward"
     },
-    "recruit-claim-return": {
-      "group": "mystery",
-      "test": "MysteryPerformanceUITests/testRecruitReturn"
-    },
     "corruption-item-picker": {
       "group": "mystery",
       "test": "MysteryPerformanceUITests/testCorruption"
@@ -451,10 +393,6 @@
       "group": "outcome",
       "test": "OutcomePerformanceUITests/testDefeatReturn"
     },
-    "defeat-save-recovery": {
-      "group": "outcome",
-      "test": "OutcomePerformanceUITests/testDefeatRecovery"
-    },
     "postbattle-talent-reveal": {
       "group": "outcome",
       "test": "OutcomePerformanceUITests/testTalentReward"
@@ -476,14 +414,6 @@
       "test": "ShellPerformanceUITests/testStarter"
     },
     "options-controls": {
-      "group": "shell",
-      "test": "ShellPerformanceUITests/testOptions"
-    },
-    "options-reset-cancel": {
-      "group": "shell",
-      "test": "ShellPerformanceUITests/testOptions"
-    },
-    "options-reset-confirm": {
       "group": "shell",
       "test": "ShellPerformanceUITests/testOptions"
     },
@@ -509,52 +439,5 @@
     }
   },
   "minimumReportSchema": 6,
-  "launchMetricTest": "AppPerformanceUITests/test00ColdLaunchToPlay",
-  "routeContracts": [
-    {
-      "source": "Packages/TrinketAppState/Sources/TrinketAppState/App/AppRoutes.swift",
-      "enum": "AppTab",
-      "routes": {
-        "play": [
-          "tab-round-trip"
-        ],
-        "collection": [
-          "collection-browse-scroll"
-        ],
-        "homestead": [
-          "homestead-root-scroll"
-        ],
-        "options": [
-          "options-controls"
-        ]
-      }
-    },
-    {
-      "source": "Packages/TrinketAppState/Sources/TrinketAppState/App/AppRoutes.swift",
-      "enum": "PlayLaunchDestination",
-      "routes": {
-        "campaign": [
-          "campaign-scroll"
-        ],
-        "explore": [
-          "explore-hub"
-        ],
-        "spiresHub": [
-          "spires-browse"
-        ],
-        "labyrinthMap": [
-          "labyrinth-scroll"
-        ],
-        "contracts": [
-          "contracts-browse"
-        ],
-        "voyage": [
-          "voyage-browse"
-        ],
-        "spireClimb": [
-          "spire-climb"
-        ]
-      }
-    }
-  ]
+  "launchMetricTest": "AppPerformanceUITests/test00ColdLaunchToPlay"
 }

@@ -48,7 +48,7 @@ trinket_run_env_cleanup_test_artifacts() {
 
 trinket_run_env_claim_self_clean_owner() {
   if [[ -z "${TRINKET_SELF_CLEAN_OWNER:-}" ]]; then
-    TRINKET_SELF_CLEAN_OWNER="$(trinket_slot_owner_token)"
+    trinket_slot_owner_token TRINKET_SELF_CLEAN_OWNER
     export TRINKET_SELF_CLEAN_OWNER
   fi
 }
@@ -59,7 +59,7 @@ trinket_run_env_release_slots() {
   trinket_ui_slot_release
   trinket_shared_sim_lease_release
   local current_owner
-  current_owner="$(trinket_slot_owner_token)"
+  trinket_slot_owner_token current_owner
   if [[ "${TRINKET_SELF_CLEAN_OWNER:-}" == "$current_owner" ]]; then
     trinket_run_env_self_clean_hygiene
     trinket_run_env_cleanup_test_artifacts
@@ -73,7 +73,7 @@ trinket_run_env_install_release_trap() {
 trinket_run_env_install_self_clean() {
   trinket_run_env_claim_self_clean_owner
   local current_owner
-  current_owner="$(trinket_slot_owner_token)"
+  trinket_slot_owner_token current_owner
   if [[ "${TRINKET_SELF_CLEAN_OWNER:-}" == "$current_owner" ]]; then
     trinket_run_env_self_clean_hygiene
   fi

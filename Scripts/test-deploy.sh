@@ -53,6 +53,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+source Scripts/lib/verification-policy.sh
+trinket_require_heavy_verification "Deploy test suites" || exit $?
+
 ./Scripts/ci-gate.sh
 # Prevent subsequent build/test wrappers from regenerating after the gate's force generate.
 export SKIP_GENERATE=1

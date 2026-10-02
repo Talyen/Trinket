@@ -6,7 +6,7 @@ trinket_set_local_simulator_architecture_args() {
   TRINKET_LOCAL_SIMULATOR_ARCHITECTURE_ARGS=()
   if [[ "$1" == iphonesimulator && "$2" == Debug \
     && "${CI:-}" != true && "${GITHUB_ACTIONS:-}" != true ]]; then
-    TRINKET_LOCAL_SIMULATOR_ARCHITECTURE_ARGS=("ARCHS=$(uname -m)")
+    TRINKET_LOCAL_SIMULATOR_ARCHITECTURE_ARGS=("ARCHS=$(uname -m)" -jobs 2)
   fi
 }
 

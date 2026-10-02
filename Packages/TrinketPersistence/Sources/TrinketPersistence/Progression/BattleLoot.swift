@@ -25,8 +25,11 @@ public enum BattleLoot {
 
     static func quantityRange(forLevel level: Int) -> ClosedRange<Int> {
         let clamped = max(1, level)
-        let minQty = 3 + (clamped * 9) / 49
-        let maxQty = max(minQty, 4 + (clamped * 20) / 49)
+        // Divide first to retain the exact quantity without overflowing at high saved levels.
+        let quotient = clamped / 49
+        let remainder = clamped % 49
+        let minQty = 3 + quotient * 9 + (remainder * 9) / 49
+        let maxQty = max(minQty, 4 + quotient * 20 + (remainder * 20) / 49)
         return minQty ... maxQty
     }
 

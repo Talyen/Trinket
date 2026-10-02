@@ -1,6 +1,3 @@
-import Foundation
-import TrinketContent
-
 public struct PlayerSpiresState: Codable, Equatable, Sendable {
     public var highestClearedFloorBySpireID: [String: Int]
 

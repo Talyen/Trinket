@@ -20,6 +20,7 @@ struct HomesteadMaterialValue: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(resource.displayName)
         .accessibilityValue(isInsufficient ? "\(value), insufficient" : value)
+        .accessibilityIdentifier(AccessibilityID.Homestead.resourceCost(resource))
     }
 }
 

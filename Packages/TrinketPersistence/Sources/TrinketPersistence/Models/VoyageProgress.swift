@@ -41,6 +41,7 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
     public var activeRun: VoyageRun?
     // Optional so existing version-one payloads decode without rewriting their route.
     var completedRunIDs: Set<String>?
+    var abandonedRunIDs: Set<String>?
     public private(set) var unreadablePayload: Data?
     public var isUnreadable: Bool {
         unreadablePayload != nil
@@ -54,6 +55,10 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
         if offers.count != 3 || Set(offers.map(\.chapterID)).count != 3
             || offers.contains(where: { !allowed.contains($0.chapterID) }) {
             refresh(access: access, eligibleModifiers: eligibleModifiers)
+        }
+        let retiredIDs = (completedRunIDs ?? []).union(abandonedRunIDs ?? [])
+        for offer in offers where retiredIDs.contains(offer.id) {
+            replaceOffer(runID: offer.id, access: access, eligibleModifiers: eligibleModifiers)
         }
     }
 
@@ -75,7 +80,9 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
         offerID: String, eligibleRecruitEventIDs: [String], access: ContentAccessPolicy,
         eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) -> Bool {
-        guard !isUnreadable, activeRun == nil, let offer = offers.first(where: { $0.id == offerID }),
+        guard !isUnreadable, activeRun == nil,
+              completedRunIDs?.contains(offerID) != true, abandonedRunIDs?.contains(offerID) != true,
+              let offer = offers.first(where: { $0.id == offerID }),
               Self.chapterIDs(access: access).contains(offer.chapterID) else { return false }
         activeRun = VoyageRun(
             offer: offer,
@@ -105,6 +112,7 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
         runID: String, access: ContentAccessPolicy, eligibleModifiers: [RewardModifier] = RewardModifier.allCases,
     ) -> Bool {
         guard !isUnreadable, let run = activeRun, run.id == runID, !run.isComplete else { return false }
+        abandonedRunIDs = (abandonedRunIDs ?? []).union([runID])
         replaceOffer(runID: runID, access: access, eligibleModifiers: eligibleModifiers)
         activeRun = nil
         return true
@@ -144,6 +152,7 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
         do {
             var state = try JSONDecoder().decode(Self.self, from: data)
             if state.isValid {
+                state.dismissRetiredRun()
                 state.dismissCompleted()
                 return state
             }
@@ -156,10 +165,22 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
     }
 
     func sanitized() -> Self {
-        guard !isUnreadable, !isValid else { return self }
+        guard !isUnreadable else { return self }
+        if isValid {
+            var state = self
+            state.dismissRetiredRun()
+            return state
+        }
         var preserved = Self()
         preserved.unreadablePayload = encodedPayload
         return preserved
+    }
+
+    private mutating func dismissRetiredRun() {
+        if let runID = activeRun?.id,
+           completedRunIDs?.contains(runID) == true || abandonedRunIDs?.contains(runID) == true {
+            activeRun = nil
+        }
     }
 
     private var isValid: Bool {

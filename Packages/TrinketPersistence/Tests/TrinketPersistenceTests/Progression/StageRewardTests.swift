@@ -432,7 +432,16 @@ extension StageRewardTests {
         )
     }
 
-    @Test func `complete encounter forwards loot to labyrinth`() throws {
+    @Test func `noncombat completion cannot grant combat rewards`() {
+        var save = SaveTestSupport.makeSave()
+        let encounter = EncounterIdentity(location: .journey(stageID: firstStage.id), save: save)
+        let before = save
+
+        #expect(NonCombatEncounterCompletion.complete(encounter: encounter, save: &save) == .unavailable)
+        #expect(save == before)
+    }
+
+    @Test func `labyrinth completion grants captured loot`() throws {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -450,13 +459,11 @@ extension StageRewardTests {
             ownedUniqueIDs: [],
         ))
 
-        StageCompletion.completeEncounter(
-            stage: firstStage,
-            labyrinthNodeID: node.id,
+        LabyrinthCompletion.complete(
+            nodeID: node.id,
             hero: hero,
             companion: companion,
             loot: loot,
-            in: GameContent.chapters,
             save: &save,
         )
 

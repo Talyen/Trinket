@@ -119,9 +119,7 @@ enum CombatFeedbackChipComposer {
             layoutDirection: layoutDirection,
             displayScale: scale,
             needsShineMask: needsShineMask,
-            maximumDigitWidth: needsShineMask ? (0 ... 9).compactMap {
-                atlas.fragment(String($0), face: face, recipe: recipe)?.width
-            }.max() ?? 0 : 0,
+            maximumDigitWidth: needsShineMask ? atlas.maximumDigitWidth(face: face, recipe: recipe) : 0,
         )
     }
 

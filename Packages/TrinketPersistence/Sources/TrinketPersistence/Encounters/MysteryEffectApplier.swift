@@ -79,7 +79,9 @@ public enum MysteryEventPinApplier {
 
 public enum MysteryEffectApplier {
     public static func materialQuantity(forLevel level: Int) -> Int {
-        4 + (max(1, level) * 14) / 49
+        let level = max(1, level)
+        // 14/49 reduces to 2/7; split before multiplying to preserve the exact quotient at large depths.
+        return 4 + (level / 7) * 2 + ((level % 7) * 2) / 7
     }
 
     /// Failable by design: choices without an item pool or secondary

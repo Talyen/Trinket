@@ -40,3 +40,7 @@ scenario reasoning does not establish measured task-success rates.
 [Context-efficiency measurements](context-efficiency.md) preserve the historical
 September baseline. [Agent judgment](agent-judgment.md) records the later scenario
 comparison and additional diagnostic, presentation, and shared-journey probes.
+
+[Token-efficiency tooling](token-efficiency.md) records current reproducible
+retrieval probes and the measured complete-task report format. Retrieval output
+counts remain separate from actual model usage and independently judged completion.

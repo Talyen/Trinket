@@ -67,10 +67,6 @@ public struct CombatDeck: Hashable, Sendable {
         drawEntry()?.ability
     }
 
-    public mutating func drawFirst(where predicate: (Ability) -> Bool) -> Ability? {
-        drawFirstEntry(where: predicate)?.ability
-    }
-
     package mutating func drawEntry() -> Entry? {
         guard !drawPile.isEmpty else { return nil }
         return drawPile.removeFirst()
@@ -130,7 +126,7 @@ public struct CombatDeck: Hashable, Sendable {
     ) -> Self {
         var abilities = defaultAbilities(from: loadout)
         // Uniform decks hold identical cards, so skipping the shuffle keeps the RNG stream stable.
-        if Set(abilities.map(\.id)).count > 1 {
+        if let firstID = abilities.first?.id, abilities.dropFirst().contains(where: { $0.id != firstID }) {
             abilities.shuffle(using: &rng)
         }
         return Self(abilities: abilities)
@@ -196,25 +192,16 @@ public struct BattleHand: Hashable, Sendable {
     @discardableResult
     public mutating func removeAll(where predicate: (BattleCard) -> Bool) -> [BattleCard] {
         var removed: [BattleCard] = []
-        var survivingCards: [BattleCard] = []
-        for card in cards {
-            if predicate(card) {
-                removed.append(card)
-            } else {
-                survivingCards.append(card)
-            }
+        cards.removeAll { card in
+            guard predicate(card) else { return false }
+            removed.append(card)
+            return true
         }
-        cards = survivingCards
-
-        var survivingBuffer: [BattleCard] = []
-        for card in buffer {
-            if predicate(card) {
-                removed.append(card)
-            } else {
-                survivingBuffer.append(card)
-            }
+        buffer.removeAll { card in
+            guard predicate(card) else { return false }
+            removed.append(card)
+            return true
         }
-        buffer = survivingBuffer
         return removed
     }
 
@@ -225,12 +212,9 @@ public struct BattleHand: Hashable, Sendable {
         guard !buffer.isEmpty else { return [] }
         var discarded: [BattleCard] = []
         while !isFull, !buffer.isEmpty {
-            let card = buffer.removeFirst()
-            if isOwnerAlive(card.owner) {
-                cards.append(card)
-            } else {
-                discarded.append(card)
-            }
+            let result = promoteNextFromBuffer(isOwnerAlive: isOwnerAlive)
+            discarded.append(contentsOf: result.discarded)
+            guard result.promoted != nil else { break }
         }
         return discarded
     }
@@ -243,17 +227,17 @@ public struct BattleHand: Hashable, Sendable {
             return (nil, [])
         }
         var discarded: [BattleCard] = []
-        while !buffer.isEmpty {
-            let card = buffer.removeFirst()
+        // Consume the prefix once so defeated owners don't cause repeated FIFO shifts.
+        for index in buffer.indices {
+            let card = buffer[index]
             if isOwnerAlive(card.owner) {
+                buffer.removeFirst(index + 1)
                 cards.append(card)
                 return (card, discarded)
             }
             discarded.append(card)
-            if isFull {
-                break
-            }
         }
+        buffer.removeAll(keepingCapacity: true)
         return (nil, discarded)
     }
 

@@ -5,9 +5,10 @@ import TrinketCore
 package enum DamagePipeline {
     /// Ordered damage checkpoints. Phases run top to bottom; commit mutations
     /// before their dependent reactions. Step implementations live in the
-    /// sibling `DamagePipeline*Steps` files by phase:
-    /// offense (`ResolutionSteps`), defense (`ResolutionSteps+Shield`,
-    /// `+TakeDamage`, stochastic gates), then committed reactions
+    /// sibling `DamagePipeline*Steps` files by responsibility:
+    /// attacker calculations (`OffenseSteps`), target mitigation (`DefenseSteps`,
+    /// `ResolutionSteps+Shield`, `+TakeDamage`), Marked's bonus and consumption
+    /// (`MarkedSteps`), stochastic gates, then committed reactions
     /// (`PostSteps`, `AttackerOnHitEngine`, `+Reactive`, `TalentReactions`) under one
     /// `CombatCheckpoint.committedDamage` guard.
     package static func run(

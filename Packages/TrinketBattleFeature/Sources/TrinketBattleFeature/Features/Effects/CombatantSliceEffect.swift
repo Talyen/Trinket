@@ -258,17 +258,17 @@ private struct CrackSliceMask: Shape {
         )
         let extent = max(rect.width, rect.height) * 2.2
         let sign: CGFloat = isPrimary ? -1 : 1
-        let crack = CombatantSliceCrack.points.map { point in
-            CGPoint(x: point.x * rect.width, y: point.y * rect.height)
-        }
-        guard let first = crack.first, let last = crack.last else {
+        let crack = CombatantSliceCrack.points
+        guard let firstPoint = crack.first, let lastPoint = crack.last else {
             return Path()
         }
+        let first = CGPoint(x: firstPoint.x * rect.width, y: firstPoint.y * rect.height)
+        let last = CGPoint(x: lastPoint.x * rect.width, y: lastPoint.y * rect.height)
         let farOffset = CGVector(dx: normal.dx * extent * sign, dy: normal.dy * extent * sign)
         var path = Path()
         path.move(to: first)
         for point in crack.dropFirst() {
-            path.addLine(to: point)
+            path.addLine(to: CGPoint(x: point.x * rect.width, y: point.y * rect.height))
         }
         path.addLine(to: CGPoint(x: last.x + farOffset.dx, y: last.y + farOffset.dy))
         path.addLine(to: CGPoint(x: first.x + farOffset.dx, y: first.y + farOffset.dy))

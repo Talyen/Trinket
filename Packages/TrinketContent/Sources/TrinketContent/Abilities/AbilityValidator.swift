@@ -1,4 +1,3 @@
-import Foundation
 import TrinketCore
 
 enum AbilityValidator {
@@ -45,10 +44,12 @@ enum AbilityValidator {
     ]
 
     static func validate(_ ability: Ability) -> [Issue] {
-        var issues = validateEffectTargets(for: ability)
-        issues.append(contentsOf: validateTierDamage(for: ability))
+        let operationSets = authoredOperationSets(for: ability)
+        let operations = operationSets.flatMap(\.self)
+        var issues = validateEffectTargets(in: operations, abilityID: ability.id)
+        issues.append(contentsOf: validateTierDamage(in: operationSets, for: ability))
         issues.append(contentsOf: validateDescription(for: ability))
-        issues.append(contentsOf: validateConditionalDamage(for: ability))
+        issues.append(contentsOf: validateConditionalDamage(in: operations, abilityID: ability.id))
         return issues
     }
 
@@ -56,26 +57,35 @@ enum AbilityValidator {
         AbilityCatalog.all.flatMap(validate)
     }
 
-    private static func validateEffectTargets(for ability: Ability) -> [Issue] {
-        let allyTargets: Set<EffectTarget> = [.actor, .hero, .companion, .lowestHealthAlly]
+    /// Keep alternatives separate for tier totals, but inspect every authored
+    /// operation for target and condition validity.
+    private static func authoredOperationSets(for ability: Ability) -> [[AbilityOperation]] {
+        var sets = [ability.operations]
+        sets.append(contentsOf: ability.outcomeBranches?.map(\.operations) ?? [])
+        if let conditional = ability.conditionalOutcome {
+            sets.append(conditional.operations)
+        }
+        return sets
+    }
+
+    private static func validateEffectTargets(in operations: [AbilityOperation], abilityID: String) -> [Issue] {
+        let allyTargets: Set<EffectTarget> = [.actor, .hero, .companion, .lowestHealthAlly, .eachAlly]
         let enemyTargets: Set<EffectTarget> = [.abilityTarget, .enemy]
         var issues: [Issue] = []
 
-        let targetedEffects = ability.targetedEffects
-            + (ability.outcomeBranches?.flatMap(\.targetedEffects) ?? [])
-        for targetedEffect in targetedEffects {
+        for targetedEffect in operations.compactMap(\.targetedEffect) {
             switch targetedEffect.effect {
-            case .cleanse, .cleanseRandom, .cleanseHealPerDebuff:
+            case .cleanse, .cleanseRandom, .cleanseHealPerDebuff, .panacea:
                 if !allyTargets.contains(targetedEffect.target) {
                     issues.append(Issue(
-                        abilityID: ability.id,
-                        message: "cleanse effects must target allies (.actor, .hero, or .companion)",
+                        abilityID: abilityID,
+                        message: "cleanse effects must target allies",
                     ))
                 }
             case .purge, .purgeRandom:
                 if !enemyTargets.contains(targetedEffect.target) {
                     issues.append(Issue(
-                        abilityID: ability.id,
+                        abilityID: abilityID,
                         message: "purge effects must target enemies (.abilityTarget or .enemy)",
                     ))
                 }
@@ -87,17 +97,10 @@ enum AbilityValidator {
         return issues
     }
 
-    private static func validateTierDamage(for ability: Ability) -> [Issue] {
-        var componentSets = [ability.damageComponents]
-        if let branches = ability.outcomeBranches {
-            componentSets.append(contentsOf: branches.map(\.damageComponents))
-        }
-        if let conditional = ability.conditionalOutcome {
-            componentSets.append(conditional.operations.compactMap(\.damageComponent))
-        }
-        return componentSets.compactMap { components in
-            let enemyDamageTotal = components
-                .filter { $0.target == .abilityTarget }
+    private static func validateTierDamage(in operationSets: [[AbilityOperation]], for ability: Ability) -> [Issue] {
+        operationSets.compactMap { operations in
+            let enemyDamageTotal = operations.compactMap(\.damageComponent)
+                .filter { $0.target == .abilityTarget || $0.target == .enemy }
                 .reduce(0) { $0 + $1.amount }
             guard enemyDamageTotal > 0 else { return nil }
             return tierDamageIssue(tier: ability.tier, total: enemyDamageTotal, abilityID: ability.id)
@@ -156,16 +159,12 @@ enum AbilityValidator {
         }
     }
 
-    private static func validateConditionalDamage(for ability: Ability) -> [Issue] {
-        var components = ability.damageComponents
-        if let branches = ability.outcomeBranches {
-            components.append(contentsOf: branches.flatMap(\.damageComponents))
-        }
-        return components.compactMap { component in
+    private static func validateConditionalDamage(in operations: [AbilityOperation], abilityID: String) -> [Issue] {
+        operations.compactMap(\.damageComponent).compactMap { component in
             guard let condition = component.condition, component.bonusAmount == 0 else { return nil }
             guard rendersCondition(condition, for: component) else {
                 return Issue(
-                    abilityID: ability.id,
+                    abilityID: abilityID,
                     message: "damage condition is not rendered in card text",
                 )
             }

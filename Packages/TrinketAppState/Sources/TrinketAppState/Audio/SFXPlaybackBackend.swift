@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import os
 import TrinketContent
 
 /// The coordinator exclusively owns this backend. Decoding returns transferable
@@ -16,11 +17,31 @@ protocol SFXPlaybackBackend {
     mutating func releaseResources()
 }
 
+/// Nodes are append-only between releases. A running engine only needs to start
+/// the newly appended suffix; a resumed engine must revisit every retained node.
+struct SFXVoiceStartPolicy {
+    private var startedCount = 0
+
+    func indicesToStart(nodeCount: Int, engineWasRunning: Bool) -> Range<Int> {
+        (engineWasRunning ? startedCount : 0) ..< nodeCount
+    }
+
+    mutating func didStart(nodeCount: Int) {
+        startedCount = nodeCount
+    }
+
+    mutating func reset() {
+        startedCount = 0
+    }
+}
+
 struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
     private lazy var engine = AVAudioEngine()
     private var nodes: [AVAudioPlayerNode] = []
+    private var voiceStartPolicy = SFXVoiceStartPolicy()
     private let logger = AudioSupport.logger()
 
+    @concurrent
     static func load(_ clip: SFXClip) async -> DecodedSFXBuffer? {
         let logger = AudioSupport.logger()
         guard let url = AudioSupport.mediaURL(
@@ -29,24 +50,21 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
             logger.warning("Missing SFX resource: \(clip.resourceName, privacy: .public).\(clip.fileExtension, privacy: .public)")
             return nil
         }
-        return await Task.detached(priority: .utility) {
-            do {
-                let file = try AVAudioFile(forReading: url)
-                guard file.length > 0,
-                      file.length <= AVAudioFramePosition(AVAudioFrameCount.max),
-                      let buffer = AVAudioPCMBuffer(
-                          pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length),
-                      ) else { return nil as DecodedSFXBuffer? }
-                try file.read(into: buffer)
-                return DecodedSFXBuffer(value: buffer)
-            } catch {
-                logger
-                    .error(
-                        "Unable to decode SFX resource \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)",
-                    )
-                return nil
-            }
-        }.value
+        do {
+            let file = try AVAudioFile(forReading: url)
+            guard file.length > 0,
+                  file.length <= AVAudioFramePosition(AVAudioFrameCount.max),
+                  let buffer = AVAudioPCMBuffer(
+                      pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length),
+                  ) else { return nil }
+            try file.read(into: buffer)
+            return DecodedSFXBuffer(value: buffer)
+        } catch {
+            logger.error(
+                "Unable to decode SFX resource \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)",
+            )
+            return nil
+        }
     }
 
     mutating func makeVoice(buffer: DecodedSFXBuffer) -> PreparedSFXVoice {
@@ -59,7 +77,8 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
 
     mutating func start() -> Bool {
         AudioSession.configureIfNeeded(logger: logger)
-        if !engine.isRunning {
+        let engineWasRunning = engine.isRunning
+        if !engineWasRunning {
             engine.prepare()
             do {
                 try engine.start()
@@ -68,13 +87,22 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
                 return false
             }
         }
-        for node in nodes where !node.isPlaying {
-            node.play()
+        for index in voiceStartPolicy.indicesToStart(nodeCount: nodes.count, engineWasRunning: engineWasRunning) {
+            let node = nodes[index]
+            if !node.isPlaying {
+                node.play()
+            }
         }
+        voiceStartPolicy.didStart(nodeCount: nodes.count)
         return true
     }
 
     func play(_ voice: PreparedSFXVoice, volume: Float) {
+        // Recover a selected node stopped by the audio system without scanning
+        // unrelated voices on every sound request.
+        if !voice.node.isPlaying {
+            voice.node.play()
+        }
         voice.node.volume = volume
         voice.node.scheduleBuffer(voice.buffer, at: nil, options: .interrupts, completionHandler: nil)
     }
@@ -84,6 +112,7 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
             node.stop()
         }
         engine.pause()
+        voiceStartPolicy.reset()
     }
 
     mutating func releaseResources() {

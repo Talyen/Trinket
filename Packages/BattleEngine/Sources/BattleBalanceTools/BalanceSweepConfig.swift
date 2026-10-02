@@ -1,7 +1,5 @@
 import BattleEngine
 import Foundation
-import TrinketContent
-import TrinketCore
 
 public enum BalanceSweepMode: String, CaseIterable, Codable, Sendable {
     case identity
@@ -10,14 +8,6 @@ public enum BalanceSweepMode: String, CaseIterable, Codable, Sendable {
     case talentContrast = "talent-contrast"
     case modeProgression = "mode-progression"
     case all
-}
-
-public enum ContrastBaselineKind: String, Codable, Sendable {
-    case sibling
-    case emptySlot = "empty-slot"
-    case replacementAffix = "replacement-affix"
-    case none
-    case fullKit = "full-kit"
 }
 
 public struct BalanceSweepConfig: Equatable, Codable, Sendable {
@@ -98,10 +88,16 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     }
 
     public func sliceWork<Item>(_ items: [Item]) -> [Item] {
-        let offset = min(workOffset, items.count)
-        let remainder = items.dropFirst(offset)
-        guard let workLimit else { return Array(remainder) }
-        return Array(remainder.prefix(workLimit))
+        Array(items[workIndices(count: items.count)])
+    }
+
+    /// Select global indices before constructing work so each worker only plans
+    /// its assigned slice. Clamp the length before adding to avoid overflow.
+    func workIndices(count: Int) -> Range<Int> {
+        let offset = min(workOffset, count)
+        let remaining = count - offset
+        let length = min(workLimit ?? remaining, remaining)
+        return offset ..< (offset + length)
     }
 
     public var resolvedJobs: Int {
@@ -123,237 +119,5 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         policyID == PlayPolicy.setupAware.rawValue
             ? .greedy
             : .setupAware
-    }
-}
-
-public struct BalanceSweepRoster: Equatable, Sendable {
-    public var heroes: [Combatant]
-    public var companions: [Combatant]
-    public var enemies: [Enemy]
-
-    public static func resolve(config: BalanceSweepConfig) -> Self {
-        let heroes = filterCombatants(GameContent.heroes, ids: config.heroIDs)
-        let companions = filterCombatants(GameContent.companions, ids: config.companionIDs)
-        let enemies: [Enemy] = if config.enemyIDs.isEmpty {
-            GameContent.enemies
-        } else {
-            GameContent.enemies.filter { Set(config.enemyIDs).contains($0.id) }
-        }
-        return Self(heroes: heroes, companions: companions, enemies: enemies)
-    }
-
-    private static func filterCombatants(_ all: [Combatant], ids: [String]) -> [Combatant] {
-        guard !ids.isEmpty else { return all }
-        let wanted = Set(ids)
-        return all.filter { wanted.contains($0.id) }
-    }
-}
-
-public struct BalanceBattleRecord: Equatable, Codable, Sendable {
-    public var tier: SimulationPowerTier
-    public var heroID: String
-    public var companionID: String
-    public var enemyID: String
-    public var isBoss: Bool
-    public var heroAbilityIDs: [String]
-    public var companionAbilityIDs: [String]
-    public var enemyAbilityIDs: [String]
-    public var enemyTraitIDs: [String]
-    public var affixIDs: [String]
-    public var heroAffixIDs: [String]
-    public var companionAffixIDs: [String]
-    public var heroItemBaseIDs: [String]
-    public var companionItemBaseIDs: [String]
-    public var heroTalentIDs: [String]
-    public var companionTalentIDs: [String]
-    public var seed: UInt64
-    public var policyID: String
-    public var result: BattleSimResult
-
-    public init(
-        tier: SimulationPowerTier,
-        heroID: String,
-        companionID: String,
-        enemyID: String,
-        isBoss: Bool,
-        heroAbilityIDs: [String],
-        companionAbilityIDs: [String],
-        enemyAbilityIDs: [String],
-        enemyTraitIDs: [String],
-        affixIDs: [String],
-        heroAffixIDs: [String] = [],
-        companionAffixIDs: [String] = [],
-        heroItemBaseIDs: [String] = [],
-        companionItemBaseIDs: [String] = [],
-        heroTalentIDs: [String],
-        companionTalentIDs: [String],
-        seed: UInt64,
-        policyID: String,
-        result: BattleSimResult,
-    ) {
-        self.tier = tier
-        self.heroID = heroID
-        self.companionID = companionID
-        self.enemyID = enemyID
-        self.isBoss = isBoss
-        self.heroAbilityIDs = heroAbilityIDs
-        self.companionAbilityIDs = companionAbilityIDs
-        self.enemyAbilityIDs = enemyAbilityIDs
-        self.enemyTraitIDs = enemyTraitIDs
-        self.affixIDs = affixIDs
-        self.heroAffixIDs = heroAffixIDs
-        self.companionAffixIDs = companionAffixIDs
-        self.heroItemBaseIDs = heroItemBaseIDs
-        self.companionItemBaseIDs = companionItemBaseIDs
-        self.heroTalentIDs = heroTalentIDs
-        self.companionTalentIDs = companionTalentIDs
-        self.seed = seed
-        self.policyID = policyID
-        self.result = result
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case tier
-        case heroID
-        case companionID
-        case enemyID
-        case isBoss
-        case heroAbilityIDs
-        case companionAbilityIDs
-        case enemyAbilityIDs
-        case enemyTraitIDs
-        case affixIDs
-        case heroAffixIDs
-        case companionAffixIDs
-        case heroItemBaseIDs
-        case companionItemBaseIDs
-        case heroTalentIDs
-        case companionTalentIDs
-        case seed
-        case policyID
-        case result
-    }
-
-    private enum LegacyCodingKeys: String, CodingKey {
-        case enemyTraitID
-    }
-
-    public init(from decoder: any Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-        tier = try values.decode(SimulationPowerTier.self, forKey: .tier)
-        heroID = try values.decode(String.self, forKey: .heroID)
-        companionID = try values.decode(String.self, forKey: .companionID)
-        enemyID = try values.decode(String.self, forKey: .enemyID)
-        isBoss = try values.decode(Bool.self, forKey: .isBoss)
-        heroAbilityIDs = try values.decode([String].self, forKey: .heroAbilityIDs)
-        companionAbilityIDs = try values.decode([String].self, forKey: .companionAbilityIDs)
-        enemyAbilityIDs = try values.decode([String].self, forKey: .enemyAbilityIDs)
-        if let ids = try values.decodeIfPresent([String].self, forKey: .enemyTraitIDs) {
-            enemyTraitIDs = ids
-        } else {
-            let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)
-            let id = try legacy.decode(String.self, forKey: .enemyTraitID)
-            enemyTraitIDs = id.isEmpty ? [] : [id]
-        }
-        affixIDs = try values.decode([String].self, forKey: .affixIDs)
-        heroAffixIDs = try values.decode([String].self, forKey: .heroAffixIDs)
-        companionAffixIDs = try values.decode([String].self, forKey: .companionAffixIDs)
-        heroItemBaseIDs = try values.decode([String].self, forKey: .heroItemBaseIDs)
-        companionItemBaseIDs = try values.decode([String].self, forKey: .companionItemBaseIDs)
-        heroTalentIDs = try values.decode([String].self, forKey: .heroTalentIDs)
-        companionTalentIDs = try values.decode([String].self, forKey: .companionTalentIDs)
-        seed = try values.decode(UInt64.self, forKey: .seed)
-        policyID = try values.decode(String.self, forKey: .policyID)
-        result = try values.decode(BattleSimResult.self, forKey: .result)
-    }
-}
-
-public struct PairedContrastSummary: Equatable, Codable, Sendable {
-    public var entityID: String
-    public var baselineID: String
-    public var ownerID: String
-    public var tier: SimulationPowerTier
-    public var baselineKind: ContrastBaselineKind = .sibling
-    public var pairs: Int
-    public var decidedPairs: Int
-    public var winsWithEntity: Int
-    public var winsWithBaseline: Int
-    public var entityOnlyWins: Int = 0
-    public var baselineOnlyWins: Int = 0
-    public var entityTimeouts: Int = 0
-    public var baselineTimeouts: Int = 0
-    public var lift: Double
-    public var meanDeltaPartyHP: Double = 0
-    public var meanDeltaRounds: Double = 0
-    public var flagged: Bool
-    public var flagReason: String?
-    public var nonCombat: Bool = false
-
-    public var entityWinRate: Double {
-        decidedPairs == 0 ? 0 : Double(winsWithEntity) / Double(decidedPairs)
-    }
-
-    public var baselineWinRate: Double {
-        decidedPairs == 0 ? 0 : Double(winsWithBaseline) / Double(decidedPairs)
-    }
-}
-
-public struct BalanceSweepReport: Codable, Sendable {
-    public var config: BalanceSweepConfig
-    public var policyID: String
-    public var records: [BalanceBattleRecord] = []
-    public var comparedPolicyID: String?
-    public var comparedRecords: [BalanceBattleRecord] = []
-    public var abilityContrasts: [PairedContrastSummary] = []
-    public var affixContrasts: [PairedContrastSummary] = []
-    public var talentContrasts: [PairedContrastSummary] = []
-    public var talentKitContrasts: [PairedContrastSummary] = []
-    public var progressionHotspots: [NodeHotspotSummary] = []
-    public var progressionRecords: [ProgressionBattleRecord] = []
-    public var progressionPlayerStates: [PlayerProgressionState] = []
-    public var progressionTruncatedRuns = 0
-    public var elapsedSeconds: Double
-
-    /// The four contrast sections in canonical order. Both the markdown tables
-    /// and the findings brief iterate this so a new contrast kind cannot be
-    /// added to one and forgotten in the other.
-    public var contrastSections: [(title: String, kind: String, rows: [PairedContrastSummary])] {
-        [
-            ("Ability Contrasts (paired lift vs sibling choice)", "ability", abilityContrasts),
-            ("Affix Contrasts (empty-slot and replacement-affix baselines)", "affix", affixContrasts),
-            ("Talent Contrasts (paired lift vs sibling in the same row)", "talent", talentContrasts),
-            ("Talent Kit Contrasts (full kit vs none, legal point budget only)", "talent kit", talentKitContrasts),
-        ]
-    }
-
-    /// Merges per-worker slice reports back into one report. Contrast
-    /// summaries re-bucket through the parent config so worker-local flag
-    /// thresholds cannot leak into the merged output.
-    public static func merged(
-        _ slices: [Self],
-        config: BalanceSweepConfig,
-        policyID: String,
-        elapsedSeconds: Double,
-    ) -> Self {
-        let progressionRecords = slices.flatMap(\.progressionRecords)
-        func merge(_ keyPath: KeyPath<Self, [PairedContrastSummary]>) -> [PairedContrastSummary] {
-            BalanceContrastSupport.mergeSummaries(slices.flatMap { $0[keyPath: keyPath] }, config: config)
-        }
-        return Self(
-            config: config,
-            policyID: policyID,
-            records: slices.flatMap(\.records),
-            comparedPolicyID: slices.first(where: { $0.comparedPolicyID != nil })?.comparedPolicyID,
-            comparedRecords: slices.flatMap(\.comparedRecords),
-            abilityContrasts: merge(\.abilityContrasts),
-            affixContrasts: merge(\.affixContrasts),
-            talentContrasts: merge(\.talentContrasts),
-            talentKitContrasts: merge(\.talentKitContrasts),
-            progressionHotspots: HotspotAnalyzer.analyze(records: progressionRecords),
-            progressionRecords: progressionRecords,
-            progressionPlayerStates: slices.flatMap(\.progressionPlayerStates),
-            progressionTruncatedRuns: slices.reduce(0) { $0 + $1.progressionTruncatedRuns },
-            elapsedSeconds: elapsedSeconds,
-        )
     }
 }

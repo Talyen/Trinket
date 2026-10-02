@@ -12,6 +12,7 @@ SCRIPT_INPUTS = (
     'Scripts/ci-diagnostics.py',
     'Scripts/ci-diagnostics.sh',
     'Scripts/config/diagnostic-limits.env',
+    'Scripts/config/infrastructure-patterns.env',
     'Scripts/diagnostic_maintenance.py',
     'Scripts/failure_diagnostics.py',
     'Scripts/internal/diagnostics/diagnostic_limits.py',
@@ -186,6 +187,13 @@ class ReporterTests(unittest.TestCase):
             self.assertEqual(report.issues[0].message, "Cannot find type 'MissingType' in scope")
             self.assertNotIn("raw_log_path", report.to_dict())
 
+            build = fixture("build-failure.json")
+            source = "Packages/TrinketContent/Sources/TrinketContent/Abilities/Ability.swift"
+            build["errors"][0].update(message="failed to launch macro plugin", fileName=source, lineNumber=42)
+            observations = REPORTER.parse_build_results(build)
+            self.assertEqual(observations[0].kind, "build-failure")
+            self.assertEqual((observations[0].file, observations[0].line), (source, 42))
+
     def test_log_fallback_classifies_simulator_without_exposing_raw_path(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -263,6 +271,8 @@ class ReporterTests(unittest.TestCase):
     def test_log_fallback_covers_crash_timeout_configuration_and_tooling(self) -> None:
         cases = (
             ("Trinket/Play/PlayTests.swift:42: error: XCTAssertTrue failed - value was false", "test-failure"),
+            ("Ability.swift:42:2: error: failed to launch macro plugin", "build-failure"),
+            ("PlayTests.swift:42: error: XCTAssertTrue failed - expected 'Unable to boot simulator'", "test-failure"),
             ("Test process crashed: signal SIGABRT", "test-failure"),
             ("Test execution timed out after 60 seconds", "test-failure"),
             (

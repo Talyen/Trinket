@@ -17,6 +17,33 @@ from script_test_support import ScriptRegressionTestCase, ROOT
 
 
 class GitSafetyTests(ScriptRegressionTestCase):
+    def test_force_push_refspecs_require_a_clean_readable_tree(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fake_git = root / "git"
+            capture = root / "pushed"
+            fake_git.write_text('#!/bin/sh\n'
+                                'case "$1" in\n'
+                                '  diff) exit "$FIXTURE_DIRTY" ;;\n'
+                                '  ls-files) exit 0 ;;\n'
+                                '  push) touch "$FIXTURE_PUSHED" ;;\n'
+                                'esac\n')
+            fake_git.chmod(0o755)
+            for dirty, arguments, allowed in (("1", ["origin", "+HEAD:main"], False),
+                                             ("2", ["origin", "+HEAD:main"], False),
+                                             ("0", ["origin", "+HEAD:main"], True),
+                                             ("1", ["-vf", "origin", "HEAD:main"], False),
+                                             ("1", ["origin", "HEAD:main"], True)):
+                with self.subTest(dirty=dirty, arguments=arguments):
+                    capture.unlink(missing_ok=True)
+                    result = subprocess.run([str(ROOT / "Scripts/bin/git"), "push", *arguments],
+                                            cwd=root, capture_output=True, text=True,
+                                            env={**os.environ, "REAL_GIT": str(fake_git),
+                                                 "FIXTURE_DIRTY": dirty, "FIXTURE_PUSHED": str(capture),
+                                                 "REAL_GIT_BYPASS": "0"})
+                    self.assertEqual(result.returncode, 0 if allowed else 1, result.stdout + result.stderr)
+                    self.assertEqual(capture.exists(), allowed)
+
     def test_git_setup_preserves_foreign_wrappers_and_updates_owned_wrappers(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -96,3 +123,35 @@ class GitSafetyTests(ScriptRegressionTestCase):
                 self.assertEqual((root / "untracked").read_text(), "unfinished")
                 self.assertEqual((root / ".git/index").read_bytes(), index)
                 self.assertEqual(git("stash", "list"), b"")
+
+    def test_checkout_paths_without_separator_preserve_dirty_files(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+            env.update(REAL_GIT="/usr/bin/git", GIT_OPTIONAL_LOCKS="0")
+            def git(*args):
+                return subprocess.check_output(["/usr/bin/git", *args], cwd=root, env=env)
+            git("init", "-q")
+            tracked = root / "tracked"
+            tracked.write_text("original")
+            git("add", "tracked")
+            git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                "-c", "core.hooksPath=/dev/null", "commit", "-qm", "baseline")
+            git("branch", "safe-branch")
+            for args in (("tracked",), ("HEAD", "tracked"), ("--quiet", "HEAD", "tracked"), ("-qf", "HEAD")):
+                with self.subTest(args=args):
+                    tracked.write_text("unfinished")
+                    result = subprocess.run([str(ROOT / "Scripts/bin/git"), "checkout", *args],
+                                            cwd=root, env=env, capture_output=True, text=True)
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertEqual(tracked.read_text(), "unfinished")
+            # Safe branch navigation and creation may carry dirty work forward.
+            result = subprocess.run([str(ROOT / "Scripts/bin/git"), "switch", "-qf", "safe-branch"],
+                                    cwd=root, env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertEqual(tracked.read_text(), "unfinished")
+            for args in (("safe-branch",), ("-b", "new-branch", "HEAD")):
+                result = subprocess.run([str(ROOT / "Scripts/bin/git"), "checkout", *args],
+                                        cwd=root, env=env, capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual(tracked.read_text(), "unfinished")

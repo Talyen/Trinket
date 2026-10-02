@@ -17,12 +17,17 @@ public enum PlayPolicy: String, Sendable, CaseIterable {
 
 private enum HeuristicCardScoring {
     static func preferredPlayableCard(in battle: BattleState, setupAware: Bool) -> BattleCard? {
-        let playable = battle.hand.cards.filter { battle.isCardPlayable($0) }
-        guard !playable.isEmpty else { return nil }
+        guard !battle.hand.cards.isEmpty else { return nil }
+        let enemyHP = battle.health(of: battle.enemy)
+        let enemyEffects = battle.roster.activeEffects(for: battle.enemy)
+        let enemyBlock = DefensePoolEngine.blockPoints(in: enemyEffects)
         var bestCard: BattleCard?
         var bestScore = Int.min
-        for card in playable {
-            let cardScore = score(card, in: battle, setupAware: setupAware)
+        for card in battle.hand.cards where battle.isCardPlayable(card) {
+            let cardScore = score(
+                card, in: battle, setupAware: setupAware,
+                enemyHP: enemyHP, enemyEffects: enemyEffects, enemyBlock: enemyBlock,
+            )
             if cardScore > bestScore {
                 bestScore = cardScore
                 bestCard = card
@@ -31,9 +36,15 @@ private enum HeuristicCardScoring {
         return bestCard
     }
 
-    private static func score(_ card: BattleCard, in battle: BattleState, setupAware: Bool) -> Int {
+    private static func score(
+        _ card: BattleCard,
+        in battle: BattleState,
+        setupAware: Bool,
+        enemyHP: Int,
+        enemyEffects: [ActiveEffect],
+        enemyBlock: Int,
+    ) -> Int {
         let ability = card.ability
-        let enemyHP = battle.health(of: battle.enemy)
         let ownerCombatant = card.owner == .hero ? battle.hero : battle.companion
         let actorHP = battle.health(of: ownerCombatant)
         let maxHP = max(battle.maxHealth(of: ownerCombatant), 1)
@@ -44,7 +55,7 @@ private enum HeuristicCardScoring {
             component.target == .actor ? total + component.amount : total
         }
         let guaranteedDamage = if let branches = ability.outcomeBranches, !branches.isEmpty {
-            branches.map { branch in
+            branches.lazy.map { branch in
                 branch.damageComponents.reduce(0) { total, component in
                     component.target == .abilityTarget ? total + component.amount : total
                 }
@@ -53,7 +64,6 @@ private enum HeuristicCardScoring {
             damage
         }
 
-        let enemyBlock = DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.enemy))
         let unblockedDamage = max(0, guaranteedDamage - enemyBlock)
         if unblockedDamage > 0, unblockedDamage >= enemyHP {
             return 10000 + unblockedDamage
@@ -69,7 +79,6 @@ private enum HeuristicCardScoring {
             value += 5
         }
 
-        let enemyEffects = battle.roster.activeEffects(for: battle.enemy)
         value += effectScore(ability: ability, enemyEffects: enemyEffects, setupAware: setupAware)
         if let branches = ability.outcomeBranches, !branches.isEmpty {
             value += branchScore(branches: branches, enemyEffects: enemyEffects, setupAware: setupAware)

@@ -207,15 +207,15 @@ package enum ControlMeterEngine {
         if keyword == .freeze, let sourceActorID {
             let chance = context.modifiers(for: sourceActorID).triggers.freezeExtendChancePercent
                 + Double(context.modifiers(for: sourceActorID).triggers.freezeExtraActionSkips) * 0.20
-            applyExtendControlChance(chance, to: combatant, in: &context)
+            applyExtendControlChance(chance, keyword: keyword, to: combatant, in: &context)
         }
         if keyword == .stun, let sourceActorID {
             let chance = context.modifiers(for: sourceActorID).triggers.stunExtendChancePercent
                 + Double(context.modifiers(for: sourceActorID).triggers.enemyStunExtraActionSkips) * 0.20
-            applyExtendControlChance(chance, to: combatant, in: &context)
+            applyExtendControlChance(chance, keyword: keyword, to: combatant, in: &context)
             if context.modifiers(for: sourceActorID).triggers.stunExtendVsBurning,
                context.roster.hasAffliction(.burn, on: combatant) {
-                applyExtendControlChance(1, to: combatant, in: &context)
+                applyExtendControlChance(1, keyword: keyword, to: combatant, in: &context)
             }
         }
 
@@ -317,17 +317,20 @@ package enum ControlMeterEngine {
 
     private static func applyExtendControlChance(
         _ chance: Double,
+        keyword: Keyword,
         to combatant: Combatant,
         in context: inout BattleState,
     ) {
-        guard chance > 0 else { return }
+        guard chance > 0, let status = context.roster.activeEffects(for: combatant).first(where: {
+            $0.keyword == keyword && $0.isAwaitingActionSkip
+        }) else { return }
         var remaining = chance
         while remaining >= 1 {
-            context.additionalControlSkipsByCombatantID[combatant.id, default: 0] += 1
+            context.additionalControlSkipsByEffectID[status.id, default: 0] += 1
             remaining -= 1
         }
         if remaining > 0, BattleChance.succeeds(probability: remaining, using: &context.rng) {
-            context.additionalControlSkipsByCombatantID[combatant.id, default: 0] += 1
+            context.additionalControlSkipsByEffectID[status.id, default: 0] += 1
         }
     }
 

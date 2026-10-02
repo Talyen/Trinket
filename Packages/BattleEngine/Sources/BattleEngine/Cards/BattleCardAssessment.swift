@@ -36,13 +36,18 @@ public extension BattleState {
         }
         let selected = BattleAbilityRules.resolveConditionalOutcome(card.ability, actor: actor, in: self)
         let outcomes = BattleAbilityRules.assessmentOutcomes(selected)
-        let candidates = outcomes.map { assessmentTargets($0, actor: actor, abilityID: selected.id) }
-        let common = (candidates.first ?? []).filter { target in candidates.allSatisfy { $0.contains(target) } }
+        // Assessment never mutates combat, so every branch shares the same participants and override.
+        let action = BattleActionContext(actor: actor, in: self)
+        let keywordOverride = BattleTurnEngine.activeDamageKeywordOverride(for: actor, in: self)?.keyword
+        let candidates = outcomes.map {
+            assessmentTargets($0, action: action, abilityID: selected.id, keywordOverride: keywordOverride)
+        }
         var targets: [BattleCardAssessment.Target] = []
-        for target in common where !targets.contains(target) {
+        for target in candidates.first ?? []
+            where !targets.contains(target) && candidates.dropFirst().allSatisfy({ $0.contains(target) }) {
             targets.append(target)
         }
-        let payments = outcomes.map { assessmentResources($0, original: selected, actor: actor) }
+        let payments = outcomes.map { assessmentResources($0, original: selected, action: action) }
         return BattleCardAssessment(
             actorID: actor.id, denial: nil, targets: targets,
             resources: BattleCardAssessment.commonResources(payments),
@@ -60,15 +65,17 @@ extension BattleAbilityRules {
 }
 
 private extension BattleState {
-    func assessmentTargets(_ branch: AbilityOutcomeBranch, actor: Combatant, abilityID: String) -> [BattleCardAssessment.Target] {
-        let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: self)
-        let keywordOverride = BattleTurnEngine.activeDamageKeywordOverride(for: actor, in: self)?.keyword
+    func assessmentTargets(
+        _ branch: AbilityOutcomeBranch, action: BattleActionContext, abilityID: String, keywordOverride: Keyword?,
+    ) -> [BattleCardAssessment.Target] {
+        let actor = action.actor
+        let damageComponents = branch.damageComponents
         var targets: [BattleCardAssessment.Target] = []
-        for component in branch.damageComponents {
+        for component in damageComponents {
             let conditionMet = component.condition.map { BattleConditionEvaluator.isMet($0, actor: actor, in: self) } ?? true
             guard conditionMet || component.bonusAmount != 0,
                   component.hasPotentialDamage else { continue }
-            let target = BattleTargetResolver.effectTarget(component.target, actor: actor, abilityTarget: abilityTarget, in: self)
+            let target = action.target(component.target, in: self)
             guard target.id != actor.id else { continue }
             let keyword = keywordOverride ?? (branch.randomizeDamageKeywords ? nil : component.keyword)
             targets.append(.init(combatantID: target.id, intent: .damage(keyword)))
@@ -89,19 +96,19 @@ private extension BattleState {
             if abilityID == Ability.packTactics.id, case .drawCards = targeted.effect {
                 continue
             }
-            let recipientCanChange = !branch.damageComponents.isEmpty || index > 0
+            let recipientCanChange = !damageComponents.isEmpty || index > 0
             if recipientCanChange, [.lowestHealthAlly, .defeatedAlly].contains(targeted.target) {
                 continue
             }
             if case let .blessedAegis(block, holyDamage) = targeted.effect {
-                for ally in BattleActionContext(actor: actor, in: self).allies(in: self) where health(of: ally) > 0 {
+                for ally in action.allies(in: self) where health(of: ally) > 0 {
                     targets.append(.init(combatantID: ally.id, intent: .effect(.shield(.block, block))))
                     targets.append(.init(combatantID: ally.id, intent: .effect(.onHitDamage(.holy, holyDamage))))
                 }
                 continue
             }
             if targeted.target == .eachAlly {
-                for ally in BattleActionContext(actor: actor, in: self).allies(in: self) where health(of: ally) > 0 {
+                for ally in action.allies(in: self) where health(of: ally) > 0 {
                     targets.append(.init(combatantID: ally.id, intent: .effect(targeted.effect)))
                 }
                 continue
@@ -111,7 +118,7 @@ private extension BattleState {
                 targets.append(contentsOf: panaceaAssessmentTargets(baseHeal: baseHeal, actor: actor))
                 continue
             }
-            let target = BattleTargetResolver.effectTarget(targeted.target, actor: actor, abilityTarget: abilityTarget, in: self)
+            let target = action.target(targeted.target, in: self)
             targets.append(.init(combatantID: target.id, intent: .effect(targeted.effect)))
         }
         return targets
@@ -136,13 +143,14 @@ private extension BattleState {
 extension BattleCardAssessment {
     static func commonResources(_ outcomes: [[ResourceUse]]) -> [ResourceUse] {
         var keys: [ResourceUse] = []
-        for use in outcomes.flatMap(\.self) where !keys.contains(where: { $0.matches(use) }) {
+        for use in outcomes.lazy.flatMap(\.self) where !keys.contains(where: { $0.matches(use) }) {
             keys.append(use)
         }
         return keys.map { key in
-            let amounts = outcomes.map { outcome in outcome.first(where: { $0.matches(key) })?.amount ?? 0 }
+            let amounts = outcomes.lazy.map { outcome in outcome.first(where: { $0.matches(key) })?.amount ?? 0 }
+            let firstAmount = amounts.first
             let uncertain = outcomes.contains { outcome in outcome.contains { $0.matches(key) && $0.amount == nil } }
-            let amount = !uncertain && amounts.allSatisfy { $0 == amounts.first } ? amounts.first : nil
+            let amount = !uncertain && amounts.allSatisfy { $0 == firstAmount } ? firstAmount : nil
             return ResourceUse(
                 combatantID: key.combatantID, keyword: key.keyword, amount: amount,
                 balance: key.balance, capacity: key.capacity,

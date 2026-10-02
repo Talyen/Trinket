@@ -308,8 +308,12 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         guard triggers.freezeDamageGrantsBlock, amount > 0 else { return [] }
-        return emitBlock(
-            "freezeDamageGrantsBlock", "Rimeheart", amount: amount, to: source, source: source, in: &context,
+        return context.applyBlock(
+            amount,
+            to: source,
+            source: source,
+            abilityName: triggerAbilityName("freezeDamageGrantsBlock", for: source, fallback: "Rimeheart", in: context),
+            amountBasis: .resolved,
         )
     }
 

@@ -15,6 +15,7 @@ SCRIPT_INPUTS = (
 
 import importlib.util
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -30,6 +31,26 @@ SPEC.loader.exec_module(aggregate_performance)
 
 
 class AggregatePerformanceTests(unittest.TestCase):
+    def test_collection_retains_invalid_iterations_for_validation(self) -> None:
+        for iteration in (None, "broken"):
+            with self.subTest(iteration=iteration), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                logs = root / "TestResults"
+                logs.mkdir()
+                invalid = {"scenario": "navigation", "schemaVersion": 5, "iteration": iteration}
+                (logs / "run.log").write_text("TRINKET_PERFORMANCE_REPORT " + json.dumps(invalid) + "\n")
+                output = root / "reports.json"
+                result = subprocess.run(
+                    [sys.executable, str(SCRIPT.with_name("collect-performance-results.py")), str(logs), str(output)],
+                    capture_output=True, text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                records = json.loads(output.read_text())["reports"]
+                self.assertEqual(records[0]["iteration"], iteration)
+                status, summary = self.run_aggregate(records)
+                self.assertEqual(status, 1)
+                self.assertIn("iteration must be a positive integer", summary)
+
     def run_aggregate(
         self,
         reports: list[dict[str, object]],

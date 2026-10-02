@@ -90,10 +90,13 @@ public enum ArtworkViewportPrewarm {
         let backwardCount = backwardPrefetchRows * estimatedColumns
         var seen = Set<String>()
         var result: [String] = []
+        var nextUnvisited = 0
         for visible in visibleIndices {
-            let start = max(0, visible - backwardCount)
+            // Visible indices ascend, so overlapping windows have already resolved their artwork.
+            let start = max(max(0, visible - backwardCount), nextUnvisited)
             let end = min(orderedItems.count - 1, visible + forwardCount)
             guard start <= end else { continue }
+            nextUnvisited = end + 1
             for item in orderedItems[start ... end] {
                 guard let name = thumbnailName(item), seen.insert(name).inserted else { continue }
                 result.append(name)

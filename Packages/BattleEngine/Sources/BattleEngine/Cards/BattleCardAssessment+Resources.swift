@@ -3,8 +3,9 @@ import TrinketCore
 
 extension BattleState {
     func assessmentResources(
-        _ branch: AbilityOutcomeBranch, original: Ability, actor: Combatant,
+        _ branch: AbilityOutcomeBranch, original: Ability, action: BattleActionContext,
     ) -> [BattleCardAssessment.ResourceUse] {
+        let actor = action.actor
         var resources: [BattleCardAssessment.ResourceUse] = []
         if original.blockCost > 0 {
             resources.append(resourceUse(.block, amount: original.blockCost, actor: actor))
@@ -19,12 +20,11 @@ extension BattleState {
             operations: branch.operations,
         )
         resources.append(contentsOf: empowermentResourceUses(ability, actor: actor, randomKeywords: branch.randomizeDamageKeywords))
-        let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: self)
         for targeted in branch.targetedEffects where targeted.effect == .convertManaToBlock {
             if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, actor: actor, in: self) {
                 continue
             }
-            let target = BattleTargetResolver.effectTarget(targeted.target, actor: actor, abilityTarget: abilityTarget, in: self)
+            let target = action.target(targeted.target, in: self)
             let mana = mana(of: target)
             guard mana > 0 else { continue }
             let isCertain = branch.damageComponents.isEmpty

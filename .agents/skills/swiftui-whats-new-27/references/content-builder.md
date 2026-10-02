@@ -32,16 +32,21 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        Rectangle()
-            .overlay { Color.blue.opacity(0.3).blendMode(.overlay) }
+        Text("Hello")
+            .overlay { Color.blue.opacity(0.70).blendMode(.overlay) }
     }
 }
 ```
 
 **Reason:**
-The `overlay` and `background` modifiers each have two overloads: one accepting a `View` (marked as disfavored) and one accepting a `ShapeStyle`. Separately, modifiers like `.opacity()` and `.blendMode()` on `ShapeStyle` are also overloaded to return either a `ShapeStyle` or a `View`. Previously, `@ViewBuilder`'s `View` constraint forced the compiler to pick the `View`-returning variant of `.opacity()`, which then resolved `overlay` unambiguously to the `ShapeStyle` overload.
-
-With `@ContentBuilder` removing the `View` constraint, the `ShapeStyle`-returning variant of `.opacity()` must now be disfavored to preserve the previous default behavior. However, this creates a new problem when combined with `overlay`: each possible resolution path has exactly one disfavored overload (either the `View`-accepting `overlay` or the `ShapeStyle`-returning `.opacity()`), making the overall expression ambiguous. Using the trailing-closure variant explicitly selects the builder-based overload of `overlay`, breaking the tie.
+The direct-argument forms can accept either a `View` or a `ShapeStyle`. The
+selected SDK marks the legacy View-accepting overload and ShapeStyle-returning
+modifiers such as `blendMode` as disfavored. A `Color` supports both protocols,
+so competing modifier and overlay overloads can leave the direct call ambiguous.
+The trailing-closure form explicitly selects the builder overload, whose result
+must conform to `View`. A View-returning expression belongs to that View path;
+it does not select the ShapeStyle overload. Keep the original content, opacity,
+and blend mode when making this syntax repair.
 
 ## Ambiguous Type References When Another Module Shadows SwiftUI Types
 **Issue:**

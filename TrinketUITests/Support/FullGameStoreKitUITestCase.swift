@@ -12,6 +12,14 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
     }
 
     func skipUnavailablePurchaseAutomation() throws {
+        if ProcessInfo.processInfo.environment["TRINKET_REQUIRED_PURCHASE"] == "1" {
+            XCTAssertFalse(
+                ProcessInfo.processInfo.operatingSystemVersion.majorVersion == 26
+                    && ProcessInfo.processInfo.operatingSystemVersion.minorVersion == 5,
+                "CI requires a runtime supporting the Full Game purchase journey",
+            )
+            return
+        }
         try XCTSkipIf(
             ProcessInfo.processInfo.operatingSystemVersion.majorVersion == 26
                 && ProcessInfo.processInfo.operatingSystemVersion.minorVersion == 5,
@@ -19,25 +27,21 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
         )
     }
 
-    func launchAndAwaitOfferProduct(arguments: [String], open: () -> Void) throws {
+    func launchOptionsOffer() throws {
         try startStoreSession()
-        launchApp(arguments: arguments)
-        open()
+        launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
+        assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
+        tapButton(AccessibilityID.FullGame.options)
         assertExists(AccessibilityID.FullGame.offer)
-        if waitForProductLoaded(timeout: 8) {
-            return
-        }
+        assertPurchaseProductLoaded()
+    }
 
-        // A fresh StoreKit session recovers a catalog that failed to resolve
-        // throughout the first session on a new simulator install.
-        storeSession?.clearTransactions()
-        storeSession = nil
-        app.terminate()
-        try startStoreSession()
-        launchApp(arguments: arguments)
-        open()
-        assertExists(AccessibilityID.FullGame.offer)
-        XCTAssertTrue(waitForProductLoaded(timeout: 8), "Full Game purchase product did not load")
+    func assertWarlockUnlocked() {
+        tabBar.selectCollection()
+        tapButton(AccessibilityID.Collection.heroesCategory)
+        let card = AccessibilityID.CombatantDetail.collectionCard(name: "Warlock")
+        assertExistsAfterScroll(card, requireHittable: true)
+        XCTAssertFalse(button(card).label.hasSuffix(", locked"), "Full Game must unlock Warlock in Collection")
     }
 
     func assertPurchaseProductLoaded() {

@@ -212,6 +212,7 @@ struct StarterRouletteScreen: View {
         VStack(spacing: TrinketDesign.Spacing.extraSmall) {
             if let selectedCombatant {
                 Text(balanced: selectedCombatant.name)
+                    .accessibilityIdentifier(AccessibilityID.Onboarding.selectedName)
                     .trinketTypography(.screenTitle)
                     .trinketFittedText()
                     .contentTransition(.numericText())

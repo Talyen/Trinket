@@ -11,6 +11,7 @@ from __future__ import annotations
 
 SCRIPT_INPUTS = (
     'Scripts/script_test_selection.py',
+    'Scripts/test-scripts.sh',
 )
 
 
@@ -178,7 +179,7 @@ class ScriptSelectionTests(unittest.TestCase):
             environment = {**os.environ, "TRINKET_SCRIPT_TEST_JOBS": "2", "RESULTS_DIR": str(root / "logs")}
 
             def run():
-                return subprocess.run(["bash", "Scripts/test-scripts.sh", "--skip-docs"],
+                return subprocess.run(["/bin/bash", "Scripts/test-scripts.sh", "--skip-docs"],
                                       cwd=root, env=environment, capture_output=True, text=True)
 
             rejected = scripts / "broken.py"
@@ -207,6 +208,35 @@ class ScriptSelectionTests(unittest.TestCase):
             result = run()
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(list((root / "logs").iterdir()), [])
+
+            selector = scripts / "script_test_selection.py"
+            selector.write_text('print("Scripts/Tests/test_last.py")\n')
+            (root / "last-worker").unlink()
+            result = run()
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue((root / "last-worker").exists(), "Python-only selection must execute")
+            self.assertIn("test_last passed", result.stdout)
+            last.write_text('import unittest\nclass Probe(unittest.TestCase):\n'
+                            '    def test_failure(self): self.fail("Python-only failure sentinel")\n')
+            result = run()
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn("Python-only failure sentinel", result.stderr)
+
+            selector.write_text('print("Scripts/Tests/test-peer.sh")\n')
+            (root / "shell-worker").unlink()
+            result = run()
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue((root / "shell-worker").exists(), "shell-only selection must execute")
+            shell.write_text('#!/bin/sh\necho shell-only failure sentinel\nexit 7\n')
+            result = run()
+            self.assertEqual(result.returncode, 7, result.stdout + result.stderr)
+            self.assertIn("shell-only failure sentinel", result.stderr)
+
+            selector.write_text('print("")\n')
+            result = run()
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("(no regressions selected)", result.stdout)
+            self.assertIn("Script checks passed", result.stdout)
 
     def test_literal_metadata_is_not_executed_and_globs_union_consumers(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

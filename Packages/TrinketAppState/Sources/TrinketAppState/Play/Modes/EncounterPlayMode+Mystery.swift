@@ -143,44 +143,34 @@ public extension EncounterPlayMode {
         }
     }
 
-    private func mysteryEventPickContext(
-        origin: PlayEncounterOrigin,
-    ) -> MysteryEventPickContext {
-        let cooldown = playerSave.currentSave.corruptionAltarCooldownRemaining
-        if case .voyage = origin {
-            return .labyrinth(inventory: playerSave.inventory, corruptionAltarCooldownRemaining: cooldown)
-        }
-        if origin.labyrinthNodeID != nil {
-            return .labyrinth(
-                inventory: playerSave.inventory,
-                corruptionAltarCooldownRemaining: cooldown,
-            )
-        }
-        guard let stage = origin.stage else {
-            return .excludingCorruptionAltar
-        }
-        return .journey(
-            chapterNumber: stage.chapterNumber,
-            inventory: playerSave.inventory,
-            corruptionAltarCooldownRemaining: cooldown,
-        )
-    }
-
-    private func pinnedNodeEvent(origin: PlayEncounterOrigin) -> String? {
-        if case let .voyage(runID, nodeID) = origin {
-            return playerSave.voyage.node(runID: runID, nodeID: nodeID)?.mysteryEventID
-        }
-        return origin.labyrinthNodeID.flatMap { playerSave.labyrinth.nodes[$0]?.mysteryEventID }
-    }
-
     private func mysteryPickInputs(
         origin: PlayEncounterOrigin,
     ) -> (pickContext: MysteryEventPickContext, pinnedLabyrinthEventID: String?, pinnedJourneyEventID: String?) {
-        (
-            mysteryEventPickContext(origin: origin),
-            pinnedNodeEvent(origin: origin),
-            origin.stage.flatMap { playerSave.journey.pinnedMysteryEventIDs[$0.id] },
-        )
+        let cooldown = playerSave.currentSave.corruptionAltarCooldownRemaining
+        switch origin {
+        case let .journey(stage):
+            return (
+                .journey(
+                    chapterNumber: stage.chapterNumber,
+                    inventory: playerSave.inventory,
+                    corruptionAltarCooldownRemaining: cooldown,
+                ),
+                nil,
+                playerSave.journey.pinnedMysteryEventIDs[stage.id],
+            )
+        case let .labyrinth(nodeID):
+            return (
+                .labyrinth(inventory: playerSave.inventory, corruptionAltarCooldownRemaining: cooldown),
+                playerSave.labyrinth.nodes[nodeID]?.mysteryEventID,
+                nil,
+            )
+        case let .voyage(runID, nodeID):
+            return (
+                .labyrinth(inventory: playerSave.inventory, corruptionAltarCooldownRemaining: cooldown),
+                playerSave.voyage.node(runID: runID, nodeID: nodeID)?.mysteryEventID,
+                nil,
+            )
+        }
     }
 
     @discardableResult

@@ -20,9 +20,10 @@ Let P be the active Hero and Companion's average level, rounded down:
 
 Use the existing enemy curves, shared
 [progression-based loot policy](../../Packages/TrinketContent/README.md#random-item-rewards)
-with the highest won encounter level anchoring item quality (capped at loot level 40).
-The victory being claimed uses its own encounter level for its item roll and records
-that level for later offers. Contract encounter level also drives XP, Gold, and material quantities.
+with each battle's captured encounter level determining its item-tier odds, capped
+at loot level 40. Victory records that level for later Shop, Mystery, and Blacksmith
+offers, whose quality follows the highest won encounter level. Contract encounter
+level also drives XP, Gold, and material quantities without that loot-level cap.
 Hard Contracts receive the shared
 boss loot weighting. Preserve catch-up XP, shared level-difference XP scaling, reward
 ownership, and applicable Homestead effects. Higher-level enemies award more XP
@@ -83,9 +84,9 @@ shared partial-defeat calculation. Item and material bonuses grant nothing on de
 One full-board refresh is earned by a Contract victory; the board starts with none
 and holds at most one. Refresh consumes it and replaces all offers. Victory replaces
 only the completed offer; avoid immediately repeating its target when possible.
-Defeat and retreat retain the offer for free retries. Defeat grants the shared
-[partial battle XP](../AgentContext/persistence-progression.md); retreat awards nothing. Each
-attempt starts with the existing fresh-battle state.
+Defeat and retreat retain the offer for free retries and grant the shared
+[partial battle XP](../AgentContext/persistence-progression.md), with no Gold, items,
+materials, or encounter completion. Each attempt starts with the existing fresh-battle state.
 
 The board persists between visits and app launches. Party changes and level-ups
 retain targets. Encounter levels and loot are resolved only when Battle is pressed,

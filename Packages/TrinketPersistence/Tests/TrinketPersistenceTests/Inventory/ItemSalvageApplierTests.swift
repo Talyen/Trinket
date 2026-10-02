@@ -37,15 +37,15 @@ struct ItemSalvageApplierTests {
         save.homestead.resources = [:]
         try store.performBatchMutation { $0 = save }
 
-        var result: ItemSalvageResult = .itemNotFound
-        try store.performBatchMutation { save in
-            result = ItemSalvageApplier.salvage(itemID: item.id, save: &save)
+        let result = store.salvageItem(id: item.id)
+        guard case let .committed(yields) = result else {
+            Issue.record("Expected committed salvage")
+            return
         }
-
-        #expect(result == .success(yields: [
+        #expect(yields == [
             ResourceAmount(.iron, 8),
             ResourceAmount(.wood, 4),
-        ]))
+        ])
         #expect(store.inventory.items.isEmpty)
         #expect(store.homestead.resources[.iron] == 8)
         #expect(store.homestead.resources[.wood] == 4)
@@ -92,7 +92,7 @@ struct ItemSalvageApplierTests {
 
         let result = ItemSalvageApplier.salvage(itemID: "missing", save: &save)
 
-        #expect(result == .itemNotFound)
+        #expect(result == .failure(.itemNotFound))
         #expect(save == before)
     }
 
@@ -104,7 +104,7 @@ struct ItemSalvageApplierTests {
 
         let result = ItemSalvageApplier.salvage(itemID: trinket.id, save: &save)
 
-        #expect(result == .ineligible)
+        #expect(result == .failure(.ineligible))
         #expect(save == before)
     }
 
@@ -116,7 +116,7 @@ struct ItemSalvageApplierTests {
 
         let result = ItemSalvageApplier.salvage(itemID: unique.id, save: &save)
 
-        #expect(result == .ineligible)
+        #expect(result == .failure(.ineligible))
         #expect(save == before)
     }
 

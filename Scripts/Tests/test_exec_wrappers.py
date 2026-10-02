@@ -103,6 +103,13 @@ def run_script(name: str, *args: str) -> subprocess.CompletedProcess:
 
 
 class ExecWrapperTests(unittest.TestCase):
+    def test_test_wrappers_resolve_helpers_before_changing_directory(self) -> None:
+        for script in ("build-for-testing.sh", "test-package.sh", "test.sh"):
+            with self.subTest(script=script):
+                result = subprocess.run([f"./{script}", "--help"], cwd=ROOT / "Scripts",
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertIn("Usage:", result.stdout)
 
 
     # Every directly-invokable entry point documents --help; sourced libs,

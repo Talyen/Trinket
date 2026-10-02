@@ -25,6 +25,9 @@ if ! [[ "$REPETITIONS" =~ ^[1-9][0-9]*$ ]]; then
   exit 1
 fi
 
+source Scripts/lib/verification-policy.sh
+trinket_require_heavy_verification "Performance measurements" || exit $?
+
 mkdir -p .DerivedData "$(dirname "$OUTPUT_DIR")"
 # shellcheck source=lib/lock.sh
 source Scripts/lib/lock.sh

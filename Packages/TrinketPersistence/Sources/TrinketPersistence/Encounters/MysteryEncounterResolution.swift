@@ -43,7 +43,7 @@ public enum MysteryEncounterResolution {
             return ItemCorruption.eligibleTargets(in: save.inventory).isEmpty ? .failure(.unavailable) : .success(.selectCorruptItem)
         }
         if choice.effects.contains(.leave) {
-            complete(request, save: &save)
+            guard complete(request, save: &save) else { return .failure(.unavailable) }
             return .success(.dismiss)
         }
         if choice.itemPool != nil {
@@ -77,7 +77,7 @@ public enum MysteryEncounterResolution {
         })
         guard result.grantedItems.count == requiredItems, result.unlockedCombatantIDs.count == requiredUnlocks,
               !result.isEmpty else { return .failure(.unavailable) }
-        complete(request, save: &candidate)
+        guard complete(request, save: &candidate) else { return .failure(.unavailable) }
         save = candidate
         if let unlocked = result.unlockedCombatantIDs.first {
             return .success(.reveal(unlockedCombatantID: unlocked))
@@ -99,7 +99,7 @@ public enum MysteryEncounterResolution {
         else {
             return .failure(.unavailable)
         }
-        complete(request, save: &candidate)
+        guard complete(request, save: &candidate) else { return .failure(.unavailable) }
         save = candidate
         return .success(.corruptionReveal(result))
     }
@@ -136,45 +136,15 @@ public enum MysteryEncounterResolution {
         }
     }
 
-    private static func complete(_ request: MysteryEncounterRequest, save: inout PlayerSave) {
+    private static func complete(_ request: MysteryEncounterRequest, save: inout PlayerSave) -> Bool {
+        guard NonCombatEncounterCompletion.complete(encounter: request.encounter, save: &save) == .completed else { return false }
         if request.event.id == GameContent.corruptionAltarEventID || request.event.choices
             .contains(where: { $0.effects.contains(.corruptItem) }) {
             ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &save)
         } else {
             ItemCorruptionApplier.noteMysteryCompleted(save: &save)
         }
-        complete(encounter: request.encounter, grantingEncounterRewards: true, save: &save)
-    }
-
-    /// Direct choices receive normal noncombat completion rewards. Pooled
-    /// offers already include their payout and only advance encounter progress.
-    static func complete(
-        encounter: EncounterIdentity,
-        grantingEncounterRewards: Bool,
-        save: inout PlayerSave,
-    ) {
-        switch encounter.location {
-        case let .journey(stageID):
-            guard let stage = GameContent.stage(id: stageID) else { return }
-            if grantingEncounterRewards {
-                StageCompletion.claimRewardsIfNeeded(
-                    for: stage, hero: save.roster.activeHero, companion: save.roster.activeCompanion, save: &save,
-                )
-            } else {
-                save.journey.markRewardsClaimed(for: stage)
-            }
-            save.journey.complete(stage, in: GameContent.chapters)
-        case let .labyrinth(nodeID):
-            if grantingEncounterRewards {
-                LabyrinthCompletion.complete(
-                    nodeID: nodeID, hero: save.roster.activeHero, companion: save.roster.activeCompanion, save: &save,
-                )
-            } else {
-                save.labyrinth.markCleared(nodeID: nodeID, eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs)
-            }
-        case let .voyage(runID, nodeID):
-            _ = VoyageCompletion.completeNode(runID: runID, nodeID: nodeID, save: &save)
-        }
-        MysteryOfferPersistence.clear(encounter: encounter, save: &save)
+        MysteryOfferPersistence.clear(encounter: request.encounter, save: &save)
+        return true
     }
 }

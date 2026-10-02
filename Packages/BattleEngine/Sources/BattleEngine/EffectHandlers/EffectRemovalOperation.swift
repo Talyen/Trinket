@@ -103,6 +103,9 @@ enum EffectRemovalOperation {
             }
         }
         context.roster.setActiveEffects(effects, for: target)
+        for effect in removed {
+            context.additionalControlSkipsByEffectID.removeValue(forKey: effect.id)
+        }
         if let owner = context.roster.participant(for: target), owner.isPartyMember,
            !context.roster.hasPendingActionSkip(for: target) {
             context.ownersSkippingThisPlayerTurn.remove(owner)

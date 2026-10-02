@@ -193,6 +193,40 @@ struct VoyagePlayModeTests {
     }
 
     #if DEBUG
+    @Test func `failed stale recruit repair resumes the original node action silently`() async throws {
+        let play = try context.makePlaySession()
+        #expect(play.voyage.enter() == nil)
+        let offer = try #require(play.playerSave.voyage.offers.first)
+        play.voyage.embark(offerID: offer.id)
+        let run = try #require(play.playerSave.voyage.activeRun)
+        let recruitIndex = try #require(run.nodes.firstIndex { $0.type == .recruit })
+        let recruit = run.nodes[recruitIndex]
+        #expect(play.playerSave.persistBatch(logging: "Prepare exhausted Voyage recruit") { save in
+            save.roster.unlockAllCombatants(atLevel: 1)
+            for node in run.nodes.prefix(recruitIndex) {
+                save.voyage.updateNode(runID: run.id, nodeID: node.id) { $0.isCleared = true }
+            }
+            save.voyage.updateNode(runID: run.id, nodeID: recruit.id) { $0.mysteryEventID = "hidden-cache" }
+        })
+        #expect(play.playerSave.voyage.activeRun?.nextNode?.id == recruit.id)
+
+        play.playerSave.forcesNextSaveFailure = true
+        #expect(play.voyage.handleNode(runID: run.id, nodeID: recruit.id) == nil)
+        #expect(play.encounters.activeMysteryEncounter == nil)
+        #expect(play.playerSave.voyage.node(runID: run.id, nodeID: recruit.id)?.type == .recruit)
+        #expect(play.playerSave.isRetryingSaveAction)
+
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { play.playerSave.isRetryingSaveAction }
+        let session = try #require(play.encounters.activeMysteryEncounter)
+        #expect(!session.event.isRecruit)
+        #expect(session.event.id == "hidden-cache")
+        #expect(session.persistFailureMessage == nil)
+        #expect(play.playerSave.voyage.node(runID: run.id, nodeID: recruit.id)?.type == .mystery)
+        #expect(play.encounters.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
+        #expect(play.encounters.finishActiveMysteryEncounter())
+        #expect(play.playerSave.voyage.node(runID: run.id, nodeID: recruit.id)?.isCleared == true)
+    }
+
     @Test func `failed embark and victory do not publish partial progress`() throws {
         let play = try context.makePlaySession()
         #expect(play.voyage.enter() == nil)

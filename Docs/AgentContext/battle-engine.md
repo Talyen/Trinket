@@ -20,6 +20,12 @@ Do not fold those cadences into the pipeline or merge affix scalar fields on `Co
 Keep this mapping single-owned and explicit so new modifier cases require a combat
 decision at compile time; `AffixModifier.apply(to:)` delegates to it.
 
+`CombatantMaxValues` owns maximum Health/Mana calculations, using shared saturating
+arithmetic and combat rounding for extreme inputs. `CombatBuild` exposes those
+values; content-to-profile adapters live in `CombatModifierProfile+Content.swift`.
+Status-summary duration formatting uses `Effect.durationTurns` by default; handlers
+with selective duration rules supply an extractor.
+
 `EffectHandlers.handler(for:)` exhaustively selects a handler for every `EffectKind`;
 there is no optional registration or missing-handler recovery. Handlers implement
 behavior without declaring a second kind. Shared next-hit flag, Cleanse/Purge and resource-to-Block

@@ -6,6 +6,54 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct CloudSaveMergeVoyageClaimRegressionTests {
+    @Test @MainActor func `retired destinations on a newer stale board are replaced after merge and reload`() throws {
+        var stale = SaveTestSupport.makeSave()
+        stale.voyage.ensureBoard(access: .free)
+        let retired = Set(stale.voyage.offers.map(\.id))
+        var completed = stale
+        completed.voyage.completedRunIDs = retired
+        completed.modifiedAt = Date(timeIntervalSince1970: 100)
+        stale.modifiedAt = Date(timeIntervalSince1970: 200)
+        let merged = CloudSaveMerge.merge(incoming: completed, existing: stale, base: nil, preferIncoming: false)
+        let context = try PersistenceTestContext()
+        try SaveTestSupport.writeRoot(merged, to: context.storeURL())
+        let store = try context.makeSaveStore()
+        #expect(store.persistBatch(logging: "Repair retired Voyage board") { save in
+            save.voyage.ensureBoard(access: .free)
+        })
+        var reloaded = try context.makeReloadedStore().currentSave
+        #expect(reloaded.voyage.offers.count == 3)
+        #expect(retired.isDisjoint(with: Set(reloaded.voyage.offers.map(\.id))))
+        #expect(reloaded.voyage.offers.map(\.difficulty) == VoyageDifficulty.allCases)
+        #expect(Set(reloaded.voyage.offers.map(\.chapterID)) == ["chapter-1", "chapter-2", "chapter-3"])
+        let next = try #require(reloaded.voyage.offers.first)
+        let embarked = reloaded.voyage.embark(offerID: next.id, eligibleRecruitEventIDs: [], access: .free)
+        #expect(embarked)
+    }
+
+    @Test(arguments: [false, true]) @MainActor
+    func `abandoned Voyage stays retired without a shared base after disk reload`(reverseBranches: Bool) throws {
+        var stale = try finalBossSave()
+        let run = try #require(stale.voyage.activeRun)
+        var abandoned = stale
+        let retired = abandoned.voyage.abandon(runID: run.id, access: .fullGame)
+        #expect(retired)
+        abandoned.modifiedAt = Date(timeIntervalSince1970: 100)
+        stale.modifiedAt = Date(timeIntervalSince1970: 200)
+        let incoming = reverseBranches ? stale : abandoned
+        let existing = reverseBranches ? abandoned : stale
+        let merged = CloudSaveMerge.merge(incoming: incoming, existing: existing, base: nil, preferIncoming: true)
+        let context = try PersistenceTestContext()
+        try SaveTestSupport.writeRoot(merged, to: context.storeURL())
+        let reloaded = try context.makeSaveStore().currentSave
+
+        #expect(reloaded.voyage.activeRun == nil)
+        #expect(reloaded.voyage.abandonedRunIDs == [run.id])
+        #expect(reloaded.voyage.completedRunIDs == nil)
+        #expect(!reloaded.voyage.offers.contains { $0.id == run.id })
+        #expect(!reloaded.voyage.isPlayable(runID: run.id, nodeID: run.nodes[0].id))
+    }
+
     @Test(arguments: [false, true]) @MainActor
     func `starting another Voyage retains overlap detection for the finished run`(reverseBranches: Bool) throws {
         var stale = try finalBossSave()
@@ -90,13 +138,15 @@ struct CloudSaveMergeVoyageClaimRegressionTests {
         #expect(merged.roster.gold == base.roster.gold + 30)
     }
 
-    @Test func `existing Voyage payloads remain readable without completion history`() throws {
+    @Test func `existing Voyage payloads remain readable without retirement history`() throws {
         let base = try finalBossSave()
         var json = try #require(JSONSerialization.jsonObject(with: base.voyage.encodedPayload) as? [String: Any])
         json.removeValue(forKey: "completedRunIDs")
+        json.removeValue(forKey: "abandonedRunIDs")
         let restored = try PlayerVoyageState.decodePayload(JSONSerialization.data(withJSONObject: json))
         #expect(!restored.isUnreadable)
         #expect(restored.activeRun == base.voyage.activeRun)
+        #expect(restored.abandonedRunIDs == nil)
     }
 
     @Test @MainActor func `invalid completed Voyage data stays unreadable instead of disappearing`() throws {

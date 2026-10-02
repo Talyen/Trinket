@@ -4,5 +4,6 @@ This package owns reusable SwiftUI chrome, materials, typography, motion, **and 
 
 Feature code must consume public design-system APIs only — not `DesignAssetColors` or asset string names. Glass CTAs must keep XCUITest identifiers (see [Testing](../../Docs/Platform/Testing.md)).
 
-Design-system changes use routed package verification. Handoff satisfies that
-requirement; a separate preceding package run is optional iteration evidence.
+Design-system changes use routed handoff and CI-owned package verification under
+[Verification.md](../../Docs/Platform/Verification.md#local-simulator-budget).
+A lightweight local handoff does not establish package-test success.

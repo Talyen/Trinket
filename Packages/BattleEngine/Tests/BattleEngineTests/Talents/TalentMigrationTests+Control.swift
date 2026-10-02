@@ -162,7 +162,12 @@ extension TalentMigrationTests {
                 )
             }
             #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
-            #expect(battle.additionalControlSkipsByCombatantID[battle.roster.enemy.id, default: 0] == (burning ? 1 : 0))
+            _ = BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle)
+            #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun) == burning)
+            if burning {
+                _ = BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle)
+                #expect(!battle.roster.hasPendingActionSkip(for: battle.enemy))
+            }
         }
     }
 

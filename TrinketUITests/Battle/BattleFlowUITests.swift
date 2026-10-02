@@ -2,18 +2,17 @@ import TrinketFeatureSupport
 import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
-    func testHandCardInspectTapAndDragPlay() {
+    func testHandInspectionDismissalAndDragPreserveCardPlay() {
         launchMidBattleAndStart()
 
         let cards = battle.handCards
         let inspectedCard = cards.firstMatch
         XCTAssertTrue(inspectedCard.trinketWaitForExistence(timeout: Self.defaultTimeout))
-        XCTAssertEqual(cards.count, 3, "The opening turn must show three playable cards")
         let inspectCountBefore = cards.count
         inspectedCard.press(forDuration: 0.7)
         assertExists(AccessibilityID.Battle.abilityDetail)
         XCTAssertEqual(cards.count, inspectCountBefore, "Inspecting a card must not play it")
-        dismissSheet()
+        dismissSheet(AccessibilityID.Battle.abilityDetail)
 
         let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Ranger")]
         assertExists(hero)
@@ -26,31 +25,29 @@ final class BattleFlowUITests: TrinketUITestCase {
         )
         battle.openCombatantCard(named: "Ranger")
         combatantDetail.assertLoaded(for: "Ranger")
-        dismissSheet()
+        dismissSheet(AccessibilityID.CombatantDetail.header(name: "Ranger"))
 
         let tapCountBefore = cards.count
         inspectedCard.tap()
-        XCTAssertTrue(
-            waitForCardCount(cards, droppingFrom: tapCountBefore),
-            "The first tap after dismissing ability details must play the card",
-        )
-
+        waitUntil("The first tap after dismissing details must play the card") { cards.count == tapCountBefore - 1 }
         let dragCard = cards.firstMatch
-        XCTAssertTrue(dragCard.trinketWaitForExistence(timeout: Self.defaultTimeout))
+        assertExists(dragCard)
         let dragCountBefore = cards.count
         let origin = dragCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         assertCancelledDrag(from: origin, cards: cards)
-        origin.press(
-            forDuration: 0.05,
-            thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)),
-        )
-        XCTAssertTrue(
-            waitForCardCount(cards, droppingFrom: dragCountBefore),
-            "A successful drag play must remove one card",
-        )
+        origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)))
+        waitUntil("A successful drag must remove exactly one card") { cards.count == dragCountBefore - 1 }
+    }
 
-        tapWhenReady(battle.autoBattleToggle)
-        XCTAssertTrue(waitForCardCountBelow(cards, 1), "Auto Battle must play from the opening hand")
+    func testDefeatLeaveRecoversFromSaveFailureAndSurvivesRelaunch() {
+        launchApp(arguments: TestLaunchArg.allForScreen("battle-defeat-save-failure"))
+        assertExists(AccessibilityID.Battle.defeat)
+        tapButton(AccessibilityID.Battle.defeatLeaveButton)
+        play.assertCampaignLoaded()
+        relaunchApp()
+        play.openCampaign()
+        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 1))
+        XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 1)).isEnabled)
     }
 
     private func launchMidBattleAndStart() {
@@ -81,17 +78,5 @@ final class BattleFlowUITests: TrinketUITestCase {
         )
         XCTAssertEqual(cards.count, countBefore, "A flick released inside the play boundary must cancel")
         assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
-    }
-
-    private func waitForCardCount(_ cards: XCUIElementQuery, droppingFrom initial: Int) -> Bool {
-        let predicate = NSPredicate(format: "count == %d", initial - 1)
-        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: cards)
-        return XCTWaiter().wait(for: [expectation], timeout: 6) == .completed
-    }
-
-    private func waitForCardCountBelow(_ cards: XCUIElementQuery, _ initial: Int) -> Bool {
-        let predicate = NSPredicate(format: "count < %d", initial)
-        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: cards)
-        return XCTWaiter().wait(for: [expectation], timeout: 6) == .completed
     }
 }

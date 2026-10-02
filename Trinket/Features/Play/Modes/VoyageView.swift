@@ -234,16 +234,16 @@ struct VoyageView: View {
             }
         }
         let added = names.subtracting(pinnedArtwork)
-        await PreparedArtworkCache.shared.prepareAndPin(names: Array(added))
+        let acquired = await PreparedArtworkCache.shared.prepareAndPin(names: Array(added))
         guard !Task.isCancelled, state == playerSave.voyage, !hasEncounter else {
-            PreparedArtworkCache.shared.releasePins(names: Array(added))
+            PreparedArtworkCache.shared.releasePins(names: acquired)
             return
         }
         let shouldCrossfade = embarkedOfferID != nil
             && state.activeRun?.offer.id == embarkedOfferID
             && displayed?.activeRun?.id != state.activeRun?.id
             && displayed != nil
-        pinnedArtwork = Array(Set(pinnedArtwork).union(names)).sorted()
+        pinnedArtwork = Array(Set(pinnedArtwork).union(acquired)).sorted()
         if shouldCrossfade {
             embarkedOfferID = nil
             isCrossfading = true
@@ -261,7 +261,7 @@ struct VoyageView: View {
         }
         let outgoing = Set(pinnedArtwork).subtracting(names)
         PreparedArtworkCache.shared.releasePins(names: Array(outgoing))
-        pinnedArtwork = names.sorted()
+        pinnedArtwork.removeAll { outgoing.contains($0) }
     }
 
     private struct RefreshInput: Equatable {

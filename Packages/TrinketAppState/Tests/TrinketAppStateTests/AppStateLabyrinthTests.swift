@@ -95,7 +95,7 @@ struct AppStateLabyrinthTests {
         let clearedKey = PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey
         #expect(battle.preparedBattleRun(for: clearedKey) != nil)
 
-        #expect(state.labyrinth.completeNode(nodeID: combatNodeID))
+        #expect(LabyrinthTestSupport.completeNode(nodeID: combatNodeID, in: state))
         state.labyrinth.prepareReachableBattles()
 
         #expect(battle.preparedBattleRun(for: clearedKey) == nil)

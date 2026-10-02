@@ -2,29 +2,26 @@ import Foundation
 
 @MainActor
 public final class SFXPlayer {
-    private let playback = SFXPlayback(backend: SystemSFXPlaybackBackend())
-    private let continuation: AsyncStream<SFXCommand>.Continuation?
+    private let execute: @Sendable (SFXCommand) async -> Void
+    private var continuation: AsyncStream<SFXCommand>.Continuation?
     private var workerTask: Task<Void, Never>?
+    private var invalidationTask: Task<Void, Never>?
 
-    public init(isDisabled: Bool) {
-        if isDisabled {
-            continuation = nil
-            workerTask = nil
-        } else {
-            let (stream, continuation) = AsyncStream<SFXCommand>.makeStream()
-            self.continuation = continuation
-            let playback = playback
-            workerTask = Task {
-                for await command in stream {
-                    guard !Task.isCancelled else { break }
-                    await playback.execute(command)
-                }
-            }
+    public convenience init(isDisabled: Bool) {
+        let playback = SFXPlayback(backend: SystemSFXPlaybackBackend())
+        self.init(isDisabled: isDisabled) { await playback.execute($0) }
+    }
+
+    init(isDisabled: Bool = false, execute: @escaping @Sendable (SFXCommand) async -> Void) {
+        self.execute = execute
+        if !isDisabled {
+            startWorker()
         }
     }
 
     isolated deinit {
         workerTask?.cancel()
+        invalidationTask?.cancel()
         continuation?.finish()
     }
 
@@ -46,14 +43,43 @@ public final class SFXPlayer {
     }
 
     public func stopAll() {
-        enqueue(.stop)
+        invalidate(.stop)
     }
 
     public func releaseResources() {
-        enqueue(.release)
+        invalidate(.release)
     }
 
     private func enqueue(_ command: SFXCommand) {
         continuation?.yield(command)
+    }
+
+    private func invalidate(_ command: SFXCommand) {
+        guard continuation != nil else { return }
+        // A decode can suspend the worker indefinitely. Stop must reach the audio
+        // actor without waiting for that decode, and older queued sounds must die.
+        workerTask?.cancel()
+        continuation?.finish()
+        let previousInvalidation = invalidationTask
+        let execute = execute
+        invalidationTask = Task {
+            await previousInvalidation?.value
+            await execute(command)
+        }
+        startWorker()
+    }
+
+    private func startWorker() {
+        let (stream, continuation) = AsyncStream<SFXCommand>.makeStream()
+        self.continuation = continuation
+        let invalidation = invalidationTask
+        let execute = execute
+        workerTask = Task {
+            await invalidation?.value
+            for await command in stream {
+                guard !Task.isCancelled else { break }
+                await execute(command)
+            }
+        }
     }
 }

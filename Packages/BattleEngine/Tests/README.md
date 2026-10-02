@@ -59,13 +59,6 @@ helpers live in `Support/`. All remain in the same test target.
 - Dispatch effects through `EffectHandlers.handler(for:)`.
 - Public facade: reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package`.
 
-```sh
-./Scripts/test-package.sh BattleEngine
-```
-
-The `BattleBalanceToolsTests` and `BalanceSweepCLITests` targets are excluded from
-the default package command. Run both explicitly for a one-off balance check:
-
-```sh
-./Scripts/test-package.sh --include-balance-sweep-tests BattleEngine
-```
+Package commands and the balance-tool target opt-in live in the
+[package testing guide](../README.md#testing). Local execution follows
+[Verification](../../../Docs/Platform/Verification.md#execution-limits).

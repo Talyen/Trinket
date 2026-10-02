@@ -2,43 +2,44 @@ import TrinketFeatureSupport
 import XCTest
 
 final class SmokeShopTests: TrinketUITestCase {
-    private var shop: ShopScreen {
-        ShopScreen(app: app)
-    }
-
-    func testMerchantShopPurchaseFromDetailAndLeaveReturnsToPlay() {
-        launchApp(
-            arguments: TestLaunchArg.allForShop()
-                + TestLaunchArg.completedStages([
-                    "chapter-2-stage-1",
-                    "chapter-2-stage-2",
-                    "chapter-2-stage-3",
-                    "chapter-2-stage-4",
-                    "chapter-2-stage-5",
-                    "chapter-2-stage-6",
-                    "chapter-2-stage-7",
-                ])
-                + ["-starting-gold", "200"],
-        )
+    func testMerchantPurchasePaysForAnOwnedItemAndReturnsToPlay() throws {
+        launchApp(arguments: TestLaunchArg.allForShop()
+            + TestLaunchArg.completedStages((1 ... 7).map { "chapter-2-stage-\($0)" })
+            + ["-starting-gold", "200"])
+        let shop = ShopScreen(app: app)
         assertExists(AccessibilityID.Shop.goldBalance)
-
-        let firstOfferCard = shop.offerCards.firstMatch
-        assertExists(firstOfferCard)
-        scrollUntilVisible(firstOfferCard, swipingUp: true, requireHittable: true)
-        tapWhenReady(firstOfferCard)
-
+        let goldBefore = try integer(in: any(AccessibilityID.Shop.goldBalance))
+        let offer = shop.offerCards.firstMatch
+        scrollUntilVisible(offer, swipingUp: true, requireHittable: true)
+        tapWhenReady(offer)
         assertExists(shop.detailBuy)
-        XCTAssertTrue(shop.detailBuy.isEnabled, "Expected shop detail buy control to be enabled")
+        let price = try integer(in: shop.detailBuy)
+        let detailPrefix = AccessibilityID.LoadoutPicker.itemDetail("")
+        let detail = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", detailPrefix)).firstMatch
+        assertExists(detail)
+        let itemID = String(detail.identifier.dropFirst(detailPrefix.count))
+        let categories = [
+            "BASIC": AccessibilityID.Collection.basicGearCategory,
+            "ASTRAL": AccessibilityID.Collection.astralGearCategory,
+            "TRINKET": AccessibilityID.Collection.trinketsCategory,
+        ]
+        let category = try XCTUnwrap(categories.first { app.staticTexts[$0.key].exists }?.value)
         tapWhenReady(shop.detailBuy)
-        assertDoesNotExist(AccessibilityID.Shop.detailBuyButton, timeout: 5)
+        assertDoesNotExist(AccessibilityID.Shop.detailBuyButton)
+        XCTAssertEqual(try integer(in: any(AccessibilityID.Shop.goldBalance)), goldBefore - price)
 
-        tapWhenReady(firstOfferCard)
+        tapWhenReady(offer)
         assertExists(shop.detailBuy)
-        XCTAssertFalse(shop.detailBuy.isEnabled, "Sold stock remains inspectable but cannot be purchased again")
-        dismissSheet()
-
+        XCTAssertFalse(shop.detailBuy.isEnabled, "Sold stock must not charge the player again")
+        dismissSheet(AccessibilityID.LoadoutPicker.itemDetail(itemID))
         scrollUntilVisible(shop.leaveButton, swipingUp: true, requireHittable: true)
-        shop.leaveButton.tap()
+        tapWhenReady(shop.leaveButton)
         play.assertLoaded()
+        tabBar.selectCollection()
+        assertExistsAfterScroll(category, requireHittable: true)
+        tapButton(category)
+        let ownedItem = AccessibilityID.Collection.itemCard(itemID: itemID)
+        assertExistsAfterScroll(ownedItem, requireHittable: true)
+        XCTAssertTrue(button(ownedItem).isEnabled, "The purchased item must be available in Collection")
     }
 }

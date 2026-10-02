@@ -78,7 +78,7 @@ struct UniqueItemRuleTests {
             isCorrupted: unique.isCorrupted,
             affixPowers: unique.affixPowers,
         )
-        #expect(InventoryDuplicatePolicy.isDuplicate(unique, duplicateWithNewID))
+        #expect(InventoryDuplicatePolicy.containsDuplicate(of: duplicateWithNewID, in: [unique]))
 
         var inventory = PlayerInventoryState(items: [unique])
         inventory.appendUniqueItem(duplicateWithNewID)
@@ -89,6 +89,34 @@ struct UniqueItemRuleTests {
         )
         #expect(sanitized.items.count == 1)
         #expect(sanitized.items.first?.id == unique.id)
+    }
+
+    @Test func `rejected inventory records cannot reserve another ownership key`() throws {
+        let unique = try #require(GameContent.unique(matching: "wardbreaker"))
+        let trinket = try #require(GameContent.trinketItems.first)
+        // Current-data repair can encounter conflicting rarity and base fields.
+        // This record conflicts with the retained Unique but also has a Trinket key.
+        let rejected = InventoryItem(
+            id: "rejected-hybrid", templateID: unique.templateID, baseType: trinket.baseType,
+            rarity: .unique, displayName: trinket.displayName, affixes: trinket.affixes,
+        )
+        let survivor = InventoryItem(
+            id: "surviving-trinket", templateID: unique.templateID, baseType: trinket.baseType,
+            rarity: .astral, displayName: trinket.displayName, affixes: trinket.affixes,
+        )
+        let items = [unique, rejected, survivor]
+        var admitted = PlayerInventoryState.freshStart
+        for item in items {
+            admitted.appendUniqueItem(item)
+        }
+
+        let repaired = PlayerSaveSanitizer.sanitizeInventory(PlayerInventoryState(items: items))
+        #expect(repaired.items == [unique, survivor])
+        #expect(repaired == admitted)
+
+        var batched = [unique]
+        InventoryDuplicatePolicy.appendUniqueItems([rejected, survivor, survivor], to: &batched)
+        #expect(batched == repaired.items)
     }
 
     @Test func `persisted trinket refreshes from authored catalog`() throws {

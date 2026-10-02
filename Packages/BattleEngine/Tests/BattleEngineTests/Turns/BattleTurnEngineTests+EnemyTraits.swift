@@ -214,6 +214,61 @@ extension BattleTurnEngineTests {
         }
     }
 
+    @Test(arguments: [0, 1])
+    func `crimson pulse leaves ongoing bleed on both party members`(block: Int) throws {
+        var context = try enemyTraitContext("the_blood_countess")
+        let targets = [context.hero, context.companion]
+        let healthBefore = targets.map { context.health(of: $0) }
+        for target in targets {
+            DefensePoolEngine.set(block, on: target, in: &context)
+        }
+        context.turnCount = 2
+
+        _ = EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context)
+
+        for (index, target) in targets.enumerated() {
+            #expect(healthBefore[index] - context.health(of: target) == 1 - block)
+            let bleed = try #require(context.activeEffects(of: target).first { $0.effect.isBleed })
+            #expect(bleed.effect.potency == 1)
+            #expect(bleed.sourceActorID == context.enemy.id)
+            let beforeTick = context.health(of: target)
+            _ = EffectHandlers.handler(for: bleed.effect.kind).advanceTurn(bleed, on: target, in: &context)
+            #expect(beforeTick - context.health(of: target) == 1)
+        }
+    }
+
+    @Test(arguments: [Keyword.burn, .poison], [0, 2, 4])
+    func `decaying pulses attach only their actual health damage`(keyword: Keyword, block: Int) {
+        let profile = CombatModifierProfile(
+            damageDealtBonus: [keyword: 5],
+            triggers: CombatTraitTriggers(damage: DamageTriggers(
+                turnRandomDamageAllEnemiesKeywordA: keyword,
+                turnRandomDamageAllEnemiesKeywordB: keyword,
+                turnRandomDamageAllEnemiesAmount: 4,
+                turnRandomDamageAllEnemiesInterval: 2,
+            )),
+        )
+        var context = BattleStateTestFactory.makeBattle(enemyModifiers: profile, dealOpeningHand: false)
+        context.appliesFightPacing = false
+        context.turnCount = 2
+        let targets = [context.hero, context.companion]
+        let healthBefore = targets.map { context.health(of: $0) }
+        for target in targets {
+            DefensePoolEngine.set(block, on: target, in: &context)
+        }
+
+        _ = EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context)
+
+        for (index, target) in targets.enumerated() {
+            #expect(healthBefore[index] - context.health(of: target) == 4 - block)
+            let active = context.activeEffects(of: target).first { $0.keyword == keyword }
+            #expect(active?.effect.potency ?? 0 == 4 - block)
+            if block == 4 {
+                #expect(active == nil)
+            }
+        }
+    }
+
     @Test func `giant spider venomous strikes applies poison on skill attack hits`() throws {
         var context = try enemyTraitContext("giant_spider")
         let enemy = context.enemy

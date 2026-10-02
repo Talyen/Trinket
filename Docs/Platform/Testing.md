@@ -157,8 +157,12 @@ focused layout or scroll/gesture regression is appropriate when it protects a
 consequential outcome, such as reaching a control, that a cheaper tier cannot prove.
 Push loadout, party-selection, and unlock rules down to package tests when possible.
 
-**Brittleness:** locate controls by `AccessibilityID` and assert the meaningful
-outcome. Avoid incidental display names, rarity labels, or exact scroll geometry;
+**Brittleness:** locate product controls by `AccessibilityID` and assert the meaningful
+outcome. Native system chrome and controls that omit their assigned identifiers use the
+[system-query allowlist](../../Scripts/config/uitest-system-query-allowlist.txt),
+including SwiftUI's Back and Close controls and native submenu entries. Keep each
+exception tied to its native-query limitation; ordinary product queries retain
+their stable identifiers. Avoid incidental display names, rarity labels, or exact scroll geometry;
 assert those values only when they are themselves the contract being protected.
 
 Smoke/full-UI class membership and launch details belong to
@@ -168,8 +172,9 @@ to [Verification.md](Verification.md).
 
 ## UI execution notes
 
-Frame pacing and app-journey metrics are not part of smoke or hosted CI.
-Measurement belongs to the [performance playbook](PerformanceInvestigationPlaybook.md).
+Frame pacing and app-journey metrics are outside smoke and routine push CI.
+Manual hosted performance diagnostics and expressly requested local measurements
+follow the [performance playbook](PerformanceInvestigationPlaybook.md).
 Launch-arg catalog, speed rules, and mid-battle guidance live in
 [`TrinketUITests/README.md`](../../TrinketUITests/README.md); command selection and
 isolation belong to [Verification.md](Verification.md).

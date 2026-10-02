@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
-SCRIPT_DIR="$(dirname "$0")"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/.."
 
 # shellcheck source=run-env.sh
 source "$SCRIPT_DIR/run-env.sh"
@@ -35,6 +35,9 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+source Scripts/lib/verification-policy.sh
+trinket_require_heavy_verification "Build for testing" || exit $?
 
 trinket_run_env_init
 trinket_run_env_print

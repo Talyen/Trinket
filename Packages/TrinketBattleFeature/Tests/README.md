@@ -22,6 +22,7 @@ styling or constants do not establish useful regression protection.
 | Card gesture policy | `BattleCardGesturePolicyTests` |
 | Effect descriptors and recipe fallbacks | `CombatFeedbackEffectPresentationTests` |
 | Raster warmup and invalidation | `CombatFeedbackRasterCatalogTests` |
+| Dissolve-mask transparency and shared storage | `CardDissolveTextureTests` |
 | SFX mapping | `CombatSFXMapperTests` |
 | Victory summary / claimed victory | `BattleVictorySummaryTests`, `BattleClaimedVictoryTests` |
 
@@ -35,6 +36,5 @@ Keep both. They are not duplicates:
 - `PlayBattleLaunchTestSupport` in `TrinketAppStateTests` wraps `PlayBattleLaunch.assembleLaunch` (Persistence + AppState).
 - `BattleRunConfigurationTestSupport` in `TrinketBattleFeatureTests` packages explicit launch DTOs and must stay Persistence- and AppState-free.
 
-```sh
-./Scripts/test-package.sh TrinketBattleFeature
-```
+Package execution follows the [package testing guide](../README.md#testing) and
+[Verification](../../../Docs/Platform/Verification.md#execution-limits).

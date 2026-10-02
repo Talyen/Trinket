@@ -14,9 +14,9 @@ package enum BattleTurnEngine {
             guard let index = runtime.activeEffects.firstIndex(where: \.isAwaitingActionSkip) else { return }
             var effect = runtime.activeEffects[index]
             keyword = effect.keyword
-            let extraSkips = context.additionalControlSkipsByCombatantID[actor.id, default: 0]
+            let extraSkips = context.additionalControlSkipsByEffectID[effect.id, default: 0]
             if extraSkips > 0 {
-                context.additionalControlSkipsByCombatantID[actor.id] = extraSkips - 1
+                context.additionalControlSkipsByEffectID[effect.id] = extraSkips > 1 ? extraSkips - 1 : nil
                 effect.remainingTurns = 0
             } else {
                 effect.remainingTurns = BattleTiming.controlStatusLingerTurns

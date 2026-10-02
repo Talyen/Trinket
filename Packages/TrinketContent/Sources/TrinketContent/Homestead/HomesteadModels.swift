@@ -1,4 +1,3 @@
-import Foundation
 import TrinketCore
 
 public struct HomesteadBonus: Hashable, Sendable {
@@ -11,41 +10,8 @@ public struct HomesteadBonus: Hashable, Sendable {
     }
 }
 
-public struct HomesteadTierCombatBonus: Equatable, Hashable, Sendable {
-    public var heroModifiers: [AffixModifier]
-    public var companionModifiers: [AffixModifier]
-    public var astralChanceBonusPercent: Int
-    public var goldFindPercent: Int
-    public var goldFindFlat: Int
-    public var experienceBonus: Int
-    public var gemsFindBonus: Int
-    public var gemsFindPercent: Int
-    public var experienceBonusPercent: Int
-
-    public static let empty = Self()
-
-    public init(
-        heroModifiers: [AffixModifier] = [],
-        companionModifiers: [AffixModifier] = [],
-        astralChanceBonusPercent: Int = 0,
-        goldFindPercent: Int = 0,
-        goldFindFlat: Int = 0,
-        experienceBonus: Int = 0,
-        gemsFindBonus: Int = 0,
-        gemsFindPercent: Int = 0,
-        experienceBonusPercent: Int = 0,
-    ) {
-        self.heroModifiers = heroModifiers
-        self.companionModifiers = companionModifiers
-        self.astralChanceBonusPercent = astralChanceBonusPercent
-        self.goldFindPercent = goldFindPercent
-        self.goldFindFlat = goldFindFlat
-        self.experienceBonus = experienceBonus
-        self.gemsFindBonus = gemsFindBonus
-        self.gemsFindPercent = gemsFindPercent
-        self.experienceBonusPercent = experienceBonusPercent
-    }
-}
+/// A tier contributes the same fields that the combined Homestead effects expose.
+public typealias HomesteadTierCombatBonus = HomesteadEffects
 
 public struct HomesteadNodeTier: Hashable, Sendable {
     public let tier: Int

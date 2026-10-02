@@ -62,6 +62,8 @@ qualifies for Sun Glyph and Crownfall, each limited to once per turn. Fox's
 Snatch, Lucky Strike, and Light-Fingered roll once per eligible ability; its
 first successful Gold steal doubles only once per combat. Dodge retaliation
 chances roll once per Dodge and preparations refresh rather than stack.
+Golden Recovery and Stolen Breath finish their healing for a living Fox even when
+the qualifying Gold gain or preceding Dodge retaliation defeats the enemy.
 Decoy Swap rolls once per Hero-targeted enemy ability. On success Fox Dodges
 the entire ability and reacts once. Piercing Starlight lets Pixie's Holy
 attacks ignore half enemy Block; enemies do not currently Dodge.
@@ -184,7 +186,7 @@ rewarding each damage event.
 
 Bloodfire rolls once per Burn ability, on its first Burn attack hit. A success
 deals 4 immediate Bleed damage through the ordinary Block and damage pipeline
-and emits one automatic damage cue;
+and attaches the ordinary Bleed stack to a surviving target, with one automatic damage cue;
 ongoing Burn damage does not roll again.
 
 ### Paralysis, Bloodrush, and Arcane Focus
@@ -224,6 +226,8 @@ Quick Fingers draws when the owner's Critical Hit and Gold steal occur in the
 same ability. Claim the draw once per ability before drawing; ordinary Gold
 gains and another party member's theft do not qualify. Normal hand limits,
 buffering, and control restrictions apply.
+Basic counterattacks retain their own Critical Hit facts and qualify for Quick Fingers;
+they cannot borrow the interrupted card's Critical Hit result.
 
 ### Card-triggered reactions
 
@@ -260,6 +264,10 @@ Aftershock Guard, Winter's Wake, Redline, Ashen Vitality, Golden Guard,
 Revealed Flaw, and Sanctified Scroll also reserve their next Block gain,
 typed attack, or Critical Hit bonus for a later ability. Multi-hit creating
 abilities cannot spend them.
+Ashen Vitality, Sanctified Scroll, and Aftershock Guard also retain their creating
+action so counterattacks without a card frame cannot spend the fresh bonus.
+Heat Recovery records the Cleanse action and card that readied its Burn bonus,
+including when refreshing an existing preparation.
 
 ### Panther Dodge preparations
 
@@ -277,6 +285,7 @@ retaliation feedback.
 Sleight of Coin prepares +15% Dodge for the rest of the turn after a successful
 Gold steal; repeated steals refresh rather than stack it. Jackpot folds its
 extra Gold into a Critical Hit's Gold steal, producing one Gold gain event.
+This also applies to a qualifying Basic counterattack's own Critical Hit and theft.
 
 ### Consolation Prize and Feigned Miss
 
@@ -299,7 +308,8 @@ operation still draws once; separate successful operations have no turn limit.
 ## Mana and empowerment
 
 Overcharge and Soul Burn prepare bonuses for a later attack. Their preparing
-ability cannot consume the bonus, even when it has multiple hits.
+ability cannot consume the bonus, even when it has multiple hits or is a
+Mana-empowered counterattack without a card frame.
 
 ### Dark Recovery and Arcane Burst
 
@@ -444,6 +454,10 @@ ongoing damage does not consume it. Subzero Mist grants Dodge when the enemy
 recovers from Freeze and expires at the next party turn.
 
 ## Storage ownership
+
+Battle-local talent state, action/card reservations, and preparation provenance
+follow the [actions and cards contract](battle-actions.md). Saved talent selections
+remain roster-owned under [persistence storage](persistence-storage.md).
 
 Trigger and per-combatant talent storage retain value semantics through copy-on-write. Read accessors
 borrow stored fields instead of copying the complete trigger set onto the stack;

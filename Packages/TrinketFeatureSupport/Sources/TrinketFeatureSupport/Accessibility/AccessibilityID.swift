@@ -6,6 +6,7 @@ public enum AccessibilityID {
     public enum Onboarding {
         public static let heroScreen = "Starter Hero Choice Screen"
         public static let companionScreen = "Starter Companion Choice Screen"
+        public static let selectedName = "Selected Starter Name"
 
         public static func option(role: Combatant.Role, combatantID: String) -> String {
             "Starter \(role.rawValue) Option \(combatantID)"
@@ -318,6 +319,14 @@ public enum AccessibilityID {
         public static let walletButton = "Homestead Wallet Button"
         public static let closeSheetButton = "Homestead Close Sheet Button"
         public static let backButton = "Homestead Detail Back Button"
+
+        public static func resourceBalance(_ resource: HomesteadResource) -> String {
+            "Homestead \(resource.rawValue) Balance"
+        }
+
+        public static func resourceCost(_ resource: HomesteadResource) -> String {
+            "Homestead \(resource.rawValue) Cost"
+        }
 
         public static func category(_ title: String) -> String {
             "Homestead \(title) Category"

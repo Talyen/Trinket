@@ -30,7 +30,9 @@ runs:
   steps:
     - name: Clear cached test diagnostics before test preparation
       shell: bash
-      run: ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
+      run: |
+        ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
+        rm -f .DerivedData/TestResults/timing-log.jsonl
 
     - name: Preboot simulator
       if: inputs.preboot-simulator == 'true'
@@ -118,6 +120,17 @@ runs:
       if: always()
       shell: bash
       run: ./Scripts/ci-diagnostics.sh --cleanup .DerivedData/TestResults
+
+    - name: Keep compact UI timing evidence
+      if: always() && startsWith(inputs.command, './Scripts/test.sh ')
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+      with:
+        name: ${{ inputs.artifact-prefix }}${{ inputs.artifact-name }}-timing-${{ github.run_id }}-${{ github.run_attempt }}
+        path: |
+          .DerivedData/TestResults-artifact/timing-log.jsonl
+          .DerivedData/TestResults-artifact/ci-diagnostics.json
+        retention-days: 3
+        if-no-files-found: ignore
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
       # Passing runs are intentionally ephemeral. Keep forensic artifacts for a

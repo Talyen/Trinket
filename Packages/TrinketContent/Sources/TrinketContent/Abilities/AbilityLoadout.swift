@@ -75,11 +75,17 @@ public struct AbilityChoices: Hashable, Sendable {
     }
 
     public init(abilities: [Ability]) {
-        self.init(
-            basics: abilities.filter { $0.tier == .basic },
-            skills: abilities.filter { $0.tier == .skill },
-            ultimates: abilities.filter { $0.tier == .ultimate },
-        )
+        var basics: [Ability] = []
+        var skills: [Ability] = []
+        var ultimates: [Ability] = []
+        for ability in abilities {
+            switch ability.tier {
+            case .basic: basics.append(ability)
+            case .skill: skills.append(ability)
+            case .ultimate: ultimates.append(ability)
+            }
+        }
+        self.init(basics: basics, skills: skills, ultimates: ultimates)
     }
 
     public func abilities(for tier: AbilityTier) -> [Ability] {

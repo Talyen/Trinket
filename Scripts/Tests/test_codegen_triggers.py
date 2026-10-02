@@ -117,6 +117,15 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             with self.subTest(token=token), self.assertRaises(ValueError):
                 content_codegen_triggers.triggers_swift(token)
 
+    def test_boolean_aliases_and_canonical_fields_emit_swift_literals(self) -> None:
+        for field in ("first_hit_double_damage", "firstHitDoubleDamage"):
+            for raw, literal in (("TRUE", "true"), ("False", "false"), ("1", "true")):
+                with self.subTest(field=field, raw=raw):
+                    self.assertEqual(
+                        content_codegen_triggers.triggers_swift(f"{field}:{raw}"),
+                        content_codegen_triggers.triggers_swift(f"firstHitDoubleDamage:{literal}"),
+                    )
+
     def test_triggers_swift_bespoke_arity_errors_name_expected_shape(self) -> None:
         for token in [
             "damage_below_health_percent:50",

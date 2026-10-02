@@ -40,6 +40,7 @@ final class CombatFeedbackGlyphAtlas {
 
     private(set) var icons: [IconKey: Glyph] = [:]
     private var fragments: [FragmentKey: Glyph] = [:]
+    private var maximumDigitWidths: [Face: CGFloat] = [:]
     private var preparedPresentationKeys: Set<PresentationKey> = []
     private var pendingPrewarm: PendingPrewarm?
     private var prewarmGeneration = 0
@@ -85,6 +86,7 @@ final class CombatFeedbackGlyphAtlas {
         preparedPresentationKeys.removeAll(keepingCapacity: true)
         icons.removeAll(keepingCapacity: true)
         fragments.removeAll(keepingCapacity: true)
+        maximumDigitWidths.removeAll(keepingCapacity: true)
     }
 
     func icon(
@@ -131,6 +133,21 @@ final class CombatFeedbackGlyphAtlas {
             }
             guard !Task.isCancelled, completedKey != nil else { return }
         }
+    }
+
+    func maximumDigitWidth(face: Face, recipe: CombatFeedbackChipStyle) -> CGFloat {
+        if let width = maximumDigitWidths[face] {
+            return width
+        }
+        let widths = (0 ... 9).compactMap {
+            fragment(String($0), face: face, recipe: recipe)?.width
+        }
+        let width = widths.max() ?? 0
+        // A failed glyph bake remains retryable instead of caching a partial metric.
+        if widths.count == 10 {
+            maximumDigitWidths[face] = width
+        }
+        return width
     }
 
     private func startBattlePresentationPreparation(
@@ -227,13 +244,16 @@ final class CombatFeedbackGlyphAtlas {
     nonisolated static func bake(_ requests: [PrewarmRequest]) -> [PreparedGlyph] {
         requests.compactMap { request in
             guard !Task.isCancelled else { return nil }
-            switch request {
-            case let .icon(key, recipe):
-                return bakeIcon(key.icon, face: key.face, recipe: recipe)
-                    .map { .icon(key, $0) }
-            case let .fragment(key, recipe):
-                return bakeFragment(key.text, face: key.face, recipe: recipe)
-                    .map { .fragment(key, $0) }
+            // Retain the CGImage result while releasing each bake's temporary UIKit objects.
+            return autoreleasepool { () -> PreparedGlyph? in
+                switch request {
+                case let .icon(key, recipe):
+                    bakeIcon(key.icon, face: key.face, recipe: recipe)
+                        .map { .icon(key, $0) }
+                case let .fragment(key, recipe):
+                    bakeFragment(key.text, face: key.face, recipe: recipe)
+                        .map { .fragment(key, $0) }
+                }
             }
         }
     }

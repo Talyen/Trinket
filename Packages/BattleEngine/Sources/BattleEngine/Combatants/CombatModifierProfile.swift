@@ -1,17 +1,16 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
 public struct CombatModifierProfile: Equatable, Hashable, Sendable {
-    public var damageDealtPercents: [Keyword: Double] = [:]
-    public var maximumHealthPercentBonus: Double = 0
-    public var criticalDamagePercent: Double = 0
-    public var healthRestoredPercent: Double = 0
-    public var manaRestoredPercent: Double = 0
-    public var leechHealingPercent: Double = 0
-    public var blockGainedPercent: Double = 0
-    public var companionDamageDealtPercent: Double = 0
-    public var rangedDamageDealtPercent: Double = 0
+    public var damageDealtPercents: [Keyword: Double]
+    public var maximumHealthPercentBonus: Double
+    public var criticalDamagePercent: Double
+    public var healthRestoredPercent: Double
+    public var manaRestoredPercent: Double
+    public var leechHealingPercent: Double
+    public var blockGainedPercent: Double
+    public var companionDamageDealtPercent: Double
+    public var rangedDamageDealtPercent: Double
     public var maximumHealthBonus: Int
     public var maximumManaBonus: Int
     public var criticalDamageBonus: Int
@@ -125,9 +124,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     }
 
     public mutating func merge(_ other: Self) {
-        for (keyword, amount) in other.damageDealtPercents {
-            damageDealtPercents[keyword, default: 0] += amount
-        }
+        damageDealtPercents.merge(other.damageDealtPercents, uniquingKeysWith: +)
         maximumHealthPercentBonus += other.maximumHealthPercentBonus
         criticalDamagePercent += other.criticalDamagePercent
         healthRestoredPercent += other.healthRestoredPercent
@@ -140,9 +137,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         maximumManaBonus += other.maximumManaBonus
         criticalDamageBonus += other.criticalDamageBonus
         manaRestoredBonus += other.manaRestoredBonus
-        for (keyword, amount) in other.damageDealtBonus {
-            damageDealtBonus[keyword, default: 0] += amount
-        }
+        damageDealtBonus.merge(other.damageDealtBonus, uniquingKeysWith: +)
         poisonDamageDealtPercent += other.poisonDamageDealtPercent
         healthRestoredBonus += other.healthRestoredBonus
         leechGainedBonus += other.leechGainedBonus
@@ -151,15 +146,9 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         goldGainedPercent += other.goldGainedPercent
         blockGainedBonus += other.blockGainedBonus
         bleedDurationBonus += other.bleedDurationBonus
-        for (keyword, amount) in other.damageTakenReduction {
-            damageTakenReduction[keyword, default: 0] += amount
-        }
-        for (keyword, amount) in other.damageTakenFlat {
-            damageTakenFlat[keyword, default: 0] += amount
-        }
-        for (keyword, amount) in other.damageTakenVulnerability {
-            damageTakenVulnerability[keyword, default: 0] += amount
-        }
+        damageTakenReduction.merge(other.damageTakenReduction, uniquingKeysWith: +)
+        damageTakenFlat.merge(other.damageTakenFlat, uniquingKeysWith: +)
+        damageTakenVulnerability.merge(other.damageTakenVulnerability, uniquingKeysWith: +)
         companionDamageDealtBonus += other.companionDamageDealtBonus
         companionPhysicalDamageDealtBonus += other.companionPhysicalDamageDealtBonus
         companionBleedDamageDealtBonus += other.companionBleedDamageDealtBonus
@@ -168,9 +157,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         rangedDamageDealtBonus += other.rangedDamageDealtBonus
         maximumManaPercentBonus += other.maximumManaPercentBonus
         triggers.merge(other.triggers)
-        for (key, name) in other.triggerAbilityNames where triggerAbilityNames[key] == nil {
-            triggerAbilityNames[key] = name
-        }
+        triggerAbilityNames.merge(other.triggerAbilityNames) { existing, _ in existing }
     }
 
     public func triggerAbilityName(_ key: String, fallback: String) -> String {
@@ -286,93 +273,5 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
 
     public func damageTakenVulnerability(for keyword: Keyword) -> Double {
         max(0, damageTakenVulnerability[keyword, default: 0])
-    }
-}
-
-public extension AffixModifier {
-    func apply(to profile: inout CombatModifierProfile) {
-        profile.merge(self)
-    }
-}
-
-public struct CombatBuild: Equatable, Hashable, Sendable {
-    public let combatant: Combatant
-    public let modifiers: CombatModifierProfile
-
-    public init(combatant: Combatant, modifiers: CombatModifierProfile) {
-        self.combatant = combatant
-        self.modifiers = modifiers
-    }
-
-    public var effectiveMaxHealth: Int {
-        CombatantMaxValues.maxHealth(for: combatant, modifiers: modifiers)
-    }
-
-    public var effectiveMaxMana: Int {
-        CombatantMaxValues.maxMana(for: combatant, modifiers: modifiers)
-    }
-}
-
-public enum CombatantMaxValues {
-    public static func maxHealth(for combatant: Combatant, modifiers: CombatModifierProfile) -> Int {
-        CombatRounding.scaled(
-            combatant.maxHealth + modifiers.maximumHealthBonus,
-            multiplier: 1 + modifiers.maximumHealthPercentBonus,
-        )
-    }
-
-    public static func maxMana(for combatant: Combatant, modifiers: CombatModifierProfile) -> Int {
-        guard combatant.hasMana else { return 0 }
-        let baseWithFlat = combatant.maxMana + modifiers.maximumManaBonus
-        let multiplier = max(0, 1.0 + modifiers.maximumManaPercentBonus)
-        return max(0, Int((Double(baseWithFlat) * multiplier).rounded()))
-    }
-
-    public static func maxHealth(for combatant: Combatant, flatBonus: Int, talentBonus: Int = 0) -> Int {
-        combatant.maxHealth + flatBonus + talentBonus
-    }
-
-    public static func maxMana(for combatant: Combatant, flatBonus: Int, effectBonus: Int = 0) -> Int {
-        guard combatant.hasMana else { return 0 }
-        return combatant.maxMana + flatBonus + effectBonus
-    }
-}
-
-public extension CombatTraitTriggers {
-    func apply(to profile: inout CombatModifierProfile) {
-        profile.triggers.merge(self)
-    }
-
-    func apply(to profile: inout CombatModifierProfile, abilityName: String) {
-        apply(to: &profile)
-        for key in populatedFieldNames {
-            profile.setTriggerAbilityName(key, abilityName)
-        }
-    }
-}
-
-public extension CombatantTraitDefinition {
-    func apply(to profile: inout CombatModifierProfile) {
-        for modifier in modifiers {
-            profile.merge(modifier)
-        }
-        triggers.apply(to: &profile, abilityName: name)
-    }
-}
-
-public extension CombatantTalentEffect {
-    func apply(to profile: inout CombatModifierProfile) {
-        profile.merge(modifiers)
-        triggers.apply(to: &profile, abilityName: name)
-    }
-}
-
-public extension CombatantTalentCatalog {
-    static func profile(for unlockedNodeIDs: Set<String>) -> CombatModifierProfile {
-        var profile = CombatModifierProfile.zero
-        for nodeID in unlockedNodeIDs.sorted() {
-            signatureTalents[nodeID]?.apply(to: &profile)
-        }
-        return profile
     }
 }

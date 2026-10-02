@@ -21,7 +21,7 @@ enum BalanceIdentityMargins {
         threshold: Double,
         targetBand: (lower: Double, upper: Double)? = nil,
     ) -> [WinRateSummary] {
-        margins(buckets: tally(records) { [$0[keyPath: id]] }.sorted { $0.key < $1.key }) { id, bucket in
+        margins(buckets: tally(records) { [$0[keyPath: id]] }) { id, bucket in
             WinRateSpec(
                 id: id,
                 ownerID: nil,
@@ -45,7 +45,7 @@ enum BalanceIdentityMargins {
         negativeFlag: String = "LOW",
         ownerID: String? = nil,
     ) -> [WinRateSummary] {
-        margins(buckets: tally(records) { ids($0) }.sorted { $0.key < $1.key }) { id, bucket in
+        margins(buckets: tally(records, keys: ids)) { id, bucket in
             WinRateSpec(
                 id: id,
                 ownerID: ownerID,
@@ -66,8 +66,7 @@ enum BalanceIdentityMargins {
         threshold: Double,
     ) -> [WinRateSummary] {
         margins(
-            buckets: tally(records) { ownerAndIDs($0).map { OwnerID(owner: $0.0, id: $0.1) } }
-                .sorted { ($0.key.id, $0.key.owner) < ($1.key.id, $1.key.owner) },
+            buckets: tally(records) { ownerAndIDs($0).map { OwnerID(owner: $0.0, id: $0.1) } },
         ) { key, bucket in
             WinRateSpec(
                 id: key.id,
@@ -82,8 +81,8 @@ enum BalanceIdentityMargins {
         }
     }
 
-    private static func margins<Key>(buckets: [(key: Key, value: Tally)], spec: (Key, Tally) -> WinRateSpec) -> [WinRateSummary] {
-        buckets.map { spec($0.key, $0.value) }.map(makeWinRate).sorted(by: flaggedFirst)
+    private static func margins<Key: Hashable>(buckets: [Key: Tally], spec: (Key, Tally) -> WinRateSpec) -> [WinRateSummary] {
+        buckets.map { makeWinRate(spec($0.key, $0.value)) }.sorted(by: flaggedFirst)
     }
 
     private struct OwnerID: Hashable {
@@ -104,8 +103,8 @@ enum BalanceIdentityMargins {
         tally(records) { [EnemyID(id: $0.enemyID, isBoss: $0.isBoss)] }
             .map { enemy, bucket in
                 let band = targetBand(enemy.isBoss)
-                let ci = BalanceStatsAggregator.wilson(wins: bucket.wins, battles: bucket.battles)
-                let sampleTooLow = bucket.battles < BalanceSweepConfig.identityFlagMinBattles
+                let ci = bucket.interval
+                let sampleTooLow = bucket.sampleTooLow
                 let isHard = ci.high < band.lower
                 let isEasy = ci.low > band.upper
                 let flagged = (isHard || isEasy) && !sampleTooLow
@@ -150,21 +149,17 @@ enum BalanceIdentityMargins {
     ) -> [PairCellSummary] {
         let buckets = tally(records) { [PairID(left: $0[keyPath: left], right: $0[keyPath: right])] }
         return buckets.compactMap { pair, bucket in
-            guard bucket.battles >= BalanceSweepConfig.identityFlagMinBattles else { return nil }
-            let rate = bucket.rate
-            let delta = rate - peerRate
-            let ci = BalanceStatsAggregator.wilson(wins: bucket.wins, battles: bucket.battles)
-            let flagged = abs(delta) >= threshold && (ci.low > peerRate || ci.high < peerRate)
-            guard flagged else { return nil }
+            guard let reason = bucket.flagReason(peerRate: peerRate, threshold: threshold) else { return nil }
+            let delta = bucket.rate - peerRate
             return PairCellSummary(
                 leftID: pair.left,
                 rightID: pair.right,
                 wins: bucket.wins,
                 battles: bucket.battles,
-                winRate: rate,
+                winRate: bucket.rate,
                 deltaVsPeer: delta,
                 flagged: true,
-                flagReason: delta > 0 ? "HIGH" : "LOW",
+                flagReason: reason,
             )
         }
         .sorted { lhs, rhs in
@@ -181,6 +176,27 @@ enum BalanceIdentityMargins {
 
         var rate: Double {
             battles == 0 ? 0 : Double(wins) / Double(battles)
+        }
+
+        var interval: (low: Double, high: Double) {
+            BalanceStatsAggregator.wilson(wins: wins, battles: battles)
+        }
+
+        var sampleTooLow: Bool {
+            battles < BalanceSweepConfig.identityFlagMinBattles
+        }
+
+        func flagReason(
+            peerRate: Double,
+            threshold: Double,
+            positive: String = "HIGH",
+            negative: String = "LOW",
+        ) -> String? {
+            let delta = rate - peerRate
+            let ci = interval
+            guard !sampleTooLow, abs(delta) >= threshold,
+                  ci.low > peerRate || ci.high < peerRate else { return nil }
+            return delta > 0 ? positive : negative
         }
 
         mutating func record(_ result: BattleSimResult) {
@@ -224,25 +240,25 @@ enum BalanceIdentityMargins {
     }
 
     private static func makeWinRate(_ spec: WinRateSpec) -> WinRateSummary {
-        let rate = spec.battles == 0 ? 0 : Double(spec.wins) / Double(spec.battles)
-        let ci = BalanceStatsAggregator.wilson(wins: spec.wins, battles: spec.battles)
-        let delta = rate - spec.peerRate
-        let sampleTooLow = spec.battles < BalanceSweepConfig.identityFlagMinBattles
-        let flagged = !sampleTooLow && abs(delta) >= spec.threshold
-            && (ci.low > spec.peerRate || ci.high < spec.peerRate)
+        let tally = Tally(wins: spec.wins, battles: spec.battles)
+        let ci = tally.interval
+        let reason = tally.flagReason(
+            peerRate: spec.peerRate, threshold: spec.threshold,
+            positive: spec.positiveFlag, negative: spec.negativeFlag,
+        )
         return WinRateSummary(
             id: spec.id,
             ownerID: spec.ownerID,
             wins: spec.wins,
             battles: spec.battles,
-            winRate: rate,
+            winRate: tally.rate,
             wilsonLow: ci.low,
             wilsonHigh: ci.high,
-            deltaVsPeer: delta,
+            deltaVsPeer: tally.rate - spec.peerRate,
             targetBandDelta: spec.targetBandDelta,
-            flagged: flagged,
-            flagReason: flagged ? (delta > 0 ? spec.positiveFlag : spec.negativeFlag) : nil,
-            sampleTooLow: sampleTooLow,
+            flagged: reason != nil,
+            flagReason: reason,
+            sampleTooLow: tally.sampleTooLow,
         )
     }
 }

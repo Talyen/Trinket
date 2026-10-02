@@ -48,53 +48,23 @@ private struct BorderTimeline: View {
 
     var body: some View {
         let motionEnabled = isMotionActive && isPresentationMotionActive && scenePhase == .active && !reduceMotion
+        let gradient = Gradient(stops: gradientStops(for: colors, motionEnabled: motionEnabled))
         TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !motionEnabled)) { context in
             let angle = motionEnabled
                 ? TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
                 : 0
             KeywordShineBorderStroke(
-                colors: colors,
+                gradient: gradient,
                 cornerRadius: cornerRadius,
                 lineWidth: lineWidth,
                 angle: angle,
-                motionEnabled: motionEnabled,
             )
         }
         .allowsHitTesting(false)
         .animation(nil, value: isMotionActive)
     }
-}
 
-private struct KeywordShineBorderStroke: View {
-    let colors: [Color]
-    let cornerRadius: CGFloat
-    let lineWidth: CGFloat
-    let angle: Double
-    let motionEnabled: Bool
-
-    var body: some View {
-        let stops = gradientStops(for: colors)
-        ZStack {
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .strokeBorder(TrinketDesign.Colors.panel, lineWidth: lineWidth)
-            GeometryReader { geometry in
-                let width = geometry.size.width
-                let height = geometry.size.height
-                let diameter = (width * width + height * height).squareRoot()
-                AngularGradient(gradient: Gradient(stops: stops), center: .center)
-                    .frame(width: diameter, height: diameter)
-                    .drawingGroup()
-                    .rotationEffect(.degrees(angle))
-                    .position(x: width / 2, y: height / 2)
-            }
-            .mask {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(TrinketDesign.Colors.Overlay.paper, lineWidth: lineWidth)
-            }
-        }
-    }
-
-    private func gradientStops(for colors: [Color]) -> [Gradient.Stop] {
+    private func gradientStops(for colors: [Color], motionEnabled: Bool) -> [Gradient.Stop] {
         guard let base = colors.first else { return [] }
         if colors.count == 1 {
             return Shine.stops(for: base, motionEnabled: motionEnabled)
@@ -109,6 +79,34 @@ private struct KeywordShineBorderStroke: View {
             stops.append(.init(color: looped[i], location: loc))
         }
         return stops
+    }
+}
+
+private struct KeywordShineBorderStroke: View {
+    let gradient: Gradient
+    let cornerRadius: CGFloat
+    let lineWidth: CGFloat
+    let angle: Double
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .strokeBorder(TrinketDesign.Colors.panel, lineWidth: lineWidth)
+            GeometryReader { geometry in
+                let width = geometry.size.width
+                let height = geometry.size.height
+                let diameter = (width * width + height * height).squareRoot()
+                AngularGradient(gradient: gradient, center: .center)
+                    .frame(width: diameter, height: diameter)
+                    .drawingGroup()
+                    .rotationEffect(.degrees(angle))
+                    .position(x: width / 2, y: height / 2)
+            }
+            .mask {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .strokeBorder(TrinketDesign.Colors.Overlay.paper, lineWidth: lineWidth)
+            }
+        }
     }
 }
 

@@ -56,6 +56,16 @@ Inspection scope and stopping rules follow
 If the tool cannot express a gesture's timing, use the existing gesture test or
 report the limitation rather than claiming its feel was verified.
 
+### Native Xcode inspection
+
+For requested local device diagnostics or UI verification, the
+[device-interaction skill](../../.agents/skills/device-interaction/SKILL.md) provides
+Xcode's native screenshot, hierarchy, and input route. Use it when Computer Use
+cannot attach to Device Hub or native device events better fit the task. Keep the
+same managed simulator lease alive and target its exact UDID; an Xcode interaction
+session does not reserve a Trinket simulator slot. The skill owns delegation,
+session cleanup, tool mapping, and Apple's exported interaction reference.
+
 ### Optional evidence capture
 
 Computer Use observations are sufficient for routine inspection. When a saved
@@ -66,9 +76,11 @@ another run owns the capacity, not permission to take its device.
 
 ## Optional mirror (isolated → human)
 
-Handoff is headless by default. `handoff.sh --isolate --mirror` opts into
-installing the verified app on **Trinket Run** when the changed paths require an
-app or package build. The mirror is install-only by default; it does not launch
+Handoff is headless by default. An expressly requested local mirror uses
+`TRINKET_ALLOW_HEAVY_LOCAL=1` with `handoff.sh --isolate --mirror`; the option is
+guarded because it builds and installs on **Trinket Run** when the changed paths
+require an app or package build. Routine lightweight handoff cannot mirror an app.
+The mirror is install-only by default; it does not launch
 the game. Mirroring holds an isolated build lease and the Trinket Run lease,
 builds the app once, and installs that exact product. Build or install failure
 fails the requested mirror. Other agent simulators and their builds are never
@@ -112,7 +124,9 @@ Custom, Relative to Workspace:
 - Products: `.DerivedData/Build/Products`
 - Intermediates: `.DerivedData/Build/Intermediates.noindex`
 
-Use scoped package or test loops. Avoid asset generation during Swift-only work,
+Routine verification uses lightweight handoff; expressly requested package or
+test diagnostics follow [execution limits](Verification.md#execution-limits).
+Avoid asset generation during Swift-only work,
 and avoid opening both the app project and a nested package in separate Xcode
 windows. `prune-derived-data-cache.sh` safely removes old local artifacts while
 keeping useful warm products.

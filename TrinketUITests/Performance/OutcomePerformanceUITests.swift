@@ -74,20 +74,6 @@ final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func testDefeatRecovery() {
-        for iteration in 1 ... repetitionCount {
-            launchApp(arguments: TestLaunchArg
-                .performanceArguments(from: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat-save-failure")))
-            assertExists(AccessibilityID.Battle.defeat)
-            measured("defeat-save-recovery", iteration: iteration) {
-                tapButton(AccessibilityID.Battle.defeatLeaveButton)
-                play.assertCampaignLoaded()
-                XCTAssertFalse(app.alerts.firstMatch.exists)
-            }
-        }
-    }
-
-    @MainActor
     func testTalentReward() {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance() + ["-performance-talent-reward", "-performance-outcome-victory"])

@@ -208,12 +208,6 @@ extension BattleSession {
         }
     }
 
-    func presentResolvedEvents(_ events: [ActionEvent], at date: Date, actionGroupID: Int? = nil) {
-        let nonMilestone = events.filter { $0.kind != .milestone }
-        feedback.record(nonMilestone, at: date, environment: dependencies, actionGroupID: actionGroupID)
-        presentUltimateHighlight(nonMilestone, at: date)
-    }
-
     func presentUltimateHighlight(_ nonMilestone: [ActionEvent], at date: Date) {
         guard let heroID,
               let companionID

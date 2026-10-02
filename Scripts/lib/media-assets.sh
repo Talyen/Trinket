@@ -69,22 +69,21 @@ trinket_asset_validate_bool() {
 # Tracked temp files: every path created through trinket_asset_track_mktemp is
 # removed by trinket_asset_cleanup_tracked (including sort-state suffixes), so
 # callers need one trap instead of one variable per temp file.
-TRINKET_ASSET_TEMPS=""
+TRINKET_ASSET_TEMPS=()
 
 trinket_asset_track_mktemp() {
   local _var="$1" _tmp
   _tmp="$(mktemp)" || return 1
-  TRINKET_ASSET_TEMPS="$TRINKET_ASSET_TEMPS $_tmp"
+  TRINKET_ASSET_TEMPS+=("$_tmp")
   printf -v "$_var" '%s' "$_tmp"
 }
 
 trinket_asset_cleanup_tracked() {
   local _tmp
-  # shellcheck disable=SC2086
-  for _tmp in $TRINKET_ASSET_TEMPS; do
+  for _tmp in "${TRINKET_ASSET_TEMPS[@]+"${TRINKET_ASSET_TEMPS[@]}"}"; do
     rm -f "$_tmp" "$_tmp.next" "$_tmp.sorted"
   done
-  TRINKET_ASSET_TEMPS=""
+  TRINKET_ASSET_TEMPS=()
 }
 
 # Single home for the cinematic Ultimate gate: the generated ability inventory
@@ -126,7 +125,7 @@ trinket_asset_needs_reencode() {
   local output_file="$5"
 
   [[ "${FORCE_ASSET_REENCODE:-0}" == "1" ]] \
-    || [[ ! -f "$output_file" ]] \
+    || [[ ! -f "$output_file" || ! -s "$output_file" ]] \
     || [[ -z "$recorded_hash" ]] \
     || [[ "$recorded_hash" != "$source_hash" ]] \
     || [[ -z "$recorded_profile" ]] \

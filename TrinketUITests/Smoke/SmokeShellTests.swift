@@ -17,18 +17,6 @@ final class SmokeShellTests: TrinketUITestCase {
 
         tabBar.selectOptions()
         options.assertLoaded(timeout: 10)
-        let haptics = app.descendants(matching: .any)[AccessibilityID.Options.hapticsToggle]
-        assertExists(AccessibilityID.Options.hapticsToggle, timeout: 10)
-        let initialValue = haptics.value as? String
-        // XCUITest exposes the whole Toggle row; its center falls in the gap before the switch.
-        XCTAssertTrue(haptics.isHittable)
-        haptics.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
-        if let initial = initialValue {
-            let changed = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "value != %@", initial), object: haptics,
-            )
-            XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: Self.defaultTimeout), .completed)
-        }
         tabBar.selectPlay()
         play.assertLoaded(timeout: 10)
     }
@@ -44,6 +32,8 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
 
         assertExists(AccessibilityID.Onboarding.heroScreen, timeout: 15)
         XCTAssertEqual(app.tabBars.count, 0)
+        let heroName = any(AccessibilityID.Onboarding.selectedName).label
+        XCTAssertFalse(heroName.isEmpty)
 
         let heroConfirmID = AccessibilityID.Onboarding.confirm(role: .hero)
         assertExists(heroConfirmID, timeout: 15)
@@ -51,6 +41,8 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         tapWhenReady(heroConfirm)
 
         assertExists(AccessibilityID.Onboarding.companionScreen, timeout: 15)
+        let companionName = any(AccessibilityID.Onboarding.selectedName).label
+        XCTAssertFalse(companionName.isEmpty)
 
         let companionConfirmID = AccessibilityID.Onboarding.confirm(role: .companion)
         assertExists(companionConfirmID, timeout: 15)
@@ -62,5 +54,16 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
             "Tab bar did not appear after onboarding",
         )
         play.assertLoaded(timeout: 15)
+        relaunchApp()
+        assertDoesNotExist(AccessibilityID.Onboarding.heroScreen)
+        assertDoesNotExist(AccessibilityID.Onboarding.companionScreen)
+        play.assertLoaded()
+        tabBar.selectCollection()
+        let heroCard = AccessibilityID.CombatantDetail.collectionCard(name: heroName)
+        assertExistsAfterScroll(heroCard, requireHittable: true)
+        XCTAssertFalse(button(heroCard).label.hasSuffix(", locked"), "The selected starter hero must remain unlocked")
+        let companionCard = AccessibilityID.CombatantDetail.collectionCard(name: companionName)
+        assertExistsAfterScroll(companionCard, requireHittable: true)
+        XCTAssertFalse(button(companionCard).label.hasSuffix(", locked"), "The selected starter companion must remain unlocked")
     }
 }

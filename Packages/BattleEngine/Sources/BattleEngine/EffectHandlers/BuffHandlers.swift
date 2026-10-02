@@ -117,12 +117,7 @@ struct MarkedHandler: BattleEffectHandler {
         guard bonus > 0 else {
             return EffectSummary(keyword: keyword, text: "Marked: The next attack deals extra damage and removes Marked.")
         }
-        let suffix = TimedBuffSummary.durationSuffix(in: stacks, separator: ";") { effect in
-            if case let .marked(_, duration) = effect {
-                return duration
-            }
-            return nil
-        }
+        let suffix = TimedBuffSummary.durationSuffix(in: stacks, separator: ";")
         return EffectSummary(
             keyword: keyword,
             text: "Marked: The next attack deals +\(bonus) damage and removes Marked\(suffix).",
@@ -160,12 +155,7 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
             return nil
         }
         guard percent > 0 else { return nil }
-        let suffix = TimedBuffSummary.durationSuffix(in: stacks) { effect in
-            if case let .criticalChanceBonus(_, duration) = effect {
-                return duration
-            }
-            return nil
-        }
+        let suffix = TimedBuffSummary.durationSuffix(in: stacks)
         return EffectSummary(
             keyword: keyword,
             text: "Focused: Increases Critical chance by +\(Int(percent * 100))%\(suffix).",
@@ -203,12 +193,7 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
             return nil
         }
         guard amount > 0 else { return nil }
-        let suffix = TimedBuffSummary.durationSuffix(in: stacks) { effect in
-            if case let .restoreManaOnHit(_, duration) = effect {
-                return duration
-            }
-            return nil
-        }
+        let suffix = TimedBuffSummary.durationSuffix(in: stacks)
         return EffectSummary(
             keyword: keyword,
             text: "Mana Shield: Restores \(amount) Mana when hit\(suffix).",
@@ -245,12 +230,7 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         guard let active = stacks.first,
               case let .damageKeywordOverride(overrideKeyword, bonus, _) = active.effect
         else { return nil }
-        let suffix = TimedBuffSummary.durationSuffix(in: stacks) { effect in
-            if case let .damageKeywordOverride(_, _, duration) = effect {
-                return duration
-            }
-            return nil
-        }
+        let suffix = TimedBuffSummary.durationSuffix(in: stacks)
         return EffectSummary(
             keyword: keyword,
             text: "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus))\(suffix).",

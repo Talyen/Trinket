@@ -195,7 +195,8 @@ extension CombatTriggerTalentDamageTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 2)
     }
 
-    @Test func `bloodfire adds bleed damage to a burn card only once`() throws {
+    @Test(arguments: [false, true])
+    func `bloodfire adds bleed damage to a burn card only once`(bloodfireIsLethal: Bool) throws {
         var profile = CombatantTalentCatalog.profile(for: ["warlock_burn_t1_1"])
         profile.triggers.burnAttackBleedChancePercent = 1
         let ability = Ability(
@@ -204,12 +205,30 @@ extension CombatTriggerTalentDamageTests {
             criticalChanceBonus: -1,
         )
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [ability], heroModifiers: profile,
+            heroAbilities: [ability], enemyMaxHealth: bloodfireIsLethal ? 4 : 100, heroModifiers: profile,
         )
         battle.appliesFightPacing = false
         let card = try #require(battle.hand.cards.first)
         let events = try battle.playCard(cardID: card.id)
-        #expect(events.count { $0.kind == .abilityDamage && $0.keyword == .bleed && $0.amount == 4 } == 1)
+        let immediateDamage = bloodfireIsLethal ? 2 : 4
+        #expect(events.count { $0.kind == .abilityDamage && $0.keyword == .bleed && $0.amount == immediateDamage } == 1)
+        let bleeds = battle.activeEffects(of: battle.enemy).filter(\.effect.isBleed)
+        if bloodfireIsLethal {
+            #expect(battle.health(of: battle.enemy) == 0)
+            #expect(bleeds.isEmpty)
+            return
+        }
+        #expect(bleeds.count == 1)
+        let bleed = try #require(bleeds.first)
+        #expect(bleed.effect == .bleed(4))
+        #expect(bleed.sourceActorID == battle.hero.id)
+        #expect(bleed.remainingTurns == Effect.bleedDoTTurnCount)
+        let beforeTick = battle.health(of: battle.enemy)
+
+        _ = EffectHandlers.handler(for: .bleed).advanceTurn(bleed, on: battle.enemy, in: &battle)
+
+        #expect(beforeTick - battle.health(of: battle.enemy) == 4)
+        #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.isBleed })
     }
 }
 

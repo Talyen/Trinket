@@ -11,8 +11,9 @@ Catalog inputs and generated outputs must stay in sync. Review generated changes
 against authored inputs; generation must be idempotent. For generated talent, affix,
 and Homestead catalogs, `agent-diff.py --summary --paths <generated-files...>`
 provides bounded record/field hints and discloses unrecognized changes. Generated files are committed
-so the app builds without rerunning generation. Local handoff proves idempotence;
-pre-push and CI check committed-output completeness against HEAD.
+so the app builds without rerunning generation. Routine local handoff defers
+generation and idempotence to CI; pre-push checks committed-output completeness.
+CI regenerates and compares outputs against HEAD, including idempotence.
 
 The router owns verification selection. Manifest-only changes require generation
 and idempotence; semantic content changes use content tests; Swift adds style checks.
@@ -31,6 +32,15 @@ combines those lists; preserve their order and existing IDs. Use
 all definition fields and synthesized equality/hash behavior. Combat transformations
 copy that payload and edit only their changed fields; avoid rebuilding a definition
 by forwarding every field, which can silently drop newly added mechanics.
+Generated descriptions, gameplay/identity keywords, and presentation keywords are cached lazily in that storage.
+Keep caches outside value equality/hashing; transformations must receive fresh storage
+so empowered or resolved cards cannot reuse the original card's text or keywords.
+
+`AbilityValidator` inspects base, random-branch, and conditional operations through
+one traversal. Keep alternatives separate when totaling tier damage; both normal
+attack targets and explicit enemy targets count. Cleansing (including Panacea)
+targets allies, while purge targets enemies. `AbilityValidationTests` owns these
+checks; `AbilityCatalogTests` owns catalog identity and player-facing descriptions.
 
 ## Manifests
 

@@ -12,7 +12,7 @@ final class BattleInteractionPerformanceUITests: PerformanceJourneyUITestCase {
             measured("battle-inspection", iteration: iteration) {
                 battle.handCards.firstMatch.press(forDuration: 0.7)
                 assertExists(AccessibilityID.Battle.abilityDetail)
-                dismissSheet()
+                dismissSheet(AccessibilityID.Battle.abilityDetail)
                 assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
                 battle.openCombatantCard(named: "Knight")
                 combatantDetail.assertLoaded(for: "Knight")
@@ -20,7 +20,7 @@ final class BattleInteractionPerformanceUITests: PerformanceJourneyUITestCase {
             let detailScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
             performScrollGestures(app.scrollViews.firstMatch)
             verifyScrollProbes(detailScrollProbes, app.scrollViews.firstMatch)
-            dismissSheet()
+            dismissSheet(AccessibilityID.CombatantDetail.header(name: "Knight"))
             assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
             measured("battle-auto", iteration: iteration, settle: 3) {
                 let count = battle.handCards.count
@@ -59,7 +59,7 @@ final class BattleInteractionPerformanceUITests: PerformanceJourneyUITestCase {
             if didScroll {
                 verifyScrollProbes(logScrollProbes, log)
             }
-            dismissSheet()
+            dismissSheet(AccessibilityID.Battle.combatLogSheet)
             assertDoesNotExist(AccessibilityID.Battle.combatLogSheet)
         }
     }

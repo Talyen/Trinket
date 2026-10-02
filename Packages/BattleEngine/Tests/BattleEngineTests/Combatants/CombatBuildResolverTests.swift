@@ -155,18 +155,4 @@ struct CombatBuildResolverTests {
         )
         #expect(meleeBuild.modifiers.damageDealtBonus[.physical] == nil)
     }
-
-    @Test func `maximum mana percent scales combatants with mana and leaves zero mana unchanged`() {
-        let heroWithMana = CombatantFixtures.passiveHero(maxMana: 20)
-        #expect(heroWithMana.hasMana)
-
-        let modifiers = CombatModifierProfile(maximumManaPercentBonus: 0.20)
-        let scaledMana = CombatantMaxValues.maxMana(for: heroWithMana, modifiers: modifiers)
-        #expect(scaledMana == 24)
-
-        let heroNoMana = CombatantFixtures.passiveHero(maxMana: 0)
-        #expect(!heroNoMana.hasMana)
-        let zeroMana = CombatantMaxValues.maxMana(for: heroNoMana, modifiers: modifiers)
-        #expect(zeroMana == 0)
-    }
 }

@@ -2,6 +2,24 @@ import Foundation
 
 /// Samples connected layouts using only the current row as the graph frontier.
 enum LabyrinthFloorGeometry {
+    private struct RowChoices {
+        let single: [[Int]]
+        let middle: [[Int]]
+    }
+
+    private static let choicesByParity: [RowChoices] = (0 ..< 2).map { parity in
+        let columns = (-LabyrinthMapLayout.maxProjectedHalfColumn ... LabyrinthMapLayout.maxProjectedHalfColumn)
+            .filter { ($0 - parity).isMultiple(of: 2) }
+        let single = columns.map { [$0] }
+        var middle = single
+        for i in columns.indices {
+            for j in columns.indices where j > i {
+                middle.append([columns[i], columns[j]])
+            }
+        }
+        return RowChoices(single: single, middle: middle)
+    }
+
     private struct State: Hashable {
         let row: Int
         let columns: [Int]
@@ -27,26 +45,23 @@ enum LabyrinthFloorGeometry {
             if let cached = memo[state] {
                 return cached
             }
-            let count = successors(of: state).reduce(UInt64(0)) { total, next in
-                total + completions(from: next)
+            var count: UInt64 = 0
+            for columns in columnChoices(after: state) {
+                guard let next = nextState(from: state, columns: columns) else { continue }
+                count += completions(from: next)
             }
             memo[state] = count
             return count
         }
 
         func successors(of state: State) -> [State] {
+            columnChoices(after: state).compactMap { nextState(from: state, columns: $0) }
+        }
+
+        private func columnChoices(after state: State) -> [[Int]] {
             let row = state.row + 1
-            let columns = (-LabyrinthMapLayout.maxProjectedHalfColumn ... LabyrinthMapLayout.maxProjectedHalfColumn)
-                .filter { ($0 - row).isMultiple(of: 2) }
-            var choices = columns.map { [$0] }
-            if row < rowCount - 1 {
-                for i in columns.indices {
-                    for j in columns.indices where j > i {
-                        choices.append([columns[i], columns[j]])
-                    }
-                }
-            }
-            return choices.compactMap { nextState(from: state, columns: $0) }
+            let choices = LabyrinthFloorGeometry.choicesByParity[row % 2]
+            return row < rowCount - 1 ? choices.middle : choices.single
         }
 
         private func nextState(from state: State, columns: [Int]) -> State? {
@@ -65,7 +80,9 @@ enum LabyrinthFloorGeometry {
                 } else {
                     let replaced = labels[b]
                     let replacement = labels[a]
-                    labels = labels.map { $0 == replaced ? replacement : $0 }
+                    for index in labels.indices where labels[index] == replaced {
+                        labels[index] = replacement
+                    }
                 }
             }
             for i in state.columns.indices {

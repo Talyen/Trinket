@@ -110,7 +110,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                     with self.subTest(entrypoint=entrypoint, ci=ci):
                         result = subprocess.run(
                             [str(scripts / entrypoint), *flags], capture_output=True, text=True,
-                            env={**os.environ, "CI": ci, "GITHUB_ACTIONS": ""},
+                            env={**os.environ, "CI": ci, "GITHUB_ACTIONS": "", "TRINKET_ALLOW_HEAVY_LOCAL": "1"},
                         )
                         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                         args = (root / "arguments").read_text().splitlines()
@@ -130,7 +130,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
         scripts = root / "Scripts"
         shutil.copytree(ROOT / "Scripts", scripts)
         (scripts / "run-env.sh").write_text(
-            'trinket_run_env_init() { DERIVED_DATA_PATH="$PWD/dd"; RESULTS_DIR="$PWD/results"; '
+            'source Scripts/lib/args.sh\ntrinket_run_env_init() { DERIVED_DATA_PATH="$PWD/dd"; RESULTS_DIR="$PWD/results"; '
             'mkdir -p "$DERIVED_DATA_PATH" "$RESULTS_DIR"; }\n'
             'trinket_run_env_print() { :; }\ntrinket_track_test_guests() { :; }\n'
         )
@@ -179,7 +179,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                 (ROOT / "Scripts/build-freshness.sh").read_text()
                 + '\nprepare_generated_inputs() { :; }\n'
             )
-            env = fake_toolchain(root)
+            env = {**fake_toolchain(root), "TRINKET_ALLOW_HEAVY_LOCAL": "1"}
             command = [str(scripts / "build-for-testing.sh"), "--app-only"]
             result = subprocess.run(command, env=env, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -205,7 +205,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                 'trinket_assert_no_build_is_fresh() { :; }\n'
                 'trinket_assert_targeted_tests_executed() { :; }\ntrinket_record_timing() { :; }\n'
             )
-            env = {**os.environ, "TRINKET_ISOLATE": "1", "PATH": f"{root}:{os.environ['PATH']}"}
+            env = {**os.environ, "TRINKET_ALLOW_HEAVY_LOCAL": "1", "TRINKET_ISOLATE": "1", "PATH": f"{root}:{os.environ['PATH']}"}
             result = subprocess.run([str(scripts / "test.sh"), "smoke", "--no-build", "SmokeShellTests"],
                                     env=env, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

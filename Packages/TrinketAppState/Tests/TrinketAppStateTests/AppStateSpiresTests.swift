@@ -65,16 +65,9 @@ struct AppStateSpiresTests {
 
     @Test func `start spire battle rejects locked and cleared floors`() throws {
         let state = try context.makePlaySession()
-        let hero = state.playerSave.roster.activeHero
-        let companion = state.playerSave.roster.activeCompanion
-
         for floor in 1 ... 2 {
             let spireFloor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: floor))
-            state.spires.completeFloor(
-                spireFloor,
-                hero: hero,
-                companion: companion,
-            )
+            #expect(SpiresTestSupport.completeFloor(spireFloor, in: state))
         }
 
         let clearedFloor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))

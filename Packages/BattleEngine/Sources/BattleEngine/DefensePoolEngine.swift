@@ -89,20 +89,21 @@ package enum DefensePoolEngine {
             pacedAmount
         }
         guard gainAmount > 0 else { return 0 }
-        var effects = context.roster.activeEffects(for: target)
-        if let index = effects.firstIndex(where: {
-            if case .shield = $0.effect {
-                return true
-            }
-            return false
-        }), case let .shield(existingKeyword, existingBuffer) = effects[index].effect {
-            effects[index] = ActiveEffect(
-                id: effects[index].id,
+        var updatedExisting = false
+        context.roster.mutateRuntime(for: target) { runtime in
+            guard let index = runtime.activeEffects.firstIndex(where: { $0.effect.kind == .shield }),
+                  case let .shield(existingKeyword, existingBuffer) = runtime.activeEffects[index].effect
+            else { return }
+            let existing = runtime.activeEffects[index]
+            runtime.activeEffects[index] = ActiveEffect(
+                id: existing.id,
                 effect: .shield(existingKeyword, existingBuffer + gainAmount),
                 remainingTurns: 0,
-                sourceActorID: effects[index].sourceActorID,
+                sourceActorID: existing.sourceActorID,
             )
-            context.roster.setActiveEffects(effects, for: target)
+            updatedExisting = true
+        }
+        if updatedExisting {
             return gainAmount
         }
         context.appendEffect(
@@ -119,14 +120,14 @@ package enum DefensePoolEngine {
         on target: Combatant,
         in context: inout BattleState,
     ) {
-        var effects = context.roster.activeEffects(for: target)
-        effects.removeAll {
-            if case .shield = $0.effect {
-                return true
+        context.roster.mutateRuntime(for: target) { runtime in
+            runtime.removeEffects {
+                if case .shield = $0.effect {
+                    return true
+                }
+                return false
             }
-            return false
         }
-        context.roster.setActiveEffects(effects, for: target)
         if amount > 0 {
             context.appendEffect(
                 .shield(.block, amount),

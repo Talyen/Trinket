@@ -44,19 +44,6 @@ final class ShellPerformanceUITests: PerformanceJourneyUITestCase {
             if didScroll {
                 verifyScrollProbes(optionsScrollProbes, optionsForm)
             }
-            assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
-            measured("options-reset-cancel", iteration: iteration) {
-                tapButton(AccessibilityID.Options.resetProgressButton)
-                assertExistsAfterScroll(AccessibilityID.Options.resetProgressCancel, requireHittable: true)
-                tapButton(AccessibilityID.Options.resetProgressCancel)
-                assertDoesNotExist(AccessibilityID.Options.resetProgressCancel)
-            }
-            measured("options-reset-confirm", iteration: iteration) {
-                tapButton(AccessibilityID.Options.resetProgressButton)
-                assertExistsAfterScroll(AccessibilityID.Options.resetProgressConfirmation, requireHittable: true)
-                tapButton(AccessibilityID.Options.resetProgressConfirmation)
-                assertExists(AccessibilityID.Onboarding.heroScreen, timeout: 20)
-            }
         }
     }
 

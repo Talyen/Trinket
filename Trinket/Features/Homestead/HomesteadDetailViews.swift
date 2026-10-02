@@ -247,7 +247,9 @@ struct HomesteadNodeDetailView: View {
 
     private func refreshArtworkPins() async {
         let names = [ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue]?.imageName].compactMap(\.self)
-        pinnedArtwork = await ArtworkPinSet.refresh(next: names, current: pinnedArtwork)
+        let refreshed = await ArtworkPinSet.refresh(next: names, current: pinnedArtwork)
+        guard !Task.isCancelled else { return }
+        pinnedArtwork = refreshed
     }
 
     private func buildOrUpgrade(_ expectedTier: Int) {

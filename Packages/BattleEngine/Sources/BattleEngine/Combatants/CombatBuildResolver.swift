@@ -10,11 +10,11 @@ public enum CombatBuildResolver {
         unlockedTalents: Set<String> = [],
         additionalModifiers: [AffixModifier] = [],
     ) -> CombatBuild {
-        let inventoryByID = Dictionary(inventory.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        let equippedItems = combatant.role.equipmentSlots.compactMap { slot -> InventoryItem? in
-            guard let itemID = equipmentLoadout.itemID(for: slot) else { return nil }
-            return inventoryByID[itemID]
-        }
+        let equippedItems = resolveEquippedItems(
+            combatant: combatant,
+            loadout: equipmentLoadout,
+            inventory: inventory,
+        )
 
         var profile = CombatModifierProfile.zero
         for item in equippedItems {
@@ -51,6 +51,27 @@ public enum CombatBuildResolver {
         let scaledCombatant = CombatantLevelScaler.scale(enemy: enemy, level: level)
 
         return CombatBuild(combatant: scaledCombatant, modifiers: profile)
+    }
+
+    private static func resolveEquippedItems(
+        combatant: Combatant,
+        loadout: EquipmentLoadout,
+        inventory: [InventoryItem],
+    ) -> [InventoryItem] {
+        let itemIDs = combatant.role.equipmentSlots.compactMap { loadout.itemID(for: $0) }
+        var unresolvedIDs = Set(itemIDs)
+        guard !unresolvedIDs.isEmpty else { return [] }
+        var itemsByID: [String: InventoryItem] = [:]
+        itemsByID.reserveCapacity(unresolvedIDs.count)
+        for item in inventory {
+            // First inventory match wins; merge order still follows equipment slots.
+            guard unresolvedIDs.remove(item.id) != nil else { continue }
+            itemsByID[item.id] = item
+            if unresolvedIDs.isEmpty {
+                break
+            }
+        }
+        return itemIDs.compactMap { itemsByID[$0] }
     }
 
     private static func traitProfile(for enemy: Enemy) -> CombatModifierProfile {

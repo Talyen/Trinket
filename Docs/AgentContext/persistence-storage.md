@@ -2,11 +2,20 @@
 
 Use with [persistence ownership](persistence.md) for schemas, graph reconciliation, sanitization and recovery.
 
+## Schema and sanitization
+
 Reads use an in-memory observed projection; load/repair sanitizes `root.toPlayerSave()` from the SwiftData graph. `PlayerSave.currentSchemaVersion` versions the value-layer payload and its sanitizer/mapping migrations independently of the SwiftData migration version declared by `PlayerSaveSchema`; bumping one does not imply bumping the other. Slice writes expand through `PlayerSaveSlice.sanitizeTargets`: inventory also sanitizes roster (equipped items must exist), and labyrinth also sanitizes roster (recruit eligibility feeds map healing). Labyrinth sanitize runs on labyrinth mutations and full load, not on every inventory or roster write; recruit eligibility is applied when a map is generated.
 
 Roster sanitization accepts current catalog IDs and applies [Core talent repair](../../Packages/TrinketCore/README.md).
 Roster hydration maps retired `sap-arrow` selections to `bounty-shot` before
 unknown-ID fallback, preserving the Stun-and-Gold choice in local and cloud saves.
+
+Inventory admission and repair share ownership keys: physical item ID, Trinket
+template for Trinkets, and Unique template for Unique items. Repair retains the
+first accepted item in save order; a rejected record reserves no other keys.
+Normal equipment copies with distinct physical IDs remain valid.
+
+## Save compatibility
 
 Distributed TestFlight builds have local player saves that must be preserved or
 migrated when schemas or serialized identifiers change. Production CloudKit remains
@@ -20,6 +29,8 @@ progress. Current-data validation, relationship repair, and corruption recovery
 remain required.
 
 Labyrinth's map is a JSON blob (`LabyrinthProgressModel.mapPayload`) while roster/inventory/homestead are normalized child tables — intentional trade-off for spatial graph queries; don't normalize the labyrinth without measuring encode cost.
+
+## Durable acceptance and recovery
 
 A database write failure first preserves the complete candidate in an atomic
 `.pending-save.json` file beside the store. The versioned local envelope reuses
@@ -58,6 +69,8 @@ an action completed before a durable write succeeds.
 
 ## CloudKit preparation
 
+### Local sync configuration
+
 SwiftData always opens the local graph at its existing URL with CloudKit mirroring
 set to `.none`. `PlayerSaveCloudSync` and `CloudKitSaveTransport`, owned by
 Persistence, exchange versioned complete snapshots in the existing private
@@ -83,6 +96,8 @@ commits a fresh save before replacing the memory-only session. A failed recovery
 keeps that session available for retry. Do not restore automatic delete-and-recreate
 recovery during migration.
 
+### Reconciliation
+
 Approved reconciliation merges concurrent branches within the same reset epoch
 without player conflict prompts. Each immediate durable game mutation records an
 identified domain action with before/after snapshots in the local cloud outbox;
@@ -95,6 +110,8 @@ removals from the shared base, so a talent reset survives unrelated progress;
 unrelated saves without a shared base union talents. Use the latest valid party/loadout
 edit, retaining displaced gear in Inventory. A one-sided change to an existing item,
 including corruption or salvage, survives unrelated progress on the other branch.
+For a shared physical item, salvage on either branch retires the item even if
+the other branch corrupted it; the merged save cannot retain both gear and its materials.
 New recruits use initial progression as the shared baseline when independent XP
 awards arrive before that baseline has a roster row.
 An abandoned or dismissed Voyage must not be restored from stale route progress.
@@ -107,11 +124,14 @@ offers by difficulty against the shared base so a completed offer cannot return
 after an unrelated action on another device. Contract completion receipts distinguish
 victory from board refresh, so two refreshes do not suppress independent rewards
 once their shared base tracks claims. Older peers retain conservative overlap detection.
-Completed Voyage run receipts survive route removal and deduplicate terminal payouts;
-they also prevent stale routes from reopening without an embarked shared base.
+Completed Voyage run receipts survive route removal and deduplicate terminal payouts.
+Completion and separate abandonment history prevent stale routes from reopening
+without an embarked shared base.
+Voyage board preparation replaces retired destinations, retaining unaffected offers.
 Overlap detection checks both active runs when one device has started another Voyage.
-Abandonment records no victory receipt. These optional payload fields preserve older
-saves; retired older routes without receipts cannot reconstruct their terminal claims.
+Abandonment records no victory receipt. Both retirement histories use optional
+payload fields that preserve older saves; retired older routes without receipts
+cannot reconstruct their terminal claims.
 Voyage decoding validates a completed route before normalizing it away, retaining
 malformed payload bytes through the unreadable-state path. Independent Mystery
 completions combine their corruption altar cooldown reductions; duplicate completions count once.
@@ -133,6 +153,8 @@ from concurrent spending is forgiven at zero balance. Pending legacy production
 receipts remain recoverable after a lost response.
 [Progression](persistence-progression.md) owns the claim transaction.
 
+### Reset and account isolation
+
 Reset advances the server epoch and invalidates older progress and claims.
 Concurrent stale reset requests cannot wipe a newer epoch. Backups from older
 epochs are never automatically restored. Signing out keeps a local copy and an
@@ -142,6 +164,8 @@ accounts never uploads the previous account's progress into the new account.
 If a cloud-disabled rollback build performs local production, it first archives
 and detaches the linked account. That local session remains a guest backup when
 cloud play resumes, preventing an offline claim from reopening a server interval.
+
+### External-save publication
 
 Late asynchronous results compare their captured snapshot with current local
 values. New local mutations are reconciled in a later request; receipt recovery
@@ -156,8 +180,12 @@ owns the artwork pin handoff.
 Acknowledging this device's own upload or claim does not end its current session. Session generation is local
 coordination state and is excluded from cloud snapshot coding.
 
+### Release evidence
+
 These contracts have isolated test coverage. Real provisioning, schema, upgrade,
 rollback, account, and two-device evidence remain the
 [CloudKit release gates](../Platform/CloudKitPreShipChecklist.md).
+
+## Voyage payload
 
 Voyage persists a versioned optional `voyagePayload` on the root and in complete-save snapshots. Missing data initializes an empty board; unreadable active-route data is retained verbatim. The Voyage slice participates in change detection, publication, recovery, and reset. See [Voyage](../Product/Voyage.md#persistence).

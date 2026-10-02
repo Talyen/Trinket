@@ -43,7 +43,13 @@ struct BattlePresentationSnapshot: Equatable {
             in: state,
         )
         hand = state.hand.cards
-        playableCardIDs = acceptsCommands ? Set(hand.filter { state.isCardPlayable($0) }.map(\.id)) : []
+        var playableIDs = Set<Int>()
+        if acceptsCommands {
+            for card in hand where state.isCardPlayable(card) {
+                playableIDs.insert(card.id)
+            }
+        }
+        playableCardIDs = playableIDs
         isBattleOver = state.isBattleOver
     }
 

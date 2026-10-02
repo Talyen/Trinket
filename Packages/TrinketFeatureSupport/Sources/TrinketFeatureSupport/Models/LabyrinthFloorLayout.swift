@@ -29,21 +29,36 @@ public struct LabyrinthFloorLayout {
 
     public init(nodes: [LabyrinthNode], availableWidth: CGFloat, viewportWidth: CGFloat? = nil) {
         self.availableWidth = availableWidth
-        let positions = nodes.map { $0.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0) }
-        let halfColumns = nodes.compactMap(\.gridPosition?.projectedHalfColumn)
+        let positions = nodes.lazy.map { $0.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0) }
+        let halfColumnBounds = Self.bounds(nodes.lazy.compactMap(\.gridPosition?.projectedHalfColumn))
         let resolvedRadius = LabyrinthMapPresentation.hexRadius(
             forAvailableWidth: availableWidth,
-            projectedHalfColumnSpan: (halfColumns.max() ?? 0) - (halfColumns.min() ?? 0),
+            projectedHalfColumnSpan: (halfColumnBounds?.maximum ?? 0) - (halfColumnBounds?.minimum ?? 0),
             viewportWidth: viewportWidth,
         )
         radius = resolvedRadius
         let projectedXs = positions.map { position in
             resolvedRadius * sqrt(3) * (CGFloat(position.column) + CGFloat(position.row) / 2)
         }
-        horizontalCenter = ((projectedXs.min() ?? 0) + (projectedXs.max() ?? 0)) / 2
-        let lastRow = nodes.compactMap(\.gridPosition?.row).max() ?? 0
+        let projectedBounds = Self.bounds(projectedXs)
+        horizontalCenter = ((projectedBounds?.minimum ?? 0) + (projectedBounds?.maximum ?? 0)) / 2
+        let lastRow = nodes.lazy.compactMap(\.gridPosition?.row).max() ?? 0
         height = CGFloat(lastRow) * (resolvedRadius * 1.5)
             + resolvedRadius * 2 + Self.nodeHitExpansion * 2
+    }
+
+    private static func bounds<Values: Sequence>(
+        _ values: Values,
+    ) -> (minimum: Values.Element, maximum: Values.Element)? where Values.Element: Comparable {
+        var iterator = values.makeIterator()
+        guard let first = iterator.next() else { return nil }
+        var minimum = first
+        var maximum = first
+        while let value = iterator.next() {
+            minimum = min(minimum, value)
+            maximum = max(maximum, value)
+        }
+        return (minimum, maximum)
     }
 
     public func point(for gridPosition: LabyrinthGridPosition?) -> CGPoint {

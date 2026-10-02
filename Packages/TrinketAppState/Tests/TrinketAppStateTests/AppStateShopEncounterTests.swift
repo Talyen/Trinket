@@ -4,6 +4,7 @@ import TrinketContent
 import TrinketFeatureSupport
 import TrinketPersistenceTestSupport
 @testable import TrinketAppState
+@testable import TrinketPersistence
 
 @MainActor
 struct AppStateShopEncounterTests {
@@ -139,7 +140,84 @@ struct AppStateShopEncounterTests {
         #expect(state.encounters.activeShopEncounter == nil)
     }
 
+    @Test(arguments: [false, true])
+    func `stale shop exit cannot advance an imported save`(inLabyrinth: Bool) throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let origin = try shopOrigin(in: state, inLabyrinth: inLabyrinth)
+        #expect(state.encounters.beginShopOrAutoComplete(origin: origin) == nil)
+        #expect(state.encounters.activeShopEncounter != nil)
+        try state.playerSave.performBatchMutation { $0.sessionGeneration &+= 1 }
+        let imported = state.playerSave.currentSave
+
+        #expect(state.encounters.finishActiveShopEncounter())
+
+        #expect(state.encounters.activeShopEncounter == nil)
+        #expect(state.playerSave.currentSave == imported)
+        #expect(!state.playerSave.isRetryingSaveAction)
+    }
+
+    @Test(arguments: [false, true])
+    func `empty shop completes once and survives reload`(inLabyrinth: Bool) throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let origin = try shopOrigin(in: state, inLabyrinth: inLabyrinth)
+        let encounter = origin.identity(in: state.playerSave.currentSave)
+        let payload = try ShopStockPersistence.encode(ShopStock(offers: []), encounter: encounter)
+        try state.playerSave.performBatchMutation { save in
+            ShopStockPersistence.setPayload(payload, encounter: encounter, save: &save)
+        }
+        let goldBefore = state.playerSave.roster.gold
+        let itemsBefore = state.playerSave.inventory.items
+        let stipend = encounter.labyrinthNodeID.flatMap { state.playerSave.labyrinth.node(id: $0) }
+            .map(LabyrinthCompletion.nonCombatGoldStipend) ?? 0
+
+        guard case .autoCompleted = state.encounters.beginShopEncounter(origin: origin) else {
+            Issue.record("Expected an empty Shop to complete during opening")
+            return
+        }
+        let reloaded = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        #expect(!encounter.isPlayable(in: reloaded.currentSave))
+        #expect(reloaded.roster.gold == goldBefore + stipend)
+        #expect(reloaded.inventory.items == itemsBefore)
+        let completed = reloaded.currentSave
+        var replay = completed
+        #expect(NonCombatEncounterCompletion.complete(encounter: encounter, save: &replay) == .unavailable)
+        #expect(replay == completed)
+    }
+
+    private func shopOrigin(in state: PlaySession, inLabyrinth: Bool) throws -> PlayEncounterOrigin {
+        if inLabyrinth {
+            _ = state.labyrinth.enter()
+            let nodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .shop, in: state))
+            return .labyrinth(nodeID: nodeID)
+        }
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+        return .journey(stage: stage)
+    }
+
     #if DEBUG
+    @Test func `empty shop retries without reporting completion before a durable write`() async throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
+        let origin = try shopOrigin(in: state, inLabyrinth: false)
+        let encounter = origin.identity(in: playerSave.currentSave)
+        let payload = try ShopStockPersistence.encode(ShopStock(offers: []), encounter: encounter)
+        try playerSave.performBatchMutation { save in
+            ShopStockPersistence.setPayload(payload, encounter: encounter, save: &save)
+        }
+        let before = playerSave.currentSave
+
+        playerSave.forcesNextSaveFailure = true
+        #expect(state.encounters.beginShopOrAutoComplete(origin: origin) == nil)
+        #expect(playerSave.currentSave == before)
+        #expect(playerSave.isRetryingSaveAction)
+        #expect(state.encounters.activeShopEncounter == nil)
+
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
+        let reloaded = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        #expect(!encounter.isPlayable(in: reloaded.currentSave))
+        #expect(reloaded.inventory.items == before.inventory.items)
+    }
+
     @Test func `purchase reports retrying when persist fails and the silent retry completes it`() async throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)

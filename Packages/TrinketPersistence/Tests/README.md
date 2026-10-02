@@ -11,6 +11,7 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | SwiftData graph / hub | `PlayerSaveStoreTests` | Root creation, reset, seed, relaunch, independent records, snapshot validation, deferred flush |
 | Save schema | `PlayerSaveStoreTests` | Current-schema reload and rejection of unsupported development saves without replacement |
 | Complete-save sync | `CloudSaveSyncTests` | Snapshot coding, conflict backups, account separation, reset epochs, server claims/retries, late imports, and disk recovery with a fake transport |
+| Concurrent-save reconciliation | `CloudSaveMergeTests` plus `CloudSaveMerge*Tests` | Shared-base progress, economy, talents/loadouts, claims, Contract refreshes, and Voyage terminal-claim deduplication (pure; no live CloudKit I/O) |
 | Store cleanup / duplicate roots | `PlayerSaveStoreCleanupTests` | Sidecar wipe, `resetState`, newest-primary repair |
 | Graph identity | `PlayerSaveGraphIdentityTests` | Persistent IDs survive in-place updates |
 | Graph repair | `PlayerSaveGraphRepairTests` | Duplicate/orphan row repair on load |
@@ -34,6 +35,7 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | Content access | `ContentAccessPersistenceTests` | Transient policy never serialized; reload resets to free |
 | Contracts board | `ContractBoardTests` in `ContractsTests.swift` | Generation, repair, refresh, claim policy (pure) |
 | Contracts persistence | `ContractsPersistenceTests` in `ContractsTests.swift` | Lazy board open, reload survival, failure rollback |
+| Voyage persistence | `VoyagePersistenceTests` | Board/run lifecycle, saved destination modifiers, boss reward composition, stock/Mystery reload, and unreadable-payload preservation |
 | Salvage | `ItemSalvageApplierTests` | Yields, unequip, trinket/unique ineligibility, one reload |
 | Corruption | `ItemCorruptionTests` | Affix rules, eligibility, one reload |
 | Spires progress | `SpiresProgressTests` | Floor unlock/clear; XP override |

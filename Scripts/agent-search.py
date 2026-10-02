@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import fnmatch
+import difflib
 import hashlib
 import shlex
 import json
@@ -11,9 +13,12 @@ import re
 import subprocess
 import sys
 from collections import Counter
+from itertools import zip_longest
 from pathlib import Path
 
 from internal.cli import ROOT
+from internal.agent_arguments import AgentArgumentParser
+from internal.agent_tasks import find_tasks, related_tests
 TEXT_SUFFIXES = {
     ".swift", ".metal", ".sh", ".py", ".mjs", ".js", ".ts", ".tsx",
     ".env", ".json", ".yml", ".yaml", ".tsv", ".toml", ".pbxproj",
@@ -78,14 +83,36 @@ def positive(value: str) -> int:
     return number
 
 
+def scope_spelling(root: Path, scope: Path) -> str | None:
+    """Resolve exact spelling for navigation only; never silently widen a search."""
+    current = root
+    parts = []
+    for part in scope.parts:
+        if not current.is_dir():
+            return None
+        names = sorted(child.name for child in current.iterdir())
+        matches = [name for name in names if name.casefold() == part.casefold()]
+        if not matches:
+            matches = difflib.get_close_matches(part, names, n=1, cutoff=0.75)
+        if len(matches) != 1:
+            return None
+        parts.append(matches[0])
+        current /= matches[0]
+    return '/'.join(parts)
+
+
 def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = AgentArgumentParser("agent-search.py", description=__doc__)
     parser.add_argument("pattern", nargs="?", help="rg regular expression; use -- before a pattern starting with -")
     parser.add_argument("--mode", choices=("source", "tests", "docs", "generated", "assets"), default="source")
     parser.add_argument("--overview", action="store_true", help="page owner counts and entry points without listing assets")
     parser.add_argument("--scope", action="append", default=[], help="repository-relative file or directory; repeatable")
     parser.add_argument("--excerpts", action="store_true", help="show matching lines and context instead of file counts")
     parser.add_argument("--files", action="store_true", help="match relative filenames instead of file contents")
+    parser.add_argument("--glob", action="store_true", help="with --files, use a case-sensitive shell pattern instead of regex; * crosses directories")
+    parser.add_argument("--related", action="store_true", help="bounded declaration, reference, and test-file hints for one identifier within the scopes")
+    parser.add_argument("--callers", action="store_true", help="lexical invocation locations and enclosing declarations for one Swift/Python identifier")
+    parser.add_argument("--task", action="store_true", help="look up a player-facing concern in the small authored task index")
     parser.add_argument("--limit", type=positive, default=20, help="maximum files or excerpt lines displayed (default: 20)")
     parser.add_argument("--context", type=int, choices=range(0, 6), default=2, help="excerpt context lines (0–5; default: 2)")
     parser.add_argument("-i", "--ignore-case", action="store_true")
@@ -94,7 +121,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser.add_argument("--expect", help="reject continuation if search results changed")
     args = parser.parse_args(argv)
     if args.overview:
-        if args.pattern is not None or args.files or args.excerpts or args.mode != "source":
+        if args.pattern is not None or args.files or args.excerpts or args.glob or args.related or args.callers or args.task or args.mode != "source":
             parser.error("--overview accepts scopes and pagination, not a pattern, --mode, --files, or --excerpts")
     elif args.pattern is None:
         parser.error("a pattern is required unless --overview is selected")
@@ -104,22 +131,58 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         parser.error("--offset must be nonnegative")
     if args.files and args.excerpts:
         parser.error("--files and --excerpts are mutually exclusive")
+    if args.glob and (not args.files or args.fixed_strings):
+        parser.error("--glob requires --files and cannot combine with -F")
+    if args.related and (args.mode != "source" or args.files or args.excerpts or args.glob
+                         or not re.fullmatch(r"[A-Za-z_][A-Za-z_0-9]*", args.pattern or "")):
+        parser.error("--related requires one plain identifier in source mode, without --files or --excerpts")
+    if args.related and args.fixed_strings:
+        parser.error("--related uses identifier boundaries and cannot combine with -F")
+    if args.callers and (args.mode not in {'source', 'tests'} or args.related or args.files or args.excerpts
+                         or args.glob or args.fixed_strings or args.ignore_case
+                         or not re.fullmatch(r'[A-Za-z_][A-Za-z_0-9]*', args.pattern or '')):
+        parser.error('--callers requires one exact identifier in source or tests mode without other search modes')
+    if args.task and (args.mode != "source" or args.related or args.callers or args.files or args.excerpts or args.glob or args.fixed_strings or args.ignore_case):
+        parser.error("--task accepts a concern name, scopes and pagination; it cannot combine with other search modes")
     scopes = []
     for scope in args.scope:
         candidate = Path(scope)
         if candidate.is_absolute() or ".." in candidate.parts:
             parser.error("--scope must stay within the repository")
         normalized = candidate.as_posix().rstrip("/")
+        spelling = scope_spelling(root, candidate)
+        if normalized != '.' and (not (root / candidate).exists() or (spelling and spelling != normalized)):
+            print(f"Invalid scope: {scope}; use an exact repository file or directory.", file=sys.stderr)
+            if spelling:
+                retry = list(sys.argv[1:] if argv is None else argv)
+                for index, argument in enumerate(retry[:-1]):
+                    if argument == '--scope' and retry[index + 1] == scope:
+                        retry[index + 1] = spelling
+                retry = [('--scope=' + spelling) if arg == '--scope=' + scope else arg for arg in retry]
+                # A corrected surface must start a fresh search.
+                for flag in ('--expect', '--offset'):
+                    while flag in retry:
+                        index = retry.index(flag)
+                        del retry[index:index + 2]
+                retry = [arg for arg in retry if not arg.startswith(('--expect=', '--offset='))]
+                print('Try: ' + shlex.join(['python3', 'Scripts/agent-search.py', *retry]), file=sys.stderr)
+            else:
+                print('Try: python3 Scripts/agent-search.py --overview', file=sys.stderr)
+            return 2
         if normalized != ".":
             scopes.append(normalized)
-    files = inventory(root, "overview" if args.overview else args.mode, scopes)
-    surface = "overview" if args.overview else args.mode
+    files = [] if args.task else inventory(root, "overview" if args.overview else args.mode, scopes)
+    test_files = set(inventory(root, "tests", scopes)) if args.related else set()
+    if args.related:
+        files = sorted(set(files) | test_files)
+    surface = "task" if args.task else "overview" if args.overview else "related" if args.related else args.mode
     unit = "files" if args.overview or args.mode == "assets" else "text files"
-    print(f"Search: {surface}; {len(files)} {unit}; scope: {', '.join(scopes) or 'repository'}")
+    print(f"Search: task index; scope: {', '.join(scopes) or 'repository'}" if args.task else
+          f"Search: {surface}; {len(files)} {unit}; scope: {', '.join(scopes) or 'repository'}")
     if args.mode == "docs":
         print("Order: current documentation, procedures/knowledge, then task records (alphabetical within each).")
         print("Friction archives require --scope .agents/friction-archive or a file within it.")
-    if not files:
+    if not files and not args.task:
         if args.expect or args.offset:
             print("Search results changed or offset is beyond the empty surface; restart at --offset 0.", file=sys.stderr)
             return 2
@@ -146,7 +209,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
 
     def render(rows: list[str], summary: str, unit: str) -> int:
         identity = [args.pattern, surface, scopes, args.files, args.excerpts, args.ignore_case,
-                    args.fixed_strings, args.context, rows]
+                    args.fixed_strings, args.glob, args.related, args.callers, args.task, args.context, rows]
         digest = hashlib.sha256(json.dumps(identity).encode()).hexdigest()
         if args.expect and args.expect != digest:
             print("Search results changed; restart at --offset 0.", file=sys.stderr)
@@ -170,6 +233,8 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             for scope in scopes:
                 continuation += ["--scope", scope]
             for flag, enabled in [("--files", args.files), ("--excerpts", args.excerpts),
+                                  ("--glob", args.glob), ("--related", args.related), ("--task", args.task),
+                                  ("--callers", args.callers),
                                   ("-i", args.ignore_case), ("-F", args.fixed_strings)]:
                 if enabled:
                     continuation.append(flag)
@@ -181,6 +246,13 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         if shortened:
             print("Read the selected source range for complete shortened lines.")
         return 0 if rows else 1
+
+    if args.task:
+        rows = find_tasks(root, args.pattern, scopes)
+        print("Concern pointers can cross owners; route the source paths. Test pointers are not coverage proof.")
+        if not rows:
+            print("No indexed concern matched. Try: python3 Scripts/agent-search.py --overview")
+        return render(rows, f"Matched {len(rows)} indexed concerns", "concerns")
 
     if args.overview:
         owners: dict[str, list[str]] = {}
@@ -218,10 +290,27 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         return render(rows, f"Grouped {len(files)} files into {len(rows)} owners", "owners")
 
     if args.files:
+        if args.glob:
+            pattern = args.pattern.casefold() if args.ignore_case else args.pattern
+            def matches(name: str) -> bool:
+                candidate = name.casefold() if args.ignore_case else name
+                return fnmatch.fnmatchcase(candidate, pattern) or (
+                    "/" not in pattern and fnmatch.fnmatchcase(Path(candidate).name, pattern))
+            names = sorted((name for name in files if matches(name)), key=order)
+            rows = [json.dumps(name) if any(c in name for c in "\n\r\t") else name for name in names]
+            return render(rows, f"Matched {len(names)} files (glob)", "files")
         result = subprocess.run([*command, "--null-data", "--", args.pattern], input="\0".join(files) + "\0",
                                 cwd=root, capture_output=True, text=True)
         if result.returncode not in (0, 1):
             print(result.stderr, file=sys.stderr, end="")
+            if not args.fixed_strings and "regex parse error" in result.stderr and any(c in args.pattern for c in "*?["):
+                retry = ["python3", "Scripts/agent-search.py", "--mode", args.mode, "--files", "--glob"]
+                for scope in scopes:
+                    retry += ["--scope", scope]
+                if args.ignore_case:
+                    retry.append("-i")
+                retry += ["--limit", str(args.limit), "--", args.pattern]
+                print("If this is a shell filename pattern, retry: " + shlex.join(retry), file=sys.stderr)
             return result.returncode
         names = sorted((event["data"]["lines"]["text"].removesuffix("\0")
                         for raw in result.stdout.splitlines()
@@ -230,7 +319,8 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         return render(rows, f"Matched {len(names)} files", "files")
     if args.excerpts:
         command.extend(["--context", str(args.context)])
-    result = subprocess.run([*command, "--", args.pattern, *files], cwd=root, capture_output=True, text=True)
+    pattern = rf"\b{re.escape(args.pattern)}\b" if args.related or args.callers else args.pattern
+    result = subprocess.run([*command, "--", pattern, *files], cwd=root, capture_output=True, text=True)
     if result.returncode not in (0, 1):
         print(result.stderr, file=sys.stderr, end="")
         return result.returncode
@@ -242,6 +332,8 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         re.IGNORECASE if args.ignore_case else 0,
     ) if identifier and args.mode != "docs" else None
     excerpts = []
+    references: dict[str, int] = {}
+    tests: dict[str, int] = {}
     for raw in result.stdout.splitlines():
         event = json.loads(raw)
         if event["type"] not in ("match", "context"):
@@ -250,13 +342,42 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         name = data["path"]["text"]
         if event["type"] == "match":
             counts[name] += 1
-            if declaration and declaration.search(data["lines"].get("text", "")):
+            if args.related and name in test_files:
+                tests.setdefault(name, data["line_number"])
+            elif declaration and declaration.search(data["lines"].get("text", "")):
                 declarations.setdefault(name, data["line_number"])
+            else:
+                references.setdefault(name, data["line_number"])
         if args.excerpts:
             line = data["lines"].get("text")
             if line is None:
                 line = "[non-UTF-8 line; inspect the file directly]"
             excerpts.append((name, data["line_number"], line.rstrip()))
+    if args.callers:
+        from internal.agent_callers import caller_rows
+        print('Lexical invocation hints: excludes comments/literals; no type resolution, indirect calls, or Swift interpolation/trailing-closure/generic-only calls.')
+        rows = caller_rows(root, sorted(counts, key=order), args.pattern)
+        return render(rows, f'Matched {len(rows)} invocation locations', 'invocations')
+    if args.related:
+        print("Textual hints only: references can be comments/strings; test mentions do not prove coverage.")
+        curated = related_tests(root, args.pattern, set(files) - test_files, test_files, args.ignore_case) - set(tests)
+        for name in curated:
+            tests[name] = 1
+        # A declaration file may also contain references. Keep one row per file
+        # while preserving both roles and interleaving tests with production code.
+        combined = set(declarations) & set(references)
+        reference_only = {name: line for name, line in references.items() if name not in declarations}
+        groups = []
+        for label, locations in (("Declaration", declarations), ("Reference", reference_only), ("Test", tests)):
+            groups.append([f"{'Declaration/Reference' if name in combined else label} hint: {name}:{locations[name]}: "
+                           + ("curated concern link; inspect assertions" if name in curated else f"{counts[name]} matching lines")
+                           for name in sorted(locations, key=order)])
+        # Interleave groups so a busy reference surface cannot bury every test or
+        # declaration on the first page; pagination still covers every file hint.
+        rows = [row for batch in zip_longest(*groups) for row in batch if row is not None]
+        summary = (f"Matched {len(declarations)} declaration files, {len(references)} reference files, "
+                   f"{len(tests)} test/support files")
+        return render(rows, summary, "file hints")
     names = list(counts)
     names.sort(key=order)
     excerpts.sort(key=lambda row: (order(row[0]), row[1]))
@@ -271,6 +392,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
 if __name__ == "__main__":
     try:
         sys.exit(main())
-    except (OSError, subprocess.CalledProcessError) as error:
+    except (OSError, ValueError, RuntimeError, SyntaxError, subprocess.CalledProcessError) as error:
         print(f"Search failed: {error}", file=sys.stderr)
+        print("Try: python3 Scripts/agent-search.py --help", file=sys.stderr)
         sys.exit(2)

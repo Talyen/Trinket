@@ -5,14 +5,15 @@ set -euo pipefail
 #
 # Classifies the changed paths (explicit --paths or the whole working tree),
 # builds a deterministic sequential verification plan, and runs it in order.
-# No demotions, no heuristics, no parallel scheduling, no warm-cache prefetch:
-# the plan is whatever the touched paths actually require, executed top to
-# bottom. Remote/full confidence is owned by CI (smoke / exhaustive UI).
+# Local execution keeps scoped static/script checks and reports compiled,
+# simulator, and generation checks owned by CI. The full plan remains available
+# in CI or for a deliberately authorized local diagnostic.
 
 cd "$(dirname "$0")/.."
 
 # shellcheck source=Scripts/lib/args.sh
 source Scripts/lib/args.sh
+source Scripts/lib/verification-policy.sh
 trinket_ensure_diagnostics_session
 
 # Keep source routing aligned with agent-context.sh and agent-push-gate.sh.
@@ -33,6 +34,13 @@ STYLE_CHECKED=false
 HANDOFF_LOG_DIR=""
 HANDOFF_PHASE=0
 declare -a requested_paths=()
+declare -a handoff_arguments=("$@")
+
+report_recovery() {
+  printf 'Rerun: ' >&2
+  printf '%q ' ./Scripts/handoff.sh "${handoff_arguments[@]+"${handoff_arguments[@]}"}" >&2
+  printf '\n' >&2
+}
 
 # Quiet mode retains each child's complete terminal output; diagnostics expand only on failure.
 run_phase() {
@@ -120,7 +128,9 @@ run_check() {
       ;;
     scripts)
       [[ "$argument" == all ]] || { echo "Unknown script check: $argument" >&2; return 2; }
-      if trinket_scripts_run_covers_docs; then
+      if trinket_verification_is_lightweight; then
+        ./Scripts/test-scripts.sh --fast --paths "${TRINKET_CHANGED_PATHS[@]}"
+      elif trinket_scripts_run_covers_docs; then
         ./Scripts/test-scripts.sh --skip-docs --paths "${TRINKET_CHANGED_PATHS[@]}"
       else
         ./Scripts/test-scripts.sh --paths "${TRINKET_CHANGED_PATHS[@]}"
@@ -188,12 +198,13 @@ while [[ $# -gt 0 ]]; do
 Usage: ./Scripts/handoff.sh [--dry-run] [--quiet] [--isolate] [--smoke] [--mirror] [--final] [--keep-plan] [--paths <file> ...]
 
 Classifies task-scoped changes with --paths, or all working-tree changes with
-the explicit --working-tree option. It runs generation, style, touched-package tests,
-script regressions, documentation checks, generated-output idempotence, cheap CI
-slices, and an app build for unresolved or feature/UI Swift — sequentially and
-headlessly by default.
+the explicit --working-tree option. Locally it runs scoped style, selected script
+regressions, documentation, and cheap static slices. It reports generation,
+compilation, package tests, and UI as deferred to CI. No simulator is booted.
+CI (or TRINKET_ALLOW_HEAVY_LOCAL=1 for an expressly requested diagnostic) executes
+the full selected plan.
 
---smoke opts into the targeted simulator UI smoke canary for touched feature flows.
+--smoke selects targeted UI smoke ownership; local execution defers it to CI.
 --mirror opts into auto-mirroring the built app into Trinket Run on success.
 --isolate forwards to the simulator-slot environment so runs do not collide.
 --final applies global documentation checks and task-scoped active-plan closure checks.
@@ -246,12 +257,54 @@ if [[ "$FINAL" == true && "$DRY_RUN" != true ]]; then
   else
     status=$?
     echo "Handoff FAIL: final documentation check (exit $status)" >&2
+    report_recovery
     exit "$status"
   fi
 fi
 
 trinket_classify_paths
 trinket_build_verification_plan
+
+# Preserve routing ownership while keeping the laptop out of compiled/GPU work.
+deferred_checks=()
+if trinket_verification_is_lightweight; then
+  local_commands=(); local_kinds=(); local_args=()
+  for i in "${!TRINKET_VERIFICATION_COMMANDS[@]}"; do
+    kind="${TRINKET_VERIFICATION_KINDS[$i]}"
+    argument="${TRINKET_VERIFICATION_ARGS[$i]}"
+    display="${TRINKET_VERIFICATION_COMMANDS[$i]}"
+    case "$kind:$argument" in
+      generate:*|assert:*|package:*|build:*|test:smoke:*) deferred_checks+=("$display"); continue ;;
+      test:style)
+        swift_paths=()
+        for path in "${TRINKET_AUTHORED_PATHS[@]+"${TRINKET_AUTHORED_PATHS[@]}"}"; do
+          [[ "$path" == *.swift && -f "$path" ]] && swift_paths+=("$path")
+        done
+        if (( ${#swift_paths[@]} == 0 )); then deferred_checks+=("$display"); continue; fi
+        argument="style:${swift_paths[*]}"
+        display="./Scripts/test.sh style ${swift_paths[*]}"
+        ;;
+    esac
+    if [[ "$kind" == scripts ]]; then display="${display/--paths/--fast --paths}"; fi
+    local_commands+=("$display"); local_kinds+=("$kind"); local_args+=("$argument")
+  done
+  TRINKET_VERIFICATION_COMMANDS=("${local_commands[@]+"${local_commands[@]}"}")
+  TRINKET_VERIFICATION_KINDS=("${local_kinds[@]+"${local_kinds[@]}"}")
+  TRINKET_VERIFICATION_ARGS=("${local_args[@]+"${local_args[@]}"}")
+  if [[ "$TRINKET_APP_COMPILE_SKIPPED_NO_XCODE" == true ]]; then
+    deferred_checks+=("App compilation (CI supplies Xcode)")
+    TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=false
+  fi
+fi
+if trinket_verification_is_lightweight && [[ "$TRINKET_NEEDS_SCRIPT_TESTS" == true && "$TRINKET_NEEDS_DOCS" != true ]]; then
+  trinket_add_verification docs check "python3 ./Scripts/check-docs.py"
+fi
+report_deferred_checks() {
+  if (( ${#deferred_checks[@]} > 0 )); then
+    echo "Deferred to CI:"
+    printf '  %s\n' "${deferred_checks[@]}"
+  fi
+}
 
 if [[ "$DRY_RUN" == true ]]; then
   echo "Planned checks:"
@@ -267,7 +320,9 @@ if [[ "$DRY_RUN" == true ]]; then
     if [[ "$kind" == docs && "$FINAL" == true ]]; then
       continue
     fi
-    if [[ "$kind" == scripts ]] && trinket_scripts_run_covers_docs; then
+    if [[ "$kind" == scripts ]] && trinket_verification_is_lightweight; then
+      _dry_commands+=("$display")
+    elif [[ "$kind" == scripts ]] && trinket_scripts_run_covers_docs; then
       # Rebuild the preview from the classified paths (same %q quoting as the
       # plan builder) instead of rewriting the display string, so preview and
       # execution cannot drift when the plan shape changes.
@@ -301,6 +356,7 @@ if [[ "$DRY_RUN" == true ]]; then
   else
     echo "  (none; review docs/tooling directly)"
   fi
+  report_deferred_checks
   if [[ "$TRINKET_APP_COMPILE_SKIPPED_NO_XCODE" == true ]]; then
     echo "Unavailable required check: app compilation (xcodebuild missing)."
   fi
@@ -326,6 +382,7 @@ if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
     fi
     if ! run_phase "$kind: $argument" run_check "$kind" "$argument"; then
       echo "Handoff FAIL: $cmd (see diagnostics above)" >&2
+      report_recovery
       exit 1
     fi
     if [[ "$kind" == test && "$argument" == style* ]]; then STYLE_CHECKED=true; fi
@@ -346,6 +403,7 @@ if run_phase "cheap CI slices" run_cheap_ci_slices; then
 else
   status=$?
   echo "Handoff FAIL: cheap CI slices (exit $status; see diagnostics above)" >&2
+  report_recovery
   exit "$status"
 fi
 
@@ -355,6 +413,7 @@ if [[ "$TRINKET_APP_COMPILE_SKIPPED_NO_XCODE" == true ]]; then
 fi
 
 if [[ "${TRINKET_ENABLE_MIRROR:-false}" == "true" && "${ISOLATE}" == true ]]; then
+  trinket_require_heavy_verification "Simulator mirroring" || exit $?
   _mirror_needs_build=false
   if [[ "$TRINKET_NEEDS_APP_BUILD" == true || "$TRINKET_HAS_FEATURE" == true || "$TRINKET_NEEDS_CONTENT_GENERATION" == true || "$TRINKET_NEEDS_PROJECT_GENERATION" == true ]] || (( ${#TRINKET_PACKAGES[@]} > 0 )); then
     _mirror_needs_build=true
@@ -368,5 +427,10 @@ if [[ "${TRINKET_ENABLE_MIRROR:-false}" == "true" && "${ISOLATE}" == true ]]; th
   fi
 fi
 
-echo "Handoff PASS: selected checks and cheap CI slices completed."
+report_deferred_checks
+if trinket_verification_is_lightweight; then
+  echo "Handoff PASS: lightweight local checks completed; deferred checks require CI verification."
+else
+  echo "Handoff PASS: selected checks and cheap CI slices completed."
+fi
 exit 0

@@ -31,21 +31,11 @@ public extension GameContent {
         MysteryEventPool.pickMysteryEvent(context: context, using: &randomNumberGenerator)
     }
 
-    static func resolveMysteryEncounterEvent(
-        authored: MysteryEvent?,
-        context: MysteryEventPickContext = .excludingCorruptionAltar,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> MysteryEvent {
-        authored ?? pickMysteryEvent(context: context, using: &randomNumberGenerator)
-    }
-
     static func authoredMysteryOrRecruitEvent(
         forcedEventID: String? = nil,
         stage: Stage,
     ) -> MysteryEvent? {
-        forcedEventID.flatMap {
-            mysteryEvent(matching: $0) ?? recruitEvent(matching: $0)
-        } ?? stage.mysteryEvent
+        mysteryOrRecruitEvent(matching: forcedEventID) ?? stage.mysteryEvent
     }
 
     static func resolveJourneyMysteryEvent(
@@ -55,15 +45,9 @@ public extension GameContent {
         pinnedEventID: String? = nil,
         context: MysteryEventPickContext = .excludingCorruptionAltar,
     ) -> MysteryEvent {
-        if let authored {
-            return authored
-        }
-        if let pinned = pinnedMysteryEvent(pinnedEventID: pinnedEventID) {
-            return pinned
-        }
-        return seededMysteryEvent(
-            seed: encounterSeed(worldSeed, salt: "journey-mystery-\(stageID)"),
-            context: context,
+        resolveSeededMysteryEvent(
+            authored: authored, pinnedEventID: pinnedEventID,
+            worldSeed: worldSeed, salt: "journey-mystery-\(stageID)", context: context,
         )
     }
 
@@ -90,16 +74,9 @@ public extension GameContent {
         pinnedEventID: String? = nil,
         context: MysteryEventPickContext = .excludingCorruptionAltar,
     ) -> MysteryEvent {
-        if let forcedEventID,
-           let forced = mysteryEvent(matching: forcedEventID) ?? recruitEvent(matching: forcedEventID) {
-            return forced
-        }
-        if let pinned = pinnedMysteryEvent(pinnedEventID: pinnedEventID) {
-            return pinned
-        }
-        return seededMysteryEvent(
-            seed: encounterSeed(worldSeed, salt: "labyrinth-mystery-\(nodeID)"),
-            context: context,
+        resolveSeededMysteryEvent(
+            authored: mysteryOrRecruitEvent(matching: forcedEventID), pinnedEventID: pinnedEventID,
+            worldSeed: worldSeed, salt: "labyrinth-mystery-\(nodeID)", context: context,
         )
     }
 
@@ -137,23 +114,26 @@ public extension GameContent {
         return .mystery(pickMysteryEvent(using: &randomNumberGenerator))
     }
 
-    /// Shared pinned-event lookup for journey/labyrinth resolution.
-    private static func pinnedMysteryEvent(pinnedEventID: String?) -> MysteryEvent? {
-        guard let pinnedEventID else { return nil }
-        return mysteryEvent(matching: pinnedEventID) ?? recruitEvent(matching: pinnedEventID)
+    private static func mysteryOrRecruitEvent(matching eventID: String?) -> MysteryEvent? {
+        eventID.flatMap { mysteryEvent(matching: $0) ?? recruitEvent(matching: $0) }
     }
 
-    /// Shared seeded fallback for journey/labyrinth resolution.
-    private static func seededMysteryEvent(
-        seed: UInt64,
+    /// Authored events win over saved picks; only an unresolved event consumes RNG.
+    private static func resolveSeededMysteryEvent(
+        authored: MysteryEvent?,
+        pinnedEventID: String?,
+        worldSeed: UInt64,
+        salt: String,
         context: MysteryEventPickContext,
     ) -> MysteryEvent {
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
-        return resolveMysteryEncounterEvent(
-            authored: nil,
-            context: context,
-            using: &randomNumberGenerator,
-        )
+        if let authored {
+            return authored
+        }
+        if let pinned = mysteryOrRecruitEvent(matching: pinnedEventID) {
+            return pinned
+        }
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: encounterSeed(worldSeed, salt: salt))
+        return pickMysteryEvent(context: context, using: &randomNumberGenerator)
     }
 
     static func resolveRecruitStage(

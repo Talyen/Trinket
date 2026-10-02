@@ -68,9 +68,9 @@ enum CardDissolveTexture {
         let cutAngleDegrees: Int?
     }
 
-    private struct ThresholdKey: Hashable {
-        let cut: CutVariant
-        let progressStep: Int
+    private enum ThresholdKey: Hashable {
+        case step(cut: CutVariant, progressStep: Int)
+        case uniformAlpha(UInt8)
     }
 
     private struct PrewarmState {
@@ -79,11 +79,17 @@ enum CardDissolveTexture {
         var prepared: Set<CutVariant> = []
     }
 
+    private struct NoiseTexture {
+        let bytes: [UInt8]
+        let minimum: UInt8
+        let maximum: UInt8
+    }
+
     private final class TextureCache: Sendable {
-        private let noiseCache = Mutex<[CutVariant: [UInt8]]>([:])
+        private let noiseCache = Mutex<[CutVariant: NoiseTexture]>([:])
         private let thresholdCache = Mutex<[ThresholdKey: CGImage]>([:])
 
-        func noiseBytes(for cut: CutVariant, make: () -> [UInt8]) -> [UInt8] {
+        func noiseBytes(for cut: CutVariant, make: () -> NoiseTexture) -> NoiseTexture {
             if let cached = noiseCache.withLock({ $0[cut] }) {
                 return cached
             }
@@ -135,10 +141,10 @@ enum CardDissolveTexture {
     }
 
     private static func thresholdMaskImage(cache: TextureCache, cut: CutVariant, step: Int) -> CGImage? {
-        let noise = noiseBytes(for: cut, cache: cache)
-        let steppedProgress = CGFloat(step) / CGFloat(progressSteps)
-        return cache.thresholdImage(for: ThresholdKey(cut: cut, progressStep: step)) {
-            makeThresholdImage(noise: noise, progress: steppedProgress)
+        cache.thresholdImage(for: .step(cut: cut, progressStep: step)) {
+            let noise = noiseBytes(for: cut, cache: cache)
+            let steppedProgress = CGFloat(step) / CGFloat(progressSteps)
+            return makeThresholdImage(noise: noise, progress: steppedProgress, cache: cache)
         }
     }
 
@@ -195,14 +201,16 @@ extension CardDissolveTexture {
         degrees.map { Int($0.rounded()) }
     }
 
-    private static func noiseBytes(for cut: CutVariant, cache: TextureCache) -> [UInt8] {
+    private static func noiseBytes(for cut: CutVariant, cache: TextureCache) -> NoiseTexture {
         cache.noiseBytes(for: cut) {
             makeNoiseBytes(cutAngleDegrees: cut.cutAngleDegrees.map(CGFloat.init))
         }
     }
 
-    private static func makeNoiseBytes(cutAngleDegrees: CGFloat?) -> [UInt8] {
+    private static func makeNoiseBytes(cutAngleDegrees: CGFloat?) -> NoiseTexture {
         var pixels = [UInt8](repeating: 0, count: width * height)
+        var minimum = UInt8.max
+        var maximum = UInt8.min
         let maximumInset = CGFloat(min(width, height)) / 2
         let depthWeight = max(edgeDepthWeight, 0)
         let noiseAmount = max(noiseWeight, 0)
@@ -234,14 +242,16 @@ extension CardDissolveTexture {
                     seed: x &* 12989 &+ y &* 78233,
                 )
                 let threshold = min(edgeDepth * depthWeight + noise * noiseAmount, 1)
-                pixels[y * width + x] = UInt8(clamping: Int((threshold * 255).rounded()))
+                let byte = UInt8(clamping: Int((threshold * 255).rounded()))
+                pixels[y * width + x] = byte
+                minimum = min(minimum, byte)
+                maximum = max(maximum, byte)
             }
         }
-        return pixels
+        return NoiseTexture(bytes: pixels, minimum: minimum, maximum: maximum)
     }
 
-    private static func makeThresholdImage(noise: [UInt8], progress: CGFloat) -> CGImage? {
-        var grayAlpha = [UInt8](repeating: 255, count: width * height * 2)
+    private static func makeThresholdImage(noise: NoiseTexture, progress: CGFloat, cache: TextureCache) -> CGImage? {
         let brightness = Double(thresholdMidpoint) - Double(progress)
         let contrast = max(Double(thresholdContrast), 1)
         let alphaByNoise = (0 ... 255).map { byte -> UInt8 in
@@ -250,11 +260,22 @@ extension CardDissolveTexture {
             let contrasted = (brightened - 0.5) * contrast + 0.5
             return UInt8(clamping: Int((min(max(contrasted, 0), 1) * 255).rounded()))
         }
-        for index in 0 ..< (width * height) {
-            let alpha = alphaByNoise[Int(noise[index])]
-            grayAlpha[index * 2 + 1] = alpha
+        let makeImage = {
+            var grayAlpha = [UInt8](repeating: 255, count: width * height * 2)
+            for index in 0 ..< (width * height) {
+                grayAlpha[index * 2 + 1] = alphaByNoise[Int(noise.bytes[index])]
+            }
+            return makeGrayAlphaImage(pixels: grayAlpha, width: width, height: height)
         }
-        return makeGrayAlphaImage(pixels: grayAlpha, width: width, height: height)
+        // The alpha mapping is monotonic, so matching range endpoints prove
+        // uniformity without rescanning every pixel for each progress step.
+        let firstAlpha = alphaByNoise[Int(noise.minimum)]
+        if firstAlpha == alphaByNoise[Int(noise.maximum)] {
+            // Completed masks are identical across cuts and progress steps.
+            // Share their backing image without changing its pixels or format.
+            return cache.thresholdImage(for: .uniformAlpha(firstAlpha), make: makeImage)
+        }
+        return makeImage()
     }
 
     private static func makeGrayAlphaImage(pixels: [UInt8], width: Int, height: Int) -> CGImage? {

@@ -32,7 +32,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                     cwd=ROOT, capture_output=True, text=True, check=False,
                 )
                 self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertIn(f"./Scripts/test-scripts.sh --paths {path}", result.stdout)
+                self.assertIn(f"./Scripts/test-scripts.sh --fast --paths {path}", result.stdout)
 
     def test_mixed_script_and_product_scope_keeps_narrow_regressions(self) -> None:
         result = subprocess.run(
@@ -42,8 +42,8 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         command = next(line.strip() for line in result.stdout.splitlines()
-                       if line.strip().startswith("./Scripts/test-scripts.sh --paths"))
-        paths = shlex.split(command)[2:]
+                       if line.strip().startswith("./Scripts/test-scripts.sh --fast --paths"))
+        paths = shlex.split(command)[3:]
         selected = subprocess.run(
             ["python3", "Scripts/script_test_selection.py", "--paths", *paths],
             cwd=ROOT, capture_output=True, text=True, check=False,
@@ -139,7 +139,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
             (scripts / "config/cheap-slices.txt").write_text('./Scripts/check-api-bans.sh  # skip-when-style-checked\necho cheap-checked\n')
             startup = root / "startup"
             startup.write_text('command() { if [[ "$*" == "-v xcodebuild" ]]; then return 1; fi; builtin command "$@"; }\n')
-            environment = {**os.environ, "BASH_ENV": str(startup)}
+            environment = {**os.environ, "BASH_ENV": str(startup), "GITHUB_ACTIONS": "true"}
             for dry in (False, True):
                 result = subprocess.run([str(scripts / "handoff.sh"), *(["--dry-run"] if dry else []),
                                          "--paths", "Trinket/App/ContentView.swift"],
@@ -165,7 +165,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                 registry.write_text(f"echo cheap-check; exit {cheap}\n")
                 result = subprocess.run(
                     [str(scripts / "handoff.sh"), "--quiet", "--paths", "Scripts/test-scripts.sh"],
-                    env={**os.environ, "TRINKET_CHEAP_SLICES_CONFIG": str(registry)},
+                    env={**os.environ, "TRINKET_CHEAP_SLICES_CONFIG": str(registry), "GITHUB_ACTIONS": "true"},
                     text=True, capture_output=True,
                 )
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
@@ -186,6 +186,8 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                                     if line.startswith("Full log: ")))
                     self.assertEqual(log.read_text(), payload if selected else "cheap-check\n")
                     self.assertLess(len(result.stderr.splitlines()), 70)
+                    retry = next(line.removeprefix('Rerun: ') for line in result.stderr.splitlines() if line.startswith('Rerun: '))
+                    self.assertEqual(shlex.split(retry), ['./Scripts/handoff.sh', '--quiet', '--paths', 'Scripts/test-scripts.sh'])
                     if selected:
                         self.assertIn("FAIL: fixture diagnostic", result.stderr)
                         self.assertIn("output omitted", result.stderr)

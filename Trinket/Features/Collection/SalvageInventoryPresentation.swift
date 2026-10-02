@@ -76,13 +76,13 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
     private func prepareDetail() async {
         guard let item = salvageDetail.requestedItem else { return }
         let names = Array(Set([item.artReference?.imageName, item.artReference?.thumbnailImageName].compactMap(\.self)))
-        await PreparedArtworkCache.shared.prepareAndPin(names: names)
+        let acquired = await PreparedArtworkCache.shared.prepareAndPin(names: names)
         guard !Task.isCancelled, salvageDetail.requestedItem?.id == item.id else {
-            PreparedArtworkCache.shared.releasePins(names: names)
+            PreparedArtworkCache.shared.releasePins(names: acquired)
             return
         }
         PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
-        pinnedArtwork = names
+        pinnedArtwork = acquired
         salvageDetail.selectedItem = item
         salvageDetail.requestedItem = nil
     }

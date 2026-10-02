@@ -122,8 +122,6 @@ private extension PlaySession {
         }
         _ = encounters.beginShopOrAutoComplete(
             origin: .journey(stage: stage),
-            identifier: stage.id,
-            onAutoComplete: { self.journey.completeStageOrPersistFailure(stage) },
         )
     }
 

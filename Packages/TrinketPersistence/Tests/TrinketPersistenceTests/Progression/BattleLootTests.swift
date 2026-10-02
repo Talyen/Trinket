@@ -84,10 +84,36 @@ struct BattleLootTests {
     }
 
     @Test func `quantity range endpoints`() {
+        #expect(BattleLoot.quantityRange(forLevel: Int.min) == 3 ... 4)
         #expect(BattleLoot.quantityRange(forLevel: 1) == 3 ... 4)
         #expect(BattleLoot.quantityRange(forLevel: 24) == 7 ... 13)
         #expect(BattleLoot.quantityRange(forLevel: 48) == 11 ... 23)
         #expect(BattleLoot.quantityRange(forLevel: 50) == 12 ... 24)
+        #expect(BattleLoot.quantityRange(forLevel: Int.max / 20 + 1) == 84704437073156107 ... 188232082384791347)
+        #expect(BattleLoot.quantityRange(forLevel: Int.max) == 1694088741463122090 ... 3764641647695826864)
+    }
+
+    @Test(arguments: [false, true])
+    func `maximum encounter level loot retains valid quantities with boss and reward bonuses`(boss: Bool) {
+        func resolve(bonus: Int) -> BattleLootResult {
+            BattleLoot.resolve(
+                LootRequest(seedSalt: "maximum-level", itemID: "maximum-level", goldFoundPercent: bonus, materialsFoundPercent: bonus),
+                encounterLevel: Int.max, enemyIsBoss: boss, worldSeed: 42, ownership: RewardOwnership(),
+            )
+        }
+        let base = resolve(bonus: 0)
+        let boosted = resolve(bonus: RewardModifier.bonusPercent)
+        let multiplier = boss ? 2 : 1
+        let range = (1694088741463122090 * multiplier) ... (3764641647695826864 * multiplier)
+        #expect(range.contains(base.gold))
+        #expect(base.materials.count == 2)
+        #expect(Set(base.materials.map(\.resource)).count == 2)
+        #expect(base.materials.allSatisfy { range.contains($0.quantity) })
+        #expect(boosted.gold == CombatRounding.scaled(base.gold, byPercent: RewardModifier.bonusPercent))
+        #expect(boosted.materials == base.materials.map {
+            ResourceAmount($0.resource, CombatRounding.scaled($0.quantity, byPercent: RewardModifier.bonusPercent))
+        })
+        #expect(boosted.item == base.item)
     }
 
     @Test func `resolve always grants one item two distinct materials and gold`() {

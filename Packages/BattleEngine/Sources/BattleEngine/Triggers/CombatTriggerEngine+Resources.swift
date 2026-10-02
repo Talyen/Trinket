@@ -39,8 +39,8 @@ package extension CombatTriggerEngine {
             }
         }
         if triggers.criticalGoldStealDrawCard,
-           context.resolution.cardTalents?.didCriticalHit == true,
-           context.claimHeroCardBonus("Quick Fingers", actorID: actor.id),
+           context.resolution.hasCriticalHit(by: actor.id),
+           context.claimTalentAbility("Quick Fingers", actorID: actor.id),
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: drawCards(
                 1, for: owner, actor: actor, abilityName: "Quick Fingers", in: &context,
@@ -143,12 +143,10 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: combatant.id).triggers
-        let restoresParty = granted > 0 && triggers.onGainGoldHealParty > 0
-            && context.resolution.claim(.heroTalent("goldenRecovery"), actorID: combatant.id, cadence: .turn(context.turnCount))
         let wasBelowHalfHealth = context.roster.health(for: combatant) * 2
             < context.roster.maxHealth(for: combatant)
-        var events = healLowestAfterGoldGain(source: combatant, in: &context).events
-        events.append(contentsOf: afterFinalCompanionGoldGain(granted: granted, actor: combatant, in: &context))
+        let restoration = beginGoldRestoration(granted: granted, combatant: combatant, triggers: triggers, in: &context)
+        var events = restoration.events
         let wildcardGoldGain = granted > 0 && context.allowsHeroTalentReaction
             && (!context.hasHeroCard(for: combatant.id)
                 || context.claimHeroCardBonus("wildcardGoldGain", actorID: combatant.id))
@@ -204,7 +202,7 @@ package extension CombatTriggerEngine {
                 in: &context,
             ))
         }
-        if restoresParty {
+        if restoration.restoresParty {
             for (_, member) in livingPartyMembers(in: context) {
                 events.append(contentsOf: emitHeal(
                     "onGainGoldHealParty", "Golden Recovery",
@@ -240,12 +238,27 @@ package extension CombatTriggerEngine {
         return events
     }
 
+    private static func beginGoldRestoration(
+        granted: Int,
+        combatant: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> (events: [ActionEvent], restoresParty: Bool) {
+        guard context.resolution.depth(.leechOverflowGold) == 0 else { return ([], false) }
+        let restoresParty = granted > 0 && triggers.onGainGoldHealParty > 0
+            && context.resolution.claim(.heroTalent("goldenRecovery"), actorID: combatant.id, cadence: .turn(context.turnCount))
+        var events = healLowestAfterGoldGain(source: combatant, in: &context).events
+        events.append(contentsOf: afterFinalCompanionGoldGain(granted: granted, actor: combatant, in: &context))
+        return (events, restoresParty)
+    }
+
     private static func healthIsWealthHealing(
         for combatant: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        guard triggers.goldGainHealChancePercent > 0, triggers.goldGainHealAmount > 0 else { return [] }
+        guard context.resolution.depth(.leechOverflowGold) == 0,
+              triggers.goldGainHealChancePercent > 0, triggers.goldGainHealAmount > 0 else { return [] }
         let target = BattleTargetResolver.lowestHealthAlly(for: combatant, in: context)
         guard context.roster.health(for: target) < context.roster.maxHealth(for: target),
               BattleChance.succeeds(probability: triggers.goldGainHealChancePercent, using: &context.rng)

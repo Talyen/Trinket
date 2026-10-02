@@ -48,6 +48,7 @@ enum CombatFeedbackChipBridge {
     }
 
     static func unregister(_ view: CombatFeedbackRasterUIView) {
+        view.stopMotion()
         hosts.removeValue(forKey: ObjectIdentifier(view))
     }
 

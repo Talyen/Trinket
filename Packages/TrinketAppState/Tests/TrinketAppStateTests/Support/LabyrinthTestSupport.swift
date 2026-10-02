@@ -10,6 +10,22 @@ enum LabyrinthTestSupport {
     /// call can rewrite up to this many nodes; prefer `-reset-state` maps.
     private static let maximumAdvanceCount = 24
 
+    /// Advances a fixture without launching combat or an encounter presentation.
+    @discardableResult
+    static func completeNode(nodeID: String, in state: PlaySession) -> Bool {
+        let playerSave = state.playerSave
+        let roster = playerSave.roster
+        return playerSave.persistBatch(logging: "Test setup: complete Labyrinth node") { save in
+            #expect(LabyrinthCompletion.complete(
+                nodeID: nodeID,
+                hero: roster.activeHero,
+                companion: roster.activeCompanion,
+                save: &save,
+                access: playerSave.contentAccess,
+            ) == .completed)
+        }
+    }
+
     static func remade(
         _ node: LabyrinthNode,
         type: LabyrinthNodeType,
@@ -135,7 +151,7 @@ enum LabyrinthTestSupport {
                 return !node.isCleared && node.type != .boss
             }) ?? reachableNodeIDs.first
             guard let next = candidate,
-                  state.labyrinth.completeNode(nodeID: next)
+                  completeNode(nodeID: next, in: state)
             else { return nil }
         }
         return nil

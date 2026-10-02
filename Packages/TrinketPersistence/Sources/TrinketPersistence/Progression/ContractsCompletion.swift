@@ -47,7 +47,8 @@ public enum ContractsCompletion {
         save: inout PlayerSave,
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> EncounterCompletion {
-        guard let offer = save.contracts.offers.first(where: { $0.id == offerID }) else { return .alreadyCompleted }
+        guard !(save.contracts.completedOfferIDs ?? []).contains(offerID),
+              let offer = save.contracts.offers.first(where: { $0.id == offerID }) else { return .alreadyCompleted }
         let modifier = effectiveModifier(for: offer, inventory: save.inventory)
         VictoryRewardApplier.grantVictoryRewards(
             hero: hero,

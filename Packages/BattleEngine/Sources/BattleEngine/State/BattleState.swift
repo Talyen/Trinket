@@ -110,7 +110,9 @@ public struct BattleState {
     public package(set) var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
     public package(set) var turnCadence: BattleTurnCadence
 
+    /// Independent action delays; control extensions belong to their active status instead.
     public package(set) var additionalControlSkipsByCombatantID: [String: Int]
+    var additionalControlSkipsByEffectID: [Int: Int] = [:]
     public package(set) var isEchoingSkill: Bool
     /// Cap for nested draw-and-play resolution. Each nesting level costs on
     /// the order of 70KB of stack in Debug, and this path runs on 512KB

@@ -7,18 +7,14 @@ final class LabyrinthEncounterPerformanceUITests: PerformanceJourneyUITestCase {
         launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allForScreen("labyrinth-map"))
             + ["-performance-labyrinth-node", type.rawValue] + arguments)
         assertExists(AccessibilityID.Play.labyrinthMap)
-        let map = LabyrinthGenerator.makeInitialMap(seed: 0x5452_494E)
-        let node = map.nodes.values.sorted { $0.id < $1.id }.first { $0.type == type }
-        XCTAssertNotNil(node)
-        let identifier = node?.id ?? "missing-fixture"
-        let selector = identifier.hasSuffix("-n0") ? AccessibilityID.Play.labyrinthFloor1EntryNode
-            :
-            (identifier.hasSuffix("-n2") ? AccessibilityID.Play.labyrinthFloor1LockedNode : AccessibilityID.Play
-                .labyrinthNode(identifier))
-        reveal(any(selector))
-        tapWhenReady(any(selector))
+        let target = app.buttons.matching(NSPredicate(format: "label == %@", type.title)).firstMatch
+        reveal(target)
+        tapWhenReady(target)
         assertExists(AccessibilityID.Play.labyrinthNodeInspector)
-        return identifier
+        let action = app.buttons
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.Play.labyrinthInspectorAction(""))).firstMatch
+        assertExists(action)
+        return String(action.identifier.dropFirst(AccessibilityID.Play.labyrinthInspectorAction("").count))
     }
 
     @MainActor

@@ -1,4 +1,3 @@
-import Foundation
 import TrinketCore
 
 enum AbilityDescriptionFormatter {
@@ -60,7 +59,7 @@ enum AbilityDescriptionFormatter {
                 if component.target == .actor {
                     lines.append("Lose \(component.amount) Health")
                 } else {
-                    lines.append(contentsOf: formatEnemyDamage([component]))
+                    lines.append(contentsOf: formatEnemyDamage(component))
                 }
             case let .effect(targeted):
                 lines.append(formatTargetedEffect(targeted))
@@ -69,45 +68,30 @@ enum AbilityDescriptionFormatter {
         return lines
     }
 
-    private static func formatEnemyDamage(
-        _ components: [DamageComponent],
-    ) -> [String] {
-        var clauses: [String] = []
-        for component in components {
-            let text = if let scaling = component.scaling {
-                switch scaling {
-                case let .actorBlockFraction(divisor, minimum):
-                    "deal \(component.keyword.rawValue) damage equal to \(fractionPhrase(divisor: divisor)) your Block"
-                        + (minimum > 0 ? " (minimum \(minimum))" : "")
-                }
-            } else {
-                "deal \(component.amount) \(component.keyword.rawValue) damage"
+    private static func formatEnemyDamage(_ component: DamageComponent) -> [String] {
+        let text = if let scaling = component.scaling {
+            switch scaling {
+            case let .actorBlockFraction(divisor, minimum):
+                "deal \(component.keyword.rawValue) damage equal to \(fractionPhrase(divisor: divisor)) your Block"
+                    + (minimum > 0 ? " (minimum \(minimum))" : "")
             }
-            if let condition = component.condition {
-                if component.bonusAmount > 0 {
-                    clauses.append(text)
-                    clauses
-                        .append("deal \(component.bonusAmount) extra \(component.keyword.rawValue) damage if \(conditionPhrase(condition))")
-                } else {
-                    clauses.append(text + " if \(conditionPhrase(condition))")
-                }
-            } else {
-                clauses.append(text)
-            }
+        } else {
+            "deal \(component.amount) \(component.keyword.rawValue) damage"
         }
-        return clauses
+        guard let condition = component.condition else { return [text] }
+        let conditionPhrase = condition.sentenceFragment
+        if component.bonusAmount > 0 {
+            return [text, "deal \(component.bonusAmount) extra \(component.keyword.rawValue) damage if \(conditionPhrase)"]
+        }
+        return [text + " if \(conditionPhrase)"]
     }
 
     private static func formatTargetedEffect(_ targetedEffect: TargetedEffect) -> String {
         var phrase = EffectPresentation.applyPhrase(for: targetedEffect.effect)
         if let condition = targetedEffect.condition {
-            phrase += " if \(conditionPhrase(condition))"
+            phrase += " if \(condition.sentenceFragment)"
         }
         return phrase
-    }
-
-    private static func conditionPhrase(_ condition: DamageCondition) -> String {
-        condition.sentenceFragment
     }
 
     private static func joinOr(_ clauses: [String]) -> String {

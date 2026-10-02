@@ -59,10 +59,16 @@ Ordinary builds default to local-only; explicitly enabled builds use complete-sa
 sync. Enablement and wider distribution follow
 [CloudKitPreShipChecklist.md](../../Docs/Platform/CloudKitPreShipChecklist.md).
 
-```sh
-./Scripts/test-package.sh TrinketPersistence
-```
-
 Purchase access is a transient `PlayerSaveStore.contentAccess` input supplied by
 AppState from StoreKit. It is never serialized into the player save or synced
 through CloudKit. [Purchases](../../Docs/Platform/Purchases.md) owns the lifecycle.
+
+## Testing
+
+Package execution and local diagnostic opt-in follow
+[Verification](../../Docs/Platform/Verification.md#execution-limits); routine local
+changes use path-scoped handoff.
+
+```sh
+./Scripts/test-package.sh TrinketPersistence
+```

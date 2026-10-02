@@ -108,12 +108,12 @@ def testplan_failures() -> list[str]:
             if selections != expected:
                 failures.append(f'{suite}.xctestplan selectedTests must match {REGISTRY}; run ./Scripts/generate.sh')
         workflow = (ROOT / '.github/workflows/tests.yml').read_text()
-        # These expressions consume the same registry through the build job.
-        for job, output in [('smoke', 'smoke-matrix'), ('exhaustive-ui', 'full-ui-matrix')]:
-            section = re.search(rf'^  {job}:\n(.*?)(?=^  [\w-]+:|\Z)', workflow, re.M | re.S)
-            expression = '${{ fromJSON(needs.build.outputs.' + output + ') }}'
-            if not section or 'matrix: ' + expression not in section[1]:
-                failures.append(f'.github/workflows/tests.yml {job} must consume registry matrix')
+        build = re.search(r'^  build:\n(.*?)(?=^  [\w-]+:|\Z)', workflow, re.M | re.S)
+        if not build or '--classes Smoke' not in build[1] or './Scripts/test.sh smoke --no-build' not in build[1]:
+            failures.append('.github/workflows/tests.yml build must run registry-selected smoke')
+        full_ui = re.search(r'^  exhaustive-ui:\n(.*?)(?=^  [\w-]+:|\Z)', workflow, re.M | re.S)
+        if not full_ui or 'matrix: ${{ fromJSON(needs.build.outputs.full-ui-matrix) }}' not in full_ui[1]:
+            failures.append('.github/workflows/tests.yml exhaustive-ui must consume registry matrix')
         return failures
     except (OSError, ValueError, KeyError) as error:
         return [str(error)]
@@ -124,13 +124,16 @@ def main() -> int:
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--generate', action='store_true', help='update only UI test-plan selections')
     mode.add_argument('--matrix', choices=('Smoke', 'FullUI'), help='emit one compact CI matrix')
+    mode.add_argument('--classes', choices=('Smoke', 'FullUI'), help='emit class filters for a serial suite')
     parser.add_argument('--root', type=Path, default=ROOT, help='project root for generation')
     args = parser.parse_args()
     try:
-        if args.generate or args.matrix:
+        if args.generate or args.matrix or args.classes:
             rows = registrations(args.root)
             if args.generate:
                 generate(args.root, rows)
+            elif args.classes:
+                print(' '.join(row['name'] for row in rows if row['suite'] == args.classes))
             else:
                 print(json.dumps(matrix(rows, args.matrix), separators=(',', ':')))
             return 0

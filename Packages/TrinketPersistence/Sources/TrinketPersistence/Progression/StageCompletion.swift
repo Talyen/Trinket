@@ -96,50 +96,6 @@ public enum StageCompletion {
     }
 
     @discardableResult
-    public static func completeEncounter(
-        stage: Stage,
-        labyrinthNodeID: String?,
-        hero: Combatant,
-        companion: Combatant,
-        battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardSettlement? = nil,
-        materialRewards: [ResourceAmount]? = nil,
-        rewardItem: InventoryItem? = nil,
-        loot: BattleLootResult? = nil,
-        enemyEncounterLevel: Int? = nil,
-        in chapters: [Chapter],
-        save: inout PlayerSave,
-    ) -> EncounterCompletion {
-        if let labyrinthNodeID {
-            return LabyrinthCompletion.complete(
-                nodeID: labyrinthNodeID,
-                hero: hero,
-                companion: companion,
-                battleGold: battleGold,
-                award: award,
-                materialRewards: materialRewards,
-                rewardItem: rewardItem,
-                loot: loot,
-                enemyEncounterLevel: enemyEncounterLevel,
-                save: &save,
-            )
-        }
-        return complete(
-            stage,
-            hero: hero,
-            companion: companion,
-            battleGold: battleGold,
-            award: award,
-            materialRewards: materialRewards,
-            rewardItem: rewardItem,
-            loot: loot,
-            enemyEncounterLevel: enemyEncounterLevel,
-            in: chapters,
-            save: &save,
-        )
-    }
-
-    @discardableResult
     public static func claimRewardsIfNeeded(
         for stage: Stage,
         hero: Combatant,

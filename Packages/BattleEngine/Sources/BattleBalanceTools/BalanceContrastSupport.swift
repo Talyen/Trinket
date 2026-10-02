@@ -21,15 +21,34 @@ struct ContrastPairOutcome: Equatable {
 /// foundation that variants override along a single axis (ability loadout,
 /// affix gear, or talent kit).
 struct ContrastMatchupBase {
-    var owner: Combatant
-    var partner: Combatant
-    var enemy: Enemy
+    let owner: Combatant
+    let partner: Combatant
+    let enemy: Enemy
     var ownerLoadout: AbilityLoadout
-    var partnerLoadout: AbilityLoadout
+    let partnerLoadout: AbilityLoadout
     var ownerGear: SimulationMatchupBuilder.GearOverride?
     var partnerGear: SimulationMatchupBuilder.GearOverride?
-    var tier: SimulationPowerTier
-    var seed: UInt64
+    let tier: SimulationPowerTier
+    let seed: UInt64
+
+    mutating func prepareSharedGear() {
+        let sharedBias = owner.keywordProfile.union(partner.keywordProfile)
+        var gearRNG = SeededRandomNumberGenerator(seed: seed &+ 17)
+        ownerGear = SimulationMatchupBuilder.generateAlignedGear(
+            for: owner.withAbilityLoadoutPreservingEmptyTiers(ownerLoadout),
+            tier: tier,
+            keywordBias: sharedBias,
+            idPrefix: "contrast-owner",
+            using: &gearRNG,
+        )
+        partnerGear = SimulationMatchupBuilder.generateAlignedGear(
+            for: partner.withAbilityLoadoutPreservingEmptyTiers(partnerLoadout),
+            tier: tier,
+            keywordBias: sharedBias,
+            idPrefix: "contrast-partner",
+            using: &gearRNG,
+        )
+    }
 
     /// Builds one side of the pair, assigning owner to its roster role. A nil
     /// `ownerGear`/`ownerLoadout` uses the base value; `ownerTalents` replaces
@@ -132,19 +151,25 @@ enum BalanceContrastSupport {
         owner: Combatant,
         pairIndex: Int,
         context: BalanceContrastContext,
+        tier: SimulationPowerTier,
         pairSeed: UInt64,
-    ) -> (
-        partner: Combatant,
-        enemy: Enemy,
-        ownerLoadout: AbilityLoadout,
-        partnerLoadout: AbilityLoadout,
-    ) {
+    ) -> ContrastMatchupBase {
         var rng = SeededRandomNumberGenerator(seed: pairSeed)
         let partner = pickPartner(for: owner, from: context, using: &rng)
         let enemy = roundRobinEnemy(enemies: context.enemies, pairIndex: pairIndex)
         let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(for: owner, using: &rng)
         let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(for: partner, using: &rng)
-        return (partner, enemy, ownerLoadout, partnerLoadout)
+        return ContrastMatchupBase(
+            owner: owner,
+            partner: partner,
+            enemy: enemy,
+            ownerLoadout: ownerLoadout,
+            partnerLoadout: partnerLoadout,
+            ownerGear: nil,
+            partnerGear: nil,
+            tier: tier,
+            seed: pairSeed,
+        )
     }
 
     static func stableHash64(_ string: String) -> UInt64 {
@@ -177,31 +202,15 @@ enum BalanceContrastSupport {
         context: BalanceContrastContext,
         pairSeed: UInt64,
     ) -> ContrastMatchupBase {
-        let sampled = sampleBasePair(
+        var base = sampleBasePair(
             owner: owner,
             pairIndex: pairIndex,
             context: context,
-            pairSeed: pairSeed,
-        )
-        let gears = sharedGear(
-            owner: owner,
-            partner: sampled.partner,
-            ownerLoadout: sampled.ownerLoadout,
-            partnerLoadout: sampled.partnerLoadout,
             tier: tier,
             pairSeed: pairSeed,
         )
-        return ContrastMatchupBase(
-            owner: owner,
-            partner: sampled.partner,
-            enemy: sampled.enemy,
-            ownerLoadout: sampled.ownerLoadout,
-            partnerLoadout: sampled.partnerLoadout,
-            ownerGear: gears.owner,
-            partnerGear: gears.partner,
-            tier: tier,
-            seed: pairSeed,
-        )
+        base.prepareSharedGear()
+        return base
     }
 
     static func seed(
@@ -247,34 +256,6 @@ enum BalanceContrastSupport {
         return enemies[pairIndex % enemies.count]
     }
 
-    static func sharedGear(
-        owner: Combatant,
-        partner: Combatant,
-        ownerLoadout: AbilityLoadout,
-        partnerLoadout: AbilityLoadout,
-        tier: SimulationPowerTier,
-        pairSeed: UInt64,
-    ) -> (owner: SimulationMatchupBuilder.GearOverride?, partner: SimulationMatchupBuilder.GearOverride?) {
-        let sharedBias = owner.keywordProfile.union(partner.keywordProfile)
-        var gearRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 17)
-        return (
-            SimulationMatchupBuilder.generateAlignedGear(
-                for: owner.withAbilityLoadoutPreservingEmptyTiers(ownerLoadout),
-                tier: tier,
-                keywordBias: sharedBias,
-                idPrefix: "contrast-owner",
-                using: &gearRNG,
-            ),
-            SimulationMatchupBuilder.generateAlignedGear(
-                for: partner.withAbilityLoadoutPreservingEmptyTiers(partnerLoadout),
-                tier: tier,
-                keywordBias: sharedBias,
-                idPrefix: "contrast-partner",
-                using: &gearRNG,
-            ),
-        )
-    }
-
     static func workCount(fociCount: Int, config: BalanceSweepConfig) -> Int {
         fociCount * config.tiers.count * config.battlesPerTier
     }
@@ -298,27 +279,24 @@ extension BalanceContrastSupport {
         else { return [] }
         let config = context.config
 
-        let work = config.sliceWork(
-            foci.indices.flatMap { focusIndex in
-                tiers.flatMap { tier in
-                    (0 ..< config.battlesPerTier).map { pairIndex in
-                        (focusIndex: focusIndex, tier: tier, pairIndex: pairIndex)
-                    }
-                }
-            },
-        )
+        let work = config.workIndices(count: workCount(fociCount: foci.count, config: config))
         let jobs = config.resolvedJobs
         let pairResults = SweepWorkerPool.map(count: work.count, jobs: jobs) { idx -> ContrastPairOutcome? in
-            let item = work[idx]
-            let focus = foci[item.focusIndex]
+            // Preserve focus → tier → sample order without building the full grid.
+            let globalIndex = work.lowerBound + idx
+            let pairIndex = globalIndex % config.battlesPerTier
+            let focusTierIndex = globalIndex / config.battlesPerTier
+            let tier = tiers[focusTierIndex % tiers.count]
+            let focusIndex = focusTierIndex / tiers.count
+            let focus = foci[focusIndex]
             let pairSeed = seed(
                 base: config.seed,
-                tier: item.tier,
-                pairIndex: item.pairIndex,
+                tier: tier,
+                pairIndex: pairIndex,
                 entityID: summarize(focus).entityID,
                 primes: primes(focus),
             )
-            guard let pair = makePair(focus, item.tier, item.pairIndex, pairSeed) else { return nil }
+            guard let pair = makePair(focus, tier, pairIndex, pairSeed) else { return nil }
             let outcome = runEntityBaselinePair(
                 matchups: pair,
                 policy: policy,
@@ -327,8 +305,8 @@ extension BalanceContrastSupport {
                 appliesFightPacing: config.appliesFightPacing,
             )
             return ContrastPairOutcome(
-                focusIndex: item.focusIndex,
-                tier: item.tier,
+                focusIndex: focusIndex,
+                tier: tier,
                 entity: outcome.entity,
                 baseline: outcome.baseline,
             )

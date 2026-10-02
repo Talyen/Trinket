@@ -181,10 +181,12 @@ struct CollectionView: View {
     }
 
     private func refreshImminentDetailArtworkPins() async {
-        pinnedDetailArtwork = await ArtworkPinSet.refresh(
+        let refreshed = await ArtworkPinSet.refresh(
             next: Self.imminentDetailArtworkNames(roster: playerSave.roster),
             current: pinnedDetailArtwork,
         )
+        guard !Task.isCancelled else { return }
+        pinnedDetailArtwork = refreshed
     }
 
     private func presentCombatant(_ context: CombatantDetailContext) {

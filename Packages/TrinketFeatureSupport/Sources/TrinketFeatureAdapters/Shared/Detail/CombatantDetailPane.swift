@@ -252,19 +252,15 @@ public struct CombatantDetailPane: View {
         let previous = Set(pinnedDetailArtwork)
         let added = Set(next).subtracting(previous)
         let removed = previous.subtracting(next)
-        if !added.isEmpty {
-            let addedNames = Array(added)
-            await PreparedArtworkCache.shared.prepareAndPin(names: addedNames)
-            guard !Task.isCancelled else {
-                PreparedArtworkCache.shared.releasePins(names: addedNames)
-                return
-            }
+        let acquired = await PreparedArtworkCache.shared.prepareAndPin(names: Array(added))
+        guard !Task.isCancelled else {
+            PreparedArtworkCache.shared.releasePins(names: acquired)
+            return
         }
-        guard !Task.isCancelled else { return }
         if !removed.isEmpty {
             PreparedArtworkCache.shared.releasePins(names: Array(removed))
         }
-        pinnedDetailArtwork = next
+        pinnedDetailArtwork = Array(previous.intersection(next).union(acquired)).sorted()
     }
 
     @ViewBuilder

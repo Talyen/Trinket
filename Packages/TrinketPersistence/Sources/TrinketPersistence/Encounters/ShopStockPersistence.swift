@@ -52,11 +52,9 @@ public enum ShopStockPersistence {
         case let .voyage(runID, nodeID): save.voyage.node(runID: runID, nodeID: nodeID)?.shopPayload
         }
         guard let data else { return nil }
-        let snapshot = try JSONDecoder().decode(ShopStockSnapshot.self, from: data)
-        guard snapshot.encounter.location == encounter.location,
-              snapshot.encounter.worldSeed == encounter.worldSeed
-        else { throw ShopPurchaseFailure.invalidOffer }
-        return try snapshot.resolve()
+        let resolved = try ResolvedStock(data: data)
+        guard resolved.matches(encounter) else { throw ShopPurchaseFailure.invalidOffer }
+        return resolved.stock
     }
 
     static func encode(_ stock: ShopStock, encounter: EncounterIdentity) throws -> Data {
@@ -67,29 +65,21 @@ public enum ShopStockPersistence {
 
     static func mergedPayload(preferred: Data?, other: Data?) -> Data? {
         guard let preferred, let other else { return preferred ?? other }
-        guard let first = validSnapshot(preferred) else { return validSnapshot(other) == nil ? preferred : other }
-        guard let second = validSnapshot(other) else { return preferred }
+        guard let first = validStock(preferred) else { return validStock(other) == nil ? preferred : other }
+        guard let second = validStock(other), first.matches(second.encounter) else { return preferred }
         do {
-            guard first.snapshot.encounter.location == second.snapshot.encounter.location,
-                  first.snapshot.encounter.worldSeed == second.snapshot.encounter.worldSeed
-            else { return preferred }
             var stock = first.stock
-            let otherOffers = Dictionary(uniqueKeysWithValues: second.stock.offers.map { ($0.id, $0) })
-            for offer in stock.offers where second.stock.purchasedOfferIDs.contains(offer.id)
-                && otherOffers[offer.id] == offer {
-                stock.purchasedOfferIDs.insert(offer.id)
-            }
-            return try encode(stock, encounter: first.snapshot.encounter)
+            stock.purchasedOfferIDs.formUnion(first.matchingPurchases(in: second))
+            return try encode(stock, encounter: first.encounter)
         } catch {
             return preferred
         }
     }
 
-    private static func validSnapshot(_ data: Data) -> (snapshot: ShopStockSnapshot, stock: ShopStock)? {
+    private static func validStock(_ data: Data) -> ResolvedStock? {
         do {
-            let snapshot = try JSONDecoder().decode(ShopStockSnapshot.self, from: data)
-            let stock = try snapshot.resolve()
-            return stock.offers.isEmpty ? nil : (snapshot, stock)
+            let resolved = try ResolvedStock(data: data)
+            return resolved.stock.offers.isEmpty ? nil : resolved
         } catch {
             return nil
         }
@@ -97,18 +87,12 @@ public enum ShopStockPersistence {
 
     static func hasSharedNewPurchase(base: Data?, incoming: Data?, existing: Data?) -> Bool {
         guard let incoming, let existing,
-              let first = validSnapshot(incoming), let second = validSnapshot(existing),
-              first.snapshot.encounter.location == second.snapshot.encounter.location,
-              first.snapshot.encounter.worldSeed == second.snapshot.encounter.worldSeed
+              let first = validStock(incoming), let second = validStock(existing),
+              first.matches(second.encounter)
         else { return false }
-        let priorIDs = base.flatMap { validSnapshot($0)?.stock.purchasedOfferIDs } ?? []
-        let secondOffers = Dictionary(uniqueKeysWithValues: second.stock.offers.map { ($0.id, $0) })
-        return first.stock.offers.contains { offer in
-            !priorIDs.contains(offer.id)
-                && first.stock.purchasedOfferIDs.contains(offer.id)
-                && second.stock.purchasedOfferIDs.contains(offer.id)
-                && secondOffers[offer.id] == offer
-        }
+        let priorIDs = base.flatMap { validStock($0)?.stock.purchasedOfferIDs } ?? []
+        let sharedIDs = first.stock.purchasedOfferIDs.intersection(first.matchingPurchases(in: second))
+        return !sharedIDs.subtracting(priorIDs).isEmpty
     }
 
     static func setPayload(_ data: Data, encounter: EncounterIdentity, save: inout PlayerSave) {
@@ -118,44 +102,27 @@ public enum ShopStockPersistence {
         case let .voyage(runID, nodeID): save.voyage.updateNode(runID: runID, nodeID: nodeID) { $0.shopPayload = data }
         }
     }
-}
 
-private struct ShopStockSnapshot: Codable {
-    let encounter: EncounterIdentity
-    let offers: [StoredOffer]
-    let purchasedOfferIDs: [String]
+    private struct ResolvedStock {
+        let encounter: EncounterIdentity
+        let stock: ShopStock
 
-    init(stock: ShopStock, encounter: EncounterIdentity) {
-        self.encounter = encounter
-        offers = stock.offers.map(StoredOffer.init)
-        purchasedOfferIDs = stock.purchasedOfferIDs.sorted()
-    }
-
-    func resolve() throws -> ShopStock {
-        let resolved = offers.compactMap { $0.resolve() }
-        let ids = Set(resolved.map(\.id))
-        guard ids.count == resolved.count else { throw ShopPurchaseFailure.invalidOffer }
-        let validPurchased = Set(purchasedOfferIDs).intersection(ids)
-        return ShopStock(offers: resolved, purchasedOfferIDs: validPurchased)
-    }
-
-    struct StoredOffer: Codable {
-        let id: String
-        let item: StoredInventoryItem
-        let price: Int
-
-        init(_ offer: ShopOffer) {
-            id = offer.id
-            item = StoredInventoryItem(offer.item)
-            price = offer.price
+        init(data: Data) throws {
+            let snapshot = try JSONDecoder().decode(ShopStockSnapshot.self, from: data)
+            encounter = snapshot.encounter
+            stock = try snapshot.resolve()
         }
 
-        /// Nil when the offer's item is homeless (unknown base): the option
-        /// is dropped while surviving offers resolve. Non-negative pricing
-        /// is still enforced so a tampered payload cannot mint rewards.
-        func resolve() -> ShopOffer? {
-            guard price >= 0, let item = item.resolved() else { return nil }
-            return ShopOffer(id: id, item: item, price: price)
+        func matches(_ other: EncounterIdentity) -> Bool {
+            encounter.location == other.location && encounter.worldSeed == other.worldSeed
+        }
+
+        /// A purchase transfers only when both peers pinned the same item and price.
+        func matchingPurchases(in other: Self) -> Set<String> {
+            let offersByID = Dictionary(uniqueKeysWithValues: other.stock.offers.map { ($0.id, $0) })
+            return Set(stock.offers.lazy.filter { offer in
+                other.stock.purchasedOfferIDs.contains(offer.id) && offersByID[offer.id] == offer
+            }.map(\.id))
         }
     }
 }

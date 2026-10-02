@@ -75,10 +75,14 @@ Classifications are `test-failure`, `build-failure`, `simulator-infrastructure`,
 `configuration`, `tooling`, or `unknown`. The infrastructure vocabulary is
 owned by `Scripts/config/infrastructure-patterns.env` — the Python reporter,
 the local retry matcher (`Scripts/lib/xcodebuild-infra.sh`), and the CI rerun
-matcher (`Scripts/ci-infra-rerun.sh`) all read that one list, and xcodebuild
-exit code 70 is always `simulator-infrastructure`. Do not add pattern tokens
-anywhere else; extend the config file when a new infrastructure signature
-appears. Test-owned attachments stay on their
+matcher (`Scripts/ci-infra-rerun.sh`) all read that one list. Exit code 70 alone
+does not establish infrastructure failure. Do not add infrastructure pattern tokens
+anywhere else; extend the config file when a new signature appears.
+The CI rerun matcher requires launch evidence from each failed job's own failed
+steps. An ineligible job, explicit assertion or source compiler failure, or
+unreadable log prevents an automatic rerun of all failed jobs. Reports preserve
+assertion and source compiler classifications even when their messages contain
+launch-failure wording. Test-owned attachments stay on their
 matching issue; runner-level or otherwise unmatched attachments are listed once at
 report level. A failure report may identify source locations and attachments even
 when the underlying result bundle is incomplete.
@@ -119,7 +123,10 @@ and use the current invocation's evidence.
 After the aggregate has been staged, successful invocation artifacts are ephemeral
 by default. `ci-diagnostics.sh --cleanup` removes passed bundles, reports, manifests,
 and raw logs while retaining failed evidence and the bounded timing history.
-Timing queries are bounded and optional; targeted-test evidence queries are
+UI CI jobs retain compact current-job timing and aggregate JSON for three days,
+including passing runs; cached timing is cleared before a CI invocation so old
+runs cannot be mistaken for the current one. Successful full bundles and screenshots
+remain ephemeral. Timing queries are bounded and optional; targeted-test evidence queries are
 bounded and fail when execution cannot be established.
 Pass `--keep` for a deliberate local investigation. The same cleanup sweeps
 orphaned bundles/logs from runs

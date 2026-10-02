@@ -150,9 +150,8 @@ package extension CombatTriggerEngine {
             context.additionalControlSkipsByCombatantID[attackerID, default: 0] += 1
         }
 
-        if let attackerID, let attackerRuntime = context.roster.combatant(for: attackerID) {
+        if let attackerID, let attackerRuntime = context.roster.combatant(for: attackerID), attackerRuntime.isAlive {
             let target = attackerRuntime.combatant
-            guard context.roster.health(for: target) > 0 else { return events }
 
             if allowsCounterattacks, triggers.onDodgeCounterDamage > 0 {
                 events.append(contentsOf: context.resolveDamage(

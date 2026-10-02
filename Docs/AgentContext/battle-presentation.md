@@ -164,7 +164,10 @@ replay the bridge's live items using original timestamps and cached rasters.
 
 The raster host, bridge, glyph/mask cache, and shared display clock own rendering.
 Prewarm the single production vocabulary including glint masks. Frame updates
-change layer properties only. Feedback expiration participates in outcome timing;
+change layer properties only, using fitting positions cached when layout changes.
+Hosts unregister from the display clock on teardown and when eviction leaves no
+unpaused chips; publication resumes the clock for new or resumed feedback.
+Feedback expiration participates in outcome timing;
 suspension freezes every region and resume shifts its original clocks.
 
 ### Verification gap

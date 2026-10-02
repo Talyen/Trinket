@@ -3,15 +3,29 @@ import Foundation
 public extension ItemAffixPower {
     /// Modifiers precede trigger fields in catalog order, preserving seeded rolls
     /// and corruption selection. Description bindings use that same order.
-    private var magnitudes: [(target: BumpTarget, value: AffixMagnitude)] {
-        modifiers.enumerated().map { index, modifier in
-            (
-                .modifier(index),
-                modifier.isPercent
-                    ? .percent(modifier.numericValue) : .int(Int(modifier.numericValue.rounded())),
-            )
-        } + CombatTraitTriggers.affixMagnitudeFields.enumerated().map { index, field in
-            (.trigger(index), field.magnitude(in: triggers))
+    private var magnitudes: some Sequence<(target: BumpTarget, value: AffixMagnitude)> {
+        let modifierCount = modifiers.count
+        let fields = CombatTraitTriggers.affixMagnitudeFields
+        return (0 ..< modifierCount + fields.count).lazy.map { index -> (target: BumpTarget, value: AffixMagnitude) in
+            if index < modifierCount {
+                return (.modifier(index), Self.magnitude(of: self.modifiers[index]))
+            }
+            let fieldIndex = index - modifierCount
+            return (.trigger(fieldIndex), fields[fieldIndex].magnitude(in: self.triggers))
+        }
+    }
+
+    private static func magnitude(of modifier: AffixModifier) -> AffixMagnitude {
+        modifier.isPercent
+            ? .percent(modifier.numericValue) : .int(Int(modifier.numericValue.rounded()))
+    }
+
+    private func magnitude(for target: BumpTarget) -> AffixMagnitude? {
+        switch target {
+        case let .modifier(index):
+            modifiers.indices.contains(index) ? Self.magnitude(of: modifiers[index]) : nil
+        case let .trigger(index):
+            CombatTraitTriggers.affixMagnitudeFields[index].magnitude(in: triggers)
         }
     }
 
@@ -69,17 +83,21 @@ public extension ItemAffixPower {
     }
 
     func isAtOrAboveRollMax(of catalog: Self) -> Bool {
-        guard catalog.hasRollableMagnitudes else { return false }
-        let actual = magnitudes
-        return catalog.magnitudes.allSatisfy { target, value in
-            guard !value.isZero else { return true }
-            guard let current = actual.first(where: { $0.target.matches(target) })?.value else { return false }
-            return current.isAtOrAbove(value.rollMax)
+        var hasRollableMagnitude = false
+        for (target, value) in catalog.magnitudes where !value.isZero {
+            hasRollableMagnitude = true
+            guard let current = magnitude(for: target), current.isAtOrAbove(value.rollMax) else { return false }
         }
+        return hasRollableMagnitude
     }
 
     func hasBumpableField(direction: ItemAffixPowerBumpDirection) -> Bool {
-        !bumpCandidates(direction: direction).isEmpty
+        magnitudes.contains { target, value in
+            if case .trigger = target, !value.isPositive {
+                return false
+            }
+            return value.bumped(direction: direction) != nil
+        }
     }
 
     enum BumpTarget: Sendable {
@@ -151,13 +169,22 @@ public enum ItemAffixMagnitudeRoll: Sendable {
     }
 
     public static func percentValues(around value: Double) -> [Double] {
+        percentPoints(around: value).map { Double($0) / 100 }
+    }
+
+    fileprivate static func percentMaximum(around value: Double) -> Double {
+        // Perfect-roll checks need only the maximum, not an allocated choice array.
+        percentPoints(around: value).lazy.map { Double($0) / 100 }.max() ?? value
+    }
+
+    private static func percentPoints(around value: Double) -> StrideThrough<Int> {
         let points = Int((value * 100).rounded())
         let delta = max(1, points / 4)
         let lower = max(1, points - delta)
         let upper = points + delta
         let step = delta < 5 ? 1 : 5
         let start = points - ((points - lower) / step) * step
-        return stride(from: start, through: upper, by: step).map { Double($0) / 100 }
+        return stride(from: start, through: upper, by: step)
     }
 }
 
@@ -192,7 +219,7 @@ private enum AffixMagnitude: Equatable {
 
     var rollMax: Self {
         map(
-            percent: { ItemAffixMagnitudeRoll.percentValues(around: $0).max() ?? $0 },
+            percent: { ItemAffixMagnitudeRoll.percentMaximum(around: $0) },
             int: { ItemAffixMagnitudeRoll.integerRange(around: $0).upperBound },
         )
     }

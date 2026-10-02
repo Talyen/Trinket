@@ -30,6 +30,8 @@ struct RewardModifierTests {
         #expect(try JSONDecoder().decode(RewardModifier.self, from: Data(#""gold""#.utf8)) == .gold)
         #expect(try JSONDecoder().decode(RewardModifier.self, from: Data(#""keyword.deathsDoor""#.utf8)) == .keyword(.deathsDoor))
         #expect(RewardModifier(rawValue: "keyword.deathsDoor") == .keyword(.deathsDoor))
+        #expect(RewardModifier(rawValue: "keyword.death's door") == .keyword(.deathsDoor))
+        #expect(try JSONDecoder().decode(RewardModifier.self, from: Data(#""keyword.death's door""#.utf8)) == .keyword(.deathsDoor))
         #expect(RewardModifier(rawValue: "unknown") == nil)
         #expect(RewardModifier(rawValue: "keyword.unknown") == nil)
         #expect(Set(RewardModifier.allCases.map(\.rawValue)).count == RewardModifier.allCases.count)

@@ -252,9 +252,11 @@ package extension CombatTriggerEngine {
             context.roster.mutateRuntime(for: target) { $0.talents.turn.negativeStatusImmune = true }
         }
         if removed.contains(.burn), triggers.heatRecovery {
+            let serial = context.resolution.cardTalents?.playSerial
+            let actionID = context.resolution.actionID
             context.roster.mutateRuntime(for: source) {
                 $0.talents.pending.nextBurnDamageBonus = PreparedTalentBonus(
-                    value: 2, cardSerial: $0.talents.pending.nextBurnDamageBonus?.cardSerial,
+                    value: 2, cardSerial: serial, actionID: actionID,
                 )
             }
         }
@@ -425,20 +427,6 @@ package extension CombatTriggerEngine {
         }
     }
 
-    static func heroTalentGold(to source: Combatant, amount: Int = 1, name: String, in context: inout BattleState) -> [ActionEvent] {
-        guard context.roster.health(for: source) > 0 else { return [] }
-        return withHeroReaction(in: &context) { context in
-            context.grantGoldEvent(amount, to: source, abilityName: name)
-        }
-    }
-
-    static func heroTalentBlock(to target: Combatant, source: Combatant, name: String, in context: inout BattleState) -> [ActionEvent] {
-        guard context.roster.health(for: target) > 0, context.roster.health(for: source) > 0 else { return [] }
-        return withHeroReaction(in: &context) { context in
-            context.applyBlock(1, to: target, source: source, abilityName: name)
-        }
-    }
-
     static func heroTalentDamage(
         _ keyword: Keyword,
         amount: Int = 1,
@@ -468,15 +456,14 @@ package extension CombatTriggerEngine {
                     origin: .automatic,
                 ))
             }
-            if keyword == .burn || keyword == .poison {
-                events.append(contentsOf: context.applyDecayingDoT(
-                    keyword: keyword,
-                    potency: outcome.healthLost,
-                    to: target,
-                    sourceActorID: source.id,
-                    application: .afterHit,
-                ))
-            }
+            events.append(contentsOf: DoTApplicator.applyDoT(
+                keyword: keyword,
+                potency: keyword == .bleed ? amount : outcome.healthLost,
+                to: target,
+                sourceActorID: source.id,
+                application: .afterHit,
+                in: &context,
+            ) ?? [])
             return events
         }
     }

@@ -11,7 +11,7 @@ struct CombatResolution {
     }
 
     enum Scope: Hashable {
-        case damage, dot, dotMirror, draw, heroReaction, uniqueReaction, talentReaction, detonation
+        case damage, dot, dotMirror, draw, heroReaction, uniqueReaction, talentReaction, detonation, leechOverflowGold
     }
 
     enum Claim: Hashable {
@@ -43,6 +43,7 @@ struct CombatResolution {
         let origin: DamageOperation.AttackOrigin
         var outcome: ResolvedActionFacts?
         var talents: TalentActionFacts?
+        var didCriticalHit = false
     }
 
     private struct Card {
@@ -106,6 +107,32 @@ struct CombatResolution {
 
     var actionOutcome: ResolvedActionFacts? {
         currentAction?.outcome
+    }
+
+    mutating func recordCriticalAttack(by actorID: String) {
+        guard let index = frames.lastIndex(where: {
+            if case .action = $0 {
+                return true
+            }
+            return false
+        }), case var .action(action) = frames[index], action.context.actor.id == actorID else {
+            return
+        }
+        action.didCriticalHit = true
+        frames[index] = .action(action)
+    }
+
+    func hasCriticalHit(by actorID: String) -> Bool {
+        if let action = currentAction {
+            guard action.context.actor.id == actorID else {
+                return false
+            }
+            if action.didCriticalHit {
+                return true
+            }
+            guard action.cardID != nil else { return false }
+        }
+        return cardTalents?.actorID == actorID && cardTalents?.didCriticalHit == true
     }
 
     var isAutomaticPlay: Bool {
@@ -192,13 +219,6 @@ struct CombatResolution {
         let amount = cards[index].partnerAttackDamageBonus
         cards[index].partnerAttackDamageBonus = 0
         return amount
-    }
-
-    func peekPartyDamage(from provenance: DamageProvenance?) -> Int {
-        guard let provenance, let cardID = provenance.cardID,
-              let index = cards.indices.last, cards[index].id == cardID,
-              currentAction?.id == provenance.actionID else { return 0 }
-        return cards[index].partnerAttackDamageBonus
     }
 
     mutating func mutateCardTalents(_ body: (inout HeroTalentCardFacts) -> Void) {

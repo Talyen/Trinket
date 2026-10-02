@@ -14,5 +14,8 @@ trinket_xcodebuild_log_is_infrastructure_failure() {
 
   # Evidence patterns determine classification; the exit code must not override
   # explicit configuration or product-test failures.
+  if grep -qiE "$(trinket_product_test_failure_pattern)" "$log_file"; then
+    return 1
+  fi
   rg -qi "$(trinket_infrastructure_failure_pattern)" "$log_file"
 }

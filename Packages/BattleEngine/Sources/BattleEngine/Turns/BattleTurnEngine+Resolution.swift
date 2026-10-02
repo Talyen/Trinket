@@ -100,23 +100,20 @@ extension BattleTurnEngine {
             }
         }
 
-        let nextBurnBonus = amount > 0 && !isSelfHealthCost && keyword == .burn
-            ? activeNextBurnBonus(for: actor, in: context)
-            : 0
-        let nextStrike = nextStrikeConsumption(
+        let preparation = nextStrikePreparation(
             amount: amount, damageKeyword: keyword, isSelfHealthCost: isSelfHealthCost,
-            actor: actor, nextBurnBonus: nextBurnBonus, in: context,
+            effects: context.roster.activeEffects(for: actor),
         )
-        if nextBurnBonus > 0 {
-            amount += nextBurnBonus
-        }
+        let nextStrike = preparation.consumption
+        amount += preparation.burnBonus
         let holyStrikeBurnPotency = amount
         if nextStrike.contains(.holyStrike) || nextStrike.contains(.double) {
             amount *= 2
         }
 
         // Consume before request preparation, which may start nested reactions.
-        ActiveEffectMutation.removeMatching(from: actor, in: &context) { nextStrike.consumedKinds.contains($0.kind) }
+        let consumedKinds = nextStrike.consumedKinds
+        ActiveEffectMutation.removeMatching(from: actor, in: &context) { consumedKinds.contains($0.kind) }
         let options: DamageOperation = isSelfHealthCost
             ? .healthCost
             : .attack(
@@ -239,62 +236,39 @@ extension BattleTurnEngine {
         return nil
     }
 
-    private static func hasActiveEffect(
-        for actor: Combatant,
-        in context: BattleState,
-        where matches: (Effect) -> Bool,
-    ) -> Bool {
-        context.roster.activeEffects(for: actor).contains { matches($0.effect) }
-    }
-
-    private static func nextStrikeConsumption(
+    private static func nextStrikePreparation(
         amount: Int,
-        damageKeyword: Keyword?,
+        damageKeyword: Keyword,
         isSelfHealthCost: Bool,
-        actor: Combatant,
-        nextBurnBonus: Int,
-        in context: BattleState,
-    ) -> NextStrikeConsumption {
-        guard amount > 0, !isSelfHealthCost else { return [] }
+        effects: [ActiveEffect],
+    ) -> (consumption: NextStrikeConsumption, burnBonus: Int) {
+        guard amount > 0, !isSelfHealthCost else { return ([], 0) }
         var consumption: NextStrikeConsumption = []
-        let holyStrike = damageKeyword == .holy
-            && hasActiveEffect(for: actor, in: context) { $0 == .nextHolyStrike }
-        if holyStrike {
-            consumption.insert(.holyStrike)
+        var burnBonus = 0
+        for active in effects {
+            switch active.effect {
+            case .nextHolyStrike where damageKeyword == .holy:
+                consumption.insert(.holyStrike)
+            case .nextStrikeDouble:
+                consumption.insert(.double)
+            case .nextStrikeCritical:
+                consumption.insert(.critical)
+            case .nextStrikeLeech:
+                consumption.insert(.leech)
+            case let .nextBurnBonus(bonus) where damageKeyword == .burn:
+                burnBonus += bonus
+            default:
+                break
+            }
         }
-        if hasActiveEffect(for: actor, in: context, where: { $0 == .nextStrikeDouble }), !holyStrike {
-            consumption.insert(.double)
+        // Holy Strike takes priority; the ordinary double remains ready for a later hit.
+        if consumption.contains(.holyStrike) {
+            consumption.remove(.double)
         }
-        if hasActiveEffect(for: actor, in: context, where: { $0 == .nextStrikeCritical }) {
-            consumption.insert(.critical)
-        }
-        if hasActiveEffect(for: actor, in: context, where: { $0 == .nextStrikeLeech }) {
-            consumption.insert(.leech)
-        }
-        if nextBurnBonus > 0 {
+        if burnBonus > 0 {
             consumption.insert(.burnBonus)
         }
-        return consumption
-    }
-
-    private static func activeNextBurnBonus(
-        for actor: Combatant,
-        in context: BattleState,
-    ) -> Int {
-        context.roster.activeEffects(for: actor).reduce(0) { sum, active in
-            if case let .nextBurnBonus(amount) = active.effect {
-                return sum + amount
-            }
-            return sum
-        }
-    }
-
-    private static func removeActiveEffect(
-        for actor: Combatant,
-        in context: inout BattleState,
-        where matches: (Effect) -> Bool,
-    ) {
-        ActiveEffectMutation.removeMatching(from: actor, in: &context, where: matches)
+        return (consumption, max(0, burnBonus))
     }
 
     static func consumeHemorrhageIfActive(
@@ -311,12 +285,7 @@ extension BattleTurnEngine {
             }
         }
         guard let hemorrhageDamage else { return [] }
-        removeActiveEffect(for: actor, in: &context) {
-            if case .hemorrhage = $0 {
-                return true
-            }
-            return false
-        }
+        ActiveEffectMutation.removeMatching(from: actor, in: &context) { $0.kind == .hemorrhage }
         let casterID = sourceActorID ?? actor.id
         let hemorrhageOutcome = context.resolveDamage(
             DamageRequest(
@@ -394,10 +363,9 @@ extension BattleTurnEngine {
             var restoredMana = 0
             for effectTarget in effectTargets {
                 guard action.canContinue(in: context) else { break }
-                if shouldSkipEffectOnDefeatedTarget(effect, target: effectTarget, actor: actor, context: context)
-                    || CombatTriggerEngine.preventsPurgedEffect(effect, on: effectTarget, in: context) {
-                    continue
-                }
+                guard context.roster.health(for: effectTarget) > 0 || effect.canApplyToDefeatedTarget,
+                      !CombatTriggerEngine.preventsPurgedEffect(effect, on: effectTarget, in: context)
+                else { continue }
                 let outcome = handler.apply(
                     effect,
                     ability: ability,
@@ -436,15 +404,5 @@ extension BattleTurnEngine {
         case .resourceGain(.mana, _): restoredMana > 0 ? "restore \(restoredMana) Mana" : nil
         default: effect.summary
         }
-    }
-
-    private static func shouldSkipEffectOnDefeatedTarget(
-        _ effect: Effect,
-        target: Combatant,
-        actor _: Combatant,
-        context: BattleState,
-    ) -> Bool {
-        guard context.roster.health(for: target) <= 0 else { return false }
-        return !effect.canApplyToDefeatedTarget
     }
 }

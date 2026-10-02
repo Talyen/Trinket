@@ -285,6 +285,79 @@ struct StationaryFeedbackTests {
         #expect(merged.expiresAt == original.expiresAt && merged.firstScheduledAt == original.firstScheduledAt)
     }
 
+    @Test @MainActor func `feedback clocks stop on teardown and when only paused chips survive eviction`() throws {
+        let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 160, height: 220))
+        defer { view.apply(chips: []) }
+        let start = Date.now.addingTimeInterval(10)
+        let pool = CombatFeedbackRasterPool()
+        var items = (1 ... 12).map { id in
+            CombatFeedbackItem(
+                id: id, sourceEventIDs: [id], actionGroupID: id, presentationIndex: id,
+                targetID: "test", feedbackClass: .directDamage, keyword: .physical,
+                visualRole: .keyword, label: .amount(-9), availableAt: start,
+                expiresAt: start.addingTimeInterval(CombatFeedbackMotionSampler.lifetime),
+                reactionKind: .none,
+            )
+        }
+        for index in items.indices.dropFirst() {
+            items[index].pausedAt = start
+        }
+        let raster = try #require(pool.prepare(for: items[0], displayScale: 1))
+        view.apply(chips: items.map { ($0, raster) })
+        #expect(view.debugIsMotionRegistered)
+        view.debugTickMotion(at: start.addingTimeInterval(0.3))
+        #expect(!view.debugVisibleChipIDs.contains(1))
+        #expect(!view.debugVisibleChipIDs.isEmpty)
+        #expect(!view.debugIsMotionRegistered)
+
+        view.apply(chips: [(items[0], raster)])
+        #expect(view.debugIsMotionRegistered)
+        CombatFeedbackChipBridge.unregister(view)
+        #expect(!view.debugIsMotionRegistered)
+        #expect(view.debugVisibleChipIDs == [1])
+        view.apply(chips: [(items[0], raster)])
+        #expect(view.debugIsMotionRegistered)
+    }
+
+    @Test @MainActor func `finished glints replay on merges and maskless replacements release old masks`() throws {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        lane.record([event(1, amount: 4)], at: start)
+        let item = try #require(lane.activeItems.first)
+        let pool = CombatFeedbackRasterPool()
+        let raster = try #require(pool.prepare(for: item, displayScale: 1))
+        let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 160, height: 220))
+        defer { view.apply(chips: []) }
+        view.apply(chips: [(item, raster)])
+        let chip = try #require(view.layer.sublayers?.first { $0.contents != nil })
+        let shine = try #require(chip.sublayers?.first)
+        #expect(shine.mask?.contents != nil)
+        view.debugTickMotion(at: start.addingTimeInterval(0.5))
+        #expect(shine.isHidden)
+
+        let mergeAt = start.addingTimeInterval(0.51)
+        lane.record([event(2, amount: 5)], at: mergeAt)
+        let merged = try #require(lane.activeItems.first)
+        let mergedRaster = try #require(pool.prepare(for: merged, displayScale: 1))
+        view.apply(chips: [(merged, mergedRaster)])
+        view.debugTickMotion(at: mergeAt)
+        #expect(!shine.isHidden)
+
+        let maskless = CombatFeedbackRaster(
+            key: mergedRaster.key, image: mergedRaster.image,
+            pointSize: mergedRaster.pointSize, displayScale: mergedRaster.displayScale,
+        )
+        view.apply(chips: [(merged, maskless)])
+        view.debugTickMotion(at: mergeAt)
+        #expect(shine.isHidden)
+        #expect(shine.mask?.contents == nil)
+        view.apply(chips: [(merged, mergedRaster)])
+        view.debugTickMotion(at: mergeAt)
+        #expect(!shine.isHidden)
+        #expect(shine.mask?.contents != nil)
+    }
+
     private func event(_ id: Int, amount: Int) -> BattleEngine.ActionEvent {
         BattleSessionTestSupport.makeActionEvent(id: id, kind: .abilityDamage, amount: amount, keyword: .physical, actionID: id)
     }

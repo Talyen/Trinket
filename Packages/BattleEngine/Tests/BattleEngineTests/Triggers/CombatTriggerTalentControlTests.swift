@@ -35,7 +35,10 @@ struct CombatTriggerTalentControlTests {
             applyFightPacing: false,
             in: &battle,
         )
-        #expect((battle.additionalControlSkipsByCombatantID[enemy.id] ?? 0) == 1)
+        _ = BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle)
+        #expect(battle.roster.hasPendingActionSkip(for: enemy, keyword: .stun))
+        _ = BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle)
+        #expect(!battle.roster.hasPendingActionSkip(for: enemy))
     }
 
     @Test func `seismic roar stuns enemy when companion drops below half`() {

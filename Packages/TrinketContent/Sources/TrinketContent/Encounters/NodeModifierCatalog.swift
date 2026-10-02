@@ -75,9 +75,25 @@ public enum NodeModifierCatalog {
         }
     }
 
+    /// Catalog enemies are immutable; bound this index to their authored IDs rather
+    /// than retaining arbitrary encounter requests in a growing runtime cache.
+    private static let enemyKeywordsByID: [String: Set<Keyword>] = Dictionary(
+        uniqueKeysWithValues: GameContent.enemies.map { enemy in
+            let keywords = enemy.combatant.abilities.reduce(into: Set<Keyword>()) { result, ability in
+                result.formUnion(ability.keywords)
+            }
+            return (enemy.id, keywords)
+        },
+    )
+
+    private static let modifiersByNodeType: [LabyrinthNodeType: [NodeModifierDefinition]] = Dictionary(
+        uniqueKeysWithValues: LabyrinthNodeType.allCases.map { type in
+            (type, modifiers.filter { $0.applies(to: type) })
+        },
+    )
+
     public static func enemyDamageKeywords(for enemyID: String) -> Set<Keyword> {
-        guard let enemy = GameContent.enemy(matching: enemyID) else { return [] }
-        return Set(enemy.combatant.abilities.flatMap(\.keywords))
+        enemyKeywordsByID[enemyID] ?? []
     }
 
     private static func matchingCombatModifiers(
@@ -85,7 +101,7 @@ public enum NodeModifierCatalog {
         matching predicate: (NodeModifierDefinition) -> Bool,
     ) -> [NodeModifierDefinition] {
         guard nodeType.isCombat else { return [] }
-        return modifiers.filter { $0.applies(to: nodeType) && predicate($0) }
+        return (modifiersByNodeType[nodeType] ?? []).filter(predicate)
     }
 
     public static func combatModifiers(
@@ -123,7 +139,7 @@ public enum NodeModifierCatalog {
         case .battle, .boss:
             enemyID.map { combatModifiers(for: $0, nodeType: type) } ?? []
         case .shop, .mystery:
-            modifiers.filter { $0.applies(to: type) }
+            modifiersByNodeType[type] ?? []
         case .recruit, .entrance:
             []
         }
@@ -138,18 +154,15 @@ public enum NodeModifierCatalog {
         using rng: inout some RandomNumberGenerator,
     ) -> NodeModifierID? {
         let applicable = applicableModifiers(for: type, enemyID: enemyID)
-        let rewards = applicable.filter {
-            if case let .reward(reward) = $0.effect {
-                eligibleRewards.contains(reward)
+        var rewards: [NodeModifierDefinition] = []
+        var combat: [NodeModifierDefinition] = []
+        for modifier in applicable {
+            if case let .reward(reward) = modifier.effect {
+                if eligibleRewards.contains(reward) {
+                    rewards.append(modifier)
+                }
             } else {
-                false
-            }
-        }
-        let combat = applicable.filter {
-            if case .reward = $0.effect {
-                false
-            } else {
-                true
+                combat.append(modifier)
             }
         }
         let pool: [NodeModifierDefinition]

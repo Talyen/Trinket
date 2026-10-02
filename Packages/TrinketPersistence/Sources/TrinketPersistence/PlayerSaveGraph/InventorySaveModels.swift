@@ -51,11 +51,8 @@ public final class ItemAffixModel {
 
     public init() {}
 
-    public init(affix: ItemAffix) {
-        id = affix.id
-        title = affix.title
-        affixDescription = affix.description
-        keywordRawValues = affix.keywords.map(\.rawValue).sorted()
-        isCorrupted = affix.isCorrupted
+    public convenience init(affix: ItemAffix) {
+        self.init()
+        update(from: affix)
     }
 }

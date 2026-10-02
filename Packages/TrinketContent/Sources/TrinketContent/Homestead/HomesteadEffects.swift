@@ -1,4 +1,3 @@
-import Foundation
 import TrinketCore
 
 public struct HomesteadEffects: Equatable, Hashable, Sendable {
@@ -12,18 +11,14 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
     public var gemsFindPercent: Int
     public var experienceBonusPercent: Int
 
-    public static let zero = Self(
-        heroModifiers: [],
-        companionModifiers: [],
-        astralChanceBonusPercent: 0,
-        goldFindPercent: 0,
-    )
+    public static let zero = Self()
+    public static let empty = zero
 
     public init(
-        heroModifiers: [AffixModifier],
-        companionModifiers: [AffixModifier],
-        astralChanceBonusPercent: Int,
-        goldFindPercent: Int,
+        heroModifiers: [AffixModifier] = [],
+        companionModifiers: [AffixModifier] = [],
+        astralChanceBonusPercent: Int = 0,
+        goldFindPercent: Int = 0,
         goldFindFlat: Int = 0,
         experienceBonus: Int = 0,
         gemsFindBonus: Int = 0,
@@ -48,17 +43,21 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
             guard tier > 0,
                   let bonus = GameContent.homesteadNode(matching: nodeID)?.tier(tier)?.combatBonus
             else { continue }
-            effects.heroModifiers.append(contentsOf: bonus.heroModifiers)
-            effects.companionModifiers.append(contentsOf: bonus.companionModifiers)
-            effects.astralChanceBonusPercent += bonus.astralChanceBonusPercent
-            effects.goldFindPercent += bonus.goldFindPercent
-            effects.goldFindFlat += bonus.goldFindFlat
-            effects.experienceBonus += bonus.experienceBonus
-            effects.gemsFindBonus += bonus.gemsFindBonus
-            effects.gemsFindPercent += bonus.gemsFindPercent
-            effects.experienceBonusPercent += bonus.experienceBonusPercent
+            effects.add(bonus)
         }
         return effects
+    }
+
+    private mutating func add(_ bonus: Self) {
+        heroModifiers.append(contentsOf: bonus.heroModifiers)
+        companionModifiers.append(contentsOf: bonus.companionModifiers)
+        astralChanceBonusPercent += bonus.astralChanceBonusPercent
+        goldFindPercent += bonus.goldFindPercent
+        goldFindFlat += bonus.goldFindFlat
+        experienceBonus += bonus.experienceBonus
+        gemsFindBonus += bonus.gemsFindBonus
+        gemsFindPercent += bonus.gemsFindPercent
+        experienceBonusPercent += bonus.experienceBonusPercent
     }
 
     public func adjustedMaterials(_ amounts: [ResourceAmount]) -> [ResourceAmount] {

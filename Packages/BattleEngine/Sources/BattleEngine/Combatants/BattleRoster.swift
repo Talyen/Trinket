@@ -43,6 +43,14 @@ public struct BattleRoster {
             case .enemy: enemy = newValue
             }
         }
+        _modify {
+            // Borrow the stored runtime so mutation does not force a copy of its COW state.
+            switch participant {
+            case .hero: yield &hero
+            case .companion: yield &companion
+            case .enemy: yield &enemy
+            }
+        }
     }
 
     public func participant(for combatant: Combatant) -> BattleParticipant? {
@@ -153,10 +161,11 @@ public struct BattleRoster {
     }
 
     package mutating func clearControlStatusLinger(for combatant: Combatant) {
-        let updated = activeEffects(for: combatant).filter { activeEffect in
-            !(activeEffect.effect.isActionSkipPending && !activeEffect.isAwaitingActionSkip)
+        mutateRuntime(for: combatant) { runtime in
+            runtime.activeEffects.removeAll { activeEffect in
+                activeEffect.effect.isActionSkipPending && !activeEffect.isAwaitingActionSkip
+            }
         }
-        setActiveEffects(updated, for: combatant)
     }
 
     package mutating func mutateRuntime(for combatant: Combatant, _ body: (inout CombatantRuntime) -> Void) {

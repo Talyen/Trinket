@@ -73,8 +73,6 @@ public final class LabyrinthPlayMode {
         case .shop:
             return encounters.beginShopOrAutoComplete(
                 origin: .labyrinth(nodeID: nodeID),
-                identifier: nodeID,
-                onAutoComplete: { self.completeNodeOrPersistFailure(nodeID: nodeID) },
             )
         case .mystery:
             return beginMysteryEncounter(nodeID: nodeID)
@@ -163,48 +161,6 @@ public final class LabyrinthPlayMode {
         guard battle.lifecyclePhase != .active else { return false }
         let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter)
         return battleLaunch.prepareCombat(request.input, route: request.route)
-    }
-
-    func completeNodeOrPersistFailure(nodeID: String) -> StageMapMessage? {
-        guard completeNode(nodeID: nodeID) else {
-            playerSave.retrySaveAction(key: SaveRetryKey.labyrinthNode(nodeID)) { [weak self] in
-                _ = self?.completeNodeOrPersistFailure(nodeID: nodeID)
-            }
-            return nil
-        }
-        return nil
-    }
-
-    @discardableResult
-    func completeNode(
-        nodeID: String,
-        hero: Combatant? = nil,
-        companion: Combatant? = nil,
-        battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardSettlement? = nil,
-        materialRewards: [ResourceAmount]? = nil,
-        rewardItem: InventoryItem? = nil,
-        loot: BattleLootResult? = nil,
-        enemyEncounterLevel: Int? = nil,
-    ) -> Bool {
-        let roster = playerSave.roster
-        let resolvedHero = hero ?? roster.activeHero
-        let resolvedCompanion = companion ?? roster.activeCompanion
-        return playerSave.persistBatch(logging: "Failed to persist Labyrinth node") { save in
-            LabyrinthCompletion.complete(
-                nodeID: nodeID,
-                hero: resolvedHero,
-                companion: resolvedCompanion,
-                battleGold: battleGold,
-                award: award,
-                materialRewards: materialRewards,
-                rewardItem: rewardItem,
-                loot: loot,
-                enemyEncounterLevel: enemyEncounterLevel,
-                save: &save,
-                access: playerSave.contentAccess,
-            )
-        }
     }
 }
 

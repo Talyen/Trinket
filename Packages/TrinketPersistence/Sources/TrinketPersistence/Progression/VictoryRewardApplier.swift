@@ -97,34 +97,11 @@ public enum VictoryRewardApplier {
         item: InventoryItem?,
         save: inout PlayerSave,
     ) {
-        var payableItem = item
-        var consolationGold = 0
-        if let candidate = item,
-           InventoryDuplicatePolicy.containsDuplicate(of: candidate, in: save.inventory.items) {
-            payableItem = nil
-            let range = BattleLoot.quantityRange(forLevel: encounterLevel)
-            consolationGold = (range.lowerBound + range.upperBound) / 2
-        }
-        let resolved = award ?? BattleRewardPlan(
-            stageGold: stageGold + consolationGold,
-            goldFindPercent: save.homestead.effects.goldFindPercent,
-            goldFindFlat: save.homestead.effects.goldFindFlat,
-            gemsFindBonus: save.homestead.effects.gemsFindBonus,
-            gemsFindPercent: save.homestead.effects.gemsFindPercent,
-            goldOverflowExperience: RewardExperiencePolicy.encounterAward(
-                encounterLevel: encounterLevel, roster: save.roster, percent: experienceEarnedPercent,
-            ),
-            heroExperience: grantsCombatExperience ? battleExperienceAward(
-                playerLevel: save.roster.progression(for: hero).level, enemyLevel: encounterLevel,
-                highestLevel: save.roster.highestHeroLevel,
-                experienceEarnedPercent: experienceEarnedPercent + save.homestead.effects.experienceBonusPercent,
-            ) + save.homestead.effects.experienceBonus : 0,
-            companionExperience: grantsCombatExperience ? battleExperienceAward(
-                playerLevel: save.roster.progression(for: companion).level, enemyLevel: encounterLevel,
-                highestLevel: save.roster.highestCompanionLevel,
-                experienceEarnedPercent: experienceEarnedPercent + save.homestead.effects.experienceBonusPercent,
-            ) + save.homestead.effects.experienceBonus : 0,
-            materials: materialRewards, items: payableItem.map { [$0] } ?? [],
+        let resolved = award ?? unpreparedRewardPlan(
+            party: (hero, companion), encounterLevel: encounterLevel,
+            stageGold: stageGold, grantsCombatExperience: grantsCombatExperience,
+            experienceEarnedPercent: experienceEarnedPercent,
+            loot: (materialRewards, item), save: save,
         ).settle(
             battleGold: battleGold,
             inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion),
@@ -133,6 +110,48 @@ public enum VictoryRewardApplier {
         if grantsCombatExperience {
             save.contracts.recordVictory(encounterLevel: encounterLevel)
         }
+    }
+
+    private static func unpreparedRewardPlan(
+        party: (hero: Combatant, companion: Combatant),
+        encounterLevel: Int,
+        stageGold: Int,
+        grantsCombatExperience: Bool,
+        experienceEarnedPercent: Int,
+        loot: (materials: [ResourceAmount], item: InventoryItem?),
+        save: PlayerSave,
+    ) -> BattleRewardPlan {
+        var payableItem = loot.item
+        var consolationGold = 0
+        if let candidate = loot.item,
+           InventoryDuplicatePolicy.containsDuplicate(of: candidate, in: save.inventory.items) {
+            payableItem = nil
+            let range = BattleLoot.quantityRange(forLevel: encounterLevel)
+            consolationGold = (range.lowerBound + range.upperBound) / 2
+        }
+        let effects = save.homestead.effects
+        func experience(for combatant: Combatant, highestLevel: Int) -> Int {
+            guard grantsCombatExperience else { return 0 }
+            return battleExperienceAward(
+                playerLevel: save.roster.progression(for: combatant).level,
+                enemyLevel: encounterLevel,
+                highestLevel: highestLevel,
+                experienceEarnedPercent: experienceEarnedPercent + effects.experienceBonusPercent,
+            ) + effects.experienceBonus
+        }
+        return BattleRewardPlan(
+            stageGold: SaturatedArithmetic.saturatingAdd(stageGold, consolationGold),
+            goldFindPercent: effects.goldFindPercent,
+            goldFindFlat: effects.goldFindFlat,
+            gemsFindBonus: effects.gemsFindBonus,
+            gemsFindPercent: effects.gemsFindPercent,
+            goldOverflowExperience: RewardExperiencePolicy.encounterAward(
+                encounterLevel: encounterLevel, roster: save.roster, percent: experienceEarnedPercent,
+            ),
+            heroExperience: experience(for: party.hero, highestLevel: save.roster.highestHeroLevel),
+            companionExperience: experience(for: party.companion, highestLevel: save.roster.highestCompanionLevel),
+            materials: loot.materials, items: payableItem.map { [$0] } ?? [],
+        )
     }
 
     /// Applies a settled award verbatim. Dupe conversion happens at plan

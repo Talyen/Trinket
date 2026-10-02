@@ -30,31 +30,6 @@ public final class JourneyPlayMode {
         GameContent.chapter(id: playerSave.journey.activeChapterID) ?? GameContent.chapters[0]
     }
 
-    @discardableResult
-    func completeStage(
-        _ stage: Stage,
-        hero: Combatant,
-        companion: Combatant,
-        battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardSettlement? = nil,
-        materialRewards: [ResourceAmount]? = nil,
-        rewardItem: InventoryItem? = nil,
-        loot: BattleLootResult? = nil,
-        enemyEncounterLevel: Int? = nil,
-    ) -> Bool {
-        persistStageCompletions(
-            [stage],
-            hero: hero,
-            companion: companion,
-            battleGold: battleGold,
-            award: award,
-            materialRewards: materialRewards,
-            rewardItem: rewardItem,
-            loot: loot,
-            enemyEncounterLevel: enemyEncounterLevel,
-        )
-    }
-
     public func resolvedEncounter(for stage: Stage) -> ScaledEncounter? {
         Self.resolvedEncounter(
             for: stage,
@@ -117,8 +92,6 @@ public final class JourneyPlayMode {
         case .shop:
             return encounters.beginShopOrAutoComplete(
                 origin: .journey(stage: resolvedStage),
-                identifier: resolvedStage.id,
-                onAutoComplete: { self.completeStageOrPersistFailure(resolvedStage) },
             )
         }
     }
@@ -164,33 +137,12 @@ public final class JourneyPlayMode {
         )
     }
 
-    func completeStageOrPersistFailure(_ stage: Stage) -> StageMapMessage? {
-        let roster = playerSave.roster
-        guard completeStage(
-            stage,
-            hero: roster.activeHero,
-            companion: roster.activeCompanion,
-        ) else {
-            playerSave.retrySaveAction(key: SaveRetryKey.stage(stage.id)) { [weak self] in
-                _ = self?.completeStageOrPersistFailure(stage)
-            }
-            return nil
-        }
-        return nil
-    }
-
     @discardableResult
     func persistStageCompletions(
         _ stages: [Stage],
         hero: Combatant,
         companion: Combatant,
-        battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardSettlement? = nil,
-        materialRewards: [ResourceAmount]? = nil,
-        rewardItem: InventoryItem? = nil,
         resetJourney: Bool = false,
-        loot: BattleLootResult? = nil,
-        enemyEncounterLevel: Int? = nil,
     ) -> Bool {
         guard !stages.isEmpty else { return false }
 
@@ -198,18 +150,11 @@ public final class JourneyPlayMode {
             if resetJourney {
                 save.journey = .initial
             }
-            for (index, stage) in stages.enumerated() {
-                let isLast = index == stages.count - 1
+            for stage in stages {
                 StageCompletion.complete(
                     stage,
                     hero: hero,
                     companion: companion,
-                    battleGold: isLast ? battleGold : .init(),
-                    award: isLast ? award : nil,
-                    materialRewards: isLast ? materialRewards : nil,
-                    rewardItem: isLast ? rewardItem : nil,
-                    loot: isLast ? loot : nil,
-                    enemyEncounterLevel: isLast ? enemyEncounterLevel : nil,
                     in: GameContent.chapters,
                     save: &save,
                 )

@@ -40,13 +40,13 @@ private struct FullGameOfferHost: ViewModifier {
         preparation = Task { @MainActor in
             let artwork = artwork(for: requested)
             let names = artwork.map { [$0.imageName] } ?? []
-            await PreparedArtworkCache.shared.prepareAndPin(names: names)
+            let acquired = await PreparedArtworkCache.shared.prepareAndPin(names: names)
             guard !Task.isCancelled else {
-                PreparedArtworkCache.shared.releasePins(names: names)
+                PreparedArtworkCache.shared.releasePins(names: acquired)
                 preparation = nil
                 return
             }
-            pinnedNames = names
+            pinnedNames = acquired
             offer = PreparedFullGameOffer(id: requested, artwork: artwork)
             preparation = nil
         }

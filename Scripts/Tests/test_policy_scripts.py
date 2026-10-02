@@ -5,6 +5,8 @@ SCRIPT_INPUTS = (
     'Scripts/check-api-bans.sh',
     'Scripts/check-module-boundaries.sh',
     'Scripts/ci-infra-rerun.sh',
+    'Scripts/config/infrastructure-patterns.env',
+    'Scripts/lib/infrastructure-patterns.sh',
     'Scripts/format-dirs.env',
     'Scripts/release-notes.sh',
     'Scripts/check-agent-invariants.sh',
@@ -15,12 +17,81 @@ SCRIPT_INPUTS = (
 from pathlib import Path
 import os
 import shutil
+import json
 import subprocess
 import tempfile
 from script_test_support import ScriptRegressionTestCase, ROOT
 
 
 class PolicyScriptsTests(ScriptRegressionTestCase):
+    def test_ci_infrastructure_retry_requires_evidence_for_every_failed_job(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fake_gh = root / "gh"
+            fake_gh.write_text('''#!/usr/bin/env python3
+import json, os, subprocess, sys
+args = sys.argv[1:]
+jobs = json.loads(os.environ['FIXTURE_JOBS'])
+logs = json.loads(os.environ['FIXTURE_LOGS'])
+if args[:2] == ['repo', 'view']:
+    print('fixture/repo')
+elif args[:2] == ['run', 'rerun']:
+    open(os.environ['FIXTURE_RERUN'], 'w').write('rerun')
+elif '--json' in args:
+    payload = {'jobs': [dict(j, databaseId=j['id'], conclusion=j.get('conclusion', 'failure')) for j in jobs]}
+    result = subprocess.run(['jq', '-r', args[args.index('--jq') + 1]],
+                            input=json.dumps(payload), text=True)
+    sys.exit(result.returncode)
+elif args[:1] == ['api']:
+    if '/actions/runs/' in args[1]:
+        print('\\n'.join(str(j['id']) for j in jobs))
+elif '--log-failed' in args:
+    if '--job' in args:
+        key = args[args.index('--job') + 1]
+        if key not in logs:
+            sys.exit(1)
+        print(logs[key])
+    else:
+        print('\\n'.join(logs.values()))
+else:
+    sys.exit(1)
+''')
+            fake_gh.chmod(0o755)
+            infra = 'Unable to boot simulator'
+            cases = (
+                ([{'id': 1, 'name': 'Build and smoke'}], {'1': infra}, True),
+                ([{'id': 1, 'name': 'Smoke'}, {'id': 2, 'name': 'Generate and style', 'conclusion': 'success'}],
+                 {'1': infra}, True),
+                ([], {}, False),
+                ([{'id': 1, 'name': 'Smoke'}, {'id': 2, 'name': 'Unit'}],
+                 {'1': infra, '2': 'XCTAssertEqual failed'}, False),
+                ([{'id': 1, 'name': 'Smoke'}, {'id': 2, 'name': 'Generate and style'}],
+                 {'1': infra, '2': 'format failed'}, False),
+                ([{'id': 1, 'name': 'Unit'}], {'1': infra + '\nXCTAssertEqual failed'}, False),
+                ([{'id': 1, 'name': 'Build and smoke'}],
+                 {'1': 'Ability.swift:42:2: error: failed to launch macro plugin'}, False),
+                ([{'id': 1, 'name': 'Unit'}],
+                 {'1': infra + '\nAbility.swift:42: error: cannot find type in scope'}, False),
+                ([{'id': 1, 'name': 'Unit'}], {'1': infra + '\n✘ Suite Combat failed after 1 second.'}, False),
+                ([{'id': 1, 'name': 'Smoke'}], {'1': infra + "\nTest Case '-[ShopTests purchase]' failed (0.1 seconds)."}, False),
+                ([{'id': 1, 'name': 'Smoke'}], {}, False),
+                ([{'id': 1, 'name': 'Smoke'}], {'1': infra + '\n' + 'progress\n' * 9000}, True),
+                ([{'id': 1, 'name': 'Smoke'}],
+                 {'1': 'XCTAssertEqual failed\n' + 'progress\n' * 9000 + infra}, False),
+            )
+            for jobs, logs, retry in cases:
+                with self.subTest(jobs=jobs, log_sizes={key: len(value) for key, value in logs.items()}):
+                    rerun = root / 'rerun'
+                    rerun.unlink(missing_ok=True)
+                    result = subprocess.run(
+                        [str(ROOT / 'Scripts/ci-infra-rerun.sh'), '--run-id', '123', '--rerun'], cwd=ROOT,
+                        env={**os.environ, 'PATH': f"{root}:{os.environ['PATH']}",
+                             'FIXTURE_JOBS': json.dumps(jobs), 'FIXTURE_LOGS': json.dumps(logs),
+                             'FIXTURE_RERUN': str(rerun)}, capture_output=True, text=True,
+                    )
+                    self.assertEqual(result.returncode, 0 if retry else 1, result.stdout + result.stderr)
+                    self.assertEqual(rerun.exists(), retry)
+
     def test_shell_policy_checks_reject_search_errors(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             fake_rg = Path(directory) / "rg"

@@ -97,7 +97,7 @@ class DocumentationTests(ScriptRegressionTestCase):
                 "TrinketUITests/Fixture.swift": "class FullFixture: TrinketUITestCase {}",
                 "Smoke.xctestplan": json.dumps({"testTargets": [{"automaticallyIncludesTests": False, "selectedTests": ["SmokeFixture"], "target": {"name": "TrinketUITests"}}]}),
                 "FullUI.xctestplan": json.dumps({"testTargets": [{"automaticallyIncludesTests": False, "selectedTests": ["FullFixture"], "target": {"name": "TrinketUITests"}}]}),
-                ".github/workflows/tests.yml": "  smoke:\n      matrix: ${{ fromJSON(needs.build.outputs.smoke-matrix) }}\n  exhaustive-ui:\n      matrix: ${{ fromJSON(needs.build.outputs.full-ui-matrix) }}\n",
+                ".github/workflows/tests.yml": "  build:\n      run: check-testplan-sync.py --classes Smoke\n      command: ./Scripts/test.sh smoke --no-build\n  exhaustive-ui:\n      matrix: ${{ fromJSON(needs.build.outputs.full-ui-matrix) }}\n",
                 "Docs/AgentContext/README.md": "# Context",
                 "Docs/Audits/Proposals.md": "# Proposals",
                 "README.md": "# Fixture\nA clean pass is valid. Historical label: QuickSmoke.\n",
@@ -275,11 +275,12 @@ class DocumentationTests(ScriptRegressionTestCase):
         selector = load_script("script_test_selection", "script_test_selection.py")
         select = selector.select_tests
         all_tests = select([])
-        search = "Scripts/Tests/test_agent_search.py"
-        self.assertEqual(select(["Scripts/agent-search.py", "Scripts/README.md"]), [search])
+        search = ["Scripts/Tests/test_agent_callers.py", "Scripts/Tests/test_agent_efficiency.py",
+                  "Scripts/Tests/test_agent_investigate.py", "Scripts/Tests/test_agent_search.py"]
+        self.assertEqual(select(["Scripts/agent-search.py", "Scripts/README.md"]), search)
         performance = select(["Scripts/compare-performance.py"])
         self.assertIn("Scripts/Tests/test_exec_wrappers.py", performance)
-        self.assertEqual(select(["Scripts/agent-search.py", "Scripts/compare-performance.py"]), sorted([search, *performance]))
+        self.assertEqual(select(["Scripts/agent-search.py", "Scripts/compare-performance.py"]), sorted(set(search + performance)))
         self.assertLess(len(select(["Scripts/check-links.py"])), len(all_tests))
         for shared in ("Scripts/test-scripts.sh", "Scripts/new-script.py",
                        "Scripts/Tests/script_test_support.py", ".github/workflows/tests.yml", "project.yml"):
@@ -294,6 +295,7 @@ class DocumentationTests(ScriptRegressionTestCase):
         cases = {
             "Scripts/handoff.sh": {"Scripts/Tests/test_ci_gate_scripts.py",
                                    "Scripts/Tests/test_ci_handoff_routing.py",
+                                   "Scripts/Tests/test_verification_policy.py",
                                    "Scripts/Tests/test_documentation.py",
                                    "Scripts/Tests/test_exec_wrappers.py",
                                    "Scripts/Tests/test-lib-args.sh"},
@@ -388,7 +390,7 @@ class DocumentationTests(ScriptRegressionTestCase):
         self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 1)
         script_commands = [p for p in planned if p.startswith("./Scripts/test-scripts.sh")]
         self.assertEqual(script_commands, [
-            "./Scripts/test-scripts.sh --skip-docs --paths Docs/Platform/Verification.md Scripts/build.sh",
+            "./Scripts/test-scripts.sh --fast --paths Docs/Platform/Verification.md Scripts/build.sh",
         ])
 
     def test_plain_script_scope_still_validates_docs(self) -> None:
@@ -401,12 +403,11 @@ class DocumentationTests(ScriptRegressionTestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-        # Plain script scope validates docs via test-scripts.sh default (no --skip-docs) but also shows cheap slices.
-        self.assertIn("./Scripts/test-scripts.sh --paths Scripts/build.sh", planned)
+        # Local fast script checks keep one separate cheap docs validation.
+        self.assertIn("./Scripts/test-scripts.sh --fast --paths Scripts/build.sh", planned)
         self.assertFalse(any("--skip-docs" in command for command in planned))
-        # Ensure cheap slices still present; docs not separately listed for plain script is OK because test-scripts.sh runs it internally,
-        # but the plan must not have duplicate docs entry.
-        self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 0)
+        # The fast script lane skips its embedded docs check, so handoff supplies it once.
+        self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 1)
 
     def test_final_handoff_preview_matches_execution_scope_without_running_docs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

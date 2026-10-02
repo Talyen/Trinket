@@ -22,8 +22,9 @@ because routing depends on file ownership. Create an execution plan only when du
 resumption is useful; see [Plans](../Docs/Plans/README.md).
 
 Generation and verification selection follow [Verification](../Docs/Platform/Verification.md).
-Add `--smoke` to handoff for its selected UI journeys; ordinary handoff does not
-run them. [UI verification requirements](../Docs/Platform/Verification.md#choosing-ui-verification)
+Routine handoff runs lightweight scoped static/script checks without compilation
+or Simulator. Add `--smoke` to identify the selected CI-owned UI journeys; local
+execution reports them as deferred. [UI verification requirements](../Docs/Platform/Verification.md#choosing-ui-verification)
 own when to select that option. Isolation mechanics live in
 [Simulator operations](../Docs/Platform/SimulatorOperations.md); commit and push
 safeguards live in [Release](../Docs/Platform/Release.md#local-hooks-and-push-discipline).

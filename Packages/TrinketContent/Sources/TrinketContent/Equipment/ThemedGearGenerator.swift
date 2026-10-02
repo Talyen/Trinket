@@ -132,15 +132,14 @@ public struct ThemedGearGenerator: Sendable {
         inventory: [InventoryItem],
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemBaseType? {
-        var candidates = baseTypes.filter {
-            loadout.canEquip(baseType: $0, candidateID: itemID, in: slot, inventory: inventory)
-        }
-        if requireBuildAlignment {
-            candidates = candidates.filter { baseType in
-                itemGenerator.affixDefinitions.contains { definition in
-                    definition.isEligible(for: baseType)
-                        && definition.isAligned(withBuildKeywords: keywordBias)
-                }
+        let candidates = baseTypes.filter { baseType in
+            guard loadout.canEquip(baseType: baseType, candidateID: itemID, in: slot, inventory: inventory) else {
+                return false
+            }
+            guard requireBuildAlignment else { return true }
+            return itemGenerator.affixDefinitions.contains { definition in
+                definition.isEligible(for: baseType)
+                    && definition.isAligned(withBuildKeywords: keywordBias)
             }
         }
         guard !candidates.isEmpty else { return nil }

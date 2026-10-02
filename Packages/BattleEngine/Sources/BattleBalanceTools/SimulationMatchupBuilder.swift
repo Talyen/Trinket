@@ -156,13 +156,27 @@ public enum SimulationMatchupBuilder {
         gearGenerator: ThemedGearGenerator = ThemedGearGenerator(includeTrinkets: true),
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> GearOverride? {
+        generateGear(
+            for: CombatantLevelScaler.scale(combatant: combatant, level: tier.level),
+            tier: tier, keywordBias: keywordBias, idPrefix: idPrefix,
+            generator: gearGenerator, using: &randomNumberGenerator,
+        )
+    }
+
+    private static func generateGear(
+        for scaled: Combatant,
+        tier: SimulationPowerTier,
+        keywordBias: Set<Keyword>,
+        idPrefix: String,
+        generator: ThemedGearGenerator,
+        using randomNumberGenerator: inout some RandomNumberGenerator,
+    ) -> GearOverride? {
         guard tier.includesGear,
               let rarity = tier.rarity,
               let affixCount = tier.fixedAffixCount
         else { return nil }
 
-        let scaled = CombatantLevelScaler.scale(combatant: combatant, level: tier.level)
-        let gear = gearGenerator.generate(
+        return GearOverride(generator.generate(
             for: scaled,
             rarity: rarity,
             fixedAffixCount: affixCount,
@@ -170,8 +184,7 @@ public enum SimulationMatchupBuilder {
             keywordBias: keywordBias,
             requireBuildAlignment: true,
             using: &randomNumberGenerator,
-        )
-        return GearOverride(gear)
+        ))
     }
 
     public static func generateStarterGearIfNeeded(
@@ -252,40 +265,24 @@ public enum SimulationMatchupBuilder {
         let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(loadout)
         let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: slot.level)
 
-        let inventory: [InventoryItem]
-        let equipmentLoadout: EquipmentLoadout
-        if let gearOverride = slot.gearOverride {
-            inventory = gearOverride.inventory
-            equipmentLoadout = gearOverride.loadout
-        } else if slot.tier.includesGear, let rarity = slot.tier.rarity, let affixCount = slot.tier.fixedAffixCount {
-            let buildKeywords = slot.bias ?? Set(scaled.abilities.flatMap(\.keywords))
-            let gear = slot.generator.generate(
-                for: scaled,
-                rarity: rarity,
-                fixedAffixCount: affixCount,
-                idPrefix: slot.idPrefix,
-                keywordBias: buildKeywords,
-                requireBuildAlignment: true,
-                using: &randomNumberGenerator,
-            )
-            inventory = gear.inventory
-            equipmentLoadout = gear.loadout
-        } else {
-            inventory = []
-            equipmentLoadout = EquipmentLoadout()
-        }
+        let gear = slot.gearOverride ?? generateGear(
+            for: scaled, tier: slot.tier,
+            keywordBias: slot.bias ?? Set(scaled.abilities.flatMap(\.keywords)),
+            idPrefix: slot.idPrefix, generator: slot.generator,
+            using: &randomNumberGenerator,
+        ) ?? GearOverride(inventory: [], loadout: EquipmentLoadout())
 
         let build = CombatBuildResolver.build(
             combatant: scaled,
-            equipmentLoadout: equipmentLoadout.sanitized(for: scaled, inventory: inventory),
-            inventory: inventory,
+            equipmentLoadout: gear.loadout.sanitized(for: scaled, inventory: gear.inventory),
+            inventory: gear.inventory,
             unlockedTalents: slot.talents,
         )
         return (
             build,
             loadout,
-            inventory.flatMap { $0.affixes.map(\.id) },
-            inventory.map(\.baseType.id),
+            gear.inventory.flatMap { $0.affixes.map(\.id) },
+            gear.inventory.map(\.baseType.id),
         )
     }
 }

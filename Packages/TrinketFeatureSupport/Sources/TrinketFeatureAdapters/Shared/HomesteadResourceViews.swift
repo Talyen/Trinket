@@ -53,6 +53,10 @@ public struct HomesteadResourceWallet: View {
                     [resource: $0]
                 }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(resource.displayName)
+        .accessibilityValue((displayedBalances[resource] ?? homestead.balance(for: resource, roster: roster)).formatted())
+        .accessibilityIdentifier(AccessibilityID.Homestead.resourceBalance(resource))
     }
 
     @ViewBuilder

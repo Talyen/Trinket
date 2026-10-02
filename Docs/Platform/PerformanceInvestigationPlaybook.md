@@ -9,21 +9,23 @@ below; Simulator-only observations there are leads, not shipping evidence.
 
 `Performance/Baselines/simulator-60.json` owns the maintained scenario list,
 thresholds, refresh target, and observe/enforce mode. `./Scripts/performance.sh`
-interprets that baseline for ad hoc investigation, not CI; promote the baseline to
-enforce only after Simulator runs consistently clear it. Single and repeated runs
+interprets that baseline for manual performance diagnostics, outside routine push
+CI; promote the baseline to enforce only after Simulator runs consistently clear it. Single and repeated runs
 use the same baseline goals, including `scenarioGoals`
 for Battle gestures. Observation mode reports threshold findings without failing;
 missing, malformed, duplicate, or incompatible reports always fail.
 
 `-enable-frame-metrics` is measurement-only. It must never remove, defer, shorten, reduce, or mute production work. The production `real-card-play` and `hand-drag-cancel` scenarios use normal XCUI gestures against the seeded hand; production views contain no forced-drag or scenario branch.
 
-Run one exclusive, optimized pass:
+Run one exclusive, optimized pass through the manual
+[performance workflow](../../.github/workflows/performance.yml). For an expressly
+requested local measurement, use the explicit diagnostic opt-in:
 
 ```sh
-./Scripts/performance.sh
 ./Scripts/performance.sh --list
-./Scripts/performance.sh --group collection
-./Scripts/performance.sh --scenario real-card-play
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/performance.sh
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/performance.sh --group collection
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/performance.sh --scenario real-card-play
 ```
 
 Scenario and group selectors can be combined. The runner snapshots the selected
@@ -52,35 +54,48 @@ The current runtime does not reliably export `XCTHitchMetric`; the broken export
 
 ## Coverage inventory
 
+Run the matrix through manual CI `performance.yml` dispatch. Local measurement
+requires an expressly requested heavy diagnostic under [Verification](Verification.md#local-simulator-budget);
+`performance.sh --list` remains a cheap local inventory query.
+
 `Performance/Baselines/simulator-60.json` maps each measured step to its XCTest
 method and group. `performance-scenarios.py` checks test-plan registration, source
 methods, a matching measurement inside each registered method, missing measured
-scenarios, and coverage of every `AppTab` and
-`PlayLaunchDestination` case. Add coverage when adding a shipping destination or
-materially different interaction; an unchanged shared view does not need a test
-for every catalog entry.
+scenarios, and exact scenario/group selections. Choose coverage for materially
+different rendering workloads; adding a navigation enum case does not itself
+require a measurement. An unchanged shared view does not need a test for every
+catalog entry.
 
 | Area | Measured interaction families |
 |---|---|
 | Launch / starter selection | Launch animation and cover dismissal; horizontal carousel; Hero and Companion confirmation |
-| Shell / Campaign | Tab round trip; Campaign scrolling, enemy detail, party shelf/selection, Battle activation, chapter advancement, Full Game boundary |
-| Explore | Hub, Spires browsing/climb, Contracts scroll/refresh/party/Battle return, Labyrinth map/floor selection/inspector, Shop/Boss entry and return, floor advancement |
-| Collection | Vertical browse and horizontal shelves; every category grid; Hero/Companion details; ability selection; equipment scroll/search/rarity/equip/unequip; talents and salvage |
+| Shell / Campaign | Tab round trip; Campaign scrolling, enemy detail, party shelf/selection, Battle activation, chapter advancement, representative Full Game offer presentation |
+| Explore | Hub, Spires browsing/climb, Contracts scroll/refresh/Battle return, Voyage board browsing, Labyrinth map/floor selection/inspector, Shop/Boss entry and return, floor advancement |
+| Collection | Vertical browse and horizontal shelves; representative Heroes and Astral Gear grids; combatant details; ability selection; equipment scroll/search/rarity/equip/unequip; talents and salvage |
 | Battle | Real card play/cancel; engine/feedback/turn diagnostic cases; inspection; auto-battle; populated log scrolling; retreat |
-| Outcomes / encounters | Victory/defeat reveal, reward claim, retry/recovery, talent reward/choice; Shop scroll/purchase/return; Mystery item inspection/reward, recruit reveal/claim, corruption picker/reveal/return |
+| Outcomes / encounters | Victory/defeat reveal, reward claim, talent reward/choice; Shop scroll/purchase/return; Mystery item inspection/reward, recruit reveal/claim, corruption picker/reveal/return |
 | Homestead | Root/category/gallery browsing, build/upgrade, wallet presentation and detent resizing, material collection |
-| Options / Full Game | Form scroll, sliders/toggles, reset cancel/confirm, offer dismissal, local StoreKit purchase/restore, locked-content entry |
+| Options / Full Game | Form scroll and sliders/toggles; representative offer presentation/dismissal |
 
-Scroll scenarios perform a slow drag, a fast flick through newly exposed content,
-and a reverse flick, including deceleration. If the viewport returns to its
-starting offset, verification uses a separate one-way drag (and the opposite
-direction if already at an edge) before rejecting the fixture as unscrollable.
-They assert movement using stable
+Scroll scenarios perform a slow directional drag and a fast flick through newly
+exposed content, including deceleration. Verify movement outside the sampling
+window; do not add round trips or recovery gestures that can obscure an inert
+fixture. These windows differ from older round-trip reports and must be measured
+afresh before comparison. They assert movement using stable
 accessibility identities or labels rather than recyclable child indices. Fixtures
 must contain enough content to scroll. Short item details and the fixed resource
 wallet fit their viewport; they receive presentation/interaction coverage instead
 of claiming a successful content scroll. Shared long detail layouts are measured
 with populated combatant/equipment content.
+
+Functional UI and headless/package journeys own payment/ownership, onboarding,
+loadout persistence, reset safety, save recovery, and StoreKit entitlement behavior.
+The performance catalog retains rendering workloads, not duplicate functional
+checks: shared companion/category grids, Contracts party-picker, redundant offer
+entries and transaction measurements, synthetic recruit return, and reset/save
+recovery measurements were retired in favor of their semantic owners. Hero and
+Companion starter confirmations, recruit reveal/return through Campaign, and
+Homestead build versus improvement remain distinct workloads.
 
 Accessibility snapshots that establish and verify scroll motion run before and
 after frame sampling. Navigation into a new scroll surface is measured
@@ -151,7 +166,7 @@ alone never establishes measured coverage.
 Run the deliberately negative detector validation separately:
 
 ```sh
-./Scripts/performance.sh --group diagnostic
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/performance.sh --group diagnostic
 ```
 
 It injects a 120 ms main-thread stall and asserts that the sampler sees it. The

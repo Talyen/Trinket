@@ -15,3 +15,13 @@ accommodations and control identifiers remain part of those components.
 Load the matching reference, not the whole inventory. The
 [design skill](../../.agents/skills/apple-design/SKILL.md) owns interaction review;
 [Architecture](../../Docs/Platform/Architecture.md) owns package boundaries.
+
+## Testing
+
+Package execution and local diagnostic opt-in follow
+[Verification](../../Docs/Platform/Verification.md#execution-limits); routine local
+changes use path-scoped handoff.
+
+```sh
+./Scripts/test-package.sh TrinketDesignSystem
+```

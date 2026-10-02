@@ -20,6 +20,7 @@ Duplication, transfer, and already-scaled gains use `.resolved` to avoid applyin
 outgoing bonuses and fight pacing again; consequences read `BlockGain.applied`.
 Resolved Block also preserves its amount through recipient gain multipliers and
 leaves a prepared next-Block-gain bonus available for the next base grant.
+Rimeheart Locket grants resolved Block equal to the Freeze hit's actual Health damage.
 Bloodward rolls only when Leech directly restores Health, then grants a resolved
 Block amount equal to that restoration. Overflow does not fund its Block.
 Bloodroot grants Thorns after direct Leech restoration only when the wearer has

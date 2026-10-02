@@ -127,8 +127,13 @@ enum LabyrinthSanitizer {
         } else {
             node.type
         }
-        let enemyID: String? = if type == .boss, node.enemyID == nil {
-            LabyrinthCatalog.fallbackBossEnemyID(worldSeed: worldSeed, nodeID: node.id)
+        let enemyID: String? = if type.isCombat,
+                                  node.enemyID.flatMap({ GameContent.enemy(matching: $0) })?.isBoss != (type == .boss) {
+            if type == .boss {
+                LabyrinthCatalog.fallbackBossEnemyID(worldSeed: worldSeed, nodeID: node.id)
+            } else {
+                fallbackBattleEnemyID(worldSeed: worldSeed, nodeID: node.id)
+            }
         } else {
             node.enemyID
         }
@@ -155,6 +160,13 @@ enum LabyrinthSanitizer {
             isCleared: node.isCleared,
             isRevealed: depth > 0 || node.isRevealed,
         )
+    }
+
+    private static func fallbackBattleEnemyID(worldSeed: UInt64, nodeID: String) -> String {
+        var random = SeededRandomNumberGenerator(
+            seed: GameContent.encounterSeed(worldSeed, salt: "labyrinth-battle-\(nodeID)"),
+        )
+        return LabyrinthCatalog.pickTrashEnemyID(using: &random)
     }
 
     private static func fallbackGridPosition(

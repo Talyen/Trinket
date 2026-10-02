@@ -118,7 +118,10 @@ public enum MysteryOfferPersistence {
         )
         guard result.grantedItems.count == 1 || InventoryDuplicatePolicy.containsDuplicate(of: offer.item, in: candidate.inventory.items)
         else { return result }
-        MysteryEncounterResolution.complete(encounter: encounter, grantingEncounterRewards: false, save: &candidate)
+        guard NonCombatEncounterCompletion.complete(
+            encounter: encounter, grantingEncounterRewards: false, save: &candidate,
+        ) == .completed else { return MysteryEffectResult() }
+        clear(encounter: encounter, save: &candidate)
         ItemCorruptionApplier.noteMysteryCompleted(save: &candidate)
         save = candidate
         return result

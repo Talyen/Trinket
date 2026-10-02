@@ -1,6 +1,11 @@
 # Confirmation Dialog and Alert Item Binding
 **SDK Version:** 27.0 and later
 
+This reference describes framework mechanics for migration diagnosis. Trinket's
+[interaction contract](../../../../Docs/AgentContext/swiftui-features.md) uses inline
+destructive confirmation and does not introduce authored alerts or confirmation
+dialogs. The examples below do not authorize changing that presentation policy.
+
 If the user's deployment target is below iOS 27 / macOS 27 / watchOS 27 / tvOS 27 / visionOS 27, the new APIs in this reference (`confirmationDialog(_:item:…)` and `alert(_:item:…)` overloads) require availability gating. See "Deployment target below SDK 27" below for the gating shape to use.
 
 `confirmationDialog` and `alert` gain overloads that take an `item: Binding<T?>` in place of an `isPresented: Binding<Bool>`. The dialog or alert presents while the binding holds a value, the unwrapped value is passed to the `actions` (and optional `message`) closures, and SwiftUI resets the binding to `nil` when it is dismissed. This is the presentation shape of `sheet(item:)` applied to dialogs and alerts; the earlier forms drove presentation from a separate `Bool` and read the data from a stored optional or a `presenting:` argument. `T` has no `Identifiable` requirement. When a dialog or alert acts on a specific value, such as the row a person tapped or the item pending deletion, prefer this `item:` overload over a separate `isPresented` Bool, a `presenting:` argument, or the older `Alert`-returning `alert(item:)`: one optional drives presentation and hands the value to the `actions`/`message` builders.

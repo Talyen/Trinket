@@ -113,18 +113,17 @@ extension ItemDetailView {
                     saveStore.salvageItem(id: item.id)
                 }
                 switch result {
-                case let .success(yields):
+                case let .committed(yields):
                     return .success(yields: yields)
-                case .itemNotFound:
+                case .rejected(.itemNotFound), .rejected(.ineligible):
                     return .itemNotFound
-                case .ineligible:
-                    return .itemNotFound
-                case nil:
+                case .persistFailed:
                     saveStore.retrySaveAction(key: "salvage-\(item.id)") { [weak saveStore] in
-                        guard let saveStore, let result = saveStore.salvageItem(id: item.id) else { return }
-                        switch result {
-                        case let .success(yields): onFinished(.success(yields: yields))
-                        case .itemNotFound, .ineligible: onFinished(.itemNotFound)
+                        guard let saveStore else { return }
+                        switch saveStore.salvageItem(id: item.id) {
+                        case let .committed(yields): onFinished(.success(yields: yields))
+                        case .rejected(.itemNotFound), .rejected(.ineligible): onFinished(.itemNotFound)
+                        case .persistFailed: break
                         }
                     }
                     return .persistenceFailure

@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/internal/agent_references.py',
+    'Scripts/internal/agent_tasks.py',
+    'Scripts/config/agent-tasks.json',
     'Scripts/agent-context.sh',
     'Scripts/change-classification.sh',
     'Scripts/internal/agent_status.py',
@@ -12,6 +15,7 @@ SCRIPT_INPUTS = (
 
 
 import os
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -21,6 +25,132 @@ from pathlib import Path
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script
 
 class AgentContextTests(ScriptRegressionTestCase):
+    def test_voyage_and_labyrinth_focus_preserves_progression_rules_and_broad_discovery(self) -> None:
+        for concern in ('voyage', 'labyrinth'):
+            command = subprocess.check_output(['bash', 'Scripts/agent-context.sh', '--task', concern, '--read-command'], cwd=ROOT, text=True)
+            chat = f'progression-focus-{concern}-{os.getpid()}'
+            arguments = shlex.split(command)
+            result = subprocess.run([*arguments[:2], '--chat', chat, *arguments[2:]], cwd=ROOT, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            from internal.agent_references import session_receipt
+            self.addCleanup(session_receipt(chat, ROOT).unlink, missing_ok=True)
+            for invariant in ('Reward arithmetic saturates', 'Saved IDs stay stable',
+                              'requires a current playable', 'Shop offers are pinned',
+                              'Mystery opening pins', 'Defeat and retreat XP'):
+                self.assertIn(invariant, result.stdout)
+            self.assertNotIn('Corruption gives', result.stdout)
+            self.assertNotIn('Homestead collection and build/upgrade', result.stdout)
+            route = subprocess.check_output(['bash', 'Scripts/agent-context.sh', '--task', concern], cwd=ROOT, text=True)
+            self.assertIn('  Docs/AgentContext/persistence-progression.md\n', route)
+            if concern == 'voyage':
+                self.assertIn('Voyage encounters use run-and-node identities', result.stdout)
+
+    def test_task_focus_preserves_safeguards_and_full_explicit_verification_scope(self) -> None:
+        from internal.agent_tasks import select_task
+        task = select_task(ROOT, 'cloud')
+        paths = [*task['sources'], 'Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift']
+        plain = self.route(*paths)
+        focused = subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), '--task', 'cloud', '--paths', *paths], cwd=ROOT, text=True)
+        start = focused.index('Concern focus:')
+        end = focused.index('Ownership and integration', start)
+        without_focus = focused[:start] + focused[end:]
+        read_start = without_focus.index('Suggested initial reads (')
+        read_end = without_focus.index('Discovery:', read_start)
+        stripped = without_focus[:read_start] + without_focus[read_end:]
+        for reference in task['contracts']:
+            self.assertEqual(focused.count('  ' + reference + '\n'), 1)
+            plain = plain.replace('  ' + reference + '\n', '')
+        self.assertEqual(stripped, plain)
+        self.assertIn('persistence-storage.md#reconciliation', focused)
+        automatic = subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), '--task', 'cloud'], cwd=ROOT, text=True)
+        handoff = lambda text: next(line for line in text.splitlines() if './Scripts/handoff.sh' in line)
+        self.assertEqual(handoff(automatic), handoff(self.route(*task['sources'])))
+        for query in ('missing-concern', 'battle'):
+            result = subprocess.run([str(ROOT / 'Scripts/agent-context.sh'), '--task', query], cwd=ROOT, capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('matches:', result.stderr)
+
+    def test_concern_read_command_executes_and_preserves_shared_shop_constraints(self) -> None:
+        from internal.agent_references import read_receipt, session_receipt
+        chat = 'batch-guidance-' + str(os.getpid())
+        output = subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), '--task', 'shop'], cwd=ROOT, text=True)
+        command = next(line.strip() for line in output.splitlines() if 'Scripts/agent-session.py' in line)
+        arguments = shlex.split(command)
+        self.assertNotIn('AGENTS.md', arguments)
+        result = subprocess.run([*arguments[:2], '--chat', chat, *arguments[2:]], cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('Shop offers are pinned', result.stdout)
+        self.assertIn('Empty Shops prepare stock', result.stdout)
+        self.assertIn('Voyage encounters use', result.stdout)
+        self.assertNotIn('Corruption gives', result.stdout)
+        receipt = session_receipt(chat, ROOT)
+        self.addCleanup(receipt.unlink, missing_ok=True)
+        reads = read_receipt(receipt, chat, ROOT)['reads']
+        self.assertIn('Docs/AgentContext/persistence-progression.md#noncombat-completion', reads)
+        leaf = 'Packages/TrinketPersistence/Sources/TrinketPersistence/Encounters/ShopPurchaseApplier.swift'
+        hub = 'Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift'
+        for paths in ((leaf, hub), (hub, leaf)):
+            route = self.route(*paths)
+            self.assertIn('persistence-progression.md\n', route)
+            self.assertNotIn('persistence-progression.md#', route)
+
+    def test_receipt_rerouting_annotates_reads_without_hiding_safeguards_or_changing_verification(self) -> None:
+        path = 'Packages/BattleEngine/Sources/BattleEngine/ManaEmpowermentBudget.swift'
+        with tempfile.TemporaryDirectory() as directory:
+            receipt = str(Path(directory) / 'receipt.json')
+            flags = ['--receipt', receipt, '--chat', 'route-test']
+            subprocess.run(['python3', 'Scripts/agent-read.py', 'AGENTS.md', *flags],
+                           cwd=ROOT, capture_output=True, check=True)
+            output = subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), *flags, '--paths', path], cwd=ROOT, text=True)
+            plain = self.route(path)
+            self.assertIn('AGENTS.md [already read; unchanged]', output)
+            self.assertIn('battle-engine.md [read if applicable]', output)
+            stripped = output.replace(' [already read; unchanged]', '').replace(' [read if applicable]', '')
+            self.assertEqual(plain, stripped)
+            changed_chat = subprocess.run([str(ROOT / 'Scripts/agent-context.sh'), '--receipt', receipt,
+                                          '--chat', 'fresh-chat', '--paths', path], cwd=ROOT, capture_output=True, text=True)
+            self.assertNotEqual(changed_chat.returncode, 0)
+            self.assertIn('another chat', changed_chat.stderr)
+
+    def test_focused_action_and_storage_sections_keep_shared_contracts_and_broad_hubs(self) -> None:
+        engine = 'Packages/BattleEngine/Sources/BattleEngine/'
+        persistence = 'Packages/TrinketPersistence/Sources/TrinketPersistence/'
+        cases = (
+            (engine + 'ManaEmpowermentBudget.swift', 'battle-actions', {'shared-action-invariants', 'card-preparations', 'action-identity-and-selected-outcomes', 'mana-payments-and-cadence', 'card-assessment'}),
+            (engine + 'Cards/BattleCardCombatEngine+OpeningHand.swift', 'battle-actions', {'shared-action-invariants', 'hand-contract', 'turn-ordering'}),
+            (persistence + 'PlayerSaveStore+Roster.swift', 'persistence-storage', {'save-compatibility', 'durable-acceptance-and-recovery', 'schema-and-sanitization'}),
+        )
+        for path, card, expected in cases:
+            with self.subTest(path=path):
+                output = self.route(path)
+                prefix = f'Docs/AgentContext/{card}.md#'
+                actual = {line.strip().removeprefix(prefix) for line in output.splitlines() if line.strip().startswith(prefix)}
+                self.assertEqual(actual, expected)
+                for section in actual:
+                    result = subprocess.run(['python3', 'Scripts/agent-read.py', prefix + section], cwd=ROOT, capture_output=True, text=True)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+        for leaf, hub, card in (
+            (engine + 'ManaEmpowermentBudget.swift', engine + 'State/BattleState.swift', 'battle-actions'),
+            (persistence + 'PlayerSaveStore+Roster.swift', persistence + 'PlayerSaveStore.swift', 'persistence-storage'),
+        ):
+            for paths in ((leaf, hub), (hub, leaf)):
+                output = self.route(*paths)
+                self.assertIn(f'{card}.md\n', output)
+                self.assertNotIn(f'{card}.md#', output)
+
+    def test_optional_fingerprints_cover_guides_and_cards_without_changing_the_handoff(self) -> None:
+        import hashlib
+        path = 'Packages/BattleEngine/Sources/BattleEngine/ManaEmpowermentBudget.swift'
+        command = [str(ROOT / 'Scripts/agent-context.sh'), '--fingerprints', '--paths', path]
+        output = subprocess.check_output(command, cwd=ROOT, text=True)
+        plain = self.route(path)
+        for reference in ('AGENTS.md', 'Docs/AgentContext/battle-actions.md#shared-action-invariants'):
+            digest = hashlib.sha256((ROOT / reference.partition('#')[0]).read_bytes()).hexdigest()
+            self.assertIn(f'{reference} sha256:{digest}', output)
+        self.assertNotIn('Reference fingerprints', plain)
+        handoff = lambda text: next(line for line in text.splitlines() if './Scripts/handoff.sh' in line)
+        self.assertEqual(handoff(plain), handoff(output))
+
     def route(self, *paths):
         return subprocess.check_output(
             [str(ROOT / 'Scripts/agent-context.sh'), '--agent', '--paths', *paths], cwd=ROOT, text=True,
@@ -68,7 +198,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         engine = "Packages/BattleEngine/Sources/BattleEngine/"
         persistence = "Packages/TrinketPersistence/Sources/TrinketPersistence/"
         cases = (
-            ([engine + "Damage/DamagePipelineResolutionSteps.swift"], {"battle-damage"}),
+            ([engine + "Damage/DamagePipelineOffenseSteps.swift"], {"battle-damage"}),
             ([engine + "Triggers/CombatTriggerEngine+Damage.swift"], {"battle-damage"}),
             ([engine + "Triggers/CombatTriggerEngine+Dodge.swift"], {"battle-damage"}),
             ([engine + "Triggers/CombatTriggerEngine+BlockAndDefense.swift"], {"battle-damage"}),
@@ -226,6 +356,31 @@ class AgentContextTests(ScriptRegressionTestCase):
             )
         self.assertEqual(result.returncode, 3)
         self.assertIn("use explicit --paths or --allow-broad-scope", result.stderr)
+
+    def test_clean_working_tree_briefing_with_status(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shutil.copytree(ROOT / "Scripts", root / "Scripts")
+            shutil.copy2(ROOT / ".gitignore", root / ".gitignore")
+            env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+            subprocess.run(["git", "init", "-q"], cwd=root, env=env, check=True)
+            subprocess.run(["git", "add", "Scripts", ".gitignore"], cwd=root, env=env, check=True)
+            subprocess.run(
+                ["git", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                 "-c", "core.hooksPath=/dev/null", "commit", "-qm", "baseline"],
+                cwd=root, env=env, check=True,
+            )
+            for flags in ([], ["--full", "--allow-broad-scope"]):
+                with self.subTest(flags=flags):
+                    result = subprocess.run(
+                        ["/bin/bash", str(root / "Scripts/agent-context.sh"), "--agent", "--status",
+                         "--working-tree", *flags],
+                        cwd=root, env=env, capture_output=True, text=True,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("Workspace status: 0 dirty entries", result.stdout)
+                    self.assertIn("Agent context (working tree, 0):", result.stdout)
+                    self.assertIn("./Scripts/handoff.sh --isolate --quiet --working-tree", result.stdout)
 
     def test_compact_and_full_share_required_guidance_and_safety(self) -> None:
         paths = [

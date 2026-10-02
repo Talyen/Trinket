@@ -85,8 +85,8 @@ struct PreparedArtworkCacheTests {
         }
         let first = Task { await cache.prepare(names: ["a", "b"]) }
         await probe.waitForStarts(2)
-        let canceled = Task { await cache.prepareAndPin(names: ["c"]) }
-        let pinned = Task { await cache.prepareAndPin(names: ["d", "e"]) }
+        let canceled = Task { _ = await cache.prepareAndPin(names: ["c"]) }
+        let pinned = Task { _ = await cache.prepareAndPin(names: ["d", "e"]) }
         while cache.pinDemandCount(for: "c") == 0 || cache.pinDemandCount(for: "e") == 0 {
             await Task.yield()
         }
@@ -121,7 +121,7 @@ struct PreparedArtworkCacheTests {
         await probe.waitForStarts(1)
         let viewport = Task { await cache.prepare(names: ["b", "c"]) }
         await probe.waitForStarts(2)
-        let imminent = Task { await cache.prepareAndPin(names: ["z"]) }
+        let imminent = Task { _ = await cache.prepareAndPin(names: ["z"]) }
         while cache.pinDemandCount(for: "z") == 0 {
             await Task.yield()
         }
@@ -153,7 +153,7 @@ struct PreparedArtworkCacheTests {
         }
         await cache.prepareAll(priorityImageNames: [])
         await cache.waitForDeferredWarmup()
-        await cache.prepareAndPin(names: ["portrait"])
+        _ = await cache.prepareAndPin(names: ["portrait"])
         #expect(cache.snapshot().residentCount == 1)
         #expect(cache.snapshot().pinnedCount == 1)
         #expect(cache.snapshot().residentByteCount > 0)
@@ -193,7 +193,7 @@ struct PreparedArtworkCacheTests {
         }
 
         await cache.prepareAll(priorityImageNames: ["art"])
-        await cache.prepareAndPin(names: ["art"])
+        _ = await cache.prepareAndPin(names: ["art"])
 
         let attemptCount = await source.attemptCount
         #expect(attemptCount == 2)
@@ -216,8 +216,8 @@ struct PreparedArtworkCacheTests {
         }
 
         await cache.prepareAll(priorityImageNames: ["art"])
-        await cache.prepareAndPin(names: ["art"])
-        await cache.prepareAndPin(names: ["art"])
+        _ = await cache.prepareAndPin(names: ["art"])
+        _ = await cache.prepareAndPin(names: ["art"])
         cache.releasePins(names: ["art"])
 
         #expect(cache.snapshot().pinnedCount == 1)
@@ -263,7 +263,7 @@ struct PreparedArtworkCacheTests {
             return PreparedArtwork(name: name, image: image)
         }
 
-        let prepareTask = Task { await cache.prepareAndPin(names: ["art"]) }
+        let prepareTask = Task { _ = await cache.prepareAndPin(names: ["art"]) }
         await started.wait(until: 1)
         cache.releasePins(names: ["art"])
         await gate.open()
@@ -290,15 +290,6 @@ struct PreparedArtworkCacheTests {
         #expect(cache.image(named: "priority") != nil)
     }
 
-    @Test func `failed prepare and pin leaves no phantom demand`() async {
-        let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
-            PreparedArtwork(name: name, image: nil)
-        }
-
-        await cache.prepareAndPin(names: ["art"])
-        #expect(cache.pinDemandCount(for: "art") == 0)
-    }
-
     @Test func `failed priority warmup leaves no phantom demand`() async {
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
             PreparedArtwork(name: name, image: nil)
@@ -322,7 +313,7 @@ struct PreparedArtworkCacheTests {
 
         let viewport = Task { await cache.prepare(names: ["art"]) }
         await counter.wait(until: 1)
-        let pin = Task { await cache.prepareAndPin(names: ["art"]) }
+        let pin = Task { _ = await cache.prepareAndPin(names: ["art"]) }
         let deadline = ContinuousClock.now + .seconds(2)
         while cache.pinDemandCount(for: "art") == 0, ContinuousClock.now < deadline {
             await Task.yield()
@@ -375,10 +366,10 @@ struct PreparedArtworkCacheTests {
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
             PreparedArtwork(name: name, image: image)
         }
-        await cache.prepareAndPin(names: ["art"])
+        _ = await cache.prepareAndPin(names: ["art"])
         let canceled = Task {
-            await cache.prepareAndPin(names: ["art"])
-            cache.releasePins(names: ["art"])
+            let acquired = await cache.prepareAndPin(names: ["art"])
+            cache.releasePins(names: acquired)
         }
         canceled.cancel()
         await canceled.value
@@ -395,7 +386,7 @@ struct PreparedArtworkCacheTests {
         }
 
         let batch = Task {
-            await cache.prepareAndPin(names: ["art"])
+            _ = await cache.prepareAndPin(names: ["art"])
         }
         batch.cancel()
         await batch.value
@@ -410,6 +401,26 @@ struct PreparedArtworkCacheTests {
             UIColor.red.setFill()
             context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
         }
+    }
+}
+
+extension PreparedArtworkCacheTests {
+    @Test func `failed pin receipt cannot release a later successful owners artwork`() async {
+        let source = RetryingDecodeSource(image: makeImage())
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
+            await source.decode(name: name)
+        }
+        let failed = await cache.prepareAndPin(names: ["art"])
+        #expect(failed.isEmpty)
+        #expect(cache.pinDemandCount(for: "art") == 0)
+        let acquired = await cache.prepareAndPin(names: ["art"])
+        #expect(acquired == ["art"])
+
+        cache.releasePins(names: failed)
+        #expect(cache.pinDemandCount(for: "art") == 1)
+        #expect(cache.snapshot().pinnedCount == 1)
+        cache.releasePins(names: acquired)
+        #expect(cache.pinDemandCount(for: "art") == 0)
     }
 }
 

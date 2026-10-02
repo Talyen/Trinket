@@ -16,7 +16,14 @@ public extension Combatant.Role {
 
 public extension EquipmentLoadout {
     func sanitized(for combatant: Combatant, inventory: [InventoryItem]) -> EquipmentLoadout {
-        let itemsByID = Dictionary(inventory.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        guard !itemIDsBySlot.isEmpty else { return EquipmentLoadout() }
+        let equippedIDs = Set(itemIDsBySlot.values)
+        let itemsByID = Dictionary(
+            inventory.lazy.filter { equippedIDs.contains($0.id) }.map { ($0.id, $0) },
+            uniquingKeysWith: { first, _ in first },
+        )
+        // Every compatibility lookup refers to worn gear, including gear added earlier in this pass.
+        let equippedItems = Array(itemsByID.values)
         var sanitized = EquipmentLoadout()
         var claimedItemIDs = Set<String>()
 
@@ -30,7 +37,7 @@ public extension EquipmentLoadout {
                 continue
             }
             claimedItemIDs.insert(itemID)
-            sanitized.equip(item, in: slot, inventory: inventory)
+            sanitized.equip(item, in: slot, inventory: equippedItems)
         }
 
         return sanitized

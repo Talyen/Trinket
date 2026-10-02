@@ -75,7 +75,7 @@ struct ShopPurchaseApplierTests {
             ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save)
         }
         guard case let .committed(item) = result else { Issue.record("Expected purchase"); return }
-        guard case .success = store.salvageItem(id: item.id) else { Issue.record("Expected salvage"); return }
+        guard case .committed = store.salvageItem(id: item.id) else { Issue.record("Expected salvage"); return }
         let reloaded = try context.makeReloadedStore()
         let gold = reloaded.roster.gold
         let reopened = reloaded.persistTransaction(logging: "Reopen shop") { save in

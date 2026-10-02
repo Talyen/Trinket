@@ -150,6 +150,17 @@ package enum EnemyTraitEngine {
                 ),
             )
             events.append(contentsOf: outcome.events)
+            let stackPotency = keyword == .bleed ? amount : outcome.healthLost
+            if let applicationEvents = DoTApplicator.applyDoT(
+                keyword: keyword,
+                potency: stackPotency,
+                to: target,
+                sourceActorID: source.id,
+                application: .attached,
+                in: &context,
+            ) {
+                events.append(contentsOf: applicationEvents)
+            }
         }
         return events
     }

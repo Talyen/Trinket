@@ -19,6 +19,7 @@ SCRIPT_INPUTS = (
 
 
 import re
+import os
 import subprocess
 import sys
 
@@ -70,7 +71,7 @@ class ContentCodegenTests(ScriptRegressionTestCase):
                 "--paths",
                 "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift",
             ],
-            cwd=ROOT,
+            cwd=ROOT, env={**os.environ, "GITHUB_ACTIONS": "true"},
             capture_output=True,
             text=True,
             check=False,

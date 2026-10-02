@@ -99,6 +99,14 @@ enum RosterHydration {
         inventoryItemIDs: Set<String>,
         inventoryItems: [InventoryItem]? = nil,
     ) -> [String: EquipmentLoadout] {
+        guard !loadouts.isEmpty else { return [:] }
+        // Narrow the inventory once for the whole roster, rather than scanning every stored item per combatant.
+        let equippedInventory = inventoryItems.map { items in
+            let equippedIDs = loadouts.values.reduce(into: Set<String>()) {
+                $0.formUnion($1.itemIDsBySlot.values)
+            }
+            return items.filter { equippedIDs.contains($0.id) }
+        }
         var resolved: [String: EquipmentLoadout] = [:]
         for (combatantID, loadout) in loadouts {
             let combatant = GameContent.combatant(matching: combatantID)
@@ -106,7 +114,7 @@ enum RosterHydration {
             // supplied (sanitizer path). Model/cloud read paths build
             // equipment directly from stored rows and leave dangling refs for
             // sanitize to strip, so a raw round trip never loses data here.
-            if inventoryItems != nil, combatant == nil {
+            if equippedInventory != nil, combatant == nil {
                 continue
             }
             var resolvedItems: [ItemSlot: String] = [:]
@@ -114,8 +122,8 @@ enum RosterHydration {
                 resolvedItems[slot] = itemID
             }
             var cleaned = EquipmentLoadout(itemIDsBySlot: resolvedItems)
-            if let combatant, let inventoryItems {
-                cleaned = cleaned.sanitized(for: combatant, inventory: inventoryItems)
+            if let combatant, let equippedInventory {
+                cleaned = cleaned.sanitized(for: combatant, inventory: equippedInventory)
             }
             resolved[combatantID] = cleaned
         }

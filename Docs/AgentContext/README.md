@@ -46,113 +46,34 @@ Verification: ./Scripts/handoff.sh --isolate --quiet --paths <files...>
 
 Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/SKILL.md) (attached for DesignSystem and visual feature paths only). Cursor glob rule `.cursor/rules/design-system-colors.mdc` enforces color routing independently of this catalog.
 
-Start unknown-owner discovery with `agent-search.py --overview`, then
-`agent-search.py --files <pattern> --scope <owner>`; use scoped content
-`rg` and direct reads after narrowing files. Read enough surrounding context to understand the contract and
-its exceptions, including relevant callers, tests, configuration, and generated
-references. Prefer targeted catalog lookups and bounded diagnostic output over
-loading unrelated material. [CI diagnostics](ci-diagnostics.md) explains retained
-reports and raw-log access when summaries are insufficient.
+## Quickstart
 
-Default searches should avoid build products and raw logs. Scope hidden-file
-searches to the relevant owner (for example `.agents/` or `.github/`). Inspect
-`.DerivedData/`, `BalanceSweepReports/`, or other artifacts when needed for the
-investigation, using explicit paths and bounded output.
+1. For an indexed concern, use `python3 Scripts/agent-session.py brief --task shop`.
+   This combines scoped status, safeguards, initial guidance, signatures and test pointers.
+   Find an index entry with `agent-search.py '<concern>' --task`; otherwise discover
+   filenames with `--files <regex> --scope <owner>` or `--overview` for an unknown owner.
+2. Preserve actual task scope with `brief --task <concern> --paths <files...>` or
+   `./Scripts/agent-context.sh --agent --status --paths <files...>`.
+   Read additional relevant contracts and load skills by trigger.
+3. Batch relevant sections with `python3 Scripts/agent-read.py 'file.md#anchor' …`.
+   Use source `--outline` to locate declarations, then `--symbol <name>` to read
+   them. `--full` reads whole files and only the selected section for anchors in
+   the same batch. For other mixed modes, repeat `--request 'path [read flags]'`.
+   `--related <identifier> --scope <owner>` finds source/test hints. Inspect
+   assertions and follow callers; hints do not prove coverage.
+4. Review every relevant page of `python3 Scripts/agent-diff.py --paths <files...>`
+   before editing overlapping work; preserve unrelated edits.
+5. Finish with `./Scripts/handoff.sh --isolate --quiet --paths <files...>`.
+   Local handoff proves lightweight checks; compilation and UI checks remain
+   CI-owned under [Verification](../Platform/Verification.md).
 
-The `agent-search.py` helper defaults to authored production text from Git's tracked and nonignored
-untracked inventory. Generated paths use the existing generated-output registry;
-tests (including test-support targets), Markdown/`.mdc` and generated output have explicit
-`--mode` surfaces. Results default to filenames with matching-line counts.
-For plain identifiers, exact filename stems, filename word/prefix matches, and declarations
-rank before other references outside docs; declaration-like
-matching lines include jump locations. Both are lookup hints, not proof of symbol ownership. `--files` matches relative filenames
-without reading their contents, using the same filters and bounds. Use
-`--mode assets --files` to include raw/processed media and asset metadata without
-reading binary contents. `--overview` pages owner counts and entry points from
-the Git inventory; individual asset filenames are omitted. Scopes and fingerprinted
-pagination apply to both modes. Scoped `rg --files` remains available.
-Documentation results put current guides and references first, procedures/knowledge
-next, and task records last, alphabetically within each group. This ordering
-applies before either file or excerpt limits; explicit scopes can still retrieve
-plans, evals, and friction records directly. Resolved friction archives are excluded
-unless `--scope` names `.agents/friction-archive` or a file within it. For direct
-`rg` discovery, likewise omit that archive unless investigating past friction.
-Search continuation commands use `--offset` and a result fingerprint (`--expect`);
-changed results require restarting instead of silently skipping or repeating matches.
-Bounds always report omitted
-files/lines and shortened excerpts; no matches means no
-matches within the displayed surface, not within the whole repository.
+Session commands bind temporary guidance receipts to `CODEX_THREAD_ID` (or explicit
+`--chat`). For a repeated brief, opt into `--reuse-guidance` only while earlier
+guidance remains in context. Routing and warnings stay visible; changed guidance
+is reread. After context loss, run `agent-session.py forget` and reread contracts.
+See [receipt details](Retrieval.md#chat-local-read-receipts).
 
-The router prints source/test roots. Example discovery and reads:
-
-```sh
-python3 Scripts/agent-search.py '(^|/)DamagePipeline\.swift$' --files --scope Packages/BattleEngine
-python3 Scripts/agent-search.py DamagePipeline --scope Packages/BattleEngine
-python3 Scripts/agent-search.py DamagePipeline --mode tests --scope Packages/BattleEngine
-python3 Scripts/agent-search.py DamagePipeline --scope Packages/BattleEngine/Sources/BattleEngine/Damage/DamagePipelineResolutionSteps.swift --excerpts
-sed -n '40,100p' Packages/BattleEngine/Sources/BattleEngine/Damage/DamagePipelineResolutionSteps.swift
-```
-
-For section-based reads with heading context, use the section reader:
-
-```sh
-python3 Scripts/agent-read.py Docs/Platform/Verification.md --outline
-python3 Scripts/agent-read.py 'Docs/Platform/Verification.md#local-simulator-budget'
-```
-
-The reader prints source lines and parent headings. Unanchored Markdown over
-12,000 characters returns a paginated heading outline labeled navigation only;
-read the relevant anchors or explicitly use `--full` for the entire document.
-Smaller documents still read completely by default. Read applicable constraints and relevant behavior sections,
-including their exceptions; unrelated sections are not mandatory prereads.
-Missing anchors fail explicitly. Sections are never silently truncated. Known Battle presentation leaves route directly
-to relevant anchors plus shared display-lifetime constraints; shared owners retain
-whole-card references.
-
-For Swift or Python, `agent-read.py path.swift --outline` lists qualified types and
-members with complete lexical source ranges and the file path once. Swift uses the
-pinned SwiftFormat tokenizer; this is not a semantic ownership map. Add
-`--include-locals` for declarations inside functions. `--symbol Qualified.name`
-reads an attached comment/attribute block and complete declaration; repeat `--symbol`
-to read several declarations together. `--signatures` shows headers and attached
-comments without bodies; filter outlines/signatures with `--kind methods|properties|types`
-and `--match <name-substring>`. Overloaded or
-ambiguous names return candidate ranges without choosing one. `--offset` /
-`--limit` page the outline; `--lines START:END` reads an explicit complete range.
-
-For a generated-content investigation, explicitly target the catalog and entry:
-
-```sh
-python3 Scripts/agent-search.py 'enum ArtCatalog' --mode generated --scope Packages/TrinketContent --excerpts
-```
-
-Focused contracts replace the corresponding detail in package READMEs. Known
-paths suggest their concern; shared or unknown engine/persistence paths list all
-operation references for discovery. Select the relevant sections and follow calls
-across concerns. This reading choice does not narrow verification routing.
-Use the package README as an index to optional API and behavior references.
-
-The default router omits empty sections, repeated policy, and expanded check
-commands. `--full` includes authored paths, route metadata, and the sequential
-verification plan. Both forms retain ownership guidance, behavior references, and
-safety warnings.
-
-Use `--status` on the initial route to see global dirty counts and exact status
-for task files, including either endpoint of a rename. Counts are informational;
-inspect overlapping diffs and resolve unclear ownership before editing. Reroutes
-can omit status when the relevant workspace state is unchanged.
-
-For review, `python3 Scripts/agent-diff.py --paths <files...>` shows authored
-unstaged patches and generated-file statistics using the generated-path registry.
-Add `--summary` for record/field hints in generated talent, affix, and Homestead
-catalogs. Unsupported formats and changes outside recognized records are disclosed;
-these hints do not replace idempotence or full patch review where needed.
-Use `--staged` for the index, `--stat` for statistics only, or `--generated` to
-expand generated patches. Output defaults to a 12,000-character content budget,
-paged at complete hunks/records with repeated file headers. Follow the printed
-continuation command; its fingerprint rejects a changed diff. An oversized hunk
-is disclosed with an explicit larger-budget command, never silently cut. `--full`
-is an intentional unbounded read. Review every relevant page before editing
-overlapping work. Untracked files are listed for explicit reads. Whole-tree
-review requires `--working-tree`. This view does not replace overlapping diff
-inspection, generated consistency review, or idempotence verification.
+The [retrieval reference](Retrieval.md) owns filtering, pagination, complete reads,
+fingerprints, receipts and diff semantics. The small [task index](../../Scripts/config/agent-tasks.json)
+contains navigation pointers only; update a confirmed recurring concern there,
+without copying behavior rules or claiming complete test coverage.

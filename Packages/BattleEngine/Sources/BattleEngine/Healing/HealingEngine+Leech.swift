@@ -43,6 +43,7 @@ package extension HealingEngine {
         damageKeyword: Keyword? = nil,
         in context: inout BattleState,
     ) -> CombatOutcome {
+        guard context.resolution.depth(.leechOverflowGold) == 0 else { return .empty }
         guard let actor = context.roster.combatant(for: sourceActorID),
               context.roster.health(for: actor.combatant) > 0
         else { return .empty }
@@ -154,6 +155,7 @@ package extension HealingEngine {
         if profile.triggers.excessLeechHealthToGold, healing.allocation.remaining > 0 {
             healing.events.append(contentsOf: context.grantGoldEvent(
                 healing.allocation.remaining, to: actorCombatant, abilityName: "Flawless Bounty",
+                isLeechOverflow: true,
             ))
         }
         guard healing.didLeech else { return healing.combatOutcome }

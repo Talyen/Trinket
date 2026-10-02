@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Commit-completeness gate for agents after commit and before push.
-# Regenerates only when classification says content, project, or assets
-# changed, then asserts generated output vs HEAD.
+# Checks committed generated-output completeness without regenerating or compiling.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -18,17 +17,13 @@ usage() {
   cat <<'EOF'
 Usage: ./Scripts/agent-push-gate.sh [--paths <file> ...]
 
-Internal pre-push component: ensures generated catalogs/assets/project.pbxproj
-match what CI will regenerate when the commit scope can affect them:
-  1. ./Scripts/ensure-ci-tools.sh (pinned SwiftFormat/SwiftLint/XcodeGen)
-  2. ./Scripts/generate.sh [--assets] (skipped when classification
-     reports no content, project, or asset generation; XcodeGen always
-     runs uncached when generation runs)
-  3. ./Scripts/assert-generated-output.sh [--assets]
+Internal pre-push component: checks that tracked generated outputs have been
+committed and reports the change budget. It never regenerates assets or builds.
+CI proves generation freshness and idempotence after the push.
 
 Without --paths, unions working-tree paths with local commits not present on a
 remote (falling back to the latest commit). With --paths, only those paths drive
-whether --assets is included.
+the advisory change budget.
 
 Invoked automatically by the pre-push hook; not a manual post-commit step.
 The user-facing workflow is focused iteration → path-scoped handoff → commit → push.
@@ -127,63 +122,8 @@ else
   trinket_reset_classification
 fi
 
-INCLUDE_ASSETS=false
-if [[ "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
-  INCLUDE_ASSETS=true
-fi
-
-NEEDS_GENERATE=false
-if [[ "$TRINKET_NEEDS_CONTENT_GENERATION" == true \
-   || "$TRINKET_NEEDS_PROJECT_GENERATION" == true \
-   || "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
-  NEEDS_GENERATE=true
-fi
-
-if [[ "$NEEDS_GENERATE" != true ]]; then
-  echo "=== Agent push gate: skip generate (no content, project, or asset inputs) ==="
-  report_change_budget
-  echo "=== Agent push gate passed ==="
-  echo "Note: push-gate is generate/assert completeness only — not style or compile."
-  echo "Pre-CI source checks: ./Scripts/handoff.sh --isolate --paths …"
-  exit 0
-fi
-
-if ! command -v xcodegen >/dev/null 2>&1; then
-  echo "=== Agent push gate: generate (XcodeGen unavailable; content only) ==="
-  if [[ "$INCLUDE_ASSETS" == true ]]; then
-    ./Scripts/generate.sh --assets --skip-xcodegen
-  else
-    ./Scripts/generate.sh --skip-xcodegen
-  fi
-  echo "=== Agent push gate: assert content catalogs ==="
-  # shellcheck source=assert-generated-output.sh
-  source Scripts/assert-generated-output.sh
-  # Omit pbxproj: XcodeGen is unavailable, so project assert is deferred to CI.
-  trinket_set_generated_tracked_paths "$INCLUDE_ASSETS" false
-  if trinket_assert_committed_output; then
-    echo "Content catalogs match manifests (pbxproj assert deferred to CI/XcodeGen)."
-  else
-    exit 1
-  fi
-  report_change_budget
-  echo "=== Agent push gate passed ==="
-  echo "Note: push-gate is generate/assert completeness only — not style or compile."
-  echo "Pre-CI source checks: ./Scripts/handoff.sh --isolate --paths …"
-  exit 0
-fi
-
-echo "=== Agent push gate: generate (pinned XcodeGen, force rewrite) ==="
-if [[ "$INCLUDE_ASSETS" == true ]]; then
-  ./Scripts/generate.sh --assets
-  echo "=== Agent push gate: assert generated output (including assets) ==="
-  ./Scripts/assert-generated-output.sh --assets
-else
-  ./Scripts/generate.sh
-  echo "=== Agent push gate: assert generated output ==="
-  ./Scripts/assert-generated-output.sh
-fi
-
+echo "=== Agent push gate: committed generated outputs ==="
+./Scripts/assert-generated-output.sh
 report_change_budget
-echo "=== Agent push gate passed ==="
-echo "Note: push-gate is generate/assert completeness only — not style or compile."
-echo "Pre-CI source checks: ./Scripts/handoff.sh --isolate --paths …"
+echo "=== Agent push gate passed (static completeness only) ==="
+echo "CI owns regeneration/idempotence, compilation, package tests, and UI verification."

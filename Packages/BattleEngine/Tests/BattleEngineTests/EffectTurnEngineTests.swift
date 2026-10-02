@@ -57,8 +57,7 @@ struct EffectTurnEngineTests {
         let enemy = context.roster.enemy.combatant
 
         _ = EffectTurnEngine.advanceEffects(
-            context.roster.activeEffects(for: enemy),
-            target: enemy,
+            on: enemy,
             context: &context,
         )
 
@@ -77,8 +76,7 @@ struct EffectTurnEngineTests {
         context.roster.setActiveEffects([burn], for: hero)
 
         _ = EffectTurnEngine.advanceEffects(
-            context.roster.activeEffects(for: hero),
-            target: hero,
+            on: hero,
             context: &context,
         )
 

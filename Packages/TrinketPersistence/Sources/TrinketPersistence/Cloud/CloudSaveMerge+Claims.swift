@@ -3,45 +3,24 @@ import Foundation
 extension CloudSaveMerge {
     static func hasDuplicateClaim(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave?) -> Bool {
         guard let base else { return true }
-        let common = incoming.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs)
-            .intersection(existing.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs))
-        let existingItemIDs = Set(base.inventory.items.map(\.id))
-        for stageID in common {
-            let prefix = "\(stageID)-"
-            let first = Set(incoming.inventory.items.map(\.id).filter { $0.hasPrefix(prefix) && !existingItemIDs.contains($0) })
-            let second = Set(existing.inventory.items.map(\.id).filter { $0.hasPrefix(prefix) && !existingItemIDs.contains($0) })
-            if first.isEmpty || second.isEmpty || !first.isDisjoint(with: second) {
-                return true
-            }
-        }
-        if let starting = base.contracts.completedOfferIDs,
-           let first = incoming.contracts.completedOfferIDs, let second = existing.contracts.completedOfferIDs {
-            if !first.subtracting(starting).isDisjoint(with: second.subtracting(starting)) {
-                return true
-            }
-        } else {
-            // Older peers lack receipts; retain conservative overlap detection for them.
-            for offer in base.contracts.offers {
-                if !incoming.contracts.offers.contains(where: { $0.id == offer.id }),
-                   !existing.contracts.offers.contains(where: { $0.id == offer.id }) {
-                    return true
-                }
-            }
-        }
-        let sharedSpireIDs = Set(incoming.spires.highestClearedFloorBySpireID.keys)
-            .intersection(existing.spires.highestClearedFloorBySpireID.keys)
-        for spireID in sharedSpireIDs {
-            let baseFloor = base.spires.highestClearedFloor(for: spireID)
-            if incoming.spires.highestClearedFloor(for: spireID) > baseFloor,
-               existing.spires.highestClearedFloor(for: spireID) > baseFloor {
-                return true
-            }
+        let baseItemIDs = Set(base.inventory.items.map(\.id))
+        let incomingItemIDs = Set(incoming.inventory.items.map(\.id))
+        let existingItemIDs = Set(existing.inventory.items.map(\.id))
+        let incomingNewItemIDs = incomingItemIDs.subtracting(baseItemIDs)
+        let existingNewItemIDs = existingItemIDs.subtracting(baseItemIDs)
+        if hasSharedJourneyClaim(
+            incoming: incoming, existing: existing, base: base,
+            incomingNewItemIDs: incomingNewItemIDs, existingNewItemIDs: existingNewItemIDs,
+        ) || hasSharedContractClaim(incoming: incoming, existing: existing, base: base)
+            || hasSharedSpireClaim(incoming: incoming, existing: existing, base: base) {
+            return true
         }
         if hasSharedNodeClaim(incoming: incoming, existing: existing, base: base, onlyCombat: true) {
             return true
         }
-        if hasSharedNodeClaim(incoming: incoming, existing: existing, base: base, onlyCombat: false),
-           !distinctNewItems(incoming: incoming, existing: existing, priorIDs: existingItemIDs) {
+        let distinctNewItems = !incomingNewItemIDs.isEmpty && !existingNewItemIDs.isEmpty
+            && incomingNewItemIDs.isDisjoint(with: existingNewItemIDs)
+        if hasSharedNodeClaim(incoming: incoming, existing: existing, base: base, onlyCombat: false), !distinctNewItems {
             return true
         }
         if hasSharedShopPurchase(incoming: incoming, existing: existing, base: base) {
@@ -49,12 +28,48 @@ extension CloudSaveMerge {
         }
         if base.inventory.items.contains(where: { item in
             ItemSalvage.isEligible(item)
-                && incoming.inventory.item(matching: item.id) == nil
-                && existing.inventory.item(matching: item.id) == nil
+                && !incomingItemIDs.contains(item.id)
+                && !existingItemIDs.contains(item.id)
         }) {
             return true
         }
         return false
+    }
+
+    private static func hasSharedJourneyClaim(
+        incoming: PlayerSave, existing: PlayerSave, base: PlayerSave,
+        incomingNewItemIDs: Set<String>, existingNewItemIDs: Set<String>,
+    ) -> Bool {
+        let common = incoming.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs)
+            .intersection(existing.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs))
+        return common.contains { stageID in
+            let prefix = "\(stageID)-"
+            let first = incomingNewItemIDs.filter { $0.hasPrefix(prefix) }
+            let second = existingNewItemIDs.filter { $0.hasPrefix(prefix) }
+            return first.isEmpty || second.isEmpty || !first.isDisjoint(with: second)
+        }
+    }
+
+    private static func hasSharedContractClaim(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave) -> Bool {
+        if let starting = base.contracts.completedOfferIDs,
+           let first = incoming.contracts.completedOfferIDs, let second = existing.contracts.completedOfferIDs {
+            return !first.subtracting(starting).isDisjoint(with: second.subtracting(starting))
+        }
+        // Older peers lack receipts; retain conservative overlap detection for them.
+        return base.contracts.offers.contains { offer in
+            !incoming.contracts.offers.contains { $0.id == offer.id }
+                && !existing.contracts.offers.contains { $0.id == offer.id }
+        }
+    }
+
+    private static func hasSharedSpireClaim(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave) -> Bool {
+        let sharedSpireIDs = Set(incoming.spires.highestClearedFloorBySpireID.keys)
+            .intersection(existing.spires.highestClearedFloorBySpireID.keys)
+        return sharedSpireIDs.contains { spireID in
+            let baseFloor = base.spires.highestClearedFloor(for: spireID)
+            return incoming.spires.highestClearedFloor(for: spireID) > baseFloor
+                && existing.spires.highestClearedFloor(for: spireID) > baseFloor
+        }
     }
 
     private static func hasSharedShopPurchase(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave) -> Bool {
@@ -123,14 +138,6 @@ extension CloudSaveMerge {
                         || existingCompleted.contains(run.id))
             }
         }
-    }
-
-    private static func distinctNewItems(
-        incoming: PlayerSave, existing: PlayerSave, priorIDs: Set<String>,
-    ) -> Bool {
-        let first = Set(incoming.inventory.items.map(\.id)).subtracting(priorIDs)
-        let second = Set(existing.inventory.items.map(\.id)).subtracting(priorIDs)
-        return !first.isEmpty && !second.isEmpty && first.isDisjoint(with: second)
     }
 
     private static func sharesLabyrinthMap(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave) -> Bool {

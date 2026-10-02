@@ -44,8 +44,12 @@ Each battle, shop, and Mystery gets one applicable node modifier, restricted
 to that encounter. Combat includes the shared
 [reward modifiers](../../Packages/TrinketContent/README.md#shared-reward-modifiers),
 including guaranteed keyword equipment. Preserve the original combat/reward category
-ratio, then choose within that category while avoiding the preceding modifier when
-alternatives exist. Shops and Mysteries retain their existing modifier pools.
+ratio. Combat effects are uniform within their eligible category. For combat-node
+keyword equipment rewards, three out of four reward-pool selections use the
+location's affinity keywords when eligible matches exist; the remaining selection
+uses the full eligible reward pool. Choose uniformly within that selected pool,
+avoiding the preceding modifier when another entry exists there. Shops and
+Mysteries retain their existing modifier pools.
 Combat modifiers include enemy opening Block, attack Leech, extra Block removal,
 Purge, and 50% resistance to each damage type. Attack riders apply on every
 landed direct hit; resistance reduces typed damage, including damage-over-time
@@ -56,12 +60,12 @@ Recruit stops have no modifier. If no eligible recruit remains, replace that sto
 with a Mystery; a mid-route eligibility change preserves the announced route order,
 so this replacement can create adjacent Mysteries.
 
-| Location | Ordinary enemies | Boss |
-|---|---|---|
-| Forest | Slime, Mud Elemental, Goblin, Will-o-Wisp | The Blight Treant |
-| Dungeon | Skeleton, Mimic, Necromancer, Living Armor | The Iron Bear |
-| Desert | Fire Elemental, Fire Imp, Hellhound, Pyromancer | The Forge Golem |
-| Tundra | Frost Elemental, Winter Wolf, Ice Wraith, Yeti | The Frostwarden |
+| Location | Ordinary enemies | Boss | Reward keyword affinities |
+|---|---|---|---|
+| Forest | Slime, Mud Elemental, Goblin, Will-o-Wisp | The Blight Treant | Poison, Thorns, Leech, Cleanse |
+| Dungeon | Skeleton, Mimic, Necromancer, Living Armor | The Iron Bear | Bleed, Physical, Purge, Death's Door |
+| Desert | Fire Elemental, Fire Imp, Hellhound, Pyromancer | The Forge Golem | Burn, Holy, Mana, Gold |
+| Tundra | Frost Elemental, Winter Wolf, Ice Wraith, Yeti | The Frostwarden | Freeze, Stun, Block, Dodge, Health |
 
 ## Levels and rewards
 
@@ -70,8 +74,9 @@ max(1, P − 3), Medium uses P, and Hard uses P + 3. The boss uses the same offs
 normal boss strength. Each attempt captures its party, level, modifiers, and loot.
 
 Battle XP, Gold, materials, and boss item weighting use shared policies. Equipment
-quality follows the highest won encounter level, as in Contracts; this victory
-uses its own level for its item roll. Completion adds 20% of combat
+quality for a battle uses its captured encounter level, capped at loot level 40.
+Shop and Mystery item offers use the highest won encounter level, as in Contracts;
+winning records the battle's level for later offers. Completion adds 20% of combat
 Gold and materials earned across successful nodes, including the boss, rounded
 down once per resource. The basis includes combat and Homestead reward bonuses
 before wallet-cap conversion, and excludes shops, Mysteries, defeat rewards, and

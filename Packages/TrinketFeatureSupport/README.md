@@ -117,6 +117,10 @@ issue a second pop that briefly exposes the intermediate picker.
 
 ## Testing
 
+Package execution and local diagnostic opt-in follow
+[Verification](../../Docs/Platform/Verification.md#execution-limits); routine local
+changes use path-scoped handoff.
+
 ```sh
 ./Scripts/test-package.sh TrinketFeatureSupport
 ```

@@ -33,12 +33,7 @@ extension InventoryItemModel {
 extension InventoryModel {
     func toPlayerInventoryState() -> PlayerInventoryState {
         PlayerInventoryState(items: (items ?? [])
-            .sorted { lhs, rhs in
-                if lhs.sortIndex == rhs.sortIndex {
-                    return lhs.id < rhs.id
-                }
-                return lhs.sortIndex < rhs.sortIndex
-            }
+            .sorted { ($0.sortIndex, $0.id) < ($1.sortIndex, $1.id) }
             .compactMap(Self.restoredItem(from:)))
     }
 
@@ -47,22 +42,8 @@ extension InventoryModel {
             return nil
         }
         let affixes = (item.affixes ?? [])
-            .sorted { lhs, rhs in
-                if lhs.sortIndex == rhs.sortIndex {
-                    return lhs.id < rhs.id
-                }
-                return lhs.sortIndex < rhs.sortIndex
-            }
-            .compactMap { affix in
-                let keywords = Set(affix.keywordRawValues.compactMap { Keyword(rawValue: $0) })
-                return ItemAffix(
-                    id: affix.id,
-                    title: affix.title,
-                    description: affix.affixDescription,
-                    keywords: keywords,
-                    isCorrupted: affix.isCorrupted,
-                )
-            }
+            .sorted { ($0.sortIndex, $0.id) < ($1.sortIndex, $1.id) }
+            .map { $0.toItemAffix() }
         let affixPowers: [ItemAffixPower]? = {
             guard let data = item.affixPowersJSON else { return nil }
             do {
@@ -109,16 +90,32 @@ extension InventoryItemModel {
             valueKey: { $0.affix.id },
             make: { _ in ItemAffixModel() },
             update: { model, value in
-                model.id = value.affix.id
-                model.title = value.affix.title
-                model.affixDescription = value.affix.description
-                model.keywordRawValues = value.affix.keywords.map(\.rawValue).sorted()
-                model.isCorrupted = value.affix.isCorrupted
+                model.update(from: value.affix)
                 model.sortIndex = value.index
             },
             link: { $0.item = self },
             context: context,
         )
+    }
+}
+
+extension ItemAffixModel {
+    func toItemAffix() -> ItemAffix {
+        ItemAffix(
+            id: id,
+            title: title,
+            description: affixDescription,
+            keywords: Set(keywordRawValues.compactMap { Keyword(rawValue: $0) }),
+            isCorrupted: isCorrupted,
+        )
+    }
+
+    func update(from affix: ItemAffix) {
+        id = affix.id
+        title = affix.title
+        affixDescription = affix.description
+        keywordRawValues = affix.keywords.map(\.rawValue).sorted()
+        isCorrupted = affix.isCorrupted
     }
 }
 

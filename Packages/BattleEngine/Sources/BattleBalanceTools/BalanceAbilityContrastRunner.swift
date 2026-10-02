@@ -80,38 +80,19 @@ enum BalanceAbilityContrastRunner {
         context: BalanceContrastContext,
         pairSeed: UInt64,
     ) -> BalanceContrastSupport.Pair {
-        let sampled = BalanceContrastSupport.sampleBasePair(
+        var base = BalanceContrastSupport.sampleBasePair(
             owner: focus.owner,
             pairIndex: pairIndex,
             context: context,
-            pairSeed: pairSeed,
-        )
-        let focusLoadout = sampled.ownerLoadout.selecting(focus.focus)
-        let siblingLoadout = sampled.ownerLoadout.selecting(focus.sibling)
-        // Gear stays aligned to the focus loadout, matching historical
-        // sampling: both sides of the pair wear the same gear so only the
-        // loadout choice varies.
-        let gears = BalanceContrastSupport.sharedGear(
-            owner: focus.owner,
-            partner: sampled.partner,
-            ownerLoadout: focusLoadout,
-            partnerLoadout: sampled.partnerLoadout,
             tier: tier,
             pairSeed: pairSeed,
         )
-        let base = ContrastMatchupBase(
-            owner: focus.owner,
-            partner: sampled.partner,
-            enemy: sampled.enemy,
-            ownerLoadout: focusLoadout,
-            partnerLoadout: sampled.partnerLoadout,
-            ownerGear: gears.owner,
-            partnerGear: gears.partner,
-            tier: tier,
-            seed: pairSeed,
-        )
+        let siblingLoadout = base.ownerLoadout.selecting(focus.sibling)
+        // Both variants wear gear aligned to the focus loadout; keep historical sampling.
+        base.ownerLoadout = base.ownerLoadout.selecting(focus.focus)
+        base.prepareSharedGear()
         return (
-            base.matchup(ownerLoadout: focusLoadout),
+            base.matchup(),
             base.matchup(ownerLoadout: siblingLoadout),
         )
     }

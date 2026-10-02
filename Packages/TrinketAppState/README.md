@@ -16,7 +16,10 @@ encounter orchestration plus `Modes/`; `Purchases/` owns StoreKit access;
   transitions after settled battle rewards; `PlaySession` forwards screen actions
 - `PlayBattleRuns`: paired runtime/route metadata lifecycle; preparation, activation,
   restart rollback, pruning, and exit. Its registration storage is private.
-- `PlayBattleLaunch`: access policy and save-backed launch assembly
+- `PlayBattleLaunch`: access policy and save-backed launch assembly. Immutable
+  `BattlePreparationInputs` retain the full launch snapshot; combat configuration
+  assembly and `BattleRewardPresentation` build from that same snapshot.
+  `PlaySession` owns the shell-facing Retry entry point.
 - `PlayBattleCompletion`: reward settlement and persistence, mutually exclusive
   victory/defeat claim transitions, keyed deferred exits, and Talent baselines
   retained across Retry attempts and consumed on reward exit
@@ -25,9 +28,11 @@ encounter orchestration plus `Modes/`; `Purchases/` owns StoreKit access;
   collaborators, no `PlaySession` back-pointer
 - Battle entry runs through one `PlayBattleLaunch.startBattle` gate
   (paywall → busy → resolve → activate). Mode-specific eligibility and request
-  construction run at resolve time. A busy battle surfaces the failure for
+  construction run at resolve time. A busy battle returns a rejection value for
   explicit board/floor taps (Spires/Contracts) and swallows map taps
-  (Journey/Labyrinth); a busy transient encounter is always silent. Preparation
+  (Journey/Labyrinth); a busy transient encounter is always silent. The shared
+  action-result adapter logs rejections internally and opens the Full Game offer
+  for access restrictions; returned diagnostic text is not player-facing. Preparation
   pruning is ownership-preserving: a mode drops only its own stale warms, never
   a sibling's.
 - Encounter sessions, device-local options, app audio routing
@@ -81,13 +86,19 @@ SFX use a prestarted `AVAudioEngine`. Battle event mapping stays in
 The audio actor owns buffer caching, shared in-flight loads, voice pools, and typed
 play/warm/stop/release commands. Its internal backend owns AVFoundation decoding,
 engine recovery, and native voice operations. Commands from
-main-actor callers are chained in submission order, so play, stop, and resource release
-cannot overtake one another. Catalog prewarming and individual sounds use the same
+main-actor callers keep play and warm requests in submission order. Stop and resource
+release discard older queued sounds and reach the audio actor even while a foreground
+decode is suspended; subsequent requests wait for invalidation to finish. Catalog
+prewarming and individual sounds use the same
 asynchronous buffer preparation path. Stop and resource release invalidate in-flight
 decodes, so stale work cannot reinstall buffers or restart the engine. Adding warm
 voices leaves already-playing voices running.
 
 ## Testing
+
+Package execution and local diagnostic opt-in follow
+[Verification](../../Docs/Platform/Verification.md#execution-limits); routine local
+changes use path-scoped handoff.
 
 ```sh
 ./Scripts/test-package.sh TrinketAppState
@@ -101,6 +112,6 @@ stack on `-disable-cloud-sync -disable-audio -skip-starter-selection`; add
 `-reset-state` for a fresh save or `-seed-test-progress` for progressed content.
 `Support/LabyrinthTestSupport.swift` covers map setup and reachable-node lookup;
 `Support/PlayBattleLaunchTestSupport.swift` covers party setup and bare launch
-assembly. Journey, labyrinth, spire, and contracts flows each have their own
+assembly. Journey, Labyrinth, Spires, Contracts, and Voyage flows each have their own
 test file; shop and mystery encounters share theirs. `#if DEBUG` retry tests use
 `forcesNextSaveFailure` to drive the unbounded `retrySaveAction` paths.

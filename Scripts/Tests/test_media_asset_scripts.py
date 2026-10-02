@@ -27,6 +27,26 @@ from pathlib import Path
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script
 
 class MediaAssetScriptTests(ScriptRegressionTestCase):
+    def test_media_temp_cleanup_preserves_paths_with_spaces(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            scratch = Path(directory) / 'temporary assets'
+            scratch.mkdir()
+            result = subprocess.run(
+                ['bash', '-eu', '-c', '''
+source "$1"
+# Exercise a spaced path on BSD hosts too; GNU mktemp honors TMPDIR by default.
+mktemp() { command mktemp "$TMPDIR/asset.XXXXXX"; }
+trinket_asset_track_mktemp first
+trinket_asset_track_mktemp second
+touch "$first.next" "$second.sorted"
+trinket_asset_cleanup_tracked
+trinket_asset_cleanup_tracked
+''', '_', str(ROOT / 'Scripts/lib/media-assets.sh')],
+                env={**os.environ, 'TMPDIR': str(scratch)}, capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(list(scratch.iterdir()), [])
+
     def test_portrait_art_has_independent_size_and_preserves_landscape(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -117,7 +137,11 @@ class MediaAssetScriptTests(ScriptRegressionTestCase):
             output.unlink()
             assert_run(4)
 
-            assert_run(5, FORCE_ASSET_REENCODE="1")
+            output.write_bytes(b"")
+            assert_run(5)
+            self.assertGreater(output.stat().st_size, 0)
+
+            assert_run(6, FORCE_ASSET_REENCODE="1")
 
     def test_sfx_manifest_rejects_invalid_and_duplicate_swift_symbols(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

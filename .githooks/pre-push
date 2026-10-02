@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-push gate: path-scoped style, generation completeness, then path-scoped package tests.
+# Pre-push keeps scoped static checks; generation, compilation, and game tests are CI-owned.
 # Install with: git config core.hooksPath .githooks
 set -euo pipefail
 
@@ -11,52 +11,19 @@ if [[ "${SKIP_TRINKET_PREPUSH:-}" == "1" ]]; then
   exit 0
 fi
 
+# Read and validate Git's ref pairs before tooling can consume stdin or inspect
+# a tree that differs from the outgoing commit. Command substitution propagates
+# discovery failures; a process-substitution pipeline would hide them.
+push_input="$(cat)"
+push_paths="$(python3 Scripts/pre-push-paths.py <<< "$push_input")" || exit $?
+if [[ -z "$push_paths" ]]; then
+  echo "No outgoing source paths to verify."
+  exit 0
+fi
+
 echo "=== Pre-push: ensure pinned format/lint tools ==="
 ./Scripts/ensure-ci-tools.sh
 export PATH="$ROOT/.tools:$PATH"
-
-# Git feeds one "local_ref local_sha remote_ref remote_sha" line per ref on stdin.
-# Read those first so later pipes cannot steal the push range.
-push_lines=()
-while IFS= read -r line; do
-  [[ -n "$line" ]] || continue
-  push_lines+=("$line")
-done
-
-collect_pushed_paths() {
-  local z40="0000000000000000000000000000000000000000"
-  local local_ref local_sha remote_ref remote_sha
-  local line
-
-  emit_commit_paths() {
-    git log -m --format= --name-only --diff-filter=ACMR "$@"
-  }
-
-  if (( ${#push_lines[@]} > 0 )); then
-    for line in "${push_lines[@]}"; do
-      read -r local_ref local_sha remote_ref remote_sha <<<"$line"
-      if [[ "$local_sha" == "$z40" ]]; then
-        continue
-      fi
-      if [[ "$remote_sha" == "$z40" ]]; then
-        if git for-each-ref --format='%(refname)' refs/remotes | grep -q .; then
-          emit_commit_paths "$local_sha" --not --remotes
-        else
-          git diff-tree --root --no-commit-id --name-only -m -r --diff-filter=ACMR "$local_sha"
-        fi
-      else
-        emit_commit_paths "$remote_sha..$local_sha"
-      fi
-    done
-    return 0
-  fi
-
-  if git for-each-ref --format='%(refname)' refs/remotes | grep -q .; then
-    emit_commit_paths HEAD --not --remotes
-  else
-    git diff-tree --root --no-commit-id --name-only -m -r --diff-filter=ACMR HEAD
-  fi
-}
 
 style_swift=()
 pushed_paths=()
@@ -66,7 +33,7 @@ while IFS= read -r path; do
   if [[ "$path" == *.swift && -f "$path" ]]; then
     style_swift+=("$path")
   fi
-done < <(collect_pushed_paths | sed '/^$/d' | sort -u)
+done <<< "$push_paths"
 
 echo "=== Pre-push: style (format / lint / UI / platform bans / exclusivity / agent invariants / accessibility IDs) ==="
 # Classify push range for path-scoped package selection.
@@ -86,19 +53,12 @@ else
   python3 ./Scripts/check-accessibility-ids.py
 fi
 
-echo "=== Pre-push: agent push gate (generate + assert vs HEAD) ==="
-./Scripts/agent-push-gate.sh
+echo "=== Pre-push: agent push gate (static generated-output completeness) ==="
+./Scripts/agent-push-gate.sh --paths "${pushed_paths[@]}"
 
-echo "=== Pre-push: path-scoped package tests ==="
-if (( ${#TRINKET_PACKAGES[@]} > 0 )); then
-  echo "Package tests for: ${TRINKET_PACKAGES[*]}"
-  if command -v xcodebuild >/dev/null 2>&1; then
-    SKIP_GENERATE=1 ./Scripts/test-package.sh "${TRINKET_PACKAGES[@]}"
-  else
-    echo "Skipping package tests (xcodebuild unavailable)." >&2
-  fi
-else
-  echo "No package test targets in the push range."
-fi
+echo "Package tests, app compilation, generation freshness, and UI verification are deferred to CI."
+
+# Checks must not have rewritten tracked files or introduced untracked inputs.
+python3 Scripts/pre-push-paths.py <<< "$push_input" >/dev/null
 
 echo "=== Pre-push gate passed ==="

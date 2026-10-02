@@ -5,10 +5,11 @@ import TrinketCore
 
 enum BalanceAffixContrastRunner {
     struct Focus {
-        var definition: ItemAffixDefinition
-        var owner: Combatant
-        var baseType: ItemBaseType
-        var baselineKind: ContrastBaselineKind
+        let definition: ItemAffixDefinition
+        let owner: Combatant
+        let baseType: ItemBaseType
+        let slot: ItemSlot
+        let baselineKind: ContrastBaselineKind
     }
 
     static func foci(heroes: [Combatant], companions: [Combatant], focusIDs: [String]) -> [Focus] {
@@ -18,31 +19,35 @@ enum BalanceAffixContrastRunner {
             if !wanted.isEmpty, !wanted.contains(definition.id) {
                 return []
             }
-            return owners.compactMap { owner -> [Focus]? in
+            return owners.flatMap { owner -> [Focus] in
                 guard definition.isAligned(withBuildKeywords: owner.keywordProfile),
-                      owner.role.equipmentSlots.contains(where: { $0.baseItemSlot == definition.slot })
-                else { return nil }
-                let slot = owner.role.equipmentSlots.first {
-                    $0.baseItemSlot == definition.slot
-                } ?? definition.slot
-                guard let baseType = GameContent.itemBaseTypes.first(where: {
-                    definition.isEligible(for: $0) && $0.canEquip(in: slot)
-                }) else { return nil }
+                      let slot = owner.role.equipmentSlots.first(where: { $0.baseItemSlot == definition.slot }),
+                      let baseType = GameContent.itemBaseTypes.first(where: {
+                          definition.isEligible(for: $0) && $0.canEquip(in: slot)
+                      })
+                else { return [] }
                 let hasReplacement = GameContent.itemAffixDefinitions.contains {
                     $0.id != definition.id && $0.isEligible(for: baseType)
                         && $0.isAligned(withBuildKeywords: owner.keywordProfile)
                 }
-                return [
-                    Focus(definition: definition, owner: owner, baseType: baseType, baselineKind: .emptySlot),
-                    Focus(
+                var foci = [Focus(
+                    definition: definition,
+                    owner: owner,
+                    baseType: baseType,
+                    slot: slot,
+                    baselineKind: .emptySlot,
+                )]
+                if hasReplacement {
+                    foci.append(Focus(
                         definition: definition,
                         owner: owner,
                         baseType: baseType,
+                        slot: slot,
                         baselineKind: .replacementAffix,
-                    ),
-                ].filter { $0.baselineKind == .emptySlot || hasReplacement }
+                    ))
+                }
+                return foci
             }
-            .flatMap(\.self)
         }
     }
 
@@ -96,42 +101,32 @@ enum BalanceAffixContrastRunner {
         context: BalanceContrastContext,
         pairSeed: UInt64,
     ) -> BalanceContrastSupport.Pair {
-        let sampled = BalanceContrastSupport.sampleBasePair(
+        var base = BalanceContrastSupport.sampleBasePair(
             owner: focus.owner,
             pairIndex: pairIndex,
             context: context,
+            tier: tier,
             pairSeed: pairSeed,
         )
         let gears = makeAffixGearPair(
             focus: focus,
             tier: tier,
-            ownerLoadout: sampled.ownerLoadout,
+            ownerLoadout: base.ownerLoadout,
             pairSeed: pairSeed,
         )
         var fillRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 41)
-        let partnerGear = SimulationMatchupBuilder.generateStarterGearIfNeeded(
-            for: sampled.partner,
-            loadout: sampled.partnerLoadout,
+        base.partnerGear = SimulationMatchupBuilder.generateStarterGearIfNeeded(
+            for: base.partner,
+            loadout: base.partnerLoadout,
             tier: tier,
             idPrefix: "contrast-partner",
             using: &fillRNG,
         ) ?? SimulationMatchupBuilder.generateAlignedGear(
-            for: sampled.partner.withAbilityLoadoutPreservingEmptyTiers(sampled.partnerLoadout),
+            for: base.partner.withAbilityLoadoutPreservingEmptyTiers(base.partnerLoadout),
             tier: tier,
-            keywordBias: sampled.partner.keywordProfile,
+            keywordBias: base.partner.keywordProfile,
             idPrefix: "contrast-partner",
             using: &fillRNG,
-        )
-        let base = ContrastMatchupBase(
-            owner: focus.owner,
-            partner: sampled.partner,
-            enemy: sampled.enemy,
-            ownerLoadout: sampled.ownerLoadout,
-            partnerLoadout: sampled.partnerLoadout,
-            ownerGear: nil,
-            partnerGear: partnerGear,
-            tier: tier,
-            seed: pairSeed,
         )
         return (
             base.matchup(ownerGear: gears.withAffix),
@@ -147,9 +142,7 @@ enum BalanceAffixContrastRunner {
     ) -> (withAffix: SimulationMatchupBuilder.GearOverride, baseline: SimulationMatchupBuilder.GearOverride) {
         let (withAffixItem, baselineItem) = makeAffixItems(focus: focus, tier: tier, pairSeed: pairSeed)
         let bias = focus.owner.keywordProfile
-        let slot = focus.owner.role.equipmentSlots.first {
-            $0.baseItemSlot == focus.definition.slot
-        } ?? focus.definition.slot
+        let slot = focus.slot
         var withLoadout = EquipmentLoadout()
         withLoadout.equip(withAffixItem, in: slot, inventory: [withAffixItem])
         var baselineLoadout = EquipmentLoadout()

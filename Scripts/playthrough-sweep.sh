@@ -8,6 +8,8 @@ for argument in "$@"; do
     exit 0
   fi
 done
+source Scripts/lib/verification-policy.sh
+trinket_require_heavy_verification "Simulator playthrough sweeps" || exit $?
 export TRINKET_ISOLATE=1
 source Scripts/run-env.sh
 source Scripts/ensure-simulator.sh

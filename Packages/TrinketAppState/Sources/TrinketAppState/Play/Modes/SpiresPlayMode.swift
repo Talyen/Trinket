@@ -136,32 +136,4 @@ public final class SpiresPlayMode {
         )
         return (input, .spire(floor))
     }
-
-    @discardableResult
-    func completeFloor(
-        _ floor: SpireFloor,
-        hero: Combatant,
-        companion: Combatant,
-        battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardSettlement? = nil,
-        materialRewards: [ResourceAmount]? = nil,
-        rewardItem: InventoryItem? = nil,
-        loot: BattleLootResult? = nil,
-        enemyEncounterLevel: Int? = nil,
-    ) -> Bool {
-        playerSave.persistBatch(logging: "Failed to persist Spire floor") { save in
-            SpireCompletion.complete(
-                floor: floor,
-                hero: hero,
-                companion: companion,
-                battleGold: battleGold,
-                award: award,
-                materialRewards: materialRewards,
-                rewardItem: rewardItem,
-                loot: loot,
-                enemyEncounterLevel: enemyEncounterLevel,
-                save: &save,
-            )
-        }
-    }
 }

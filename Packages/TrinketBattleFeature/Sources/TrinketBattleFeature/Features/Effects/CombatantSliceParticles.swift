@@ -135,7 +135,7 @@ struct SliceBorderParticles: View {
             )
             let color = TrinketDesign.Colors.battleSliceSpark
             for particle in particles {
-                let sample = sample(for: particle, cardOrigin: origin)
+                guard let sample = sample(for: particle, cardOrigin: origin) else { continue }
                 context.fillParticle(
                     center: sample.center,
                     diameter: sample.diameter,
@@ -153,8 +153,8 @@ struct SliceBorderParticles: View {
         let opacity: Double
     }
 
-    private func sample(for particle: SliceBorderParticle, cardOrigin: CGPoint) -> Sample {
-        let motion = configuration.sample(progress: progress, noise: particle.motionNoise)
+    private func sample(for particle: SliceBorderParticle, cardOrigin: CGPoint) -> Sample? {
+        guard let motion = configuration.sample(progress: progress, noise: particle.motionNoise) else { return nil }
         let start = CGPoint(
             x: cardOrigin.x + particle.origin.x * cardSize.width,
             y: cardOrigin.y + particle.origin.y * cardSize.height,
@@ -169,25 +169,49 @@ struct SliceBorderParticles: View {
 
 struct SliceCutParticle: Identifiable {
     let id: Int
-    let linePosition: CGFloat
-    let side: CGFloat
-    let sprayAngle: CGFloat
+    let origin: CGPoint
+    let spray: CGVector
     let delay: CGFloat
     let speed: CGFloat
     let size: CGFloat
     let lifetime: CGFloat
+
+    func sample(progress: CGFloat, cardSize: CGSize) -> (center: CGPoint, diameter: CGFloat, opacity: Double)? {
+        let age = (progress - delay) / lifetime
+        guard age > 0, age < 1 else { return nil }
+        let easedAge = 1 - pow(1 - age, 2)
+        let dist = speed * easedAge
+        return (
+            center: CGPoint(
+                x: origin.x * cardSize.width + spray.dx * dist,
+                y: origin.y * cardSize.height + spray.dy * dist,
+            ),
+            diameter: size * (1 - 0.3 * age),
+            opacity: Double(pow(1 - age, 1.4)),
+        )
+    }
 
     static func make(count: Int) -> [Self] {
         (0 ..< count).map { index in
             let pos = (CombatantCardEffectNoise.value(index, salt: 101) - 0.5) * 1.3
             let side: CGFloat = index.isMultiple(of: 2) ? 1 : -1
             let spray = (CombatantCardEffectNoise.value(index, salt: 107) - 0.5) * 0.8
+            let cardSpan = CombatantSliceCrack.cardFractionRange
+            let spanFraction = (pos + 0.65) / 1.3
+            let fraction = cardSpan.lowerBound + spanFraction * (cardSpan.upperBound - cardSpan.lowerBound)
+            let origin = CombatantSliceCrack.point(atFraction: fraction)
+            let tangent = CombatantSliceCrack.tangent(atFraction: fraction)
+            let localNormal = CGVector(dx: tangent.dy, dy: -tangent.dx)
             let delay = CombatantCardEffectNoise.value(index, salt: 113) * 0.12
             let speed = 45 + CombatantCardEffectNoise.value(index, salt: 127) * 95
             let size = 2.5 + CombatantCardEffectNoise.value(index, salt: 131) * 3.5
             let lifetime = 0.35 + CombatantCardEffectNoise.value(index, salt: 139) * 0.35
             return Self(
-                id: index, linePosition: pos, side: side, sprayAngle: spray,
+                id: index, origin: origin,
+                spray: CGVector(
+                    dx: localNormal.dx * side + tangent.dx * spray,
+                    dy: localNormal.dy * side + tangent.dy * spray,
+                ),
                 delay: delay, speed: speed, size: size, lifetime: lifetime,
             )
         }
@@ -204,27 +228,11 @@ struct SliceCutParticles: View {
             let color = TrinketDesign.Colors.battleSliceSpark
 
             for particle in particles {
-                let age = (crackProgress - particle.delay) / particle.lifetime
-                guard age > 0, age < 1 else { continue }
-                let easedAge = 1 - pow(1 - age, 2)
-                let cardSpan = CombatantSliceCrack.cardFractionRange
-                let spanFraction = (particle.linePosition + 0.65) / 1.3
-                let fraction = cardSpan.lowerBound + spanFraction * (cardSpan.upperBound - cardSpan.lowerBound)
-                let origin = CombatantSliceCrack.point(atFraction: fraction, size: cardSize)
-                let tangent = CombatantSliceCrack.tangent(atFraction: fraction)
-                let localNormal = CGVector(dx: tangent.dy, dy: -tangent.dx)
-                let sprayDx = localNormal.dx * particle.side + tangent.dx * particle.sprayAngle
-                let sprayDy = localNormal.dy * particle.side + tangent.dy * particle.sprayAngle
-                let dist = particle.speed * easedAge
-                let diameter = particle.size * (1 - 0.3 * age)
-                let opacity = Double(pow(1 - age, 1.4))
-
-                let posX = origin.x + sprayDx * dist
-                let posY = origin.y + sprayDy * dist
+                guard let sample = particle.sample(progress: crackProgress, cardSize: cardSize) else { continue }
                 context.fillParticle(
-                    center: CGPoint(x: posX, y: posY),
-                    diameter: diameter,
-                    opacity: opacity,
+                    center: sample.center,
+                    diameter: sample.diameter,
+                    opacity: sample.opacity,
                     color: color,
                 )
             }

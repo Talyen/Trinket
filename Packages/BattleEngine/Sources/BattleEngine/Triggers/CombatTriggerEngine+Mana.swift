@@ -40,10 +40,12 @@ package extension CombatTriggerEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         if spentLastMana, triggers.lastManaNextBurnPercent > 0 {
             let preparedCardSerial = context.resolution.cardTalents?.playSerial
+            let preparedActionID = context.resolution.actionID
             context.roster.mutateRuntime(for: actor) {
                 $0.talents.pending.nextBurnAttackPercent = PreparedTalentBonus(
                     value: max($0.talents.pending.nextBurnAttackPercent?.value ?? 0, triggers.lastManaNextBurnPercent),
                     cardSerial: preparedCardSerial,
+                    actionID: preparedActionID,
                 )
             }
         }

@@ -23,6 +23,17 @@ extension BattleSessionPreparationTests {
         #expect(pins.counts == ["shared": 1])
     }
 
+    @Test func `failed battle artwork acquisition cannot release another owners later pin`() async {
+        let pins = ArtworkPinRecorder()
+        let preparation = pins.makePreparation(unavailable: ["missing"])
+        await preparation.prepare(names: ["missing", "ready"], displayScale: 1) {}
+        #expect(pins.counts == ["ready": 1])
+        pins.acquire(["missing"])
+
+        preparation.release()
+        #expect(pins.counts == ["missing": 1])
+    }
+
     @Test func `battle artwork includes later loadout cards before opening hand is drawn`() throws {
         let configuration = artworkConfiguration(key: "complete-loadout", abilities: [.slash, .heal, .blizzard])
         let names = BattleArtworkPreparation.artworkNames(for: configuration)
@@ -214,12 +225,15 @@ private final class ArtworkPinRecorder {
     func makePreparation(
         warmup: @escaping () async -> Void = {},
         decoding: @escaping () async -> Void = {},
+        unavailable: Set<String> = [],
     ) -> BattleArtworkPreparation {
         BattleArtworkPreparation(
             warmup: { _ in await warmup() },
             acquire: { names in
-                self.acquire(names)
+                let acquired = names.subtracting(unavailable)
+                self.acquire(acquired)
                 await decoding()
+                return acquired
             },
             release: { names in
                 for name in names {

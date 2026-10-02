@@ -31,25 +31,8 @@ struct PlayScreen {
         XCTAssertTrue(element.trinketWaitForExistence(timeout: timeout), "Campaign Chapter \(number) not found", file: file, line: line)
     }
 
-    func openModeHub() {
-        if app.descendants(matching: .any)[AccessibilityID.Play.modesScreen].exists {
-            return
-        }
-
-        for _ in 0 ..< 4 {
-            let back = app.navigationBars.buttons.firstMatch
-            guard back.trinketWaitForExistence(timeout: 1) else { break }
-            back.trinketTapWhenReady()
-            let hub = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen]
-            if hub.exists {
-                return
-            }
-        }
-        assertModeHub()
-    }
-
     func openCampaign(number: Int = 1) {
-        openModeHub()
+        assertLoaded()
         let campaign = app.buttons[AccessibilityID.Play.campaignModeCard]
         XCTAssertTrue(
             campaign.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout),
@@ -60,7 +43,7 @@ struct PlayScreen {
     }
 
     func openExplore() {
-        openModeHub()
+        assertLoaded()
         let element = app.buttons[AccessibilityID.Play.exploreModeCard]
         XCTAssertTrue(element.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Explore control not found")
         element.trinketTapWhenReady()

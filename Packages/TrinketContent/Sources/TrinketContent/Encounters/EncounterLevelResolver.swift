@@ -34,16 +34,23 @@ public enum EncounterLevelResolver {
             return chapterBaseLevel
         }
 
-        let battleStages = chapter.stages.filter(\.encounter.isCombat)
-        guard let battleIndex = battleStages.firstIndex(where: { $0.id == stage.id }) else {
+        var battleCount = 0
+        var battleIndex: Int?
+        for candidate in chapter.stages where candidate.encounter.isCombat {
+            if battleIndex == nil, candidate.id == stage.id {
+                battleIndex = battleCount
+            }
+            battleCount += 1
+        }
+        guard let battleIndex else {
             return chapterBaseLevel
         }
 
         let maxOffset = 4
-        let offset: Int = if battleStages.count <= 1 {
+        let offset: Int = if battleCount <= 1 {
             0
         } else {
-            (battleIndex * maxOffset) / (battleStages.count - 1)
+            (battleIndex * maxOffset) / (battleCount - 1)
         }
         return chapterBaseLevel + offset
     }

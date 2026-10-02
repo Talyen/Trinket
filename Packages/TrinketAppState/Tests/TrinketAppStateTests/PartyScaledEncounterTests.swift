@@ -24,11 +24,9 @@ struct PartyScaledEncounterTests {
 
     private func unlockSpireThroughPenultimateFloor(in state: PlaySession) throws -> SpireFloor {
         let spire = try #require(GameContent.spire(id: .ironVein))
-        let hero = state.playerSave.roster.activeHero
-        let companion = state.playerSave.roster.activeCompanion
         for floor in 1 ..< spire.floorCount {
             let spireFloor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: floor))
-            _ = state.spires.completeFloor(spireFloor, hero: hero, companion: companion)
+            #expect(SpiresTestSupport.completeFloor(spireFloor, in: state))
         }
         return try #require(GameContent.spireFloor(spireID: .ironVein, floor: spire.floorCount))
     }

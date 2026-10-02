@@ -167,6 +167,16 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         canEquip(baseType: item.baseType, candidateID: item.id, in: slot, inventory: inventory)
     }
 
+    /// Filters in inventory order, resolving worn gear once for the batch.
+    public func equippableItems(in slot: ItemSlot, inventory: [InventoryItem]) -> [InventoryItem] {
+        // Compatibility consults only worn items; keep those scans independent of inventory size.
+        let equippedIDs = Set(itemIDsBySlot.values)
+        let equippedItems = equippedIDs.isEmpty ? [] : inventory.filter { equippedIDs.contains($0.id) }
+        return inventory.filter {
+            canEquip(baseType: $0.baseType, candidateID: $0.id, in: slot, inventory: equippedItems)
+        }
+    }
+
     func canEquip(
         baseType: ItemBaseType,
         candidateID: String,

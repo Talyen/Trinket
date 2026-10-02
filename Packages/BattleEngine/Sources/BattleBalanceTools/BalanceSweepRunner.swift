@@ -131,25 +131,20 @@ public enum BalanceSweepRunner {
         enemies: [Enemy],
     ) -> [BalanceBattleRecord] {
         let roster = BalanceSweepRoster(heroes: heroes, companions: companions, enemies: enemies)
-        let work: [(SimulationPowerTier, Int, Int)] = config.sliceWork(
-            config.tiers.flatMap { tier in
-                enemies.indices.flatMap { enemyIndex in
-                    (0 ..< config.battlesPerTier).map { sample in
-                        (tier, enemyIndex, sample)
-                    }
-                }
-            },
-        )
+        let work = config.workIndices(count: config.tiers.count * enemies.count * config.battlesPerTier)
         let jobs = config.resolvedJobs
         return SweepWorkerPool.map(count: work.count, jobs: jobs) { index -> BalanceBattleRecord? in
-            let entry = work[index]
+            // Preserve tier → enemy → sample order across process slices.
+            let globalIndex = work.lowerBound + index
+            let sampleIndex = globalIndex % config.battlesPerTier
+            let tierEnemyIndex = globalIndex / config.battlesPerTier
             return simulateIdentityBattle(
                 config: config,
                 policy: policy,
                 roster: roster,
-                tier: entry.0,
-                enemyIndex: entry.1,
-                sampleIndex: entry.2,
+                tier: config.tiers[tierEnemyIndex / enemies.count],
+                enemyIndex: tierEnemyIndex % enemies.count,
+                sampleIndex: sampleIndex,
             )
         }
     }

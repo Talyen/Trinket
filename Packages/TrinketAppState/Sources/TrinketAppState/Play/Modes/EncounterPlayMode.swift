@@ -9,6 +9,10 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class EncounterPlayMode {
+    private enum CompletionRejection: Error {
+        case unavailable
+    }
+
     private enum ActiveEncounter {
         case mystery(MysteryEncounterSession)
         case shop(ShopEncounterSession)
@@ -75,8 +79,15 @@ public final class EncounterPlayMode {
         guard canBeginTransientEncounter else { return .unavailable }
 
         let encounter = origin.identity(in: playerSave.currentSave)
-        switch playerSave.persistTransaction(logging: "Failed to prepare shop stock", { save in
-            ShopStockPersistence.prepare(encounter: encounter, save: &save)
+        switch playerSave.persistTransaction(logging: "Failed to prepare shop stock", { save -> Result<ShopStock, ShopPurchaseFailure> in
+            let prepared = ShopStockPersistence.prepare(encounter: encounter, save: &save)
+            guard case let .success(stock) = prepared else { return prepared }
+            if stock.offers.isEmpty {
+                guard NonCombatEncounterCompletion.complete(
+                    encounter: encounter, save: &save, access: playerSave.contentAccess,
+                ) == .completed else { return .failure(.invalidOffer) }
+            }
+            return .success(stock)
         }) {
         case let .committed(stock):
             guard !stock.offers.isEmpty else { return .autoCompleted }
@@ -123,27 +134,16 @@ public final class EncounterPlayMode {
     }
 
     @discardableResult
-    func beginShopOrAutoComplete(
-        origin: PlayEncounterOrigin,
-        identifier: String,
-        onAutoComplete: @escaping () -> StageMapMessage?,
-    ) -> StageMapMessage? {
+    func beginShopOrAutoComplete(origin: PlayEncounterOrigin) -> StageMapMessage? {
         switch beginShopEncounter(origin: origin) {
         case .autoCompleted:
-            if let failure = onAutoComplete() {
-                return failure
-            }
-            return Self.emptyShopClosedMessage(identifier: identifier)
+            return Self.emptyShopClosedMessage(identifier: origin.identity(in: playerSave.currentSave).stageID)
         case .opened:
             return nil
         case .unavailable:
             if playerSave.lastPersistenceError == .writeFailed {
                 playerSave.retrySaveAction(key: SaveRetryKey.shopOpen) { [weak self] in
-                    _ = self?.beginShopOrAutoComplete(
-                        origin: origin,
-                        identifier: identifier,
-                        onAutoComplete: onAutoComplete,
-                    )
+                    _ = self?.beginShopOrAutoComplete(origin: origin)
                 }
             }
             return nil
@@ -160,29 +160,22 @@ public final class EncounterPlayMode {
     public func finishActiveShopEncounter() -> Bool {
         guard let shopSession = activeShopEncounter else { return false }
 
-        guard playerSave.persistBatch(logging: "Failed to leave shop", { save in
-            if case let .voyage(runID, nodeID) = shopSession.encounter.location {
-                guard shopSession.encounter.isPlayable(in: save) else { return }
-                _ = VoyageCompletion.completeNode(runID: runID, nodeID: nodeID, save: &save)
-                return
-            }
-            StageCompletion.completeEncounter(
-                stage: shopSession.stage,
-                labyrinthNodeID: shopSession.labyrinthNodeID,
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
-                in: GameContent.chapters,
-                save: &save,
-            )
-        }) else {
+        switch playerSave.persistTransaction(logging: "Failed to leave shop", { save -> Result<Void, CompletionRejection> in
+            guard NonCombatEncounterCompletion.complete(
+                encounter: shopSession.encounter, save: &save, access: playerSave.contentAccess,
+            ) == .completed else { return .failure(.unavailable) }
+            return .success(())
+        }) {
+        case .committed, .rejected:
+            clearActiveShopEncounter()
+            return true
+        case .persistFailed:
             playerSave.retrySaveAction(key: SaveRetryKey.shopLeave) { [weak self] in
                 guard let self, activeShopEncounter === shopSession else { return }
                 _ = finishActiveShopEncounter()
             }
             return false
         }
-        clearActiveShopEncounter()
-        return true
     }
 
     static func emptyShopClosedMessage(identifier: String) -> StageMapMessage {

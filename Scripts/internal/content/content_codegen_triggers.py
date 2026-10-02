@@ -320,6 +320,8 @@ def parse_trigger_values(raw: str, row_id: str = "") -> dict[str, str]:
         values.update(resolved)
     for field, raw_value in values.items():
         _validate_trigger_value(field, raw_value, label)
+        if _trigger_field_types()[field] == "Bool":
+            values[field] = "true" if parse_typed_bool(raw_value, label) else "false"
     return values
 
 

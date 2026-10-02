@@ -34,7 +34,7 @@ jobs:
     outputs:
       should-run: ${{ steps.check.outputs.should-run }}
     steps:
-      - name: Check for new commits since last scheduled run
+      - name: Check previous scheduled verification
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
@@ -42,15 +42,25 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          last_sha="$(gh api "repos/${REPO}/actions/workflows/ci.yml/runs?event=schedule&status=completed&per_page=5" \
-            --jq '[.workflow_runs[] | select(.id != '${{ github.run_id }}')][0].head_sha // empty' 2>/dev/null || true)"
+          previous="$(gh api "repos/${REPO}/actions/workflows/ci.yml/runs?event=schedule&status=completed&per_page=5" \
+            --jq '[.workflow_runs[] | select(.id != '${{ github.run_id }}')][0] | [.id, .run_attempt, .head_sha, .conclusion] | @tsv' 2>/dev/null || true)"
+          read -r last_id last_attempt last_sha last_conclusion <<< "$previous"
           echo "Current SHA: $SHA"
-          echo "Last scheduled SHA: $last_sha"
-          if [[ -n "$last_sha" && "$last_sha" == "$SHA" ]]; then
-            echo "No new commits on main since last scheduled run ($last_sha). Skipping idle nightly run."
+          echo "Last scheduled SHA: $last_sha ($last_conclusion)"
+          exhaustive_passed=false
+          if [[ "$last_sha" == "$SHA" && "$last_conclusion" == success ]]; then
+            # Advisory shards can fail while the workflow still reports success.
+            # A skipped reusable tests job carries the prior idle-skip proof for
+            # this same commit; absent/unreadable shard evidence otherwise retries.
+            exhaustive_passed="$(gh api --paginate --slurp \
+              "repos/${REPO}/actions/runs/${last_id}/attempts/${last_attempt}/jobs?per_page=100" \
+              --jq '[.[].jobs[] | select(.name | contains("Exhaustive UI ("))] as $shards | if ($shards | length) > 0 then all($shards[]; .conclusion == "success") else any(.[].jobs[]; .name == "tests" and .conclusion == "skipped") end' 2>/dev/null || echo false)"
+          fi
+          if [[ "$exhaustive_passed" == true ]]; then
+            echo "This commit already passed scheduled verification, including exhaustive UI. Skipping idle nightly run."
             echo "should-run=false" >> "$GITHUB_OUTPUT"
           else
-            echo "New commits detected on main or initial schedule; proceeding with exhaustive nightly run."
+            echo "New or unverified commit; proceeding with exhaustive nightly run."
             echo "should-run=true" >> "$GITHUB_OUTPUT"
           fi
 

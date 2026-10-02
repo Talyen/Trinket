@@ -48,6 +48,7 @@ struct CombatantEquipmentTests {
         loadout.equip(charmA, in: .trinket, inventory: inventory)
         try #expect(!loadout.canEquip(charmACopy, in: .secondaryTrinket, inventory: inventory))
         try #expect(loadout.canEquip(charmOther, in: .secondaryTrinket, inventory: inventory))
+        #expect(loadout.equippableItems(in: .secondaryTrinket, inventory: inventory) == [charmA, charmOther])
 
         loadout.equip(charmA, in: .secondaryTrinket, inventory: inventory)
         try #expect(loadout.itemID(for: .trinket) == nil)
@@ -56,6 +57,7 @@ struct CombatantEquipmentTests {
         loadout.equip(charmACopy, in: .secondaryTrinket, inventory: inventory)
         #expect(loadout.itemID(for: .secondaryTrinket) == charmACopy.id)
         #expect(!loadout.canEquip(charmA, in: .trinket, inventory: inventory))
+        #expect(loadout.equippableItems(in: .trinket, inventory: inventory) == [charmACopy, charmOther])
     }
 
     @Test func `sanitized drops duplicate item across accessory slots`() throws {
@@ -151,6 +153,10 @@ struct CombatantEquipmentTests {
         try #expect(!loadout.canEquip(shield, in: .secondaryWeapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword]))
         try #expect(!loadout.canEquip(buckler, in: .secondaryWeapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword]))
         try #expect(!loadout.canEquip(spellbook, in: .secondaryWeapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword]))
+        #expect(loadout.equippableItems(
+            in: .secondaryWeapon,
+            inventory: [crossbow, quiver, shield, buckler, spellbook, sword],
+        ) == [quiver])
 
         loadout.equip(quiver, in: .secondaryWeapon, inventory: [crossbow, quiver, shield, buckler, spellbook, sword])
         try #expect(loadout.itemID(for: .secondaryWeapon) == quiver.id)
@@ -236,6 +242,7 @@ struct CombatantEquipmentTests {
         #expect(loadout.isAvailable(.secondaryWeapon, inventory: [quiver, shield]))
         #expect(!loadout.canEquip(quiver, in: .secondaryWeapon, inventory: [quiver, shield]))
         #expect(loadout.canEquip(shield, in: .secondaryWeapon, inventory: [quiver, shield]))
+        #expect(loadout.equippableItems(in: .secondaryWeapon, inventory: [quiver, shield]) == [shield])
     }
 
     @Test func `item I ds in family collects sibling slots`() throws {

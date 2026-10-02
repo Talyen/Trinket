@@ -58,14 +58,7 @@ public extension JourneyProgressState {
 
     mutating func complete(_ stage: Stage, in chapters: [Chapter]) {
         completedStageIDs.insert(stage.id)
-
-        if let nextStage = Self.nextStage(after: stage, in: chapters) {
-            activeChapterID = nextStage.chapterID
-            activeStageID = nextStage.id
-        } else {
-            activeChapterID = stage.chapterID
-            activeStageID = nil
-        }
+        setActiveStage(Self.nextStage(after: stage, in: chapters), fallbackChapterID: stage.chapterID)
     }
 
     /// Seed-only shortcut: marks a whole chapter claimed and completed while
@@ -82,13 +75,12 @@ public extension JourneyProgressState {
         let stageIDs = Set(chapter.stages.map(\.id))
         completedStageIDs.formUnion(stageIDs)
         claimedRewardStageIDs.formUnion(stageIDs)
-        if let nextStage = Self.nextStage(after: lastStage, in: chapters) {
-            activeChapterID = nextStage.chapterID
-            activeStageID = nextStage.id
-        } else {
-            activeChapterID = chapter.id
-            activeStageID = nil
-        }
+        setActiveStage(Self.nextStage(after: lastStage, in: chapters), fallbackChapterID: chapter.id)
+    }
+
+    private mutating func setActiveStage(_ stage: Stage?, fallbackChapterID: String) {
+        activeChapterID = stage?.chapterID ?? fallbackChapterID
+        activeStageID = stage?.id
     }
 
     static func nextStage(after stage: Stage, in chapters: [Chapter]) -> Stage? {

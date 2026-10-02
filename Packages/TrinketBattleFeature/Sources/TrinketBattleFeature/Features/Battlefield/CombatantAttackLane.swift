@@ -62,9 +62,10 @@ struct CombatantAttackLane<Content: View>: View {
     @State private var attackBridgeOwnerID = UUID()
 
     var body: some View {
+        let card = content()
         TimelineView(.animation(paused: !isAnimating)) { timeline in
             let pose = motion.pose(at: isAnimating ? timeline.date : .now, aim: aim)
-            content()
+            card
                 .scaleEffect(x: pose.scaleX, y: pose.scaleY)
                 .rotationEffect(.degrees(pose.rotation))
                 .offset(x: pose.offsetX, y: pose.offsetY)

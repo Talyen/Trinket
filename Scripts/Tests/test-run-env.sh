@@ -664,6 +664,9 @@ bash -c '
   fi
   # The peer release must not clear our own live lease.
   [[ -e "$TRINKET_SIM_ACTIVE_DIR/run.slot" ]]
+  # $$ is shared by ( ... ); an inherited path must not authorize its release.
+  ( trinket_shared_sim_lease_release )
+  [[ -e "$TRINKET_SIM_ACTIVE_DIR/run.slot" ]]
   trinket_shared_sim_lease_release
   [[ ! -e "$TRINKET_SIM_ACTIVE_DIR/run.slot" ]]
   # A stale lease is reclaimed automatically on the next acquire.

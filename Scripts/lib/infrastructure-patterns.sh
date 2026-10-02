@@ -11,3 +11,10 @@ trinket_infrastructure_failure_pattern() {
   fi
   printf '%s' "$TRINKET_INFRASTRUCTURE_FAILURE_PATTERN"
 }
+
+trinket_product_test_failure_pattern() {
+  if [[ -z "${TRINKET_PRODUCT_TEST_FAILURE_PATTERN:-}" ]]; then
+    source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../config" && pwd)/infrastructure-patterns.env"
+  fi
+  printf '%s' "$TRINKET_PRODUCT_TEST_FAILURE_PATTERN"
+}

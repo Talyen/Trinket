@@ -60,6 +60,9 @@ struct ShopEncounterView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     goldWallet
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(HomesteadResource.gold.displayName)
+                        .accessibilityValue(playerSave.roster.gold.formatted())
                         .accessibilityIdentifier(AccessibilityID.Shop.goldBalance)
                 }
                 .sharedBackgroundVisibility(.hidden)

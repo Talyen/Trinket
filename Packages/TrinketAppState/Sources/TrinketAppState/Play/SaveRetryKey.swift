@@ -1,8 +1,6 @@
 import Foundation
 
-/// Central registry for `retrySaveAction` keys. Keys must stay stable across
-/// launches (the retry queue persists), so add cases — never rename — and keep
-/// the raw strings unchanged.
+/// Keys deduplicate in-memory action retries within the current save generation.
 enum SaveRetryKey {
     static func victory(_ configurationID: UUID) -> String {
         "victory-\(configurationID)"
@@ -12,16 +10,20 @@ enum SaveRetryKey {
         "defeat-\(configurationID)"
     }
 
-    static func stage(_ stageID: String) -> String {
-        "stage-\(stageID)"
-    }
-
-    static func labyrinthNode(_ nodeID: String) -> String {
-        "node-\(nodeID)"
-    }
-
     static func shopPurchase(_ offerID: String) -> String {
         "shop-purchase-\(offerID)"
+    }
+
+    static func voyageEmbark(_ offerID: String) -> String {
+        "voyage-embark-\(offerID)"
+    }
+
+    static func voyageAbandon(_ runID: String) -> String {
+        "voyage-abandon-\(runID)"
+    }
+
+    static func voyageNode(runID: String, nodeID: String) -> String {
+        "voyage-node-\(runID)-\(nodeID)"
     }
 
     static let shopOpen = "shop-open"
@@ -30,4 +32,7 @@ enum SaveRetryKey {
     static let contractsRefresh = "contracts-refresh"
     static let mysteryOpen = "mystery-open"
     static let mysteryResolution = "mystery-resolution"
+    static let voyageEnter = "voyage-enter"
+    static let voyageRefresh = "voyage-refresh"
+    static let voyageCompleted = "voyage-completed"
 }

@@ -1,6 +1,11 @@
 # Cinematic Pipeline
 
 Trinket keeps source Ultimate cinematic videos separate from app-ready HEVC bundle encodes.
+Shipping playback is currently disabled by
+[`BattleFeatureFlags.ultimateCinematicAnimationsEnabled`](../Packages/BattleEngine/Sources/BattleEngine/BattleFeatureFlags.swift).
+The debug Preview Lab opts in through its runtime dependencies. Catalog and encode
+rules below remain applicable to prepared resources; adding a row does not enable
+cinematics in ordinary battles.
 
 ## Folders
 

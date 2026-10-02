@@ -34,7 +34,6 @@ final class ArtworkDecodeScheduler {
     private final class Job {
         let name: String
         var requests: [Request] = []
-        var startedPriority: Priority?
 
         init(name: String) {
             self.name = name
@@ -47,7 +46,11 @@ final class ArtworkDecodeScheduler {
 
     private let decode: @Sendable (String) async -> PreparedArtwork
     private let publish: (PreparedArtwork) -> Void
-    private var jobs: [Job] = []
+    // The index includes running jobs so overlapping callers share their decode.
+    // Only queued jobs participate in ordered admission and cancellation.
+    private var jobsByName: [String: Job] = [:]
+    private var queuedJobs: [Job] = []
+    private var runningPriorities: [String: Priority] = [:]
 
     init(
         decode: @escaping @Sendable (String) async -> PreparedArtwork,
@@ -67,15 +70,15 @@ final class ArtworkDecodeScheduler {
                     return
                 }
                 request.continuation = continuation
-                let existingJobs = Dictionary(uniqueKeysWithValues: jobs.map { ($0.name, $0) })
                 var seen = Set<String>()
                 for name in names where seen.insert(name).inserted {
                     let job: Job
-                    if let existing = existingJobs[name] {
+                    if let existing = jobsByName[name] {
                         job = existing
                     } else {
                         job = Job(name: name)
-                        jobs.append(job)
+                        jobsByName[name] = job
+                        queuedJobs.append(job)
                     }
                     job.requests.append(request)
                     request.remaining += 1
@@ -88,17 +91,17 @@ final class ArtworkDecodeScheduler {
     }
 
     private func startAvailableJobs() {
-        while jobs.count(where: { $0.startedPriority != nil }) < 2 {
-            let hasDeferred = jobs.contains { $0.startedPriority == .deferred }
-            let queued = jobs.filter { $0.startedPriority == nil && (!hasDeferred || $0.priority != .deferred) }
-            guard let next = queued.min(by: { $0.priority.rawValue < $1.priority.rawValue }) else { return }
-            let priority = next.priority
-            next.startedPriority = priority
+        while runningPriorities.count < 2 {
+            let hasDeferred = runningPriorities.values.contains(.deferred)
+            guard let (index, priority) = nextQueuedJob(hasDeferred: hasDeferred) else { return }
+            let next = queuedJobs.remove(at: index)
+            runningPriorities[next.name] = priority
             Task(priority: priority == Priority.deferred ? .utility : .userInitiated) {
                 let prepared = await decode(next.name)
                 assert(prepared.name == next.name, "Artwork decode returned mismatched name")
                 publish(prepared)
-                jobs.removeAll { $0 === next }
+                jobsByName.removeValue(forKey: next.name)
+                runningPriorities.removeValue(forKey: next.name)
                 for request in next.requests {
                     request.finish(prepared: true)
                 }
@@ -107,13 +110,32 @@ final class ArtworkDecodeScheduler {
         }
     }
 
+    private func nextQueuedJob(hasDeferred: Bool) -> (Int, Priority)? {
+        var next: (index: Int, priority: Priority)?
+        for (index, job) in queuedJobs.enumerated() {
+            let priority = job.priority
+            guard !hasDeferred || priority != .deferred else { continue }
+            if priority.rawValue < (next?.priority.rawValue ?? Int.max) {
+                next = (index, priority)
+                // Keep the first job at equal priority, including promoted demand.
+                if priority == .imminent {
+                    break
+                }
+            }
+        }
+        return next
+    }
+
     private func cancel(_ request: Request) {
         // Started decodes still publish and balance their consumers' pin demand.
-        for job in jobs where job.startedPriority == nil && job.requests.contains(where: { $0 === request }) {
+        for job in queuedJobs where job.requests.contains(where: { $0 === request }) {
             job.requests.removeAll { $0 === request }
             request.finish(prepared: false)
+            if job.requests.isEmpty {
+                jobsByName.removeValue(forKey: job.name)
+            }
         }
-        jobs.removeAll { $0.requests.isEmpty }
+        queuedJobs.removeAll { $0.requests.isEmpty }
         startAvailableJobs()
     }
 }

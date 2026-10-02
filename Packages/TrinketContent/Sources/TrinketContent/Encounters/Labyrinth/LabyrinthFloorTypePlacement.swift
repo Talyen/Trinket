@@ -36,11 +36,29 @@ enum LabyrinthFloorTypePlacement {
         let frontierTypes: [LabyrinthNodeType]
     }
 
+    private struct PlacementFrontier {
+        let adjacentOffsets: [Int]
+        /// nil marks the room assigned on this step; other offsets retain an earlier room.
+        let nextOffsets: [Int?]
+
+        init(index: Int, positions: [LabyrinthGridPosition], current: [Int], next: [Int]) {
+            adjacentOffsets = current.indices.filter {
+                positions[current[$0]].isAdjacent(to: positions[index])
+            }
+            nextOffsets = next.map { previous in
+                guard previous != index else { return nil }
+                guard let offset = current.firstIndex(of: previous) else {
+                    preconditionFailure("Placement frontier must retain assigned room types")
+                }
+                return offset
+            }
+        }
+    }
+
     private struct PlacementSearch {
         let planned: [LabyrinthNodeType]
         let kinds: [LabyrinthNodeType]
-        let positions: [LabyrinthGridPosition]
-        let frontiers: [[Int]]
+        let frontiers: [PlacementFrontier]
         var memo: [PlacementState: Int] = [:]
 
         func choices(from state: PlacementState) -> [LabyrinthNodeType] {
@@ -54,9 +72,9 @@ enum LabyrinthFloorTypePlacement {
         }
 
         func advance(_ state: PlacementState, type: LabyrinthNodeType) -> (PlacementState, Int) {
-            let previous = Dictionary(uniqueKeysWithValues: zip(frontiers[state.index], state.frontierTypes))
-            let conflicts = previous.count { index, previousType in
-                previousType == type && positions[index].isAdjacent(to: positions[state.index])
+            let frontier = frontiers[state.index]
+            let conflicts = frontier.adjacentOffsets.count {
+                state.frontierTypes[$0] == type
             }
             var remaining = state.remaining
             if state.index > 0, state.index < planned.count - 1,
@@ -66,14 +84,8 @@ enum LabyrinthFloorTypePlacement {
             let next = PlacementState(
                 index: state.index + 1,
                 remaining: remaining,
-                frontierTypes: frontiers[state.index + 1].map {
-                    if $0 == state.index {
-                        return type
-                    }
-                    guard let previousType = previous[$0] else {
-                        preconditionFailure("Placement frontier must retain assigned room types")
-                    }
-                    return previousType
+                frontierTypes: frontier.nextOffsets.map { offset in
+                    offset.map { state.frontierTypes[$0] } ?? type
                 },
             )
             return (next, conflicts)
@@ -110,7 +122,12 @@ enum LabyrinthFloorTypePlacement {
                 (index ..< planned.count).contains { positions[previous].isAdjacent(to: positions[$0]) }
             }
         }
-        var search = PlacementSearch(planned: planned, kinds: kinds, positions: positions, frontiers: frontiers)
+        let transitions = (0 ..< planned.count).map { index in
+            PlacementFrontier(
+                index: index, positions: positions, current: frontiers[index], next: frontiers[index + 1],
+            )
+        }
+        var search = PlacementSearch(planned: planned, kinds: kinds, frontiers: transitions)
         var state = PlacementState(
             index: 0, remaining: kinds.map { kind in middle.count(where: { $0 == kind }) }, frontierTypes: [],
         )

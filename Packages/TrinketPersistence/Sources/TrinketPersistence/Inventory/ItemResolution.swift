@@ -37,12 +37,6 @@ enum ItemResolution {
         Rarity(rawValue: rawValue) ?? .basic
     }
 
-    /// Lossy keyword decode shared by the JSON codecs. Unknown raw values
-    /// (removed keywords) are dropped instead of failing the payload.
-    static func keywordSet(from rawValues: [String]) -> Set<Keyword> {
-        Set(rawValues.compactMap(Keyword.init(rawValue:)))
-    }
-
     /// Failable single-keyword decode for unkeyed containers. Stored keyword
     /// sets encode as plain string arrays, so each element decodes from a
     /// single-value container; unknown strings become nil entries.

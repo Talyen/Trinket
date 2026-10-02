@@ -230,10 +230,12 @@ package extension CombatTriggerEngine {
            let source = context.roster.combatant(for: sourceActorID), source.isAlive,
            triggers.stunNextBlockGainMultiplier > 1 {
             let preparedCardSerial = context.resolution.cardTalents?.playSerial
+            let actionID = context.resolution.actionID
             context.roster.mutateRuntime(for: source.combatant) {
                 $0.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(
                     value: max($0.talents.pending.nextBlockGainMultiplier?.value ?? 1, triggers.stunNextBlockGainMultiplier),
                     cardSerial: preparedCardSerial,
+                    actionID: actionID,
                 )
             }
         }

@@ -38,6 +38,10 @@ class ScriptRegressionTestCase(unittest.TestCase):
             target = root / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / relative, target)
+            if relative.endswith('.sh') and 'source Scripts/lib/verification-policy.sh' in target.read_text():
+                policy = root / 'Scripts/lib/verification-policy.sh'
+                policy.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(ROOT / 'Scripts/lib/verification-policy.sh', policy)
         return root
 
     # Shared audio-fixture shape; only the manifest/raw/media layout differs.

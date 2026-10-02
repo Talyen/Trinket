@@ -7,6 +7,36 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct VoyagePersistenceTests {
+    @Test func `a decoded completed Voyage replaces its retired destination before re-entry`() throws {
+        var state = PlayerVoyageState()
+        state.ensureBoard(access: .free)
+        let original = state.offers
+        let offer = try #require(original.first)
+        let embarked = state.embark(offerID: offer.id, eligibleRecruitEventIDs: [], access: .free)
+        #expect(embarked)
+        let run = try #require(state.activeRun)
+        for node in run.nodes {
+            state.updateNode(runID: run.id, nodeID: node.id) { $0.isCleared = true }
+        }
+        var restored = PlayerVoyageState.decodePayload(state.encodedPayload)
+        #expect(restored.activeRun == nil)
+        #expect(restored.offers == original)
+
+        restored.ensureBoard(access: .free)
+
+        #expect(restored.offers.count == 3)
+        #expect(restored.offers.map(\.difficulty) == VoyageDifficulty.allCases)
+        #expect(Set(restored.offers.map(\.chapterID)) == ["chapter-1", "chapter-2", "chapter-3"])
+        #expect(Array(restored.offers.dropFirst()) == Array(original.dropFirst()))
+        #expect(restored.offers[0].id != offer.id)
+        let replacement = restored.offers[0]
+        let reembarked = restored.embark(offerID: replacement.id, eligibleRecruitEventIDs: [], access: .free)
+        #expect(reembarked)
+        let active = restored
+        restored.ensureBoard(access: .free)
+        #expect(restored == active)
+    }
+
     @Test func `successive battle rewards saturate saved run totals`() throws {
         var save = SaveTestSupport.makeSave()
         save.voyage.ensureBoard(access: .free)
@@ -66,6 +96,43 @@ struct VoyagePersistenceTests {
         #expect(state.offers[0].id != offer.id)
         #expect(Array(state.offers.dropFirst()) == Array(original.offers.dropFirst()))
         #expect(!state.isPlayable(runID: offer.id, nodeID: embarked.activeRun?.nodes.first?.id ?? ""))
+        let restored = PlayerVoyageState.decodePayload(state.encodedPayload)
+        #expect(restored.abandonedRunIDs == [offer.id])
+        #expect(restored.completedRunIDs == nil)
+        #expect(restored == state)
+    }
+
+    @Test(arguments: [false, true])
+    func `abandonment retires stale routes without hiding malformed route bytes`(completedOnPeer: Bool) throws {
+        var state = PlayerVoyageState()
+        state.ensureBoard(access: .free)
+        let offer = try #require(state.offers.first)
+        let embarked = state.embark(offerID: offer.id, eligibleRecruitEventIDs: [], access: .free)
+        #expect(embarked)
+        var stale = state
+        if completedOnPeer, let run = stale.activeRun {
+            for node in run.nodes {
+                stale.updateNode(runID: run.id, nodeID: node.id) { $0.isCleared = true }
+            }
+        }
+        let abandoned = state.abandon(runID: offer.id, access: .free)
+        #expect(abandoned)
+        var json = try #require(JSONSerialization.jsonObject(with: stale.encodedPayload) as? [String: Any])
+        json["abandonedRunIDs"] = [offer.id]
+        let payload = try JSONSerialization.data(withJSONObject: json)
+        var restored = PlayerVoyageState.decodePayload(payload)
+        #expect(!restored.isUnreadable)
+        #expect(restored.activeRun == nil)
+        #expect(restored.completedRunIDs == nil)
+        let reembarked = restored.embark(offerID: offer.id, eligibleRecruitEventIDs: [], access: .free)
+        #expect(!reembarked)
+        state.activeRun = stale.activeRun
+        #expect(state.sanitized().activeRun == nil)
+        state.activeRun?.nodes.removeLast()
+        let invalidPayload = state.encodedPayload
+        #expect(PlayerVoyageState.decodePayload(invalidPayload).encodedPayload == invalidPayload)
+        #expect(PlayerVoyageState.decodePayload(invalidPayload).isUnreadable)
+        #expect(state.sanitized().encodedPayload == invalidPayload)
     }
 
     @Test func `destination modifiers survive refresh, replacement, and reload`() throws {

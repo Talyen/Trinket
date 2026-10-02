@@ -10,6 +10,24 @@ import TrinketPersistence
 
 @MainActor
 enum PlayBattleLaunchTestSupport {
+    static func assemble(
+        input: BattleLaunchInput,
+        runKey: BattleRunKey? = nil,
+        rngSeed: UInt64,
+        rosterState: PlayerRosterState,
+        inventoryState: PlayerInventoryState,
+        homesteadState: PlayerHomesteadState = .freshStart,
+        worldSeed: UInt64 = 0,
+        hasProgressionRewards: Bool = false,
+    ) -> BattleLaunchAssembly {
+        PlayBattleLaunch.assembleLaunch(BattlePreparationInputs(
+            runKey: runKey, launch: input,
+            party: PlayBattlePartySnapshot(roster: rosterState, inventory: inventoryState, homestead: homesteadState, worldSeed: worldSeed),
+            rngSeed: rngSeed,
+            hasProgressionRewards: hasProgressionRewards,
+        ))
+    }
+
     /// Polls `condition` (up to ~3s) until the save-retry machinery settles.
     /// Single home for the retry-settling loop previously copied across
     /// shop/mystery/victory/defeat tests.
@@ -76,7 +94,7 @@ enum PlayBattleLaunchTestSupport {
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = [],
     ) -> BattleRunConfiguration {
-        PlayBattleLaunch.assembleLaunch(
+        assemble(
             input: BattleLaunchInput(
                 origin: origin,
                 hero: hero,

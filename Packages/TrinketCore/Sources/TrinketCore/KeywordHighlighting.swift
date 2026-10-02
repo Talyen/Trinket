@@ -67,9 +67,10 @@ public extension Keyword {
         let fullRange = NSRange(location: 0, length: nsText.length)
         var seen = Set<Self>()
         var result: [Self] = []
-        for match in regex.matches(in: text, options: [], range: fullRange) {
+        regex.enumerateMatches(in: text, options: [], range: fullRange) { match, _, _ in
+            guard let match else { return }
             let matched = nsText.substring(with: match.range).lowercased()
-            guard let keyword = termLookup[matched], seen.insert(keyword).inserted else { continue }
+            guard let keyword = termLookup[matched], seen.insert(keyword).inserted else { return }
             result.append(keyword)
         }
         return result

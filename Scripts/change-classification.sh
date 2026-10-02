@@ -128,6 +128,7 @@ trinket_add_agent_guide() { trinket_add_unique TRINKET_AGENT_GUIDES "$1"; }
 # Every card in Docs/AgentContext/ must be emitted above or declared here as
 # lookup-only; Scripts/check-docs.py enforces this. Lazy cards load on demand:
 # lookup-only: Docs/AgentContext/ci-diagnostics.md
+# lookup-only: Docs/AgentContext/Retrieval.md
 trinket_add_boundary_warning() { trinket_add_unique TRINKET_BOUNDARY_WARNINGS "$1"; }
 trinket_add_generated_warning() { trinket_add_unique TRINKET_GENERATED_WARNINGS "$1"; }
 trinket_add_verification() {
@@ -380,6 +381,20 @@ trinket_add_presentation_sections() {
   done
 }
 
+trinket_add_action_sections() {
+  local section
+  for section in shared-action-invariants "$@"; do
+    trinket_add_context_card "Docs/AgentContext/battle-actions.md#$section"
+  done
+}
+
+trinket_add_storage_sections() {
+  local section
+  for section in save-compatibility durable-acceptance-and-recovery "$@"; do
+    trinket_add_context_card "Docs/AgentContext/persistence-storage.md#$section"
+  done
+}
+
 trinket_add_runtime_contracts_for_path() {
   trinket_add_route_card Docs/AgentContext/battle.md
   trinket_add_context_card Docs/AgentContext/battle-runtime.md
@@ -417,6 +432,12 @@ trinket_add_battle_subcard_for_path() {
       trinket_add_route_card Docs/AgentContext/battle.md
       trinket_add_context_card Docs/AgentContext/battle-engine.md
       case "$1" in
+        */Sources/BattleEngine/ManaEmpowermentBudget.swift)
+          trinket_add_action_sections card-preparations action-identity-and-selected-outcomes mana-payments-and-cadence card-assessment ;;
+        */Sources/BattleEngine/Cards/BattleCardCombatEngine+OpeningHand.swift|*/Sources/BattleEngine/Cards/BattleCardCombatEngine+TurnDraw.swift)
+          trinket_add_action_sections hand-contract turn-ordering ;;
+        */Sources/BattleEngine/Cards/BattleCardAssessment.swift|*/Sources/BattleEngine/Cards/BattleCardAssessment+Resources.swift)
+          trinket_add_action_sections action-identity-and-selected-outcomes mana-payments-and-cadence card-assessment ;;
         */Sources/BattleBalanceTools/*|*/Sources/BalanceSweepCLI/*|*/Tests/BattleBalanceToolsTests/*)
           trinket_add_context_card Docs/AgentContext/battle-balance.md ;;
         */Triggers/CombatTriggerEngine+Damage.swift|*/Triggers/CombatTriggerEngine+BlockAndDefense.swift|*/Triggers/CombatTriggerEngine+Dodge.swift|*/Turns/BattleTurnEngine+Resolution.swift|\
@@ -454,6 +475,18 @@ trinket_add_persistence_contracts_for_path() {
     Packages/TrinketPersistence/*)
       trinket_add_context_card Docs/AgentContext/persistence.md
       case "$1" in
+        */Sources/TrinketPersistence/Encounters/ShopPurchaseApplier.swift|*/Sources/TrinketPersistence/Encounters/ShopStockPersistence.swift)
+          trinket_add_context_card Docs/AgentContext/persistence-progression.md#shop-stock-and-encounter-identity
+          trinket_add_context_card Docs/AgentContext/persistence-progression.md#noncombat-completion
+          trinket_add_context_card Docs/AgentContext/persistence-progression.md#voyage-identities ;;
+        */Sources/TrinketPersistence/PlayerSaveStore+Homestead.swift)
+          trinket_add_context_card Docs/AgentContext/persistence-progression.md#shop-stock-and-encounter-identity
+          trinket_add_context_card Docs/AgentContext/persistence-progression.md#homestead-transactions ;;
+        */Sources/TrinketPersistence/PlayerSaveStore+Roster.swift)
+          trinket_add_storage_sections schema-and-sanitization
+          trinket_add_context_card Docs/AgentContext/persistence-progression.md ;;
+        */Sources/TrinketPersistence/PlayerSaveSanitizer.swift|*/Sources/TrinketPersistence/PlayerSaveGraph/InventoryModel+ValueMapping.swift|*/Sources/TrinketPersistence/PlayerSaveGraph/RosterModel+ValueMapping.swift)
+          trinket_add_storage_sections schema-and-sanitization voyage-payload ;;
         */Sources/TrinketPersistence/Progression/*|*/Sources/TrinketPersistence/Encounters/*|\
         */Sources/TrinketPersistence/PlayerSaveStore+Homestead.swift)
           trinket_add_context_card Docs/AgentContext/persistence-progression.md ;;

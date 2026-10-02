@@ -29,7 +29,7 @@ a caller already ran the docs gate (for example handoff --final).
 local loop; CI runs the full suite. Failed logs are retained under RESULTS_DIR
 or .DerivedData/ScriptTestResults; terminal excerpts are bounded.
 Python and shell suites share a parallel worker pool
-(TRINKET_SCRIPT_TEST_JOBS caps workers, default ncpu)
+(default one local worker; CI uses ncpu; TRINKET_SCRIPT_TEST_JOBS overrides)
 and report in selection order; every selected suite is attempted and the
 first failure exits.
 --paths selects registered leaf-script regression families. Shared/unknown script
@@ -123,7 +123,7 @@ if (( ${#syntax_skipped[@]} > 0 )); then
   printf 'Syntax scope note: %d selected path(s) live outside Scripts/ and are covered by their own owners, not script syntax.\n' "${#syntax_skipped[@]}" >&2
 fi
 python_syntax=()
-for script in "${syntax_list[@]}"; do
+for script in "${syntax_list[@]+"${syntax_list[@]}"}"; do
   case "$script" in
     *.py) python_syntax+=("$script") ;;
     *.mjs) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" node --check "$script" ;;
@@ -145,12 +145,15 @@ echo "=== Script regressions ==="
 regressions_started=$SECONDS
 # Start shell watchdog cases alongside Python modules instead of adding their
 # real timeout waits to the end of the Python phase. All fixtures are isolated.
-suites=("${shell_suites[@]}" "${python_modules[@]}")
+# macOS Bash treats an empty array as unset under nounset.
+suites=("${shell_suites[@]+"${shell_suites[@]}"}" "${python_modules[@]+"${python_modules[@]}"}")
 if (( ${#suites[@]} == 0 )); then
   echo "(no regressions selected)"
 else
   cpu_count="$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)"
-  suite_jobs="${TRINKET_SCRIPT_TEST_JOBS:-$cpu_count}"
+  default_jobs=1
+  [[ "${GITHUB_ACTIONS:-}" == true ]] && default_jobs="$cpu_count"
+  suite_jobs="${TRINKET_SCRIPT_TEST_JOBS:-$default_jobs}"
   [[ "$suite_jobs" =~ ^[0-9]+$ ]] && (( suite_jobs >= 1 )) || suite_jobs=1
   if [[ "$suite_jobs" -gt ${#suites[@]} ]]; then suite_jobs=${#suites[@]}; fi
   printf '%s\n' "${suites[@]}" | TRINKET_TEST_LOG_DIR="$TEST_LOG_DIR" xargs -P "$suite_jobs" -I{} bash -c '
@@ -168,7 +171,7 @@ else
   ' _ {} || true
   # Keep diagnostics deterministic and attempt every suite before reporting
   # the first failure, including a worker that died without recording its exit.
-  for suite in "${python_modules[@]}" "${shell_suites[@]}"; do
+  for suite in "${python_modules[@]+"${python_modules[@]}"}" "${shell_suites[@]+"${shell_suites[@]}"}"; do
     suite_log="$TEST_LOG_DIR/${suite##*/}.log"
     status=1
     if [[ -f "$suite_log.exit" ]]; then status="$(cat "$suite_log.exit")"; fi

@@ -136,6 +136,11 @@ class CIPathFilterTests(unittest.TestCase):
         self.assertFalse(assets)
         self.assertTrue(infra)
 
+    def test_git_hook_changes_select_the_script_gate(self) -> None:
+        for hook in ("pre-commit", "pre-push", "commit-msg"):
+            with self.subTest(hook=hook):
+                self.assertEqual(self.filter.classify([f".githooks/{hook}"]), (hook == "pre-commit", False, True))
+
     def test_classify_build_script_is_code_and_infra(self) -> None:
         code, assets, infra = self.filter.classify(["Scripts/build-for-testing.sh"])
         self.assertTrue(code)

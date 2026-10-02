@@ -9,8 +9,12 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard healthLost > 0, let sourceActorID,
-              let caster = context.roster.combatant(for: sourceActorID), caster.isAlive,
+              let caster = context.roster.combatant(for: sourceActorID),
               caster.id != target.id else { return [] }
+        // Committed Bleed retains its conversions; personal rewards require a living source.
+        guard caster.isAlive else {
+            return afterBleedDamageConversions(to: target, sourceActorID: sourceActorID, in: &context)
+        }
         let triggers = context.modifiers(for: sourceActorID).triggers
         if triggers.onBleedDamageNextBasicGuaranteedCrit {
             context.roster.mutateRuntime(for: caster.combatant) { $0.talents.pending.basicGuaranteedCritical = true }

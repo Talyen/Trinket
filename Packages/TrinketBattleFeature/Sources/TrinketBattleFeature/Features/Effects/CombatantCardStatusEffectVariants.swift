@@ -65,6 +65,26 @@ struct CombatantStatusEffectOverlay: View {
     let config: CombatantStatusEffectConfig
     let progress: CGFloat
 
+    private static let productionStarNoise = starNoise(
+        count: CombatantStatusEffectConfig.defaults(for: .swirlingStars).starCount,
+    )
+    private static let productionSnowflakeNoise = snowflakeNoise(
+        count: CombatantStatusEffectConfig.defaults(for: .iceCrystals).particleCount,
+    )
+
+    private static func starNoise(count: Int) -> [CGFloat] {
+        (0 ..< count).map { CombatantCardEffectNoise.value($0, salt: 17) }
+    }
+
+    private static func snowflakeNoise(count: Int) -> [(along: CGFloat, inset: CGFloat)] {
+        (0 ..< count).map {
+            (
+                along: CombatantCardEffectNoise.value($0, salt: 41),
+                inset: CombatantCardEffectNoise.value($0, salt: 47),
+            )
+        }
+    }
+
     var body: some View {
         let keyword: Keyword = switch kind {
         case .swirlingStars: .stun
@@ -90,6 +110,9 @@ struct CombatantStatusEffectOverlay: View {
 
     private func swirlingStars(size: CGSize, style: Keyword.VisualStyle, phase: CGFloat) -> some View {
         let count = max(config.starCount, 1)
+        let noiseValues = count == Self.productionStarNoise.count
+            ? Self.productionStarNoise
+            : Self.starNoise(count: count)
         let radius = min(size.width, size.height) * config.orbitRadius * 0.5
         let appear = min(max(phase / 0.12, 0), 1)
 
@@ -102,7 +125,7 @@ struct CombatantStatusEffectOverlay: View {
             stars.reserveCapacity(count)
 
             for index in 0 ..< count {
-                let noise = CombatantCardEffectNoise.value(index, salt: 17)
+                let noise = noiseValues[index]
                 let angle = angleBase + CGFloat(index) / CGFloat(count) * .pi * 2
                     + noise * 0.35
                 let radial = radius * (0.85 + noise * 0.3)
@@ -212,15 +235,20 @@ struct CombatantStatusEffectOverlay: View {
         flakes: Int,
         encroach: CGFloat,
     ) -> some View {
-        Canvas { context, _ in
+        let noiseValues = flakes == Self.productionSnowflakeNoise.count
+            ? Self.productionSnowflakeNoise
+            : Self.snowflakeNoise(count: flakes)
+        let radiusFraction: CGFloat = min(size.width, size.height)
+            * (0.01 + config.crackDensity * 0.018)
+        return Canvas { context, _ in
             for index in 0 ..< flakes {
-                let along = CombatantCardEffectNoise.value(index, salt: 41)
+                let along = noiseValues[index].along
                 let edge = index % 4
                 let delay = CGFloat(index) / CGFloat(flakes) * 0.72
                 let appear = min(max((encroach - delay) / 0.28, 0), 1)
                 guard appear > 0.02 else { continue }
 
-                let insetNoise = CombatantCardEffectNoise.value(index, salt: 47)
+                let insetNoise = noiseValues[index].inset
                 let inset = 4 + insetNoise * (6 + config.crackDensity * 10)
                 let center = switch edge {
                 case 0: CGPoint(x: along * size.width, y: inset)
@@ -231,8 +259,6 @@ struct CombatantStatusEffectOverlay: View {
 
                 let twinkle: CGFloat = 0.72 + 0.28 * abs(sin(phase * .pi * 2.4 + insetNoise * .pi * 2))
                 let breathe: CGFloat = 0.88 + 0.12 * twinkle
-                let radiusFraction: CGFloat = min(size.width, size.height)
-                    * (0.01 + config.crackDensity * 0.018)
                 let radiusVariance: CGFloat = 0.7 + insetNoise * 0.5
                 let radius: CGFloat = radiusFraction * radiusVariance * appear * breathe * config.intensity
                 let opacityBase: CGFloat = 0.3 + 0.55 * appear * config.frostOpacity
@@ -260,29 +286,53 @@ private func drawStar(
     opacity: Double,
 ) {
     let spikes = 4
-    func starPath(at center: CGPoint, radius: CGFloat) -> Path {
-        var path = Path()
-        for i in 0 ..< (spikes * 2) {
-            let angle = CGFloat(i) * .pi / CGFloat(spikes) - .pi / 2 + rotation
-            let r = i.isMultiple(of: 2) ? radius : radius * 0.35
-            let p = CGPoint(
-                x: center.x + cos(angle) * r,
-                y: center.y + sin(angle) * r,
-            )
-            if i == 0 {
-                path.move(to: p)
-            } else {
-                path.addLine(to: p)
-            }
+    func appendVertex(
+        to path: inout Path,
+        center: CGPoint,
+        radius: CGFloat,
+        cosine: CGFloat,
+        sine: CGFloat,
+        isFirst: Bool,
+    ) {
+        let point = CGPoint(
+            x: center.x + cosine * radius,
+            y: center.y + sine * radius,
+        )
+        if isFirst {
+            path.move(to: point)
+        } else {
+            path.addLine(to: point)
         }
-        path.closeSubpath()
-        return path
     }
 
-    let star = starPath(at: point, radius: size)
+    var star = Path()
+    var shadow = Path()
+    var core = Path()
+    let shadowCenter = CGPoint(x: point.x, y: point.y + 1.2)
+    let coreRadius = size * 0.44
+    for index in 0 ..< (spikes * 2) {
+        let angle = CGFloat(index) * .pi / CGFloat(spikes) - .pi / 2 + rotation
+        let cosine = cos(angle)
+        let sine = sin(angle)
+        let isOuter = index.isMultiple(of: 2)
+        appendVertex(
+            to: &star, center: point, radius: isOuter ? size : size * 0.35,
+            cosine: cosine, sine: sine, isFirst: index == 0,
+        )
+        appendVertex(
+            to: &shadow, center: shadowCenter, radius: isOuter ? size : size * 0.35,
+            cosine: cosine, sine: sine, isFirst: index == 0,
+        )
+        appendVertex(
+            to: &core, center: point, radius: isOuter ? coreRadius : coreRadius * 0.35,
+            cosine: cosine, sine: sine, isFirst: index == 0,
+        )
+    }
+    star.closeSubpath()
+    shadow.closeSubpath()
+    core.closeSubpath()
 
     // Dark under-shadow and outline for guaranteed contrast against bright card art
-    let shadow = starPath(at: CGPoint(x: point.x, y: point.y + 1.2), radius: size)
     context.fill(shadow, with: .color(TrinketDesign.Colors.Overlay.ink.opacity(0.45 * opacity)))
     context.stroke(star, with: .color(TrinketDesign.Colors.Overlay.ink.opacity(0.65 * opacity)), lineWidth: 1.2)
 
@@ -291,7 +341,6 @@ private func drawStar(
     context.stroke(star, with: .color(secondary), lineWidth: 0.6)
 
     // Bright paper-white core for contrast against dark card art
-    let core = starPath(at: point, radius: size * 0.44)
     context.fill(core, with: .color(TrinketDesign.Colors.Overlay.paper.opacity(0.92 * opacity)))
 }
 
@@ -307,12 +356,14 @@ private func drawSnowflake(
     var path = Path()
     for petal in 0 ..< petals {
         let angle = CGFloat(petal) / CGFloat(petals) * .pi * 2 + rotation
+        let cosine = cos(angle)
+        let sine = sin(angle)
         let tip = CGPoint(
-            x: center.x + cos(angle) * radius,
-            y: center.y + sin(angle) * radius,
+            x: center.x + cosine * radius,
+            y: center.y + sine * radius,
         )
         let side = radius * 0.28
-        let perp = CGVector(dx: -sin(angle), dy: cos(angle))
+        let perp = CGVector(dx: -sine, dy: cosine)
         path.move(to: center)
         path.addLine(to: CGPoint(
             x: tip.x + perp.dx * side,
@@ -326,8 +377,8 @@ private func drawSnowflake(
         path.closeSubpath()
 
         let mid = CGPoint(
-            x: center.x + cos(angle) * radius * 0.55,
-            y: center.y + sin(angle) * radius * 0.55,
+            x: center.x + cosine * radius * 0.55,
+            y: center.y + sine * radius * 0.55,
         )
         let arm = radius * 0.22
         path.move(to: CGPoint(x: mid.x + perp.dx * arm, y: mid.y + perp.dy * arm))

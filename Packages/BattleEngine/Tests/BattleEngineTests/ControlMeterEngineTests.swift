@@ -291,7 +291,7 @@ struct ControlMeterEngineTests {
             threshold, keyword: .stun, to: enemy, sourceActorID: "source",
             applyFightPacing: false, in: &context,
         )
-        try #expect((context.additionalControlSkipsByCombatantID[enemy.id] ?? 0) == 0)
+        try #expect(preventedActions(in: &context, for: enemy) == 1)
     }
 
     @Test func `stun extend chance one guarantees extra skip`() throws {
@@ -307,7 +307,7 @@ struct ControlMeterEngineTests {
             threshold, keyword: .stun, to: enemy, sourceActorID: "source",
             applyFightPacing: false, in: &context,
         )
-        try #expect((context.additionalControlSkipsByCombatantID[enemy.id] ?? 0) == 1)
+        try #expect(preventedActions(in: &context, for: enemy) == 2)
     }
 
     @Test func `freeze extend chance respects seed`() throws {
@@ -323,7 +323,7 @@ struct ControlMeterEngineTests {
             keyword: .freeze, to: hitEnemy, sourceActorID: "source",
             applyFightPacing: false, in: &hitContext,
         )
-        try #expect((hitContext.additionalControlSkipsByCombatantID[hitEnemy.id] ?? 0) == 1)
+        try #expect(preventedActions(in: &hitContext, for: hitEnemy) == 2)
 
         var missContext = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
@@ -337,7 +337,7 @@ struct ControlMeterEngineTests {
             keyword: .freeze, to: missEnemy, sourceActorID: "source",
             applyFightPacing: false, in: &missContext,
         )
-        try #expect((missContext.additionalControlSkipsByCombatantID[missEnemy.id] ?? 0) == 0)
+        try #expect(preventedActions(in: &missContext, for: missEnemy) == 1)
     }
 
     @Test func `legacy freeze extra action skips maps to twenty percent`() throws {
@@ -353,7 +353,7 @@ struct ControlMeterEngineTests {
             keyword: .freeze, to: enemy, sourceActorID: "source",
             applyFightPacing: false, in: &context,
         )
-        try #expect((context.additionalControlSkipsByCombatantID[enemy.id] ?? 0) == 1)
+        try #expect(preventedActions(in: &context, for: enemy) == 2)
     }
 
     @Test func `chance above one grants fractional second skip deterministically`() throws {
@@ -369,7 +369,7 @@ struct ControlMeterEngineTests {
             keyword: .stun, to: hitEnemy, sourceActorID: "source",
             applyFightPacing: false, in: &hitContext,
         )
-        try #expect((hitContext.additionalControlSkipsByCombatantID[hitEnemy.id] ?? 0) == 2)
+        try #expect(preventedActions(in: &hitContext, for: hitEnemy) == 3)
 
         var missContext = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
@@ -383,8 +383,17 @@ struct ControlMeterEngineTests {
             keyword: .stun, to: missEnemy, sourceActorID: "source",
             applyFightPacing: false, in: &missContext,
         )
-        try #expect((missContext.additionalControlSkipsByCombatantID[missEnemy.id] ?? 0) == 1)
+        try #expect(preventedActions(in: &missContext, for: missEnemy) == 2)
     }
+}
+
+private func preventedActions(in context: inout BattleState, for actor: Combatant) -> Int {
+    var count = 0
+    while context.roster.hasPendingActionSkip(for: actor), count < 5 {
+        _ = BattleTurnEngine.consumeActionSkip(for: actor, context: &context)
+        count += 1
+    }
+    return count
 }
 
 extension ControlMeterEngineTests {

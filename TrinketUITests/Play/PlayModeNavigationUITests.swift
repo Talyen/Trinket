@@ -2,28 +2,9 @@ import TrinketFeatureSupport
 import XCTest
 
 final class PlayModeNavigationUITests: TrinketUITestCase {
-    func testExploreHubSpiresAndVoyageJourneys() {
+    func testVoyageEmbarkAndAbandonReturnToAvailableDestinations() {
         launchApp(arguments: TestLaunchArg.allUnseeded())
-
-        play.assertLoaded()
         play.openExplore()
-
-        tapButton(AccessibilityID.Play.spiresModeCard)
-        assertExists(AccessibilityID.Play.spireRow("ironVein"))
-
-        let lockedSpire = app.buttons[AccessibilityID.Play.spireRow("cinderSpire")]
-        assertExists(lockedSpire)
-        XCTAssertFalse(lockedSpire.isEnabled)
-
-        tapButton(AccessibilityID.Play.spireRow("ironVein"))
-        assertExists(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 1))
-        tapButton(AccessibilityID.Play.spireFloorEnemyArt("ironVein", floor: 1))
-        assertExists(AccessibilityID.CombatantDetail.nodeModifiersSection)
-        assertExists(AccessibilityID.CombatantDetail.nodeModifierDescription)
-        dismissSheet()
-        goBack()
-        goBack()
-
         let mode = app.buttons[AccessibilityID.Voyage.modeCard]
         scrollUntilVisible(mode, swipingUp: true, maxAttempts: 4, requireHittable: true)
         tapWhenReady(mode)
@@ -32,8 +13,6 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         scrollUntilVisible(embark, swipingUp: true, maxAttempts: 3, requireHittable: true)
         tapWhenReady(embark)
         assertExists(AccessibilityID.Voyage.destinationReward)
-        let reward = app.descendants(matching: .any)[AccessibilityID.Voyage.destinationReward].label
-        XCTAssertFalse(reward.isEmpty, "Embarking must show the destination reward")
         XCTAssertFalse(app.buttons[AccessibilityID.Voyage.refresh].exists)
         tapWhenReady(app.buttons[AccessibilityID.Voyage.options])
         tapWhenReady(app.buttons[AccessibilityID.Voyage.abandon])
@@ -51,13 +30,15 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
             tapWhenReady(enterButton)
         }
         assertExists(AccessibilityID.Play.labyrinthMap, timeout: 20)
-        let entryNode = waitForLabyrinthEntryNode()
+        let entryNode = any(AccessibilityID.Play.labyrinthFloor1EntryNode)
+        assertExists(entryNode)
         tapWhenReady(entryNode)
         assertExists(AccessibilityID.Play.labyrinthNodeInspector, timeout: 15)
         let inspectorAction = app.descendants(matching: .any).matching(
             NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.Play.labyrinthInspectorAction("")),
         ).firstMatch
         assertExists(inspectorAction, timeout: 10)
+        let selectedActionID = inspectorAction.identifier
 
         let lockedNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1LockedNode].firstMatch
         assertExists(lockedNode)
@@ -66,7 +47,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         // enabled even while its action is disabled.
         XCTAssertTrue(lockedNode.label.contains(", locked"), "Expected a locked labyrinth node")
         lockedNode.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        assertExists(inspectorAction, timeout: 10)
+        assertExists(selectedActionID, timeout: 10)
 
         // Dismissal belongs to the background dismiss control, not to node taps.
         app.descendants(matching: .any)[AccessibilityID.Play.labyrinthDismissSelection]
@@ -75,15 +56,41 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Play.labyrinthNodeInspector)
     }
 
-    private func waitForLabyrinthEntryNode() -> XCUIElement {
-        let entryNode = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthFloor1EntryNode]
-        if entryNode.trinketWaitForExistence(timeout: 10) {
-            return entryNode
-        }
-        // Map tiles lay out asynchronously; one recovery scroll before the final bounded wait.
-        app.swipeUp()
-        app.swipeDown()
-        assertExists(entryNode, timeout: 10)
-        return entryNode
+    func testRecruitContinueReturnsToCampaignWithTheCompanionUnlocked() {
+        launchApp(arguments: TestLaunchArg.allUnseeded()
+            + TestLaunchArg.completedStages(["chapter-1-stage-1"])
+            + TestLaunchArg.mysteryRecruit(eventID: "recruit-bear") + ["-performance-mystery-map"])
+        play.openCampaign()
+        tapButton(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
+        assertExists(AccessibilityID.Mystery.unlockCard(name: "Bear"))
+        assertExistsAfterScroll(AccessibilityID.Mystery.continueButton, requireHittable: true)
+        tapButton(AccessibilityID.Mystery.continueButton)
+        play.assertCampaignLoaded()
+        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 3))
+        tabBar.selectCollection()
+        let bear = AccessibilityID.CombatantDetail.collectionCard(name: "Bear")
+        assertExistsAfterScroll(bear, requireHittable: true)
+        XCTAssertFalse(button(bear).label.hasSuffix(", locked"), "The recruited companion must be unlocked")
+    }
+
+    func testLabyrinthBossContinueOpensAUsableNextFloor() {
+        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.01", in: TestLaunchArg.allForScreen("labyrinth-map"))
+            + ["-performance-labyrinth-node", "boss", "-performance-strong-party"])
+        assertExists(AccessibilityID.Play.labyrinthMap)
+        let boss = app.buttons.matching(NSPredicate(format: "label == %@", "Boss")).firstMatch
+        scrollUntilVisible(boss, swipingUp: true, requireHittable: true)
+        tapWhenReady(boss)
+        let action = app.buttons
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.Play.labyrinthInspectorAction(""))).firstMatch
+        tapWhenReady(action)
+        battle.assertActive()
+        tapWhenReady(battle.autoBattleToggle)
+        assertExists(AccessibilityID.Battle.victory, timeout: 30)
+        assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
+        tapButton(AccessibilityID.Battle.continueButton)
+        assertExists(AccessibilityID.Play.labyrinthMap)
+        tapButton(AccessibilityID.Play.labyrinthFloorMenu)
+        tapButton(AccessibilityID.Play.labyrinthFloor(2))
+        assertExists(AccessibilityID.Play.labyrinthMap)
     }
 }

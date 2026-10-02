@@ -149,14 +149,15 @@ _TOOLING_PATTERNS = (
 )
 
 
-def _classify_text(text: str, default: str) -> str:
+def _classify_text(text: str, default: str, *, source_diagnostic: bool = False) -> str:
     lowered = text.lower()
-    # Canonical vocabulary shared with the bash retry/rerun matchers; see
-    # Scripts/config/infrastructure-patterns.env.
-    if re.search(INFRASTRUCTURE_FAILURE_PATTERN, lowered):
-        return "simulator-infrastructure"
     if re.search(r"xctassert|xctfail|assertion failed|expectation failed", lowered):
         return "test-failure"
+    # Canonical vocabulary shared with the bash retry/rerun matchers; see
+    # Scripts/config/infrastructure-patterns.env. A source compiler diagnostic
+    # can describe a macro plugin launch failure without a simulator failure.
+    if not source_diagnostic and re.search(INFRASTRUCTURE_FAILURE_PATTERN, lowered):
+        return "simulator-infrastructure"
     if any(re.search(pattern, lowered) for pattern in _CONFIGURATION_PATTERNS):
         return "configuration"
     if any(re.search(pattern, lowered) for pattern in _TOOLING_PATTERNS):
@@ -353,7 +354,7 @@ def parse_build_results(build: dict[str, Any]) -> list[IssueObservation]:
         file, line = _extract_location(error)
         observations.append(
             IssueObservation(
-                kind=_classify_text(message, "build-failure"),
+                kind=_classify_text(message, "build-failure", source_diagnostic=bool(file)),
                 title=_text(error.get("targetName")) or _text(error.get("issueType")) or "Build failure",
                 message=message,
                 file=file,
@@ -433,7 +434,7 @@ def parse_log(log_path: Path, exit_code: int) -> list[IssueObservation]:
                     )
                 else:
                     observation = IssueObservation(
-                        _classify_text(message, "build-failure"),
+                        _classify_text(message, "build-failure", source_diagnostic=True),
                         "Build diagnostic",
                         message,
                         file=_display_path(match.group("file")),

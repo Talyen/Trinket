@@ -1,39 +1,53 @@
+import Foundation
+import StoreKit
 import StoreKitTest
 import TrinketFeatureSupport
 import XCTest
 
 final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
-    func testAskToBuyAndRestore() throws {
+    func testAskToBuyKeepsContentLockedUntilApproval() throws {
         try skipUnavailablePurchaseAutomation()
-        try launchAndAwaitOfferProduct(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"]) {
-            assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
-            tapButton(AccessibilityID.FullGame.options)
-        }
+        try launchOptionsOffer()
         let session = try XCTUnwrap(storeSession)
         session.askToBuyEnabled = true
         tapButton(AccessibilityID.FullGame.purchase)
-        let deferred = XCTNSPredicateExpectation(
-            predicate: NSPredicate { _, _ in session.allTransactions().contains { $0.state == .deferred } },
-            object: nil,
-        )
-        XCTAssertEqual(XCTWaiter.wait(for: [deferred], timeout: 10), .completed)
-        assertDoesNotExist(AccessibilityID.FullGame.status)
-        let pending = try XCTUnwrap(session.allTransactions().first)
-        XCTAssertEqual(pending.state, .deferred)
+        waitUntil("Purchase did not become pending") {
+            session.allTransactions().contains { $0.state == .deferred }
+        }
         assertExists(AccessibilityID.FullGame.offer)
+        let pending = try XCTUnwrap(session.allTransactions().first { $0.state == .deferred })
         try session.approveAskToBuyTransaction(identifier: pending.identifier)
-        assertDoesNotExist(AccessibilityID.FullGame.offer, timeout: 10)
-        session.askToBuyEnabled = false
-        assertDoesNotExist(AccessibilityID.FullGame.options, timeout: 10)
+        assertDoesNotExist(AccessibilityID.FullGame.offer)
+        assertWarlockUnlocked()
+    }
 
+    @MainActor
+    func testExistingPurchaseUnlocksContentOnColdLaunch() async throws {
+        try skipUnavailablePurchaseAutomation()
+        try startStoreSession()
+        let session = try XCTUnwrap(storeSession)
+        _ = try await session.buyProduct(identifier: "com.ryanmcintire.Trinket.fullgame")
+        launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
+        assertDoesNotExist(AccessibilityID.FullGame.options)
+        assertWarlockUnlocked()
+    }
+
+    @MainActor
+    func testFailedRestoreKeepsContentLockedAndAllowsPurchase() async throws {
+        try skipUnavailablePurchaseAutomation()
+        try startStoreSession()
+        let session = try XCTUnwrap(storeSession)
+        try await session.setSimulatedError(.generic(.networkError(URLError(.notConnectedToInternet))), forAPI: .appStoreSync)
+        launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
         assertExistsAfterScroll(AccessibilityID.FullGame.restore, requireHittable: true)
         tapButton(AccessibilityID.FullGame.restore)
-        let restored = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "enabled == true"),
-            object: button(AccessibilityID.FullGame.restore),
-        )
-        XCTAssertEqual(XCTWaiter.wait(for: [restored], timeout: 10), .completed)
-        assertDoesNotExist(AccessibilityID.FullGame.options)
-        assertDoesNotExist(AccessibilityID.FullGame.status)
+        waitUntil("Restore left the control disabled") { self.button(AccessibilityID.FullGame.restore).isEnabled }
+        assertExists(AccessibilityID.FullGame.options)
+        try await session.setSimulatedError(nil, forAPI: .appStoreSync)
+        tapButton(AccessibilityID.FullGame.options)
+        assertPurchaseProductLoaded()
+        tapButton(AccessibilityID.FullGame.purchase)
+        assertDoesNotExist(AccessibilityID.FullGame.offer)
+        assertWarlockUnlocked()
     }
 }

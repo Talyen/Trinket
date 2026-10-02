@@ -5,23 +5,6 @@ import XCTest
 
 final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
-    func testCompanionDetail() {
-        for iteration in 1 ... repetitionCount {
-            launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
-            reveal(button(AccessibilityID.CombatantDetail.collectionCard(name: "Wolf")))
-            measured("companion-detail-navigation", iteration: iteration) {
-                tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Wolf"))
-                combatantDetail.assertLoaded(for: "Wolf")
-            }
-            let detailScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            performScrollGestures(app.scrollViews.firstMatch)
-            verifyScrollProbes(detailScrollProbes, app.scrollViews.firstMatch)
-            dismissSheet()
-            assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
-        }
-    }
-
-    @MainActor
     func testDetailAndAbility() {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allForScreen("hero:knight")))
@@ -109,7 +92,7 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
             if didScrollShelf {
                 verifyScrollProbes(shelfScrollProbes, horizontalScrollView, horizontal: true)
             }
-            let categories = ["Heroes", "Companions", "Basic Gear", "Astral Gear", "Unique Gear", "Trinkets"]
+            let categories = ["Heroes", "Astral Gear"]
             for category in categories {
                 if !selected("collection-category-\(category)") {
                     continue
@@ -119,9 +102,6 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
                 measured("collection-category-\(category)", iteration: iteration) {
                     tapButton(identifier)
                 }
-                let categoryScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-                performScrollGestures(app.scrollViews.firstMatch)
-                verifyScrollProbes(categoryScrollProbes, app.scrollViews.firstMatch)
                 goBack()
                 collection.assertLoaded()
             }

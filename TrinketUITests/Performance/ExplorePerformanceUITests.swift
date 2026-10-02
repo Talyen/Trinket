@@ -45,9 +45,6 @@ final class ExplorePerformanceUITests: PerformanceJourneyUITestCase {
                         tapButton(AccessibilityID.Play.spireRow("ironVein"))
                         assertExists(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 1))
                     }
-                    let floorScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-                    performScrollGestures(app.scrollViews.firstMatch)
-                    verifyScrollProbes(floorScrollProbes, app.scrollViews.firstMatch)
                     goBack()
                     assertExists(AccessibilityID.Play.spiresHub)
                 }
@@ -106,13 +103,6 @@ final class ExplorePerformanceUITests: PerformanceJourneyUITestCase {
             measured("contracts-refresh", iteration: iteration) {
                 tapButton(AccessibilityID.Play.contractsRefresh)
                 assertExists(AccessibilityID.Play.contractsBoard)
-            }
-            assertExistsAfterScroll(AccessibilityID.Play.contractParty("standard"), requireHittable: true)
-            measured("contracts-party-picker", iteration: iteration) {
-                tapButton(AccessibilityID.Play.contractParty("standard"))
-                assertExists(AccessibilityID.Play.battlePartyDone)
-                tapButton(AccessibilityID.Play.battlePartyDone)
-                assertDoesNotExist(AccessibilityID.Play.battlePartyDone)
             }
             assertExistsAfterScroll(AccessibilityID.Play.contractFight("standard"), requireHittable: true)
             measured("contracts-battle-return", iteration: iteration) {

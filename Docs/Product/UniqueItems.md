@@ -84,9 +84,10 @@ Everkeen retains one repeat per wearer per player turn but requires a Physical
 Critical Hit (earlier non-Physical Crits never spend the allowance). It reuses
 the triggering packet's outgoing magnitude and Critical multiplier against
 current defenses; it does not roll or multiply Critical damage again. The Final
- Spark repeats resolved damage components and their normal damage riders without
- another empowerment purchase or utility effects. Huntsmaster's Call draws
- from the Companion's deck after each damaging Physical Critical Hit by its hero wearer.
+Spark likewise captures outgoing damage and Critical results before defenses,
+then repeats those components against current defenses without another
+empowerment purchase or utility effects. Huntsmaster's Call draws
+from the Companion's deck after each damaging Physical Critical Hit by its hero wearer.
  Normal Companion draw restrictions and the shared hand buffer apply. The Patient Edge prepares
 the wearer's next ordinary attack to Critically Hit after Block actually absorbs
 attack damage (gaining Block alone and blocking ongoing damage never qualify;

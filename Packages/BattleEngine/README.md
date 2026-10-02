@@ -65,9 +65,9 @@ integration surface above.
 | `BattleCardCombatEngine` | BattleEngine | Opening draw, play resolution, enemy turn, end-of-round effect pass |
 | `BattleEffectHandler` | BattleEngine | Protocol for effect application and turn-advance logic |
 | `EffectHandlers` | BattleEngine | Exhaustive dispatch from `EffectKind` to its handler |
-| `CombatTriggerEngine` | BattleEngine | Talent and affix combat hooks (`+Damage`, `+Defense`, `+Dodge`, `+Block`, `+DoT`, `+Mana`, `+CardPlay`, `+EnemyTurn`, `+TurnStart`, `+TurnEnd`, `+Cleanse`, `+Resources`, `+Holy`, `+Leech`, `+PartyAuras`) |
+| `CombatTriggerEngine` | BattleEngine | Talent and affix cadence under `Triggers/`, including `+BlockAndDefense`, `+HeroTalents`, and `+Companion`; Leech allocation lives under `Healing/` |
 | `CombatantRuntime` | BattleEngine | Per-combatant runtime state (HP, mana, active effects) |
-| `PlayPolicy.greedy` / `.setupAware` | BattleEngine | greedy-v1 Auto Battle; setup-v1 is sweep-only |
+| `PlayPolicy.greedy` / `.setupAware` | BattleEngine | greedy-v1 Auto Battle; setup-v1 for diagnostic simulations (the career runner exposes it as setupAware-v1) |
 | `BattleSimulator` | BattleBalanceTools | Headless autoplay loop for balance sweeps |
 | `BalanceSweepRunner` | BattleBalanceTools | Stratified Monte Carlo sweep + markdown reports |
 | `BalanceProgressionRunner` / `HotspotAnalyzer` | BattleBalanceTools | Multi-mode journey simulation & difficulty hotspot analysis |
@@ -94,12 +94,16 @@ See `Tests/README.md` for test ownership and conventions.
 
 ## Testing
 
+Package execution and local diagnostic opt-in follow
+[Verification](../../Docs/Platform/Verification.md#execution-limits); routine local
+changes use path-scoped handoff.
+
 ```sh
 ./Scripts/test-package.sh BattleEngine
 ```
 
-The package command skips `BattleBalanceToolsTests` by default so balance sweeps
-do not run in unit or deployment verification. Run those tests only when
+The package command skips `BattleBalanceToolsTests` and `BalanceSweepCLITests` by
+default so balance sweeps do not run in unit or deployment verification. Run those tests only when
 explicitly evaluating the balance tools:
 
 ```sh

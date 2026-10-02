@@ -71,10 +71,6 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
         refreshAvailable = true
     }
 
-    mutating func reconcileRefreshAvailability(_ available: Bool) {
-        refreshAvailable = available
-    }
-
     public mutating func recordVictory(encounterLevel: Int) {
         highestWonEncounterLevel = max(highestWonEncounterLevel, encounterLevel)
     }
@@ -99,6 +95,7 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
         for difficulty in ContractDifficulty.allCases {
             guard let offer = offers.first(where: {
                 $0.difficulty == difficulty && !$0.id.isEmpty
+                    && !(completedOfferIDs ?? []).contains($0.id)
                     && !ids.contains($0.id) && !enemyIDs.contains($0.enemyID)
                     && GameContent.enemy(matching: $0.enemyID)?.isBoss == difficulty.isBoss
             }) else { continue }

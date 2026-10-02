@@ -12,6 +12,12 @@ and registration separately. It exposes no independent registration mutation.
 
 Mode launch requests resolve only after the shared access, active-battle, and transient-encounter gates. A mode can return its specific eligibility message or the common missing-encounter message. Spires uses one floor eligibility decision for both prewarming and launch, so locked floors and unattuned parties cannot be prepared and cannot launch through a stale preparation. Contracts looks up the chosen offer inside that same gate, so a stale offer cannot bypass access or busy precedence. Spires, Labyrinth, and Voyage resolve node modifiers through `ModeBattleModifiers`; combat effects, experience bonus, and reward presentation must come from that same definition set. Spire loot uses the same world-seeded modifier as battle launch.
 
+Returned `StageMapMessage` values distinguish rejection from a successful launch.
+`trinketPlayActionResult` opens the Full Game offer for access restrictions and logs
+other messages internally; it does not present their diagnostic text to the player.
+Eligibility stays visible before the action under the
+[SwiftUI interaction contract](swiftui-features.md).
+
 `BattleLaunchAssembly` retains the exact `BattlePreparationInputs` used to build
 its configuration and reward presentation. These include the launch request,
 party/save inputs, world seed, combat seed, run key, and presentation policy.

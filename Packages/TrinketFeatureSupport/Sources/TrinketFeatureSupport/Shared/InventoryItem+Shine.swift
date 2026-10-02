@@ -50,6 +50,7 @@ public extension InventoryItem {
     }
 
     private var orderedAffinityKeywords: [Keyword] {
-        Keyword.allCases.filter { keywords.contains($0) }
+        let itemKeywords = keywords
+        return Keyword.allCases.filter { itemKeywords.contains($0) }
     }
 }

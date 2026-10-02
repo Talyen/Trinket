@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    '.github/workflows/ci.yml',
+    '.githooks/pre-push',
+    'Scripts/pre-push-paths.py',
     'Scripts/ci-gate.sh',
     'Scripts/config/cheap-slices.txt',
     'Scripts/handoff.sh',
@@ -17,6 +20,7 @@ SCRIPT_INPUTS = (
 import os
 import importlib.util
 import json
+import shutil
 import subprocess
 import unittest
 
@@ -42,6 +46,64 @@ class CIGateScriptTests(ScriptRegressionTestCase):
     def test_concurrency_groups_distinct_by_event_type(self) -> None:
         ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
         self.assertIn("ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}", ci)
+
+    def test_idle_nightly_retries_until_actual_exhaustive_shards_pass(self) -> None:
+        workflow = (ROOT / '.github/workflows/ci.yml').read_text()
+        command = workflow.split('        run: |\n', 1)[1].split('\n\n  tests:', 1)[0]
+        command = '\n'.join(line[10:] for line in command.splitlines())
+        command = command.replace('${{ github.run_id }}', '99')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            gh = root / 'gh'
+            gh.write_text('#!/bin/bash\n'
+                          'if [[ "$*" == *"/jobs?"* ]]; then\n'
+                          '  printf "%s\\n" "$SHARDS_PASSED"; exit "$JOBS_STATUS"\n'
+                          'else\n'
+                          '  printf "%s\\n" "$PREVIOUS"; exit "$RUNS_STATUS"\nfi\n')
+            gh.chmod(0o755)
+            cases = [
+                ('1\t1\tcurrent\tsuccess', 'true', '0', '0', False),
+                ('1\t1\tcurrent\tfailure', 'true', '0', '0', True),
+                ('1\t1\tcurrent\tcancelled', 'true', '0', '0', True),
+                ('1\t1\told\tsuccess', 'true', '0', '0', True),
+                ('1\t1\tcurrent\tsuccess', 'false', '0', '0', True),
+                ('1\t1\tcurrent\tsuccess', '', '0', '1', True),
+                ('', '', '1', '0', True),
+            ]
+            for previous, shards, runs_status, jobs_status, should_run in cases:
+                with self.subTest(previous=previous, shards=shards, jobs_status=jobs_status):
+                    output = root / 'output'
+                    output.write_text('')
+                    env = {**os.environ, 'PATH': f"{root}:{os.environ['PATH']}",
+                           'REPO': 'fixture/repo', 'SHA': 'current', 'GITHUB_OUTPUT': str(output),
+                           'PREVIOUS': previous, 'SHARDS_PASSED': shards,
+                           'RUNS_STATUS': runs_status, 'JOBS_STATUS': jobs_status}
+                    result = subprocess.run(['bash', '-c', command], cwd=root, env=env,
+                                            capture_output=True, text=True)
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                    self.assertEqual(output.read_text(), f'should-run={str(should_run).lower()}\n')
+
+    @unittest.skipUnless(shutil.which('jq'), 'jq is needed to validate GitHub API queries')
+    def test_nightly_query_distinguishes_failure_missing_and_intentional_idle_skip(self) -> None:
+        import re
+        workflow = (ROOT / '.github/workflows/ci.yml').read_text()
+        query = re.findall(r"--jq '([^']+)'", workflow)[-1]
+        def shard(outcome):
+            return {'name': 'tests / Exhaustive UI (Battle)', 'conclusion': outcome}
+        cases = [
+            ([{'jobs': [shard('success')]}, {'jobs': [shard('success')]}], True),
+            ([{'jobs': [shard('success')]}, {'jobs': [shard('failure')]}], False),
+            ([{'jobs': [shard('skipped')]}], False),
+            ([{'jobs': [shard('cancelled')]}], False),
+            ([{'jobs': []}], False),
+            ([{'jobs': [{'name': 'tests', 'conclusion': 'skipped'}]}], True),
+        ]
+        for pages, passed in cases:
+            with self.subTest(pages=pages):
+                result = subprocess.run(['jq', '-r', query], input=json.dumps(pages),
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), str(passed).lower())
 
     def test_gate_transcript_keeps_the_original_failure_exit(self) -> None:
         workflow = (ROOT / '.github/workflows/gate.yml').read_text()
@@ -108,32 +170,30 @@ class CIGateScriptTests(ScriptRegressionTestCase):
         self.assertIn("check-api-bans.sh", cheap)
         self.assertIn("release-notes.sh validate", cheap)
 
-    def test_agent_push_gate_skips_generate_when_classification_does_not_need_it(self) -> None:
-        text = (ROOT / "Scripts" / "agent-push-gate.sh").read_text(encoding="utf-8")
-        self.assertIn("TRINKET_NEEDS_CONTENT_GENERATION", text)
-        self.assertIn("TRINKET_NEEDS_PROJECT_GENERATION", text)
-        self.assertIn("skip generate (no content, project, or asset inputs)", text)
+    def test_agent_push_gate_uses_static_completeness_without_generation(self) -> None:
+        text = (ROOT / "Scripts/agent-push-gate.sh").read_text()
+        self.assertIn('./Scripts/assert-generated-output.sh', text)
+        self.assertNotIn('./Scripts/generate.sh', text)
+        self.assertNotIn('test-package.sh', text)
 
     def test_pre_push_path_scopes_style_to_pushed_swift(self) -> None:
         text = (ROOT / ".githooks" / "pre-push").read_text(encoding="utf-8")
         self.assertIn('test.sh style "${style_swift[@]}"', text)
         self.assertIn("check-api-bans.sh", text)
         self.assertIn("check-agent-invariants.sh", text)
-        self.assertIn("test-package.sh", text)
-        self.assertLess(text.find("agent-push-gate.sh"), text.find("test-package.sh"))
-        self.assertIn('"$remote_sha..$local_sha"', text)
-        self.assertIn("push_lines+=", text)
+        self.assertNotIn("test-package.sh", text)
+        self.assertIn('Scripts/pre-push-paths.py', text)
+        self.assertIn('push_input="$(cat)"', text)
         self.assertNotIn("./Scripts/test.sh style\n", text)
         # Pre-push reruns safeguards unconditionally: no receipt reuse.
         self.assertNotIn("handoff-receipt", text)
         self.assertNotIn("receipt_can_skip", text)
         self.assertNotIn("Reusing green handoff", text)
         self.assertNotIn("receipt reused", text.lower())
-        # Style, generation, and touched-package checks are unconditional.
+        # Scoped style and committed-output checks stay local; heavy checks are CI-owned.
         self.assertIn("=== Pre-push: style", text)
         self.assertIn("=== Pre-push: agent push gate", text)
-        self.assertIn("=== Pre-push: path-scoped package tests ===", text)
-        self.assertIn('SKIP_GENERATE=1 ./Scripts/test-package.sh "${TRINKET_PACKAGES[@]}"', text)
+        self.assertIn("deferred to CI", text)
 
     def test_no_handoff_receipt_code_remains(self) -> None:
         self.assertFalse((ROOT / "Scripts" / "lib" / "handoff-receipt.sh").exists())

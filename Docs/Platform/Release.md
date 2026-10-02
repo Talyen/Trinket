@@ -88,9 +88,14 @@ do not create another app or change the bundle ID to match the display name.
 
 ```sh
 ./Scripts/release.sh --dry-run
-./Scripts/release.sh
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/release.sh
 git push origin main --tags
 ```
+
+The local opt-in is for an expressly requested release run because this command
+invokes the full deploy suites. Dry-run needs no opt-in. See the
+[execution limits](Verification.md#execution-limits); ordinary commits and pushes
+still use lightweight handoff and hosted CI.
 
 The release command runs deploy verification, chooses or accepts a semantic
 version, increments the build number, generates changelog and store notes,
@@ -115,7 +120,7 @@ plain text and localizable, and permits up to 4,000 characters. See
 After one-time setup, deploy a committed, clean checkout with:
 
 ```sh
-./Scripts/testflight.sh
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/testflight.sh
 ```
 
 This is the canonical agent entry point for TestFlight. It runs the full
@@ -124,6 +129,8 @@ isolation, archives and exports a signed Release build, uploads it, and waits
 for the exact build to be available to the configured internal testing group.
 Fastlane is [free, MIT-licensed local tooling](https://github.com/fastlane/fastlane);
 there is no additional hosted service or subscription. Agents manage the tooling.
+An expressly requested local deployment uses the opt-in above so its required
+deploy verification can execute. Doctor and dry-run need no heavy-local opt-in.
 
 The command preserves the marketing version and allocates a build number above
 Apple's existing builds for that version, the project baseline, and retained
@@ -177,8 +184,8 @@ only during an actual deployment, through Xcode automatic signing.
 
 ```sh
 ./Scripts/testflight.sh --dry-run
-./Scripts/testflight.sh --notes /absolute/path/beta-notes.txt
-./Scripts/testflight.sh --resume /absolute/path/to/.DerivedData/testflight/RUN
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/testflight.sh --notes /absolute/path/beta-notes.txt
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/testflight.sh --resume /absolute/path/to/.DerivedData/testflight/RUN
 ```
 
 Dry-run is offline and makes no writes, installs, or Apple calls. Optional notes
@@ -244,20 +251,26 @@ apply to both its checks and the requested command.
 `git config core.hooksPath .githooks` enables the advisory commit-message hook,
 staged-project validation, and pre-push checks. Generation and idempotence policy
 lives in [Verification.md](Verification.md#generated-project-consistency); the hooks
-enforce it at commit/push time. Pre-push styles Swift files in the
-commits being pushed (platform bans stay full-tree), runs the internal
-push gate, then path-scoped package tests against
-that generated tree. A requested push still requires a green path-scoped
+enforce staged-project completeness at commit time. Pre-push styles Swift files in
+the commits being pushed (platform bans stay full-tree) and checks committed
+generated-output completeness. It does not regenerate assets or run package tests;
+CI owns freshness, idempotence, compilation, and game/UI suites. A requested push still requires a green path-scoped
 handoff before commit. Review and include only task-related authored and
 generated files; stage individual hunks when task and unrelated changes share a file.
 
-Pre-push invokes `agent-push-gate.sh` internally; do not run it manually after
-commit. Landing policy remains in [AGENTS.md](../../AGENTS.md#protect-the-workspace).
+Pre-push validates Git's outgoing ref/object pairs against the checked-out HEAD
+and requires a clean checkout, including nonignored untracked files. It fails on
+unavailable revisions or failed Git inspection; new remote refs select their full
+tree, and deletions and both rename endpoints remain in scope. Checks revalidate
+source before reporting success. Preserve outstanding work rather than clearing
+it to pass the hook.
 
-Direct pushes to `main` justify repeating these inexpensive path-scoped
-safeguards at pre-push: style, generated-output completeness, and
-touched-package tests rerun even when handoff just verified the same tree;
-there is no receipt reuse. The hook implements `SKIP_TRINKET_PREPUSH=1` as a
+Pre-push invokes `agent-push-gate.sh` internally with that outgoing scope; do not
+run it manually after commit. Landing policy remains in [AGENTS.md](../../AGENTS.md#protect-the-workspace).
+
+Direct pushes to `main` retain inexpensive pre-push safeguards: scoped style and
+committed generated-output completeness. A local handoff is lightweight evidence;
+watch CI for the deferred compile, package, and UI checks. There is no receipt reuse. The hook implements `SKIP_TRINKET_PREPUSH=1` as a
 manual bypass, but it does not satisfy the required verification or authorize
 skipping checks during routine agent work. Report blocked checks under
 [Verification.md](Verification.md#failures-and-reporting).

@@ -127,7 +127,7 @@ class PackageDiagnosticsTests(unittest.TestCase):
                 with self.subTest(action=action, extra=extra, status=status):
                     result = subprocess.run(
                         ["bash", str(scripts / "test-package.sh"), *action, *extra, "TrinketCore", "BattleEngine"],
-                        env={**os.environ, "FIXTURE_STATUS": status}, capture_output=True, text=True,
+                        env={**os.environ, "FIXTURE_STATUS": status, "GITHUB_ACTIONS": "true"}, capture_output=True, text=True,
                     )
                     self.assertEqual(result.returncode, int(status != "0"), result.stdout + result.stderr)
                     self.assertEqual(result.stdout.count("VERBOSE WORKER LOG"), 2 if "--verbose" in extra else 0)

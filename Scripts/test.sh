@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
-SCRIPT_DIR="$(dirname "$0")"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/.."
 
 # shellcheck source=run-env.sh
 source "$SCRIPT_DIR/run-env.sh"
@@ -58,8 +58,8 @@ while [[ $# -gt 0 ]]; do
 Usage: ./Scripts/test.sh [unit | ui | style | smoke | performance] [--no-build] [--app-only] [--quiet] [--verbose] [TestClass[/testMethod] | SwiftPath ...]
 
 Runs quietly by default; pass --verbose for full xcodebuild output.
-Bare local full exhaustive UI runs require TRINKET_ALLOW_FULL_UI=1; CI and
-targeted runs do not. See Scripts/README.md for tiers and routing.
+Compiled/unit/UI/performance suites are CI-owned. Local execution requires an
+expressly requested diagnostic with TRINKET_ALLOW_HEAVY_LOCAL=1; style stays local. See Scripts/README.md for tiers and routing.
 --app-only is unit-mode only: a compile-only app build via build.sh.
 USAGE
       exit 0
@@ -96,6 +96,9 @@ if [[ "$MODE" == "style" ]]; then
   fi
   exit 0
 fi
+
+source Scripts/lib/verification-policy.sh
+trinket_require_heavy_verification "Compiled/UI test suites" || exit $?
 
 if [[ "$APP_ONLY" == true && "$MODE" != "unit" ]]; then
   echo "--app-only is only supported with unit mode." >&2
@@ -181,7 +184,10 @@ case "$MODE" in
     ;;
 esac
 if [[ "$MODE" == "smoke" ]]; then
-  # Local and CI smoke share Smoke.xctestplan (shell + battle + shop).
+  # CI must execute purchase coverage on a supported runtime, not skip it.
+  if [[ "${CI:-}" == true || "${GITHUB_ACTIONS:-}" == true ]]; then
+    export TEST_RUNNER_TRINKET_REQUIRED_PURCHASE=1
+  fi
   TEST_TARGET_FLAG=(-testPlan Smoke)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Running targeted UI smoke tests via Smoke test plan..."

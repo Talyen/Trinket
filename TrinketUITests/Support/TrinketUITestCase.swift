@@ -45,20 +45,16 @@ enum TestLaunchArg {
         ["-mystery-recruit-event", eventID]
     }
 
-    static func allForTab(_ tab: String, reset: Bool = true) -> [String] {
-        var args = reset ? testLaunchArgs : []
-        args.append(contentsOf: ["-selectedTab", tab])
-        return args
+    static func allForTab(_ tab: String) -> [String] {
+        testLaunchArgs + ["-selectedTab", tab]
     }
 
-    static func allForScreen(_ screen: String, reset: Bool = true) -> [String] {
-        var args = reset ? testLaunchArgs : []
-        args.append(contentsOf: self.screen(screen))
-        return args
+    static func allForScreen(_ screen: String) -> [String] {
+        testLaunchArgs + self.screen(screen)
     }
 
-    static func allForBattle(reset: Bool = true, fastTicks: Bool = false) -> [String] {
-        let args = allForScreen("battle", reset: reset)
+    static func allForBattle(fastTicks: Bool = false) -> [String] {
+        let args = allForScreen("battle")
         if fastTicks {
             return replacingBattleTickInterval("0.01", in: args)
         }
@@ -67,15 +63,14 @@ enum TestLaunchArg {
 
     static let enableFrameMetrics = "-enable-frame-metrics"
 
-    static func allForAppPerformance(tab: String = "play", reset: Bool = true) -> [String] {
-        performanceArguments(from: allForTab(tab, reset: reset))
+    static func allForAppPerformance(tab: String = "play") -> [String] {
+        performanceArguments(from: allForTab(tab))
     }
 
     static func allForBattlePerformance(
         _ scenario: String,
-        reset: Bool = true,
     ) -> [String] {
-        var args = performanceArguments(from: allForBattle(reset: reset))
+        var args = performanceArguments(from: allForBattle())
         args += ["-battle-performance-scenario", scenario]
         if ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1" {
             args.append("-battle-performance-quick")
@@ -94,8 +89,8 @@ enum TestLaunchArg {
         replacingBattleTickInterval("60", in: testLaunchArgs)
     }
 
-    static func allForShop(reset: Bool = true) -> [String] {
-        allForScreen("shop", reset: reset)
+    static func allForShop() -> [String] {
+        allForScreen("shop")
     }
 
     static func replacingBattleTickInterval(_ interval: String, in args: [String]) -> [String] {
@@ -116,6 +111,7 @@ class TrinketUITestCase: XCTestCase {
 
     // swiftlint:disable:next implicitly_unwrapped_optional - XCTest installs the app before each test
     private(set) var app: XCUIApplication!
+    private let storeName = UUID().uuidString
 
     var play: PlayScreen {
         PlayScreen(app: app)
@@ -161,7 +157,7 @@ class TrinketUITestCase: XCTestCase {
     func launchApp(arguments: [String] = [], waitForPreparation: Bool = true) {
         app = XCUIApplication()
         var launchArgs = arguments
-        launchArgs.append(contentsOf: ["-store-name", UUID().uuidString])
+        launchArgs.append(contentsOf: ["-store-name", storeName])
         app.launchArguments = launchArgs
         var launchEnvironment = app.launchEnvironment
         for key in ["TRINKET_PERFORMANCE_QUICK"] {
@@ -174,6 +170,22 @@ class TrinketUITestCase: XCTestCase {
         if waitForPreparation {
             waitForLaunchPreparation()
         }
+    }
+
+    func relaunchApp(arguments: [String] = []) {
+        app.terminate()
+        launchApp(arguments: [TestLaunchArg.disableCloudSync, "-disable-audio"] + arguments)
+    }
+
+    func waitUntil(_ message: String, timeout: TimeInterval = defaultTimeout, condition: @escaping () -> Bool) {
+        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in condition() }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: timeout), .completed, message)
+    }
+
+    func integer(in element: XCUIElement) throws -> Int {
+        let text = (element.value as? String).flatMap { $0.isEmpty ? nil : $0 } ?? element.label
+        let digits = text.replacingOccurrences(of: ",", with: "").split(whereSeparator: { !$0.isNumber }).first
+        return try XCTUnwrap(digits.flatMap { Int($0) }, "Missing numeric amount: \(text)\n\(element.debugDescription)")
     }
 
     func waitForLaunchPreparation() {
@@ -345,15 +357,7 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func goBack() {
-        // Prefer an explicit back control; fall back to the first nav-bar
-        // button to preserve sheet-dismiss behavior where only Close exists.
-        let candidates = app.navigationBars.buttons
-        let back = candidates.matching(
-            NSPredicate(format: "identifier CONTAINS[c] %@ OR label CONTAINS[c] %@", "Back", "Back"),
-        ).firstMatch
-        let target = back.exists ? back : candidates.firstMatch
-        guard waitForExistence(target, timeout: 2) else { return }
-        tapWhenReady(target)
+        tapWhenReady(app.navigationBars.buttons["BackButton"])
     }
 
     func scrollUntilVisible(
@@ -372,14 +376,18 @@ class TrinketUITestCase: XCTestCase {
         )
     }
 
-    func dismissSheet() {
-        let closeButton = app.navigationBars.buttons["Close"]
-        if closeButton.exists, closeButton.isHittable {
-            closeButton.tap()
-            _ = closeButton.waitForNonExistence(timeout: 3)
+    func dismissSheet(_ identifier: String) {
+        assertExists(identifier)
+        let close = app.buttons["Close"]
+        if close.exists, close.isHittable {
+            tapWhenReady(close)
         } else {
-            sheetDismissDragStart.press(forDuration: 0.1, thenDragTo: sheetDismissDragEnd)
+            let bar = app.navigationBars.allElementsBoundByIndex.last { $0.isHittable }
+            let start = bar?.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
+                ?? app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.09))
+            start.press(forDuration: 0.1, thenDragTo: sheetDismissDragEnd)
         }
+        assertDoesNotExist(identifier)
     }
 
     var sheetDismissDragStart: XCUICoordinate {
@@ -500,25 +508,10 @@ extension XCUIApplication {
     }
 
     private func scrollContainer() -> XCUIElement {
-        let candidates = [
-            AccessibilityID.Screen.collection,
-            AccessibilityID.Screen.homestead,
-            AccessibilityID.Screen.play,
-            AccessibilityID.Screen.options,
-        ]
-        for identifier in candidates {
-            let screen = descendants(matching: .any)[identifier]
-            if screen.exists, screen.isHittable {
-                return screen
-            }
-        }
-        for identifier in candidates {
-            let screen = descendants(matching: .any)[identifier]
-            if screen.exists, screen.frame.width > 1, screen.frame.height > 1 {
-                return screen
-            }
-        }
-        return self
+        scrollViews.allElementsBoundByIndex.last { $0.isHittable }
+            ?? collectionViews.allElementsBoundByIndex.last { $0.isHittable }
+            ?? tables.allElementsBoundByIndex.last { $0.isHittable }
+            ?? self
     }
 
     private func dragScroll(fromY: CGFloat, toY: CGFloat) {

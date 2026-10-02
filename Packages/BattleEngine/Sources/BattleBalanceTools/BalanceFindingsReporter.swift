@@ -105,9 +105,11 @@ public enum BalanceFindingsReporter {
 
     private static func collectFindings(_ report: BalanceSweepReport, snapshots: BalanceTierSnapshots) -> [Finding] {
         var findings: [Finding] = []
+        let recordsByTier = Dictionary(grouping: report.records, by: \.tier)
         for tier in snapshots.tiers where tier.battles > 0 {
-            findings.append(contentsOf: identityFindings(tier: tier, records: report.records))
-            findings.append(contentsOf: stallFindings(tier: tier, records: report.records))
+            let evidence = EnemyEvidence(records: recordsByTier[tier.tier] ?? [])
+            findings.append(contentsOf: identityFindings(tier: tier, evidence: evidence))
+            findings.append(contentsOf: stallFindings(tier: tier, evidence: evidence))
         }
         for section in report.contrastSections {
             findings.append(contentsOf: contrastFindings(section.rows, kind: section.kind))
@@ -121,7 +123,38 @@ public enum BalanceFindingsReporter {
 }
 
 extension BalanceFindingsReporter {
-    private static func identityFindings(tier: BalanceTierStats, records: [BalanceBattleRecord]) -> [Finding] {
+    private struct EnemyEvidence {
+        let recordsByEnemy: [String: [BalanceBattleRecord]]
+        let abilitiesByEnemy: [String: Set<String>]
+        let abilityOwnerCounts: [String: Int]
+
+        init(records: [BalanceBattleRecord]) {
+            let grouped = Dictionary(grouping: records, by: \.enemyID)
+            let abilities = grouped.mapValues { Set($0.flatMap(\.enemyAbilityIDs)) }
+            var ownerCounts: [String: Int] = [:]
+            for ids in abilities.values {
+                for id in ids {
+                    ownerCounts[id, default: 0] += 1
+                }
+            }
+            recordsByEnemy = grouped
+            abilitiesByEnemy = abilities
+            abilityOwnerCounts = ownerCounts
+        }
+
+        func explanation(for enemyID: String) -> String {
+            let unique = (abilitiesByEnemy[enemyID] ?? []).filter { abilityOwnerCounts[$0] == 1 }.sorted()
+            if !unique.isEmpty {
+                return "only enemy with " + unique.map { "`\($0)`" }.joined(separator: ", ")
+            }
+            if let traits = recordsByEnemy[enemyID]?.first?.enemyTraitIDs, !traits.isEmpty {
+                return "traits " + traits.map { "`\($0)`" }.joined(separator: ", ")
+            }
+            return "identity vs \(enemyID)"
+        }
+    }
+
+    private static func identityFindings(tier: BalanceTierStats, evidence: EnemyEvidence) -> [Finding] {
         var findings = durationFinding(tier.trashDuration, bucket: "trash", tier: tier.tier)
         findings += durationFinding(tier.bossDuration, bucket: "boss", tier: tier.tier)
         findings += enemyDurationFindings(tier.enemyDurations, tier: tier.tier)
@@ -134,7 +167,7 @@ extension BalanceFindingsReporter {
         ] {
             findings += rosterFindings(rows, kind: kind, tier: tier.tier)
         }
-        findings += rosterFindings(tier.enemies, kind: "enemy", tier: tier.tier, records: records)
+        findings += rosterFindings(tier.enemies, kind: "enemy", tier: tier.tier, enemyEvidence: evidence)
         findings += collapsedSplit(split: tier.heroesBoss, kind: "hero", vs: "bosses", tier: tier.tier)
         findings += collapsedSplit(split: tier.companionsBoss, kind: "companion", vs: "bosses", tier: tier.tier)
         findings += pairingFindings(tier.heroCompanionCells, labels: ("hero", "companion"), tier: tier.tier)
@@ -142,8 +175,8 @@ extension BalanceFindingsReporter {
         return findings
     }
 
-    private static func stallFindings(tier: BalanceTierStats, records: [BalanceBattleRecord]) -> [Finding] {
-        let grouped = Dictionary(grouping: records.filter { $0.tier == tier.tier }, by: \.enemyID)
+    private static func stallFindings(tier: BalanceTierStats, evidence: EnemyEvidence) -> [Finding] {
+        let grouped = evidence.recordsByEnemy
         return grouped.keys.sorted().compactMap { enemyID in
             let samples = grouped[enemyID] ?? []
             let stalls = samples.count { $0.result.timedOut }
@@ -161,11 +194,11 @@ extension BalanceFindingsReporter {
         _ rows: [WinRateSummary],
         kind: String,
         tier: SimulationPowerTier,
-        records: [BalanceBattleRecord] = [],
+        enemyEvidence: EnemyEvidence? = nil,
     ) -> [Finding] {
         rows.filter(\.flagged).map { row in
-            let why: String = if kind == "enemy" {
-                enemyWhy(row.id, records: records.filter { $0.tier == tier })
+            let why: String = if let enemyEvidence {
+                enemyEvidence.explanation(for: row.id)
             } else if let targetDelta = row.targetBandDelta {
                 String(format: "vs %@ peer (target Δ%+.1f pp)", tier.displayName, targetDelta * 100)
             } else {
@@ -274,10 +307,16 @@ extension BalanceFindingsReporter {
         _ rows: [BalanceEnemyDurationStats],
         tier: SimulationPowerTier,
     ) -> [Finding] {
-        durationFindings(
-            rows.filter(\.flagged).map { ($0.enemyID, "Enemy", $0.averageRounds, $0.shortRate, $0.longRate, $0.battles, $0.flagReason) },
-            tier: tier,
-        )
+        rows.filter(\.flagged).map { row in
+            durationFinding(
+                id: row.enemyID, kind: "Enemy",
+                stats: DurationStats(
+                    averageRounds: row.averageRounds, shortRate: row.shortRate, longRate: row.longRate,
+                    battles: row.battles, reason: row.flagReason,
+                ),
+                tier: tier,
+            )
+        }
     }
 
     private static func combatantDurationFindings(
@@ -285,40 +324,44 @@ extension BalanceFindingsReporter {
         kind: String,
         tier: SimulationPowerTier,
     ) -> [Finding] {
-        durationFindings(
-            rows.filter(\.flagged).map { (
-                $0.combatantID,
-                kind.capitalized,
-                $0.averageRounds,
-                $0.shortRate,
-                $0.longRate,
-                $0.battles,
-                $0.flagReason,
-            ) },
-            tier: tier,
-        )
-    }
-
-    private static func durationFindings(
-        _ rows: [(String, String, Double, Double, Double, Int, String?)],
-        tier: SimulationPowerTier,
-    ) -> [Finding] {
-        rows.map { id, kind, avg, short, long, battles, reason in
-            Finding(
-                score: max(short, long),
-                line: String(
-                    format: "%@ `%@` (%@ duration): ⚠ %@ · avg %.1f rounds · SHORT %.0f%% · LONG %.0f%% · n=%d",
-                    kind,
-                    id,
-                    tier.displayName,
-                    reason ?? "",
-                    avg,
-                    short * 100,
-                    long * 100,
-                    battles,
+        rows.filter(\.flagged).map { row in
+            durationFinding(
+                id: row.combatantID, kind: kind.capitalized,
+                stats: DurationStats(
+                    averageRounds: row.averageRounds, shortRate: row.shortRate, longRate: row.longRate,
+                    battles: row.battles, reason: row.flagReason,
                 ),
+                tier: tier,
             )
         }
+    }
+
+    private struct DurationStats {
+        let averageRounds: Double
+        let shortRate: Double
+        let longRate: Double
+        let battles: Int
+        let reason: String?
+    }
+
+    private static func durationFinding(
+        id: String, kind: String, stats: DurationStats,
+        tier: SimulationPowerTier,
+    ) -> Finding {
+        Finding(
+            score: max(stats.shortRate, stats.longRate),
+            line: String(
+                format: "%@ `%@` (%@ duration): ⚠ %@ · avg %.1f rounds · SHORT %.0f%% · LONG %.0f%% · n=%d",
+                kind,
+                id,
+                tier.displayName,
+                stats.reason ?? "",
+                stats.averageRounds,
+                stats.shortRate * 100,
+                stats.longRate * 100,
+                stats.battles,
+            ),
+        )
     }
 
     private static func crossTierFindings(tiers: [BalanceTierStats]) -> [Finding] {
@@ -397,18 +440,5 @@ extension BalanceFindingsReporter {
                 ),
             )
         }
-    }
-
-    private static func enemyWhy(_ enemyID: String, records: [BalanceBattleRecord]) -> String {
-        let mine = records.filter { $0.enemyID == enemyID }
-        let others = records.filter { $0.enemyID != enemyID }
-        let unique = Set(mine.flatMap(\.enemyAbilityIDs)).subtracting(Set(others.flatMap(\.enemyAbilityIDs))).sorted()
-        if !unique.isEmpty {
-            return "only enemy with " + unique.map { "`\($0)`" }.joined(separator: ", ")
-        }
-        if let traits = mine.first?.enemyTraitIDs, !traits.isEmpty {
-            return "traits " + traits.map { "`\($0)`" }.joined(separator: ", ")
-        }
-        return "identity vs \(enemyID)"
     }
 }

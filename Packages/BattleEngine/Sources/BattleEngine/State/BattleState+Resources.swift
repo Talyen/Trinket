@@ -3,17 +3,22 @@ import TrinketContent
 import TrinketCore
 
 package extension BattleState {
-    mutating func addGold(_ amount: Int, sourceActorID: String) {
-        gold += goldGranted(for: amount, sourceActorID: sourceActorID)
-    }
-
     mutating func grantGoldEvent(
         _ amount: Int,
         to combatant: Combatant,
         abilityName: String,
         isTheft: Bool = false,
         isDirectCardGain: Bool = false,
+        isLeechOverflow: Bool = false,
     ) -> [ActionEvent] {
+        if isLeechOverflow {
+            resolution.enter(.leechOverflowGold)
+        }
+        defer {
+            if isLeechOverflow {
+                resolution.leave(.leechOverflowGold)
+            }
+        }
         let theftBonus = isTheft && amount > 0 && roster.health(for: combatant) > 0
             ? modifiers(for: combatant.id).triggers.goldStealFlatBonus : 0
         let baseGold = goldGranted(for: amount + theftBonus, sourceActorID: combatant.id)
@@ -29,10 +34,9 @@ package extension BattleState {
             granted *= 2
         }
         if isTheft, granted > 0,
-           resolution.cardTalents?.actorID == combatant.id,
-           resolution.cardTalents?.didCriticalHit == true,
+           resolution.hasCriticalHit(by: combatant.id),
            modifiers(for: combatant.id).triggers.criticalGoldTheftBonus > 0,
-           claimHeroCardBonus("Jackpot", actorID: combatant.id) {
+           claimTalentAbility("Jackpot", actorID: combatant.id) {
             granted += modifiers(for: combatant.id).triggers.criticalGoldTheftBonus
         }
         let previousEarned = goldFlow.gained

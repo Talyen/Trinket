@@ -48,7 +48,7 @@ struct ItemCorruptionTests {
         #expect(ItemCorruption.eligibleTargets(in: save.inventory).isEmpty)
         #expect(ItemCorruption.corrupt(restored, using: &rng) == nil)
         #expect(ItemCorruption.apply(kinds: [.addAffix], to: restored, using: &rng) == nil)
-        #expect(ItemCorruptionApplier.corrupt(itemID: restored.id, save: &save, using: &rng) == .ineligible)
+        #expect(ItemCorruptionApplier.corrupt(itemID: restored.id, save: &save, using: &rng) == .failure(.ineligible))
         #expect(save.inventory.items == [restored])
         #expect(rng.next() == untouchedRNG.next())
     }
@@ -209,7 +209,7 @@ struct ItemCorruptionTests {
         save.inventory.items = [item]
         var rng = SeededRandomNumberGenerator(seed: 1)
         let result = ItemCorruptionApplier.corrupt(itemID: item.id, save: &save, using: &rng)
-        #expect(result == .alreadyCorrupted)
+        #expect(result == .failure(.alreadyCorrupted))
     }
 
     @Test func `legacy marked affix reports already corrupted`() throws {
@@ -219,20 +219,20 @@ struct ItemCorruptionTests {
         save.inventory.items = [markedOnly]
         var rng = SeededRandomNumberGenerator(seed: 1)
         let result = ItemCorruptionApplier.corrupt(itemID: markedOnly.id, save: &save, using: &rng)
-        #expect(result == .alreadyCorrupted)
+        #expect(result == .failure(.alreadyCorrupted))
         #expect(save.inventory.items == [markedOnly])
     }
 
-    @Test @MainActor func `store corrupt item applies through entry point`() throws {
+    @Test @MainActor func `store corruption command persists its committed result`() throws {
         let context = try PersistenceTestContext()
-        let store = try context.makeSaveStore(inMemoryOnly: true)
+        let store = try context.makeSaveStore()
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2, id: "store-corrupt")
         try store.performBatchMutation { save in
             save.inventory.items = [item]
         }
         var rng = SeededRandomNumberGenerator(seed: 3)
         let outcome = store.corruptItem(id: item.id, using: &rng)
-        guard case let .success(applied) = outcome else {
+        guard case let .committed(applied) = outcome else {
             Issue.record("Expected corruption success, got \(String(describing: outcome))")
             return
         }
@@ -240,6 +240,8 @@ struct ItemCorruptionTests {
         let stored = try #require(store.currentSave.inventory.items.first { $0.id == item.id })
         #expect(stored.isCorrupted)
         #expect(stored.hasCorruptedAffix)
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.inventory.item(matching: item.id) == applied.item)
     }
 
     @Test func `trinkets cannot be corrupted`() throws {
@@ -250,7 +252,7 @@ struct ItemCorruptionTests {
 
         let result = ItemCorruptionApplier.corrupt(itemID: trinket.id, save: &save, using: &rng)
 
-        #expect(result == .ineligible)
+        #expect(result == .failure(.ineligible))
         #expect(save.inventory.items == [trinket])
     }
 

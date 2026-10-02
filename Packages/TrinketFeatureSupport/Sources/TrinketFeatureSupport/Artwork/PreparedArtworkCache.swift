@@ -126,8 +126,9 @@ public final class PreparedArtworkCache {
         await decode(unique, priority: .viewport, countsTowardLaunch: false)
     }
 
-    public func prepareAndPin(names: [String]) async {
-        _ = await acquirePinnedArtwork(names: names)
+    /// Release only the returned names; unavailable artwork has no acquired pin.
+    public func prepareAndPin(names: [String]) async -> [String] {
+        await acquirePinnedArtwork(names: names)
     }
 
     /// Stage a cloud save's first-paint artwork without releasing the visible

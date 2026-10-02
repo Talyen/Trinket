@@ -6,6 +6,32 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct BattleGoldRewardTests {
+    @Test @MainActor func `duplicate item consolation saturates a maximum Gold reward across reload`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let item = try #require(GameContent.uniqueItems.first)
+        try #require(store.persistBatch(logging: "Seed duplicate reward item") { save in
+            save.inventory.items = [item]
+        })
+        let contracts = store.currentSave.contracts
+        try #require(store.persistBatch(logging: "Grant maximum Gold reward") { save in
+            VictoryRewardApplier.grantVictoryRewards(
+                hero: save.roster.activeHero,
+                companion: save.roster.activeCompanion,
+                encounterLevel: 1,
+                stageGold: Int.max,
+                grantsCombatExperience: false,
+                materialRewards: [],
+                item: item,
+                save: &save,
+            )
+        })
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.gold == PlayerRosterState.maxGoldBalance)
+        #expect(reloaded.inventory.items == [item])
+        #expect(reloaded.currentSave.contracts == contracts)
+    }
+
     @Test @MainActor func `defeat experience persists both recipients without other rewards`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()

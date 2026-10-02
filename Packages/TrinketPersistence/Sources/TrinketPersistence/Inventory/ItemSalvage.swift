@@ -1,9 +1,7 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
-public enum ItemSalvageResult: Equatable, Sendable {
-    case success(yields: [ResourceAmount])
+public enum ItemSalvageFailure: Error, Equatable, Sendable {
     case itemNotFound
     case ineligible
 }
@@ -51,29 +49,25 @@ public enum ItemSalvage {
 }
 
 public enum ItemSalvageApplier {
-    public static func salvage(itemID: String, save: inout PlayerSave) -> ItemSalvageResult {
+    public static func salvage(itemID: String, save: inout PlayerSave) -> Result<[ResourceAmount], ItemSalvageFailure> {
         guard let item = save.inventory.items.first(where: { $0.id == itemID }) else {
-            return .itemNotFound
+            return .failure(.itemNotFound)
         }
-        guard ItemSalvage.isEligible(item) else { return .ineligible }
+        guard ItemSalvage.isEligible(item) else { return .failure(.ineligible) }
 
         let yields = ItemSalvage.yields(for: item)
         save.roster.unequip(itemID: itemID)
         save.inventory.removeItem(id: itemID)
-        return .success(yields: save.grantMaterials(yields))
+        return .success(save.grantMaterials(yields))
     }
 }
 
 @MainActor
 public extension PlayerSaveStore {
     @discardableResult
-    func salvageItem(id: String) -> ItemSalvageResult? {
-        var result: ItemSalvageResult = .itemNotFound
-        guard persistBatch(logging: "Failed to salvage item \(id)", { save in
-            result = ItemSalvageApplier.salvage(itemID: id, save: &save)
-        }) else {
-            return nil
+    func salvageItem(id: String) -> SaveTransactionResult<[ResourceAmount], ItemSalvageFailure> {
+        persistTransaction(logging: "Failed to salvage item \(id)") { save in
+            ItemSalvageApplier.salvage(itemID: id, save: &save)
         }
-        return result
     }
 }

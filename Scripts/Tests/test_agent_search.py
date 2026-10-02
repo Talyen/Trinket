@@ -3,22 +3,83 @@ from __future__ import annotations
 SCRIPT_INPUTS = (
     'Scripts/agent-search.py',
     'Scripts/config/generated-paths.tsv',
+    'Scripts/config/agent-tasks.json',
+    'Scripts/internal/agent_tasks.py',
+    'Scripts/internal/agent_references.py',
+    'Scripts/internal/agent_arguments.py',
 )
 
 
 import contextlib
 import io
+import json
+import shlex
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
-from script_test_support import load_script
+from script_test_support import ROOT, load_script
 
 SEARCH = load_script("agent_search", "agent-search.py")
 
 
 class AgentSearchTests(unittest.TestCase):
+    def test_nonpositive_page_limit_reports_usage_instead_of_a_traceback(self) -> None:
+        for value in ('0', '-1'):
+            with self.subTest(value=value), contextlib.redirect_stderr(io.StringIO()) as errors, self.assertRaises(SystemExit) as result:
+                self.search('Guide', '--files', '--limit', value)
+            self.assertEqual(result.exception.code, 2)
+            self.assertIn('must be positive', errors.getvalue())
+            self.assertIn('Try:', errors.getvalue())
+
+    def test_invalid_scope_suggests_executable_correction_without_widening(self) -> None:
+        self.write('Docs/Guide.md', '# Guide')
+        with contextlib.redirect_stderr(io.StringIO()) as errors:
+            status, output = self.search('Guide', '--mode', 'docs', '--files', '--scope', 'docs')
+        self.assertEqual(status, 2)
+        self.assertNotIn('Docs/Guide.md', output)
+        command = shlex.split(errors.getvalue().split('Try: ', 1)[1].strip())
+        self.assertIn('Docs', command)
+        self.assertEqual(self.search(*command[2:])[0], 0)
+        with contextlib.redirect_stderr(io.StringIO()) as errors:
+            self.assertEqual(self.search('Guide', '--files', '--scope', 'missing-owner')[0], 2)
+        self.assertIn('--overview', errors.getvalue())
+
+    def test_invalid_filename_regex_suggests_an_executable_scoped_glob_retry(self) -> None:
+        self.write('Sources/One.swift', 'struct One {}')
+        with contextlib.redirect_stderr(io.StringIO()) as errors:
+            status, _ = self.search('*.swift', '--files', '--scope', 'Sources')
+        self.assertEqual(status, 2)
+        command = shlex.split(errors.getvalue().split('retry: ', 1)[1].strip())
+        status, output = self.search(*command[2:])
+        self.assertEqual(status, 0)
+        self.assertIn('Sources/One.swift', output)
+
+    def test_task_index_validates_live_paths_and_provides_scoped_curated_tests_without_symbol_mentions(self) -> None:
+        self.write('Sources/Thing.swift', 'struct Thing {}')
+        self.write('Tests/BehaviorTests.swift', 'func testBehavior() {}')
+        self.write('Guide.md', '# Guide\n## Rules\nKeep saves\n')
+        task = {'id': 'thing', 'label': 'Shop purchase', 'aliases': ['buy item'], 'symbols': ['Thing'],
+                'sources': ['Sources/Thing.swift'], 'tests': ['Tests/BehaviorTests.swift'], 'contracts': ['Guide.md#rules']}
+        self.write('Scripts/config/agent-tasks.json', json.dumps([task]))
+        status, output = self.search('buy item', '--task')
+        self.assertEqual(status, 0)
+        self.assertIn('Guide.md#rules', output)
+        self.assertIn('Route: ./Scripts/agent-context.sh', output)
+        status, output = self.search('Thing', '--related')
+        self.assertEqual(status, 0)
+        self.assertIn('Tests/BehaviorTests.swift:1: curated concern link', output)
+        self.assertNotIn('BehaviorTests.swift', self.search('Thing', '--related', '--scope', 'Sources')[1])
+        (self.root / 'Other').mkdir()
+        self.assertEqual(self.search('Shop purchase', '--task', '--scope', 'Other')[0], 1)
+        (self.root / 'Guide.md').write_text('# Renamed\n')
+        with self.assertRaises(ValueError):
+            self.search('Shop purchase', '--task')
+        # The real index is checked for stale sources, tests and heading anchors.
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(SEARCH.main(['Shop purchase', '--task'], root=ROOT), 0)
+
     def setUp(self) -> None:
         self.directory = tempfile.TemporaryDirectory(prefix="agent search ")
         self.addCleanup(self.directory.cleanup)
@@ -37,6 +98,61 @@ class AgentSearchTests(unittest.TestCase):
         with contextlib.redirect_stdout(output):
             status = SEARCH.main(list(args), root=self.root)
         return status, output.getvalue()
+
+    def test_explicit_globs_use_filtered_filenames_and_preserve_pagination(self) -> None:
+        self.write('Packages/Game/Sources/One.swift', 'no match needed')
+        self.write('Packages/Game/Sources/Two.swift', 'no match needed')
+        self.write('Packages/Game/Tests/Hidden.swift', 'test')
+        self.write('Other/Three.swift', 'outside scope')
+        self.write('Packages/Game/Sources/Literal[1].py', 'literal')
+        status, output = self.search('*.SWIFT', '--files', '--glob', '-i', '--scope', 'Packages/Game', '--limit', '1')
+        self.assertEqual(status, 0)
+        self.assertIn('One.swift', output)
+        self.assertNotIn('Hidden.swift', output)
+        self.assertNotIn('Three.swift', output)
+        import shlex
+        command = shlex.split(next(line.removeprefix('Continue: ') for line in output.splitlines() if line.startswith('Continue: ')))
+        status, continuation = self.search(*command[2:])
+        self.assertEqual(status, 0)
+        self.assertIn('Two.swift', continuation)
+        self.assertNotIn('One.swift', continuation)
+        self.assertEqual(self.search('*Literal[[]1].py', '--files', '--glob')[0], 0)
+        for flags in (('--glob',), ('--glob', '--files', '-F')):
+            with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                self.search('*', *flags)
+
+    def test_related_lookup_interleaves_all_hints_and_keeps_scope_and_identifier_boundaries(self) -> None:
+        self.write('Packages/Game/Sources/Thing.swift', 'struct Thing {}\n// Thing in a comment\n')
+        for number in range(5):
+            self.write(f'Packages/Game/Sources/Use{number}.swift', 'let value: Thing\n')
+        self.write('Packages/Game/Tests/ThingTests.swift', 'let example = Thing()\n')
+        self.write('Packages/Game/Sources/NotThing.swift', 'let value: OtherThing\n')
+        self.write('Other/Thing.swift', 'struct Thing {}')
+        self.write('Packages/Game/Sources/Catalog.swift', 'let example: Thing')
+        status, output = self.search('Thing', '--related', '--scope', 'Packages/Game', '--limit', '3')
+        self.assertEqual(status, 0)
+        self.assertIn('Declaration/Reference hint:', output)
+        self.assertIn('Reference hint:', output)
+        self.assertIn('Test hint:', output)
+        self.assertIn('comments/strings', output)
+        import shlex
+        hints = []
+        while True:
+            hints.extend(line for line in output.splitlines() if ' hint: ' in line)
+            self.assertNotIn('Other/Thing.swift', output)
+            self.assertNotIn('NotThing.swift', output)
+            self.assertNotIn('Catalog.swift', output)
+            commands = [line.removeprefix('Continue: ') for line in output.splitlines() if line.startswith('Continue: ')]
+            if not commands:
+                break
+            status, output = self.search(*shlex.split(commands[0])[2:])
+            self.assertEqual(status, 0)
+        self.assertEqual(len(hints), 7)
+        self.assertEqual(sum('Sources/Thing.swift:' in hint for hint in hints), 1)
+        self.assertEqual(len(hints), len(set(hints)))
+        for pattern, flags in (('Thing.*', []), ('Thing', ['--mode', 'tests']), ('Thing', ['--files'])):
+            with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                self.search(pattern, '--related', *flags)
 
     def test_modes_keep_generated_tests_and_ignored_artifacts_out_of_source_discovery(self) -> None:
         files = {

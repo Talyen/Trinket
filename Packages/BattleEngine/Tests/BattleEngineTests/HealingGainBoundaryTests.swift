@@ -5,6 +5,45 @@ import TrinketCore
 @testable import BattleEngine
 
 struct HealingGainBoundaryTests {
+    @Test func `Flawless Bounty grants Gold and Block without Windfall or nested restoration`() {
+        var profile = CombatantTalentCatalog.profile(for: ["lizard_scout_gold_t3_1"])
+        profile.triggers.criticalChanceBonus = -1
+        profile.triggers.gainGoldBonusHealSelf = 2
+        profile.triggers.goldGainHealChancePercent = 1
+        profile.triggers.goldGainHealAmount = 3
+        profile.triggers.goldGainBlockPercent = 1
+        profile.triggers.goldGainCleanseChancePercent = 1
+        profile.triggers.cleanseSelfHeal = 2
+        profile.triggers.onHealDealHoly = 2
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 100),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 100),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroHealth: 10,
+            companionModifiers: profile,
+        )
+        battle.appliesFightPacing = false
+        battle.appendEffect(.poison(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
+
+        let result = HealingEngine.leechFromDamage(
+            8, sourceActorID: battle.companion.id, target: battle.enemy,
+            abilityHasLeech: true, in: &battle,
+        )
+
+        #expect(battle.gold == 4)
+        #expect(battle.health(of: battle.hero) == 10)
+        #expect(battle.health(of: battle.companion) == 100)
+        #expect(battle.health(of: battle.enemy) == 100)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.companion)) == 4)
+        #expect(!battle.activeEffects(of: battle.companion).contains { $0.effect.isRemovableDebuff })
+        #expect(result.events.contains { $0.abilityName == "Flawless Bounty" && $0.keyword == .gold && $0.amount == 4 })
+        #expect(!result.events.contains { $0.effectKind == .instantHeal || $0.effectKind == .leechHeal })
+
+        // Conversion suppression ends with its Gold transaction; ordinary gains still heal the wounded Hero.
+        _ = battle.grantGoldEvent(1, to: battle.companion, abilityName: "Ordinary Gold")
+        #expect(battle.health(of: battle.hero) == 15)
+    }
+
     @Test(arguments: ["alchemist_health_t1_1", "druid_health_t1_1"], [0.25, 1.0])
     func `Sapped reduces the complete restoration including flat talent bonuses`(talent: String, reduction: Double) {
         var battle = BattleStateTestFactory.makeMinimalBattle(

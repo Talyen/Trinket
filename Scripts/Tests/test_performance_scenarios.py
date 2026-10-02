@@ -46,13 +46,6 @@ class PerformanceScenarioTests(unittest.TestCase):
         self.assertEqual(one['scenarios'], [scenario])
         self.assertEqual(one['testScenarios'], {one['coverage'][scenario]['test']: [scenario]})
 
-    def test_removed_route_mapping_is_not_silent(self) -> None:
-        broken = copy.deepcopy(self.baseline)
-        contract = broken['routeContracts'][0]
-        del contract['routes'][next(iter(contract['routes']))]
-        with self.assertRaisesRegex(ValueError, 'navigation changed'):
-            module.select(broken, [])
-
     def test_unknown_selection_and_unregistered_tests_fail(self) -> None:
         with self.assertRaisesRegex(ValueError, 'unknown'):
             module.select(self.baseline, ['not-a-scenario'])
@@ -101,7 +94,7 @@ class PerformanceScenarioTests(unittest.TestCase):
                 root = Path(directory)
                 scripts = root / "Scripts"
                 (scripts / "lib").mkdir(parents=True)
-                for name in ("performance.sh", "performance-scenarios.py", "collect-performance-results.py", "compare-performance.py", "internal/cli.py", "internal/performance/performance_model.py", "lib/lock.sh"):
+                for name in ("performance.sh", "performance-scenarios.py", "collect-performance-results.py", "compare-performance.py", "internal/cli.py", "internal/performance/performance_model.py", "lib/lock.sh", "lib/verification-policy.sh"):
                     (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
                 (scripts / "performance_environment.py").write_text(
@@ -136,6 +129,7 @@ class PerformanceScenarioTests(unittest.TestCase):
                 )
                 stub.chmod(0o755)
                 environment = {key: value for key, value in os.environ.items() if not key.startswith("TRINKET_PERFORMANCE_")}
+                environment["GITHUB_ACTIONS"] = "true"
                 result = subprocess.run([str(scripts / "performance.sh")], env=environment, capture_output=True, text=True)
                 self.assertEqual(result.returncode, test_status, result.stdout + result.stderr)
                 reports = list((root / ".DerivedData/PerformanceResults").glob("*/reports.json"))

@@ -98,7 +98,10 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
 
     public mutating func grant(_ rewards: [ResourceAmount]) {
         for reward in rewards where reward.resource != .gold && reward.quantity > 0 {
-            resources[reward.resource, default: 0] += reward.quantity
+            resources[reward.resource] = SaturatedArithmetic.saturatingAdd(
+                resources[reward.resource, default: 0],
+                reward.quantity,
+            )
         }
     }
 
@@ -158,7 +161,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         pending amount: Double,
         roster: PlayerRosterState,
     ) -> Int {
-        let available = Int(amount.rounded(.down))
+        let available = SaturatedArithmetic.rounded(amount.rounded(.down))
         guard available > 0 else { return 0 }
         if resource == .gold {
             return min(
@@ -166,7 +169,8 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
                 max(0, PlayerRosterState.maxGoldBalance - balance(for: .gold, roster: roster)),
             )
         }
-        return available
+        let capacity = Int.max - max(0, balance(for: resource, roster: roster))
+        return min(available, capacity)
     }
 
     @discardableResult

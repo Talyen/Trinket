@@ -28,11 +28,16 @@ material decisions/risks/blockers, and distinguish verified behavior from infere
 
 ## Route and read
 
-Start discovery with `python3 Scripts/agent-search.py --files <pattern> --scope <owner>`;
-when the owner is unknown, use `--overview`. Asset filenames use `--mode assets --files`.
+For an indexed concern, start with `python3 Scripts/agent-session.py brief --task <concern>`;
+it routes status, safeguards, initial guidance and source/test pointers together.
+Otherwise discover with `python3 Scripts/agent-search.py --files <pattern> --scope <owner>`;
+use `'<concern>' --task` to find an index entry or `--overview` for an unknown owner.
+Asset filenames use `--mode assets --files`.
+Documentation filenames use `--mode docs --files`; the default source mode excludes Markdown.
 Scoped `rg --files` and content `rg` remain available after narrowing the surface.
 
-Once paths are known, run `./Scripts/agent-context.sh --agent --status --paths <file...>`.
+Once paths are known, route them with `brief --task <concern> --paths <file...>` or
+`./Scripts/agent-context.sh --agent --status --paths <file...>`.
 Read root/local safeguards and applicable routed ownership/behavior sections; load
 skills by trigger. Reuse unchanged guidance already in context. Reroute across owners.
 Use `--working-tree --allow-broad-scope` only for intentional whole-tree work.
@@ -67,8 +72,9 @@ caused by the change without another approval checkpoint. Stop when complete or
 blocked by a required decision or unavailable prerequisite.
 
 - Follow [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior) for consequential coverage and evidence-based retirement; test counts are not a goal.
+- Keep routine local verification resource-light: no automatic Swift compilation, simulator/UI/performance tests, or broad generation. CI owns those checks; [Verification](Docs/Platform/Verification.md#local-simulator-budget) owns deliberate exceptions and local play.
 - Run `./Scripts/handoff.sh --isolate --quiet --paths <file...>` for requested and adopted paths, including deletions. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns gates, limits, failure classification, and advisory change budgets.
-- Review the final diff and generated consistency. Report results, verification, adopted fixes, and exact blockers/skips; distinguish task changes from pre-existing work. Do not claim verified completion with required checks unresolved.
+- Review the final diff and generated consistency. Report results, verification, adopted fixes, and exact blockers/skips; distinguish task changes from pre-existing work. A local handoff proves only its lightweight checks; report CI-owned checks as pending until hosted evidence confirms them. Do not claim full verification from local handoff alone.
 
 ## Maintain guidance
 

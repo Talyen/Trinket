@@ -47,6 +47,9 @@ if [[ "$FAST" == true ]]; then
   exit 0
 fi
 
+source Scripts/lib/verification-policy.sh
+trinket_require_heavy_verification "Full generation/CI gate" || exit $?
+
 # Full order lives in trinket_run_full_gate (lib/gate.sh); the cheap-slice
 # registry (config/cheap-slices.txt) owns the slice sequence within it.
 trinket_run_full_gate

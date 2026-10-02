@@ -8,7 +8,7 @@ import TrinketPersistence
 @MainActor
 struct PlayBattleLaunchTests {
     private func makeLaunch(_ input: BattleLaunchInput) -> BattleLaunchAssembly {
-        PlayBattleLaunch.assembleLaunch(
+        PlayBattleLaunchTestSupport.assemble(
             input: input,
             rngSeed: 0,
             rosterState: .testSeed,
@@ -56,7 +56,7 @@ struct PlayBattleLaunchTests {
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let modifier = AffixModifier.damageDealt(.burn, 1)
 
-        let launch = PlayBattleLaunch.assembleLaunch(
+        let launch = PlayBattleLaunchTestSupport.assemble(
             input: BattleLaunchInput(
                 hero: hero,
                 companion: companion,
@@ -83,7 +83,7 @@ struct PlayBattleLaunchTests {
             #require(GameContent.nodeModifier(id: NodeModifierID("ironPressure"))),
         ]
 
-        let launch = PlayBattleLaunch.assembleLaunch(
+        let launch = PlayBattleLaunchTestSupport.assemble(
             input: BattleLaunchInput(
                 hero: hero,
                 companion: companion,
@@ -131,7 +131,7 @@ struct PlayBattleLaunchTests {
         let enemy = try #require(GameContent.enemy(matching: battleEnemyID)?.combatant)
         let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wishingWell: 2])
 
-        let launch = PlayBattleLaunch.assembleLaunch(
+        let launch = PlayBattleLaunchTestSupport.assemble(
             input: BattleLaunchInput(
                 hero: knight,
                 companion: wolf,
@@ -164,7 +164,7 @@ struct PlayBattleLaunchTests {
 
         let (knight, wolf) = try knightAndWolf()
 
-        let configuration = PlayBattleLaunch.assembleLaunch(
+        let configuration = PlayBattleLaunchTestSupport.assemble(
             input: BattleLaunchInput(
                 hero: knight,
                 companion: wolf,
@@ -192,7 +192,7 @@ struct PlayBattleLaunchTests {
             materialRewards: [ResourceAmount(.wood, 8), ResourceAmount(.stone, 3)],
         )
 
-        let launch = PlayBattleLaunch.assembleLaunch(
+        let launch = PlayBattleLaunchTestSupport.assemble(
             input: BattleLaunchInput(
                 hero: knight,
                 companion: wolf,

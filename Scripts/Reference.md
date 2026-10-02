@@ -8,12 +8,18 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 |---|---|
 | `./Scripts/generate.sh [--assets [--kind art\|cinematic\|music\|sfx\|app-icon\|all]] [--skip-xcodegen]` | Generate the Xcode project without cache reuse and authored derived content (`--assets` also prepares art/music/SFX/cinematics; `--kind` prepares one asset kind; `--skip-xcodegen` runs content/asset codegen only) |
 | `./Scripts/build.sh` | Compile only the app; `--release-device` verifies unsigned iOS Release compilation |
-| `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; add `--status` for global dirty counts and exact scoped status; add `--smoke` to preview the smoke route; use `--full` for path inventory, route metadata, and full commands and `--working-tree --allow-broad-scope` only intentionally |
+| `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; `--status` adds global dirty counts and exact scoped status; `--fingerprints` adds whole-file identities for reusing guidance actually read in this chat; `--smoke` previews the smoke route; `--full` adds path inventory, route metadata, and full commands; `--working-tree --allow-broad-scope` is intentional whole-tree work |
 | `python3 Scripts/agent-search.py <pattern> --scope <owner>` | Authored-first discovery: matching filenames/counts by default; plain identifiers rank exact stems, filename words/prefixes, then declarations before references outside docs; `--offset`/`--expect` continuations avoid repeats and reject changed results; `--overview` pages owner counts/entry points; `--files` searches filenames (`--mode assets --files` includes binary media names); `--excerpts` for bounded lines, `--mode tests`, `docs`, or `generated` for other surfaces; omissions are explicit |
 | `python3 Scripts/agent-diff.py --paths <files...>` | Paged authored diffs plus generated statistics; `--summary` adds generated talent/affix/Homestead record hints with explicit unsupported-format fallback; `--generated` expands generated patches; `--staged` reviews the index; `--full` intentionally reads all units |
-| `python3 Scripts/agent-read.py <file>[#anchor]` | Complete Markdown sections; `--outline` lists headings or Swift/Python declarations; `--signatures` shows source headers/comments without bodies; `--kind <category>` and `--match <text>` filter navigation; repeat `--symbol <name>` for complete declarations; `--lines START:END` reads an explicit range; large unanchored docs require `--full` |
+| `python3 Scripts/agent-read.py <file>[#anchor] …` | Batch complete Markdown sections with shared flags; `--outline` lists headings or Swift/Python declarations; `--signatures`, `--kind`, and `--match` filter source navigation; repeat `--symbol` for complete declarations; `--lines START:END` also reads shell/config text; `--fingerprint` identifies displayed file bytes; large unanchored docs require `--full` |
+| `python3 Scripts/agent-search.py --files --glob '<pattern>' --scope <owner>` | Explicit case-sensitive shell filename pattern; `*` crosses directories and patterns without `/` also match basenames; filters and fingerprinted pagination are unchanged; default filename patterns remain regexes |
+| `python3 Scripts/agent-search.py <identifier> --related --scope <owner>` | Interleaved declaration/reference/test-file hints within supplied scopes; textual mentions do not establish semantic ownership or coverage; authored source and tests only, with bounded pages |
+| `python3 Scripts/agent-search.py '<concern>' --task` | Player-facing concern lookup with source, contract and test pointers plus a routing command; [task index](config/agent-tasks.json) contains navigation only; related lookup supplements mentions with scoped curated test pointers |
+| `python3 Scripts/agent-read.py <guide>[#anchor] --receipt /tmp/<chat>.json --chat <id>` | Record successfully displayed complete Markdown reads; use the same options before router `--paths` to annotate unchanged reads; [receipt limits](../Docs/AgentContext/Retrieval.md#chat-local-read-receipts) |
+| `python3 Scripts/agent-efficiency.py probe --root <snapshot> --output <report.json>` | Read-only representative retrieval workflows; `compare <before.json> <after.json>` checks matching inputs and compares characters/commands, or measured complete-task reports; [protocol and results](../.agents/evals/token-efficiency.md) |
+| `python3 Scripts/agent-efficiency.py prepare --root <snapshot> --output <trial.json>` | Create unmeasured complete-task scenarios; `collect <trial.json> --output <report.json>` validates independently judged results and imports actual exported per-response usage; missing usage remains unmeasured |
 | `python3 Scripts/content-inspect.py --id <id>` | Inspect authored content by exact ID, player-facing `--name <text>`, or canonical `--trigger <field>`; `--references` follows parsed fields to schemas, rule anchors, authored Swift and tests; record and reference pages disclose omissions; `--full` expands record fields |
-| `node Scripts/agent-worktree.mjs create --task <slug>` | Optional worktree under `.worktrees/<slug>` on `agent/<slug>`; checkout policy lives in [AGENTS.md](../AGENTS.md#protect-the-workspace) |
+| `node Scripts/agent-worktree.mjs create --task <slug>` | Alternate checkout for an explicitly requested worktree or disposable evaluation, under `.worktrees/<slug>` on `agent/<slug>`; ordinary work stays in the primary checkout on `main` under [AGENTS.md](../AGENTS.md#protect-the-workspace) |
 | `node Scripts/agent-worktree.mjs legacy-detach create <slug>` | Legacy sibling `../Trinket-<slug>` checkout, detached at HEAD |
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an active execution plan with an advisory review date under `Docs/Plans/`; completed outcomes go in `Docs/Plans/Archived/README.md` and the full plan is deleted |
 | `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |
@@ -24,20 +30,25 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 
 ### Verification
 
+Routine local checks perform no Swift compilation or Simulator/GPU tests.
+Use focused static/script checks and handoff. Compiled test wrappers require
+CI or an expressly requested `TRINKET_ALLOW_HEAVY_LOCAL=1` diagnostic. Your
+normal Simulator run remains available and uses two local build workers.
+
 | Command | Purpose |
 |---|---|
 | `./Scripts/assert-generated-output.sh [--regenerate] [--assets] [--strict-assets] --idempotent` | Confirm regeneration produces no diff (`--regenerate` runs `generate.sh` first; `--assets` includes art/music/SFX/cinematic outputs; `--strict-assets` fingerprints full media trees) |
-| `./Scripts/build-for-testing.sh` | Rebuild app and package schemes for `test.sh … --no-build` runs against CI build artifacts |
+| `./Scripts/build-for-testing.sh` | CI-owned compilation of app/package test schemes for `test.sh … --no-build` runs against CI build artifacts |
 | `./Scripts/build-for-testing.sh --app-only` | Build the app and UI test bundles, skipping package test schemes (CI shared build) |
-| `./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination …] [--iterations …] [--run-tests-until-failure] [--include-balance-sweep-tests] [--quiet] [--verbose] <Package> [Package...]` | Run one or more packages' tests on iOS Simulator; `--destination` allows simulator name/UUID overrides, rejects other platforms, and cannot combine with generic `--build-for-testing`; `--iterations` and `--run-tests-until-failure` support bounded diagnostic repetition; multiple packages emit an aggregate failure summary with retained report paths, `--verbose` expands worker output |
-| `./Scripts/test.sh unit [--no-build] [--app-only] [--quiet] [--verbose]` | Run all package unit suites via the parallel `test-package.sh` owner (`--app-only` is a compile-only app build) |
+| `./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination …] [--iterations …] [--run-tests-until-failure] [--include-balance-sweep-tests] [--quiet] [--verbose] <Package> [Package...]` | CI-owned package tests on iOS Simulator; `--destination` allows simulator name/UUID overrides, rejects other platforms, and cannot combine with generic `--build-for-testing`; `--iterations` and `--run-tests-until-failure` support bounded diagnostic repetition; multiple packages emit an aggregate failure summary with retained report paths, `--verbose` expands worker output |
+| `./Scripts/test.sh unit [--no-build] [--app-only] [--quiet] [--verbose]` | CI-owned package unit suites via the parallel `test-package.sh` owner (`--app-only` is a compile-only app build) |
 | `./Scripts/test.sh style [--no-build]` | Run the style gate (format/lint/UI style/API bans/exclusivity/invariants/accessibility IDs) |
 | `./Scripts/test.sh performance [--scenario …] [--group …]` | List/run the performance matrix via `performance.sh` selection |
-| `./Scripts/test.sh smoke [--no-build]` | Run the checked-in smoke registry |
-| `./Scripts/test.sh smoke <Class...>` | Run targeted smoke classes |
-| `./Scripts/test.sh ui <Target>` | Run one exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
-| `./Scripts/handoff.sh --isolate --quiet --paths …` | Canonical path-scoped source gate (headless by default); composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` runs targeted UI smoke, `--mirror` installs on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure, `--keep-plan` permits an unfinished plan with `--final`, `--working-tree` opts into whole-tree classification; `--quiet` retains child logs and prints one outcome per phase plus bounded failures |
-| `./Scripts/ci-gate.sh` | Full gate; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition) |
+| `./Scripts/test.sh smoke [--no-build]` | CI-owned checked-in smoke registry |
+| `./Scripts/test.sh smoke <Class...>` | CI-owned targeted smoke classes |
+| `./Scripts/test.sh ui <Target>` | CI-owned exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
+| `./Scripts/handoff.sh --isolate --quiet --paths …` | Lightweight local gate; compiled/simulator/generation checks are reported as CI-owned; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` reports targeted UI ownership, `--mirror` requires an expressly requested heavy-local opt-in before installing on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure, `--keep-plan` permits an unfinished plan with `--final`, `--working-tree` opts into whole-tree classification; `--quiet` retains child logs and prints one outcome per phase plus bounded failures |
+| `./Scripts/ci-gate.sh` | CI-owned full gate; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition) |
 | `./Scripts/ci-gate.sh --fast` | Run only the ordered commands in [the cheap-slice registry](config/cheap-slices.txt); skips generation and style |
 | `./Scripts/test-scripts.sh [--skip-docs] [--fast] [--paths <file> …]` | Script syntax/regressions with leaf-family selection (`script_test_selection.py`); runs docs unless the caller already checked them |
 | `python3 ./Scripts/check-docs.py [--final] [--keep-plan] [--paths <file> …]` | Check links and structure globally; `--paths` scopes final active-plan closure only. Plan expiration is advisory; `check-plans.py` accepts the same flags |
@@ -46,14 +57,18 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 ### Headless playthroughs
 
 Manual only; [scope, evidence, and interpretation](../Docs/Platform/HeadlessPlaythroughs.md).
+These Simulator careers compile a test product and require an expressly requested
+local diagnostic under [execution limits](../Docs/Platform/Verification.md#execution-limits).
+Help remains a read-only query without the opt-in.
 
 ```sh
-./Scripts/playthrough-sweep.sh --scenarios 4 --seed 42 --horizon 2
-./Scripts/playthrough-sweep.sh --mode contracts --full-access --horizon 10 --policy setupAware-v1
-./Scripts/playthrough-sweep.sh --scenario PlaythroughReports/example/career-0000/scenario.json
-./Scripts/playthrough-sweep.sh --replay-bundle PlaythroughReports/example/career-0000
-./Scripts/playthrough-sweep.sh --crash-proof
-./Scripts/playthrough-sweep.sh --baseline PlaythroughReports/baseline/report.json --scenarios 4 --seed 42 --horizon 2
+./Scripts/playthrough-sweep.sh --help
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/playthrough-sweep.sh --scenarios 4 --seed 42 --horizon 2
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/playthrough-sweep.sh --mode contracts --full-access --horizon 10 --policy setupAware-v1
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/playthrough-sweep.sh --scenario PlaythroughReports/example/career-0000/scenario.json
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/playthrough-sweep.sh --replay-bundle PlaythroughReports/example/career-0000
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/playthrough-sweep.sh --crash-proof
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/playthrough-sweep.sh --baseline PlaythroughReports/baseline/report.json --scenarios 4 --seed 42 --horizon 2
 ```
 
 `--output` must name a new directory (default `PlaythroughReports/<timestamp>`).
@@ -76,11 +91,15 @@ reserve `report.json` plus worker evidence for targeted diagnostics.
 
 ### Release
 
+Requested local release and TestFlight execution use `TRINKET_ALLOW_HEAVY_LOCAL=1`
+for their required deploy suites; doctor and dry-run need no opt-in. See
+[Release](../Docs/Platform/Release.md) for complete examples and prerequisites.
+
 | Command | Purpose |
 |---|---|
 | `./Scripts/setup-testflight.sh` | Install local Ruby/Bundler/Fastlane tooling with locked gems; [configuration](../Docs/Platform/Release.md#one-time-testflight-setup) stays outside Git |
 | `./Scripts/testflight.sh [--doctor \| --dry-run \| --resume RUN] [--config FILE] [--notes FILE] [--cloud-sync YES\|NO] [--timeout SECONDS]` | Verify a clean checkout, archive/sign, upload, and confirm internal TestFlight availability; retain evidence for recovery; no Git mutations or review submission |
-| `./Scripts/test-deploy.sh [--mode smoke\|ui] [--no-build]` | Pre-release deploy verification (`release.sh` calls this); `--mode smoke` is an optional canary |
+| `./Scripts/test-deploy.sh [--mode smoke\|ui] [--no-build]` | CI-owned full deploy suites (deliberate local diagnostic opt-in required); `--mode smoke` is an optional canary |
 | `./Scripts/release.sh [--version X.Y.Z] [--since-tag TAG] [--skip-tests] [--dry-run] [--no-tag]` | Preview or execute a release (`--version` pins semver, `--since-tag` sets the notes range, `--skip-tests` skips deploy verification, `--no-tag` commits without tagging) |
 
 ### Diagnostics
@@ -91,7 +110,7 @@ reserve `report.json` plus worker evidence for targeted diagnostics.
 | `python3 ./Scripts/test-timing.py show --last 10` | Show recent run IDs, outcomes, targets, and result-bundle availability without hotspot output |
 | `python3 ./Scripts/test-timing.py record --mode … --run …` | Record one timing entry from a result bundle |
 | `python3 ./Scripts/test-timing.py assert-budget` | Fail when recorded timings exceed the configured budget |
-| `./Scripts/performance.sh [--scenario ID] [--group GROUP] [--list]` | Ad hoc app + battle performance matrix (not CI); `--list` prints scenarios/groups, default is one pass |
+| `./Scripts/performance.sh [--scenario ID] [--group GROUP] [--list]` | CI-owned manual app + battle performance matrix (`performance.yml` dispatch); `--list` prints scenarios/groups, default is one pass |
 | `./Scripts/record-time-profiler.sh --output <path.trace> [--time-limit 8s] [--attach Trinket] [--all-processes] [--print-command]` | Host Time Profiler of the Trinket process (no `xctrace --device`; `--all-processes` is opt-in and slow; `--print-command` prints without recording) |
 | `./Scripts/agent-watch-ci.sh [--ref <branch>] [--sha …] [--scope standard\|exhaustive] [--poll-seconds <n>] [--verbose]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
 | `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate the current diagnostics session (`--reset` clears it) |
@@ -170,25 +189,27 @@ as well as the Xcode version. An older Xcode command-line build can succeed even
 when its GUI cannot open on a newer macOS. macOS updates do not replace a separately
 installed `Xcode-beta.app`; update Xcode itself and then verify command-line selection.
 
-For release verification, use the matching stable installation explicitly without
+For release artifacts, use the matching stable installation explicitly without
 changing global `xcode-select`. These examples assume the conventional app names;
 check the reported version/build and substitute the actual installed path:
 
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -version
-DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer ./Scripts/handoff.sh --isolate --quiet --paths <files...>
 DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer xcodebuild -version
-DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer ./Scripts/handoff.sh --isolate --quiet --paths <files...>
 ```
 
-The second handoff is prerelease evidence, not release qualification. Confirm the
-simulator runtime separately; an existing managed device can use a different OS
+Version queries and lightweight handoff do not compile Swift or validate a runtime.
+Use CI evidence or an expressly requested local diagnostic under
+[Verification](../Docs/Platform/Verification.md#execution-limits) for those claims.
+Beta compile/runtime results remain prerelease evidence, not release qualification.
+Confirm the simulator runtime separately; an existing managed device can use a different OS
 than the SDK. `--no-build` rejects missing metadata or incompatible build environments; CI also
 checks the producing commit and rebuilds incompatible transferred products. Leave `SDKROOT`
 unset unless the owning workflow requires it so SDK and compiler stay aligned.
 
-If the simulator
-toolchain is unavailable, run the non-simulator checks that the host supports
-(`generate.sh`, generated-output assertion, boundaries, style, and `ci-gate.sh`)
-and explicitly report skipped build/test work. Do not claim full verification
-until the routed build and test commands pass with the required Xcode toolchain.
+If the simulator toolchain is unavailable, run lightweight path-scoped handoff
+and report the CI-owned build/test evidence as pending. Generation and the full
+CI gate are not toolchain-free fallbacks: content generation can compile the
+ability-inventory tool, and the full gate requires the heavy-verification route.
+Do not claim full verification until the routed compiled checks have passed with
+the required toolchain.

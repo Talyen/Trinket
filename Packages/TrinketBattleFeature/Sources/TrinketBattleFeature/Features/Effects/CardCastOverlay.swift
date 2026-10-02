@@ -116,7 +116,9 @@ struct CardActivationRequest: Equatable, Identifiable {
             result.append(keyword)
         }
         self.keywords = uniqueKeywords.isEmpty ? [.physical] : uniqueKeywords
-        particles = CardActivationParticle.make(count: particleCount)
+        particles = particleCount == BattleMotion.cardCastParticleCount
+            ? CardActivationParticle.castParticles
+            : CardActivationParticle.make(count: particleCount)
     }
 
     static func restingRequest(
@@ -247,10 +249,6 @@ struct CardCastPresentationLane: View {
 }
 
 public struct CardCastEffectsPrewarmView: View {
-    private static let prewarmParticles = CardActivationParticle.make(
-        count: BattleMotion.cardCastParticleCount,
-    )
-
     public var artworkName: String?
     private let isRenderingEnabled: Bool
     private let onComplete: () -> Void
@@ -258,6 +256,7 @@ public struct CardCastEffectsPrewarmView: View {
 
     @State private var startDate: Date?
     @State private var preparedArtworkName: String?
+    @State private var pinnedArtworkNames: [String] = []
     @State private var areResourcesPrepared = false
 
     public init(
@@ -278,7 +277,7 @@ public struct CardCastEffectsPrewarmView: View {
                         progress: cardActivationProgress(elapsed: timeline.date.timeIntervalSince(startDate)),
                         keywords: [.physical],
                         size: cardSize,
-                        particles: Self.prewarmParticles,
+                        particles: CardActivationParticle.castParticles,
                     ) {
                         BattleAbilityCardFace(artworkName: artworkName)
                     }
@@ -297,11 +296,12 @@ public struct CardCastEffectsPrewarmView: View {
             releaseArtwork()
             async let textures: Void = CardDissolveTexture.prepare()
             if let artworkName {
-                await PreparedArtworkCache.shared.prepareAndPin(names: [artworkName])
+                let acquired = await PreparedArtworkCache.shared.prepareAndPin(names: [artworkName])
                 guard !Task.isCancelled else {
-                    PreparedArtworkCache.shared.releasePins(names: [artworkName])
+                    PreparedArtworkCache.shared.releasePins(names: acquired)
                     return
                 }
+                pinnedArtworkNames = acquired
                 preparedArtworkName = artworkName
             }
             await textures
@@ -334,9 +334,8 @@ public struct CardCastEffectsPrewarmView: View {
     }
 
     private func releaseArtwork() {
-        if let preparedArtworkName {
-            PreparedArtworkCache.shared.releasePins(names: [preparedArtworkName])
-            self.preparedArtworkName = nil
-        }
+        PreparedArtworkCache.shared.releasePins(names: pinnedArtworkNames)
+        pinnedArtworkNames = []
+        preparedArtworkName = nil
     }
 }

@@ -93,7 +93,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public var effects: [Effect] {
-        targetedEffects.map(\.effect)
+        operations.compactMap { $0.targetedEffect?.effect }
     }
 
     public init(
@@ -175,48 +175,46 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public var generatedDescription: String {
-        AbilityDescriptionFormatter.format(self)
+        storage.generatedDescription(for: self)
     }
 
     public var directDamage: Int {
-        damageComponents
+        operations.lazy.compactMap(\.damageComponent)
             .filter { $0.target == .abilityTarget }
             .reduce(0) { $0 + $1.amount }
     }
 
     public var damageKeyword: Keyword {
-        let targetComponents = damageComponents.filter { $0.target == .abilityTarget }
-        let keywords = Set(targetComponents.map(\.keyword))
-        if keywords.count == 1, let keyword = keywords.first {
-            return keyword
-        }
-        return targetComponents.first?.keyword ?? .physical
+        operations.lazy.compactMap(\.damageComponent)
+            .first { $0.target == .abilityTarget }?.keyword ?? .physical
     }
 
     public var keywords: [Keyword] {
-        var result = damageComponents.map(\.keyword)
-        appendNonDamageKeywords(to: &result)
-        return result
+        storage.keywords(identityOnly: false) {
+            var result = operations.compactMap { $0.damageComponent?.keyword }
+            appendNonDamageKeywords(to: &result)
+            return result
+        }
     }
 
     public var presentationKeywords: [Keyword] {
-        var result = keywords
-        for keyword in Keyword.referenced(in: summary) where !result.contains(keyword) {
-            result.append(keyword)
-        }
-        return result
+        storage.presentationKeywords(for: self)
     }
 
     public var identityKeywords: [Keyword] {
-        var result = damageComponents
-            .filter { $0.condition == nil || $0.bonusAmount > 0 }
-            .map(\.keyword)
-        appendNonDamageKeywords(to: &result, identityOnly: true)
-        return result
+        storage.keywords(identityOnly: true) {
+            var result = operations.compactMap { operation -> Keyword? in
+                guard let component = operation.damageComponent,
+                      component.condition == nil || component.bonusAmount > 0 else { return nil }
+                return component.keyword
+            }
+            appendNonDamageKeywords(to: &result, identityOnly: true)
+            return result
+        }
     }
 
     private func appendNonDamageKeywords(to result: inout [Keyword], identityOnly: Bool = false) {
-        for targetedEffect in targetedEffects {
+        for targetedEffect in operations.lazy.compactMap(\.targetedEffect) {
             result.append(targetedEffect.effect.keyword)
             if case .blessedAegis = targetedEffect.effect {
                 result.append(.block)
@@ -224,12 +222,12 @@ public struct Ability: Identifiable, Hashable, Sendable {
         }
         if let branches = outcomeBranches {
             for branch in branches {
-                result.append(contentsOf: branch.damageComponents.map(\.keyword))
-                result.append(contentsOf: branch.targetedEffects.map(\.effect.keyword))
+                result.append(contentsOf: branch.operations.lazy.compactMap(\.damageComponent).map(\.keyword))
+                result.append(contentsOf: branch.operations.lazy.compactMap(\.targetedEffect).map(\.effect.keyword))
             }
         }
         if let conditionalOutcome, !identityOnly || conditionalOutcome.contributesToIdentity {
-            result.append(contentsOf: conditionalOutcome.operations.map(\.keyword))
+            result.append(contentsOf: conditionalOutcome.operations.lazy.map(\.keyword))
         }
         if hasLeech {
             result.append(.leech)
@@ -303,6 +301,12 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public var dealsCombatDamage: Bool {
-        possibleOperations.contains { $0.damageKeyword != nil }
+        if let outcomeBranches {
+            return outcomeBranches.contains { branch in
+                branch.operations.contains { $0.damageKeyword != nil }
+            }
+        }
+        return operations.contains { $0.damageKeyword != nil }
+            || (conditionalOutcome?.operations.contains { $0.damageKeyword != nil } ?? false)
     }
 }

@@ -40,7 +40,10 @@ def main() -> int:
             record["sourceLog"] = str(path.relative_to(args.results_dir))
             records.append(record)
 
-    records.sort(key=lambda item: (str(item.get("scenario")), int(item.get("iteration", 0))))
+    # Keep malformed iterations in the evidence; the schema validator owns
+    # their rejection. Sorting must not prevent reports.json from being saved.
+    records.sort(key=lambda item: (str(item.get("scenario")),
+                                  item["iteration"] if type(item.get("iteration")) is int else 0))
     environment_path = args.results_dir.parent / "environment.json"
     environment = json.loads(environment_path.read_text()) if environment_path.exists() else {}
     for record in records:

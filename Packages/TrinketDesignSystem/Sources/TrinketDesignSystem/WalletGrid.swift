@@ -26,30 +26,49 @@ private struct TrinketWalletGridLayout: Layout {
     var horizontalSpacing: CGFloat
     var verticalSpacing: CGFloat
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache _: inout ()) -> CGSize {
-        arrangement(proposal: proposal, subviews: subviews).size
+    struct Cache {
+        var idealSizes: [CGSize]
+        var proposedWidth: CGFloat?
+        var arrangement: Arrangement?
     }
 
-    func placeSubviews(in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache _: inout ()) {
-        let placed = arrangement(proposal: ProposedViewSize(bounds.size), subviews: subviews)
+    func makeCache(subviews: Subviews) -> Cache {
+        Cache(idealSizes: subviews.map { $0.sizeThatFits(.unspecified) })
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews _: Subviews, cache: inout Cache) -> CGSize {
+        arrangement(proposal: proposal, cache: &cache).size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache: inout Cache) {
+        let placed = arrangement(proposal: ProposedViewSize(bounds.size), cache: &cache)
         for (index, subview) in subviews.enumerated() {
             let frame = placed.frames[index]
             subview.place(at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY), proposal: ProposedViewSize(frame.size))
         }
     }
 
-    private struct Arrangement {
+    struct Arrangement {
         var size: CGSize
         var frames: [CGRect]
     }
 
-    private func arrangement(proposal: ProposedViewSize, subviews: Subviews) -> Arrangement {
-        let itemCount = subviews.count
+    private func arrangement(proposal: ProposedViewSize, cache: inout Cache) -> Arrangement {
+        if let arrangement = cache.arrangement, cache.proposedWidth == proposal.width {
+            return arrangement
+        }
+        let result = arrangement(proposal: proposal, idealSizes: cache.idealSizes)
+        cache.proposedWidth = proposal.width
+        cache.arrangement = result
+        return result
+    }
+
+    private func arrangement(proposal: ProposedViewSize, idealSizes: [CGSize]) -> Arrangement {
+        let itemCount = idealSizes.count
         guard itemCount > 0 else { return Arrangement(size: .zero, frames: []) }
 
         let columns = max(1, min(columnCount, itemCount))
         let rows = (itemCount + columns - 1) / columns
-        let idealSizes = subviews.map { $0.sizeThatFits(.unspecified) }
         let columnGaps = horizontalSpacing * CGFloat(columns - 1)
 
         var idealColumnWidths = Array(repeating: CGFloat(0), count: columns)

@@ -36,22 +36,24 @@ struct CardDissolveConfiguration {
     var particleFadeExponent: CGFloat = 1.35
     var particlePathControl: CGFloat = 0.45
 
-    func sample(progress: CGFloat, noise: DissolveParticleNoise) -> DissolveParticleSample {
-        let distance = particleDistance + noise.distance * particleDistanceVariation
+    func sample(progress: CGFloat, noise: DissolveParticleNoise) -> DissolveParticleSample? {
         let delay = noise.delay * particleDelay
         let lifetime = max(particleLifetime + noise.lifetime * particleLifetimeVariation, 0.01)
         let age = min(max((progress - delay) / lifetime, 0), 1)
-        let easedAge = 1 - pow(1 - age, max(particleAgeEasePower, 0.01))
+        guard progress >= delay, age < 1 else { return nil }
         let diameter = max(
             0,
             (particleSize + noise.size * particleSizeVariation)
                 * (1 - age * particleSizeShrink),
         )
+        guard diameter > 0 else { return nil }
         let resolvedFadeStart = min(max(fadeStart + noise.fade * fadeStartVariation, 0), 0.99)
         let fadeProgress = max(0, (age - resolvedFadeStart) / (1 - resolvedFadeStart))
-        let opacity = progress >= delay && age < 1
-            ? Double(pow(1 - fadeProgress, max(particleFadeExponent, 0.01)))
-            : 0
+        let opacity = Double(pow(1 - fadeProgress, max(particleFadeExponent, 0.01)))
+        guard opacity > 0 else { return nil }
+        // Keep visible samples exact; expired or not-yet-born particles need no motion math.
+        let distance = particleDistance + noise.distance * particleDistanceVariation
+        let easedAge = 1 - pow(1 - age, max(particleAgeEasePower, 0.01))
         return DissolveParticleSample(
             distance: distance,
             easedAge: easedAge,
@@ -68,6 +70,8 @@ struct CardActivationParticle: Equatable {
     let motionNoise: DissolveParticleNoise
     let curveNoise: CGFloat
     let colorNoise: CGFloat
+
+    static let castParticles = make(count: BattleMotion.cardCastParticleCount)
 
     static func make(count: Int) -> [Self] {
         (0 ..< max(0, count)).map { index in
@@ -101,7 +105,7 @@ struct CardActivationParticles: View {
         Canvas { context, size in
             guard !keywords.isEmpty else { return }
             for particle in particles {
-                let sample = sample(for: particle, size: size)
+                guard let sample = sample(for: particle, size: size) else { continue }
                 context.fillParticle(
                     center: sample.center,
                     diameter: sample.diameter,
@@ -119,8 +123,8 @@ struct CardActivationParticles: View {
         let opacity: Double
     }
 
-    private func sample(for particle: CardActivationParticle, size: CGSize) -> Sample {
-        let motion = configuration.sample(progress: progress, noise: particle.motionNoise)
+    private func sample(for particle: CardActivationParticle, size: CGSize) -> Sample? {
+        guard let motion = configuration.sample(progress: progress, noise: particle.motionNoise) else { return nil }
         let curve = (particle.curveNoise - 0.5) * motion.distance * configuration.particleCurve
         let center = curvedPosition(
             from: particleOrigin(particle, size: size),

@@ -16,3 +16,6 @@ interpretation in `TrinketBattleFeature`. Do not unit-test AVFoundation playback
 real device audio output. Test routing/mapping logic and audio-actor lifecycle policy
 with controlled backends; keep native engine behavior in the system backend. Current
 playback behavior is documented in `Packages/TrinketAppState/README.md`.
+
+Stopping or releasing SFX invalidates earlier queued requests and pending decodes.
+Later requests retain ordinary ordering and wait for that invalidation to finish.
