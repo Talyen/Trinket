@@ -3,14 +3,14 @@ import TrinketFeatureSupport
 import XCTest
 
 final class FullGamePurchaseSmokeTests: FullGameStoreKitUITestCase {
-    func testPurchaseUnlocksWarlockDetail() throws {
+    func testPurchaseAllowsRecruitedWarlockDetail() throws {
         try skipUnavailablePurchaseAutomation()
         try launchOptionsOffer()
         tapButton(AccessibilityID.FullGame.purchase)
         assertDoesNotExist(AccessibilityID.FullGame.offer, timeout: 10)
         assertDoesNotExist(AccessibilityID.FullGame.options, timeout: 10)
 
-        assertWarlockUnlocked()
+        assertWarlockAccessible()
         tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
         combatantDetail.assertLoaded(for: "Warlock")
     }

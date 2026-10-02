@@ -29,19 +29,20 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
 
     func launchOptionsOffer() throws {
         try startStoreSession()
-        launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
+        // Recruitment is earned separately; the seed isolates paid content access.
+        launchApp(arguments: TestLaunchArg.allForTab("options"))
         assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
         tapButton(AccessibilityID.FullGame.options)
         assertExists(AccessibilityID.FullGame.offer)
         assertPurchaseProductLoaded()
     }
 
-    func assertWarlockUnlocked() {
+    func assertWarlockAccessible() {
         tabBar.selectCollection()
         tapButton(AccessibilityID.Collection.heroesCategory)
         let card = AccessibilityID.CombatantDetail.collectionCard(name: "Warlock")
         assertExistsAfterScroll(card, requireHittable: true)
-        XCTAssertFalse(button(card).label.hasSuffix(", locked"), "Full Game must unlock Warlock in Collection")
+        XCTAssertFalse(button(card).label.hasSuffix(", locked"), "Full Game must permit access to the recruited Warlock")
     }
 
     func assertPurchaseProductLoaded() {

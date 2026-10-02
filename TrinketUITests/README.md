@@ -86,7 +86,7 @@ Assert a journey’s return destination before using helpers that navigate elsew
 - In performance journeys, capture and verify scroll probes outside `measured`.
   Establish a newly opened scroll surface before capturing its probes; measure
   its gestures separately when the scroll itself needs a frame report.
-- Required Full Game coverage includes one purchase-to-unlocked-character journey
+- Required Full Game coverage includes purchase access to an already-recruited premium character
   and a chapter offer-entry check. Ask to Buy, existing-entitlement cold launch, and recovery from simulated restore
   failure are advisory FullUI journeys. Tapping Restore while already unlocked does
   not prove restoration; real App Store restore still needs service/device evidence.
@@ -119,9 +119,11 @@ detail entry by `CollectionLoadoutUITests`. Character lock labels express the
 unlock contract because locked character cards remain enabled for inspection.
 
 Full Game's smoke purchase journey owns Warlock detail entry. Ask to Buy,
-existing-entitlement cold launch, and restore-failure recovery stop at the unlocked
-Collection card instead of repeating detail navigation. The shared assertion checks
-the card's lock label; a detail header alone does not prove roster unlock.
+existing-entitlement cold launch, and restore-failure recovery stop at the accessible
+Collection card instead of repeating detail navigation. These fixtures seed recruitment
+independently of StoreKit ownership. The shared assertion checks the card's lock
+label, which combines recruitment and purchase access. Purchase preserves the earned
+recruitment and progression rules in [Monetization](../Docs/Product/Monetization.md#access).
 
 The standalone Haptics preference journey is retired: it spent two app launches
 and a native-switch coordinate gesture on a low-impact Boolean preference. Options

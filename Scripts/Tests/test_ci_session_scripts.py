@@ -622,8 +622,10 @@ if [[ "$1" == run-env ]]; then
   trinket_track_test_guests
   guest_started=1
 fi
-bash -c 'trap "" INT TERM; printf "%s %s\\n" "$1" "$$"; while :; do sleep 1; done' _ "$resource" &
+bash -c 'trap "" INT TERM; printf ready > "$1/worker-ready"; while :; do sleep 1; done' _ "$2" &
 worker=$!
+while [[ ! -e "$2/worker-ready" ]]; do sleep 0.01; done
+printf '%s %s\\n' "$resource" "$worker"
 wait "$worker"
 echo continued > "$2/continued"
 '''
@@ -653,7 +655,8 @@ echo continued > "$2/continued"
         cases = [(owner, sig) for owner in ("lock", "run-env") for sig in (signal.SIGINT, signal.SIGTERM)]
         # Each process owns a separate fixture root and lease; only fake workers
         # run concurrently. Readiness comes from the child after installing its
-        # signal traps, so every case exercises forced cleanup rather than a race.
+        # signal traps and the parent stores its PID, so cancellation cannot
+        # interrupt the fixture before its EXIT assertion has a worker to inspect.
         with ThreadPoolExecutor(max_workers=len(cases)) as executor:
             futures = [executor.submit(check, case) for case in cases]
             for case, future in zip(cases, futures):

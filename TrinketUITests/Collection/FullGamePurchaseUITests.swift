@@ -18,7 +18,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         let pending = try XCTUnwrap(session.allTransactions().first { $0.state == .deferred })
         try session.approveAskToBuyTransaction(identifier: pending.identifier)
         assertDoesNotExist(AccessibilityID.FullGame.offer)
-        assertWarlockUnlocked()
+        assertWarlockAccessible()
     }
 
     @MainActor
@@ -27,9 +27,9 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         try startStoreSession()
         let session = try XCTUnwrap(storeSession)
         _ = try await session.buyProduct(identifier: "com.ryanmcintire.Trinket.fullgame")
-        launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
+        launchApp(arguments: TestLaunchArg.allForTab("options"))
         assertDoesNotExist(AccessibilityID.FullGame.options)
-        assertWarlockUnlocked()
+        assertWarlockAccessible()
     }
 
     @MainActor
@@ -38,7 +38,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         try startStoreSession()
         let session = try XCTUnwrap(storeSession)
         try await session.setSimulatedError(.generic(.networkError(URLError(.notConnectedToInternet))), forAPI: .appStoreSync)
-        launchApp(arguments: TestLaunchArg.allUnseeded() + ["-selectedTab", "options"])
+        launchApp(arguments: TestLaunchArg.allForTab("options"))
         assertExistsAfterScroll(AccessibilityID.FullGame.restore, requireHittable: true)
         tapButton(AccessibilityID.FullGame.restore)
         waitUntil("Restore left the control disabled") { self.button(AccessibilityID.FullGame.restore).isEnabled }
@@ -48,6 +48,6 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
         assertDoesNotExist(AccessibilityID.FullGame.offer)
-        assertWarlockUnlocked()
+        assertWarlockAccessible()
     }
 }
