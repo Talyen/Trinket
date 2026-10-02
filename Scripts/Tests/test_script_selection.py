@@ -172,7 +172,9 @@ class ScriptSelectionTests(unittest.TestCase):
                              '        self.fail("worker failure sentinel")\n')
             shell = tests / "test-peer.sh"
             shell.write_text('#!/bin/sh\ntouch shell-worker\necho shell failure sentinel\nexit 7\n')
-            last.write_text('from pathlib import Path\nPath("last-worker").touch()\n')
+            last.write_text('import unittest\nfrom pathlib import Path\n'
+                            'class Probe(unittest.TestCase):\n'
+                            '    def test_worker(self): Path("last-worker").touch()\n')
             environment = {**os.environ, "TRINKET_SCRIPT_TEST_JOBS": "2", "RESULTS_DIR": str(root / "logs")}
 
             def run():
