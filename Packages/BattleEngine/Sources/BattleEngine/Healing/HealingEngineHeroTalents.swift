@@ -11,10 +11,10 @@ extension HealingEngine {
         guard overflow > 0, triggers.overhealNextBurnBonus > 0 else { return }
         let preparedCardSerial = context.resolution.cardTalents?.playSerial
         context.roster.mutateRuntime(for: target) {
-            $0.talents.pending.nextBurnDamageBonus = max(
-                $0.talents.pending.nextBurnDamageBonus, triggers.overhealNextBurnBonus,
+            $0.talents.pending.nextBurnDamageBonus = PreparedTalentBonus(
+                value: max($0.talents.pending.nextBurnDamageBonus?.value ?? 0, triggers.overhealNextBurnBonus),
+                cardSerial: preparedCardSerial,
             )
-            $0.talents.pending.nextBurnDamagePreparedCardSerial = preparedCardSerial
         }
     }
 
@@ -134,11 +134,13 @@ extension HealingEngine {
         if triggers.healthRestoreNextIncomingDamageMultiplier < 1 {
             let serial = context.resolution.cardTalents?.playSerial
             context.roster.mutateRuntime(for: target) {
-                $0.talents.pending.nextIncomingDamageMultiplier = min(
-                    $0.talents.pending.nextIncomingDamageMultiplier,
-                    triggers.healthRestoreNextIncomingDamageMultiplier,
+                $0.talents.pending.nextIncomingDamageMultiplier = PreparedTalentBonus(
+                    value: min(
+                        $0.talents.pending.nextIncomingDamageMultiplier?.value ?? 1,
+                        triggers.healthRestoreNextIncomingDamageMultiplier,
+                    ),
+                    cardSerial: serial,
                 )
-                $0.talents.pending.nextIncomingDamagePreparedCardSerial = serial
             }
         }
         var events: [ActionEvent] = []
@@ -262,12 +264,10 @@ extension HealingEngine {
                 let serial = context.resolution.cardTalents?.playSerial
                 let actionID = context.resolution.actionID
                 context.roster.mutateRuntime(for: source) {
-                    $0.talents.pending.nextPoisonDamageBonus = max(
-                        $0.talents.pending.nextPoisonDamageBonus,
-                        sourceTriggers.healthRestoreNextPoisonBonus,
+                    $0.talents.pending.nextPoisonDamageBonus = PreparedTalentBonus(
+                        value: max($0.talents.pending.nextPoisonDamageBonus?.value ?? 0, sourceTriggers.healthRestoreNextPoisonBonus),
+                        cardSerial: serial, actionID: actionID,
                     )
-                    $0.talents.pending.nextPoisonDamagePreparedCardSerial = serial
-                    $0.talents.pending.nextPoisonDamagePreparedActionID = actionID
                 }
             }
             let canRoll = context.claimTalentAbility("healthRestorationChance", actorID: sourceActorID)

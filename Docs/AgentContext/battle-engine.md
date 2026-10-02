@@ -16,7 +16,15 @@ On-hit and reaction work is split on purpose:
 
 Do not fold those cadences into the pipeline or merge affix scalar fields on `CombatModifierProfile` with `triggers`; the dual channel is intentional.
 
-For a new effect kind, maintain registry parity. Existing handler and turn-processing
+`CombatModifierProfile.merge(_ modifier:)` exhaustively applies every `AffixModifier`.
+Keep this mapping single-owned and explicit so new modifier cases require a combat
+decision at compile time; `AffixModifier.apply(to:)` delegates to it.
+
+`EffectHandlers.handler(for:)` exhaustively selects a handler for every `EffectKind`;
+there is no optional registration or missing-handler recovery. Handlers implement
+behavior without declaring a second kind. Shared next-hit flag, Cleanse/Purge and resource-to-Block
+handlers select their operation from the incoming effect rather than a configured mode.
+For a new effect kind, add its dispatch case. Existing handler and turn-processing
 coverage may suffice; add or extend `EffectHandlersApplyTests` only for a consequential
 behavior gap. Use a thin integration case when a meaningful interaction cannot be
 proved by the existing owner. Apply [Testing.md](../Platform/Testing.md) for value,

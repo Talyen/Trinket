@@ -141,8 +141,6 @@ struct ModeProgressionToolingTests {
             isBoss: true,
         )
         let matchup = controller.makeMatchup(for: step, seed: 11)
-        #expect(controller.simulatedHeroLevel() == 20)
-        #expect(controller.simulatedCompanionLevel() == 20)
         let budget = CombatantProgression.at(level: 20).totalTalentPoints
         #expect(matchup.context.heroTalentIDs.count == budget)
         #expect(matchup.context.companionTalentIDs.count == budget)
@@ -197,9 +195,6 @@ struct ModeProgressionToolingTests {
     }
 
     @Test func `overleveled spire win awards no XP`() {
-        let controller = InterleavingPlayerController(
-            initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20),
-        )
         let step = ModeProgressionStep(
             id: "spire-step",
             mode: .spire,
@@ -211,12 +206,20 @@ struct ModeProgressionToolingTests {
             enemyLevel: 2,
             isBoss: false,
         )
+        let controller = InterleavingPlayerController(
+            campaignTracker: .init(steps: []),
+            spireTracker: .init(steps: [step]),
+            labyrinthTracker: .init(steps: []),
+            initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20),
+        )
+        #expect(controller.selectNextStep() == step)
         controller.recordOutcome(step: step, won: true)
         #expect(controller.state.heroLevel == 20)
         #expect(controller.state.companionLevel == 20)
         #expect(controller.state.heroXP == 0)
         #expect(controller.state.companionXP == 0)
-        #expect(controller.spireIndex == 1)
+        #expect(controller.isComplete)
+        #expect(controller.selectNextStep() == nil)
     }
 
     @Test func `mode progression report formatter renders summary`() {

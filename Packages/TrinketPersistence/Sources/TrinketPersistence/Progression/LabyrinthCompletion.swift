@@ -36,7 +36,7 @@ public enum LabyrinthCompletion {
         guard node.type.isCombat else { return nil }
         let level = encounterLevel ?? EncounterLevelResolver.labyrinthEnemyLevel(for: node)
         let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: node.enemyID)
-        return VictoryRewardApplier.resolveLoot(
+        return BattleLoot.resolve(
             .labyrinth(node: node, effects: effects),
             encounterLevel: level,
             enemyIsBoss: enemyIsBoss,

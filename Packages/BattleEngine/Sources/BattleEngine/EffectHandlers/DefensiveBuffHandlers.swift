@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketCore
 
 struct BlockBuffHandler: BattleEffectHandler {
-    let kind: EffectKind = .shield
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = DefensePoolEngine.blockPoints(in: stacks)
         guard total > 0 else { return nil }
@@ -33,19 +31,10 @@ struct BlockBuffHandler: BattleEffectHandler {
 }
 
 struct FlagEffectHandler: BattleEffectHandler {
-    let flag: Effect
-    let appliedEffectKind: ActionEvent.EffectOutcome
-    let amount: Int
-    let keyword: Keyword
-    let summaryText: String
-
-    var kind: EffectKind {
-        flag.kind
-    }
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        guard !stacks.isEmpty else { return nil }
-        return EffectSummary(keyword: keyword, text: summaryText)
+        guard let effect = stacks.first?.effect,
+              let text = EffectPresentation.battleSummaryPhrase(for: effect) else { return nil }
+        return EffectSummary(keyword: keyword, text: text)
     }
 
     func apply(
@@ -55,32 +44,30 @@ struct FlagEffectHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        guard effect == flag else {
-            return EffectApplyOutcome(events: [], didApply: false)
+        let event: (kind: ActionEvent.EffectOutcome, amount: Int)
+        switch effect {
+        case .nextHolyStrike: event = (.nextHolyStrikeApplied, 0)
+        case .nextStrikeDouble: event = (.nextStrikeDoubleApplied, 0)
+        case .evadeNextHit: event = (.evadeNextHitApplied, 0)
+        case .nextStrikeCritical: event = (.criticalChanceApplied, 100)
+        case .nextStrikeLeech: event = (.leechApplied, 0)
+        case .nextStrikeDamageKeywordOverride: event = (.damageKeywordOverrideApplied, 0)
+        case .freezeNextAttacker: event = (.controlApplied, 0)
+        default: return EffectApplyOutcome(events: [], didApply: false)
         }
         return ActiveEffectMutation.replaceAndEmit(
-            flag,
+            effect,
             to: target,
             source: source,
             ability: ability,
             in: &context,
-            replacing: { $0 == flag },
-            event: (appliedEffectKind, amount, keyword),
+            replacing: { $0 == effect },
+            event: (event.kind, event.amount, effect.keyword),
         )
     }
 }
 
 struct ShieldFromResourceHandler: BattleEffectHandler {
-    enum Mode {
-        case convertManaToBlock
-        case shieldFromMana
-        case shieldFromHalfMana
-        case shieldFromGold
-    }
-
-    let mode: Mode
-    let kind: EffectKind
-
     func apply(
         _ effect: Effect,
         ability: Ability,
@@ -88,13 +75,9 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        guard effect.kind == kind else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-
         let block: Int
         var payment: ManaPayment?
-        switch mode {
+        switch effect {
         case .convertManaToBlock:
             let mana = context.mana(of: target)
             guard mana > 0 else {
@@ -114,8 +97,8 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
                 return EffectApplyOutcome(events: [], didApply: false)
             }
             block = half
-        case .shieldFromGold:
-            guard case let .shieldFromGold(goldPerBlock) = effect, goldPerBlock > 0 else {
+        case let .shieldFromGold(goldPerBlock):
+            guard goldPerBlock > 0 else {
                 return EffectApplyOutcome(events: [], didApply: false)
             }
             let fromGold = context.gold / goldPerBlock
@@ -123,6 +106,8 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
                 return EffectApplyOutcome(events: [], didApply: false)
             }
             block = fromGold
+        default:
+            return EffectApplyOutcome(events: [], didApply: false)
         }
 
         let applied = context.applyBlockGain(

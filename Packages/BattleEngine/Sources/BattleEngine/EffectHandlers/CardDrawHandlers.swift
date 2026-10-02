@@ -9,8 +9,6 @@ private let cardDrawLogger = Logger(
 )
 
 struct DrawCardsHandler: BattleEffectHandler {
-    let kind: EffectKind = .drawCards
-
     func apply(
         _ effect: Effect,
         ability: Ability,
@@ -58,8 +56,6 @@ struct DrawCardsHandler: BattleEffectHandler {
 }
 
 struct DrawAndPlayCardsHandler: BattleEffectHandler {
-    let kind: EffectKind = .drawAndPlayCards
-
     func apply(
         _ effect: Effect,
         ability: Ability,

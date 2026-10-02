@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketCore
 
 struct ThornsHandler: BattleEffectHandler {
-    let kind: EffectKind = .thorns
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = TimedBuffSummary.summedAmount(in: stacks) { effect in
             if case let .thorns(amount) = effect {
@@ -46,8 +44,6 @@ struct ThornsHandler: BattleEffectHandler {
 }
 
 struct ThornsFromBlockFractionHandler: BattleEffectHandler {
-    let kind: EffectKind = .thornsFromBlockFraction
-
     func apply(
         _ effect: Effect,
         ability: Ability,
@@ -70,8 +66,6 @@ struct ThornsFromBlockFractionHandler: BattleEffectHandler {
 }
 
 struct OnHitDamageHandler: BattleEffectHandler {
-    let kind: EffectKind = .onHitDamage
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let amount = TimedBuffSummary.maxAmount(in: stacks) { effect in
             if case let .onHitDamage(_, value) = effect {
@@ -112,8 +106,6 @@ struct OnHitDamageHandler: BattleEffectHandler {
 }
 
 struct MarkedHandler: BattleEffectHandler {
-    let kind: EffectKind = .marked
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard !stacks.isEmpty else { return nil }
         let bonus = TimedBuffSummary.maxAmount(in: stacks) { effect in
@@ -160,8 +152,6 @@ struct MarkedHandler: BattleEffectHandler {
 }
 
 struct CriticalChanceBonusHandler: BattleEffectHandler {
-    let kind: EffectKind = .criticalChanceBonus
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let percent = TimedBuffSummary.maxPercent(in: stacks) { effect in
             if case let .criticalChanceBonus(value, _) = effect {
@@ -205,8 +195,6 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
 }
 
 struct RestoreManaOnHitHandler: BattleEffectHandler {
-    let kind: EffectKind = .restoreManaOnHit
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let amount = TimedBuffSummary.summedAmount(in: stacks) { effect in
             if case let .restoreManaOnHit(value, _) = effect {
@@ -253,8 +241,6 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
 }
 
 struct DamageKeywordOverrideHandler: BattleEffectHandler {
-    let kind: EffectKind = .damageKeywordOverride
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard let active = stacks.first,
               case let .damageKeywordOverride(overrideKeyword, bonus, _) = active.effect
@@ -294,8 +280,6 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
 }
 
 struct HemorrhageHandler: BattleEffectHandler {
-    let kind: EffectKind = .hemorrhage
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let amount = TimedBuffSummary.maxAmount(in: stacks) { effect in
             if case let .hemorrhage(value) = effect {
@@ -330,8 +314,6 @@ struct HemorrhageHandler: BattleEffectHandler {
 }
 
 struct NextBurnBonusHandler: BattleEffectHandler {
-    let kind: EffectKind = .nextBurnBonus
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = TimedBuffSummary.summedAmount(in: stacks) { effect in
             if case let .nextBurnBonus(amount) = effect {
@@ -373,8 +355,6 @@ struct NextBurnBonusHandler: BattleEffectHandler {
 }
 
 struct PartyDamageBonusHandler: BattleEffectHandler {
-    let kind: EffectKind = .partyDamageBonus
-
     func apply(
         _ effect: Effect,
         ability: Ability,

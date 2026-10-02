@@ -10,9 +10,7 @@ package extension DamagePipeline {
         let serial = context.resolution.cardTalents?.playSerial
         let actionID = context.resolution.actionID
         context.roster.mutateRuntime(for: source.combatant) {
-            $0.talents.pending.nextAttackGuaranteedCritical = true
-            $0.talents.pending.nextGuaranteedCriticalPreparedCardSerial = serial
-            $0.talents.pending.nextGuaranteedCriticalPreparedActionID = actionID
+            $0.talents.pending.nextAttackGuaranteedCritical = PreparedTalentBonus(value: true, cardSerial: serial, actionID: actionID)
         }
     }
 

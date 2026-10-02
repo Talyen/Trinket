@@ -1,170 +1,113 @@
 import Foundation
 
 public extension ItemAffixPower {
-    /// Applies a numeric rule to modifiers, then trigger fields in catalog order.
-    /// That order also determines which matching number in the description changes.
-    private func transformingMagnitudes(
-        percent: (Double) -> Double,
-        int: (Int) -> Int,
-    ) -> Self {
-        var description = description
-        let record: (Double, Double, Bool) -> Void = { old, new, isPercent in
-            description = Self.replacingMagnitude(
-                in: description,
-                from: old,
-                to: new,
-                isPercent: isPercent,
+    /// Modifiers precede trigger fields in catalog order, preserving seeded rolls
+    /// and corruption selection. Description bindings use that same order.
+    private var magnitudes: [(target: BumpTarget, value: AffixMagnitude)] {
+        modifiers.enumerated().map { index, modifier in
+            (
+                .modifier(index),
+                modifier.isPercent
+                    ? .percent(modifier.numericValue) : .int(Int(modifier.numericValue.rounded())),
             )
+        } + CombatTraitTriggers.affixMagnitudeFields.enumerated().map { index, field in
+            (.trigger(index), field.magnitude(in: triggers))
         }
-        let modifiers = mapModifierMagnitudes(percent: percent, int: int, record: record)
-        let triggers = triggers.mappingAffixMagnitudes(percent: percent, int: int, record: record)
-        return Self(description: description, modifiers: modifiers, triggers: triggers)
     }
 
-    private func mapModifierMagnitudes(
-        percent: (Double) -> Double,
-        int: (Int) -> Int,
-        record: (Double, Double, Bool) -> Void,
-    ) -> [AffixModifier] {
-        modifiers.map { modifier in
-            if modifier.isPercent {
-                let old = modifier.numericValue
-                guard old != 0 else { return modifier }
-                let new = percent(old)
-                if new != old {
-                    record(old, new, true)
+    private func transformingMagnitudes(
+        _ transform: (BumpTarget, AffixMagnitude) -> AffixMagnitude,
+    ) -> Self {
+        var modifiers = modifiers
+        var triggers = triggers
+        var text = AffixMagnitudeText(description)
+        for (target, old) in magnitudes {
+            let new = transform(target, old)
+            switch target {
+            case let .modifier(index):
+                switch new {
+                case let .int(value): modifiers[index] = modifiers[index].mapInt { _ in value }
+                case let .percent(value): modifiers[index] = modifiers[index].mapPercent { _ in value }
                 }
-                return modifier.mapPercent { _ in new }
+            case let .trigger(index):
+                CombatTraitTriggers.affixMagnitudeFields[index].set(new, in: &triggers)
             }
-            let old = Int(modifier.numericValue.rounded())
-            guard old != 0 else { return modifier }
-            let new = int(old)
-            if new != old {
-                record(Double(old), Double(new), false)
+            // Unchanged fields still claim their text so later equal values
+            // cannot overwrite them. Zero fields have no display magnitude.
+            if !old.isZero || new != old {
+                text.bind(old, to: new)
             }
-            return modifier.mapInt { _ in new }
         }
+        return Self(description: text.rendered, modifiers: modifiers, triggers: triggers)
     }
 
     func scaled(by multiplier: Int) -> Self {
         guard multiplier != 1 else { return self }
-        return transformingMagnitudes(
-            percent: { $0 * Double(multiplier) },
-            int: { $0 * multiplier },
-        )
+        return transformingMagnitudes { _, value in
+            value.map(percent: { $0 * Double(multiplier) }, int: { $0 * multiplier })
+        }
     }
 
     var hasRollableMagnitudes: Bool {
-        modifiers.contains { $0.numericValue != 0 } || triggers.hasRollableAffixMagnitudes
+        magnitudes.contains { !$0.value.isZero }
     }
 
     func rolled(using randomNumberGenerator: inout some RandomNumberGenerator) -> Self {
         guard hasRollableMagnitudes else { return self }
-        return transformingMagnitudes(
-            percent: {
-                ItemAffixMagnitudeRoll.percentValues(around: $0)
-                    .randomElement(using: &randomNumberGenerator) ?? $0
-            },
-            int: {
-                Int.random(
-                    in: ItemAffixMagnitudeRoll.integerRange(around: $0),
-                    using: &randomNumberGenerator,
-                )
-            },
-        )
+        return transformingMagnitudes { _, value in
+            guard !value.isZero else { return value }
+            return value.map(
+                percent: { ItemAffixMagnitudeRoll.percentValues(around: $0).randomElement(using: &randomNumberGenerator) ?? $0 },
+                int: { Int.random(in: ItemAffixMagnitudeRoll.integerRange(around: $0), using: &randomNumberGenerator) },
+            )
+        }
     }
 
     func rolledMax() -> Self {
         guard hasRollableMagnitudes else { return self }
-        return transformingMagnitudes(
-            percent: { ItemAffixMagnitudeRoll.percentValues(around: $0).max() ?? $0 },
-            int: { ItemAffixMagnitudeRoll.integerRange(around: $0).upperBound },
-        )
+        return transformingMagnitudes { _, value in value.isZero ? value : value.rollMax }
     }
 
     func isAtOrAboveRollMax(of catalog: Self) -> Bool {
         guard catalog.hasRollableMagnitudes else { return false }
-        for (index, catalogModifier) in catalog.modifiers.enumerated() where catalogModifier.numericValue != 0 {
-            guard modifiers.indices.contains(index) else { return false }
-            if catalogModifier.isPercent {
-                let maximum = ItemAffixMagnitudeRoll.percentValues(around: catalogModifier.numericValue).max()
-                    ?? catalogModifier.numericValue
-                if modifiers[index].numericValue + 1e-9 < maximum {
-                    return false
-                }
-            } else {
-                let maximum = ItemAffixMagnitudeRoll.integerRange(
-                    around: Int(catalogModifier.numericValue.rounded()),
-                ).upperBound
-                if Int(modifiers[index].numericValue.rounded()) < maximum {
-                    return false
-                }
-            }
+        let actual = magnitudes
+        return catalog.magnitudes.allSatisfy { target, value in
+            guard !value.isZero else { return true }
+            guard let current = actual.first(where: { $0.target.matches(target) })?.value else { return false }
+            return current.isAtOrAbove(value.rollMax)
         }
-        return triggers.affixMagnitudesAreAtOrAboveRollMax(of: catalog.triggers)
     }
 
     func hasBumpableField(direction: ItemAffixPowerBumpDirection) -> Bool {
-        modifiers.contains { $0.bumped(intDelta: direction.intDelta, percentDelta: direction.percentDelta) != nil }
-            || triggers.hasBumpableAffixMagnitude(direction: direction)
+        !bumpCandidates(direction: direction).isEmpty
     }
 
     enum BumpTarget: Sendable {
         case modifier(Int)
         case trigger(Int)
+
+        fileprivate func matches(_ other: Self) -> Bool {
+            switch (self, other) {
+            case let (.modifier(lhs), .modifier(rhs)), let (.trigger(lhs), .trigger(rhs)): lhs == rhs
+            default: false
+            }
+        }
     }
 
     func bumpCandidates(direction: ItemAffixPowerBumpDirection) -> [BumpTarget] {
-        var candidates: [BumpTarget] = []
-        for (index, modifier) in modifiers.enumerated()
-            where modifier.bumped(intDelta: direction.intDelta, percentDelta: direction.percentDelta) != nil {
-            candidates.append(.modifier(index))
+        magnitudes.compactMap { target, value in
+            // Zero modifiers can be increased; inactive triggers cannot.
+            if case .trigger = target, !value.isPositive {
+                return nil
+            }
+            return value.bumped(direction: direction) == nil ? nil : target
         }
-        for (index, field) in CombatTraitTriggers.affixMagnitudeFields.enumerated()
-            where field.canBump(in: triggers, direction: direction) {
-            candidates.append(.trigger(index))
-        }
-        return candidates
     }
 
-    func bumped(target: BumpTarget, direction: ItemAffixPowerBumpDirection) -> ItemAffixPower {
-        var modifiers = modifiers
-        var triggers = triggers
-        var description = description
-
-        switch target {
-        case let .modifier(index):
-            guard modifiers.indices.contains(index),
-                  let bumpedModifier = modifiers[index].bumped(
-                      intDelta: direction.intDelta,
-                      percentDelta: direction.percentDelta,
-                  ) else {
-                return self
-            }
-            let old = modifiers[index].numericValue
-            let new = bumpedModifier.numericValue
-            modifiers[index] = bumpedModifier
-            description = Self.replacingMagnitude(
-                in: description,
-                from: old,
-                to: new,
-                isPercent: modifiers[index].isPercent,
-            )
-
-        case let .trigger(index):
-            guard CombatTraitTriggers.affixMagnitudeFields.indices.contains(index) else { return self }
-            let field = CombatTraitTriggers.affixMagnitudeFields[index]
-            field.bump(in: &triggers, direction: direction) { old, new, isPercent in
-                description = Self.replacingMagnitude(
-                    in: description,
-                    from: old,
-                    to: new,
-                    isPercent: isPercent,
-                )
-            }
+    func bumped(target: BumpTarget, direction: ItemAffixPowerBumpDirection) -> Self {
+        transformingMagnitudes { candidate, value in
+            candidate.matches(target) ? value.bumped(direction: direction) ?? value : value
         }
-
-        return ItemAffixPower(description: description, modifiers: modifiers, triggers: triggers)
     }
 
     static func hasBumpableField(in powers: [ItemAffixPower], direction: ItemAffixPowerBumpDirection) -> Bool {
@@ -177,62 +120,14 @@ public extension ItemAffixPower {
         affixIDs: [String],
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> (title: String, affixIndex: Int)? {
-        var candidates: [(powerIndex: Int, target: BumpTarget)] = []
-        for (powerIndex, power) in powers.enumerated() {
-            for target in power.bumpCandidates(direction: direction) {
-                candidates.append((powerIndex, target))
-            }
+        let candidates = powers.enumerated().flatMap { index, power in
+            power.bumpCandidates(direction: direction).map { (powerIndex: index, target: $0) }
         }
-        guard let pick = candidates.randomElement(using: &randomNumberGenerator) else {
-            return nil
-        }
+        guard let pick = candidates.randomElement(using: &randomNumberGenerator) else { return nil }
         powers[pick.powerIndex] = powers[pick.powerIndex].bumped(target: pick.target, direction: direction)
         let title = GameContent.itemAffixDefinition(matching: affixIDs[pick.powerIndex])?.title
             ?? affixIDs[pick.powerIndex]
         return (title, pick.powerIndex)
-    }
-
-    private static func replacingMagnitude(
-        in description: String,
-        from old: Double,
-        to new: Double,
-        isPercent: Bool,
-    ) -> String {
-        let oldText = isPercent ? "\(Int((old * 100).rounded()))%" : "\(Int(old.rounded()))"
-        let newText = isPercent ? "\(Int((new * 100).rounded()))%" : "\(Int(new.rounded()))"
-        var magnitudeRange: Range<String.Index>?
-        var searchStart = description.startIndex
-        while let range = description.range(of: oldText, range: searchStart ..< description.endIndex) {
-            let hasDigitBefore = range.lowerBound > description.startIndex
-                && description[description.index(before: range.lowerBound)].isNumber
-            let hasDigitAfter = range.upperBound < description.endIndex
-                && description[range.upperBound].isNumber
-            let trailingText = description[range.upperBound...]
-            let isHealthThreshold = isPercent && trailingText.hasPrefix(" Health")
-            if !hasDigitBefore, !hasDigitAfter, !isHealthThreshold {
-                magnitudeRange = range
-                break
-            }
-            searchStart = range.upperBound
-        }
-        if !isPercent {
-            let quantity = old == 1 ? "(?:a|1)" : oldText
-            let suffix = old == 1 ? "" : "s"
-            let statusRange = description.range(
-                of: "\\b\(quantity) (?:buff|debuff)\(suffix)\\b",
-                options: .regularExpression,
-            )
-            // Preserve magnitude order while treating "a buff" as a count of one.
-            if let statusRange, magnitudeRange.map({ statusRange.lowerBound <= $0.lowerBound }) ?? true {
-                let noun = description[statusRange].contains("debuff") ? "debuff" : "buff"
-                let replacement = new == 1 ? "a \(noun)" : "\(newText) \(noun)s"
-                return description.replacingCharacters(in: statusRange, with: replacement)
-            }
-        }
-        if let magnitudeRange {
-            return description.replacingCharacters(in: magnitudeRange, with: newText)
-        }
-        return description
     }
 }
 
@@ -266,31 +161,105 @@ public enum ItemAffixMagnitudeRoll: Sendable {
     }
 }
 
-private extension CombatTraitTriggers {
-    var hasRollableAffixMagnitudes: Bool {
-        Self.affixMagnitudeFields.contains { $0.isNonzero(in: self) }
+private enum AffixMagnitude: Equatable {
+    case int(Int)
+    case percent(Double)
+
+    var isZero: Bool {
+        self == .int(0) || self == .percent(0)
     }
 
-    func mappingAffixMagnitudes(
-        percent: (Double) -> Double,
-        int: (Int) -> Int,
-        record: (Double, Double, Bool) -> Void,
-    ) -> Self {
-        var mapped = self
-        for field in Self.affixMagnitudeFields {
-            field.map(in: &mapped, percent: percent, int: int, record: record)
-        }
-        return mapped
-    }
-
-    func hasBumpableAffixMagnitude(direction: ItemAffixPowerBumpDirection) -> Bool {
-        Self.affixMagnitudeFields.contains { field in
-            field.canBump(in: self, direction: direction)
+    var isPositive: Bool {
+        switch self {
+        case let .int(value): value > 0
+        case let .percent(value): value > 0
         }
     }
 
-    func affixMagnitudesAreAtOrAboveRollMax(of catalog: Self) -> Bool {
-        Self.affixMagnitudeFields.allSatisfy { $0.isAtOrAboveRollMax(in: self, of: catalog) }
+    var text: String {
+        switch self {
+        case let .int(value): "\(value)"
+        case let .percent(value): "\(Int((value * 100).rounded()))%"
+        }
+    }
+
+    func map(percent: (Double) -> Double, int: (Int) -> Int) -> Self {
+        switch self {
+        case let .int(value): .int(int(value))
+        case let .percent(value): .percent(percent(value))
+        }
+    }
+
+    var rollMax: Self {
+        map(
+            percent: { ItemAffixMagnitudeRoll.percentValues(around: $0).max() ?? $0 },
+            int: { ItemAffixMagnitudeRoll.integerRange(around: $0).upperBound },
+        )
+    }
+
+    func isAtOrAbove(_ other: Self) -> Bool {
+        switch (self, other) {
+        case let (.int(value), .int(maximum)): value >= maximum
+        case let (.percent(value), .percent(maximum)): value + 1e-9 >= maximum
+        default: false
+        }
+    }
+
+    func bumped(direction: ItemAffixPowerBumpDirection) -> Self? {
+        switch self {
+        case let .int(value):
+            direction == .up || value > 1 ? .int(value + direction.intDelta) : nil
+        case let .percent(value):
+            direction == .up || value > 0.01 + 1e-9 ? .percent(value + direction.percentDelta) : nil
+        }
+    }
+}
+
+/// Claims ranges in the original description, then applies edits back to front.
+/// Rolled values never become search input for another field.
+private struct AffixMagnitudeText {
+    let original: String
+    var bindings: [(range: Range<String.Index>, replacement: String)] = []
+
+    init(_ original: String) {
+        self.original = original
+    }
+
+    mutating func bind(_ old: AffixMagnitude, to new: AffixMagnitude) {
+        let pattern: String
+        switch old {
+        case let .int(value):
+            let quantity = value == 1 ? "(?:a|1)" : old.text
+            let suffix = value == 1 ? "" : "s"
+            pattern = "(?<!\\d)(?:\\b\(quantity) (?:buff|debuff)\(suffix)\\b|\(old.text)(?![\\d%]))"
+        case .percent:
+            pattern = "(?<!\\d)\(old.text)(?!\\d| Health)"
+        }
+        var start = original.startIndex
+        while let range = original.range(of: pattern, options: .regularExpression, range: start ..< original.endIndex) {
+            start = range.upperBound
+            guard !bindings.contains(where: { $0.range.overlaps(range) }) else { continue }
+            let matched = original[range]
+            let replacement: String
+            if new == old {
+                replacement = String(matched)
+            } else if case .int = old, matched.contains("buff") {
+                let noun = matched.contains("debuff") ? "debuff" : "buff"
+                replacement = new == .int(1) ? "a \(noun)" : "\(new.text) \(noun)s"
+            } else {
+                replacement = new.text
+            }
+            bindings.append((range, replacement))
+            return
+        }
+    }
+
+    var rendered: String {
+        var result = original
+        for (range, replacement) in bindings.sorted(by: { $0.range.lowerBound > $1.range.lowerBound }) {
+            result.replaceSubrange(range, with: replacement)
+        }
+        return result
     }
 }
 
@@ -301,93 +270,28 @@ extension CombatTraitTriggers {
 
         var fieldName: String {
             switch self {
-            case let .int(_, name), let .percent(_, name):
-                name
+            case let .int(_, name), let .percent(_, name): name
             }
         }
 
-        func isNonzero(in triggers: CombatTraitTriggers) -> Bool {
+        fileprivate func magnitude(in triggers: CombatTraitTriggers) -> AffixMagnitude {
             switch self {
-            case let .int(keyPath, _):
-                triggers[keyPath: keyPath] != 0
-            case let .percent(keyPath, _):
-                triggers[keyPath: keyPath] != 0
+            case let .int(keyPath, _): .int(triggers[keyPath: keyPath])
+            case let .percent(keyPath, _): .percent(triggers[keyPath: keyPath])
             }
         }
 
-        func map(
-            in triggers: inout CombatTraitTriggers,
-            percent: (Double) -> Double,
-            int: (Int) -> Int,
-            record: (Double, Double, Bool) -> Void,
-        ) {
-            switch self {
-            case let .int(keyPath, _):
-                let old = triggers[keyPath: keyPath]
-                guard old != 0 else { return }
-                let new = int(old)
-                triggers[keyPath: keyPath] = new
-                if new != old {
-                    record(Double(old), Double(new), false)
-                }
-            case let .percent(keyPath, _):
-                let old = triggers[keyPath: keyPath]
-                guard old != 0 else { return }
-                let new = percent(old)
-                triggers[keyPath: keyPath] = new
-                if new != old {
-                    record(old, new, true)
-                }
-            }
-        }
-
-        func isAtOrAboveRollMax(in triggers: CombatTraitTriggers, of catalog: CombatTraitTriggers) -> Bool {
-            switch self {
-            case let .int(keyPath, _):
-                let value = catalog[keyPath: keyPath]
-                return value == 0 || triggers[keyPath: keyPath] >= ItemAffixMagnitudeRoll.integerRange(around: value).upperBound
-            case let .percent(keyPath, _):
-                let value = catalog[keyPath: keyPath]
-                let maximum = ItemAffixMagnitudeRoll.percentValues(around: value).max() ?? value
-                return value == 0 || triggers[keyPath: keyPath] + 1e-9 >= maximum
-            }
-        }
-
-        func canBump(in triggers: CombatTraitTriggers, direction: ItemAffixPowerBumpDirection) -> Bool {
-            switch self {
-            case let .int(keyPath, _):
-                let value = triggers[keyPath: keyPath]
-                return value > 0 && (direction == .up || value > 1)
-            case let .percent(keyPath, _):
-                let value = triggers[keyPath: keyPath]
-                return value > 0 && (direction == .up || value > 0.01 + 1e-9)
-            }
-        }
-
-        func bump(
-            in triggers: inout CombatTraitTriggers,
-            direction: ItemAffixPowerBumpDirection,
-            record: (Double, Double, Bool) -> Void,
-        ) {
-            switch self {
-            case let .int(keyPath, _):
-                let old = triggers[keyPath: keyPath]
-                let new = old + direction.intDelta
-                triggers[keyPath: keyPath] = new
-                record(Double(old), Double(new), false)
-            case let .percent(keyPath, _):
-                let old = triggers[keyPath: keyPath]
-                let new = old + direction.percentDelta
-                triggers[keyPath: keyPath] = new
-                record(old, new, true)
+        fileprivate func set(_ magnitude: AffixMagnitude, in triggers: inout CombatTraitTriggers) {
+            switch (self, magnitude) {
+            case let (.int(keyPath, _), .int(value)): triggers[keyPath: keyPath] = value
+            case let (.percent(keyPath, _), .percent(value)): triggers[keyPath: keyPath] = value
+            default: preconditionFailure("Affix transformations must preserve magnitude kind")
             }
         }
     }
 }
 
 public extension CombatTraitTriggers {
-    /// Names of rollable trigger magnitudes. Pair with the excused-fields set
-    /// generated from the trigger schema for the full contract: every populated
-    /// affix trigger field must be rollable or explicitly excused.
+    /// Every populated affix trigger field must be rollable or explicitly excused.
     static let affixMagnitudeFieldNames: Set<String> = Set(affixMagnitudeFields.map(\.fieldName))
 }

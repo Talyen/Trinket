@@ -20,7 +20,7 @@ struct ConfoundingLootRegressionTests {
             ))
             #expect(outcome.isCritical)
             #expect(battle.gold == expectedGold)
-            #expect(battle.roster.companion.talents.pending.nextAttackCriticalBonus == 0.20)
+            #expect(battle.roster.companion.talents.pending.nextAttackCriticalBonus?.value == 0.20)
         }
     }
 }

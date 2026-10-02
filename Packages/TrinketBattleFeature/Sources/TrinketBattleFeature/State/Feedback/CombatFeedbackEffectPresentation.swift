@@ -11,7 +11,9 @@ enum CombatFeedbackEffectPresentation {
         case hidden
     }
 
-    enum LabelRule {
+    enum LabelRule: Equatable {
+        case none
+        case status(CombatFeedbackStatusLabel)
         case amount
         case negatedAmount
         case dodgeWord
@@ -27,22 +29,19 @@ enum CombatFeedbackEffectPresentation {
         let feedbackClass: CombatFeedbackClass
         let visualRole: CombatFeedbackVisualRole
         let isAdditive: Bool
-        let statusLabel: CombatFeedbackStatusLabel?
-        let labelRule: LabelRule?
+        let labelRule: LabelRule
         let displayRule: DisplayRule
 
         init(
             _ feedbackClass: CombatFeedbackClass,
             visualRole: CombatFeedbackVisualRole = .keyword,
             isAdditive: Bool = false,
-            statusLabel: CombatFeedbackStatusLabel? = nil,
-            labelRule: LabelRule? = nil,
+            labelRule: LabelRule,
             displayRule: DisplayRule = .visible,
         ) {
             self.feedbackClass = feedbackClass
             self.visualRole = visualRole
             self.isAdditive = isAdditive
-            self.statusLabel = statusLabel
             self.labelRule = labelRule
             self.displayRule = displayRule
         }
@@ -92,61 +91,77 @@ enum CombatFeedbackEffectPresentation {
         }
     }
 
-    private static let table: [ActionEvent.EffectOutcome: Descriptor] = [
-        .instantHeal: Descriptor(.heal, isAdditive: true, labelRule: .amount),
-        .overheal: Descriptor(.heal, isAdditive: true, labelRule: .amount),
-        .leechHeal: Descriptor(.heal, isAdditive: true, labelRule: .amount),
-        .resourceGain: Descriptor(
-            .resource,
-            isAdditive: true,
-            labelRule: .amount,
-            displayRule: .positiveAmountOnly,
-        ),
-        .manaShieldTriggered: Descriptor(.resource, isAdditive: true, labelRule: .amount),
-        .cardsDrawn: Descriptor(
-            .resource,
-            isAdditive: true,
-            labelRule: .amount,
-            displayRule: .hidden,
-        ),
-        .partyDamagePreparationApplied: Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .amount),
-        .blockSpent: Descriptor(.buff, labelRule: .negatedAmount),
-        .blockStripped: Descriptor(.block, labelRule: .negatedAmount),
-        .shieldApplied: Descriptor(.buff, isAdditive: true, labelRule: .amount),
-        .shieldAbsorbed: Descriptor(.block, isAdditive: true, labelRule: .negatedAmount),
-        .dodgeApplied: Descriptor(.dodge, labelRule: .dodgeWord),
-        .controlActionSkipped: Descriptor(.control, labelRule: .plainKeyword),
-        .controlApplied: Descriptor(.control, labelRule: .appliedKeyword, displayRule: .hidden),
-        .controlTriggered: Descriptor(.control, labelRule: .triggeredKeyword),
-        .cleanseApplied: Descriptor(.buff, labelRule: .cleanseKeyword),
-        .purgeApplied: Descriptor(.buff, labelRule: .purgeKeyword),
-        .deathsDoorTriggered: Descriptor(.deathsDoor, labelRule: .deathsDoorIcon),
-        .deathsDoorExpired: Descriptor(.deathsDoor, labelRule: .deathsDoorIcon),
-        .thornsTriggered: Descriptor(.directDamage, isAdditive: true, labelRule: .negatedAmount),
-        .markedConsumed: Descriptor(.directDamage, displayRule: .hidden),
-        .leechApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .leech),
-        .shieldHalved: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .blockDown),
-        .thornsApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .thorns),
-        .markedApplied: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .marked),
-        .criticalChanceApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .criticalUp),
-        .manaShieldApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .manaShield),
-        .damageKeywordOverrideApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .consecrated),
-        .nextHolyStrikeApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .nextHolyStrike),
-        .nextStrikeDoubleApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .nextStrikeDouble),
-        .nextBurnBonusApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .kindled),
-        .evadeNextHitApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .evadeNextHit),
-        .wardApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .ward),
-        .avatarApplied: Descriptor(.buff, visualRole: .beneficialStatus, statusLabel: .avatar),
-        .recurringDamageApplied: Descriptor(.dot, labelRule: .appliedKeyword),
-        .dotAmplified: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .amplified),
-        .hemorrhageApplied: Descriptor(.buff, visualRole: .negativeStatus, statusLabel: .hemorrhage),
-        .hemorrhageTriggered: Descriptor(.directDamage, isAdditive: true, labelRule: .negatedAmount),
-    ]
-
+    // swiftlint:disable:next function_body_length - one exhaustive mapping makes new outcomes require a presentation policy at compile time
     static func descriptor(for effectKind: ActionEvent.EffectOutcome) -> Descriptor {
-        guard let descriptor = table[effectKind] else {
-            preconditionFailure("Every EffectOutcome needs a presentation entry; missing \(effectKind)")
+        switch effectKind {
+        case .instantHeal, .overheal, .leechHeal:
+            Descriptor(.heal, isAdditive: true, labelRule: .amount)
+        case .resourceGain:
+            Descriptor(.resource, isAdditive: true, labelRule: .amount, displayRule: .positiveAmountOnly)
+        case .manaShieldTriggered:
+            Descriptor(.resource, isAdditive: true, labelRule: .amount)
+        case .cardsDrawn:
+            Descriptor(.resource, isAdditive: true, labelRule: .amount, displayRule: .hidden)
+        case .partyDamagePreparationApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .amount)
+        case .blockSpent:
+            Descriptor(.buff, labelRule: .negatedAmount)
+        case .blockStripped:
+            Descriptor(.block, labelRule: .negatedAmount)
+        case .shieldApplied:
+            Descriptor(.buff, isAdditive: true, labelRule: .amount)
+        case .shieldAbsorbed:
+            Descriptor(.block, isAdditive: true, labelRule: .negatedAmount)
+        case .dodgeApplied:
+            Descriptor(.dodge, labelRule: .dodgeWord)
+        case .controlActionSkipped:
+            Descriptor(.control, labelRule: .plainKeyword)
+        case .controlApplied:
+            Descriptor(.control, labelRule: .appliedKeyword, displayRule: .hidden)
+        case .controlTriggered:
+            Descriptor(.control, labelRule: .triggeredKeyword)
+        case .cleanseApplied:
+            Descriptor(.buff, labelRule: .cleanseKeyword)
+        case .purgeApplied:
+            Descriptor(.buff, labelRule: .purgeKeyword)
+        case .deathsDoorTriggered, .deathsDoorExpired:
+            Descriptor(.deathsDoor, labelRule: .deathsDoorIcon)
+        case .thornsTriggered, .hemorrhageTriggered:
+            Descriptor(.directDamage, isAdditive: true, labelRule: .negatedAmount)
+        case .markedConsumed:
+            Descriptor(.directDamage, labelRule: .none, displayRule: .hidden)
+        case .leechApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.leech))
+        case .shieldHalved:
+            Descriptor(.buff, visualRole: .negativeStatus, labelRule: .status(.blockDown))
+        case .thornsApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.thorns))
+        case .markedApplied:
+            Descriptor(.buff, visualRole: .negativeStatus, labelRule: .status(.marked))
+        case .criticalChanceApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.criticalUp))
+        case .manaShieldApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.manaShield))
+        case .damageKeywordOverrideApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.consecrated))
+        case .nextHolyStrikeApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.nextHolyStrike))
+        case .nextStrikeDoubleApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.nextStrikeDouble))
+        case .nextBurnBonusApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.kindled))
+        case .evadeNextHitApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.evadeNextHit))
+        case .wardApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.ward))
+        case .avatarApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.avatar))
+        case .recurringDamageApplied:
+            Descriptor(.dot, labelRule: .appliedKeyword)
+        case .dotAmplified:
+            Descriptor(.buff, visualRole: .negativeStatus, labelRule: .status(.amplified))
+        case .hemorrhageApplied:
+            Descriptor(.buff, visualRole: .negativeStatus, labelRule: .status(.hemorrhage))
         }
-        return descriptor
     }
 }

@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -34,22 +33,26 @@ public struct PlayerProgressionState: Equatable, Codable, Sendable {
     }
 }
 
-public final class InterleavingPlayerController {
-    public let hero: Combatant
-    public let companion: Combatant
-    public let campaignTracker: ModeProgressionTracker
-    public let spireTracker: ModeProgressionTracker
-    public let labyrinthTracker: ModeProgressionTracker
+final class InterleavingPlayerController {
+    private let hero: Combatant
+    private let companion: Combatant
+    private(set) var state: PlayerProgressionState
 
-    public private(set) var state: PlayerProgressionState
-    public private(set) var campaignIndex = 0
-    public private(set) var spireIndex = 0
-    public private(set) var labyrinthIndex = 0
+    private struct ModeProgress {
+        let mode: SimulationGameMode
+        let steps: [ModeProgressionStep]
+        var nextIndex = 0
+        var consecutiveLosses = 0
 
-    private var consecutiveLosses: [SimulationGameMode: Int] = [:]
-    private var lastModeIndex = -1
+        var nextStep: ModeProgressionStep? {
+            steps.indices.contains(nextIndex) ? steps[nextIndex] : nil
+        }
+    }
 
-    public init(
+    private var modes: [ModeProgress]
+    private var lastEligibleModeIndex = -1
+
+    init(
         hero: Combatant = GameContent.heroes[0],
         companion: Combatant = GameContent.companions[0],
         campaignTracker: ModeProgressionTracker = ModeProgressionTracker.campaign(),
@@ -59,59 +62,46 @@ public final class InterleavingPlayerController {
     ) {
         self.hero = hero
         self.companion = companion
-        self.campaignTracker = campaignTracker
-        self.spireTracker = spireTracker
-        self.labyrinthTracker = labyrinthTracker
+        modes = SimulationGameMode.allCases.map { mode in
+            let tracker = switch mode {
+            case .campaign: campaignTracker
+            case .spire: spireTracker
+            case .labyrinth: labyrinthTracker
+            }
+            return ModeProgress(mode: mode, steps: tracker.steps)
+        }
         state = initialState
     }
 
-    public var isComplete: Bool {
-        campaignIndex >= campaignTracker.steps.count &&
-            spireIndex >= spireTracker.steps.count &&
-            labyrinthIndex >= labyrinthTracker.steps.count
+    var isComplete: Bool {
+        modes.allSatisfy { $0.nextStep == nil }
     }
 
-    public func selectNextStep() -> ModeProgressionStep? {
-        guard !isComplete else { return nil }
+    func selectNextStep() -> ModeProgressionStep? {
+        let available = modes.indices.filter { modes[$0].nextStep != nil }
+        guard !available.isEmpty else { return nil }
 
-        let availableModes: [SimulationGameMode] = SimulationGameMode.allCases.filter { mode in
-            switch mode {
-            case .campaign: campaignIndex < campaignTracker.steps.count
-            case .spire: spireIndex < spireTracker.steps.count
-            case .labyrinth: labyrinthIndex < labyrinthTracker.steps.count
+        let unblocked = available.filter { modes[$0].consecutiveLosses < 2 }
+        let eligible = unblocked.isEmpty ? available : unblocked
+        if unblocked.isEmpty {
+            for index in available {
+                modes[index].consecutiveLosses = 0
             }
         }
 
-        guard !availableModes.isEmpty else { return nil }
-
-        let unblockedModes = availableModes.filter { (consecutiveLosses[$0] ?? 0) < 2 }
-        let eligibleModes = unblockedModes.isEmpty ? availableModes : unblockedModes
-
-        if unblockedModes.isEmpty {
-            for mode in availableModes {
-                consecutiveLosses[mode] = 0
-            }
-        }
-
-        lastModeIndex = (lastModeIndex + 1) % eligibleModes.count
-        let selectedMode = eligibleModes[lastModeIndex]
-
-        switch selectedMode {
-        case .campaign:
-            return campaignTracker.steps[campaignIndex]
-        case .spire:
-            return spireTracker.steps[spireIndex]
-        case .labyrinth:
-            return labyrinthTracker.steps[labyrinthIndex]
-        }
+        lastEligibleModeIndex = (lastEligibleModeIndex + 1) % eligible.count
+        return modes[eligible[lastEligibleModeIndex]].nextStep
     }
 
-    public func recordOutcome(step: ModeProgressionStep, won: Bool) {
+    func recordOutcome(step: ModeProgressionStep, won: Bool) {
+        guard let modeIndex = modes.firstIndex(where: { $0.mode == step.mode }) else {
+            preconditionFailure("Every simulation mode must have progression state")
+        }
         state.totalBattles += 1
 
         if won {
             state.battlesWon += 1
-            consecutiveLosses[step.mode] = 0
+            modes[modeIndex].consecutiveLosses = 0
 
             let highestLevel = max(state.heroLevel, state.companionLevel)
             let resolvedEnemyLevel = encounterLevel(for: step)
@@ -144,106 +134,60 @@ public final class InterleavingPlayerController {
             state.companionLevel = companionProg.level
             state.companionXP = companionProg.currentXP
 
-            switch step.mode {
-            case .campaign: campaignIndex += 1
-            case .spire: spireIndex += 1
-            case .labyrinth: labyrinthIndex += 1
-            }
+            modes[modeIndex].nextIndex += 1
         } else {
-            let losses = (consecutiveLosses[step.mode] ?? 0) + 1
-            consecutiveLosses[step.mode] = losses
-            if losses == 2 {
+            modes[modeIndex].consecutiveLosses += 1
+            if modes[modeIndex].consecutiveLosses == 2 {
                 state.modeBounces += 1
             }
         }
     }
 
-    public func makeMatchup(
+    func makeMatchup(
         for step: ModeProgressionStep,
         seed: UInt64,
     ) -> ConfiguredSimulationMatchup {
         var rng = SeededRandomNumberGenerator(seed: seed)
-
         let enemy = GameContent.enemy(matching: step.enemyID) ?? GameContent.enemies[0]
-
-        let party = preparePartyMatchup(step: step, using: &rng)
+        let loadouts = SimulationMatchupBuilder.samplePartyLoadouts(hero: hero, companion: companion, using: &rng)
+        let powerTier = SimulationPowerTier.band(forLevel: state.heroLevel)
+        let keywordBias = step.keywordBias.map { Set([$0]) }
+        // Preserve draw order: both talent kits precede either starter-gear roll.
+        let heroTalents = SimulationMatchupBuilder.legalTalentKit(for: hero.id, level: state.heroLevel, using: &rng)
+        let companionTalents = SimulationMatchupBuilder.legalTalentKit(for: companion.id, level: state.companionLevel, using: &rng)
 
         return SimulationMatchupBuilder.build(
             hero: hero,
             companion: companion,
             enemy: enemy,
-            tier: party.powerTier,
-            heroLevel: party.heroLevel,
-            companionLevel: party.companionLevel,
-            enemyLevel: party.enemyLevel,
-            heroLoadout: party.heroLoadout,
-            companionLoadout: party.companionLoadout,
+            tier: powerTier,
+            heroLevel: state.heroLevel,
+            companionLevel: state.companionLevel,
+            enemyLevel: encounterLevel(for: step),
+            heroLoadout: loadouts.hero,
+            companionLoadout: loadouts.companion,
             seed: seed,
-            heroGear: party.heroGear,
-            companionGear: party.companionGear,
-            heroTalents: party.heroTalents,
-            companionTalents: party.companionTalents,
-            gearKeywordBias: party.keywordBias,
-        )
-    }
-
-    private struct PartyMatchupSetup {
-        var heroLevel: Int
-        var companionLevel: Int
-        var enemyLevel: Int
-        var powerTier: SimulationPowerTier
-        var heroLoadout: AbilityLoadout
-        var companionLoadout: AbilityLoadout
-        var heroTalents: Set<String>
-        var companionTalents: Set<String>
-        var heroGear: SimulationMatchupBuilder.GearOverride?
-        var companionGear: SimulationMatchupBuilder.GearOverride?
-        var keywordBias: Set<Keyword>?
-    }
-
-    private func preparePartyMatchup(
-        step: ModeProgressionStep,
-        using rng: inout some RandomNumberGenerator,
-    ) -> PartyMatchupSetup {
-        let partyLoadouts = SimulationMatchupBuilder.samplePartyLoadouts(
-            hero: hero,
-            companion: companion,
-            using: &rng,
-        )
-        let heroLevel = simulatedHeroLevel()
-        let companionLevel = simulatedCompanionLevel()
-        let powerTier = SimulationPowerTier.band(forLevel: heroLevel)
-        let enemyLevel = encounterLevel(for: step)
-        let keywordBias = step.keywordBias.map { Set([$0]) }
-
-        return PartyMatchupSetup(
-            heroLevel: heroLevel,
-            companionLevel: companionLevel,
-            enemyLevel: enemyLevel,
-            powerTier: powerTier,
-            heroLoadout: partyLoadouts.hero,
-            companionLoadout: partyLoadouts.companion,
-            heroTalents: SimulationMatchupBuilder.legalTalentKit(for: hero.id, level: heroLevel, using: &rng),
-            companionTalents: SimulationMatchupBuilder.legalTalentKit(for: companion.id, level: companionLevel, using: &rng),
             heroGear: SimulationMatchupBuilder.generateStarterGearIfNeeded(
                 for: hero,
-                loadout: partyLoadouts.hero,
+                loadout: loadouts.hero,
                 tier: powerTier,
-                level: heroLevel,
+                level: state.heroLevel,
                 idPrefix: "prog-hero",
                 gearKeywordBias: keywordBias,
                 using: &rng,
             ),
             companionGear: SimulationMatchupBuilder.generateStarterGearIfNeeded(
                 for: companion,
-                loadout: partyLoadouts.companion,
+                loadout: loadouts.companion,
                 tier: powerTier,
-                level: companionLevel,
+                level: state.companionLevel,
                 idPrefix: "prog-companion",
                 gearKeywordBias: keywordBias,
                 using: &rng,
             ),
-            keywordBias: keywordBias,
+            heroTalents: heroTalents,
+            companionTalents: companionTalents,
+            gearKeywordBias: keywordBias,
         )
     }
 
@@ -259,13 +203,5 @@ public final class InterleavingPlayerController {
         case .labyrinth:
             return EncounterLevelResolver.labyrinthAdjusted(step.enemyLevel, partyAverageLevel: partyAverage)
         }
-    }
-
-    public func simulatedHeroLevel() -> Int {
-        state.heroLevel
-    }
-
-    public func simulatedCompanionLevel() -> Int {
-        state.companionLevel
     }
 }

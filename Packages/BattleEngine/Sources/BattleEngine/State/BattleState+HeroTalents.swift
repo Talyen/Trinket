@@ -3,6 +3,18 @@ import TrinketCore
 
 /// Claim and cadence guards over `CombatResolution` for hero-talent reactions.
 package extension BattleState {
+    internal mutating func consumeTalentPreparation<Value>(
+        _ keyPath: WritableKeyPath<CombatantTalentState.Pending, PreparedTalentBonus<Value>?>,
+        for actor: Combatant,
+    ) -> Value? {
+        guard let preparation = roster.runtime(for: actor)?.talents.pending[keyPath: keyPath],
+              let value = preparation.availableValue(
+                  cardSerial: resolution.cardTalents?.playSerial, actionID: resolution.actionID,
+              ) else { return nil }
+        roster.mutateRuntime(for: actor) { $0.talents.pending[keyPath: keyPath] = nil }
+        return value
+    }
+
     var allowsHeroTalentReaction: Bool {
         resolution.depth(.heroReaction) == 0
     }

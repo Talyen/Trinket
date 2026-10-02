@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketCore
 
 struct HalveShieldHandler: BattleEffectHandler {
-    let kind: EffectKind = .halveShield
-
     func apply(
         _ effect: Effect,
         ability: Ability,
@@ -31,8 +29,6 @@ struct HalveShieldHandler: BattleEffectHandler {
 }
 
 struct ControlMeterHandler: BattleEffectHandler {
-    let kind: EffectKind = .controlMeter
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let meterStacks = stacks.filter { activeEffect in
             guard case let .controlMeter(meterKeyword, _, _) = activeEffect.effect else { return false }
@@ -101,8 +97,6 @@ struct ControlMeterHandler: BattleEffectHandler {
 }
 
 struct MultiplyControlMeterHandler: BattleEffectHandler {
-    let kind: EffectKind = .multiplyControlMeter
-
     func apply(
         _ effect: Effect,
         ability: Ability,

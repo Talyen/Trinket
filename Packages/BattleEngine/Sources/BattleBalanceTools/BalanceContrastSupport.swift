@@ -73,73 +73,42 @@ enum BalanceContrastSupport {
         pairResults: [ContrastPairOutcome],
         config: BalanceSweepConfig,
     ) -> [PairedContrastSummary] {
-        bucketed(
-            rows: pairResults.map { result in
-                let focus = foci[result.focusIndex]
-                return BucketRow(
-                    tier: result.tier,
-                    entityID: focus.entityID,
-                    baselineID: focus.baselineID,
-                    ownerID: focus.ownerID,
-                    baselineKind: focus.baselineKind,
-                    nonCombat: focus.nonCombat,
-                    apply: { $0.accumulate(entity: result.entity, baseline: result.baseline) },
-                )
-            },
-            config: config,
-        )
+        bucketed(pairResults, config: config, make: { result in
+            let focus = foci[result.focusIndex]
+            return BalanceContrastFlags.ContrastAcc(
+                entityID: focus.entityID, baselineID: focus.baselineID, ownerID: focus.ownerID,
+                tier: result.tier, baselineKind: focus.baselineKind, nonCombat: focus.nonCombat,
+            )
+        }, accumulate: { acc, result in
+            acc.accumulate(entity: result.entity, baseline: result.baseline)
+        })
     }
 
     static func mergeSummaries(
         _ summaries: [PairedContrastSummary],
         config: BalanceSweepConfig,
     ) -> [PairedContrastSummary] {
-        bucketed(
-            rows: summaries.map { row in
-                BucketRow(
-                    tier: row.tier,
-                    entityID: row.entityID,
-                    baselineID: row.baselineID,
-                    ownerID: row.ownerID,
-                    baselineKind: row.baselineKind,
-                    nonCombat: row.nonCombat,
-                    apply: { $0.merge(row) },
-                )
-            },
-            config: config,
-        )
+        bucketed(summaries, config: config, make: { row in
+            BalanceContrastFlags.ContrastAcc(
+                entityID: row.entityID, baselineID: row.baselineID, ownerID: row.ownerID,
+                tier: row.tier, baselineKind: row.baselineKind, nonCombat: row.nonCombat,
+            )
+        }, accumulate: { $0.merge($1) })
     }
 
-    private struct BucketRow {
-        var tier: SimulationPowerTier
-        var entityID: String
-        var baselineID: String
-        var ownerID: String
-        var baselineKind: ContrastBaselineKind
-        var nonCombat: Bool
-        var apply: (inout BalanceContrastFlags.ContrastAcc) -> Void
-    }
-
-    private static func bucketed(rows: [BucketRow], config: BalanceSweepConfig) -> [PairedContrastSummary] {
-        var buckets: [String: BalanceContrastFlags.ContrastAcc] = [:]
+    /// Raw outcomes and worker summaries share one fold without allocating
+    /// intermediate rows or retaining a closure for every comparison.
+    private static func bucketed<Row>(
+        _ rows: [Row],
+        config: BalanceSweepConfig,
+        make: (Row) -> BalanceContrastFlags.ContrastAcc,
+        accumulate: (inout BalanceContrastFlags.ContrastAcc, Row) -> Void,
+    ) -> [PairedContrastSummary] {
+        var buckets: [BalanceContrastFlags.Identity: BalanceContrastFlags.ContrastAcc] = [:]
         for row in rows {
-            let key = BalanceContrastFlags.summaryKey(
-                tier: row.tier,
-                entityID: row.entityID,
-                baselineID: row.baselineID,
-                ownerID: row.ownerID,
-                baselineKind: row.baselineKind,
-            )
-            var acc = buckets[key] ?? BalanceContrastFlags.ContrastAcc(
-                entityID: row.entityID,
-                baselineID: row.baselineID,
-                ownerID: row.ownerID,
-                tier: row.tier,
-                baselineKind: row.baselineKind,
-                nonCombat: row.nonCombat,
-            )
-            row.apply(&acc)
-            buckets[key] = acc
+            let initial = make(row)
+            let key = initial.identity
+            accumulate(&buckets[key, default: initial], row)
         }
         return buckets.values.map { BalanceContrastFlags.makeSummary($0, config: config) }
             .sorted(by: BalanceContrastFlags.summarySort)

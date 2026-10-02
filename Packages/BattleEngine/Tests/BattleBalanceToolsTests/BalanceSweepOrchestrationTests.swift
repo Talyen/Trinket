@@ -24,7 +24,10 @@ struct BalanceSweepOrchestrationTests {
     }
 
     @Test func `contrast slice merge recomputes lift and flags`() {
-        let config = BalanceSweepConfig(mode: .abilityContrast, battlesPerTier: 8, seed: 1, jobs: 1)
+        let config = BalanceSweepConfig(
+            mode: .abilityContrast, battlesPerTier: 8, seed: 1, jobs: 1,
+            comfortHPThreshold: 1, comfortRoundThreshold: 100,
+        )
         let first = PairedContrastSummary(
             entityID: "a",
             baselineID: "b",
@@ -36,21 +39,17 @@ struct BalanceSweepOrchestrationTests {
             winsWithBaseline: 0,
             entityOnlyWins: 4,
             lift: 1,
+            meanDeltaPartyHP: 0.75,
+            meanDeltaRounds: -4,
             flagged: false,
         )
-        let second = PairedContrastSummary(
-            entityID: "a",
-            baselineID: "b",
-            ownerID: "hero",
-            tier: .early,
-            pairs: 4,
-            decidedPairs: 4,
-            winsWithEntity: 4,
-            winsWithBaseline: 0,
-            entityOnlyWins: 4,
-            lift: 1,
-            flagged: false,
-        )
+        var second = first
+        second.pairs = 12
+        second.decidedPairs = 12
+        second.winsWithEntity = 12
+        second.entityOnlyWins = 12
+        second.meanDeltaPartyHP = 0.25
+        second.meanDeltaRounds = 4
         let merged = BalanceSweepReport.merged(
             [
                 BalanceSweepReport(config: config, policyID: "greedy-v1", abilityContrasts: [first], elapsedSeconds: 0),
@@ -62,11 +61,34 @@ struct BalanceSweepOrchestrationTests {
         )
         let row = merged.abilityContrasts[0]
         #expect(merged.abilityContrasts.count == 1)
-        #expect(row.pairs == 8)
-        #expect(row.winsWithEntity == 8)
+        #expect(row.pairs == 16)
+        #expect(row.winsWithEntity == 16)
+        #expect(row.meanDeltaPartyHP == 0.375)
+        #expect(row.meanDeltaRounds == 2)
         #expect(row.lift == 1)
         #expect(row.flagged)
         #expect(row.flagReason == "HIGH")
+    }
+
+    @Test func `contrast identities cannot collide across delimiter boundaries`() {
+        let config = BalanceSweepConfig(mode: .abilityContrast, jobs: 1)
+        let foci: [BalanceContrastSupport.FocusSummary] = [
+            ("a|b", "c", "hero", .sibling, false),
+            ("a", "b|c", "hero", .sibling, false),
+        ]
+        let win = BattleSimResult(
+            outcome: .victory, rounds: 6, actions: 10, timedOut: false,
+            partyHPRemainingFraction: 0.5, enemyHPRemainingFraction: 0,
+        )
+        let outcomes = foci.indices.map {
+            ContrastPairOutcome(focusIndex: $0, tier: .early, entity: win, baseline: win)
+        }
+        let rows = BalanceContrastSupport.aggregate(foci: foci, pairResults: outcomes, config: config)
+        #expect(rows.map(\.entityID) == ["a", "a|b"])
+        #expect(rows.allSatisfy { $0.pairs == 1 && $0.decidedPairs == 1 })
+        let merged = BalanceContrastSupport.mergeSummaries(rows + rows, config: config)
+        #expect(merged.map(\.entityID) == ["a", "a|b"])
+        #expect(merged.allSatisfy { $0.pairs == 2 && $0.decidedPairs == 2 })
     }
 
     @Test func `contrast comfort deltas ignore timeout pairs`() {

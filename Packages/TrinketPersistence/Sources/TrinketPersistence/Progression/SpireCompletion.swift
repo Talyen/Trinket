@@ -21,7 +21,7 @@ public enum SpireCompletion {
         let selected = modifier ?? GameContent.spireModifier(for: floor, worldSeed: worldSeed)
         let definitions = ownership.modifiers(ids: selected.map { [$0.id] } ?? [])
         let effects = NodeModifierEffects.combining(definitions)
-        return VictoryRewardApplier.resolveLoot(
+        return BattleLoot.resolve(
             .spire(floor: floor, rewardModifier: effects.rewardModifier),
             encounterLevel: level,
             enemyIsBoss: enemyIsBoss,

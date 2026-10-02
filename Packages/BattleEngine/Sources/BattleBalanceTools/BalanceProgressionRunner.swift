@@ -58,12 +58,7 @@ public enum BalanceProgressionRunner {
                 appliesFightPacing: config.appliesFightPacing,
             )
 
-            let recordedPlayerLevel = Int(
-                ((
-                    Double(controller.simulatedHeroLevel())
-                        + Double(controller.simulatedCompanionLevel())
-                ) / 2.0).rounded(),
-            )
+            let recordedPlayerLevel = Int(controller.state.averageLevel.rounded())
             let record = ProgressionBattleRecord(
                 step: step,
                 playerLevel: recordedPlayerLevel,

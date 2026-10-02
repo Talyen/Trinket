@@ -107,14 +107,12 @@ struct CloudSaveMergeProgressRegressionTests {
     private func claimMystery(stage: Stage, save: inout PlayerSave) throws {
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
         var random = SeededRandomNumberGenerator(seed: 1)
+        let encounter = EncounterIdentity(location: .journey(stageID: stage.id), save: save)
         let offers = try MysteryOfferPersistence.prepare(
-            event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &random,
+            event: event, encounter: encounter, save: &save, using: &random,
         )
         let offer = try #require(offers.first)
-        let request = MysteryEncounterRequest(
-            encounter: EncounterIdentity(location: .journey(stageID: stage.id), save: save),
-            stage: stage, event: event, displayedOffers: offers,
-        )
+        let request = MysteryEncounterRequest(encounter: encounter, event: event, displayedOffers: offers)
         let outcome = try MysteryEncounterResolution.resolve(choiceID: offer.choiceID, request: request, save: &save, using: &random).get()
         guard case .reward = outcome else {
             Issue.record("The pinned Mystery offer must be claimable")
@@ -125,7 +123,7 @@ struct CloudSaveMergeProgressRegressionTests {
     private func recruitCombatant(event: MysteryEvent, stage: Stage, save: inout PlayerSave) throws {
         let request = MysteryEncounterRequest(
             encounter: EncounterIdentity(location: .journey(stageID: stage.id), save: save),
-            stage: stage, event: event, displayedOffers: [],
+            event: event, displayedOffers: [],
         )
         var random = SeededRandomNumberGenerator(seed: 1)
         let outcome = try MysteryEncounterResolution.resolve(choiceID: nil, request: request, save: &save, using: &random).get()

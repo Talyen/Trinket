@@ -5,6 +5,33 @@ import TrinketContentTestSupport
 import TrinketCore
 
 struct EffectHandlersApplyBuffDebuffTests {
+    @Test func `next attack conversion preserves its keyword and is consumed once`() throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 500, dealOpeningHand: false)
+        let conversion = Effect.nextStrikeDamageKeywordOverride(.burn)
+        for _ in 0 ..< 2 {
+            let outcome = EffectHandlersTestSupport.dispatch(
+                conversion, source: battle.hero, target: battle.hero, battle: &battle,
+            )
+            #expect(outcome.didApply)
+            #expect(outcome.events.contains { $0.effectKind == .damageKeywordOverrideApplied && $0.keyword == .burn })
+        }
+        let effects = battle.activeEffects(of: battle.hero)
+        #expect(effects.count { $0.effect == conversion } == 1)
+        let summary = try #require(EffectSummaryBuilder.build(for: effects).first)
+        #expect(summary.keyword == .burn)
+        #expect(summary.text.contains(Keyword.burn.rawValue))
+
+        let converted = BattleTurnEngine.performAction(
+            ability: .slash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+        )
+        #expect(converted.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.burn])
+        #expect(!battle.activeEffects(of: battle.hero).contains { $0.effect == conversion })
+        let following = BattleTurnEngine.performAction(
+            ability: .slash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+        )
+        #expect(following.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.physical])
+    }
+
     @Test func `status summary order is independent of effect insertion order`() {
         let keywords: [Keyword] = [.burn, .freeze, .holy]
         let effects = keywords.enumerated().map { index, keyword in

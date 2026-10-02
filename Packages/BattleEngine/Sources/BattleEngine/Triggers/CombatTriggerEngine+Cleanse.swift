@@ -48,11 +48,10 @@ package extension CombatTriggerEngine {
             if triggers.cleanseNextAttackCriticalBonus > 0 {
                 let preparedCardSerial = context.resolution.cardTalents?.playSerial
                 context.roster.mutateRuntime(for: target) {
-                    $0.talents.pending.nextCleanseCriticalBonus = max(
-                        $0.talents.pending.nextCleanseCriticalBonus,
-                        triggers.cleanseNextAttackCriticalBonus,
+                    $0.talents.pending.nextCleanseCriticalBonus = PreparedTalentBonus(
+                        value: max($0.talents.pending.nextCleanseCriticalBonus?.value ?? 0, triggers.cleanseNextAttackCriticalBonus),
+                        cardSerial: preparedCardSerial,
                     )
-                    $0.talents.pending.nextCleanseCriticalPreparedCardSerial = preparedCardSerial
                 }
             }
             if triggers.cleanseSelfBlockFlat > 0 {

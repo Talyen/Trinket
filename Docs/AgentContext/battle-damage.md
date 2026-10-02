@@ -8,8 +8,9 @@ a flag. Counterattacks and repeated hits carry explicit origins; repeating perio
 or reaction damage preserves its operation kind. Redirected damage enters the
 recipient's defenses with outgoing scaling already resolved. `DamageDefensePolicy`
 owns mitigation and Block bypass multipliers, while the shield steps in
-`DamagePipeline` own Intercede absorption on top of those multipliers,
-preserving each checkpoint's order and rounding. Ally protection uses the actual
+`DamagePipeline` resolve borrowed Block before recipient Block through one
+owner-based absorption step, preserving each checkpoint's order and rounding.
+Commit each pool before its reactions and read the next pool from live state. Ally protection uses the actual
 Block owner's absorption bonuses and records that owner for The Patient Edge and
 The Knight's Answer; borrowed Block does not claim the recipient's allowance.
 Incoming Block-breaking rules also apply to borrowed Block, including Corrosive

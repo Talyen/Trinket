@@ -151,8 +151,7 @@ package extension CombatTriggerEngine {
         if fullyBlocked, triggers.blockedAttackNextPhysicalDouble {
             let preparedCardSerial = context.resolution.cardTalents?.playSerial
             context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.doubleNextPhysicalAttack = true
-                $0.talents.pending.nextPhysicalPreparedCardSerial = preparedCardSerial
+                $0.talents.pending.doubleNextPhysicalAttack = PreparedTalentBonus(value: true, cardSerial: preparedCardSerial)
             }
         }
         events.append(contentsOf: afterCompanionCardHit(
@@ -207,9 +206,10 @@ package extension CombatTriggerEngine {
         }
         if triggers.dodgeNextAttackCritBonus > 0 {
             context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.nextAttackCriticalBonus = max(
-                    $0.talents.pending.nextAttackCriticalBonus,
-                    triggers.dodgeNextAttackCritBonus,
+                let prepared = $0.talents.pending.nextAttackCriticalBonus
+                $0.talents.pending.nextAttackCriticalBonus = PreparedTalentBonus(
+                    value: max(prepared?.value ?? 0, triggers.dodgeNextAttackCritBonus),
+                    cardSerial: prepared?.cardSerial, actionID: prepared?.actionID,
                 )
             }
         }
@@ -252,7 +252,11 @@ package extension CombatTriggerEngine {
             context.roster.mutateRuntime(for: target) { $0.talents.turn.negativeStatusImmune = true }
         }
         if removed.contains(.burn), triggers.heatRecovery {
-            context.roster.mutateRuntime(for: source) { $0.talents.pending.nextBurnDamageBonus = 2 }
+            context.roster.mutateRuntime(for: source) {
+                $0.talents.pending.nextBurnDamageBonus = PreparedTalentBonus(
+                    value: 2, cardSerial: $0.talents.pending.nextBurnDamageBonus?.cardSerial,
+                )
+            }
         }
         if removed.contains(.poison), triggers.antitoxinCoating {
             context.roster.mutateRuntime(for: target) {

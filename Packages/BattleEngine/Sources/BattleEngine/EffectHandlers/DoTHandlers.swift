@@ -9,10 +9,6 @@ struct DecayingDoTHandler: BattleEffectHandler {
         type.keyword
     }
 
-    var kind: EffectKind {
-        type.kind
-    }
-
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> [ActionEvent] {
         guard matches(active.effect) else { return [] }
         let progression = DecayingDoTProgression(
@@ -94,8 +90,6 @@ struct DecayingDoTHandler: BattleEffectHandler {
 }
 
 struct BleedHandler: BattleEffectHandler {
-    let kind: EffectKind = .bleed
-
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> [ActionEvent] {
         guard case let .bleed(potency) = active.effect, active.remainingTurns > 0 else {
             return []
@@ -261,8 +255,6 @@ private func isDetonatableDoT(_ effect: Effect, keyword: Keyword) -> Bool {
 }
 
 struct MultiplyDoTHandler: BattleEffectHandler {
-    let kind: EffectKind = .multiplyDoT
-
     func apply(
         _ effect: Effect,
         ability: Ability,
@@ -306,8 +298,6 @@ struct MultiplyDoTHandler: BattleEffectHandler {
 }
 
 struct DetonateDoTHandler: BattleEffectHandler {
-    let kind: EffectKind = .detonateDoT
-
     func apply(
         _ effect: Effect,
         ability _: Ability,
@@ -368,8 +358,6 @@ struct DetonateDoTHandler: BattleEffectHandler {
 }
 
 struct RecurringDamageHandler: BattleEffectHandler {
-    let kind: EffectKind = .recurringDamage
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard let active = stacks.first,
               case let .recurringDamage(damageKeyword, potency, _) = active.effect

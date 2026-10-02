@@ -269,28 +269,6 @@ extension JourneyPlayMode {
                 journey: playerSave.journey,
             ),
         )
-        return (input, battleRoute(stage: stage))
-    }
-
-    func battleRoute(stage: Stage) -> PlayBattleRoute {
-        PlayBattleRoute.makeModeRoute(
-            origin: .journey(stageID: stage.id),
-            logging: "Failed to persist stage completion",
-            playerSave: playerSave,
-        ) { configuration, presentation, award, materialRewards, loot, save in
-            StageCompletion.complete(
-                stage,
-                hero: configuration.hero.combatant,
-                companion: configuration.companion.combatant,
-                battleGold: award.award.goldFlow,
-                award: award,
-                materialRewards: materialRewards,
-                rewardItem: presentation?.pendingRewardItem,
-                loot: loot,
-                enemyEncounterLevel: configuration.enemyEncounterLevel,
-                in: GameContent.chapters,
-                save: &save,
-            )
-        }
+        return (input, .journey(stage))
     }
 }

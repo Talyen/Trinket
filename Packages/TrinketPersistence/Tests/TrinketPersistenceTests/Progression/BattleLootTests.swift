@@ -91,15 +91,12 @@ struct BattleLootTests {
     }
 
     @Test func `resolve always grants one item two distinct materials and gold`() {
-        var rng = SeededRandomNumberGenerator(seed: 42)
         let package = BattleLoot.resolve(
+            LootRequest(seedSalt: "test", itemID: "test-loot"),
             encounterLevel: 1,
-            rewardLevel: 1,
             enemyIsBoss: false,
-            itemID: "test-loot",
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
-            using: &rng,
+            worldSeed: 42,
+            ownership: RewardOwnership(),
         )
         let isCatalogIdentity = package.item.isTrinket || package.item.rarity == .unique
         #expect(isCatalogIdentity || package.item.id == "test-loot")
@@ -116,15 +113,12 @@ struct BattleLootTests {
     }
 
     @Test func `boss doubles currency independently of item rarity`() {
-        var rng = SeededRandomNumberGenerator(seed: 99)
         let package = BattleLoot.resolve(
+            LootRequest(seedSalt: "test", itemID: "boss-loot"),
             encounterLevel: 1,
-            rewardLevel: 1,
             enemyIsBoss: true,
-            itemID: "boss-loot",
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
-            using: &rng,
+            worldSeed: 99,
+            ownership: RewardOwnership(),
         )
         #expect((6 ... 8).contains(package.gold))
         for material in package.materials {
@@ -134,15 +128,18 @@ struct BattleLootTests {
 
     @Test(arguments: BattleLoot.materialResources, [false, true])
     func `focused materials guarantee one boosted slot and a distinct ordinary slot`(resource: HomesteadResource, boss: Bool) throws {
+        let modifier = try #require(RewardModifier(rawValue: resource.rawValue))
         func resolve(bonus: Int) -> BattleLootResult {
-            var rng = SeededRandomNumberGenerator(seed: 42)
-            return BattleLoot.resolve(
-                encounterLevel: 20, rewardLevel: 20, enemyIsBoss: boss, itemID: "focused",
-                ownedUniqueIDs: [], materialsFoundPercent: bonus, materialFocus: resource, using: &rng,
+            BattleLoot.resolve(
+                LootRequest(
+                    seedSalt: "focused", itemID: "focused",
+                    materialsFoundPercent: bonus - RewardModifier.bonusPercent, rewardModifier: modifier,
+                ),
+                encounterLevel: 20, enemyIsBoss: boss, worldSeed: 42, ownership: RewardOwnership(),
             )
         }
         let base = resolve(bonus: 0)
-        let boosted = resolve(bonus: 25)
+        let boosted = resolve(bonus: RewardModifier.bonusPercent)
         #expect(boosted.materials.count == 2)
         #expect(Set(boosted.materials.map(\.resource)).count == 2)
         let focused = try #require(boosted.materials.first)
@@ -155,10 +152,9 @@ struct BattleLootTests {
 
     @Test func `gold and general material bonuses leave other rewards unchanged`() {
         func resolve(gold: Int = 0, materials: Int = 0) -> BattleLootResult {
-            var rng = SeededRandomNumberGenerator(seed: 42)
-            return BattleLoot.resolve(
-                encounterLevel: 20, rewardLevel: 20, enemyIsBoss: true, itemID: "bonus",
-                ownedUniqueIDs: [], goldFoundPercent: gold, materialsFoundPercent: materials, using: &rng,
+            BattleLoot.resolve(
+                LootRequest(seedSalt: "bonus", itemID: "bonus", goldFoundPercent: gold, materialsFoundPercent: materials),
+                encounterLevel: 20, enemyIsBoss: true, worldSeed: 42, ownership: RewardOwnership(),
             )
         }
         let base = resolve()
@@ -174,14 +170,14 @@ struct BattleLootTests {
 
     @Test func `journey loot is seed stable`() throws {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
-        let first = VictoryRewardApplier.resolveLoot(
+        let first = BattleLoot.resolve(
             .journey(stage: stage),
             encounterLevel: 1,
             enemyIsBoss: false,
             worldSeed: 8,
             ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
         )
-        let second = VictoryRewardApplier.resolveLoot(
+        let second = BattleLoot.resolve(
             .journey(stage: stage),
             encounterLevel: 1,
             enemyIsBoss: false,
@@ -190,7 +186,7 @@ struct BattleLootTests {
         )
         #expect(first == second)
 
-        let otherWorld = VictoryRewardApplier.resolveLoot(
+        let otherWorld = BattleLoot.resolve(
             .journey(stage: stage),
             encounterLevel: 1,
             enemyIsBoss: false,
@@ -200,39 +196,8 @@ struct BattleLootTests {
         #expect(first != otherWorld)
     }
 
-    @Test func `reward level changes items without changing currency`() {
-        var earlyPremium = 0
-        var latePremium = 0
-        for seed in UInt64(1) ... 100 {
-            var earlyRNG = SeededRandomNumberGenerator(seed: seed)
-            var lateRNG = SeededRandomNumberGenerator(seed: seed)
-            let early = BattleLoot.resolve(
-                encounterLevel: 5, rewardLevel: 1, enemyIsBoss: false, itemID: "loot",
-                ownedUniqueIDs: [], using: &earlyRNG,
-            )
-            let late = BattleLoot.resolve(
-                encounterLevel: 5, rewardLevel: 20, enemyIsBoss: false, itemID: "loot",
-                ownedUniqueIDs: [], using: &lateRNG,
-            )
-            #expect(early.gold == late.gold)
-            #expect(early.materials == late.materials)
-            if early.item.rarity != .basic {
-                earlyPremium += 1
-            }
-            if late.item.rarity != .basic {
-                latePremium += 1
-            }
-        }
-        #expect(latePremium > earlyPremium)
-    }
-
-    @Test func `noncombat offer quality follows won encounters across modes`() throws {
-        let battle = try #require(GameContent.stage(id: "chapter-4-stage-10"))
-        #expect(LootRequest.journey(stage: battle).rewardLevel == 20)
-        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 6))
-        #expect(LootRequest.spire(floor: floor).rewardLevel == 12)
+    @Test func `noncombat offer quality follows won encounters across modes`() {
         let node = LabyrinthNode(id: "deep", type: .mystery, depth: 17, clusterID: "cluster")
-        #expect(LootRequest.labyrinth(node: node, effects: .zero).rewardLevel == 17)
         var save = SaveTestSupport.makeSave()
         save.labyrinth.nodes[node.id] = node
         for stageID in ["chapter-4-stage-4", "chapter-4-stage-8"] {
@@ -271,10 +236,9 @@ struct BattleLootTests {
             let actual = StageCompletion.resolveLoot(
                 for: stage, encounterLevel: 3, enemyIsBoss: true, worldSeed: seed, astralChanceBonusPercent: 20,
             )
-            var rng = SeededRandomNumberGenerator(seed: GameContent.encounterSeed(seed, salt: request.seedSalt))
             let expected = BattleLoot.resolve(
-                encounterLevel: 3, rewardLevel: 3, enemyIsBoss: true, itemID: request.itemID,
-                ownedUniqueIDs: [], astralChanceBonusPercent: 20, using: &rng,
+                request, encounterLevel: 3, enemyIsBoss: true, worldSeed: seed,
+                ownership: RewardOwnership(), astralChanceBonusPercent: 20,
             )
             #expect(actual == expected)
         }
@@ -286,14 +250,9 @@ struct BattleLootTests {
         let offer = try #require(save.contracts.offer(for: .standard))
         #expect(ContractsCompletion.campaignRewardLevel(in: save) == 1)
         let actual = ContractsCompletion.resolveLoot(for: offer, encounterLevel: 20, save: save)
-        var rng = SeededRandomNumberGenerator(
-            seed: GameContent.encounterSeed(save.worldSeed, salt: "battle-loot-contract-\(offer.id)"),
-        )
         let expected = BattleLoot.resolve(
-            encounterLevel: 20, rewardLevel: 20, enemyIsBoss: false,
-            itemID: "contract-\(offer.id)-loot",
-            ownedTrinketIDs: save.inventory.ownedTrinketIDs, ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-            goldFoundPercent: 25, using: &rng,
+            .contract(offerID: offer.id), encounterLevel: 20, enemyIsBoss: false,
+            worldSeed: save.worldSeed, ownership: RewardOwnership(save),
         )
         #expect(actual == expected)
 

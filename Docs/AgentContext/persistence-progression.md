@@ -2,6 +2,11 @@
 
 Use with [persistence ownership](persistence.md) for domain commands, rewards and encounter claims.
 
+`BattleLoot.resolve` owns seeded battle drops for every mode. `LootRequest` carries
+mode identity and bonuses; the captured encounter level drives both item quality
+and currency quantities. Noncombat offers retain `CampaignRewardLevel` policy.
+`VictoryRewardApplier` owns reward application to the save.
+
 Battle launch captures reward quantities, recipients, bonuses, and Gold-overflow
 XP in `BattleRewardPlan`. `RewardSettlementInputs` projects wallet reservations
 and recipient progression at a recorded production date. Content's pure settlement
@@ -58,12 +63,18 @@ cannot respect the 1 / 1% minimum becomes an increase. On/off affixes stay eligi
 without a numeric bump. The independent item-wide 40% increase and 20% decrease
 rolls target only surviving original affixes, preventing extra bumps on new affixes.
 Existing corrupted items are unchanged; structural selection and corruption-mark
-priority retain their existing rules.
+priority retain their existing rules. Items with affixes absent from the current
+catalog remain saved intact and are ineligible for corruption; the altar must not
+partially rebuild their affixes or powers.
 
 Mystery opening pins the chosen event and prepares any saved offers in one
 transaction; rejected offers leave no new pin, and the session appears only
 after the save commits. `MysteryEncounterResolution` owns choice effects and
-progress together, including required item/unlock validation. An opened offer
+progress together, including required item/unlock validation. Mystery requests,
+offer preparation, and claims use one required `EncounterIdentity`; levels, payloads,
+and completion derive from its location rather than a parallel stage or optional
+node ID. Direct choices receive normal noncombat completion rewards; pooled offers
+already include their payout and only advance progress. An opened offer
 stays claimable; a duplicate Unique already earned on another device is kept
 once while its secondary reward and encounter completion proceed. Deliberate
 leave is an explicit outcome. `MysteryEncounterSession` owns transient screen

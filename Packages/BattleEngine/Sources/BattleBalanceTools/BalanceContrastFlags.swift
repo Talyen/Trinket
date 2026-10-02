@@ -2,13 +2,21 @@ import BattleEngine
 import Foundation
 
 enum BalanceContrastFlags {
+    struct Identity: Hashable {
+        let tier: SimulationPowerTier
+        let entityID: String
+        let baselineID: String
+        let ownerID: String
+        let baselineKind: ContrastBaselineKind
+    }
+
     struct ContrastAcc {
-        var entityID: String
-        var baselineID: String
-        var ownerID: String
-        var tier: SimulationPowerTier
-        var baselineKind: ContrastBaselineKind
-        var nonCombat: Bool
+        let entityID: String
+        let baselineID: String
+        let ownerID: String
+        let tier: SimulationPowerTier
+        let baselineKind: ContrastBaselineKind
+        let nonCombat: Bool
         var pairs = 0
         var decidedPairs = 0
         var winsWithEntity = 0
@@ -19,6 +27,10 @@ enum BalanceContrastFlags {
         var baselineTimeouts = 0
         var deltaPartyHP = 0.0
         var deltaRounds = 0.0
+
+        var identity: Identity {
+            Identity(tier: tier, entityID: entityID, baselineID: baselineID, ownerID: ownerID, baselineKind: baselineKind)
+        }
 
         mutating func accumulate(entity: BattleSimResult, baseline: BattleSimResult) {
             pairs += 1
@@ -63,16 +75,6 @@ enum BalanceContrastFlags {
         }
     }
 
-    static func summaryKey(
-        tier: SimulationPowerTier,
-        entityID: String,
-        baselineID: String,
-        ownerID: String,
-        baselineKind: ContrastBaselineKind,
-    ) -> String {
-        "\(tier.rawValue)|\(entityID)|\(baselineID)|\(ownerID)|\(baselineKind.rawValue)"
-    }
-
     static func makeSummary(_ acc: ContrastAcc, config: BalanceSweepConfig) -> PairedContrastSummary {
         let entityRate = acc.decidedPairs == 0 ? 0 : Double(acc.winsWithEntity) / Double(acc.decidedPairs)
         let baselineRate = acc.decidedPairs == 0 ? 0 : Double(acc.winsWithBaseline) / Double(acc.decidedPairs)
@@ -80,29 +82,7 @@ enum BalanceContrastFlags {
         let decidedCount = Double(max(acc.decidedPairs, 1))
         let meanDeltaPartyHP = acc.deltaPartyHP / decidedCount
         let meanDeltaRounds = acc.deltaRounds / decidedCount
-        let discordant = acc.entityOnlyWins + acc.baselineOnlyWins
-        let wrFlag = !acc.nonCombat
-            && acc.decidedPairs >= BalanceSweepConfig.contrastFlagMinPairs
-            && abs(lift) >= config.peerDeltaFlagThreshold
-            && discordant >= 4
-        let comfortFlag = !acc.nonCombat
-            && acc.decidedPairs >= BalanceSweepConfig.contrastFlagMinPairs
-            && (
-                abs(meanDeltaPartyHP) >= config.comfortHPThreshold
-                    || abs(meanDeltaRounds) >= config.comfortRoundThreshold
-            )
-        let means = ContrastMeans(
-            partyHP: acc.decidedPairs == 0 ? 0 : meanDeltaPartyHP,
-            rounds: acc.decidedPairs == 0 ? 0 : meanDeltaRounds,
-        )
-        let flags = contrastFlags(
-            acc: acc,
-            config: config,
-            lift: lift,
-            means: means,
-            wrFlag: wrFlag,
-            comfortFlag: comfortFlag,
-        )
+        let tags = flagTags(acc, config: config, lift: lift, partyHP: meanDeltaPartyHP, rounds: meanDeltaRounds)
         return PairedContrastSummary(
             entityID: acc.entityID,
             baselineID: acc.baselineID,
@@ -118,29 +98,23 @@ enum BalanceContrastFlags {
             entityTimeouts: acc.entityTimeouts,
             baselineTimeouts: acc.baselineTimeouts,
             lift: lift,
-            meanDeltaPartyHP: means.partyHP,
-            meanDeltaRounds: means.rounds,
-            flagged: flags.flagged,
-            flagReason: flags.reason,
+            meanDeltaPartyHP: meanDeltaPartyHP,
+            meanDeltaRounds: meanDeltaRounds,
+            flagged: !tags.isEmpty && !acc.nonCombat,
+            flagReason: tags.isEmpty ? nil : tags.joined(separator: ", "),
             nonCombat: acc.nonCombat,
         )
     }
 
-    private struct ContrastMeans {
-        var partyHP: Double
-        var rounds: Double
-    }
-
-    private static func contrastFlags(
-        acc: ContrastAcc,
+    private static func flagTags(
+        _ acc: ContrastAcc,
         config: BalanceSweepConfig,
         lift: Double,
-        means: ContrastMeans,
-        wrFlag: Bool,
-        comfortFlag: Bool,
-    ) -> (flagged: Bool, reason: String?) {
+        partyHP: Double,
+        rounds: Double,
+    ) -> [String] {
         if acc.nonCombat {
-            return (false, "NONCOMBAT")
+            return ["NONCOMBAT"]
         }
         var tags: [String] = []
         if acc.pairs >= BalanceSweepConfig.contrastFlagMinPairs {
@@ -151,21 +125,18 @@ enum BalanceContrastFlags {
                 tags.append("BASELINE STALL")
             }
         }
-        if wrFlag {
-            tags.append(lift > 0 ? "HIGH" : "LOW")
-        }
-        if comfortFlag {
-            if abs(means.partyHP) >= config.comfortHPThreshold {
-                tags.append(means.partyHP > 0 ? "SAFER" : "GLASS")
+        if acc.decidedPairs >= BalanceSweepConfig.contrastFlagMinPairs {
+            if abs(lift) >= config.peerDeltaFlagThreshold, acc.entityOnlyWins + acc.baselineOnlyWins >= 4 {
+                tags.append(lift > 0 ? "HIGH" : "LOW")
             }
-            if abs(means.rounds) >= config.comfortRoundThreshold {
-                tags.append(means.rounds < 0 ? "FASTER" : "SLOWER")
+            if abs(partyHP) >= config.comfortHPThreshold {
+                tags.append(partyHP > 0 ? "SAFER" : "GLASS")
+            }
+            if abs(rounds) >= config.comfortRoundThreshold {
+                tags.append(rounds < 0 ? "FASTER" : "SLOWER")
             }
         }
-        if tags.isEmpty {
-            return (false, nil)
-        }
-        return (true, tags.joined(separator: ", "))
+        return tags
     }
 
     static func summarySort(_ lhs: PairedContrastSummary, _ rhs: PairedContrastSummary) -> Bool {

@@ -44,8 +44,15 @@ Manual CLI only — **no CI gates** or scheduled automations. Use the script's
 The CLI writes a findings brief and JSON sidecar under the gitignored
 `BalanceSweepReports/` directory. Runs retain reports for comparison; remove
 completed investigation artifacts explicitly when they are no longer needed. The runner owns process isolation,
-sampling, pacing, policy, and report schemas; documentation should not mirror those
+sampling, pacing, policy, and report schemas. Workers receive the canonical
+`BalanceSweepConfig` as JSON, with only mode, concurrency, and work slice changed;
+do not forward settings through a second CLI flag list. Documentation should not mirror those
 defaults. Requires the current pinned Xcode (see [toolchain ladder](../../Scripts/Reference.md#toolchain-ladder)).
+
+Within each process, `SweepWorkerPool.map` bounds concurrent simulations and
+returns non-nil results in input order. Shared claims and result storage use
+`Mutex`; simulation work stays outside the lock. Keep results `Sendable` rather
+than bypassing concurrency checks on a shared collection.
 
 ### Reading sweep evidence
 
@@ -61,7 +68,10 @@ unfinished fights. A capped fight cannot count as short, but can count as long
 once it exceeds the duration target. Identity findings name enemies with stalls;
 contrast findings flag either side when its stall rate reaches the configured
 duration flag rate and the minimum pair count. Stalls need investigation even
-when the decided battles look healthy.
+when the decided battles look healthy. Raw paired results and worker summaries
+share one accumulation path, keyed by typed identities including tier, entity, baseline, owner, and baseline kind.
+Worker merges weight HP and round deltas by decided-pair counts and recompute flags
+using the parent configuration.
 
 Affix contrasts remove or replace only the focused affix, preserving other
 affixes and their rolled powers on the compared item and all shared gear.
@@ -80,7 +90,17 @@ with sparse samples or omitted modes does not establish balance. Increase
 identity finding depends on autoplay choices. Durations are battle rounds, not
 wall-clock seconds or animation timings.
 
+Duration buckets and identity tables share one classification path. Enemy duration
+rows keep boss and regular encounters separate even when their IDs match; Hero and
+Companion rows combine opponents using each encounter's duration band. Equal long-fight
+rates select the alphabetically first eligible enemy so repeated reports stay stable.
+
 Talent contrasts include every authored row. A focused node is compared with
 its sibling when present, or with the same prerequisite build without that node
 for a single-node row. Reordered nodes use their current positions for legality;
 tiers without enough talent points are skipped rather than given illegal builds.
+
+Progression simulations keep each mode's steps, cursor, and loss count together
+in `InterleavingPlayerController`. Selection and advancement share that state.
+Seeded matchups draw both talent kits before starter gear; preserve this order
+when simplifying setup so reports remain comparable across refactors.

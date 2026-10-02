@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketCore
 
 struct InstantHealHandler: BattleEffectHandler {
-    let kind: EffectKind = .instantHeal
-
     func apply(
         _ effect: Effect,
         ability: Ability,
@@ -27,8 +25,6 @@ struct InstantHealHandler: BattleEffectHandler {
 }
 
 struct ResourceGainHandler: BattleEffectHandler {
-    let kind: EffectKind = .resourceGain
-
     func apply(
         _ effect: Effect,
         ability: Ability,
@@ -76,8 +72,6 @@ struct ResourceGainHandler: BattleEffectHandler {
 }
 
 struct MaximumManaBonusHandler: BattleEffectHandler {
-    let kind: EffectKind = .maximumManaBonus
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, active in
             if case let .maximumManaBonus(amount) = active.effect {
@@ -131,8 +125,6 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
 }
 
 struct ReviveHandler: BattleEffectHandler {
-    let kind: EffectKind = .revive
-
     func apply(
         _ effect: Effect,
         ability: Ability,

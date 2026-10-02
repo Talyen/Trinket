@@ -9,7 +9,6 @@ package struct EffectApplyOutcome {
 }
 
 package protocol BattleEffectHandler: Sendable {
-    var kind: EffectKind { get }
     func apply(
         _ effect: Effect,
         ability: Ability,

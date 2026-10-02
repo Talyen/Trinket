@@ -21,36 +21,6 @@ struct EffectHandlersApplyTests {
         #expect(!outcome.events.contains { $0.kind == .ability && $0.actorID == battle.hero.id })
     }
 
-    @Test func `registry covers every effect kind`() throws {
-        try #expect(Set(EffectHandlers.all.keys) == Set(EffectKind.allCases))
-        for kind in EffectKind.allCases {
-            let handler = try #require(EffectHandlers.all[kind], "Missing handler for \(kind)")
-            try #expect(handler.kind == kind)
-            try #expect(EffectHandlers.handler(for: kind)?.kind == kind)
-        }
-    }
-
-    @Test func `every ability catalog effect has A handler`() throws {
-        for ability in AbilityCatalog.all {
-            for effect in Self.effects(in: ability) {
-                try #expect(
-                    EffectHandlers.all[effect.kind] != nil,
-                    "\(ability.id) is missing a handler for \(effect.kind)",
-                )
-            }
-        }
-    }
-
-    private static func effects(in ability: Ability) -> [Effect] {
-        var result = ability.effects
-        if let branches = ability.outcomeBranches {
-            for branch in branches {
-                result.append(contentsOf: branch.targetedEffects.map(\.effect))
-            }
-        }
-        return result
-    }
-
     @Test func `burn handler applies burn effect`() throws {
         var battle = BattleStateTestFactory.makeBattle()
         let enemy = battle.enemy

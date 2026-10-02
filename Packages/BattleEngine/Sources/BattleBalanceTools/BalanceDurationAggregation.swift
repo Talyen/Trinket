@@ -1,5 +1,4 @@
 import BattleEngine
-import Foundation
 import TrinketContent
 
 enum BalanceDurationAggregation {
@@ -9,106 +8,58 @@ enum BalanceDurationAggregation {
         maxRounds: Int,
         flagRate: Double,
     ) -> BalanceDurationBucketStats {
-        guard !records.isEmpty else {
-            return BalanceDurationBucketStats(
-                battles: 0,
-                shortBattles: 0,
-                longBattles: 0,
-                averageRounds: 0,
-                averageRoundsWhenShort: 0,
-                averageRoundsWhenLong: 0,
-                maxRounds: 0,
-                worstEnemyID: nil,
-                flagged: false,
-                flagReason: nil,
-            )
-        }
-        var acc = DurationAcc()
-        acc.accumulate(records, minRounds: minRounds, maxRounds: maxRounds)
-        let totalCount = Double(records.count)
-        let shortRate = Double(acc.shortBattles) / totalCount
-        let longRate = Double(acc.longBattles) / totalCount
-        let worstEnemyID = acc.longByEnemy
-            .filter { $0.value.battles >= BalanceSweepConfig.identityFlagMinBattles && $0.value.long > 0 }
-            .max(by: {
-                Double($0.value.long) / Double($0.value.battles)
-                    < Double($1.value.long) / Double($1.value.battles)
-            })?
-            .key
-        var flags: [String] = []
-        if records.count >= BalanceSweepConfig.identityFlagMinBattles, shortRate >= flagRate {
-            flags.append("SHORT")
-        }
-        if records.count >= BalanceSweepConfig.identityFlagMinBattles, longRate >= flagRate {
-            flags.append("LONG")
-        }
+        let total = DurationTally(records, minRounds: minRounds, maxRounds: maxRounds)
+        let worstEnemy = Dictionary(grouping: records, by: \.enemyID)
+            .mapValues { DurationTally($0, minRounds: minRounds, maxRounds: maxRounds) }
+            .filter { $0.value.battles >= BalanceSweepConfig.identityFlagMinBattles && $0.value.longBattles > 0 }
+            .sorted {
+                if $0.value.longRate != $1.value.longRate {
+                    return $0.value.longRate > $1.value.longRate
+                }
+                return $0.key < $1.key
+            }.first?.key
+        let reason = total.flagReason(rate: flagRate, short: "SHORT", long: "LONG")
         return BalanceDurationBucketStats(
-            battles: records.count,
-            shortBattles: acc.shortBattles,
-            longBattles: acc.longBattles,
-            averageRounds: acc.totalRounds / totalCount,
-            averageRoundsWhenShort: acc.shortBattles > 0
-                ? acc.shortRoundsSum / Double(acc.shortBattles)
-                : 0,
-            averageRoundsWhenLong: acc.longBattles > 0
-                ? acc.longRoundsSum / Double(acc.longBattles)
-                : 0,
-            maxRounds: acc.maxRoundsValue,
-            worstEnemyID: worstEnemyID,
-            flagged: !flags.isEmpty,
-            flagReason: flags.isEmpty ? nil : flags.joined(separator: " "),
+            battles: total.battles,
+            shortBattles: total.shortBattles,
+            longBattles: total.longBattles,
+            averageRounds: total.averageRounds,
+            averageRoundsWhenShort: total.averageRoundsWhenShort,
+            averageRoundsWhenLong: total.averageRoundsWhenLong,
+            maxRounds: total.maxRounds,
+            worstEnemyID: worstEnemy,
+            flagged: reason != nil,
+            flagReason: reason,
         )
     }
 
-    private struct DurationAcc {
-        var shortBattles = 0
-        var longBattles = 0
-        var totalRounds = 0.0
-        var shortRoundsSum = 0.0
-        var longRoundsSum = 0.0
-        var maxRoundsValue = 0
-        var longByEnemy: [String: (long: Int, battles: Int)] = [:]
-
-        mutating func accumulate(
-            _ records: [BalanceBattleRecord],
-            minRounds: Int,
-            maxRounds: Int,
-        ) {
-            for record in records {
-                let rounds = record.result.rounds
-                totalRounds += Double(rounds)
-                var enemyBucket = longByEnemy[record.enemyID] ?? (0, 0)
-                enemyBucket.battles += 1
-                if rounds > maxRoundsValue {
-                    maxRoundsValue = rounds
-                }
-                if record.result.isDecided, rounds < minRounds {
-                    shortBattles += 1
-                    shortRoundsSum += Double(rounds)
-                } else if rounds > maxRounds {
-                    longBattles += 1
-                    longRoundsSum += Double(rounds)
-                    enemyBucket.long += 1
-                }
-                longByEnemy[record.enemyID] = enemyBucket
-            }
-        }
+    private struct EnemyKey: Hashable {
+        let id: String
+        let isBoss: Bool
     }
 
     static func enemyDurationTable(
         _ records: [BalanceBattleRecord],
         flagRate: Double,
     ) -> [BalanceEnemyDurationStats] {
-        durationRows(records, idPath: \.enemyID, flagRate: flagRate).map { row in
-            BalanceEnemyDurationStats(
-                enemyID: row.id,
-                isBoss: row.isBoss,
-                battles: row.battles,
-                averageRounds: row.averageRounds,
-                shortRate: row.shortRate,
-                longRate: row.longRate,
-                flagged: row.flagged,
-                flagReason: row.flagReason,
+        let groups = Dictionary(grouping: records) { EnemyKey(id: $0.enemyID, isBoss: $0.isBoss) }
+        return groups.sorted {
+            if $0.key.id != $1.key.id {
+                return $0.key.id < $1.key.id
+            }
+            return !$0.key.isBoss && $1.key.isBoss
+        }.map { key, records in
+            let total = DurationTally(records)
+            let reason = total.flagReason(rate: flagRate)
+            return BalanceEnemyDurationStats(
+                enemyID: key.id,
+                isBoss: key.isBoss,
+                battles: total.battles,
+                averageRounds: total.averageRounds,
+                shortRate: total.shortRate,
+                longRate: total.longRate,
+                flagged: reason != nil,
+                flagReason: reason,
             )
         }
     }
@@ -119,73 +70,88 @@ enum BalanceDurationAggregation {
         idPath: KeyPath<BalanceBattleRecord, String>,
         flagRate: Double,
     ) -> [BalanceCombatantDurationStats] {
-        durationRows(records, idPath: idPath, flagRate: flagRate).map { row in
-            BalanceCombatantDurationStats(
-                combatantID: row.id,
-                role: role,
-                battles: row.battles,
-                averageRounds: row.averageRounds,
-                shortRate: row.shortRate,
-                longRate: row.longRate,
-                flagged: row.flagged,
-                flagReason: row.flagReason,
-            )
+        Dictionary(grouping: records, by: { $0[keyPath: idPath] })
+            .sorted { $0.key < $1.key }.map { id, records in
+                let total = DurationTally(records)
+                let reason = total.flagReason(rate: flagRate)
+                return BalanceCombatantDurationStats(
+                    combatantID: id,
+                    role: role,
+                    battles: total.battles,
+                    averageRounds: total.averageRounds,
+                    shortRate: total.shortRate,
+                    longRate: total.longRate,
+                    flagged: reason != nil,
+                    flagReason: reason,
+                )
+            }
+    }
+
+    /// All duration views use the same classification. A cap contributes observed
+    /// rounds and may be long, but never short; mixed opponents use their own bands.
+    private struct DurationTally {
+        var battles = 0
+        var shortBattles = 0
+        var longBattles = 0
+        var maxRounds = 0
+        var totalRounds = 0.0
+        var shortRounds = 0.0
+        var longRounds = 0.0
+
+        init(_ records: [BalanceBattleRecord], minRounds: Int? = nil, maxRounds: Int? = nil) {
+            for record in records {
+                let floor = minRounds ??
+                    (record.isBoss ? BalanceDurationThresholds.bossMinRounds : BalanceDurationThresholds.trashMinRounds)
+                let ceiling = maxRounds ??
+                    (record.isBoss ? BalanceDurationThresholds.bossMaxRounds : BalanceDurationThresholds.trashMaxRounds)
+                let rounds = record.result.rounds
+                battles += 1
+                totalRounds += Double(rounds)
+                self.maxRounds = max(self.maxRounds, rounds)
+                if record.result.isDecided, rounds < floor {
+                    shortBattles += 1
+                    shortRounds += Double(rounds)
+                } else if rounds > ceiling {
+                    longBattles += 1
+                    longRounds += Double(rounds)
+                }
+            }
         }
-    }
 
-    private struct DurationRow {
-        var id: String
-        var isBoss: Bool
-        var battles: Int
-        var averageRounds: Double
-        var shortRate: Double
-        var longRate: Double
-        var flagged: Bool
-        var flagReason: String?
-    }
+        var averageRounds: Double {
+            average(totalRounds, count: battles)
+        }
 
-    /// Shared bucketing for per-enemy and per-combatant duration tables. Each
-    /// record picks its own trash/boss thresholds so a combatant can face both.
-    private static func durationRows(
-        _ records: [BalanceBattleRecord],
-        idPath: KeyPath<BalanceBattleRecord, String>,
-        flagRate: Double,
-    ) -> [DurationRow] {
-        let grouped = Dictionary(grouping: records, by: { $0[keyPath: idPath] })
-        return grouped.keys.sorted().compactMap { id -> DurationRow? in
-            let recs = grouped[id] ?? []
-            guard !recs.isEmpty else { return nil }
-            let short = recs.count { rec in
-                let floor = rec.isBoss ? BalanceDurationThresholds.bossMinRounds : BalanceDurationThresholds.trashMinRounds
-                return rec.result.isDecided && rec.result.rounds < floor
-            }
-            let long = recs.count {
-                let ceiling = $0.isBoss ? BalanceDurationThresholds.bossMaxRounds : BalanceDurationThresholds.trashMaxRounds
-                return $0.result.rounds > ceiling
-            }
-            let avg = recs.reduce(0.0) { $0 + Double($1.result.rounds) } / Double(recs.count)
-            let shortRate = Double(short) / Double(recs.count)
-            let longRate = Double(long) / Double(recs.count)
-            let sampleTooLow = recs.count < BalanceSweepConfig.identityFlagMinBattles
+        var averageRoundsWhenShort: Double {
+            average(shortRounds, count: shortBattles)
+        }
+
+        var averageRoundsWhenLong: Double {
+            average(longRounds, count: longBattles)
+        }
+
+        var shortRate: Double {
+            average(Double(shortBattles), count: battles)
+        }
+
+        var longRate: Double {
+            average(Double(longBattles), count: battles)
+        }
+
+        func flagReason(rate: Double, short: String = "FAST", long: String = "SLOW") -> String? {
+            guard battles >= BalanceSweepConfig.identityFlagMinBattles else { return nil }
             var flags: [String] = []
-            if !sampleTooLow {
-                if shortRate >= flagRate {
-                    flags.append("FAST")
-                }
-                if longRate >= flagRate {
-                    flags.append("SLOW")
-                }
+            if shortRate >= rate {
+                flags.append(short)
             }
-            return DurationRow(
-                id: id,
-                isBoss: recs[0].isBoss,
-                battles: recs.count,
-                averageRounds: avg,
-                shortRate: shortRate,
-                longRate: longRate,
-                flagged: !flags.isEmpty,
-                flagReason: flags.isEmpty ? nil : flags.joined(separator: " "),
-            )
+            if longRate >= rate {
+                flags.append(long)
+            }
+            return flags.isEmpty ? nil : flags.joined(separator: " ")
+        }
+
+        private func average(_ sum: Double, count: Int) -> Double {
+            count == 0 ? 0 : sum / Double(count)
         }
     }
 }

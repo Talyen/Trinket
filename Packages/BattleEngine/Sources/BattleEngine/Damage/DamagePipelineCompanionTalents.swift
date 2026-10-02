@@ -41,17 +41,8 @@ package extension DamagePipeline {
         actor: Combatant,
         in context: inout BattleState,
     ) -> Double {
-        guard state.options.isAttackHit, let pending = context.roster.runtime(for: actor)?.talents.pending,
-              pending.nextCleanseCriticalBonus > 0,
-              CombatantTalentState.Pending.isLaterAbility(
-                  preparedCardSerial: pending.nextCleanseCriticalPreparedCardSerial,
-                  currentCardSerial: context.resolution.cardTalents?.playSerial,
-              ) else { return 0 }
-        context.roster.mutateRuntime(for: actor) {
-            $0.talents.pending.nextCleanseCriticalBonus = 0
-            $0.talents.pending.nextCleanseCriticalPreparedCardSerial = nil
-        }
-        return pending.nextCleanseCriticalBonus
+        guard state.options.isAttackHit else { return 0 }
+        return context.consumeTalentPreparation(\.nextCleanseCriticalBonus, for: actor) ?? 0
     }
 
     static func companionAttackCriticalBonus(
@@ -79,18 +70,9 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard state.damageKeyword == .burn, state.options.isAttackHit,
-              let pending = context.roster.runtime(for: source)?.talents.pending,
-              pending.nextBurnDamageBonus > 0,
-              CombatantTalentState.Pending.isLaterAbility(
-                  preparedCardSerial: pending.nextBurnDamagePreparedCardSerial,
-                  currentCardSerial: context.resolution.cardTalents?.playSerial,
-              ) else { return }
-        state.remaining += pending.nextBurnDamageBonus
-        state.itemBonus += pending.nextBurnDamageBonus
-        context.roster.mutateRuntime(for: source) {
-            $0.talents.pending.nextBurnDamageBonus = 0
-            $0.talents.pending.nextBurnDamagePreparedCardSerial = nil
-        }
+              let bonus = context.consumeTalentPreparation(\.nextBurnDamageBonus, for: source) else { return }
+        state.remaining += bonus
+        state.itemBonus += bonus
     }
 
     static func reserveCompanionBlockIgnore(
@@ -99,28 +81,12 @@ package extension DamagePipeline {
     ) {
         guard state.options.isAttackHit, state.combatant.role == .enemy,
               let sourceID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceID),
-              let pending = context.roster.runtime(for: source.combatant)?.talents.pending
-        else { return }
-        let cardSerial = context.resolution.cardTalents?.playSerial
-        let anyAttack = pending.nextAttackIgnoresBlock && CombatantTalentState.Pending.isLaterAbility(
-            preparedCardSerial: pending.nextAttackIgnorePreparedCardSerial, currentCardSerial: cardSerial,
-        )
-        let freezeAttack = state.damageKeyword == .freeze && pending.nextFreezeIgnoresBlock
-            && CombatantTalentState.Pending.isLaterAbility(
-                preparedCardSerial: pending.nextFreezeIgnorePreparedCardSerial, currentCardSerial: cardSerial,
-            )
-        guard anyAttack || freezeAttack else { return }
-        state.ignoreBlockFromTalent = true
-        context.roster.mutateRuntime(for: source.combatant) {
-            if anyAttack {
-                $0.talents.pending.nextAttackIgnoresBlock = false
-                $0.talents.pending.nextAttackIgnorePreparedCardSerial = nil
-            }
-            if freezeAttack {
-                $0.talents.pending.nextFreezeIgnoresBlock = false
-                $0.talents.pending.nextFreezeIgnorePreparedCardSerial = nil
-            }
+              let source = context.roster.combatant(for: sourceID) else { return }
+        let anyAttack = context.consumeTalentPreparation(\.nextAttackIgnoresBlock, for: source.combatant) == true
+        let freezeAttack = state.damageKeyword == .freeze
+            && context.consumeTalentPreparation(\.nextFreezeIgnoresBlock, for: source.combatant) == true
+        if anyAttack || freezeAttack {
+            state.ignoreBlockFromTalent = true
         }
     }
 
@@ -211,17 +177,8 @@ package extension DamagePipeline {
         }
         if state.damageKeyword == .bleed, state.options.isAttackHit,
            let source = context.roster.combatant(for: sourceActorID),
-           let pending = context.roster.runtime(for: source.combatant)?.talents.pending,
-           pending.doubleNextBleedAttack,
-           CombatantTalentState.Pending.isLaterAbility(
-               preparedCardSerial: pending.nextBleedAttackPreparedCardSerial,
-               currentCardSerial: context.resolution.cardTalents?.playSerial,
-           ) {
+           context.consumeTalentPreparation(\.doubleNextBleedAttack, for: source.combatant) == true {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
-            context.roster.mutateRuntime(for: source.combatant) {
-                $0.talents.pending.doubleNextBleedAttack = false
-                $0.talents.pending.nextBleedAttackPreparedCardSerial = nil
-            }
         }
         if state.options.isAttackHit, state.damageKeyword == .physical, state.targetStatus.isStunned,
            triggers.physicalDamageVsStunnedMultiplier > 1 {
@@ -292,19 +249,9 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard state.remaining > 0, state.combatant.role != .enemy,
-              let pending = context.roster.runtime(for: state.combatant)?.talents.pending,
-              pending.nextIncomingDamageMultiplier < 1,
-              CombatantTalentState.Pending.isLaterAbility(
-                  preparedCardSerial: pending.nextIncomingDamagePreparedCardSerial,
-                  currentCardSerial: context.resolution.cardTalents?.playSerial,
-              ) else { return }
-        state.remaining = CombatRounding.scaled(
-            state.remaining, multiplier: pending.nextIncomingDamageMultiplier,
-        )
-        context.roster.mutateRuntime(for: state.combatant) {
-            $0.talents.pending.nextIncomingDamageMultiplier = 1
-            $0.talents.pending.nextIncomingDamagePreparedCardSerial = nil
-        }
+              let multiplier = context.consumeTalentPreparation(\.nextIncomingDamageMultiplier, for: state.combatant)
+        else { return }
+        state.remaining = CombatRounding.scaled(state.remaining, multiplier: multiplier)
     }
 
     static func applyCompanionLeechCriticalBlock(

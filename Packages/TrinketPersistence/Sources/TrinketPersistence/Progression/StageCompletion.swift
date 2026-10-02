@@ -31,8 +31,8 @@ public enum StageCompletion {
     ) -> BattleLootResult {
         let level = encounterLevel ?? resolvedEncounterLevel(for: stage, in: chapters)
         let isBoss = enemyIsBoss ?? VictoryRewardApplier.isBoss(enemyID: stage.encounter.battleEnemyID)
-        return VictoryRewardApplier.resolveLoot(
-            .journey(stage: stage, chapters: chapters),
+        return BattleLoot.resolve(
+            .journey(stage: stage),
             encounterLevel: level,
             enemyIsBoss: isBoss,
             worldSeed: worldSeed,

@@ -154,8 +154,7 @@ package extension CombatTriggerEngine {
         if profile.triggers.blockBreakNextHolyHitDouble {
             let serial = context.resolution.cardTalents?.playSerial
             context.roster.mutateRuntime(for: target) {
-                $0.talents.pending.nextHolyHitDouble = true
-                $0.talents.pending.nextHolyHitPreparedCardSerial = serial
+                $0.talents.pending.nextHolyHitDouble = PreparedTalentBonus(value: true, cardSerial: serial)
             }
         }
         prepareQuakingStunDouble(on: target, triggers: profile.triggers, in: &context)
@@ -207,8 +206,7 @@ package extension CombatTriggerEngine {
               context.claimHeroTalent("Quaking Carapace", actorID: target.id, battle: true) else { return }
         let serial = context.resolution.cardTalents?.playSerial
         context.roster.mutateRuntime(for: target) {
-            $0.talents.pending.nextStunAttackDouble = true
-            $0.talents.pending.nextStunAttackPreparedCardSerial = serial
+            $0.talents.pending.nextStunAttackDouble = PreparedTalentBonus(value: true, cardSerial: serial)
         }
     }
 
@@ -224,9 +222,7 @@ package extension CombatTriggerEngine {
                 let serial = context.resolution.cardTalents?.playSerial
                 let actionID = context.resolution.actionID
                 context.roster.mutateRuntime(for: source.combatant) {
-                    $0.talents.pending.nextStunPreparedCritical = true
-                    $0.talents.pending.nextStunCriticalPreparedCardSerial = serial
-                    $0.talents.pending.nextStunCriticalPreparedActionID = actionID
+                    $0.talents.pending.nextStunPreparedCritical = PreparedTalentBonus(value: true, cardSerial: serial, actionID: actionID)
                 }
             }
         }
@@ -235,10 +231,10 @@ package extension CombatTriggerEngine {
            triggers.stunNextBlockGainMultiplier > 1 {
             let preparedCardSerial = context.resolution.cardTalents?.playSerial
             context.roster.mutateRuntime(for: source.combatant) {
-                $0.talents.pending.nextBlockGainMultiplier = max(
-                    $0.talents.pending.nextBlockGainMultiplier, triggers.stunNextBlockGainMultiplier,
+                $0.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(
+                    value: max($0.talents.pending.nextBlockGainMultiplier?.value ?? 1, triggers.stunNextBlockGainMultiplier),
+                    cardSerial: preparedCardSerial,
                 )
-                $0.talents.pending.nextBlockGainPreparedCardSerial = preparedCardSerial
             }
         }
         if let sourceActorID,

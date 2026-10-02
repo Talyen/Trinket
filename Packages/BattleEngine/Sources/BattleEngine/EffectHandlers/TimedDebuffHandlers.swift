@@ -2,8 +2,6 @@ import TrinketContent
 import TrinketCore
 
 struct TimedDebuffHandler: BattleEffectHandler {
-    let kind: EffectKind
-
     func apply(
         _ effect: Effect,
         ability _: Ability,

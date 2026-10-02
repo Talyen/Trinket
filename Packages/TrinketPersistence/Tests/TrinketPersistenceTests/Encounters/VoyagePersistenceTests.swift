@@ -234,12 +234,11 @@ struct VoyagePersistenceTests {
         }
         let node = run.nodes[index]
         let event = try #require(GameContent.mysteryEvent(matching: "crystal-geode"))
-        let stage = GameContent.syntheticLabyrinthStage(nodeID: node.id, encounter: .mysteryEvent(eventID: event.id))
         let encounter = EncounterIdentity(location: .voyage(runID: run.id, nodeID: node.id), save: save)
         save.voyage.updateNode(runID: run.id, nodeID: node.id) { $0.mysteryEventID = event.id }
         var rng = SeededRandomNumberGenerator(seed: 19)
         let first = try MysteryOfferPersistence.prepare(
-            event: event, stage: stage, labyrinthNodeID: nil, encounter: encounter, save: &save, using: &rng,
+            event: event, encounter: encounter, save: &save, using: &rng,
         )
         #expect(first.count == 2)
         try SaveTestSupport.writeRoot(save, to: context.storeURL())
@@ -248,7 +247,7 @@ struct VoyagePersistenceTests {
         #expect(store.persistBatch(logging: "Reopen Voyage mystery") { candidate in
             do {
                 reopened = try MysteryOfferPersistence.prepare(
-                    event: event, stage: stage, labyrinthNodeID: nil, encounter: encounter, save: &candidate, using: &rng,
+                    event: event, encounter: encounter, save: &candidate, using: &rng,
                 )
             } catch { Issue.record("Voyage mystery failed to reopen: \(error)") }
         })
@@ -257,7 +256,7 @@ struct VoyagePersistenceTests {
         let before = store.currentSave
         var result = MysteryEffectResult()
         #expect(store.persistBatch(logging: "Claim Voyage mystery") { candidate in
-            result = MysteryOfferPersistence.claim(offered, stage: stage, labyrinthNodeID: nil, encounter: encounter, save: &candidate)
+            result = MysteryOfferPersistence.claim(offered, encounter: encounter, save: &candidate)
         })
         #expect(result.grantedItems == [offered.item])
         let reloaded = try context.makeReloadedStore()
@@ -266,7 +265,7 @@ struct VoyagePersistenceTests {
         #expect(reloaded.voyage.activeRun?.earnedMaterials == before.voyage.activeRun?.earnedMaterials)
         #expect(reloaded.journey == before.journey)
         var claimed = reloaded.currentSave
-        let duplicate = MysteryOfferPersistence.claim(offered, stage: stage, labyrinthNodeID: nil, encounter: encounter, save: &claimed)
+        let duplicate = MysteryOfferPersistence.claim(offered, encounter: encounter, save: &claimed)
         #expect(duplicate.isEmpty)
         #expect(claimed == reloaded.currentSave)
     }

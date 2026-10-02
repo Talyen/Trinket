@@ -4,63 +4,28 @@ import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
-struct BattleLogReducerTests {
-    @Test func `line for action formats representative cases`() throws {
-        try #expect(
-            BattleLogReducer.lineForAction(
-                actorName: "Hero",
-                abilityName: "Block",
-                dealt: 0,
-                damageKeyword: .physical,
-                targetName: "Enemy",
-                appliedEffectSummaries: [],
-            ) == "Hero uses Block.",
+struct BattleLogProjectionTests {
+    @Test(arguments: [
+        ("Block", 0, Keyword.physical, [String](), "Hero uses Block."),
+        ("Slash", 3, .physical, [], "Hero uses Slash for 3 Physical damage to Enemy."),
+        ("Smite", 0, .holy, ["restore 3 Health"], "Hero uses Smite and restore 3 Health."),
+        ("Fireball", 3, .burn, ["applies Burning"], "Hero uses Fireball for 3 Burn damage to Enemy and applies Burning."),
+        ("Heat Wave", 0, .burn, ["applies Burning", "gain Block"], "Hero uses Heat Wave and applies Burning, gain Block."),
+    ])
+    func `action summaries retain damage and effect wording`(
+        name: String, amount: Int, keyword: Keyword, effects: [String], expected: String,
+    ) {
+        let event = ActionEvent(
+            id: 1, kind: .ability, actorName: "Hero", abilityName: name,
+            targetID: "enemy", targetName: "Enemy", amount: amount, keyword: keyword,
+            appliedEffectSummaries: effects,
         )
-        try #expect(
-            BattleLogReducer.lineForAction(
-                actorName: "Hero",
-                abilityName: "Slash",
-                dealt: 3,
-                damageKeyword: .physical,
-                targetName: "Enemy",
-                appliedEffectSummaries: [],
-            ) == "Hero uses Slash for 3 Physical damage to Enemy.",
-        )
-        try #expect(
-            BattleLogReducer.lineForAction(
-                actorName: "Hero",
-                abilityName: "Smite",
-                dealt: 0,
-                damageKeyword: .holy,
-                targetName: "Hero",
-                appliedEffectSummaries: ["restore 3 Health"],
-            ) == "Hero uses Smite and restore 3 Health.",
-        )
-        try #expect(
-            BattleLogReducer.lineForAction(
-                actorName: "Hero",
-                abilityName: "Fireball",
-                dealt: 3,
-                damageKeyword: .burn,
-                targetName: "Enemy",
-                appliedEffectSummaries: ["applies Burning"],
-            ) == "Hero uses Fireball for 3 Burn damage to Enemy and applies Burning.",
-        )
-        try #expect(
-            BattleLogReducer.lineForAction(
-                actorName: "Hero",
-                abilityName: "Heat Wave",
-                dealt: 0,
-                damageKeyword: .burn,
-                targetName: "Enemy",
-                appliedEffectSummaries: ["applies Burning", "gain Block"],
-            ) == "Hero uses Heat Wave and applies Burning, gain Block.",
-        )
+        #expect(BattleLogProjection.line(for: event) == expected)
     }
 
     @Test func `entries reduce milestones status and ability events`() throws {
         let events = sampleEvents(includeDefeat: true)
-        let entries = BattleLogReducer.entries(from: events)
+        let entries = BattleLogProjection.entries(from: events)
         try #expect(entries.map(\.text) == [
             "Hero and Companion face Enemy.",
             "Hero uses Slash for 3 Physical damage to Enemy.",
@@ -72,15 +37,48 @@ struct BattleLogReducerTests {
     @Test func `incremental entries and projection match full reduce`() throws {
         let events = sampleEvents(includeDefeat: false)
 
-        let full = BattleLogReducer.entries(from: events)
-        let firstBatch = BattleLogReducer.entries(from: [events[0]], startingAt: 0)
-        let secondBatch = BattleLogReducer.entries(from: events, startingAt: 1)
-        try #expect(firstBatch + secondBatch == full)
-
+        let full = BattleLogProjection.entries(from: events)
         var projection = BattleLogProjection()
         projection.sync(events: [events[0]])
         projection.sync(events: events)
-        try #expect(projection.entries == BattleLogProjection.entries(from: events))
+        try #expect(projection.entries == full)
+    }
+
+    @Test func `interleaved action packets survive split updates and history resets`() {
+        func event(_ kind: ActionEvent.Kind, action: Int, amount: Int, keyword: Keyword = .physical) -> ActionEvent {
+            ActionEvent(
+                id: action, actionID: action, kind: kind, actorID: "hero", actorName: "Hero",
+                abilityID: "strike", abilityName: "Strike", targetID: "enemy", targetName: "Enemy",
+                amount: amount, keyword: keyword,
+            )
+        }
+        // Nested casts can use the same actor and ability while the outer action is unfinished.
+        let events = [
+            event(.abilityDamage, action: 1, amount: 2),
+            event(.abilityDamage, action: 2, amount: 7),
+            event(.ability, action: 2, amount: 7),
+            event(.abilityDamage, action: 1, amount: 3),
+            event(.abilityDamage, action: 1, amount: 4, keyword: .poison),
+            event(.ability, action: 1, amount: 9),
+        ]
+        let expected = [
+            "Hero uses Strike for 7 Physical damage to Enemy.",
+            "Hero uses Strike for 5 Physical damage to Enemy and 4 Poison damage to Enemy.",
+        ]
+        var projection = BattleLogProjection()
+        for count in 1 ... events.count {
+            let prefix = Array(events.prefix(count))
+            projection.sync(events: prefix)
+            #expect(projection.entries == BattleLogProjection.entries(from: prefix))
+        }
+        #expect(projection.entries.map(\.text) == expected)
+        #expect(projection.entries.map(\.id) == [2, 5])
+        projection.sync(events: Array(events.prefix(1)))
+        #expect(projection.entries.isEmpty)
+        projection.sync(events: events)
+        #expect(projection.entries.map(\.text) == expected)
+        projection.rebuildFromScratch(events: Array(events.suffix(1)))
+        #expect(projection.entries.map(\.text) == ["Hero uses Strike for 9 Physical damage to Enemy."])
     }
 
     @Test func `battle start log uses names captured by event`() throws {
@@ -114,7 +112,7 @@ struct BattleLogReducerTests {
             amount: 0,
             keyword: .deathsDoor,
         )
-        try #expect(BattleLogReducer.line(for: triggered) == "Hero is on Death's Door.")
+        try #expect(BattleLogProjection.line(for: triggered) == "Hero is on Death's Door.")
 
         let expired = ActionEvent(
             id: 2,
@@ -127,7 +125,7 @@ struct BattleLogReducerTests {
             amount: 0,
             keyword: .deathsDoor,
         )
-        try #expect(BattleLogReducer.line(for: expired) == "Hero's Death's Door fades.")
+        try #expect(BattleLogProjection.line(for: expired) == "Hero's Death's Door fades.")
     }
 
     @Test func `control trigger log lines`() {
@@ -142,7 +140,7 @@ struct BattleLogReducerTests {
             amount: 0,
             keyword: .stun,
         )
-        #expect(BattleLogReducer.line(for: stunned) == "Enemy is Stunned.")
+        #expect(BattleLogProjection.line(for: stunned) == "Enemy is Stunned.")
 
         let frozen = ActionEvent(
             id: 2,
@@ -155,7 +153,7 @@ struct BattleLogReducerTests {
             amount: 0,
             keyword: .freeze,
         )
-        #expect(BattleLogReducer.line(for: frozen) == "Enemy is Frozen.")
+        #expect(BattleLogProjection.line(for: frozen) == "Enemy is Frozen.")
     }
 
     @Test func `passive talent attribution log lines`() {
@@ -170,7 +168,7 @@ struct BattleLogReducerTests {
             amount: 2,
             keyword: .holy,
         )
-        #expect(BattleLogReducer.line(for: blockEvent) == "Knight gains 2 Block (Oathbound).")
+        #expect(BattleLogProjection.line(for: blockEvent) == "Knight gains 2 Block (Oathbound).")
 
         let healEvent = ActionEvent(
             id: 2,
@@ -183,7 +181,7 @@ struct BattleLogReducerTests {
             amount: 2,
             keyword: .burn,
         )
-        #expect(BattleLogReducer.line(for: healEvent) == "Warlock restores 2 Health (Bloodfire).")
+        #expect(BattleLogProjection.line(for: healEvent) == "Warlock restores 2 Health (Bloodfire).")
 
         let thornsEvent = ActionEvent(
             id: 3,
@@ -196,7 +194,7 @@ struct BattleLogReducerTests {
             amount: 3,
             keyword: .physical,
         )
-        #expect(BattleLogReducer.line(for: thornsEvent) == "Shield Scarab deals 3 Physical damage to Goblin (Spiked Shell).")
+        #expect(BattleLogProjection.line(for: thornsEvent) == "Shield Scarab deals 3 Physical damage to Goblin (Spiked Shell).")
 
         let cleanseEvent = ActionEvent(
             id: 4,
@@ -209,7 +207,7 @@ struct BattleLogReducerTests {
             amount: 0,
             keyword: .poison,
         )
-        #expect(BattleLogReducer.line(for: cleanseEvent) == "Hero Cleanses Poison (Purifying Wisdom).")
+        #expect(BattleLogProjection.line(for: cleanseEvent) == "Hero Cleanses Poison (Purifying Wisdom).")
     }
 
     @Test func `Heal logs its actual ally recipient instead of the selected enemy`() {
@@ -220,7 +218,7 @@ struct BattleLogReducerTests {
         )
         #expect(battle.roster.companion.currentHealth == 16)
         #expect(battle.roster.enemy.currentHealth == 100)
-        let lines = BattleLogReducer.entries(from: events).map(\.text)
+        let lines = BattleLogProjection.entries(from: events).map(\.text)
         #expect(lines.contains("Companion restores 6 Health (Heal)."))
         #expect(lines.contains("Hero uses Heal and restore 6 Health."))
         #expect(!lines.contains { $0.contains("Heal on Enemy") })
@@ -234,7 +232,7 @@ struct BattleLogReducerTests {
             ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
         )
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.enemy.activeEffects) == 0)
-        let lines = BattleLogReducer.entries(from: events).map(\.text)
+        let lines = BattleLogProjection.entries(from: events).map(\.text)
         #expect(lines.contains("Enemy's Block is Purged (Purge)."))
         #expect(!lines.contains { $0.contains("uses Purge on") })
     }
@@ -261,7 +259,7 @@ struct BattleLogReducerTests {
         }
         #expect(battle.roster.hero.currentMana == 12)
         let restored = 12 - initialMana
-        let lines = BattleLogReducer.entries(from: events).map(\.text)
+        let lines = BattleLogProjection.entries(from: events).map(\.text)
         #expect(lines == [restored > 0
                 ? "Hero uses Mana Potion and restore \(restored) Mana."
                 : "Hero uses Mana Potion."])
@@ -289,8 +287,8 @@ struct BattleLogReducerTests {
         #expect(battle.roster.hero.currentMana == 3)
         let gainEvents = events.filter { $0.effectKind == .resourceGain }
         #expect(gainEvents.count == 2)
-        #expect(gainEvents.allSatisfy { BattleLogReducer.line(for: $0) == nil })
-        let lines = BattleLogReducer.entries(from: events).map(\.text)
+        #expect(gainEvents.allSatisfy { BattleLogProjection.line(for: $0) == nil })
+        let lines = BattleLogProjection.entries(from: events).map(\.text)
         #expect(lines.count == 1)
         #expect(lines.first?.contains("gain 3 Gold") == true)
         #expect(lines.first?.contains("restore 3 Mana") == true)

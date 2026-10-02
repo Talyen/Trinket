@@ -51,7 +51,8 @@ struct CloudSaveMergeTests {
         var peer = base
         var initialRandom = SeededRandomNumberGenerator(seed: 11)
         let pinnedOffers = try MysteryOfferPersistence.prepare(
-            event: event, stage: stage, labyrinthNodeID: nil, save: &peer, using: &initialRandom,
+            event: event, encounter: EncounterIdentity(location: .journey(stageID: stage.id), save: peer),
+            save: &peer, using: &initialRandom,
         )
         #expect(!pinnedOffers.isEmpty)
         let readable = try #require(peer.journey.mysteryOfferPayloads[stageID])
@@ -76,7 +77,8 @@ struct CloudSaveMergeTests {
         var reopened = merged
         var random = SeededRandomNumberGenerator(seed: 1)
         let offers = try MysteryOfferPersistence.prepare(
-            event: event, stage: stage, labyrinthNodeID: nil, save: &reopened, using: &random,
+            event: event, encounter: EncounterIdentity(location: .journey(stageID: stage.id), save: reopened),
+            save: &reopened, using: &random,
         )
 
         #expect(merged.journey.mysteryOfferPayloads[stageID] == readable)

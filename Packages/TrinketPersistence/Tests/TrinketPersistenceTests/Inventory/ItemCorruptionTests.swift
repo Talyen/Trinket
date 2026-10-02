@@ -17,7 +17,7 @@ struct ItemCorruptionTests {
         }
         #expect(originalPowers != catalogPowers)
         for kind in [CorruptionEffectKind.addAffix, .replaceAffix] {
-            let result = ItemCorruption.apply(kinds: [kind], to: item, using: &rng)
+            let result = try #require(ItemCorruption.apply(kinds: [kind], to: item, using: &rng))
             let powers = try #require(result.item.affixPowers)
             for (index, affix) in result.item.affixes.enumerated() {
                 if let originalIndex = item.affixes.firstIndex(where: { $0.id == affix.id }) {
@@ -25,6 +25,32 @@ struct ItemCorruptionTests {
                 }
             }
         }
+    }
+
+    @Test(arguments: [false, true])
+    func `saved unknown affixes remain intact and cannot enter the altar`(hasStoredPowers: Bool) throws {
+        let known = try makeItem(baseID: "longsword", rarity: .basic)
+        let unknown = ItemAffix(id: "removed-affix", title: "Old Affix", description: "Saved effect.", keywords: [])
+        let item = InventoryItem(
+            id: known.id, baseType: known.baseType, rarity: known.rarity, displayName: known.displayName,
+            affixes: [unknown] + known.affixes,
+            affixPowers: hasStoredPowers ? [ItemAffixPower(description: unknown.description, modifiers: [])]
+                + known.affixes.compactMap { GameContent.itemAffixDefinition(matching: $0.id)?.basic } : nil,
+        )
+        let restored = try #require(StoredInventoryItem(item).resolved())
+        #expect(restored == item)
+        var save = PlayerSave.testSeed
+        save.inventory.items = [restored]
+        var rng = SeededRandomNumberGenerator(seed: 123)
+        var untouchedRNG = rng
+
+        #expect(!ItemCorruption.isEligibleTarget(restored))
+        #expect(ItemCorruption.eligibleTargets(in: save.inventory).isEmpty)
+        #expect(ItemCorruption.corrupt(restored, using: &rng) == nil)
+        #expect(ItemCorruption.apply(kinds: [.addAffix], to: restored, using: &rng) == nil)
+        #expect(ItemCorruptionApplier.corrupt(itemID: restored.id, save: &save, using: &rng) == .ineligible)
+        #expect(save.inventory.items == [restored])
+        #expect(rng.next() == untouchedRNG.next())
     }
 
     @Test func `effect rolls follow authored order for fixed seed`() throws {
@@ -51,7 +77,7 @@ struct ItemCorruptionTests {
         for kind in [CorruptionEffectKind.addAffix, .replaceAffix] {
             for seed in UInt64(1) ... 64 {
                 var rng = SeededRandomNumberGenerator(seed: seed)
-                let result = ItemCorruption.apply(kinds: [kind], to: item, using: &rng)
+                let result = try #require(ItemCorruption.apply(kinds: [kind], to: item, using: &rng))
                 let expectedCount = kind == .addAffix ? item.affixes.count + 1 : item.affixes.count
 
                 #expect(result.item.affixes.count == expectedCount)
@@ -84,7 +110,7 @@ struct ItemCorruptionTests {
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
         var rng = SeededRandomNumberGenerator(seed: 5)
 
-        let result = ItemCorruption.apply(kinds: [.addAffix], to: item, using: &rng)
+        let result = try #require(ItemCorruption.apply(kinds: [.addAffix], to: item, using: &rng))
 
         let originalIDs = Set(item.affixes.map(\.id))
         let marked = result.item.affixes.filter(\.isCorrupted)
@@ -97,7 +123,7 @@ struct ItemCorruptionTests {
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
         var rng = SeededRandomNumberGenerator(seed: 11)
 
-        let result = ItemCorruption.apply(kinds: [.replaceAffix], to: item, using: &rng)
+        let result = try #require(ItemCorruption.apply(kinds: [.replaceAffix], to: item, using: &rng))
 
         let originalIDs = Set(item.affixes.map(\.id))
         let marked = result.item.affixes.filter(\.isCorrupted)
@@ -110,7 +136,7 @@ struct ItemCorruptionTests {
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
         var rng = SeededRandomNumberGenerator(seed: 13)
 
-        let result = ItemCorruption.apply(kinds: [.upgradeRarity], to: item, using: &rng)
+        let result = try #require(ItemCorruption.apply(kinds: [.upgradeRarity], to: item, using: &rng))
 
         #expect(result.item.rarity == .astral)
         #expect(result.item.affixes.count == 2)
@@ -143,11 +169,11 @@ struct ItemCorruptionTests {
     @Test func `add affix alone does not force astral`() throws {
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
         var rng = SeededRandomNumberGenerator(seed: 7)
-        let result = ItemCorruption.apply(
+        let result = try #require(ItemCorruption.apply(
             kinds: [.addAffix],
             to: item,
             using: &rng,
-        )
+        ))
         #expect(result.item.affixes.count == 3)
         #expect(result.item.rarity == .basic)
         #expect(!result.effects.contains(.upgradedRarity))
@@ -156,11 +182,11 @@ struct ItemCorruptionTests {
     @Test func `rolled rarity upgrade promotes basic to astral`() throws {
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
         var rng = SeededRandomNumberGenerator(seed: 7)
-        let result = ItemCorruption.apply(
+        let result = try #require(ItemCorruption.apply(
             kinds: [.upgradeRarity],
             to: item,
             using: &rng,
-        )
+        ))
         #expect(result.item.rarity == .astral)
         #expect(result.effects.contains(.upgradedRarity))
     }
@@ -249,11 +275,11 @@ struct ItemCorruptionTests {
             affixes: [affix],
         )
         var rng = SeededRandomNumberGenerator(seed: 3)
-        let result = ItemCorruption.apply(
+        let result = try #require(ItemCorruption.apply(
             kinds: [.bumpDown],
             to: item,
             using: &rng,
-        )
+        ))
         #expect(result.item.isCorrupted)
         #expect(!result.item.affixes.isEmpty)
     }
@@ -477,7 +503,7 @@ extension ItemCorruptionTests {
         for kinds in combinations {
             for seed in UInt64(1) ... 64 {
                 var rng = SeededRandomNumberGenerator(seed: seed)
-                let result = ItemCorruption.apply(kinds: kinds, to: item, using: &rng)
+                let result = try #require(ItemCorruption.apply(kinds: kinds, to: item, using: &rng))
                 let powers = try #require(result.item.affixPowers)
                 for (index, affix) in result.item.affixes.enumerated() {
                     let isNew = result.effects.contains { effect in

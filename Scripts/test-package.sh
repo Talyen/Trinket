@@ -233,7 +233,7 @@ run_one_package() {
   mkdir -p "$package_dd"
 
   if [[ "$package" == "BattleEngine" && "$INCLUDE_BALANCE_SWEEP_TESTS" == "false" ]]; then
-    package_test_filters+=("-skip-testing:BattleBalanceToolsTests")
+    package_test_filters+=("-skip-testing:BattleBalanceToolsTests" "-skip-testing:BalanceSweepCLITests")
   fi
 
   if [[ "$ACTION" == "test-without-building" ]]; then

@@ -3,169 +3,55 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
-    // swiftlint:disable:next function_body_length - shield resolution is one ordered mutation step
     static func applyShieldAbsorption(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        var effects = context.roster.activeEffects(for: state.combatant)
-
         let blockMultiplier = DamageDefensePolicy.blockMultiplier(state: state, in: context)
-        // Full bypass skips ally protection too: it scales by the same
-        // multiplier, so it would absorb 0 and its absorbed-gated side
-        // effects (talent blocked-damage, block-broken) would no-op.
         guard blockMultiplier > 0 else { return }
 
-        let borrowedStrip = applyAllyBlockProtection(to: &state, blockMultiplier: blockMultiplier, in: &context)
-        effects = context.roster.activeEffects(for: state.combatant)
-
-        guard let index = effects.firstIndex(where: {
-            if case .shield = $0.effect {
-                return true
-            }; return false
-        }),
-            case let .shield(keyword, buffer) = effects[index].effect,
-            buffer > 0,
-            state.remaining > 0,
-            !state.options.isHealthCost
-        else {
-            return
-        }
-
-        var sourceTriggers = state.sourceActorID.map { context.modifiers(for: $0).triggers }
-        if let strip = sourceTriggers?.poisonStripsBlockBeforeHealth {
-            sourceTriggers?.poisonStripsBlockBeforeHealth = max(0, strip - borrowedStrip)
-        }
-        let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
-
-        let effectiveBuffer = max(0, CombatRounding.scaled(buffer, multiplier: blockMultiplier))
-        guard effectiveBuffer > 0, state.remaining > 0 else {
-            return
-        }
-
-        // Corrosive Venom strips Block before this packet is absorbed, so a
-        // packet larger than the defender's Block gains penetration instead of
-        // soaking the strip against an already-depleted pool.
-        let stripBeforeAbsorption = state.damageKeyword == .poison
-            ? sourceTriggers?.poisonStripsBlockBeforeHealth ?? 0
-            : 0
-
-        let absorptionMultiplier = blockAbsorptionMultiplier(for: state.combatant, state: state, in: context)
-        let absorbableBuffer = max(0, buffer - stripBeforeAbsorption)
-        let absorbableEffectiveBuffer = max(0, CombatRounding.scaled(absorbableBuffer, multiplier: blockMultiplier))
-        let absorptionBuffer = CombatRounding.scaled(absorbableEffectiveBuffer, multiplier: absorptionMultiplier)
-
-        let absorbed = applyAbsorption(
-            to: &state,
-            keyword: keyword,
-            effectiveBuffer: absorptionBuffer,
-            in: &context,
-        )
-
-        let consumedBlock = max(
-            absorbed > 0 ? 1 : 0,
-            CombatRounding.scaled(absorbed, multiplier: 1 / absorptionMultiplier),
-        )
-        let blockRemoval = consumedBlock + extraBlockRemoval(
-            consumedBlock: consumedBlock,
-            buffer: buffer,
-            sourceTriggers: sourceTriggers,
-            damageKeyword: state.damageKeyword,
-            isAttackHit: state.options.isAttackHit,
-        )
-
-        var blockBroken = false
-        if let reduced = DefensePoolEngine.reduce(
-            blockRemoval,
-            in: effects,
-        ) {
-            effects = reduced.effects
-            blockBroken = reduced.broken
-        }
-        state.heroCardBlockBroken = blockBroken
-        context.roster.setActiveEffects(effects, for: state.combatant)
-
-        recordBlockAbsorption(absorbed, owner: state.combatant, to: &state, in: &context)
-
-        state.damageEvents.append(contentsOf: applyBlockAbsorptionReactions(
-            absorbed: absorbed,
-            blockBroken: blockBroken,
-            defenderTriggers: defenderTriggers,
-            sourceTriggers: sourceTriggers,
-            to: &state,
-            in: &context,
-        ))
-        state.damageEvents.append(contentsOf: handleTalentBlockedDamage(
-            absorbed: absorbed,
-            blockBroken: blockBroken,
-            defender: state.combatant,
-            attackerID: state.sourceActorID,
-            in: &context,
-        ))
-        applyOverflowAndBreakReactions(blockBroken: blockBroken, defenderTriggers: defenderTriggers, to: &state, in: &context)
-    }
-
-    private static func applyOverflowAndBreakReactions(
-        blockBroken: Bool,
-        defenderTriggers: CombatTraitTriggers,
-        to state: inout DamageResolutionState,
-        in context: inout BattleState,
-    ) {
-        if state.remaining > 0, defenderTriggers.postBlockOverflowDamageMultiplier != 1 {
-            state.remaining = CombatRounding.scaled(
-                state.remaining,
-                multiplier: defenderTriggers.postBlockOverflowDamageMultiplier,
+        let borrowedStrip = if let protection = allyBlockProtector(for: state.combatant, in: context) {
+            absorbBlock(
+                ownedBy: protection.owner, abilityName: protection.abilityName,
+                blockMultiplier: blockMultiplier, to: &state, in: &context,
             )
+        } else {
+            0
         }
-
-        if blockBroken {
-            state.brokenBlockOwners.append(state.combatant)
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBlockBroken(
-                on: state.combatant,
-                attackerID: state.sourceActorID,
-                in: &context,
-            ))
-        }
+        // Resolve the recipient from live state: protection reactions may have
+        // changed either participant's effects or the attacker's modifiers.
+        _ = absorbBlock(
+            ownedBy: state.combatant, blockMultiplier: blockMultiplier,
+            previouslyStripped: borrowedStrip, to: &state, in: &context,
+        )
     }
 
-    private static func applyAbsorption(
-        to state: inout DamageResolutionState,
-        keyword: Keyword,
-        effectiveBuffer: Int,
-        in context: inout BattleState,
-    ) -> Int {
-        let absorbed = min(state.remaining, effectiveBuffer)
-        // A strip that exhausts the pool absorbs nothing; skip the log entry.
-        if absorbed > 0 {
-            state.blockedAmount += absorbed
-            appendAbsorption(
-                absorbed,
-                abilityName: keyword.rawValue,
-                keyword: keyword,
-                actorName: keyword.rawValue,
-                target: state.combatant,
-                to: &state,
-                in: &context,
-            )
-        }
-        return absorbed
-    }
-
-    private static func applyAllyBlockProtection(
-        to state: inout DamageResolutionState,
+    // swiftlint:disable:next function_body_length - commit one Block pool before its ordered absorption and break reactions
+    private static func absorbBlock(
+        ownedBy owner: Combatant,
+        abilityName: String? = nil,
         blockMultiplier: Double,
+        previouslyStripped: Int = 0,
+        to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) -> Int {
         guard state.remaining > 0, !state.options.isHealthCost else { return 0 }
-        guard let protection = allyBlockProtector(for: state.combatant, in: context) else { return 0 }
-        let protector = protection.owner
-        let protectorEffects = context.roster.activeEffects(for: protector)
-        let buffer = DefensePoolEngine.blockPoints(in: protectorEffects)
-        let sourceTriggers = state.sourceActorID.map { context.modifiers(for: $0).triggers }
+        let effects = context.roster.activeEffects(for: owner)
+        guard let shield = effects.first(where: { $0.effect.kind == .shield }),
+              case let .shield(keyword, points) = shield.effect, points > 0 else { return 0 }
+        let isBorrowed = owner.id != state.combatant.id
+        let buffer = isBorrowed ? DefensePoolEngine.blockPoints(in: effects) : points
+        guard isBorrowed || CombatRounding.scaled(buffer, multiplier: blockMultiplier) > 0 else { return 0 }
+
+        var sourceTriggers = state.sourceActorID.map { context.modifiers(for: $0).triggers }
+        if !isBorrowed, let strip = sourceTriggers?.poisonStripsBlockBeforeHealth {
+            sourceTriggers?.poisonStripsBlockBeforeHealth = max(0, strip - previouslyStripped)
+        }
+        let defenderTriggers = context.modifiers(for: owner.id).triggers
         let stripBeforeAbsorption = state.damageKeyword == .poison
             ? sourceTriggers?.poisonStripsBlockBeforeHealth ?? 0
             : 0
-        let absorptionMultiplier = blockAbsorptionMultiplier(for: protector, state: state, in: context)
+        let absorptionMultiplier = blockAbsorptionMultiplier(for: owner, state: state, in: context)
         let effectiveBlock = CombatRounding.scaled(max(0, buffer - stripBeforeAbsorption), multiplier: blockMultiplier)
         let available = CombatRounding.scaled(effectiveBlock, multiplier: absorptionMultiplier)
         let absorbed = min(state.remaining, available)
@@ -177,32 +63,50 @@ package extension DamagePipeline {
             damageKeyword: state.damageKeyword,
             isAttackHit: state.options.isAttackHit,
         )
-        guard let reduced = DefensePoolEngine.reduce(blockRemoval, in: protectorEffects) else { return 0 }
+        let reduced = DefensePoolEngine.reduce(blockRemoval, in: effects)
+        let blockBroken = reduced?.broken ?? false
         if absorbed > 0 {
             state.blockedAmount += absorbed
             appendAbsorption(
                 absorbed,
-                abilityName: protection.abilityName,
-                keyword: reduced.keyword,
-                actorName: reduced.keyword.rawValue,
-                target: protector,
+                abilityName: abilityName ?? keyword.rawValue,
+                keyword: keyword,
+                actorName: keyword.rawValue,
+                target: owner,
                 to: &state,
                 in: &context,
             )
         }
-        context.roster.setActiveEffects(reduced.effects, for: protector)
-        recordBlockAbsorption(absorbed, owner: protector, to: &state, in: &context)
+        if !isBorrowed {
+            state.heroCardBlockBroken = blockBroken
+        }
+        context.roster.setActiveEffects(reduced?.effects ?? effects, for: owner)
+        recordBlockAbsorption(absorbed, owner: owner, to: &state, in: &context)
+
+        if !isBorrowed {
+            state.damageEvents.append(contentsOf: applyBlockAbsorptionReactions(
+                absorbed: absorbed,
+                blockBroken: blockBroken,
+                defenderTriggers: defenderTriggers,
+                sourceTriggers: sourceTriggers,
+                to: &state,
+                in: &context,
+            ))
+        }
         state.damageEvents.append(contentsOf: handleTalentBlockedDamage(
             absorbed: absorbed,
-            blockBroken: reduced.broken,
-            defender: protector,
+            blockBroken: blockBroken,
+            defender: owner,
             attackerID: state.sourceActorID,
             in: &context,
         ))
-        if reduced.broken {
-            state.brokenBlockOwners.append(protector)
+        if !isBorrowed, state.remaining > 0, defenderTriggers.postBlockOverflowDamageMultiplier != 1 {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: defenderTriggers.postBlockOverflowDamageMultiplier)
+        }
+        if blockBroken {
+            state.brokenBlockOwners.append(owner)
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBlockBroken(
-                on: protector,
+                on: owner,
                 attackerID: state.sourceActorID,
                 in: &context,
             ))

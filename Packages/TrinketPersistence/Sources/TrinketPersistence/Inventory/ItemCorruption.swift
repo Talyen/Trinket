@@ -50,6 +50,7 @@ public enum ItemCorruption {
             && item.rarity != .unique
             && !(item.isCorrupted || item.hasCorruptedAffix)
             && !item.affixes.isEmpty
+            && item.affixes.allSatisfy { GameContent.itemAffixDefinition(matching: $0.id) != nil }
     }
 
     public static func eligibleTargets(in inventory: PlayerInventoryState) -> [InventoryItem] {
@@ -96,7 +97,10 @@ public enum ItemCorruption {
         if item.rarity == .basic {
             kinds.insert(.upgradeRarity)
         }
-        let powers = resolvedPowers(for: item)
+        let powers = item.affixes.indices.compactMap { index in
+            item.affixPowers.flatMap { $0.indices.contains(index) ? $0[index] : nil }
+                ?? GameContent.itemAffixDefinition(matching: item.affixes[index].id)?.power(for: item.rarity)
+        }
         if ItemAffixPower.hasBumpableField(in: powers, direction: .up) {
             kinds.insert(.bumpUp)
         }
@@ -116,130 +120,130 @@ public enum ItemCorruption {
         }
     }
 
+    private enum CorruptionMarkPriority: Int {
+        case added, replaced, empowered, weakened
+    }
+
+    private struct CorruptibleAffix {
+        let definition: ItemAffixDefinition
+        var power: ItemAffixPower
+        var mark: CorruptionMarkPriority?
+
+        var isNew: Bool {
+            mark == .added || mark == .replaced
+        }
+    }
+
     static func apply(
         kinds: Set<CorruptionEffectKind>,
         to item: InventoryItem,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> ItemCorruptionDetail {
-        var affixIDs = item.affixes.map(\.id)
+    ) -> ItemCorruptionDetail? {
+        let rarity: Rarity = item.rarity == .basic && kinds.contains(.upgradeRarity) ? .astral : item.rarity
+        var affixes: [CorruptibleAffix] = []
+        for (index, affix) in item.affixes.enumerated() {
+            // Saved affixes survive catalog removal. Never partially rebuild such an item.
+            guard let definition = GameContent.itemAffixDefinition(matching: affix.id) else { return nil }
+            let stored = item.affixPowers.flatMap { $0.indices.contains(index) ? $0[index] : nil }
+            affixes.append(CorruptibleAffix(
+                definition: definition,
+                power: rarity == item.rarity ? stored ?? definition.power(for: rarity) : definition.power(for: rarity),
+            ))
+        }
         var summaries: [CorruptionEffectSummary] = []
-        var rarity = item.rarity
-        var markCandidates: [(CorruptionMarkPriority, Int)] = []
-
         applyStructuralEffects(
-            kinds: kinds,
-            baseType: item.baseType,
-            affixIDs: &affixIDs,
-            summaries: &summaries,
-            markCandidates: &markCandidates,
-            using: &randomNumberGenerator,
+            kinds: kinds, baseType: item.baseType, rarity: rarity,
+            affixes: &affixes, summaries: &summaries, using: &randomNumberGenerator,
         )
-
-        if rarity == .basic, kinds.contains(.upgradeRarity) {
-            rarity = .astral
+        if rarity != item.rarity {
             summaries.append(.upgradedRarity)
         }
 
-        let newAffixIndices = markCandidates.map(\.1)
-        var powers: [ItemAffixPower] = affixIDs.enumerated().compactMap { index, id in
-            if newAffixIndices.contains(index) {
-                return GameContent.itemAffixDefinition(matching: id)?.power(for: rarity)
-            }
-            return resolvedPower(for: id, on: item, rarity: rarity)
-        }
-        applyBumpEffects(
-            kinds: kinds,
-            powers: &powers,
-            affixIDs: affixIDs,
-            newAffixIndices: newAffixIndices,
-            summaries: &summaries,
-            markCandidates: &markCandidates,
-            using: &randomNumberGenerator,
-        )
+        applyBumpEffects(kinds: kinds, affixes: &affixes, summaries: &summaries, using: &randomNumberGenerator)
 
-        let corruptedIndex = corruptedMarkIndex(
-            count: affixIDs.count,
-            candidates: markCandidates,
-            using: &randomNumberGenerator,
-        )
-
-        let affixes: [ItemAffix] = zip(affixIDs.indices, affixIDs).compactMap { index, id in
-            guard index < powers.count, let definition = GameContent.itemAffixDefinition(matching: id) else {
-                return nil
-            }
-            return ItemAffix(
-                id: definition.id,
-                title: definition.title,
-                description: powers[index].description,
-                keywords: definition.keywords,
-                isCorrupted: index == corruptedIndex,
-            )
-        }
-
+        let markedIndex = affixes.indices.filter { affixes[$0].mark != nil }.min {
+            (affixes[$0].mark?.rawValue ?? Int.max) < (affixes[$1].mark?.rawValue ?? Int.max)
+        } ?? affixes.indices.randomElement(using: &randomNumberGenerator)
         let mutated = InventoryItem(
             id: item.id,
             templateID: item.templateID,
             baseType: item.baseType,
             rarity: rarity,
             displayName: item.displayName,
-            affixes: affixes,
+            affixes: affixes.enumerated().map { index, affix in
+                ItemAffix(
+                    id: affix.definition.id, title: affix.definition.title,
+                    description: affix.power.description, keywords: affix.definition.keywords,
+                    isCorrupted: index == markedIndex,
+                )
+            },
             isCorrupted: true,
-            affixPowers: powers,
+            affixPowers: affixes.map(\.power),
         )
         return ItemCorruptionDetail(originalItem: item, item: mutated, effects: summaries)
-    }
-
-    private static func corruptedMarkIndex(
-        count: Int,
-        candidates: [(CorruptionMarkPriority, Int)],
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> Int? {
-        guard count > 0 else { return nil }
-        let preferred = candidates
-            .filter { $0.1 >= 0 && $0.1 < count }
-            .min { $0.0 < $1.0 }
-        return preferred?.1 ?? Int.random(in: 0 ..< count, using: &randomNumberGenerator)
-    }
-
-    private enum CorruptionMarkPriority: Int, Comparable {
-        case added
-        case replaced
-        case empowered
-        case weakened
-
-        static func < (lhs: Self, rhs: Self) -> Bool {
-            lhs.rawValue < rhs.rawValue
-        }
     }
 
     private static func applyStructuralEffects(
         kinds: Set<CorruptionEffectKind>,
         baseType: ItemBaseType,
-        affixIDs: inout [String],
+        rarity: Rarity,
+        affixes: inout [CorruptibleAffix],
         summaries: inout [CorruptionEffectSummary],
-        markCandidates: inout [(CorruptionMarkPriority, Int)],
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) {
         let catalog = GameContent.itemAffixDefinitions.filter { $0.isEligible(for: baseType) }
-        if kinds.contains(.replaceAffix), !affixIDs.isEmpty {
-            let index = Int.random(in: 0 ..< affixIDs.count, using: &randomNumberGenerator)
-            let fromID = affixIDs[index]
-            let fromTitle = GameContent.itemAffixDefinition(matching: fromID)?.title ?? fromID
-            let pool = catalog.filter { !affixIDs.contains($0.id) }
-            if let replacement = weightedPick(from: pool, using: &randomNumberGenerator) {
-                affixIDs[index] = replacement.id
-                summaries.append(.replacedAffix(from: fromTitle, to: replacement.title))
-                markCandidates.append((.replaced, index))
+        for kind in [CorruptionEffectKind.replaceAffix, .addAffix] where kinds.contains(kind) {
+            let index: Int
+            if kind == .replaceAffix {
+                guard !affixes.isEmpty else { continue }
+                index = Int.random(in: affixes.indices, using: &randomNumberGenerator)
+            } else {
+                guard affixes.count < maxAffixCount else { continue }
+                index = affixes.count
+            }
+            let pool = catalog.filter { candidate in !affixes.contains { $0.definition.id == candidate.id } }
+            guard let definition = weightedPick(from: pool, using: &randomNumberGenerator) else { continue }
+            let newAffix = CorruptibleAffix(
+                definition: definition, power: definition.power(for: rarity),
+                mark: kind == .addAffix ? .added : .replaced,
+            )
+            if kind == .replaceAffix {
+                summaries.append(.replacedAffix(from: affixes[index].definition.title, to: definition.title))
+                affixes[index] = newAffix
+            } else {
+                summaries.append(.addedAffix(title: definition.title))
+                affixes.append(newAffix)
             }
         }
+    }
 
-        if kinds.contains(.addAffix), affixIDs.count < maxAffixCount {
-            let pool = catalog.filter { !affixIDs.contains($0.id) }
-            if let added = weightedPick(from: pool, using: &randomNumberGenerator) {
-                affixIDs.append(added.id)
-                summaries.append(.addedAffix(title: added.title))
-                markCandidates.append((.added, affixIDs.count - 1))
+    private static func applyBumpEffects(
+        kinds: Set<CorruptionEffectKind>,
+        affixes: inout [CorruptibleAffix],
+        summaries: inout [CorruptionEffectSummary],
+        using randomNumberGenerator: inout some RandomNumberGenerator,
+    ) {
+        for index in affixes.indices where affixes[index].isNew {
+            guard let direction = bumpNewAffix(power: &affixes[index].power, using: &randomNumberGenerator) else { continue }
+            let title = affixes[index].definition.title
+            summaries.append(direction == .up ? .bumpedUp(affixTitle: title) : .bumpedDown(affixTitle: title))
+        }
+        // Flatten eligible fields in affix order, retaining the existing roll weights.
+        // New affixes already received their bump and cannot be selected again.
+        let effects: [(CorruptionEffectKind, ItemAffixPowerBumpDirection, CorruptionMarkPriority)] = [
+            (.bumpUp, .up, .empowered), (.bumpDown, .down, .weakened),
+        ]
+        for (kind, direction, priority) in effects where kinds.contains(kind) {
+            let candidates = affixes.indices.filter { !affixes[$0].isNew }.flatMap { index in
+                affixes[index].power.bumpCandidates(direction: direction).map { (index, $0) }
             }
+            guard let (index, target) = candidates.randomElement(using: &randomNumberGenerator) else { continue }
+            affixes[index].power = affixes[index].power.bumped(target: target, direction: direction)
+            if priority.rawValue < (affixes[index].mark?.rawValue ?? Int.max) {
+                affixes[index].mark = priority
+            }
+            let title = affixes[index].definition.title
+            summaries.append(direction == .up ? .bumpedUp(affixTitle: title) : .bumpedDown(affixTitle: title))
         }
     }
 
@@ -260,61 +264,6 @@ public enum ItemCorruption {
             .randomElement(using: &randomNumberGenerator) else { return nil }
         power = power.bumped(target: target, direction: direction)
         return direction
-    }
-
-    private static func applyBumpEffects(
-        kinds: Set<CorruptionEffectKind>,
-        powers: inout [ItemAffixPower],
-        affixIDs: [String],
-        newAffixIndices: [Int],
-        summaries: inout [CorruptionEffectSummary],
-        markCandidates: inout [(CorruptionMarkPriority, Int)],
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) {
-        for index in newAffixIndices {
-            guard let direction = bumpNewAffix(power: &powers[index], using: &randomNumberGenerator) else {
-                continue
-            }
-            let title = GameContent.itemAffixDefinition(matching: affixIDs[index])?.title ?? affixIDs[index]
-            summaries.append(direction == .up ? .bumpedUp(affixTitle: title) : .bumpedDown(affixTitle: title))
-        }
-
-        // Structural changes have their own bump; ordinary rolls only target survivors.
-        let survivingIndices = powers.indices.filter { !newAffixIndices.contains($0) }
-        var survivingPowers = survivingIndices.map { powers[$0] }
-        let survivingIDs = survivingIndices.map { affixIDs[$0] }
-        let effects: [(CorruptionEffectKind, ItemAffixPowerBumpDirection, CorruptionMarkPriority)] = [
-            (.bumpUp, .up, .empowered),
-            (.bumpDown, .down, .weakened),
-        ]
-        for (kind, direction, priority) in effects where kinds.contains(kind) {
-            guard let bump = ItemAffixPower.applyBump(
-                direction: direction,
-                to: &survivingPowers,
-                affixIDs: survivingIDs,
-                using: &randomNumberGenerator,
-            ) else { continue }
-            let index = survivingIndices[bump.affixIndex]
-            powers[index] = survivingPowers[bump.affixIndex]
-            summaries.append(direction == .up ? .bumpedUp(affixTitle: bump.title) : .bumpedDown(affixTitle: bump.title))
-            markCandidates.append((priority, index))
-        }
-    }
-
-    private static func resolvedPowers(for item: InventoryItem) -> [ItemAffixPower] {
-        item.affixes.compactMap { affix in
-            resolvedPower(for: affix.id, on: item, rarity: item.rarity)
-        }
-    }
-
-    private static func resolvedPower(for id: String, on item: InventoryItem, rarity: Rarity) -> ItemAffixPower? {
-        if rarity == item.rarity,
-           let index = item.affixes.firstIndex(where: { $0.id == id }),
-           let storedPowers = item.affixPowers,
-           storedPowers.indices.contains(index) {
-            return storedPowers[index]
-        }
-        return GameContent.itemAffixDefinition(matching: id)?.power(for: rarity)
     }
 
     private static func weightedPick(
@@ -346,7 +295,6 @@ public enum ItemCorruptionApplier {
         }
         let item = save.inventory.items[index]
         guard !item.isCorrupted, !item.hasCorruptedAffix else { return .alreadyCorrupted }
-        guard ItemCorruption.isEligibleTarget(item) else { return .ineligible }
         guard let result = ItemCorruption.corrupt(item, using: &randomNumberGenerator) else {
             return .ineligible
         }

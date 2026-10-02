@@ -27,7 +27,7 @@ struct FinalSparkRegressionTests {
         var battle = try UniqueCollectionTests().battle([])
         battle.roster.mutateRuntime(for: battle.hero) {
             $0.talents.pending.doubleNextPoisonDamage = true
-            $0.talents.pending.nextFreezeIgnoresBlock = true
+            $0.talents.pending.nextFreezeIgnoresBlock = PreparedTalentBonus(value: true)
         }
         DefensePoolEngine.set(4, on: battle.enemy, in: &battle)
         var options = DamageOperation.attack(scaling: .resolved, accuracy: .unavoidable)
@@ -39,7 +39,7 @@ struct FinalSparkRegressionTests {
 
         #expect(outcome.healthLost == 6)
         #expect(battle.roster.hero.talents.pending.doubleNextPoisonDamage)
-        #expect(battle.roster.hero.talents.pending.nextFreezeIgnoresBlock)
+        #expect(battle.roster.hero.talents.pending.nextFreezeIgnoresBlock != nil)
     }
 
     @Test func `repeat preserves one use damage bonuses and current block`() throws {

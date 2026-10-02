@@ -5,7 +5,7 @@ import TrinketCore
 
 extension DoTMechanicsTests {
     @Test(arguments: [Keyword.burn, .poison], [0, 2, 6])
-    func `attack stacks equal health damage for both sides`(keyword: Keyword, block: Int) throws {
+    func `attack stacks equal health damage for both sides`(keyword: Keyword, block: Int) {
         for enemyAttacks in [false, true] {
             let profile = CombatModifierProfile(
                 damageDealtBonus: [keyword: 2],
@@ -28,7 +28,7 @@ extension DoTMechanicsTests {
             let active = battle.activeEffects(of: target).first { $0.keyword == keyword }
             #expect(active?.effect.potency ?? 0 == expected)
             if let active {
-                let handler = try #require(EffectHandlers.all[active.effect.kind])
+                let handler = EffectHandlers.handler(for: active.effect.kind)
                 let tickBefore = battle.health(of: target)
                 _ = handler.advanceTurn(active, on: target, in: &battle)
                 #expect(tickBefore - battle.health(of: target) == active.effect.potencyAfterTurn())
@@ -70,7 +70,7 @@ extension DoTMechanicsTests {
         #expect(active.effect.potency == 14)
         DefensePoolEngine.set(2, on: target, in: &battle)
         let before = battle.health(of: target)
-        let handler = try #require(EffectHandlers.all[active.effect.kind])
+        let handler = EffectHandlers.handler(for: active.effect.kind)
 
         _ = handler.advanceTurn(active, on: target, in: &battle)
 

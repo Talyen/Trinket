@@ -13,7 +13,6 @@ enum CloudSaveMerge {
         let base: PlayerSave?
         let recent: PlayerSave
         let other: PlayerSave
-        let prefersIncoming: Bool
         /// Overlapping claims may describe the same payout on both branches.
         let canCombineIndependentRewards: Bool
 
@@ -21,7 +20,7 @@ enum CloudSaveMerge {
             self.incoming = incoming
             self.existing = existing
             self.base = base
-            prefersIncoming = incoming.modifiedAt == existing.modifiedAt
+            let prefersIncoming = incoming.modifiedAt == existing.modifiedAt
                 ? preferIncoming : incoming.modifiedAt > existing.modifiedAt
             recent = prefersIncoming ? incoming : existing
             other = prefersIncoming ? existing : incoming
@@ -29,16 +28,12 @@ enum CloudSaveMerge {
                 && !CloudSaveMerge.hasDuplicateClaim(incoming: incoming, existing: existing, base: base)
         }
 
-        func selected<Value: Equatable>(_ incoming: Value?, _ existing: Value?, base: Value?) -> Value? {
-            // A missing field is still a meaningful baseline when the shared save exists.
-            guard self.base != nil else { return prefersIncoming ? incoming : existing }
-            if incoming == base {
-                return existing
-            }
-            if existing == base {
-                return incoming
-            }
-            return prefersIncoming ? incoming : existing
+        func selected<Value: Equatable>(_ value: (PlayerSave) -> Value) -> Value {
+            let preferred = value(recent)
+            // Only an unchanged preferred field yields to the other branch.
+            // Optional fields retain nil as a real value, including in the base.
+            guard let base, preferred == value(base) else { return preferred }
+            return value(other)
         }
     }
 
@@ -69,9 +64,7 @@ enum CloudSaveMerge {
             let completed = SaturatedArithmetic.saturatingAdd(base - incoming, base - existing)
             merged.corruptionAltarCooldownRemaining = max(0, base - completed)
         } else {
-            merged.corruptionAltarCooldownRemaining = branches.selected(
-                incoming, existing, base: branches.base?.corruptionAltarCooldownRemaining,
-            ) ?? merged.corruptionAltarCooldownRemaining
+            merged.corruptionAltarCooldownRemaining = branches.selected(\.corruptionAltarCooldownRemaining)
         }
     }
 
@@ -94,19 +87,11 @@ enum CloudSaveMerge {
 
     private static func mergeContracts(into merged: inout PlayerSave, branches: Branches) {
         let offers = ContractDifficulty.allCases.compactMap { difficulty in
-            branches.selected(
-                branches.incoming.contracts.offer(for: difficulty),
-                branches.existing.contracts.offer(for: difficulty),
-                base: branches.base?.contracts.offer(for: difficulty),
-            )
+            branches.selected { $0.contracts.offer(for: difficulty) }
         }
         merged.contracts = PlayerContractsState(
             offers: offers,
-            refreshAvailable: branches.selected(
-                branches.incoming.contracts.refreshAvailable,
-                branches.existing.contracts.refreshAvailable,
-                base: branches.base?.contracts.refreshAvailable,
-            ) ?? merged.contracts.refreshAvailable,
+            refreshAvailable: branches.selected(\.contracts.refreshAvailable),
             highestWonEncounterLevel: max(
                 branches.incoming.contracts.highestWonEncounterLevel,
                 branches.existing.contracts.highestWonEncounterLevel,
@@ -151,12 +136,6 @@ enum CloudSaveMerge {
                 merged.roster.progressions[id] = progression
             }
         }
-        for (id, loadout) in other.roster.abilityLoadouts where merged.roster.abilityLoadouts[id] == nil {
-            merged.roster.abilityLoadouts[id] = loadout
-        }
-        for (id, loadout) in other.roster.equipmentLoadouts where merged.roster.equipmentLoadouts[id] == nil {
-            merged.roster.equipmentLoadouts[id] = loadout
-        }
     }
 
     private static func mergeInventory(
@@ -184,59 +163,35 @@ enum CloudSaveMerge {
     }
 
     private static func mergeSelections(into merged: inout PlayerSave, branches: Branches) {
-        let incoming = branches.incoming
-        let existing = branches.existing
-        let base = branches.base
-        merged.roster.activeHeroID = branches.selected(
-            incoming.roster.activeHeroID, existing.roster.activeHeroID,
-            base: base?.roster.activeHeroID,
-        ) ?? merged.roster.activeHeroID
-        merged.roster.activeCompanionID = branches.selected(
-            incoming.roster.activeCompanionID, existing.roster.activeCompanionID,
-            base: base?.roster.activeCompanionID,
-        ) ?? merged.roster.activeCompanionID
-        let combatantIDs = Set(incoming.roster.equipmentLoadouts.keys)
-            .union(existing.roster.equipmentLoadouts.keys)
+        merged.roster.activeHeroID = branches.selected(\.roster.activeHeroID)
+        merged.roster.activeCompanionID = branches.selected(\.roster.activeCompanionID)
+        let combatantIDs = Set(branches.recent.roster.equipmentLoadouts.keys)
+            .union(branches.other.roster.equipmentLoadouts.keys)
         for id in combatantIDs {
             var slots: [ItemSlot: String] = [:]
             for slot in ItemSlot.allCases {
-                let chosen = branches.selected(
-                    incoming.roster.equipmentLoadouts[id]?.itemID(for: slot),
-                    existing.roster.equipmentLoadouts[id]?.itemID(for: slot),
-                    base: base?.roster.equipmentLoadouts[id]?.itemID(for: slot),
-                )
-                slots[slot] = chosen
+                slots[slot] = branches.selected { $0.roster.equipmentLoadouts[id]?.itemID(for: slot) }
             }
             merged.roster.equipmentLoadouts[id] = EquipmentLoadout(itemIDsBySlot: slots)
         }
-        // Two branches can place one item in different slots or on different heroes.
-        // Keep the recent assignment before roster sanitization deduplicates by ID order.
+        // Index the recent assignments retained by field selection, then remove
+        // conflicting placements in one pass before roster sanitization.
+        var preferredAssignments: [String: (ownerID: String, slot: ItemSlot)] = [:]
         for (ownerID, recentLoadout) in branches.recent.roster.equipmentLoadouts {
-            guard var chosenLoadout = merged.roster.equipmentLoadouts[ownerID] else { continue }
-            for slot in ItemSlot.allCases {
-                guard let itemID = recentLoadout.itemID(for: slot), chosenLoadout.itemID(for: slot) == itemID else { continue }
-                for otherSlot in ItemSlot.allCases where otherSlot != slot && chosenLoadout.itemID(for: otherSlot) == itemID {
-                    chosenLoadout.unequip(otherSlot)
-                }
-            }
-            merged.roster.equipmentLoadouts[ownerID] = chosenLoadout
-            let retained = Set(recentLoadout.itemIDsBySlot.values)
-                .intersection(chosenLoadout.itemIDsBySlot.values)
-            guard !retained.isEmpty else { continue }
-            for otherID in combatantIDs where otherID != ownerID {
-                guard var loadout = merged.roster.equipmentLoadouts[otherID] else { continue }
-                for slot in ItemSlot.allCases where loadout.itemID(for: slot).map(retained.contains) == true {
-                    loadout.unequip(slot)
-                }
-                merged.roster.equipmentLoadouts[otherID] = loadout
+            for (slot, itemID) in recentLoadout.itemIDsBySlot
+                where merged.roster.equipmentLoadouts[ownerID]?.itemID(for: slot) == itemID {
+                preferredAssignments[itemID] = (ownerID, slot)
             }
         }
-        let abilityIDs = Set(incoming.roster.abilityLoadouts.keys).union(existing.roster.abilityLoadouts.keys)
+        for (ownerID, loadout) in merged.roster.equipmentLoadouts {
+            merged.roster.equipmentLoadouts[ownerID] = EquipmentLoadout(itemIDsBySlot: loadout.itemIDsBySlot.filter { slot, itemID in
+                guard let preferred = preferredAssignments[itemID] else { return true }
+                return preferred.ownerID == ownerID && preferred.slot == slot
+            })
+        }
+        let abilityIDs = Set(branches.recent.roster.abilityLoadouts.keys).union(branches.other.roster.abilityLoadouts.keys)
         for id in abilityIDs {
-            merged.roster.abilityLoadouts[id] = branches.selected(
-                incoming.roster.abilityLoadouts[id], existing.roster.abilityLoadouts[id],
-                base: base?.roster.abilityLoadouts[id],
-            )
+            merged.roster.abilityLoadouts[id] = branches.selected { $0.roster.abilityLoadouts[id] }
         }
     }
 
@@ -283,9 +238,7 @@ enum CloudSaveMerge {
                   !branches.incoming.voyage.isUnreadable {
             branches.incoming.voyage
         } else {
-            branches.selected(
-                branches.incoming.voyage, branches.existing.voyage, base: branches.base?.voyage,
-            ) ?? merged.voyage
+            branches.selected(\.voyage)
         }
         let alternateVoyage = selectedVoyage == branches.incoming.voyage
             ? branches.existing.voyage : branches.incoming.voyage

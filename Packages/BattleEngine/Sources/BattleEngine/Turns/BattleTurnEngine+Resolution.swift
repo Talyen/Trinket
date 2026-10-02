@@ -1,14 +1,8 @@
 import Foundation
-import os
 import TrinketContent
 import TrinketCore
 
 extension BattleTurnEngine {
-    private static let logger = Logger(
-        subsystem: "com.ryanmcintire.Trinket",
-        category: "BattleTurnEngine",
-    )
-
     struct DamageComponentOutcome {
         let events: [ActionEvent]
         let healthLost: Int
@@ -394,10 +388,7 @@ extension BattleTurnEngine {
                 in: context,
             )
 
-            guard let handler = EffectHandlers.handler(for: effect.kind) else {
-                logger.error("Missing effect handler for \(String(describing: effect.kind), privacy: .public)")
-                continue
-            }
+            let handler = EffectHandlers.handler(for: effect.kind)
             var didApply = false
             var grantedGold = 0
             var restoredMana = 0

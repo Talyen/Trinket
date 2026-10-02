@@ -42,7 +42,7 @@ struct HealingGainBoundaryTests {
             companionModifiers: CombatantTalentCatalog.profile(for: ["bear_block_t3_2"]),
         )
         battle.appliesFightPacing = false
-        battle.roster.companion.talents.pending.nextBlockGainMultiplier = 2
+        battle.roster.companion.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(value: 2)
 
         let gain = battle.applyBlockGain(
             4, to: battle.companion, source: battle.hero, abilityName: "Sunwall",
@@ -51,6 +51,6 @@ struct HealingGainBoundaryTests {
 
         #expect(gain.applied == (resolved ? 4 : 12))
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == gain.applied)
-        #expect(battle.roster.companion.talents.pending.nextBlockGainMultiplier == (resolved ? 2 : 1))
+        #expect(battle.roster.companion.talents.pending.nextBlockGainMultiplier?.value == (resolved ? 2 : nil))
     }
 }

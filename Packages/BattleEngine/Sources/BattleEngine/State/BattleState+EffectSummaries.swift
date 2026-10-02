@@ -66,6 +66,10 @@ private extension CombatantTalentState.Pending {
     func effectSummaries(criticalAppliesToParty: Bool, partyCardDamageBonus: Int, partyDamageBonus: Int = 0) -> [EffectSummary] {
         let criticalTarget = criticalAppliesToParty ? "party hit" : "attack"
         let preparedDamage = cardDamageBonus + feintStrikeDamageBonus
+        let nextBurnAttackPercent = nextBurnAttackPercent?.value ?? 0
+        let nextBurnDamageBonus = nextBurnDamageBonus?.value ?? 0
+        let nextPoisonDamageBonus = nextPoisonDamageBonus?.value ?? 0
+        let criticalBonus = (nextAttackCriticalBonus?.value ?? 0) + (nextCleanseCriticalBonus?.value ?? 0)
         let prepared: [(Bool, Keyword, String)] = [
             (doubleDamageAfterDodge, .physical, "Prepared Strike: Your next attack deals double damage."),
             (guaranteedCriticalAfterDodge, .physical, "Prepared Critical: Your next \(criticalTarget) is a guaranteed Critical Hit."),
@@ -99,11 +103,11 @@ private extension CombatantTalentState.Pending {
             (nextBurnDamageBonus > 0, .burn, "Your next Burn attack deals \(nextBurnDamageBonus) additional damage."),
             (nextPoisonDamageBonus > 0, .poison, "Your next Poison attack deals \(nextPoisonDamageBonus) additional damage."),
             (
-                nextAttackCriticalBonus + nextCleanseCriticalBonus > 0,
+                criticalBonus > 0,
                 .physical,
-                "Your next attack has +\(Int(((nextAttackCriticalBonus + nextCleanseCriticalBonus) * 100).rounded()))% Critical Hit chance.",
+                "Your next attack has +\(Int((criticalBonus * 100).rounded()))% Critical Hit chance.",
             ),
-            (nextAttackGuaranteedCritical, .physical, "Cracked Guard: Your next attack Critically Hits."),
+            (nextAttackGuaranteedCritical != nil, .physical, "Cracked Guard: Your next attack Critically Hits."),
             (
                 basicCriticalBonus > 0,
                 .physical,
@@ -115,55 +119,59 @@ private extension CombatantTalentState.Pending {
                 "Prepared Strike: Your next attack deals \(attackBonusOnFullHealth) additional damage.",
             ),
         ]
-        var summaries = prepared.compactMap { active, keyword, text in
+        let summaries = prepared.compactMap { active, keyword, text in
             active ? EffectSummary(keyword: keyword, text: text) : nil
         }
+        return summaries + healingPreparationSummaries() + additionalPreparationSummaries()
+    }
+
+    private func healingPreparationSummaries() -> [EffectSummary] {
         let healing = healingEchoes.reduce(0) { $0 + $1.amount }
-        if healing > 0 {
-            summaries.append(EffectSummary(keyword: .health, text: "Living Archive: Restore \(healing) Health next round."))
-        }
-        return summaries + additionalPreparationSummaries()
+        guard healing > 0 else { return [] }
+        return [EffectSummary(keyword: .health, text: "Living Archive: Restore \(healing) Health next round.")]
     }
 
     private func additionalPreparationSummaries() -> [EffectSummary] {
+        let overchargePercent = overchargePercent?.value ?? 0
+        let nextIncomingDamageMultiplier = nextIncomingDamageMultiplier?.value ?? 1
         let prepared: [(Bool, Keyword, String)] = [
-            (doubleNextBleedAttack, .bleed, "Redline: Your next Bleed attack deals double damage."),
-            (nextStunAttackDouble, .stun, "Quaking Carapace: Your next Stun attack deals double damage."),
-            (doubleNextPhysicalAttack, .physical, "Feigned Miss: Your next Physical attack deals double damage."),
-            (nextHolyHitDouble, .holy, "Sun-Struck Shell: Your next Holy damage is doubled."),
+            (doubleNextBleedAttack != nil, .bleed, "Redline: Your next Bleed attack deals double damage."),
+            (nextStunAttackDouble != nil, .stun, "Quaking Carapace: Your next Stun attack deals double damage."),
+            (doubleNextPhysicalAttack != nil, .physical, "Feigned Miss: Your next Physical attack deals double damage."),
+            (nextHolyHitDouble != nil, .holy, "Sun-Struck Shell: Your next Holy damage is doubled."),
             (doubleNextAttackAfterDeathsDoor, .physical, "Phoenix Vigor: Your next attack deals double damage."),
-            (nextFreezeIgnoresBlock, .freeze, "Winter’s Wake: Your next Freeze attack ignores enemy Block."),
-            (nextAttackIgnoresBlock, .physical, "Your next attack ignores enemy Block."),
-            (nextStunPreparedCritical, .physical, "Stolen Thunder: Your next attack Critically Hits."),
+            (nextFreezeIgnoresBlock != nil, .freeze, "Winter’s Wake: Your next Freeze attack ignores enemy Block."),
+            (nextAttackIgnoresBlock != nil, .physical, "Your next attack ignores enemy Block."),
+            (nextStunPreparedCritical != nil, .physical, "Stolen Thunder: Your next attack Critically Hits."),
             (
                 overchargePercent > 0,
                 .physical,
                 "Overcharge: Your next attack deals \(Int((overchargePercent * 100).rounded()))% more damage.",
             ),
             (
-                nextBleedAttackMultiplier > 1,
+                nextBleedAttackMultiplier != nil,
                 .bleed,
-                "Nimble Fang: Your next Bleed attack deals \(Int(((nextBleedAttackMultiplier - 1) * 100).rounded()))% more damage.",
+                "Nimble Fang: Your next Bleed attack deals \(Int((((nextBleedAttackMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
             ),
             (
-                nextPhysicalAttackMultiplier > 1,
+                nextPhysicalAttackMultiplier != nil,
                 .physical,
-                "Phantom Counter: Your next Physical attack deals \(Int(((nextPhysicalAttackMultiplier - 1) * 100).rounded()))% more damage.",
+                "Phantom Counter: Your next Physical attack deals \(Int((((nextPhysicalAttackMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
             ),
             (
-                nextCriticalHitMultiplier > 1,
+                nextCriticalHitMultiplier != nil,
                 .physical,
-                "Perfect Tempo: Your next Critical Hit deals \(Int(((nextCriticalHitMultiplier - 1) * 100).rounded()))% more damage.",
+                "Perfect Tempo: Your next Critical Hit deals \(Int((((nextCriticalHitMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
             ),
             (
-                nextManaSpendAttackBonus > 0,
+                nextManaSpendAttackBonus != nil,
                 .physical,
-                "Aetherial Flow: Your next attack deals \(nextManaSpendAttackBonus) additional damage.",
+                "Aetherial Flow: Your next attack deals \(nextManaSpendAttackBonus?.value ?? 0) additional damage.",
             ),
             (
-                nextBlockGainMultiplier > 1,
+                nextBlockGainMultiplier != nil,
                 .block,
-                "Your next Block gain is increased by \(Int(((nextBlockGainMultiplier - 1) * 100).rounded()))%.",
+                "Your next Block gain is increased by \(Int((((nextBlockGainMultiplier?.value ?? 1) - 1) * 100).rounded()))%.",
             ),
             (
                 nextIncomingDamageMultiplier < 1,

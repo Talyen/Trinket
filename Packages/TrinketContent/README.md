@@ -36,7 +36,8 @@ schemas are indexed by `Scripts/internal/content/trigger_families/index.json`.
 Modifier cases and mechanical transforms are generated from
 `Scripts/internal/content/modifiers.json`; `AffixModifier.swift` retains magnitude
 bump policy. Historical item-power normalization lives in
-`Equipment/InventoryItem+Compatibility.swift`.
+`Equipment/InventoryItem+Compatibility.swift`: trigger migrations share one
+normalization pass; modifier and catalog-backed Unique migrations stay separate.
 
 ## Adding content
 

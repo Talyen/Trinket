@@ -160,19 +160,9 @@ public final class VoyagePlayMode {
             completionBonus: node.type == .boss ? VoyageCompletionBonus(gold: run.earnedGold, materials: run.earnedMaterials) : nil,
             additionalRewardItems: finalLoot?.additionalItem.map { [$0] } ?? [],
         )
-        let access = playerSave.contentAccess
-        let route = PlayBattleRoute.makeModeRoute(
-            origin: origin, logging: "Failed to complete Voyage node", playerSave: playerSave,
-        ) { configuration, presentation, award, materials, _, save in
-            guard let presentation else { return .unavailable }
-            let earned = presentation.rewardPlan.resolve(
-                battleGold: award.award.goldFlow, materials: materials, includingCompletionBonus: false,
-            )
-            return VoyageCompletion.completeBattle(
-                runID: runID, nodeID: node.id, hero: configuration.hero.combatant, companion: configuration.companion.combatant,
-                rewards: (award, earned, encounter.level), save: &save, access: access,
-            )
-        }
+        let route = PlayBattleRoute.voyage(
+            runID: runID, nodeID: node.id, encounterLevel: encounter.level, access: playerSave.contentAccess,
+        )
         return (input, route)
     }
 

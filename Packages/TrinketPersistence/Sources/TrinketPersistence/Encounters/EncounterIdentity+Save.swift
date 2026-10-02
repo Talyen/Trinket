@@ -49,10 +49,20 @@ public extension EncounterIdentity {
         }
     }
 
-    internal func encounterLevel(stage: Stage, in save: PlayerSave) -> Int {
-        if case let .voyage(runID, _) = location, let run = save.voyage.activeRun, run.id == runID {
+    internal func encounterLevel(in save: PlayerSave) -> Int? {
+        switch location {
+        case let .journey(stageID):
+            guard let stage = GameContent.stage(id: stageID) else { return nil }
+            return StageCompletion.partyAdjustedEncounterLevel(for: stage, save: save)
+        case let .labyrinth(nodeID):
+            guard let node = save.labyrinth.nodes[nodeID] else { return nil }
+            return EncounterLevelResolver.labyrinthAdjusted(
+                EncounterLevelResolver.labyrinthEnemyLevel(for: node),
+                partyAverageLevel: save.roster.activePartyAverageLevel,
+            )
+        case let .voyage(runID, _):
+            guard let run = save.voyage.activeRun, run.id == runID else { return nil }
             return run.offer.difficulty.encounterLevel(partyLevel: save.roster.activePartyAverageLevel)
         }
-        return MysteryEffectApplier.resolvedEncounterLevel(stage: stage, labyrinthNodeID: labyrinthNodeID, save: save)
     }
 }

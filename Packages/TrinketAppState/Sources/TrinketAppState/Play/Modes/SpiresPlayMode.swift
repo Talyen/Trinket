@@ -52,27 +52,6 @@ public final class SpiresPlayMode {
         )
     }
 
-    func battleRoute(floor: SpireFloor) -> PlayBattleRoute {
-        PlayBattleRoute.makeModeRoute(
-            origin: .spire(spireID: floor.spireID, floor: floor.floor),
-            logging: "Failed to persist Spire floor",
-            playerSave: playerSave,
-        ) { configuration, presentation, award, materialRewards, loot, save in
-            SpireCompletion.complete(
-                floor: floor,
-                hero: configuration.hero.combatant,
-                companion: configuration.companion.combatant,
-                battleGold: award.award.goldFlow,
-                award: award,
-                materialRewards: materialRewards,
-                rewardItem: presentation?.pendingRewardItem,
-                loot: loot,
-                enemyEncounterLevel: configuration.enemyEncounterLevel,
-                save: &save,
-            )
-        }
-    }
-
     @discardableResult
     public func startBattle(for floor: SpireFloor) -> StageMapMessage? {
         battleLaunch.startBattle(
@@ -155,7 +134,7 @@ public final class SpiresPlayMode {
             roster: playerSave.roster,
             modifiers: modifiers,
         )
-        return (input, battleRoute(floor: floor))
+        return (input, .spire(floor))
     }
 
     @discardableResult

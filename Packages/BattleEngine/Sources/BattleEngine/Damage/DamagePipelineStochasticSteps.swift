@@ -222,23 +222,8 @@ package extension DamagePipeline {
         actor: Combatant,
         in context: inout BattleState,
     ) -> Double {
-        guard state.options.isAttackHit,
-              let pending = context.roster.runtime(for: actor)?.talents.pending,
-              pending.nextAttackCriticalBonus > 0,
-              CombatantTalentState.Pending.isLaterAbility(
-                  preparedCardSerial: pending.nextAttackCriticalPreparedCardSerial,
-                  currentCardSerial: context.resolution.cardTalents?.playSerial,
-              ),
-              CombatantTalentState.Pending.isLaterAction(
-                  preparedActionID: pending.nextAttackCriticalPreparedActionID,
-                  currentActionID: context.resolution.actionID,
-              ) else { return 0 }
-        context.roster.mutateRuntime(for: actor) {
-            $0.talents.pending.nextAttackCriticalBonus = 0
-            $0.talents.pending.nextAttackCriticalPreparedCardSerial = nil
-            $0.talents.pending.nextAttackCriticalPreparedActionID = nil
-        }
-        return pending.nextAttackCriticalBonus
+        guard state.options.isAttackHit else { return 0 }
+        return context.consumeTalentPreparation(\.nextAttackCriticalBonus, for: actor) ?? 0
     }
 
     private static func resolveGuaranteedCrit(
@@ -311,23 +296,7 @@ package extension DamagePipeline {
         actor: Combatant,
         in context: inout BattleState,
     ) -> Bool {
-        guard state.options.isAttackHit,
-              let pending = context.roster.runtime(for: actor)?.talents.pending,
-              pending.nextStunPreparedCritical,
-              CombatantTalentState.Pending.isLaterAbility(
-                  preparedCardSerial: pending.nextStunCriticalPreparedCardSerial,
-                  currentCardSerial: context.resolution.cardTalents?.playSerial,
-              ),
-              CombatantTalentState.Pending.isLaterAction(
-                  preparedActionID: pending.nextStunCriticalPreparedActionID,
-                  currentActionID: context.resolution.actionID,
-              ) else { return false }
-        context.roster.mutateRuntime(for: actor) {
-            $0.talents.pending.nextStunPreparedCritical = false
-            $0.talents.pending.nextStunCriticalPreparedCardSerial = nil
-            $0.talents.pending.nextStunCriticalPreparedActionID = nil
-        }
-        return true
+        state.options.isAttackHit && context.consumeTalentPreparation(\.nextStunPreparedCritical, for: actor) == true
     }
 
     private static func consumePreparedHeroCritical(
@@ -335,29 +304,13 @@ package extension DamagePipeline {
         actor: Combatant,
         in context: inout BattleState,
     ) -> Bool {
-        var consumed = false
-        let currentCardSerial = context.resolution.cardTalents?.playSerial
-        let currentActionID = context.resolution.actionID
-        context.roster.mutateRuntime(for: actor) { runtime in
-            if runtime.talents.pending.nextAttackGuaranteedCritical,
-               CombatantTalentState.Pending.isLaterAbility(
-                   preparedCardSerial: runtime.talents.pending.nextGuaranteedCriticalPreparedCardSerial,
-                   currentCardSerial: currentCardSerial,
-               ),
-               CombatantTalentState.Pending.isLaterAction(
-                   preparedActionID: runtime.talents.pending.nextGuaranteedCriticalPreparedActionID,
-                   currentActionID: currentActionID,
-               ) {
-                runtime.talents.pending.nextAttackGuaranteedCritical = false
-                runtime.talents.pending.nextGuaranteedCriticalPreparedCardSerial = nil
-                runtime.talents.pending.nextGuaranteedCriticalPreparedActionID = nil
-                consumed = true
-            } else if keyword == .bleed, runtime.talents.pending.guaranteedBleedCritical {
-                runtime.talents.pending.guaranteedBleedCritical = false
-                consumed = true
-            }
+        if context.consumeTalentPreparation(\.nextAttackGuaranteedCritical, for: actor) == true {
+            return true
         }
-        return consumed
+        guard keyword == .bleed,
+              context.roster.runtime(for: actor)?.talents.pending.guaranteedBleedCritical == true else { return false }
+        context.roster.mutateRuntime(for: actor) { $0.talents.pending.guaranteedBleedCritical = false }
+        return true
     }
 
     static func applyCriticalBlockSteal(

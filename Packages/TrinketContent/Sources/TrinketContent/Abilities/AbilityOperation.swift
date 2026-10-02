@@ -76,17 +76,6 @@ public extension Ability {
         }
         return operations + (conditionalOutcome?.operations ?? [])
     }
-
-    func replacingOperations(_ operations: [AbilityOperation], blockCost: Int? = nil, resolveCondition: Bool = false) -> Self {
-        Self(
-            id: id, name: name, tier: tier, description: descriptionOverride,
-            outcomeBranches: outcomeBranches, criticalChanceBonus: criticalChanceBonus,
-            guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed, hasLeech: hasLeech,
-            repeatsManaEmpowerment: repeatsManaEmpowerment, stealsGold: stealsGold,
-            operations: operations, conditionalOutcome: resolveCondition ? nil : conditionalOutcome,
-            blockCost: blockCost ?? self.blockCost, guaranteedCriticalCondition: guaranteedCriticalCondition,
-        )
-    }
 }
 
 public struct AbilityConditionalOutcome: Hashable, Sendable {

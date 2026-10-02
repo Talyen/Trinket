@@ -23,7 +23,7 @@ struct HiddenFangsFeedbackRegressionTests {
         #expect(bonus.count == 1)
         #expect(bonus.first?.amount == 2)
         #expect(initialHealth - battle.health(of: battle.hero) == direct + bonus.reduce(0) { $0 + $1.amount })
-        #expect(BattleLogReducer.entries(from: events).contains { $0.text == "Hero takes 2 Bleed damage." })
+        #expect(BattleLogProjection.entries(from: events).contains { $0.text == "Hero takes 2 Bleed damage." })
         let next = BattleTurnEngine.performAction(
             ability: .fangs, actor: battle.enemy, abilityTarget: battle.hero, context: &battle,
         )

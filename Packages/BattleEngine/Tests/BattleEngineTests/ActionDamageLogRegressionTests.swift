@@ -13,7 +13,7 @@ struct ActionDamageLogRegressionTests {
         )
         #expect(before - battle.health(of: battle.hero) == 2)
         let summary = try #require(events.last { $0.kind == .ability })
-        let entries = BattleLogReducer.entries(from: events)
+        let entries = BattleLogProjection.entries(from: events)
         let line = try #require(entries.first { $0.id == events.firstIndex(of: summary) })
         #expect(line.text.contains("1 Bleed damage to Enemy"))
         #expect(line.text.contains("loses 2 Health"))
@@ -30,7 +30,7 @@ struct ActionDamageLogRegressionTests {
             ability: .bloodthorn, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
         )
         let summary = try #require(events.last { $0.kind == .ability })
-        let line = try #require(BattleLogReducer.entries(from: events).first { $0.id == events.firstIndex(of: summary) })
+        let line = try #require(BattleLogProjection.entries(from: events).first { $0.id == events.firstIndex(of: summary) })
         #expect(line.text.contains("2 Bleed damage to Enemy"))
         #expect(line.text.contains("2 Poison damage to Enemy"))
         #expect(!line.text.contains("4 Bleed damage"))

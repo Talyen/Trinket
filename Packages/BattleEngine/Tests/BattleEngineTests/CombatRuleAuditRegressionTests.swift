@@ -84,7 +84,7 @@ struct CombatRuleAuditRegressionTests {
         #expect(battle.gold == 7)
         let summary = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.goldenPlate.id })
         #expect(summary.appliedEffectSummaries.contains("gain 7 Gold"))
-        #expect(BattleLogReducer.entries(from: events).contains { $0.text.contains("gain 7 Gold") })
+        #expect(BattleLogProjection.entries(from: events).contains { $0.text.contains("gain 7 Gold") })
     }
 
     private func play(_ ability: Ability, in battle: inout BattleState) throws -> [ActionEvent] {

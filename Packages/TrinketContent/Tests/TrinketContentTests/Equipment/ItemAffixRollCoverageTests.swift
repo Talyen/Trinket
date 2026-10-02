@@ -1,10 +1,45 @@
 import Testing
+import TrinketCore
 @testable import TrinketContent
 
 /// Pins the affix rolling contract: every trigger magnitude an affix populates
 /// must roll with the loot system or be explicitly excused, and every rollable
 /// power must display its rolls.
 struct ItemAffixRollCoverageTests {
+    @Test func `scaling binds numbers before any replacement can collide`() {
+        let power = ItemAffixPower(
+            description: "Gain 1 Block and 2 Health with 10% Dodge and 20% damage.",
+            modifiers: [.blockGained(1), .maximumHealth(2), .dodgeChanceBonus(0.10), .outgoingDamagePercent(0.20)],
+        )
+        let scaled = power.scaled(by: 2)
+        #expect(scaled.modifiers == [.blockGained(2), .maximumHealth(4), .dodgeChanceBonus(0.20), .outgoingDamagePercent(0.40)])
+        #expect(scaled.description == "Gain 2 Block and 4 Health with 20% Dodge and 40% damage.")
+    }
+
+    @Test func `corruption changes the selected field when magnitudes are equal`() throws {
+        let power = ItemAffixPower(
+            description: "Gain 2 Block and deal 2 Poison damage.",
+            modifiers: [.blockGained(2)],
+            triggers: CombatTraitTriggers(dot: DotTriggers(onBleedApplyPoison: 2)),
+        )
+        let target = try #require(power.bumpCandidates(direction: .up).last)
+        let bumped = power.bumped(target: target, direction: .up)
+        #expect(bumped.modifiers == power.modifiers)
+        #expect(bumped.triggers.onBleedApplyPoison == 3)
+        #expect(bumped.description == "Gain 2 Block and deal 3 Poison damage.")
+    }
+
+    @Test func `unchanged roll still reserves its description number`() {
+        let power = ItemAffixPower(
+            description: "Gain 2 Block and 2 Health.",
+            modifiers: [.blockGained(2), .maximumHealth(2)],
+        )
+        var rng = SeededRandomNumberGenerator(seed: 4)
+        let rolled = power.rolled(using: &rng)
+        #expect(rolled.modifiers == [.blockGained(2), .maximumHealth(3)])
+        #expect(rolled.description == "Gain 2 Block and 3 Health.")
+    }
+
     @Test func `every populated affix trigger field rolls or is excused`() {
         let rollable = CombatTraitTriggers.affixMagnitudeFieldNames
         var violations: [String] = []

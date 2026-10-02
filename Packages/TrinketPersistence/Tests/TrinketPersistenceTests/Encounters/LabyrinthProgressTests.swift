@@ -193,7 +193,7 @@ struct LabyrinthProgressTests {
             clusterID: "econ",
         )
         let resolve: (NodeModifierEffects) -> BattleLootResult = { effects in
-            VictoryRewardApplier.resolveLoot(
+            BattleLoot.resolve(
                 .labyrinth(node: node, effects: effects),
                 encounterLevel: 3,
                 enemyIsBoss: false,

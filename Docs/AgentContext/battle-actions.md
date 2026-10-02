@@ -5,8 +5,11 @@ Use with [engine ownership](battle-engine.md) for action identity, hands, prepar
 `CombatantRuntime.talents` groups battle, turn, pending, timed, and action
 state explicitly behind copy-on-write storage. Turn start clears only turn state
 and expired timed bonuses; pending effects survive until their consuming operation.
-Keep an amount and its expiry/source together. The last-action empowerment
-receipt retains its existing execution checkpoint.
+Card/action-scoped readied bonuses keep their value and provenance together in
+`PreparedTalentBonus`; `consumeTalentPreparation` checks provenance and clears the
+whole preparation. Callers own keyword and operation eligibility. Block bonuses
+clear only after a positive base gain. Keep an amount and its expiry/source
+together. The last-action empowerment receipt retains its existing checkpoint.
 Next-turn Dodge boosts from Pack Coordination and Smoke Screen live in turn
 state so a longer Cleanse bonus cannot extend them.
 
@@ -49,7 +52,11 @@ remaining support rewards. New actions cannot start after battle ends.
 
 Combat logs summarize committed damage by recipient and keyword, with self-paid
 Health costs reported separately. Damage packets and their summary share the
-resolved action identity so nested actions do not combine their totals.
+resolved action identity so nested actions do not combine their totals. Packets
+precede their summary. `BattleLogProjection` consumes append-only history once,
+retaining unmatched packets across updates and releasing them at each summary;
+complete replay uses that same projection. Truncated history resets the projection;
+same-length replacement requires `rebuildFromScratch`.
 Support-only log summaries do not assign the selected attack target to allied
 effects; committed effect events identify their actual recipients. Direct Mana
 gain summaries report the actual restoration after capacity limits and bonuses.

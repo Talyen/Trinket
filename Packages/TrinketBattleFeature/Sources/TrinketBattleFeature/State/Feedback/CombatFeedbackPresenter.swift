@@ -19,9 +19,7 @@ enum CombatFeedbackPresenter {
 
     private static func classify(_ event: ActionEvent) -> CombatFeedbackClass {
         switch event.kind {
-        case .abilityDamage:
-            return .directDamage
-        case .status:
+        case .abilityDamage, .status:
             return .directDamage
         case .ability, .milestone:
             return .buff
@@ -58,16 +56,18 @@ enum CombatFeedbackPresenter {
         let filteredSources = filterDisplayable(events).enumerated().map { order, event in
             PreparedSource(event: event, sourceEventIDs: [event.id], originalOrder: order)
         }
-        let sources = consolidate(filteredSources)
-        let prepared = sources.compactMap(prepare)
         var groupOrder: [PresentationGroupKey] = []
-        var grouped: [PresentationGroupKey: [PreparedEvent]] = [:]
-        for item in prepared {
-            let key = PresentationGroupKey(actionID: actionGroupID ?? item.actionID, targetID: item.targetID)
+        var grouped: [
+            PresentationGroupKey: [(source: PreparedSource, label: CombatFeedbackChipLabel, feedbackClass: CombatFeedbackClass)]
+        ] =
+            [:]
+        for source in consolidate(filteredSources) {
+            guard let label = CombatFeedbackChipLabel.from(event: source.event), !label.isZeroNumeric else { continue }
+            let key = PresentationGroupKey(actionID: actionGroupID ?? source.event.feedbackGroupID, targetID: source.event.targetID)
             if grouped[key] == nil {
                 groupOrder.append(key)
             }
-            grouped[key, default: []].append(item)
+            grouped[key, default: []].append((source, label, classify(source.event)))
         }
 
         return groupOrder.flatMap { key -> [CombatFeedbackItem] in
@@ -75,28 +75,28 @@ enum CombatFeedbackPresenter {
                 let lhsPriority = displayPriority(for: lhs.feedbackClass)
                 let rhsPriority = displayPriority(for: rhs.feedbackClass)
                 if lhsPriority == rhsPriority {
-                    return lhs.originalOrder < rhs.originalOrder
+                    return lhs.source.originalOrder < rhs.source.originalOrder
                 }
                 return lhsPriority < rhsPriority
             }
-            let availableAt = date
-            let expiresAt = availableAt.addingTimeInterval(BattleMotion.chipDisplayDuration)
-            return sorted.enumerated().map { presentationIndex, prepared in
-                CombatFeedbackItem(
-                    id: prepared.id,
-                    sourceEventIDs: prepared.sourceEventIDs,
+            return sorted.enumerated().map { presentationIndex, item in
+                let event = item.source.event
+                let feedbackClass = item.feedbackClass
+                return CombatFeedbackItem(
+                    id: event.id,
+                    sourceEventIDs: item.source.sourceEventIDs,
                     actionGroupID: key.actionID,
                     presentationIndex: presentationIndex,
-                    targetID: prepared.targetID,
-                    feedbackClass: prepared.feedbackClass,
-                    keyword: prepared.keyword,
-                    visualRole: prepared.visualRole,
-                    label: prepared.label,
-                    availableAt: availableAt,
-                    expiresAt: expiresAt,
-                    reactionKind: prepared.reactionKind,
-                    isCritical: prepared.isCritical,
-                    effectKind: prepared.effectKind,
+                    targetID: event.targetID,
+                    feedbackClass: feedbackClass,
+                    keyword: feedbackClass == .heal ? .health : event.keyword,
+                    visualRole: visualRole(for: event),
+                    label: item.label,
+                    availableAt: date,
+                    expiresAt: date.addingTimeInterval(BattleMotion.chipDisplayDuration),
+                    reactionKind: event.kind == .status || event.origin == .periodic ? .none : reactionKind(for: feedbackClass),
+                    isCritical: event.isCritical,
+                    effectKind: feedbackClass == .directDamage ? nil : (feedbackClass == .heal ? .instantHeal : event.effectKind),
                 )
             }
         }
@@ -106,21 +106,6 @@ enum CombatFeedbackPresenter {
         var event: ActionEvent
         var sourceEventIDs: [Int]
         let originalOrder: Int
-    }
-
-    private struct PreparedEvent: Equatable {
-        let id: Int
-        let sourceEventIDs: [Int]
-        let originalOrder: Int
-        let actionID: Int
-        let targetID: String
-        let feedbackClass: CombatFeedbackClass
-        let keyword: Keyword
-        let visualRole: CombatFeedbackVisualRole
-        let label: CombatFeedbackChipLabel
-        let reactionKind: CombatantHitReactionKind
-        let isCritical: Bool
-        let effectKind: ActionEvent.EffectOutcome?
     }
 
     private struct AggregationKey: Hashable {
@@ -144,33 +129,31 @@ enum CombatFeedbackPresenter {
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
         let actions = events.filter { $0.kind == .ability }
         return events.filter { event in
-            guard event.kind != .milestone else { return false }
-            if event.kind == .ability {
+            switch event.kind {
+            case .ability, .milestone:
                 return false
-            }
-            if event.kind == .abilityDamage, event.amount == 0 {
-                return false
-            }
-            if event.kind == .effect, let effectKind = event.effectKind {
+            case .abilityDamage:
+                return event.amount != 0
+            case .status:
+                return true
+            case .effect:
+                guard let effectKind = event.effectKind else { return true }
                 if effectKind == .controlActionSkipped, event.keyword == .freeze || event.keyword == .stun {
                     return false
                 }
                 if effectKind == .shieldAbsorbed {
                     return event.isFullyBlocked
                 }
-                let feedbackClass = classify(event)
-                if feedbackClass == .buff || feedbackClass == .resource, event.origin != .direct {
+                let descriptor = CombatFeedbackEffectPresentation.descriptor(for: effectKind)
+                if descriptor.feedbackClass == .buff || descriptor.feedbackClass == .resource, event.origin != .direct {
                     let belongsToCard = actions.contains {
                         $0.feedbackGroupID == event.feedbackGroupID
                             && $0.abilityName == event.abilityName && $0.actorName == event.actorName
                     }
                     guard belongsToCard else { return false }
                 }
-                return CombatFeedbackEffectPresentation
-                    .descriptor(for: effectKind)
-                    .shouldDisplay(amount: event.amount)
+                return descriptor.shouldDisplay(amount: event.amount)
             }
-            return true
         }
     }
 
@@ -205,9 +188,7 @@ enum CombatFeedbackPresenter {
     private static func aggregationKey(for event: ActionEvent) -> AggregationKey? {
         let family: AggregationKey.Family
         switch event.kind {
-        case .abilityDamage:
-            family = .abilityDamage
-        case .status:
+        case .abilityDamage, .status:
             family = .abilityDamage
         case .effect:
             guard let effectKind = event.effectKind,
@@ -227,28 +208,6 @@ enum CombatFeedbackPresenter {
             keyword: classify(event) == .heal ? .health : event.keyword,
             family: family,
             isNegative: event.amount < 0,
-        )
-    }
-
-    private static func prepare(_ source: PreparedSource) -> PreparedEvent? {
-        let event = source.event
-        let feedbackClass = classify(event)
-        guard let label = CombatFeedbackChipLabel.from(event: event), !label.isZeroNumeric else {
-            return nil
-        }
-        return PreparedEvent(
-            id: event.id,
-            sourceEventIDs: source.sourceEventIDs,
-            originalOrder: source.originalOrder,
-            actionID: event.feedbackGroupID,
-            targetID: event.targetID,
-            feedbackClass: feedbackClass,
-            keyword: feedbackClass == .heal ? .health : event.keyword,
-            visualRole: visualRole(for: event),
-            label: label,
-            reactionKind: event.kind == .status || event.origin == .periodic ? .none : reactionKind(for: feedbackClass),
-            isCritical: event.isCritical,
-            effectKind: feedbackClass == .directDamage ? nil : (feedbackClass == .heal ? .instantHeal : event.effectKind),
         )
     }
 

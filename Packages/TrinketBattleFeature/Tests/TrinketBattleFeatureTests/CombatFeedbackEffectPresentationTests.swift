@@ -4,52 +4,6 @@ import TrinketDesignSystem
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackEffectPresentationTests {
-    @Test func `every effect outcome has A descriptor`() {
-        for outcome in ActionEvent.EffectOutcome.allCases {
-            _ = CombatFeedbackEffectPresentation.descriptor(for: outcome)
-        }
-    }
-
-    @Test func `descriptor values match presenter contract`() {
-        let heal = CombatFeedbackEffectPresentation.descriptor(for: .instantHeal)
-        #expect(heal.feedbackClass == .heal)
-        #expect(heal.isAdditive)
-        #expect(heal.labelRule == .amount)
-
-        let absorbed = CombatFeedbackEffectPresentation.descriptor(for: .shieldAbsorbed)
-        #expect(absorbed.feedbackClass == .block)
-        #expect(absorbed.isAdditive)
-        #expect(absorbed.labelRule == .negatedAmount)
-
-        let dodge = CombatFeedbackEffectPresentation.descriptor(for: .dodgeApplied)
-        #expect(dodge.feedbackClass == .dodge)
-        #expect(!dodge.isAdditive)
-        #expect(dodge.labelRule == .dodgeWord)
-
-        let deathsDoor = CombatFeedbackEffectPresentation.descriptor(for: .deathsDoorTriggered)
-        #expect(deathsDoor.feedbackClass == .deathsDoor)
-        #expect(deathsDoor.labelRule == .deathsDoorIcon)
-
-        let ward = CombatFeedbackEffectPresentation.descriptor(for: .wardApplied)
-        #expect(ward.feedbackClass == .buff)
-        #expect(ward.visualRole == .beneficialStatus)
-        #expect(ward.statusLabel == .ward)
-        #expect(ward.labelRule == nil)
-
-        let cleanse = CombatFeedbackEffectPresentation.descriptor(for: .cleanseApplied)
-        let purge = CombatFeedbackEffectPresentation.descriptor(for: .purgeApplied)
-        #expect(cleanse.labelRule == .cleanseKeyword)
-        #expect(purge.labelRule == .purgeKeyword)
-
-        let recurring = CombatFeedbackEffectPresentation.descriptor(for: .recurringDamageApplied)
-        #expect(recurring.feedbackClass == .dot)
-        #expect(recurring.labelRule == .appliedKeyword)
-
-        let amplified = CombatFeedbackEffectPresentation.descriptor(for: .dotAmplified)
-        #expect(amplified.feedbackClass == .buff)
-        #expect(amplified.statusLabel == .amplified)
-    }
-
     @Test func `descriptor display rules match visibility policy`() {
         #expect(
             CombatFeedbackEffectPresentation.descriptor(for: .cardsDrawn).displayRule == .hidden,

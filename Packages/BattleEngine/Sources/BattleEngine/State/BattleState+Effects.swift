@@ -78,8 +78,7 @@ package extension BattleState {
         )
         if applied > 0, spendsPreparation {
             roster.mutateRuntime(for: target) {
-                $0.talents.pending.nextBlockGainMultiplier = 1
-                $0.talents.pending.nextBlockGainPreparedCardSerial = nil
+                $0.talents.pending.nextBlockGainMultiplier = nil
             }
         }
         var events = [nextEvent(
@@ -105,12 +104,11 @@ package extension BattleState {
         let belowHalf = roster.health(for: target) * 2 < roster.maxHealth(for: target)
         let healthMultiplier = belowHalf ? triggers.blockGainBelowHalfMultiplier : 1
         let pending = roster.runtime(for: target)?.talents.pending
-        let prepared = pending?.nextBlockGainMultiplier ?? 1
-        let spendsPreparation = prepared > 1 && CombatantTalentState.Pending.isLaterAbility(
-            preparedCardSerial: pending?.nextBlockGainPreparedCardSerial,
-            currentCardSerial: resolution.cardTalents?.playSerial,
+        let prepared = pending?.nextBlockGainMultiplier?.availableValue(
+            cardSerial: resolution.cardTalents?.playSerial, actionID: resolution.actionID,
         )
-        let multiplier = healthMultiplier * (spendsPreparation ? prepared : 1)
+        let spendsPreparation = prepared != nil
+        let multiplier = healthMultiplier * (prepared ?? 1)
         return (CombatRounding.scaled(amount, multiplier: multiplier), spendsPreparation)
     }
 

@@ -4,13 +4,11 @@ import TrinketCore
 
 public struct MysteryEncounterRequest: Sendable {
     public let encounter: EncounterIdentity
-    public let stage: Stage
     public let event: MysteryEvent
     public let displayedOffers: [MysteryOffer]
 
-    public init(encounter: EncounterIdentity, stage: Stage, event: MysteryEvent, displayedOffers: [MysteryOffer]) {
+    public init(encounter: EncounterIdentity, event: MysteryEvent, displayedOffers: [MysteryOffer]) {
         self.encounter = encounter
-        self.stage = stage
         self.event = event
         self.displayedOffers = displayedOffers
     }
@@ -37,7 +35,7 @@ public enum MysteryEncounterResolution {
         using randomNumberGenerator: inout some RandomNumberGenerator,
         at date: Date = Date(),
     ) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure> {
-        guard request.encounter.isPlayable(in: save), request.stage.id == request.encounter.stageID,
+        guard request.encounter.isPlayable(in: save),
               let choice = choiceID
               .flatMap({ id in request.event.choices.first { $0.id == id } }) ?? (choiceID == nil ? request.event.choices.first : nil)
         else { return .failure(.unavailable) }
@@ -51,12 +49,13 @@ public enum MysteryEncounterResolution {
         if choice.itemPool != nil {
             return resolveOffer(choice: choice, request: request, save: &save, using: &randomNumberGenerator, at: date)
         }
-        guard let rewardLevel = request.encounter.rewardLevel(in: save) else { return .failure(.unavailable) }
+        guard let rewardLevel = request.encounter.rewardLevel(in: save),
+              let encounterLevel = request.encounter.encounterLevel(in: save) else { return .failure(.unavailable) }
         var candidate = save
         let bonuses = request.encounter.modifierEffects(in: save)
         let result = MysteryEffectApplier.apply(
-            choice.effects, stageID: request.stage.id, choiceID: choice.id,
-            encounterLevel: request.encounter.encounterLevel(stage: request.stage, in: save),
+            choice.effects, stageID: request.encounter.stageID, choiceID: choice.id,
+            encounterLevel: encounterLevel,
             rewardLevel: rewardLevel,
             save: &candidate, using: &randomNumberGenerator,
             goldFoundPercent: bonuses.goldFoundPercent, experienceEarnedPercent: bonuses.experienceEarnedPercent,
@@ -115,8 +114,7 @@ public enum MysteryEncounterResolution {
         do {
             var candidate = save
             let prepared = try MysteryOfferPersistence.prepare(
-                event: request.event, stage: request.stage, labyrinthNodeID: request.encounter.labyrinthNodeID,
-                encounter: request.encounter,
+                event: request.event, encounter: request.encounter,
                 save: &candidate, using: &randomNumberGenerator, at: date,
             )
             if prepared != request.displayedOffers {
@@ -125,7 +123,7 @@ public enum MysteryEncounterResolution {
             }
             guard let offer = prepared.first(where: { $0.choiceID == choice.id }) else { return .failure(.unavailable) }
             let result = MysteryOfferPersistence.claim(
-                offer, stage: request.stage, labyrinthNodeID: request.encounter.labyrinthNodeID, encounter: request.encounter,
+                offer, encounter: request.encounter,
                 save: &candidate, at: date,
             )
             guard result.grantedItems.count == 1
@@ -139,26 +137,44 @@ public enum MysteryEncounterResolution {
     }
 
     private static func complete(_ request: MysteryEncounterRequest, save: inout PlayerSave) {
-        MysteryOfferPersistence.clear(
-            stageID: request.stage.id,
-            labyrinthNodeID: request.encounter.labyrinthNodeID,
-            encounter: request.encounter,
-            save: &save,
-        )
         if request.event.id == GameContent.corruptionAltarEventID || request.event.choices
             .contains(where: { $0.effects.contains(.corruptItem) }) {
             ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &save)
         } else {
             ItemCorruptionApplier.noteMysteryCompleted(save: &save)
         }
-        if case let .voyage(runID, nodeID) = request.encounter.location {
+        complete(encounter: request.encounter, grantingEncounterRewards: true, save: &save)
+    }
+
+    /// Direct choices receive normal noncombat completion rewards. Pooled
+    /// offers already include their payout and only advance encounter progress.
+    static func complete(
+        encounter: EncounterIdentity,
+        grantingEncounterRewards: Bool,
+        save: inout PlayerSave,
+    ) {
+        switch encounter.location {
+        case let .journey(stageID):
+            guard let stage = GameContent.stage(id: stageID) else { return }
+            if grantingEncounterRewards {
+                StageCompletion.claimRewardsIfNeeded(
+                    for: stage, hero: save.roster.activeHero, companion: save.roster.activeCompanion, save: &save,
+                )
+            } else {
+                save.journey.markRewardsClaimed(for: stage)
+            }
+            save.journey.complete(stage, in: GameContent.chapters)
+        case let .labyrinth(nodeID):
+            if grantingEncounterRewards {
+                LabyrinthCompletion.complete(
+                    nodeID: nodeID, hero: save.roster.activeHero, companion: save.roster.activeCompanion, save: &save,
+                )
+            } else {
+                save.labyrinth.markCleared(nodeID: nodeID, eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs)
+            }
+        case let .voyage(runID, nodeID):
             _ = VoyageCompletion.completeNode(runID: runID, nodeID: nodeID, save: &save)
-            return
         }
-        StageCompletion.completeEncounter(
-            stage: request.stage, labyrinthNodeID: request.encounter.labyrinthNodeID,
-            hero: save.roster.activeHero, companion: save.roster.activeCompanion,
-            in: GameContent.chapters, save: &save,
-        )
+        MysteryOfferPersistence.clear(encounter: encounter, save: &save)
     }
 }

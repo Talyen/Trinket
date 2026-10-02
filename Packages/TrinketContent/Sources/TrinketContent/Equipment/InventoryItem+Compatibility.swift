@@ -1,41 +1,60 @@
-import Foundation
 import TrinketCore
 
 extension InventoryItem {
     static func normalizedPower(_ original: ItemAffixPower, affixID: String) -> ItemAffixPower {
-        var power = original
+        // Migrate only the obsolete rule; rolled magnitudes and unrelated powers survive.
+        var description = original.description
+        var triggers = original.triggers
         switch affixID {
         case "smugglers_map":
-            var triggers = power.triggers
             triggers.victoryGoldFlat = 0
             triggers.goldTheftDrawChancePercent = 0.20
-            power = ItemAffixPower(
-                description: "Stealing Gold has a 20% chance\nto draw a card.",
-                modifiers: power.modifiers, triggers: triggers,
-            )
+            description = "Stealing Gold has a 20% chance\nto draw a card."
         case "companions_collar":
-            power = Self.normalizedLoyalCompanion(power)
+            if !triggers.healCompanionDrawsCompanionCard {
+                guard triggers.companionCardsEveryOtherTurn > 0 || triggers.companionCardsPerTurn > 0 else { return original }
+                triggers.healCompanionDrawsCompanionCard = true
+                triggers.companionCardsEveryOtherTurn = 0
+                triggers.companionCardsPerTurn = 0
+            }
+            description = "Once per turn, healing your Companion draws a Companion card."
         case "beastbond":
-            power = Self.normalizedBeastbond(power)
+            return Self.normalizedBeastbond(original)
         case "shredding":
-            power = Self.normalizedShredding(power)
+            let actual = max(triggers.ignoreEnemyMitigationPercent, triggers.physicalIgnoreMitigationPercent)
+            guard actual > 0 else { return original }
+            description = "Your Physical damage ignores \(Int((actual * 100).rounded()))% of enemy damage reduction."
+            if triggers.physicalIgnoreMitigationPercent >= triggers.ignoreEnemyMitigationPercent, original.description == description {
+                return original
+            }
+            triggers.physicalIgnoreMitigationPercent = actual
+            triggers.ignoreEnemyMitigationPercent = 0
         case "groves_favor":
-            power = Self.normalizedGrovesFavor(power)
+            guard triggers.healthPerTurn > 0 else { return original }
+            description = "Restore 2 Health every other turn."
         case "tattered_pages":
-            power = Self.normalizedForbiddenKnowledge(power)
+            if !triggers.forbiddenKnowledge {
+                guard triggers.drawEveryOtherTurn > 0 else { return original }
+                triggers.forbiddenKnowledge = true
+                triggers.drawEveryOtherTurn = 0
+            }
+            description = "Every other turn, lose 1 Health and draw a card"
         case "the_returning_gale":
-            power = ItemAffixPower(
-                description: "Once per turn, Dodging returns the last card you played to your hand.",
-                modifiers: power.modifiers, triggers: power.triggers,
-            )
+            description = "Once per turn, Dodging returns the last card you played to your hand."
         case "the_patient_edge":
-            power = Self.normalizedPatientEdge(power)
+            if !triggers.blockPreparesCritical {
+                guard triggers.partnerFirstAttackDamage > 0 || triggers.heldCardNextAttackDamage > 0 else { return original }
+                triggers.blockPreparesCritical = true
+                triggers.partnerFirstAttackDamage = 0
+                triggers.heldCardNextAttackDamage = 0
+            }
+            description = "Blocking an attack makes your next attack Critically Hit."
         case "red_harvest", "huntsmasters_call", "threefold_grace", "golden_verdict":
-            power = Self.normalizedReworkedUnique(power, affixID: affixID)
+            return Self.normalizedReworkedUnique(original, affixID: affixID)
         default:
-            break
+            return original
         }
-        return power
+        return ItemAffixPower(description: description, modifiers: original.modifiers, triggers: triggers)
     }
 
     private static func normalizedReworkedUnique(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower {
@@ -50,143 +69,35 @@ extension InventoryItem {
         if missingCurrentTrigger {
             triggers.merge(current.triggers)
         }
-        guard triggers != power.triggers || power.description != current.description else { return power }
         return ItemAffixPower(description: current.description, modifiers: power.modifiers, triggers: triggers)
-    }
-
-    private static func normalizedLoyalCompanion(_ power: ItemAffixPower) -> ItemAffixPower {
-        if power.triggers.healCompanionDrawsCompanionCard {
-            if power.description == "Once per turn, healing your Companion draws a Companion card." {
-                return power
-            }
-            return ItemAffixPower(
-                description: "Once per turn, healing your Companion draws a Companion card.",
-                modifiers: power.modifiers,
-                triggers: power.triggers,
-            )
-        }
-        // Migrate older per-turn and every-other-turn draw fields to the heal-draw rule.
-        if power.triggers.companionCardsEveryOtherTurn > 0 || power.triggers.companionCardsPerTurn > 0 {
-            var triggers = power.triggers
-            triggers.healCompanionDrawsCompanionCard = true
-            triggers.companionCardsEveryOtherTurn = 0
-            triggers.companionCardsPerTurn = 0
-            return ItemAffixPower(
-                description: "Once per turn, healing your Companion draws a Companion card.",
-                modifiers: power.modifiers,
-                triggers: triggers,
-            )
-        }
-        return power
     }
 
     private static func normalizedBeastbond(_ power: ItemAffixPower) -> ItemAffixPower {
         var modifiers = power.modifiers
-        var oldValue: Int?
-        if let index = modifiers.firstIndex(where: {
+        let oldValue = modifiers.compactMap { modifier -> Int? in
+            if case let .companionDamageDealt(value) = modifier {
+                return value
+            }
+            return nil
+        }.first
+        modifiers.removeAll {
             if case .companionDamageDealt = $0 {
                 return true
             }
             return false
-        }) {
-            if case let .companionDamageDealt(value) = modifiers[index] {
-                oldValue = value
-            }
-            modifiers.removeAll {
-                if case .companionDamageDealt = $0 {
-                    return true
-                }
-                return false
-            }
         }
-        var newValue: Int?
-        for modifier in modifiers {
+        let newValue = modifiers.compactMap { modifier -> Int? in
             if case let .companionPhysicalDamageDealt(value) = modifier {
-                newValue = value
-                break
+                return value
             }
-        }
+            return nil
+        }.first
         let actual = newValue ?? oldValue
         guard let actual else { return power }
         if newValue == nil {
             modifiers.append(.companionPhysicalDamageDealt(actual))
         }
         let description = "Increase your Companion's Physical damage by \(actual)."
-        if modifiers == power.modifiers, power.description == description {
-            return power
-        }
         return ItemAffixPower(description: description, modifiers: modifiers, triggers: power.triggers)
-    }
-
-    private static func normalizedShredding(_ power: ItemAffixPower) -> ItemAffixPower {
-        var triggers = power.triggers
-        let old = triggers.ignoreEnemyMitigationPercent
-        let new = triggers.physicalIgnoreMitigationPercent
-        let actual = max(old, new)
-        guard actual > 0 else { return power }
-        let percentText = "\(Int((actual * 100).rounded()))%"
-        let description = "Your Physical damage ignores \(percentText) of enemy damage reduction."
-        if new >= old, power.description == description {
-            return power
-        }
-        triggers.physicalIgnoreMitigationPercent = actual
-        triggers.ignoreEnemyMitigationPercent = 0
-        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)
-    }
-
-    private static func normalizedForbiddenKnowledge(_ power: ItemAffixPower) -> ItemAffixPower {
-        let description = "Every other turn, lose 1 Health and draw a card"
-        if power.triggers.forbiddenKnowledge {
-            if power.description == description {
-                return power
-            }
-            return ItemAffixPower(
-                description: description,
-                modifiers: power.modifiers,
-                triggers: power.triggers,
-            )
-        }
-        if power.triggers.drawEveryOtherTurn > 0 {
-            var triggers = power.triggers
-            triggers.forbiddenKnowledge = true
-            triggers.drawEveryOtherTurn = 0
-            return ItemAffixPower(
-                description: description,
-                modifiers: power.modifiers,
-                triggers: triggers,
-            )
-        }
-        return power
-    }
-
-    private static func normalizedGrovesFavor(_ power: ItemAffixPower) -> ItemAffixPower {
-        let description = "Restore 2 Health every other turn."
-        guard power.triggers.healthPerTurn > 0, power.description != description else { return power }
-        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: power.triggers)
-    }
-
-    private static func normalizedPatientEdge(_ power: ItemAffixPower) -> ItemAffixPower {
-        if power.triggers.blockPreparesCritical {
-            if power.description == "Blocking an attack makes your next attack Critically Hit." {
-                return power
-            }
-            return ItemAffixPower(
-                description: "Blocking an attack makes your next attack Critically Hit.",
-                modifiers: power.modifiers,
-                triggers: power.triggers,
-            )
-        }
-        if power.triggers.partnerFirstAttackDamage > 0 || power.triggers.heldCardNextAttackDamage > 0 {
-            var triggers = power.triggers
-            triggers.blockPreparesCritical = true
-            triggers.partnerFirstAttackDamage = 0
-            triggers.heldCardNextAttackDamage = 0
-            return ItemAffixPower(
-                description: "Blocking an attack makes your next attack Critically Hit.",
-                modifiers: power.modifiers,
-                triggers: triggers,
-            )
-        }
-        return power
     }
 }

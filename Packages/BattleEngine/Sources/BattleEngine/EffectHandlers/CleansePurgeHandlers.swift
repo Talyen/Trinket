@@ -3,16 +3,6 @@ import TrinketContent
 import TrinketCore
 
 struct CleansePurgeHandler: BattleEffectHandler {
-    enum Mode {
-        case cleanse
-        case cleanseRandom
-        case purge
-        case purgeRandom
-    }
-
-    let mode: Mode
-    let kind: EffectKind
-
     func apply(
         _ effect: Effect,
         ability: Ability,
@@ -20,85 +10,39 @@ struct CleansePurgeHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        switch mode {
-        case .cleanse:
-            applyCleanse(effect, ability: ability, source: source, target: target, in: &context)
-        case .cleanseRandom:
-            applyCleanseRandom(ability: ability, source: source, target: target, in: &context)
-        case .purge:
-            applyPurge(effect, ability: ability, source: source, target: target, in: &context)
-        case .purgeRandom:
-            applyPurgeRandom(ability: ability, source: source, target: target, in: &context)
-        }
-    }
-
-    private func applyCleanse(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        let targetKeyword: Keyword?
-        let healPerDebuff: Int
         switch effect {
         case let .cleanse(keyword):
-            targetKeyword = keyword
-            healPerDebuff = 0
-        case let .cleanseHealPerDebuff(healPer):
-            targetKeyword = nil
-            healPerDebuff = healPer
+            EffectRemovalOperation.resolveCleanse(
+                .all(keyword), source: source, target: target, abilityName: ability.name,
+                origin: .direct, in: &context,
+            ).application
+        case let .cleanseHealPerDebuff(healPerDebuff):
+            EffectRemovalOperation.resolveCleanse(
+                .all(nil), source: source, target: target, abilityName: ability.name,
+                healPerDebuff: healPerDebuff, origin: .direct, in: &context,
+            ).application
+        case .cleanseRandom:
+            EffectRemovalOperation.resolveCleanse(
+                .randomDebuff, source: source, target: target, abilityName: ability.name,
+                origin: .direct, in: &context,
+            ).application
+        case let .purge(keyword):
+            EffectRemovalOperation.resolvePurge(
+                .all(keyword), source: source, target: target, abilityName: ability.name,
+                origin: .direct, in: &context,
+            ).application
+        case .purgeRandom:
+            EffectRemovalOperation.resolvePurge(
+                .randomBuffs(1), source: source, target: target, abilityName: ability.name,
+                origin: .direct, in: &context,
+            ).application
         default:
-            return EffectApplyOutcome(events: [], didApply: false)
+            EffectApplyOutcome(events: [], didApply: false)
         }
-        return EffectRemovalOperation.resolveCleanse(
-            .all(targetKeyword), source: source, target: target, abilityName: ability.name,
-            healPerDebuff: healPerDebuff, origin: .direct, in: &context,
-        ).application
-    }
-
-    private func applyCleanseRandom(
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        EffectRemovalOperation.resolveCleanse(
-            .randomDebuff, source: source, target: target, abilityName: ability.name,
-            origin: .direct, in: &context,
-        ).application
-    }
-
-    private func applyPurge(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        guard case let .purge(keyword) = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        return EffectRemovalOperation.resolvePurge(
-            .all(keyword), source: source, target: target, abilityName: ability.name, origin: .direct, in: &context,
-        ).application
-    }
-
-    private func applyPurgeRandom(
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        EffectRemovalOperation.resolvePurge(
-            .randomBuffs(1), source: source, target: target, abilityName: ability.name, origin: .direct, in: &context,
-        ).application
     }
 }
 
 struct PanaceaHandler: BattleEffectHandler {
-    let kind: EffectKind = .panacea
-
     func apply(
         _ effect: Effect,
         ability: Ability,

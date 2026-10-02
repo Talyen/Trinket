@@ -10,8 +10,8 @@ public enum VoyageCompletion {
     public static func resolveLoot(node: VoyageNode, encounterLevel: Int, save: PlayerSave) -> BattleLootResult {
         let ownership = RewardOwnership(save)
         let effects = NodeModifierEffects.combining(ownership.modifiers(ids: node.modifierIDs))
-        return VictoryRewardApplier.resolveLoot(
-            .voyage(node: node, rewardLevel: ContractsCompletion.campaignRewardLevel(in: save), effects: effects),
+        return BattleLoot.resolve(
+            .voyage(node: node, effects: effects),
             encounterLevel: encounterLevel, enemyIsBoss: node.type == .boss,
             worldSeed: save.worldSeed, ownership: ownership,
             astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
@@ -26,9 +26,9 @@ public enum VoyageCompletion {
         let destination = offer.rewardModifier.resolved(
             ownedTrinketIDs: ownership.ownedTrinketIDs, ownedUniqueIDs: ownership.ownedUniqueIDs,
         )
-        var primary = VictoryRewardApplier.resolveLoot(
+        var primary = BattleLoot.resolve(
             .voyage(
-                node: node, rewardLevel: ContractsCompletion.campaignRewardLevel(in: save),
+                node: node,
                 effects: effects, additionalRewardModifier: destination,
             ),
             encounterLevel: encounterLevel, enemyIsBoss: true,
@@ -57,9 +57,8 @@ public enum VoyageCompletion {
             primary = BattleLootResult(item: primary.item, gold: gold, materials: primary.materials)
             return VoyageResolvedLoot(primary: primary, additionalItem: nil)
         }
-        let second = VictoryRewardApplier.resolveLoot(
+        let second = BattleLoot.resolve(
             LootRequest(
-                rewardLevel: ContractsCompletion.campaignRewardLevel(in: save),
                 seedSalt: "\(node.id)-destination", itemID: "voyage-\(node.id)-destination",
                 rewardModifier: secondModifier,
             ),

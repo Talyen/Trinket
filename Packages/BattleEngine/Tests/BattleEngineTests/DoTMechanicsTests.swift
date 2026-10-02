@@ -25,7 +25,7 @@ struct DoTMechanicsTests {
     }
 
     @Test(arguments: [Keyword.burn, .poison], [false, true])
-    func `flashover doubles the burn hit but not stored ticks`(keyword: Keyword, frozen: Bool) throws {
+    func `flashover doubles the burn hit but not stored ticks`(keyword: Keyword, frozen: Bool) {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 damage: DamageTriggers(criticalChanceBonus: -1, burnDoubleVsFrozenChancePercent: 1),
@@ -48,7 +48,7 @@ struct DoTMechanicsTests {
         #expect(initialHit.healthLost == (keyword == .burn && frozen ? 8 : 4))
         let effect: Effect = keyword == .burn ? .burn(4) : .poison(4)
         let active = ActiveEffect(id: 100, effect: effect, remainingTurns: 0, sourceActorID: battle.roster.hero.id)
-        let handler = try #require(EffectHandlers.all[effect.kind])
+        let handler = EffectHandlers.handler(for: effect.kind)
         let healthBefore = battle.health(of: enemy)
 
         _ = handler.advanceTurn(active, on: enemy, in: &battle)
@@ -271,14 +271,14 @@ struct DoTMechanicsTests {
 
         let poison = battle.activeEffects(of: enemy).first { $0.keyword == .poison }
         let active = try #require(poison)
-        let handler = try #require(EffectHandlers.all[.poison])
+        let handler = EffectHandlers.handler(for: .poison)
         _ = handler.advanceTurn(active, on: enemy, in: &battle)
         #expect(battle.health(of: hero) == 31)
         #expect(battle.health(of: enemy) == enemy.maxHealth - 22)
     }
 
     @Test(arguments: [false, true], [false, true])
-    func `bleed rewards require health loss from cards and ticks`(isTick: Bool, blocked: Bool) throws {
+    func `bleed rewards require health loss from cards and ticks`(isTick: Bool, blocked: Bool) {
         let bleed = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 1, sourceActorID: "hero")
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
@@ -293,7 +293,7 @@ struct DoTMechanicsTests {
             for: battle.enemy,
         )
         if isTick {
-            let handler = try #require(EffectHandlers.all[.bleed])
+            let handler = EffectHandlers.handler(for: .bleed)
             _ = handler.advanceTurn(bleed, on: battle.enemy, in: &battle)
         } else {
             _ = BattleTurnEngine.performAction(
@@ -394,14 +394,14 @@ extension DoTMechanicsTests {
         let burn = battle.activeEffects(of: enemy).first { $0.keyword == .burn }
         let active = try #require(burn)
         #expect(active.effect.potency == 20)
-        let handler = try #require(EffectHandlers.all[.burn])
+        let handler = EffectHandlers.handler(for: .burn)
         let ticks = handler.advanceTurn(active, on: enemy, in: &battle)
         #expect(statusAmounts(from: ticks, keyword: .burn) == [10, 10])
         #expect(battle.activeEffects(of: enemy).first { $0.keyword == .burn }?.effect.potency == 10)
     }
 
     @Test(arguments: [false, true])
-    func `savage tear critically scales the whole bleed tick and reports critical damage`(specialCrit: Bool) throws {
+    func `savage tear critically scales the whole bleed tick and reports critical damage`(specialCrit: Bool) {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(
                 damageDealtBonus: [.bleed: 2],
@@ -423,7 +423,7 @@ extension DoTMechanicsTests {
         #expect(!initial.isCritical)
         let active = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 2, sourceActorID: hero.id)
         battle.roster.setActiveEffects([active], for: enemy)
-        let handler = try #require(EffectHandlers.all[.bleed])
+        let handler = EffectHandlers.handler(for: .bleed)
 
         let events = handler.advanceTurn(active, on: enemy, in: &battle)
 
@@ -485,13 +485,13 @@ extension DoTMechanicsTests {
         #expect(battle.roster.hero.currentMana == expectedMana)
     }
 
-    @Test func `burn tick restores mana exactly once`() throws {
+    @Test func `burn tick restores mana exactly once`() {
         var battle = Self.makeBurnManaBattle(perTurnCap: 2)
         let hero = battle.roster.hero.combatant
         let enemy = battle.roster.enemy.combatant
         let active = ActiveEffect(id: 100, effect: .burn(4), remainingTurns: 0, sourceActorID: hero.id)
         battle.roster.setActiveEffects([active], for: enemy)
-        let handler = try #require(EffectHandlers.all[.burn])
+        let handler = EffectHandlers.handler(for: .burn)
         _ = handler.advanceTurn(active, on: enemy, in: &battle)
         #expect(battle.roster.hero.currentMana == 1)
         #expect(battle.turnCadence.burnManaRestored[.hero] == 1)

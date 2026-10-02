@@ -111,15 +111,12 @@ enum CombatFeedbackClosedVocabulary {
     private static func isClosedVocabulary(
         _ descriptor: CombatFeedbackEffectPresentation.Descriptor,
     ) -> Bool {
-        if descriptor.statusLabel != nil {
-            return true
-        }
         switch descriptor.labelRule {
-        case .dodgeWord, .plainKeyword, .appliedKeyword, .triggeredKeyword,
+        case .status, .dodgeWord, .plainKeyword, .appliedKeyword, .triggeredKeyword,
              .cleanseKeyword, .purgeKeyword, .deathsDoorIcon:
-            return true
-        case .amount, .negatedAmount, nil:
-            return false
+            true
+        case .amount, .negatedAmount, .none:
+            false
         }
     }
 

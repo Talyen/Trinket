@@ -52,6 +52,10 @@ let package = Package(
             ],
         ),
         .testTarget(
+            name: "BalanceSweepCLITests",
+            dependencies: ["BalanceSweepCLI", "BattleBalanceTools"],
+        ),
+        .testTarget(
             name: "BattleBalanceToolsTests",
             dependencies: [
                 "BattleBalanceTools",

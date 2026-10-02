@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketCore
 
 struct AvatarHandler: BattleEffectHandler {
-    let kind: EffectKind = .avatar
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard let active = stacks.first,
               case let .avatar(holyDamage, blockPerTurn, _) = active.effect

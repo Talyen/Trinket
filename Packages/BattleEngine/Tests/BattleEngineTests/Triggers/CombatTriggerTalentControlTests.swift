@@ -69,7 +69,7 @@ struct CombatTriggerTalentControlTests {
         battle.rng = SeededRandomNumberGenerator(seed: seed)
         battle.appendEffect(.poison(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
         let active = try #require(battle.activeEffects(of: battle.enemy).first)
-        let handler = try #require(EffectHandlers.all[.poison])
+        let handler = EffectHandlers.handler(for: .poison)
         _ = handler.advanceTurn(active, on: battle.enemy, in: &battle)
         #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun) == stunned)
     }

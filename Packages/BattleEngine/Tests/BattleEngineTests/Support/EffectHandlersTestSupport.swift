@@ -31,9 +31,7 @@ enum EffectHandlersTestSupport {
         target: Combatant,
         battle: inout BattleState,
     ) -> TickObservation {
-        guard let handler = EffectHandlers.handler(for: active.effect.kind) else {
-            preconditionFailure("Missing handler for \(active.effect.kind)")
-        }
+        let handler = EffectHandlers.handler(for: active.effect.kind)
         return battle.withEngineContext { context in
             context.roster.mutateRuntime(for: target) {
                 $0.activeEffects.removeAll { $0.id == active.id }

@@ -101,7 +101,7 @@ extension CombatTriggerTalentDamageTests {
         battle.companionDeck = CombatDeck(abilities: [.kindling, .slash])
         battle.appendEffect(.bleed(4), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
         let active = try #require(battle.activeEffects(of: battle.enemy).first)
-        let handler = try #require(EffectHandlers.all[.bleed])
+        let handler = EffectHandlers.handler(for: .bleed)
         let outcome = handler.advanceTurn(active, on: battle.enemy, in: &battle)
         #expect(outcome.contains(where: { $0.effectKind == .cardsDrawn }))
         #expect(battle.hand.cards.map(\.ability.id) == [Ability.slash.id])

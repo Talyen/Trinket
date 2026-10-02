@@ -47,7 +47,7 @@ struct StageRewardTests {
         var save = SaveTestSupport.makeSave()
         let battleEarnedGold = 4
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
-        let loot = VictoryRewardApplier.resolveLoot(
+        let loot = BattleLoot.resolve(
             .journey(stage: firstStage),
             encounterLevel: encounterLevel,
             enemyIsBoss: false,
@@ -105,7 +105,7 @@ struct StageRewardTests {
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let startingGold = save.roster.gold
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
-        let loot = VictoryRewardApplier.resolveLoot(
+        let loot = BattleLoot.resolve(
             .journey(stage: firstStage),
             encounterLevel: encounterLevel,
             enemyIsBoss: false,
@@ -159,7 +159,7 @@ struct StageRewardTests {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let loot = VictoryRewardApplier.resolveLoot(
+        let loot = BattleLoot.resolve(
             .journey(stage: firstStage),
             encounterLevel: EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter),
             enemyIsBoss: false,
@@ -398,7 +398,7 @@ extension StageRewardTests {
             rewards: StageReward(gold: 10, itemTemplateIDs: [], materialRewards: []),
         )
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
-        let loot = VictoryRewardApplier.resolveLoot(
+        let loot = BattleLoot.resolve(
             .journey(stage: firstStage),
             encounterLevel: encounterLevel,
             enemyIsBoss: false,
@@ -468,7 +468,7 @@ extension StageRewardTests {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
-        let loot = VictoryRewardApplier.resolveLoot(
+        let loot = BattleLoot.resolve(
             .journey(stage: firstStage),
             encounterLevel: encounterLevel,
             enemyIsBoss: false,

@@ -94,26 +94,6 @@ public final class ContractsPlayMode {
             experienceBonusPercent: ContractsCompletion.effectiveModifier(for: offer, inventory: playerSave.inventory)
                 .experienceBonusPercent,
         )
-        return (input, battleRoute(offerID: offer.id))
-    }
-
-    private func battleRoute(offerID: String) -> PlayBattleRoute {
-        PlayBattleRoute.makeModeRoute(
-            origin: .contract(offerID: offerID),
-            logging: "Failed to complete contract",
-            playerSave: playerSave,
-        ) { [weak self] configuration, _, award, _, loot, save in
-            guard let self, let loot, let level = configuration.enemyEncounterLevel else { return .unavailable }
-            return ContractsCompletion.complete(
-                offerID: offerID,
-                hero: configuration.hero.combatant,
-                companion: configuration.companion.combatant,
-                encounterLevel: level,
-                loot: loot,
-                battleGold: award.award.goldFlow,
-                award: award,
-                save: &save, makeOffer: makeOffer,
-            )
-        }
+        return (input, .contract(offerID: offer.id))
     }
 }

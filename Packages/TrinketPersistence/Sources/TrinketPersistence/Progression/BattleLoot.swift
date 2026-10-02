@@ -18,7 +18,7 @@ public struct BattleLootResult: Hashable, Sendable {
     }
 }
 
-enum BattleLoot {
+public enum BattleLoot {
     static let materialResources: [HomesteadResource] = [
         .wood, .stone, .iron, .food, .herbs, .hide, .gems,
     ]
@@ -30,79 +30,98 @@ enum BattleLoot {
         return minQty ... maxQty
     }
 
-    /// - Parameters:
-    ///   - encounterLevel: fight-relative level driving gold/material
-    ///     quantities (usually party-adjusted).
-    ///   - rewardLevel: authored content level driving item tier chances
-    ///     (never party-adjusted; see LootRequest).
-    static func resolve(
+    /// One captured encounter level drives currency quantities and item quality.
+    public static func resolve(
+        _ request: LootRequest,
         encounterLevel: Int,
-        rewardLevel: Int,
         enemyIsBoss: Bool,
-        itemID: String,
-        keywordBias: Set<Keyword> = [],
-        ownedTrinketIDs: Set<String> = [],
-        ownedUniqueIDs: Set<String>,
-        goldFoundPercent: Int = 0,
-        materialsFoundPercent: Int = 0,
-        materialFocus: HomesteadResource? = nil,
-        additionalMaterialFocus: HomesteadResource? = nil,
-        materialBonusPercents: [HomesteadResource: Int]? = nil,
-        favoredItemTier: ItemDropTier? = nil,
-        itemTierWeightBonusPercent: Int = 0,
-        requiredItemTier: ItemDropTier? = nil,
-        requiredBaseTypeIDs: Set<String>? = nil,
-        requiredKeyword: Keyword? = nil,
+        worldSeed: UInt64,
+        ownership: RewardOwnership,
         astralChanceBonusPercent: Int = 0,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> BattleLootResult {
+        var rng = SeededRandomNumberGenerator(
+            seed: GameContent.encounterSeed(worldSeed, salt: request.seedSalt),
+        )
+        let modifier = request.rewardModifier?.resolved(
+            ownedTrinketIDs: ownership.ownedTrinketIDs, ownedUniqueIDs: ownership.ownedUniqueIDs,
+        )
+        let additionalModifier = request.additionalRewardModifier?.resolved(
+            ownedTrinketIDs: ownership.ownedTrinketIDs, ownedUniqueIDs: ownership.ownedUniqueIDs,
+        )
+        let itemModifier = modifier?.isItemFocused == true ? modifier
+            : additionalModifier?.isItemFocused == true ? additionalModifier : nil
+        let focuses = [modifier?.materialFocus, additionalModifier?.materialFocus].compactMap(\.self)
+        let modifiers = [modifier, additionalModifier].compactMap(\.self)
         let range = quantityRange(forLevel: encounterLevel)
         let multiplier = enemyIsBoss ? 2 : 1
 
-        var gold = Int.random(in: range, using: &randomNumberGenerator) * multiplier
-        gold = CombatRounding.scaled(gold, byPercent: goldFoundPercent)
+        var gold = Int.random(in: range, using: &rng) * multiplier
+        gold = CombatRounding.scaled(gold, byPercent: request.goldFoundPercent + modifiers.reduce(0) { $0 + $1.goldBonusPercent })
 
         var materials = rollDistinctMaterials(
             count: 2,
             range: range,
             quantityMultiplier: multiplier,
-            focuses: [materialFocus, additionalMaterialFocus].compactMap(\.self),
-            using: &randomNumberGenerator,
+            focuses: focuses,
+            using: &rng,
         )
-        materials = materials.map {
-            let bonus = materialBonusPercents?[$0.resource]
-                ?? (materialFocus == nil || $0.resource == materialFocus ? materialsFoundPercent : 0)
-            return ResourceAmount($0.resource, CombatRounding.scaled($0.quantity, byPercent: bonus))
+        materials = materials.map { material in
+            let bonus: Int = if additionalModifier != nil {
+                modifiers.reduce(request.materialsFoundPercent) { total, modifier in
+                    total + (modifier == .materials || modifier.materialFocus == material.resource ? RewardModifier.bonusPercent : 0)
+                }
+            } else if focuses.isEmpty || material.resource == focuses.first {
+                request.materialsFoundPercent + (modifier?.materialsBonusPercent ?? 0)
+            } else {
+                0
+            }
+            return ResourceAmount(material.resource, CombatRounding.scaled(material.quantity, byPercent: bonus))
         }
 
-        let eligibleBaseTypes = requiredBaseTypeIDs.map { ids in
+        let item = rollItem(
+            request, modifier: itemModifier, encounterLevel: encounterLevel,
+            enemyIsBoss: enemyIsBoss, ownership: ownership,
+            astralChanceBonusPercent: astralChanceBonusPercent, using: &rng,
+        )
+
+        return BattleLootResult(item: item, gold: gold, materials: materials)
+    }
+
+    private static func rollItem(
+        _ request: LootRequest,
+        modifier: RewardModifier?,
+        encounterLevel: Int,
+        enemyIsBoss: Bool,
+        ownership: RewardOwnership,
+        astralChanceBonusPercent: Int,
+        using rng: inout some RandomNumberGenerator,
+    ) -> InventoryItem {
+        let eligibleBaseTypes = modifier?.requiredBaseTypeIDs.map { ids in
             GameContent.itemBaseTypes.filter { ids.contains($0.id) }
         } ?? GameContent.itemBaseTypes
         precondition(!eligibleBaseTypes.isEmpty, "Guaranteed item family needs a matching base")
-        let allowedTiers: Set<ItemDropTier> = if let requiredItemTier {
-            [requiredItemTier]
-        } else if requiredBaseTypeIDs != nil {
+        let allowedTiers: Set<ItemDropTier> = if let tier = modifier?.requiredItemTier {
+            [tier]
+        } else if modifier?.requiredBaseTypeIDs != nil {
             [.basic, .astral]
         } else {
             Set(ItemDropTier.allCases)
         }
-        let item = ItemRewardGenerator.generate(
-            id: itemID,
-            rewardLevel: rewardLevel,
+        return ItemRewardGenerator.generate(
+            id: request.itemID,
+            rewardLevel: max(1, encounterLevel),
             bossContent: enemyIsBoss,
             astralChanceBonusPercent: astralChanceBonusPercent,
             allowedTiers: allowedTiers,
-            favoredTier: favoredItemTier,
-            tierWeightBonusPercent: itemTierWeightBonusPercent,
-            requiredKeyword: requiredKeyword,
-            ownedTrinketIDs: ownedTrinketIDs,
-            ownedUniqueIDs: ownedUniqueIDs,
-            keywordBias: keywordBias,
+            favoredTier: modifier?.favoredItemTier,
+            tierWeightBonusPercent: modifier?.favoredItemTier != nil ? RewardModifier.rareTierWeightBonusPercent : 0,
+            requiredKeyword: modifier?.requiredKeyword,
+            ownedTrinketIDs: ownership.ownedTrinketIDs,
+            ownedUniqueIDs: ownership.ownedUniqueIDs,
+            keywordBias: request.keywordBias,
             baseTypes: eligibleBaseTypes,
-            using: &randomNumberGenerator,
+            using: &rng,
         )
-
-        return BattleLootResult(item: item, gold: gold, materials: materials)
     }
 
     private static func rollDistinctMaterials(

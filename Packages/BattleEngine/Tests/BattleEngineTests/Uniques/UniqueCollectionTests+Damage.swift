@@ -25,7 +25,7 @@ extension UniqueCollectionTests {
         let effect: Effect = keyword == .burn ? .burn(20) : .bleed(10)
         context.appendEffect(effect, to: enemy, sourceID: context.roster.hero.id, remainingTurns: 2)
         let active = try #require(context.roster.enemy.activeEffects.first)
-        let handler = try #require(EffectHandlers.all[effect.kind])
+        let handler = EffectHandlers.handler(for: effect.kind)
 
         let events = handler.advanceTurn(active, on: enemy, in: &context)
 
@@ -146,7 +146,7 @@ extension UniqueCollectionTests {
         #expect(context.roster.enemy.currentHealth == 1979)
         let potency = keyword == .burn ? 21 : 10
         let active = try #require(context.roster.enemy.activeEffects.first { $0.keyword == keyword && $0.effect.potency == potency })
-        let handler = try #require(EffectHandlers.all[active.effect.kind])
+        let handler = EffectHandlers.handler(for: active.effect.kind)
         let before = context.health(of: context.enemy)
         _ = handler.advanceTurn(active, on: context.enemy, in: &context)
         #expect(before - context.health(of: context.enemy) == (keyword == .burn ? 10 : 21))

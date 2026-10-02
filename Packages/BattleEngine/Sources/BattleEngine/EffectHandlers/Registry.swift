@@ -1,103 +1,45 @@
-import Foundation
-import TrinketContent
 import TrinketCore
 
 package enum EffectHandlers {
-    package static let all: [EffectKind: any BattleEffectHandler] = [
-        .burn: DecayingDoTHandler(type: .burn),
-        .poison: DecayingDoTHandler(type: .poison),
-        .bleed: BleedHandler(),
-        .controlMeter: ControlMeterHandler(),
-        .shield: BlockBuffHandler(),
-        .instantHeal: InstantHealHandler(),
-        .resourceGain: ResourceGainHandler(),
-        .drawCards: DrawCardsHandler(),
-        .drawAndPlayCards: DrawAndPlayCardsHandler(),
-        .cleanse: CleansePurgeHandler(mode: .cleanse, kind: .cleanse),
-        .cleanseHealPerDebuff: CleansePurgeHandler(mode: .cleanse, kind: .cleanseHealPerDebuff),
-        .panacea: PanaceaHandler(),
-        .cleanseRandom: CleansePurgeHandler(mode: .cleanseRandom, kind: .cleanseRandom),
-        .purge: CleansePurgeHandler(mode: .purge, kind: .purge),
-        .purgeRandom: CleansePurgeHandler(mode: .purgeRandom, kind: .purgeRandom),
-        .halveShield: HalveShieldHandler(),
-        .deathsDoor: DeathsDoorHandler(),
-        .thorns: ThornsHandler(),
-        .thornsFromBlockFraction: ThornsFromBlockFractionHandler(),
-        .marked: MarkedHandler(),
-        .criticalChanceBonus: CriticalChanceBonusHandler(),
-        .restoreManaOnHit: RestoreManaOnHitHandler(),
-        .damageKeywordOverride: DamageKeywordOverrideHandler(),
-        .nextHolyStrike: FlagEffectHandler(
-            flag: .nextHolyStrike,
-            appliedEffectKind: .nextHolyStrikeApplied,
-            amount: 0,
-            keyword: .holy,
-            summaryText: EffectPresentation.requiredBattleSummaryPhrase(for: .nextHolyStrike),
-        ),
-        .nextStrikeDouble: FlagEffectHandler(
-            flag: .nextStrikeDouble,
-            appliedEffectKind: .nextStrikeDoubleApplied,
-            amount: 0,
-            keyword: .physical,
-            summaryText: EffectPresentation.requiredBattleSummaryPhrase(for: .nextStrikeDouble),
-        ),
-        .nextBurnBonus: NextBurnBonusHandler(),
-        .evadeNextHit: FlagEffectHandler(
-            flag: .evadeNextHit,
-            appliedEffectKind: .evadeNextHitApplied,
-            amount: 0,
-            keyword: .dodge,
-            summaryText: EffectPresentation.requiredBattleSummaryPhrase(for: .evadeNextHit),
-        ),
-        .convertManaToBlock: ShieldFromResourceHandler(mode: .convertManaToBlock, kind: .convertManaToBlock),
-        .shieldFromMana: ShieldFromResourceHandler(mode: .shieldFromMana, kind: .shieldFromMana),
-        .shieldFromHalfMana: ShieldFromResourceHandler(mode: .shieldFromHalfMana, kind: .shieldFromHalfMana),
-        .shieldFromGold: ShieldFromResourceHandler(mode: .shieldFromGold, kind: .shieldFromGold),
-        .maximumManaBonus: MaximumManaBonusHandler(),
-        .nextStrikeCritical: FlagEffectHandler(
-            flag: .nextStrikeCritical,
-            appliedEffectKind: .criticalChanceApplied,
-            amount: 100,
-            keyword: .physical,
-            summaryText: EffectPresentation.requiredBattleSummaryPhrase(for: .nextStrikeCritical),
-        ),
-        .nextStrikeLeech: FlagEffectHandler(
-            flag: .nextStrikeLeech,
-            appliedEffectKind: .leechApplied,
-            amount: 0,
-            keyword: .leech,
-            summaryText: EffectPresentation.requiredBattleSummaryPhrase(for: .nextStrikeLeech),
-        ),
-        .nextStrikeDamageKeywordOverride: FlagEffectHandler(
-            flag: .nextStrikeDamageKeywordOverride(.holy),
-            appliedEffectKind: .damageKeywordOverrideApplied,
-            amount: 0,
-            keyword: .holy,
-            summaryText: EffectPresentation.requiredBattleSummaryPhrase(for: .nextStrikeDamageKeywordOverride(.holy)),
-        ),
-        .partyDamageBonus: PartyDamageBonusHandler(),
-        .freezeNextAttacker: FlagEffectHandler(
-            flag: .freezeNextAttacker,
-            appliedEffectKind: .controlApplied,
-            amount: 0,
-            keyword: .freeze,
-            summaryText: EffectPresentation.requiredBattleSummaryPhrase(for: .freezeNextAttacker),
-        ),
-        .onHitDamage: OnHitDamageHandler(),
-        .multiplyControlMeter: MultiplyControlMeterHandler(),
-        .multiplyDoT: MultiplyDoTHandler(),
-        .detonateDoT: DetonateDoTHandler(),
-        .recurringDamage: RecurringDamageHandler(),
-        .avatar: AvatarHandler(),
-        .blessedAegis: BlessedAegisHandler(),
-        .revive: ReviveHandler(),
-        .damageReductionPercent: TimedDebuffHandler(kind: .damageReductionPercent),
-        .damageReductionFlat: TimedDebuffHandler(kind: .damageReductionFlat),
-        .healingReductionPercent: TimedDebuffHandler(kind: .healingReductionPercent),
-        .hemorrhage: HemorrhageHandler(),
-    ]
-
-    package static func handler(for kind: EffectKind) -> (any BattleEffectHandler)? {
-        all[kind]
+    /// Total dispatch for the closed effect set. New kinds must choose a handler
+    /// here before the engine can compile.
+    package static func handler(for kind: EffectKind) -> any BattleEffectHandler {
+        switch kind {
+        case .burn: DecayingDoTHandler(type: .burn)
+        case .poison: DecayingDoTHandler(type: .poison)
+        case .bleed: BleedHandler()
+        case .controlMeter: ControlMeterHandler()
+        case .shield: BlockBuffHandler()
+        case .instantHeal: InstantHealHandler()
+        case .resourceGain: ResourceGainHandler()
+        case .drawCards: DrawCardsHandler()
+        case .drawAndPlayCards: DrawAndPlayCardsHandler()
+        case .cleanse, .cleanseHealPerDebuff, .cleanseRandom, .purge, .purgeRandom: CleansePurgeHandler()
+        case .panacea: PanaceaHandler()
+        case .halveShield: HalveShieldHandler()
+        case .deathsDoor: DeathsDoorHandler()
+        case .thorns: ThornsHandler()
+        case .thornsFromBlockFraction: ThornsFromBlockFractionHandler()
+        case .marked: MarkedHandler()
+        case .criticalChanceBonus: CriticalChanceBonusHandler()
+        case .restoreManaOnHit: RestoreManaOnHitHandler()
+        case .damageKeywordOverride: DamageKeywordOverrideHandler()
+        case .nextHolyStrike, .nextStrikeDouble, .evadeNextHit, .nextStrikeCritical,
+             .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .freezeNextAttacker: FlagEffectHandler()
+        case .nextBurnBonus: NextBurnBonusHandler()
+        case .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold: ShieldFromResourceHandler()
+        case .maximumManaBonus: MaximumManaBonusHandler()
+        case .partyDamageBonus: PartyDamageBonusHandler()
+        case .onHitDamage: OnHitDamageHandler()
+        case .multiplyControlMeter: MultiplyControlMeterHandler()
+        case .multiplyDoT: MultiplyDoTHandler()
+        case .detonateDoT: DetonateDoTHandler()
+        case .recurringDamage: RecurringDamageHandler()
+        case .avatar: AvatarHandler()
+        case .blessedAegis: BlessedAegisHandler()
+        case .revive: ReviveHandler()
+        case .damageReductionPercent, .damageReductionFlat, .healingReductionPercent: TimedDebuffHandler()
+        case .hemorrhage: HemorrhageHandler()
+        }
     }
 }

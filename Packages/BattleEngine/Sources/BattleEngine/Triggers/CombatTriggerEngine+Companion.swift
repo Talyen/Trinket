@@ -62,8 +62,7 @@ package extension CombatTriggerEngine {
         if critical, triggers.holyCriticalAllyIgnoreBlock, context.roster.hero.isAlive {
             let serial = context.resolution.cardTalents?.playSerial
             context.roster.mutateRuntime(for: context.roster.hero.combatant) {
-                $0.talents.pending.nextAttackIgnoresBlock = true
-                $0.talents.pending.nextAttackIgnorePreparedCardSerial = serial
+                $0.talents.pending.nextAttackIgnoresBlock = PreparedTalentBonus(value: true, cardSerial: serial)
             }
         }
         if critical, triggers.holyCriticalPurgeCount > 0, context.roster.enemy.isAlive {
@@ -324,12 +323,10 @@ package extension CombatTriggerEngine {
                     $0.talents.pending.nextManaEmpowerDiscount = max($0.talents.pending.nextManaEmpowerDiscount, 3)
                 }
                 if triggers.dodgeNextFreezeIgnoreBlock {
-                    $0.talents.pending.nextFreezeIgnoresBlock = true
-                    $0.talents.pending.nextFreezeIgnorePreparedCardSerial = preparedCardSerial
+                    $0.talents.pending.nextFreezeIgnoresBlock = PreparedTalentBonus(value: true, cardSerial: preparedCardSerial)
                 }
                 if triggers.dodgeNextAttackIgnoreBlock {
-                    $0.talents.pending.nextAttackIgnoresBlock = true
-                    $0.talents.pending.nextAttackIgnorePreparedCardSerial = preparedCardSerial
+                    $0.talents.pending.nextAttackIgnoresBlock = PreparedTalentBonus(value: true, cardSerial: preparedCardSerial)
                 }
             }
         }
@@ -373,22 +370,22 @@ package extension CombatTriggerEngine {
             && context.claimHeroTalent("Feint Strike", actorID: actor.id)
         context.roster.mutateRuntime(for: actor) {
             if triggers.dodgeNextBleedAttackMultiplier > 1 {
-                $0.talents.pending.nextBleedAttackMultiplier = max(
-                    $0.talents.pending.nextBleedAttackMultiplier, triggers.dodgeNextBleedAttackMultiplier,
+                $0.talents.pending.nextBleedAttackMultiplier = PreparedTalentBonus(
+                    value: max($0.talents.pending.nextBleedAttackMultiplier?.value ?? 1, triggers.dodgeNextBleedAttackMultiplier),
+                    cardSerial: serial,
                 )
-                $0.talents.pending.nextBleedMultiplierPreparedCardSerial = serial
             }
             if triggers.dodgeNextPhysicalDamageMultiplier > 1 {
-                $0.talents.pending.nextPhysicalAttackMultiplier = max(
-                    $0.talents.pending.nextPhysicalAttackMultiplier, triggers.dodgeNextPhysicalDamageMultiplier,
+                $0.talents.pending.nextPhysicalAttackMultiplier = PreparedTalentBonus(
+                    value: max($0.talents.pending.nextPhysicalAttackMultiplier?.value ?? 1, triggers.dodgeNextPhysicalDamageMultiplier),
+                    cardSerial: serial,
                 )
-                $0.talents.pending.nextPhysicalAttackPreparedCardSerial = serial
             }
             if triggers.dodgeNextCriticalDamageMultiplier > 1 {
-                $0.talents.pending.nextCriticalHitMultiplier = max(
-                    $0.talents.pending.nextCriticalHitMultiplier, triggers.dodgeNextCriticalDamageMultiplier,
+                $0.talents.pending.nextCriticalHitMultiplier = PreparedTalentBonus(
+                    value: max($0.talents.pending.nextCriticalHitMultiplier?.value ?? 1, triggers.dodgeNextCriticalDamageMultiplier),
+                    cardSerial: serial,
                 )
-                $0.talents.pending.nextCriticalHitPreparedCardSerial = serial
             }
             if firstFeint {
                 $0.talents.pending.feintStrikeDamageBonus = max(
@@ -401,11 +398,10 @@ package extension CombatTriggerEngine {
             let ally = context.roster.hero.combatant
             if triggers.dodgeAllyNextAttackCriticalBonus > 0 {
                 context.roster.mutateRuntime(for: ally) {
-                    $0.talents.pending.nextAttackCriticalBonus = max(
-                        $0.talents.pending.nextAttackCriticalBonus,
-                        triggers.dodgeAllyNextAttackCriticalBonus,
+                    $0.talents.pending.nextAttackCriticalBonus = PreparedTalentBonus(
+                        value: max($0.talents.pending.nextAttackCriticalBonus?.value ?? 0, triggers.dodgeAllyNextAttackCriticalBonus),
+                        cardSerial: serial, actionID: $0.talents.pending.nextAttackCriticalBonus?.actionID,
                     )
-                    $0.talents.pending.nextAttackCriticalPreparedCardSerial = serial
                 }
             }
             if triggers.firstDodgeAllyEvadeNextHit,
@@ -479,23 +475,20 @@ package extension CombatTriggerEngine {
         if triggers.goldTheftNextBlockMultiplier > 1 {
             let preparedCardSerial = context.resolution.cardTalents?.playSerial
             context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.nextBlockGainMultiplier = max(
-                    $0.talents.pending.nextBlockGainMultiplier,
-                    triggers.goldTheftNextBlockMultiplier,
+                $0.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(
+                    value: max($0.talents.pending.nextBlockGainMultiplier?.value ?? 1, triggers.goldTheftNextBlockMultiplier),
+                    cardSerial: preparedCardSerial,
                 )
-                $0.talents.pending.nextBlockGainPreparedCardSerial = preparedCardSerial
             }
         }
         if triggers.goldTheftNextAttackCriticalBonus > 0 {
             let serial = context.resolution.cardTalents?.playSerial
             let actionID = context.resolution.actionID
             context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.nextAttackCriticalBonus = max(
-                    $0.talents.pending.nextAttackCriticalBonus,
-                    triggers.goldTheftNextAttackCriticalBonus,
+                $0.talents.pending.nextAttackCriticalBonus = PreparedTalentBonus(
+                    value: max($0.talents.pending.nextAttackCriticalBonus?.value ?? 0, triggers.goldTheftNextAttackCriticalBonus),
+                    cardSerial: serial, actionID: actionID,
                 )
-                $0.talents.pending.nextAttackCriticalPreparedCardSerial = serial
-                $0.talents.pending.nextAttackCriticalPreparedActionID = actionID
             }
         }
         var events: [ActionEvent] = []
@@ -542,12 +535,10 @@ package extension CombatTriggerEngine {
             let serial = context.resolution.cardTalents?.playSerial
             let actionID = context.resolution.actionID
             context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.nextManaSpendAttackBonus = max(
-                    $0.talents.pending.nextManaSpendAttackBonus,
-                    triggers.selfManaSpendNextAttackBonus,
+                $0.talents.pending.nextManaSpendAttackBonus = PreparedTalentBonus(
+                    value: max($0.talents.pending.nextManaSpendAttackBonus?.value ?? 0, triggers.selfManaSpendNextAttackBonus),
+                    cardSerial: serial, actionID: actionID,
                 )
-                $0.talents.pending.nextManaSpendAttackPreparedCardSerial = serial
-                $0.talents.pending.nextManaSpendAttackPreparedActionID = actionID
             }
         }
         guard triggers.firstManaSpendRefundPerTurn > 0,
@@ -582,8 +573,7 @@ package extension CombatTriggerEngine {
         let preparedCardSerial = context.resolution.cardTalents?.playSerial
         context.roster.mutateRuntime(for: target) {
             $0.talents.battle.wasBelowHalfHealth = true
-            $0.talents.pending.doubleNextBleedAttack = true
-            $0.talents.pending.nextBleedAttackPreparedCardSerial = preparedCardSerial
+            $0.talents.pending.doubleNextBleedAttack = PreparedTalentBonus(value: true, cardSerial: preparedCardSerial)
         }
     }
 

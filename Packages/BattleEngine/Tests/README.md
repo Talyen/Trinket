@@ -31,7 +31,7 @@ helpers live in `Support/`. All remain in the same test target.
 | Cards, opening hand, assessment, Auto Battle | `BattleCardCombatTests` (+`Buffer`/`BlockTiming`/`Feedback`), `BattleOpeningHandTests`, `BattleCardAssessmentTests`, `PlayPolicyTests` |
 | Single-concern mechanics | `BattleChanceTests`, `BattleConditionEvaluatorTests`, `BattleRosterTests`, `BattleStateTests`, `BattleStateStartingHealthTests`, `BattleOutcomeBranchTests`, `CleanseIntegrationTests`, `CombatantBorderAccentTests`, `CombatantBuffAuraTests`, `FaeWardTests`, `HealingReductionTests`, `KeywordCohesionMechanicsTests`, `ManaEmpowermentTests`, `RestorationIntegrationTests`, `RogueRevisionTests` |
 | Catalog ability combos | `AbilityEffectIntegrationTests` (including `+Balance`, which stays in this default target despite the name) |
-| Outcome, log, event formatting | `BattleOutcomeResolverTests`, `BattleLogReducerTests` |
+| Outcome, log, event formatting | `BattleOutcomeResolverTests`, `BattleLogProjectionTests` |
 | Balance simulator and sweep tooling | `BattleBalanceToolsTests` (`BattleSimulator*`, `Balance*`, `ModeProgressionToolingTests`); `PlayPolicyTests` stays in `BattleEngineTests` (Auto Battle) |
 
 ## Conventions
@@ -56,15 +56,15 @@ helpers live in `Support/`. All remain in the same test target.
   `BattleState` construction; `BattleTestFixtures` composes it for combat scenarios
   and provides play, catalog-build, effect-dispatch, and assertion helpers.
 - Use `BattleStateTestFactory.makeMinimalBattle(...)` for pipeline tests that must skip deck bootstrap.
-- Dispatch effects through `EffectHandlers.all`.
+- Dispatch effects through `EffectHandlers.handler(for:)`.
 - Public facade: reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package`.
 
 ```sh
 ./Scripts/test-package.sh BattleEngine
 ```
 
-The balance-tool tests are excluded from the default package command. Run them
-explicitly for a one-off balance check:
+The `BattleBalanceToolsTests` and `BalanceSweepCLITests` targets are excluded from
+the default package command. Run both explicitly for a one-off balance check:
 
 ```sh
 ./Scripts/test-package.sh --include-balance-sweep-tests BattleEngine

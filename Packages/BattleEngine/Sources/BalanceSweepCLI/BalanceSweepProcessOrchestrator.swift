@@ -70,11 +70,14 @@ enum BalanceSweepProcessOrchestrator {
             chunkIndex += 1
             let process = Process()
             process.executableURL = URL(fileURLWithPath: executablePath)
-            process.arguments = workerArguments(
-                parent: config,
-                job: job,
-                outputFile: output.path,
-            )
+            let input = output.deletingPathExtension().appendingPathExtension("config.json")
+            var workerConfig = config
+            workerConfig.mode = job.mode
+            workerConfig.jobs = 1
+            workerConfig.workOffset = job.offset
+            workerConfig.workLimit = job.limit
+            try JSONEncoder().encode(workerConfig).write(to: input)
+            process.arguments = ["--worker", input.path, output.path]
             process.standardOutput = FileHandle.nullDevice
             try process.run()
             launched.append((process, output))
@@ -94,48 +97,6 @@ enum BalanceSweepProcessOrchestrator {
             let data = try Data(contentsOf: item.output)
             return try JSONDecoder().decode(BalanceSweepReport.self, from: data)
         }
-    }
-
-    static func workerArguments(
-        parent: BalanceSweepConfig,
-        job: BalanceSweepWorkerJob,
-        outputFile: String,
-    ) -> [String] {
-        var args = [
-            "--worker",
-            "--mode", job.mode.rawValue,
-            "--samples", "\(parent.battlesPerTier)",
-            "--seed", "\(parent.seed)",
-            "--tiers", parent.tiers.map(\.rawValue).joined(separator: ","),
-            "--jobs", "1",
-            "--max-rounds", "\(parent.maxRounds)",
-            "--max-actions", "\(parent.maxActions)",
-            "--pacing", parent.appliesFightPacing ? "on" : "off",
-            "--policy", parent.policyID,
-            "--work-offset", "\(job.offset)",
-            "--work-limit", "\(job.limit)",
-            "--peer-delta", "\(parent.peerDeltaFlagThreshold)",
-            "--duration-flag-rate", "\(parent.durationFlagRate)",
-            "--comfort-hp", "\(parent.comfortHPThreshold)",
-            "--comfort-rounds", "\(parent.comfortRoundThreshold)",
-            "--output-file", outputFile,
-        ]
-        if parent.comparePolicies {
-            args.append("--policy-compare")
-        }
-        if !parent.heroIDs.isEmpty {
-            args += ["--hero", parent.heroIDs.joined(separator: ",")]
-        }
-        if !parent.companionIDs.isEmpty {
-            args += ["--companion", parent.companionIDs.joined(separator: ",")]
-        }
-        if !parent.enemyIDs.isEmpty {
-            args += ["--enemy", parent.enemyIDs.joined(separator: ",")]
-        }
-        if !parent.focusIDs.isEmpty {
-            args += ["--focus", parent.focusIDs.joined(separator: ",")]
-        }
-        return args
     }
 
     private static func unsliced(_ config: BalanceSweepConfig) -> BalanceSweepConfig {

@@ -82,23 +82,6 @@ public enum MysteryEffectApplier {
         4 + (max(1, level) * 14) / 49
     }
 
-    public static func resolvedEncounterLevel(
-        stage: Stage,
-        labyrinthNodeID: String?,
-        save: PlayerSave,
-    ) -> Int {
-        if let labyrinthNodeID, let node = save.labyrinth.nodes[labyrinthNodeID] {
-            return EncounterLevelResolver.labyrinthAdjusted(
-                EncounterLevelResolver.labyrinthEnemyLevel(for: node),
-                partyAverageLevel: save.roster.activePartyAverageLevel,
-            )
-        }
-        return StageCompletion.partyAdjustedEncounterLevel(
-            for: stage,
-            save: save,
-        )
-    }
-
     /// Failable by design: choices without an item pool or secondary
     /// reward (leave, corrupt-only, unlock-only) have no offer to resolve.
     /// Callers skip nils instead of trapping so mixed events stay openable.

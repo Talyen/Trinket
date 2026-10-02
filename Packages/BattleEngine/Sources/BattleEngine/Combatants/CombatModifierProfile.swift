@@ -183,11 +183,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         }
     }
 
+    // swiftlint:disable:next function_body_length - one exhaustive mapping requires combat handling for every modifier case
     public mutating func merge(_ modifier: AffixModifier) {
-        modifier.apply(to: &self)
-    }
-
-    mutating func applyMaximumAffixStat(_ modifier: AffixModifier) -> Bool {
         switch modifier {
         case let .maximumHealthPercent(amount):
             maximumHealthPercentBonus += amount
@@ -195,14 +192,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
             maximumHealthBonus += amount
         case let .maximumMana(amount):
             maximumManaBonus += amount
-        default:
-            return false
-        }
-        return true
-    }
-
-    private mutating func applyAffixPercentBonus(_ modifier: AffixModifier) -> Bool {
-        switch modifier {
         case let .damageDealtPercent(keyword, amount):
             damageDealtPercents[keyword, default: 0] += amount
         case let .criticalDamagePercent(amount):
@@ -219,16 +208,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
             companionDamageDealtPercent += amount
         case let .rangedDamageDealtPercent(amount):
             rangedDamageDealtPercent += amount
-        default: return false
-        }
-        return true
-    }
-
-    mutating func applyAffixCombatBonus(_ modifier: AffixModifier) -> Bool {
-        if applyAffixPercentBonus(modifier) {
-            return true
-        }
-        switch modifier {
         case let .damageDealt(keyword, amount):
             damageDealtBonus[keyword, default: 0] += amount
         case let .poisonDamageDealtPercent(amount):
@@ -279,14 +258,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
             triggers.attackBlockRemoval += amount
         case let .attackPurgeCount(count):
             triggers.attackPurgeCount += count
-        default:
-            return false
-        }
-        return true
-    }
-
-    mutating func applyAffixDurationBonus(_ modifier: AffixModifier) {
-        if case let .bleedDuration(amount) = modifier {
+        case let .bleedDuration(amount):
             bleedDurationBonus += amount
         }
     }
@@ -319,13 +291,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
 
 public extension AffixModifier {
     func apply(to profile: inout CombatModifierProfile) {
-        if profile.applyMaximumAffixStat(self) {
-            return
-        }
-        if profile.applyAffixCombatBonus(self) {
-            return
-        }
-        profile.applyAffixDurationBonus(self)
+        profile.merge(self)
     }
 }
 

@@ -82,6 +82,7 @@ final class PlayBattleCompletion {
         materialRewards: [ResourceAmount]? = nil,
         settlement: BattleRewardSettlement? = nil,
         route: PlayBattleRoute?,
+        makeContractOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
         presentation: BattlePresentationContext?,
         defersPresentationExit: Bool,
         onFinished: @escaping () -> Void,
@@ -122,10 +123,12 @@ final class PlayBattleCompletion {
         let result: BattleCompletionResult = if let route, let presentation {
             route.complete(
                 configuration,
-                presentation,
-                settlement ?? resolved,
-                baseMaterials,
-                loot,
+                presentation: presentation,
+                award: settlement ?? resolved,
+                materialRewards: baseMaterials,
+                loot: loot,
+                playerSave: playerSave,
+                makeContractOffer: makeContractOffer,
             )
         } else {
             playerSave.persistBatch(logging: "Failed to persist battle rewards") { save in

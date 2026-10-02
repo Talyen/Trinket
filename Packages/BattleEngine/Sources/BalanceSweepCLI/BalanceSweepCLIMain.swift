@@ -12,11 +12,14 @@ enum BalanceSweepCLI {
                 print(usageText)
                 return
             }
-            let parsed = try parseInvocation(arguments)
-            if parsed.isWorker {
-                try runWorker(parsed)
+            if arguments.first == "--worker" {
+                guard arguments.count == 3 else {
+                    throw CLIError.missingValue("--worker <config-file> <output-file>")
+                }
+                try runWorker(configFile: arguments[1], outputFile: arguments[2])
                 return
             }
+            let parsed = try parseInvocation(arguments)
 
             FileHandle.standardError.write(Data(
                 """
@@ -66,11 +69,12 @@ enum BalanceSweepCLI {
         }
     }
 
-    private static func runWorker(_ parsed: ParsedInvocation) throws {
-        guard let outputFile = parsed.outputFile else {
-            throw CLIError.missingValue("--output-file")
-        }
-        let report = BalanceSweepRunner.run(config: parsed.config)
+    static func runWorker(configFile: String, outputFile: String) throws {
+        let config = try JSONDecoder().decode(
+            BalanceSweepConfig.self, from: Data(contentsOf: URL(fileURLWithPath: configFile)),
+        )
+        guard config.mode != .all else { throw CLIError.invalidMode("all") }
+        let report = BalanceSweepRunner.run(config: config)
         let data = try JSONEncoder().encode(report)
         try data.write(to: URL(fileURLWithPath: outputFile), options: .atomic)
     }

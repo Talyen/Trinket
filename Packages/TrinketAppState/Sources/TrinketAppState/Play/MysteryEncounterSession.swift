@@ -192,7 +192,7 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
     }
 
     var resolutionRequest: MysteryEncounterRequest {
-        MysteryEncounterRequest(encounter: encounter, stage: stage, event: event, displayedOffers: offers)
+        MysteryEncounterRequest(encounter: encounter, event: event, displayedOffers: offers)
     }
 
     func installOffers(_ offers: [MysteryOffer]) {

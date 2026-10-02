@@ -192,6 +192,51 @@ struct BalanceFindingsReporterTests {
         #expect(sparse.worstEnemyID == nil)
     }
 
+    @Test func `duration tables preserve encounter roles and capped fight boundaries`() throws {
+        var records: [BalanceBattleRecord] = []
+        for isBoss in [false, true] {
+            for index in 0 ..< 8 {
+                var record = identityRecord(enemyID: "shared", isBoss: isBoss, abilities: [], win: true, seed: UInt64(index))
+                record.result.rounds = index < 4 ? 14 : (isBoss ? 1 : 16)
+                record.result.timedOut = index >= 4
+                records.append(record)
+            }
+        }
+        let report = BalanceSweepReport(
+            config: BalanceSweepConfig(tiers: [.early]), policyID: "greedy-v1",
+            records: records, elapsedSeconds: 0,
+        )
+        let stats = BalanceStatsAggregator.summarize(report: report)[0]
+        #expect(stats.decidedBattles == 8)
+        #expect(stats.timeouts == 8)
+        #expect(stats.enemyDurations.count == 2)
+        let trash = try #require(stats.enemyDurations.first { !$0.isBoss })
+        let boss = try #require(stats.enemyDurations.first { $0.isBoss })
+        #expect(trash.battles == 8 && trash.averageRounds == 15)
+        #expect(trash.shortRate == 0 && trash.longRate == 0.5 && trash.flagReason == "SLOW")
+        #expect(boss.battles == 8 && boss.averageRounds == 7.5)
+        #expect(boss.shortRate == 0.5 && boss.longRate == 0 && boss.flagReason == "FAST")
+        #expect(stats.trashDuration.longBattles == 4 && stats.trashDuration.averageRoundsWhenLong == 16)
+        #expect(stats.bossDuration.shortBattles == 4 && stats.bossDuration.averageRoundsWhenShort == 14)
+        #expect(stats.trashDuration.flagReason == "LONG" && stats.bossDuration.flagReason == "SHORT")
+        let hero = try #require(stats.heroDurations.first)
+        let companion = try #require(stats.companionDurations.first)
+        #expect(hero.battles == 16 && hero.averageRounds == 11.25)
+        #expect(hero.shortRate == 0.25 && hero.longRate == 0.25 && hero.flagReason == "FAST SLOW")
+        #expect(companion.battles == hero.battles && companion.averageRounds == hero.averageRounds)
+        #expect(companion.shortRate == hero.shortRate && companion.longRate == hero.longRate)
+    }
+
+    @Test func `equal duration outliers select the same enemy regardless of record order`() {
+        let records = ["alpha", "zeta"].flatMap { id in
+            Array(repeating: identityRecord(enemyID: id, isBoss: false, abilities: [], win: false, seed: 1), count: 8)
+        }
+        for source in [records, Array(records.reversed())] {
+            let stats = BalanceDurationAggregation.durationStats(source, minRounds: 5, maxRounds: 15, flagRate: 0.15)
+            #expect(stats.worstEnemyID == "alpha")
+        }
+    }
+
     @Test func `repeated affix counts once per owner per battle`() {
         var record = identityRecord(enemyID: "enemy", isBoss: false, abilities: [], win: true, seed: 1)
         record.heroAffixIDs = ["keen", "keen", "keen"]

@@ -41,11 +41,10 @@ package extension CombatTriggerEngine {
         if spentLastMana, triggers.lastManaNextBurnPercent > 0 {
             let preparedCardSerial = context.resolution.cardTalents?.playSerial
             context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.nextBurnAttackPercent = max(
-                    $0.talents.pending.nextBurnAttackPercent,
-                    triggers.lastManaNextBurnPercent,
+                $0.talents.pending.nextBurnAttackPercent = PreparedTalentBonus(
+                    value: max($0.talents.pending.nextBurnAttackPercent?.value ?? 0, triggers.lastManaNextBurnPercent),
+                    cardSerial: preparedCardSerial,
                 )
-                $0.talents.pending.nextBurnAttackPreparedCardSerial = preparedCardSerial
             }
         }
         return CombatCheckpoint.payment(payment).resolve([

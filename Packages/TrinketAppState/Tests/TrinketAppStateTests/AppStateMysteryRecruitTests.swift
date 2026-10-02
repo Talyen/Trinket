@@ -367,7 +367,7 @@ struct AppStateMysteryRecruitTests {
         var prepared: [MysteryOffer]?
         #expect(state.playerSave.persistBatch(logging: "Prepare test mystery offers") { save in
             var rng = SeededRandomNumberGenerator(seed: 7)
-            prepared = try? MysteryOfferPersistence.prepare(event: event, stage: stage, labyrinthNodeID: nil, save: &save, using: &rng)
+            prepared = try? MysteryOfferPersistence.prepare(event: event, encounter: session.encounter, save: &save, using: &rng)
         })
         try session.installOffers(#require(prepared))
         state.encounters.activeMysteryEncounter = session

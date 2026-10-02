@@ -232,7 +232,9 @@ struct AppStatePlayFlowTests {
 
         #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 5)).didComplete)
         let saveAfterVictory = state.playerSave.currentSave
-        #expect(route.complete(configuration, presentation, settlement, nil, loot) == .unavailable)
+        #expect(route.complete(
+            configuration, presentation: presentation, award: settlement, materialRewards: nil, loot: loot, playerSave: state.playerSave,
+        ) == .unavailable)
         #expect(state.playerSave.currentSave == saveAfterVictory)
     }
 

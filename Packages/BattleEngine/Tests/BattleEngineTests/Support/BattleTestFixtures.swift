@@ -165,9 +165,7 @@ extension BattleTestFixtures {
         target: Combatant,
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        guard let handler = EffectHandlers.handler(for: effect.kind) else {
-            preconditionFailure("Missing handler for \(effect.kind)")
-        }
+        let handler = EffectHandlers.handler(for: effect.kind)
         return handler.apply(
             effect,
             ability: ability,

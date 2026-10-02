@@ -57,20 +57,17 @@ extension CloudSaveMerge {
         let first = branches.incoming.homestead.rewardRemainders ?? .zero
         let second = branches.existing.homestead.rewardRemainders ?? .zero
         guard branches.canCombineIndependentRewards, let base = branches.base else {
-            merged.homestead.rewardRemainders = branches.selected(
-                branches.incoming.homestead.rewardRemainders, branches.existing.homestead.rewardRemainders,
-                base: branches.base?.homestead.rewardRemainders,
-            )
+            merged.homestead.rewardRemainders = branches.selected(\.homestead.rewardRemainders)
             return
         }
         let starting = base.homestead.rewardRemainders ?? .zero
         var result = HomesteadRewardRemainders.zero
         for resource in [HomesteadResource.gold, .gems] {
             if !combinedResources.contains(resource) {
-                let selected = branches.selected(
-                    resource == .gold ? first.gold : first.gems, resource == .gold ? second.gold : second.gems,
-                    base: resource == .gold ? starting.gold : starting.gems,
-                ) ?? 0
+                let selected = branches.selected { save in
+                    let remainders = save.homestead.rewardRemainders ?? .zero
+                    return resource == .gold ? remainders.gold : remainders.gems
+                }
                 if resource == .gold {
                     result.gold = selected
                 } else {

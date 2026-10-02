@@ -232,7 +232,7 @@ extension LabyrinthPlayMode {
             roster: playerSave.roster,
             modifiers: modifiers,
         )
-        return (input, battleRoute(nodeID: node.id))
+        return (input, .labyrinth(nodeID: node.id, access: playerSave.contentAccess))
     }
 
     private func battleLoot(
@@ -242,7 +242,7 @@ extension LabyrinthPlayMode {
     ) -> BattleLootResult {
         let loot = BattleLootContext(playerSave: playerSave)
         let effects = labyrinth.effects(for: node.id)
-        return VictoryRewardApplier.resolveLoot(
+        return BattleLoot.resolve(
             .labyrinth(node: node, effects: effects),
             encounterLevel: encounterLevel,
             enemyIsBoss: VictoryRewardApplier.isBoss(enemyID: node.enemyID),
@@ -250,28 +250,5 @@ extension LabyrinthPlayMode {
             ownership: loot.ownership,
             astralChanceBonusPercent: loot.astralChanceBonusPercent,
         )
-    }
-
-    func battleRoute(nodeID: String) -> PlayBattleRoute {
-        let access = playerSave.contentAccess
-        return PlayBattleRoute.makeModeRoute(
-            origin: .labyrinth(nodeID: nodeID),
-            logging: "Failed to persist Labyrinth node",
-            playerSave: playerSave,
-        ) { configuration, presentation, award, materialRewards, loot, save in
-            LabyrinthCompletion.complete(
-                nodeID: nodeID,
-                hero: configuration.hero.combatant,
-                companion: configuration.companion.combatant,
-                battleGold: award.award.goldFlow,
-                award: award,
-                materialRewards: materialRewards,
-                rewardItem: presentation?.pendingRewardItem,
-                loot: loot,
-                enemyEncounterLevel: configuration.enemyEncounterLevel,
-                save: &save,
-                access: access,
-            )
-        }
     }
 }

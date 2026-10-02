@@ -6,7 +6,7 @@ Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handle
 
 Products from `Package.swift`:
 
-- **BattleEngine** — Core simulation library. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. Handlers are dispatched through `EffectHandlers.all` and mutate via `BattleState`. `PlayPolicy.greedy` (`greedy-v1`) picks a playable card for Auto Battle and headless sweeps.
+- **BattleEngine** — Core simulation library. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. Handlers are dispatched through `EffectHandlers.handler(for:)` and mutate via `BattleState`. `PlayPolicy.greedy` (`greedy-v1`) picks a playable card for Auto Battle and headless sweeps.
 - **BattleBalanceTools** — App-unlinked library for headless simulation, sweeps, and reporting (`BattleSimulator`, `BalanceSweepRunner`, contrast runners). Depends on `BattleEngine`; not linked into the Trinket app.
 - **BalanceSweepCLI** — Executable entry for bulk sweeps. Depends on `BattleBalanceTools`. Invoke with `./Scripts/balance-sweep.sh`.
 
@@ -64,7 +64,7 @@ integration surface above.
 | `BattleCard` / `BattleHand` / `CombatDeck` | BattleEngine | Three alternating draws from one-copy Hero/Companion decks; FIFO overflow and next-turn discard recycling |
 | `BattleCardCombatEngine` | BattleEngine | Opening draw, play resolution, enemy turn, end-of-round effect pass |
 | `BattleEffectHandler` | BattleEngine | Protocol for effect application and turn-advance logic |
-| `EffectHandlers` | BattleEngine | Registry of all handlers, keyed by `EffectKind` |
+| `EffectHandlers` | BattleEngine | Exhaustive dispatch from `EffectKind` to its handler |
 | `CombatTriggerEngine` | BattleEngine | Talent and affix combat hooks (`+Damage`, `+Defense`, `+Dodge`, `+Block`, `+DoT`, `+Mana`, `+CardPlay`, `+EnemyTurn`, `+TurnStart`, `+TurnEnd`, `+Cleanse`, `+Resources`, `+Holy`, `+Leech`, `+PartyAuras`) |
 | `CombatantRuntime` | BattleEngine | Per-combatant runtime state (HP, mana, active effects) |
 | `PlayPolicy.greedy` / `.setupAware` | BattleEngine | greedy-v1 Auto Battle; setup-v1 is sweep-only |
@@ -85,8 +85,8 @@ Read only the matching detail: [hands and actions](../../Docs/AgentContext/battl
 
 1. Add the `EffectKind` case (in `TrinketCore`)
 2. Create a handler conforming to `BattleEffectHandler`
-3. Register it in `EffectHandlers.all`
-4. Preserve registry parity and verify apply/expiry behavior through the existing
+3. Add its case to the exhaustive `EffectHandlers.handler(for:)` switch
+4. Verify apply/expiry behavior through the existing
    handler coverage; extend tests only for consequential gaps under
    [Testing.md](../../Docs/Platform/Testing.md).
 

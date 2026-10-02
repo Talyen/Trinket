@@ -63,22 +63,8 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard state.options.isAttackHit else { return }
-        if let pending = context.roster.runtime(for: source)?.talents.pending,
-           pending.nextManaSpendAttackBonus > 0,
-           CombatantTalentState.Pending.isLaterAbility(
-               preparedCardSerial: pending.nextManaSpendAttackPreparedCardSerial,
-               currentCardSerial: context.resolution.cardTalents?.playSerial,
-           ),
-           CombatantTalentState.Pending.isLaterAction(
-               preparedActionID: pending.nextManaSpendAttackPreparedActionID,
-               currentActionID: context.resolution.actionID,
-           ) {
-            state.remaining += pending.nextManaSpendAttackBonus
-            context.roster.mutateRuntime(for: source) {
-                $0.talents.pending.nextManaSpendAttackBonus = 0
-                $0.talents.pending.nextManaSpendAttackPreparedCardSerial = nil
-                $0.talents.pending.nextManaSpendAttackPreparedActionID = nil
-            }
+        if let bonus = context.consumeTalentPreparation(\.nextManaSpendAttackBonus, for: source) {
+            state.remaining += bonus
         }
         if state.damageKeyword == .holy, triggers.firstHolyAttackBonusPerTurn > 0,
            context.claimHeroTalent("Sunlight Spark", actorID: source.id) {
@@ -181,58 +167,26 @@ package extension DamagePipeline {
         source: Combatant,
         in context: inout BattleState,
     ) -> Double {
-        guard let pending = context.roster.runtime(for: source)?.talents.pending else { return 1 }
-        let serial = context.resolution.cardTalents?.playSerial
         var multiplier = 1.0
-        if state.damageKeyword == .holy, pending.nextHolyHitDouble,
-           CombatantTalentState.Pending.isLaterAbility(
-               preparedCardSerial: pending.nextHolyHitPreparedCardSerial, currentCardSerial: serial,
-           ) {
-            context.roster.mutateRuntime(for: source) {
-                $0.talents.pending.nextHolyHitDouble = false
-                $0.talents.pending.nextHolyHitPreparedCardSerial = nil
-            }
+        if state.damageKeyword == .holy,
+           context.consumeTalentPreparation(\.nextHolyHitDouble, for: source) == true {
             multiplier *= 2
         }
-        if state.damageKeyword == .stun, state.options.isAttackHit, pending.nextStunAttackDouble,
-           CombatantTalentState.Pending.isLaterAbility(
-               preparedCardSerial: pending.nextStunAttackPreparedCardSerial, currentCardSerial: serial,
-           ) {
-            context.roster.mutateRuntime(for: source) {
-                $0.talents.pending.nextStunAttackDouble = false
-                $0.talents.pending.nextStunAttackPreparedCardSerial = nil
-            }
+        if state.damageKeyword == .stun, state.options.isAttackHit,
+           context.consumeTalentPreparation(\.nextStunAttackDouble, for: source) == true {
             multiplier *= 2
         }
-        if state.options.isAttackHit, state.damageKeyword == .bleed, pending.nextBleedAttackMultiplier > 1,
-           CombatantTalentState.Pending.isLaterAbility(
-               preparedCardSerial: pending.nextBleedMultiplierPreparedCardSerial, currentCardSerial: serial,
-           ) {
-            multiplier *= pending.nextBleedAttackMultiplier
-            context.roster.mutateRuntime(for: source) {
-                $0.talents.pending.nextBleedAttackMultiplier = 1
-                $0.talents.pending.nextBleedMultiplierPreparedCardSerial = nil
-            }
+        if state.options.isAttackHit, state.damageKeyword == .bleed,
+           let prepared = context.consumeTalentPreparation(\.nextBleedAttackMultiplier, for: source) {
+            multiplier *= prepared
         }
-        if state.options.isAttackHit, state.damageKeyword == .physical, pending.nextPhysicalAttackMultiplier > 1,
-           CombatantTalentState.Pending.isLaterAbility(
-               preparedCardSerial: pending.nextPhysicalAttackPreparedCardSerial, currentCardSerial: serial,
-           ) {
-            multiplier *= pending.nextPhysicalAttackMultiplier
-            context.roster.mutateRuntime(for: source) {
-                $0.talents.pending.nextPhysicalAttackMultiplier = 1
-                $0.talents.pending.nextPhysicalAttackPreparedCardSerial = nil
-            }
+        if state.options.isAttackHit, state.damageKeyword == .physical,
+           let prepared = context.consumeTalentPreparation(\.nextPhysicalAttackMultiplier, for: source) {
+            multiplier *= prepared
         }
-        if state.options.isAttackHit, state.isCritical, pending.nextCriticalHitMultiplier > 1,
-           CombatantTalentState.Pending.isLaterAbility(
-               preparedCardSerial: pending.nextCriticalHitPreparedCardSerial, currentCardSerial: serial,
-           ) {
-            multiplier *= pending.nextCriticalHitMultiplier
-            context.roster.mutateRuntime(for: source) {
-                $0.talents.pending.nextCriticalHitMultiplier = 1
-                $0.talents.pending.nextCriticalHitPreparedCardSerial = nil
-            }
+        if state.options.isAttackHit, state.isCritical,
+           let prepared = context.consumeTalentPreparation(\.nextCriticalHitMultiplier, for: source) {
+            multiplier *= prepared
         }
         return multiplier
     }

@@ -103,6 +103,11 @@ A later actual control activation gets its own chip, even while the previous
 activation is visible. No-result cards do not invent a zero chip; card motion
 acknowledges their play.
 
+`CombatFeedbackPresenter` consolidates source events before projecting final chips;
+grouping retains the event and its source IDs rather than a parallel presentation DTO.
+`CombatFeedbackEffectPresentation` exhaustively maps effect outcomes to descriptors
+with one label rule, shared by chip projection and vocabulary prewarming.
+
 Sniff Out shows beneficial-status + Physical icons with its prepared amount on
 the recipient. A refresh replaces the visible value rather than adding numbers;
 if the replacement exceeds the reserved width, retire the old slot before showing

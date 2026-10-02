@@ -86,6 +86,7 @@ class PackageDiagnosticsTests(unittest.TestCase):
             (scripts / "run-env.sh").write_text(
                 'source Scripts/lib/args.sh\n'
                 'trinket_run_env_init() { DERIVED_DATA_PATH="$PWD/dd"; RESULTS_DIR="$PWD/results"; }\n'
+                'trinket_track_test_guests() { :; }\n'
             )
             (scripts / "ensure-simulator.sh").write_text('trinket_sim_slot_ensure() { :; }\n')
             (scripts / "build-freshness.sh").write_text(
@@ -108,21 +109,35 @@ class PackageDiagnosticsTests(unittest.TestCase):
                 '  XCODE_RUNNER_REPORT_PREFIX="$PWD/results/$1-current"\n'
                 '}\n'
                 'xcode_runner_run() {\n'
+                '  printf "%s\\n" "$@" >"$XCODE_RUNNER_REPORT_PREFIX.args"\n'
                 '  printf \'{"issues":[{"file":"Shared.swift","line":1,"message":"shared compiler failure"}]}\' >"$XCODE_RUNNER_REPORT_PREFIX.json"\n'
                 '  echo "retained markdown" >"$XCODE_RUNNER_REPORT_PREFIX.md"\n'
                 '  echo "VERBOSE WORKER LOG"\n'
                 '  return "${FIXTURE_STATUS:-65}"\n'
                 '}\n'
             )
-            for extra, status in (([], "65"), (["--verbose"], "65"), ([], "0")):
-                with self.subTest(extra=extra, status=status):
+            cases = (
+                (["--build-for-testing"], [], "65"),
+                (["--build-for-testing"], ["--verbose"], "65"),
+                (["--build-for-testing"], [], "0"),
+                (["--destination", "id=fixture"], [], "0"),
+                (["--destination", "id=fixture"], ["--include-balance-sweep-tests"], "0"),
+            )
+            for action, extra, status in cases:
+                with self.subTest(action=action, extra=extra, status=status):
                     result = subprocess.run(
-                        ["bash", str(scripts / "test-package.sh"), "--build-for-testing", *extra, "TrinketCore", "BattleEngine"],
+                        ["bash", str(scripts / "test-package.sh"), *action, *extra, "TrinketCore", "BattleEngine"],
                         env={**os.environ, "FIXTURE_STATUS": status}, capture_output=True, text=True,
                     )
                     self.assertEqual(result.returncode, int(status != "0"), result.stdout + result.stderr)
-                    self.assertEqual(result.stdout.count("VERBOSE WORKER LOG"), 2 if extra else 0)
+                    self.assertEqual(result.stdout.count("VERBOSE WORKER LOG"), 2 if "--verbose" in extra else 0)
                     if status != "0" and not extra:
                         self.assertEqual(result.stdout.count("shared compiler failure"), 1)
                     self.assertIn("TrinketCore: " + ("PASS" if status == "0" else "FAIL"), result.stdout)
                     self.assertIn("BattleEngine-current.json", result.stdout)
+                    battle_args = (root / "results/BattleEngine-current.args").read_text().splitlines()
+                    excluded = action != ["--build-for-testing"] and "--include-balance-sweep-tests" not in extra
+                    for target in ("BattleBalanceToolsTests", "BalanceSweepCLITests"):
+                        self.assertEqual(f"-skip-testing:{target}" in battle_args, excluded)
+                    core_args = (root / "results/TrinketCore-current.args").read_text().splitlines()
+                    self.assertFalse(any(arg.startswith("-skip-testing:") for arg in core_args))

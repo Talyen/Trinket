@@ -15,9 +15,9 @@ public enum ContractsCompletion {
         encounterLevel: Int,
         save: PlayerSave,
     ) -> BattleLootResult {
-        VictoryRewardApplier.resolveLoot(
+        BattleLoot.resolve(
             .contract(
-                offerID: offer.id, rewardLevel: campaignRewardLevel(in: save),
+                offerID: offer.id,
                 modifier: effectiveModifier(for: offer, inventory: save.inventory),
             ),
             encounterLevel: encounterLevel,

@@ -159,6 +159,7 @@ public final class PlaySession {
             materialRewards: materialRewards,
             settlement: settlement,
             route: route(for: configuration.runKey),
+            makeContractOffer: contracts.makeOffer,
             presentation: battlePresentation(for: configuration.runKey),
             defersPresentationExit: defersPresentationExit,
             onFinished: { [weak self] in

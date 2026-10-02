@@ -13,11 +13,16 @@ enum SFXCommand: Sendable {
 /// audio framework. Foreground commands are submitted in order by SFXPlayer;
 /// catalog warming can yield during decode and must honor resource invalidation.
 actor SFXPlayback<Backend: SFXPlaybackBackend> {
-    private struct VoicePool {
+    private final class VoicePool {
+        let buffer: Backend.Buffer
         var voices: [Backend.Voice] = []
         var nextIndex = 0
 
-        mutating func next() -> Backend.Voice? {
+        init(buffer: Backend.Buffer) {
+            self.buffer = buffer
+        }
+
+        func next() -> Backend.Voice? {
             guard !voices.isEmpty else { return nil }
             let voice = voices[nextIndex % voices.count]
             nextIndex = (nextIndex + 1) % voices.count
@@ -25,12 +30,15 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
         }
     }
 
+    private enum Resource {
+        case loading(Task<Backend.Buffer?, Never>)
+        case ready(VoicePool)
+        case failed
+    }
+
     private var backend: Backend
     private let load: @Sendable (SFXClip) async -> Backend.Buffer?
-    private var pools: [String: VoicePool] = [:]
-    private var buffers: [String: Backend.Buffer] = [:]
-    private var failedIDs: Set<String> = []
-    private var loads: [String: Task<Backend.Buffer?, Never>] = [:]
+    private var resources: [String: Resource] = [:]
     private var catalogWarmTask: Task<Void, Never>?
     private var generation: UInt64 = 0
 
@@ -44,95 +52,84 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
 
     isolated deinit {
         catalogWarmTask?.cancel()
-        for task in loads.values {
+        for case let .loading(task) in resources.values {
             task.cancel()
         }
     }
 
     func execute(_ command: SFXCommand) async {
         switch command {
-        case let .play(ids, volume): await play(ids, volume: volume)
-        case let .warm(ids, voiceCount): await warm(ids, voiceCount: voiceCount)
+        case let .play(ids, volume):
+            let volume = AudioSupport.clampedVolume(volume)
+            guard volume > 0, !ids.isEmpty, await prepareAndStart(ids, voiceCount: 1) else { return }
+            for id in ids {
+                guard let clip = SFXCatalog.clipsByID[id],
+                      case let .ready(pool) = resources[id], let voice = pool.next() else { continue }
+                backend.play(voice, volume: AudioSupport.targetVolume(appVolume: volume, gain: clip.volumeGain))
+            }
+        case let .warm(ids, voiceCount): _ = await prepareAndStart(ids, voiceCount: voiceCount)
         case let .warmCatalog(voiceCount):
             catalogWarmTask?.cancel()
             catalogWarmTask = Task { [weak self] in
-                await self?.warm(SFXCatalog.clips.map(\.id), voiceCount: voiceCount)
+                _ = await self?.prepareAndStart(SFXCatalog.clips.map(\.id), voiceCount: voiceCount)
             }
         case .stop: stop()
         case .release:
             stop()
             backend.releaseResources()
-            pools.removeAll()
-            buffers.removeAll()
-            failedIDs.removeAll()
+            resources.removeAll()
         }
     }
 
-    private func play(_ ids: [String], volume: Double) async {
-        let volume = AudioSupport.clampedVolume(volume)
-        guard volume > 0, !ids.isEmpty else { return }
+    private func prepareAndStart(_ ids: [String], voiceCount: Int) async -> Bool {
         let startedGeneration = generation
-        await prepare(ids, voiceCount: 1)
-        guard generation == startedGeneration, !Task.isCancelled, backend.start() else { return }
+        let voiceCount = max(1, voiceCount)
         for id in ids {
-            guard let clip = SFXCatalog.clipsByID[id], let voice = pools[id]?.next() else { continue }
-            backend.play(voice, volume: AudioSupport.targetVolume(appVolume: volume, gain: clip.volumeGain))
-        }
-    }
-
-    private func warm(_ ids: [String], voiceCount: Int) async {
-        let startedGeneration = generation
-        await prepare(ids, voiceCount: max(1, voiceCount))
-        guard generation == startedGeneration, !Task.isCancelled else { return }
-        _ = backend.start()
-    }
-
-    private func prepare(_ ids: [String], voiceCount: Int) async {
-        let startedGeneration = generation
-        for id in ids {
-            guard !Task.isCancelled, generation == startedGeneration else { return }
-            guard (pools[id]?.voices.count ?? 0) < voiceCount,
-                  !failedIDs.contains(id), let clip = SFXCatalog.clipsByID[id] else { continue }
-            let buffer: Backend.Buffer
-            if let cached = buffers[id] {
-                buffer = cached
-            } else {
+            guard !Task.isCancelled, generation == startedGeneration else { return false }
+            guard let clip = SFXCatalog.clipsByID[id] else { continue }
+            let pool: VoicePool
+            switch resources[id] {
+            case let .ready(existing): pool = existing
+            case .failed: continue
+            case .loading, nil:
                 let task: Task<Backend.Buffer?, Never>
-                if let existing = loads[id] {
+                if case let .loading(existing) = resources[id] {
                     task = existing
                 } else {
                     let load = load
                     task = Task.detached(priority: .utility) { await load(clip) }
-                    loads[id] = task
+                    resources[id] = .loading(task)
                 }
                 let decoded = await task.value
-                guard generation == startedGeneration, !Task.isCancelled else { return }
-                loads[id] = nil
-                // Another warm may have filled this pool while decoding. Reuse
-                // its buffer and grow from the latest pool, never an old copy.
-                guard let resolved = buffers[id] ?? decoded else {
-                    failedIDs.insert(id)
+                guard generation == startedGeneration, !Task.isCancelled else { return false }
+                // A shared decode may already have completed in another warmup.
+                // Grow that same pool so voices and its rotation never get replaced.
+                if case let .ready(existing) = resources[id] {
+                    pool = existing
+                } else if let decoded {
+                    pool = VoicePool(buffer: decoded)
+                    resources[id] = .ready(pool)
+                } else {
+                    resources[id] = .failed
                     continue
                 }
-                buffer = resolved
-                buffers[id] = buffer
             }
-            var pool = pools[id, default: VoicePool()]
             while pool.voices.count < voiceCount {
-                pool.voices.append(backend.makeVoice(buffer: buffer))
+                pool.voices.append(backend.makeVoice(buffer: pool.buffer))
             }
-            pools[id] = pool
         }
+        return generation == startedGeneration && !Task.isCancelled && backend.start()
     }
 
     private func stop() {
         generation &+= 1
         catalogWarmTask?.cancel()
         catalogWarmTask = nil
-        for task in loads.values {
+        resources = resources.filter {
+            guard case let .loading(task) = $0.value else { return true }
             task.cancel()
+            return false
         }
-        loads.removeAll()
         backend.stop()
     }
 }

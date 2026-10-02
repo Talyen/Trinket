@@ -25,7 +25,7 @@ struct RestorationIntegrationTests {
         #expect(result.events.first { $0.effectKind == .instantHeal }?.amount == missingHealth)
         let overflow = result.events.filter { $0.effectKind == .overheal }
         #expect(overflow.map(\.amount) == (missingHealth < 10 ? [10 - missingHealth] : []))
-        #expect(overflow.allSatisfy { BattleLogReducer.line(for: $0) == nil })
+        #expect(overflow.allSatisfy { BattleLogProjection.line(for: $0) == nil })
     }
 
     @Test func `full health leech emits overflow without triggering leech success`() {

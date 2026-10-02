@@ -6,26 +6,48 @@ final class ArtworkDecodeScheduler {
         case imminent, viewport, deferred
     }
 
-    private struct Request {
-        var remaining: Set<String>
+    @MainActor
+    private final class Request {
+        var remaining = 0
         let priority: Priority
         let didPrepare: () -> Void
-        let continuation: CheckedContinuation<Void, Never>
+        var continuation: CheckedContinuation<Void, Never>?
+
+        init(priority: Priority, didPrepare: @escaping () -> Void) {
+            self.priority = priority
+            self.didPrepare = didPrepare
+        }
+
+        func finish(prepared: Bool) {
+            if prepared {
+                didPrepare()
+            }
+            remaining -= 1
+            if remaining == 0 {
+                continuation?.resume()
+                continuation = nil
+            }
+        }
     }
 
-    private struct Job {
-        let order: Int
-        var requests: Set<UUID>
+    @MainActor
+    private final class Job {
+        let name: String
+        var requests: [Request] = []
         var startedPriority: Priority?
+
+        init(name: String) {
+            self.name = name
+        }
+
+        var priority: Priority {
+            requests.lazy.map(\.priority).min { $0.rawValue < $1.rawValue } ?? .deferred
+        }
     }
 
     private let decode: @Sendable (String) async -> PreparedArtwork
     private let publish: (PreparedArtwork) -> Void
-    private var requests: [UUID: Request] = [:]
-    private var jobs: [String: Job] = [:]
-    private var nextOrder = 0
-    private var activeCount = 0
-    private var activeDeferredCount = 0
+    private var jobs: [Job] = []
 
     init(
         decode: @escaping @Sendable (String) async -> PreparedArtwork,
@@ -37,95 +59,61 @@ final class ArtworkDecodeScheduler {
 
     func prepare(_ names: [String], priority: Priority, didPrepare: @escaping () -> Void) async {
         guard !Task.isCancelled, !names.isEmpty else { return }
-        let id = UUID()
+        let request = Request(priority: priority, didPrepare: didPrepare)
         await withTaskCancellationHandler {
             await withCheckedContinuation { continuation in
                 guard !Task.isCancelled else {
                     continuation.resume()
                     return
                 }
-                requests[id] = Request(remaining: Set(names), priority: priority, didPrepare: didPrepare, continuation: continuation)
-                for name in names {
-                    if jobs[name] == nil {
-                        jobs[name] = Job(order: nextOrder, requests: [])
-                        nextOrder += 1
+                request.continuation = continuation
+                let existingJobs = Dictionary(uniqueKeysWithValues: jobs.map { ($0.name, $0) })
+                var seen = Set<String>()
+                for name in names where seen.insert(name).inserted {
+                    let job: Job
+                    if let existing = existingJobs[name] {
+                        job = existing
+                    } else {
+                        job = Job(name: name)
+                        jobs.append(job)
                     }
-                    jobs[name]?.requests.insert(id)
+                    job.requests.append(request)
+                    request.remaining += 1
                 }
                 startAvailableJobs()
             }
         } onCancel: {
-            Task { @MainActor in self.cancel(id) }
+            Task { @MainActor in self.cancel(request) }
         }
-    }
-
-    private func priority(of job: Job) -> Priority {
-        job.requests.compactMap { requests[$0]?.priority }.min { $0.rawValue < $1.rawValue } ?? Priority.deferred
     }
 
     private func startAvailableJobs() {
-        while activeCount < 2 {
-            var best: (name: String, job: Job, priority: Priority)?
-            for (name, job) in jobs {
-                guard job.startedPriority == nil else { continue }
-                let jobPriority: Priority = priority(of: job)
-                guard jobPriority != Priority.deferred || activeDeferredCount == 0 else { continue }
-                if let current = best {
-                    let comesFirst = jobPriority.rawValue < current.priority.rawValue
-                        || (jobPriority == current.priority && job.order < current.job.order)
-                    if comesFirst {
-                        best = (name, job, jobPriority)
-                    }
-                } else {
-                    best = (name, job, jobPriority)
-                }
-            }
-            guard let next = best else { return }
-            let name = next.name
+        while jobs.count(where: { $0.startedPriority != nil }) < 2 {
+            let hasDeferred = jobs.contains { $0.startedPriority == .deferred }
+            let queued = jobs.filter { $0.startedPriority == nil && (!hasDeferred || $0.priority != .deferred) }
+            guard let next = queued.min(by: { $0.priority.rawValue < $1.priority.rawValue }) else { return }
             let priority = next.priority
-            jobs[name]?.startedPriority = priority
-            activeCount += 1
-            if priority == Priority.deferred {
-                activeDeferredCount += 1
-            }
+            next.startedPriority = priority
             Task(priority: priority == Priority.deferred ? .utility : .userInitiated) {
-                let prepared = await decode(name)
-                assert(prepared.name == name, "Artwork decode returned mismatched name")
+                let prepared = await decode(next.name)
+                assert(prepared.name == next.name, "Artwork decode returned mismatched name")
                 publish(prepared)
-                finish(name)
+                jobs.removeAll { $0 === next }
+                for request in next.requests {
+                    request.finish(prepared: true)
+                }
+                startAvailableJobs()
             }
         }
     }
 
-    private func finish(_ name: String) {
-        guard let job = jobs.removeValue(forKey: name) else { return }
-        activeCount -= 1
-        if job.startedPriority == Priority.deferred {
-            activeDeferredCount -= 1
+    private func cancel(_ request: Request) {
+        // Started decodes still publish and balance their consumers' pin demand.
+        for job in jobs where job.startedPriority == nil && job.requests.contains(where: { $0 === request }) {
+            job.requests.removeAll { $0 === request }
+            request.finish(prepared: false)
         }
-        for id in job.requests {
-            requests[id]?.didPrepare()
-            finish(name, for: id)
-        }
-        startAvailableJobs()
-    }
-
-    private func finish(_ name: String, for id: UUID) {
-        requests[id]?.remaining.remove(name)
-        if requests[id]?.remaining.isEmpty == true {
-            requests.removeValue(forKey: id)?.continuation.resume()
-        }
-    }
-
-    private func cancel(_ id: UUID) {
-        guard let request = requests[id] else { return }
-        for name in request.remaining where jobs[name]?.startedPriority == nil {
-            jobs[name]?.requests.remove(id)
-            if jobs[name]?.requests.isEmpty == true {
-                jobs.removeValue(forKey: name)
-            }
-            finish(name, for: id)
-        }
+        jobs.removeAll { $0.requests.isEmpty }
         startAvailableJobs()
     }
 }

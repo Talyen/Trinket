@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketCore
 
 struct DeathsDoorHandler: BattleEffectHandler {
-    let kind: EffectKind = .deathsDoor
-
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard !stacks.isEmpty else { return nil }
         return EffectSummary(

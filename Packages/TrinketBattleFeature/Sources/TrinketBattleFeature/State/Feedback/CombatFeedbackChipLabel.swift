@@ -35,7 +35,8 @@ enum CombatFeedbackChipLabel: Hashable {
     }
 
     static func from(event: ActionEvent) -> Self? {
-        if let status = statusLabel(for: event) {
+        let descriptor = event.effectKind.map { CombatFeedbackEffectPresentation.descriptor(for: $0) }
+        if case let .status(status)? = descriptor?.labelRule {
             return .word(.status(status))
         }
         switch event.kind {
@@ -44,45 +45,40 @@ enum CombatFeedbackChipLabel: Hashable {
         case .ability, .milestone:
             return nil
         case .effect:
-            guard let effectKind = event.effectKind else {
+            guard let descriptor else {
                 return .word(.plain(event.keyword))
             }
-            return from(effectKind: effectKind, event: event)
+            return from(descriptor: descriptor, event: event)
         }
-    }
-
-    private static func statusLabel(for event: ActionEvent) -> CombatFeedbackStatusLabel? {
-        guard let effectKind = event.effectKind else { return nil }
-        return CombatFeedbackEffectPresentation.descriptor(for: effectKind).statusLabel
     }
 
     private static func from(
-        effectKind: ActionEvent.EffectOutcome,
+        descriptor: CombatFeedbackEffectPresentation.Descriptor,
         event: ActionEvent,
     ) -> Self? {
-        let descriptor = CombatFeedbackEffectPresentation.descriptor(for: effectKind)
-        guard let rule = descriptor.labelRule else {
-            return nil
-        }
-        switch rule {
+        switch descriptor.labelRule {
+        case .none:
+            nil
+        case let .status(status):
+            .word(.status(status))
         case .amount:
-            return .amount(event.amount, additive: descriptor.isAdditive)
+            .amount(event.amount, additive: descriptor.isAdditive)
         case .negatedAmount:
-            return .amount(-event.amount)
+            .amount(-event.amount)
         case .dodgeWord:
-            return .word(.dodge)
+            .word(.dodge)
         case .plainKeyword:
-            return .word(.plain(event.keyword))
+            .word(.plain(event.keyword))
         case .appliedKeyword:
-            return .word(.applied(event.keyword))
+            .word(.applied(event.keyword))
         case .triggeredKeyword:
-            return .word(.triggered(event.keyword))
+            .word(.triggered(event.keyword))
         case .cleanseKeyword:
-            return .word(.cleanse(event.keyword))
+            .word(.cleanse(event.keyword))
         case .purgeKeyword:
-            return .word(.purge(event.keyword))
+            .word(.purge(event.keyword))
         case .deathsDoorIcon:
-            return .word(.plain(.deathsDoor))
+            .word(.plain(.deathsDoor))
         }
     }
 

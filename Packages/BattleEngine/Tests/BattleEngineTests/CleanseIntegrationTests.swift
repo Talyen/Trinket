@@ -31,7 +31,7 @@ struct CleanseIntegrationTests {
         var applied = debuff
         applied.sourceActorID = battle.enemy.id
         battle.roster.hero.activeEffects = [applied]
-        let handler = try #require(EffectHandlers.all[cleanse.kind])
+        let handler = EffectHandlers.handler(for: cleanse.kind)
         let enemyHealth = battle.roster.enemy.currentHealth
 
         _ = handler.apply(

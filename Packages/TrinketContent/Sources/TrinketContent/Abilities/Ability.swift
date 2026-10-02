@@ -29,19 +29,19 @@ public struct AbilityOutcomeBranch: Hashable, Sendable {
 public struct Ability: Identifiable, Hashable, Sendable {
     private let storage: AbilityStorage
     public var id: String {
-        storage.id
+        storage.definition.id
     }
 
     public var name: String {
-        storage.name
+        storage.definition.name
     }
 
     public var tier: AbilityTier {
-        storage.tier
+        storage.definition.tier
     }
 
     public var operations: [AbilityOperation] {
-        storage.operations
+        storage.definition.operations
     }
 
     public var damageComponents: [DamageComponent] {
@@ -49,7 +49,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public var descriptionOverride: String? {
-        storage.descriptionOverride
+        storage.definition.descriptionOverride
     }
 
     public var targetedEffects: [TargetedEffect] {
@@ -57,39 +57,39 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public var outcomeBranches: [AbilityOutcomeBranch]? {
-        storage.outcomeBranches
+        storage.definition.outcomeBranches
     }
 
     public var conditionalOutcome: AbilityConditionalOutcome? {
-        storage.conditionalOutcome
+        storage.definition.conditionalOutcome
     }
 
     public var blockCost: Int {
-        storage.blockCost
+        storage.definition.blockCost
     }
 
     public var guaranteedCriticalCondition: DamageCondition? {
-        storage.guaranteedCriticalCondition
+        storage.definition.guaranteedCriticalCondition
     }
 
     public var criticalChanceBonus: Double {
-        storage.criticalChanceBonus
+        storage.definition.criticalChanceBonus
     }
 
     public var guaranteedCriticalIfEnemyBuffed: Bool {
-        storage.guaranteedCriticalIfEnemyBuffed
+        storage.definition.guaranteedCriticalIfEnemyBuffed
     }
 
     public var hasLeech: Bool {
-        storage.hasLeech
+        storage.definition.hasLeech
     }
 
     public var repeatsManaEmpowerment: Bool {
-        storage.repeatsManaEmpowerment
+        storage.definition.repeatsManaEmpowerment
     }
 
     public var stealsGold: Bool {
-        storage.stealsGold
+        storage.definition.stealsGold
     }
 
     public var effects: [Effect] {
@@ -115,15 +115,27 @@ public struct Ability: Identifiable, Hashable, Sendable {
         blockCost: Int = 0,
         guaranteedCriticalCondition: DamageCondition? = nil,
     ) {
-        storage = AbilityStorage(
-            id: id, name: name, tier: tier, description: description,
-            damageComponents: damageComponents, effects: effects, targetedEffects: targetedEffects,
-            outcomeBranches: outcomeBranches, criticalChanceBonus: criticalChanceBonus,
+        self.init(definition: .init(
+            id: id, name: name, tier: tier,
+            operations: operations ?? (damageComponents.map(AbilityOperation.damage)
+                + (targetedEffects ?? effects.map { TargetedEffect($0) }).map(AbilityOperation.effect)),
+            descriptionOverride: description,
+            outcomeBranches: outcomeBranches, conditionalOutcome: conditionalOutcome,
+            blockCost: blockCost, guaranteedCriticalCondition: guaranteedCriticalCondition,
+            criticalChanceBonus: criticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed, hasLeech: hasLeech,
             repeatsManaEmpowerment: repeatsManaEmpowerment, stealsGold: stealsGold,
-            operations: operations, conditionalOutcome: conditionalOutcome, blockCost: blockCost,
-            guaranteedCriticalCondition: guaranteedCriticalCondition,
-        )
+        ))
+    }
+
+    private init(definition: AbilityStorage.Definition) {
+        storage = AbilityStorage(definition)
+    }
+
+    private func updatingDefinition(_ update: (inout AbilityStorage.Definition) -> Void) -> Self {
+        var definition = storage.definition
+        update(&definition)
+        return Self(definition: definition)
     }
 
     public init(
@@ -228,6 +240,18 @@ public struct Ability: Identifiable, Hashable, Sendable {
         descriptionOverride ?? generatedDescription
     }
 
+    public func replacingOperations(_ operations: [AbilityOperation], blockCost: Int? = nil, resolveCondition: Bool = false) -> Self {
+        updatingDefinition {
+            $0.operations = operations
+            if let blockCost {
+                $0.blockCost = blockCost
+            }
+            if resolveCondition {
+                $0.conditionalOutcome = nil
+            }
+        }
+    }
+
     public func resolvingOutcomeBranch(
         using rng: inout some RandomNumberGenerator,
     ) -> Self {
@@ -252,21 +276,11 @@ public struct Ability: Identifiable, Hashable, Sendable {
                 condition: component.condition,
             ))
         }
-        return Self(
-            id: id,
-            name: name,
-            tier: tier,
-            description: descriptionOverride,
-            outcomeBranches: nil,
-            criticalChanceBonus: criticalChanceBonus,
-            guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
-            hasLeech: hasLeech,
-            repeatsManaEmpowerment: repeatsManaEmpowerment,
-            stealsGold: stealsGold,
-            operations: resolvedOperations,
-            blockCost: blockCost,
-            guaranteedCriticalCondition: guaranteedCriticalCondition,
-        )
+        return updatingDefinition {
+            $0.operations = resolvedOperations
+            $0.outcomeBranches = nil
+            $0.conditionalOutcome = nil
+        }
     }
 
     public var hasManaEmpowerableBurnOrFreezeDamage: Bool {

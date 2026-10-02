@@ -126,82 +126,10 @@ public enum BalanceStatsAggregator {
         report: BalanceSweepReport,
         records: [BalanceBattleRecord]? = nil,
     ) -> [BalanceTierStats] {
-        let source = records ?? report.records
-        let recordsByTier = Dictionary(grouping: source, by: \.tier)
+        let recordsByTier = Dictionary(grouping: records ?? report.records, by: \.tier)
         return report.config.tiers.map { tier in
-            summarizeTier(
-                tier: tier,
-                records: recordsByTier[tier] ?? [],
-                config: report.config,
-            )
+            TierAggregation(tier: tier, records: recordsByTier[tier] ?? [], config: report.config).summary
         }
-    }
-
-    private static func summarizeTier(
-        tier: SimulationPowerTier,
-        records: [BalanceBattleRecord],
-        config: BalanceSweepConfig,
-    ) -> BalanceTierStats {
-        let overall = tierOverall(records: records)
-        let decided = overall.decided
-        let threshold = config.peerDeltaFlagThreshold
-        let context = ownerMarginsContext(
-            decided: decided,
-            overallRate: overall.winRate,
-            threshold: threshold,
-            tier: tier,
-        )
-        let duration = durationStats(records: records, flagRate: config.durationFlagRate)
-        let splits = rosterSplits(
-            decided: decided,
-            overallRate: overall.winRate,
-            threshold: threshold,
-            tier: tier,
-        )
-        let loadout = loadoutMargins(
-            decided: decided,
-            ownerRates: context.ownerRates,
-            threshold: threshold,
-        )
-        let opponents = enemyFacingMargins(
-            decided: decided,
-            overallRate: overall.winRate,
-            threshold: threshold,
-        )
-        let cells = matchupCells(decided: decided, overallRate: overall.winRate, threshold: threshold)
-
-        return BalanceTierStats(
-            tier: tier,
-            battles: records.count,
-            decidedBattles: decided.count,
-            wins: overall.wins,
-            timeouts: overall.timeouts,
-            averageRounds: overall.averageRounds,
-            averagePartyHPOnWin: overall.averagePartyHPOnWin,
-            averageEnemyHPOnLoss: overall.averageEnemyHPOnLoss,
-            trashDuration: duration.trash,
-            bossDuration: duration.boss,
-            enemyDurations: duration.enemies,
-            heroDurations: duration.heroes,
-            companionDurations: duration.companions,
-            heroes: context.heroes,
-            heroesTrash: splits.heroesTrash,
-            heroesBoss: splits.heroesBoss,
-            companions: context.companions,
-            companionsTrash: splits.companionsTrash,
-            companionsBoss: splits.companionsBoss,
-            enemies: BalanceIdentityMargins.enemyMargins(records: decided) {
-                targetBand(isBoss: $0, tier: tier)
-            },
-            items: loadout.items,
-            abilities: loadout.abilities,
-            talents: loadout.talents,
-            enemyAbilities: opponents.abilities,
-            enemyTraits: opponents.traits,
-            affixes: loadout.affixes,
-            heroCompanionCells: cells.heroCompanion,
-            heroEnemyCells: cells.heroEnemy,
-        )
     }
 
     public static func winPercent(wins: Int, decided: Int) -> Double {
@@ -223,230 +151,111 @@ public enum BalanceStatsAggregator {
     }
 }
 
-private extension BalanceStatsAggregator {
-    private struct TierOverall {
-        var decided: [BalanceBattleRecord]
-        var wins: Int
-        var timeouts: Int
-        var averageRounds: Double
-        var averagePartyHPOnWin: Double
-        var averageEnemyHPOnLoss: Double
-        var winRate: Double
+/// One tier's inputs and shared comparison context. Report assembly calls the
+/// metric owners directly rather than passing intermediate tuples between helpers.
+private struct TierAggregation {
+    let tier: SimulationPowerTier
+    let records: [BalanceBattleRecord]
+    let config: BalanceSweepConfig
+    let decided: [BalanceBattleRecord]
+    private let wins: Int
+    private let winRate: Double
+
+    init(tier: SimulationPowerTier, records: [BalanceBattleRecord], config: BalanceSweepConfig) {
+        self.tier = tier
+        self.records = records
+        self.config = config
+        decided = records.filter(\.result.isDecided)
+        wins = decided.count { $0.result.isVictory }
+        winRate = decided.isEmpty ? 0 : Double(wins) / Double(decided.count)
     }
 
-    private static func tierOverall(records: [BalanceBattleRecord]) -> TierOverall {
-        let decided = records.filter(\.result.isDecided)
-        let wins = decided.count { $0.result.isVictory }
-        let losses = decided.count { !$0.result.isVictory }
-        return TierOverall(
-            decided: decided,
-            wins: wins,
-            timeouts: records.count { $0.result.timedOut },
-            averageRounds: records.isEmpty
-                ? 0
-                : records.reduce(0.0) { $0 + Double($1.result.rounds) } / Double(records.count),
-            averagePartyHPOnWin: wins == 0
-                ? 0
-                : decided.filter(\.result.isVictory).reduce(0.0) { $0 + $1.result.partyHPRemainingFraction } / Double(wins),
-            averageEnemyHPOnLoss: losses == 0
-                ? 0
-                : decided.filter { !$0.result.isVictory }.reduce(0.0) { $0 + $1.result.enemyHPRemainingFraction } / Double(losses),
-            winRate: decided.isEmpty ? 0 : Double(wins) / Double(decided.count),
-        )
-    }
-
-    private static func ownerMarginsContext(
-        decided: [BalanceBattleRecord],
-        overallRate: Double,
-        threshold: Double,
-        tier: SimulationPowerTier,
-    ) -> (heroes: [WinRateSummary], companions: [WinRateSummary], ownerRates: [String: Double]) {
-        func margins(_ id: KeyPath<BalanceBattleRecord, String>) -> [WinRateSummary] {
-            BalanceIdentityMargins.ownerMargins(
-                records: decided,
-                id: id,
-                peerRate: overallRate,
-                threshold: threshold,
-                targetBand: targetBand(isBoss: false, tier: tier),
-            )
-        }
-        let heroes = margins(\.heroID)
-        let companions = margins(\.companionID)
-        let rates = Dictionary(uniqueKeysWithValues: (heroes + companions).map { ($0.id, $0.winRate) })
-        return (heroes, companions, rates)
-    }
-
-    private static func enemyFacingMargins(
-        decided: [BalanceBattleRecord],
-        overallRate: Double,
-        threshold: Double,
-    ) -> (abilities: [WinRateSummary], traits: [WinRateSummary]) {
-        (
-            opponentMargins(
-                records: decided,
-                ids: \.enemyAbilityIDs,
-                peerRate: overallRate,
-                threshold: threshold,
-            ),
-            opponentMargins(
-                records: decided,
-                ids: { $0.enemyTraitIDs },
-                peerRate: overallRate,
-                threshold: threshold,
-            ),
-        )
-    }
-
-    private static func matchupCells(
-        decided: [BalanceBattleRecord],
-        overallRate: Double,
-        threshold: Double,
-    ) -> (heroCompanion: [PairCellSummary], heroEnemy: [PairCellSummary]) {
-        (
-            BalanceIdentityMargins.flaggedPairCells(
-                records: decided,
-                left: \.heroID,
-                right: \.companionID,
-                peerRate: overallRate,
-                threshold: threshold,
-            ),
-            BalanceIdentityMargins.flaggedPairCells(
-                records: decided,
-                left: \.heroID,
-                right: \.enemyID,
-                peerRate: overallRate,
-                threshold: threshold,
-            ),
-        )
-    }
-
-    private static func durationStats(
-        records: [BalanceBattleRecord],
-        flagRate: Double,
-    ) -> (
-        trash: BalanceDurationBucketStats,
-        boss: BalanceDurationBucketStats,
-        enemies: [BalanceEnemyDurationStats],
-        heroes: [BalanceCombatantDurationStats],
-        companions: [BalanceCombatantDurationStats],
-    ) {
-        (
-            BalanceDurationAggregation.durationStats(
-                records.filter { !$0.isBoss },
-                minRounds: BalanceDurationThresholds.trashMinRounds,
-                maxRounds: BalanceDurationThresholds.trashMaxRounds,
-                flagRate: flagRate,
-            ),
-            BalanceDurationAggregation.durationStats(
-                records.filter(\.isBoss),
-                minRounds: BalanceDurationThresholds.bossMinRounds,
-                maxRounds: BalanceDurationThresholds.bossMaxRounds,
-                flagRate: flagRate,
-            ),
-            BalanceDurationAggregation.enemyDurationTable(records, flagRate: flagRate),
-            BalanceDurationAggregation.combatantDurationTable(
-                records,
-                role: .hero,
-                idPath: \.heroID,
-                flagRate: flagRate,
-            ),
-            BalanceDurationAggregation.combatantDurationTable(
-                records,
-                role: .companion,
-                idPath: \.companionID,
-                flagRate: flagRate,
-            ),
-        )
-    }
-
-    private static func rosterSplits(
-        decided: [BalanceBattleRecord],
-        overallRate: Double,
-        threshold: Double,
-        tier: SimulationPowerTier,
-    ) -> (
-        heroesTrash: [WinRateSummary],
-        heroesBoss: [WinRateSummary],
-        companionsTrash: [WinRateSummary],
-        companionsBoss: [WinRateSummary],
-    ) {
+    var summary: BalanceTierStats {
+        let heroes = ownerMargins(decided, id: \.heroID)
+        let companions = ownerMargins(decided, id: \.companionID)
+        let ownerRates = Dictionary(uniqueKeysWithValues: (heroes + companions).map { ($0.id, $0.winRate) })
         let trash = decided.filter { !$0.isBoss }
         let boss = decided.filter(\.isBoss)
-        func margins(
-            _ records: [BalanceBattleRecord],
-            id: KeyPath<BalanceBattleRecord, String>,
-            isBoss: Bool,
+        func presence(
+            _ hero: KeyPath<BalanceBattleRecord, [String]>,
+            _ companion: KeyPath<BalanceBattleRecord, [String]>,
         ) -> [WinRateSummary] {
-            BalanceIdentityMargins.ownerMargins(
-                records: records,
-                id: id,
-                peerRate: overallRate,
-                threshold: threshold,
-                targetBand: targetBand(isBoss: isBoss, tier: tier),
-            )
-        }
-        return (
-            margins(trash, id: \.heroID, isBoss: false),
-            margins(boss, id: \.heroID, isBoss: true),
-            margins(trash, id: \.companionID, isBoss: false),
-            margins(boss, id: \.companionID, isBoss: true),
-        )
-    }
-
-    private static func loadoutMargins(
-        decided: [BalanceBattleRecord],
-        ownerRates: [String: Double],
-        threshold: Double,
-    ) -> (
-        items: [WinRateSummary],
-        abilities: [WinRateSummary],
-        talents: [WinRateSummary],
-        affixes: [WinRateSummary],
-    ) {
-        func presence(_ ids: (BalanceBattleRecord) -> [(String, String)]) -> [WinRateSummary] {
             BalanceIdentityMargins.withinOwnerMargins(
                 records: decided,
-                ownerAndIDs: ids,
-                ownerRates: ownerRates,
-                threshold: threshold,
+                ownerAndIDs: { record in
+                    record[keyPath: hero].map { (record.heroID, $0) } + record[keyPath: companion].map { (record.companionID, $0) }
+                },
+                ownerRates: ownerRates, threshold: config.peerDeltaFlagThreshold,
             )
         }
-        return (
-            presence { ownerIDPairs($0, heroIDs: $0.heroItemBaseIDs, companionIDs: $0.companionItemBaseIDs) },
-            presence { ownerIDPairs($0, heroIDs: $0.heroAbilityIDs, companionIDs: $0.companionAbilityIDs) },
-            presence { ownerIDPairs($0, heroIDs: $0.heroTalentIDs, companionIDs: $0.companionTalentIDs) },
-            presence { ownerIDPairs($0, heroIDs: $0.heroAffixIDs, companionIDs: $0.companionAffixIDs) },
+        return BalanceTierStats(
+            tier: tier, battles: records.count, decidedBattles: decided.count, wins: wins,
+            timeouts: records.count { $0.result.timedOut },
+            averageRounds: average(records) { Double($0.result.rounds) },
+            averagePartyHPOnWin: average(decided.filter(\.result.isVictory)) { $0.result.partyHPRemainingFraction },
+            averageEnemyHPOnLoss: average(decided.filter { !$0.result.isVictory }) { $0.result.enemyHPRemainingFraction },
+            trashDuration: durationBucket(isBoss: false),
+            bossDuration: durationBucket(isBoss: true),
+            enemyDurations: BalanceDurationAggregation.enemyDurationTable(records, flagRate: config.durationFlagRate),
+            heroDurations: combatantDurations(role: .hero, id: \.heroID),
+            companionDurations: combatantDurations(role: .companion, id: \.companionID),
+            heroes: heroes,
+            heroesTrash: ownerMargins(trash, id: \.heroID),
+            heroesBoss: ownerMargins(boss, id: \.heroID, isBoss: true),
+            companions: companions,
+            companionsTrash: ownerMargins(trash, id: \.companionID),
+            companionsBoss: ownerMargins(boss, id: \.companionID, isBoss: true),
+            enemies: BalanceIdentityMargins.enemyMargins(records: decided, targetBand: targetBand),
+            items: presence(\.heroItemBaseIDs, \.companionItemBaseIDs),
+            abilities: presence(\.heroAbilityIDs, \.companionAbilityIDs),
+            talents: presence(\.heroTalentIDs, \.companionTalentIDs),
+            enemyAbilities: opponentMargins(\.enemyAbilityIDs),
+            enemyTraits: opponentMargins(\.enemyTraitIDs),
+            affixes: presence(\.heroAffixIDs, \.companionAffixIDs),
+            heroCompanionCells: matchupCells(right: \.companionID),
+            heroEnemyCells: matchupCells(right: \.enemyID),
         )
     }
 
-    private static func opponentMargins(
-        records: [BalanceBattleRecord],
-        ids: (BalanceBattleRecord) -> [String],
-        peerRate: Double,
-        threshold: Double,
+    private func ownerMargins(
+        _ records: [BalanceBattleRecord],
+        id: KeyPath<BalanceBattleRecord, String>,
+        isBoss: Bool = false,
     ) -> [WinRateSummary] {
-        BalanceIdentityMargins.margin(
-            records: records,
-            ids: ids,
-            peerRate: peerRate,
-            threshold: threshold,
-            positiveFlag: "EASY",
-            negativeFlag: "HARD",
+        BalanceIdentityMargins.ownerMargins(
+            records: records, id: id, peerRate: winRate,
+            threshold: config.peerDeltaFlagThreshold, targetBand: targetBand(isBoss: isBoss),
         )
     }
 
-    private static func ownerIDPairs(
-        _ record: BalanceBattleRecord,
-        heroIDs: [String],
-        companionIDs: [String],
-    ) -> [(String, String)] {
-        heroIDs.map { (record.heroID, $0) } + companionIDs.map { (record.companionID, $0) }
+    private func opponentMargins(_ ids: KeyPath<BalanceBattleRecord, [String]>) -> [WinRateSummary] {
+        BalanceIdentityMargins.margin(
+            records: decided, ids: { $0[keyPath: ids] }, peerRate: winRate,
+            threshold: config.peerDeltaFlagThreshold, positiveFlag: "EASY", negativeFlag: "HARD",
+        )
     }
 
-    private static func targetBand(
-        isBoss: Bool,
-        tier: SimulationPowerTier,
-    ) -> (lower: Double, upper: Double) {
+    private func matchupCells(right: KeyPath<BalanceBattleRecord, String>) -> [PairCellSummary] {
+        BalanceIdentityMargins.flaggedPairCells(
+            records: decided, left: \.heroID, right: right,
+            peerRate: winRate, threshold: config.peerDeltaFlagThreshold,
+        )
+    }
+
+    private func durationBucket(isBoss: Bool) -> BalanceDurationBucketStats {
+        BalanceDurationAggregation.durationStats(
+            records.filter { $0.isBoss == isBoss },
+            minRounds: isBoss ? BalanceDurationThresholds.bossMinRounds : BalanceDurationThresholds.trashMinRounds,
+            maxRounds: isBoss ? BalanceDurationThresholds.bossMaxRounds : BalanceDurationThresholds.trashMaxRounds,
+            flagRate: config.durationFlagRate,
+        )
+    }
+
+    private func combatantDurations(role: Combatant.Role, id: KeyPath<BalanceBattleRecord, String>) -> [BalanceCombatantDurationStats] {
+        BalanceDurationAggregation.combatantDurationTable(records, role: role, idPath: id, flagRate: config.durationFlagRate)
+    }
+
+    private func targetBand(isBoss: Bool) -> (lower: Double, upper: Double) {
         if isBoss {
             return (0.70, 0.80)
         }
@@ -455,5 +264,9 @@ private extension BalanceStatsAggregator {
         case .middle: return (0.80, 0.90)
         case .lateGame: return (0.70, 0.80)
         }
+    }
+
+    private func average(_ records: [BalanceBattleRecord], value: (BalanceBattleRecord) -> Double) -> Double {
+        records.isEmpty ? 0 : records.reduce(0.0) { $0 + value($1) } / Double(records.count)
     }
 }

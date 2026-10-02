@@ -16,17 +16,8 @@ package extension DamagePipeline {
         source: Combatant,
         in context: inout BattleState,
     ) {
-        guard let pending = context.roster.runtime(for: source)?.talents.pending,
-              pending.overchargePercent > 0,
-              CombatantTalentState.Pending.isLaterAbility(
-                  preparedCardSerial: pending.overchargePreparedCardSerial,
-                  currentCardSerial: context.resolution.cardTalents?.playSerial,
-              ) else { return }
-        state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + pending.overchargePercent)
-        context.roster.mutateRuntime(for: source) {
-            $0.talents.pending.overchargePercent = 0
-            $0.talents.pending.overchargePreparedCardSerial = nil
-        }
+        guard let percent = context.consumeTalentPreparation(\.overchargePercent, for: source) else { return }
+        state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + percent)
     }
 
     static func applyTalentStatusMultipliers(
@@ -124,17 +115,8 @@ package extension DamagePipeline {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.zeroManaBurnMultiplier)
             }
             if state.options.isAttackHit,
-               let percent = context.roster.runtime(for: source)?.talents.pending.nextBurnAttackPercent,
-               percent > 0,
-               CombatantTalentState.Pending.isLaterAbility(
-                   preparedCardSerial: context.roster.runtime(for: source)?.talents.pending.nextBurnAttackPreparedCardSerial,
-                   currentCardSerial: context.resolution.cardTalents?.playSerial,
-               ) {
+               let percent = context.consumeTalentPreparation(\.nextBurnAttackPercent, for: source) {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + percent)
-                context.roster.mutateRuntime(for: source) {
-                    $0.talents.pending.nextBurnAttackPercent = 0
-                    $0.talents.pending.nextBurnAttackPreparedCardSerial = nil
-                }
             }
         }
         if keyword == .bleed, state.options.isAttackHit,
@@ -165,25 +147,10 @@ package extension DamagePipeline {
         source: Combatant,
         in context: inout BattleState,
     ) {
-        if state.options.isAttackHit,
-           let pending = context.roster.runtime(for: source)?.talents.pending,
-           pending.nextPoisonDamageBonus > 0,
-           CombatantTalentState.Pending.isLaterAbility(
-               preparedCardSerial: pending.nextPoisonDamagePreparedCardSerial,
-               currentCardSerial: context.resolution.cardTalents?.playSerial,
-           ),
-           CombatantTalentState.Pending.isLaterAction(
-               preparedActionID: pending.nextPoisonDamagePreparedActionID,
-               currentActionID: context.resolution.actionID,
-           ) {
-            state.remaining += pending.nextPoisonDamageBonus
-            state.itemBonus += pending.nextPoisonDamageBonus
-            context.roster.mutateRuntime(for: source) {
-                $0.talents.pending.nextPoisonDamageBonus = 0
-                $0.talents.pending.nextPoisonDamagePreparedCardSerial = nil
-                $0.talents.pending.nextPoisonDamagePreparedActionID = nil
-            }
-        }
+        guard state.options.isAttackHit,
+              let bonus = context.consumeTalentPreparation(\.nextPoisonDamageBonus, for: source) else { return }
+        state.remaining += bonus
+        state.itemBonus += bonus
     }
 
     private static func applyBlockAndHolyBonuses(
@@ -208,17 +175,8 @@ package extension DamagePipeline {
             context.roster.mutateRuntime(for: source) { $0.talents.pending.nextPhysicalDamageBonus = 0 }
         }
         if keyword == .physical, state.options.isAttackHit,
-           let pending = context.roster.runtime(for: source)?.talents.pending,
-           pending.doubleNextPhysicalAttack,
-           CombatantTalentState.Pending.isLaterAbility(
-               preparedCardSerial: pending.nextPhysicalPreparedCardSerial,
-               currentCardSerial: context.resolution.cardTalents?.playSerial,
-           ) {
+           context.consumeTalentPreparation(\.doubleNextPhysicalAttack, for: source) == true {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
-            context.roster.mutateRuntime(for: source) {
-                $0.talents.pending.doubleNextPhysicalAttack = false
-                $0.talents.pending.nextPhysicalPreparedCardSerial = nil
-            }
         }
         if keyword == .stun, triggers.lightningRod, sourceBlock > 0 {
             let bonus = sourceBlock / 2

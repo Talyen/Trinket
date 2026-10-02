@@ -134,8 +134,7 @@ public extension EncounterPlayMode {
             guard !session.isCorruptionAltar else { return .success([]) }
             do {
                 return try .success(MysteryOfferPersistence.prepare(
-                    event: session.event, stage: session.stage,
-                    labyrinthNodeID: session.labyrinthNodeID, encounter: session.encounter, save: &save, using: &mysteryRandom,
+                    event: session.event, encounter: session.encounter, save: &save, using: &mysteryRandom,
                     at: currentDate(),
                 ))
             } catch {

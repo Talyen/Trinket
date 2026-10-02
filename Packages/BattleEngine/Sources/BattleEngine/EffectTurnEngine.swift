@@ -1,14 +1,8 @@
 import Foundation
-import os
 import TrinketContent
 import TrinketCore
 
 package enum EffectTurnEngine {
-    private static let logger = Logger(
-        subsystem: "com.ryanmcintire.Trinket",
-        category: "EffectTurnEngine",
-    )
-
     package static func advanceAll(context: inout BattleState) -> [ActionEvent] {
         let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
         defer { context.resolution.feedbackGroupID = previousFeedbackGroup }
@@ -58,12 +52,7 @@ package enum EffectTurnEngine {
             guard !context.isBattleOver, context.roster.health(for: target) > 0 else { break }
             guard let activeEffect = context.roster.activeEffects(for: target).first(where: { $0.id == scheduledEffect.id })
             else { continue }
-            guard let handler = EffectHandlers.handler(for: activeEffect.effect.kind) else {
-                logger.error(
-                    "Missing effect handler for turn of \(String(describing: activeEffect.effect.kind), privacy: .public)",
-                )
-                continue
-            }
+            let handler = EffectHandlers.handler(for: activeEffect.effect.kind)
             let outcome = handler.advanceTurn(activeEffect, on: target, in: &context)
             events.append(contentsOf: outcome)
         }

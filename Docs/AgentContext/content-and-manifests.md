@@ -27,6 +27,11 @@ Ability declarations and ordered tier lists live in `AbilityCatalog+Basic.swift`
 combines those lists; preserve their order and existing IDs. Use
 `python3 Scripts/content-inspect.py --kind abilities --id <id>` for the authored location.
 
+`Ability` shares immutable storage across combat snapshots. Its value payload owns
+all definition fields and synthesized equality/hash behavior. Combat transformations
+copy that payload and edit only their changed fields; avoid rebuilding a definition
+by forwarding every field, which can silently drop newly added mechanics.
+
 ## Manifests
 
 **Talents:** author in `ContentManifest/talents.tsv` using the affix trigger/modifier DSL. Keep lookup/config in `CombatantTalentCatalog.swift`; generated dictionaries are outputs. See `ContentManifest/README.md`.
@@ -59,6 +64,11 @@ Trigger fields used by affixes require `affix_roll` metadata in their family JSO
 preserve existing orders and append new rollable fields so seeded roll/bump
 selection stays stable. Generation owns the typed field list and exclusion reasons;
 rolling behavior, numeric text replacement, and gameplay remain authored.
+
+Affix scaling, rolling, and corruption share the ordered magnitude traversal in
+`ItemAffixPower+Rolling.swift`. Bind description numbers against the original text,
+including unchanged fields, so equal magnitudes and replacement collisions retain
+their field ownership. Preserve this order and the existing numeric/save formats.
 
 ## Media assets
 

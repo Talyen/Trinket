@@ -47,8 +47,7 @@ struct CombatantTalentState: Hashable, Sendable {
         var cardDamageBonus = 0
         var feintStrikeDamageBonus = 0
         var cardDamagePercent = 0.0
-        var overchargePercent = 0.0
-        var overchargePreparedCardSerial: Int?
+        var overchargePercent: PreparedTalentBonus<Double>?
         var nextHitBonus = 0
         var nextAttackHolyBonus = 0
         var doubleNextHolyAttack = false
@@ -58,68 +57,36 @@ struct CombatantTalentState: Hashable, Sendable {
         var guaranteedBleedCritical = false
         var doubleNextGoldSteal = false
         var nextPhysicalDamageBonus = 0
-        var nextHolyHitDouble = false
-        var nextHolyHitPreparedCardSerial: Int?
-        var nextStunAttackDouble = false
-        var nextStunAttackPreparedCardSerial: Int?
-        var nextBleedAttackMultiplier = 1.0
-        var nextBleedMultiplierPreparedCardSerial: Int?
-        var nextPhysicalAttackMultiplier = 1.0
-        var nextPhysicalAttackPreparedCardSerial: Int?
-        var nextCriticalHitMultiplier = 1.0
-        var nextCriticalHitPreparedCardSerial: Int?
+        var nextHolyHitDouble: PreparedTalentBonus<Bool>?
+        var nextStunAttackDouble: PreparedTalentBonus<Bool>?
+        var nextBleedAttackMultiplier: PreparedTalentBonus<Double>?
+        var nextPhysicalAttackMultiplier: PreparedTalentBonus<Double>?
+        var nextCriticalHitMultiplier: PreparedTalentBonus<Double>?
         var nextManaEmpowerDiscount = 0
-        var nextManaSpendAttackBonus = 0
-        var nextManaSpendAttackPreparedCardSerial: Int?
-        var nextManaSpendAttackPreparedActionID: Int?
-        var nextBlockGainMultiplier = 1.0
-        var nextBlockGainPreparedCardSerial: Int?
-        var nextFreezeIgnoresBlock = false
-        var nextFreezeIgnorePreparedCardSerial: Int?
-        var nextAttackIgnoresBlock = false
-        var nextAttackIgnorePreparedCardSerial: Int?
+        var nextManaSpendAttackBonus: PreparedTalentBonus<Int>?
+        var nextBlockGainMultiplier: PreparedTalentBonus<Double>?
+        var nextFreezeIgnoresBlock: PreparedTalentBonus<Bool>?
+        var nextAttackIgnoresBlock: PreparedTalentBonus<Bool>?
         var nextAttackMissChance = 0.0
         var nextAttackMissAbilityName: String?
         var nextOutgoingAttackMultiplier = 1.0
-        var nextIncomingDamageMultiplier = 1.0
-        var nextIncomingDamagePreparedCardSerial: Int?
-        var doubleNextBleedAttack = false
-        var nextBleedAttackPreparedCardSerial: Int?
+        var nextIncomingDamageMultiplier: PreparedTalentBonus<Double>?
+        var doubleNextBleedAttack: PreparedTalentBonus<Bool>?
         var doubleNextAttackAfterDeathsDoor = false
-        var nextBurnAttackPercent = 0.0
-        var nextBurnAttackPreparedCardSerial: Int?
-        var doubleNextPhysicalAttack = false
-        var nextPhysicalPreparedCardSerial: Int?
+        var nextBurnAttackPercent: PreparedTalentBonus<Double>?
+        var doubleNextPhysicalAttack: PreparedTalentBonus<Bool>?
         var nextBleedDamageBonus = 0
-        var nextBurnDamageBonus = 0
-        var nextBurnDamagePreparedCardSerial: Int?
-        var nextPoisonDamageBonus = 0
-        var nextPoisonDamagePreparedCardSerial: Int?
-        var nextPoisonDamagePreparedActionID: Int?
+        var nextBurnDamageBonus: PreparedTalentBonus<Int>?
+        var nextPoisonDamageBonus: PreparedTalentBonus<Int>?
         var manaOverflowThorns = 0
         var manaOverflowBlock = 0
-        var nextAttackCriticalBonus = 0.0
-        var nextAttackCriticalPreparedCardSerial: Int?
-        var nextAttackCriticalPreparedActionID: Int?
-        var nextCleanseCriticalBonus = 0.0
-        var nextCleanseCriticalPreparedCardSerial: Int?
-        var nextAttackGuaranteedCritical = false
-        var nextGuaranteedCriticalPreparedCardSerial: Int?
-        var nextGuaranteedCriticalPreparedActionID: Int?
-        var nextStunPreparedCritical = false
-        var nextStunCriticalPreparedCardSerial: Int?
-        var nextStunCriticalPreparedActionID: Int?
+        var nextAttackCriticalBonus: PreparedTalentBonus<Double>?
+        var nextCleanseCriticalBonus: PreparedTalentBonus<Double>?
+        var nextAttackGuaranteedCritical: PreparedTalentBonus<Bool>?
+        var nextStunPreparedCritical: PreparedTalentBonus<Bool>?
         var basicGuaranteedCritical = false
         var basicCriticalBonus = 0.0
         var attackBonusOnFullHealth = 0
-
-        static func isLaterAbility(preparedCardSerial: Int?, currentCardSerial: Int?) -> Bool {
-            preparedCardSerial == nil || preparedCardSerial != currentCardSerial
-        }
-
-        static func isLaterAction(preparedActionID: Int?, currentActionID: Int?) -> Bool {
-            preparedActionID == nil || preparedActionID != currentActionID
-        }
 
         mutating func reserveAttackBonuses() -> (damage: Int, holy: Int) {
             let bonuses = (nextHitBonus + attackBonusOnFullHealth, nextAttackHolyBonus)

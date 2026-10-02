@@ -201,7 +201,7 @@ struct BattleTurnEngineTests {
         #expect(components.allSatisfy { $0.amount > 0 })
         #expect(Set(components.map(\.actionID)).count == 1)
         #expect(events.count { $0.kind == .ability } == 1)
-        #expect(BattleLogReducer.entries(from: events).count == 1)
+        #expect(BattleLogProjection.entries(from: events).count == 1)
     }
 
     @Test func `critical metadata belongs to exact damage component`() throws {

@@ -346,20 +346,12 @@ struct MysteryEffectApplierTests {
         save.roster.progressions[save.roster.activeHeroID] = .at(level: 3)
         save.roster.progressions[save.roster.activeCompanionID] = .at(level: 2)
 
-        let clamped = MysteryEffectApplier.resolvedEncounterLevel(
-            stage: lateStage,
-            labyrinthNodeID: nil,
-            save: save,
-        )
+        let clamped = EncounterIdentity(location: .journey(stageID: lateStage.id), save: save).encounterLevel(in: save)
         #expect(clamped == authoredLevel - 3)
 
         save.roster.progressions[save.roster.activeHeroID] = .at(level: 99)
         save.roster.progressions[save.roster.activeCompanionID] = .at(level: 99)
-        let passthrough = MysteryEffectApplier.resolvedEncounterLevel(
-            stage: lateStage,
-            labyrinthNodeID: nil,
-            save: save,
-        )
+        let passthrough = EncounterIdentity(location: .journey(stageID: lateStage.id), save: save).encounterLevel(in: save)
         #expect(passthrough == authoredLevel)
     }
 
@@ -376,11 +368,7 @@ struct MysteryEffectApplierTests {
             clusterID: "mystery-scaling",
         )
 
-        let clamped = MysteryEffectApplier.resolvedEncounterLevel(
-            stage: GameContent.chapters[0].stages[0],
-            labyrinthNodeID: deepID,
-            save: save,
-        )
+        let clamped = EncounterIdentity(location: .labyrinth(nodeID: deepID), save: save).encounterLevel(in: save)
         #expect(clamped == 26)
     }
 }
