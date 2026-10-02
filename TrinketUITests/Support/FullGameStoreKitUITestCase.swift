@@ -50,6 +50,9 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
     }
 
     func startStoreSession() throws {
+        // Register the app on a fresh simulator before StoreKit configures its bundle.
+        launchApp(arguments: TestLaunchArg.allForTab("options"))
+        app.terminate()
         let session = try SKTestSession(configurationFileNamed: "Trinket")
         session.resetToDefaultState()
         session.disableDialogs = true
