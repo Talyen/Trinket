@@ -37,7 +37,7 @@ class CIGateScriptTests(ScriptRegressionTestCase):
 
         packages = read_env_arrays(ROOT / "Scripts/build-inputs.env", ["TRINKET_TEST_PACKAGES"])["TRINKET_TEST_PACKAGES"]
         # Extract shard package lists — only the unit job includes
-        unit_section = workflow.split("name: Unit tests")[1].split("smoke:")[0]
+        unit_section = workflow.split("  unit:\n", 1)[1].split("  exhaustive-ui:\n", 1)[0]
         shard_packages: list[str] = []
         for match in re.finditer(r"packages:\s*([A-Za-z0-9 ]+)", unit_section):
             shard_packages.extend(match.group(1).strip().split())

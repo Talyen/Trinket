@@ -109,8 +109,12 @@ def testplan_failures() -> list[str]:
                 failures.append(f'{suite}.xctestplan selectedTests must match {REGISTRY}; run ./Scripts/generate.sh')
         workflow = (ROOT / '.github/workflows/tests.yml').read_text()
         build = re.search(r'^  build:\n(.*?)(?=^  [\w-]+:|\Z)', workflow, re.M | re.S)
-        if not build or '--classes Smoke' not in build[1] or './Scripts/test.sh smoke --no-build' not in build[1]:
-            failures.append('.github/workflows/tests.yml build must run registry-selected smoke')
+        if not build or '--classes Smoke' not in build[1]:
+            failures.append('.github/workflows/tests.yml build must compute registry-selected smoke targets')
+        smoke = re.search(r'^  smoke:\n(.*?)(?=^  [\w-]+:|\Z)', workflow, re.M | re.S)
+        if not smoke or './Scripts/test.sh smoke --no-build' not in smoke[1] or \
+                'needs.build.outputs.smoke-targets' not in smoke[1]:
+            failures.append('.github/workflows/tests.yml smoke must run registry-selected smoke from the shared build')
         full_ui = re.search(r'^  exhaustive-ui:\n(.*?)(?=^  [\w-]+:|\Z)', workflow, re.M | re.S)
         if not full_ui or 'matrix: ${{ fromJSON(needs.build.outputs.full-ui-matrix) }}' not in full_ui[1]:
             failures.append('.github/workflows/tests.yml exhaustive-ui must consume registry matrix')

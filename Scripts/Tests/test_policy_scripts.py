@@ -59,7 +59,8 @@ else:
             fake_gh.chmod(0o755)
             infra = 'Unable to boot simulator'
             cases = (
-                ([{'id': 1, 'name': 'Build and smoke'}], {'1': infra}, True),
+                ([{'id': 1, 'name': 'Build for testing'}], {'1': infra}, True),
+                ([{'id': 1, 'name': 'Smoke UI'}], {'1': infra}, True),
                 ([{'id': 1, 'name': 'Smoke'}, {'id': 2, 'name': 'Generate and style', 'conclusion': 'success'}],
                  {'1': infra}, True),
                 ([], {}, False),
@@ -68,7 +69,7 @@ else:
                 ([{'id': 1, 'name': 'Smoke'}, {'id': 2, 'name': 'Generate and style'}],
                  {'1': infra, '2': 'format failed'}, False),
                 ([{'id': 1, 'name': 'Unit'}], {'1': infra + '\nXCTAssertEqual failed'}, False),
-                ([{'id': 1, 'name': 'Build and smoke'}],
+                ([{'id': 1, 'name': 'Build for testing'}],
                  {'1': 'Ability.swift:42:2: error: failed to launch macro plugin'}, False),
                 ([{'id': 1, 'name': 'Unit'}],
                  {'1': infra + '\nAbility.swift:42: error: cannot find type in scope'}, False),

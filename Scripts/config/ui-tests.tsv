@@ -8,5 +8,5 @@ FullUI||BattleFlowUITests|Play|0|0
 FullUI||PlayModeNavigationUITests|Play|0|1
 FullUI||HomesteadNodeDetailUITests|Shell|1|0
 FullUI||FullGamePurchaseUITests|Shell|1|1
-FullUI||CollectionLoadoutUITests|Shell|1|2
-FullUI||OptionsUITests|Shell|1|3
+FullUI||CollectionLoadoutUITests|Collection|2|0
+FullUI||OptionsUITests|Collection|2|1

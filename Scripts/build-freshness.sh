@@ -110,8 +110,24 @@ assert_build_input_git_snapshot_unchanged() {
   fi
 }
 
-prepare_generated_inputs() {
+prepare_generated_inputs() (
   local results_dir="$1"
+  mkdir -p "$results_dir"
+  if [[ "${SKIP_GENERATE:-0}" == "1" ]]; then
+    echo "Generation skipped by SKIP_GENERATE=1."
+    return 0
+  fi
+  # This subshell owns only preparation; inherited simulator cleanup stays with
+  # the parent launcher, including when acquiring the preparation lock fails.
+  trap - EXIT INT TERM
+  local tenant_results_dir="$results_dir"
+  # Generated files belong to the checkout, not to a simulator's build cache.
+  # Check and update freshness under one lock so concurrent tenants prepare once.
+  if [[ -n "${TRINKET_SHARED_DERIVED_DATA:-}" ]]; then
+    trinket_dir_lock_acquire "$TRINKET_SHARED_DERIVED_DATA/.generated-inputs.lock" \
+      "${TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS:-120}" || return $?
+    results_dir="$TRINKET_SHARED_DERIVED_DATA/GeneratedInputs"
+  fi
   local stamp="$results_dir/.last-generate.stamp"
   local content_changed=""
   local project_changed=""
@@ -119,17 +135,22 @@ prepare_generated_inputs() {
   local generate_args=()
 
   mkdir -p "$results_dir"
-  if [[ "${SKIP_GENERATE:-0}" == "1" ]]; then
-    echo "Generation skipped by SKIP_GENERATE=1."
-    return 0
-  fi
-
   local content_snapshot project_snapshot assets_snapshot
   {
     read -r content_snapshot
     read -r project_snapshot
     read -r assets_snapshot
   } < <(generation_input_snapshots "${content_generation_inputs[@]}" -- "${project_generation_inputs[@]}" -- "${asset_generation_inputs[@]}") || return $?
+  # Reuse a verified tenant stamp on the first launch after this migration.
+  if [[ ! -f "$stamp" && "$results_dir" != "$tenant_results_dir" ]]; then
+    local previous="$tenant_results_dir/.last-generate.stamp"
+    if [[ -f "$previous" && -f "$previous.content" && -f "$previous.project" && -f "$previous.assets" ]] \
+      && [[ "$(cat "$previous.content")" == "$content_snapshot" \
+        && "$(cat "$previous.project")" == "$project_snapshot" \
+        && "$(cat "$previous.assets")" == "$assets_snapshot" ]]; then
+      touch_generate_stamp "$results_dir" || return $?
+    fi
+  fi
   [[ -f "$stamp.content" && "$(cat "$stamp.content")" == "$content_snapshot" ]] || content_changed=changed
   [[ -f "$stamp.project" && "$(cat "$stamp.project")" == "$project_snapshot" ]] || project_changed=changed
   if [[ -f "$stamp.assets" ]]; then
@@ -164,7 +185,7 @@ prepare_generated_inputs() {
     ./Scripts/generate.sh || return $?
   fi
   touch_generate_stamp "$results_dir"
-}
+)
 
 assert_no_build_inputs_are_fresh() {
   local stamp="$1"

@@ -163,10 +163,10 @@ available; the CI policy applies to automatic verification, not to playing the g
 | `ci-gate.sh --fast` | Only the ordered commands in [the cheap-slice registry](../../Scripts/config/cheap-slices.txt) |
 | `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
 | `test-deploy.sh` | Full CI/release test sequence; local execution requires a deliberate heavy-local diagnostic opt-in. Keep release/TestFlight evidence requirements intact |
-| Main CI | Post-push on `main` (no pull-request workflow): path filter, generation/style/full script regressions, combined app build and smoke, and package unit for product changes |
+| Main CI | Post-push on `main` (no pull-request workflow): path filter, generation/style/full script regressions, app build with smoke fan-out, and package unit for product changes |
 | Clean analysis | Explicit local `lint-analyze.sh [SwiftPath ...]` cleanup using a clean app build; unused imports fail the command; never part of CI or handoff |
-| Device Release compilation | Nightly and manual CI run unsigned device Release compilation; failures block that run’s `CI OK`, ordinary pushes skip it. Signing/export/upload remain TestFlight responsibilities. |
-| Nightly exhaustive | Scheduled or manually dispatched exhaustive UI; advisory, never blocks `CI OK` |
+| Device Release compilation | Nightly and manual CI run unsigned device Release compilation serialized behind build+unit with a 30-minute wall watchdog; failures block that run’s `CI OK`, ordinary pushes skip it. Signing/export/upload remain TestFlight responsibilities. |
+| Nightly exhaustive | Scheduled or manually dispatched exhaustive UI in Play/Shell/Collection shards; advisory, never blocks `CI OK` |
 | Performance diagnostics | Manual `performance.yml` dispatch with a validated group/repetition selection; never part of routine local or push verification |
 
 Idle nightlies skip a commit only after its previous scheduled run succeeded and
@@ -184,9 +184,9 @@ idempotence. Lightweight local handoff and pre-push do not regenerate. Only the
 `prepare_generated_inputs` freshness path inside build/test wrappers skips
 generation, and only when content, project, and asset inputs are all unchanged.
 
-The combined build/smoke job runs smoke against its own app test products. Only
-nightly/manual exhaustive UI receives products for fan-out; ordinary pushes do
-not upload or download app products between build and smoke. Package unit jobs compile in separate per-package DerivedData tenants;
+The build job compiles app test products once and publishes them for fan-out.
+Smoke and nightly/manual exhaustive UI download those products and rebuild only
+on transfer mismatch. Package unit jobs compile in separate per-package DerivedData tenants;
 they skip the app build cache transfer because it does not contain their test
 products. Exact shards, artifact contracts, cache inputs, and remaining advisory
 job behavior belong to the checked-in workflows ([tests.yml](../../.github/workflows/tests.yml) and

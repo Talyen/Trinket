@@ -34,6 +34,7 @@ if [[ "$RELEASE_DEVICE" == true ]]; then
   TRINKET_APP_XCODEBUILD_ARGS+=(CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO)
   label=compile-release-device
 fi
+TRINKET_APP_XCODEBUILD_ARGS+=(ENABLE_CODE_COVERAGE=NO)
 xcode_runner_prepare "$label" "$RESULTS_DIR"
 if [[ "$RELEASE_DEVICE" == false ]]; then
   python3 Scripts/build-metadata.py invalidate "$RESULTS_DIR" smoke

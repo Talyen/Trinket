@@ -66,6 +66,15 @@ same managed simulator lease alive and target its exact UDID; an Xcode interacti
 session does not reserve a Trinket simulator slot. The skill owns delegation,
 session cleanup, tool mapping, and Apple's exported interaction reference.
 
+Reuse one native interaction session for the owned inspection. Record its session
+key, end it on completion, failure, or cancellation, and confirm the close before
+releasing the simulator lease. Do not create replacement sessions alongside an
+unresponsive one. A warm Simulator/Device Hub window and the user's play session
+are separate from the expensive native interaction runtime; preserve them.
+Trinket's simulator pool does not coordinate memory with Lantern or Alchemy
+browser sessions. If host memory pressure is high, coordinate those expensive
+inspections before starting another build; source editing can continue.
+
 ### Optional evidence capture
 
 Computer Use observations are sufficient for routine inspection. When a saved
@@ -117,6 +126,14 @@ Simulator code on Apple silicon (and vice versa). CI (`CI=true` or
 `GITHUB_ACTIONS=true`), Release configurations, and device builds retain the
 SDK's standard architecture coverage. The shared build arguments own this
 selection; app signing, test selection, and per-slot caches are unchanged.
+
+Normal app compilation and simulator play omit code-coverage instrumentation;
+test builds keep their test-plan coverage settings. Generated content, assets,
+and project freshness are shared across simulator tenants in
+`.DerivedData/GeneratedInputs/`. A preparation lock prevents two launches from
+regenerating the same checkout independently; build products and simulator leases
+remain separate. A verified existing tenant stamp seeds shared freshness on the
+first launch, avoiding an extra generation pass.
 
 To share build products with scripts, set Workspace Settings → Build Location to
 Custom, Relative to Workspace:

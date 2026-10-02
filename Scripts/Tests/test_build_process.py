@@ -41,6 +41,7 @@ SCRIPT_INPUTS = (
     'Scripts/lint.sh',
     'Scripts/prune-derived-data-cache.sh',
     'Scripts/run-env.sh',
+    'Scripts/run-simulator.sh',
     'Scripts/simctl_json.py',
     'Scripts/stage-ci-test-artifact.sh',
     'Scripts/test-package.sh',
@@ -160,6 +161,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                     self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                     args = (root / "arguments").read_text().splitlines()
                     self.assertEqual(args[:2], ["xcodebuild", "build"])
+                    self.assertIn("ENABLE_CODE_COVERAGE=NO", args)
                     self.assertEqual(args[args.index("-sdk") + 1], sdk)
                     self.assertEqual(args[args.index("-destination") + 1], destination)
                     derived = args[args.index("-derivedDataPath") + 1]
@@ -291,6 +293,92 @@ prepare_generated_inputs results
             result = subprocess.run(["bash", "-eu", "-c", command], cwd=root, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+
+    def test_simulator_tenants_share_generation_without_releasing_parent_resources(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "Scripts/lib").mkdir(parents=True)
+            for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh"):
+                shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
+            generator = root / "Scripts/generate.sh"
+            generator.write_text('#!/bin/bash\nsleep 1\necho generated >> calls\n')
+            generator.chmod(0o755)
+            command = """
+source Scripts/lib/lock.sh
+source Scripts/build-freshness.sh
+export TRINKET_SHARED_DERIVED_DATA="$PWD/shared"
+content_generation_inputs=(input); project_generation_inputs=(project); asset_generation_inputs=(asset)
+touch input project asset
+trap 'status=$?; echo released >> parent-resources; exit "$status"' EXIT
+prepare_generated_inputs human & first=$!
+prepare_generated_inputs agent & second=$!
+wait "$first"; wait "$second"
+[[ $(wc -l < calls) -eq 1 ]] || exit 1
+[[ ! -e parent-resources ]] || exit 1
+[[ ! -d shared/.generated-inputs.lock ]] || exit 1
+prepare_generated_inputs another-agent
+[[ $(wc -l < calls) -eq 1 ]] || exit 1
+printf changed > asset
+prepare_generated_inputs human
+prepare_generated_inputs agent
+[[ $(wc -l < calls) -eq 2 ]] || exit 1
+"""
+            result = subprocess.run(["bash", "-eu", "-c", command], cwd=root, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual((root / "parent-resources").read_text(), "released\n")
+
+    def test_preparation_timeout_preserves_another_subshells_lock(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "Scripts/lib").mkdir(parents=True)
+            for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh"):
+                shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
+            command = """
+source Scripts/lib/lock.sh
+source Scripts/build-freshness.sh
+unset BASHPID
+export TRINKET_SHARED_DERIVED_DATA="$PWD/shared"
+(
+  trinket_dir_lock_acquire "$PWD/shared/.generated-inputs.lock" 2
+  touch ready
+  while [[ ! -f done ]]; do sleep 0.1; done
+) & holder=$!
+trap 'status=$?; touch done; wait "$holder"; exit "$status"' EXIT
+while [[ ! -f ready ]]; do sleep 0.1; done
+[[ $(cat shared/.generated-inputs.lock/pid) == "$holder" ]] || exit 11
+if TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS=0 prepare_generated_inputs agent; then exit 1; fi
+[[ -d shared/.generated-inputs.lock ]] || exit 12
+touch done
+wait "$holder"
+[[ ! -d shared/.generated-inputs.lock ]] || exit 13
+"""
+            result = subprocess.run(["bash", "-eu", "-c", command], cwd=root,
+                                    capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_shared_generation_reuses_a_matching_existing_tenant_stamp(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "Scripts/lib").mkdir(parents=True)
+            for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh"):
+                shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
+            generator = root / "Scripts/generate.sh"
+            generator.write_text('#!/bin/bash\necho unexpected > calls\nexit 9\n')
+            generator.chmod(0o755)
+            command = """
+source Scripts/lib/lock.sh
+source Scripts/build-freshness.sh
+content_generation_inputs=(input); project_generation_inputs=(project); asset_generation_inputs=(asset)
+touch input project asset
+touch_generate_stamp human
+export TRINKET_SHARED_DERIVED_DATA="$PWD/shared"
+prepare_generated_inputs human
+prepare_generated_inputs agent
+[[ ! -e calls ]] || exit 1
+[[ -f shared/GeneratedInputs/.last-generate.stamp ]] || exit 1
+"""
+            result = subprocess.run(["bash", "-eu", "-c", command], cwd=root, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_tool_updates_leave_pins_untouched_after_download_or_hash_failure(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

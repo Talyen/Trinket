@@ -16,7 +16,9 @@ trinket_lock_exit_on_signal() {
   local status="$1"
   local signal_children=()
   trap '' INT TERM
-  trinket_lock_collect_children "${BASHPID:-$$}"
+  local owner_pid="${BASHPID:-}"
+  [[ -n "$owner_pid" ]] || owner_pid="$(exec /bin/sh -c 'echo "$PPID"')"
+  trinket_lock_collect_children "$owner_pid"
   if (( ${#signal_children[@]} > 0 )); then
     kill -TERM "${signal_children[@]}" 2>/dev/null || true
     sleep 2
@@ -62,12 +64,16 @@ trinket_dir_lock_acquire() {
   local timeout_seconds="$2"
   local started_at=$SECONDS
   local lock_pid=""
+  # Bash 3.2 has no BASHPID; $$ still identifies the parent in a subshell.
+  # An exec'd helper reports this shell's actual PID through its PPID.
+  local owner_pid="${BASHPID:-}"
+  [[ -n "$owner_pid" ]] || owner_pid="$(exec /bin/sh -c 'echo "$PPID"')"
 
   mkdir -p "$(dirname "$lock_dir")"
 
   # Expand now so the EXIT trap captures the current lock path/pid (locals are gone at trap time).
   local cleanup
-  printf -v cleanup 'trinket_dir_lock_release %q %q' "$lock_dir" "${BASHPID:-$$}"
+  printf -v cleanup 'trinket_dir_lock_release %q %q' "$lock_dir" "$owner_pid"
   trinket_dir_lock_chain_trap "$cleanup"
 
   while ! mkdir "$lock_dir" 2>/dev/null; do
@@ -88,7 +94,7 @@ trinket_dir_lock_acquire() {
     fi
     sleep 1
   done
-  printf '%s\n' "${BASHPID:-$$}" > "$lock_dir/pid"
+  printf '%s\n' "$owner_pid" > "$lock_dir/pid"
 }
 
 trinket_dir_lock_release() {

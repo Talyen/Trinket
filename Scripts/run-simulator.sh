@@ -71,6 +71,8 @@ source ./Scripts/lib/app-build.sh
 # shellcheck source=lib/tempdir.sh
 source Scripts/lib/tempdir.sh
 trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
+# Playing the game needs neither coverage counters nor coverage mapping.
+TRINKET_APP_XCODEBUILD_ARGS+=(ENABLE_CODE_COVERAGE=NO)
 # Compile against a generic destination so xcodebuild does not boot/show a
 # concrete simulator. Quiet logs go under TestResults/raw/; print a heartbeat
 # so a warm rebuild is not mistaken for a hang.

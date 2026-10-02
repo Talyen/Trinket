@@ -97,7 +97,7 @@ class DocumentationTests(ScriptRegressionTestCase):
                 "TrinketUITests/Fixture.swift": "class FullFixture: TrinketUITestCase {}",
                 "Smoke.xctestplan": json.dumps({"testTargets": [{"automaticallyIncludesTests": False, "selectedTests": ["SmokeFixture"], "target": {"name": "TrinketUITests"}}]}),
                 "FullUI.xctestplan": json.dumps({"testTargets": [{"automaticallyIncludesTests": False, "selectedTests": ["FullFixture"], "target": {"name": "TrinketUITests"}}]}),
-                ".github/workflows/tests.yml": "  build:\n      run: check-testplan-sync.py --classes Smoke\n      command: ./Scripts/test.sh smoke --no-build\n  exhaustive-ui:\n      matrix: ${{ fromJSON(needs.build.outputs.full-ui-matrix) }}\n",
+                ".github/workflows/tests.yml": "  build:\n      run: check-testplan-sync.py --classes Smoke\n  smoke:\n      command: ./Scripts/test.sh smoke --no-build ${{ needs.build.outputs.smoke-targets }}\n  exhaustive-ui:\n      matrix: ${{ fromJSON(needs.build.outputs.full-ui-matrix) }}\n",
                 "Docs/AgentContext/README.md": "# Context",
                 "Docs/Audits/Proposals.md": "# Proposals",
                 "README.md": "# Fixture\nA clean pass is valid. Historical label: QuickSmoke.\n",

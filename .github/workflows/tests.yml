@@ -1,10 +1,11 @@
 name: Build and test
 
-# Pushes verify generated inputs, build and run smoke together, and test package schemes.
+# Pushes verify generated inputs, build app test products once, then fan smoke,
+# package unit, and exhaustive UI out in parallel from the shared build.
 # Build orchestration changes exercise the product jobs; lint-only changes use the gate.
 # Nightly/dispatch also run exhaustive UI outside the push path.
-# The warm cache preserves incremental state; nightly UI receives test products
-# and build stamps in a tar archive. Sparse checkouts omit Raw Assets.
+# The warm cache preserves incremental state; build uploads test products
+# and build stamps in a tar archive for smoke and nightly UI. Sparse checkouts omit Raw Assets.
 
 on:
   workflow_call:
@@ -43,7 +44,7 @@ jobs:
         run: ./Scripts/ci-assets-gate.sh
 
   build:
-    name: Build and smoke
+    name: Build for testing
     needs: [changes]
     if: >-
       github.event_name == 'workflow_dispatch' ||
@@ -54,6 +55,7 @@ jobs:
     timeout-minutes: 30
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
+      smoke-targets: ${{ steps.ui-matrices.outputs.smoke-targets }}
       full-ui-matrix: ${{ steps.ui-matrices.outputs.full-ui }}
     steps:
       # Local composite actions cannot run before the repo exists, so the
@@ -106,18 +108,67 @@ jobs:
           build-command: ./Scripts/build-for-testing.sh --app-only
           prune: 'true'
           save-cache: 'true'
-          upload-artifact: ${{ inputs.include-exhaustive && 'true' || 'false' }}
+          # Smoke and exhaustive UI fan out from these products, so the build
+          # always publishes the within-run archive whenever it runs.
+          upload-artifact: 'true'
 
+  smoke:
+    name: Smoke UI
+    needs: [changes, build]
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      inputs.include-exhaustive ||
+      needs.changes.outputs.smoke == 'true'
+    runs-on: xcode-27
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 1
+          sparse-checkout-cone-mode: true
+          # Cone mode keeps root files (project.yml, *.xctestplan). Skip Raw Assets.
+          sparse-checkout: |
+            Scripts
+            Packages
+            Trinket
+            TrinketUITests
+            Trinket.xcodeproj
+            StoreKit
+            ContentManifest
+            ArtManifest
+            MusicManifest
+            SoundManifest
+            CinematicManifest
+            .github
+      - name: Assert sparse checkout kept root build inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f project.yml
+          test -f StoreKit/Trinket.storekit
+          test -f Smoke.xctestplan
+          test -f FullUI.xctestplan
+          test -f BattlePerformance.xctestplan
+      - uses: ./.github/actions/setup-trinket
+        with:
+          metal: 'true'
       - uses: ./.github/actions/test-job
         with:
+          build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: smoke
           artifact-prefix: ${{ inputs.artifact-prefix }}
-          command: ./Scripts/test.sh smoke --no-build ${{ steps.ui-matrices.outputs.smoke-targets }}
+          rebuild-command: ./Scripts/build-for-testing.sh --app-only
+          command: ./Scripts/test.sh smoke --no-build ${{ needs.build.outputs.smoke-targets }}
           preboot-simulator: 'true'
 
   release-device:
     name: Device Release compilation
-    needs: [changes]
+    # Cold optimized compilation needs headroom after the concurrent product builds.
+    # Serializing behind build+unit cuts peak macOS fan-out; the wall
+    # timeout below matches the 30-minute job timeout so a slow Release
+    # compile fails fast instead of wedging at the 20-minute default.
+    needs: [changes, build, unit]
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: xcode-27
     timeout-minutes: 30
@@ -155,6 +206,9 @@ jobs:
       - name: Compile unsigned device Release
         env:
           SKIP_GENERATE: 1
+          # Cold Release exceeds the 1200s xcode-runner default on slow
+          # runners; align the wall watchdog with the 30-minute job timeout.
+          TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
         run: ./Scripts/build.sh --release-device --quiet
       - name: Upload Release build failure diagnostics
         if: failure()
@@ -178,12 +232,14 @@ jobs:
             packages: BattleEngine
           - name: State
             packages: TrinketCore TrinketPersistence TrinketAppState
-          - name: Features
-            packages: TrinketContent TrinketDesignSystem TrinketFeatureSupport TrinketBattleFeature
+          - name: Content
+            packages: TrinketContent TrinketDesignSystem
+          - name: Battle
+            packages: TrinketFeatureSupport TrinketBattleFeature
     runs-on: xcode-27
     # Package schemes are compiled in this job; the shared build is app-only
     # so smoke/UI can start without waiting on package test products.
-    # Sharded 3-way (Engine/State/Features) for faster push feedback.
+    # Sharded 4-way (Engine/State/Content/Battle) for faster push feedback.
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -214,8 +270,9 @@ jobs:
           test -f BattlePerformance.xctestplan
       - uses: ./.github/actions/setup-trinket
         with:
-          # State builds TrinketFeatureSupport, which compiles TrinketDesignSystem shaders.
-          metal: ${{ matrix.name == 'Features' || matrix.name == 'State' }}
+          # Content builds DesignSystem shaders; State and Battle build
+          # TrinketFeatureSupport, which compiles DesignSystem shaders.
+          metal: ${{ matrix.name == 'Content' || matrix.name == 'State' || matrix.name == 'Battle' }}
       - uses: ./.github/actions/test-job
         with:
           artifact-name: ${{ inputs.artifact-prefix }}unit-${{ matrix.name }}
@@ -325,7 +382,7 @@ jobs:
   # Exhaustive UI is advisory (nightly/dispatch) so it never blocks pushes.
   ci-ok:
     name: CI OK
-    needs: [changes, gate, assets-gate, build, release-device, unit]
+    needs: [changes, gate, assets-gate, build, smoke, release-device, unit]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
