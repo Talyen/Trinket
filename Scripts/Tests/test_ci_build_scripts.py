@@ -258,6 +258,7 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
             generate.write_text('#!/bin/bash\necho generated >> calls\n')
             generate.chmod(0o755)
             script = """
+unset TRINKET_SHARED_DERIVED_DATA SKIP_GENERATE
 source Scripts/build-freshness.sh
 content_generation_inputs=(input); project_generation_inputs=(project); asset_generation_inputs=(asset)
 touch input project asset
@@ -313,7 +314,7 @@ prepare_generated_inputs results
                 subprocess.run(["bash", "-ec", "source Scripts/build-freshness.sh; touch_generate_stamp results"], cwd=root, check=True)
                 os.utime(root / relative, (time.time() + 60, time.time() + 60))
                 result = subprocess.run(
-                    ["bash", "-ec", "source Scripts/build-freshness.sh; prepare_generated_inputs results"],
+                    ["bash", "-ec", "unset TRINKET_SHARED_DERIVED_DATA SKIP_GENERATE; source Scripts/build-freshness.sh; prepare_generated_inputs results"],
                     cwd=root, capture_output=True, text=True,
                 )
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
