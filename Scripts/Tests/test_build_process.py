@@ -275,6 +275,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
             generator.write_text('#!/bin/bash\nexit "${GENERATION_STATUS:-0}"\n')
             generator.chmod(0o755)
             command = """
+unset TRINKET_SHARED_DERIVED_DATA SKIP_GENERATE
 source Scripts/build-freshness.sh
 content_generation_inputs=(input); project_generation_inputs=(project); asset_generation_inputs=(asset)
 touch input project asset
