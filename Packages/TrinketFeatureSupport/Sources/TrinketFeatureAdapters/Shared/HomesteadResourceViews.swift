@@ -35,6 +35,7 @@ public struct HomesteadResourceWallet: View {
                 walletPill(for: resource, index: index)
             }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Homestead.resourceWallet)
     }
 

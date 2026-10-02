@@ -21,12 +21,12 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         assertWarlockAccessible()
     }
 
-    @MainActor
-    func testExistingPurchaseUnlocksContentOnColdLaunch() async throws {
+    func testExistingPurchaseUnlocksContentOnColdLaunch() throws {
         try skipUnavailablePurchaseAutomation()
-        try startStoreSession()
-        let session = try XCTUnwrap(storeSession)
-        _ = try await session.buyProduct(identifier: "com.ryanmcintire.Trinket.fullgame")
+        try launchOptionsOffer()
+        tapButton(AccessibilityID.FullGame.purchase)
+        assertDoesNotExist(AccessibilityID.FullGame.offer)
+        app.terminate()
         launchApp(arguments: TestLaunchArg.allForTab("options"))
         assertDoesNotExist(AccessibilityID.FullGame.options)
         assertWarlockAccessible()

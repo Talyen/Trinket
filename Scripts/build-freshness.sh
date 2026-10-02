@@ -43,7 +43,10 @@ import sys
 from pathlib import Path
 
 groups = [[]]
+build_inputs = "--build-inputs" in sys.argv[1:]
 for pattern in sys.argv[1:]:
+    if pattern == "--build-inputs":
+        continue
     if pattern == "--":
         groups.append([])
     else:
@@ -58,6 +61,8 @@ for patterns in groups:
             path = Path(match)
             files = path.rglob("*") if path.is_dir() else [path]
             for file in files:
+                if build_inputs and any(part in {".build", ".swiftpm", ".DerivedData", "__pycache__"} for part in file.parts):
+                    continue
                 if file.is_file() and file.suffix != ".md":
                     stat = file.stat()
                     records[str(file)] = [stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns]
@@ -238,6 +243,11 @@ touch_build_stamp() {
   local fingerprint="$2"
   local stamp
   stamp="$(build_stamp_path "$results_dir" "$fingerprint")"
+  if [[ -n "${TRINKET_BUILD_STARTED_INPUT_SNAPSHOT:-}" ]] && \
+    [[ "$(generation_input_snapshot --build-inputs "${build_input_paths[@]}")" != "$TRINKET_BUILD_STARTED_INPUT_SNAPSHOT" ]]; then
+    echo "Build inputs changed during compilation or testing; refusing a reusable stamp." >&2
+    return 1
+  fi
   mkdir -p "$results_dir"
   python3 Scripts/build-metadata.py write "$results_dir" "$fingerprint" \
     --started "${TRINKET_BUILD_STARTED_IDENTITY:-}" || return $?
@@ -249,6 +259,7 @@ touch_build_stamp() {
 # binaries. The identity is kept in the caller, including per-package workers.
 begin_build_stamps() {
   TRINKET_BUILD_STARTED_IDENTITY="$(python3 Scripts/build-metadata.py begin "$1" "$2")" || return $?
+  TRINKET_BUILD_STARTED_INPUT_SNAPSHOT="$(generation_input_snapshot --build-inputs "${build_input_paths[@]}")" || return $?
 }
 
 package_test_scheme() {

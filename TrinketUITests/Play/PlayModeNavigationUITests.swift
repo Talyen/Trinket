@@ -77,7 +77,10 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.01", in: TestLaunchArg.allForScreen("labyrinth-map"))
             + ["-performance-labyrinth-node", "boss", "-performance-strong-party"])
         assertExists(AccessibilityID.Play.labyrinthMap)
-        let boss = app.buttons.matching(NSPredicate(format: "label == %@", "Boss")).firstMatch
+        let boss = app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier BEGINSWITH %@ AND label == %@",
+            AccessibilityID.Play.labyrinthNode(""), "Boss",
+        )).firstMatch
         scrollUntilVisible(boss, swipingUp: true, requireHittable: true)
         tapWhenReady(boss)
         let action = app.buttons

@@ -129,6 +129,18 @@ class BuildMetadataTests(unittest.TestCase):
         self.shell('begin_build_stamps results smoke\nexport FAKE_XCODE=changed\ntouch_build_stamp results smoke', expected=1)
         self.check(expected=1)
 
+    def test_source_edit_during_build_cannot_stamp(self):
+        self.shell('build_input_paths=(input)\nprintf before > input\n'
+                   'begin_build_stamps results ui\nprintf after > input\n'
+                   'touch_build_stamp results ui', expected=1)
+        self.check('ui', expected=1)
+
+    def test_build_outputs_do_not_invalidate_the_source_snapshot(self):
+        self.shell('build_input_paths=(Trinket)\nmkdir -p Trinket/.swiftpm Trinket/.build Trinket/__pycache__\n'
+                   'begin_build_stamps results ui\nprintf output > Trinket/.swiftpm/cache\n'
+                   'printf output > Trinket/.build/cache\nprintf output > Trinket/__pycache__/cache\n'
+                   'touch_build_stamp results ui')
+
     def make_products(self, env):
         products = self.root / '.DerivedData/Build/Products'
         app = products / 'Debug-iphonesimulator/Trinket.app/Trinket'

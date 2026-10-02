@@ -10,8 +10,8 @@ use the canonical value and retirement rules for selective player journeys.
 
 | Area | Path | When |
 |------|------|------|
-| Smoke | `Smoke/` sources; `Smoke.xctestplan` at repo root | CI `test.sh smoke` (registry-defined classes); CI runs after compilation in the same job |
-| Exhaustive | `Play/`, `Collection/`, `Battle/` | Advisory nightly/dispatch CI, sharded into Play and Shell; includes StoreKit recovery; deliberate local diagnostics follow [Verification.md](../Docs/Platform/Verification.md#local-simulator-budget) |
+| Smoke | `Smoke/` sources; `Smoke.xctestplan` at repo root | CI `test.sh smoke` (registry-defined classes); receives products from the build job |
+| Exhaustive | `Play/`, `Collection/`, `Battle/` | Advisory nightly/dispatch CI, sharded into Play, Shell, and Collection; includes StoreKit recovery; deliberate local diagnostics follow [Verification.md](../Docs/Platform/Verification.md#local-simulator-budget) |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` (repo root) | Manual CI `performance.yml` / `performance.sh` investigations; outside routine smoke |
 | Support | `Support/` | Shared launch and StoreKit fixtures; page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
