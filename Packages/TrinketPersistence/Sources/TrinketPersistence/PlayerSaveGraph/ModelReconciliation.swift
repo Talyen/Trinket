@@ -2,10 +2,10 @@ import SwiftData
 
 func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
     existing: [Model],
-    values: [Value],
+    values: some Collection<Value>,
     existingKey: (Model) -> Key,
     valueKey: (Value) -> Key,
-    make: (Value) -> Model,
+    make: () -> Model,
     update: (Model, Value) -> Void,
     link: ((Model) -> Void)? = nil,
     context: ModelContext?,
@@ -23,15 +23,13 @@ func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
     var reconciled: [Model] = []
     reconciled.reserveCapacity(values.count)
     for value in values {
-        if let model = modelsByKey.removeValue(forKey: valueKey(value)) {
-            update(model, value)
-            reconciled.append(model)
-        } else {
-            let model = make(value)
-            update(model, value)
+        let retained = modelsByKey.removeValue(forKey: valueKey(value))
+        let model = retained ?? make()
+        update(model, value)
+        if retained == nil {
             link?(model)
-            reconciled.append(model)
         }
+        reconciled.append(model)
     }
     for removed in modelsByKey.values {
         context?.delete(removed)

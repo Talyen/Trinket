@@ -59,40 +59,6 @@ struct MusicPlayerRoutingTests {
         }
     }
 
-    @Test func `non boss battle track is stable across modes`() throws {
-        let enemy = try #require(GameContent.enemy(matching: "skeleton")?.combatant)
-        let journeyBattle = PlayBattleLaunchTestSupport.make(
-            origin: .journey(stageID: "chapter-1-stage-1"),
-            rngSeed: 0,
-            hero: GameContent.heroes[0],
-            companion: GameContent.companions[0],
-            enemy: enemy,
-        )
-        let spireBattle = PlayBattleLaunchTestSupport.make(
-            origin: .spire(spireID: .ironVein, floor: 1),
-            rngSeed: 0,
-            hero: GameContent.heroes[0],
-            companion: GameContent.companions[0],
-            enemy: enemy,
-        )
-
-        let journeyRequest = try trackRequest(from: MusicRoute.resolve(
-            selectedTab: .play,
-            activeBattle: journeyBattle,
-            sceneIsActive: true,
-            musicVolume: 0.75,
-        ))
-        let spireRequest = try trackRequest(from: MusicRoute.resolve(
-            selectedTab: .play,
-            activeBattle: spireBattle,
-            sceneIsActive: true,
-            musicVolume: 0.75,
-        ))
-
-        #expect(journeyRequest.track.kind == .battle)
-        #expect(spireRequest.track.id == journeyRequest.track.id)
-    }
-
     @Test func `leaving play returns to menu even with active battle`() throws {
         let battle = PlayBattleLaunchTestSupport.make(
             origin: .journey(stageID: "chapter-1-stage-10"),
@@ -119,17 +85,6 @@ struct MusicPlayerRoutingTests {
         (sceneIsActive: true, musicVolume: 0.0),
     ])
     func `silence preserves position when scene inactive or muted`(sceneIsActive: Bool, musicVolume: Double) {
-        let route = MusicRoute.resolve(
-            selectedTab: .play,
-            activeBattle: nil,
-            sceneIsActive: sceneIsActive,
-            musicVolume: musicVolume,
-        )
-
-        #expect(route == .silence(preservingPosition: true))
-    }
-
-    @Test func `muted battle resolves to preserving silence`() {
         let battle = PlayBattleLaunchTestSupport.make(
             origin: .journey(stageID: "chapter-1-stage-1"),
             rngSeed: 0,
@@ -137,12 +92,11 @@ struct MusicPlayerRoutingTests {
             companion: GameContent.companions[0],
             enemy: GameContent.enemy(matching: "skeleton")?.combatant,
         )
-
         let route = MusicRoute.resolve(
             selectedTab: .play,
             activeBattle: battle,
-            sceneIsActive: true,
-            musicVolume: 0.0,
+            sceneIsActive: sceneIsActive,
+            musicVolume: musicVolume,
         )
 
         #expect(route == .silence(preservingPosition: true))
@@ -170,6 +124,8 @@ struct MusicPlayerRoutingTests {
         let journey = try request(origin: .journey(stageID: "chapter-1-stage-1"), enemy: enemy)
         let spire = try request(origin: .spire(spireID: .ironVein, floor: 1), enemy: enemy)
         #expect(journey.resumeKey == spire.resumeKey)
+        #expect(journey.track.kind == .battle)
+        #expect(journey.track.id == spire.track.id)
 
         let boss = try request(origin: .journey(stageID: "chapter-1-stage-10"), enemy: bossEnemy)
         #expect(boss.resumeKey != journey.resumeKey)

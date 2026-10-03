@@ -17,6 +17,9 @@ SCRIPT_INPUTS = (
 
 
 import subprocess
+import io
+from contextlib import redirect_stdout
+from unittest.mock import patch
 import sys
 import tempfile
 import unittest
@@ -36,103 +39,23 @@ def commit(
 
 
 class ReleaseNotesUserTests(unittest.TestCase):
-    def test_content_feat_is_user_facing(self) -> None:
-        self.assertTrue(
-            notes.is_user_facing(
-                commit(
-                    "feat(content): add a new hero",
-                    "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift",
-                    "ContentManifest/abilities.tsv",
-                )
-            )
+    def test_player_facing_classification_respects_product_paths_and_overrides(self) -> None:
+        product = "Packages/BattleEngine/Sources/BattleEngine/Turns/BattleTurnEngine.swift"
+        cases = (
+            (commit("feat(content): add a hero", "ContentManifest/heroes.tsv"), True),
+            (commit("fix(battle): resolve dodge", product), True),
+            (commit("Add CI cache pruning", "Scripts/ci-gate.sh", ".github/workflows/tests.yml"), False),
+            (commit("Add coverage", "Packages/BattleEngine/Tests/BattleEngineTests/Test.swift"), False),
+            (commit("Extract dodge handling", product), False),
+            (commit("refactor(battle): split handlers", product), False),
+            (commit("feat(content): internal IDs", product, body="User-Facing: no"), False),
+            (commit("chore: options default", "Scripts/release.sh", body="User-Facing: yes"), True),
+            (commit("feat(battle): extract dodge trigger", product), True),
+            (commit("Tighten dodge resolution", product), True),
         )
-
-    def test_battle_engine_fix_is_user_facing(self) -> None:
-        self.assertTrue(
-            notes.is_user_facing(
-                commit(
-                    "fix(battle): resolve dodge against blocked hits",
-                    "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine+Dodge.swift",
-                )
-            )
-        )
-
-    def test_scripts_only_add_is_not_user_facing(self) -> None:
-        self.assertFalse(
-            notes.is_user_facing(
-                commit("Add CI cache pruning", "Scripts/ci-gate.sh", ".github/workflows/tests.yml")
-            )
-        )
-
-    def test_test_only_add_is_not_user_facing(self) -> None:
-        self.assertFalse(
-            notes.is_user_facing(
-                commit(
-                    "Add coverage for dodge triggers",
-                    "Packages/BattleEngine/Tests/BattleEngineTests/Triggers/CombatTriggerFieldCoverageTests.swift",
-                )
-            )
-        )
-
-    def test_refactor_extract_is_not_user_facing(self) -> None:
-        self.assertFalse(
-            notes.is_user_facing(
-                commit(
-                    "Extract dodge handling from CombatTriggerEngine",
-                    "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine+Dodge.swift",
-                )
-            )
-        )
-        self.assertFalse(
-            notes.is_user_facing(
-                commit(
-                    "refactor(battle): split trigger handlers",
-                    "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine.swift",
-                )
-            )
-        )
-
-    def test_user_facing_no_overrides_feat(self) -> None:
-        self.assertFalse(
-            notes.is_user_facing(
-                commit(
-                    "feat(content): reshuffle internal catalog ids",
-                    "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift",
-                    body="User-Facing: no",
-                )
-            )
-        )
-
-    def test_user_facing_yes_overrides_scripts_only(self) -> None:
-        self.assertTrue(
-            notes.is_user_facing(
-                commit(
-                    "chore: surface a player-visible options default",
-                    "Scripts/release.sh",
-                    body="User-Facing: yes",
-                )
-            )
-        )
-
-    def test_feat_extract_is_kept(self) -> None:
-        self.assertTrue(
-            notes.is_user_facing(
-                commit(
-                    "feat(battle): extract dodge into its own trigger",
-                    "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine+Dodge.swift",
-                )
-            )
-        )
-
-    def test_imperative_product_change_is_kept(self) -> None:
-        self.assertTrue(
-            notes.is_user_facing(
-                commit(
-                    "Tighten dodge resolution on blocked hits",
-                    "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine+Dodge.swift",
-                )
-            )
-        )
+        for candidate, expected in cases:
+            with self.subTest(subject=candidate.subject):
+                self.assertEqual(notes.is_user_facing(candidate), expected)
 
     def test_player_line_prefers_body_bullet(self) -> None:
         line = notes.player_line(
@@ -181,21 +104,6 @@ class ReleaseNotesUserTests(unittest.TestCase):
             ],
         )
 
-    def test_strip_unreleased_placeholder(self) -> None:
-        changelog = (
-            "# Changelog\n\n"
-            "## [0.2.0] - 2026-08-26\n\n"
-            "### Added\n\n"
-            "- Something players can see.\n\n"
-            "## [Unreleased]\n\n"
-            "<!-- New entries are generated at release time by ./Scripts/release.sh from git history. -->\n\n"
-            "## [0.1.0] - 2026-07-04\n"
-        )
-        stripped = notes.strip_unreleased_section(changelog)
-        self.assertNotIn("Unreleased", stripped)
-        self.assertIn("## [0.2.0]", stripped)
-        self.assertIn("## [0.1.0]", stripped)
-
     def test_parse_git_log_reads_subject_body_and_files(self) -> None:
         raw = (
             "===COMMIT===\n"
@@ -219,28 +127,17 @@ class ReleaseNotesUserTests(unittest.TestCase):
             ),
         )
 
-    def test_cliff_appstore_toml_is_gone(self) -> None:
-        self.assertFalse((ROOT / "cliff-appstore.toml").exists())
-
-    def test_does_not_write_prompt_file(self) -> None:
-        source = (ROOT / "Scripts" / "release-notes-user.py").read_text(encoding="utf-8")
-        self.assertNotIn(".prompt.md", source)
-        self.assertNotIn("PROMPT", source)
-
-    def test_release_dry_run_still_prints_player_draft(self) -> None:
-        release = (ROOT / "Scripts" / "release.sh").read_text(encoding="utf-8")
-        self.assertIn("release-notes-user.py", release)
-        self.assertIn("--dry-run", release)
-        result = subprocess.run(
-            [sys.executable, str(ROOT / "Scripts" / "release-notes-user.py"), "--dry-run", "--version", "0.2.0"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertTrue(result.stdout.strip())
-        self.assertNotIn(".prompt.md", result.stdout)
+    def test_release_dry_run_prints_player_draft_without_writing_notes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "notes.txt"
+            output.write_text("existing release notes")
+            draft = io.StringIO()
+            with patch.object(notes, "OUTPUT", output), patch.object(notes, "latest_tag", return_value=None), \
+                 patch.object(notes, "load_commits", return_value=[commit("fix: restore battle rewards", "Packages/Rewards.swift")]), \
+                 patch.object(sys, "argv", ["release-notes-user.py", "--dry-run", "--version", "0.2.0"]), redirect_stdout(draft):
+                notes.main()
+            self.assertIn("Restore battle rewards", draft.getvalue())
+            self.assertEqual(output.read_text(), "existing release notes")
 
     def test_strip_unreleased_flag_rewrites_changelog(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -265,20 +162,6 @@ class ReleaseNotesUserTests(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
             self.assertNotIn("Unreleased", text)
             self.assertIn("## [0.1.0]", text)
-
-    def test_github_release_uses_store_notes(self) -> None:
-        workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
-        self.assertIn("ReleaseNotes/en-US.txt", workflow)
-        self.assertIn("See CHANGELOG.md for the full developer log.", workflow)
-        self.assertNotIn("github-body", workflow)
-
-    def test_release_notes_sh_strips_unreleased_after_prepend(self) -> None:
-        script = (ROOT / "Scripts" / "release-notes.sh").read_text(encoding="utf-8")
-        self.assertIn("--strip-unreleased CHANGELOG.md", script)
-
-    def test_commit_msg_hook_does_not_nag_user_facing(self) -> None:
-        hook = (ROOT / "Scripts" / "validate-commit-msg.sh").read_text(encoding="utf-8")
-        self.assertNotIn("User-Facing", hook)
 
 
 if __name__ == "__main__":

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import functools
 import re
 
 from internal.cli import ROOT
@@ -50,7 +49,6 @@ class StageRow:
 ART_MANIFEST = ROOT / "ArtManifest" / "curated-assets.tsv"
 
 
-@functools.cache
 def collect_art_ids() -> set[str]:
     header, rows = read_manifest_table(ART_MANIFEST)
     if "id" not in header:
@@ -59,22 +57,17 @@ def collect_art_ids() -> set[str]:
     return {row[id_index] for row in rows}
 
 
-@functools.cache
 def _read_encounter_source(name: str) -> str:
     return (ENCOUNTER_DIR / "Mystery" / name).read_text(encoding="utf-8")
 
 
-@functools.cache
 def collect_mystery_event_ids() -> set[str]:
-    ids: set[str] = set()
-    for name in ("MysteryEventPool+Events.swift",):
-        ids.update(re.findall(r'makeEvent\(\s*id:\s*"([^"]+)"', _read_encounter_source(name)))
+    ids = set(re.findall(r'makeEvent\(\s*id:\s*"([^"]+)"', _read_encounter_source("MysteryEventPool+Events.swift")))
     if not ids:
         raise ValueError("mystery event id scrape found no ids; update collect_mystery_event_ids")
     return ids
 
 
-@functools.cache
 def collect_recruit_event_ids() -> set[str]:
     ids = set(re.findall(r'recruit\(\s*id:\s*"([^"]+)"', _read_encounter_source("RecruitEventPool.swift")))
     if not ids:
@@ -82,17 +75,8 @@ def collect_recruit_event_ids() -> set[str]:
     return ids
 
 
-@functools.cache
 def parse_stage_rows() -> list[StageRow]:
-    return _parse_tsv_rows(MANIFEST_DIR / 'stages.tsv',
-        ['chapter_id', 'chapter_number', 'chapter_title', 'theme', 'stage_number', 'encounter', 'enemy_id', 'encounter_art_id', 'encounter_art_title'], StageRow, min_columns=None)
-
-
-def parse_item_templates(raw: str) -> str:
-    if not raw.strip():
-        return "[]"
-    parts = [part.strip() for part in raw.split(",") if part.strip()]
-    return "[" + ", ".join(f'"{swift_escape(part)}"' for part in parts) + "]"
+    return _parse_tsv_rows(MANIFEST_DIR / 'stages.tsv', StageRow)
 
 
 def render_stage_encounter(row: StageRow) -> str:

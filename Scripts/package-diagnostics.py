@@ -47,6 +47,8 @@ def summarize(root: Path, packages: list[str], *, verbose: bool = False) -> int:
         if passed:
             continue
         entries = report.get("issues", []) if isinstance(report, dict) else []
+        if not isinstance(entries, list) or any(not isinstance(issue, dict) for issue in entries):
+            entries = []
         if entries:
             for issue in entries:
                 # Keep distinct tests separate while collapsing the same compiler

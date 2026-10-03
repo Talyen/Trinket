@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import sys
+from dataclasses import dataclass
 
 from internal.content.modifier_schema import generate_modifiers
 from internal.content.affix_rolling import generate_affix_rolling
@@ -66,16 +67,28 @@ from internal.content.talents import (
 )
 
 
-def validate_manifests() -> tuple[
-    list[AffixRow],
-    list[TraitRow],
-    list[StageRow],
-    list[CombatantRow],
-    list[EnemyRow],
-    list[HomesteadNodeRow],
-    list[ItemBaseRow],
-    list[TalentRow],
-]:
+@dataclass
+class ManifestRows:
+    affixes: list[AffixRow]
+    traits: list[TraitRow]
+    stages: list[StageRow]
+    combatants: list[CombatantRow]
+    enemies: list[EnemyRow]
+    homestead: list[HomesteadNodeRow]
+    item_bases: list[ItemBaseRow]
+    talents: list[TalentRow]
+
+    def summary(self) -> str:
+        return (
+            f"{len(self.affixes)} affixes, {len(self.traits)} traits, "
+            f"{len(collect_ability_symbols())} abilities, {len(self.stages)} stages, "
+            f"{len(self.combatants)} combatants, {len(self.enemies)} enemies, "
+            f"{len(self.homestead)} homestead tiers, {len(self.item_bases)} item bases, "
+            f"{len(self.talents)} talents"
+        )
+
+
+def validate_manifests() -> ManifestRows:
     affix_rows = parse_affix_rows()
     trait_rows = parse_trait_rows()
     combatant_rows = parse_combatant_rows()
@@ -108,15 +121,9 @@ def validate_manifests() -> tuple[
     validate_homestead_node_rows(homestead_rows)
     validate_item_base_rows(item_base_rows)
     validate_affix_reachability(affix_rows, item_base_rows)
-    return (
-        affix_rows,
-        trait_rows,
-        stage_rows,
-        combatant_rows,
-        enemy_rows,
-        homestead_rows,
-        item_base_rows,
-        talent_rows,
+    return ManifestRows(
+        affixes=affix_rows, traits=trait_rows, stages=stage_rows, combatants=combatant_rows,
+        enemies=enemy_rows, homestead=homestead_rows, item_bases=item_base_rows, talents=talent_rows,
     )
 
 
@@ -127,28 +134,7 @@ def main() -> int:
     if command not in {"all", "validate", "shorthand"}:
         raise SystemExit(f"Unknown command: {command}. Usage: content_codegen.py [validate|shorthand]")
     if command == "validate":
-        (
-            affix_rows,
-            trait_rows,
-            stage_rows,
-            combatant_rows,
-            enemy_rows,
-            homestead_rows,
-            item_base_rows,
-            talent_rows,
-        ) = validate_manifests()
-        ability_count = len(collect_ability_symbols())
-        print(
-            f"Validated {len(affix_rows)} affixes, "
-            f"{len(trait_rows)} traits, "
-            f"{ability_count} abilities, "
-            f"{len(stage_rows)} stages, "
-            f"{len(combatant_rows)} combatants, "
-            f"{len(enemy_rows)} enemies, "
-            f"{len(homestead_rows)} homestead tiers, "
-            f"{len(item_base_rows)} item bases, and "
-            f"{len(talent_rows)} talents"
-        )
+        print(f"Validated {validate_manifests().summary()}")
         return 0
     if command == "shorthand":
         generate_ability_shorthand()
@@ -156,46 +142,24 @@ def main() -> int:
         print("Generated AbilityShorthand.generated.swift and AbilityInventory.generated.tsv")
         return 0
 
-    (
-        affix_rows,
-        trait_rows,
-        stage_rows,
-        combatant_rows,
-        enemy_rows,
-        homestead_rows,
-        item_base_rows,
-        talent_rows,
-    ) = validate_manifests()
-    generate_affix_catalog(affix_rows)
-    generate_traits_catalog(trait_rows)
-    generate_chapters_catalog(stage_rows)
+    rows = validate_manifests()
+    generate_affix_catalog(rows.affixes)
+    generate_traits_catalog(rows.traits)
+    generate_chapters_catalog(rows.stages)
     generate_stages_index()
-    generate_roster_catalog(combatant_rows)
-    generate_enemies_catalog(enemy_rows)
-    generate_homestead_catalog(homestead_rows)
-    generate_item_bases_catalog(item_base_rows)
-    generate_encounter_art_catalog(stage_rows)
+    generate_roster_catalog(rows.combatants)
+    generate_enemies_catalog(rows.enemies)
+    generate_homestead_catalog(rows.homestead)
+    generate_item_bases_catalog(rows.item_bases)
+    generate_encounter_art_catalog(rows.stages)
     generate_modifiers()
     generate_trigger_families()
     generate_trigger_root()
     generate_affix_rolling(_trigger_families())
-    generate_talent_catalog(talent_rows, [row.id for row in combatant_rows])
+    generate_talent_catalog(rows.talents, [row.id for row in rows.combatants])
     generate_ability_shorthand()
     generate_ability_inventory()
-    ability_count = len(collect_ability_symbols())
-    trigger_family_count = len(_trigger_families())
-    print(
-        f"Generated {len(affix_rows)} affixes, "
-        f"{len(trait_rows)} traits, "
-        f"{ability_count} abilities, "
-        f"{len(stage_rows)} stages, "
-        f"{len(combatant_rows)} combatants, "
-        f"{len(enemy_rows)} enemies, "
-        f"{len(homestead_rows)} homestead tiers, "
-        f"{len(item_base_rows)} item bases, "
-        f"{len(talent_rows)} talents, and "
-        f"{trigger_family_count} trigger families"
-    )
+    print(f"Generated {rows.summary()}, and {len(_trigger_families())} trigger families")
     return 0
 
 

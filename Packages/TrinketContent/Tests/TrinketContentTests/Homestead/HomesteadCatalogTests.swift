@@ -7,7 +7,6 @@ struct HomesteadCatalogTests {
         let nodes = GameContent.homesteadNodes
         #expect(Set(nodes.map(\.id)).count == nodes.count)
         for node in nodes {
-            #expect(node.maxTier == 4)
             #expect(node.tiers.map(\.tier) == [1, 2, 3, 4])
             for tier in node.tiers {
                 #expect(!tier.stageName.isEmpty)
@@ -17,8 +16,14 @@ struct HomesteadCatalogTests {
             for (lower, higher) in zip(node.tiers, node.tiers.dropFirst()) {
                 let a = lower.combatBonus
                 let b = higher.combatBonus
-                for (old, new) in zip(a.heroModifiers + a.companionModifiers, b.heroModifiers + b.companionModifiers) {
-                    #expect(new.numericValue > old.numericValue)
+                for (oldModifiers, newModifiers) in [
+                    (a.heroModifiers, b.heroModifiers), (a.companionModifiers, b.companionModifiers),
+                ] {
+                    #expect(oldModifiers.count == newModifiers.count)
+                    for (old, new) in zip(oldModifiers, newModifiers) {
+                        #expect(old.mapInt { _ in 0 }.mapPercent { _ in 0 } == new.mapInt { _ in 0 }.mapPercent { _ in 0 })
+                        #expect(new.numericValue > old.numericValue)
+                    }
                 }
                 for (old, new) in zip(
                     [a.astralChanceBonusPercent, a.goldFindPercent, a.experienceBonusPercent, a.gemsFindPercent],

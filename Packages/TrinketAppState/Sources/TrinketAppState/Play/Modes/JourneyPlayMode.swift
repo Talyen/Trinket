@@ -31,7 +31,7 @@ public final class JourneyPlayMode {
     }
 
     public func resolvedEncounter(for stage: Stage) -> ScaledEncounter? {
-        Self.resolvedEncounter(
+        PlayBattlePreparation.journeyEncounter(
             for: stage,
             worldSeed: playerSave.worldSeed,
             partyAverageLevel: playerSave.roster.activePartyAverageLevel,
@@ -164,18 +164,6 @@ public final class JourneyPlayMode {
 }
 
 extension JourneyPlayMode {
-    static func resolvedEncounter(
-        for stage: Stage,
-        worldSeed: UInt64,
-        partyAverageLevel: Int,
-    ) -> ScaledEncounter? {
-        PlayBattlePreparation.journeyEncounter(
-            for: stage,
-            worldSeed: worldSeed,
-            partyAverageLevel: partyAverageLevel,
-        )
-    }
-
     private func battleLoot(
         for stage: Stage,
         encounter: ScaledEncounter,
@@ -192,13 +180,6 @@ extension JourneyPlayMode {
         )
     }
 
-    static func stageRewardsAlreadyClaimed(
-        for stage: Stage,
-        journey: JourneyProgressState,
-    ) -> Bool {
-        journey.hasClaimedRewards(for: stage)
-    }
-
     private func combatRequest(
         for stage: Stage,
         encounter: ScaledEncounter,
@@ -209,10 +190,7 @@ extension JourneyPlayMode {
             encounter: encounter,
             loot: loot,
             roster: playerSave.roster,
-            stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
-                for: stage,
-                journey: playerSave.journey,
-            ),
+            stageRewardsAlreadyClaimed: playerSave.journey.hasClaimedRewards(for: stage),
         )
         return (input, .journey(stage))
     }

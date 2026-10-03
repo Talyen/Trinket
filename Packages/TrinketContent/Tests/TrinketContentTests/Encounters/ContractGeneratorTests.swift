@@ -4,8 +4,7 @@ import TrinketContent
 import TrinketCore
 
 /// Bounty-contract generator tests (ContractGenerator.makeOffer). For manifest
-/// catalog invariants, see GameContentCatalogInvariantTests; for test-fixture
-/// pins, see FixtureContractTests.
+/// catalog invariants, see GameContentCatalogInvariantTests.
 struct ContractGeneratorTests {
     @Test(arguments: ContractDifficulty.allCases)
     func `every matching catalog enemy can be contracted`(difficulty: ContractDifficulty) {

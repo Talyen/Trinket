@@ -36,7 +36,7 @@ extension PlayBattleLaunch {
         var enemyModifiers = enemyBuild.modifiers
         enemyModifiers.merge(input.universalModifiers)
         let configuration = BattleRunConfiguration(
-            runKey: inputs.runKey,
+            runKey: input.origin?.runKey,
             rngSeed: inputs.rngSeed,
             hero: heroMember,
             companion: companionMember,

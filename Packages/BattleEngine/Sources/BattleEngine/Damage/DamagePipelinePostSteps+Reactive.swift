@@ -109,14 +109,10 @@ package extension DamagePipeline {
                     amount: restored,
                     keyword: .mana,
                 ))
-                state.damageEvents.append(contentsOf: CombatTriggerEngine.afterGainMana(
-                    by: state.combatant,
-                    in: &context,
-                ))
             }
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.consumeManaOverflowTalents(
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.manaRestorationReactions(
                 for: state.combatant,
-                restoredMana: restored > 0,
+                restored: restored,
                 in: &context,
             ))
         }

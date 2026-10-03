@@ -274,18 +274,13 @@ struct BattleLootTests {
         var save = SaveTestSupport.makeSave()
         save.contracts.ensureBoard(eligibleModifiers: [.gold])
         let offer = try #require(save.contracts.offer(for: .standard))
-        #expect(ContractsCompletion.campaignRewardLevel(in: save) == 1)
+        #expect(CampaignRewardLevel.resolve(in: save) == 1)
         let actual = ContractsCompletion.resolveLoot(for: offer, encounterLevel: 20, save: save)
         let expected = BattleLoot.resolve(
             .contract(offerID: offer.id), encounterLevel: 20, enemyIsBoss: false,
             worldSeed: save.worldSeed, ownership: RewardOwnership(save),
         )
         #expect(actual == expected)
-
-        for stage in GameContent.chapters[0].stages {
-            save.journey.complete(stage, in: GameContent.chapters)
-        }
-        #expect(ContractsCompletion.campaignRewardLevel(in: save) > 1)
     }
 
     @Test func `authored astral rewards remain the requested template`() throws {

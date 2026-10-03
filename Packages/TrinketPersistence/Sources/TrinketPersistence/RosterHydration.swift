@@ -27,35 +27,21 @@ enum RosterHydration {
         catalog.first { unlockedIDs.contains($0.id) }?.id
     }
 
-    /// Sanitizer path: unknown/missing ability IDs fall back to catalog
-    /// defaults so the roster stays playable. The model/cloud read path uses
-    /// `rawAbilityLoadouts` (known aliases, then exact match, unknown → nil).
-    /// Retired choices migrate before unknown IDs are lost. The divergence is
-    /// intentional: read preserves, sanitize heals.
+    /// Sanitization fills missing choices; raw model reads preserve empty tiers.
     static func resolveAbilityLoadouts(
         from loadouts: [String: AbilityLoadout],
     ) -> [String: AbilityLoadout] {
-        resolveAbilities(loadouts.mapValues(rawIDs(of:)), fallbackToDefaults: true)
+        resolveAbilities(loadouts.mapValues {
+            AbilityLoadoutIDs(basicID: $0.basic?.id, skillID: $0.skill?.id, ultimateID: $0.ultimate?.id)
+        }, fallbackToDefaults: true)
     }
 
-    /// Model/cloud read path: known aliases followed by exact match. Unknown combatants are
-    /// dropped; unknown ability IDs become nil (not defaults) so a later
-    /// sanitize can distinguish "stored unknown" from "stored missing".
     static func rawAbilityLoadouts(
         from ids: [String: AbilityLoadoutIDs],
     ) -> [String: AbilityLoadout] {
         resolveAbilities(ids, fallbackToDefaults: false)
     }
 
-    private static func exactAbility(_ id: String?, choices: [Ability]) -> Ability? {
-        guard let id else { return nil }
-        // Bounty Shot now owns Bandit's Arrow's Stun-and-Gold behavior.
-        let canonicalID = id == "sap-arrow" ? "bounty-shot" : id
-        return choices.first(where: { $0.id == canonicalID })
-    }
-
-    /// Single exact-or-fallback core shared by the sanitizer (fallback) and
-    /// model/cloud read (exact) paths.
     private static func resolveAbilities(
         _ loadouts: [String: AbilityLoadoutIDs],
         fallbackToDefaults: Bool,
@@ -64,34 +50,26 @@ enum RosterHydration {
         for (combatantID, ids) in loadouts {
             guard let combatant = GameContent.combatant(matching: combatantID) else { continue }
             let defaults = fallbackToDefaults ? combatant.abilityLoadout : nil
-            let choices = combatant.abilityChoices
+            func resolve(_ id: String?, tier: AbilityTier) -> Ability? {
+                let fallback = defaults?.ability(for: tier)
+                guard let id else { return fallback }
+                // Preserve Bandit's Arrow saves after Bounty Shot took over its behavior.
+                let canonicalID = id == "sap-arrow" ? "bounty-shot" : id
+                return combatant.abilityChoices.abilities(for: tier).first { $0.id == canonicalID } ?? fallback
+            }
             resolved[combatantID] = AbilityLoadout(
-                basic: ability(ids.basicID, tier: .basic, fallback: defaults?.basic, choices: choices),
-                skill: ability(ids.skillID, tier: .skill, fallback: defaults?.skill, choices: choices),
-                ultimate: ability(ids.ultimateID, tier: .ultimate, fallback: defaults?.ultimate, choices: choices),
+                basic: resolve(ids.basicID, tier: .basic),
+                skill: resolve(ids.skillID, tier: .skill),
+                ultimate: resolve(ids.ultimateID, tier: .ultimate),
             )
         }
         return resolved
-    }
-
-    private static func ability(
-        _ id: String?,
-        tier: AbilityTier,
-        fallback: Ability?,
-        choices: AbilityChoices,
-    ) -> Ability? {
-        guard let id else { return fallback }
-        return exactAbility(id, choices: choices.abilities(for: tier)) ?? fallback
     }
 
     struct AbilityLoadoutIDs: Codable, Equatable, Sendable {
         var basicID: String?
         var skillID: String?
         var ultimateID: String?
-    }
-
-    private static func rawIDs(of loadout: AbilityLoadout) -> AbilityLoadoutIDs {
-        AbilityLoadoutIDs(basicID: loadout.basic?.id, skillID: loadout.skill?.id, ultimateID: loadout.ultimate?.id)
     }
 
     static func resolveEquipmentLoadouts(
@@ -117,11 +95,7 @@ enum RosterHydration {
             if equippedInventory != nil, combatant == nil {
                 continue
             }
-            var resolvedItems: [ItemSlot: String] = [:]
-            for (slot, itemID) in loadout.itemIDsBySlot where inventoryItemIDs.contains(itemID) {
-                resolvedItems[slot] = itemID
-            }
-            var cleaned = EquipmentLoadout(itemIDsBySlot: resolvedItems)
+            var cleaned = EquipmentLoadout(itemIDsBySlot: loadout.itemIDsBySlot.filter { inventoryItemIDs.contains($0.value) })
             if let combatant, let equippedInventory {
                 cleaned = cleaned.sanitized(for: combatant, inventory: equippedInventory)
             }
@@ -172,23 +146,12 @@ enum RosterHydration {
         let newlyEquipped = Set(resolved.itemIDsBySlot.values)
         var updated = loadouts
         for (otherID, otherLoadout) in loadouts where otherID != combatantID {
-            updated[otherID] = loadoutRemoving(otherLoadout, itemIDs: newlyEquipped)
+            updated[otherID] = EquipmentLoadout(itemIDsBySlot: otherLoadout.itemIDsBySlot.filter { !newlyEquipped.contains($0.value) })
         }
         updated[combatantID] = resolved
         // Final canonical pass: the edited entry already won (others were
         // stripped of its items), so this only heals pre-existing dupes
         // among untouched loadouts, matching sanitize.
         return enforceUniqueEquippedItems(updated)
-    }
-
-    /// Removes every slot holding one of the given items.
-    private static func loadoutRemoving(_ loadout: EquipmentLoadout, itemIDs: Set<String>) -> EquipmentLoadout {
-        var cleaned = loadout
-        for slot in ItemSlot.allCases {
-            if let itemID = cleaned.itemID(for: slot), itemIDs.contains(itemID) {
-                cleaned.unequip(slot)
-            }
-        }
-        return cleaned
     }
 }

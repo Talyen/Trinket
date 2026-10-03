@@ -1,93 +1,58 @@
-import BattleEngine
 import SwiftUI
 import TrinketContent
-import TrinketCore
 import TrinketDesignSystem
-import TrinketFeatureContracts
 import TrinketFeatureSupport
 
 #if DEBUG
-public struct BattleTransitionLabView: View {
-    public init() {
-        _fixture = State(initialValue: BattleTransitionLabFixture())
+public struct BattleTransitionLabView<StagePicker: View>: View {
+    public init(
+        stage: Stage,
+        @ViewBuilder stagePicker: @escaping (@escaping () -> Bool) -> StagePicker,
+    ) {
+        _fixture = State(initialValue: BattleTransitionLabFixture(stage: stage))
+        self.stagePicker = stagePicker
     }
 
+    private let stagePicker: (@escaping () -> Bool) -> StagePicker
     @Environment(\.displayScale) private var displayScale
     @Environment(\.scenePhase) private var scenePhase
     @State private var fixture: BattleTransitionLabFixture
-    @State private var preset = BattleTransitionPreset.current
-    @State private var screen = BattleTransitionScreen.preview
+    @State private var preset = BattleTransitionPreset.crossfade
+    @State private var screen = BattleTransitionScreen.picker
+    @State private var destination: BattleTransitionScreen?
+    @State private var progress = 0.0
     @State private var isReady = false
     @State private var isControlsPresented = false
     @State private var pendingReplay: BattleTransitionReplay?
     @State private var replayTask: Task<Void, Never>?
-    @State private var entrySettled = false
-    @State private var handVisible = false
-    @State private var veilOpacity = 0.0
-    @State private var aperture = 1.0
-    @State private var victoryVisible = false
+    @State private var playbackID = UUID()
     @State private var revealID = UUID()
 
     public var body: some View {
         ZStack {
             TrinketDesign.Colors.canvas.ignoresSafeArea()
             if isReady {
-                BattleTransitionLabCanvas(
-                    fixture: fixture,
-                    screen: screen,
-                    gathersPortraits: preset == .gather,
-                    entrySettled: entrySettled,
-                    handVisible: handVisible,
-                )
-                .trinketPresentationVisibility(screen != .victory)
+                stagePicker(enterBattle)
+                    .modifier(layer(.picker))
+                BattleTransitionLabCanvas(fixture: fixture)
+                    .modifier(layer(.battle))
+                victory
+                    .modifier(layer(.victory))
 
-                if screen == .victory {
-                    VictoryView(
-                        summary: fixture.summary,
-                        primaryActionTitle: "Loot All",
-                        primaryActionAccessibilityIdentifier: AccessibilityID.Battle.continueButton,
-                        action: .collect(hapticsEnabled: false, claim: { true }, finish: reset),
-                    )
-                    .id(revealID)
-                    .scaleEffect(preset == .gather && !victoryVisible ? 0.985 : 1)
-                    .offset(y: preset == .gather && !victoryVisible ? 12 : 0)
-                    .trinketPresentationVisibility(victoryVisible, opacity: victoryVisible ? 1 : 0)
+                if destination != nil, effectivePreset == .curtain {
+                    GeometryReader { geometry in
+                        transitionTint
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .offset(x: geometry.size.width * (progress * 2 - 1) * (destination == .battle ? 1 : -1))
+                    }
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
                 }
             } else {
                 ProgressView()
             }
-
-            (screen == .victory ? TrinketDesign.Colors.accent : TrinketDesign.Colors.arcane)
-                .opacity(veilOpacity)
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
         }
-        .mask {
-            GeometryReader { geometry in
-                Circle()
-                    .frame(width: geometry.size.height * 2, height: geometry.size.height * 2)
-                    .scaleEffect(aperture)
-                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-            }
-        }
-        .overlay {
-            if preset == .aperture {
-                GeometryReader { geometry in
-                    Circle()
-                        .strokeBorder(
-                            screen == .victory ? TrinketDesign.Colors.accentEmphasized : TrinketDesign.Colors.arcane,
-                            lineWidth: 2,
-                        )
-                        .frame(width: geometry.size.height * 2, height: geometry.size.height * 2)
-                        .scaleEffect(aperture)
-                        .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                }
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
-            }
-        }
-        .background(TrinketDesign.Colors.canvas.ignoresSafeArea())
+        .clipped()
         .environment(fixture.session)
         .environment(fixture.session.spectacle)
         .environment(fixture.session.feedback)
@@ -96,20 +61,31 @@ public struct BattleTransitionLabView: View {
         .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                if screen == .battle {
+                    Menu("Battle Preview") {
+                        Button("Return to Stages", action: returnToStages)
+                            .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.returnToStages)
+                        Button("Show Victory") { start(.showVictory) }
+                            .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.showVictory)
+                    }
+                    .disabled(replayTask != nil)
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Controls", systemImage: "slider.horizontal.3") {
-                    reset()
+                    cancelPlayback(restoring: screen)
                     isControlsPresented = true
                 }
                 .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.controls)
                 .disabled(!isReady)
             }
         }
-        .sheet(isPresented: $isControlsPresented, onDismiss: beginPendingReplay) {
-            controls
-        }
+        .sheet(isPresented: $isControlsPresented, onDismiss: beginPendingReplay) { controls }
         .preferredColorScheme(.dark)
         .task(id: displayScale) {
+            isReady = false
+            cancelPlayback(restoring: .picker)
             await fixture.session.prepareBattlePresentationAssets(displayScale: displayScale)
             guard !Task.isCancelled else { return }
             isReady = true
@@ -128,6 +104,37 @@ public struct BattleTransitionLabView: View {
         }
     }
 
+    private var victory: some View {
+        let generation = playbackID
+        let reveal = revealID
+        return VictoryView(
+            summary: fixture.summary,
+            primaryActionTitle: "Loot All",
+            primaryActionAccessibilityIdentifier: AccessibilityID.BattleTransitionLab.lootAll,
+            action: .collect(hapticsEnabled: false, claim: { true }, finish: {
+                guard playbackID == generation, revealID == reveal else { return }
+                returnToStages()
+            }),
+        )
+        .id(reveal)
+    }
+
+    private var effectivePreset: BattleTransitionPreset {
+        destination == .victory ? .crossfade : preset
+    }
+
+    private var transitionTint: Color {
+        screen == .victory ? TrinketDesign.Colors.accent : TrinketDesign.Colors.arcane
+    }
+
+    private func layer(_ representedScreen: BattleTransitionScreen) -> BattleTransitionLabLayer {
+        BattleTransitionLabLayer(
+            screen: representedScreen, source: screen, destination: destination,
+            preset: effectivePreset, progress: progress,
+            isInteractive: replayTask == nil && !isControlsPresented, tint: transitionTint,
+        )
+    }
+
     private var controls: some View {
         NavigationStack {
             Form {
@@ -138,19 +145,25 @@ public struct BattleTransitionLabView: View {
                         }
                     }
                     .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.preset)
-                    Text(preset.description)
-                        .foregroundStyle(.secondary)
+                    Text(preset.description).foregroundStyle(.secondary)
                 }
                 Section("Replay") {
                     replayButton("Replay Entry", replay: .entry, id: AccessibilityID.BattleTransitionLab.replayEntry)
-                    replayButton("Replay Victory", replay: .victory, id: AccessibilityID.BattleTransitionLab.replayVictory)
-                    replayButton("Play Both", replay: .both, id: AccessibilityID.BattleTransitionLab.playBoth)
+                    replayButton("Replay Direct Exit", replay: .directExit, id: AccessibilityID.BattleTransitionLab.replayDirectExit)
+                    replayButton(
+                        "Replay Victory Return",
+                        replay: .victoryReturn,
+                        id: AccessibilityID.BattleTransitionLab.replayVictoryReturn,
+                    )
+                    replayButton("Play Full Journey", replay: .journey, id: AccessibilityID.BattleTransitionLab.playFullJourney)
                     Button("Reset", action: reset)
                         .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.reset)
                 }
                 Section {
-                    Text("Isolated preview. Loot All only replays collection; no rewards or progress are saved.")
-                        .foregroundStyle(.secondary)
+                    Text(
+                        "Fixed sample stages and rewards. Battle, Return to Stages, and Loot All only change this preview; no progress is saved.",
+                    )
+                    .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("Battle Transitions")
@@ -175,115 +188,115 @@ public struct BattleTransitionLabView: View {
         .disabled(!isReady)
     }
 
+    private func enterBattle() -> Bool {
+        guard screen == .picker, isReady, replayTask == nil else { return false }
+        start(.entry)
+        return true
+    }
+
+    private func returnToStages() {
+        guard screen != .picker, replayTask == nil else { return }
+        start(.returnToStages)
+    }
+
     private func reset() {
+        cancelPlayback(restoring: .picker)
+        revealID = UUID()
+    }
+
+    private func cancelPlayback(restoring settledScreen: BattleTransitionScreen) {
         replayTask?.cancel()
         replayTask = nil
+        playbackID = UUID()
+        if settledScreen == .victory {
+            revealID = UUID()
+        }
         var transaction = Transaction()
         transaction.disablesAnimations = true
         withTransaction(transaction) {
-            screen = .preview
-            entrySettled = false
-            handVisible = false
-            veilOpacity = 0
-            aperture = 1
-            victoryVisible = false
-            revealID = UUID()
+            screen = settledScreen
+            destination = nil
+            progress = 0
         }
     }
 
     private func beginPendingReplay() {
         guard let replay = pendingReplay, isReady, scenePhase == .active else { return }
         pendingReplay = nil
-        reset()
+        start(replay, afterSheet: true)
+    }
+
+    private func start(_ replay: BattleTransitionReplay, afterSheet: Bool = false) {
+        guard isReady, replayTask == nil, scenePhase == .active else { return }
+        if replay == .entry || replay == .journey {
+            reset()
+        } else if replay == .directExit || replay == .victoryReturn {
+            cancelPlayback(restoring: .battle)
+            revealID = UUID()
+        }
+        let id = playbackID
         replayTask = Task { @MainActor in
             do {
-                if replay == .victory {
-                    screen = .battle
-                    entrySettled = true
-                    handVisible = true
-                }
-                // Let the control sheet retire and the starting pose mount before playback.
-                try await Task.sleep(for: .milliseconds(300))
-                if replay != .victory {
+                // The sheet must retire and the settled source must mount before playback.
+                try await Task.sleep(for: .milliseconds(afterSheet ? 300 : 16))
+                switch replay {
+                case .entry:
                     try await transition(to: .battle)
-                }
-                if replay == .both {
-                    try await Task.sleep(for: .seconds(1))
-                }
-                if replay != .entry {
+                case .directExit, .returnToStages:
+                    try await transition(to: .picker)
+                case .showVictory:
                     try await transition(to: .victory)
+                case .victoryReturn:
+                    try await transition(to: .victory)
+                    try await Task.sleep(for: .seconds(1))
+                    try await transition(to: .picker)
+                case .journey:
+                    try await transition(to: .battle)
+                    try await Task.sleep(for: .seconds(1))
+                    try await transition(to: .victory)
+                    try await Task.sleep(for: .seconds(1))
+                    try await transition(to: .picker)
                 }
+                try Task.checkCancellation()
+                guard playbackID == id else { return }
+                replayTask = nil
             } catch {
-                // Reset and navigation own cancellation; an old replay never changes the new pose.
+                guard playbackID == id else { return }
+                reset()
             }
         }
     }
 
-    private func transition(to destination: BattleTransitionScreen) async throws {
+    private func transition(to target: BattleTransitionScreen) async throws {
         try Task.checkCancellation()
-        let duration = destination == .battle ? 0.55 : 0.45
-        switch preset {
-        case .current:
-            if destination == .battle {
-                screen = .battle
-                entrySettled = true
-                handVisible = true
-            } else {
-                screen = .victory
-                withAnimation(TrinketMotion.Screen.crossfade) { victoryVisible = true }
-            }
-        case .gather:
-            if destination == .battle {
-                withAnimation(.spring(duration: duration, bounce: 0)) { entrySettled = true }
-                try await Task.sleep(for: .milliseconds(100))
-                screen = .battle
-                withAnimation(.spring(duration: 0.4, bounce: 0)) { handVisible = true }
-                try await Task.sleep(for: .milliseconds(450))
-            } else {
-                withAnimation(.easeIn(duration: 0.16)) { handVisible = false; veilOpacity = 0.12 }
-                try await Task.sleep(for: .milliseconds(160))
-                screen = .victory
-                withAnimation(.easeOut(duration: 0.29)) { victoryVisible = true; veilOpacity = 0 }
-            }
-        case .veil, .aperture:
-            withAnimation(.easeInOut(duration: duration / 2)) {
-                veilOpacity = preset == .veil ? 1 : 0.2
-                if preset == .aperture {
-                    aperture = 0
-                }
-            }
+        if target == .victory {
+            // The retained reward view starts its reveal while hidden; restart it at entry.
+            revealID = UUID()
+        }
+        destination = target
+        progress = 0
+        let duration = target == .victory ? TrinketMotion.Screen.crossfadeDuration : preset.duration(entering: target == .battle)
+        if effectivePreset == .curtain {
+            withAnimation(.easeIn(duration: duration / 2)) { progress = 0.5 }
             try await Task.sleep(for: .seconds(duration / 2))
-            screen = destination
-            entrySettled = true
-            handVisible = destination == .battle
-            victoryVisible = destination == .victory
-            withAnimation(.easeOut(duration: duration / 2)) { veilOpacity = 0; aperture = 1 }
+            try Task.checkCancellation()
+            withAnimation(.easeOut(duration: duration / 2)) { progress = 1 }
+            try await Task.sleep(for: .seconds(duration / 2))
+        } else {
+            let animation: Animation = target == .victory ? TrinketMotion.Screen.crossfade : .easeInOut(duration: duration)
+            withAnimation(animation) { progress = 1 }
+            try await Task.sleep(for: .seconds(duration))
         }
-        try await Task.sleep(for: .seconds(duration / 2))
         try Task.checkCancellation()
-    }
-}
-
-enum BattleTransitionPreset: String, CaseIterable, Identifiable {
-    case current = "Current"
-    case gather = "Gather & Release"
-    case veil = "Soft Veil"
-    case aperture = "Arcane Aperture"
-
-    var id: Self {
-        self
-    }
-
-    var description: String {
-        switch self {
-        case .current: "Immediate entry and the current victory crossfade."
-        case .gather: "Portraits gather into position; the hand rises, then releases into warm rewards."
-        case .veil: "An arcane veil bridges entry, with a golden veil into victory."
-        case .aperture: "A small arcane opening expands into battle and warm victory."
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            screen = target
+            destination = nil
+            progress = 0
         }
     }
 }
 
-enum BattleTransitionScreen { case preview, battle, victory }
-private enum BattleTransitionReplay { case entry, victory, both }
+private enum BattleTransitionReplay { case entry, directExit, victoryReturn, journey, showVictory, returnToStages }
 #endif

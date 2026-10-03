@@ -143,6 +143,17 @@ class TestTimingTests(unittest.TestCase):
             self.assertIn("unknown option: --bogus", unknown_option.stderr)
             self.assertNotIn("Traceback", unknown_option.stderr)
 
+    def test_invalid_retention_setting_does_not_write_history(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            log = root / "timing-log.jsonl"
+            log.write_text("existing history\n")
+            result = self.run_script(root, "record", "--mode", "unit", "--run", "invalid-retention", "--wall", "1",
+                                     "--no-xcresult", extra_environment={"TRINKET_KEEP_TIMING_HISTORY": "invalid"})
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("must be an integer", result.stderr)
+            self.assertEqual(log.read_text(), "existing history\n")
+
     def test_wall_only_record_without_xcresult(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             results_dir = Path(directory)

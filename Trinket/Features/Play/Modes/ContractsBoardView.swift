@@ -72,6 +72,9 @@ struct ContractsBoardView: View {
                     ZStack {
                         Image(systemName: "dice.fill")
                             .trinketTypography(.button)
+                            .foregroundStyle(canRefreshContracts
+                                ? AnyShapeStyle(TrinketDesign.Colors.accentEmphasized)
+                                : AnyShapeStyle(.secondary))
                             .symbolEffect(.bounce, options: .nonRepeating, value: feedbackTrigger)
                             .opacity(showsPreparationProgress ? 0 : 1)
                         if showsPreparationProgress {
@@ -81,7 +84,7 @@ struct ContractsBoardView: View {
                     }
                     .frame(width: 24, height: 24)
                 }
-                .disabled(isBattleActive || !playerSave.contracts.refreshAvailable)
+                .disabled(!canRefreshContracts)
                 .accessibilityLabel("Refresh Contracts")
                 .accessibilityValue(showsPreparationProgress ? "Preparing contracts" :
                     (playerSave.contracts.refreshAvailable ? "Ready" : "Win a Contract to refresh"))
@@ -116,6 +119,10 @@ struct ContractsBoardView: View {
 
     private var isPreparing: Bool {
         !hasPreparedBoard || displayedOffers != playerSave.contracts.offers
+    }
+
+    private var canRefreshContracts: Bool {
+        playerSave.contracts.refreshAvailable && !isBattleActive && !playerSave.isRetryingSaveAction
     }
 
     private var isBoardInteractive: Bool {

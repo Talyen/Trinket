@@ -16,7 +16,7 @@ public extension EncounterIdentity {
             guard GameContent.stage(id: stageID) != nil else { return nil }
             return CampaignRewardLevel.resolve(in: save)
         case .voyage:
-            return ContractsCompletion.campaignRewardLevel(in: save)
+            return CampaignRewardLevel.resolve(in: save)
         case let .labyrinth(nodeID):
             return save.labyrinth.nodes[nodeID].map { _ in CampaignRewardLevel.resolve(in: save) }
         }

@@ -4,21 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import re
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
 from .diagnostic_limits import MAX_DETAIL_CHARS, MAX_DETAIL_LINES, MAX_ISSUES, MAX_LINE_CHARS, MAX_LINES, MAX_MESSAGE_CHARS
 
 
-CLASSIFICATIONS = (
-    "test-failure",
-    "build-failure",
-    "simulator-infrastructure",
-    "configuration",
-    "tooling",
-    "unknown",
-)
 # Simulator infrastructure outranks configuration/tooling: a genuine crashed
 # simulator must not be masked by one benign config or tooling line, which
 # would suppress the infrastructure retry.
@@ -30,6 +22,7 @@ CLASSIFICATION_PRECEDENCE = (
     "tooling",
     "unknown",
 )
+CLASSIFICATIONS = CLASSIFICATION_PRECEDENCE
 GENERIC_MESSAGES = {"Test reported Failed", "No failure details"}
 
 
@@ -88,14 +81,12 @@ class IssueObservation:
     def normalized(self) -> "IssueObservation":
         kind = self.kind if self.kind in CLASSIFICATIONS else "unknown"
         message = re.sub(r"\s+", " ", self.message.strip()) or "No failure details"
-        return IssueObservation(
+        return replace(
+            self,
             kind=kind,
             title=self.title or "Xcode failure",
             message=message,
-            test=self.test,
             test_aliases=self.test_aliases | identifier_aliases(self.test),
-            file=self.file,
-            line=self.line,
             details=self.details.strip(),
             generic=self.generic or message in GENERIC_MESSAGES,
         )
@@ -235,15 +226,9 @@ class SourceStatus:
     errors: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "build_results": self.build_results,
-            "test_summary": self.test_summary,
-            "tests": self.tests,
-            "test_details": self.test_details,
-            "test_details_skipped": self.test_details_skipped,
-            "attachments": self.attachments,
-            "errors": [bounded_text(error, line_limit=4, char_limit=1000)[0] for error in self.errors],
-        }
+        payload = asdict(self)
+        payload["errors"] = [bounded_text(error, line_limit=4, char_limit=1000)[0] for error in self.errors]
+        return payload
 
 
 @dataclass

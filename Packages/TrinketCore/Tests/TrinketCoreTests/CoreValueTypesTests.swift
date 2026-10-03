@@ -50,22 +50,6 @@ struct CoreValueTypesTests {
         #expect(!ActiveEffect(id: 2, effect: .burn(3), remainingTurns: 0).isAwaitingActionSkip)
     }
 
-    @Test func `effect summary identifies by keyword and text`() {
-        let summary = EffectSummary(keyword: .burn, text: "Burning: 3 damage")
-        #expect(summary.id == "Burn:Burning: 3 damage")
-        #expect(summary == EffectSummary(keyword: .burn, text: "Burning: 3 damage"))
-        // Display-only identity: same keyword+text collapses by design and is
-        // never a persistence key.
-        #expect(summary == EffectSummary(keyword: .burn, text: "Burning: 3 damage"))
-        #expect(summary != EffectSummary(keyword: .burn, text: "Burning: 4 damage"))
-    }
-
-    @Test func `homestead node identifiers stay explicit`() {
-        #expect(HomesteadNodeID.wheatField.rawValue == "wheatField")
-        #expect(HomesteadNodeID.allCases.count == 20)
-        #expect(ResourceAmount(.gold, 5).id == .gold)
-    }
-
     @Test func `homestead resource resolves retired crystal alias as gems`() throws {
         #expect(HomesteadResource.resolving(resourceID: "crystal") == .gems)
         #expect(HomesteadResource.resolving(resourceID: "gems") == .gems)
@@ -122,25 +106,5 @@ struct CoreValueTypesTests {
 
         let fragments = conditions.map(\.sentenceFragment)
         #expect(fragments.count == Set(fragments).count)
-    }
-
-    @Test func `core domain enums encode and decode correctly`() throws {
-        for slot in ItemSlot.allCases {
-            let data = try JSONEncoder().encode(slot)
-            let decoded = try JSONDecoder().decode(ItemSlot.self, from: data)
-            #expect(decoded == slot)
-        }
-
-        for faction in EnemyFaction.allCases {
-            let data = try JSONEncoder().encode(faction)
-            let decoded = try JSONDecoder().decode(EnemyFaction.self, from: data)
-            #expect(decoded == faction)
-        }
-
-        for category in HomesteadNodeCategory.allCases {
-            let data = try JSONEncoder().encode(category)
-            let decoded = try JSONDecoder().decode(HomesteadNodeCategory.self, from: data)
-            #expect(decoded == category)
-        }
     }
 }

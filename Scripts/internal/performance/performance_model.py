@@ -36,13 +36,10 @@ def validate_report_domains(report: dict[str, Any]) -> list[str]:
     scenario = report.get("scenario")
     failures: list[str] = []
     for metric in METRICS:
-        value = report.get(metric)
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            failures.append(f"{scenario}: {metric} is missing or non-numeric")
-            continue
-        numeric = float(value)
-        if not math.isfinite(numeric):
-            failures.append(f"{scenario}: {metric} is not finite")
+        try:
+            numeric = finite_number(report, metric)
+        except ValueError as error:
+            failures.append(f"{scenario}: {error}")
             continue
         if metric in COUNT_METRICS and (not numeric.is_integer() or numeric < 0):
             failures.append(f"{scenario}: {metric} must be a non-negative integer")

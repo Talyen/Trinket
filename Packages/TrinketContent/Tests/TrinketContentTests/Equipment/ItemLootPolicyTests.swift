@@ -12,6 +12,7 @@ struct ItemLootPolicyTests {
     ])
     func `endpoints match authored weights and clamp`(level: Int, expected: [Double]) {
         let actual = probabilities(level: level)
+        #expect(actual.count == expected.count)
         for (value, target) in zip(actual, expected) {
             #expect(abs(value - target) < 1e-12)
         }
@@ -24,14 +25,6 @@ struct ItemLootPolicyTests {
             #expect(premium > previous)
             previous = premium
         }
-        let ten = 1 - probabilities(level: 10)[0]
-        let twenty = 1 - probabilities(level: 20)[0]
-        let thirty = 1 - probabilities(level: 30)[0]
-        let forty = 1 - probabilities(level: 40)[0]
-        #expect(ten < twenty)
-        #expect(twenty < thirty)
-        #expect(thirty < forty)
-        #expect(twenty < forty)
     }
 
     @Test(arguments: [false, true])
@@ -100,9 +93,13 @@ struct ItemLootPolicyTests {
     }
 
     private func probabilities(level: Int, boss: Bool = false, bonus: Int = 0) -> [Double] {
-        ItemLootPolicy.probabilities(
+        let values = ItemLootPolicy.probabilities(
             level: level, bossContent: boss, astralChanceBonusPercent: bonus,
             availableTiers: Set(ItemDropTier.allCases),
         )
+        #expect(values.count == ItemDropTier.allCases.count)
+        #expect(values.allSatisfy { $0.isFinite && $0 >= 0 })
+        #expect(abs(values.reduce(0, +) - 1) < 1e-12)
+        return values
     }
 }

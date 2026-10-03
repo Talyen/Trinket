@@ -21,29 +21,21 @@ public extension GameContent {
         var affixViews: [ItemAffix] = []
         var powers: [ItemAffixPower] = []
         for source in definition.affixes {
+            let affix: ItemAffixDefinition
             switch source {
             case let .catalog(id):
-                guard let catalogDefinition = itemAffixDefinition(matching: id) else {
+                guard let catalog = itemAffixDefinition(matching: id) else {
                     return nil
                 }
-                let max = catalogDefinition.astral.rolledMax()
-                affixViews.append(ItemAffix(
-                    id: catalogDefinition.id,
-                    title: catalogDefinition.title,
-                    description: max.description,
-                    keywords: catalogDefinition.keywords,
-                ))
-                powers.append(max)
+                affix = catalog
             case let .bespoke(bespoke):
-                let max = bespoke.astral.rolledMax()
-                affixViews.append(ItemAffix(
-                    id: bespoke.id,
-                    title: bespoke.title,
-                    description: max.description,
-                    keywords: bespoke.keywords,
-                ))
-                powers.append(max)
+                affix = bespoke
             }
+            let power = affix.astral.rolledMax()
+            affixViews.append(ItemAffix(
+                id: affix.id, title: affix.title, description: power.description, keywords: affix.keywords,
+            ))
+            powers.append(power)
         }
         return InventoryItem(
             id: definition.id,

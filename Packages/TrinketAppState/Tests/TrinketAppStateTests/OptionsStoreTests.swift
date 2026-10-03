@@ -10,6 +10,37 @@ struct OptionsStoreTests {
         context = try AppTestContext()
     }
 
+    @Test func `saved ultimate show policy replaces the default on reload`() {
+        let options = OptionsStore(defaults: context.userDefaults)
+        #expect(options.ultimateCinematicShowPolicy == .oncePerBattle)
+        options.ultimateCinematicShowPolicy = .always
+
+        #expect(OptionsStore(defaults: context.userDefaults).ultimateCinematicShowPolicy == .always)
+    }
+
+    @Test func `once per battle auto skips only actors who already presented`() {
+        let options = OptionsStore(defaults: context.userDefaults)
+        options.ultimateCinematicShowPolicy = .oncePerBattle
+
+        #expect(!options.shouldAutoSkipUltimateCinematic(actorID: "hero", actorsWhoPresentedThisBattle: []))
+        #expect(options.shouldAutoSkipUltimateCinematic(actorID: "hero", actorsWhoPresentedThisBattle: ["hero"]))
+        #expect(!options.shouldAutoSkipUltimateCinematic(actorID: "companion", actorsWhoPresentedThisBattle: ["hero"]))
+    }
+
+    @Test(arguments: [
+        (UltimateCinematicShowPolicy.always, false),
+        (.never, true),
+    ])
+    func `always and never policies control auto skip`(
+        policy: UltimateCinematicShowPolicy,
+        autoSkips: Bool,
+    ) {
+        let options = OptionsStore(defaults: context.userDefaults)
+        options.ultimateCinematicShowPolicy = policy
+        #expect(options.shouldAutoSkipUltimateCinematic(actorID: "hero", actorsWhoPresentedThisBattle: []) == autoSkips)
+        #expect(options.shouldAutoSkipUltimateCinematic(actorID: "hero", actorsWhoPresentedThisBattle: ["hero"]) == autoSkips)
+    }
+
     @Test func `clears stale auto battle when remember is off on load`() {
         context.userDefaults.set(true, forKey: OptionsStore.autoBattleEnabledKey)
 

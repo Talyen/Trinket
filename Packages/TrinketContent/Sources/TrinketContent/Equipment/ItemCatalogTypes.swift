@@ -123,19 +123,9 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
                 value = try? AffixModifier(from: decoder)
             }
         }
-        if let wrappers = try? container.decode([Failable].self, forKey: .modifiers) {
-            modifiers = wrappers.compactMap(\.value)
-        } else {
-            modifiers = (try? container.decode([AffixModifier].self, forKey: .modifiers)) ?? []
-        }
+        // Unknown cases are discarded individually; non-array payloads have no modifiers.
+        modifiers = (try? container.decode([Failable].self, forKey: .modifiers))?.compactMap(\.value) ?? []
         triggers = try container.decode(CombatTraitTriggers.self, forKey: .triggers)
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(description, forKey: .description)
-        try container.encode(modifiers, forKey: .modifiers)
-        try container.encode(triggers, forKey: .triggers)
     }
 }
 

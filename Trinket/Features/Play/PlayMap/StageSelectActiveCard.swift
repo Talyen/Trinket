@@ -15,6 +15,7 @@ struct StageSelectActiveCard<
     @Environment(\.isBattleActive) private var isBattleActive
 
     let presentation: StageSelectRowPresentation<Item>
+    let hapticsEnabledOverride: Bool?
     let isPrimaryActionDisabled: Bool
     let isLockedContent: Bool
     let primaryActionLabelColor: Color
@@ -30,6 +31,7 @@ struct StageSelectActiveCard<
 
     init(
         presentation: StageSelectRowPresentation<Item>,
+        hapticsEnabledOverride: Bool? = nil,
         isPrimaryActionDisabled: Bool,
         isLockedContent: Bool = false,
         primaryActionLabelColor: Color = TrinketDesign.Colors.Overlay.paper,
@@ -40,6 +42,7 @@ struct StageSelectActiveCard<
         @ViewBuilder artworkAccessory: @escaping () -> ArtworkAccessory,
     ) {
         self.presentation = presentation
+        self.hapticsEnabledOverride = hapticsEnabledOverride
         self.isPrimaryActionDisabled = isPrimaryActionDisabled
         self.isLockedContent = isLockedContent
         self.primaryActionLabelColor = primaryActionLabelColor
@@ -190,7 +193,7 @@ struct StageSelectActiveCard<
         .trinketSensoryFeedback(
             .selection,
             trigger: actionFeedbackTrigger,
-            enabled: options.hapticsEnabled,
+            enabled: hapticsEnabledOverride ?? options.hapticsEnabled,
         )
     }
 
@@ -216,6 +219,7 @@ struct StageSelectActiveCard<
 extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
     init(
         presentation: StageSelectRowPresentation<Item>,
+        hapticsEnabledOverride: Bool? = nil,
         isPrimaryActionDisabled: Bool,
         isLockedContent: Bool = false,
         primaryActionLabelColor: Color = TrinketDesign.Colors.Overlay.paper,
@@ -226,6 +230,7 @@ extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
     ) {
         self.init(
             presentation: presentation,
+            hapticsEnabledOverride: hapticsEnabledOverride,
             isPrimaryActionDisabled: isPrimaryActionDisabled,
             isLockedContent: isLockedContent,
             primaryActionLabelColor: primaryActionLabelColor,

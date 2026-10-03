@@ -116,11 +116,12 @@ def read_exported_attachments(output_dir: Path) -> list[ExportedAttachment]:
                     )
                 )
     recorded_names = {record.exported_file_name for record in records}
-    for path in output_dir.rglob("*"):
-        if path.is_file() and path.name != "manifest.json" and path.name not in recorded_names:
+    for path in sorted(output_dir.rglob("*")):
+        name = path.relative_to(output_dir).as_posix()
+        if path.is_file() and path != manifest and name not in recorded_names:
             records.append(
                 ExportedAttachment(
-                    exported_file_name=path.name,
+                    exported_file_name=name,
                     test_identifier="",
                     associated_with_failure=True,
                 )

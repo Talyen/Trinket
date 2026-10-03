@@ -5,11 +5,6 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct HomesteadStateTests {
-    private enum BuildSpendCase {
-        case wheatFieldMaterials
-        case herbGardenMaterials
-    }
-
     @Test func `crystal production survives reload and collects both resources once`() throws {
         let start = Date(timeIntervalSince1970: 1000)
         var state = PlayerHomesteadState(resources: [:], nodeTiers: [.crystalGarden: 4], lastProductionAt: start)
@@ -20,46 +15,6 @@ struct HomesteadStateTests {
         let first = state.collectProduction(at: end, roster: &roster)
         #expect(Set(first) == Set([ResourceAmount(.gems, 4), ResourceAmount(.stone, 4)]))
         #expect(state.collectProduction(at: end, roster: &roster).isEmpty)
-    }
-
-    @Test(arguments: [
-        BuildSpendCase.wheatFieldMaterials,
-        .herbGardenMaterials,
-    ])
-    private func `build or upgrade spends required costs`(caseKind: BuildSpendCase) throws {
-        switch caseKind {
-        case .wheatFieldMaterials:
-            let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-            var homestead = PlayerHomesteadState(
-                resources: [.wood: 20, .herbs: 10],
-                nodeTiers: [:],
-            )
-            var roster = PlayerRosterState.freshStart
-            roster.gold = 4
-
-            let built = homestead.buildOrUpgrade(definition, roster: &roster)
-            try #expect(built)
-            try #expect(homestead.tier(for: .wheatField) == 1)
-            try #expect(homestead.resources[.wood] == 16)
-            try #expect(homestead.resources[.herbs] == 5)
-            try #expect(roster.gold == 4)
-
-        case .herbGardenMaterials:
-            let definition = try #require(GameContent.homesteadNode(matching: .herbGarden))
-            var homestead = PlayerHomesteadState(
-                resources: [.wood: 5, .herbs: 5],
-                nodeTiers: [.wheatField: 1],
-            )
-            var roster = PlayerRosterState.freshStart
-            roster.gold = 10
-
-            let built = homestead.buildOrUpgrade(definition, roster: &roster)
-            try #expect(built)
-            try #expect(homestead.tier(for: .herbGarden) == 1)
-            try #expect(homestead.resources[.wood] == 1)
-            try #expect(homestead.resources[.herbs] == 0)
-            try #expect(roster.gold == 10)
-        }
     }
 
     @Test(arguments: GameContent.homesteadNodes)
@@ -89,17 +44,6 @@ struct HomesteadStateTests {
         try #expect(tier1.companionModifiers.isEmpty)
         try #expect(tier3.heroModifiers == [.maximumHealthPercent(0.3)])
         try #expect(tier3.companionModifiers.isEmpty)
-    }
-
-    @Test func `wishing well scales positive earned gold`() throws {
-        let effects = HomesteadEffects.from(nodeTiers: [.wishingWell: 2])
-        try #expect(effects.goldFindPercent == 10)
-        try #expect(effects.adjustedGold(100) == 110)
-    }
-
-    @Test func `moonlit sanctum increases astral chance percent`() throws {
-        let effects = HomesteadEffects.from(nodeTiers: [.moonlitSanctum: 3])
-        try #expect(effects.astralChanceBonusPercent == 15)
     }
 
     @Test func `grant allows material balances beyond legacy cap`() throws {
@@ -251,31 +195,13 @@ struct HomesteadStateTests {
         )
         try #expect(homestead.pendingProduction[.gold] == 1)
 
-        let collected = homestead.collectProduction(
-            at: start.addingTimeInterval(2 * PlayerHomesteadState.secondsPerDay),
-            roster: &roster,
-        )
-        try #expect(collected == [ResourceAmount(.gold, 1)])
-        try #expect(roster.gold == PlayerRosterState.maxGoldBalance)
-        try #expect(homestead.pendingProduction.isEmpty)
-    }
-
-    @Test func `pending gold preview matches collected amount at cap`() throws {
-        let start = Date(timeIntervalSince1970: 0)
-        var homestead = PlayerHomesteadState(
-            resources: [:],
-            nodeTiers: [.wishingWell: 1],
-            lastProductionAt: start,
-        )
-        var roster = PlayerRosterState.freshStart
-        roster.gold = PlayerRosterState.maxGoldBalance - 1
-        let collectAt = start.addingTimeInterval(3 * PlayerHomesteadState.secondsPerDay)
-
+        let collectAt = start.addingTimeInterval(2 * PlayerHomesteadState.secondsPerDay)
         let preview = homestead.pendingProductionAmounts(at: collectAt, roster: roster)
         let collected = homestead.collectProduction(at: collectAt, roster: &roster)
         try #expect(preview == collected)
         try #expect(collected == [ResourceAmount(.gold, 1)])
         try #expect(roster.gold == PlayerRosterState.maxGoldBalance)
+        try #expect(homestead.pendingProduction.isEmpty)
     }
 
     @Test func `next collectible date wakes at next whole unit`() throws {

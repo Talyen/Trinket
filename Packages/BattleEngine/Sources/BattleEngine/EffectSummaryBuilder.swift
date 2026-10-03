@@ -20,35 +20,23 @@ public enum EffectSummaryBuilder {
         ($0.element, $0.offset)
     })
 
+    private struct Group: Hashable {
+        let kind: EffectKind
+        let keyword: Keyword
+    }
+
     public static func build(for effects: [ActiveEffect]) -> [EffectSummary] {
-        var grouped: [EffectKind: [Keyword: [ActiveEffect]]] = [:]
-        for effect in effects {
-            grouped[effect.effect.kind, default: [:]][effect.keyword, default: []].append(effect)
-        }
-        // Fail-open ordering: kinds in priorityOrder keep their slots; any
-        // other kind (e.g. a future handler gaining a summary) appends after
-        // them in rawValue order instead of being silently dropped.
-        let orderedKinds = grouped.keys.sorted { lhs, rhs in
-            let lhsIndex = priorityIndices[lhs]
-            let rhsIndex = priorityIndices[rhs]
-            switch (lhsIndex, rhsIndex) {
-            case let (l?, r?): return l < r
-            case (_?, nil): return true
-            case (nil, _?): return false
-            case (nil, nil): return String(describing: lhs) < String(describing: rhs)
+        let grouped = Dictionary(grouping: effects) { Group(kind: $0.effect.kind, keyword: $0.keyword) }
+        return grouped.sorted { lhs, rhs in
+            if lhs.key.kind != rhs.key.kind {
+                let left = priorityIndices[lhs.key.kind] ?? Int.max
+                let right = priorityIndices[rhs.key.kind] ?? Int.max
+                // Unlisted kinds follow the declared order rather than disappearing.
+                return left != right ? left < right : String(describing: lhs.key.kind) < String(describing: rhs.key.kind)
             }
+            return lhs.key.keyword.rawValue < rhs.key.keyword.rawValue
+        }.compactMap { group, stacks in
+            EffectHandlers.handler(for: group.kind).summary(for: stacks, keyword: group.keyword)
         }
-        var summaries: [EffectSummary] = []
-        summaries.reserveCapacity(grouped.count)
-        for kind in orderedKinds {
-            guard let groupedByKeyword = grouped[kind] else { continue }
-            let handler = EffectHandlers.handler(for: kind)
-            for (keyword, stacks) in groupedByKeyword.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
-                if let summary = handler.summary(for: stacks, keyword: keyword) {
-                    summaries.append(summary)
-                }
-            }
-        }
-        return summaries
     }
 }

@@ -55,11 +55,7 @@ struct BattleConditionEvaluatorTests {
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 0 }
         context.roster.mutateRuntime(for: companion) { $0.currentHealth = 8 }
 
-        let target = BattleConditionEvaluator.lowestHealthAlly(
-            hero: hero,
-            companion: companion,
-            context: context,
-        )
+        let target = BattleConditionEvaluator.lowestHealthAlly(in: context)
 
         try #expect(target.id == companion.id)
     }

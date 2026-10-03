@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import functools
 
 from internal.content.common import (
     AFFIX_REQUIRED_COLUMNS,
@@ -52,16 +51,12 @@ class ItemBaseRow:
     keywords: str
 
 
-@functools.cache
 def parse_affix_rows() -> list[AffixRow]:
-    return _parse_tsv_rows(MANIFEST_DIR / 'affixes.tsv',
-        ['id', 'title', 'slot', 'keywords', 'weight', 'basic_description', 'astral_description', 'basic_modifiers', 'astral_modifiers', 'basic_triggers', 'astral_triggers'], AffixRow, min_columns=AFFIX_REQUIRED_COLUMNS)
+    return _parse_tsv_rows(MANIFEST_DIR / 'affixes.tsv', AffixRow, min_columns=AFFIX_REQUIRED_COLUMNS)
 
 
-@functools.cache
 def parse_item_base_rows() -> list[ItemBaseRow]:
-    return _parse_tsv_rows(MANIFEST_DIR / 'item_bases.tsv',
-        ['id', 'name', 'slot', 'weapon_kind', 'keywords'], ItemBaseRow, min_columns=None)
+    return _parse_tsv_rows(MANIFEST_DIR / 'item_bases.tsv', ItemBaseRow)
 
 
 def generate_affix_catalog(rows: list[AffixRow]) -> None:

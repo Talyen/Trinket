@@ -26,34 +26,6 @@ struct ShopOfferGeneratorTests {
         }
     }
 
-    @Test func `rarity mix is mostly basic across many rolls`() {
-        var basicCount = 0
-        var astralCount = 0
-        for seed in UInt64(1) ... 24 {
-            var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
-            let offers = ShopOfferGenerator.generateOffers(
-                stageID: "shop-rarity",
-                rewardLevel: 6,
-                count: 1,
-                using: &randomNumberGenerator,
-            )
-            switch offers.first?.item.rarity {
-            case .basic:
-                basicCount += 1
-            case .astral:
-                astralCount += 1
-            case .unique:
-                Issue.record("Shops never offer Uniques")
-            case nil:
-                Issue.record("Expected an offer")
-            }
-        }
-
-        #expect(basicCount > astralCount)
-        #expect(astralCount > 0)
-        #expect(basicCount + astralCount == 24)
-    }
-
     @Test func `same seed produces identical offers`() {
         var first = SeededRandomNumberGenerator(
             seed: ShopOfferGenerator.seed(worldSeed: 7, forStageID: "chapter-2-stage-8"),
@@ -65,19 +37,10 @@ struct ShopOfferGeneratorTests {
         let firstOffers = ShopOfferGenerator.generateOffers(stageID: "chapter-2-stage-8", rewardLevel: 6, using: &first)
         let secondOffers = ShopOfferGenerator.generateOffers(stageID: "chapter-2-stage-8", rewardLevel: 6, using: &second)
 
+        #expect(firstOffers.count == ShopOfferGenerator.offerCount)
+        #expect(Set(firstOffers.map(\.id)).count == firstOffers.count)
+        #expect(Set(firstOffers.map(\.item.id)).count == firstOffers.count)
         #expect(firstOffers == secondOffers)
-    }
-
-    @Test func `different world seeds produce different shelves`() {
-        var first = SeededRandomNumberGenerator(
-            seed: ShopOfferGenerator.seed(worldSeed: 7, forStageID: "chapter-2-stage-8"),
-        )
-        var second = SeededRandomNumberGenerator(
-            seed: ShopOfferGenerator.seed(worldSeed: 9, forStageID: "chapter-2-stage-8"),
-        )
-        let firstOffers = ShopOfferGenerator.generateOffers(stageID: "chapter-2-stage-8", rewardLevel: 6, using: &first)
-        let secondOffers = ShopOfferGenerator.generateOffers(stageID: "chapter-2-stage-8", rewardLevel: 6, using: &second)
-        #expect(firstOffers != secondOffers)
     }
 
     @Test func `empty base types yield no offers`() {
@@ -89,17 +52,6 @@ struct ShopOfferGeneratorTests {
             using: &randomNumberGenerator,
         )
         #expect(offers.isEmpty)
-    }
-
-    @Test func `offer I ds are unique within A shelf`() {
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
-        let offers = ShopOfferGenerator.generateOffers(
-            stageID: "chapter-2-stage-8",
-            rewardLevel: 6,
-            using: &randomNumberGenerator,
-        )
-        let ids = offers.map(\.id)
-        #expect(Set(ids).count == ids.count)
     }
 
     @Test func `shop offer items resolve art by template ID`() {

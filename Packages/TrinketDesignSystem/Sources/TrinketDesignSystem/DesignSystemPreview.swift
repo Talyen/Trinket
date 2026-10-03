@@ -4,8 +4,7 @@ import SwiftUI
 private struct DesignSystemGallery: View {
     @State private var actionsEnabled = true
 
-    /// Curated, not exhaustive: token coverage is pinned by
-    /// DesignTokenInvariantTests and the catalog tests, not by this gallery.
+    /// Curated examples; asset availability and contrast have dedicated tests.
     private let semanticColors: [(String, Color)] = [
         ("Canvas", TrinketDesign.Colors.canvas),
         ("Surface", TrinketDesign.Colors.surface),

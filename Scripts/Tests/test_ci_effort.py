@@ -2,6 +2,7 @@
 SCRIPT_INPUTS = (
     'Scripts/ci-reuse.py', 'Scripts/ci_ui_retry.py', 'Scripts/ci-diagnostics.py',
     'Scripts/test.sh', 'Scripts/diagnostic_maintenance.py',
+    'Scripts/internal/cli.py',
 )
 
 import copy
@@ -91,10 +92,14 @@ class CIEffortTests(unittest.TestCase):
             retry_path = root / 'retry-invocation.json'
             retry_path.write_text(json.dumps(retry))
             original['infrastructure_recovery'] = dict(retry_manifest=str(retry_path), targets=['BattleTests', 'OtherTests'],
-                original_evidence=evidence, retry_evidence=dict(summary=dict(passed=1, failed=0),
+                original_evidence=evidence, retry_evidence=dict(summary=dict(passed=1, failed=0, skipped=0),
                     tests=[dict(id='BattleTests/testLaunch()', result='Passed')]))
             self.assertTrue(RETRY.recovery_valid(original, report))
             self.assertEqual(original['exit_code'], 65)
+            retry_summary = original['infrastructure_recovery']['retry_evidence']['summary']
+            retry_summary['skipped'] = 1
+            self.assertFalse(RETRY.recovery_valid(original, report))
+            retry_summary['skipped'] = 0
             normalized = AGGREGATE.normalise_report(None, report, manifest=original)
             self.assertFalse(normalized['failed'])
             self.assertTrue(normalized['infrastructure_recovered'])
@@ -130,7 +135,7 @@ class CIEffortTests(unittest.TestCase):
                              action='test-without-building', result_bundle_complete=True, result_bundle=str(bundle))
                 (results / 'retry-invocation.json').write_text(json.dumps(retry))
                 return 0
-            retried = dict(summary=dict(passed=1, failed=0), tests=[dict(id='BattleTests/testLaunch()', result='Passed')])
+            retried = dict(summary=dict(passed=1, failed=0, skipped=0), tests=[dict(id='BattleTests/testLaunch()', result='Passed')])
             with patch.dict(os.environ, RESULTS_DIR=str(results)), patch.object(RETRY.subprocess, 'call', side_effect=execute), \
                     patch.object(RETRY, 'parse_xcresult', side_effect=[evidence, retried]), \
                     patch.object(RETRY, 'expected_cases', return_value=evidence['expected_tests']):

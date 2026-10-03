@@ -13,20 +13,23 @@ SCHEMA = Path(__file__).with_name("modifiers.json")
 
 def modifier_definitions(path: Path = SCHEMA) -> list[dict]:
     rows = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(rows, list) or not rows:
+        raise ValueError("Modifier definitions must be a nonempty JSON array")
     tokens, cases = set(), set()
     for row in rows:
-        if (set(row) != {"token", "case", "type", "keyword"}
+        if (not isinstance(row, dict)
+                or set(row) != {"token", "case", "type", "keyword"}
+                or not isinstance(row["token"], str)
                 or not re.fullmatch(r"[a-z][a-z0-9_]*", row["token"])
+                or not isinstance(row["case"], str)
                 or not re.fullmatch(r"[a-z][A-Za-z0-9]*", row["case"])
-                or row["type"] not in {"Int", "Double"}
+                or row["type"] not in ("Int", "Double")
                 or type(row["keyword"]) is not bool):
             raise ValueError(f"Invalid modifier definition: {row}")
         if row["token"] in tokens or row["case"] in cases:
             raise ValueError(f"Duplicate modifier token or Swift case: {row}")
         tokens.add(row["token"])
         cases.add(row["case"])
-    if not rows:
-        raise ValueError("Modifier definitions must not be empty")
     return rows
 
 

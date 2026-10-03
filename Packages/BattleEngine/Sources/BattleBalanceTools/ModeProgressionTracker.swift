@@ -75,7 +75,7 @@ public struct ModeProgressionTracker: Sendable {
     public static func labyrinth(maxDepth: Int = 10) -> Self {
         let trashPool = LabyrinthCatalog.trashEnemyIDs
         let bossPool = LabyrinthCatalog.bossEnemyIDs
-        guard !trashPool.isEmpty, !bossPool.isEmpty else {
+        guard maxDepth > 0, !trashPool.isEmpty, !bossPool.isEmpty else {
             return Self(steps: [])
         }
         return Self(steps: (1 ... maxDepth).map { depth in

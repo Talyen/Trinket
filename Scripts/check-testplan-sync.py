@@ -56,13 +56,14 @@ def matrix(rows: list[dict], suite: str) -> dict:
 
 def registration_failures(root: Path, rows: list[dict]) -> list[str]:
     failures = []
-    for suite in ('Smoke', 'FullUI'):
-        declared = []
-        for path in sorted((root / 'TrinketUITests').rglob('*.swift')):
-            parts = path.relative_to(root).parts
-            if any(part in {'Performance', 'Support'} for part in parts) or ('Smoke' in parts) != (suite == 'Smoke'):
-                continue
-            declared += re.findall(r'(?:final\s+)?class\s+(\w+)\s*:\s*\w+UITestCase', path.read_text())
+    declarations = {'Smoke': [], 'FullUI': []}
+    for path in sorted((root / 'TrinketUITests').rglob('*.swift')):
+        parts = path.relative_to(root).parts
+        if any(part in {'Performance', 'Support'} for part in parts):
+            continue
+        suite = 'Smoke' if 'Smoke' in parts else 'FullUI'
+        declarations[suite].extend(re.findall(r'^[ \t]*(?:final\s+)?class\s+(\w+)\s*:\s*\w+UITestCase', path.read_text(), re.M))
+    for suite, declared in declarations.items():
         registered = {row['name'] for row in rows if row['suite'] == suite}
         if set(declared) != registered:
             failures.append(f'{suite} registry class mismatch: missing={sorted(set(declared) - registered)}, '

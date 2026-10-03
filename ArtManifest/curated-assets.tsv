@@ -292,6 +292,12 @@ encounter	destination-merchant-shop	encounter_destination_merchant_shop	Raw Asse
 encounter	destination-alchemist-shop	encounter_destination_alchemist_shop	Raw Assets/Destinations/Alchemist's Shop.jpeg	0.50	0.50
 encounter	destination-campfire	encounter_destination_campfire	Raw Assets/Destinations/Campfire.jpeg	0.50	0.50
 encounter	destination-corruption-altar	encounter_destination_corruption_altar	Raw Assets/Destinations/Corruption Altar.jpeg	0.50	0.50
+encounter	labyrinth-fog-veiled-arch	encounter_labyrinth_fog_veiled_arch	Raw Assets/Labyrinth/Shrouded Veiled Arch.png	0.50	0.50
+encounter	labyrinth-fog-descending-steps	encounter_labyrinth_fog_descending_steps	Raw Assets/Labyrinth/Shrouded Descending Steps.png	0.50	0.50
+encounter	labyrinth-fog-shrouded-passage	encounter_labyrinth_fog_shrouded_passage	Raw Assets/Labyrinth/Shrouded Shrouded Passage.png	0.50	0.50
+encounter	labyrinth-fog-forgotten-pillars	encounter_labyrinth_fog_forgotten_pillars	Raw Assets/Labyrinth/Shrouded Forgotten Pillars.png	0.50	0.50
+encounter	labyrinth-fog-vanishing-bridge	encounter_labyrinth_fog_vanishing_bridge	Raw Assets/Labyrinth/Shrouded Vanishing Bridge.png	0.50	0.50
+encounter	labyrinth-fog-hidden-chamber	encounter_labyrinth_fog_hidden_chamber	Raw Assets/Labyrinth/Shrouded Hidden Chamber.png	0.50	0.50
 background	gameModeCampaign	bg_game_mode_campaign	Raw Assets/Game Modes/Campaign.jpeg	0.50	0.50
 background	gameModeExplore	bg_game_mode_explore	Raw Assets/Game Modes/Explore.jpeg	0.50	0.50
 background	gameModeContracts	bg_game_mode_contracts	Raw Assets/Game Modes/Contracts.jpeg	0.50	0.50

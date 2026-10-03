@@ -184,14 +184,10 @@ public struct PlayerRosterState: Equatable, Sendable {
     @discardableResult
     public mutating func unequip(itemID: String) -> Bool {
         var didUnequip = false
-        for (combatantID, var loadout) in equipmentLoadouts {
-            var didChange = false
-            for slot in ItemSlot.allCases where loadout.itemID(for: slot) == itemID {
-                loadout.unequip(slot)
-                didChange = true
-            }
-            if didChange {
-                equipmentLoadouts[combatantID] = loadout
+        for (combatantID, loadout) in equipmentLoadouts {
+            let retained = loadout.itemIDsBySlot.filter { $0.value != itemID }
+            if retained.count != loadout.itemIDsBySlot.count {
+                equipmentLoadouts[combatantID] = EquipmentLoadout(itemIDsBySlot: retained)
                 didUnequip = true
             }
         }
@@ -199,12 +195,12 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public mutating func setActiveHero(_ hero: Combatant) {
-        guard isUnlocked(hero) else { return }
+        guard hero.role == .hero, isUnlocked(hero) else { return }
         activeHeroID = hero.id
     }
 
     public mutating func setActiveCompanion(_ companion: Combatant) {
-        guard isUnlocked(companion) else { return }
+        guard companion.role == .companion, isUnlocked(companion) else { return }
         activeCompanionID = companion.id
     }
 
@@ -317,35 +313,24 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public var activeHero: Combatant {
-        if isHeroUnlocked(activeHeroID),
-           let combatant = GameContent.combatant(matching: activeHeroID),
-           combatant.role == .hero {
-            return battleConfiguredCombatant(combatant)
-        }
-        if let hero = heroes.first(where: { $0.id == activeHeroID }) ?? heroes.first {
-            return hero
-        }
-        if let starter = GameContent.hero(matching: Self.starterHeroID)
-            ?? collectionHeroes.first {
-            return starter
-        }
-        preconditionFailure("GameContent.heroes must be non-empty")
+        activeCombatant(id: activeHeroID, role: .hero, catalog: GameContent.heroes, starterID: Self.starterHeroID)
     }
 
     public var activeCompanion: Combatant {
-        if isCompanionUnlocked(activeCompanionID),
-           let combatant = GameContent.combatant(matching: activeCompanionID),
-           combatant.role == .companion {
+        activeCombatant(id: activeCompanionID, role: .companion, catalog: GameContent.companions, starterID: Self.starterCompanionID)
+    }
+
+    private func activeCombatant(id: String, role: Combatant.Role, catalog: [Combatant], starterID: String) -> Combatant {
+        if let combatant = GameContent.combatant(matching: id), combatant.role == role, isUnlocked(combatant) {
             return battleConfiguredCombatant(combatant)
         }
-        if let companion = companions.first(where: { $0.id == activeCompanionID }) ?? companions.first {
-            return companion
+        if let firstUnlocked = catalog.first(where: { isUnlocked($0) }) {
+            return battleConfiguredCombatant(firstUnlocked)
         }
-        if let starter = GameContent.companion(matching: Self.starterCompanionID)
-            ?? collectionCompanions.first {
+        if let starter = catalog.first(where: { $0.id == starterID }) ?? orderedCollectionCombatants(catalog).first {
             return starter
         }
-        preconditionFailure("GameContent.companions must be non-empty")
+        preconditionFailure("GameContent party catalogs must be non-empty")
     }
 
     private func orderedCollectionCombatants(_ combatants: [Combatant]) -> [Combatant] {

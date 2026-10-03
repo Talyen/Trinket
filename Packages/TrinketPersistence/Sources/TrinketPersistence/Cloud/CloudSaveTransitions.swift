@@ -59,20 +59,16 @@ enum CloudSaveTransitions {
         }
         let replacement: PlayerSave?
         if let accountID {
-            if !state.hasLinkedAccount {
+            if !state.hasLinkedAccount || state.activeAccountID == nil {
                 state.guestBackup = local
+            }
+            if !state.hasLinkedAccount {
                 state.account = CloudAccountState()
                 replacement = nil
             } else if let archive = state.archives.removeValue(forKey: accountID) {
-                if state.activeAccountID == nil {
-                    state.guestBackup = local
-                }
                 state.account = archive.state
                 replacement = try archive.snapshot.restored()
             } else {
-                if state.activeAccountID == nil {
-                    state.guestBackup = local
-                }
                 state.account = CloudAccountState()
                 replacement = .fresh
             }
@@ -124,7 +120,7 @@ enum CloudSaveTransitions {
             state.account.journal?.removeAll { ids.contains($0.id) }
         }
         let sourceUnchanged = local == request.revision.snapshot
-        var transition = CloudSaveTransition(sourceState: original, sourceSnapshot: local, state: state)
+        let transition: CloudSaveTransition
         if sourceUnchanged {
             state.account.base = head
             state.account.resetRequested = false

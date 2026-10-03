@@ -52,7 +52,10 @@ def payload() -> dict:
 
 
 def devices(data: dict):
-    for records in data.get("devices", {}).values():
+    runtimes = data.get("devices", {})
+    if not isinstance(runtimes, dict):
+        return
+    for records in runtimes.values():
         if isinstance(records, list):
             yield from (record for record in records if isinstance(record, dict))
 
@@ -60,22 +63,12 @@ def devices(data: dict):
 def main(argv: list[str]) -> int:
     data = payload()
     command = argv[0] if argv else ""
-    if command == "udid-for-name" and len(argv) == 2:
+    queries = {"udid-for-name": ("name", "udid"), "state-for-udid": ("udid", "state"), "name-for-udid": ("udid", "name")}
+    if command in queries and len(argv) == 2:
+        match, field = queries[command]
         for device in devices(data):
-            if device.get("name") == argv[1]:
-                print(device.get("udid", ""))
-                return 0
-        return 1
-    if command == "state-for-udid" and len(argv) == 2:
-        for device in devices(data):
-            if device.get("udid") == argv[1]:
-                print(device.get("state", ""))
-                return 0
-        return 1
-    if command == "name-for-udid" and len(argv) == 2:
-        for device in devices(data):
-            if device.get("udid") == argv[1]:
-                print(device.get("name", ""))
+            if device.get(match) == argv[1]:
+                print(device.get(field, ""))
                 return 0
         return 1
     if command == "count-booted":

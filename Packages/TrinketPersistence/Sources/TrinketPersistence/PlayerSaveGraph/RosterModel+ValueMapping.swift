@@ -3,19 +3,10 @@ import SwiftData
 import TrinketContent
 import TrinketCore
 
-private struct UnlockedCombatantValue {
-    static let heroRole = "hero"
-    static let companionRole = "companion"
-
-    let combatantID: String
-    let role: String
-
-    var key: String {
-        UnlockedCombatantModel.key(role: role, combatantID: combatantID)
-    }
-}
-
 extension RosterModel {
+    private static let heroRole = "hero"
+    private static let companionRole = "companion"
+
     func update(from roster: PlayerRosterState, context: ModelContext?) {
         activeHeroID = roster.activeHeroID
         activeCompanionID = roster.activeCompanionID
@@ -29,16 +20,16 @@ extension RosterModel {
 
     private func updateUnlockedCombatants(from roster: PlayerRosterState, context: ModelContext?) {
         let unlockedValues = roster.unlockedHeroIDs.sorted().map {
-            UnlockedCombatantValue(combatantID: $0, role: UnlockedCombatantValue.heroRole)
+            (combatantID: $0, role: Self.heroRole)
         } + roster.unlockedCompanionIDs.sorted().map {
-            UnlockedCombatantValue(combatantID: $0, role: UnlockedCombatantValue.companionRole)
+            (combatantID: $0, role: Self.companionRole)
         }
         unlockedCombatants = reconcileModels(
             existing: unlockedCombatants ?? [],
             values: unlockedValues,
             existingKey: \UnlockedCombatantModel.compositeKey,
-            valueKey: { $0.key },
-            make: { _ in UnlockedCombatantModel() },
+            valueKey: { UnlockedCombatantModel.key(role: $0.role, combatantID: $0.combatantID) },
+            make: { UnlockedCombatantModel() },
             update: { model, value in
                 model.combatantID = value.combatantID
                 model.role = value.role
@@ -55,7 +46,7 @@ extension RosterModel {
             values: progressionValues,
             existingKey: \.combatantID,
             valueKey: { $0.key },
-            make: { _ in CombatantProgressionModel() },
+            make: { CombatantProgressionModel() },
             update: { model, value in
                 model.combatantID = value.key
                 model.level = value.value.level
@@ -74,7 +65,7 @@ extension RosterModel {
             values: abilityValues,
             existingKey: \.combatantID,
             valueKey: { $0.key },
-            make: { _ in AbilityLoadoutModel() },
+            make: { AbilityLoadoutModel() },
             update: { model, value in
                 model.combatantID = value.key
                 model.basicID = value.value.basic?.id
@@ -87,18 +78,16 @@ extension RosterModel {
     }
 
     private func updateTalentLoadouts(from roster: PlayerRosterState, context: ModelContext?) {
-        let talentValues = roster.unlockedTalents
-            .map { (combatantID: $0.key, nodeIDs: Array($0.value).sorted()) }
-            .sorted { $0.combatantID < $1.combatantID }
+        let talentValues = roster.unlockedTalents.sorted { $0.key < $1.key }
         talentLoadouts = reconcileModels(
             existing: talentLoadouts ?? [],
             values: talentValues,
             existingKey: \.combatantID,
-            valueKey: { $0.combatantID },
-            make: { _ in TalentLoadoutModel() },
+            valueKey: { $0.key },
+            make: { TalentLoadoutModel() },
             update: { model, value in
-                model.combatantID = value.combatantID
-                model.update(from: value.nodeIDs, context: context)
+                model.combatantID = value.key
+                model.update(from: value.value.sorted(), context: context)
             },
             link: { $0.roster = self },
             context: context,
@@ -113,7 +102,7 @@ extension RosterModel {
             values: equipmentValues,
             existingKey: \.combatantID,
             valueKey: { $0.key },
-            make: { _ in EquipmentLoadoutModel() },
+            make: { EquipmentLoadoutModel() },
             update: { model, value in
                 model.combatantID = value.key
                 model.update(from: value.value, context: context)
@@ -134,7 +123,7 @@ extension RosterModel {
     /// value level (sanitize strips them), so they need no graph check.
     var hasDanglingRosterChildren: Bool {
         if let unlocked = unlockedCombatants, unlocked.contains(where: {
-            $0.role != UnlockedCombatantValue.heroRole && $0.role != UnlockedCombatantValue.companionRole
+            $0.role != Self.heroRole && $0.role != Self.companionRole
         }) {
             return true
         }
@@ -153,8 +142,8 @@ extension RosterModel {
 
     func toPlayerRosterState() -> PlayerRosterState {
         let unlocked = unlockedCombatants ?? []
-        let heroIDs = Set(unlocked.filter { $0.role == UnlockedCombatantValue.heroRole }.map(\.combatantID))
-        let companionIDs = Set(unlocked.filter { $0.role == UnlockedCombatantValue.companionRole }.map(\.combatantID))
+        let heroIDs = Set(unlocked.filter { $0.role == Self.heroRole }.map(\.combatantID))
+        let companionIDs = Set(unlocked.filter { $0.role == Self.companionRole }.map(\.combatantID))
         let progressionValues = Dictionary(
             (progressions ?? []).map {
                 ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))

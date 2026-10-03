@@ -7,34 +7,37 @@ import json
 import math
 import os
 import sys
+from statistics import median
 from datetime import datetime, timezone
 from pathlib import Path
 
 from internal.diagnostics.xcresult_diagnostics import run_xcresulttool
 
 
-def finite_nonnegative(value: object, label: str) -> float:
+def duration_number(value: object) -> float:
     if isinstance(value, bool):
-        raise SystemExit(f"{label} must be a finite non-negative number")
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
-        raise SystemExit(f"{label} must be a finite non-negative number")
+        raise ValueError("boolean duration")
+    number = float(value)
     if not math.isfinite(number) or number < 0:
-        raise SystemExit(f"{label} must be a finite non-negative number")
+        raise ValueError("invalid duration")
     return number
+
+
+def finite_nonnegative(value: object, label: str) -> float:
+    try:
+        return duration_number(value)
+    except (TypeError, ValueError, OverflowError):
+        raise SystemExit(f"{label} must be a finite non-negative number")
 
 
 def valid_duration(value: object) -> bool:
     if value is None:
         return True
-    if isinstance(value, bool):
-        return False
     try:
-        number = float(value)
-    except (TypeError, ValueError):
+        duration_number(value)
+        return True
+    except (TypeError, ValueError, OverflowError):
         return False
-    return math.isfinite(number) and number >= 0
 
 
 def valid_entry(entry: object) -> bool:
@@ -135,18 +138,17 @@ def load_entries(log_path: Path) -> list[dict]:
 
 
 def append_entry(results_dir: Path, log_path: Path, entry: dict) -> None:
+    raw_maximum = os.environ.get("TRINKET_KEEP_TIMING_HISTORY", "50")
+    try:
+        maximum = max(int(raw_maximum), 1)
+    except ValueError:
+        raise SystemExit(f"TRINKET_KEEP_TIMING_HISTORY must be an integer, got {raw_maximum!r}")
     entry["schema_version"] = 1
     if not valid_entry(entry):
         raise SystemExit("refusing to record malformed timing entry")
     results_dir.mkdir(parents=True, exist_ok=True)
     with log_path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(entry, separators=(",", ":")) + "\n")
-    raw_maximum = os.environ.get("TRINKET_KEEP_TIMING_HISTORY", "50")
-    try:
-        maximum = int(raw_maximum)
-    except ValueError:
-        raise SystemExit(f"TRINKET_KEEP_TIMING_HISTORY must be an integer, got {raw_maximum!r}")
-    maximum = max(maximum, 1)
     entries = log_path.read_text(encoding="utf-8").splitlines()
     if len(entries) > maximum:
         log_path.write_text("\n".join(entries[-maximum:]) + "\n", encoding="utf-8")
@@ -236,14 +238,6 @@ def format_seconds(seconds: object) -> str:
         return f"{value:.1f}s"
     minutes, remainder = divmod(value, 60)
     return f"{int(minutes)}m {remainder:.0f}s"
-
-
-def median(values: list[float]) -> float:
-    ordered = sorted(values)
-    if not ordered:
-        return 0.0
-    middle = len(ordered) // 2
-    return ordered[middle] if len(ordered) % 2 else (ordered[middle - 1] + ordered[middle]) / 2
 
 
 def entry_run(entry: dict) -> str:

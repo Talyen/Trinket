@@ -2,6 +2,31 @@ import SwiftUI
 import TrinketContent
 import TrinketFeatureSupport
 
+@MainActor
+enum LabyrinthFogArtwork {
+    private static let artIDs = [
+        "labyrinth-fog-veiled-arch",
+        "labyrinth-fog-descending-steps",
+        "labyrinth-fog-shrouded-passage",
+        "labyrinth-fog-forgotten-pillars",
+        "labyrinth-fog-vanishing-bridge",
+        "labyrinth-fog-hidden-chamber",
+    ]
+
+    static var thumbnailNames: [String] {
+        artIDs.compactMap { ArtCatalog.encounterArtByID[$0]?.thumbnailImageName }
+    }
+
+    static func reference(for nodeID: String) -> EncounterArtReference? {
+        // FNV-1a keeps fog stable across launches without consuming gameplay RNG.
+        let hash = nodeID.utf8.reduce(UInt64(14695981039346656037)) {
+            ($0 ^ UInt64($1)) &* 1099511628211
+        }
+        let artID = artIDs[Int(hash % UInt64(artIDs.count))]
+        return ArtCatalog.encounterArtByID[artID]
+    }
+}
+
 enum LabyrinthNodeArtworkMetrics {
     static let hexFocalZoom: CGFloat = 1.6
 }

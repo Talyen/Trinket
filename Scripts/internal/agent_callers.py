@@ -5,9 +5,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from internal.cli import ROOT
-from internal.source_declarations import source_declarations
-from internal.swift_policy import formatter_tokens
+from internal.source_declarations import source_declarations, swift_code_tokens
 
 
 def invocation_lines(path: Path, source: str, symbol: str) -> list[int]:
@@ -16,32 +14,8 @@ def invocation_lines(path: Path, source: str, symbol: str) -> list[int]:
                        if isinstance(node, ast.Call) and
                        ((isinstance(node.func, ast.Name) and node.func.id == symbol) or
                         (isinstance(node.func, ast.Attribute) and node.func.attr == symbol))})
-    tokens = []
-    comments, strings, line = [], [], 1
-    for token in formatter_tokens(source, ROOT):
-        kind, value = token['type'], token['string']
-        start = line
-        line += value.count('\n')
-        if comments:
-            if kind == 'startOfScope' and value == '/*':
-                comments.append(value)
-            elif (kind == 'endOfScope' and value == '*/') or (kind == 'linebreak' and comments[-1] == '//'):
-                comments.pop()
-            continue
-        if strings:
-            if kind == 'startOfScope' and '"' in value:
-                strings.append(value)
-            elif kind == 'endOfScope' and '"' in value:
-                strings.pop()
-            continue
-        if kind == 'startOfScope' and value in {'//', '/*'}:
-            comments.append(value)
-        elif kind == 'startOfScope' and '"' in value:
-            strings.append(value)
-            tokens.append(('literal', '<string>', start))
-        elif kind not in {'space', 'linebreak', 'commentBody'}:
-            tokens.append((kind, value, start))
-    return sorted({number for index, (kind, value, number) in enumerate(tokens[:-1])
+    tokens = swift_code_tokens(source)
+    return sorted({number for index, (kind, value, number, _, _) in enumerate(tokens[:-1])
                    if kind == 'identifier' and value.strip('`') == symbol
                    and tokens[index + 1][1] == '('
                    and (index == 0 or tokens[index - 1][1] not in {'func', 'macro'})})

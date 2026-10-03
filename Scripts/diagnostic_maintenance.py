@@ -21,6 +21,9 @@ def require_results_dir(value: str) -> Path:
 
 def remove(path: Path) -> bool:
     """Remove one artifact path; True when something was actually deleted."""
+    if path.is_symlink():
+        path.unlink()
+        return True
     if path.is_dir():
         shutil.rmtree(path)
         return True
@@ -155,6 +158,13 @@ def sweep_orphans(root: Path) -> int:
     return removed
 
 
+def artifact_path(value: object, root: Path) -> Path | None:
+    if not isinstance(value, str) or not value:
+        return None
+    path = Path(value).expanduser().resolve()
+    return path if root in path.parents else None
+
+
 def cleanup(root: Path, keep: bool) -> None:
     if keep:
         print(f"Keeping diagnostic artifacts in {root} (--keep)")
@@ -167,6 +177,8 @@ def cleanup(root: Path, keep: bool) -> None:
     for path in root.glob("*-invocation.json"):
         try:
             manifest = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(manifest, dict):
+                continue
             manifests[path] = manifest
             if manifest.get("infrastructure_recovery"):
                 report = json.loads(Path(manifest["diagnostics_json"]).read_text())
@@ -175,15 +187,11 @@ def cleanup(root: Path, keep: bool) -> None:
         except (OSError, ValueError, KeyError, TypeError):
             continue
     for manifest_path, manifest in manifests.items():
-        if (manifest.get("status") != "passed" or manifest.get("exit_code") != 0) and manifest_path not in recovered:
+        exit_code = manifest.get("exit_code")
+        passed = manifest.get("status") == "passed" and type(exit_code) is int and exit_code == 0
+        if not passed and manifest_path not in recovered:
             continue
-        result_value = manifest.get("result_bundle")
-        result = Path(result_value).expanduser().resolve() if isinstance(result_value, str) else None
-        if result is not None:
-            try:
-                result.relative_to(root)
-            except ValueError:
-                result = None
+        result = artifact_path(manifest.get("result_bundle"), root)
         if result is not None:
             if remove(result):
                 removed += 1
@@ -192,13 +200,7 @@ def cleanup(root: Path, keep: bool) -> None:
                 removed += 1
             if remove(root / f"{stem}-diagnostics.attachments"):
                 removed += 1
-        report_value = manifest.get("diagnostics_json")
-        report = Path(report_value).expanduser().resolve() if isinstance(report_value, str) and report_value else None
-        if report is not None:
-            try:
-                report.relative_to(root)
-            except ValueError:
-                report = None
+        report = artifact_path(manifest.get("diagnostics_json"), root)
         if report is not None:
             stem = report.name.removesuffix(".json")
             if remove(report):

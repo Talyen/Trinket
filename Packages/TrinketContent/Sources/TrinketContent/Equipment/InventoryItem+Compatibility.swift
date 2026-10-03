@@ -73,25 +73,20 @@ extension InventoryItem {
     }
 
     private static func normalizedBeastbond(_ power: ItemAffixPower) -> ItemAffixPower {
-        var modifiers = power.modifiers
-        let oldValue = modifiers.compactMap { modifier -> Int? in
-            if case let .companionDamageDealt(value) = modifier {
-                return value
+        var modifiers: [AffixModifier] = []
+        var oldValue: Int?
+        var newValue: Int?
+        for modifier in power.modifiers {
+            switch modifier {
+            case let .companionDamageDealt(value):
+                oldValue = oldValue ?? value
+            case let .companionPhysicalDamageDealt(value):
+                newValue = newValue ?? value
+                modifiers.append(modifier)
+            default:
+                modifiers.append(modifier)
             }
-            return nil
-        }.first
-        modifiers.removeAll {
-            if case .companionDamageDealt = $0 {
-                return true
-            }
-            return false
         }
-        let newValue = modifiers.compactMap { modifier -> Int? in
-            if case let .companionPhysicalDamageDealt(value) = modifier {
-                return value
-            }
-            return nil
-        }.first
         let actual = newValue ?? oldValue
         guard let actual else { return power }
         if newValue == nil {

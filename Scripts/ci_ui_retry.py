@@ -10,12 +10,9 @@ import subprocess
 import sys
 import uuid
 
-import importlib.util
+from internal.cli import load_sibling
 
-_spec = importlib.util.spec_from_file_location("test_timing", Path(__file__).with_name("test-timing.py"))
-_timing = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_timing)
-parse_xcresult = _timing.parse_xcresult
+parse_xcresult = load_sibling("test_timing", "test-timing.py").parse_xcresult
 
 
 def read(path: str | Path) -> dict:
@@ -105,6 +102,7 @@ def recovery_valid(manifest: dict, report: dict) -> bool:
             and all(test.get("result") == "Passed" for test in retry_cases)
             and recovery["retry_evidence"]["summary"]["failed"] == 0
             and recovery["retry_evidence"]["summary"]["passed"] == len(failed)
+            and recovery["retry_evidence"]["summary"]["skipped"] == 0
         )
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         return False

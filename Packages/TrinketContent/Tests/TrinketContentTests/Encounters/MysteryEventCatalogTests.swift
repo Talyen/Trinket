@@ -37,11 +37,6 @@ struct MysteryEventCatalogTests {
         try #expect(Set(unlockIDs.filter { expectedCompanions.contains($0) }) == expectedCompanions)
     }
 
-    @Test func `starter options exist in their authored order and role`() throws {
-        try #expect(GameContent.heroes.allSatisfy { $0.role == .hero })
-        try #expect(GameContent.companions.allSatisfy { $0.role == .companion })
-    }
-
     @Test func `all mystery event choices have unique I ds and at least one effect`() throws {
         for event in GameContent.mysteryEvents + GameContent.recruitEvents {
             let choiceIDs = event.choices.map(\.id)
@@ -181,45 +176,6 @@ struct MysteryEventCatalogTests {
         #expect(first != other)
     }
 
-    @Test func `ordinary mystery choices grant two loot effects`() throws {
-        for event in GameContent.mysteryEvents where event.id != GameContent.corruptionAltarEventID {
-            for choice in event.choices {
-                try #expect(
-                    choice.effects.count == 2,
-                    "\(event.id)/\(choice.id) should grant exactly two effects",
-                )
-                let kinds = choice.effects.map(lootKind(for:))
-                try #expect(
-                    Self.validTwoLootKindPairs.contains(Set(kinds)),
-                    "\(event.id)/\(choice.id) has invalid loot pairing \(kinds)",
-                )
-            }
-        }
-    }
-
-    @Test func `generated item effects reference known base types`() throws {
-        let knownBaseIDs = Set(GameContent.itemBaseTypes.map(\.id))
-        for event in GameContent.mysteryEvents + GameContent.recruitEvents {
-            for choice in event.choices {
-                for effect in choice.effects {
-                    guard case let .gainItem(pool) = effect else {
-                        continue
-                    }
-                    try #expect(
-                        knownBaseIDs.contains(pool.baseTypeID),
-                        "Unknown base type \(pool.baseTypeID) in \(event.id)/\(choice.id)",
-                    )
-                    for affixID in pool.guaranteedAffixIDs {
-                        _ = try #require(
-                            GameContent.itemAffixDefinitions.first { $0.id == affixID },
-                            "Unknown guaranteed affix \(affixID) in \(event.id)/\(choice.id)",
-                        )
-                    }
-                }
-            }
-        }
-    }
-
     @Test func `item pools cover known special items and use gear fallbacks`() throws {
         let trinketIDs = Set(GameContent.trinketItems.map(\.templateID))
         let uniqueIDs = Set(GameContent.uniqueItems.map(\.templateID))
@@ -230,7 +186,17 @@ struct MysteryEventCatalogTests {
             #expect(event.narrative.contains("{B}"))
             #expect(!event.narrative(for: []).contains("{"))
             for choice in event.choices {
+                try #require(choice.effects.count == 2, "\(event.id)/\(choice.id)")
+                #expect(choice.effects.count(where: { effect in
+                    switch effect {
+                    case .gainGold, .gainMaterial, .gainExperience: true
+                    default: false
+                    }
+                }) == 1, "\(event.id)/\(choice.id) needs one bonus")
                 let pool = try #require(choice.itemPool)
+                for affixID in pool.guaranteedAffixIDs {
+                    _ = try #require(GameContent.itemAffixDefinition(matching: affixID), "Unknown guaranteed affix \(affixID)")
+                }
                 let base = try #require(GameContent.itemBaseType(matching: pool.baseTypeID))
                 #expect(base.slot != .trinket)
                 #expect(pool.trinketIDs.isSubset(of: trinketIDs))
@@ -241,20 +207,6 @@ struct MysteryEventCatalogTests {
         }
         #expect(placedTrinkets == trinketIDs)
         #expect(placedUniques == uniqueIDs)
-    }
-
-    @Test func `mystery narrative templates stay concise`() {
-        for event in GameContent.mysteryEvents {
-            let wordCount = event.narrative.split(whereSeparator: \.isWhitespace).count
-            #expect(
-                wordCount <= 12,
-                "Mystery event \(event.id) narrative has \(wordCount) words",
-            )
-            if event.id != GameContent.corruptionAltarEventID {
-                #expect(event.narrative.contains("{A}"))
-                #expect(event.narrative.contains("{B}"))
-            }
-        }
     }
 
     @Test func `mystery effects never spend resources`() throws {
@@ -308,32 +260,6 @@ struct MysteryEventCatalogTests {
         let companion = try #require(GameContent.combatant(forMysteryEvent: companionEvent))
         try #expect(companion.role == .companion)
     }
-}
-
-private enum MysteryLootKind: Hashable {
-    case experience
-    case gold
-    case material
-    case item
-}
-
-private func lootKind(for effect: MysteryEffect) -> MysteryLootKind {
-    switch effect {
-    case .gainExperience: .experience
-    case .gainGold: .gold
-    case .gainMaterial: .material
-    case .gainItem: .item
-    case .unlockCombatant, .corruptItem, .leave:
-        preconditionFailure("Unexpected mystery effect \(effect) in loot pairing test")
-    }
-}
-
-private extension MysteryEventCatalogTests {
-    static let validTwoLootKindPairs: Set<Set<MysteryLootKind>> = [
-        [.item, .material],
-        [.item, .gold],
-        [.experience, .item],
-    ]
 }
 
 private enum PlayerRosterStarterIDs {

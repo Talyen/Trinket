@@ -48,7 +48,7 @@ struct PlayerRosterStateTests {
         try #expect(configured.abilityLoadout.ultimate?.tier == .ultimate)
     }
 
-    @Test func `set active combatants ignores locked entries on fresh start`() throws {
+    @Test func `active selection rejects locked and wrong role combatants`() throws {
         var roster = PlayerRosterState.freshStart
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
@@ -57,6 +57,13 @@ struct PlayerRosterStateTests {
         try #expect(roster.activeHeroID == PlayerRosterState.starterHeroID)
         roster.setActiveCompanion(bear)
         try #expect(roster.activeCompanionID == PlayerRosterState.starterCompanionID)
+
+        roster.unlock(wizard)
+        roster.unlock(bear)
+        roster.setActiveHero(bear)
+        roster.setActiveCompanion(wizard)
+        #expect(roster.activeHeroID == PlayerRosterState.starterHeroID)
+        #expect(roster.activeCompanionID == PlayerRosterState.starterCompanionID)
     }
 
     @Test func `gold mutation and spend respect bounds`() throws {

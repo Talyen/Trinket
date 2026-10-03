@@ -51,9 +51,11 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
         row = {"token": "maximum_health", "case": "maximumHealth", "type": "Int", "keyword": False}
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "modifiers.json"
-            for rows in ([row, row], [{**row, "type": "Float"}], [{**row, "keyword": "false"}]):
+            for rows in (None, {}, [], [None], [row, row], [{**row, "token": None}],
+                         [{**row, "case": 3}], [{**row, "type": []}],
+                         [{**row, "type": "Float"}], [{**row, "keyword": "false"}]):
                 path.write_text(json.dumps(rows))
-                with self.assertRaises(ValueError):
+                with self.subTest(rows=rows), self.assertRaisesRegex(ValueError, "[Mm]odifier"):
                     modifier_definitions(path)
 
     def test_triggers_swift_maps_known_token_to_grouped_field(self) -> None:

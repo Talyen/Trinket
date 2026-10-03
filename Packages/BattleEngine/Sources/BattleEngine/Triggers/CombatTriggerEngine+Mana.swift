@@ -421,6 +421,18 @@ package extension CombatTriggerEngine {
         return events
     }
 
+    /// Direct gains and Mana Shield reactions run gain consequences before
+    /// consuming overflow; other restoration paths deliberately keep their order.
+    static func manaRestorationReactions(
+        for actor: Combatant,
+        restored: Int,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        var events = restored > 0 ? afterGainMana(by: actor, in: &context) : []
+        events.append(contentsOf: consumeManaOverflowTalents(for: actor, restoredMana: restored > 0, in: &context))
+        return events
+    }
+
     static func consumeManaOverflowTalents(
         for actor: Combatant,
         restoredMana: Bool,

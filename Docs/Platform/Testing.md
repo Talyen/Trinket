@@ -33,16 +33,17 @@ battle-party fixtures (`CombatantFixtures`, `ItemFixtures`,
 `TrinketPersistenceTestSupport` target so shared combat fixtures stay Persistence-free.
 The fixture implementations live in `TrinketContent`'s `TrinketContentTestSupport`
 target so `TrinketContentTests` can use them without a package cycle.
-Fixture contracts (seed, defaults, ID scheme, name derivation, quick-win shape)
-are pinned by `FixtureContractTests` in `TrinketContentTests`. Package-specific construction, RNG, and
+Protect fixture behavior through the game outcomes exercised by consuming tests;
+avoid separate snapshots of fixture defaults, names, or forwarded predicates.
+Package-specific construction, RNG, and
 dispatch conventions belong in the owning test guide, including
 [BattleEngine](../../Packages/BattleEngine/Tests/README.md#conventions) and
 [Persistence](../../Packages/TrinketPersistence/Tests/README.md).
 
 Seed streams are separate universes, not one constant: the battle RNG seed
 (`CombatantFixtures.deterministicBattleSeed`, with
-`deterministicBattleSeedVariant(_:)` for independent streams) is the only
-pinned seed. The save world seed (`PlayerSave.testWorldSeed`), the perf
+`deterministicBattleSeedVariant(_:)` for independent streams) is the shared
+combat seed. The save world seed (`PlayerSave.testWorldSeed`), the perf
 fixture seed (`BattlePerformanceFixture.seed`), and the generated-item seed
 (`SaveTestSupport.makeGeneratedItem`, default `11`) are intentionally
 distinct; do not unify them or reuse the battle seed for non-battle RNG.

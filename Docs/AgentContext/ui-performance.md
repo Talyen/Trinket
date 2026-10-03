@@ -71,6 +71,9 @@ from encounter creation and gameplay eligibility. A mounted cover refreshes its
 pins when offer artwork changes, without replacing the cover or exposing undecoded
 offer artwork. Campaign launch pins use the same resolved stages and artwork
 selection as the map, including Mystery replacements for exhausted recruits.
+Labyrinth fog thumbnails are also launch-priority pins. Uncleared, unreachable
+tiles use a stable node-ID-selected fog variant and a generic unexplored label;
+reachable tiles reveal their normal encounter artwork.
 Campaign and Labyrinth capture their outgoing map presentation before invoking an
 encounter action. Retain it only when Mystery or Shop opens, including resolved
 recruit artwork and Labyrinth selection; persistence still commits immediately.

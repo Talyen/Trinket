@@ -111,17 +111,14 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
     ) -> [ResourceAmount] {
         var projected = self
         projected.settleProduction(at: date, roster: roster)
-        return projected.pendingProduction
-            .compactMap { resource, amount in
-                let quantity = projected.collectibleQuantity(
-                    for: resource,
-                    pending: amount,
-                    roster: roster,
-                )
-                guard quantity > 0 else { return nil }
-                return ResourceAmount(resource, quantity)
-            }
-            .sorted { $0.resource.rawValue < $1.resource.rawValue }
+        return projected.collectibleAmounts(roster: roster)
+    }
+
+    private func collectibleAmounts(roster: PlayerRosterState) -> [ResourceAmount] {
+        pendingProduction.compactMap { resource, amount in
+            let quantity = collectibleQuantity(for: resource, pending: amount, roster: roster)
+            return quantity > 0 ? ResourceAmount(resource, quantity) : nil
+        }.sorted { $0.resource.rawValue < $1.resource.rawValue }
     }
 
     public func nextCollectibleDate(after date: Date, roster: PlayerRosterState) -> Date? {
@@ -180,13 +177,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
     ) -> [ResourceAmount] {
         settleProduction(at: date, roster: roster)
 
-        let collected = pendingProduction
-            .compactMap { resource, amount -> ResourceAmount? in
-                let quantity = collectibleQuantity(for: resource, pending: amount, roster: roster)
-                guard quantity > 0 else { return nil }
-                return ResourceAmount(resource, quantity)
-            }
-            .sorted { $0.resource.rawValue < $1.resource.rawValue }
+        let collected = collectibleAmounts(roster: roster)
 
         for amount in collected {
             if amount.resource == .gold {

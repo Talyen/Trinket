@@ -70,60 +70,6 @@ struct UniqueCatalogTests {
         }
     }
 
-    @Test func `catalog supports reference existing definitions`() {
-        for definition in GameContent.uniqueDefinitions {
-            for source in definition.affixes {
-                if case let .catalog(id) = source {
-                    #expect(GameContent.itemAffixDefinition(matching: id) != nil, Comment(rawValue: id))
-                }
-            }
-        }
-    }
-
-    @Test func `bespoke signatures never enter the random pool`() {
-        let poolIDs = Set(GameContent.itemAffixDefinitions.map(\.id))
-        for definition in GameContent.uniqueDefinitions {
-            for source in definition.affixes {
-                if case let .bespoke(bespoke) = source {
-                    #expect(!poolIDs.contains(bespoke.id), Comment(rawValue: bespoke.id))
-                }
-            }
-        }
-    }
-
-    @Test func `every signature has supporting astral max affixes`() throws {
-        for item in GameContent.uniqueItems {
-            try #expect(item.affixes.count == 4, Comment(rawValue: item.id))
-            #expect(item.affixPowers?.count == item.affixes.count)
-        }
-    }
-
-    @Test func `new unique packages resolve exactly`() throws {
-        let expected: [String: (base: String, affixes: [String])] = [
-            "blackfletch": ("crossbow", ["blackfletch", "infected", "lingering", "contagion"]),
-            "twin_casting": ("staff", ["twin_casting", "smoldering", "glacial", "channeled"]),
-            "saintfall_plate": ("plate_armor", ["saintfall", "bulwark", "sanctum", "vital"]),
-            "golden_verdict": ("topaz_ring", ["golden_verdict", "stunning", "lucky", "absolving"]),
-        ]
-
-        for (id, package) in expected {
-            let item = try #require(GameContent.unique(matching: id))
-            #expect(item.baseType.id == package.base)
-            #expect(item.affixes.map(\.id) == package.affixes)
-        }
-    }
-
-    @Test func `staff and channeled use mana only elemental affinity`() throws {
-        let staff = try #require(GameContent.itemBaseType(matching: "staff"))
-        #expect(staff.keywordAffinities == [.burn, .freeze, .mana])
-
-        let channeled = try #require(GameContent.itemAffixDefinition(matching: "channeled"))
-        #expect(channeled.slot == .weapon)
-        #expect(channeled.keywords == [.mana])
-        #expect(channeled.basic.modifiers == [.maximumMana(4)])
-        #expect(channeled.astral.modifiers == [.maximumMana(8)])
-    }
-
     @Test func `basic astral unique and trinket catalogs do not overlap`() {
         #expect(GameContent.uniqueItems.allSatisfy { !$0.isTrinket && $0.rarity == .unique })
         #expect(GameContent.sampleInventoryItems.allSatisfy { !$0.isTrinket && $0.rarity != .unique })
@@ -151,56 +97,21 @@ struct UniqueCatalogTests {
         }
     }
 
-    @Test func `completed collection pins standard supporting powers`() throws {
-        let expected: [String: [String]] = [
-            "the_unclosing_wound": ["keen", "serrated", "leeching"],
-            "kingbreaker": ["keen", "concussive", "defenders"],
-            "everkeen": ["keen", "serrated", "dazed"],
-            "red_harvest": ["keen", "serrated", "leeching"],
-            "oathkeeper": ["keen", "consecrated", "serrated"],
-            "the_patient_edge": ["keen", "serrated", "envenomed"],
-            "vipers_courtesy": ["envenomed", "serrated", "leeching"],
-            "the_lingering_bell": ["concussive", "consecrated", "dazed"],
-            "huntsmasters_call": ["keen", "serrated", "envenomed"],
-            "wrenflight": ["keen", "infected", "contagion"],
-            "the_returning_gale": ["keen", "serrated", "lingering"],
-            "the_final_spark": ["smoldering", "glacial", "channeled"],
-            "laughing_guard": ["elusive", "untouchable", "defenders"],
-            "the_knights_answer": ["concussive", "dazed", "defenders"],
-            "the_returning_flight": ["keen", "envenomed", "infected"],
-            "threefold_grace": ["smoldering", "glacial", "consecrated"],
-            "bloodember_pendant": ["smoldering", "serrated", "vampiric"],
-            "winters_credit": ["rime", "aetherward", "manabound"],
-            "serpents_eye": ["envenomed", "contagion", "hale"],
-            "wildhearts_favor": ["envenomed", "hale", "beastbond"],
-            "the_golden_crucible": ["lucky", "gilded", "absolving"],
-        ]
-        for (id, supports) in expected {
-            let item = try #require(GameContent.unique(matching: id))
-            let powers = try #require(item.affixPowers)
-            #expect(item.affixes.first?.id == id)
-            for (index, support) in supports.enumerated() {
-                let definition = try #require(GameContent.itemAffixDefinition(matching: support))
-                let max = definition.astral.rolledMax()
-                #expect(powers[index + 1] == max)
-                #expect(item.affixes[index + 1].title == definition.title)
-                #expect(item.affixes[index + 1].description == max.description)
-            }
-        }
-    }
-
-    @Test func `unique supports pin astral roll-max`() throws {
+    @Test func `unique powers match every authored source at astral roll max`() throws {
+        let randomPoolIDs = Set(GameContent.itemAffixDefinitions.map(\.id))
         for item in GameContent.uniqueItems {
             let powers = try #require(item.affixPowers)
-            #expect(powers.count == item.affixes.count)
-            let sources = GameContent.uniqueDefinitions.first(where: { $0.id == item.id })?.affixes
-            for (index, source) in (sources ?? []).enumerated() {
+            let sources = try #require(GameContent.uniqueDefinitions.first { $0.id == item.id }?.affixes)
+            try #require(powers.count == sources.count && item.affixes.count == sources.count)
+            for (index, source) in sources.enumerated() {
                 switch source {
                 case let .catalog(id):
                     let definition = try #require(GameContent.itemAffixDefinition(matching: id))
+                    #expect(item.affixes[index].id == id)
                     #expect(powers[index] == definition.astral.rolledMax())
-                    #expect(powers[index].isAtOrAboveRollMax(of: definition.astral))
                 case let .bespoke(bespoke):
+                    #expect(!randomPoolIDs.contains(bespoke.id), Comment(rawValue: bespoke.id))
+                    #expect(item.affixes[index].id == bespoke.id)
                     #expect(powers[index] == bespoke.astral.rolledMax())
                 }
             }

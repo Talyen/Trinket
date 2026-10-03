@@ -133,7 +133,12 @@ struct ItemGeneratorTests {
         try #expect(degraded.rarity == .basic)
     }
 
-    @Test func `exhausted trinket only pool degrades to basic gear`() throws {
+    @Test(arguments: [false, true])
+    func `exhausted trinket only pool degrades to basic gear`(trinketOnlyBases: Bool) throws {
+        let bases = trinketOnlyBases
+            ? GameContent.itemBaseTypes.filter { $0.slot == .trinket }
+            : GameContent.itemBaseTypes
+        try #require(!bases.isEmpty)
         let allOwned = Set(GameContent.trinketItems.map(\.templateID))
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
         let degraded = ItemRewardGenerator.generate(
@@ -142,23 +147,7 @@ struct ItemGeneratorTests {
             allowedTiers: [.trinket],
             ownedTrinketIDs: allOwned,
             ownedUniqueIDs: [],
-            using: &randomNumberGenerator,
-        )
-        try #expect(degraded.rarity == .basic)
-    }
-
-    @Test func `exhausted trinket pool with trinket only bases degrades without trapping`() throws {
-        let trinketBases = GameContent.itemBaseTypes.filter { $0.slot == .trinket }
-        try #require(!trinketBases.isEmpty)
-        let allOwned = Set(GameContent.trinketItems.map(\.templateID))
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
-        let degraded = ItemRewardGenerator.generate(
-            id: "degraded-trinket-only-bases",
-            rewardLevel: 1,
-            allowedTiers: [.trinket],
-            ownedTrinketIDs: allOwned,
-            ownedUniqueIDs: [],
-            baseTypes: trinketBases,
+            baseTypes: bases,
             using: &randomNumberGenerator,
         )
         try #expect(degraded.rarity == .basic)
@@ -169,6 +158,7 @@ struct ItemGeneratorTests {
         let poisonTrinketIDs = Set(GameContent.trinketItems.filter {
             $0.keywords.contains(.poison)
         }.map(\.templateID))
+        try #require(!poisonTrinketIDs.isEmpty)
 
         for seed in UInt64(1) ... 16 {
             var biasedRandomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
@@ -181,9 +171,8 @@ struct ItemGeneratorTests {
                 keywordBias: [.poison],
                 using: &biasedRandomNumberGenerator,
             )
-            if biasedReward.isTrinket {
-                try #expect(poisonTrinketIDs.contains(biasedReward.templateID))
-            }
+            try #expect(biasedReward.isTrinket)
+            try #expect(poisonTrinketIDs.contains(biasedReward.templateID))
 
             var exhaustedRandomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
             let exhaustedReward = ItemRewardGenerator.generate(
@@ -220,7 +209,7 @@ struct ItemGeneratorTests {
         try #expect(firstItem == secondItem)
     }
 
-    @Test func `guaranteed affix I ds are always included`() throws {
+    @Test func `repeated guarantees reserve one affix and leave room for other rolls`() throws {
         let baseType = try ItemFixtures.baseType("sapphire_ring")
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
 
@@ -228,12 +217,14 @@ struct ItemGeneratorTests {
             id: "mana-ring",
             baseType: baseType,
             rarity: .basic,
-            guaranteedAffixIDs: ["manabound"],
+            fixedAffixCount: 2,
+            guaranteedAffixIDs: ["manabound", "manabound"],
             using: &randomNumberGenerator,
         )
 
-        try #expect(item.affixes.contains { $0.id == "manabound" })
-        try #expect(item.affixes.count >= 1)
+        #expect(item.affixes.count == 2)
+        #expect(item.affixes.count(where: { $0.id == "manabound" }) == 1)
+        #expect(Set(item.affixes.map(\.id)).count == 2)
     }
 
     @Test func `repeat template drops from one stage keep distinct identities`() throws {

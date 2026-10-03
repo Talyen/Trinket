@@ -39,31 +39,30 @@ public final class JourneyStageProgressModel {
 
 extension JourneyProgressModel {
     func toPlayerJourneyState() -> JourneyProgressState {
-        let stageModels = stages ?? []
-        let pinned = Dictionary(
-            stageModels.compactMap { model -> (String, String)? in
-                guard let eventID = model.mysteryEventID, !eventID.isEmpty else { return nil }
-                return (model.stageID, eventID)
-            },
-            uniquingKeysWith: { _, new in new },
-        )
-        return JourneyProgressState(
+        var state = JourneyProgressState(
             activeChapterID: activeChapterID,
             activeStageID: activeStageID,
-            completedStageIDs: Set(stageModels.filter(\.isCompleted).map(\.stageID)),
-            claimedRewardStageIDs: Set(stageModels.filter(\.rewardsClaimed).map(\.stageID)),
-            pinnedMysteryEventIDs: pinned,
-            mysteryOfferPayloads: Dictionary(
-                stageModels.compactMap { model in
-                    model.mysteryOffersPayload.map { (model.stageID, $0) }
-                },
-                uniquingKeysWith: { _, new in new },
-            ),
-            shopPayloads: Dictionary(
-                stageModels.compactMap { model in model.shopPayload.map { (model.stageID, $0) } },
-                uniquingKeysWith: { _, new in new },
-            ),
+            completedStageIDs: [],
+            claimedRewardStageIDs: [],
         )
+        for model in stages ?? [] {
+            if model.isCompleted {
+                state.completedStageIDs.insert(model.stageID)
+            }
+            if model.rewardsClaimed {
+                state.claimedRewardStageIDs.insert(model.stageID)
+            }
+            if let eventID = model.mysteryEventID, !eventID.isEmpty {
+                state.pinnedMysteryEventIDs[model.stageID] = eventID
+            }
+            if let payload = model.mysteryOffersPayload {
+                state.mysteryOfferPayloads[model.stageID] = payload
+            }
+            if let payload = model.shopPayload {
+                state.shopPayloads[model.stageID] = payload
+            }
+        }
+        return state
     }
 
     func update(from state: JourneyProgressState, context: ModelContext?) {
@@ -79,7 +78,7 @@ extension JourneyProgressModel {
             values: allStageIDs.sorted(),
             existingKey: \.stageID,
             valueKey: { $0 },
-            make: { _ in JourneyStageProgressModel() },
+            make: { JourneyStageProgressModel() },
             update: { model, stageID in
                 model.stageID = stageID
                 model.isCompleted = state.completedStageIDs.contains(stageID)

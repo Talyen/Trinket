@@ -61,7 +61,7 @@ class UIRegistrationTests(unittest.TestCase):
                 source = root / 'TrinketUITests' / folder / 'Fixture.swift'
                 source.parent.mkdir(parents=True)
                 base = 'FullGameStoreKitUITestCase' if suite == 'FullUI' else 'TrinketUITestCase'
-                source.write_text(f'class {name}: {base} {{}}')
+                source.write_text(f'// class {name}: {base} {{}}\nclass {name}: {base} {{}}')
                 plan = {'configurations': [{'id': 'keep-me'}], 'defaultOptions': {'testExecutionOrdering': 'alphabetical'},
                         'testTargets': [{'automaticallyIncludesTests': False, 'selectedTests': ['Old'],
                                          'target': {'name': 'TrinketUITests', 'identifier': 'preserve-id'}}]}

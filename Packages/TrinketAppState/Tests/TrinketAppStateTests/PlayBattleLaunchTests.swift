@@ -35,7 +35,7 @@ struct PlayBattleLaunchTests {
                 },
         )
         let encounter = try #require(
-            JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0, partyAverageLevel: 9999),
+            PlayBattlePreparation.journeyEncounter(for: stage, worldSeed: 0, partyAverageLevel: 9999),
         )
         let expectedEnemyID = try #require(stage.resolvedBattleEnemyID(worldSeed: 0))
 
@@ -45,7 +45,7 @@ struct PlayBattleLaunchTests {
         #expect(stage.encounter.battleEnemyID == nil)
 
         let again = try #require(
-            JourneyPlayMode.resolvedEncounter(for: stage, worldSeed: 0, partyAverageLevel: 9999),
+            PlayBattlePreparation.journeyEncounter(for: stage, worldSeed: 0, partyAverageLevel: 9999),
         )
         #expect(again.combatant.id == encounter.combatant.id)
     }
@@ -133,17 +133,16 @@ struct PlayBattleLaunchTests {
 
         let launch = PlayBattleLaunchTestSupport.assemble(
             input: BattleLaunchInput(
+                origin: .journey(stageID: stage.id),
                 hero: knight,
                 companion: wolf,
                 enemy: enemy,
                 stageRewardsAlreadyClaimed: true,
             ),
-            runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
             rosterState: .testSeed,
             inventoryState: .testSeed,
             homesteadState: homestead,
-            hasProgressionRewards: true,
         )
 
         #expect(launch.presentation.goldFindPercent == homestead.effects.goldFindPercent)
@@ -166,16 +165,15 @@ struct PlayBattleLaunchTests {
 
         let configuration = PlayBattleLaunchTestSupport.assemble(
             input: BattleLaunchInput(
+                origin: .journey(stageID: stage.id),
                 hero: knight,
                 companion: wolf,
                 enemy: scaledEnemy,
                 enemyEncounterLevel: encounterLevel,
             ),
-            runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
             rosterState: .testSeed,
             inventoryState: .testSeed,
-            hasProgressionRewards: true,
         ).configuration
 
         let enemy = try #require(configuration.enemy)
@@ -194,6 +192,7 @@ struct PlayBattleLaunchTests {
 
         let launch = PlayBattleLaunchTestSupport.assemble(
             input: BattleLaunchInput(
+                origin: .journey(stageID: "launch-test"),
                 hero: knight,
                 companion: wolf,
                 enemyEncounterLevel: 2,
@@ -202,7 +201,6 @@ struct PlayBattleLaunchTests {
             rngSeed: 0,
             rosterState: .testSeed,
             inventoryState: .testSeed,
-            hasProgressionRewards: true,
         )
 
         #expect(launch.presentation.heroExperienceAward > 0)

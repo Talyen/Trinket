@@ -84,32 +84,16 @@ def read_env_arrays(path: Path | str, names: list[str]) -> dict[str, tuple[str, 
         if not line or line.startswith("#"):
             continue
         if current is None:
-            for name in wanted:
-                if line == f"{name}=(" or line.startswith(f"{name}=("):
-                    rest = line[len(name) + 2 :].strip()
-                    current = name
-                    buffer = []
-                    if rest:
-                        line = rest
-                    else:
-                        break
-                    if line.endswith(")"):
-                        chunk = line[:-1].strip()
-                        if chunk:
-                            buffer.append(chunk)
-                        found[current] = _split_array(" ".join(buffer), path, current)
-                        current = None
-                    elif line:
-                        buffer.append(line)
-                    break
-        elif line.endswith(")"):
-            chunk = line[:-1].strip()
-            if chunk:
-                buffer.append(chunk)
-            assert current is not None
+            current = next((name for name in wanted if line.startswith(f"{name}=(")), None)
+            if current is None:
+                continue
+            line = line[len(current) + 2:].strip()
+            buffer = []
+        if line.endswith(")"):
+            buffer.append(line[:-1].strip())
             found[current] = _split_array(" ".join(buffer), path, current)
             current = None
-        else:
+        elif line:
             buffer.append(line)
     if current is not None:
         raise ValueError(f"{path}: unterminated array {current}")

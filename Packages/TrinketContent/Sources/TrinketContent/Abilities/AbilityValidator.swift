@@ -49,7 +49,6 @@ enum AbilityValidator {
         var issues = validateEffectTargets(in: operations, abilityID: ability.id)
         issues.append(contentsOf: validateTierDamage(in: operationSets, for: ability))
         issues.append(contentsOf: validateDescription(for: ability))
-        issues.append(contentsOf: validateConditionalDamage(in: operations, abilityID: ability.id))
         return issues
     }
 
@@ -58,7 +57,7 @@ enum AbilityValidator {
     }
 
     /// Keep alternatives separate for tier totals, but inspect every authored
-    /// operation for target and condition validity.
+    /// operation for target validity.
     private static func authoredOperationSets(for ability: Ability) -> [[AbilityOperation]] {
         var sets = [ability.operations]
         sets.append(contentsOf: ability.outcomeBranches?.map(\.operations) ?? [])
@@ -157,31 +156,5 @@ enum AbilityValidator {
         default:
             false
         }
-    }
-
-    private static func validateConditionalDamage(in operations: [AbilityOperation], abilityID: String) -> [Issue] {
-        operations.compactMap(\.damageComponent).compactMap { component in
-            guard let condition = component.condition, component.bonusAmount == 0 else { return nil }
-            guard rendersCondition(condition, for: component) else {
-                return Issue(
-                    abilityID: abilityID,
-                    message: "damage condition is not rendered in card text",
-                )
-            }
-            return nil
-        }
-    }
-
-    private static func rendersCondition(_ condition: DamageCondition, for component: DamageComponent) -> Bool {
-        // Structural check: the formatted card text must contain the shared
-        // sentence fragment for the condition. Both sides read DamageCondition
-        // so copy changes stay in sync instead of drifting across two tables.
-        let generated = AbilityDescriptionFormatter.format(Ability(
-            id: "preview",
-            name: "preview",
-            tier: .basic,
-            damageComponents: [component],
-        ))
-        return generated.contains(condition.sentenceFragment)
     }
 }

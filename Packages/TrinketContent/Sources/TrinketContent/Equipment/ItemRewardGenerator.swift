@@ -1,15 +1,6 @@
 import TrinketCore
 
 public enum ItemRewardGenerator {
-    private struct RewardContext {
-        let keywordBias: Set<Keyword>
-        let requiredKeyword: Keyword?
-        let fallbackBaseType: ItemBaseType?
-        let guaranteedAffixIDs: [String]
-        let baseTypes: [ItemBaseType]
-        let itemGenerator: ItemGenerator
-    }
-
     public static func generate(
         id: String,
         rewardLevel: Int,
@@ -31,14 +22,6 @@ public enum ItemRewardGenerator {
         itemGenerator: ItemGenerator = ItemGenerator(),
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem {
-        let context = RewardContext(
-            keywordBias: keywordBias,
-            requiredKeyword: requiredKeyword,
-            fallbackBaseType: fallbackBaseType,
-            guaranteedAffixIDs: guaranteedAffixIDs,
-            baseTypes: baseTypes,
-            itemGenerator: itemGenerator,
-        )
         var available = requiredKeyword == nil ? allowedTiers : allowedTiers.intersection([.basic, .astral])
         if requiredKeyword != nil {
             precondition(!available.isEmpty, "Keyword rewards require Basic or Astral equipment")
@@ -79,35 +62,51 @@ public enum ItemRewardGenerator {
             favoredTier: favoredTier,
             tierWeightBonusPercent: tierWeightBonusPercent,
         )
+        let rarity: Rarity
         switch ItemLootPolicy.roll(probabilities: probabilities, using: &randomNumberGenerator) {
         case .unique:
             return uniques[Int.random(in: uniques.indices, using: &randomNumberGenerator)]
         case .trinket:
             return trinkets[Int.random(in: trinkets.indices, using: &randomNumberGenerator)]
-        case .astral:
-            return generated(id: id, rarity: .astral, context: context, using: &randomNumberGenerator)
-        case .basic:
-            return generated(id: id, rarity: .basic, context: context, using: &randomNumberGenerator)
+        case .astral: rarity = .astral
+        case .basic: rarity = .basic
         }
+        let baseType = rewardBaseType(
+            baseTypes: baseTypes, fallbackBaseType: fallbackBaseType,
+            requiredKeyword: requiredKeyword, keywordBias: keywordBias,
+            itemGenerator: itemGenerator, using: &randomNumberGenerator,
+        )
+        return itemGenerator.generate(
+            id: id,
+            templateID: "\(baseType.id)-\(rarity.rawValue)",
+            baseType: baseType,
+            rarity: rarity,
+            keywordBias: keywordBias,
+            guaranteedAffixIDs: guaranteedAffixIDs,
+            requiredKeyword: requiredKeyword,
+            using: &randomNumberGenerator,
+        )
     }
 
-    private static func generated(
-        id: String,
-        rarity: Rarity,
-        context: RewardContext,
+    private static func rewardBaseType(
+        baseTypes: [ItemBaseType],
+        fallbackBaseType: ItemBaseType?,
+        requiredKeyword: Keyword?,
+        keywordBias: Set<Keyword>,
+        itemGenerator: ItemGenerator,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> InventoryItem {
+    ) -> ItemBaseType {
         // Degraded basic-gear fallback must not trap when the caller passed
         // trinket-only baseTypes with no fallback: use the default gear pool
         // for base selection so the degrade path stays total.
-        let effectiveBases = context.baseTypes.contains(where: { $0.slot != .trinket })
-            || context.fallbackBaseType != nil
-            ? context.baseTypes : GameContent.itemBaseTypes
+        let effectiveBases = baseTypes.contains(where: { $0.slot != .trinket })
+            || fallbackBaseType != nil
+            ? baseTypes : GameContent.itemBaseTypes
         let baseType: ItemBaseType
-        if let keyword = context.requiredKeyword {
+        if let keyword = requiredKeyword {
             let candidates = effectiveBases.filter { base in
                 base.slot != .trinket && base.keywordAffinities.contains(keyword)
-                    && context.itemGenerator.affixDefinitions.contains {
+                    && itemGenerator.affixDefinitions.contains {
                         $0.weight > 0 && $0.keywords.contains(keyword) && $0.isEligible(for: base)
                     }
             }
@@ -117,19 +116,10 @@ public enum ItemRewardGenerator {
             baseType = selected
         } else {
             baseType = ItemBasePolicy.uniformFallbackBase(
-                from: effectiveBases, keywordBias: context.keywordBias, fallback: context.fallbackBaseType,
+                from: effectiveBases, keywordBias: keywordBias, fallback: fallbackBaseType,
                 using: &randomNumberGenerator,
             )
         }
-        return context.itemGenerator.generate(
-            id: id,
-            templateID: "\(baseType.id)-\(rarity.rawValue)",
-            baseType: baseType,
-            rarity: rarity,
-            keywordBias: context.keywordBias,
-            guaranteedAffixIDs: context.guaranteedAffixIDs,
-            requiredKeyword: context.requiredKeyword,
-            using: &randomNumberGenerator,
-        )
+        return baseType
     }
 }

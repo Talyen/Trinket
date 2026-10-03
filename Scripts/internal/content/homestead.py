@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import functools
 
 from internal.content.common import (
     GENERATED_DIR,
     MANIFEST_DIR,
-    VALID_HOMESTEAD_RESOURCES,
     _parse_tsv_rows,
     _require_non_empty,
     _validate_positive_int,
@@ -72,25 +70,20 @@ class HomesteadNodeRow:
     production: str
 
 
-@functools.cache
 def parse_homestead_node_rows() -> list[HomesteadNodeRow]:
-    return _parse_tsv_rows(MANIFEST_DIR / 'homestead_nodes.tsv',
-        ['node_id', 'title', 'summary', 'icon_id', 'category', 'tier', 'stage_name', 'cost', 'bonus_title', 'bonus_description', 'modifiers', 'production'], HomesteadNodeRow, min_columns=None)
+    return _parse_tsv_rows(MANIFEST_DIR / 'homestead_nodes.tsv', HomesteadNodeRow)
 
 
 def parse_homestead_combat_tokens(
     raw: str,
-) -> tuple[list[str], list[str], int, int]:
+) -> tuple[list[str], list[str], dict[str, int]]:
     hero: list[str] = []
     companion: list[str] = []
-    astral = 0
-    gold = 0
-    seen: dict[tuple[str, str | None], str] = {}
+    bonuses: dict[str, int] = {"astral_chance": 0, "gold_find": 0}
+    seen: dict[tuple | str, str] = {}
     for token in parse_modifier_tokens(raw):
-        if token.split(":", 1)[0] in HOMESTEAD_META_FIELDS:
-            continue
-        if token.startswith("astral_chance:") or token.startswith("gold_find:"):
-            name, _, amount = token.partition(":")
+        name, _, amount = token.partition(":")
+        if name in HOMESTEAD_BONUS_FIELDS:
             if name in seen:
                 raise ValueError(
                     f"Duplicate homestead bonus {name!r}: {token!r} repeats {seen[name]!r}"
@@ -102,10 +95,9 @@ def parse_homestead_combat_tokens(
                 raise ValueError(
                     f"Homestead bonus {name!r} must be an integer, got {amount!r}"
                 ) from error
-            if name == "astral_chance":
-                astral = number
-            else:
-                gold = number
+            if name not in {"astral_chance", "gold_find"} and number <= 0:
+                raise ValueError(f"Homestead bonus {name} must be positive")
+            bonuses[name] = number
             continue
         scope = "both"
         body = token
@@ -127,12 +119,14 @@ def parse_homestead_combat_tokens(
             hero.append(swift)
         if scope in ("companion", "both"):
             companion.append(swift)
-    if not hero and not companion and astral == 0 and gold == 0 and not parse_homestead_meta(raw):
+    if not hero and not companion and not any(bonuses.values()):
         raise ValueError("homestead modifiers must declare combat bonuses")
-    return hero, companion, astral, gold
+    return hero, companion, bonuses
 
 
-HOMESTEAD_META_FIELDS = {
+HOMESTEAD_BONUS_FIELDS = {
+    "astral_chance": "astralChanceBonusPercent",
+    "gold_find": "goldFindPercent",
     "gold_find_flat": "goldFindFlat",
     "experience": "experienceBonus",
     "gems_find": "gemsFindBonus",
@@ -141,32 +135,14 @@ HOMESTEAD_META_FIELDS = {
 }
 
 
-def parse_homestead_meta(raw: str) -> dict[str, int]:
-    values: dict[str, int] = {}
-    for token in parse_modifier_tokens(raw):
-        name, _, amount = token.partition(":")
-        if name not in HOMESTEAD_META_FIELDS:
-            continue
-        if name in values:
-            raise ValueError(f"Duplicate homestead bonus {name}")
-        values[name] = int(amount)
-        if values[name] <= 0:
-            raise ValueError(f"Homestead bonus {name} must be positive")
-    return values
-
-
 def render_homestead_combat_bonus(raw: str) -> str:
-    hero, companion, astral, gold = parse_homestead_combat_tokens(raw)
+    hero, companion, bonuses = parse_homestead_combat_tokens(raw)
     parts: list[str] = []
     if hero:
         parts.append(f"heroModifiers: [{', '.join(hero)}]")
     if companion:
         parts.append(f"companionModifiers: [{', '.join(companion)}]")
-    if astral:
-        parts.append(f"astralChanceBonusPercent: {astral}")
-    if gold:
-        parts.append(f"goldFindPercent: {gold}")
-    parts.extend(f"{HOMESTEAD_META_FIELDS[name]}: {value}" for name, value in parse_homestead_meta(raw).items())
+    parts.extend(f"{HOMESTEAD_BONUS_FIELDS[name]}: {value}" for name, value in bonuses.items() if value)
     return "HomesteadTierCombatBonus(" + ", ".join(parts) + ")"
 
 
@@ -185,28 +161,14 @@ def render_homestead_tier(row: HomesteadNodeRow) -> str:
                 )"""
 
 
-def parse_homestead_production_value(raw: str) -> tuple[str, int] | None:
-    if not raw.strip():
-        return None
-    if ":" not in raw:
-        raise ValueError(f"Production entry {raw.strip()!r} must be resource:quantity")
-    resource, quantity = raw.split(":", 1)
-    resource = resource.strip()
-    if resource not in VALID_HOMESTEAD_RESOURCES:
-        raise ValueError(f"Unknown production resource '{resource}'")
-    try:
-        amount = int(quantity.strip())
-    except ValueError as error:
-        raise ValueError(f"Production quantity {quantity.strip()!r} must be an integer") from error
-    if amount <= 0:
-        raise ValueError("Production quantity must be positive")
-    return resource, amount
-
-
 def parse_homestead_production(raw: str) -> str | None:
     if not raw.strip():
         return None
-    entries = [parse_homestead_production_value(token) for token in raw.split("|")]
+    if any(not token.strip() for token in raw.split("|")):
+        raise ValueError("Production entries must not be empty")
+    entries = parse_material_tokens(raw)
+    if any(quantity <= 0 for _, quantity in entries):
+        raise ValueError("Production quantity must be positive")
     resources = [resource for resource, _ in entries]
     if len(set(resources)) != len(resources):
         raise ValueError("Duplicate production resource")
@@ -232,7 +194,8 @@ def validate_homestead_cost(raw: str, row_id: str) -> None:
     if not raw.strip():
         raise ValueError(f"cost is required for {row_id}")
     try:
-        parse_material_tokens(raw)
+        if any(quantity < 0 for _, quantity in parse_material_tokens(raw)):
+            raise ValueError("Cost quantities must be non-negative")
     except ValueError as error:
         raise ValueError(f"{error} for {row_id}") from error
 

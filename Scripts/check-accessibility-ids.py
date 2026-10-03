@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import re
 import sys
-from collections import defaultdict
+from collections import Counter
 from pathlib import Path
 
 from internal.cli import ROOT
@@ -33,12 +33,10 @@ def allowlist() -> set[str]:
 
 
 def unique_constants() -> list[str]:
-    text = ID_FILE.read_text(encoding="utf-8")
-    found = STATIC_LET.findall(text)
-    grouped: dict[str, int] = defaultdict(int)
-    for value in found:
-        grouped[value] += 1
-    return sorted(value for value, count in grouped.items() if count > 1)
+    paths = sorted({ID_FILE, *ID_FILE.parent.glob("AccessibilityID*.swift")})
+    counts = Counter(value for path in paths
+                     for value in STATIC_LET.findall(path.read_text(encoding="utf-8")))
+    return sorted(value for value, count in counts.items() if count > 1)
 
 
 def raw_uitest_literals(allowed: set[str]) -> list[str]:

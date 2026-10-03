@@ -12,19 +12,16 @@ import TrinketPersistence
 enum PlayBattleLaunchTestSupport {
     static func assemble(
         input: BattleLaunchInput,
-        runKey: BattleRunKey? = nil,
         rngSeed: UInt64,
         rosterState: PlayerRosterState,
         inventoryState: PlayerInventoryState,
         homesteadState: PlayerHomesteadState = .freshStart,
         worldSeed: UInt64 = 0,
-        hasProgressionRewards: Bool = false,
     ) -> BattleLaunchAssembly {
         PlayBattleLaunch.assembleLaunch(BattlePreparationInputs(
-            runKey: runKey, launch: input,
+            launch: input,
             party: PlayBattlePartySnapshot(roster: rosterState, inventory: inventoryState, homestead: homesteadState, worldSeed: worldSeed),
             rngSeed: rngSeed,
-            hasProgressionRewards: hasProgressionRewards,
         ))
     }
 
@@ -79,7 +76,6 @@ enum PlayBattleLaunchTestSupport {
 
     static func make(
         origin: PlayBattleOrigin? = nil,
-        runKey: BattleRunKey? = nil,
         rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
         hero: Combatant,
         companion: Combatant,
@@ -107,14 +103,10 @@ enum PlayBattleLaunchTestSupport {
                 stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
                 universalModifiers: universalModifiers,
             ),
-            runKey: runKey ?? origin?.runKey,
             rngSeed: rngSeed,
             rosterState: roster,
             inventoryState: inventory,
             homesteadState: homestead,
-            // Mirrors production (`PlayBattleLaunch.preparationInputs`):
-            // progression rewards ride on the mode origin, not the run key.
-            hasProgressionRewards: origin != nil,
         ).configuration
     }
 }

@@ -14,6 +14,9 @@ SCRIPT_INPUTS = (
 
 
 from script_test_support import ScriptRegressionTestCase
+from pathlib import Path
+import tempfile
+from unittest.mock import patch
 from internal.content import stages
 
 
@@ -34,64 +37,35 @@ class CodegenStagesTests(ScriptRegressionTestCase):
         return stages.StageRow(**fields)
 
     def test_stage_rows_validate_ids_numbering_and_art(self) -> None:
-        good = [self._stage_row()]
-        stages.validate_stage_rows(
-            good,
-            enemy_ids={"goblin"},
-            mystery_event_ids={"mana-berries"},
-            recruit_event_ids={"recruit-knight"},
-            art_ids={"destination-merchant-shop"},
+        catalog = dict(enemy_ids={"goblin"}, mystery_event_ids={"mana-berries"},
+                       recruit_event_ids={"recruit-knight"}, art_ids={"destination-merchant-shop"})
+        for row in (self._stage_row(), self._stage_row(encounter="recruit", enemy_id="random-companion")):
+            stages.validate_stage_rows([row], **catalog)
+        bad_rows = (
+            ("Duplicate stage id", [self._stage_row(), self._stage_row()]),
+            ("requires enemy_id", [self._stage_row(enemy_id="")]),
+            ("numbered 1...N contiguously", [self._stage_row(), self._stage_row(stage_number="3")]),
+            ("unknown mystery event", [self._stage_row(encounter="mystery", enemy_id="bogus-event")]),
+            ("unknown recruit event", [self._stage_row(encounter="recruit", enemy_id="bogus-event")]),
+            ("unknown encounter art", [self._stage_row(encounter="shop", enemy_id="",
+                                                       encounter_art_id="bogus-art", encounter_art_title="Bogus")]),
         )
-        with self.assertRaises(ValueError):
-            stages.validate_stage_rows(
-                [self._stage_row(), self._stage_row()],
-                enemy_ids={"goblin"},
-            )
-        with self.assertRaises(ValueError):
-            stages.validate_stage_rows(
-                [self._stage_row(encounter="battle", enemy_id="")],
-                enemy_ids={"goblin"},
-            )
-        with self.assertRaises(ValueError):
-            stages.validate_stage_rows(
-                [
-                    self._stage_row(stage_number="1"),
-                    self._stage_row(stage_number="3"),
-                ],
-                enemy_ids={"goblin"},
-            )
-        with self.assertRaises(ValueError):
-            stages.validate_stage_rows(
-                [self._stage_row(encounter="mystery", enemy_id="bogus-event")],
-                enemy_ids={"goblin"},
-                mystery_event_ids={"mana-berries"},
-            )
-        with self.assertRaises(ValueError):
-            stages.validate_stage_rows(
-                [self._stage_row(encounter="recruit", enemy_id="bogus-event")],
-                enemy_ids={"goblin"},
-                recruit_event_ids={"recruit-knight"},
-            )
-        stages.validate_stage_rows(
-            [self._stage_row(encounter="recruit", enemy_id="random-companion")],
-            enemy_ids={"goblin"},
-            recruit_event_ids={"recruit-knight"},
-        )
-        with self.assertRaises(ValueError):
-            stages.validate_stage_rows(
-                [
-                    self._stage_row(
-                        encounter="shop",
-                        enemy_id="",
-                        encounter_art_id="bogus-art",
-                        encounter_art_title="Bogus",
-                    )
-                ],
-                enemy_ids={"goblin"},
-                art_ids={"destination-merchant-shop"},
-            )
+        for cause, rows in bad_rows:
+            with self.subTest(cause=cause), self.assertRaisesRegex(ValueError, cause):
+                stages.validate_stage_rows(rows, **catalog)
 
-    def test_live_manifest_event_and_art_ids_resolve(self) -> None:
-        self.assertIn("mana-berries", stages.collect_mystery_event_ids())
-        self.assertIn("recruit-knight", stages.collect_recruit_event_ids())
-        self.assertIn("destination-merchant-shop", stages.collect_art_ids())
+    def test_encounter_and_art_validation_observes_edits_without_cache_reset(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            mystery = root / "Mystery"
+            mystery.mkdir()
+            art = root / "art.tsv"
+            with patch.object(stages, "ART_MANIFEST", art), patch.object(stages, "ENCOUNTER_DIR", root):
+                for identity in ("first", "edited"):
+                    art.write_text(f"# id\tasset_name\n{identity}\timage\n")
+                    (mystery / "MysteryEventPool+Events.swift").write_text(f'makeEvent(id: "{identity}")')
+                    (mystery / "RecruitEventPool.swift").write_text(f'recruit(id: "{identity}")')
+                    for collect in (stages.collect_art_ids, stages.collect_mystery_event_ids, stages.collect_recruit_event_ids):
+                        self.assertEqual(collect(), {identity})
+                        collect().clear()
+                        self.assertEqual(collect(), {identity})

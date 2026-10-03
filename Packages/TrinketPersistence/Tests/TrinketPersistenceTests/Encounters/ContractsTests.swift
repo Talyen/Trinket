@@ -41,20 +41,20 @@ struct ContractBoardTests {
 
     @Test func `item quality follows won encounters rather than roster leveling`() throws {
         var save = SaveTestSupport.makeSave()
-        let early = ContractsCompletion.campaignRewardLevel(in: save)
+        let early = CampaignRewardLevel.resolve(in: save)
         save.roster.progressions[save.roster.activeHeroID] = .at(level: 40)
         save.roster.progressions[save.roster.activeCompanionID] = .at(level: 40)
-        #expect(ContractsCompletion.campaignRewardLevel(in: save) == early)
+        #expect(CampaignRewardLevel.resolve(in: save) == early)
 
         let lastStage = try #require(GameContent.chapters.last?.stages.last)
         save.journey.complete(lastStage, in: GameContent.chapters)
-        let late = ContractsCompletion.campaignRewardLevel(in: save)
+        let late = CampaignRewardLevel.resolve(in: save)
         #expect(late > early)
         #expect(late == min(40, StageCompletion.resolvedEncounterLevel(for: lastStage, in: GameContent.chapters)))
         save.journey.activeStageID = nil
-        #expect(ContractsCompletion.campaignRewardLevel(in: save) == late)
+        #expect(CampaignRewardLevel.resolve(in: save) == late)
         save.contracts.recordVictory(encounterLevel: 60)
-        #expect(ContractsCompletion.campaignRewardLevel(in: save) == 40)
+        #expect(CampaignRewardLevel.resolve(in: save) == 40)
     }
 
     @Test func `damaged Contract offers do not erase the earned loot milestone`() throws {

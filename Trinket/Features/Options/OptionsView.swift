@@ -171,7 +171,11 @@ struct OptionsView: View {
             }
 
             NavigationLink("Battle Transitions") {
-                BattleTransitionLabView()
+                BattleTransitionsPreviewView { stage in
+                    BattleTransitionLabView(stage: stage) { enterBattle in
+                        BattleTransitionsStagePicker(enterBattle: enterBattle)
+                    }
+                }
             }
             .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.entry)
 

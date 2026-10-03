@@ -53,8 +53,7 @@ public final class UnlockedCombatantModel {
     public var role: String = ""
     public var roster: RosterModel?
 
-    /// Single composite-key truth shared with `UnlockedCombatantValue.key`.
-    /// Both sides must stay in sync; use this factory instead of interpolating.
+    /// Shared by persisted rows and incoming unlocks during reconciliation.
     static func key(role: String, combatantID: String) -> String {
         "\(role):\(combatantID)"
     }

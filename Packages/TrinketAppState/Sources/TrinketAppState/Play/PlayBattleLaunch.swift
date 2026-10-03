@@ -147,8 +147,7 @@ final class PlayBattleLaunch {
 
     private func preparationInputs(_ input: BattleLaunchInput, rngSeed: UInt64) -> BattlePreparationInputs {
         BattlePreparationInputs(
-            runKey: input.origin?.runKey, launch: input, party: PlayBattlePartySnapshot(playerSave: playerSave), rngSeed: rngSeed,
-            hasProgressionRewards: input.origin != nil,
+            launch: input, party: PlayBattlePartySnapshot(playerSave: playerSave), rngSeed: rngSeed,
         )
     }
 

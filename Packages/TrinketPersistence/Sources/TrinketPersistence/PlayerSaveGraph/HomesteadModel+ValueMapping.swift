@@ -37,52 +37,46 @@ extension HomesteadModel {
         goldRewardRemainder = homestead.rewardRemainders?.gold ?? 0
         gemsRewardRemainder = homestead.rewardRemainders?.gems ?? 0
 
-        let resourceValues = homestead.resources
-            .map { (resourceID: $0.key.rawValue, quantity: $0.value) }
-            .sorted { $0.resourceID < $1.resourceID }
+        let resourceValues = homestead.resources.sorted { $0.key.rawValue < $1.key.rawValue }
         resources = reconcileModels(
             existing: resources ?? [],
             values: resourceValues,
             existingKey: \.resourceID,
-            valueKey: { $0.resourceID },
-            make: { _ in HomesteadResourceBalanceModel() },
+            valueKey: { $0.key.rawValue },
+            make: { HomesteadResourceBalanceModel() },
             update: { model, value in
-                model.resourceID = value.resourceID
-                model.quantity = value.quantity
+                model.resourceID = value.key.rawValue
+                model.quantity = value.value
             },
             link: { $0.homestead = self },
             context: context,
         )
 
-        let pendingValues = homestead.validPendingProduction
-            .map { (resourceID: $0.key.rawValue, quantity: $0.value) }
-            .sorted { $0.resourceID < $1.resourceID }
+        let pendingValues = homestead.validPendingProduction.sorted { $0.key.rawValue < $1.key.rawValue }
         pendingProduction = reconcileModels(
             existing: pendingProduction ?? [],
             values: pendingValues,
             existingKey: \.resourceID,
-            valueKey: { $0.resourceID },
-            make: { _ in HomesteadPendingProductionModel() },
+            valueKey: { $0.key.rawValue },
+            make: { HomesteadPendingProductionModel() },
             update: { model, value in
-                model.resourceID = value.resourceID
-                model.quantity = value.quantity
+                model.resourceID = value.key.rawValue
+                model.quantity = value.value
             },
             link: { $0.homestead = self },
             context: context,
         )
 
-        let tierValues = homestead.nodeTiers
-            .map { (nodeID: $0.key.rawValue, tier: $0.value) }
-            .sorted { $0.nodeID < $1.nodeID }
+        let tierValues = homestead.nodeTiers.sorted { $0.key.rawValue < $1.key.rawValue }
         nodeTiers = reconcileModels(
             existing: nodeTiers ?? [],
             values: tierValues,
             existingKey: \.nodeID,
-            valueKey: { $0.nodeID },
-            make: { _ in HomesteadNodeTierModel() },
+            valueKey: { $0.key.rawValue },
+            make: { HomesteadNodeTierModel() },
             update: { model, value in
-                model.nodeID = value.nodeID
-                model.tier = value.tier
+                model.nodeID = value.key.rawValue
+                model.tier = value.value
             },
             link: { $0.homestead = self },
             context: context,

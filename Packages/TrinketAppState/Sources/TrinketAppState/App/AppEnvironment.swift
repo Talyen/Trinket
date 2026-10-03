@@ -22,44 +22,6 @@ public struct AppEnvironment: Sendable {
     public let enableFrameMetrics: Bool
     public let battlePerformanceScenario: BattlePerformanceScenario?
 
-    private init(
-        launchTab: AppTab?,
-        launchScreen: LaunchScreen?,
-        resetState: Bool,
-        seedTestProgress: Bool,
-        equipmentPickerFixture: Bool,
-        skipStarterSelection: Bool,
-        skipOnboardingCeremony: Bool,
-        disableCloudSync: Bool,
-        disableAudio: Bool,
-        completedStageIDs: [String],
-        mysteryRecruitEventID: String?,
-        storeName: String?,
-        battleTickInterval: TimeInterval?,
-        launchPreparationDelay: TimeInterval,
-        startingGold: Int?,
-        enableFrameMetrics: Bool,
-        battlePerformanceScenario: BattlePerformanceScenario?,
-    ) {
-        self.launchTab = launchTab
-        self.launchScreen = launchScreen
-        self.resetState = resetState
-        self.seedTestProgress = seedTestProgress
-        self.equipmentPickerFixture = equipmentPickerFixture
-        self.skipStarterSelection = skipStarterSelection
-        self.skipOnboardingCeremony = skipOnboardingCeremony
-        self.disableCloudSync = disableCloudSync
-        self.disableAudio = disableAudio
-        self.completedStageIDs = completedStageIDs
-        self.mysteryRecruitEventID = mysteryRecruitEventID
-        self.storeName = storeName
-        self.battleTickInterval = battleTickInterval
-        self.launchPreparationDelay = launchPreparationDelay
-        self.startingGold = startingGold
-        self.enableFrameMetrics = enableFrameMetrics
-        self.battlePerformanceScenario = battlePerformanceScenario
-    }
-
     private static func load() -> Self {
         var arguments = ProcessInfo.processInfo.arguments
         #if DEBUG

@@ -17,10 +17,7 @@ struct InstantHealHandler: BattleEffectHandler {
         )
         request.isDirectCardHeal = context.hasHeroCard(for: source.id)
         let outcome = HealingEngine.resolveHeal(request, in: &context)
-        guard outcome.healthRestored > 0 else {
-            return EffectApplyOutcome(events: outcome.events, didApply: false)
-        }
-        return EffectApplyOutcome(events: outcome.events, didApply: true)
+        return EffectApplyOutcome(events: outcome.events, didApply: outcome.healthRestored > 0)
     }
 }
 
@@ -50,11 +47,8 @@ struct ResourceGainHandler: BattleEffectHandler {
                 origin: .direct,
             )
             var events = [event]
-            if restored > 0 {
-                events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: target, in: &context))
-            }
-            events.append(contentsOf: CombatTriggerEngine.consumeManaOverflowTalents(
-                for: target, restoredMana: restored > 0, in: &context,
+            events.append(contentsOf: CombatTriggerEngine.manaRestorationReactions(
+                for: target, restored: restored, in: &context,
             ))
             return EffectApplyOutcome(events: events, didApply: true)
         case .gold:
@@ -114,11 +108,8 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             origin: .direct,
         )
         var events = [event]
-        if restored > 0 {
-            events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: target, in: &context))
-        }
-        events.append(contentsOf: CombatTriggerEngine.consumeManaOverflowTalents(
-            for: target, restoredMana: restored > 0, in: &context,
+        events.append(contentsOf: CombatTriggerEngine.manaRestorationReactions(
+            for: target, restored: restored, in: &context,
         ))
         return EffectApplyOutcome(events: events, didApply: true)
     }

@@ -1,5 +1,4 @@
 import Testing
-import TrinketFeatureSupport
 @testable import TrinketAppState
 
 struct AppEnvironmentTests {
@@ -19,7 +18,10 @@ struct AppEnvironmentTests {
 
     @Test(arguments: [false, true])
     func `cloud build default controls ordinary launch`(cloudDefault: Bool) {
-        #expect(Self.parse(arguments: [], cloudDefault: cloudDefault).disableCloudSync == !cloudDefault)
+        let environment = Self.parse(arguments: [], cloudDefault: cloudDefault)
+        #expect(environment.disableCloudSync == !cloudDefault)
+        #expect(!environment.resetState)
+        #expect(!environment.seedTestProgress)
     }
 
     @Test func `cloud launch opt in respects build configuration`() {
@@ -43,13 +45,6 @@ struct AppEnvironmentTests {
             ("SEARCH", .collection),
             ("not-a-tab", nil),
         ]
-
-    @Test func `tab accessibility I ds match display names`() {
-        #expect(AccessibilityID.Tab.play == AppTab.play.displayName)
-        #expect(AccessibilityID.Tab.collection == AppTab.collection.displayName)
-        #expect(AccessibilityID.Tab.homestead == AppTab.homestead.displayName)
-        #expect(AccessibilityID.Tab.options == AppTab.options.displayName)
-    }
 
     @Test(arguments: selectedTabCases)
     func `selected tab parses known tabs aliases and invalid input`(rawValue: String, expected: AppTab?) {
@@ -120,24 +115,6 @@ struct AppEnvironmentTests {
         )
         #expect(Self.parse(arguments: ["-battle-tick-interval", "nope"]).battleTickInterval == nil)
         #expect(Self.parse(arguments: ["-starting-gold", "nope"]).startingGold == nil)
-    }
-
-    @Test func `no flags yields default environment`() {
-        let env = Self.parse(arguments: [])
-
-        #expect(env.launchTab == nil)
-        #expect(env.launchScreen == nil)
-        #expect(!env.resetState)
-        #expect(!env.seedTestProgress)
-        #expect(!env.skipStarterSelection)
-        #expect(env.disableCloudSync)
-        #expect(!env.disableAudio)
-        #expect(env.completedStageIDs.isEmpty)
-        #expect(env.mysteryRecruitEventID == nil)
-        #expect(env.battleTickInterval == nil)
-        #expect(env.startingGold == nil)
-        #expect(!env.enableFrameMetrics)
-        #expect(env.battlePerformanceScenario == nil)
     }
 
     private static func parse(

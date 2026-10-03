@@ -229,31 +229,25 @@ enum CloudSaveMerge {
     }
 
     private static func preferredVoyage(branches: Branches) -> PlayerVoyageState {
-        let incomingRetiredRuns = (branches.incoming.voyage.completedRunIDs ?? [])
-            .union(branches.incoming.voyage.abandonedRunIDs ?? [])
-        let existingRetiredRuns = (branches.existing.voyage.completedRunIDs ?? [])
-            .union(branches.existing.voyage.abandonedRunIDs ?? [])
-        return if let runID = branches.incoming.voyage.activeRun?.id,
-                  existingRetiredRuns.contains(runID),
-                  !branches.existing.voyage.isUnreadable {
-            branches.existing.voyage
-        } else if let runID = branches.existing.voyage.activeRun?.id,
-                  incomingRetiredRuns.contains(runID),
-                  !branches.incoming.voyage.isUnreadable {
-            branches.incoming.voyage
-        } else if let baseRunID = branches.base?.voyage.activeRun?.id,
-                  branches.incoming.voyage.activeRun?.id == baseRunID,
-                  branches.existing.voyage.activeRun?.id != baseRunID,
-                  !branches.existing.voyage.isUnreadable {
-            branches.existing.voyage
-        } else if let baseRunID = branches.base?.voyage.activeRun?.id,
-                  branches.existing.voyage.activeRun?.id == baseRunID,
-                  branches.incoming.voyage.activeRun?.id != baseRunID,
-                  !branches.incoming.voyage.isUnreadable {
-            branches.incoming.voyage
-        } else {
-            branches.selected(\.voyage)
+        let peers = [
+            (candidate: branches.existing.voyage, other: branches.incoming.voyage),
+            (candidate: branches.incoming.voyage, other: branches.existing.voyage),
+        ]
+        // Retirement outranks a stale active route, before considering the shared base.
+        for (candidate, other) in peers where !candidate.isUnreadable {
+            if let runID = other.activeRun?.id,
+               candidate.completedRunIDs?.contains(runID) == true || candidate.abandonedRunIDs?.contains(runID) == true {
+                return candidate
+            }
         }
+        if let baseRunID = branches.base?.voyage.activeRun?.id {
+            for (candidate, other) in peers where !candidate.isUnreadable {
+                if other.activeRun?.id == baseRunID, candidate.activeRun?.id != baseRunID {
+                    return candidate
+                }
+            }
+        }
+        return branches.selected(\.voyage)
     }
 
     private static func mergeVoyage(into merged: inout PlayerSave, branches: Branches) {

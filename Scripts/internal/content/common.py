@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import csv
-import functools
+from dataclasses import fields
 import re
 
 from internal.cli import ROOT
@@ -48,29 +48,26 @@ def read_tsv_records(path: Path) -> list[tuple[int, tuple[str, ...]]]:
     return rows
 
 
-@functools.cache
-def _read_tsv_cached(path: Path) -> tuple[tuple[str, ...], ...]:
-    return tuple(fields for _, fields in read_tsv_records(path))
-
-
 def read_tsv(path: Path) -> list[list[str]]:
-    return [list(row) for row in _read_tsv_cached(path)]
+    return [list(row) for _, row in read_tsv_records(path)]
 
 
-def _parse_tsv_rows(path: Path, expected: list[str], row_type, min_columns: int | None = None):
-    lines = read_tsv(path)
-    header = lines[0]
-    if header != expected:
-        raise ValueError(f"{path} header mismatch: {header}")
+def _parse_tsv_rows(path: Path, row_type, min_columns: int | None = None):
+    expected = [field.name for field in fields(row_type)]
+    records = read_tsv_records(path)
+    if not records:
+        raise ValueError(f"{path} has no header row")
+    _, header = records[0]
+    if list(header) != expected:
+        raise ValueError(f"{path} header mismatch: {list(header)}")
     min_cols = min_columns if min_columns is not None else len(expected)
     rows: list = []
-    for idx, raw in enumerate(lines[1:], start=2):
+    for line, raw in records[1:]:
         if len(raw) < min_cols:
-            raise ValueError(f"{path}:{idx} missing required columns: expected at least {min_cols}, got {len(raw)}")
+            raise ValueError(f"{path}:{line} missing required columns: expected at least {min_cols}, got {len(raw)}")
         if len(raw) > len(expected):
-            raise ValueError(f"{path}:{idx} has {len(raw)} columns, expected {len(expected)}")
-        padded = raw + [""] * (len(expected) - len(raw))
-        rows.append(row_type(*padded[: len(expected)]))
+            raise ValueError(f"{path}:{line} has {len(raw)} columns, expected {len(expected)}")
+        rows.append(row_type(*raw, *([""] * (len(expected) - len(raw)))))
     return rows
 
 
@@ -223,7 +220,7 @@ def parse_material_tokens(raw: str) -> list[tuple[str, int]]:
         if not token:
             continue
         if ":" not in token:
-            raise ValueError(f"Cost entry {token!r} must be resource:amount")
+            raise ValueError(f"Resource entry {token!r} must be resource:amount")
         resource, quantity = token.split(":", 1)
         resource = resource.strip()
         if resource not in VALID_HOMESTEAD_RESOURCES:
@@ -231,7 +228,7 @@ def parse_material_tokens(raw: str) -> list[tuple[str, int]]:
         try:
             amount = int(quantity.strip())
         except ValueError as error:
-            raise ValueError(f"Cost quantity {quantity.strip()!r} must be an integer") from error
+            raise ValueError(f"Resource quantity {quantity.strip()!r} must be an integer") from error
         tokens.append((resource, amount))
     return tokens
 

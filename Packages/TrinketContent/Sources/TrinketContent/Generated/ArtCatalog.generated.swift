@@ -1451,6 +1451,30 @@ public enum ArtCatalog {
             imageName: "encounter_destination_corruption_altar",
             thumbnailImageName: "encounter_destination_corruption_altar_thumb"
         )
+        dict["labyrinth-fog-veiled-arch"] = EncounterArtReference(
+            imageName: "encounter_labyrinth_fog_veiled_arch",
+            thumbnailImageName: "encounter_labyrinth_fog_veiled_arch_thumb"
+        )
+        dict["labyrinth-fog-descending-steps"] = EncounterArtReference(
+            imageName: "encounter_labyrinth_fog_descending_steps",
+            thumbnailImageName: "encounter_labyrinth_fog_descending_steps_thumb"
+        )
+        dict["labyrinth-fog-shrouded-passage"] = EncounterArtReference(
+            imageName: "encounter_labyrinth_fog_shrouded_passage",
+            thumbnailImageName: "encounter_labyrinth_fog_shrouded_passage_thumb"
+        )
+        dict["labyrinth-fog-forgotten-pillars"] = EncounterArtReference(
+            imageName: "encounter_labyrinth_fog_forgotten_pillars",
+            thumbnailImageName: "encounter_labyrinth_fog_forgotten_pillars_thumb"
+        )
+        dict["labyrinth-fog-vanishing-bridge"] = EncounterArtReference(
+            imageName: "encounter_labyrinth_fog_vanishing_bridge",
+            thumbnailImageName: "encounter_labyrinth_fog_vanishing_bridge_thumb"
+        )
+        dict["labyrinth-fog-hidden-chamber"] = EncounterArtReference(
+            imageName: "encounter_labyrinth_fog_hidden_chamber",
+            thumbnailImageName: "encounter_labyrinth_fog_hidden_chamber_thumb"
+        )
         return dict
     }()
 

@@ -13,12 +13,13 @@ final class BattleTransitionLabFixture {
     let configuration: BattleRunConfiguration
     let summary: BattleVictorySummary
 
-    init() {
+    init(stage: Stage) {
         let hero = GameContent.hero(matching: "rogue") ?? GameContent.heroes.first
             ?? Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.slash])
         let companion = GameContent.companions.first { $0.id == "wolf" } ?? GameContent.companions.first
             ?? Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [.slash])
-        let enemy = GameContent.enemies.first?.combatant
+        let enemy = stage.resolvedBattleEnemyID(worldSeed: 1772)
+            .flatMap { GameContent.enemy(matching: $0)?.combatant }
         configuration = BattleRunConfiguration(
             runKey: nil,
             rngSeed: 1772,
@@ -67,39 +68,23 @@ final class BattleTransitionLabFixture {
 
 struct BattleTransitionLabCanvas: View {
     let fixture: BattleTransitionLabFixture
-    let screen: BattleTransitionScreen
-    let gathersPortraits: Bool
-    let entrySettled: Bool
-    let handVisible: Bool
 
     var body: some View {
         GeometryReader { geometry in
-            let size = geometry.size
             let battlefieldSize = CGSize(
-                width: size.width,
-                height: max(0, size.height - BattleHandLayout.reservedHeight + BattleHandLayout.overlapAllowance),
+                width: geometry.size.width,
+                height: max(0, geometry.size.height - BattleHandLayout.reservedHeight + BattleHandLayout.overlapAllowance),
             )
             let layout = BattleCardGridLayout.metrics(in: battlefieldSize)
             ZStack(alignment: .bottom) {
-                if gathersPortraits || screen == .preview {
-                    portraits(size: size, layout: layout)
-                } else {
-                    BattlefieldView(
-                        layout: layout,
-                        presentation: fixture.session.presentation,
-                        hapticsEnabled: false,
-                        onCombatantTap: { _ in },
-                        interactionState: BattleInteractionState(),
-                    )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
-                }
-
-                previewControls
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                    .padding(.bottom, 24)
-                    .trinketPresentationVisibility(screen == .preview && !entrySettled)
+                BattlefieldView(
+                    layout: layout,
+                    presentation: fixture.session.presentation,
+                    hapticsEnabled: false,
+                    onCombatantTap: { _ in },
+                    interactionState: BattleInteractionState(),
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
                 BattleHandView(
                     cards: fixture.session.presentation.hand,
@@ -111,75 +96,13 @@ struct BattleTransitionLabCanvas: View {
                     hapticsEnabled: false,
                 )
                 .frame(height: BattleHandLayout.reservedHeight)
-                .offset(y: handVisible ? -BattleHandLayout.bottomRise : BattleHandLayout.reservedHeight + 80)
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
+                .offset(y: -BattleHandLayout.bottomRise)
             }
             .clipped()
             .coordinateSpace(.named(BattleCoordinateSpace.field))
         }
-    }
-
-    private var previewControls: some View {
-        VStack(spacing: TrinketDesign.Spacing.small) {
-            Text("ENCOUNTER PREVIEW")
-                .trinketTypography(.eyebrow)
-                .foregroundStyle(.secondary)
-            Text(fixture.configuration.enemy?.name ?? "Battle")
-                .trinketTypography(.sectionDisplay)
-            Text("\(fixture.configuration.hero.combatant.name) · \(fixture.configuration.companion.combatant.name)")
-                .trinketTypography(.secondaryBody)
-            Text("Choose a replay from Controls")
-                .trinketTypography(.footnote)
-                .foregroundStyle(.secondary)
-        }
-        .padding(TrinketDesign.Layout.contentMargin)
-        .frame(maxWidth: .infinity)
-        .background(TrinketDesign.Colors.surface)
-    }
-
-    private func portraits(size: CGSize, layout: BattleCardGridLayout.Metrics) -> some View {
-        let previewEnemy = CGSize(width: size.width * 0.88, height: min(size.height * 0.30, size.width * 0.66))
-        let previewParty = CGSize(width: size.width * 0.27, height: size.width * 0.36)
-        let partyY = layout.enemySize.height + layout.cardSpacing + layout.partySize.height / 2
-        return ZStack {
-            portrait(.enemy)
-                .frame(
-                    width: entrySettled ? layout.enemySize.width : previewEnemy.width,
-                    height: entrySettled ? layout.enemySize.height : previewEnemy.height,
-                )
-                .position(x: size.width / 2, y: entrySettled ? layout.enemySize.height / 2 : previewEnemy.height / 2 + 20)
-            portrait(.hero)
-                .frame(
-                    width: entrySettled ? layout.partySize.width : previewParty.width,
-                    height: entrySettled ? layout.partySize.height : previewParty.height,
-                )
-                .position(
-                    x: size.width / 2 - (entrySettled ? layout.partySize.width + layout.cardSpacing : previewParty.width + 16) / 2,
-                    y: entrySettled ? partyY : previewEnemy.height + 50 + previewParty.height / 2,
-                )
-            portrait(.companion)
-                .frame(
-                    width: entrySettled ? layout.partySize.width : previewParty.width,
-                    height: entrySettled ? layout.partySize.height : previewParty.height,
-                )
-                .position(
-                    x: size.width / 2 + (entrySettled ? layout.partySize.width + layout.cardSpacing : previewParty.width + 16) / 2,
-                    y: entrySettled ? partyY : previewEnemy.height + 50 + previewParty.height / 2,
-                )
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .allowsHitTesting(false)
         .accessibilityHidden(true)
-    }
-
-    private func portrait(_ role: BattleCombatantProjectionPane.Role) -> some View {
-        BattleCombatantProjectionPane(
-            presentation: fixture.session.presentation,
-            role: role,
-            hapticsEnabled: false,
-            onCombatantTap: { _ in },
-        )
     }
 }
 #endif

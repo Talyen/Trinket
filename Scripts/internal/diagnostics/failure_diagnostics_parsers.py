@@ -22,7 +22,6 @@ from .diagnostic_model import (
 # yields file, line, and message for most failures. Cap enrichment to bound bad-run latency.
 MAX_TEST_DETAIL_FETCHES = 5
 ACCESSIBILITY_SNAPSHOT_MARKER = "Accessibility snapshot:"
-_DISPLAY_PATH_CACHE: dict[str, str] = {}
 
 
 def _load_infrastructure_pattern() -> str:
@@ -75,11 +74,7 @@ def _normalise_path(path: str) -> str:
 
 
 def _display_path(path: str) -> str:
-    cached = _DISPLAY_PATH_CACHE.get(path)
-    if cached is not None:
-        return cached
     if not path:
-        _DISPLAY_PATH_CACHE[path] = ""
         return ""
     candidate = Path(path).expanduser()
     if not candidate.is_absolute() and not candidate.exists():
@@ -98,12 +93,9 @@ def _display_path(path: str) -> str:
             candidate = matches[0]
     absolute = _normalise_path(str(candidate))
     try:
-        relative = os.path.relpath(absolute, Path.cwd())
-        display = relative if not relative.startswith("..") else absolute
-    except OSError:
-        display = absolute
-    _DISPLAY_PATH_CACHE[path] = display
-    return display
+        return str(Path(absolute).relative_to(Path.cwd().resolve()))
+    except (OSError, ValueError):
+        return absolute
 
 
 def _issue_priority(issue: DiagnosticIssue) -> tuple[int, int, int, int]:
@@ -209,9 +201,7 @@ def _extract_location(value: Any) -> tuple[str, int | None]:
 
 
 def parse_summary(summary: dict[str, Any]) -> list[IssueObservation]:
-    failures = summary.get("testFailures", [])
-    if not isinstance(failures, list):
-        failures = _values(failures)
+    failures = _values(summary.get("testFailures"))
     observations: list[IssueObservation] = []
     for failure in failures:
         if not isinstance(failure, dict):
@@ -339,13 +329,7 @@ def parse_test_detail(detail: dict[str, Any], test_id: str) -> IssueObservation:
 
 
 def parse_build_results(build: dict[str, Any]) -> list[IssueObservation]:
-    errors = _values(build.get("errors"))
-    if not errors and isinstance(build.get("errors"), list):
-        errors = build["errors"]
-    if not errors:
-        errors = _values(build.get("issues"))
-    if not errors and isinstance(build.get("issues"), list):
-        errors = build["issues"]
+    errors = _values(build.get("errors")) or _values(build.get("issues"))
     observations: list[IssueObservation] = []
     for error in errors:
         if not isinstance(error, dict):

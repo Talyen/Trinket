@@ -28,13 +28,6 @@ public enum ContractsCompletion {
         )
     }
 
-    /// Quality of noncombat item offers follows the highest won encounter
-    /// level, capped by `CampaignRewardLevel`. Roster levels alone do not
-    /// improve those offers.
-    static func campaignRewardLevel(in save: PlayerSave, chapters: [Chapter] = GameContent.chapters) -> Int {
-        CampaignRewardLevel.resolve(in: save, chapters: chapters)
-    }
-
     @discardableResult
     public static func complete(
         offerID: String,

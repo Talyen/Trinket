@@ -35,19 +35,8 @@ enum ItemBasePolicy {
         keywordBias: Set<Keyword>,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemBaseType? {
-        guard !candidates.isEmpty else { return nil }
-        var maxOverlap = -1
-        var topCandidates: [ItemBaseType] = []
-        for baseType in candidates {
-            let overlap = baseType.keywordAffinities.count(where: keywordBias.contains)
-            if overlap > maxOverlap {
-                maxOverlap = overlap
-                topCandidates.removeAll(keepingCapacity: true)
-            }
-            if overlap == maxOverlap {
-                topCandidates.append(baseType)
-            }
-        }
-        return topCandidates.randomElement(using: &randomNumberGenerator)
+        let ranked = candidates.map { ($0, $0.keywordAffinities.count(where: keywordBias.contains)) }
+        guard let maximum = ranked.map(\.1).max() else { return nil }
+        return ranked.filter { $0.1 == maximum }.map(\.0).randomElement(using: &randomNumberGenerator)
     }
 }

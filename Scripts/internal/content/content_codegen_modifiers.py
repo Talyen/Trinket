@@ -14,11 +14,7 @@ def parse_modifier_tokens(raw: str) -> list[str]:
     return [part.strip() for part in raw.split("|") if part.strip()]
 
 
-_DEFINITIONS = modifier_definitions()
-_MODIFIER_SIMPLE = {row["token"]: "." + row["case"] for row in _DEFINITIONS if not row["keyword"]}
-_MODIFIER_INT_PREFIXES = frozenset(row["token"] for row in _DEFINITIONS if row["type"] == "Int")
-_MODIFIER_DOUBLE_PREFIXES = frozenset(row["token"] for row in _DEFINITIONS if row["type"] == "Double")
-_MODIFIER_KEYWORD_PREFIXES = {row["token"]: row["case"] for row in _DEFINITIONS if row["keyword"]}
+_MODIFIERS = {row["token"]: row for row in modifier_definitions()}
 
 
 VALID_KEYWORDS: frozenset[str] = frozenset(
@@ -42,14 +38,6 @@ VALID_KEYWORDS: frozenset[str] = frozenset(
         "thorns",
     }
 )
-
-
-def _validate_int_amount(token: str, amount: str) -> None:
-    parse_typed_int(amount, token)
-
-
-def _validate_double_amount(token: str, amount: str) -> None:
-    parse_typed_double(amount, token)
 
 
 def parse_typed_int(raw: str, label: str) -> int:
@@ -86,34 +74,29 @@ def parse_typed_bool(raw: str, label: str) -> bool:
     )
 
 
-def _validate_modifier_amount(prefix: str, token: str, amount: str) -> None:
-    if prefix in _MODIFIER_INT_PREFIXES:
-        _validate_int_amount(token, amount)
-    elif prefix in _MODIFIER_DOUBLE_PREFIXES:
-        _validate_double_amount(token, amount)
-
-
 def modifier_token_to_swift(token: str) -> str:
-    if ":" not in token:
+    prefix, separator, amount = token.partition(":")
+    definition = _MODIFIERS.get(prefix)
+    if not separator or definition is None:
         raise ValueError(f"Unknown modifier token: {token}")
-    prefix, rest = token.split(":", 1)
-    if prefix in _MODIFIER_SIMPLE:
-        _validate_modifier_amount(prefix, token, rest)
-        return f"{_MODIFIER_SIMPLE[prefix]}({rest})"
-    if prefix in _MODIFIER_KEYWORD_PREFIXES:
-        if ":" not in rest:
+    arguments = ""
+    if definition["keyword"]:
+        keyword, separator, amount = amount.partition(":")
+        if not separator:
             raise ValueError(f"Malformed modifier token {token!r}: expected keyword:amount")
-        keyword, amount = rest.split(":", 1)
         if keyword not in VALID_KEYWORDS:
             raise ValueError(f"Unknown keyword {keyword!r} in modifier token {token!r}")
-        _validate_modifier_amount(prefix, token, amount)
-        return f".{_MODIFIER_KEYWORD_PREFIXES[prefix]}(.{keyword}, {amount})"
-    raise ValueError(f"Unknown modifier token: {token}")
+        arguments = f".{keyword}, "
+    if definition["type"] == "Int":
+        parse_typed_int(amount, token)
+    else:
+        parse_typed_double(amount, token)
+    return f".{definition['case']}({arguments}{amount})"
 
 
 def modifier_field_key(token: str) -> tuple[str, str | None]:
     prefix, _, rest = token.partition(":")
-    if prefix in _MODIFIER_KEYWORD_PREFIXES:
+    if _MODIFIERS.get(prefix, {}).get("keyword"):
         keyword, _, _ = rest.partition(":")
         return (prefix, keyword)
     return (prefix, None)

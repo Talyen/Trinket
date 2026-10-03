@@ -17,22 +17,10 @@ from pathlib import Path
 
 from script_test_support import ROOT
 
-from internal.cli import ROOT as CLI_ROOT, die, load_sibling, read_env_arrays, read_json, repo_root, validate_repo_paths
+from internal.cli import load_sibling, read_env_arrays, read_json, validate_repo_paths
 
 
 class InternalCliTests(unittest.TestCase):
-    def test_repo_root_matches_test_support(self) -> None:
-        self.assertEqual(CLI_ROOT, ROOT)
-        self.assertEqual(repo_root(), ROOT)
-
-    def test_die_reports_and_exits(self) -> None:
-        with self.assertRaisesRegex(SystemExit, "1"):
-            try:
-                die("broken", "Usage: x")
-            except SystemExit as error:
-                self.assertEqual(error.code, 1)
-                raise
-
     def test_read_env_arrays_matches_bash_sourcing(self) -> None:
         import subprocess
 

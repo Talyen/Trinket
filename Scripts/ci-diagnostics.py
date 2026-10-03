@@ -74,7 +74,7 @@ def iso_now() -> str:
 
 
 def _resolve_bundle_candidates(value: object) -> list[Path]:
-    candidate = Path(value) if isinstance(value, str) else Path("")
+    candidate = Path(value).expanduser()
     candidates = [candidate]
     if not candidate.is_absolute():
         candidates.extend((results_dir / candidate, Path.cwd() / candidate))
@@ -157,10 +157,7 @@ def normalized_issue(issue: object) -> dict:
 def resolve_reference(value: object) -> Path | None:
     if not isinstance(value, str) or not value.strip():
         return None
-    candidate = Path(value).expanduser()
-    candidates = [candidate]
-    if not candidate.is_absolute():
-        candidates.extend((results_dir / candidate, Path.cwd() / candidate))
+    candidates = _resolve_bundle_candidates(value)
     for path in candidates:
         if path.exists():
             return path.resolve()
@@ -179,10 +176,12 @@ def read_json(path: Path) -> tuple[dict | None, bool]:
 def as_exit_code(value: object, default: int = 1) -> int:
     if isinstance(value, int) and not isinstance(value, bool):
         return value
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return default
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError:
+            pass
+    return default
 
 
 def normalise_report(
@@ -277,13 +276,12 @@ def load_reports() -> tuple[list[dict], int, bool, int, str, int]:
     The final value counts the distinct non-empty session ids present in the
     directory, so shared tenants can warn when stale sessions dilute triage.
     """
-    manifests = sorted(results_dir.glob("*-invocation.json"))
+    manifests = [(path, *read_json(path)) for path in sorted(results_dir.glob("*-invocation.json"))]
     selected_session = SESSION_ID
     distinct_sessions: set[str] = set()
     if manifests and not selected_session:
         session_candidates: list[tuple[str, str]] = []
-        for candidate in manifests:
-            payload, valid = read_json(candidate)
+        for _, payload, valid in manifests:
             if not valid or payload is None:
                 continue
             session = str(payload.get("session_id", "")).strip()
@@ -296,18 +294,13 @@ def load_reports() -> tuple[list[dict], int, bool, int, str, int]:
         if session_candidates:
             selected_session = max(session_candidates)[1]
     if selected_session:
-        filtered: list[Path] = []
-        for candidate in manifests:
-            payload, valid = read_json(candidate)
-            if valid and payload and str(payload.get("session_id", "")).strip() == selected_session:
-                filtered.append(candidate)
-        manifests = filtered
+        manifests = [(path, payload, valid) for path, payload, valid in manifests
+                     if valid and payload and str(payload.get("session_id", "")).strip() == selected_session]
     reports: list[dict] = []
     parse_errors = 0
     missing_diagnostics = 0
     if manifests:
-        for manifest_path in manifests:
-            manifest, valid = read_json(manifest_path)
+        for manifest_path, manifest, valid in manifests:
             if not valid or manifest is None:
                 parse_errors += 1
                 missing_diagnostics += 1

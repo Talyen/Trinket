@@ -27,11 +27,15 @@ public struct ItemGenerator: Sendable {
             return true
         }
 
-        var guaranteedDefinitions = guaranteedAffixIDs.compactMap { affixID in
-            eligibleAffixes.first { $0.id == affixID }
-        }
-        let droppedGuaranteedIDs = guaranteedAffixIDs.filter { affixID in
-            !eligibleAffixes.contains { $0.id == affixID }
+        var guaranteedDefinitions: [ItemAffixDefinition] = []
+        var guaranteedIDs: Set<String> = []
+        var droppedGuaranteedIDs: [String] = []
+        for affixID in guaranteedAffixIDs where guaranteedIDs.insert(affixID).inserted {
+            if let definition = eligibleAffixes.first(where: { $0.id == affixID }) {
+                guaranteedDefinitions.append(definition)
+            } else {
+                droppedGuaranteedIDs.append(affixID)
+            }
         }
         if !droppedGuaranteedIDs.isEmpty {
             assertionFailure("Guaranteed affixes dropped for \(id): unknown or slot-ineligible IDs \(droppedGuaranteedIDs).")
@@ -45,6 +49,7 @@ public struct ItemGenerator: Sendable {
                     preconditionFailure("Required keyword must have an eligible base and affix")
                 }
                 guaranteedDefinitions.append(guaranteed)
+                guaranteedIDs.insert(guaranteed.id)
             }
         }
 
@@ -52,7 +57,7 @@ public struct ItemGenerator: Sendable {
         let affixCount = max(rolledCount, guaranteedDefinitions.count)
         let remainingCount = max(0, affixCount - guaranteedDefinitions.count)
         let remainingPool = eligibleAffixes.filter { definition in
-            !guaranteedDefinitions.contains { $0.id == definition.id }
+            !guaranteedIDs.contains(definition.id)
         }
         let selectedDefinitions = guaranteedDefinitions + Self.weightedSample(
             remainingPool,

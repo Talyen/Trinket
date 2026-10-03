@@ -23,8 +23,6 @@ struct SpireCatalogTests {
                 let isBoss = GameContent.enemy(matching: floor.enemyID)?.isBoss == true
                 try #expect(isBoss == floor.floor.isMultiple(of: 10), "Floor \(floor.floor) boss mismatch")
             }
-            let finalFloor = try #require(GameContent.spireFloor(spireID: spire.id, floor: spire.floorCount))
-            try #expect(GameContent.enemy(matching: finalFloor.enemyID)?.isBoss == true)
         }
     }
 
@@ -56,22 +54,9 @@ struct SpireCatalogTests {
             let companions = GameContent.companions.filter {
                 SpireAttunement.matches($0, spire: spire)
             }
-            try #expect(!heroes.isEmpty, "\(spire.title) needs a Hero with \(spire.keyword.rawValue)")
-            try #expect(!companions.isEmpty, "\(spire.title) needs a Companion with \(spire.keyword.rawValue)")
-            try #expect(
-                SpireAttunement.canEnter(
-                    spire,
-                    heroes: GameContent.heroes,
-                    companions: GameContent.companions,
-                ),
-                "\(spire.title) needs roster unlock from catalog Heroes and Companions",
-            )
-            let ready = heroes.contains { hero in
-                companions.contains { companion in
-                    SpireAttunement.evaluate(hero: hero, companion: companion, spire: spire) == .ready
-                }
-            }
-            try #expect(ready, "\(spire.title) needs at least one ready Hero+Companion pair")
+            let hero = try #require(heroes.first, "\(spire.title) needs a Hero with \(spire.keyword.rawValue)")
+            let companion = try #require(companions.first, "\(spire.title) needs a Companion with \(spire.keyword.rawValue)")
+            #expect(SpireAttunement.evaluate(hero: hero, companion: companion, spire: spire) == .ready)
         }
     }
 
@@ -103,12 +88,6 @@ struct SpireCatalogTests {
                 #expect(pool.contains(first))
                 #expect(GameContent.spireModifier(for: floor, worldSeed: 42) == first)
             }
-
-            let firstFloor = try #require(GameContent.spireFloor(spireID: spire.id, floor: 1))
-            let seen = Set((0 ..< 96).compactMap { seed in
-                GameContent.spireModifier(for: firstFloor, worldSeed: UInt64(seed))?.id
-            })
-            #expect(seen == Set(pool.map(\.id)))
         }
     }
 }

@@ -218,18 +218,19 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
     }
 
     public static func eligible(ownedTrinketIDs: Set<String>, ownedUniqueIDs: Set<String>) -> [Self] {
-        allCases.filter { modifier in
-            switch modifier {
-            case .trinket, .trinketHoard: GameContent.trinketItems.contains { !ownedTrinketIDs.contains($0.templateID) }
-            case .unique, .uniqueHoard: GameContent.uniqueItems.contains { !ownedUniqueIDs.contains($0.templateID) }
-            case .armsHoard, .armorHoard, .ringHoard, .amuletHoard:
-                modifier.requiredBaseTypeIDs?.isEmpty == false
-            default: true
-            }
+        allCases.filter { $0.isEligible(ownedTrinketIDs: ownedTrinketIDs, ownedUniqueIDs: ownedUniqueIDs) }
+    }
+
+    private func isEligible(ownedTrinketIDs: Set<String>, ownedUniqueIDs: Set<String>) -> Bool {
+        switch self {
+        case .trinket, .trinketHoard: GameContent.trinketItems.contains { !ownedTrinketIDs.contains($0.templateID) }
+        case .unique, .uniqueHoard: GameContent.uniqueItems.contains { !ownedUniqueIDs.contains($0.templateID) }
+        case .armsHoard, .armorHoard, .ringHoard, .amuletHoard: requiredBaseTypeIDs?.isEmpty == false
+        default: true
         }
     }
 
     public func resolved(ownedTrinketIDs: Set<String>, ownedUniqueIDs: Set<String>) -> Self {
-        Self.eligible(ownedTrinketIDs: ownedTrinketIDs, ownedUniqueIDs: ownedUniqueIDs).contains(self) ? self : .gold
+        isEligible(ownedTrinketIDs: ownedTrinketIDs, ownedUniqueIDs: ownedUniqueIDs) ? self : .gold
     }
 }

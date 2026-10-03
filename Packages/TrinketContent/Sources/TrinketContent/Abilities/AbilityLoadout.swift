@@ -59,18 +59,12 @@ public struct AbilityChoices: Hashable, Sendable {
         self.basics = basics
         self.skills = skills
         self.ultimates = ultimates
-        let defaultLoadout = AbilityLoadout(
-            basic: basics.first,
-            skill: skills.first,
-            ultimate: ultimates.first,
-        )
-        let selectedLoadout = selected ?? defaultLoadout
-        self.selected = Self.resolvedLoadout(
-            selectedLoadout,
-            basics: basics,
-            skills: skills,
-            ultimates: ultimates,
-            fillsMissingSelections: fillsMissingSelections,
+        // An omitted loadout selects defaults even when explicit empty tiers are preserved.
+        let fillIfMissing = selected == nil || fillsMissingSelections
+        self.selected = AbilityLoadout(
+            basic: Self.selectedAbility(selected?.basic, in: basics, fillIfMissing: fillIfMissing),
+            skill: Self.selectedAbility(selected?.skill, in: skills, fillIfMissing: fillIfMissing),
+            ultimate: Self.selectedAbility(selected?.ultimate, in: ultimates, fillIfMissing: fillIfMissing),
         )
     }
 
@@ -109,20 +103,6 @@ public struct AbilityChoices: Hashable, Sendable {
             ultimates: ultimates,
             selected: loadout,
             fillsMissingSelections: fillsMissingSelections,
-        )
-    }
-
-    private static func resolvedLoadout(
-        _ loadout: AbilityLoadout,
-        basics: [Ability],
-        skills: [Ability],
-        ultimates: [Ability],
-        fillsMissingSelections: Bool,
-    ) -> AbilityLoadout {
-        AbilityLoadout(
-            basic: selectedAbility(loadout.basic, in: basics, fillIfMissing: fillsMissingSelections),
-            skill: selectedAbility(loadout.skill, in: skills, fillIfMissing: fillsMissingSelections),
-            ultimate: selectedAbility(loadout.ultimate, in: ultimates, fillIfMissing: fillsMissingSelections),
         )
     }
 

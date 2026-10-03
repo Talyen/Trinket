@@ -101,14 +101,13 @@ def python_declarations(source: str, include_locals: bool) -> list[Declaration]:
     return sorted(found, key=lambda entry: (entry.start, entry.name))
 
 
-def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
+def swift_code_tokens(source: str) -> list[tuple[str, str, int, int, int]]:
     # Retain scope tokens, but make strings/comments opaque. Braces and keywords
     # inside literals (including interpolation) cannot delimit declarations.
-    raw = formatter_tokens(source, ROOT)
-    tokens, offsets = [], []
+    tokens = []
     offset = 0
     line, comments, strings = 1, [], []
-    for token in raw:
+    for token in formatter_tokens(source, ROOT):
         kind, value = token['type'], token['string']
         token_offset = offset
         offset += len(value)
@@ -126,17 +125,22 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
             elif kind == 'endOfScope' and '"' in value:
                 strings.pop()
                 if not strings:
-                    tokens[-1] = ('literal', '<string>', tokens[-1][2], line)
+                    tokens[-1] = ('literal', '<string>', tokens[-1][2], line, tokens[-1][4])
             continue
         if kind == 'startOfScope' and value in {'//', '/*'}:
             comments.append(value)
         elif kind == 'startOfScope' and '"' in value:
             strings.append(value)
-            tokens.append(('literal', '<string>', start, line))
-            offsets.append(token_offset)
+            tokens.append(('literal', '<string>', start, line, token_offset))
         elif kind not in {'space', 'linebreak', 'commentBody'}:
-            tokens.append((kind, value, start, line))
-            offsets.append(token_offset)
+            tokens.append((kind, value, start, line, token_offset))
+    return tokens
+
+
+def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
+    code = swift_code_tokens(source)
+    tokens = [token[:4] for token in code]
+    offsets = [token[4] for token in code]
     pairs, stack = {}, []
     for i, (kind, value, _, _) in enumerate(tokens):
         if kind == 'startOfScope' and value in {'{', '(', '[', '<'}:

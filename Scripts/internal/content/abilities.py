@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from pathlib import Path
-import functools
 import hashlib
 import os
 import re
@@ -28,11 +27,8 @@ ABILITY_INVENTORY_STAMP = ROOT / ".DerivedData" / "AbilityInventory.stamp"
 VALID_TIERS = frozenset({"basic", "skill", "ultimate"})
 
 
-ABILITY_DECL_BUILDERS = r"(?:Ability\()"
-
-
 ABILITY_DECL_PATTERN = (
-    rf"static let (\w+) = {ABILITY_DECL_BUILDERS}\s*"
+    r"static let (\w+) = Ability\(\s*"
     r'id: "([^"]+)",\s*name: "([^"]+)",\s*tier: \.(\w+)'
 )
 
@@ -40,15 +36,11 @@ ABILITY_DECL_PATTERN = (
 ABILITY_TIERS = ("Basic", "Skill", "Ultimate")
 
 
-@functools.cache
-def _read_ability_sources() -> tuple[tuple[Path, str], ...]:
-    return tuple((path, path.read_text()) for tier in ABILITY_TIERS
-                 for path in [ABILITY_DIR / f"AbilityCatalog+{tier}.swift"])
-
-
 def located_ability_decls() -> Iterator[tuple[Path, int, tuple[str, str, str, str]]]:
     """Share declaration parsing between codegen and authored-location lookup."""
-    for path, source in _read_ability_sources():
+    for tier in ABILITY_TIERS:
+        path = ABILITY_DIR / f"AbilityCatalog+{tier}.swift"
+        source = path.read_text()
         for match in re.finditer(ABILITY_DECL_PATTERN, source):
             yield path, source.count("\n", 0, match.start()) + 1, match.groups()
 
@@ -86,12 +78,7 @@ def ability_symbols_swift(raw: str) -> str:
 
 
 def generate_ability_shorthand() -> None:
-    entries: list[tuple[str, str]] = []
-    for symbol, _, _, _ in iter_ability_decls():
-        entries.append((symbol, f"AbilityCatalog.{symbol}"))
-
-    entries.sort(key=lambda item: item[0])
-    lines = [f"    static let {symbol} = {target}" for symbol, target in entries]
+    lines = [f"    static let {symbol} = AbilityCatalog.{symbol}" for symbol in sorted(collect_ability_symbols())]
     body = "public extension Ability {\n" + "\n".join(lines) + "\n}\n"
     write_generated_file(GENERATED_DIR / "AbilityShorthand.generated.swift", body)
 
@@ -163,7 +150,7 @@ def generate_ability_inventory() -> None:
     if not lines or lines[0] != header:
         raise RuntimeError(f"AbilityInventoryDump produced unexpected header: {lines[:1]!r}")
 
-    dumped_ids: set[str] = set()
+    dumped: dict[str, tuple[str, str]] = {}
     for line in lines[1:]:
         parts = line.split("\t")
         if len(parts) != 4:
@@ -171,10 +158,11 @@ def generate_ability_inventory() -> None:
         ability_id, name, tier, summary = parts
         if not ability_id or not name or tier not in VALID_TIERS or not summary:
             raise RuntimeError(f"AbilityInventoryDump row invalid: {line!r}")
-        if ability_id in dumped_ids:
+        if ability_id in dumped:
             raise RuntimeError(f"AbilityInventoryDump duplicate id: {ability_id}")
-        dumped_ids.add(ability_id)
+        dumped[ability_id] = (name, tier)
 
+    dumped_ids = set(dumped)
     if dumped_ids != expected_ids:
         missing = sorted(expected_ids - dumped_ids)
         extra = sorted(dumped_ids - expected_ids)
@@ -184,8 +172,7 @@ def generate_ability_inventory() -> None:
         )
 
     expected_by_id = {ability_id: (name, tier) for ability_id, name, tier in expected}
-    for line in lines[1:]:
-        ability_id, name, tier, _summary = line.split("\t")
+    for ability_id, (name, tier) in dumped.items():
         expected_name, expected_tier = expected_by_id[ability_id]
         if name != expected_name or tier != expected_tier:
             raise RuntimeError(

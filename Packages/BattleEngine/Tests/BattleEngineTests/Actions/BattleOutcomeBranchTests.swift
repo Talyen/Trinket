@@ -33,6 +33,9 @@ struct BattleOutcomeBranchTests {
             default:
                 Issue.record("Luck Potion produced unsupported keyword \(gain.keyword)")
             }
+            if seenKeywords == [.block, .thorns, .health] {
+                break
+            }
         }
         #expect(seenKeywords == [.block, .thorns, .health])
     }
@@ -71,9 +74,6 @@ struct BattleOutcomeBranchTests {
     }
 
     @Test func `seeded determinism resolves same branch`() throws {
-        func signature(_ events: [ActionEvent]) -> [String] {
-            events.map { "\($0.kind)|\(String(describing: $0.effectKind))|\($0.amount)|\($0.abilityID)" }
-        }
         let first = try playBranchableCard(
             heroAbilities: [.maul, .smite, .hemorrhage],
             companionAbilities: [.bash, .fangs, .bloodthorn],
@@ -86,7 +86,7 @@ struct BattleOutcomeBranchTests {
             abilityNamed: "Maul",
             rngSeed: 7,
         )
-        #expect(signature(first.events) == signature(second.events))
+        #expect(first.events == second.events)
     }
 
     @Test func `outcome branches resolve valid branch effects`() throws {

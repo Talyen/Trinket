@@ -132,9 +132,11 @@ class UiPolicyTests(ScriptRegressionTestCase):
             ids.write_text(
                 "public enum AccessibilityID {\n"
                 '  public static let playButton = "play-button"\n'
-                '  public static let playButtonAlias = "play-button"\n'
                 "}\n",
                 encoding="utf-8",
+            )
+            (root / "AccessibilityID+Battle.swift").write_text(
+                'extension AccessibilityID { public static let playButtonAlias = "play-button" }\n'
             )
             uitests = root / "UITests"
             uitests.mkdir()

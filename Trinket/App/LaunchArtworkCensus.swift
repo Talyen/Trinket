@@ -10,7 +10,7 @@ enum LaunchArtworkCensus {
         contentAccess: ContentAccessPolicy,
         previewMysteryEvent: (Stage) -> MysteryEvent?,
     ) -> [String] {
-        var names = Set<String>()
+        var names = Set(LabyrinthFogArtwork.thumbnailNames)
 
         for combatant in [save.roster.activeHero, save.roster.activeCompanion] {
             if let ref = combatant.artReference {

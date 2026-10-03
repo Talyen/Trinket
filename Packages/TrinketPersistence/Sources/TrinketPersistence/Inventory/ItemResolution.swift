@@ -37,29 +37,17 @@ enum ItemResolution {
         Rarity(rawValue: rawValue) ?? .basic
     }
 
-    /// Failable single-keyword decode for unkeyed containers. Stored keyword
-    /// sets encode as plain string arrays, so each element decodes from a
-    /// single-value container; unknown strings become nil entries.
-    struct FailableKeyword: Decodable {
-        let value: Keyword?
-
-        init(from decoder: Decoder) throws {
-            let raw = try decoder.singleValueContainer().decode(String.self)
-            value = Keyword(rawValue: raw)
-        }
-    }
-
     static func decodeKeywordSet<K: CodingKey>(
         from container: KeyedDecodingContainer<K>,
         forKey key: K,
     ) throws -> Set<Keyword> {
-        let values = try container.decode([FailableKeyword].self, forKey: key)
-        return Set(values.compactMap(\.value))
+        let values = try container.decode([String].self, forKey: key)
+        return Set(values.compactMap(Keyword.init(rawValue:)))
     }
 
     static func decodeKeywordSet(_ decoder: Decoder) throws -> Set<Keyword> {
-        let values = try [FailableKeyword](from: decoder)
-        return Set(values.compactMap(\.value))
+        let values = try [String](from: decoder)
+        return Set(values.compactMap(Keyword.init(rawValue:)))
     }
 
     /// Trinket-authoritative overwrite for the SwiftData codec. Returns the

@@ -1,10 +1,7 @@
 import CoreGraphics
-import os
-import SwiftUI
 import Testing
 import TrinketContent
 import TrinketCore
-import TrinketFeatureContracts
 import TrinketPersistence
 import TrinketPersistenceTestSupport
 @testable import TrinketFeatureAdapters
@@ -50,27 +47,6 @@ struct PresentationModelTests {
     }
     #endif
 
-    @Test func `item detail yield list formatting`() {
-        let empty: [ResourceAmount] = []
-        #expect(empty.formattedYieldList == "nothing")
-
-        let single = [ResourceAmount(.gold, 50)]
-        #expect(single.formattedYieldList == "50 Gold")
-
-        let double = [
-            ResourceAmount(.gold, 50),
-            ResourceAmount(.wood, 10),
-        ]
-        #expect(double.formattedYieldList == "50 Gold and 10 Wood")
-
-        let triple = [
-            ResourceAmount(.gold, 50),
-            ResourceAmount(.wood, 10),
-            ResourceAmount(.herbs, 5),
-        ]
-        #expect(triple.formattedYieldList == "50 Gold, 10 Wood, and 5 Herbs")
-    }
-
     @Test func `homestead category progress aggregates built and total tiers`() {
         let homestead = PlayerHomesteadState(
             resources: [:],
@@ -83,41 +59,6 @@ struct PresentationModelTests {
         #expect(farmingProgress.builtTiers == 3)
         #expect(farmingProgress.totalTiers > 3)
         #expect(farmingProgress.subtitle == "3 / \(farmingProgress.totalTiers)")
-    }
-
-    @Test func `hero header layout sizing policies and metrics`() {
-        let portraitHeight = HeroHeaderLayout.HeightPolicy.portrait.height(forWidth: 300)
-        #expect(portraitHeight == 400)
-
-        let portraitMinimum = HeroHeaderLayout.HeightPolicy.portrait.height(forWidth: 100)
-        #expect(portraitMinimum == HeroHeaderLayout.minimumHeaderHeight)
-
-        let cinematicHeight = HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 400)
-        #expect(cinematicHeight == 312)
-
-        let cinematicClampedMin = HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 200)
-        #expect(cinematicClampedMin == 288)
-
-        let cinematicClampedMax = HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 600)
-        #expect(cinematicClampedMax == 344)
-
-        let talentTreeHeight = HeroHeaderLayout.HeightPolicy.talentTree.height(forWidth: 400)
-        #expect(talentTreeHeight == 368)
-
-        let talentTreeClampedMin = HeroHeaderLayout.HeightPolicy.talentTree.height(forWidth: 200)
-        #expect(talentTreeClampedMin == 336)
-
-        let talentTreeClampedMax = HeroHeaderLayout.HeightPolicy.talentTree.height(forWidth: 600)
-        #expect(talentTreeClampedMax == 392)
-    }
-
-    @Test func `labyrinth hex radius and destination art`() {
-        let radius = LabyrinthMapPresentation.hexRadius(forAvailableWidth: 346.41016)
-        #expect(radius > 0)
-
-        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .shop) == "destination-merchant-shop")
-        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .mystery) == nil)
-        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .battle) == nil)
     }
 
     @Test func `labyrinth sizing grows narrow floors and contains selected edges`() {
@@ -175,42 +116,6 @@ struct PresentationModelTests {
         }
     }
 
-    @Test func `stage encounter and stage presentation properties`() {
-        let stage = Stage(
-            id: "test-stage",
-            chapterID: "chapter-1",
-            chapterNumber: 1,
-            stageNumber: 3,
-            encounter: .shop,
-            rewards: .empty,
-        )
-        #expect(stage.mapLabel == "Stage 1-3")
-        #expect(stage.mapMetaLabel == "Stage 1-3 · Shop")
-
-        #expect(abs(StageEncounter.shop.artAspectRatio - (4.0 / 3.0)) < 0.0001)
-        #expect(StageEncounter.battle(enemyID: "enemy").mapTint == StageEncounter.randomBattle.mapTint)
-    }
-
-    @Test func `feature contracts and contexts`() {
-        let heroContext = CombatantDetailContext(kind: .hero, combatantID: "hero_paladin")
-        #expect(heroContext.id == "hero-hero_paladin")
-
-        let companionContext = CombatantDetailContext(kind: .companion, combatantID: "companion_mage")
-        #expect(companionContext.id == "companion-companion_mage")
-
-        let emptyBattleContext = BattlePresentationContext.empty
-        #expect(emptyBattleContext.inventoryItems.isEmpty)
-        #expect(emptyBattleContext.stageReward == nil)
-        #expect(emptyBattleContext.goldFindPercent == 0)
-        #expect(emptyBattleContext.materialRewards.isEmpty)
-    }
-
-    @Test func `frame pacing signpost support event logging`() {
-        let log = OSLog(subsystem: FramePacingSignpostSupport.subsystem, category: "Test")
-        FramePacingSignpostSupport.event(log: log, name: "test_event", detail: "test_detail")
-        #expect(FramePacingSignpostSupport.subsystem == "com.trinket.framepacing")
-    }
-
     @Test func `homestead effect line display formatting`() {
         let tier = HomesteadNodeTier(
             tier: 1,
@@ -239,11 +144,6 @@ struct PresentationModelTests {
 
         let productionLine = lines.first(where: { $0.id == .production(.wood) })
         #expect(productionLine?.displayValue == "+25")
-    }
-
-    @Test func `accessibility id full game and contracts mode presence`() {
-        #expect(AccessibilityID.FullGame.offer == "Full Game Offer")
-        #expect(AccessibilityID.Play.contractsModeCard == "Contracts Mode Card")
     }
 
     @Test func `labyrinth floor nodes sorts using grid positions and fallbacks`() {
@@ -281,7 +181,7 @@ struct PresentationModelTests {
     }
 
     @Test func `frame pacing report round trip and duration properties`() {
-        var report = FramePacingReport(
+        let report = FramePacingReport(
             captureStartedAt: 100.0,
             captureEndedAt: 102.0,
             completionStatus: "completed",

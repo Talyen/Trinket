@@ -162,6 +162,42 @@ class ReporterTests(unittest.TestCase):
             self.assertEqual([Path(path).name for path in issues[1].attachments], ["second.png"])
             self.assertEqual([Path(path).name for path in unmatched], ["runner.txt"])
 
+    def test_nested_attachments_keep_distinct_paths_and_manifest_ownership(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            for name in ("first/evidence.png", "second/evidence.png", "unlisted/evidence.png"):
+                path = root / name
+                path.parent.mkdir()
+                path.write_text(name)
+            (root / "manifest.json").write_text(json.dumps([
+                {"testIdentifier": test, "attachments": [
+                    {"exportedFileName": name, "isAssociatedWithFailure": True}
+                ]}
+                for test, name in (("Battle/first()", "first/evidence.png"),
+                                   ("Battle/second()", "second/evidence.png"))
+            ]))
+            issues = [REPORTER.DiagnosticIssue.from_observation(
+                REPORTER.IssueObservation("test-failure", test, "failed", test=test)
+            ) for test in ("Battle/first()", "Battle/second()")]
+            unmatched = REPORTER.assign_attachments(
+                issues, root, REPORTER.xcresult.read_exported_attachments(root),
+            )
+            self.assertEqual(issues[0].attachments, [str(root / "first/evidence.png")])
+            self.assertEqual(issues[1].attachments, [str(root / "second/evidence.png")])
+            self.assertEqual(unmatched, [str(root / "unlisted/evidence.png")])
+
+    def test_source_locations_resolve_against_the_current_workspace(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            for directory in ("first/Owner", "second/..Evidence"):
+                path = root / directory / "DiagnosticProbe.swift"
+                path.parent.mkdir(parents=True)
+                path.write_text("invalid Swift")
+            for workspace, expected in (("first", "Owner/DiagnosticProbe.swift"),
+                                        ("second", "..Evidence/DiagnosticProbe.swift")):
+                with patch.object(Path, "cwd", return_value=root / workspace):
+                    self.assertEqual(REPORTER._display_path("DiagnosticProbe.swift"), expected)
+
     def test_build_failure_classification_and_location_are_structured(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

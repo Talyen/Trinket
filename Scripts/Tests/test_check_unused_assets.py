@@ -10,9 +10,10 @@ SCRIPT_INPUTS = (
 
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
-from script_test_support import ROOT, load_script
+from script_test_support import load_script
 
 
 class CheckUnusedAssetsTests(unittest.TestCase):
@@ -25,32 +26,33 @@ class CheckUnusedAssetsTests(unittest.TestCase):
         self.assertEqual(missing, [])
         self.assertEqual(orphans, [])
 
-    def test_read_tsv_rows_parses_headers_and_skips_comments(self) -> None:
-        with tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False) as f:
-            f.write("# id\tasset_name\tkind\n")
-            f.write("test_1\tsfx_test_1\tsfx\n")
-            f.write("# commented line\n")
-            f.write("test_2\tsfx_test_2\tsfx\n")
-            temp_path = Path(f.name)
-        try:
-            rows = self.checker.read_tsv_rows(temp_path)
-            self.assertEqual(len(rows), 2)
-            self.assertEqual(rows[0]["id"], "test_1")
-            self.assertEqual(rows[0]["asset_name"], "sfx_test_1")
-            self.assertEqual(rows[1]["id"], "test_2")
-        finally:
-            temp_path.unlink(missing_ok=True)
-
-
-    def test_asset_needs_thumb_and_full_only_kinds(self) -> None:
-        full_only = self.checker.full_only_art_kinds()
-        self.assertIn("resource", full_only)
-        self.assertIn("slot_background", full_only)
-        self.assertFalse(self.checker.asset_needs_thumb("resource"))
-        self.assertFalse(self.checker.asset_needs_thumb("slot_background"))
-        self.assertTrue(self.checker.asset_needs_thumb("combatant"))
-        self.assertTrue(self.checker.asset_needs_thumb("ability"))
-        self.assertTrue(self.checker.asset_needs_thumb("item"))
+    def test_missing_thumbnails_and_media_and_orphans_are_reported(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            assets = root / "Assets.xcassets"
+            assets.mkdir()
+            manifest = root / "art.tsv"
+            manifest.write_text("# id\tasset_name\tkind\nhero\thero\tcombatant\nresource\twood\tresource\n")
+            for name in ("hero", "wood", "orphan"):
+                folder = assets / f"{name}.imageset"
+                folder.mkdir()
+                (folder / f"{name}.heic").write_bytes(b"image")
+            media = root / "media"
+            media.mkdir()
+            music = root / "music.tsv"
+            music.write_text("# asset_name\nmissing-track\n")
+            (media / "orphan.m4a").write_bytes(b"audio")
+            with patch.multiple(self.checker, ROOT=root, ASSETS_XCASSETS=assets, ART_MANIFEST=manifest,
+                                MUSIC_MANIFEST=music, MUSIC_DIR=media, SFX_MANIFEST=root / "absent-sfx.tsv",
+                                CINEMATICS_MANIFEST=root / "absent-video.tsv", SFX_DIR=root / "sfx",
+                                CINEMATICS_DIR=root / "video"):
+                missing, orphans = self.checker.check_assets()
+            self.assertEqual(len(missing), 2, missing)
+            self.assertTrue(any("hero_thumb.heic" in item for item in missing))
+            self.assertTrue(any("missing-track.m4a" in item for item in missing))
+            self.assertEqual(len(orphans), 2, orphans)
+            self.assertTrue(any("orphan.imageset" in item for item in orphans))
+            self.assertTrue(any("orphan.m4a" in item for item in orphans))
 
 
 if __name__ == "__main__":

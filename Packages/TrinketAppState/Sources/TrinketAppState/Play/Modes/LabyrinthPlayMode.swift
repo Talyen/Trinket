@@ -88,7 +88,7 @@ public final class LabyrinthPlayMode {
     }
 
     public func resolvedEncounter(for node: LabyrinthNode) -> ScaledEncounter? {
-        Self.resolvedEncounter(
+        PlayBattlePreparation.labyrinthEncounter(
             for: node,
             partyAverageLevel: playerSave.roster.activePartyAverageLevel,
         )
@@ -165,13 +165,6 @@ public final class LabyrinthPlayMode {
 }
 
 extension LabyrinthPlayMode {
-    static func resolvedEncounter(
-        for node: LabyrinthNode,
-        partyAverageLevel: Int,
-    ) -> ScaledEncounter? {
-        PlayBattlePreparation.labyrinthEncounter(for: node, partyAverageLevel: partyAverageLevel)
-    }
-
     private func combatRequest(
         node: LabyrinthNode,
         labyrinth: PlayerLabyrinthState,

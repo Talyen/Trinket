@@ -1,4 +1,3 @@
-import BattleEngine
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
@@ -26,11 +25,9 @@ struct PlayBattlePartySnapshot: Equatable {
 }
 
 struct BattlePreparationInputs: Equatable {
-    let runKey: BattleRunKey?
     let launch: BattleLaunchInput
     let party: PlayBattlePartySnapshot
     let rngSeed: UInt64
-    let hasProgressionRewards: Bool
 }
 
 struct BattleLaunchInput: Equatable {

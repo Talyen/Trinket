@@ -147,10 +147,12 @@ extension BattleCardAssessment {
             keys.append(use)
         }
         return keys.map { key in
-            let amounts = outcomes.lazy.map { outcome in outcome.first(where: { $0.matches(key) })?.amount ?? 0 }
-            let firstAmount = amounts.first
-            let uncertain = outcomes.contains { outcome in outcome.contains { $0.matches(key) && $0.amount == nil } }
-            let amount = !uncertain && amounts.allSatisfy { $0 == firstAmount } ? firstAmount : nil
+            let amounts = outcomes.map { outcome -> Int? in
+                guard let use = outcome.first(where: { $0.matches(key) }) else { return 0 }
+                return use.amount
+            }
+            let firstAmount = amounts[0]
+            let amount = amounts.allSatisfy { $0 == firstAmount } ? firstAmount : nil
             return ResourceUse(
                 combatantID: key.combatantID, keyword: key.keyword, amount: amount,
                 balance: key.balance, capacity: key.capacity,

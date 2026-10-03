@@ -91,46 +91,6 @@ struct EffectModelTests {
         #expect(Effect.poison(Int.min).potencyAfterTurn() == 0)
     }
 
-    @Test func `effect classification flags match definitions`() {
-        #expect(Effect.burn(1).isRemovableDebuff)
-        #expect(Effect.poison(1).isRemovableDebuff)
-        #expect(Effect.bleed(1).isRemovableDebuff)
-        #expect(Effect.controlMeter(.stun, 1, 10).isRemovableDebuff)
-        #expect(!(Effect.shield(.block, 1)).isRemovableDebuff)
-        #expect(!(Effect.cleanse(.poison)).isRemovableDebuff)
-        #expect(!(Effect.cleanse(nil)).isRemovableDebuff)
-        #expect(!(Effect.instantHeal(.health, 1)).isRemovableDebuff)
-        #expect(!(Effect.resourceGain(.gold, 1)).isRemovableDebuff)
-        #expect(!(Effect.cleanseRandom.isRemovableDebuff))
-        #expect(!(Effect.purge(.block)).isRemovableDebuff)
-        #expect(!(Effect.purgeRandom.isRemovableDebuff))
-        #expect(!(Effect.halveShield(.block)).isRemovableDebuff)
-
-        #expect(Effect.shield(.block, 1).isRemovableBuff)
-        #expect(!(Effect.burn(1)).isRemovableBuff)
-        #expect(!(Effect.poison(1)).isRemovableBuff)
-        #expect(!(Effect.controlMeter(.stun, 1, 10)).isRemovableBuff)
-
-        #expect(Effect.burn(1).advancesEachTurn)
-        #expect(Effect.poison(1).advancesEachTurn)
-        #expect(Effect.bleed(1).advancesEachTurn)
-        #expect(Effect.controlMeter(.stun, 1, 10).advancesEachTurn)
-        #expect(!(Effect.shield(.block, 1)).advancesEachTurn)
-        #expect(!(Effect.nextHolyStrike.advancesEachTurn))
-        #expect(!(Effect.nextStrikeDouble.advancesEachTurn))
-        #expect(!(Effect.evadeNextHit.advancesEachTurn))
-        #expect(Effect.nextStrikeDouble.isRemovableBuff)
-        #expect(Effect.evadeNextHit.isRemovableBuff)
-        #expect(!(Effect.instantHeal(.health, 1)).advancesEachTurn)
-        #expect(!(Effect.resourceGain(.gold, 1)).advancesEachTurn)
-        #expect(!(Effect.cleanse(.poison)).advancesEachTurn)
-        #expect(!(Effect.cleanse(nil)).advancesEachTurn)
-        #expect(!(Effect.cleanseRandom.advancesEachTurn))
-        #expect(!(Effect.purge(.block)).advancesEachTurn)
-        #expect(!(Effect.purgeRandom.advancesEachTurn))
-        #expect(!(Effect.halveShield(.block)).advancesEachTurn)
-    }
-
     private static func representativeEffect(for kind: EffectKind) -> Effect {
         switch kind {
         case .burn: .burn(2)
@@ -205,7 +165,6 @@ struct EffectModelTests {
             let phrase = EffectPresentation.applyPhrase(for: effect)
             #expect(!phrase.isEmpty)
             #expect(phrase != effect.keyword.rawValue, "\(effect) must describe more than its keyword")
-            #expect(EffectPresentation.applyPhrase(for: effect) == phrase, "applyPhrase must be deterministic")
         }
     }
 

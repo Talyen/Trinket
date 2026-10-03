@@ -8,17 +8,20 @@ struct AbilityValidationTests {
         try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
     }
 
-    @Test func `validator allows condition-gated damage line`() throws {
+    @Test(arguments: [
+        (0, "Deal 3 Stun damage if played on the first turn"),
+        (2, "Deal 3 Stun damage\nDeal 2 extra Stun damage if played on the first turn"),
+    ])
+    func `conditional damage distinguishes a gated hit from bonus damage`(bonus: Int, expected: String) {
         let ability = Ability(
             id: "gated-pounce",
             name: "Gated Pounce",
             tier: .skill,
             damageComponents: [
-                DamageComponent(3, keyword: .stun, condition: .firstTurn),
+                DamageComponent(3, keyword: .stun, bonusAmount: bonus, condition: .firstTurn),
             ],
         )
-        let issues = AbilityValidator.validate(ability)
-        try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
+        #expect(ability.summary == expected)
     }
 
     @Test func `validator rejects redundant description override matching generated copy`() throws {

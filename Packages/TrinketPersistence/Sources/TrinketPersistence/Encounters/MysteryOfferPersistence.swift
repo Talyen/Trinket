@@ -86,19 +86,14 @@ public enum MysteryOfferPersistence {
         save: inout PlayerSave,
         at date: Date = Date(),
     ) -> MysteryEffectResult {
-        guard encounter.isPlayable(in: save)
-        else { return MysteryEffectResult() }
-        guard let payload = payload(encounter: encounter, save: save) else {
-            return MysteryEffectResult()
-        }
-        let saved: [MysteryOffer]
+        guard encounter.isPlayable(in: save),
+              let payload = payload(encounter: encounter, save: save) else { return MysteryEffectResult() }
         do {
             let snapshot = try JSONDecoder().decode(MysteryOfferSnapshot.self, from: payload)
-            saved = try snapshot.resolvedOffers()
+            guard try snapshot.resolvedOffers().contains(offer) else { return MysteryEffectResult() }
         } catch {
             return MysteryEffectResult()
         }
-        guard saved.contains(offer) else { return MysteryEffectResult() }
         // Validate and grant at one production date on a candidate, so stale
         // offers cannot grant partial rewards or complete the encounter.
         let grantDate = date

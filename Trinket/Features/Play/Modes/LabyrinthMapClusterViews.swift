@@ -89,15 +89,9 @@ private struct LabyrinthMapNodeSeal: View {
         Button(action: onActivate) {
             ZStack {
                 ZStack {
-                    LabyrinthNodeArtwork(
-                        node: node,
-                        type: type,
-                        resolvedMysteryEvent: resolvedMysteryEvent,
-                        recruitArtwork: recruitArtwork,
-                        style: .hexSeal,
-                    )
-                    .saturation(visualState == .cleared ? 0 : 1)
-                    .opacity(visualState == .locked ? 0.42 : visualState == .cleared ? 0.72 : 1)
+                    tileArtwork
+                        .saturation(visualState == .cleared ? 0 : 1)
+                        .opacity(visualState == .locked ? 0.42 : visualState == .cleared ? 0.72 : 1)
                     if visualState == .cleared {
                         TrinketDesign.Colors.Overlay.ink.opacity(0.32)
                     }
@@ -180,10 +174,32 @@ private struct LabyrinthMapNodeSeal: View {
         .accessibilityIdentifier(labyrinthAccessibilityIdentifier)
     }
 
+    @ViewBuilder
+    private var tileArtwork: some View {
+        if visualState == .locked {
+            if let art = LabyrinthFogArtwork.reference(for: node.id) {
+                LabyrinthFocalImage(
+                    imageName: art.imageName,
+                    thumbnailName: art.thumbnailImageName,
+                    focalPoint: ArtFocalPoint(x: 0.5, y: 0.5),
+                    zoom: 1,
+                )
+            }
+        } else {
+            LabyrinthNodeArtwork(
+                node: node,
+                type: type,
+                resolvedMysteryEvent: resolvedMysteryEvent,
+                recruitArtwork: recruitArtwork,
+                style: .hexSeal,
+            )
+        }
+    }
+
     private var nodeAccessibilityLabel: String {
         switch visualState {
         case .cleared: "\(type.title), cleared"
-        case .locked: "\(type.title), locked"
+        case .locked: "Unexplored chamber, locked"
         case .reachable: type.title
         }
     }

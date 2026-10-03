@@ -236,11 +236,24 @@ class DocumentationTests(ScriptRegressionTestCase):
                 self.assertEqual(links.broken_links([source]), [])
                 parse.assert_called_once_with(target.resolve())
 
-    def test_markdown_inventory_excludes_ignored_run_reports(self) -> None:
-        paths = self.check_docs.markdown_files()
-        self.assertTrue(paths)
-        self.assertTrue(all(path.suffix == ".md" for path in paths))
-        self.assertFalse(any("BalanceSweepReports" in path.parts for path in paths))
+    def test_markdown_inventory_preserves_git_filenames_and_excludes_ignored_reports(self) -> None:
+        links = load_script("documentation_inventory", "check-links.py")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            (root / ".gitignore").write_text("ignored/\n")
+            tracked = root / "règles.md"
+            tracked.write_text("# Rules\n")
+            subprocess.run(["git", "-C", str(root), "add", tracked.name], check=True)
+            untracked = root / "notes with spaces.md"
+            untracked.write_text("# Notes\n")
+            (root / "ignored").mkdir()
+            (root / "ignored/report.md").write_text("# Ignored\n")
+            with patch.object(links, "ROOT", root):
+                self.assertEqual(set(links.markdown_files()), {tracked, untracked})
+                with patch.object(links.subprocess, "run", side_effect=subprocess.CalledProcessError(1, "git")):
+                    with self.assertRaises(subprocess.CalledProcessError):
+                        links.markdown_files()
 
     def test_command_inventory_is_owned_by_reference_not_entry_page(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

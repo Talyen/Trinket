@@ -12,7 +12,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from internal.cli import read_json
-from internal.performance.performance_model import METRICS, load_baseline, load_results_reports, validate_report as validate_frame_report, goal_findings
+from internal.performance.performance_model import METRICS, load_baseline, load_results_reports, validate_report, goal_findings, group_reports_by_scenario
 
 
 def aggregate(values: list[float]) -> dict[str, float]:
@@ -24,21 +24,6 @@ def aggregate(values: list[float]) -> dict[str, float]:
         "minimum": min(values),
         "maximum": max(values),
     }
-
-
-def validate_scenario_report(report: object, expected_scenarios: set[str], baseline: dict[str, Any] | None = None) -> tuple[dict[str, Any] | None, list[str]]:
-    # Fused membership + frame validation (unlike compare's group-then-validate):
-    # invalid reports must not enter the median pools below. Membership wording
-    # matches group_reports_by_scenario in performance_model.
-    if not isinstance(report, dict):
-        return None, ["expected an object"]
-    scenario = report.get("scenario")
-    failures: list[str] = []
-    if not isinstance(scenario, str) or scenario not in expected_scenarios:
-        failures.append(f"unexpected or missing scenario {scenario!r}")
-        return None, failures
-    failures.extend(validate_frame_report(report, baseline))
-    return report, failures
 
 
 def main() -> int:
@@ -57,23 +42,21 @@ def main() -> int:
     reports = load_results_reports(payload)
     baseline = read_json(args.baseline)
     scenarios_value, mode, _, _, _ = load_baseline(baseline)
-    expected_scenarios = set(scenarios_value)
-
-    grouped: dict[str, list[dict[str, Any]]] = {scenario: [] for scenario in scenarios_value}
-
-    failures: list[str] = []
-    for index, raw_report in enumerate(reports, 1):
-        report, report_failures = validate_scenario_report(raw_report, expected_scenarios, baseline)
-        if report_failures:
-            failures.extend(f"report {index}: {failure}" for failure in report_failures)
-        if report is not None and not report_failures:
-            grouped[report["scenario"]].append(report)
+    grouped, failures = group_reports_by_scenario(reports, scenarios_value)
+    for scenario, records in grouped.items():
+        valid = []
+        for record in records:
+            report_failures = validate_report(record, baseline)
+            failures.extend(report_failures)
+            if not report_failures:
+                valid.append(record)
+        grouped[scenario] = valid
 
     findings: list[str] = []
     scenarios: dict[str, Any] = {}
     for scenario in scenarios_value:
         records = grouped[scenario]
-        records.sort(key=lambda item: int(item.get("iteration", 0)))
+        records.sort(key=lambda item: item["iteration"])
         if len(records) != args.expected_repetitions:
             failures.append(
                 f"{scenario}: expected {args.expected_repetitions} reports, found {len(records)}"
@@ -90,7 +73,7 @@ def main() -> int:
             findings.extend(goal_findings(record, baseline))
         metrics: dict[str, Any] = {}
         for metric in METRICS:
-            values = [float(record[metric]) for record in records if metric in record]
+            values = [float(record[metric]) for record in records]
             if values:
                 metrics[metric] = aggregate(values)
         scenarios[scenario] = {

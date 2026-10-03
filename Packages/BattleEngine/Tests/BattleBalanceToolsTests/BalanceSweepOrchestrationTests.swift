@@ -158,14 +158,18 @@ struct BalanceSweepOrchestrationTests {
                     heroID: "knight",
                     companionID: "bear",
                     enemyID: "living_armor",
-                    isBoss: false,
+                    isBoss: true,
                     heroAbilityIDs: ["slash"],
                     companionAbilityIDs: ["bash"],
                     enemyAbilityIDs: ["strike"],
-                    enemyTraitIDs: [],
-                    affixIDs: [],
-                    heroTalentIDs: [],
-                    companionTalentIDs: [],
+                    enemyTraitIDs: ["watchful_guard", "bloodless"],
+                    affixIDs: ["keen", "sturdy"],
+                    heroAffixIDs: ["keen"],
+                    companionAffixIDs: ["sturdy"],
+                    heroItemBaseIDs: ["blade"],
+                    companionItemBaseIDs: ["shield"],
+                    heroTalentIDs: ["knight_block_t3_2"],
+                    companionTalentIDs: ["bear_health_t1_1"],
                     seed: 3,
                     policyID: "greedy-v1",
                     result: BattleSimResult(
@@ -182,11 +186,10 @@ struct BalanceSweepOrchestrationTests {
         )
         let data = try JSONEncoder().encode(report)
         let decoded = try JSONDecoder().decode(BalanceSweepReport.self, from: data)
-        #expect(decoded.records.map(\.seed) == report.records.map(\.seed))
-        #expect(decoded.records.map(\.result) == report.records.map(\.result))
+        #expect(decoded.records == report.records)
     }
 
-    @Test func `ability contrast work count is foci times samples times tiers`() {
+    @Test func `ability contrasts include every within-tier pairing`() {
         let config = BalanceSweepConfig(
             mode: .abilityContrast,
             battlesPerTier: 3,
@@ -199,7 +202,6 @@ struct BalanceSweepOrchestrationTests {
             companions: config.resolvedRoster.companions,
             focusIDs: [],
         )
-        #expect(BalanceAbilityContrastRunner.workCount(config: config) == foci.count * 3)
         let expectedPairs = (config.resolvedRoster.heroes + config.resolvedRoster.companions).reduce(0) { total, owner in
             total + AbilityTier.allCases.reduce(0) { tierTotal, tier in
                 let n = owner.abilityChoices.abilities(for: tier).count

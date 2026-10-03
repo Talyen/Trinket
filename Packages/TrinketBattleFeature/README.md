@@ -98,13 +98,23 @@ Do not rewrite the host for purity unless Instruments shows SwiftUI can match hi
 
 ## Debug transition lab
 
-In debug builds, open **Options → Developer → Battle Transitions**. Controls
-offers Current, Gather & Release, Soft Veil, and Arcane Aperture presets, with
-entry, victory, and combined replay. Reset returns to the encounter preview.
-The lab uses an isolated deterministic party and sample rewards; Loot All only
-previews collection. It does not save progress or change production transitions.
-Its pre-battle layout is representative, while combatant, hand, and reward views
-reuse the shipping components. Motion experiments live under `Features/TransitionLab/`.
+In debug builds, open **Options → Developer → Battle Transitions**. The lab
+starts on the shipping stage-picker layout with fixed Forest stages. Battle
+previews the selected full-screen entrance; the battle preview offers Return to
+Stages and Show Victory, and sample Loot All returns to the picker.
+
+Controls offers Crossfade, Push Through, Arcane Curtain, and Iris Reveal, plus
+Replay Entry, Replay Direct Exit, Replay Victory Return, Play Full Journey, and
+Reset. Reset returns to the picker; opening Controls stops playback at the last
+settled screen. All presets use the same battle-to-victory crossfade.
+Each victory entry restarts the sample XP and loot reveal, including after waiting
+on the battle preview.
+
+The app supplies picker content to the debug-only generic lab. Its deterministic
+battle matches the sample stage and stays suspended; the battlefield, hand, and
+reward views reuse shipping components. Artwork prepares before playback.
+The lab saves no progress or rewards, plays no audio or haptics, and changes no
+production transitions. Motion experiments live under `Features/TransitionLab/`.
 
 ## Testing
 

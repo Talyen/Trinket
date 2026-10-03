@@ -8,9 +8,13 @@ import TrinketCore
 /// reflect reactions and reports heal-only empty removals as applied (Panacea), while
 /// purge only guards Block (`sealedSarcophagus`) and reports empty removals as unapplied.
 enum EffectRemovalOperation {
-    enum Selection {
+    enum CleanseSelection {
         case all(Keyword?)
         case randomDebuff
+    }
+
+    enum PurgeSelection {
+        case all(Keyword?)
         case randomBuffs(Int)
     }
 
@@ -70,7 +74,7 @@ enum EffectRemovalOperation {
     }
 
     static func resolveCleanse(
-        _ selection: Selection,
+        _ selection: CleanseSelection,
         source: Combatant,
         target: Combatant,
         abilityName: String,
@@ -85,10 +89,6 @@ enum EffectRemovalOperation {
         var removed: [ActiveEffect] = switch selection {
         case let .all(keyword): EffectRemoval.removeDebuffs(from: &effects, keyword: keyword)
         case .randomDebuff: EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng).map { [$0] } ?? []
-        case let .randomBuffs(count):
-            EffectRemoval.removeBuffs(
-                from: &effects, count: count, preservingBlock: false, using: &context.rng,
-            )
         }
         if !removed.isEmpty {
             let triggers = context.modifiers(for: source.id).triggers
@@ -150,10 +150,10 @@ enum EffectRemovalOperation {
         abilityName: String,
         source: Combatant,
         target: Combatant,
-        healAmount: Int? = nil,
+        healAmount: Int,
         healTarget: EffectTarget? = nil,
         allowMassCleanse: Bool = true,
-        origin: ActionEvent.Origin = .automatic,
+        origin: ActionEvent.Origin,
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
@@ -165,7 +165,7 @@ enum EffectRemovalOperation {
             removed, effectKind: .cleanseApplied, source: source, target: target,
             abilityName: abilityName, origin: origin, in: &context,
         ))
-        if let healAmount, healAmount > 0 {
+        if healAmount > 0 {
             let recipient = healTarget.map { BattleActionContext(actor: source, in: context).target($0, in: context) } ?? target
             events.append(contentsOf: context.healEmitting(
                 amount: healAmount,
@@ -203,7 +203,7 @@ enum EffectRemovalOperation {
     }
 
     static func resolvePurge(
-        _ selection: Selection,
+        _ selection: PurgeSelection,
         source: Combatant,
         target: Combatant,
         abilityName: String,
@@ -218,8 +218,6 @@ enum EffectRemovalOperation {
         let removed: [ActiveEffect] = switch selection {
         case let .all(keyword):
             EffectRemoval.removeBuffs(from: &effects, keyword: keyword, preservingBlock: preservingBlock)
-        case .randomDebuff:
-            EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng).map { [$0] } ?? []
         case let .randomBuffs(count):
             EffectRemoval.removeBuffs(from: &effects, count: max(0, count), preservingBlock: preservingBlock, using: &context.rng)
         }

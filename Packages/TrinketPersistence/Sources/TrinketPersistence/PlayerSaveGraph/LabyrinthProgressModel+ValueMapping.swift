@@ -16,16 +16,22 @@ extension LabyrinthProgressModel {
             mapVersion: mapVersion,
             hasEntered: hasEntered,
         )
-        switch decodeMapPayload() {
-        case .missing:
-            break
-        case let .decoded(payload):
+        guard let mapPayload else { return state }
+        guard mapVersion == LabyrinthGenerator.currentMapVersion else {
+            state.isMapPayloadUnreadable = true
+            return state
+        }
+        do {
+            let payload = try JSONDecoder().decode(LabyrinthMapPayload.self, from: mapPayload)
             state.clusters = payload.clusters
             state.nodes = Dictionary(
                 payload.nodes.map { ($0.id, $0) },
                 uniquingKeysWith: { _, new in new },
             )
-        case .unreadable:
+        } catch {
+            labyrinthMapLogger.error(
+                "Failed to decode labyrinth map payload; keeping stored blob: \(error.localizedDescription, privacy: .public)",
+            )
             state.isMapPayloadUnreadable = true
         }
         return state
@@ -48,27 +54,6 @@ extension LabyrinthProgressModel {
             labyrinthMapLogger.error(
                 "Failed to encode labyrinth map payload: \(error.localizedDescription, privacy: .public)",
             )
-        }
-    }
-
-    private enum MapPayloadDecode {
-        case missing
-        case decoded(LabyrinthMapPayload)
-        case unreadable
-    }
-
-    private func decodeMapPayload() -> MapPayloadDecode {
-        guard let mapPayload else {
-            return .missing
-        }
-        guard mapVersion == LabyrinthGenerator.currentMapVersion else { return .unreadable }
-        do {
-            return try .decoded(JSONDecoder().decode(LabyrinthMapPayload.self, from: mapPayload))
-        } catch {
-            labyrinthMapLogger.error(
-                "Failed to decode labyrinth map payload; keeping stored blob: \(error.localizedDescription, privacy: .public)",
-            )
-            return .unreadable
         }
     }
 }

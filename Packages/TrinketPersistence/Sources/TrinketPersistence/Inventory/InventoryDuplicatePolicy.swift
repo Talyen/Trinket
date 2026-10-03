@@ -19,12 +19,8 @@ enum InventoryDuplicatePolicy {
     }
 
     static func containsDuplicate(of candidate: InventoryItem, in items: [InventoryItem]) -> Bool {
-        items.contains { item in
-            item.id == candidate.id
-                || (item.templateID == candidate.templateID
-                    && ((item.isTrinket && candidate.isTrinket)
-                        || (item.rarity == .unique && candidate.rarity == .unique)))
-        }
+        let keys = Set(ownershipKeys(for: candidate))
+        return items.contains { !keys.isDisjoint(with: ownershipKeys(for: $0)) }
     }
 
     static func deduplicated(_ items: [InventoryItem]) -> [InventoryItem] {

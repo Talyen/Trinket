@@ -125,34 +125,16 @@ _FLAG_TRIGGERS: dict[str, str] = {
 }
 
 
-def _sorted_by_declining_length(mapping: dict[str, str]) -> list[tuple[str, str]]:
-    """Single home for longest-prefix-first ordering; shadow pairs
-    (foo vs foo_all) must route to the longer prefix."""
-    return sorted(mapping.items(), key=lambda kv: -len(kv[0]))
-
-
-_SORTED_SIMPLE_TRIGGERS = _sorted_by_declining_length(_TRIGGER_SIMPLE_MAP)
-_SORTED_FLAG_TRIGGERS = _sorted_by_declining_length(_FLAG_TRIGGERS)
-
-
 def _apply_simple_trigger(token: str, values: dict[str, str]) -> bool:
-    for prefix, field in _SORTED_SIMPLE_TRIGGERS:
-        if token.startswith(prefix + ":"):
-            values[field] = token.split(":", 1)[1]
-            return True
-    for prefix, field in _SORTED_FLAG_TRIGGERS:
-        if token == prefix or token.startswith(prefix + ":"):
-            if ":" in token:
-                remainder = token.split(":", 1)[1].strip()
-                if not remainder:
-                    values[field] = "true"
-                else:
-                    # Normalize true/1 (any case) to true; anything else
-                    # flows to Bool validation for a clear error.
-                    values[field] = "true" if remainder.lower() in ("true", "1") else remainder
-            else:
-                values[field] = "true"
-            return True
+    name, separator, value = token.partition(":")
+    if separator and name in _TRIGGER_SIMPLE_MAP:
+        values[_TRIGGER_SIMPLE_MAP[name]] = value
+        return True
+    if name in _FLAG_TRIGGERS:
+        remainder = value.strip()
+        # Bare/empty flags mean true; typed validation owns all other values.
+        values[_FLAG_TRIGGERS[name]] = "true" if not remainder or remainder.lower() in ("true", "1") else remainder
+        return True
     return False
 
 
@@ -212,21 +194,18 @@ _BESPOKE_TRIGGER_SPECS: dict[str, tuple[str, dict[int, tuple[tuple[str, bool], .
 
 
 def _apply_bespoke_trigger(token: str, values: dict[str, str]) -> bool:
-    for prefix, (usage, arities) in sorted(_BESPOKE_TRIGGER_SPECS.items(), key=lambda kv: -len(kv[0])):
-        if not token.startswith(prefix + ":"):
-            continue
-        args = token.split(":")[1:]
-        if len(args) not in arities:
-            raise ValueError(f"{prefix} expects {usage}, got {token!r}")
-        for (field, is_keyword), arg in zip(arities[len(args)], args):
-            if is_keyword:
-                if arg not in VALID_KEYWORDS:
-                    raise ValueError(f"Unknown keyword {arg!r} in trigger token {token!r}")
-                values[field] = f".{arg}"
-            else:
-                values[field] = arg
-        return True
-    return False
+    prefix, separator, value = token.partition(":")
+    if not separator or prefix not in _BESPOKE_TRIGGER_SPECS:
+        return False
+    usage, arities = _BESPOKE_TRIGGER_SPECS[prefix]
+    args = value.split(":")
+    if len(args) not in arities:
+        raise ValueError(f"{prefix} expects {usage}, got {token!r}")
+    for (field, is_keyword), arg in zip(arities[len(args)], args):
+        if is_keyword and arg not in VALID_KEYWORDS:
+            raise ValueError(f"Unknown keyword {arg!r} in trigger token {token!r}")
+        values[field] = f".{arg}" if is_keyword else arg
+    return True
 
 
 @functools.cache

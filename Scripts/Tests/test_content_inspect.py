@@ -65,7 +65,7 @@ class ContentInspectTests(ScriptRegressionTestCase):
                             '# comment\n\n'
                             'one\tOne\ticon\t"first\nsecond"\t\ton_cleanse_draw:1\n'
                             'two\tTwo\ticon\tOther\t\tcleanseBonusDraw:2\n')
-            parser = lambda: _parse_tsv_rows(path, ['id', 'name', 'icon_id', 'description', 'modifiers', 'triggers'], TalentRow)
+            parser = lambda: _parse_tsv_rows(path, TalentRow)
             def run(*args):
                 output = io.StringIO()
                 with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):

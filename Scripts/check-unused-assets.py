@@ -44,10 +44,6 @@ def full_only_art_kinds() -> set[str]:
     }
 
 
-def asset_needs_thumb(kind: str) -> bool:
-    return bool(kind and kind not in full_only_art_kinds())
-
-
 def read_tsv_rows(path: Path) -> list[dict[str, str]]:
     if not path.is_file():
         return []
@@ -61,6 +57,7 @@ def check_assets(verbose: bool = False) -> tuple[list[str], list[str]]:
 
     # 1. Art Manifest -> Assets.xcassets
     art_rows = read_tsv_rows(ART_MANIFEST)
+    full_only = full_only_art_kinds()
     registered_imagesets: set[str] = set()
 
     for row in art_rows:
@@ -69,20 +66,15 @@ def check_assets(verbose: bool = False) -> tuple[list[str], list[str]]:
         if not asset_name:
             continue
 
-        # Full variant
-        full_set = f"{asset_name}.imageset"
-        registered_imagesets.add(full_set)
-        full_path = ASSETS_XCASSETS / full_set / f"{asset_name}.heic"
-        if not full_path.is_file():
-            missing.append(f"ArtManifest: missing full image file for '{asset_name}' ({full_path.relative_to(ROOT)})")
-
-        # Thumb variant if applicable
-        if asset_needs_thumb(kind):
-            thumb_set = f"{asset_name}_thumb.imageset"
-            registered_imagesets.add(thumb_set)
-            thumb_path = ASSETS_XCASSETS / thumb_set / f"{asset_name}_thumb.heic"
-            if not thumb_path.is_file():
-                missing.append(f"ArtManifest: missing thumbnail image file for '{asset_name}' ({thumb_path.relative_to(ROOT)})")
+        variants = [(asset_name, "full")]
+        if kind and kind not in full_only:
+            variants.append((f"{asset_name}_thumb", "thumbnail"))
+        for name, label in variants:
+            imageset = f"{name}.imageset"
+            registered_imagesets.add(imageset)
+            path = ASSETS_XCASSETS / imageset / f"{name}.heic"
+            if not path.is_file():
+                missing.append(f"ArtManifest: missing {label} image file for '{asset_name}' ({path.relative_to(ROOT)})")
 
     # Reverse Art Check: Check for orphaned .imageset directories in Assets.xcassets
     if ASSETS_XCASSETS.is_dir():

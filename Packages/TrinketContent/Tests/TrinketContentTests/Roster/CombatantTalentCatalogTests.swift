@@ -1,4 +1,3 @@
-import Foundation
 import Testing
 import TrinketCore
 @testable import TrinketContent
@@ -26,163 +25,48 @@ struct CombatantTalentCatalogTests {
         #expect(CombatantTalentCatalog.effect(for: introductoryID)?.name == introductory.name)
     }
 
-    @Test func `all combatants have three keywords and contiguous authored rows`() {
+    @Test func `every combatant has complete authored talent trees`() throws {
+        let rosterIDs = Set(GameContent.combatants.map(\.id))
+        #expect(Set(CombatantTalentCatalog.combatantTreeAffinities.keys) == rosterIDs)
+        var nodeIDs: Set<String> = []
+        var names: Set<String> = []
         for combatant in GameContent.combatants {
             let config = CombatantTalentCatalog.config(for: combatant.id)
             #expect(config.combatantID == combatant.id)
             #expect(config.trees.count == 3)
+            #expect(config.trees.map(\.keyword) == combatant.affinityKeywords)
             for tree in config.trees {
                 #expect(!tree.name.isEmpty)
                 #expect(tree.nodes.count >= 7)
                 #expect(tree.rows == Array(1 ... tree.rows.count))
                 for row in tree.rows {
-                    let nodeCount = tree.nodes(forRow: row).count
-                    #expect(row <= 3 ? nodeCount == 2 : (1 ... 2).contains(nodeCount))
+                    let count = tree.nodes(forRow: row).count
+                    #expect(row <= 3 ? count == 2 : (1 ... 2).contains(count))
                 }
-            }
-        }
-    }
-
-    @Test func `keyword affinities match catalog dictionary`() {
-        for (combatantID, affinities) in CombatantTalentCatalog.combatantTreeAffinities {
-            let config = CombatantTalentCatalog.config(for: combatantID)
-            #expect(config.trees.map(\.keyword) == affinities.map(\.keyword))
-        }
-        for combatant in GameContent.combatants {
-            #expect(combatant.affinityKeywords == CombatantTalentCatalog.combatantTreeAffinities[combatant.id]?.map(\.keyword) ?? [])
-        }
-    }
-
-    @Test func `authored talent node I ds match generated trees`() {
-        let authoredIDs = Set(CombatantTalentCatalog.signatureTalents.keys)
-        var generatedIDs = Set<String>()
-        for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {
-            generatedIDs.formUnion(CombatantTalentCatalog.validNodeIDs(for: combatantID))
-        }
-        #expect(!authoredIDs.isEmpty)
-        #expect(authoredIDs == generatedIDs)
-    }
-
-    @Test func `no placeholder talent nodes remain`() {
-        for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {
-            let config = CombatantTalentCatalog.config(for: combatantID)
-            for tree in config.trees {
                 for node in tree.nodes {
-                    #expect(!node.description.contains("Augments"), "placeholder description remains for \(node.id)")
-                    #expect(!node.name.contains("Adept"), "placeholder name remains for \(node.id)")
-                    #expect(!node.name.contains("Focus "), "placeholder name remains for \(node.id)")
-                    #expect(!node.name.contains("Mastery "), "placeholder name remains for \(node.id)")
-                }
-            }
-        }
-    }
-
-    @Test func `all talent nodes have authored icons`() {
-        for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {
-            let config = CombatantTalentCatalog.config(for: combatantID)
-            for tree in config.trees {
-                for node in tree.nodes {
-                    #expect(node.iconID != nil && !(node.iconID?.isEmpty ?? true), "missing icon on node \(node.id)")
-                    if let effect = CombatantTalentCatalog.effect(for: node.id) {
-                        #expect(!effect.iconID.isEmpty, "missing icon on effect \(node.id)")
-                    } else {
-                        Issue.record("missing effect for \(node.id)")
+                    #expect(nodeIDs.insert(node.id).inserted, "Duplicate talent ID \(node.id)")
+                    #expect(names.insert(node.name).inserted, "Duplicate talent name \(node.name)")
+                    let effect = try #require(CombatantTalentCatalog.effect(for: node.id))
+                    #expect(node.iconID != nil && !(node.iconID?.isEmpty ?? true), "Missing icon on \(node.id)")
+                    #expect(!effect.iconID.isEmpty, "Missing icon on effect \(node.id)")
+                    #expect(!effect.modifiers.isEmpty || effect.triggers != CombatTraitTriggers(), "Inert talent \(node.id)")
+                    if effect.triggers.sunderingBlockMultiplier != 0 {
+                        #expect(node.keyword == .physical || node.keyword == .stun, "Sundering on \(node.id)")
+                    }
+                    if effect.triggers.holyBlockBreakMultiplier != 1 {
+                        #expect(node.keyword == .holy, "Holy Block break on \(node.id)")
                     }
                 }
             }
+            #expect(CombatantTalentCatalog.validNodeIDs(for: combatant.id) == Set(config.trees.flatMap(\.nodes).map(\.id)))
         }
-    }
-
-    @Test func `talent display names are unique`() {
-        var names: [String: String] = [:]
-        for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {
-            let config = CombatantTalentCatalog.config(for: combatantID)
-            for tree in config.trees {
-                for node in tree.nodes {
-                    #expect(names[node.name] == nil, "duplicate talent name \(node.name) at \(node.id)")
-                    names[node.name] = node.id
-                }
-            }
-        }
-    }
-
-    @Test func `hero talents describe their own tree keyword`() {
-        let keywordWords: [Keyword: String] = [
-            .block: "block(?:ed|ing)?",
-            .stun: "stun(?:ned|ning)?",
-            .holy: "holy",
-            .poison: "poison(?:ed|ing)?",
-            .bleed: "bleed(?:ing|s)?",
-            .burn: "burn(?:ing|ed|s)?",
-            .freeze: "freez(?:e|es|ing)|frozen",
-            .gold: "gold",
-            .dodge: "dodg(?:e|es|ing)",
-            .physical: "physical",
-            .mana: "mana",
-            .leech: "leech(?:ing|es)?",
-            .cleanse: "cleans(?:e|es|ing)",
-            .health: "health|heal(?:s|ed|ing)?",
-        ]
-        for hero in GameContent.heroes {
-            for tree in CombatantTalentCatalog.config(for: hero.id).trees {
-                guard let keyword = keywordWords[tree.keyword] else {
-                    Issue.record("missing keyword form for \(tree.keyword)")
-                    continue
-                }
-                for node in tree.nodes {
-                    // Approved utility replacements keep their purchased tree positions.
-                    if ["knight_holy_t3_1", "wildcard_gold_t1_1"].contains(node.id) {
-                        continue
-                    }
-                    let pattern = "\\b(?:\(keyword))\\b"
-                    #expect(
-                        node.description.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil,
-                        "\(node.id) does not mention \(tree.keyword)",
-                    )
-                }
-            }
-        }
+        #expect(!nodeIDs.isEmpty)
+        #expect(nodeIDs == Set(CombatantTalentCatalog.signatureTalents.keys))
     }
 
     @Test func `catalog authored triggers resolve`() {
         let t = CombatantTalentCatalog.signatureTalents["lizard_scout_poison_t1_1"]?.triggers
         #expect(t?.dodgeApplyPoison == 2)
-    }
-
-    @Test func `sundering and holy block break match tree keywords`() {
-        for combatantID in CombatantTalentCatalog.combatantTreeAffinities.keys {
-            let config = CombatantTalentCatalog.config(for: combatantID)
-            for tree in config.trees {
-                for node in tree.nodes {
-                    let effect = CombatantTalentCatalog.effect(for: node.id)
-                    let triggers = effect?.triggers
-                    if (triggers?.sunderingBlockMultiplier ?? 0) != 0 {
-                        #expect(
-                            node.keyword == .physical || node.keyword == .stun,
-                            "sunderingBlockMultiplier on \(node.id) (\(node.keyword))",
-                        )
-                    }
-                    if (triggers?.holyBlockBreakMultiplier ?? 1) != 1 {
-                        #expect(node.keyword == .holy, "holyBlockBreakMultiplier on \(node.id) (\(node.keyword))")
-                    }
-                }
-            }
-        }
-    }
-
-    @Test func `every authored talent has mechanics`() {
-        for (id, effect) in CombatantTalentCatalog.signatureTalents {
-            #expect(
-                !effect.modifiers.isEmpty || effect.triggers != CombatTraitTriggers(),
-                "inert talent \(id) (\(effect.name))",
-            )
-        }
-    }
-
-    @Test func `trigger family field names are unique`() {
-        let names = CombatTraitTriggers.allFieldNames
-        #expect(!names.isEmpty)
-        #expect(Set(names).count == names.count)
     }
 
     @Test func `bool talent flags survive merge into empty profile`() {
@@ -191,20 +75,5 @@ struct CombatantTalentCatalogTests {
         merged.merge(CombatTraitTriggers(attack: AttackTriggers(criticalPurgeAll: true)))
         #expect(merged.goldDoubledWhileFullHealth)
         #expect(merged.criticalPurgeAll)
-    }
-
-    @Test func `starter eligibility matches every hero and companion in catalog order`() {
-        #expect(GameContent.heroes.allSatisfy { $0.role == .hero })
-        #expect(GameContent.companions.allSatisfy { $0.role == .companion })
-
-        for combatant in GameContent.combatants {
-            let affinities = CombatantTalentCatalog.combatantTreeAffinities[combatant.id]
-            #expect(affinities?.count == 3, "\(combatant.id) must have exactly 3 authored tree affinities")
-        }
-    }
-
-    @Test func `tree affinity keys match hero and companion roster`() {
-        let rosterIDs = Set(GameContent.combatants.map(\.id))
-        #expect(Set(CombatantTalentCatalog.combatantTreeAffinities.keys) == rosterIDs)
     }
 }

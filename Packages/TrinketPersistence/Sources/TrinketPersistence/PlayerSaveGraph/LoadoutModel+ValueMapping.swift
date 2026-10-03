@@ -13,18 +13,16 @@ extension EquipmentLoadoutModel {
     }
 
     func update(from loadout: EquipmentLoadout, context: ModelContext?) {
-        let values = loadout.itemIDsBySlot
-            .map { (slotID: $0.key.rawValue, itemID: $0.value) }
-            .sorted { $0.slotID < $1.slotID }
+        let values = loadout.itemIDsBySlot.sorted { $0.key.rawValue < $1.key.rawValue }
         slots = reconcileModels(
             existing: slots ?? [],
             values: values,
             existingKey: \.slotID,
-            valueKey: { $0.slotID },
-            make: { _ in EquipmentSlotModel() },
+            valueKey: { $0.key.rawValue },
+            make: { EquipmentSlotModel() },
             update: { model, value in
-                model.slotID = value.slotID
-                model.itemID = value.itemID
+                model.slotID = value.key.rawValue
+                model.itemID = value.value
             },
             link: { $0.loadout = self },
             context: context,
@@ -43,7 +41,7 @@ extension TalentLoadoutModel {
             values: nodeIDs,
             existingKey: \.nodeID,
             valueKey: { $0 },
-            make: { _ in TalentNodeUnlockModel() },
+            make: { TalentNodeUnlockModel() },
             update: { model, nodeID in
                 model.nodeID = nodeID
             },

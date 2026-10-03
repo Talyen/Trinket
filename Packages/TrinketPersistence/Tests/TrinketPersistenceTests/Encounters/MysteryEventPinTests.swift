@@ -64,20 +64,18 @@ struct MysteryEventPinTests {
         let encounter = EncounterIdentity(
             location: nodeID.map { .labyrinth(nodeID: $0) } ?? .journey(stageID: journeyStage.id), save: store.currentSave,
         )
-        var first: [MysteryOffer]?
-        #expect(store.persistBatch(logging: "Prepare mystery offers") { save in
-            var rng = SeededRandomNumberGenerator(seed: 11)
-            first = try? MysteryOfferPersistence.prepare(event: event, encounter: encounter, save: &save, using: &rng)
-        })
-        let offered = try #require(first)
-        #expect(offered.count == 2)
+        var save = store.currentSave
+        var rng = SeededRandomNumberGenerator(seed: 11)
+        let offered = try MysteryOfferPersistence.prepare(event: event, encounter: encounter, save: &save, using: &rng)
+        try #require(offered.count == 2)
+        try store.performBatchMutation { $0 = save }
         let reloaded = try context.makeReloadedStore()
-        var reopened: [MysteryOffer]?
-        #expect(reloaded.persistBatch(logging: "Reopen mystery offers") { save in
-            var rng = SeededRandomNumberGenerator(seed: 999)
-            reopened = try? MysteryOfferPersistence.prepare(event: event, encounter: encounter, save: &save, using: &rng)
-        })
+        var reopenedSave = reloaded.currentSave
+        rng = SeededRandomNumberGenerator(seed: 999)
+        let reopened = try MysteryOfferPersistence.prepare(event: event, encounter: encounter, save: &reopenedSave, using: &rng)
+        try reloaded.performBatchMutation { $0 = reopenedSave }
         #expect(reopened == offered)
+        let gemsBefore = reloaded.homestead.resources[.gems, default: 0]
         let goldBefore = reloaded.roster.gold
         var result = MysteryEffectResult()
         #expect(reloaded.persistBatch(logging: "Claim mystery offer") { save in
@@ -88,6 +86,7 @@ struct MysteryEventPinTests {
         #expect(reloaded.roster.gold == goldBefore)
         let claimed = try context.makeReloadedStore()
         #expect(claimed.inventory.items.contains(offered[0].item))
+        #expect(claimed.homestead.resources[.gems, default: 0] == gemsBefore + offered[0].bonus.amount)
         #expect(claimed.persistBatch(logging: "Retry completed mystery") { save in
             result = MysteryOfferPersistence.claim(offered[0], encounter: encounter, save: &save)
         })

@@ -82,16 +82,15 @@ extension InventoryItemModel {
         displayName = item.displayName
         isCorrupted = item.isCorrupted
         applyAffixPowers(from: item)
-        let values = item.affixes.enumerated().map { (index: $0.offset, affix: $0.element) }
         affixes = reconcileModels(
             existing: affixes ?? [],
-            values: values,
+            values: item.affixes.enumerated(),
             existingKey: \.id,
-            valueKey: { $0.affix.id },
-            make: { _ in ItemAffixModel() },
+            valueKey: { $0.element.id },
+            make: { ItemAffixModel() },
             update: { model, value in
-                model.update(from: value.affix)
-                model.sortIndex = value.index
+                model.update(from: value.element)
+                model.sortIndex = value.offset
             },
             link: { $0.item = self },
             context: context,
@@ -125,16 +124,15 @@ extension InventoryModel {
     /// detected on load by `repairSlices`; reconcile must not drop rows with
     /// distinct IDs or a sanitize-then-write round trip would diverge.
     func update(from inventory: PlayerInventoryState, context: ModelContext?) {
-        let values = inventory.items.enumerated().map { (index: $0.offset, item: $0.element) }
         items = reconcileModels(
             existing: items ?? [],
-            values: values,
+            values: inventory.items.enumerated(),
             existingKey: \.id,
-            valueKey: { $0.item.id },
-            make: { _ in InventoryItemModel() },
+            valueKey: { $0.element.id },
+            make: { InventoryItemModel() },
             update: { model, value in
-                model.update(from: value.item, context: context)
-                model.sortIndex = value.index
+                model.update(from: value.element, context: context)
+                model.sortIndex = value.offset
             },
             link: { $0.inventory = self },
             context: context,

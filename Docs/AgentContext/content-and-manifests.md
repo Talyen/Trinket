@@ -113,7 +113,10 @@ Use `./Scripts/generate.sh` for project inputs; XcodeGen always runs uncached.
 `Scripts/content_codegen.py` coordinates domain owners under `Scripts/internal/content/`:
 abilities, items, roster (including enemies/traits), stages, Homestead, talents,
 and the trigger DSL/generator. Each owner keeps its row schema, validation, and
-rendering together; `common.py` owns shared TSV and output helpers.
+rendering together; `common.py` derives TSV headers from row dataclasses and owns
+shared resource parsing and output helpers. Manifest reads return fresh rows so
+repeated validation cannot reuse stale inputs or mutated records. Stage reference-ID collectors also reread authored
+encounter sources and art manifests on each validation.
 
 Ability inventory is the slowest codegen step: the abilities owner runs the
 `AbilityInventoryDump` tool (full Swift build + Xcode SDK) unless the

@@ -284,7 +284,7 @@ struct AppStatePlayFlowTests {
         let state = try context.makePlaySession()
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let configuration = PlayBattleLaunchTestSupport.make(
-            runKey: BattleRunKey("future-mode|run-1"),
+            origin: .journey(stageID: "unregistered-stage"),
             rngSeed: 0,
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,

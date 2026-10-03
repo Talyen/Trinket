@@ -42,7 +42,7 @@ enum BattleRewardPresentation {
             gemsFindPercent: homesteadEffects.gemsFindPercent,
             rewardRemainders: inputs.party.homestead.rewardRemainders ?? .zero,
             stageRewardsAlreadyClaimed: input.stageRewardsAlreadyClaimed,
-            hasProgressionRewards: inputs.hasProgressionRewards,
+            hasProgressionRewards: input.origin != nil,
             musicStageID: nil,
             heroExperienceAward: heroExperience.victory,
             companionExperienceAward: companionExperience.victory,

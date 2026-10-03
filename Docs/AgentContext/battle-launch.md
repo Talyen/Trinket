@@ -20,7 +20,8 @@ Eligibility stays visible before the action under the
 
 `BattleLaunchAssembly` retains the exact `BattlePreparationInputs` used to build
 its configuration and reward presentation. These include the launch request,
-party/save inputs, world seed, combat seed, run key, and presentation policy.
+party/save inputs, world seed, and combat seed. The run key and progression-reward
+policy derive from the launch origin instead of separate stored inputs.
 Prepared activation compares that complete value with current inputs and requires
 the registered configuration ID as well as matching party/enemy identities.
 Prewarming and activation share the same snapshot comparison in `PlayBattleLaunch`;

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import functools
 
 from internal.content.abilities import (
     ability_symbols_swift,
@@ -28,9 +27,6 @@ from internal.content.content_codegen_triggers import triggers_swift
 
 
 VALID_ROLES = frozenset({"hero", "companion"})
-
-
-VALID_GROWTH_ARCHETYPES = frozenset({"tank", "assassin", "mage", "support", "bruiser"})
 
 
 VALID_ENEMY_FACTIONS = frozenset(
@@ -70,26 +66,16 @@ class EnemyRow:
     faction: str
 
 
-@functools.cache
 def parse_trait_rows() -> list[TraitRow]:
-    return _parse_tsv_rows(MANIFEST_DIR / 'traits.tsv',
-        ['id', 'name', 'description', 'modifiers', 'triggers'], TraitRow, min_columns=None)
+    return _parse_tsv_rows(MANIFEST_DIR / 'traits.tsv', TraitRow)
 
 
-@functools.cache
 def parse_combatant_rows() -> list[CombatantRow]:
-    return _parse_tsv_rows(MANIFEST_DIR / 'combatants.tsv',
-        ['id', 'name', 'role', 'max_health', 'max_mana', 'basics', 'skills', 'ultimates'], CombatantRow, min_columns=None)
+    return _parse_tsv_rows(MANIFEST_DIR / 'combatants.tsv', CombatantRow)
 
 
-@functools.cache
 def parse_enemy_rows() -> list[EnemyRow]:
-    return _parse_tsv_rows(MANIFEST_DIR / 'enemies.tsv',
-        ['id', 'name', 'max_health', 'is_boss', 'abilities', 'trait_ids', 'faction'], EnemyRow, min_columns=None)
-
-
-def primary_stats_swift(row: CombatantRow) -> str:
-    return "PrimaryStats()"
+    return _parse_tsv_rows(MANIFEST_DIR / 'enemies.tsv', EnemyRow)
 
 
 def _validate_ability_symbols(

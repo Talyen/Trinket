@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import functools
 
 from internal.content.common import (
     GENERATED_DIR,
@@ -31,10 +30,8 @@ class TalentRow:
     triggers: str
 
 
-@functools.cache
 def parse_talent_rows() -> list[TalentRow]:
-    return _parse_tsv_rows(MANIFEST_DIR / 'talents.tsv',
-        ['id', 'name', 'icon_id', 'description', 'modifiers', 'triggers'], TalentRow, min_columns=TALENT_REQUIRED_COLUMNS)
+    return _parse_tsv_rows(MANIFEST_DIR / 'talents.tsv', TalentRow, min_columns=TALENT_REQUIRED_COLUMNS)
 
 
 def combatant_id_for_talent(talent_id: str, sorted_combatant_ids: list[str]) -> str:

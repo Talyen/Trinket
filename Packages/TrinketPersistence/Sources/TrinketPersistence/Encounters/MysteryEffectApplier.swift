@@ -103,7 +103,7 @@ public enum MysteryEffectApplier {
                   default: false
                   }
               }),
-              let bonus = resolveBonus(
+              let reward = resolveReward(
                   bonusEffect,
                   encounterLevel: encounterLevel,
                   save: save,
@@ -122,11 +122,8 @@ public enum MysteryEffectApplier {
                 save: save,
                 using: &randomNumberGenerator,
             ),
-            bonus: bonus,
-            homesteadReward: homesteadReward(
-                bonusEffect, encounterLevel: encounterLevel, save: save,
-                goldPercent: bonuses.goldFoundPercent, materialsPercent: bonuses.materialsFoundPercent,
-            ),
+            bonus: reward.bonus,
+            homesteadReward: reward.homestead,
         )
     }
 
@@ -138,11 +135,7 @@ public enum MysteryEffectApplier {
         guard allowOwnedItem || isAvailable(offer.item, in: save.inventory),
               hasCurrentHomesteadReward(offer, save: save) else { return MysteryEffectResult() }
         var result = MysteryEffectResult()
-        if let reward = offer.homesteadReward {
-            var remainders = save.homestead.rewardRemainders ?? .zero
-            _ = reward.resolve(remainders: &remainders)
-            save.homestead.rewardRemainders = remainders == .zero ? nil : remainders
-        }
+        consumeHomesteadReward(offer.homesteadReward, save: &save)
         append(offer.item, save: &save, result: &result)
         switch offer.bonus {
         case let .gold(amount):
@@ -222,7 +215,7 @@ public enum MysteryEffectApplier {
                     result.unlockedCombatantIDs.append(id)
                 }
             case .gainGold, .gainMaterial, .gainExperience:
-                if let bonus = resolveBonus(
+                if let reward = resolveReward(
                     effect,
                     encounterLevel: encounterLevel,
                     save: save,
@@ -231,20 +224,13 @@ public enum MysteryEffectApplier {
                     materialsPercent: materialsFoundPercent,
                 ) {
                     let settled = settledBonus(
-                        bonus,
+                        reward.bonus,
                         encounterLevel: encounterLevel,
                         save: save,
                         experiencePercent: experienceEarnedPercent,
                         at: grantDate,
                     )
-                    if let reward = homesteadReward(
-                        effect, encounterLevel: encounterLevel, save: save,
-                        goldPercent: goldFoundPercent, materialsPercent: materialsFoundPercent,
-                    ) {
-                        var remainders = save.homestead.rewardRemainders ?? .zero
-                        _ = reward.resolve(remainders: &remainders)
-                        save.homestead.rewardRemainders = remainders == .zero ? nil : remainders
-                    }
+                    consumeHomesteadReward(reward.homestead, save: &save)
                     apply(settled, save: &save, result: &result, at: grantDate)
                 }
             case .corruptItem, .leave:
@@ -301,42 +287,52 @@ public enum MysteryEffectApplier {
         }
     }
 
-    private static func resolveBonus(
+    private static func resolveReward(
         _ effect: MysteryEffect,
         encounterLevel: Int,
         save: PlayerSave,
         goldPercent: Int,
         experiencePercent: Int,
         materialsPercent: Int,
-    ) -> MysteryRewardBonus? {
-        if let reward = homesteadReward(
+    ) -> (bonus: MysteryRewardBonus, homestead: HomesteadMysteryReward?)? {
+        let reward = homesteadReward(
             effect, encounterLevel: encounterLevel, save: save,
             goldPercent: goldPercent, materialsPercent: materialsPercent,
-        ) {
+        )
+        if let reward {
             var remainders = save.homestead.rewardRemainders ?? .zero
-            return reward.resolve(remainders: &remainders)
+            return (reward.resolve(remainders: &remainders), reward)
         }
-        return switch effect {
+        let bonus: MysteryRewardBonus
+        switch effect {
         case let .gainGold(amount):
-            .gold(CombatRounding
+            bonus = .gold(CombatRounding
                 .scaled(amount, byPercent: goldPercent + save.homestead.effects.goldFindPercent) +
                 (amount > 0 ? save.homestead.effects.goldFindFlat : 0))
         case let .gainMaterial(resource):
-            .material(
+            bonus = .material(
                 resource,
                 CombatRounding
                     .scaled(materialQuantity(forLevel: encounterLevel), byPercent: materialsPercent) +
                     (resource == .gems ? save.homestead.effects.gemsFindBonus : 0),
             )
         case .gainExperience:
-            .experience(RewardExperiencePolicy.encounterAward(
+            bonus = .experience(RewardExperiencePolicy.encounterAward(
                 encounterLevel: encounterLevel,
                 roster: save.roster,
                 percent: experiencePercent + save.homestead.effects.experienceBonusPercent,
             ) + save.homestead.effects.experienceBonus)
         default:
-            nil
+            return nil
         }
+        return (bonus, nil)
+    }
+
+    private static func consumeHomesteadReward(_ reward: HomesteadMysteryReward?, save: inout PlayerSave) {
+        guard let reward else { return }
+        var remainders = save.homestead.rewardRemainders ?? .zero
+        _ = reward.resolve(remainders: &remainders)
+        save.homestead.rewardRemainders = remainders == .zero ? nil : remainders
     }
 
     /// Resolves receivable bonuses for offer preparation and claim validation.

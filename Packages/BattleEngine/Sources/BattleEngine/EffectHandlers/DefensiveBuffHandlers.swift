@@ -78,37 +78,23 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         let block: Int
         var payment: ManaPayment?
         switch effect {
-        case .convertManaToBlock:
-            let mana = context.mana(of: target)
-            guard mana > 0 else {
-                return EffectApplyOutcome(events: [], didApply: false)
+        case .convertManaToBlock, .shieldFromMana:
+            block = context.mana(of: target)
+            if effect == .convertManaToBlock, block > 0 {
+                payment = context.payMana(block, for: target)
             }
-            payment = context.payMana(mana, for: target)
-            block = mana
-        case .shieldFromMana:
-            let mana = context.mana(of: target)
-            guard mana > 0 else {
-                return EffectApplyOutcome(events: [], didApply: false)
-            }
-            block = mana
         case .shieldFromHalfMana:
-            let half = context.mana(of: target) / 2
-            guard half > 0 else {
-                return EffectApplyOutcome(events: [], didApply: false)
-            }
-            block = half
+            block = context.mana(of: target) / 2
         case let .shieldFromGold(goldPerBlock):
             guard goldPerBlock > 0 else {
                 return EffectApplyOutcome(events: [], didApply: false)
             }
-            let fromGold = context.gold / goldPerBlock
-            guard fromGold > 0 else {
-                return EffectApplyOutcome(events: [], didApply: false)
-            }
-            block = fromGold
+            block = context.gold / goldPerBlock
         default:
             return EffectApplyOutcome(events: [], didApply: false)
         }
+
+        guard block > 0 else { return EffectApplyOutcome(events: [], didApply: false) }
 
         let applied = context.applyBlockGain(
             block,

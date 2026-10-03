@@ -20,7 +20,7 @@ extension SpiresProgressModel {
             values: values,
             existingKey: \.spireID,
             valueKey: { $0.key },
-            make: { _ in SpireFloorProgressModel() },
+            make: { SpireFloorProgressModel() },
             update: { model, value in
                 model.spireID = value.key
                 model.highestClearedFloor = max(0, value.value)

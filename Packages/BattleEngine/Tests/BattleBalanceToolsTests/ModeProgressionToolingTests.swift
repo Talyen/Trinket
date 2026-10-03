@@ -10,10 +10,13 @@ struct ModeProgressionToolingTests {
         let spire = ModeProgressionTracker.spire()
         let labyrinth = ModeProgressionTracker.labyrinth()
 
-        #expect(!(campaign.steps.isEmpty))
-        #expect(!(spire.steps.isEmpty))
-        #expect(!(labyrinth.steps.isEmpty))
-        #expect(Set(labyrinth.steps.map(\.enemyID)).count > 1)
+        let campaignStages = GameContent.chapters.flatMap(\.stages).filter(\.encounter.isCombat)
+        #expect(campaign.steps.map(\.id) == campaignStages.map { "campaign-\($0.chapterID)-\($0.id)" })
+        #expect(labyrinth.steps.map(\.stepIndex) == Array(1 ... 10))
+        #expect(labyrinth.steps.dropLast().allSatisfy { !$0.isBoss })
+        #expect(labyrinth.steps.last?.isBoss == true)
+        #expect(ModeProgressionTracker.labyrinth(maxDepth: 0).steps.isEmpty)
+        #expect(ModeProgressionTracker.labyrinth(maxDepth: -1).steps.isEmpty)
         let expectedSpireSteps = GameContent.spires.reduce(0) { total, spireDefinition in
             total + GameContent.spireFloors(for: spireDefinition.id).count
         }

@@ -18,45 +18,14 @@ LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 
 def markdown_files() -> list[Path]:
     """Return tracked and untracked authored Markdown while respecting ignores."""
-    result = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(ROOT),
-            "ls-files",
-            "--cached",
-            "--",
-            "*.md",
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode == 0 and (ROOT / ".git").exists():
-        authored = set(result.stdout.splitlines())
-        untracked = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(ROOT),
-                "ls-files",
-                "--others",
-                "--exclude-standard",
-                "--",
-                "*.md",
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
+    if (ROOT / ".git").exists():
+        result = subprocess.run(
+            ["git", "-C", str(ROOT), "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.md"],
+            capture_output=True, text=True, check=True,
         )
-        if untracked.returncode == 0:
-            authored.update(untracked.stdout.splitlines())
         return sorted(
-            ROOT / line
-            for line in authored
-            if line
-            and not SKIP_PARTS.intersection(Path(line).parts)
-            and (ROOT / line).is_file()
+            ROOT / name for name in set(result.stdout.split("\0"))
+            if name and not SKIP_PARTS.intersection(Path(name).parts) and (ROOT / name).is_file()
         )
 
     # Keep the checker usable from a source export without a Git metadata

@@ -12,6 +12,7 @@ SCRIPT_INPUTS = (
     'Scripts/check-agent-invariants.sh',
     'Scripts/check-exclusivity-footguns.sh',
     'Scripts/lib/rg-check.sh',
+    'Scripts/lib/test-style.sh',
 )
 
 from pathlib import Path
@@ -165,15 +166,31 @@ else:
                         self.assertIn(failure, result.stderr)
 
 
-    def test_style_gate_invokes_agent_invariants_and_accessibility_ids(self) -> None:
-        text = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
-        style_lib = (ROOT / "Scripts" / "lib" / "test-style.sh").read_text(encoding="utf-8")
-        combined = text + style_lib
-        self.assertIn("check-agent-invariants.sh", combined)
-        self.assertIn("check-accessibility-ids.py", combined)
-
-
-    def test_format_roots_derived_from_packages(self) -> None:
-        text = (ROOT / "Scripts" / "format-dirs.env").read_text()
-        self.assertIn("TRINKET_TEST_PACKAGES", text)
-        self.assertNotIn("Packages/TrinketCore/Tests", text)
+    def test_style_gate_runs_all_checks_and_preserves_an_earlier_failure(self) -> None:
+        checks = ('format.sh', 'lint.sh', 'check-ui-style.py', 'check-api-bans.sh',
+                  'check-exclusivity-footguns.sh', 'check-agent-invariants.sh', 'check-accessibility-ids.py')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / 'Scripts'
+            (scripts / 'lib').mkdir(parents=True)
+            shutil.copy2(ROOT / 'Scripts/lib/test-style.sh', scripts / 'lib/test-style.sh')
+            for name in checks:
+                path = scripts / name
+                if name.endswith('.py'):
+                    path.write_text('import os, sys\nfrom pathlib import Path\n'
+                                    'with Path("calls").open("a") as log: log.write(Path(__file__).name + "\\n")\n'
+                                    'sys.exit(7 if os.environ.get("FAILING_CHECK") == Path(__file__).name else 0)\n')
+                else:
+                    path.write_text('#!/bin/sh\nprintf "%s\\n" "${0##*/}" >> calls\n'
+                                    '[ "${FAILING_CHECK:-}" != "${0##*/}" ] || exit 7\n')
+                path.chmod(0o755)
+            for scope in ('', ' Probe.swift'):
+                for failing in ('', *checks):
+                    with self.subTest(scope=scope, failing=failing):
+                        (root / 'calls').unlink(missing_ok=True)
+                        result = subprocess.run(
+                            ['bash', '-ec', 'source Scripts/lib/test-style.sh; trinket_run_style_gate' + scope],
+                            cwd=root, env={**os.environ, 'FAILING_CHECK': failing}, capture_output=True, text=True,
+                        )
+                        self.assertEqual(result.returncode, 7 if failing else 0, result.stdout + result.stderr)
+                        self.assertEqual((root / 'calls').read_text().splitlines(), list(checks))

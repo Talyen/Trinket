@@ -62,13 +62,15 @@ class PackageDiagnosticsTests(unittest.TestCase):
             (root / "A.status").write_text("7")
             (root / "A.stdout").write_text("error: preflight failure\n" * 3000)
             (root / "A.report").write_text(str(root / "bad"))
-            (root / "bad.json").write_text("not JSON")
-            output = io.StringIO()
-            with contextlib.redirect_stdout(output):
-                self.assertEqual(REPORT.summarize(root, ["A"]), 1)
-            self.assertIn("exit 7", output.getvalue())
-            self.assertIn("preflight failure", output.getvalue())
-            self.assertLess(len(output.getvalue().splitlines()), 65)
+            for payload in ("not JSON", 'null', '{"issues": null}', '{"issues": {"message": "broken"}}', '{"issues": [null]}'):
+                with self.subTest(payload=payload):
+                    (root / "bad.json").write_text(payload)
+                    output = io.StringIO()
+                    with contextlib.redirect_stdout(output):
+                        self.assertEqual(REPORT.summarize(root, ["A"]), 1)
+                    self.assertIn("exit 7", output.getvalue())
+                    self.assertIn("preflight failure", output.getvalue())
+                    self.assertLess(len(output.getvalue().splitlines()), 65)
             (root / "A.status").write_text("0")
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(REPORT.summarize(root, ["A"]), 0)

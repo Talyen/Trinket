@@ -98,20 +98,15 @@ class CodegenAbilitiesTests(ScriptRegressionTestCase):
                 (root / f'AbilityCatalog+{tier}.swift').write_text(
                     f'extension AbilityCatalog {{\n    public static let {tier.lower()}Card = Ability(\n'
                     f'        id: "{tier.lower()}-card", name: "{tier}", tier: .{tier.lower()},\n    )\n}}\n')
-            abilities._read_ability_sources.cache_clear()
-            try:
-                with patch.object(abilities, 'ABILITY_DIR', root):
-                    located = list(abilities.located_ability_decls())
-                    self.assertEqual([row[1] for row in located], [2, 2, 2])
-                    self.assertEqual([row[0].name for row in located],
-                                     [f'AbilityCatalog+{tier}.swift' for tier in abilities.ABILITY_TIERS])
-                    self.assertEqual(list(abilities.iter_ability_decls()), [row[2] for row in located])
-                    self.assertEqual(abilities.collect_ability_tiers(),
-                                     {tier.lower() + 'Card': tier.lower() for tier in abilities.ABILITY_TIERS})
-                    path = root / 'AbilityCatalog+Skill.swift'
-                    path.write_text(path.read_text().replace('skillCard', 'basicCard'))
-                    abilities._read_ability_sources.cache_clear()
-                    with self.assertRaisesRegex(ValueError, 'appears twice'):
-                        abilities.collect_ability_tiers()
-            finally:
-                abilities._read_ability_sources.cache_clear()
+            with patch.object(abilities, 'ABILITY_DIR', root):
+                located = list(abilities.located_ability_decls())
+                self.assertEqual([row[1] for row in located], [2, 2, 2])
+                self.assertEqual([row[0].name for row in located],
+                                 [f'AbilityCatalog+{tier}.swift' for tier in abilities.ABILITY_TIERS])
+                self.assertEqual(list(abilities.iter_ability_decls()), [row[2] for row in located])
+                self.assertEqual(abilities.collect_ability_tiers(),
+                                 {tier.lower() + 'Card': tier.lower() for tier in abilities.ABILITY_TIERS})
+                path = root / 'AbilityCatalog+Skill.swift'
+                path.write_text(path.read_text().replace('skillCard', 'basicCard'))
+                with self.assertRaisesRegex(ValueError, 'appears twice'):
+                    abilities.collect_ability_tiers()

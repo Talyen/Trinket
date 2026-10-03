@@ -32,6 +32,8 @@ SCRIPT_INPUTS = (
 
 
 import json
+import contextlib
+import io
 import os
 import subprocess
 import sys
@@ -41,7 +43,8 @@ import unittest
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
-from script_test_support import ROOT, ScriptRegressionTestCase
+from script_test_support import ROOT, ScriptRegressionTestCase, load_script
+from unittest.mock import patch
 
 import plistlib
 import pty
@@ -247,6 +250,60 @@ class CISessionScriptTests(ScriptRegressionTestCase):
             )
             self.assertEqual(kept.returncode, 0, kept.stderr)
             self.assertTrue(kept_bundle.exists())
+
+    def test_cleanup_rejects_results_root_and_escaping_artifact_paths(self) -> None:
+        maintenance = load_script("diagnostic_cleanup", "diagnostic_maintenance.py")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            results = root / "TestResults"
+            results.mkdir()
+            evidence = results / "failed.xcresult"
+            evidence.mkdir()
+            (evidence / "failure.txt").write_text("keep failure evidence")
+            outside = root / "outside"
+            outside.mkdir()
+            (outside / "keep.txt").write_text("keep outside evidence")
+            alias = results / "alias"
+            alias.symlink_to(outside, target_is_directory=True)
+            for artifact in (results, outside, alias):
+                with self.subTest(artifact=artifact):
+                    (results / "passed-invocation.json").write_text(json.dumps({
+                        "status": "passed", "exit_code": 0,
+                        "result_bundle": str(artifact), "diagnostics_json": str(artifact),
+                    }))
+                    with patch.dict(os.environ, TRINKET_ORPHAN_MAX_AGE_DAYS="-1"), contextlib.redirect_stdout(io.StringIO()):
+                        maintenance.cleanup(results, keep=False)
+                    self.assertEqual((evidence / "failure.txt").read_text(), "keep failure evidence")
+                    self.assertEqual((outside / "keep.txt").read_text(), "keep outside evidence")
+            (results / "malformed-invocation.json").write_text("[]")
+            with patch.dict(os.environ, TRINKET_ORPHAN_MAX_AGE_DAYS="-1"), contextlib.redirect_stdout(io.StringIO()):
+                maintenance.cleanup(results, keep=False)
+            self.assertEqual((evidence / "failure.txt").read_text(), "keep failure evidence")
+
+    def test_cleanup_retains_evidence_when_exit_code_is_not_an_integer(self) -> None:
+        maintenance = load_script("diagnostic_cleanup_exit_codes", "diagnostic_maintenance.py")
+        with tempfile.TemporaryDirectory() as directory:
+            results = (Path(directory) / "TestResults").resolve()
+            results.mkdir()
+            bundle = results / "build.xcresult"
+            bundle.mkdir()
+            evidence = bundle / "failure.txt"
+            evidence.write_text("keep failure evidence")
+            manifest = results / "build-invocation.json"
+            for code in (False, 0.0, "0", None):
+                with self.subTest(exit_code=code):
+                    manifest.write_text(json.dumps({
+                        "status": "passed", "exit_code": code, "result_bundle": str(bundle),
+                    }))
+                    with patch.dict(os.environ, TRINKET_ORPHAN_MAX_AGE_DAYS="-1"), contextlib.redirect_stdout(io.StringIO()):
+                        maintenance.cleanup(results, keep=False)
+                    self.assertEqual(evidence.read_text(), "keep failure evidence")
+                    self.assertTrue(manifest.exists())
+            manifest.write_text(json.dumps({"status": "passed", "exit_code": 0, "result_bundle": str(bundle)}))
+            with contextlib.redirect_stdout(io.StringIO()):
+                maintenance.cleanup(results, keep=False)
+            self.assertFalse(bundle.exists())
+            self.assertFalse(manifest.exists())
 
     def test_ci_diagnostics_warns_when_sessions_share_a_results_dir(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -566,14 +623,30 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                     self.assertFalse((root / "install.json").exists())
 
 
-    def test_simulator_names_single_sourced(self) -> None:
-        config = (ROOT / "Scripts" / "config" / "simulator-names.env").read_text()
-        self.assertIn("Trinket Run", config)
-        self.assertIn("Trinket Agent", config)
-        shell = (ROOT / "Scripts" / "lib" / "simctl.sh").read_text()
-        self.assertIn("simulator-names.env", shell)
-        python = (ROOT / "Scripts" / "simctl_json.py").read_text()
-        self.assertIn("simulator-names.env", python)
+    def test_simulator_queries_select_managed_devices_and_tolerate_malformed_containers(self) -> None:
+        query = load_script("simctl_queries", "simctl_json.py")
+        data = {"devices": {"runtime": [
+            {"name": "Trinket Run", "udid": "shared", "state": "Booted"},
+            {"name": "Trinket Agent 1", "udid": "agent", "state": "Booted"},
+            {"name": "Other phone", "udid": "foreign", "state": "Booted"},
+            {"name": "Trinket CI", "udid": "asleep", "state": "Shutdown"}, None,
+        ]}}
+        cases = [
+            (["udid-for-name", "Trinket Agent 1"], data, 0, "agent\n"),
+            (["name-for-udid", "shared"], data, 0, "Trinket Run\n"),
+            (["state-for-udid", "asleep"], data, 0, "Shutdown\n"),
+            (["booted-managed"], data, 0, "shared\tTrinket Run\nagent\tTrinket Agent 1\n"),
+            (["preview-count"], data, 0, "4\t3\n"),
+            (["udid-for-name", "missing"], data, 1, ""),
+            (["count-booted"], {"devices": None}, 0, "0\n"),
+            (["booted-managed"], {"devices": []}, 0, ""),
+        ]
+        for args, payload, status, expected in cases:
+            with self.subTest(args=args, payload=payload), patch.object(query, "payload", return_value=payload):
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    self.assertEqual(query.main(args), status)
+                self.assertEqual(output.getvalue(), expected)
 
 
     def test_chained_locks_preserve_quoted_cleanup_paths(self) -> None:

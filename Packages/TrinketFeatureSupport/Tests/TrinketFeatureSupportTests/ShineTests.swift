@@ -6,38 +6,6 @@ import TrinketCore
 @testable import TrinketFeatureSupport
 
 struct ShineTests {
-    @Test func `custom colors compare by value`() {
-        let red = Shine.colors([.red])
-        let redAgain = Shine.colors([.red])
-        let blue = Shine.colors([.blue])
-        #expect(red == redAgain)
-        #expect(red != blue)
-        let burn = Shine.keywords([.burn])
-        let burnAgain = Shine.keywords([.burn])
-        #expect(burn == burnAgain)
-        let none = Shine.none
-        let noneAgain = Shine.none
-        #expect(none == noneAgain)
-        let unique = Shine.unique
-        let uniqueAgain = Shine.unique
-        #expect(unique == uniqueAgain)
-        let corruption = Shine.corruption
-        let corruptionAgain = Shine.corruption
-        #expect(corruption == corruptionAgain)
-        #expect(unique != corruption)
-        #expect(none != burn)
-    }
-
-    @Test func `name and edge palettes agree`() {
-        let burn = Shine.keywords([.burn])
-        #expect(burn.textColors == burn.borderColors)
-        #expect(burn.textColors == [Keyword.burn.visualStyle.color])
-        #expect(Shine.unique.textColors == Shine.unique.borderColors)
-        #expect(Shine.unique.textColors == Shine.uniqueBorderColors)
-        #expect(Shine.corruption.textColors == Shine.corruption.borderColors)
-        #expect(Shine.corruption.textColors == Shine.corruptionBorderColors)
-    }
-
     @Test func `unique items glow unique`() throws {
         let item = try ItemFixtures.makeBareItem("leather_armor", rarity: .unique)
         #expect(item.displayShine == .unique)

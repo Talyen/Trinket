@@ -153,24 +153,16 @@ public enum CombatantTalentCatalog {
         ],
     ]
 
-    public static let allConfigs: [String: CombatantTalentConfig] = {
-        var configs: [String: CombatantTalentConfig] = [:]
-        configs.reserveCapacity(combatantTreeAffinities.count)
-        for (combatantID, affinities) in combatantTreeAffinities {
+    public static let allConfigs: [String: CombatantTalentConfig] = Dictionary(
+        uniqueKeysWithValues: combatantTreeAffinities.map { combatantID, affinities in
             let trees = affinities.map { makeTree(combatantID: combatantID, name: $0.name, keyword: $0.keyword) }
-            configs[combatantID] = CombatantTalentConfig(combatantID: combatantID, trees: trees)
-        }
-        return configs
-    }()
+            return (combatantID, CombatantTalentConfig(combatantID: combatantID, trees: trees))
+        },
+    )
 
-    public static let validNodeIDsByCombatantID: [String: Set<String>] = {
-        var nodeIDs: [String: Set<String>] = [:]
-        nodeIDs.reserveCapacity(allConfigs.count)
-        for (combatantID, config) in allConfigs {
-            nodeIDs[combatantID] = Set(config.trees.flatMap(\.nodes).map(\.id))
-        }
-        return nodeIDs
-    }()
+    public static let validNodeIDsByCombatantID = allConfigs.mapValues {
+        Set($0.trees.flatMap(\.nodes).map(\.id))
+    }
 
     public static func validNodeIDs(for combatantID: String) -> Set<String> {
         validNodeIDsByCombatantID[combatantID] ?? []

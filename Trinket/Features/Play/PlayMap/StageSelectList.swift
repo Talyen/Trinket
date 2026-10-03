@@ -7,6 +7,7 @@ import TrinketFeatureSupport
 
 struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View>: View {
     let rows: [StageSelectRowPresentation<Item>]
+    var hapticsEnabledOverride: Bool?
     var rowSpacing: CGFloat = TrinketDesign.Spacing.extraSmall * 2
     var primaryActionLabelColor: Color = TrinketDesign.Colors.Overlay.paper
     let isPrimaryActionDisabled: (Item) -> Bool
@@ -21,6 +22,7 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
             ForEach(rows) { presentation in
                 StageSelectRow(
                     presentation: presentation,
+                    hapticsEnabledOverride: hapticsEnabledOverride,
                     isPrimaryActionDisabled: isPrimaryActionDisabled(presentation.item),
                     isLockedContent: isLockedContent(presentation.item),
                     primaryActionLabelColor: primaryActionLabelColor,
@@ -38,6 +40,7 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
 
 private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerSheet: View>: View {
     let presentation: StageSelectRowPresentation<Item>
+    let hapticsEnabledOverride: Bool?
     let isPrimaryActionDisabled: Bool
     let isLockedContent: Bool
     let primaryActionLabelColor: Color
@@ -51,6 +54,7 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
             if presentation.isActive {
                 StageSelectActiveCard(
                     presentation: presentation,
+                    hapticsEnabledOverride: hapticsEnabledOverride,
                     isPrimaryActionDisabled: isPrimaryActionDisabled,
                     isLockedContent: isLockedContent,
                     primaryActionLabelColor: primaryActionLabelColor,

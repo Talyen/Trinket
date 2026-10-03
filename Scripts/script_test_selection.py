@@ -78,15 +78,9 @@ SHELL_FAMILIES = (({'Scripts/build-for-testing.sh',
   {'test-xcode-runner.sh'}))
 
 
-def _module_path(module: str) -> str:
-    if module.endswith(".sh"):
-        return f"Scripts/Tests/{module}"
-    return f"Scripts/Tests/{module}.py"
-
-
 def regression_families(root: Path = ROOT) -> list[tuple[set[str], set[str]]]:
     """Read literal SCRIPT_INPUTS without importing or executing test modules."""
-    families = list(SHELL_FAMILIES)
+    families = [(owners, {f"Scripts/Tests/{name}" for name in names}) for owners, names in SHELL_FAMILIES]
     for path in sorted((root / "Scripts/Tests").glob("test*.py")):
         try:
             tree = ast.parse(path.read_text(), filename=str(path))
@@ -103,7 +97,7 @@ def regression_families(root: Path = ROOT) -> list[tuple[set[str], set[str]]]:
             for value in inputs:
                 if not value or Path(value).is_absolute() or ".." in Path(value).parts:
                     raise ValueError(f"invalid SCRIPT_INPUTS path: {value!r}")
-            families.append((set(inputs), {path.stem}))
+            families.append((set(inputs), {path.relative_to(root).as_posix()}))
         except (OSError, SyntaxError, ValueError, TypeError) as error:
             raise ValueError(f"{path.relative_to(root)}: invalid test ownership: {error}") from error
     return families
@@ -142,7 +136,7 @@ def select_tests(paths: list[str], root: Path = ROOT) -> list[str]:
                 continue
             return available
         for modules in families:
-            selected.update(_module_path(module) for module in modules)
+            selected.update(modules)
     missing = selected - available_set
     if missing:
         raise ValueError(f"selected regression modules are missing: {', '.join(sorted(missing))}")

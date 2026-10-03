@@ -310,7 +310,7 @@ extension BalanceFindingsReporter {
         rows.filter(\.flagged).map { row in
             durationFinding(
                 id: row.enemyID, kind: "Enemy",
-                stats: DurationStats(
+                stats: (
                     averageRounds: row.averageRounds, shortRate: row.shortRate, longRate: row.longRate,
                     battles: row.battles, reason: row.flagReason,
                 ),
@@ -327,7 +327,7 @@ extension BalanceFindingsReporter {
         rows.filter(\.flagged).map { row in
             durationFinding(
                 id: row.combatantID, kind: kind.capitalized,
-                stats: DurationStats(
+                stats: (
                     averageRounds: row.averageRounds, shortRate: row.shortRate, longRate: row.longRate,
                     battles: row.battles, reason: row.flagReason,
                 ),
@@ -336,16 +336,9 @@ extension BalanceFindingsReporter {
         }
     }
 
-    private struct DurationStats {
-        let averageRounds: Double
-        let shortRate: Double
-        let longRate: Double
-        let battles: Int
-        let reason: String?
-    }
-
     private static func durationFinding(
-        id: String, kind: String, stats: DurationStats,
+        id: String, kind: String,
+        stats: (averageRounds: Double, shortRate: Double, longRate: Double, battles: Int, reason: String?),
         tier: SimulationPowerTier,
     ) -> Finding {
         Finding(

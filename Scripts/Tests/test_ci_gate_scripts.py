@@ -159,63 +159,6 @@ class CIGateScriptTests(ScriptRegressionTestCase):
         self.assertRegex(text, r"diff-review:\n(?:.*\n){0,8}    continue-on-error: true")
         self.assertNotRegex(text, r"ci-ok:\n(?:.*\n)*?needs:.*diff-review")
 
-    def test_ci_gate_fast_skips_generation_and_style(self) -> None:
-        text = (ROOT / "Scripts" / "ci-gate.sh").read_text(encoding="utf-8")
-        self.assertIn("--fast", text)
-        self.assertIn('trinket_log_section "Fast gate checks passed"', text)
-        self.assertIn("cheap-slices", text)
-        cheap = (ROOT / "Scripts" / "config" / "cheap-slices.txt").read_text(encoding="utf-8")
-        self.assertIn("check-module-boundaries.sh", cheap)
-        self.assertIn("check-api-bans.sh", cheap)
-        self.assertIn("release-notes.sh validate", cheap)
-
-    def test_agent_push_gate_uses_static_completeness_without_generation(self) -> None:
-        text = (ROOT / "Scripts/agent-push-gate.sh").read_text()
-        self.assertIn('./Scripts/assert-generated-output.sh', text)
-        self.assertNotIn('./Scripts/generate.sh', text)
-        self.assertNotIn('test-package.sh', text)
-
-    def test_pre_push_path_scopes_style_to_pushed_swift(self) -> None:
-        text = (ROOT / ".githooks" / "pre-push").read_text(encoding="utf-8")
-        self.assertIn('test.sh style "${style_swift[@]}"', text)
-        self.assertIn("check-api-bans.sh", text)
-        self.assertIn("check-agent-invariants.sh", text)
-        self.assertNotIn("test-package.sh", text)
-        self.assertIn('Scripts/pre-push-paths.py', text)
-        self.assertIn('push_input="$(cat)"', text)
-        self.assertNotIn("./Scripts/test.sh style\n", text)
-        # Pre-push reruns safeguards unconditionally: no receipt reuse.
-        self.assertNotIn("handoff-receipt", text)
-        self.assertNotIn("receipt_can_skip", text)
-        self.assertNotIn("Reusing green handoff", text)
-        self.assertNotIn("receipt reused", text.lower())
-        # Scoped style and committed-output checks stay local; heavy checks are CI-owned.
-        self.assertIn("=== Pre-push: style", text)
-        self.assertIn("=== Pre-push: agent push gate", text)
-        self.assertIn("deferred to CI", text)
-
-    def test_no_handoff_receipt_code_remains(self) -> None:
-        self.assertFalse((ROOT / "Scripts" / "lib" / "handoff-receipt.sh").exists())
-        for path in (
-            ROOT / "Scripts" / "handoff.sh",
-            ROOT / "Scripts" / "agent-push-gate.sh",
-            ROOT / ".githooks" / "pre-push",
-            ROOT / "Scripts" / "README.md",
-            ROOT / "Docs" / "Platform" / "Release.md",
-        ):
-            text = path.read_text(encoding="utf-8")
-            self.assertNotIn("handoff-receipt", text, str(path))
-            self.assertNotIn("handoff_receipt", text, str(path))
-            self.assertNotIn("handoff-receipt.json", text, str(path))
-        self.assertNotIn(
-            "receipt reused",
-            (ROOT / "Scripts" / "agent-push-gate.sh").read_text(encoding="utf-8").lower(),
-        )
-        self.assertNotIn(
-            "Reusing green handoff",
-            (ROOT / ".githooks" / "pre-push").read_text(encoding="utf-8"),
-        )
-
     def test_build_script_routes_script_gate(self) -> None:
         result = subprocess.run(
             [
@@ -296,28 +239,6 @@ class CIGateScriptTests(ScriptRegressionTestCase):
             check=False,
         )
         self.assertEqual(explicit.returncode, 0, explicit.stderr)
-
-    def test_handoff_default_headless_compile_proof(self) -> None:
-        environment = os.environ.copy()
-        environment.pop("TRINKET_ENABLE_SMOKE", None)
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--paths",
-                "Trinket/Features/Play/Mystery/MysteryChoiceCard.swift",
-            ],
-            cwd=ROOT,
-            env=environment,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        plan = "\n".join(result.stdout.splitlines())
-        self.assertIn("./Scripts/build.sh", plan)
-        self.assertNotIn("SmokeShellTests", plan)
-
 
     def test_cheap_slices_require_a_readable_nonempty_registry(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

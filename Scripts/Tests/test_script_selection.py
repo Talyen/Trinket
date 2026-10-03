@@ -50,8 +50,8 @@ def script_leaves() -> set[str]:
 class ScriptSelectionTests(unittest.TestCase):
     def test_every_python_regression_declares_inputs(self) -> None:
         registered = {module for _, modules in regression_families()
-                      for module in modules if not module.endswith(".sh")}
-        available = {path.stem for path in (ROOT / "Scripts/Tests").glob("test*.py")}
+                      for module in modules if module.endswith(".py")}
+        available = {path.relative_to(ROOT).as_posix() for path in (ROOT / "Scripts/Tests").glob("test*.py")}
         self.assertEqual(registered, available)
 
     def test_every_leaf_is_routed_or_intentionally_unmapped(self) -> None:
@@ -68,10 +68,7 @@ class ScriptSelectionTests(unittest.TestCase):
             for owner in owners:
                 self.assertTrue(list(ROOT.glob(owner)), f"routed leaf is missing: {owner}")
             for module in modules:
-                module_path = (
-                    f"Scripts/Tests/{module}" if module.endswith(".sh") else f"Scripts/Tests/{module}.py"
-                )
-                self.assertIn(module_path, available, f"selected module is missing: {module}")
+                self.assertIn(module, available, f"selected module is missing: {module}")
         for leaf in INTENTIONALLY_UNMAPPED:
             self.assertTrue((ROOT / leaf).exists(), f"unmapped leaf is missing: {leaf}")
 

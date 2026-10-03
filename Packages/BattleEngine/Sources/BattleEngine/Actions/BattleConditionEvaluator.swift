@@ -68,35 +68,15 @@ public enum BattleConditionEvaluator {
     }
 
     public static func lowestHealthAlly(in context: BattleState) -> Combatant {
-        lowestHealthAlly(
-            hero: context.roster.hero.combatant,
-            companion: context.roster.companion.combatant,
-            context: context,
+        BattleActionContext.lowestHealth(
+            in: [context.hero, context.companion], state: context,
         )
-    }
-
-    public static func lowestHealthAlly(
-        hero: Combatant,
-        companion: Combatant,
-        context: BattleState,
-    ) -> Combatant {
-        BattleActionContext.lowestHealth(in: [hero, companion], state: context)
     }
 
     public static func mostDebuffedAlly(in context: BattleState) -> Combatant {
-        mostDebuffedAlly(
-            hero: context.roster.hero.combatant,
-            companion: context.roster.companion.combatant,
-            context: context,
+        BattleActionContext.mostDebuffed(
+            in: [context.hero, context.companion], state: context,
         )
-    }
-
-    public static func mostDebuffedAlly(
-        hero: Combatant,
-        companion: Combatant,
-        context: BattleState,
-    ) -> Combatant {
-        BattleActionContext.mostDebuffed(in: [hero, companion], state: context)
     }
 
     private static func hasPendingControl(

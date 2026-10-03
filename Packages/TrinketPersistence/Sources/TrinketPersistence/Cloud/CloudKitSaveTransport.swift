@@ -125,17 +125,14 @@ actor CloudKitSaveTransport: CloudSaveTransport {
                 saving: records, deleting: [], savePolicy: .ifServerRecordUnchanged, atomically: true,
             )
             try await verifyAccount(accountID)
-            let errors = result.saveResults.values.compactMap { result -> (any Error)? in
-                if case let .failure(error) = result {
-                    return error
+            // Check conflicts before unwrapping any other failure: they retry the request.
+            if result.saveResults.values.contains(where: { outcome in
+                if case let .failure(error) = outcome {
+                    return Self.isConflict(error)
                 }
-                return nil
-            }
-            if errors.contains(where: Self.isConflict) {
+                return false
+            }) {
                 throw CloudSaveError.conflict
-            }
-            if let error = errors.first {
-                throw error
             }
             return try result.saveResults.mapValues { try $0.get() }
         } catch {

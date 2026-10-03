@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Manual Simulator playthrough workers, durable evidence, and report generation."""
 import argparse
+from collections import Counter
+from itertools import zip_longest
 import hashlib
 import html
 import json
@@ -228,27 +230,19 @@ def build_agent_report(args, result):
     completed = [summary for summary in workers
                  if summary.get("termination") == "completedObjective" and summary.get("exitCode") == 0]
     outcomes = [outcome for summary in workers for outcome in summary.get("outcomes", [])]
-    outcome_counts = {outcome: outcomes.count(outcome) for outcome in sorted(set(outcomes))}
+    outcome_counts = Counter(outcomes)
     victories = outcome_counts.get("victory", 0)
     defeats = outcome_counts.get("defeat", 0)
     career_victories = result.get("careersWithVictory") or {"successes": 0, "careers": 0, "proportion": None,
                                                              "interval95": [None, None]}
-    stage_reach = {}
-    for summary in workers:
-        for stage in summary.get("reachedStages", []):
-            stage_reach[stage] = stage_reach.get(stage, 0) + 1
-
-    attempt_outcomes = []
-    for index in range(max((len(summary.get("outcomes", [])) for summary in workers), default=0)):
-        attempt_outcomes.append([summary["outcomes"][index]
-                                 for summary in workers if len(summary.get("outcomes", [])) > index])
-    attempt_rates = [{"attempt": index + 1, "victories": slot.count("victory"), "settled": len(slot),
-                      "proportion": slot.count("victory") / len(slot) if slot else None}
-                     for index, slot in enumerate(attempt_outcomes)]
-    outcome_sequences = {}
-    for summary in workers:
-        sequence = " -> ".join(summary.get("outcomes", [])) or "none"
-        outcome_sequences[sequence] = outcome_sequences.get(sequence, 0) + 1
+    stage_reach = Counter(stage for summary in workers for stage in summary.get("reachedStages", []))
+    attempt_rates = []
+    for index, outcomes_at_attempt in enumerate(zip_longest(*(summary.get("outcomes", []) for summary in workers))):
+        slot = [outcome for outcome in outcomes_at_attempt if outcome is not None]
+        victories_at_attempt = slot.count("victory")
+        attempt_rates.append({"attempt": index + 1, "victories": victories_at_attempt, "settled": len(slot),
+                              "proportion": victories_at_attempt / len(slot)})
+    outcome_sequences = Counter(" -> ".join(summary.get("outcomes", [])) or "none" for summary in workers)
 
     metric_keys = ("actions", "turns", "cardsDrawn", "cardsObserved", "playableObservations", "cardsChosen",
                    "goldEarned", "goldSpent", "talents", "equipmentChanges", "upgrades", "reloads",
@@ -430,8 +424,8 @@ def report(args, summaries, host):
     result = {"schemaVersion": 1, "identity": host, "planned": 0 if args.crash_proof or args.replay_bundle else args.scenarios,
               "horizon": args.horizon, "fullAccess": args.full_access, "mode": args.mode, "policy": args.policy,
               "hero": args.hero, "companion": args.companion, "workers": summaries}
-    result["completed"] = sum(s.get("termination") == "completedObjective" and s["exitCode"] == 0 for s in summaries)
     completed = [s for s in summaries if s.get("termination") == "completedObjective" and s["exitCode"] == 0]
+    result["completed"] = len(completed)
     result["careersWithVictory"] = wilson(sum("victory" in s.get("outcomes", []) for s in completed), len(completed))
     result["incomplete"] = sum(s.get("termination") not in {"completedObjective", "replayedRecordedActions",
                                "replayedUnknownOutcome", "recoveredCapturedStore"} for s in summaries)

@@ -60,18 +60,6 @@ struct ItemResolutionTests {
         let stored = try JSONDecoder().decode(StoredInventoryItem.StoredAffix.self, from: json)
         #expect(stored.keywords == [.physical])
         #expect(stored.resolved.id == "a")
-
-        let cloudJSON = Data("""
-        {"id":"a","title":"T","description":"D","keywords":["Burn","Removed-Keyword"],"isCorrupted":false}
-        """.utf8)
-        let cloud = try JSONDecoder().decode(CloudItemSnapshot.Affix.self, from: cloudJSON)
-        #expect(cloud.keywords == [.burn])
-    }
-
-    @Test func `offer codecs drop homeless options but keep valid ones`() {
-        let homeless = StoredInventoryItem(Self.storedItem(baseTypeID: "removed-family"))
-        #expect(homeless.resolved() == nil)
-        #expect(StoredInventoryItem(Self.storedItem()).resolved() != nil)
     }
 
     @Test func `offer codec falls back to basic on unknown rarity`() throws {
@@ -82,16 +70,6 @@ struct ItemResolutionTests {
         let decoded = try JSONDecoder().decode(StoredInventoryItem.self, from: tampered)
         #expect(decoded.rarity == .basic)
         #expect(decoded.resolved() != nil)
-    }
-
-    @Test func `cloud codec falls back to basic on unknown rarity`() throws {
-        let encoded = try JSONEncoder().encode(CloudItemSnapshot(Self.storedItem()))
-        var object = try #require(try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
-        object["rarity"] = "mythic"
-        let tampered = try JSONSerialization.data(withJSONObject: object)
-        let decoded = try JSONDecoder().decode(CloudItemSnapshot.self, from: tampered)
-        #expect(decoded.rarity == .basic)
-        #expect(decoded.restored() != nil)
     }
 
     @Test func `stored inventory item decodes both legacy powers and modern affixPowers keys`() throws {

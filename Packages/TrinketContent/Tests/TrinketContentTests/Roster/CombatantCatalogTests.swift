@@ -8,23 +8,6 @@ struct CombatantCatalogTests {
             == ["ranger", "knight", "rogue", "wizard"])
     }
 
-    @Test(arguments: [
-        ("ranger", 14, 0, ["fire-arrow", "bounty-shot", "astral-arrow"]),
-        ("alchemist", 14, 8, ["caustic-jab", "acid-potion", "luck-potion"]),
-        ("druid", 16, 9, ["mana-berries", "cinderbloom", "bloodthorn"]),
-        ("wildcard", 14, 0, ["blackjack", "bounty-shot", "astral-arrow"]),
-    ])
-    func `heroes have approved defaults`(id: String, health: Int, mana: Int, abilities: [String]) throws {
-        let hero = try #require(GameContent.heroes.first { $0.id == id })
-        #expect(hero.maxHealth == health && hero.maxMana == mana)
-        #expect(hero.abilityLoadout.abilities.map(\.id) == abilities)
-        let config = CombatantTalentCatalog.config(for: id)
-        #expect(config.trees.allSatisfy { $0.nodes.count == 7 && $0.nodes(forRow: 4).count == 1 })
-        let art = try #require(ArtCatalog.combatantArtByID[id])
-        #expect(art.imageName == "hero_\(id)_card")
-        #expect(art.thumbnailImageName == "hero_\(id)_card_thumb")
-    }
-
     @Test func `player combatants have complete ability choices and loadouts`() throws {
         for combatant in GameContent.combatants {
             for tier in AbilityTier.allCases {
@@ -32,11 +15,12 @@ struct CombatantCatalogTests {
                 try #expect(choices.count == 4, "\(combatant.name) should have four \(tier.rawValue) choices")
                 try #expect(Set(choices.map(\.id)).count == 4)
                 try #expect(choices.allSatisfy { $0.tier == tier })
-                try #expect(combatant.abilityLoadout.ability(for: tier)?.id == choices.first?.id)
+                let selected = try #require(
+                    combatant.abilityLoadout.ability(for: tier),
+                    "\(combatant.name) needs a selected \(tier.rawValue)",
+                )
+                #expect(choices.contains(selected), "\(combatant.name) selected \(tier.rawValue) must match a complete authored choice")
             }
-            _ = try #require(combatant.abilityLoadout.basic, "\(combatant.name) should have a selected basic")
-            _ = try #require(combatant.abilityLoadout.skill, "\(combatant.name) should have a selected skill")
-            _ = try #require(combatant.abilityLoadout.ultimate, "\(combatant.name) should have a selected ultimate")
         }
     }
 
