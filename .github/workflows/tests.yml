@@ -284,7 +284,7 @@ jobs:
         with:
           name: host-engine-parity-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            .DerivedData/TestResults/host-engine.xml
+            .DerivedData/TestResults/host-engine.json
             .DerivedData/TestResults/host-engine.log
             .DerivedData/TestResults/phase-timing.jsonl
           retention-days: 3

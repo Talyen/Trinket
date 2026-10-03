@@ -16,16 +16,22 @@ started="$(python3 Scripts/phase-timing.py begin)"
 status=0
 swift test --package-path Packages/BattleEngine \
   --scratch-path "$DERIVED_DATA_PATH/host/BattleEngine" \
-  --filter BattleEngineTests --xunit-output "$RESULTS_DIR/host-engine.xml" \
+  --filter BattleEngineTests \
   >"$RESULTS_DIR/host-engine.log" 2>&1 || status=$?
 python3 Scripts/phase-timing.py end host-engine "$started" BattleEngine
 if (( status != 0 )); then tail -60 "$RESULTS_DIR/host-engine.log"; exit "$status"; fi
-python3 - "$RESULTS_DIR/host-engine.xml" <<'PY'
+python3 - "$RESULTS_DIR/host-engine.log" "$RESULTS_DIR/host-engine.json" <<'PY'
+import json
+from pathlib import Path
+import re
 import sys
-import xml.etree.ElementTree as ET
-root = ET.parse(sys.argv[1]).getroot()
-cases = list(root.iter('testcase'))
-if not cases or any(list(case.iter('failure')) or list(case.iter('error')) for case in cases):
-    sys.exit('Native Engine pilot did not establish executed, passing coverage.')
-print(f'Native Engine pilot: {len(cases)} test cases; compare identities and counts with iOS before promotion.')
+text = Path(sys.argv[1]).read_text()
+verdicts = re.findall(r"^✔ Test run with (\d+) tests in (\d+) suites passed after ([0-9.]+) seconds\.$", text, re.M)
+if len(verdicts) != 1 or int(verdicts[0][0]) == 0 or re.search(r"^✘ (?:Test|Suite)", text, re.M):
+    sys.exit('Native Engine pilot did not establish executed, passing Swift Testing coverage.')
+tests, suites, seconds = verdicts[0]
+payload = {'passed': int(tests), 'suites': int(suites), 'test_seconds': float(seconds),
+           'source': 'successful-process-and-swift-testing-verdict', 'log': sys.argv[1]}
+Path(sys.argv[2]).write_text(json.dumps(payload) + "\n")
+print(f'Native Engine pilot: {tests} tests in {suites} suites passed; retain the iOS comparator until parity review.')
 PY
