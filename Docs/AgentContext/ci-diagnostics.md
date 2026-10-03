@@ -78,7 +78,21 @@ the local retry matcher (`Scripts/lib/xcodebuild-infra.sh`), and the CI rerun
 matcher (`Scripts/ci-infra-rerun.sh`) all read that one list. Exit code 70 alone
 does not establish infrastructure failure. Do not add infrastructure pattern tokens
 anywhere else; extend the config file when a new signature appears.
-The CI rerun matcher requires launch evidence from each failed job's own failed
+CI UI commands first use [ci_ui_retry.py](../../Scripts/ci_ui_retry.py) to retry only
+identified infrastructure-failed cases once on the same runner. This requires a
+complete original result, execution evidence for every requested class, no skipped
+or unexecuted cases, and specific infrastructure issues for every failed case.
+Mixed assertions, incomplete results, and unknown failures remain failures. The
+original failure manifest/report stay intact until normal successful-artifact cleanup;
+`infrastructure_recovery` links the
+successful retry and both execution sets. The aggregate validates that proof before
+reporting recovery, and preserves the recovered failure in its structured evidence.
+After staging, verified recovered pairs are cleaned together as passing coverage;
+unrecovered failures retain their forensic artifacts.
+The managed simulator is re-prepared for the targeted retry. Whole-suite retries
+are disabled only inside this CI wrapper; other callers retain their existing policy.
+
+The external CI rerun matcher requires launch evidence from each failed job's own failed
 steps. An ineligible job, explicit assertion or source compiler failure, or
 unreadable log prevents an automatic rerun of all failed jobs. Reports preserve
 assertion and source compiler classifications even when their messages contain

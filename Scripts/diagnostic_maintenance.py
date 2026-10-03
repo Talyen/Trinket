@@ -9,6 +9,8 @@ import sys
 import time
 from pathlib import Path
 
+from ci_ui_retry import recovery_valid
+
 
 def require_results_dir(value: str) -> Path:
     root = Path(value).resolve()
@@ -158,12 +160,22 @@ def cleanup(root: Path, keep: bool) -> None:
         print(f"Keeping diagnostic artifacts in {root} (--keep)")
         return
     removed = 0
-    for manifest_path in root.glob("*-invocation.json"):
+    manifests = {}
+    recovered = set()
+    # Validate paired recovery before deleting either invocation's evidence.
+    # Unrecovered failures keep their forensic artifacts as before.
+    for path in root.glob("*-invocation.json"):
         try:
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            manifests[path] = manifest
+            if manifest.get("infrastructure_recovery"):
+                report = json.loads(Path(manifest["diagnostics_json"]).read_text())
+                if recovery_valid(manifest, report):
+                    recovered.add(path)
+        except (OSError, ValueError, KeyError, TypeError):
             continue
-        if manifest.get("status") != "passed" or manifest.get("exit_code") != 0:
+    for manifest_path, manifest in manifests.items():
+        if (manifest.get("status") != "passed" or manifest.get("exit_code") != 0) and manifest_path not in recovered:
             continue
         result_value = manifest.get("result_bundle")
         result = Path(result_value).expanduser().resolve() if isinstance(result_value, str) else None

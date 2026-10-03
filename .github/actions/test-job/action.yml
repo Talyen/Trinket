@@ -12,6 +12,10 @@ inputs:
     description: Artifact name containing the test-products tar archive
     required: false
     default: ''
+  build-run-id:
+    description: Run owning the products (may be an earlier successful exact-commit run)
+    required: false
+    default: '${{ github.run_id }}'
   rebuild-command:
     description: Shell command to rebuild on artifact miss (default app-only build-for-testing)
     required: false
@@ -60,6 +64,8 @@ runs:
       uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317 # v5
       with:
         name: ${{ inputs.build-artifact }}
+        run-id: ${{ inputs.build-run-id }}
+        github-token: ${{ github.token }}
         path: .DerivedData
 
     - name: Validate transferred test products or rebuild
@@ -104,7 +110,10 @@ runs:
         SKIP_GENERATE: 1
         CI: true
         TRINKET_CLEANUP_TEST_ARTIFACTS: 0
-      run: ${{ inputs.command }}
+      run: |
+        # UI recovery keeps completed cases and retries only classified launch
+        # failures. Other commands pass through unchanged.
+        python3 Scripts/ci_ui_retry.py ${{ inputs.command }}
 
     - name: Classify CI outcome and report timing
       if: always()
@@ -137,7 +146,7 @@ runs:
       # failed job or when a caller explicitly opts in.
       if: always() && failure()
       with:
-        name: ${{ inputs.artifact-name }}-${{ github.run_id }}
+        name: ${{ inputs.artifact-prefix }}${{ inputs.artifact-name }}-${{ github.run_id }}
         path: .DerivedData/TestResults-artifact/
         retention-days: 7
         if-no-files-found: ignore

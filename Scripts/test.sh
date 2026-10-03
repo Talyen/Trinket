@@ -173,7 +173,11 @@ PARALLEL_FLAGS=()
 
 # UI/smoke/performance tiers run serially against the managed test simulator.
 prepare_serial_test_sim() {
-  ensure_test_simulator_logged
+  if [[ "${TRINKET_REPREP_UI_SIMULATOR:-0}" == "1" ]]; then
+    ensure_test_simulator_logged force
+  else
+    ensure_test_simulator_logged
+  fi
   trinket_track_test_guests
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 }
@@ -320,8 +324,10 @@ runner_args=(
   --result-bundle "$RESULT_BUNDLE_PATH"
   --log "$XCODEBUILD_LOG_PATH"
   --report-prefix "$XCODEBUILD_REPORT_PREFIX"
-  --retry-callback trinket_xcodebuild_log_is_infrastructure_failure
 )
+if [[ "${TRINKET_TARGETED_UI_RETRY:-0}" != "1" ]]; then
+  runner_args+=(--retry-callback trinket_xcodebuild_log_is_infrastructure_failure)
+fi
 if [[ "$QUIET" == "true" ]]; then
   runner_args+=(--quiet)
 else

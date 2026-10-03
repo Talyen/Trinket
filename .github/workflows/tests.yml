@@ -1,7 +1,7 @@
 name: Build and test
 
-# Pushes verify generated inputs, build app test products once, then fan smoke,
-# package unit, and exhaustive UI out in parallel from the shared build.
+# Pushes build and smoke-test on one runner. Manual exhaustive runs reuse
+# exact-commit standard checks; exhaustive UI uses one transfer and simulator.
 # Build orchestration changes exercise the product jobs; lint-only changes use the gate.
 # Nightly/dispatch also run exhaustive UI outside the push path.
 # The warm cache preserves incremental state; build uploads test products
@@ -11,7 +11,7 @@ on:
   workflow_call:
     inputs:
       include-exhaustive:
-        description: Also run the sharded exhaustive UI suite
+        description: Also run every registered exhaustive UI class
         required: false
         type: boolean
         default: false
@@ -22,18 +22,39 @@ on:
         default: ''
 
 jobs:
+  reuse:
+    name: Reuse verified commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      standard: ${{ steps.proof.outputs.standard }}
+      assets: ${{ steps.proof.outputs.assets }}
+      run-id: ${{ steps.proof.outputs.run-id }}
+      build-artifact: ${{ steps.proof.outputs.build-artifact }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          sparse-checkout: Scripts
+      - name: Find successful exact-commit checks
+        id: proof
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 Scripts/ci-reuse.py
+
   changes:
     uses: ./.github/workflows/changes.yml
 
   gate:
-    needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true' || needs.changes.outputs.infra == 'true'
+    needs: [changes, reuse]
+    if: needs.reuse.outputs.standard != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true' || needs.changes.outputs.infra == 'true')
     uses: ./.github/workflows/gate.yml
 
   assets-gate:
     name: Asset codegen
-    needs: [changes]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.assets == 'true'
+    needs: [changes, reuse]
+    if: needs.reuse.outputs.assets != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.assets == 'true')
     runs-on: xcode-27
     timeout-minutes: 20
     steps:
@@ -44,19 +65,19 @@ jobs:
         run: ./Scripts/ci-assets-gate.sh
 
   build:
-    name: Build for testing
-    needs: [changes]
+    name: Build and smoke UI
+    needs: [changes, reuse]
     if: >-
+      needs.reuse.outputs.standard != 'true' && (
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'schedule' ||
       inputs.include-exhaustive ||
-      needs.changes.outputs.smoke == 'true'
+      needs.changes.outputs.smoke == 'true')
     runs-on: xcode-27
-    timeout-minutes: 30
+    timeout-minutes: 40
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
       smoke-targets: ${{ steps.ui-matrices.outputs.smoke-targets }}
-      full-ui-matrix: ${{ steps.ui-matrices.outputs.full-ui }}
     steps:
       # Local composite actions cannot run before the repo exists, so the
       # first step inlines actions/checkout (same sparse set as
@@ -91,15 +112,13 @@ jobs:
       - uses: ./.github/actions/setup-trinket
         with:
           metal: 'true'
-      - name: Read UI test shards
+      - name: Read smoke test classes
         id: ui-matrices
         shell: bash
         run: |
           set -euo pipefail
           smoke_targets="$(python3 Scripts/check-testplan-sync.py --classes Smoke)"
-          full_ui_matrix="$(python3 Scripts/check-testplan-sync.py --matrix FullUI)"
           echo "smoke-targets=$smoke_targets" >> "$GITHUB_OUTPUT"
-          echo "full-ui=$full_ui_matrix" >> "$GITHUB_OUTPUT"
       - name: Restore warm cache and build
         id: restore-and-build
         uses: ./.github/actions/restore-and-build
@@ -108,58 +127,15 @@ jobs:
           build-command: ./Scripts/build-for-testing.sh --app-only
           prune: 'true'
           save-cache: 'true'
-          # Smoke and exhaustive UI fan out from these products, so the build
-          # always publishes the within-run archive whenever it runs.
+          # Preserve products for exhaustive UI and later exact-commit dispatch.
+          # Smoke itself runs here without downloading the archive.
           upload-artifact: 'true'
-
-  smoke:
-    name: Smoke UI
-    needs: [changes, build]
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'schedule' ||
-      inputs.include-exhaustive ||
-      needs.changes.outputs.smoke == 'true'
-    runs-on: xcode-27
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - name: Run smoke on the build runner
+        uses: ./.github/actions/test-job
         with:
-          fetch-depth: 1
-          sparse-checkout-cone-mode: true
-          # Cone mode keeps root files (project.yml, *.xctestplan). Skip Raw Assets.
-          sparse-checkout: |
-            Scripts
-            Packages
-            Trinket
-            TrinketUITests
-            Trinket.xcodeproj
-            StoreKit
-            ContentManifest
-            ArtManifest
-            MusicManifest
-            SoundManifest
-            CinematicManifest
-            .github
-      - name: Assert sparse checkout kept root build inputs
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -f project.yml
-          test -f StoreKit/Trinket.storekit
-          test -f Smoke.xctestplan
-          test -f FullUI.xctestplan
-          test -f BattlePerformance.xctestplan
-      - uses: ./.github/actions/setup-trinket
-        with:
-          metal: 'true'
-      - uses: ./.github/actions/test-job
-        with:
-          build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: smoke
           artifact-prefix: ${{ inputs.artifact-prefix }}
-          rebuild-command: ./Scripts/build-for-testing.sh --app-only
-          command: ./Scripts/test.sh smoke --no-build ${{ needs.build.outputs.smoke-targets }}
+          command: ./Scripts/test.sh smoke --no-build ${{ steps.ui-matrices.outputs.smoke-targets }}
           preboot-simulator: 'true'
 
   release-device:
@@ -168,8 +144,12 @@ jobs:
     # Serializing behind build+unit cuts peak macOS fan-out; the wall
     # timeout below matches the 30-minute job timeout so a slow Release
     # compile fails fast instead of wedging at the 20-minute default.
-    needs: [changes, build, unit]
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: [changes, reuse, build, unit]
+    if: >-
+      always() && needs.reuse.result == 'success' &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
+      (needs.build.result == 'success' || needs.reuse.outputs.standard == 'true') &&
+      (needs.unit.result == 'success' || needs.reuse.outputs.standard == 'true')
     runs-on: xcode-27
     timeout-minutes: 30
     steps:
@@ -222,8 +202,8 @@ jobs:
 
   unit:
     name: Unit tests (${{ matrix.name }})
-    needs: [changes]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true' || github.event_name == 'schedule'
+    needs: [changes, reuse]
+    if: needs.reuse.outputs.standard != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true' || github.event_name == 'schedule')
     strategy:
       fail-fast: false
       matrix:
@@ -273,25 +253,38 @@ jobs:
           # Content builds DesignSystem shaders; State and Battle build
           # TrinketFeatureSupport, which compiles DesignSystem shaders.
           metal: ${{ matrix.name == 'Content' || matrix.name == 'State' || matrix.name == 'Battle' }}
+      - uses: ./.github/actions/package-cache
+        id: package-cache
+        with:
+          shard: ${{ matrix.name }}
       - uses: ./.github/actions/test-job
         with:
-          artifact-name: ${{ inputs.artifact-prefix }}unit-${{ matrix.name }}
+          artifact-name: unit-${{ matrix.name }}
           artifact-prefix: ${{ inputs.artifact-prefix }}
           command: ./Scripts/test-package.sh ${{ matrix.packages }}
           preboot-simulator: 'true'
+      - name: Prune package build state
+        if: success() && steps.package-cache.outputs.cache-hit != 'true'
+        run: ./Scripts/prune-derived-data-cache.sh --ci
+      - name: Save package build state
+        if: success() && steps.package-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@3edfce9056124e459a23f683a21433670d47daca # v4
+        with:
+          path: .DerivedData/packages
+          key: ${{ steps.package-cache.outputs.cache-key }}
 
   exhaustive-ui:
-    name: Exhaustive UI (${{ matrix.name }})
-    needs: [changes, build]
+    name: Exhaustive UI (All)
+    needs: [changes, reuse, build]
     if: >-
-      inputs.include-exhaustive &&
+      always() && inputs.include-exhaustive && needs.reuse.result == 'success' &&
+      (needs.build.result == 'success' || needs.reuse.outputs.standard == 'true') &&
       (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || needs.changes.outputs.code == 'true')
     continue-on-error: true
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.build.outputs.full-ui-matrix) }}
     runs-on: xcode-27
-    timeout-minutes: 25
+    timeout-minutes: 40
+    env:
+      TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
@@ -322,12 +315,18 @@ jobs:
       - uses: ./.github/actions/setup-trinket
         with:
           metal: 'true'
+      - name: Read exhaustive test classes
+        id: ui-targets
+        shell: bash
+        run: echo "targets=$(python3 Scripts/check-testplan-sync.py --classes FullUI)" >> "$GITHUB_OUTPUT"
       - uses: ./.github/actions/test-job
         with:
-          build-artifact: ${{ needs.build.outputs.build-artifact }}
-          artifact-name: ${{ inputs.artifact-prefix }}exhaustive-ui-${{ matrix.name }}
+          build-artifact: ${{ needs.reuse.outputs.build-artifact || needs.build.outputs.build-artifact }}
+          build-run-id: ${{ needs.reuse.outputs.run-id || github.run_id }}
+          artifact-name: exhaustive-ui-All
+          artifact-prefix: ${{ inputs.artifact-prefix }}
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
-          command: ./Scripts/test.sh ui --no-build ${{ matrix.target }}
+          command: ./Scripts/test.sh ui --no-build ${{ steps.ui-targets.outputs.targets }}
           preboot-simulator: 'true'
 
   diff-review:
@@ -382,7 +381,7 @@ jobs:
   # Exhaustive UI is advisory (nightly/dispatch) so it never blocks pushes.
   ci-ok:
     name: CI OK
-    needs: [changes, gate, assets-gate, build, smoke, release-device, unit]
+    needs: [changes, reuse, gate, assets-gate, build, release-device, unit]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

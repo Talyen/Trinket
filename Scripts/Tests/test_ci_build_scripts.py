@@ -159,11 +159,9 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
     def test_release_compile_is_required_only_for_nightly_and_manual_runs(self):
         workflow = (ROOT / ".github/workflows/tests.yml").read_text()
         release = workflow.split("  release-device:\n", 1)[1].split("  unit:\n", 1)[0]
-        self.assertIn("needs: [changes, build, unit]", release)
-        condition = next(line.strip()[4:] for line in release.splitlines() if line.strip().startswith("if: "))
-        for event, expected in (("push", False), ("schedule", True), ("workflow_dispatch", True)):
-            expression = condition.replace("github.event_name", repr(event)).replace("||", "or")
-            self.assertEqual(eval(expression, {"__builtins__": {}}), expected)
+        self.assertIn("needs: [changes, reuse, build, unit]", release)
+        self.assertIn("github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'", release)
+        self.assertIn("needs.build.result == 'success' || needs.reuse.outputs.standard == 'true'", release)
         self.assertIn("timeout-minutes: 30", release)
         self.assertIn("./Scripts/build.sh --release-device --quiet", release)
         self.assertIn("SKIP_GENERATE: 1", release)
@@ -188,28 +186,24 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
         self.assertIn("./Scripts/restore-ci-test-products.sh", job)
         self.assertLess(job.index("./Scripts/restore-ci-test-products.sh"), job.index("- name: Run tests"))
         workflow = (ROOT / '.github/workflows/tests.yml').read_text()
-        for name, following in (('smoke', 'release-device'), ('exhaustive-ui', 'diff-review'),):
+        for name, following in (('exhaustive-ui', 'diff-review'),):
             with self.subTest(job=name):
                 consumer = workflow.split(f'  {name}:\n', 1)[1].split(f'  {following}:\n', 1)[0]
                 self.assertIn('rebuild-command: ./Scripts/build-for-testing.sh --app-only', consumer)
                 self.assertRegex(consumer, r'uses: \./\.github/actions/setup-trinket\n\s+with:\n(?:\s+#.*\n)*\s+metal: \'true\'')
 
-    def test_build_and_smoke_share_products_and_publish_only_for_nightly_ui(self):
+    def test_build_smoke_and_exhaustive_keep_registry_coverage(self):
         workflow = (ROOT / '.github/workflows/tests.yml').read_text()
-        build = workflow.split('  build:\n', 1)[1].split('  smoke:\n', 1)[0]
+        build = workflow.split('  build:\n', 1)[1].split('  release-device:\n', 1)[0]
         self.assertIn('python3 Scripts/check-testplan-sync.py --classes Smoke', build)
-        self.assertNotIn('./Scripts/test.sh smoke', build)
+        self.assertIn('./Scripts/test.sh smoke --no-build ${{ steps.ui-matrices.outputs.smoke-targets }}', build)
         self.assertIn("upload-artifact: 'true'", build)
-        self.assertIn('smoke-targets:', build)
-        smoke = workflow.split('  smoke:\n', 1)[1].split('  release-device:\n', 1)[0]
-        self.assertIn('needs: [changes, build]', smoke)
-        self.assertIn('build-artifact: ${{ needs.build.outputs.build-artifact }}', smoke)
-        self.assertIn('./Scripts/test.sh smoke --no-build ${{ needs.build.outputs.smoke-targets }}', smoke)
-        self.assertIn('rebuild-command: ./Scripts/build-for-testing.sh --app-only', smoke)
+        self.assertNotIn('build-artifact:', build.split('- name: Run smoke', 1)[1])
+        exhaustive = workflow.split('  exhaustive-ui:\n', 1)[1].split('  diff-review:\n', 1)[0]
+        self.assertIn('--classes FullUI', exhaustive)
+        self.assertIn('./Scripts/test.sh ui --no-build ${{ steps.ui-targets.outputs.targets }}', exhaustive)
         aggregate = workflow.split('  ci-ok:\n', 1)[1].split('  exhaustive-ok:\n', 1)[0]
-        needs = aggregate.split('if: always()', 1)[0]
-        self.assertIn('build', needs)
-        self.assertIn('smoke', needs)
+        self.assertIn('build', aggregate.split('if: always()', 1)[0])
 
     def test_idempotence_checks_outputs_even_with_a_fresh_stamp(self) -> None:
         for initial, generator, expected in (

@@ -10,15 +10,15 @@ use the canonical value and retirement rules for selective player journeys.
 
 | Area | Path | When |
 |------|------|------|
-| Smoke | `Smoke/` sources; `Smoke.xctestplan` at repo root | CI `test.sh smoke` (registry-defined classes); receives products from the build job |
-| Exhaustive | `Play/`, `Collection/`, `Battle/` | Advisory nightly/dispatch CI, sharded into Play, Shell, and Collection; includes StoreKit recovery; deliberate local diagnostics follow [Verification.md](../Docs/Platform/Verification.md#local-simulator-budget) |
+| Smoke | `Smoke/` sources; `Smoke.xctestplan` at repo root | CI `test.sh smoke` (registry-defined classes); runs on the build runner without a product transfer |
+| Exhaustive | `Play/`, `Collection/`, `Battle/` | Advisory nightly/dispatch CI, runs all registered classes on one runner; includes StoreKit recovery; deliberate local diagnostics follow [Verification.md](../Docs/Platform/Verification.md#local-simulator-budget) |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` (repo root) | Manual CI `performance.yml` / `performance.sh` investigations; outside routine smoke |
 | Support | `Support/` | Shared launch and StoreKit fixtures; page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
 Author smoke and exhaustive membership once in `Scripts/config/ui-tests.tsv`.
 Each row supplies suite, smoke routing key (empty for FullUI), class, shard name,
 shard order, and within-shard test order. `./Scripts/generate.sh` updates only
-`selectedTests` in the UI plans, preserving other plan settings. CI reads FullUI matrices through `check-testplan-sync.py --matrix` and serial
+`selectedTests` in the UI plans, preserving other plan settings. CI reads all FullUI classes through `check-testplan-sync.py --classes FullUI` and serial
 smoke filters through `--classes Smoke`; local smoke routing uses the same rows. Add, remove, or move registrations with the source
 class, then regenerate. The checker rejects missing/duplicate classes, conflicting
 shard orders, stale plan selections, and workflows bypassing registry selections.
@@ -27,6 +27,15 @@ result tree. When export stalls, terminal per-test log records provide that proo
 a suite summary alone does not. Documented individual skips remain visible in results. CI requires a runtime that
 executes the Full Game purchase journey; the documented iOS 26.5 purchase skip
 is local-only.
+
+The merchant smoke journey owns the purchase button, displayed gold debit, and
+return to Play. Purchased-item ownership and sold-stock rejection are proved by
+`ShopPurchaseApplierTests` and `AppStateShopEncounterTests`; smoke avoids a second
+purchase attempt and a Collection traversal. The equipment UI journey owns picker,
+equip, and unequip-control wiring. `PresentationModelTests` proves equipment survives
+reload, including failed-write rollback and retry, so the UI journey avoids another
+cold app launch and keyboard search. The Labyrinth boss/Continue journey retains
+its battle and floor-selection interactions because they protect distinct UI wiring.
 
 ## Launch args
 

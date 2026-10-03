@@ -43,9 +43,10 @@ class CIGateScriptTests(ScriptRegressionTestCase):
             shard_packages.extend(match.group(1).strip().split())
         self.assertEqual(sorted(packages), sorted(shard_packages), "missing or duplicate package across shards")
 
-    def test_concurrency_groups_distinct_by_event_type(self) -> None:
+    def test_manual_runs_queue_while_pushes_supersede_branch_verification(self) -> None:
         ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
-        self.assertIn("ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}", ci)
+        self.assertIn("group: ci-${{ github.workflow }}-${{ github.ref }}\n", ci)
+        self.assertIn("cancel-in-progress: ${{ github.event_name == 'push' }}", ci)
 
     def test_idle_nightly_retries_until_actual_exhaustive_shards_pass(self) -> None:
         workflow = (ROOT / '.github/workflows/ci.yml').read_text()

@@ -51,6 +51,11 @@ class BuildArtifactTests(unittest.TestCase):
                 target = root / path
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text("fixture")
+            module = products / "Debug-iphonesimulator/Core.swiftmodule/arm64.swiftmodule"
+            module.parent.mkdir(parents=True)
+            module.write_text("compiler metadata")
+            shader = executable.parent / "default.metallib"
+            shader.write_bytes(b"runtime shader")
             command = [str(ROOT / "Scripts/stage-ci-test-artifact.sh"), str(root)]
             subprocess.run(command, check=True, capture_output=True)
             # A repeat upload must contain the current products, without accumulating archives.
@@ -62,6 +67,8 @@ class BuildArtifactTests(unittest.TestCase):
             restored.mkdir()
             subprocess.run(["tar", "-xf", str(root / "ci-test-artifact.tar"), "-C", str(restored)], check=True)
             self.assertTrue(os.access(restored / executable.relative_to(root), os.X_OK))
+            self.assertEqual((restored / shader.relative_to(root)).read_bytes(), b"runtime shader")
+            self.assertFalse((restored / module.relative_to(root)).exists())
             self.assertTrue((restored / "Build/Products/current-app").is_symlink())
             self.assertTrue((restored / "Build/Products/Trinket.xctestrun").is_file())
             self.assertTrue((restored / "TestResults/.last-build-test.stamp").is_file())

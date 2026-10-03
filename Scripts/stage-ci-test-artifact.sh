@@ -20,6 +20,11 @@ fi
     --exclude="*.dSYM" \
     --exclude="*.bcsymbolmap" \
     --exclude="*.build" \
+    --exclude="*.swiftmodule" \
+    --exclude="*.swiftinterface" \
+    --exclude="*.swiftdoc" \
+    --exclude="*.swiftsourceinfo" \
+    --exclude="*.abi.json" \
     -czf "$ARCHIVE" "${inputs[@]}"
 )
 echo "=== Archived test products: $ARCHIVE ==="

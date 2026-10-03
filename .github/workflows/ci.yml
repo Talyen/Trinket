@@ -18,8 +18,10 @@ on:
           - exhaustive
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Manual/nightly runs wait behind a push without occupying a runner. New pushes
+  # still supersede obsolete verification for this branch.
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 
 permissions:
   contents: read

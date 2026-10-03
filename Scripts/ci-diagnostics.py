@@ -10,6 +10,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from ci_ui_retry import recovery_valid
+
 from internal.diagnostics.diagnostic_limits import MAX_AGGREGATE_ISSUES, MAX_DETAIL_CHARS, MAX_DETAIL_LINES, MAX_LABELS_IN_DETAIL, MAX_LINE_CHARS, MAX_MESSAGE_CHARS
 from internal.diagnostics.diagnostic_model import CLASSIFICATION_PRECEDENCE, bounded_text
 
@@ -234,6 +236,9 @@ def normalise_report(
         # Reports are failure diagnostics; even an unknown issue must prevent
         # a manifest marked passed from becoming a false green aggregate.
         failed = True
+    recovered = recovery_valid(manifest, payload)
+    if recovered:
+        failed = False
     invocation = dict(payload)
     invocation.update(
         {
@@ -248,6 +253,7 @@ def normalise_report(
             "completion_source": str(manifest.get("completion_source", "")),
             "test_execution_proven": manifest.get("test_execution_proven") is True,
             "failed": failed,
+            "infrastructure_recovered": recovered,
             "diagnostics_exists": report_exists,
             "diagnostic_path": str(path) if path else "",
             "issues": issues,
@@ -396,9 +402,11 @@ def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -
         category = "unknown"
 
     if category == "passed":
-        detail = (
-            f"All {recorded_invocations} recorded invocation(s) completed successfully."
-        )
+        recovered_count = sum(report.get("infrastructure_recovered", False) for report in reports)
+        detail = f"All {recorded_invocations} recorded invocation(s) completed successfully."
+        if recovered_count:
+            detail = (f"All {recorded_invocations} recorded invocation(s) passed or recovered with verified targeted execution. "
+                      f"{recovered_count} infrastructure failure(s) recovered by retrying only failed cases.")
         if incomplete_result_invocations:
             detail += (
                 f" {incomplete_result_invocations} invocation(s) used watchdog log proof "
@@ -456,6 +464,7 @@ def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -
             "exit_code": report.get("exit_code", 1),
             "status": report.get("status", "unknown"),
             "failed": report.get("failed", True),
+            "infrastructure_recovered": report.get("infrastructure_recovered", False),
             "result_bundle_exists": report.get("result_bundle_exists", False),
             "result_bundle_complete": report.get("result_bundle_complete", False),
             "diagnostics_exists": report.get("diagnostics_exists", False),

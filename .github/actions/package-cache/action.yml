@@ -1,0 +1,34 @@
+name: Restore package build state
+description: Restore per-shard incremental package products and compiler state
+inputs:
+  shard:
+    description: Unit shard owning the per-package DerivedData directories
+    required: true
+outputs:
+  cache-key:
+    description: Exact package build key
+    value: ${{ steps.key.outputs.cache-key }}
+  cache-hit:
+    description: Exact cache hit
+    value: ${{ steps.restore.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/build-cache-key
+      id: inputs
+    - name: Namespace package state separately from app builds
+      id: key
+      shell: bash
+      env:
+        SHARD: ${{ inputs.shard }}
+        BUILD_KEY: ${{ steps.inputs.outputs.cache-key }}
+        BUILD_PREFIX: ${{ steps.inputs.outputs.cache-restore-prefix }}
+      run: |
+        echo "cache-key=package-v1-${SHARD}-${BUILD_KEY}" >> "$GITHUB_OUTPUT"
+        echo "restore-prefix=package-v1-${SHARD}-${BUILD_PREFIX}" >> "$GITHUB_OUTPUT"
+    - uses: actions/cache/restore@3edfce9056124e459a23f683a21433670d47daca # v4
+      id: restore
+      with:
+        path: .DerivedData/packages
+        key: ${{ steps.key.outputs.cache-key }}
+        restore-keys: ${{ steps.key.outputs.restore-prefix }}
