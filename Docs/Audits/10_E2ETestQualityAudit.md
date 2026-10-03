@@ -20,7 +20,12 @@ not proof that shortening it is safe.
 Show the failed/false signal, competing semantic owners, isolation violation, or
 measured avoidable execution cost. Move rule assertions to a cheaper existing
 owner when it can prove the same invariant. Test value and retirement follow
-Testing.md; per-mechanic journeys and exhaustive interaction matrices are not a goal.
+Testing.md's high-value threshold and rare medium-value exception rule. Shell entry,
+navigation, and state mutation alone do not qualify a journey; identify critical
+protection that package tests cannot provide and account for launches, waits,
+flakiness, and maintenance. Assess directly related weak cases for retirement,
+preserving required release journeys. Per-mechanic journeys and exhaustive
+interaction matrices are not a goal.
 
 Prefer stable entry and queries to timing/index assumptions. Remove sleeps or
 shorten waits only when readiness is established and the supported failure timing

@@ -31,10 +31,11 @@ there is no optional registration or missing-handler recovery. Handlers implemen
 behavior without declaring a second kind. Shared next-hit flag, Cleanse/Purge and resource-to-Block
 handlers select their operation from the incoming effect rather than a configured mode.
 For a new effect kind, add its dispatch case. Existing handler and turn-processing
-coverage may suffice; add or extend `EffectHandlersApplyTests` only for a consequential
-behavior gap. Use a thin integration case when a meaningful interaction cannot be
-proved by the existing owner. Apply [Testing.md](../Platform/Testing.md) for value,
-retirement, fixtures, seeds, and dispatch conventions.
+coverage may suffice; add or extend `EffectHandlersApplyTests` only when a behavior
+gap meets the [Testing.md](../Platform/Testing.md) value threshold. Use a thin
+integration case only when the existing owner cannot prove the interaction and
+the same threshold passes. Testing.md also owns retirement, fixtures, seeds, and
+dispatch conventions.
 
 `CombatCheckpoint` checks eligibility before each ordered reaction. Prepared-action
 and card-completion work requires a living actor; winning cards can finish support

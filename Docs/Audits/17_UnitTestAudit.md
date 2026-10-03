@@ -23,7 +23,10 @@ same consequential behavior under the relevant conditions. For distinct low-valu
 cases, apply Testing.md's retirement rules; equivalent replacement coverage is not
 required. Consider strengthening or moving existing coverage before additions.
 For missing coverage, apply
-Testing.md's coverage decision and strengthen the cheapest existing semantic owner.
+Testing.md's high-value threshold and strengthen the cheapest existing semantic owner.
+Low-value additions are excluded; medium-value additions need a rare, concrete
+exception under that policy. Assess directly related existing cases for retirement,
+including distinct cases whose additional protection does not justify their cost.
 A lack of test files or a low case count is not evidence of a gap.
 
 Correct false evidence before optimizing its runtime. Assert semantic outcomes;

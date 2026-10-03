@@ -279,7 +279,9 @@ verification only when the failure exposes another affected owner.
 Evidence-based test retirement follows [Testing.md](Testing.md#consolidation-and-retirement);
 it must not conceal a defect. Run the routed handoff for changed and deleted paths
 after pruning, including affected test registration. Verification requires evidence,
-not accompanying test-file edits for every production change.
+not accompanying test-file edits for every production change. Test additions follow
+Testing.md's high-value threshold and rare medium-value exception rule; required
+execution and release evidence do not automatically require new test code.
 
 Read structured invocation reports before raw build logs. Use
 `./Scripts/ci-diagnostics.sh <results-dir>` to aggregate them and follow

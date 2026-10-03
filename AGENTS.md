@@ -71,7 +71,7 @@ Continue authorized work through implementation, relevant verification, and fixe
 caused by the change without another approval checkpoint. Stop when complete or
 blocked by a required decision or unavailable prerequisite.
 
-- Follow [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior) for consequential coverage and evidence-based retirement; test counts are not a goal.
+- Default to no new test. Add or expand tests only when they provide high-value protection under [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Do not add low-value tests; medium-value additions are rare exceptions requiring a concrete rationale. Verification does not require new test code. Apply the same value standard to scoped retirement; test counts are not a goal.
 - Keep routine local verification resource-light: no automatic Swift compilation, simulator/UI/performance tests, or broad generation. CI owns those checks; [Verification](Docs/Platform/Verification.md#local-simulator-budget) owns deliberate exceptions and local play.
 - Run `./Scripts/handoff.sh --isolate --quiet --paths <file...>` for requested and adopted paths, including deletions. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns gates, limits, failure classification, and advisory change budgets.
 - Review the final diff and generated consistency. Report results, verification, adopted fixes, and exact blockers/skips; distinguish task changes from pre-existing work. A local handoff proves only its lightweight checks; report CI-owned checks as pending until hosted evidence confirms them. Do not claim full verification from local handoff alone.

@@ -1,6 +1,6 @@
 # Testing
 
-Unit and UI test conventions for Trinket. Command routing: [Verification.md](Verification.md).
+Package, script, and UI test conventions for Trinket. Command routing: [Verification.md](Verification.md).
 Battle ownership matrix: `Packages/BattleEngine/Tests/README.md`. UI launch args / speed:
 `TrinketUITests/README.md`. Coverage decision below is canonical; `AGENTS.md` points here.
 
@@ -84,16 +84,44 @@ Known intentional forks (do not "fix" toward a single default):
 ## Coverage decision (new and changed behavior)
 
 Maintain the smallest test portfolio that provides strong confidence in consequential
-game behavior. Verification does not imply authoring new tests; existing coverage
-or no new test can be the right outcome. Add or expand coverage only when all are true:
+game behavior and development safeguards. Default to no new test. Add or expand
+coverage for **high marginal value**: substantial protection beyond what existing
+assertions already prove. This standard applies equally to package, script, and
+UI/e2e tests, including extra assertions and parameterized cases in existing tests.
+
+| Value | Definition | Default |
+|---|---|---|
+| High | Detects a credible, materially harmful failure that existing coverage would miss, with reliable assertions and proportionate cost. | Add or strengthen the smallest suitable owner. |
+| Medium | Protects useful but limited behavior, has modest additional detection value, or costs substantially more than the protection warrants. | Skip; allow only a rare, specifically justified exception. |
+| Low | Duplicates protection, mirrors implementation, checks trivial plumbing, or asserts incidental details without a meaningful failure outcome. | Do not add. |
+
+Save loss, duplicated rewards, incorrect battle resolution, blocked progression,
+and purchase-access failures are strong candidates, not automatic qualifications.
+A tiny assertion can be high value; a previously reported bug can still yield a
+low-value test. Cheap execution, a distinct branch, public API status, or increased
+coverage percentage does not independently justify coverage.
+
+Before authoring, name the credible harmful failure, inspect existing assertions
+rather than relying on test names or search pointers, and choose the cheapest tier
+that actually detects it. Add or expand coverage only when all are true:
 
 1. The change introduces or repairs a distinct, consequential behavior or invariant.
 2. Existing assertions do not already prove the changed behavior or invariant.
 3. The proposed assertion would fail before the fix, except for genuinely new behavior.
 4. The cheapest suitable tier can express it without duplicating a stronger owner.
-5. Its added confidence justifies its runtime, setup, brittleness, and maintenance.
+5. Its added confidence meets the high-value threshold after accounting for runtime,
+   setup, brittleness, and maintenance, or merits a rare medium-value exception.
+
+When adding coverage, briefly explain the harmful outcome and existing coverage
+gap in the handoff. For a medium-value exception, also give a concrete reason it
+merits ongoing automated protection despite its limited value or cost. This is a
+judgment to explain, not a separate approval checkpoint; no value labels or
+manifests are required. Strengthening existing assertions, adding no test, and
+retiring weak coverage are successful outcomes.
 
 Prefer shared invariants, representative behavior families, and meaningful boundaries.
+Representative cases should distinguish materially different failure modes, not
+repeat the same proof with different names or inputs.
 Hundreds of mechanics do not justify per-mechanic UI journeys or exhaustive combination
 matrices. Add mechanic-specific cases or targeted interaction regressions when they
 exercise materially different, consequential failure modes. Cheap catalog-wide
@@ -115,6 +143,10 @@ New user flows still need a stable `AccessibilityID` selector (or an existing ap
 
 Proactively consolidate, streamline, move, or delete tests in the area being changed
 when the evidence justifies it; no separate approval or replacement test is required.
+Assess directly related cases against the value rubric, without expanding a routine
+change into a repository-wide pruning pass. Low- and medium-value coverage is a
+retirement candidate, not an automatic deletion: inspect what it actually protects
+and preserve effective consequential evidence and required release journeys.
 For redundant coverage, identify the surviving owner and the relevant conditions it
 proves. A distinct case may also be retired when its practical confidence is too low
 for its cost. Explain what it proved, why it is being retired, and the surviving
@@ -145,7 +177,10 @@ rules belong in package tests, and cross-module contracts use the cheapest tier 
 actually exercises the boundary. “Exhaustive” is a suite name, not a coverage obligation.
 
 Apply the coverage decision to additions and the retirement rules to existing cases.
-Keep UI tests only for a **shipping product outcome** that unit/package tests cannot own:
+UI tests must provide high-value protection for a **shipping product outcome** that
+package tests cannot prove, with only the rare medium-value exceptions described
+above. Account for app launches, waits, flakiness, and harness maintenance. These
+categories are eligible outcomes, not sufficient reasons to add a journey:
 
 1. **Shell / entry** — a major surface becomes usable (Play chooser, Homestead wallet, Shop controls, Battle chrome).
 2. **State-changing journey** — a user action mutates durable or navigable state (shop leave returns to Play, retreat returns to Play, recruit continue).
@@ -156,6 +191,9 @@ detail journeys, or duplicate the same failure mode across smoke and FullUI. A
 focused layout or scroll/gesture regression is appropriate when it protects a
 consequential outcome, such as reaching a control, that a cheaper tier cannot prove.
 Push loadout, party-selection, and unlock rules down to package tests when possible.
+Prefer one focused journey proving a critical outcome over repeated control or
+detail checks. Existing release-critical journeys retain their requirements; a
+smaller declaration count does not justify a long combined journey.
 
 **Brittleness:** locate product controls by `AccessibilityID` and assert the meaningful
 outcome. Native system chrome and controls that omit their assigned identifiers use the

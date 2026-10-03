@@ -4,4 +4,5 @@ Combat behavior must conform to the [battle engine guide](../../Docs/AgentContex
 
 Consequential combat rules need deterministic evidence in `BattleEngineTests`;
 existing coverage may suffice. Apply [Testing.md](../../Docs/Platform/Testing.md)
-to additions and retirement; regressions should fail on the old behavior.
+for the high-value threshold, rare medium-value exceptions, and scoped retirement;
+regressions should fail on the old behavior.

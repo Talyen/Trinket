@@ -1,8 +1,10 @@
 # TrinketBattleFeature Tests
 
 BattleFeature test ownership follows [Testing.md](../../../Docs/Platform/Testing.md).
-Deterministic presentation contracts can merit coverage; tests that only mirror
-styling or constants do not establish useful regression protection.
+Deterministic presentation contracts merit additions only under its high-value
+threshold or rare medium-value exception rule; tests that only mirror styling or
+constants do not establish useful regression protection. Apply the same value
+rubric to directly related retirement candidates.
 
 ## Ownership matrix
 

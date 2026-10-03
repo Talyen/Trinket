@@ -49,6 +49,11 @@ with `handoff.sh --isolate --quiet --dry-run --paths <files...>` before an unfam
 
 ## Script regression ownership
 
+Apply [Testing.md](../Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior)
+to script-test additions and scoped retirement. Cheap execution or a new script
+branch alone does not justify coverage; protect credible, materially harmful
+failures with high marginal value or a rare, justified medium-value exception.
+
 Each Python test module declares a literal `SCRIPT_INPUTS = ("Scripts/owner.py", ...)`
 tuple of repository-relative files or globs. The selector reads it with AST literal
 parsing and never imports test modules. Keep ownership beside the tests when adding
