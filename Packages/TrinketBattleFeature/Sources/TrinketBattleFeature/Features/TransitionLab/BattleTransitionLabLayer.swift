@@ -42,7 +42,7 @@ struct BattleTransitionLabLayer: ViewModifier, Animatable {
     let isInteractive: Bool
     let tint: Color
 
-    var animatableData: Double {
+    nonisolated var animatableData: Double {
         get { progress }
         set { progress = newValue }
     }
