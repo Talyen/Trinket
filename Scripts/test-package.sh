@@ -177,7 +177,9 @@ fi
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification "Simulator package tests" || exit $?
 
+phase_started="$(python3 Scripts/phase-timing.py begin)"
 trinket_run_env_init
+python3 Scripts/phase-timing.py end environment "$phase_started" package-runner
 
 # shellcheck source=ensure-simulator.sh
 source "$SCRIPT_DIR/ensure-simulator.sh"
@@ -190,7 +192,9 @@ if [[ "$ACTION" != "build-for-testing" ]]; then
     if [[ "${TRINKET_ISOLATE:-}" != "1" ]]; then
       trinket_shared_sim_lease_acquire
     fi
+    phase_started="$(python3 Scripts/phase-timing.py begin)"
     ensure_test_simulator_logged
+    python3 Scripts/phase-timing.py end simulator "$phase_started" package-runner
     DESTINATION="$SIMULATOR_DESTINATION"
     DID_ENSURE_SIMULATOR=true
   fi
@@ -321,9 +325,11 @@ run_one_package() {
   if [[ "$ACTION" != "test-without-building" ]]; then
     begin_build_stamps "$RESULTS_DIR" "package_$package" || return $?
   fi
+  phase_started="$(python3 Scripts/phase-timing.py begin)"
   SECONDS=0
   xcode_runner_run "${runner_args[@]}" -- "${xcodebuild_args[@]}" || package_status=$?
   package_wall=$SECONDS
+  python3 Scripts/phase-timing.py end compile-and-test "$phase_started" "$package"
 
   # Record per-package timings for on-demand hotspot mining (test-timing.py).
   # Build-for-testing runs have no test cases; skip those xcresults. Soft-fail
@@ -386,6 +392,18 @@ if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]]; then
     (( jobs >= 1 )) || jobs=1
     if [[ "$jobs" -gt ${#PACKAGES[@]} ]]; then jobs=${#PACKAGES[@]}; fi
   fi
+fi
+
+if [[ "$ACTION" != "test-without-building" ]]; then
+  phase_started="$(python3 Scripts/phase-timing.py begin)"
+  begin_build_stamps "$RESULTS_DIR" package_batch
+  TRINKET_BATCH_IDENTITY="${TRINKET_BUILD_STARTED_IDENTITY:-}"
+  TRINKET_BATCH_INPUT_SNAPSHOT="${TRINKET_BUILD_STARTED_INPUT_SNAPSHOT:-}"
+  TRINKET_BATCH_PARENT_PID="${BASHPID:-$$}"
+  TRINKET_BATCH_PARENT_START="$(ps -o lstart= -p "$TRINKET_BATCH_PARENT_PID")"
+  TRINKET_BATCH_PREPARED_ROOT="$DERIVED_DATA_PATH"
+  export TRINKET_BATCH_IDENTITY TRINKET_BATCH_INPUT_SNAPSHOT TRINKET_BATCH_PARENT_PID TRINKET_BATCH_PARENT_START TRINKET_BATCH_PREPARED_ROOT
+  python3 Scripts/phase-timing.py end shared-input-preparation "$phase_started" package-runner
 fi
 
 package_run_token="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"

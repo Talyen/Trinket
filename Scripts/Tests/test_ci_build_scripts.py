@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/phase-timing.py',
     'Scripts/agent-push-gate.sh',
     'Scripts/apply-scheme-storekit.py',
     'Scripts/assert-generated-output.sh',
@@ -190,7 +191,7 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
             with self.subTest(job=name):
                 consumer = workflow.split(f'  {name}:\n', 1)[1].split(f'  {following}:\n', 1)[0]
                 self.assertIn('rebuild-command: ./Scripts/build-for-testing.sh --app-only', consumer)
-                self.assertRegex(consumer, r'uses: \./\.github/actions/setup-trinket\n\s+with:\n(?:\s+#.*\n)*\s+metal: \'true\'')
+                self.assertRegex(consumer, r'uses: \./\.github/actions/setup-trinket\n(?:\s+if:.*\n)?\s+with:\n(?:\s+#.*\n)*\s+metal: \'true\'')
 
     def test_build_smoke_and_exhaustive_keep_registry_coverage(self):
         workflow = (ROOT / '.github/workflows/tests.yml').read_text()

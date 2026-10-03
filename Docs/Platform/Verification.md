@@ -189,6 +189,19 @@ publishes products for exhaustive UI. Exhaustive UI runs every registered FullUI
 class on one runner with one product transfer. It restores the exact-run product
 archive through the cache service first, falls back to the retained artifact on
 cache miss, and rebuilds only when transferred products cannot be validated.
+Pushes select changed packages and their transitive dependents. Shared build inputs,
+package-manifest changes, unknown ownership, and missing dependency evidence select
+the full portfolio. Manual and scheduled runs retain full package coverage; partial
+push verification does not substitute for it. The Engine host path is a parity pilot
+on full runs alongside its iOS suite; do not promote it before hosted count/identity
+and behavior evidence agrees. Dispatch `scope=exhaustive-pilot` to bypass prior
+standard proof and exercise the retained iOS comparator, host pilot, and inline UI.
+Normal exhaustive dispatches keep standard reuse enabled. See [test-package-host.sh](../../Scripts/test-package-host.sh).
+
+Upfront full runs execute FullUI on the build/smoke runner and report its outcome
+through a separate advisory status job, eliminating product transfer. Follow-up
+full dispatches with prior standard proof retain the transfer/reuse path.
+
 Package unit jobs restore separately keyed incremental state in their per-package
 DerivedData tenants, then always invoke compilation/testing so changed inputs rebuild.
 They do not download the app product archive.

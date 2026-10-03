@@ -8,6 +8,8 @@ This script lists files via compare/{before}...{sha} and writes GITHUB_OUTPUT.
 from __future__ import annotations
 
 import fnmatch
+import base64
+import re
 import functools
 import json
 import os
@@ -103,6 +105,9 @@ CODE_SCRIPT_INCLUDES = (
     "Scripts/build-for-testing.sh",
     "Scripts/build-freshness.sh",
     "Scripts/test.sh",
+    "Scripts/phase-timing.py",
+    "Scripts/ci_ui_retry.py",
+    ".github/actions/package-cache/**",
     "Scripts/test-*.sh",
     "Scripts/generate.sh",
     "Scripts/ensure-simulator.sh",
@@ -254,13 +259,80 @@ def needs_smoke(paths: list[str]) -> bool:
     return any(is_smoke_path(p) for p in paths)
 
 
-def write_output(code: bool, assets: bool, infra: bool, smoke: bool = False) -> None:
+SHARDS = {
+    "Engine": ["BattleEngine"],
+    "State": ["TrinketCore", "TrinketPersistence", "TrinketAppState"],
+    "Content": ["TrinketContent", "TrinketDesignSystem"],
+    "Battle": ["TrinketFeatureSupport", "TrinketBattleFeature"],
+}
+
+
+def all_packages() -> set[str]:
+    return {package for packages in SHARDS.values() for package in packages}
+
+
+def affected_packages(paths: list[str], dependencies: dict[str, set[str]]) -> set[str]:
+    owners = all_packages()
+    selected = set()
+    for path in paths:
+        if path.endswith(".md"):
+            continue
+        if path.startswith("TrinketUITests/") or path.endswith(".xctestplan"):
+            continue
+        if path.startswith("Packages/"):
+            parts = path.split("/")
+            if len(parts) < 3 or parts[1] not in owners or parts[-1] == "Package.swift":
+                return owners
+            selected.add(parts[1])
+        elif is_code_path(path):
+            return owners
+    if not selected:
+        return set()
+    if set(dependencies) != owners or any(not deps <= owners for deps in dependencies.values()):
+        return owners
+    while True:
+        expanded = selected | {owner for owner, deps in dependencies.items() if deps & selected}
+        if expanded == selected:
+            return selected
+        selected = expanded
+
+
+def package_matrix(selected: set[str]) -> dict:
+    entries = [{"name": name, "packages": " ".join(p for p in packages if p in selected)}
+               for name, packages in SHARDS.items() if any(p in selected for p in packages)]
+    # GitHub validates matrices even for skipped jobs; keep an inert nonempty
+    # matrix while the independent units output prevents its execution.
+    return {"include": entries or [{"name": "Engine", "packages": "BattleEngine"}]}
+
+
+def dependency_graph(repo: str, sha: str, token: str) -> dict[str, set[str]]:
+    graph = {}
+    for package in all_packages():
+        url = f"https://api.github.com/repos/{repo}/contents/Packages/{package}/Package.swift?ref={sha}"
+        request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}",
+                                                       "User-Agent": "trinket-ci-path-filter"})
+        with urllib.request.urlopen(request, timeout=30) as response:
+            data = json.load(response)
+        source = base64.b64decode(data["content"]).decode("utf-8")
+        # These packages use repository-relative local dependencies. Unknown
+        # package forms force the full portfolio rather than guessing ownership.
+        paths = re.findall(r'\.package\(path:\s*"\.\./([^"/]+)"\)', source)
+        if len(paths) != len(re.findall(r'\.package\(', source)):
+            raise ValueError(f"Unsupported dependency declaration in {package}")
+        graph[package] = set(paths)
+    return graph
+
+
+def write_output(code: bool, assets: bool, infra: bool, smoke: bool = False, packages: set[str] | None = None) -> None:
     payload = (
         f"code={'true' if code else 'false'}\n"
         f"assets={'true' if assets else 'false'}\n"
         f"infra={'true' if infra else 'false'}\n"
         f"smoke={'true' if smoke else 'false'}\n"
     )
+    selected = all_packages() if packages is None else packages
+    payload += f"units={'true' if selected else 'false'}\n"
+    payload += "unit-matrix=" + json.dumps(package_matrix(selected), separators=(",", ":")) + "\n"
     output_path = os.environ.get("GITHUB_OUTPUT")
     if output_path:
         with Path(output_path).open("a", encoding="utf-8") as handle:
@@ -329,7 +401,16 @@ def main() -> None:
     code, assets, infra = classify(filenames)
     smoke = needs_smoke(filenames)
     print(f"Changed files: {len(filenames)}; code={code}; assets={assets}; infra={infra}; smoke={smoke}")
-    write_output(code, assets, infra, smoke)
+    selected = all_packages()
+    try:
+        # UI-only and shared-input changes can be classified without fetching
+        # package manifests. Only a package change requires the dependency graph.
+        selected = affected_packages(filenames, {})
+        if any(path.startswith("Packages/") and not path.endswith(".md") for path in filenames):
+            selected = affected_packages(filenames, dependency_graph(repo, sha, token))
+    except (OSError, ValueError, KeyError, urllib.error.URLError):
+        print("Dependency evidence unavailable; selecting all package suites.")
+    write_output(code, assets, infra, smoke, selected)
 
 
 if __name__ == "__main__":

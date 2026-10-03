@@ -8,6 +8,7 @@ public struct AppEnvironment: Sendable {
     public let launchScreen: LaunchScreen?
     public let resetState: Bool
     public let seedTestProgress: Bool
+    let equipmentPickerFixture: Bool
     public let skipStarterSelection: Bool
     public let skipOnboardingCeremony: Bool
     public let disableCloudSync: Bool
@@ -26,6 +27,7 @@ public struct AppEnvironment: Sendable {
         launchScreen: LaunchScreen?,
         resetState: Bool,
         seedTestProgress: Bool,
+        equipmentPickerFixture: Bool,
         skipStarterSelection: Bool,
         skipOnboardingCeremony: Bool,
         disableCloudSync: Bool,
@@ -43,6 +45,7 @@ public struct AppEnvironment: Sendable {
         self.launchScreen = launchScreen
         self.resetState = resetState
         self.seedTestProgress = seedTestProgress
+        self.equipmentPickerFixture = equipmentPickerFixture
         self.skipStarterSelection = skipStarterSelection
         self.skipOnboardingCeremony = skipOnboardingCeremony
         self.disableCloudSync = disableCloudSync
@@ -85,6 +88,12 @@ public struct AppEnvironment: Sendable {
         cloudSyncEnabledByDefault: Bool = false,
     ) -> Self {
         let isRunningTests = environment["XCTestConfigurationFilePath"] != nil
+        let equipmentPickerFixture: Bool
+        #if DEBUG
+        equipmentPickerFixture = arguments.contains("-equipment-picker-fixture") && arguments.contains("-seed-test-progress")
+        #else
+        equipmentPickerFixture = false
+        #endif
         let cloudSyncRequested: Bool
         let launchPreparationDelay: TimeInterval
         #if DEBUG
@@ -112,6 +121,7 @@ public struct AppEnvironment: Sendable {
             launchScreen: launchScreen(from: arguments),
             resetState: arguments.contains("-reset-state"),
             seedTestProgress: arguments.contains("-seed-test-progress"),
+            equipmentPickerFixture: equipmentPickerFixture,
             skipStarterSelection: arguments.contains("-skip-starter-selection"),
             skipOnboardingCeremony: arguments.contains("-skip-onboarding-ceremony"),
             disableCloudSync: disableCloudSync,

@@ -7,6 +7,7 @@ Player-facing standing policy. Engineering policy lives in
 |----------|---------|
 | [Monetization.md](Monetization.md) | Free edition, permanent Full Game access, and offer copy |
 | [Decisions.md](Decisions.md) | Locked player-facing choices and superseded decisions |
+| [DesignPrinciples.md](DesignPrinciples.md) | Perceptible player actions, feedback rationale, and interaction review criteria |
 | [CardPlay.md](CardPlay.md) | Continuous card input, full-size automatic casts, and visual-only finishing taps |
 | [Contracts.md](Contracts.md) | Renewable contract board, difficulty, rewards, and saved offers |
 | [Overview.md](Overview.md) | Game surfaces and modes in player terms |

@@ -19,6 +19,10 @@ migration or new APIs. Each routes to topic-specific Apple references; load only
 the relevant topic. [apple-design](../../.agents/skills/apple-design/SKILL.md)
 owns player-facing design procedure.
 
+For UI/UX and gameplay interaction changes, apply [Design principles](../Product/DesignPrinciples.md)
+(PD-032): every supported player action needs prompt, perceptible feedback;
+existing visible responses count. The product owner supplies outcome and review rules.
+
 Preserve first-screen artwork pins, launch prewarming, and mounted tab/battle
 surfaces. When changing artwork loading, launch covers, tab mounting, or first-frame
 performance, read [UI performance](ui-performance.md) before editing.

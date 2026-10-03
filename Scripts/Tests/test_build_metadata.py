@@ -104,6 +104,22 @@ class BuildMetadataTests(unittest.TestCase):
         write('27B2')
         self.assertIn('mismatch', self.check(expected=1, env=env).stderr)
 
+    def test_shared_batch_snapshot_still_refuses_changed_inputs_at_completion(self):
+        self.shell('''
+mkdir -p Trinket
+echo before > Trinket/App.swift
+TRINKET_BATCH_IDENTITY="$(python3 Scripts/build-metadata.py begin results package_batch)"
+TRINKET_BATCH_INPUT_SNAPSHOT="$(generation_input_snapshot --build-inputs "${build_input_paths[@]}")"
+TRINKET_BATCH_PARENT_PID=$$
+TRINKET_BATCH_PARENT_START="$(ps -o lstart= -p $$)"
+TRINKET_BATCH_PREPARED_ROOT="$DERIVED_DATA_PATH"
+export TRINKET_BATCH_IDENTITY TRINKET_BATCH_INPUT_SNAPSHOT TRINKET_BATCH_PARENT_PID TRINKET_BATCH_PARENT_START TRINKET_BATCH_PREPARED_ROOT
+begin_build_stamps results package_TrinketCore
+echo after > Trinket/App.swift
+touch_build_stamp results package_TrinketCore
+''', expected=1)
+        self.assertFalse(list((self.root / 'results').glob('*.stamp')))
+
     def test_xcode_sdk_configuration_architecture_and_fingerprint_mismatches(self):
         for variable in ('FAKE_XCODE', 'FAKE_SDK'):
             with self.subTest(variable=variable):

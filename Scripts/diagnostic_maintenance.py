@@ -34,7 +34,7 @@ def reset(root: Path) -> None:
     for path in root.iterdir():
         if path.is_file() and (
             path.name.endswith(("-diagnostics.json", "-diagnostics.md", "-diagnostics.annotations", "-invocation.json"))
-            or path.name == "ci-diagnostics.json"
+            or path.name in {"ci-diagnostics.json", "phase-timing.jsonl"}
         ):
             path.unlink()
         elif path.is_dir() and path.name.endswith("-diagnostics.attachments"):
@@ -93,7 +93,7 @@ def stage(root: Path, artifact_dir: Path) -> None:
         category = json.loads(category_path.read_text(encoding="utf-8")).get("category", "unknown")
     except (OSError, json.JSONDecodeError):
         category = "unknown"
-    names = {"ci-diagnostics.json", "timing-log.jsonl", "simulator.log"}
+    names = {"ci-diagnostics.json", "timing-log.jsonl", "simulator.log", "phase-timing.jsonl"}
     for path in root.iterdir():
         if path.is_file() and (path.name in names or path.name.endswith(("-invocation.json", "-diagnostics.json", "-diagnostics.md", "-diagnostics.annotations"))):
             shutil.copy2(path, artifact_dir / path.name)

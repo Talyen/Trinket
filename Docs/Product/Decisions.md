@@ -35,6 +35,7 @@ Stable product decisions that guide implementation. Keep entries concise and upd
 | PD-029 | Contracts refresh is earned by victory and rare-tier odds modifiers are meaningful chances, not guarantees. | Start with no refresh, hold at most one, consume it on a full-board refresh, and double the named eligible item-tier weight. |
 | PD-030 | An opened Mystery keeps its offered item and secondary reward. | Never reroll a shown offer on claim; convert Gold overflow at claim time and deduplicate a cross-device Unique without compensation. |
 | PD-031 | Linked devices accept durable Homestead actions offline and reconcile independent earned progress automatically. | Merge within an account and reset epoch without conflict prompts; preserve distinct upgrades and choices, floor a double-spend shortfall at zero, and keep older-save balances at their larger value. |
+| PD-032 | Every supported player action produces a prompt, perceptible visual and/or audible response. | [Design principles](DesignPrinciples.md) owns truthful acknowledgment and outcomes, proportional feedback, and review criteria; existing visible responses count and feedback must preserve continuous input. |
 
 These are product constraints, not a backlog. Sibling product docs:
 [README.md](README.md). For source ownership and tests, read the relevant `Docs/AgentContext/` card.

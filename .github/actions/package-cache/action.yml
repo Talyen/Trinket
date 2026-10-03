@@ -29,6 +29,8 @@ runs:
     - uses: actions/cache/restore@3edfce9056124e459a23f683a21433670d47daca # v4
       id: restore
       with:
-        path: .DerivedData/packages
+        path: |
+          .DerivedData/packages
+          .DerivedData/host
         key: ${{ steps.key.outputs.cache-key }}
         restore-keys: ${{ steps.key.outputs.restore-prefix }}

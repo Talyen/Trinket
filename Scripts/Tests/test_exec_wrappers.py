@@ -6,6 +6,7 @@ test-scripts.sh, and performance.sh without requiring Xcode or simulators.
 """
 
 SCRIPT_INPUTS = (
+    'Scripts/test-package-host.sh',
     'Scripts/agent-watch-ci.sh',
     'Scripts/agent-worktree.mjs',
     'Scripts/aggregate-performance-results.py',
@@ -156,6 +157,7 @@ class ExecWrapperTests(unittest.TestCase):
         "setup-testflight.sh",
         "test-deploy.sh",
         "test-package.sh",
+        "test-package-host.sh",
         "test-scripts.sh",
         "test.sh",
         "testflight.sh",

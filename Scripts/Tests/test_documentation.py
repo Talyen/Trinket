@@ -97,7 +97,7 @@ class DocumentationTests(ScriptRegressionTestCase):
                 "TrinketUITests/Fixture.swift": "class FullFixture: TrinketUITestCase {}",
                 "Smoke.xctestplan": json.dumps({"testTargets": [{"automaticallyIncludesTests": False, "selectedTests": ["SmokeFixture"], "target": {"name": "TrinketUITests"}}]}),
                 "FullUI.xctestplan": json.dumps({"testTargets": [{"automaticallyIncludesTests": False, "selectedTests": ["FullFixture"], "target": {"name": "TrinketUITests"}}]}),
-                ".github/workflows/tests.yml": "  build:\n      run: check-testplan-sync.py --classes Smoke\n      command: ./Scripts/test.sh smoke --no-build ${{ steps.ui-matrices.outputs.smoke-targets }}\n  exhaustive-ui:\n      run: check-testplan-sync.py --classes FullUI\n      command: ./Scripts/test.sh ui --no-build ${{ steps.ui-targets.outputs.targets }}\n",
+                ".github/workflows/tests.yml": "  build:\n      run: check-testplan-sync.py --classes Smoke --classes FullUI\n      command: ./Scripts/test.sh ui --no-build ${{ steps.ui-matrices.outputs.full-targets }}\n      command: ./Scripts/test.sh smoke --no-build ${{ steps.ui-matrices.outputs.smoke-targets }}\n  exhaustive-ui:\n      run: check-testplan-sync.py --classes FullUI\n      command: ./Scripts/test.sh ui --no-build ${{ steps.ui-targets.outputs.targets }}\n",
                 "Docs/AgentContext/README.md": "# Context",
                 "Docs/Audits/Proposals.md": "# Proposals",
                 "README.md": "# Fixture\nA clean pass is valid. Historical label: QuickSmoke.\n",

@@ -45,6 +45,25 @@ class CIPathFilterTests(unittest.TestCase):
                 self.assertEqual(self.filter.compare_filenames("owner/repo", "before", "after", "token"), expected)
                 request.assert_called_once()
 
+    def test_package_selection_preserves_consumers_and_full_fallback(self):
+        graph = {
+            'TrinketCore': set(), 'TrinketContent': {'TrinketCore'},
+            'BattleEngine': {'TrinketCore', 'TrinketContent'},
+            'TrinketPersistence': {'TrinketCore', 'TrinketContent'},
+            'TrinketDesignSystem': {'TrinketCore'},
+            'TrinketFeatureSupport': {'TrinketCore', 'TrinketDesignSystem', 'BattleEngine'},
+            'TrinketBattleFeature': {'TrinketFeatureSupport', 'BattleEngine'},
+            'TrinketAppState': {'TrinketPersistence', 'TrinketBattleFeature'},
+        }
+        select = self.filter.affected_packages
+        self.assertEqual(select(['TrinketUITests/Example.swift'], graph), set())
+        self.assertEqual(select(['Packages/TrinketPersistence/Sources/Store.swift'], graph),
+                         {'TrinketPersistence', 'TrinketAppState'})
+        self.assertEqual(select(['Packages/TrinketCore/Sources/Card.swift'], graph), self.filter.all_packages())
+        for path in ('Scripts/test.sh', 'Packages/Unknown/Sources/Rule.swift', 'Packages/BattleEngine/Package.swift'):
+            self.assertEqual(select([path], graph), self.filter.all_packages())
+        self.assertEqual(select(['Packages/TrinketPersistence/Sources/Store.swift'], {}), self.filter.all_packages())
+
     def test_code_globs_match_app_and_build_scripts(self) -> None:
         match = self.filter.is_code_path
         self.assertTrue(match("Trinket/App/TrinketApp.swift"))

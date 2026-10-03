@@ -257,9 +257,21 @@ touch_build_stamp() {
 
 # Invalidate the product family's old stamps before Xcode can partially replace
 # binaries. The identity is kept in the caller, including per-package workers.
+trinket_batch_preparation_valid() {
+  [[ "${TRINKET_BATCH_PREPARED_ROOT:-}" == "${DERIVED_DATA_PATH:-}" && "${TRINKET_BATCH_PARENT_PID:-}" =~ ^[0-9]+$ ]] || return 1
+  kill -0 "$TRINKET_BATCH_PARENT_PID" 2>/dev/null || return 1
+  [[ "$(ps -o lstart= -p "$TRINKET_BATCH_PARENT_PID" 2>/dev/null)" == "${TRINKET_BATCH_PARENT_START:-}" ]]
+}
+
 begin_build_stamps() {
-  TRINKET_BUILD_STARTED_IDENTITY="$(python3 Scripts/build-metadata.py begin "$1" "$2")" || return $?
-  TRINKET_BUILD_STARTED_INPUT_SNAPSHOT="$(generation_input_snapshot --build-inputs "${build_input_paths[@]}")" || return $?
+  if trinket_batch_preparation_valid; then
+    python3 Scripts/build-metadata.py invalidate "$1" "$2" || return $?
+    TRINKET_BUILD_STARTED_IDENTITY="$TRINKET_BATCH_IDENTITY"
+    TRINKET_BUILD_STARTED_INPUT_SNAPSHOT="$TRINKET_BATCH_INPUT_SNAPSHOT"
+  else
+    TRINKET_BUILD_STARTED_IDENTITY="$(python3 Scripts/build-metadata.py begin "$1" "$2")" || return $?
+    TRINKET_BUILD_STARTED_INPUT_SNAPSHOT="$(generation_input_snapshot --build-inputs "${build_input_paths[@]}")" || return $?
+  fi
 }
 
 package_test_scheme() {

@@ -36,12 +36,10 @@ class CIGateScriptTests(ScriptRegressionTestCase):
         import re
 
         packages = read_env_arrays(ROOT / "Scripts/build-inputs.env", ["TRINKET_TEST_PACKAGES"])["TRINKET_TEST_PACKAGES"]
-        # Extract shard package lists — only the unit job includes
-        unit_section = workflow.split("  unit:\n", 1)[1].split("  exhaustive-ui:\n", 1)[0]
-        shard_packages: list[str] = []
-        for match in re.finditer(r"packages:\s*([A-Za-z0-9 ]+)", unit_section):
-            shard_packages.extend(match.group(1).strip().split())
-        self.assertEqual(sorted(packages), sorted(shard_packages), "missing or duplicate package across shards")
+        from script_test_support import load_script
+        selection = load_script('ci_package_selection', 'ci-path-filter.py')
+        self.assertEqual(sorted(packages), sorted(selection.all_packages()), 'missing or duplicate package owner')
+        self.assertIn('fromJSON(needs.changes.outputs.unit-matrix)', workflow)
 
     def test_manual_runs_queue_while_pushes_supersede_branch_verification(self) -> None:
         ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")

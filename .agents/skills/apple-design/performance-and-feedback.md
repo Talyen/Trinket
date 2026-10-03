@@ -1,8 +1,12 @@
 # Performance and feedback
 
-Keep visual, sound, and haptic feedback tied to the same committed event. Use the
+Apply [Design principles](../../../Docs/Product/DesignPrinciples.md) (PD-032) to
+UI/UX and gameplay interaction changes. Existing perceptible responses count;
+the product owner defines acknowledgment, outcome, and review requirements.
+
+Distinguish press acknowledgment from committed outcome feedback. Keep visual,
+sound, and haptic outcome feedback tied to the same resolved event. Use the
 existing audio and feedback owners; independent timers can drift or fire twice.
-Reserve feedback for a meaningful press, commit, success, or failure.
 
 Keep system haptic meanings consistent: selection for a changed choice, impact for
 a physical event, and notification feedback for an outcome. Avoid duplicating a

@@ -21,6 +21,16 @@ The exhaustive advisory summary reads actual shard conclusions for the current
 run attempt. Failed or cancelled shards produce warnings and links while remaining
 outside `CI OK`; unavailable results are reported as unknown.
 
+## Preparation timing
+
+Test jobs retain `phase-timing.jsonl` alongside compact test timing. Records separate
+environment, simulator, shared input preparation, and compile/test phases by scope
+and diagnostics session. Compare these with XCTest case durations before attributing
+slow jobs to assertions. Multi-package jobs share their initial identity/input snapshot
+only while the recorded parent PID/start-time and DerivedData scope match. Each package
+still checks inputs and identity at completion; guest-baseline and cleanup safeguards
+are unchanged.
+
 ## Emitted reports
 
 Every test or package invocation writes an atomically completed

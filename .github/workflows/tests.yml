@@ -10,6 +10,10 @@ name: Build and test
 on:
   workflow_call:
     inputs:
+      force-full:
+        description: Bypass prior standard proof for the host parity and inline UI pilot
+        type: boolean
+        default: false
       include-exhaustive:
         description: Also run every registered exhaustive UI class
         required: false
@@ -33,12 +37,12 @@ jobs:
       build-artifact: ${{ steps.proof.outputs.build-artifact }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' && !inputs.force-full
         with:
           sparse-checkout: Scripts
       - name: Find successful exact-commit checks
         id: proof
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' && !inputs.force-full
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 Scripts/ci-reuse.py
@@ -78,6 +82,7 @@ jobs:
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
       smoke-targets: ${{ steps.ui-matrices.outputs.smoke-targets }}
+      inline-ui-outcome: ${{ steps.inline-ui.outcome }}
     steps:
       # Local composite actions cannot run before the repo exists, so the
       # first step inlines actions/checkout (same sparse set as
@@ -119,6 +124,7 @@ jobs:
           set -euo pipefail
           smoke_targets="$(python3 Scripts/check-testplan-sync.py --classes Smoke)"
           echo "smoke-targets=$smoke_targets" >> "$GITHUB_OUTPUT"
+          echo "full-targets=$(python3 Scripts/check-testplan-sync.py --classes FullUI)" >> "$GITHUB_OUTPUT"
       - name: Restore warm cache and build
         id: restore-and-build
         uses: ./.github/actions/restore-and-build
@@ -136,6 +142,19 @@ jobs:
           artifact-name: smoke
           artifact-prefix: ${{ inputs.artifact-prefix }}
           command: ./Scripts/test.sh smoke --no-build ${{ steps.ui-matrices.outputs.smoke-targets }}
+          preboot-simulator: 'true'
+
+      - name: Run exhaustive UI on the build runner
+        id: inline-ui
+        if: inputs.include-exhaustive
+        continue-on-error: true
+        uses: ./.github/actions/test-job
+        env:
+          TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
+        with:
+          artifact-name: exhaustive-ui-inline
+          artifact-prefix: ${{ inputs.artifact-prefix }}
+          command: ./Scripts/test.sh ui --no-build ${{ steps.ui-matrices.outputs.full-targets }}
           preboot-simulator: 'true'
 
   release-device:
@@ -203,19 +222,10 @@ jobs:
   unit:
     name: Unit tests (${{ matrix.name }})
     needs: [changes, reuse]
-    if: needs.reuse.outputs.standard != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true' || github.event_name == 'schedule')
+    if: needs.reuse.outputs.standard != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.units == 'true' || github.event_name == 'schedule')
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - name: Engine
-            packages: BattleEngine
-          - name: State
-            packages: TrinketCore TrinketPersistence TrinketAppState
-          - name: Content
-            packages: TrinketContent TrinketDesignSystem
-          - name: Battle
-            packages: TrinketFeatureSupport TrinketBattleFeature
+      matrix: ${{ fromJSON(needs.changes.outputs.unit-matrix) }}
     runs-on: xcode-27
     # Package schemes are compiled in this job; the shared build is app-only
     # so smoke/UI can start without waiting on package test products.
@@ -263,6 +273,22 @@ jobs:
           artifact-prefix: ${{ inputs.artifact-prefix }}
           command: ./Scripts/test-package.sh ${{ matrix.packages }}
           preboot-simulator: 'true'
+      - name: Native Engine parity pilot
+        if: matrix.name == 'Engine' && github.event_name != 'push'
+        env:
+          CI: true
+        run: ./Scripts/test-package-host.sh
+      - name: Retain Engine parity evidence
+        if: always() && matrix.name == 'Engine' && github.event_name != 'push'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: host-engine-parity-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .DerivedData/TestResults/host-engine.xml
+            .DerivedData/TestResults/host-engine.log
+            .DerivedData/TestResults/phase-timing.jsonl
+          retention-days: 3
+
       - name: Prune package build state
         if: success() && steps.package-cache.outputs.cache-hit != 'true'
         run: ./Scripts/prune-derived-data-cache.sh --ci
@@ -270,7 +296,9 @@ jobs:
         if: success() && steps.package-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@3edfce9056124e459a23f683a21433670d47daca # v4
         with:
-          path: .DerivedData/packages
+          path: |
+            .DerivedData/packages
+            .DerivedData/host
           key: ${{ steps.package-cache.outputs.cache-key }}
 
   exhaustive-ui:
@@ -281,12 +309,20 @@ jobs:
       (needs.build.result == 'success' || needs.reuse.outputs.standard == 'true') &&
       (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || needs.changes.outputs.code == 'true')
     continue-on-error: true
-    runs-on: xcode-27
+    runs-on: ${{ needs.reuse.outputs.standard == 'true' && 'xcode-27' || 'ubuntu-latest' }}
     timeout-minutes: 40
     env:
       TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
     steps:
+      - name: Verify inline exhaustive outcome
+        if: needs.reuse.outputs.standard != 'true'
+        env:
+          OUTCOME: ${{ needs.build.outputs.inline-ui-outcome }}
+        run: |
+          echo "Inline exhaustive UI: $OUTCOME"
+          [[ "$OUTCOME" == success ]]
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        if: needs.reuse.outputs.standard == 'true'
         with:
           fetch-depth: 1
           sparse-checkout-cone-mode: true
@@ -304,6 +340,7 @@ jobs:
             CinematicManifest
             .github
       - name: Assert sparse checkout kept root build inputs
+        if: needs.reuse.outputs.standard == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -313,13 +350,16 @@ jobs:
           test -f FullUI.xctestplan
           test -f BattlePerformance.xctestplan
       - uses: ./.github/actions/setup-trinket
+        if: needs.reuse.outputs.standard == 'true'
         with:
           metal: 'true'
       - name: Read exhaustive test classes
+        if: needs.reuse.outputs.standard == 'true'
         id: ui-targets
         shell: bash
         run: echo "targets=$(python3 Scripts/check-testplan-sync.py --classes FullUI)" >> "$GITHUB_OUTPUT"
       - uses: ./.github/actions/test-job
+        if: needs.reuse.outputs.standard == 'true'
         with:
           build-artifact: ${{ needs.reuse.outputs.build-artifact || needs.build.outputs.build-artifact }}
           build-run-id: ${{ needs.reuse.outputs.run-id || github.run_id }}
@@ -328,6 +368,7 @@ jobs:
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
           command: ./Scripts/test.sh ui --no-build ${{ steps.ui-targets.outputs.targets }}
           preboot-simulator: 'true'
+
 
   diff-review:
     name: Advisory diff review

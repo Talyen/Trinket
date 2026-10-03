@@ -3,6 +3,12 @@ name: Detect changes
 on:
   workflow_call:
     outputs:
+      units:
+        description: Whether affected package suites need execution
+        value: ${{ jobs.changes.outputs.units }}
+      unit-matrix:
+        description: Affected packages grouped by their existing shard owners
+        value: ${{ jobs.changes.outputs.unit-matrix }}
       code:
         description: Whether app, package, test, or manifest sources changed
         value: ${{ jobs.changes.outputs.code }}
@@ -22,6 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
+      units: ${{ steps.filter.outputs.units }}
+      unit-matrix: ${{ steps.filter.outputs.unit-matrix }}
       code: ${{ steps.filter.outputs.code }}
       assets: ${{ steps.filter.outputs.assets }}
       infra: ${{ steps.filter.outputs.infra }}

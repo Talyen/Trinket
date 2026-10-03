@@ -16,6 +16,7 @@ on:
         options:
           - standard
           - exhaustive
+          - exhaustive-pilot
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -71,4 +72,5 @@ jobs:
     if: always() && (github.event_name != 'schedule' || needs.schedule-guard.outputs.should-run == 'true')
     uses: ./.github/workflows/tests.yml
     with:
-      include-exhaustive: ${{ github.event_name == 'schedule' || inputs.scope == 'exhaustive' }}
+      force-full: ${{ inputs.scope == 'exhaustive-pilot' }}
+      include-exhaustive: ${{ github.event_name == 'schedule' || inputs.scope == 'exhaustive' || inputs.scope == 'exhaustive-pilot' }}

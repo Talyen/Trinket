@@ -39,6 +39,15 @@ extension AppState {
         )
         if environment.seedTestProgress {
             try resolvedPlayerSave.applyTestSeed()
+            #if DEBUG
+            if environment.equipmentPickerFixture {
+                try resolvedPlayerSave.performBatchMutation { save in
+                    let equipped = save.roster.equipmentLoadouts.values.flatMap(\.itemIDsBySlot.values)
+                    let retained = Set(equipped).union(["longsword-astral"])
+                    save.inventory.items.removeAll { !retained.contains($0.id) }
+                }
+            }
+            #endif
         }
         if environment.skipStarterSelection,
            resolvedPlayerSave.starterSelection.phase != .complete {

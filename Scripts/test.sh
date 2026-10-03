@@ -147,7 +147,9 @@ append_ui_target_filters() {
   done
 }
 
+phase_started="$(python3 Scripts/phase-timing.py begin)"
 trinket_run_env_init
+python3 Scripts/phase-timing.py end environment "$phase_started" "$MODE"
 trinket_run_env_print
 
 mkdir -p "$RESULTS_DIR"
@@ -173,12 +175,14 @@ PARALLEL_FLAGS=()
 
 # UI/smoke/performance tiers run serially against the managed test simulator.
 prepare_serial_test_sim() {
+  phase_started="$(python3 Scripts/phase-timing.py begin)"
   if [[ "${TRINKET_REPREP_UI_SIMULATOR:-0}" == "1" ]]; then
     ensure_test_simulator_logged force
   else
     ensure_test_simulator_logged
   fi
   trinket_track_test_guests
+  python3 Scripts/phase-timing.py end simulator "$phase_started" "$MODE"
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 }
 
@@ -336,9 +340,11 @@ fi
 if [[ "$NO_BUILD" == "false" ]]; then
   begin_build_stamps "$RESULTS_DIR" "$RUN_FINGERPRINT"
 fi
+phase_started="$(python3 Scripts/phase-timing.py begin)"
 xcode_runner_run "${runner_args[@]}" -- xcodebuild "${XCODEBUILD_ARGS[@]}" || XCODEBUILD_EXIT_CODE=$?
 
 TEST_WALL_SECONDS=$SECONDS
+python3 Scripts/phase-timing.py end compile-and-test "$phase_started" "$MODE"
 
 if [[ "$XCODEBUILD_EXIT_CODE" -eq 0 ]]; then
   if ! trinket_assert_targeted_tests_executed; then
