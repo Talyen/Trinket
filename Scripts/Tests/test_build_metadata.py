@@ -15,9 +15,11 @@ SCRIPT_INPUTS = (
 
 import json
 import os
+import plistlib
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -36,8 +38,13 @@ def fake_toolchain(root):
         executable = tools / name
         executable.write_text('#!/bin/sh\n' + body + '\n')
         executable.chmod(0o755)
-    return {**os.environ, 'PATH': f'{tools}:{os.environ["PATH"]}',
-            'CI': '', 'GITHUB_ACTIONS': ''}
+    # Apple's /usr/bin/python3 shim consults DEVELOPER_DIR before executing;
+    # fixtures must launch the real interpreter even for a synthetic Xcode bundle.
+    (tools / 'python3').symlink_to(Path(sys.executable).resolve())
+    environment = {**os.environ, 'PATH': f'{tools}:{os.environ["PATH"]}',
+                   'CI': '', 'GITHUB_ACTIONS': ''}
+    environment.pop('DEVELOPER_DIR', None)
+    return environment
 
 
 class BuildMetadataTests(unittest.TestCase):
@@ -81,6 +88,21 @@ class BuildMetadataTests(unittest.TestCase):
         stamp = next((self.root / 'results').glob('*.stamp'))
         os.utime(source, (stamp.stat().st_mtime + 2,) * 2)
         self.assertIn('Trinket/App.swift', self.check(expected=1).stderr)
+
+    def test_selected_bundle_avoids_version_process_and_still_rejects_changed_toolchain(self):
+        contents = self.root / 'Xcode.app/Contents'
+        developer = contents / 'Developer'
+        developer.mkdir(parents=True)
+        info = contents / 'version.plist'
+        def write(build):
+            info.write_bytes(plistlib.dumps({'CFBundleShortVersionString': '27.2', 'ProductBuildVersion': build}))
+        write('27B1')
+        (self.root / 'fake-tools/xcodebuild').write_text('#!/bin/sh\nexit 99\n')
+        env = {**self.env, 'DEVELOPER_DIR': str(developer)}
+        self.build(env=env)
+        self.check(env=env)
+        write('27B2')
+        self.assertIn('mismatch', self.check(expected=1, env=env).stderr)
 
     def test_xcode_sdk_configuration_architecture_and_fingerprint_mismatches(self):
         for variable in ('FAKE_XCODE', 'FAKE_SDK'):

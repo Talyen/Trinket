@@ -83,7 +83,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         )).firstMatch
         scrollUntilVisible(boss, swipingUp: true, requireHittable: true)
         tapWhenReady(boss)
-        let action = app.buttons
+        let action = app.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.Play.labyrinthInspectorAction(""))).firstMatch
         tapWhenReady(action)
         battle.assertActive()

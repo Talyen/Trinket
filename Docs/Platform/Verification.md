@@ -186,7 +186,9 @@ generation, and only when content, project, and asset inputs are all unchanged.
 
 The build job compiles app test products once, runs smoke on that runner, and
 publishes products for exhaustive UI. Exhaustive UI runs every registered FullUI
-class on one runner with one product transfer; it rebuilds only on transfer mismatch.
+class on one runner with one product transfer. It restores the exact-run product
+archive through the cache service first, falls back to the retained artifact on
+cache miss, and rebuilds only when transferred products cannot be validated.
 Package unit jobs restore separately keyed incremental state in their per-package
 DerivedData tenants, then always invoke compilation/testing so changed inputs rebuild.
 They do not download the app product archive.
@@ -206,7 +208,9 @@ Ordinary `build.sh` compiles only the app; it does not produce reusable test
 bundles. CI keeps app incremental build state in its warm cache and transfers only
 runtime products, build stamps, and versioned environment metadata in a tar archive to preserve executable permissions. Compiler-only Swift module metadata is omitted from transfers; runtime shaders and artwork remain intact.
 Local reuse requires matching Xcode, SDK, architecture policy, configuration, and
-test fingerprint as well as unchanged sources. Missing or legacy metadata requires
+test fingerprint as well as unchanged sources. The selected Xcode product version
+is read directly from its installed version plist when available, avoiding a
+potentially stalled `xcodebuild -version` process; SDK and source checks still run. Missing or legacy metadata requires
 a rebuild. CI additionally requires the same commit; incompatible or missing
 transfers are discarded and rebuilt on the receiving runner, then validated again.
 Builds invalidate prior stamps for their product family before compilation so a

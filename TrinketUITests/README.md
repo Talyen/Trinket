@@ -37,7 +37,8 @@ return to Play. Purchased-item ownership and sold-stock rejection are proved by
 purchase attempt and a Collection traversal. The equipment UI journey owns picker,
 equip, and unequip-control wiring. `PresentationModelTests` proves equipment survives
 reload, including failed-write rollback and retry, so the UI journey avoids another
-cold app launch and keyboard search. The Labyrinth boss/Continue journey retains
+cold app launch. The picker keeps its bounded search because the seeded inventory
+can place the selected weapon beyond a reliable scroll budget. The Labyrinth boss/Continue journey retains
 its battle and floor-selection interactions because they protect distinct UI wiring.
 
 ## Launch args

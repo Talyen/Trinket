@@ -24,5 +24,8 @@ final class CollectionLoadoutUITests: TrinketUITestCase {
         assertExistsAfterScroll(slot, requireHittable: true)
         tapButton(slot)
         assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
+        let search = app.searchFields.firstMatch
+        replaceText(in: search, with: "longsword")
+        search.typeText("\n")
     }
 }

@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import plistlib
 import subprocess
 import sys
 import tempfile
@@ -14,6 +15,26 @@ import tempfile
 
 def capture(*args, timeout=120):
     return subprocess.check_output(args, text=True, stderr=subprocess.PIPE, timeout=timeout).strip()
+
+
+def xcode_identity():
+    # The selected bundle is the installed product version/build authority.
+    # Reading it avoids launching xcodebuild while simulator services are busy.
+    developer = os.environ.get("DEVELOPER_DIR")
+    if developer:
+        try:
+            path = Path(developer).resolve().parent / "version.plist"
+            with path.open("rb") as handle:
+                info = plistlib.load(handle)
+            if not isinstance(info, dict):
+                raise ValueError("Invalid Xcode version metadata")
+            version = info.get("CFBundleShortVersionString")
+            build = info.get("ProductBuildVersion")
+            if isinstance(version, str) and version and isinstance(build, str) and build:
+                return f"Xcode {version}\nBuild version {build}"
+        except (OSError, ValueError, plistlib.InvalidFileException):
+            pass
+    return capture("xcodebuild", "-version")
 
 
 def identity(sdk="iphonesimulator", configuration="Debug"):
@@ -26,7 +47,7 @@ def identity(sdk="iphonesimulator", configuration="Debug"):
         commit = None
     return {
         "version": 1,
-        "xcode": capture("xcodebuild", "-version"),
+        "xcode": xcode_identity(),
         "sdk": sdk,
         "sdk_version": capture("xcrun", "--sdk", sdk, "--show-sdk-version"),
         "sdk_build": capture("xcrun", "--sdk", sdk, "--show-sdk-build-version"),

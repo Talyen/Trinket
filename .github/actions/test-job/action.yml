@@ -57,9 +57,18 @@ runs:
         ' >"$RUNNER_TEMP/trinket-sim-preboot/boot.log" 2>&1 &
         echo $! > "$RUNNER_TEMP/trinket-sim-preboot.pid"
 
+    - name: Restore cached test archive
+      id: cached-products
+      if: inputs.build-artifact != ''
+      continue-on-error: true
+      uses: actions/cache/restore@3edfce9056124e459a23f683a21433670d47daca # v4
+      with:
+        path: .DerivedData/ci-test-artifact.tar
+        key: test-products-v1-${{ inputs.build-artifact }}
+
     - name: Download build products
       id: download-build
-      if: inputs.build-artifact != ''
+      if: inputs.build-artifact != '' && steps.cached-products.outputs.cache-hit != 'true'
       continue-on-error: true
       uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317 # v5
       with:
@@ -74,9 +83,10 @@ runs:
       env:
         CI: true
         DOWNLOAD_OUTCOME: ${{ steps.download-build.outcome }}
+        CACHE_HIT: ${{ steps.cached-products.outputs.cache-hit }}
       run: |
         restore_args=()
-        if [[ "$DOWNLOAD_OUTCOME" == success ]]; then restore_args+=(--downloaded); fi
+        if [[ "$CACHE_HIT" == true || "$DOWNLOAD_OUTCOME" == success ]]; then restore_args+=(--downloaded); fi
         ./Scripts/restore-ci-test-products.sh "${restore_args[@]}" -- ${{ inputs.rebuild-command }}
 
     - name: Wait for simulator preboot
