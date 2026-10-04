@@ -15,8 +15,9 @@ struct PreparedArtworkCacheTests {
         #expect(plan.deferredNames == ["a", "b", "c"])
     }
 
-    @Test func `prepare all releases launch before deferred catalog finishes`() async {
+    @Test func `prepare all releases launch before deferred catalog finishes`() async throws {
         let deferredGate = DeferredDecodeGate()
+        defer { Task { await deferredGate.open() } }
         let cache = PreparedArtworkCache.makeForTesting(
             catalogNames: ["priority-a", "priority-b", "deferred-a", "deferred-b"],
         ) { name in
@@ -26,11 +27,14 @@ struct PreparedArtworkCacheTests {
             return PreparedArtwork(name: name, image: nil)
         }
 
+        var launchReleased = false
         let prepareTask = Task {
             await cache.prepareAll(priorityImageNames: ["priority-a", "priority-b"])
+            launchReleased = true
         }
+        defer { prepareTask.cancel() }
 
-        await prepareTask.value
+        try await waitUntil("launch preparation to release before deferred decoding") { launchReleased }
 
         #expect(cache.isLaunchWarmupComplete)
         #expect(!cache.isDeferredWarmupComplete)
@@ -43,9 +47,10 @@ struct PreparedArtworkCacheTests {
         #expect(cache.completedCount == 4)
     }
 
-    @Test func `viewport prepare overtakes queued deferred artwork`() async {
+    @Test func `viewport prepare overtakes queued deferred artwork`() async throws {
         let image = makeImage()
         let deferredGate = DeferredDecodeGate()
+        defer { Task { await deferredGate.open() } }
         let blockedStarts = DecodeCallCounter()
         let cache = PreparedArtworkCache.makeForTesting(
             catalogNames: ["blocked-a", "blocked-b", "viewport"],
@@ -58,13 +63,17 @@ struct PreparedArtworkCacheTests {
         }
 
         await cache.prepareAll(priorityImageNames: [])
-        await blockedStarts.wait(until: 1)
-        await cache.prepare(names: ["viewport"])
+        try await waitUntil("the first deferred decode") { await blockedStarts.count >= 1 }
+        let viewport = Task { await cache.prepare(names: ["viewport"]) }
+        defer { viewport.cancel() }
+        try await waitUntil("viewport artwork while deferred decoding is blocked") {
+            cache.image(named: "viewport") != nil
+        }
 
-        #expect(cache.image(named: "viewport") != nil)
         #expect(await blockedStarts.count == 1)
 
         await deferredGate.open()
+        await viewport.value
         await cache.waitForDeferredWarmup()
     }
 
@@ -78,33 +87,37 @@ struct PreparedArtworkCacheTests {
         #expect(PreparedArtworkCache.defaultPresentationImageNames.contains(thumbnail))
     }
 
-    @Test func `concurrent callers share two decode slots and canceled queued pins are balanced`() async {
+    @Test func `concurrent callers share two decode slots and canceled queued pins are balanced`() async throws {
         let probe = DecodeProbe()
+        defer { Task { await probe.releaseAll() } }
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
             await probe.decode(name)
         }
         let first = Task { await cache.prepare(names: ["a", "b"]) }
-        await probe.waitForStarts(2)
+        defer { first.cancel() }
+        try await waitUntil("both initial decode slots") { await probe.started.count >= 2 }
         let canceled = Task { _ = await cache.prepareAndPin(names: ["c"]) }
+        defer { canceled.cancel() }
         let pinned = Task { _ = await cache.prepareAndPin(names: ["d", "e"]) }
-        while cache.pinDemandCount(for: "c") == 0 || cache.pinDemandCount(for: "e") == 0 {
-            await Task.yield()
+        defer { pinned.cancel() }
+        try await waitUntil("queued pin demand for c and e") {
+            cache.pinDemandCount(for: "c") > 0 && cache.pinDemandCount(for: "e") > 0
         }
         // Both decode slots run concurrently, so "a"/"b" arrival order is
         // unsynchronized; only the started set is deterministic here.
         let initiallyStarted = await probe.started
         #expect(Set(initiallyStarted) == Set(["a", "b"]))
         canceled.cancel()
+        try await waitUntil("canceled queued pin demand to release") { cache.pinDemandCount(for: "c") == 0 }
         await canceled.value
-        #expect(cache.pinDemandCount(for: "c") == 0)
         await probe.release("a")
-        await probe.waitForStarts(3)
+        try await waitUntil("the promoted d decode") { await probe.started.count >= 3 }
         let startedAfterRelease = await probe.started
         #expect(startedAfterRelease.count == 3)
         #expect(Set(startedAfterRelease.dropLast()) == Set(["a", "b"]))
         #expect(startedAfterRelease.last == "d")
         await probe.release("b")
-        await probe.waitForStarts(4)
+        try await waitUntil("the queued e decode") { await probe.started.count >= 4 }
         await probe.release("d")
         await probe.release("e")
         await first.value
@@ -112,24 +125,25 @@ struct PreparedArtworkCacheTests {
         #expect(await probe.maximumActive == 2)
     }
 
-    @Test func `imminent demand promotes deferred work ahead of queued viewport work`() async {
+    @Test func `imminent demand promotes deferred work ahead of queued viewport work`() async throws {
         let probe = DecodeProbe()
+        defer { Task { await probe.releaseAll() } }
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["a", "z"]) { name in
             await probe.decode(name)
         }
         await cache.prepareAll(priorityImageNames: [])
-        await probe.waitForStarts(1)
+        try await waitUntil("the initial deferred decode") { await probe.started.count >= 1 }
         let viewport = Task { await cache.prepare(names: ["b", "c"]) }
-        await probe.waitForStarts(2)
+        defer { viewport.cancel() }
+        try await waitUntil("the viewport b decode") { await probe.started.count >= 2 }
         let imminent = Task { _ = await cache.prepareAndPin(names: ["z"]) }
-        while cache.pinDemandCount(for: "z") == 0 {
-            await Task.yield()
-        }
+        defer { imminent.cancel() }
+        try await waitUntil("imminent pin demand for z") { cache.pinDemandCount(for: "z") > 0 }
         await probe.release("b")
-        await probe.waitForStarts(3)
+        try await waitUntil("the promoted z decode") { await probe.started.count >= 3 }
         #expect(await probe.started == ["a", "b", "z"])
         await probe.release("z")
-        await probe.waitForStarts(4)
+        try await waitUntil("the queued c decode") { await probe.started.count >= 4 }
         await probe.release("a")
         await probe.release("c")
         await viewport.value
@@ -252,10 +266,13 @@ struct PreparedArtworkCacheTests {
         #expect(cache.pinDemandCount(for: "shared") == 1)
         #expect(cache.pinDemandCount(for: "new") == 1)
     }
+}
 
-    @Test func `releasing pins during decode does not leak A pin`() async {
+extension PreparedArtworkCacheTests {
+    @Test func `releasing pins during decode does not leak A pin`() async throws {
         let image = makeImage()
         let gate = DeferredDecodeGate()
+        defer { Task { await gate.open() } }
         let started = DecodeCallCounter()
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
             await started.markCalled()
@@ -264,7 +281,8 @@ struct PreparedArtworkCacheTests {
         }
 
         let prepareTask = Task { _ = await cache.prepareAndPin(names: ["art"]) }
-        await started.wait(until: 1)
+        defer { prepareTask.cancel() }
+        try await waitUntil("the pinned artwork decode") { await started.count >= 1 }
         cache.releasePins(names: ["art"])
         await gate.open()
         await prepareTask.value
@@ -301,9 +319,10 @@ struct PreparedArtworkCacheTests {
     }
 
     @Test(arguments: [false, true])
-    func `shared decode survives consumer cancellation`(cancelInitiator: Bool) async {
+    func `shared decode survives consumer cancellation`(cancelInitiator: Bool) async throws {
         let image = makeImage()
         let gate = DeferredDecodeGate()
+        defer { Task { await gate.open() } }
         let counter = DecodeCallCounter()
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
             await counter.markCalled()
@@ -312,13 +331,11 @@ struct PreparedArtworkCacheTests {
         }
 
         let viewport = Task { await cache.prepare(names: ["art"]) }
-        await counter.wait(until: 1)
+        defer { viewport.cancel() }
+        try await waitUntil("the shared artwork decode") { await counter.count >= 1 }
         let pin = Task { _ = await cache.prepareAndPin(names: ["art"]) }
-        let deadline = ContinuousClock.now + .seconds(2)
-        while cache.pinDemandCount(for: "art") == 0, ContinuousClock.now < deadline {
-            await Task.yield()
-        }
-        #expect(cache.pinDemandCount(for: "art") == 1)
+        defer { pin.cancel() }
+        try await waitUntil("the shared artwork pin") { cache.pinDemandCount(for: "art") == 1 }
 
         if cancelInitiator {
             viewport.cancel()
@@ -338,9 +355,10 @@ struct PreparedArtworkCacheTests {
         #expect(cache.pinDemandCount(for: "art") == 0)
     }
 
-    @Test func `canceled batch finishes started images without decoding queued images`() async {
+    @Test func `canceled batch finishes started images without decoding queued images`() async throws {
         let image = makeImage()
         let gate = DeferredDecodeGate()
+        defer { Task { await gate.open() } }
         let counter = DecodeCallCounter()
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
             await counter.markCalled()
@@ -349,7 +367,8 @@ struct PreparedArtworkCacheTests {
         }
 
         let batch = Task { await cache.prepare(names: ["a", "b", "c", "d"]) }
-        await counter.wait(until: 2)
+        defer { batch.cancel() }
+        try await waitUntil("both batch decode slots") { await counter.count >= 2 }
         batch.cancel()
         await gate.open()
         await batch.value
@@ -394,6 +413,18 @@ struct PreparedArtworkCacheTests {
         let attemptedDecodes = await counter.count
         #expect(attemptedDecodes == 0)
         #expect(cache.pinDemandCount(for: "art") == 0)
+    }
+
+    private func waitUntil(_ description: String, condition: @MainActor () async -> Bool) async throws {
+        let deadline = ContinuousClock.now + .seconds(2)
+        while true {
+            try Task.checkCancellation()
+            if await condition() {
+                return
+            }
+            try #require(ContinuousClock.now < deadline, "Timed out waiting for \(description)")
+            try await Task.sleep(for: .milliseconds(5))
+        }
     }
 
     private func makeImage() -> UIImage {
@@ -463,24 +494,9 @@ private actor DeferredDecodeGate {
 
 private actor DecodeCallCounter {
     private(set) var count = 0
-    private var waiters: [(Int, CheckedContinuation<Void, Never>)] = []
 
     func markCalled() {
         count += 1
-        let ready = waiters.filter { count >= $0.0 }
-        waiters.removeAll { count >= $0.0 }
-        for waiter in ready {
-            waiter.1.resume()
-        }
-    }
-
-    func wait(until target: Int) async {
-        if count >= target {
-            return
-        }
-        await withCheckedContinuation { continuation in
-            waiters.append((target, continuation))
-        }
     }
 }
 
@@ -488,17 +504,14 @@ private actor DecodeProbe {
     private(set) var started: [String] = []
     private(set) var maximumActive = 0
     private var pending: [String: CheckedContinuation<Void, Never>] = [:]
-    private var startWaiters: [(Int, CheckedContinuation<Void, Never>)] = []
+    private var isReleased = false
 
     func decode(_ name: String) async -> PreparedArtwork {
-        await withCheckedContinuation { continuation in
-            pending[name] = continuation
-            started.append(name)
-            maximumActive = max(maximumActive, pending.count)
-            let ready = startWaiters.filter { started.count >= $0.0 }
-            startWaiters.removeAll { started.count >= $0.0 }
-            for waiter in ready {
-                waiter.1.resume()
+        if !isReleased {
+            await withCheckedContinuation { continuation in
+                pending[name] = continuation
+                started.append(name)
+                maximumActive = max(maximumActive, pending.count)
             }
         }
         return PreparedArtwork(name: name, image: nil)
@@ -508,8 +521,12 @@ private actor DecodeProbe {
         pending.removeValue(forKey: name)?.resume()
     }
 
-    func waitForStarts(_ count: Int) async {
-        guard started.count < count else { return }
-        await withCheckedContinuation { startWaiters.append((count, $0)) }
+    func releaseAll() {
+        isReleased = true
+        let decodes = pending.values
+        pending.removeAll()
+        for decode in decodes {
+            decode.resume()
+        }
     }
 }

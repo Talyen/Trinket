@@ -75,7 +75,7 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
         guard let position = node.gridPosition,
               let clearedPositions = index.clearedPositionsByCluster[node.clusterID]
         else { return false }
-        return Self.adjacentPositions(to: position).contains { clearedPositions.contains($0) }
+        return position.neighbors.contains { clearedPositions.contains($0) }
     }
 
     private func reachabilityIndex() -> ReachabilityIndex {
@@ -87,17 +87,6 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
             }
         }
         return index
-    }
-
-    private static func adjacentPositions(to position: LabyrinthGridPosition) -> [LabyrinthGridPosition] {
-        [
-            LabyrinthGridPosition(row: position.row, column: position.column - 1),
-            LabyrinthGridPosition(row: position.row, column: position.column + 1),
-            LabyrinthGridPosition(row: position.row - 1, column: position.column),
-            LabyrinthGridPosition(row: position.row - 1, column: position.column + 1),
-            LabyrinthGridPosition(row: position.row + 1, column: position.column - 1),
-            LabyrinthGridPosition(row: position.row + 1, column: position.column),
-        ]
     }
 
     public var currentFloorNumber: Int {

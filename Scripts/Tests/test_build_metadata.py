@@ -22,6 +22,9 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
+
+from script_test_support import load_script
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -121,18 +124,18 @@ touch_build_stamp results package_TrinketCore
         self.assertFalse(list((self.root / 'results').glob('*.stamp')))
 
     def test_xcode_sdk_configuration_architecture_and_fingerprint_mismatches(self):
-        for variable in ('FAKE_XCODE', 'FAKE_SDK'):
-            with self.subTest(variable=variable):
-                self.build()
-                self.assertIn('mismatch', self.check(expected=1, env={**self.env, variable: 'different'}).stderr)
-        for key in ('configuration', 'host_architecture', 'architecture_policy', 'fingerprint', 'version'):
-            with self.subTest(key=key):
-                self.build()
-                path = self.metadata()
-                data = json.loads(path.read_text())
-                data[key] = 'incompatible'
-                path.write_text(json.dumps(data))
-                self.assertIn(key, self.check(expected=1).stderr)
+        self.build()
+        saved = json.loads(self.metadata().read_text())
+        current = {key: value for key, value in saved.items() if key != 'fingerprint'}
+        metadata = load_script('build_metadata', 'build-metadata.py')
+        with patch.dict(os.environ, {'CI': '', 'GITHUB_ACTIONS': ''}):
+            metadata.validate_metadata(saved, current, 'smoke')
+            for key in current.keys() - {'commit'} | {'fingerprint'}:
+                with self.subTest(key=key), self.assertRaisesRegex(ValueError, key):
+                    metadata.validate_metadata(saved | {key: 'incompatible'}, current, 'smoke')
+            for invalid in (None, [], 'identity'):
+                with self.subTest(identity=invalid), self.assertRaisesRegex(ValueError, 'object'):
+                    metadata.differences(invalid, current)
 
     def test_legacy_missing_and_corrupt_metadata_fail_closed(self):
         self.check(expected=1)

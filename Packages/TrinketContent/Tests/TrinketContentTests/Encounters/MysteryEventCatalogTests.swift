@@ -4,37 +4,17 @@ import TrinketCore
 @testable import TrinketContent
 
 struct MysteryEventCatalogTests {
-    @Test func `unknown mystery and recruit I ds do not resolve`() throws {
-        try #expect(GameContent.mysteryEvent(matching: "nonexistent-event") == nil)
-        try #expect(GameContent.recruitEvent(matching: "nonexistent-event") == nil)
-    }
-
-    @Test func `mystery event choice counts match kind`() throws {
-        for event in GameContent.mysteryEvents {
-            try #expect(
-                event.choices.count == 2,
-                "Mystery event \(event.id) should have exactly 2 choices",
-            )
-            try #expect(event.unlockCombatantID == nil)
-        }
-        for event in GameContent.recruitEvents {
-            try #expect(
-                event.choices.count == 1,
-                "Recruit event \(event.id) should have exactly 1 choice",
-            )
-            let combatantID = try #require(event.unlockCombatantID)
-            try #expect(event.choices[0].effects == [.unlockCombatant(combatantID)])
-        }
-    }
-
     @Test func `recruit events cover every combatant exactly once`() throws {
         let unlockIDs = GameContent.recruitEvents.compactMap(\.unlockCombatantID)
         try #expect(unlockIDs.count == Set(unlockIDs).count)
 
         let expectedHeroes = Set(GameContent.heroes.map(\.id))
         let expectedCompanions = Set(GameContent.companions.map(\.id))
-        try #expect(Set(unlockIDs.filter { expectedHeroes.contains($0) }) == expectedHeroes)
-        try #expect(Set(unlockIDs.filter { expectedCompanions.contains($0) }) == expectedCompanions)
+        #expect(Set(unlockIDs) == expectedHeroes.union(expectedCompanions))
+        for event in GameContent.recruitEvents {
+            let combatant = try #require(GameContent.combatant(forMysteryEvent: event), "Unresolvable recruit \(event.id)")
+            #expect(event.choices.map(\.effects) == [[.unlockCombatant(combatant.id)]])
+        }
     }
 
     @Test func `all mystery event choices have unique I ds and at least one effect`() throws {
@@ -172,8 +152,8 @@ struct MysteryEventCatalogTests {
         )
         let first = try #require(stage.resolvedBattleEnemyID(worldSeed: 8))
         #expect(first == stage.resolvedBattleEnemyID(worldSeed: 8))
-        let other = try #require(stage.resolvedBattleEnemyID(worldSeed: 9))
-        #expect(first != other)
+        let picks = try (UInt64(8) ... 23).map { try #require(stage.resolvedBattleEnemyID(worldSeed: $0)) }
+        #expect(Set(picks).count > 1)
     }
 
     @Test func `item pools cover known special items and use gear fallbacks`() throws {
@@ -249,16 +229,6 @@ struct MysteryEventCatalogTests {
         #expect(spring.narrative(for: [rare]).contains("an Emerald Ring"))
         let garden = try #require(GameContent.mysteryEvent(matching: "medicinal-herb-garden"))
         #expect(garden.narrative(for: []).contains("a suit of Leather Armor"))
-    }
-
-    @Test func `recruit events resolve combatant roles`() throws {
-        let heroEvent = try #require(GameContent.recruitEvent(matching: "recruit-ranger"))
-        let hero = try #require(GameContent.combatant(forMysteryEvent: heroEvent))
-        try #expect(hero.role == .hero)
-
-        let companionEvent = try #require(GameContent.recruitEvent(matching: "recruit-bear"))
-        let companion = try #require(GameContent.combatant(forMysteryEvent: companionEvent))
-        try #expect(companion.role == .companion)
     }
 }
 

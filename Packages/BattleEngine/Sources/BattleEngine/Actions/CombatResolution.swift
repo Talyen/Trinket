@@ -204,20 +204,19 @@ struct CombatResolution {
     }
 
     mutating func consumePartyCardDamage(from provenance: DamageProvenance?) -> Int {
-        guard let provenance, let cardID = provenance.cardID,
-              let index = cards.indices.last, cards[index].id == cardID,
-              currentAction?.id == provenance.actionID else { return 0 }
-        let amount = cards[index].partyDamageBonus
-        cards[index].partyDamageBonus = 0
-        return amount
+        consumeCardBonus(\.partyDamageBonus, from: provenance)
     }
 
     mutating func consumePartyDamage(from provenance: DamageProvenance?) -> Int {
+        consumeCardBonus(\.partnerAttackDamageBonus, from: provenance)
+    }
+
+    private mutating func consumeCardBonus(_ bonus: WritableKeyPath<Card, Int>, from provenance: DamageProvenance?) -> Int {
         guard let provenance, let cardID = provenance.cardID,
               let index = cards.indices.last, cards[index].id == cardID,
               currentAction?.id == provenance.actionID else { return 0 }
-        let amount = cards[index].partnerAttackDamageBonus
-        cards[index].partnerAttackDamageBonus = 0
+        let amount = cards[index][keyPath: bonus]
+        cards[index][keyPath: bonus] = 0
         return amount
     }
 

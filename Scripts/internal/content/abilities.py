@@ -109,8 +109,10 @@ def _ability_inventory_digest() -> str:
 def generate_ability_inventory() -> None:
     """Dump id/name/tier/summary from Swift Ability.summary for humans/agents."""
     out = GENERATED_DIR / "AbilityInventory.generated.tsv"
-    expected = parse_authored_ability_inventory_rows()
-    expected_ids = {ability_id for ability_id, _, _ in expected}
+    expected_rows = parse_authored_ability_inventory_rows()
+    expected = {ability_id: (name, tier) for ability_id, name, tier in expected_rows}
+    if len(expected) != len(expected_rows):
+        raise RuntimeError("Authored ability catalogs contain duplicate IDs")
 
     force = os.environ.get("TRINKET_FORCE_ABILITY_DUMP") == "1"
     current_digest = _ability_inventory_digest()
@@ -162,18 +164,16 @@ def generate_ability_inventory() -> None:
             raise RuntimeError(f"AbilityInventoryDump duplicate id: {ability_id}")
         dumped[ability_id] = (name, tier)
 
-    dumped_ids = set(dumped)
-    if dumped_ids != expected_ids:
-        missing = sorted(expected_ids - dumped_ids)
-        extra = sorted(dumped_ids - expected_ids)
+    if dumped.keys() != expected.keys():
+        missing = sorted(expected.keys() - dumped.keys())
+        extra = sorted(dumped.keys() - expected.keys())
         raise RuntimeError(
             "AbilityInventoryDump IDs do not match authored catalogs: "
             f"missing={missing!r} extra={extra!r}"
         )
 
-    expected_by_id = {ability_id: (name, tier) for ability_id, name, tier in expected}
     for ability_id, (name, tier) in dumped.items():
-        expected_name, expected_tier = expected_by_id[ability_id]
+        expected_name, expected_tier = expected[ability_id]
         if name != expected_name or tier != expected_tier:
             raise RuntimeError(
                 f"AbilityInventoryDump metadata mismatch for {ability_id}: "

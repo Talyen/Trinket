@@ -69,17 +69,8 @@ public struct AbilityChoices: Hashable, Sendable {
     }
 
     public init(abilities: [Ability]) {
-        var basics: [Ability] = []
-        var skills: [Ability] = []
-        var ultimates: [Ability] = []
-        for ability in abilities {
-            switch ability.tier {
-            case .basic: basics.append(ability)
-            case .skill: skills.append(ability)
-            case .ultimate: ultimates.append(ability)
-            }
-        }
-        self.init(basics: basics, skills: skills, ultimates: ultimates)
+        let byTier = Dictionary(grouping: abilities, by: \.tier)
+        self.init(basics: byTier[.basic] ?? [], skills: byTier[.skill] ?? [], ultimates: byTier[.ultimate] ?? [])
     }
 
     public func abilities(for tier: AbilityTier) -> [Ability] {

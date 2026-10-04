@@ -160,10 +160,6 @@ public struct BattleHand: Hashable, Sendable {
         cards.isEmpty && buffer.isEmpty
     }
 
-    public var visibleIsEmpty: Bool {
-        cards.isEmpty
-    }
-
     public func card(id: Int) -> BattleCard? {
         cards.first { $0.id == id }
     }

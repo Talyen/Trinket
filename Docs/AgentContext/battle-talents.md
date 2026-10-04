@@ -123,7 +123,7 @@ Prismatic Edge's Burn and allied Thorn Shedding's Poison attach only the Health
 damage their respective hits actually dealt; fully blocked hits attach none.
 Sunwall rolls once per Holy ability and, on success, grants the Companion Block
 equal to actual Holy Health damage without applying Block bonuses or pacing
-again.
+again. Holy follow-up damage shares that ability's roll allowance.
 
 ### Physical damage rewards and Burn ticks
 
@@ -327,6 +327,8 @@ from Mana-empowered Critical Hits within the existing hit.
 
 ### Dragon’s Patronage and Prismatic Scales
 
+Arcane Breath adds one damage to existing Freeze operations during Mana
+empowerment; a Burn outcome of Astral Arrow gains no extra Freeze hit or buildup.
 Dragon’s Patronage grants 2 Block to Frost Whelp's ally once per Mana-empowered
 ability. Mana Moth's Prismatic Scales strengthens existing Burn and Freeze
 damage during Mana empowerment, without adding hits or another Mana payment.

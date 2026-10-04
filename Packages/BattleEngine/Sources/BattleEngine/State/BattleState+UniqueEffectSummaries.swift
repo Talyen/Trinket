@@ -27,7 +27,7 @@ extension BattleState {
         if state.goldDamage > 0 {
             summaries.append(EffectSummary(
                 keyword: .holy,
-                text: "The Golden Crucible: Your next Holy hit deals \(state.goldDamage) additional damage.",
+                text: "The Golden Crucible: Your next Holy hit from a manually played card deals \(state.goldDamage) additional damage.",
             ))
         }
         return summaries

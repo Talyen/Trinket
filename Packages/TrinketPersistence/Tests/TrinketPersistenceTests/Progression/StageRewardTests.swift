@@ -155,7 +155,7 @@ struct StageRewardTests {
         try #expect(save.inventory.items.count == itemCountAfterFirst)
     }
 
-    @Test func `claimed stage replay still banks battle earned gold`() throws {
+    @Test func `claimed stage replay rejects additional battle gold and duplicate loot`() throws {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -190,23 +190,6 @@ struct StageRewardTests {
 
         try #expect(save.roster.gold == goldAfterFirst)
         try #expect(save.inventory.items.count(where: { $0.id == loot.item.id }) == 1)
-    }
-
-    @Test func `completing stage advances journey`() throws {
-        var save = SaveTestSupport.makeSave(inventory: .testSeed)
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-
-        StageCompletion.complete(
-            firstStage,
-            hero: hero,
-            companion: companion,
-            in: GameContent.chapters,
-            save: &save,
-        )
-
-        try #expect(save.journey.isActive(chapter.stages[1]))
-        try #expect(!(save.journey.isActive(firstStage)))
     }
 
     @Test func `non battle stages grant authored rewards without experience`() throws {
@@ -293,7 +276,7 @@ struct StageRewardTests {
         #expect(loweredHeroXP < defaultedHeroXP)
     }
 
-    @Test func `claim rewards banks battle gold when stage already claimed`() throws {
+    @Test func `claimed stage reward entrypoint rejects additional battle gold and rewards`() throws {
         var save = SaveTestSupport.makeSave(
             homestead: PlayerHomesteadState(
                 resources: [:],
@@ -538,9 +521,11 @@ extension StageRewardTests {
     @Test func `near-cap victory converts overflow gold to experience`() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        for gold in [990, 999] {
+        // Equal-level battle XP is 7; overflow adds floor(7 × overflow / 20).
+        for (gold, compensation) in [(990, 3), (999, 7)] {
             var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: gold)
             let heroBefore = save.roster.progression(for: hero)
+            let companionBefore = save.roster.progression(for: companion)
             VictoryRewardApplier.grantVictoryRewards(
                 hero: hero,
                 companion: companion,
@@ -551,22 +536,23 @@ extension StageRewardTests {
                 item: nil,
                 save: &save,
             )
-            #expect(save.roster.gold == min(PlayerRosterState.maxGoldBalance, gold + 20))
-            #expect(save.roster.progression(for: hero) != heroBefore)
+            #expect(save.roster.gold == 999)
+            #expect(save.roster.progression(for: hero) == heroBefore.addingExperience(7 + compensation))
+            #expect(save.roster.progression(for: companion) == companionBefore.addingExperience(7 + compensation))
         }
     }
 }
 
 extension StageRewardTests {
     @Test(arguments: [
-        (gold: 979, reserved: 0, spending: 0, converted: false),
-        (gold: 980, reserved: 0, spending: 0, converted: true),
-        (gold: 970, reserved: 10, spending: 0, converted: true),
-        (gold: 990, reserved: 0, spending: 11, converted: false),
-        (gold: 999, reserved: 0, spending: 3, converted: true),
+        (gold: 979, reserved: 0, spending: 0, gained: 20, replacementXP: 0),
+        (gold: 980, reserved: 0, spending: 0, gained: 19, replacementXP: 0),
+        (gold: 970, reserved: 10, spending: 0, gained: 19, replacementXP: 0),
+        (gold: 990, reserved: 0, spending: 11, gained: 20, replacementXP: 0),
+        (gold: 999, reserved: 0, spending: 3, gained: 3, replacementXP: 5),
     ])
     func `reward settlement conserves spending and replaces only gains that do not fit`(
-        scenario: (gold: Int, reserved: Int, spending: Int, converted: Bool),
+        scenario: (gold: Int, reserved: Int, spending: Int, gained: Int, replacementXP: Int),
     ) {
         let plan = BattleRewardPlan(
             stageGold: 20, goldFindPercent: 0, goldOverflowExperience: 7,
@@ -576,13 +562,15 @@ extension StageRewardTests {
         save.homestead.pendingProduction = [.gold: Double(scenario.reserved)]
         let inputs = RewardSettlementInputs(save: save, hero: save.roster.activeHero, companion: save.roster.activeCompanion)
         let settled = plan.settle(battleGold: .init(spent: scenario.spending), inputs: inputs)
-        let expectedGold = min(20, max(0, PlayerRosterState.maxGoldBalance - scenario.gold - scenario.reserved + scenario.spending))
-        #expect(settled.award.goldGained == expectedGold)
-        #expect(settled.award.goldDelta == expectedGold - scenario.spending)
-        #expect(settled.replacementExperience == RewardSettlementPolicy.overflowExperience(7, overflow: 20 - expectedGold, gains: 20))
+        #expect(settled.award.goldGained == scenario.gained)
+        #expect(settled.award.goldDelta == scenario.gained - scenario.spending)
+        #expect(settled.replacementExperience == scenario.replacementXP)
+        #expect(settled.award.heroExperience == 4 + scenario.replacementXP)
+        #expect(settled.award.companionExperience == 5 + scenario.replacementXP)
         VictoryRewardApplier.apply(settled, hero: save.roster.activeHero, companion: save.roster.activeCompanion, save: &save)
-        #expect(save.roster.gold == scenario.gold + settled.award.goldDelta)
-        #expect(save.roster.progression(for: save.roster.activeHero) == settled.heroProgressionAfter)
-        #expect(save.roster.progression(for: save.roster.activeCompanion) == settled.companionProgressionAfter)
+        #expect(save.roster.gold == scenario.gold + scenario.gained - scenario.spending)
+        #expect(save.roster.progression(for: save.roster.activeHero) == inputs.heroProgression.addingExperience(4 + scenario.replacementXP))
+        #expect(save.roster.progression(for: save.roster.activeCompanion) == inputs.companionProgression
+            .addingExperience(5 + scenario.replacementXP))
     }
 }

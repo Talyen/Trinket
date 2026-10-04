@@ -19,7 +19,7 @@ package extension DamagePipeline {
             context.lastEnemyDefeatWasCritical = state.isCritical
             context.lastEnemyDefeatSourceActorID = state.sourceActorID
             if state.targetStatus.isBleeding || state.damageKeyword == .bleed,
-               let source = state.partySource(in: context) {
+               let source = state.partySource(in: context), source.isAlive {
                 // Snapshot affliction OR bleed-typed damage: a bleed hit can
                 // defeat before its own stack attaches, so both disjuncts matter.
                 let gold = context.modifiers(for: source.id).triggers.defeatBleedingEnemyGold
@@ -74,12 +74,14 @@ package extension DamagePipeline {
         context.roster.mutateRuntime(for: companion) {
             $0.talents.battle.interceptedFirstAllyFatalHit = true
         }
+        var options = DamageOperation.redirected
+        options.isThornsDamage = state.options.isThornsDamage
         state.damageEvents.append(contentsOf: context.resolveDamage(DamageRequest(
             amount: redirected,
             target: companion,
             keyword: state.damageKeyword ?? .physical,
             sourceActorID: state.sourceActorID,
-            options: .redirected,
+            options: options,
         )).events)
         state.remaining = 0
         state.healthLost = 0

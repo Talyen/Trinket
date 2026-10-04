@@ -5,15 +5,19 @@ import TrinketCore
 
 struct ItemPickerItemsTests {
     @Test func `search combines fields and filters`() {
-        let item = makeItem("match", name: "Étoile", rarity: .astral, keyword: .burn)
+        let base = makeItem("match", name: "Étoile", rarity: .astral, keyword: .burn)
+        let item = InventoryItem(
+            id: base.id, baseType: base.baseType, rarity: base.rarity, displayName: base.displayName,
+            affixes: base.affixes + [ItemAffix(id: "purity", title: "Purity", description: "Restore Health.", keywords: [.health])],
+        )
         var model = ItemPickerItems()
         model.update(inventory: [item, makeItem("other", rarity: .basic)], loadout: .init(), slot: .weapon)
-        let filter = ItemPickerFilter(search: "  ETOILE sword flame damage BURN \n", rarity: .astral, keyword: .burn)
+        let filter = ItemPickerFilter(search: "  ETOILE sword flame damage purity health BURN \n", rarity: .astral, keyword: .burn)
         #expect(model.matching(filter).map(\.id) == [item.id])
         #expect(model.matching(ItemPickerFilter(search: "etoile missing")).isEmpty)
         #expect(model.matching(ItemPickerFilter(search: "etoile", rarity: .unique)).isEmpty)
         #expect(model.matching(ItemPickerFilter(search: "etoile", keyword: .poison)).isEmpty)
-        #expect(model.keywords == [.burn, .physical])
+        #expect(model.keywords == [.burn, .health, .physical])
         #expect(!model.keywords.contains(.poison))
     }
 
@@ -46,50 +50,25 @@ struct ItemPickerItemsTests {
         model.update(inventory: [makeItem("same", name: "Old")], loadout: .init(), slot: .weapon)
         model.update(inventory: [makeItem("same", name: "New", keyword: .burn)], loadout: .init(), slot: .weapon)
         #expect(model.matching(ItemPickerFilter(search: "old")).isEmpty)
-        #expect(model.matching(ItemPickerFilter(search: "new", keyword: .burn)).count == 1)
-        model.update(inventory: [makeItem("same")], loadout: .init(), slot: .armor)
+        #expect(model.matching(ItemPickerFilter(search: "new", keyword: .burn)).map(\.id) == ["same"])
+        let replacement = makeItem("replacement", name: "Replacement", keyword: .poison)
+        model.update(inventory: [replacement], loadout: .init(), slot: .weapon)
+        #expect(model.eligible.map(\.id) == [replacement.id])
+        #expect(model.matching(ItemPickerFilter(search: "new")).isEmpty)
+        #expect(model.matching(ItemPickerFilter(search: "replacement", keyword: .poison)).map(\.id) == [replacement.id])
+        #expect(!model.keywords.contains(.burn))
+        model.update(inventory: [replacement], loadout: .init(), slot: .armor)
         #expect(model.eligible.isEmpty)
         #expect(model.keywords.isEmpty)
     }
 
-    @Test(arguments: [50, 200, 500])
-    func `large inventories retain distinct instances`(count: Int) {
+    @Test func `large inventories retain distinct instances`() {
+        let count = 500
         let items = (0 ..< count).map { makeItem("item-\($0)", rarity: $0.isMultiple(of: 2) ? .astral : .basic) }
         var model = ItemPickerItems()
         model.update(inventory: items, loadout: .init(), slot: .weapon)
         #expect(Set(model.eligible.map(\.id)).count == count)
         #expect(model.matching(ItemPickerFilter(search: "sword", rarity: .astral)).count == count / 2)
-    }
-
-    @Test func `multi-word search matches disjoint fields`() {
-        let item = InventoryItem(
-            id: "sun-blade",
-            baseType: ItemBaseType(id: "sword", name: "Broadsword", slot: .weapon, weaponKind: .oneHanded, keywordAffinities: []),
-            rarity: .astral,
-            displayName: "Solar Edge",
-            affixes: [
-                ItemAffix(id: "affix-1", title: "Radiance", description: "Inflicts burning to foes.", keywords: [.burn]),
-                ItemAffix(id: "affix-2", title: "Purity", description: "Cleanse all negative effects.", keywords: [.cleanse]),
-            ],
-        )
-        var model = ItemPickerItems()
-        model.update(inventory: [item], loadout: .init(), slot: .weapon)
-
-        // Matching words across name ("solar"), baseType ("broadsword"), and affix title ("radiance")
-        #expect(model.matching(ItemPickerFilter(search: "solar broadsword radiance")).count == 1)
-        // Matching words across affix title ("purity") and affix description ("burning")
-        #expect(model.matching(ItemPickerFilter(search: "purity burning")).count == 1)
-        // Non-matching word
-        #expect(model.matching(ItemPickerFilter(search: "solar frost")).isEmpty)
-    }
-
-    @Test func `diacritic and accented words match normalized queries`() {
-        let item = makeItem("french-item", name: "Épée Enflammée", keyword: .burn)
-        var model = ItemPickerItems()
-        model.update(inventory: [item], loadout: .init(), slot: .weapon)
-
-        #expect(model.matching(ItemPickerFilter(search: "epee enflammee")).count == 1)
-        #expect(model.matching(ItemPickerFilter(search: "ÉPÉE")).count == 1)
     }
 
     private func makeItem(

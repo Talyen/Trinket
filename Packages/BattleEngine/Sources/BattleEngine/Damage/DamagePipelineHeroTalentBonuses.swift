@@ -81,9 +81,10 @@ package extension DamagePipeline {
         if keyword == .poison, state.targetStatus.isBurning, triggers.poisonVsBurningMultiplier > 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.poisonVsBurningMultiplier)
         }
-        if keyword == .freeze, state.targetStatus.isPoisoned, triggers.coolMossFreezeBonus > 0 {
-            state.remaining += triggers.coolMossFreezeBonus
-            state.itemBonus += triggers.coolMossFreezeBonus
+        if keyword == .freeze, state.targetStatus.isPoisoned, context.roster.hero.isAlive {
+            let bonus = context.heroModifiers.triggers.coolMossFreezeBonus
+            state.remaining += bonus
+            state.itemBonus += bonus
         }
         if keyword == .bleed, state.isCritical, triggers.bleedCriticalBelowHalfMultiplier > 1,
            context.roster.health(for: state.combatant) * 2 < context.roster.maxHealth(for: state.combatant) {

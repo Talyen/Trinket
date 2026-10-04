@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -53,12 +54,14 @@ def export_failure_attachments(
     output_dir: Path,
     timeout_seconds: int = ATTACHMENT_EXPORT_TIMEOUT_SECONDS,
 ) -> tuple[bool, str | None]:
-    output_dir.mkdir(parents=True, exist_ok=True)
-    manifest = output_dir / "manifest.json"
+    # This directory is a derived export: reusing it would attach screenshots
+    # from an earlier invocation to the current failures.
     try:
-        manifest.unlink(missing_ok=True)
-    except OSError:
-        pass
+        if output_dir.exists():
+            shutil.rmtree(output_dir)
+        output_dir.mkdir(parents=True)
+    except OSError as error:
+        return False, f"could not prepare attachment export: {error}"
     command = [
         "xcrun",
         "xcresulttool",

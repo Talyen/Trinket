@@ -69,8 +69,7 @@ public enum ItemCorruption {
         for item: InventoryItem,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> Set<CorruptionEffectKind> {
-        let eligibleKinds = eligibleKinds(for: item)
-        let eligible = CorruptionEffectKind.allCases.filter(eligibleKinds.contains)
+        let eligible = eligibleKinds(for: item)
         var selected = Set<CorruptionEffectKind>()
         for kind in eligible {
             let chance = chancePercent(for: kind)
@@ -84,28 +83,21 @@ public enum ItemCorruption {
         return selected
     }
 
-    static func eligibleKinds(for item: InventoryItem) -> Set<CorruptionEffectKind> {
-        var kinds: Set<CorruptionEffectKind> = []
-        if item.affixes.count < maxAffixCount {
-            kinds.insert(.addAffix)
-        }
-        if !item.affixes.isEmpty {
-            kinds.insert(.replaceAffix)
-        }
-        if item.rarity == .basic {
-            kinds.insert(.upgradeRarity)
-        }
+    private static func eligibleKinds(for item: InventoryItem) -> [CorruptionEffectKind] {
         let powers = item.affixes.indices.compactMap { index in
             item.affixPowers.flatMap { $0.indices.contains(index) ? $0[index] : nil }
                 ?? GameContent.itemAffixDefinition(matching: item.affixes[index].id)?.power(for: item.rarity)
         }
-        if ItemAffixPower.hasBumpableField(in: powers, direction: .up) {
-            kinds.insert(.bumpUp)
+        // Keep catalog order: both independent rolls and the forced draw consume this sequence.
+        return CorruptionEffectKind.allCases.filter { kind in
+            switch kind {
+            case .addAffix: item.affixes.count < maxAffixCount
+            case .replaceAffix: !item.affixes.isEmpty
+            case .upgradeRarity: item.rarity == .basic
+            case .bumpUp: ItemAffixPower.hasBumpableField(in: powers, direction: .up)
+            case .bumpDown: ItemAffixPower.hasBumpableField(in: powers, direction: .down)
+            }
         }
-        if ItemAffixPower.hasBumpableField(in: powers, direction: .down) {
-            kinds.insert(.bumpDown)
-        }
-        return kinds
     }
 
     private static func chancePercent(for kind: CorruptionEffectKind) -> Int {

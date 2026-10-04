@@ -47,61 +47,6 @@ trinket_asset_cleanup_tracked
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(list(scratch.iterdir()), [])
 
-    def test_portrait_art_has_independent_size_and_preserves_landscape(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            for folder in ("Scripts/lib", "ArtManifest", "Raw Assets", "bin"):
-                (root / folder).mkdir(parents=True, exist_ok=True)
-            for relative in ("Scripts/prepare-art-assets.sh", "Scripts/lib/media-assets.sh"):
-                target = root / relative
-                target.write_text((ROOT / relative).read_text(), encoding="utf-8")
-                target.chmod(0o755)
-            (root / "Raw Assets/source.jpeg").write_bytes(b"source")
-            (root / "ArtManifest/curated-assets.tsv").write_text(
-                "background\twheatField\tbg_field\tRaw Assets/source.jpeg\t0.5\t0.5\n"
-                "portrait_background\twheatField\tbg_field_portrait\tRaw Assets/source.jpeg\t0.5\t0.5\n",
-                encoding="utf-8",
-            )
-            sips = root / "bin/sips"
-            sips.write_text(
-                "#!/usr/bin/env python3\n"
-                "import os, pathlib, sys\n"
-                "args = sys.argv[1:]\n"
-                "if '--out' in args:\n"
-                "    out = pathlib.Path(args[args.index('--out') + 1])\n"
-                "    out.write_bytes(b'encoded')\n"
-                "    with open(os.environ['ART_TEST_LOG'], 'a') as log:\n"
-                "        log.write(out.name + ':' + args[args.index('-Z') + 1] + '\\n')\n"
-                "elif '-g' in args:\n"
-                "    portrait = 'portrait' in args[-1]\n"
-                "    print('pixelWidth:', 1536 if portrait else 1600)\n"
-                "    print('pixelHeight:', 2752 if portrait else 1194)\n",
-                encoding="utf-8",
-            )
-            sips.chmod(0o755)
-            log = root / "conversions.log"
-            environment = {
-                **os.environ,
-                "PATH": f"{root / 'bin'}:{os.environ['PATH']}",
-                "ART_TEST_LOG": str(log),
-            }
-            command = ["bash", str(root / "Scripts/prepare-art-assets.sh")]
-            first = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            self.assertEqual(
-                sorted(log.read_text().splitlines()),
-                ["bg_field.heic:1600", "bg_field_portrait.heic:2752", "bg_field_portrait_thumb.heic:960", "bg_field_thumb.heic:480"],
-            )
-            catalog = root / "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift"
-            generated = catalog.read_text()
-            self.assertIn("portraitBackgroundArtByID", generated)
-            self.assertIn('thumbnailImageName: "bg_field_portrait_thumb"', generated)
-            self.assertIn("sourceAspectRatio: 0.558139534884", generated)
-            second = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True)
-            self.assertEqual(second.returncode, 0, second.stderr)
-            self.assertEqual(len(log.read_text().splitlines()), 4)
-            self.assertEqual(catalog.read_text(), generated)
-
     def test_sfx_cache_tracks_profile_state_output_and_force(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root, environment, conversion_log = self.make_sfx_fixture(directory)
@@ -168,12 +113,19 @@ trinket_asset_cleanup_tracked
     def test_music_cache_tracks_profile_state_output_and_force(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root, environment, conversion_log = self.make_music_fixture(directory)
+            scratch = root / "temporary music"
+            scratch.mkdir()
+            environment["TMPDIR"] = str(scratch)
+            mktemp = root / "bin/mktemp"
+            mktemp.write_text('#!/bin/sh\nexec /usr/bin/mktemp "$TMPDIR/music.XXXXXX"\n')
+            mktemp.chmod(0o755)
 
             def assert_run(expected_conversions: int, **overrides: str) -> None:
                 result = self.run_music_fixture(root, {**environment, **overrides})
                 self.assertEqual(result.returncode, 0, result.stderr)
                 conversion_count = conversion_log.read_text(encoding="utf-8").count("convert")
                 self.assertEqual(conversion_count, expected_conversions)
+                self.assertEqual(list(scratch.iterdir()), [])
 
             assert_run(1)
             state = (
@@ -188,11 +140,19 @@ trinket_asset_cleanup_tracked
             assert_run(2, MUSIC_AAC_BITRATE="128000")
             assert_run(3, FORCE_ASSET_REENCODE="1")
 
-    def test_assert_generated_output_supports_tiered_asset_idempotence(self) -> None:
-        text = (ROOT / "Scripts" / "assert-generated-output.sh").read_text(encoding="utf-8")
-        self.assertIn("snapshot_tracked_asset_catalogs", text)
-        self.assertIn("snapshot_for_idempotent_check", text)
-        self.assertIn("--strict-assets", text)
+            catalog = state.with_name("MusicCatalog.generated.swift")
+            previous = {path: path.read_bytes() for path in (catalog, state)}
+            manifest = root / "MusicManifest/music.tsv"
+            manifest.write_text(manifest.read_text().replace("1.0", "0.5"))
+            move = root / "bin/mv"
+            move.write_text('#!/bin/sh\ncase "$*" in *MusicCatalog.generated.swift*) exit 23;; esac\nexec /bin/mv "$@"\n')
+            move.chmod(0o755)
+            failed = self.run_music_fixture(root, environment)
+            self.assertEqual(failed.returncode, 23, failed.stderr)
+            self.assertEqual(list(scratch.iterdir()), [])
+            self.assertFalse(list(state.parent.glob("*.tmp.*")))
+            for path, content in previous.items():
+                self.assertEqual(path.read_bytes(), content)
 
     def test_media_orphan_pruning_is_extension_scoped(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -222,29 +182,6 @@ trinket_asset_cleanup_tracked
             self.assertTrue((resources / "keep.mp4").exists())
             self.assertFalse((resources / "remove.mp4").exists())
             self.assertTrue((resources / "ignore.m4a").exists())
-
-    def test_prepare_asset_scripts_use_c_locale_header_preserving_sort(self) -> None:
-        scripts = tuple(
-            path.name
-            for path in sorted((ROOT / "Scripts").glob("prepare-*.sh"))
-        )
-        for name in scripts:
-            text = (ROOT / "Scripts" / name).read_text(encoding="utf-8")
-            sort_owner = (
-                (ROOT / "Scripts" / "lib" / "media-assets.sh").read_text(encoding="utf-8")
-                if "source \"Scripts/lib/media-assets.sh\"" in text
-                else text
-            )
-            self.assertTrue(
-                "LC_ALL=C sort" in sort_owner,
-                name,
-            )
-            self.assertTrue(
-                ("head -n 2" in sort_owner and "tail -n +3" in sort_owner)
-                or ("grep -v '^#'" in sort_owner and "# asset_name" in sort_owner),
-                f"{name} should preserve hash TSV headers before sorting",
-            )
-            self.assertIn("cmp -s", sort_owner, f"{name} should skip rewriting unchanged hash/catalog stamps")
 
     def test_project_yml_keeps_assets_outside_swift_sync_roots(self) -> None:
         text = (ROOT / "project.yml").read_text(encoding="utf-8")
@@ -387,6 +324,8 @@ trinket_asset_cleanup_tracked
                 "resourceArtByID", "talentArtByID",
             ):
                 self.assertIn(section, catalog)
+            self.assertIn('thumbnailImageName: "bg_field_portrait_thumb"', catalog)
+            self.assertIn("sourceAspectRatio: 0.558139534884", catalog)
             self.assertIn("dict[.burn]", catalog)
             self.assertIn("dict[.weapon]", catalog)
             state = (

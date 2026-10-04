@@ -12,6 +12,8 @@ public struct BattleDefeatProgress: Equatable, Hashable, Sendable {
     }
 
     public func experienceAward(from normalExperience: Int) -> Int {
-        max(0, normalExperience) * (maximumHealth - remainingHealth) / maximumHealth / 2
+        RewardSettlementPolicy.overflowExperience(
+            normalExperience, overflow: maximumHealth - remainingHealth, gains: maximumHealth,
+        ) / 2
     }
 }

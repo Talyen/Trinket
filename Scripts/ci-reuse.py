@@ -17,10 +17,14 @@ def api(endpoint: str) -> list[dict]:
     return json.loads(result.stdout)
 
 
+def matching_run(run: dict, sha: str, branch: str) -> bool:
+    required = {"head_sha": sha, "head_branch": branch, "event": "push",
+                "status": "completed", "conclusion": "success"}
+    return all(run.get(key) == value for key, value in required.items())
+
+
 def proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: str) -> dict[str, str] | None:
-    if (run.get("head_sha") != sha or run.get("head_branch") != branch
-            or run.get("event") != "push" or run.get("status") != "completed"
-            or run.get("conclusion") != "success"):
+    if not matching_run(run, sha, branch):
         return None
     successful = {job.get("name") for job in jobs if job.get("conclusion") == "success"}
     required = {"tests / CI OK", "tests / gate / Generate and style"}
@@ -32,16 +36,15 @@ def proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: 
     # A skipped build/unit suite cannot prove product verification. A missing or
     # expired artifact also forces the ordinary build+smoke path, not a false pass.
     pattern = re.compile(rf"build-derived-data-{int(run['id'])}-(\d+)$")
-    candidates = [artifact for artifact in artifacts
-                  if not artifact.get("expired", True) and pattern.fullmatch(artifact.get("name", ""))]
+    candidates = [(int(match[1]), artifact["name"]) for artifact in artifacts
+                  if artifact.get("expired") is False and (match := pattern.fullmatch(artifact.get("name", "")))]
     if not candidates:
         return None
-    artifact = max(candidates, key=lambda item: int(pattern.fullmatch(item["name"])[1]))
     return {
         "standard": "true",
         "assets": str("tests / Asset codegen" in successful).lower(),
         "run-id": str(run["id"]),
-        "build-artifact": artifact["name"],
+        "build-artifact": max(candidates)[1],
     }
 
 
@@ -50,16 +53,14 @@ def find_proof(repository: str, sha: str, branch: str, run_id: str) -> dict[str,
     try:
         pages = api(f"repos/{repository}/actions/workflows/ci.yml/runs?event=push&head_sha={sha}&per_page=20")
         for run in (run for page in pages for run in page.get("workflow_runs", [])):
-            if str(run.get("id")) == run_id or run.get("conclusion") != "success":
+            if str(run.get("id")) == run_id or not matching_run(run, sha, branch):
                 continue
             # filter=all retains successful jobs from previous attempts after a
             # failed-job rerun. Select the latest conclusion for each job name.
             pages = api(f"repos/{repository}/actions/runs/{run['id']}/jobs?filter=all&per_page=100")
-            latest: dict[str, dict] = {}
-            for job in (job for page in pages for job in page.get("jobs", [])):
-                name = job.get("name", "")
-                if int(job.get("id", 0)) > int(latest.get(name, {}).get("id", -1)):
-                    latest[name] = job
+            jobs = sorted((job for page in pages for job in page.get("jobs", [])),
+                          key=lambda job: int(job.get("id", 0)))
+            latest = {job["name"]: job for job in jobs}
             pages = api(f"repos/{repository}/actions/runs/{run['id']}/artifacts?per_page=100")
             artifacts = [item for page in pages for item in page.get("artifacts", [])]
             candidate = proof(run, list(latest.values()), artifacts, sha, branch)

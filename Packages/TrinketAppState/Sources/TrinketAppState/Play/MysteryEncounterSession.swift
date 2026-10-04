@@ -4,17 +4,9 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-enum MysteryEncounterPhase: Equatable {
-    case reading
-    case revealing
-    case selectingCorruptItem
-    case revealingCorruption
-    case reward
-}
-
 @MainActor
 @Observable
-public final class MysteryEncounterSession: Identifiable, EncounterSession {
+public final class MysteryEncounterSession: Identifiable {
     public nonisolated var id: String {
         stage.id
     }
@@ -48,16 +40,6 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
     private var presentation: Presentation = .reading
     private var choiceAttempt: ChoiceAttempt = .ready
     @ObservationIgnored private var hasCollectedReward = false
-
-    var phase: MysteryEncounterPhase {
-        switch presentation {
-        case .reading: .reading
-        case .reveal: .revealing
-        case .corruptItemChoice: .selectingCorruptItem
-        case .corruptionReveal: .revealingCorruption
-        case .reward: .reward
-        }
-    }
 
     public var unlockedCombatantID: String? {
         guard case let .reveal(id) = presentation else { return nil }
@@ -98,19 +80,19 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
     static let choiceUnavailableMessage = "That choice isn't available anymore."
 
     public var showsReveal: Bool {
-        phase == .revealing
+        unlockedCombatantID != nil
     }
 
     public var showsCorruptItemChoice: Bool {
-        phase == .selectingCorruptItem && !corruptibleItems.isEmpty
+        !corruptibleItems.isEmpty
     }
 
     public var showsCorruptionReveal: Bool {
-        phase == .revealingCorruption
+        corruptionResult != nil
     }
 
     public var showsReward: Bool {
-        phase == .reward
+        applyResult != nil
     }
 
     public var isCorruptionAltar: Bool {
@@ -119,7 +101,8 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
     }
 
     public var canResolveChoice: Bool {
-        phase == .reading && !isResolvingChoice
+        guard case .reading = presentation else { return false }
+        return !isResolvingChoice
     }
 
     public init(

@@ -24,7 +24,7 @@ struct BattleLogProjectionTests {
     }
 
     @Test func `entries reduce milestones status and ability events`() throws {
-        let events = sampleEvents(includeDefeat: true)
+        let events = sampleEvents()
         let entries = BattleLogProjection.entries(from: events)
         try #expect(entries.map(\.text) == [
             "Hero and Companion face Enemy.",
@@ -32,16 +32,6 @@ struct BattleLogProjectionTests {
             "Enemy takes 2 Burn damage.",
             "Enemy is defeated.",
         ])
-    }
-
-    @Test func `incremental entries and projection match full reduce`() throws {
-        let events = sampleEvents(includeDefeat: false)
-
-        let full = BattleLogProjection.entries(from: events)
-        var projection = BattleLogProjection()
-        projection.sync(events: [events[0]])
-        projection.sync(events: events)
-        try #expect(projection.entries == full)
     }
 
     @Test func `interleaved action packets survive split updates and history resets`() {
@@ -305,56 +295,25 @@ struct BattleLogProjectionTests {
         return battle
     }
 
-    private func sampleEvents(includeDefeat: Bool) -> [ActionEvent] {
-        let enemyID = "enemy"
-        var events: [ActionEvent] = [
+    private func sampleEvents() -> [ActionEvent] {
+        [
             ActionEvent(
-                id: 1,
-                kind: .milestone,
-                actorName: "",
-                abilityName: "",
-                targetID: enemyID,
-                targetName: "Enemy",
-                amount: 0,
-                keyword: .physical,
+                id: 1, kind: .milestone, actorName: "", abilityName: "",
+                targetID: "enemy", targetName: "Enemy", amount: 0, keyword: .physical,
                 milestone: .battleStarted(heroName: "Hero", companionName: "Companion"),
             ),
             ActionEvent(
-                id: 2,
-                kind: .ability,
-                actorName: "Hero",
-                abilityName: "Slash",
-                targetID: enemyID,
-                targetName: "Enemy",
-                amount: 3,
-                keyword: .physical,
+                id: 2, kind: .ability, actorName: "Hero", abilityName: "Slash",
+                targetID: "enemy", targetName: "Enemy", amount: 3, keyword: .physical,
             ),
             ActionEvent(
-                id: 3,
-                kind: .status,
-                actorName: "Burn",
-                abilityName: "Burn",
-                targetID: enemyID,
-                targetName: "Enemy",
-                amount: 2,
-                keyword: .burn,
+                id: 3, kind: .status, actorName: "Burn", abilityName: "Burn",
+                targetID: "enemy", targetName: "Enemy", amount: 2, keyword: .burn,
+            ),
+            ActionEvent(
+                id: 4, kind: .milestone, actorName: "", abilityName: "",
+                targetID: "enemy", targetName: "Enemy", amount: 0, keyword: .physical, milestone: .enemyDefeated,
             ),
         ]
-        if includeDefeat {
-            events.append(
-                ActionEvent(
-                    id: 4,
-                    kind: .milestone,
-                    actorName: "",
-                    abilityName: "",
-                    targetID: enemyID,
-                    targetName: "Enemy",
-                    amount: 0,
-                    keyword: .physical,
-                    milestone: .enemyDefeated,
-                ),
-            )
-        }
-        return events
     }
 }

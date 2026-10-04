@@ -58,10 +58,15 @@ public final class FullGameStore {
     }
 
     public func refreshOwnership() async {
+        await refreshOwnership(resolve: Self.resolveCurrentOwnership)
+    }
+
+    func refreshOwnership(resolve: () async -> Ownership) async {
+        revision &+= 1
         let startedAt = revision
         // Entitlement enumeration can block on I/O; resolve off the main actor
         // and hop back only to publish.
-        let resolved = await Self.resolveCurrentOwnership()
+        let resolved = await resolve()
         guard revision == startedAt, !Task.isCancelled else { return }
         ownership = resolved
     }

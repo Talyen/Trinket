@@ -88,7 +88,7 @@ package extension CombatTriggerEngine {
             ))
         }
         if source.role != .enemy, Self.hasLivingPartyTrigger(\.purifyingWaters, in: context), removedCount > 0 {
-            let healTarget = BattleTargetResolver.lowestHealthAlly(for: source, in: context)
+            let healTarget = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
             events.append(contentsOf: context.healEmitting(
                 amount: 4 * removedCount,
                 target: healTarget,

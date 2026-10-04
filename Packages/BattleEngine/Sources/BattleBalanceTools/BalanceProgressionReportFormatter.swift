@@ -40,6 +40,8 @@ public enum BalanceProgressionReportFormatter {
         lines.append("- **Seed**: \(config.seed)")
         lines.append("- **Simulated Runs**: \(playerStates.count)")
         lines.append("- **Total Battles Simulated**: \(records.count)")
+        lines.append("- **Decided Battles**: \(records.count { $0.result.isDecided })")
+        lines.append("- **Unfinished Battles**: \(records.count { $0.result.timedOut }) (excluded from win rates; investigate stalls)")
         lines.append("- **Elapsed Time**: \(String(format: "%.2f", elapsedSeconds))s")
         if truncatedRuns > 0 {
             lines
@@ -69,7 +71,8 @@ public enum BalanceProgressionReportFormatter {
 
     private static func cells(_ hotspot: NodeHotspotSummary)
         -> (win: String, confidence: String, player: String, enemy: String, power: String) {
-        (
+        guard hotspot.battles > 0 else { return ("n/a", "n/a", "n/a", "n/a", "n/a") }
+        return (
             String(format: "%.1f%%", hotspot.winRate * 100),
             String(format: "%.1f-%.1f%%", hotspot.wilsonLow * 100, hotspot.wilsonHigh * 100),
             String(format: "%.1f", hotspot.averagePlayerLevel),
@@ -85,7 +88,7 @@ public enum BalanceProgressionReportFormatter {
         if flaggedHotspots.isEmpty {
             lines.append("## Difficulty Hotspots")
             lines.append("")
-            lines.append("No difficulty hotspots flagged. All node win rates fall within the 80% – 95% design envelope.")
+            lines.append("No difficulty hotspots flagged from the decided samples.")
             lines.append("")
             return
         }
@@ -112,13 +115,13 @@ public enum BalanceProgressionReportFormatter {
             guard !modeHotspots.isEmpty else { continue }
             lines.append("## \(mode.displayName) Progression Detail")
             lines.append("")
-            lines.append("| Location | Step | Enemy | Win Rate | CI (95%) | Player Lvl | Enemy Lvl | Power | Status |")
-            lines.append("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
+            lines.append("| Location | Step | Enemy | Decided Battles | Win Rate | CI (95%) | Player Lvl | Enemy Lvl | Power | Status |")
+            lines.append("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
             for hotspot in modeHotspots {
                 let c = cells(hotspot)
                 lines
                     .append(
-                        "| \(hotspot.step.containerTitle) | \(hotspot.step.displayTitle) | \(hotspot.step.enemyID) | \(c.win) | \(c.confidence) | \(c.player) | \(c.enemy) | \(c.power) | \(hotspot.status.displayName) |",
+                        "| \(hotspot.step.containerTitle) | \(hotspot.step.displayTitle) | \(hotspot.step.enemyID) | \(hotspot.battles) | \(c.win) | \(c.confidence) | \(c.player) | \(c.enemy) | \(c.power) | \(hotspot.battles == 0 ? "NO DECIDED SAMPLES" : hotspot.status.displayName) |",
                     )
             }
             lines.append("")

@@ -76,39 +76,71 @@ def read_env_arrays(path: Path | str, names: list[str]) -> dict[str, tuple[str, 
     never silently disagree with bash sourcing.
     """
     wanted = set(names)
-    found: dict[str, list[str]] = {}
-    current: str | None = None
-    buffer: list[str] = []
-    for raw_line in Path(path).read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
+    found: dict[str, tuple[str, ...]] = {}
+    tokens = iter(_env_array_tokens(Path(path).read_text(encoding="utf-8")))
+    for token in tokens:
+        if token.removesuffix("+=") in wanted and token.endswith("+="):
+            raise ValueError(f"{path}: appended arrays require bash sourcing")
+        name = token.removesuffix("=")
+        if not token.endswith("=") or name not in wanted:
             continue
-        if current is None:
-            current = next((name for name in wanted if line.startswith(f"{name}=(")), None)
-            if current is None:
-                continue
-            line = line[len(current) + 2:].strip()
-            buffer = []
-        if line.endswith(")"):
-            buffer.append(line[:-1].strip())
-            found[current] = _split_array(" ".join(buffer), path, current)
-            current = None
-        elif line:
-            buffer.append(line)
-    if current is not None:
-        raise ValueError(f"{path}: unterminated array {current}")
-    missing = wanted - set(found)
+        if name in found:
+            raise ValueError(f"{path}: duplicate array {name}")
+        if next(tokens, None) != "\0(":
+            raise ValueError(f"{path}: {name} must be a literal array")
+        body = []
+        for entry in tokens:
+            if entry == "\0)":
+                break
+            if entry == "\0(":
+                raise ValueError(f"{path}: array {name} needs live shell expansion; source it in bash instead")
+            body.append(entry)
+        else:
+            raise ValueError(f"{path}: unterminated array {name}")
+        entries = body
+        if any("$" in entry or "`" in entry for entry in entries):
+            raise ValueError(f"{path}: array {name} needs live shell expansion; source it in bash instead")
+        found[name] = tuple(entries)
+    missing = wanted - found.keys()
     if missing:
         raise ValueError(f"{path}: missing arrays: {', '.join(sorted(missing))}")
-    return {name: tuple(found[name]) for name in names}
+    return {name: found[name] for name in names}
 
 
-def _split_array(body: str, path: Path | str, name: str) -> list[str]:
-    # Entries are literal paths; any `$`/backtick means live shell expansion
-    # that Python must not silently misread — source it in bash instead.
-    if "$" in body or "`" in body:
-        raise ValueError(f"{path}: array {name} needs live shell expansion; source it in bash instead")
-    return shlex.split(body)
+def _env_array_tokens(source: str) -> list[str]:
+    # Mark only unquoted delimiters before POSIX tokenization. Non-POSIX
+    # tokenization loses escaped quotes and inserts spaces between adjacent quotes.
+    if "\0" in source:
+        raise ValueError("Shell input cannot contain NUL")
+    marked: list[str] = []
+    quote = ""
+    word_start = True
+    index = 0
+    while index < len(source):
+        char = source[index]
+        if char == "\\" and quote != "'" and index + 1 < len(source):
+            following = source[index + 1]
+            if following != "\n":
+                marked.append(source[index:index + 2])
+                word_start = False
+            index += 2
+            continue
+        if not quote and char == "#" and word_start:
+            end = source.find("\n", index)
+            index = len(source) if end < 0 else end
+            continue
+        if char == quote:
+            quote = ""
+        elif not quote and char in "\"'":
+            quote = char
+        if not quote and char in "()":
+            marked.append(f" \0{char} ")
+            word_start = True
+        else:
+            marked.append(char)
+            word_start = not quote and char.isspace()
+        index += 1
+    return shlex.split("".join(marked))
 
 
 def validate_repo_paths(paths: list[str], root: Path = ROOT) -> list[str]:

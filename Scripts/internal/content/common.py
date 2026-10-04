@@ -33,23 +33,21 @@ KEBAB_IDENTIFIER = re.compile(rf"^{_KEBAB_BODY}$")
 SNAKE_IDENTIFIER = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
 
 
-def read_tsv_records(path: Path) -> list[tuple[int, tuple[str, ...]]]:
-    """Shared TSV rules with physical row starts for inspection diagnostics."""
-    rows = []
+def _tsv_records(path: Path):
+    """Yield physical row starts, including quoted rows spanning several lines."""
     with path.open(newline="", encoding="utf-8") as handle:
         reader = csv.reader(handle, delimiter="\t")
         start = 1
-        for fields in reader:
+        for row in reader:
             line = start
             start = reader.line_num + 1
-            if not fields or (len(fields) == 1 and not fields[0]) or fields[0].startswith("#"):
-                continue
-            rows.append((line, tuple(fields)))
-    return rows
+            yield line, row
 
 
-def read_tsv(path: Path) -> list[list[str]]:
-    return [list(row) for _, row in read_tsv_records(path)]
+def read_tsv_records(path: Path) -> list[tuple[int, tuple[str, ...]]]:
+    """Content TSV rules with physical row starts for inspection diagnostics."""
+    return [(line, tuple(row)) for line, row in _tsv_records(path)
+            if row and not (len(row) == 1 and not row[0]) and not row[0].startswith("#")]
 
 
 def _parse_tsv_rows(path: Path, row_type, min_columns: int | None = None):
@@ -88,17 +86,15 @@ def read_manifest_table(path: Path) -> tuple[list[str], list[list[str]]]:
     its leading # stripped. Ragged rows are rejected so truncated inputs fail
     fast instead of silently dropping columns.
     """
-    with path.open(newline="", encoding="utf-8") as handle:
-        raw_rows = list(csv.reader(handle, delimiter="\t"))
     header: list[str] = []
     rows: list[list[str]] = []
-    for line_number, row in enumerate(raw_rows, start=1):
+    for line_number, row in _tsv_records(path):
         if not row or (len(row) == 1 and not row[0].strip()):
             continue
         if not header:
             if not row[0].lstrip().startswith("#"):
                 raise ValueError(f"{path}:{line_number} manifest header must start with #")
-            header = [row[0].lstrip("#").strip()] + [cell.strip() for cell in row[1:]]
+            header = [row[0].lstrip().lstrip("#").strip()] + [cell.strip() for cell in row[1:]]
             continue
         if row[0].lstrip().startswith("#"):
             continue
@@ -151,39 +147,25 @@ def write_if_changed(path: Path, content: str) -> None:
 def list_catalog_property(
     prop: str, item_type: str, entries: list[str], chunk_size: int | None = None
 ) -> str:
+    chunk_functions = ""
     if chunk_size is None:
         appends = "\n".join(f"        list.append({entry.strip()})" for entry in entries)
-        return (
-            f"    static let {prop}: [{item_type}] = {{\n"
-            f"        var list = [{item_type}]()\n"
-            f"        list.reserveCapacity({len(entries)})\n"
-            + appends
-            + "\n        return list\n"
-            "    }()\n"
-        )
-    chunks = [entries[index:index + chunk_size] for index in range(0, len(entries), chunk_size)]
-    chunk_appends = "\n".join(
-        f"        list.append(contentsOf: chunk{index}())" for index in range(len(chunks))
-    )
-    chunk_functions = "\n\n".join(
-        "    private static func chunk"
-        f"{index}() -> [{item_type}] {{\n"
-        "        [\n"
-        + ",\n".join(entry for entry in chunk)
-        + "\n        ]\n"
-        "    }"
-        for index, chunk in enumerate(chunks)
-    )
+    else:
+        chunks = [entries[index:index + chunk_size] for index in range(0, len(entries), chunk_size)]
+        appends = "\n".join(f"        list.append(contentsOf: chunk{index}())" for index in range(len(chunks)))
+        chunk_functions = "\n" + "\n\n".join(
+            f"    private static func chunk{index}() -> [{item_type}] {{\n"
+            "        [\n" + ",\n".join(chunk) + "\n        ]\n    }"
+            for index, chunk in enumerate(chunks)
+        ) + "\n"
     return (
         f"    static let {prop}: [{item_type}] = {{\n"
         f"        var list = [{item_type}]()\n"
         f"        list.reserveCapacity({len(entries)})\n"
-        + chunk_appends
+        + appends
         + "\n        return list\n"
         "    }()\n"
-        "\n"
         + chunk_functions
-        + "\n"
     )
 
 

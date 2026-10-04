@@ -35,7 +35,10 @@ public enum ShopPurchaseApplier {
         guard encounter.isPlayable(in: save) else { return .unavailable(.invalidOffer) }
         do {
             guard let stock = try ShopStockPersistence.stock(encounter: encounter, save: save) else { return .unavailable(.invalidOffer) }
-            return availability(offerID: offerID, stock: stock, save: save)
+            _ = try purchasableOffer(offerID: offerID, stock: stock, save: save)
+            return .available
+        } catch let failure as ShopPurchaseFailure {
+            return .unavailable(failure)
         } catch {
             return .unavailable(.invalidOffer)
         }
@@ -49,17 +52,10 @@ public enum ShopPurchaseApplier {
         guard encounter.isPlayable(in: save) else { return .failure(.invalidOffer) }
         do {
             guard var stock = try ShopStockPersistence.stock(encounter: encounter, save: save) else { return .failure(.invalidOffer) }
-            if case let .unavailable(reason) = availability(offerID: offerID, stock: stock, save: save) {
-                return .failure(reason)
-            }
-            guard let offer = stock.offers.first(where: { $0.id == offerID }) else { return .failure(.invalidOffer) }
+            let offer = try purchasableOffer(offerID: offerID, stock: stock, save: save)
             stock.purchasedOfferIDs.insert(offerID)
             let payload = try ShopStockPersistence.encode(stock, encounter: encounter)
-            // Candidate-commit: gold spend + item append + payload store apply
-            // atomically. The availability pre-check already rules out
-            // duplicates/insufficient gold on this thread; the candidate
-            // guarantees no partial mutation (gold spent without item) if a
-            // future append path ever dedupes silently.
+            // Publish money, item and sold stock together only after admission succeeds.
             var candidate = save
             candidate.applyGoldDelta(-offer.price)
             candidate.inventory.appendUniqueItem(offer.item)
@@ -67,16 +63,19 @@ public enum ShopPurchaseApplier {
             ShopStockPersistence.setPayload(payload, encounter: encounter, save: &candidate)
             save = candidate
             return .success(offer.item)
+        } catch let failure as ShopPurchaseFailure {
+            return .failure(failure)
         } catch {
             return .failure(.invalidOffer)
         }
     }
 
-    private static func availability(offerID: String, stock: ShopStock, save: PlayerSave) -> ShopOfferAvailability {
-        guard let offer = stock.offers.first(where: { $0.id == offerID }), offer.price >= 0 else { return .unavailable(.invalidOffer) }
-        guard !stock.purchasedOfferIDs.contains(offerID) else { return .unavailable(.soldOut) }
+    private static func purchasableOffer(offerID: String, stock: ShopStock, save: PlayerSave) throws -> ShopOffer {
+        guard let offer = stock.offers.first(where: { $0.id == offerID }), offer.price >= 0 else { throw ShopPurchaseFailure.invalidOffer }
+        guard !stock.purchasedOfferIDs.contains(offerID) else { throw ShopPurchaseFailure.soldOut }
         guard !InventoryDuplicatePolicy.containsDuplicate(of: offer.item, in: save.inventory.items)
-        else { return .unavailable(.alreadyOwned) }
-        return save.roster.gold >= offer.price ? .available : .unavailable(.insufficientGold)
+        else { throw ShopPurchaseFailure.alreadyOwned }
+        guard save.roster.gold >= offer.price else { throw ShopPurchaseFailure.insufficientGold }
+        return offer
     }
 }

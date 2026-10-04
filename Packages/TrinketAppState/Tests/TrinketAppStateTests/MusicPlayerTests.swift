@@ -66,7 +66,7 @@ struct MusicPlayerTests {
         let battle = try request("battle")
         let menuID = try #require(MusicCatalog.menuTrackIDs.first)
         let menuTrack = try #require(MusicCatalog.track(matching: menuID))
-        let menu = MusicPlaybackRequest.resumable(track: menuTrack, contextKind: .menu, enemyID: nil)
+        let menu = MusicPlaybackRequest(track: menuTrack, enemyID: nil)
         let outgoing = try await start(battle, player: player, backend: backend)
         outgoing.currentTime = 27
         player.update(route: .track(menu), volume: 1)
@@ -170,7 +170,7 @@ struct MusicPlayerTests {
     private func request(_ enemyID: String) throws -> MusicPlaybackRequest {
         let id = try #require(MusicCatalog.battleTrackIDs.first)
         let track = try #require(MusicCatalog.track(matching: id))
-        return .resumable(track: track, contextKind: .battle, enemyID: enemyID)
+        return .init(track: track, enemyID: enemyID)
     }
 
     private func start(

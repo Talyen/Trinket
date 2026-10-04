@@ -146,18 +146,7 @@ enum BalanceContrastFlags {
         if abs(lhs.lift) != abs(rhs.lift) {
             return abs(lhs.lift) > abs(rhs.lift)
         }
-        if lhs.tier.rawValue != rhs.tier.rawValue {
-            return lhs.tier.rawValue < rhs.tier.rawValue
-        }
-        if lhs.entityID != rhs.entityID {
-            return lhs.entityID < rhs.entityID
-        }
-        if lhs.baselineID != rhs.baselineID {
-            return lhs.baselineID < rhs.baselineID
-        }
-        if lhs.ownerID != rhs.ownerID {
-            return lhs.ownerID < rhs.ownerID
-        }
-        return lhs.baselineKind.rawValue < rhs.baselineKind.rawValue
+        return (lhs.tier.rawValue, lhs.entityID, lhs.baselineID, lhs.ownerID, lhs.baselineKind.rawValue)
+            < (rhs.tier.rawValue, rhs.entityID, rhs.baselineID, rhs.ownerID, rhs.baselineKind.rawValue)
     }
 }

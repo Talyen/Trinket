@@ -112,24 +112,19 @@ final class PlayBattleLaunch {
             runKey: input.origin?.runKey,
             missingLog: "Missing route for battle activation",
         ) else { return false }
-        if let origin = input.origin, battle.hasPreparedRun(origin.runKey) {
-            guard let registration = runs.registration(for: origin.runKey), let route,
-                  registration.launch.configuration.hero.combatant.id == input.hero.id,
-                  registration.launch.configuration.companion.combatant.id == input.companion.id,
-                  registration.launch.configuration.enemy?.id == input.enemy?.id else { return false }
+        if let origin = input.origin {
+            if battle.hasPreparedRun(origin.runKey) {
+                guard let registration = runs.registration(for: origin.runKey),
+                      registration.launch.configuration.hero.combatant.id == input.hero.id,
+                      registration.launch.configuration.companion.combatant.id == input.companion.id,
+                      registration.launch.configuration.enemy?.id == input.enemy?.id else { return false }
+            }
+            guard let route else { return false }
             guard prepareCombat(input, route: route),
-                  let launch = runs.registration(for: origin.runKey)?.launch else { return false }
-            guard runs.activatePrepared(launch.configuration) else { return false }
-            shellSession.selectedTab = .play
-            return true
-        }
-        let launch = makeBattleLaunch(input)
-        if launch.configuration.runKey != nil, let route {
-            guard runs.prepare(launch, route: route),
-                  runs.activatePrepared(launch.configuration)
-            else { return false }
+                  let launch = runs.registration(for: origin.runKey)?.launch,
+                  runs.activatePrepared(launch.configuration) else { return false }
         } else {
-            guard runs.activateStandalone(launch.configuration) else { return false }
+            guard runs.activateStandalone(makeBattleLaunch(input).configuration) else { return false }
         }
         shellSession.selectedTab = .play
         return true

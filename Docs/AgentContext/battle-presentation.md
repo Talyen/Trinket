@@ -172,10 +172,12 @@ suspension freezes every region and resume shifts its original clocks.
 
 ### Verification gap
 
-Interactive inspection remains blocked by Device Hub Computer Use timeouts.
-Package and UI checks cannot establish visual feel. When inspection is available,
-check central readability and smaller lower-corner status feedback under rapid
-card play, including consolidation, overlap, and portrait clipping.
+Floating-feedback visual feel remains unverified. Device Hub Computer Use has
+timed out; the [native device-interaction skill](../../.agents/skills/device-interaction/SKILL.md)
+provides an alternative for requested inspection under the same managed lease.
+Package and UI checks cannot establish visual feel. During inspection, check
+central readability and smaller lower-corner status feedback under rapid card
+play, including consolidation, overlap, and portrait clipping.
 
 ## Display work lifecycle
 

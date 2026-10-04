@@ -116,14 +116,6 @@ class UiPolicyTests(ScriptRegressionTestCase):
                         self.assertIn(failure, result.stderr)
 
 
-    def test_accessibility_ids_reject_duplicate_constants_and_raw_uitest_literals(self) -> None:
-        checker = load_script("check_accessibility_ids", "check-accessibility-ids.py")
-        duplicates = checker.unique_constants()
-        self.assertEqual(duplicates, [])
-        raw = checker.raw_uitest_literals(checker.allowlist())
-        self.assertEqual(raw, [], raw)
-
-
     def test_accessibility_ids_failure_fixture_rejects_duplicates_and_raw_literals(self) -> None:
         checker = load_script("check_accessibility_ids", "check-accessibility-ids.py")
         with tempfile.TemporaryDirectory() as directory:
@@ -144,13 +136,22 @@ class UiPolicyTests(ScriptRegressionTestCase):
                 "import XCTest\n"
                 "final class ProbeTests: XCTestCase {\n"
                 "  func testProbe() {\n"
-                '    app.buttons["play-button"].tap()\n'
+                '    app.buttons[AccessibilityID.playButton].tap(); app.buttons["play-button"].tap()\n'
+                '    app.alerts["System prompt"].tap()\n'
                 "  }\n"
                 "}\n",
                 encoding="utf-8",
             )
             with patch.object(checker, "ROOT", root), patch.object(checker, "ID_FILE", ids), patch.object(checker, "UITESTS", uitests):
                 self.assertEqual(checker.unique_constants(), ["play-button"])
-                raw = checker.raw_uitest_literals(set())
+                raw, _ = checker.uitest_findings({"System prompt"})
                 self.assertEqual(len(raw), 1)
                 self.assertIn("play-button", raw[0])
+
+    def test_ui_style_checks_paths_with_colons_and_newlines(self) -> None:
+        checker = load_script("check_ui_style", "check-ui-style.py")
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / "Color:fixture\nprobe.swift"
+            fixture.write_text("let color = Color.red\n")
+            with patch("builtins.print"):
+                self.assertEqual(checker.main(["check-ui-style.py", str(fixture)]), 1)

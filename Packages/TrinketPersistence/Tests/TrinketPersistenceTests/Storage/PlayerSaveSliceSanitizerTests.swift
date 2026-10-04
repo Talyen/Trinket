@@ -5,80 +5,6 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct PlayerSaveSliceSanitizerTests {
-    private enum SliceEqualityCase: String {
-        case homestead
-        case inventory
-        case roster
-        case labyrinth
-    }
-
-    @Test(arguments: [
-        SliceEqualityCase.homestead,
-        .inventory,
-        .roster,
-        .labyrinth,
-    ])
-    private func `slice scoped sanitize matches full sanitize`(_ sliceCase: SliceEqualityCase) throws {
-        var save = PlayerSave.fresh
-        let slice: PlayerSaveSlice
-        var labyrinthNodeID: String?
-        switch sliceCase {
-        case .homestead:
-            save.homestead.pendingProduction[.wood] = 12.5
-            slice = .homestead
-        case .inventory:
-            let weaponBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .weapon })
-            save.inventory = PlayerInventoryState(items: [
-                InventoryItem(
-                    id: "weapon-id",
-                    templateID: "weapon-template",
-                    baseType: weaponBase,
-                    rarity: .basic,
-                    displayName: "Test Sword",
-                    affixes: [],
-                ),
-            ])
-            slice = .inventory
-        case .roster:
-            save.roster.gold = 999999
-            slice = .roster
-        case .labyrinth:
-            save.labyrinth.ensureMap(seed: 4)
-            let nodeID = try #require(save.labyrinth.reachableNodeIDs().first ?? save.labyrinth.nodes.keys.min())
-            let node = try #require(save.labyrinth.nodes[nodeID])
-            save.labyrinth.nodes[nodeID] = LabyrinthNode(
-                id: node.id,
-                type: .mystery,
-                enemyID: nil,
-                depth: node.depth,
-                clusterID: node.clusterID,
-                outgoingIDs: node.outgoingIDs + ["missing-node"],
-                isCleared: node.isCleared,
-                isRevealed: true,
-            )
-            slice = .labyrinth
-            labyrinthNodeID = nodeID
-        }
-
-        save.labyrinth.worldSeed = save.worldSeed
-        let full = PlayerSaveSanitizer.sanitize(save)
-        let scoped = PlayerSaveSanitizer.sanitize(
-            save,
-            changedSlices: .sanitizeTargets(for: slice),
-        )
-
-        #expect(full == scoped)
-        if let labyrinthNodeID {
-            #expect(full.labyrinth.nodes[labyrinthNodeID]?.outgoingIDs.contains("missing-node") == false)
-        }
-    }
-
-    @Test func `inventory and roster sanitize targets do not expand to labyrinth`() {
-        #expect(PlayerSaveSlice.sanitizeTargets(for: [.inventory]) == [.inventory, .roster])
-        #expect(PlayerSaveSlice.sanitizeTargets(for: [.roster]) == [.roster])
-        #expect(PlayerSaveSlice.sanitizeTargets(for: [.labyrinth]) == [.labyrinth, .roster])
-    }
-
     @Test func `inventory repair precedes equipment repair`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == PlayerRosterState.starterHeroID })
         let trinketBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .trinket })
@@ -108,72 +34,47 @@ struct PlayerSaveSliceSanitizerTests {
         #expect(sanitized.roster.equipmentLoadout(for: knight).itemID(for: .trinket) == nil)
     }
 
-    @Test func `roster sanitize leaves labyrinth nodes for explicit labyrinth slice`() {
+    @Test(arguments: [PlayerSaveSlice.inventory, .roster])
+    func `inventory and roster repair leave labyrinth damage for its own slice`(_ slice: PlayerSaveSlice) throws {
         var save = PlayerSave.fresh
         save.labyrinth.ensureMap(seed: 4)
-        let nodeID = save.labyrinth.reachableNodeIDs().first ?? save.labyrinth.nodes.keys.min()
-        guard let nodeID, let node = save.labyrinth.nodes[nodeID] else {
-            Issue.record("Expected a generated labyrinth node")
-            return
-        }
-        save.labyrinth.nodes[nodeID] = LabyrinthNode(
-            id: node.id,
-            type: .mystery,
-            enemyID: nil,
-            depth: node.depth,
-            clusterID: node.clusterID,
-            outgoingIDs: node.outgoingIDs + ["missing-node"],
-            isCleared: node.isCleared,
-            isRevealed: true,
-        )
-        save.roster.gold = 40
+        let nodeID = try #require(save.labyrinth.nodes.keys.min())
+        save.labyrinth.nodes[nodeID]?.outgoingIDs.append("missing-node")
+        save.roster.unlockedHeroIDs.insert("missing-hero")
 
-        let full = PlayerSaveSanitizer.sanitize(save)
-        let rosterExpanded = PlayerSaveSanitizer.sanitize(
-            save,
-            changedSlices: .sanitizeTargets(for: [.roster]),
-        )
+        let scoped = PlayerSaveSanitizer.sanitize(save, changedSlices: slice)
+        let labyrinthRepaired = PlayerSaveSanitizer.sanitize(scoped, changedSlices: .labyrinth)
 
-        #expect(full.labyrinth.nodes[nodeID]?.outgoingIDs.contains("missing-node") == false)
-        #expect(rosterExpanded.labyrinth.nodes[nodeID]?.outgoingIDs.contains("missing-node") == true)
+        #expect(!scoped.roster.unlockedHeroIDs.contains("missing-hero"))
+        #expect(scoped.labyrinth == save.labyrinth)
+        #expect(labyrinthRepaired.labyrinth.nodes[nodeID]?.outgoingIDs.contains("missing-node") == false)
     }
 
-    @Test func `homestead mutation does not pin labyrinth seed`() {
+    @Test func `homestead candidate repairs materials without pinning labyrinth seed`() throws {
         var snapshot = PlayerSave.fresh
         snapshot.labyrinth.worldSeed = 0
-        var candidate = snapshot
-        candidate.homestead.resources[.wood] = 4
+        var proposed = snapshot
+        proposed.homestead.resources[.wood] = 4
+        proposed.homestead.resources[.stone] = -3
 
-        let mutationSlices = PlayerSaveSlice.changed(between: snapshot, and: candidate)
-        let sanitizeSlices = PlayerSaveSlice.sanitizeTargets(for: mutationSlices)
-        candidate = PlayerSaveSanitizer.sanitize(candidate, changedSlices: sanitizeSlices)
-        let changedSlices = PlayerSaveSlice.changed(
-            between: snapshot,
-            and: candidate,
-            within: PlayerSaveSlice.persistTargets(for: sanitizeSlices),
-        )
+        let (candidate, _) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed)
 
-        #expect(mutationSlices == .homestead)
-        #expect(!sanitizeSlices.contains(.labyrinth))
-        #expect(candidate.labyrinth.worldSeed == 0)
-        #expect(!changedSlices.contains(.labyrinth))
+        #expect(candidate.homestead.resources[.wood] == 4)
+        #expect(candidate.homestead.resources[.stone] == 0)
+        #expect(candidate.labyrinth == snapshot.labyrinth)
     }
 
-    @Test @MainActor func `homestead mutation leaves labyrinth seed alone`() throws {
+    @Test @MainActor func `homestead mutation preserves labyrinth across reload`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        var snapshot = store.currentSave
-        snapshot.labyrinth.worldSeed = 0
-        let wood = (snapshot.homestead.resources[.wood] ?? 0) + 1
-        var proposed = snapshot
-        proposed.homestead.resources[.wood] = wood
-        let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed)
-        #expect(!changedSlices.contains(.labyrinth))
-        #expect(candidate.labyrinth.worldSeed == 0)
+        let labyrinth = store.currentSave.labyrinth
+        let wood = (store.homestead.resources[.wood] ?? 0) + 1
 
-        try store.performBatchMutation { $0 = candidate }
+        try store.performBatchMutation { $0.homestead.resources[.wood] = wood }
+
+        #expect(store.currentSave.labyrinth == labyrinth)
         let reloaded = try context.makeReloadedStore()
-        #expect(reloaded.labyrinth.worldSeed == reloaded.worldSeed)
+        #expect(reloaded.currentSave.labyrinth == labyrinth)
         #expect(reloaded.homestead.resources[.wood] == wood)
     }
 }

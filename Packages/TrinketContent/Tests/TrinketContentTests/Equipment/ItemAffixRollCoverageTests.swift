@@ -40,6 +40,45 @@ struct ItemAffixRollCoverageTests {
         #expect(rolled.description == "Gain 2 Block and 3 Health.")
     }
 
+    @Test func `bumping damage never changes the health threshold or percentage token`() throws {
+        let executioners = try #require(GameContent.itemAffixDefinition(matching: "executioners"))
+        let target = try #require(executioners.basic.bumpCandidates(direction: .up).first)
+        let bumped = executioners.basic.bumped(target: target, direction: .up)
+        #expect(bumped.triggers.damageBelowHealthPercentThreshold == 0.30)
+        #expect(bumped.triggers.damageBelowHealthPercentBonus == 3)
+        #expect(bumped.description == "Deal 3 additional damage if the enemy is below 30% Health.")
+
+        let power = ItemAffixPower(
+            description: "Gain 20 Strength when below 20% Health.",
+            modifiers: [.maximumHealth(20)],
+        )
+        let increased = power.bumped(target: .modifier(0), direction: .up)
+        #expect(increased.modifiers == [.maximumHealth(21)])
+        #expect(increased.description == "Gain 21 Strength when below 20% Health.")
+    }
+
+    @Test func `minimum integer and percent magnitudes cannot be reduced`() {
+        for power in [
+            ItemAffixPower(description: "Gain 1 Health.", modifiers: [.maximumHealth(1)]),
+            ItemAffixPower(description: "Gain 1% more Gold.", modifiers: [.goldGainedPercent(0.01)]),
+        ] {
+            #expect(power.bumpCandidates(direction: .down).isEmpty)
+            #expect(power.bumped(target: .modifier(0), direction: .down) == power)
+        }
+    }
+
+    @Test func `percentage trigger bumps preserve the power and displayed magnitude`() throws {
+        let power = ItemAffixPower(
+            description: "Gain 25% Thorns.",
+            triggers: CombatTraitTriggers(mitigation: MitigationTriggers(thornsPercent: 0.25)),
+        )
+        let target = try #require(power.bumpCandidates(direction: .up).first)
+        let increased = power.bumped(target: target, direction: .up)
+        #expect(abs(increased.triggers.thornsPercent - 0.26) < 1e-9)
+        #expect(increased.description == "Gain 26% Thorns.")
+        #expect(increased.bumped(target: target, direction: .down) == power)
+    }
+
     @Test func `every populated affix trigger field rolls or is excused`() {
         let rollable = CombatTraitTriggers.affixMagnitudeFieldNames
         var violations: [String] = []

@@ -41,23 +41,13 @@ extension PlayerSaveSanitizer {
             sanitized.activeChapterID = activeChapters.first?.id ?? JourneyProgressState.initial.activeChapterID
         }
 
-        if let activeStageID = sanitized.activeStageID,
-           validStageIDs.contains(activeStageID),
-           !sanitized.completedStageIDs.contains(activeStageID) {
-            sanitized.activeStageID = activeStageID
-            if let stage = allStages.first(where: { $0.id == activeStageID }) {
-                sanitized.activeChapterID = stage.chapterID
-            }
-        } else if let firstIncomplete = allStages.first(where: {
-            $0.chapterID == sanitized.activeChapterID && !sanitized.completedStageIDs.contains($0.id)
-        }) ?? allStages.first(where: { !sanitized.completedStageIDs.contains($0.id) }) {
-            sanitized.activeStageID = firstIncomplete.id
-            sanitized.activeChapterID = firstIncomplete.chapterID
-        } else {
-            sanitized.activeStageID = nil
-            sanitized.activeChapterID = activeChapters.last?.id
-                ?? JourneyProgressState.initial.activeChapterID
-        }
+        let incomplete = allStages.filter { !sanitized.completedStageIDs.contains($0.id) }
+        let activeStage = incomplete.first { $0.id == sanitized.activeStageID }
+            ?? incomplete.first { $0.chapterID == sanitized.activeChapterID }
+            ?? incomplete.first
+        sanitized.activeStageID = activeStage?.id
+        sanitized.activeChapterID = activeStage?.chapterID ?? activeChapters.last?.id
+            ?? JourneyProgressState.initial.activeChapterID
 
         return sanitized
     }

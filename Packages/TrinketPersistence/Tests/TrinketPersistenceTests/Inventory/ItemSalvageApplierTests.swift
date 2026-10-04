@@ -7,14 +7,14 @@ import TrinketPersistenceTestSupport
 struct ItemSalvageApplierTests {
     @Test func `yields match slot and rarity table`() throws {
         let basicWeapon = try SaveTestSupport.makeGeneratedItem(baseID: "longsword", rarity: .basic)
-        let astralTrinket = try SaveTestSupport.makeGeneratedItem(baseID: "sapphire_ring", rarity: .astral)
+        let astralAccessory = try SaveTestSupport.makeGeneratedItem(baseID: "sapphire_ring", rarity: .astral)
         let basicArmor = try SaveTestSupport.makeGeneratedItem(baseID: "leather_armor", rarity: .basic)
 
         #expect(ItemSalvage.yields(for: basicWeapon) == [
             ResourceAmount(.iron, 8),
             ResourceAmount(.wood, 4),
         ])
-        #expect(ItemSalvage.yields(for: astralTrinket) == [
+        #expect(ItemSalvage.yields(for: astralAccessory) == [
             ResourceAmount(.herbs, 16),
             ResourceAmount(.gems, 8),
         ])
@@ -34,8 +34,10 @@ struct ItemSalvageApplierTests {
         )
         var save = store.currentSave
         save.inventory.items = [item]
+        save.roster.equipmentLoadouts["knight"] = EquipmentLoadout(itemIDsBySlot: [.weapon: item.id])
         save.homestead.resources = [:]
         try store.performBatchMutation { $0 = save }
+        try #require(store.roster.equipmentLoadouts["knight"]?.itemID(for: .weapon) == item.id)
 
         let result = store.salvageItem(id: item.id)
         guard case let .committed(yields) = result else {
@@ -47,6 +49,7 @@ struct ItemSalvageApplierTests {
             ResourceAmount(.wood, 4),
         ])
         #expect(store.inventory.items.isEmpty)
+        #expect(store.roster.equipmentLoadouts["knight"]?.itemID(for: .weapon) == nil)
         #expect(store.homestead.resources[.iron] == 8)
         #expect(store.homestead.resources[.wood] == 4)
 
@@ -55,32 +58,9 @@ struct ItemSalvageApplierTests {
             disableCloudSync: true,
         )
         #expect(reloaded.inventory.items.isEmpty)
+        #expect(reloaded.roster.equipmentLoadouts["knight"]?.itemID(for: .weapon) == nil)
         #expect(reloaded.homestead.resources[.iron] == 8)
         #expect(reloaded.homestead.resources[.wood] == 4)
-    }
-
-    @Test func `salvage unequips item from loadouts`() throws {
-        var save = SaveTestSupport.makeSave(modifiedAt: .now)
-        let item = try SaveTestSupport.makeGeneratedItem(
-            baseID: "longsword",
-            rarity: .basic,
-            id: "equipped-sword",
-        )
-        save.inventory.items = [item]
-        save.roster.equipmentLoadouts["knight"] = EquipmentLoadout(
-            itemIDsBySlot: [.weapon: item.id],
-        )
-
-        let result = ItemSalvageApplier.salvage(itemID: item.id, save: &save)
-
-        guard case .success = result else {
-            Issue.record("Expected successful salvage")
-            return
-        }
-        #expect(save.inventory.items.isEmpty)
-        #expect(save.roster.equipmentLoadouts["knight"]?.itemID(for: .weapon) == nil)
-        #expect(save.homestead.resources[.iron] == 8)
-        #expect(save.homestead.resources[.wood] == 4)
     }
 
     @Test func `unknown item leaves save unchanged`() throws {

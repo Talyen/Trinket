@@ -34,9 +34,7 @@ extension BattleTurnEngine {
     ) -> DamageComponentOutcome {
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
         guard action.canContinue(in: context) else { return .empty }
-        let target = BattleTargetResolver.effectTarget(
-            component.target, actor: actor, abilityTarget: abilityTarget, in: context,
-        )
+        let target = action.target(component.target, in: context)
         guard context.roster.health(for: target) > 0,
               let prepared = prepareDamageComponent(
                   component, ability: ability, action: action, target: target, guaranteedCritical: guaranteedCritical,
@@ -350,12 +348,7 @@ extension BattleTurnEngine {
             }
 
             let effect = targetedEffect.effect
-            let effectTargets = BattleTargetResolver.effectTargets(
-                targetedEffect.target,
-                actor: actor,
-                abilityTarget: abilityTarget,
-                in: context,
-            )
+            let effectTargets = action.targets(targetedEffect.target, in: context)
 
             let handler = EffectHandlers.handler(for: effect.kind)
             var didApply = false

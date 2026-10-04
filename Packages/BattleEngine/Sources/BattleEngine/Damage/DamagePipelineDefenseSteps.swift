@@ -21,19 +21,7 @@ package extension DamagePipeline {
         }
         let profile = context.modifiers(for: state.combatant.id)
         let reductionMultiplier = DamageDefensePolicy.mitigationMultiplier(state: state, context: context)
-        let flatReduction = CombatRounding.scaled(profile.damageTakenFlat(for: damageKeyword), multiplier: reductionMultiplier)
-        if flatReduction > 0 {
-            state.remaining = max(0, state.remaining - flatReduction)
-        }
-        let reduction = min(1, profile.damageTakenReduction(for: damageKeyword) + profile.incomingDamageReductionPercent)
-        let effectiveReduction = reduction * reductionMultiplier
-        if effectiveReduction > 0 {
-            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - effectiveReduction)
-        }
-        let vulnerability = profile.damageTakenVulnerability(for: damageKeyword)
-        if vulnerability > 0 {
-            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + vulnerability)
-        }
+        applyTypedDefenses(to: &state, profile: profile, reductionMultiplier: reductionMultiplier)
         let defenderTriggers = profile.triggers
         var talentResistance = 0.0
         if damageKeyword == .bleed {
@@ -73,6 +61,33 @@ package extension DamagePipeline {
         }
         applyCompanionDefenseMultipliers(to: &state, in: context)
         applyPreparedIncomingProtection(to: &state, in: &context)
+    }
+
+    private static func applyTypedDefenses(
+        to state: inout DamageResolutionState,
+        profile: CombatModifierProfile,
+        reductionMultiplier: Double,
+    ) {
+        guard let damageKeyword = state.damageKeyword else { return }
+        let thorns = state.options.isThornsDamage && damageKeyword != .thorns
+        let flat = profile.damageTakenFlat(for: damageKeyword) + (thorns ? profile.damageTakenFlat(for: .thorns) : 0)
+        let flatReduction = CombatRounding.scaled(flat, multiplier: reductionMultiplier)
+        if flatReduction > 0 {
+            state.remaining = max(0, state.remaining - flatReduction)
+        }
+        let reduction = min(
+            1, profile.damageTakenReduction(for: damageKeyword) + profile.incomingDamageReductionPercent
+                + (thorns ? profile.damageTakenReduction(for: .thorns) : 0),
+        )
+        let effectiveReduction = reduction * reductionMultiplier
+        if effectiveReduction > 0 {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - effectiveReduction)
+        }
+        let vulnerability = profile.damageTakenVulnerability(for: damageKeyword)
+            + (thorns ? profile.damageTakenVulnerability(for: .thorns) : 0)
+        if vulnerability > 0 {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + vulnerability)
+        }
     }
 
     static func applyTakenFlatAdjustments(

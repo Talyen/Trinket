@@ -78,7 +78,7 @@ struct AvatarHandler: BattleEffectHandler {
         provenance: DamageProvenance? = nil,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        let opponent = BattleTargetResolver.abilityTarget(for: caster, in: context)
+        let opponent = BattleActionContext(actor: caster, in: context).selectedTarget
         var events = DoTDamage.resolveDamage(
             basePotency: holyDamage,
             keyword: .holy,

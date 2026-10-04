@@ -40,6 +40,7 @@ public struct CombatantDetailPane: View {
     @State private var viewingAbility: Ability?
     @State private var viewingItem: InventoryItem?
     @State private var selectedTalentTree: TalentTree?
+    @State private var requestedTalentTree: TalentTree?
     @State private var selectionFeedbackTrigger = 0
     @State private var pinnedDetailArtwork: [String] = []
 
@@ -128,6 +129,7 @@ public struct CombatantDetailPane: View {
             if phase != .active {
                 requestedItemSlot = nil
                 loadingItemSlot = nil
+                requestedTalentTree = nil
             }
         }
         .onChange(of: selectedItemSlot) { _, slot in
@@ -169,6 +171,9 @@ public struct CombatantDetailPane: View {
                 },
                 onResetTalents: { onEdit?(.resetTalents) ?? false },
             )
+        }
+        .preparingArtwork(request: $requestedTalentTree, presentation: $selectedTalentTree) {
+            [$0.keyword.artReference?.imageName, $0.keyword.artReference?.thumbnailImageName].compactMap(\.self)
         }
         .onChange(of: selectedTalentTree?.id) { oldValue, newValue in
             guard oldValue != newValue, newValue != nil else { return }
@@ -307,12 +312,7 @@ public struct CombatantDetailPane: View {
         }
 
         if combatant.role != .enemy {
-            CombatantTalentsSection(
-                combatantID: combatant.id,
-                progression: progression,
-                unlockedTalents: unlockedTalents,
-                onSelectTree: { selectedTalentTree = $0 },
-            )
+            talentsSection
         }
 
         if combatant.role != .enemy {
@@ -327,6 +327,23 @@ public struct CombatantDetailPane: View {
                     loadingSlot: loadingItemSlot,
                 )
                 .padding(.vertical, TrinketDesign.Spacing.extraSmall)
+            }
+        }
+    }
+
+    private var talentsSection: some View {
+        CombatantTalentsSection(
+            combatantID: combatant.id,
+            progression: progression,
+            unlockedTalents: unlockedTalents,
+            onSelectTree: { requestedTalentTree = $0 },
+        )
+        .overlay(alignment: .topTrailing) {
+            if requestedTalentTree != nil {
+                ProgressView()
+                    .padding(TrinketDesign.Spacing.small)
+                    .trinketMaterial(.subtleOverlay)
+                    .accessibilityLabel("Preparing talents")
             }
         }
     }

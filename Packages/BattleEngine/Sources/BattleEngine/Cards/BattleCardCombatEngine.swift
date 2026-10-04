@@ -201,7 +201,7 @@ package enum BattleCardCombatEngine {
             return leadingEvents
         }
 
-        let abilityTarget = BattleTargetResolver.abilityTarget(for: enemy, in: context)
+        let abilityTarget = BattleActionContext(actor: enemy, in: context).selectedTarget
         let action = BattleTurnEngine.performEnemyAction(ability: ability, abilityTarget: abilityTarget, context: &context)
         var events = action.events
         if action.performed {

@@ -260,26 +260,32 @@ private struct TestSFXBackend: SFXPlaybackBackend {
 }
 
 private actor SFXLoadGate {
-    private var result: CheckedContinuation<String?, Never>?
+    private var loadContinuations: [CheckedContinuation<Void, Never>] = []
     private var arrival: CheckedContinuation<Void, Never>?
+    private var isOpen = false
 
     func load(_ id: String) async -> String? {
+        guard !isOpen else { return id }
         await withCheckedContinuation { continuation in
-            result = continuation
+            loadContinuations.append(continuation)
             arrival?.resume()
             arrival = nil
-        }.map { _ in id }
+        }
+        return id
     }
 
     func waitForLoad() async {
-        if result != nil {
-            return
-        }
+        guard loadContinuations.isEmpty else { return }
         await withCheckedContinuation { arrival = $0 }
     }
 
     func finish() {
-        result?.resume(returning: "loaded")
-        result = nil
+        // A duplicate decode should fail the load-count assertion without stranding either caller.
+        isOpen = true
+        let pending = loadContinuations
+        loadContinuations.removeAll()
+        for continuation in pending {
+            continuation.resume()
+        }
     }
 }

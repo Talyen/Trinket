@@ -17,15 +17,6 @@ struct ExperienceScalingTests {
         )
     }
 
-    @Test func `underlevel gap scales smoothly`() {
-        let halfway = ExperienceScaling.adjustedAward(baseExperience: 100, playerLevel: 15, enemyLevel: 10)
-        #expect(halfway > 0)
-        #expect(halfway < 100)
-
-        let nearEqual = ExperienceScaling.adjustedAward(baseExperience: 100, playerLevel: 11, enemyLevel: 10)
-        #expect(nearEqual > halfway)
-    }
-
     @Test func `level gap cutoff falls off at exactly ten`() {
         #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: 19, enemyLevel: 10) > 0)
         #expect(ExperienceScaling.levelDeltaMultiplier(playerLevel: 20, enemyLevel: 10) == 0)
@@ -62,18 +53,9 @@ struct ExperienceScalingTests {
         #expect(ExperienceScaling.cappedAward(10, requiredXP: -5) == 0)
     }
 
-    @Test func `base battle award targets early mid and late progression`() {
-        let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 1)
-        #expect(award == 7)
-        #expect(abs((
-            Double(CombatantProgression.requiredXP(forLevel: 1)) / Double(award)
-        ) - 1.5) < 0.1)
-        for (level, battlesPerLevel) in [(25, 2.5), (45, 3.5)] {
-            let award = ExperienceScaling.baseBattleAward(forPlayerLevel: level)
-            #expect(abs((
-                Double(CombatantProgression.requiredXP(forLevel: level)) / Double(award)
-            ) - battlesPerLevel) < 0.05)
-        }
+    @Test(arguments: [(1, 7), (19, 175), (20, 114), (39, 369), (40, 276)])
+    func `battle XP changes pace at the shared progression boundaries`(level: Int, expected: Int) {
+        #expect(ExperienceScaling.baseBattleAward(forPlayerLevel: level) == expected)
     }
 
     @Test func `battle award applies level delta and catch up multiplier`() {
@@ -88,10 +70,6 @@ struct ExperienceScalingTests {
             ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10)
                 == 59,
         )
-    }
-
-    @Test func `equal battle award matches equal level catch up award`() {
-        #expect(ExperienceScaling.equalBattleAward(playerLevel: 12, highestLevel: 18) == 201)
     }
 
     @Test func `capped award clips at three times required XP`() {

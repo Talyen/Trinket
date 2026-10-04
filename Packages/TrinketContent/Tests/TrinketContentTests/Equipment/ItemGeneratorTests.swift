@@ -56,22 +56,6 @@ struct ItemGeneratorTests {
         try #expect(counts.contains(range.upperBound))
     }
 
-    @Test func `fixed affix count override pins count`() throws {
-        let baseType = try ItemFixtures.baseType("longsword")
-        var rng = SeededRandomNumberGenerator(seed: 12)
-
-        let item = ItemGenerator().generate(
-            id: "fixed",
-            baseType: baseType,
-            rarity: .basic,
-            fixedAffixCount: 1,
-            keywordBias: [.physical],
-            using: &rng,
-        )
-
-        try #expect(item.affixes.count == 1)
-    }
-
     @Test func `every base type has enough eligible affixes for astral maximum`() throws {
         for baseType in GameContent.itemBaseTypes where baseType.slot != .trinket {
             let eligibleAffixes = ItemFixtures.eligibleAffixes(forBaseType: baseType)

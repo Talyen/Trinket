@@ -9,7 +9,7 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
     let starterSelection: StarterSelectionState
     let journey: JourneyProgressState
     let roster: CloudRosterSnapshot
-    let inventory: [CloudItemSnapshot]
+    let inventory: [StoredInventoryItem]
     let homestead: PlayerHomesteadState
     let spires: PlayerSpiresState
     let labyrinth: PlayerLabyrinthState
@@ -24,7 +24,7 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
         starterSelection = save.starterSelection
         journey = save.journey
         roster = CloudRosterSnapshot(save.roster)
-        inventory = save.inventory.items.map(CloudItemSnapshot.init)
+        inventory = save.inventory.items.map(StoredInventoryItem.init)
         homestead = save.homestead
         spires = save.spires
         labyrinth = save.labyrinth
@@ -49,7 +49,7 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
             starterSelection: starterSelection,
             journey: journey,
             roster: roster.restored(),
-            inventory: PlayerInventoryState(items: inventory.compactMap { $0.restored() }),
+            inventory: PlayerInventoryState(items: inventory.compactMap { $0.resolved() }),
             homestead: homestead,
             spires: spires,
             labyrinth: labyrinth,

@@ -6,7 +6,7 @@ if [[ ! -r "$_smokey_registry" ]]; then
   echo "UI-test registry missing: $_smokey_registry" >&2
   return 1
 fi
-while IFS='|' read -r _smokey_suite _smokey_key _smokey_class _smokey_rest; do
+while IFS='|' read -r _smokey_suite _smokey_key _smokey_class; do
   [[ -z "$_smokey_suite" || "$_smokey_suite" == \#* ]] && continue
   [[ "$_smokey_suite" == FullUI ]] && continue
   if [[ "$_smokey_suite" != Smoke || ! "$_smokey_key" =~ ^[A-Z][A-Z0-9_]*$ || ! "$_smokey_class" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
@@ -15,4 +15,4 @@ while IFS='|' read -r _smokey_suite _smokey_key _smokey_class _smokey_rest; do
   fi
   export "TRINKET_SMOKE_CLASS_${_smokey_key}=$_smokey_class"
 done < "$_smokey_registry"
-unset _smokey_registry _smokey_suite _smokey_key _smokey_class _smokey_rest
+unset _smokey_registry _smokey_suite _smokey_key _smokey_class

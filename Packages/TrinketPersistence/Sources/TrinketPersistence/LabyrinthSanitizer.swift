@@ -7,17 +7,14 @@ enum LabyrinthSanitizer {
         eligibleRecruitEventIDs: [String] = [],
         eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) -> PlayerLabyrinthState {
-        if labyrinth.isMapPayloadUnreadable {
-            var healed = labyrinth
-            healed.ensureMap(
+        var sanitized = labyrinth
+        if sanitized.isMapPayloadUnreadable {
+            sanitized.ensureMap(
                 seed: labyrinth.worldSeed == 0 ? nil : labyrinth.worldSeed,
                 eligibleRecruitEventIDs: eligibleRecruitEventIDs,
                 eligibleRewards: eligibleRewards,
             )
-            return sanitize(healed, eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards)
         }
-
-        var sanitized = labyrinth
 
         sanitized.clusters = sanitized.clusters.map { cluster in
             LabyrinthCluster(
@@ -39,12 +36,13 @@ enum LabyrinthSanitizer {
         }
 
         let validNodeIDs = Set(sanitized.nodes.keys)
+        let clustersByID = Dictionary(sanitized.clusters.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         let existingNodes = sanitized.nodes
         for (id, node) in existingNodes {
             sanitized.nodes[id] = sanitizedLabyrinthNode(
                 node,
                 validNodeIDs: validNodeIDs,
-                cluster: sanitized.cluster(id: node.clusterID),
+                cluster: clustersByID[node.clusterID],
                 worldSeed: sanitized.worldSeed,
                 eligibleRewards: eligibleRewards,
             )

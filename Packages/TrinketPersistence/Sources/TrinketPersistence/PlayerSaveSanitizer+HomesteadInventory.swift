@@ -9,24 +9,16 @@ extension PlayerSaveSanitizer {
             sanitized.rewardRemainders = valid == .zero ? nil : valid
         }
         let beforePending = homestead.pendingProduction.count
-        sanitized.pendingProduction = Dictionary(
-            uniqueKeysWithValues: homestead.validPendingProduction.map { resource, quantity in
-                if resource == .gold {
-                    return (resource, PlayerRosterState.cappedPendingGold(quantity))
-                }
-                return (resource, quantity)
-            },
-        )
+        sanitized.pendingProduction = homestead.validPendingProduction
+        if let gold = sanitized.pendingProduction[.gold] {
+            sanitized.pendingProduction[.gold] = PlayerRosterState.cappedPendingGold(gold)
+        }
         if sanitized.pendingProduction.count != beforePending {
             logger.info("Sanitized homestead: dropped invalid pending production")
         }
         let hadGoldResource = homestead.resources[.gold] != nil
-        sanitized.resources = Dictionary(
-            uniqueKeysWithValues: homestead.resources.compactMap { resource, quantity in
-                guard resource != .gold else { return nil }
-                return (resource, max(0, quantity))
-            },
-        )
+        sanitized.resources = homestead.resources.mapValues { max(0, $0) }
+        sanitized.resources.removeValue(forKey: .gold)
         if hadGoldResource {
             logger.notice("Sanitized homestead: dropped gold from resources (roster owns gold)")
         }

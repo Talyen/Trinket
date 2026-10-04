@@ -42,8 +42,15 @@ struct ThemedGearGeneratorTests {
             using: &rng,
         )
         try #expect(build.inventory.count == 1)
-        try #expect(build.inventory[0].affixes.count == 1)
-        try #expect(build.loadout.itemIDsBySlot.count == 1)
+        let item = try #require(build.inventory.first)
+        let slot = try #require(build.loadout.itemIDsBySlot.first?.key)
+        #expect(build.loadout.itemID(for: slot) == item.id)
+        #expect(item.baseType.canEquip(in: slot))
+        #expect(build.loadout.sanitized(for: knight, inventory: build.inventory) == build.loadout)
+        for affix in item.affixes {
+            let definition = try #require(GameContent.itemAffixDefinition(matching: affix.id))
+            #expect(definition.isAligned(withBuildKeywords: Set(knight.abilities.flatMap(\.keywords))))
+        }
     }
 
     @Test func `ranged loadout equips only a compatible secondary`() throws {
@@ -111,11 +118,6 @@ struct ThemedGearGeneratorTests {
             #expect(Set(build.inventory.map(\.baseType.id)).count == bases.count)
             #expect(Set(build.inventory.map(\.id)) == Set(build.loadout.itemIDsBySlot.values))
         }
-    }
-
-    @Test func `keyword profile includes ability keywords`() throws {
-        let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
-        try #expect(wizard.keywordProfile.contains(.burn))
     }
 
     @Test func `require build alignment rejects mismatched damage affixes`() throws {

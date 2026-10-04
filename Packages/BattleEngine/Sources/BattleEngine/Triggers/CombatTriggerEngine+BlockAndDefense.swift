@@ -126,7 +126,7 @@ package extension CombatTriggerEngine {
                 ))
             }
         }
-        let healTarget = BattleTargetResolver.lowestHealthAlly(for: target, in: context)
+        let healTarget = BattleActionContext(actor: target, in: context).target(.lowestHealthAlly, in: context)
         events.append(contentsOf: emitHeal(
             "blockBrokenSaintfallPower", "Saintfall",
             amount: power, to: healTarget, source: target, in: &context,
@@ -356,21 +356,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
-        var events = drawAfterHealthLoss(by: target, in: &context)
-        preparePantherRedline(afterHealthLoss: target, in: &context)
-        events.append(contentsOf: vitalInfusionAfterHealthDrop(target: target, in: &context))
-        if target.id == context.roster.hero.id, context.roster.hero.isAlive,
-           context.roster.companion.isAlive,
-           context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target),
-           context.companionModifiers.triggers.allyFirstBelowHalfBlock > 0,
-           context.claimHeroTalent("Grizzly Guard", actorID: context.roster.companion.id, battle: true) {
-            events.append(contentsOf: context.applyBlock(
-                context.companionModifiers.triggers.allyFirstBelowHalfBlock,
-                to: target,
-                source: context.roster.companion.combatant,
-                abilityName: "Grizzly Guard",
-            ))
-        }
+        var events = afterSurvivingHealthLoss(target: target, in: &context)
         let belowHalfThreshold = profile.triggers.onceBelowHealthPercentThreshold > 0
             && context.roster.maxHealth(for: target) > 0
             && Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
@@ -411,6 +397,31 @@ package extension CombatTriggerEngine {
             "onceBelowHealthPercentHeal", "Second Wind",
             amount: profile.triggers.onceBelowHealthPercentHeal, to: target, source: target, in: &context,
         ))
+        return events
+    }
+
+    /// Living-owner rewards also run after lethal protection restores Health.
+    /// Second Wind and Seismic Roar retain their pre-protection checkpoint.
+    static func afterSurvivingHealthLoss(
+        target: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard context.roster.health(for: target) > 0 else { return [] }
+        var events = drawAfterHealthLoss(by: target, in: &context)
+        preparePantherRedline(afterHealthLoss: target, in: &context)
+        events.append(contentsOf: vitalInfusionAfterHealthDrop(target: target, in: &context))
+        if target.id == context.roster.hero.id, context.roster.hero.isAlive,
+           context.roster.companion.isAlive,
+           context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target),
+           context.companionModifiers.triggers.allyFirstBelowHalfBlock > 0,
+           context.claimHeroTalent("Grizzly Guard", actorID: context.roster.companion.id, battle: true) {
+            events.append(contentsOf: context.applyBlock(
+                context.companionModifiers.triggers.allyFirstBelowHalfBlock,
+                to: target,
+                source: context.roster.companion.combatant,
+                abilityName: "Grizzly Guard",
+            ))
+        }
         return events
     }
 

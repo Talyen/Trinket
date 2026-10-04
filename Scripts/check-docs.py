@@ -16,17 +16,6 @@ _check_links = load_sibling("check_links", "check-links.py")
 _check_testplan_sync = load_sibling("check_testplan_sync", "check-testplan-sync.py")
 _check_plans = load_sibling("check_plans", "check-plans.py")
 
-SKIP_PARTS = _check_links.SKIP_PARTS
-LINK = _check_links.LINK
-markdown_files = _check_links.markdown_files
-broken_links = _check_links.broken_links
-PLAN_STATUSES = _check_plans.PLAN_STATUSES
-ARCHIVED_PLAN_STATUSES = _check_plans.ARCHIVED_PLAN_STATUSES
-PLAN_WARNING_DAYS = _check_plans.PLAN_WARNING_DAYS
-plan_metadata = _check_plans.plan_metadata
-testplan_failures = _check_testplan_sync.testplan_failures
-plan_failures = _check_plans.plan_failures
-DOC_WARNINGS: list[str] = []
 SOURCE_GREP_PATHS = ("Packages", "Trinket", "Scripts", "project.yml")
 
 
@@ -123,7 +112,7 @@ def audit_inventory_failures() -> list[str]:
                 continue
             if not in_ownership:
                 continue
-            for raw in LINK.findall(line):
+            for raw in _check_links.LINK.findall(line):
                 target = raw.strip().split(maxsplit=1)[0].strip("<>")
                 if "/" not in target and AUDIT_GUIDE_PATTERN.match(Path(target).name):
                     linked.add(Path(target).name)
@@ -213,7 +202,7 @@ def structural_checks(
     for line in readme_path.read_text(encoding="utf-8").splitlines():
         if not line.lstrip().startswith("|"):
             continue
-        for raw in LINK.findall(line):
+        for raw in _check_links.LINK.findall(line):
             target = raw.strip().split(maxsplit=1)[0].strip("<>")
             if re.fullmatch(r"[A-Za-z0-9_-]+\.md", target):
                 table_cards.add(f"Docs/AgentContext/{target}")
@@ -225,7 +214,6 @@ def structural_checks(
         )
 
     failures.extend(_check_plans.plan_failures(files, final=final, keep_plan=keep_plan, paths=paths))
-    DOC_WARNINGS.extend(_check_plans.DOC_WARNINGS)
     failures.extend(proposal_evidence_failures())
     failures.extend(audit_inventory_failures())
     return failures
@@ -233,17 +221,16 @@ def structural_checks(
 
 def main() -> int:
     args = _check_plans.parse_arguments(__doc__)
-    files = markdown_files()
-    DOC_WARNINGS.clear()
+    files = _check_links.markdown_files()
     _check_plans.DOC_WARNINGS.clear()
-    failures = broken_links(files) + structural_checks(
+    failures = _check_links.broken_links(files) + structural_checks(
         files, final=args.final, keep_plan=args.keep_plan, paths=args.paths,
     )
     if failures:
         report_failures("Documentation checks failed:", failures, root=ROOT)
         return 1
     print(f"Documentation checks passed ({len(files)} Markdown files).")
-    for warning in DOC_WARNINGS:
+    for warning in _check_plans.DOC_WARNINGS:
         print(f"Warning: {warning}", file=sys.stderr)
     return 0
 

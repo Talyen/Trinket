@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import TrinketContent
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
@@ -44,6 +45,42 @@ struct PlaythroughSweepTests {
                 try JSONEncoder().encode(summary).write(to: summaryURL, options: .atomic)
             }
             throw error
+        }
+    }
+
+    @Test func `journal normalizes voyage encounter bytes without erasing route differences`() throws {
+        let offer = VoyageOffer(id: "journal-voyage", chapterID: "chapter-1", difficulty: .easy, seed: 4)
+        var save = PlayerSave.fresh
+        save.modifiedAt = Date(timeIntervalSince1970: 0)
+        save.voyage.activeRun = VoyageRun(offer: offer, nodes: VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: []))
+        let index = try #require(save.voyage.activeRun?.nodes.firstIndex { $0.type == .shop })
+        // Control serialized keyword order explicitly; Set encoding alone can accidentally agree.
+        let payload = Data(#"{"offers":[{"id":"second","keywords":["Poison","Burn"]},{"id":"first"}]}"#.utf8)
+        let equivalent = Data(#"{ "offers": [{"keywords":["Burn","Poison"],"id":"second"},{"id":"first"}] }"#.utf8)
+        save.voyage.activeRun?.nodes[index].shopPayload = payload
+        var reordered = save
+        reordered.voyage.activeRun?.nodes[index].shopPayload = equivalent
+
+        let expected = PlaythroughJournal.semantic(reordered)
+        #expect(PlaythroughJournal.semantic(save) == expected)
+        let record = PlaythroughRecord(sequence: 1, action: .reopen, state: CloudSaveSnapshot(save), result: nil)
+        #expect(try PlaythroughJournal.decodeRecord(JSONEncoder().encode(record)).state == expected)
+
+        reordered.voyage.activeRun?.nodes[index].shopPayload = Data(
+            #"{"offers":[{"id":"first"},{"id":"second","keywords":["Burn","Poison"]}]}"#.utf8,
+        )
+        #expect(PlaythroughJournal.semantic(reordered) != expected)
+        reordered = save
+        reordered.voyage.activeRun?.nodes.swapAt(0, 1)
+        #expect(PlaythroughJournal.semantic(reordered) != expected)
+
+        // Unsupported JSON and malformed bytes are evidence, not repair inputs.
+        for unreadable in [Data(#"{ "version": 999, "offers": [] }"#.utf8), Data([0xFF, 0x00])] {
+            save.voyage = PlayerVoyageState.decodePayload(unreadable)
+            let snapshot = PlaythroughJournal.semantic(save)
+            #expect(snapshot.voyagePayload == unreadable)
+            let damaged = PlaythroughRecord(sequence: 1, action: .reopen, state: snapshot, result: nil)
+            #expect(try PlaythroughJournal.decodeRecord(JSONEncoder().encode(damaged)).state.voyagePayload == unreadable)
         }
     }
 

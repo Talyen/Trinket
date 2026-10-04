@@ -133,8 +133,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.leech],
             weight: 8,
-            basic: ItemAffixPower(description: "Leech restores 5% more.", modifiers: [.leechGainedPercent(0.05)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Leech restores 10% more.", modifiers: [.leechGainedPercent(0.10)], triggers: CombatTraitTriggers())
+            basic: ItemAffixPower(description: "Leech restores an additional 5% of damage dealt.", modifiers: [.leechGainedPercent(0.05)], triggers: CombatTraitTriggers()),
+            astral: ItemAffixPower(description: "Leech restores an additional 10% of damage dealt.", modifiers: [.leechGainedPercent(0.10)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalog.affix(
             id: "bulwark",
@@ -246,8 +246,8 @@ enum ItemAffixCatalogGenerated {
             slot: .accessory,
             keywords: [.leech],
             weight: 8,
-            basic: ItemAffixPower(description: "Leech restores 10% more Health.", modifiers: [.leechGainedPercent(0.10)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Leech restores 20% more Health.", modifiers: [.leechGainedPercent(0.20)], triggers: CombatTraitTriggers())
+            basic: ItemAffixPower(description: "Leech restores an additional 10% of damage dealt.", modifiers: [.leechGainedPercent(0.10)], triggers: CombatTraitTriggers()),
+            astral: ItemAffixPower(description: "Leech restores an additional 20% of damage dealt.", modifiers: [.leechGainedPercent(0.20)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalog.affix(
             id: "bloodstone",

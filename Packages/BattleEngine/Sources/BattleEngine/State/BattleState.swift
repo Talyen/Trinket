@@ -129,10 +129,6 @@ public struct BattleState {
     var uniques = UniqueBattleState()
     var pendingTurnDrawState: TurnDrawState?
 
-    public var partyTriggers: CombatTraitTriggers {
-        CombatTriggerEngine.livingPartyTriggers(in: self)
-    }
-
     private var logProjection: BattleLogProjection?
 
     public static let defaultRNGSeed: UInt64 = 0

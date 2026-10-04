@@ -186,9 +186,12 @@ enum ActiveEffectMutation {
                 keyword: active.keyword, potency: potency, to: target, sourceActorID: source.id, application: .reflection,
                 durationTurns: active.remainingTurns, in: &context,
             ) ?? []
-        case let .controlMeter(keyword, amount, _):
+        case let .controlMeter(keyword, amount, threshold):
+            // A triggered status remains triggered when its new recipient has a larger Health pool.
+            let reflectedAmount = threshold > 0 && amount >= threshold
+                ? max(amount, ControlMeterEngine.threshold(for: target, in: context)) : amount
             return ControlMeterEngine.applyMeterCharge(
-                amount, keyword: keyword, to: target, sourceActorID: source.id, applyFightPacing: false, in: &context,
+                reflectedAmount, keyword: keyword, to: target, sourceActorID: source.id, applyFightPacing: false, in: &context,
             )
         default:
             context.appendEffect(active.effect, to: target, sourceID: source.id, remainingTurns: active.remainingTurns)

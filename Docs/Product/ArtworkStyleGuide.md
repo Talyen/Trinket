@@ -8,21 +8,26 @@ documents its formats and overrides.
 
 ## Art direction
 
-Trinket uses painterly, cinematic fantasy illustration with clear silhouettes,
-tactile materials, atmospheric depth, and restrained magical effects. The
-world should feel dangerous but inviting: lived-in rather than grim, elegant
-rather than ornate, and colorful without becoming glossy or cartoonish.
+Trinket is illustrated in a bold, high-energy anime style in the visual
+tradition of modern kinetic action-anime studios: sharp, angular exaggeration,
+with dynamic motion implied through sharply cut diagonal shadow shapes rather
+than literal speed lines. Outlines are thick, confident black strokes of
+varying weight. Shading is built from two to three hard-edged flat color steps
+rather than gradients or soft painterly blending. Palettes favor saturated,
+punchy colors with a high-contrast graphic-design sense of color blocking and
+sharp graphic highlight flares. The environment carries the exact same bold
+graphic treatment as foreground subjects, filling the full frame edge-to-edge.
 
-Use lighting and palette to distinguish locations instead of forcing every
-image into the same golden-hour forest treatment:
+Use lighting and palette to distinguish locations while strictly maintaining this
+sharp graphic treatment:
 
 | Setting | Palette and light |
 |---|---|
-| Forest | Moss, umber, muted gold; broken canopy light and mist |
-| Dungeon or crypt | Slate, oxidized bronze, cold blue; narrow practical light |
-| Desert or ruins | Sand, terracotta, indigo; hard sun and cool shadow |
-| Tundra | Blue-gray, bone, desaturated violet; diffuse snow light |
-| Arcane space | Near-black, mineral color, one controlled luminous accent |
+| Forest | Saturated moss greens, deep umber, punchy amber gold; razor-sharp broken canopy light shapes |
+| Dungeon or crypt | Deep slate, oxidized verdigris bronze, cold vivid cyan; high-contrast practical light cuts |
+| Desert or ruins | Sun-bleached sand, terracotta, intense indigo shadow; hard-edged diagonal sun slabs |
+| Tundra | Stark blue-gray, crisp bone white, electric violet; stark high-contrast snow light |
+| Arcane space | Deep void black, luminous mineral magenta/cyan, sharp graphic energy accents |
 
 ## Non-negotiable delivery constraints
 
@@ -72,19 +77,51 @@ Prompts should specify the subject, action, setting, lighting, palette,
 composition, and exclusions. Describe what matters visually; avoid long prose
 about unseen lore.
 
+### Core style block
+
+Every generation prompt incorporates Trinket's core style definition:
+
 ```text
-Painterly cinematic fantasy illustration of [SUBJECT] [ACTION].
-[DISTINCTIVE SHAPE, MATERIAL, AND COLOR DETAILS].
-Set in [LOCATION], lit by [LIGHT SOURCE], using [PALETTE].
-[SHOT AND COMPOSITION], clear silhouette, layered atmospheric depth,
-tactile materials, restrained magical effects, environment to every edge.
-No text, lettering, logo, watermark, border, UI, or cropped identifying features.
+Illustrated in a bold, high-energy anime style in the visual tradition of modern kinetic action-anime studios — sharp, angular exaggeration, dynamic motion implied through sharply cut diagonal shadow shapes rather than literal speed lines. Thick, confident black outlines of varying weight, with saturated, punchy colors and minimal color blending — shading built from two to three hard-edged flat color steps rather than gradients. Exaggerated dramatic perspective, sharp graphic highlight flares, and a high-contrast graphic color-blocking treatment rather than painterly subtlety. The environment itself carries the same bold graphic treatment as the subject, filling the full frame — not a character on a flat backdrop. No text, lettering, words, logos, signatures, watermarks, UI elements, borders, or cropped identifying features.
 ```
 
-For character art, add only the anatomy, expression, equipment, and pose needed
-to preserve identity. For event art, describe the clue or choice the player must
-notice. For items, describe construction and wear rather than requesting a
-generic rarity glow.
+### Prompt templates by asset kind
+
+#### 1. Characters, Heroes, Companions & Enemies (`combatant`)
+
+```text
+Illustrated in a bold, high-energy anime style in the visual tradition of modern kinetic action-anime studios — sharp, angular exaggeration in the pose, with dynamic motion implied through sharply cut diagonal shadow shapes rather than literal speed lines. Thick, confident black outlines of varying weight, with saturated, punchy colors and minimal color blending — shading built from two to three hard-edged flat color steps rather than gradients. Exaggerated dramatic perspective and slightly elongated limbs for maximum visual energy, sharp graphic highlight flares, and a high-contrast graphic color-blocking treatment. Dynamic [ACTION POSE / COMBAT STANCE] of [SUBJECT]. [DISTINCTIVE GEAR, WEAPON SILHOUETTE, ANATOMY, AND EXPRESSION DETAILS]. Set in [LOCATION / ENVIRONMENT], lit by [DRAMATIC DIRECTIONAL LIGHT SOURCE], using [PALETTE]. Strong readable silhouette, complete hands and weapon, environment to every edge filling the full frame — not a character on a flat backdrop. No text, lettering, logos, watermarks, UI elements, or borders.
+```
+
+#### 2. Abilities, Spells & Card Actions (`ability`, `talent`)
+
+```text
+Illustrated in a bold, high-energy anime style in the visual tradition of modern kinetic action-anime studios — sharp, angular graphic exaggeration with dynamic motion implied through sharply cut diagonal shadow shapes, impact angles, and geometric force vectors rather than literal speed lines. Thick, confident black outlines of varying weight, punchy saturated colors, and minimal color blending — shading built from two to three hard-edged flat color steps. Sharp graphic highlight flares and high-contrast color blocking. Decisive focal action depicting [SPELL / MARTIAL MANEUVER / MAGICAL BURST] of [ELEMENT / FORCE]. [DISTINCTIVE SHAPE, ENERGY ARCS, AND VALUE CONTRAST]. Lit by [INTENSE LUMINOUS SPELL GLOW], using [PALETTE]. High-impact composition, clean read at card size, environmental shockwave or backdrop filling the frame edge-to-edge. No text, lettering, logos, watermarks, UI frames, or borders.
+```
+
+#### 3. Items, Weapons, Armor & Artifacts (`item`)
+
+```text
+Illustrated in a bold, high-energy anime style in the visual tradition of modern kinetic action-anime studios — sharp, faceted angular shapes, graphic plane changes, and dynamic cast shadows rather than soft gradients. Thick, confident black outlines of varying weight, with saturated, punchy colors and minimal color blending — shading built from two to three hard-edged flat color steps. Sharp graphic specular highlight glints and crisp material delineation. Centered [ITEM / WEAPON / EQUIPMENT] showing [DISTINCTIVE CRAFTING, MATERIAL DETAILS, RUNES, WEAR, OR ELEMENTAL CHARGE]. Resting on or framed against [COMPLEMENTARY SUBDUED PHYSICAL SURFACE OR GRAPHIC BACKDROP], lit by [FOCUSED KEY LIGHT], using [PALETTE]. Clear iconic silhouette readable at inventory icon size, rarity conveyed through material quality and controlled graphic highlights rather than generic outer halos. Full canvas composition edge-to-edge. No text, lettering, logos, watermarks, or UI frames.
+```
+
+#### 4. Environments, Destinations & Chapter Backgrounds (`background`, `portrait_background`)
+
+```text
+Illustrated in a bold, high-energy anime style in the visual tradition of modern kinetic action-anime studios — dramatic wide-angle perspective, sharp architectural or topographical angles, layered atmospheric planes with sharply cut diagonal shadow shapes and sunbeams rather than hazy gradients. Thick, confident black outlines on structural edges, saturated punchy colors, and minimal blending — shading built from two to three hard-edged flat color steps across foreground, midground, and background layers. Sharp graphic edge highlights and high-contrast graphic color blocking. Scenic view of [DESTINATION / ENVIRONMENT / ARCHITECTURE]. Lit by [ATMOSPHERIC LIGHTING: TIME OF DAY / WEATHER / ENERGY CANOPY], using [PALETTE]. Broad value masses, layered scenic depth with no single face-sized focal subject, full-frame landscape or portrait composition tolerating fill crops across device viewports. No characters in the center foreground, no text, lettering, logos, watermarks, or UI borders.
+```
+
+#### 5. Mystery Events & Encounters (`encounter`)
+
+```text
+Illustrated in a bold, high-energy anime style in the visual tradition of modern kinetic action-anime studios — dramatic atmospheric storytelling, sharp graphic contrast, deep cut shadow planes, and angular focal elements. Thick, confident black outlines of varying weight, punchy saturated colors, and minimal color blending — two to three hard-edged flat color steps. Sharp graphic specular flares and high-contrast color blocking. Atmospheric encounter scene depicting [DISCOVERABLE FOCAL SUBJECT / SHRINE / WANDERER / DILEMMA] within [ENVIRONMENT]. Lit by [MOODY / DAPPLED / UNNATURAL LIGHT SOURCE], using [PALETTE]. Environmental mystery with a clear discoverable focal object and a reserved quiet composition area for text overlays; full frame edge-to-edge. No text, lettering, logos, watermarks, or UI frames.
+```
+
+#### 6. Resources & Curated Icons (`resource`, `slot_background`)
+
+```text
+Illustrated in a bold, high-energy anime style in the visual tradition of modern kinetic action-anime studios — compact, faceted silhouette, crisp angular planes, and bold graphic highlights. Thick, confident dark outlines, saturated punchy colors, and two to three hard-edged flat color steps with zero gradients or soft blending. [RESOURCE OBJECT / ICONIC SHAPE], [KEY MATERIAL AND COLOR DETAILS]. Simple centered silhouette filling 85-90 percent of the frame, extremely limited internal detail, readable down to 20x20 and 36x36 points. Lit by [CLEAN HIGH-ANGLE LIGHT], using [PALETTE]. Isolated on a clean background or transparent alpha with no muddy shadows. No text, lettering, logos, watermarks, or UI borders.
+```
 
 ## Review checklist
 

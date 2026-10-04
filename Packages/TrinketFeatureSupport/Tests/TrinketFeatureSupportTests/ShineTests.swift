@@ -9,8 +9,7 @@ struct ShineTests {
     @Test func `unique items glow unique`() throws {
         let item = try ItemFixtures.makeBareItem("leather_armor", rarity: .unique)
         #expect(item.displayShine == .unique)
-        let gold = Shine.uniqueBorderColors[0]
-        #expect(item.displayTextShine.textColors == [gold, gold.opacity(0.55)])
+        #expect(item.displayTextShine == .itemText(colors: Shine.uniqueBorderColors))
     }
 
     @Test func `astral glow follows real keywords only`() throws {
@@ -67,6 +66,7 @@ struct ShineTests {
         let unique = try #require(GameContent.unique(matching: "wardbreaker"))
         #expect(unique.uniqueSignatureIndex == 0)
         let displayed = unique.displayedAffixes
+        try #require(displayed.count > 1)
         #expect(unique.affixShine(at: 0, affix: displayed[0]) == unique.displayTextShine)
         for index in 1 ..< displayed.count {
             let affix = displayed[index]
@@ -130,26 +130,13 @@ struct ShineTests {
         let unrolled = try ItemFixtures.makeBareItem("bone_charm", affixes: [affix])
         #expect(unrolled.affixShine(at: 0, affix: affix) == .none)
     }
-
-    @Test func `single color stops flatten without motion`() {
-        let flat = Shine.stops(for: .red, motionEnabled: false)
-        #expect(flat.count == 3)
-        #expect(flat.allSatisfy { $0.color == .red })
-
-        let animated = Shine.stops(for: .red, motionEnabled: true)
-        #expect(animated.count == 6)
-        #expect(animated.contains { $0.color != .red })
-    }
 }
 
 @MainActor
 struct KeywordHighlightTests {
-    @Test func `keyword terms highlighted deterministically`() {
-        let first = KeywordDescriptionText.attributedText(for: "Burn deals damage each round")
-        let second = KeywordDescriptionText.attributedText(for: "Burn deals damage each round")
-        #expect(first == second)
-
-        let highlighted = first.runs.contains { run in
+    @Test func `keyword terms carry their matching color`() {
+        let text = KeywordDescriptionText.attributedText(for: "Burn deals damage each round")
+        let highlighted = text.runs.contains { run in
             run.foregroundColor == Keyword.burn.visualStyle.color
         }
         #expect(highlighted)

@@ -121,14 +121,14 @@ def validate_affix_rows(rows: list[AffixRow]) -> None:
             raise ValueError(f"Invalid affix slot '{row.slot}' for {row.id}")
         _validate_keywords(row.keywords, row.id)
         _validate_weight(row.weight, row.id)
-        _require_non_empty("basic_description", row.basic_description, row.id)
-        _require_non_empty("astral_description", row.astral_description, row.id)
-        modifiers_swift(row.basic_modifiers, row.id)
-        modifiers_swift(row.astral_modifiers, row.id)
-        triggers_swift(row.basic_triggers, row.id)
-        triggers_swift(row.astral_triggers, row.id)
-        validate_affix_rolling(row.basic_triggers, row.id)
-        validate_affix_rolling(row.astral_triggers, row.id)
+        for tier, description, modifiers, triggers in (
+            ("basic", row.basic_description, row.basic_modifiers, row.basic_triggers),
+            ("astral", row.astral_description, row.astral_modifiers, row.astral_triggers),
+        ):
+            _require_non_empty(f"{tier}_description", description, row.id)
+            modifiers_swift(modifiers, row.id)
+            # Rolling validation also parses and type-checks every trigger.
+            validate_affix_rolling(triggers, row.id)
 
 
 def validate_item_base_rows(rows: list[ItemBaseRow]) -> None:
@@ -156,12 +156,11 @@ def validate_affix_reachability(affix_rows: list[AffixRow], item_base_rows: list
     isEligible`), so an affix no base can host never enters a roll pool and
     silently skews the weights of the affixes that remain.
     """
-    affinities: dict[str, list[set[str]]] = {}
+    affinities: dict[str, set[str]] = {}
     for row in item_base_rows:
-        affinities.setdefault(row.slot, []).append(_keyword_set(row.keywords))
+        affinities.setdefault(row.slot, set()).update(_keyword_set(row.keywords))
     for row in affix_rows:
-        keywords = _keyword_set(row.keywords)
-        if any(not keywords.isdisjoint(base) for base in affinities.get(row.slot, [])):
+        if _keyword_set(row.keywords) & affinities.get(row.slot, set()):
             continue
         raise ValueError(
             f"affix '{row.id}' ({row.slot}) shares no keyword with any {row.slot} item base"

@@ -134,22 +134,12 @@ public struct BattleView: View {
                 )
                 .transition(.opacity)
             case let .defeat(settlement):
-                DefeatView(configuration: configuration, settlement: settlement) { action in
-                    if battleSession.progression == nil {
-                        switch action {
-                        case .retry: return restartBattle()
-                        case .leave:
-                            retreat()
-                            return true
-                        }
-                    }
-                    return battleSession.claimDefeat(configurationID: configuration.id, settlement: settlement, action: action)
-                }
-                .id([
-                    settlement.inputs.heroProgression, settlement.heroProgressionAfter,
-                    settlement.inputs.companionProgression, settlement.companionProgressionAfter,
-                ])
-                .transition(.opacity)
+                defeatContent(battleSession: battleSession, settlement: settlement)
+                    .id([
+                        settlement.inputs.heroProgression, settlement.heroProgressionAfter,
+                        settlement.inputs.companionProgression, settlement.companionProgressionAfter,
+                    ])
+                    .transition(.opacity)
             case .battle, .pendingVictory:
                 BattleFieldLane(
                     configuration: configuration,
@@ -175,6 +165,23 @@ public struct BattleView: View {
             case .battle, .pendingVictory:
                 break
             }
+        }
+    }
+
+    private func defeatContent(battleSession: BattleSession, settlement: BattleRewardSettlement) -> some View {
+        DefeatView(
+            configuration: configuration, settlement: settlement,
+            didRetreat: battleSession.retreatProgress != nil,
+        ) { action in
+            if battleSession.progression == nil {
+                switch action {
+                case .retry: return restartBattle()
+                case .leave:
+                    retreat()
+                    return true
+                }
+            }
+            return battleSession.claimDefeat(configurationID: configuration.id, settlement: settlement, action: action)
         }
     }
 

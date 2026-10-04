@@ -22,7 +22,7 @@ public enum ShopPurchaseOutcome: Equatable {
 
 @MainActor
 @Observable
-public final class ShopEncounterSession: Identifiable, EncounterSession {
+public final class ShopEncounterSession: Identifiable {
     public nonisolated var id: String {
         stage.id
     }

@@ -33,10 +33,6 @@ DESIGN_HELPERS = {
     "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/VisualFoundation.swift",
 }
 
-# No raw RGB constructors remain in scanned sources; keep the set (empty) so a
-# future raw-color introduction fails the gate instead of passing silently.
-RGB_ALLOWED = set()
-
 ALLOW_RE = re.compile(r"^\s*//\s*UIStyleCheck:\s*allow\s*-\s*\S", re.MULTILINE)
 
 SYSTEM_COLORS = "|".join(
@@ -142,20 +138,19 @@ def resolve_scan_paths(explicit: list[str] | None) -> list[str]:
     return [str(ROOT / root) for root in SCAN_ROOTS if (ROOT / root).exists()]
 
 
-def candidate_hits(scan_paths: list[str]) -> dict[Path, set[int]] | None:
-    """Map file -> line numbers that look like potential violations.
+def candidate_files(scan_paths: list[str]) -> list[Path] | None:
+    """Find files that need classification, without parsing source lines.
 
-    Returns an empty dict when rg finds no candidates, or None when rg is
+    Returns an empty list when rg finds no candidates, or None when rg is
     unavailable (caller should fall back to a full Swift scan). Raises
     RuntimeError when rg is present but the search fails — fail closed.
     """
     if not scan_paths:
-        return {}
+        return []
     cmd = [
         "rg",
-        "-n",
-        "--no-heading",
-        "--with-filename",
+        "--files-with-matches",
+        "--null",
         "-g",
         "*.swift",
         RG_PATTERN,
@@ -169,21 +164,7 @@ def candidate_hits(scan_paths: list[str]) -> dict[Path, set[int]] | None:
         stderr = (result.stderr or "").strip()
         detail = f": {stderr}" if stderr else ""
         raise RuntimeError(f"rg failed (exit {result.returncode}){detail}")
-    hits: dict[Path, set[int]] = {}
-    for line in result.stdout.splitlines():
-        # path:line:content — path may contain colons on exotic FS; split from left twice.
-        parts = line.split(":", 2)
-        if len(parts) < 2:
-            continue
-        path = Path(parts[0])
-        if not path.is_absolute():
-            path = ROOT / path
-        try:
-            line_no = int(parts[1])
-        except ValueError:
-            continue
-        hits.setdefault(path, set()).add(line_no)
-    return hits
+    return [ROOT / name for name in result.stdout.split("\0") if name]
 
 
 def is_allowed(
@@ -197,8 +178,6 @@ def is_allowed(
         return True
 
     if pattern in {"raw RGB color", "system color literal", "app-bundle named color"}:
-        if pattern == "raw RGB color" and file_rel in RGB_ALLOWED:
-            return True
         return False
 
     if pattern == "design asset colors outside the design system":
@@ -350,20 +329,15 @@ def main(argv: list[str]) -> int:
     violations: list[str] = []
 
     try:
-        hits = candidate_hits(scan_paths)
+        candidates = candidate_files(scan_paths)
     except RuntimeError as exc:
         print(f"error: UI style guardrail search failed: {exc}", file=sys.stderr)
         return 1
 
-    if hits is None:
-        # rg unavailable — fall back to listed Swift files.
-        for path in fallback_list_swift_files(scan_paths):
-            violations.extend(scan_file(path))
-    elif hits:
-        # Only open files ripgrep flagged — avoids full-tree iCloud/Documents I/O.
-        for path in sorted(hits, key=str):
-            violations.extend(scan_file(path))
-    # else: rg ran cleanly with zero candidates — pass without a full read.
+    if candidates is None:
+        candidates = fallback_list_swift_files(scan_paths)
+    for path in sorted(set(candidates), key=str):
+        violations.extend(scan_file(path))
 
     if violations:
         print("UI style guardrail found styling or artwork-sizing violations:")

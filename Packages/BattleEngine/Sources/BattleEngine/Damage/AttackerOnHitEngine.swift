@@ -29,7 +29,8 @@ enum AttackerOnHitEngine {
             triggers: context.modifiers(for: sourceRuntime.id).triggers,
         )
 
-        if hit.keyword == .bleed, state.healthLost > 0, hit.triggers.bleedDamageGoldFlat > 0 {
+        if hit.keyword == .bleed, state.healthLost > 0, hit.triggers.bleedDamageGoldFlat > 0,
+           context.roster.health(for: hit.source) > 0 {
             state.damageEvents.append(contentsOf: context.grantGoldEvent(
                 hit.triggers.bleedDamageGoldFlat,
                 to: hit.source,
@@ -108,7 +109,7 @@ enum AttackerOnHitEngine {
                 multiplier: triggers.physicalDamageBlockPercent,
             )
             if block > 0 {
-                guard let source = state.partySource(in: context) else { return }
+                guard let source = state.partySource(in: context), source.isAlive else { return }
                 state.damageEvents.append(contentsOf: context.applyBlock(
                     block, to: source.combatant, source: source.combatant,
                     abilityName: "Martial Guard", amountBasis: .resolved,

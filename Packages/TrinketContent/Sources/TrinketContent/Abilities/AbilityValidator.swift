@@ -70,30 +70,20 @@ enum AbilityValidator {
     private static func validateEffectTargets(in operations: [AbilityOperation], abilityID: String) -> [Issue] {
         let allyTargets: Set<EffectTarget> = [.actor, .hero, .companion, .lowestHealthAlly, .eachAlly]
         let enemyTargets: Set<EffectTarget> = [.abilityTarget, .enemy]
-        var issues: [Issue] = []
-
-        for targetedEffect in operations.compactMap(\.targetedEffect) {
+        return operations.compactMap(\.targetedEffect).compactMap { targetedEffect in
+            let message: String
             switch targetedEffect.effect {
             case .cleanse, .cleanseRandom, .cleanseHealPerDebuff, .panacea:
-                if !allyTargets.contains(targetedEffect.target) {
-                    issues.append(Issue(
-                        abilityID: abilityID,
-                        message: "cleanse effects must target allies",
-                    ))
-                }
+                guard !allyTargets.contains(targetedEffect.target) else { return nil }
+                message = "cleanse effects must target allies"
             case .purge, .purgeRandom:
-                if !enemyTargets.contains(targetedEffect.target) {
-                    issues.append(Issue(
-                        abilityID: abilityID,
-                        message: "purge effects must target enemies (.abilityTarget or .enemy)",
-                    ))
-                }
+                guard !enemyTargets.contains(targetedEffect.target) else { return nil }
+                message = "purge effects must target enemies (.abilityTarget or .enemy)"
             default:
-                continue
+                return nil
             }
+            return Issue(abilityID: abilityID, message: message)
         }
-
-        return issues
     }
 
     private static func validateTierDamage(in operationSets: [[AbilityOperation]], for ability: Ability) -> [Issue] {
@@ -141,7 +131,7 @@ enum AbilityValidator {
 
     private static func allowsAuthoredDamageTotal(abilityID: String, total: Int) -> Bool {
         switch abilityID {
-        case "bash":
+        case "bash", "maul", "slash":
             total == 3
         case "blood-offering", "cold-snap", "dark-pact", "predators-focus":
             total == 1
@@ -149,10 +139,6 @@ enum AbilityValidator {
             (1 ... 5).contains(total)
         case "ice-shot", "shield-bash":
             total == 5
-        case "maul":
-            total == 3
-        case "slash":
-            total == 3
         default:
             false
         }

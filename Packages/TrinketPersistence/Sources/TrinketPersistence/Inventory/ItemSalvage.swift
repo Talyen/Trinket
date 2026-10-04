@@ -8,18 +8,21 @@ public enum ItemSalvageFailure: Error, Equatable, Sendable {
 
 public enum ItemSalvage {
     public static func isEligible(_ item: InventoryItem) -> Bool {
-        !item.isTrinket && item.rarity != .unique && !yields(for: item).isEmpty
+        !yields(for: item).isEmpty
     }
 
     public static func yields(for item: InventoryItem) -> [ResourceAmount] {
-        guard let (primary, secondary) = materials(for: item.baseType.slot),
-              let (primaryQuantity, secondaryQuantity) = quantities(for: item.rarity)
-        else {
-            return []
+        guard !item.isTrinket,
+              let (primary, secondary) = materials(for: item.baseType.slot) else { return [] }
+        let quantity: Int
+        switch item.rarity {
+        case .basic: quantity = 8
+        case .astral: quantity = 16
+        case .unique: return []
         }
         return [
-            ResourceAmount(primary, primaryQuantity),
-            ResourceAmount(secondary, secondaryQuantity),
+            ResourceAmount(primary, quantity),
+            ResourceAmount(secondary, quantity / 2),
         ]
     }
 
@@ -35,17 +38,6 @@ public enum ItemSalvage {
             nil
         }
     }
-
-    private static func quantities(for rarity: Rarity) -> (Int, Int)? {
-        switch rarity {
-        case .basic:
-            (8, 4)
-        case .astral:
-            (16, 8)
-        case .unique:
-            nil
-        }
-    }
 }
 
 public enum ItemSalvageApplier {
@@ -53,9 +45,8 @@ public enum ItemSalvageApplier {
         guard let item = save.inventory.items.first(where: { $0.id == itemID }) else {
             return .failure(.itemNotFound)
         }
-        guard ItemSalvage.isEligible(item) else { return .failure(.ineligible) }
-
         let yields = ItemSalvage.yields(for: item)
+        guard !yields.isEmpty else { return .failure(.ineligible) }
         save.roster.unequip(itemID: itemID)
         save.inventory.removeItem(id: itemID)
         return .success(save.grantMaterials(yields))

@@ -26,66 +26,33 @@ struct ExperienceBarTests {
         pre: CombatantProgression,
         post: CombatantProgression,
     ) throws {
-        let segments = ExperienceBar.segments(from: pre, to: post)
-        try #expect(segments.count == 1)
-        try #expect(abs(segments[0].startFraction - pre.progressFraction) < 0.001)
-        try #expect(abs(segments[0].endFraction - post.progressFraction) < 0.001)
-        try #expect(segments[0].endXP == post.currentXP)
-        try #expect(segments[0].levelsGained == 0)
-        try #expect(segments[0].newLevel == post.level)
-    }
-
-    @Test func `single level-up fills then restarts the bar`() throws {
-        let pre = CombatantProgression(level: 2, currentXP: 14, requiredXP: 15)
-        let post = CombatantProgression(level: 3, currentXP: 1, requiredXP: 22)
-        let segments = ExperienceBar.segments(from: pre, to: post)
-        try #expect(segments.count == 2)
-        try #expect(abs(segments[0].startFraction - pre.progressFraction) < 0.001)
-        try #expect(abs(segments[0].endFraction - 1.0) < 0.001)
-        try #expect(segments[0].levelsGained == 1)
-        try #expect(segments[0].newLevel == 3)
-        try #expect(segments[0].newRequiredXP == 22)
-        try #expect(abs(segments[1].startFraction - 0.0) < 0.001)
-        try #expect(abs(segments[1].endFraction - post.progressFraction) < 0.001)
-        try #expect(segments[1].endXP == post.currentXP)
-        try #expect(segments[1].levelsGained == 0)
-        try #expect(segments[1].newLevel == 3)
-        try #expect(segments[1].newRequiredXP == post.requiredXP)
+        try #expect(ExperienceBar.segments(from: pre, to: post) == [ExperienceBar.Segment(
+            startFraction: pre.progressFraction,
+            endFraction: post.progressFraction,
+            endXP: post.currentXP,
+            levelsGained: 0,
+            newLevel: post.level,
+            newRequiredXP: post.requiredXP,
+        )])
     }
 
     @Test func `double level-up chains full intermediate bars`() throws {
         let pre = CombatantProgression(level: 1, currentXP: 9, requiredXP: 10)
         let post = pre.addingExperience(20)
-        try #expect(post.level == 3)
-        try #expect(post.currentXP == 4)
-        try #expect(post.requiredXP == 22)
-        let segments = ExperienceBar.segments(from: pre, to: post)
-        try #expect(segments.count == 3)
-        try #expect(abs(segments[0].startFraction - 0.9) < 0.001)
-        try #expect(abs(segments[0].endFraction - 1.0) < 0.001)
-        try #expect(segments[0].levelsGained == 1)
-        try #expect(segments[0].newLevel == 2)
-        try #expect(segments[0].newRequiredXP == 15)
-        try #expect(abs(segments[1].startFraction - 0.0) < 0.001)
-        try #expect(abs(segments[1].endFraction - 1.0) < 0.001)
-        try #expect(segments[1].levelsGained == 1)
-        try #expect(segments[1].newLevel == 3)
-        try #expect(segments[1].newRequiredXP == 22)
-        try #expect(abs(segments[2].startFraction - 0.0) < 0.001)
-        try #expect(abs(segments[2].endFraction - 0.182) < 0.01)
-        try #expect(segments[2].levelsGained == 0)
-        try #expect(segments[2].newLevel == 3)
-        try #expect(segments[2].endXP == 4)
-    }
-
-    @Test func `level chains match adding experience`() throws {
-        let pre = CombatantProgression(level: 3, currentXP: 14, requiredXP: 22)
-        let delta = 33
-        let post = pre.addingExperience(delta)
-
-        let segments = ExperienceBar.segments(from: pre, to: post)
-        let totalLevelUps = segments.count(where: { $0.levelsGained > 0 })
-        try #expect(totalLevelUps == post.level - pre.level)
+        try #expect(ExperienceBar.segments(from: pre, to: post) == [
+            ExperienceBar.Segment(
+                startFraction: 0.9, endFraction: 1.0, endXP: 10,
+                levelsGained: 1, newLevel: 2, newRequiredXP: 15,
+            ),
+            ExperienceBar.Segment(
+                startFraction: 0.0, endFraction: 1.0, endXP: 15,
+                levelsGained: 1, newLevel: 3, newRequiredXP: 22,
+            ),
+            ExperienceBar.Segment(
+                startFraction: 0.0, endFraction: 4.0 / 22.0, endXP: 4,
+                levelsGained: 0, newLevel: 3, newRequiredXP: 22,
+            ),
+        ])
     }
 
     @Test(arguments: [1, 2, 3, 20])

@@ -6,19 +6,23 @@ import TrinketCore
 /// Bounty-contract generator tests (ContractGenerator.makeOffer). For manifest
 /// catalog invariants, see GameContentCatalogInvariantTests.
 struct ContractGeneratorTests {
-    @Test(arguments: ContractDifficulty.allCases)
-    func `every matching catalog enemy can be contracted`(difficulty: ContractDifficulty) {
+    @Test(arguments: [ContractDifficulty.easy, .hard])
+    func `contracts honor exclusions and fall back when the pool is exhausted`(difficulty: ContractDifficulty) throws {
         var rng = SeededRandomNumberGenerator(seed: 1772)
+        let pool = GameContent.enemies.filter { $0.isBoss == difficulty.isBoss }
+        let remaining = try #require(pool.first)
         let allIDs = Set(GameContent.enemies.map(\.id))
-        for enemy in GameContent.enemies where enemy.isBoss == difficulty.isBoss {
-            let offer = ContractGenerator.makeOffer(
-                difficulty: difficulty,
-                excludingEnemyIDs: allIDs.subtracting([enemy.id]),
-                using: &rng,
-            )
-            #expect(offer.enemyID == enemy.id)
-            #expect(offer.difficulty == difficulty)
-        }
+        let offer = ContractGenerator.makeOffer(
+            difficulty: difficulty, excludingEnemyIDs: allIDs.subtracting([remaining.id]),
+            eligibleModifiers: [.astral], using: &rng,
+        )
+        #expect(offer.enemyID == remaining.id)
+        #expect(offer.rewardModifier == .astral)
+        let fallback = ContractGenerator.makeOffer(
+            difficulty: difficulty, excludingEnemyIDs: allIDs, eligibleModifiers: [], using: &rng,
+        )
+        #expect(pool.contains { $0.id == fallback.enemyID })
+        #expect(fallback.rewardModifier == .gold)
     }
 
     @Test func `legacy offers retain identity and receive a gold modifier`() throws {
@@ -40,19 +44,15 @@ struct ContractGeneratorTests {
         #expect(eligible.contains(.astral))
         #expect(RewardModifier.trinket.resolved(ownedTrinketIDs: trinkets, ownedUniqueIDs: []) == .gold)
         #expect(RewardModifier.unique.resolved(ownedTrinketIDs: [], ownedUniqueIDs: uniques) == .gold)
-        var rng = SeededRandomNumberGenerator(seed: 1772)
-        for difficulty in ContractDifficulty.allCases {
-            for modifier in eligible {
-                let offer = ContractGenerator.makeOffer(difficulty: difficulty, eligibleModifiers: [modifier], using: &rng)
-                #expect(offer.rewardModifier == modifier)
-            }
-        }
     }
 
-    @Test func `repeated targets receive independent offer identities`() {
+    @Test func `repeated targets receive independent offer identities`() throws {
         var rng = SeededRandomNumberGenerator(seed: 1772)
-        let first = ContractGenerator.makeOffer(difficulty: .hard, using: &rng)
-        let second = ContractGenerator.makeOffer(difficulty: .hard, using: &rng)
+        let enemy = try #require(GameContent.bossEnemies.first)
+        let excluded = Set(GameContent.bossEnemies.map(\.id)).subtracting([enemy.id])
+        let first = ContractGenerator.makeOffer(difficulty: .hard, excludingEnemyIDs: excluded, using: &rng)
+        let second = ContractGenerator.makeOffer(difficulty: .hard, excludingEnemyIDs: excluded, using: &rng)
+        #expect(first.enemyID == second.enemyID)
         #expect(first.id != second.id)
     }
 }

@@ -182,7 +182,7 @@ struct AppStateLabyrinthTests {
         case .mystery:
             let session = try #require(state.encounters.activeMysteryEncounter)
             #expect(session.labyrinthNodeID == nodeID)
-            if session.phase == .reading {
+            if session.canResolveChoice {
                 #expect(state.encounters.resolveActiveMysteryChoice())
             }
             if session.showsCorruptItemChoice, let itemID = session.corruptibleItems.first?.id {
@@ -210,7 +210,7 @@ struct AppStateLabyrinthTests {
 
         #expect(state.labyrinth.handleNodeAction(nodeID: nodeID) == nil)
         let session = try #require(state.encounters.activeMysteryEncounter)
-        #expect(session.phase == .reading)
+        #expect(session.canResolveChoice)
 
         #expect(!state.encounters.finishActiveMysteryEncounter())
         #expect(state.encounters.activeMysteryEncounter != nil)
@@ -287,7 +287,7 @@ struct AppStateLabyrinthTests {
             roster.unlockedHeroIDs.contains(id) || roster.unlockedCompanionIDs.contains(id)
         }
         #expect(unlockIsIn(state.playerSave.roster, unlockID))
-        #expect(state.encounters.activeMysteryEncounter?.phase == .revealing)
+        #expect(state.encounters.activeMysteryEncounter?.showsReveal == true)
         #expect(state.playerSave.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
 
         let unlockedCountAfterFirst = state.playerSave.roster.unlockedHeroIDs.count

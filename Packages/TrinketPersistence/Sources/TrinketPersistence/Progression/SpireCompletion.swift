@@ -83,11 +83,8 @@ public enum SpireCompletion {
             stageGold: resolvedLoot.gold,
             battleGold: battleGold,
             award: award,
-            materialRewards: VictoryRewardApplier.grantedMaterials(
-                override: materialRewards,
-                loot: resolvedLoot,
-            ),
-            item: VictoryRewardApplier.grantedItem(override: rewardItem, loot: resolvedLoot),
+            materialRewards: materialRewards ?? resolvedLoot.materials,
+            item: rewardItem ?? resolvedLoot.item,
             save: &save,
         )
 

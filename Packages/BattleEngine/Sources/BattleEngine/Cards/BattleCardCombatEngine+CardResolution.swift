@@ -54,7 +54,7 @@ extension BattleCardCombatEngine {
             partyDamageBonus: partyDamageBonus,
         )
         defer { context.resolution.endCard(playSerial) }
-        let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: context)
+        let abilityTarget = BattleActionContext(actor: actor, in: context).selectedTarget
         var events = BattleTurnEngine.performAction(
             ability: card.ability,
             actor: actor,

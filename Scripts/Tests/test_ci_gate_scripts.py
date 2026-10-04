@@ -18,13 +18,12 @@ SCRIPT_INPUTS = (
 
 
 import os
-import importlib.util
 import json
 import shutil
 import subprocess
 import unittest
 
-from script_test_support import ROOT, ScriptRegressionTestCase
+from script_test_support import ROOT, ScriptRegressionTestCase, load_script
 
 import tempfile
 from pathlib import Path
@@ -36,7 +35,6 @@ class CIGateScriptTests(ScriptRegressionTestCase):
         import re
 
         packages = read_env_arrays(ROOT / "Scripts/build-inputs.env", ["TRINKET_TEST_PACKAGES"])["TRINKET_TEST_PACKAGES"]
-        from script_test_support import load_script
         selection = load_script('ci_package_selection', 'ci-path-filter.py')
         self.assertEqual(sorted(packages), sorted(selection.all_packages()), 'missing or duplicate package owner')
         self.assertIn('fromJSON(needs.changes.outputs.unit-matrix)', workflow)
@@ -126,9 +124,7 @@ class CIGateScriptTests(ScriptRegressionTestCase):
         self.assertIn('retention-days: 7', stage)
 
     def test_advisory_report_uses_actual_paginated_shard_conclusions(self) -> None:
-        spec = importlib.util.spec_from_file_location('exhaustive_report', ROOT / 'Scripts/report-exhaustive-ci.py')
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        module = load_script('exhaustive_report', 'report-exhaustive-ci.py')
         def job(name, outcome):
             return {'name': name, 'conclusion': outcome, 'status': 'completed', 'html_url': 'https://example.com/job'}
         for outcome, title, warning in (('success', 'passed', False), ('skipped', 'not run', False),

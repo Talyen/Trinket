@@ -32,6 +32,7 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
     public var guaranteedCriticalIfEnemyBuffed = false
     public var guaranteedCritical = false
     public var abilityHasLeech = false
+    package var isThornsDamage = false
     var suppressLeech = false
     var partnerFirstAttackBonus = 0
     var capturesCardRepeat = false

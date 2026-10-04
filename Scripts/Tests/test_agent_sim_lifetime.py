@@ -1,4 +1,3 @@
-import importlib.util
 import argparse
 import json
 import os
@@ -10,10 +9,9 @@ import unittest
 from unittest.mock import patch
 
 SCRIPT_INPUTS = ("Scripts/agent-sim-lifetime.py", "Scripts/ensure-simulator.sh", "Scripts/lib/simctl.sh")
-SCRIPT = Path(__file__).resolve().parents[1] / "agent-sim-lifetime.py"
-SPEC = importlib.util.spec_from_file_location("agent_sim_lifetime", SCRIPT)
-MODULE = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(MODULE)
+from script_test_support import ROOT, load_script
+
+MODULE = load_script("agent_sim_lifetime", "agent-sim-lifetime.py")
 
 
 class AgentSimulatorLifetimeTests(unittest.TestCase):
@@ -146,8 +144,8 @@ else:
         subprocess.run(["bash", "-c", 'set -euo pipefail; '
                         'source "$1/Scripts/lib/simctl.sh"; '
                         'trinket_run_env_repo_root() { printf "%s" "$TRINKET_REPO_ROOT"; }; trinket_watch_agent_simulator',
-                        "_", str(SCRIPT.parents[1])],
-                       env={**environment, "TRINKET_REPO_ROOT": str(SCRIPT.parents[1])}, check=True, timeout=5)
+                        "_", str(ROOT)],
+                       env={**environment, "TRINKET_REPO_ROOT": str(ROOT)}, check=True, timeout=5)
         record_file = self.slot.with_suffix(".lifetime.json")
         self.assertTrue(record_file.exists(), "Nested launcher failed to register the parent lease")
         record = json.loads(record_file.read_text())

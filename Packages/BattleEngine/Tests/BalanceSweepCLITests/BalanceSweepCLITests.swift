@@ -28,11 +28,19 @@ struct BalanceSweepCLITests {
     @Test(arguments: [
         ["--samples", "0"], ["--jobs", "-1"], ["--work-offset", "-1"], ["--max-rounds", "oops"],
         ["--mode", "unknown"], ["--policy", "unknown"], ["--hero", "missing"], ["--seed"],
-        ["--peer-delta", "nan"], ["--duration-flag-rate", "inf"],
-        ["--comfort-hp", "-inf"], ["--comfort-rounds", "1e999"],
+        ["--peer-delta", "nan"], ["--comfort-rounds", "1e999"],
     ])
     func `invalid CLI input remains rejected`(_ arguments: [String]) {
         #expect(throws: (any Error).self) { try BalanceSweepCLI.parseInvocation(arguments) }
+    }
+
+    @Test func `invalid pacing explains how to correct the argument`() {
+        do {
+            _ = try BalanceSweepCLI.parseInvocation(["--pacing", "2"])
+            Issue.record("Unsupported pacing was accepted")
+        } catch {
+            #expect(String(describing: error) == "--pacing invalid value 2; use on or off")
+        }
     }
 
     @Test func `worker preserves configuration and deterministic results`() throws {

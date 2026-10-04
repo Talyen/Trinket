@@ -162,8 +162,9 @@ package enum HealingEngine {
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
     ) -> [ActionEvent] {
+        guard restored > 0, let sourceTriggers else { return [] }
         var events: [ActionEvent] = []
-        if let sourceTriggers, sourceTriggers.onHealGrantBlock > 0, restored > 0,
+        if sourceTriggers.onHealGrantBlock > 0,
            let sourceID = request.sourceActorID, let source = context.roster.combatant(for: sourceID) {
             let abilityName = context.modifiers(for: sourceID).triggerAbilityName("onHealGrantBlock", fallback: "Warded Roost")
             events.append(contentsOf: context.applyBlock(
@@ -173,7 +174,7 @@ package enum HealingEngine {
                 abilityName: abilityName,
             ))
         }
-        if restored > 0, let sourceTriggers, sourceTriggers.onHealCleanseTargetChance > 0,
+        if sourceTriggers.onHealCleanseTargetChance > 0,
            let sourceID = request.sourceActorID, let source = context.roster.combatant(for: sourceID),
            BattleChance.succeeds(probability: sourceTriggers.onHealCleanseTargetChance, using: &context.rng) {
             let abilityName = context.modifiers(for: sourceID).triggerAbilityName(
@@ -188,8 +189,7 @@ package enum HealingEngine {
                 in: &context,
             ))
         }
-        if restored > 0, let sourceTriggers,
-           sourceTriggers.healOverTimeOnHealAmount > 0,
+        if sourceTriggers.healOverTimeOnHealAmount > 0,
            sourceTriggers.healOverTimeOnHealTurns > 0,
            !request.isHoTTick, let sourceActorID = request.sourceActorID {
             context.roster.mutateRuntime(for: request.target) {
@@ -200,8 +200,8 @@ package enum HealingEngine {
                 )
             }
         }
-        if let sourceActorID = request.sourceActorID, let sourceTriggers,
-           sourceTriggers.onHealRestoreCasterMana > 0, restored > 0,
+        if let sourceActorID = request.sourceActorID,
+           sourceTriggers.onHealRestoreCasterMana > 0,
            let caster = context.roster.combatant(for: sourceActorID),
            caster.id != request.target.id {
             events.append(contentsOf: context.restoreManaEmitting(

@@ -267,7 +267,7 @@ package extension CombatTriggerEngine {
         }
         if !removed.isEmpty {
             if triggers.freshBatch {
-                let healTarget = BattleTargetResolver.lowestHealthAlly(for: source, in: context)
+                let healTarget = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
                 events.append(contentsOf: heroTalentHeal(
                     to: healTarget, source: source, amount: 2, name: "Fresh Batch", in: &context,
                 ))
@@ -310,7 +310,7 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.returningBloomHeal > 0 {
-            let healTarget = BattleTargetResolver.lowestHealthAlly(for: source.combatant, in: context)
+            let healTarget = BattleActionContext(actor: source.combatant, in: context).target(.lowestHealthAlly, in: context)
             events.append(contentsOf: heroTalentHeal(
                 to: healTarget,
                 source: source.combatant,

@@ -48,34 +48,51 @@ def expected_cases(targets: list[str], root: Path = Path("TrinketUITests")) -> l
     return sorted(selected)
 
 
+def test_results(evidence: dict) -> dict[str, str] | None:
+    """Accept only complete, unique case results with matching integer totals."""
+    tests = evidence.get("tests")
+    if not isinstance(tests, list) or not tests:
+        return None
+    results = {}
+    for test in tests:
+        if not isinstance(test, dict) or not isinstance(test.get("id"), str):
+            return None
+        name = identifier(test["id"])
+        if (not re.fullmatch(r"\w+/\w+", name) or name in results
+                or test.get("result") not in ("Passed", "Failed")):
+            return None
+        results[name] = test["result"]
+    summary = evidence.get("summary")
+    counts = {"passed": sum(value == "Passed" for value in results.values()),
+              "failed": sum(value == "Failed" for value in results.values()), "skipped": 0}
+    if not isinstance(summary, dict) or any(type(summary.get(key)) is not int or summary[key] != count
+                                           for key, count in counts.items()):
+        return None
+    return results
+
+
 def failed_cases(manifest: dict, report: dict, evidence: dict, targets: list[str]) -> list[str]:
     if (manifest.get("status") != "failed" or manifest.get("action") not in {"test", "test-without-building"}
-            or not manifest.get("result_bundle_complete") or report.get("classification") != "simulator-infrastructure"):
+            or manifest.get("result_bundle_complete") is not True or report.get("classification") != "simulator-infrastructure"):
         return []
-    tests = evidence.get("tests", [])
-    if not tests or any(test.get("result") not in {"Passed", "Failed"} for test in tests):
+    results = test_results(evidence)
+    expected = evidence.get("expected_tests")
+    if (not results or not isinstance(expected, list) or not all(isinstance(name, str) for name in expected)
+            or set(results) != set(expected) or len(results) != len(expected)
+            or not targets or not all(isinstance(target, str) for target in targets)):
         return []
-    names = [identifier(test["id"]) for test in tests]
-    if (len(set(names)) != len(names) or set(names) != set(evidence.get("expected_tests", []))
-            or any(not re.fullmatch(r"\w+/\w+", name) for name in names)):
+    target_names = {identifier(target) for target in targets}
+    if any(not any(name == target or name.startswith(target + "/") or target == "TrinketUITests"
+                   for name in results) for target in target_names):
         return []
-    if any(not any(name == identifier(target) or name.startswith(identifier(target) + "/")
-                   or target == "TrinketUITests" for name in names) for target in targets):
+    failed = {name for name, result in results.items() if result == "Failed"}
+    issues = report.get("issues")
+    if (not failed or not isinstance(issues, list) or not issues
+            or any(not isinstance(issue, dict) or issue.get("kind") != "simulator-infrastructure"
+                   or not isinstance(issue.get("test"), str) for issue in issues)):
         return []
-    failed = {identifier(test["id"]) for test in tests if test["result"] == "Failed"}
-    summary = evidence.get("summary", {})
-    if (not failed or summary.get("failed") != len(failed)
-            or summary.get("passed") != len(tests) - len(failed) or summary.get("skipped") != 0):
-        return []
-    issues = report.get("issues", [])
-    if not issues or any(issue.get("kind") != "simulator-infrastructure" for issue in issues):
-        return []
-    # Every failing case must have specific launch evidence; runner-only failure
-    # evidence, unreadable/partial exports, and mixed assertion failures fail closed.
-    issue_tests = {identifier(issue.get("test", "")) for issue in issues}
-    if issue_tests != failed:
-        return []
-    return sorted(failed)
+    # Each failed case needs launch evidence; mixed assertions fail closed.
+    return sorted(failed) if {identifier(issue["test"]) for issue in issues} == failed else []
 
 
 def recovery_valid(manifest: dict, report: dict) -> bool:
@@ -88,21 +105,17 @@ def recovery_valid(manifest: dict, report: dict) -> bool:
         original = recovery["original_evidence"]
         targets = recovery["targets"]
         failed = failed_cases(manifest, report, original, targets)
-        retry_cases = recovery["retry_evidence"]["tests"]
-        retry_names = {identifier(test["id"]) for test in retry_cases}
+        retry_results = test_results(recovery["retry_evidence"])
         return bool(failed) and (
             Path(manifest["result_bundle"], "Info.plist").is_file()
             and bool(manifest.get("session_id"))
-            and retry.get("status") == "passed" and retry.get("exit_code") == 0
+            and retry.get("status") == "passed" and type(retry.get("exit_code")) is int and retry["exit_code"] == 0
             and retry.get("session_id") == manifest.get("session_id")
             and retry.get("action") == "test-without-building"
             and retry.get("result_bundle_complete") is True
             and Path(retry["result_bundle"], "Info.plist").is_file()
-            and retry_names == set(failed) and len(retry_cases) == len(failed)
-            and all(test.get("result") == "Passed" for test in retry_cases)
-            and recovery["retry_evidence"]["summary"]["failed"] == 0
-            and recovery["retry_evidence"]["summary"]["passed"] == len(failed)
-            and recovery["retry_evidence"]["summary"]["skipped"] == 0
+            and retry_results is not None and set(retry_results) == set(failed)
+            and all(result == "Passed" for result in retry_results.values())
         )
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         return False
@@ -111,8 +124,11 @@ def recovery_valid(manifest: dict, report: dict) -> bool:
 def new_manifest(results: Path, before: set[Path], session: str, mode: str) -> Path | None:
     candidates = []
     for path in set(results.glob("*-invocation.json")) - before:
-        payload = read(path)
-        if payload.get("session_id") == session and payload.get("label") == mode:
+        try:
+            payload = read(path)
+        except (OSError, ValueError):
+            continue
+        if isinstance(payload, dict) and payload.get("session_id") == session and payload.get("label") == mode:
             candidates.append(path)
     return candidates[0] if len(candidates) == 1 else None
 

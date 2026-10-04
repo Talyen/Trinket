@@ -11,9 +11,10 @@ public enum ItemDropTier: String, CaseIterable, Sendable {
 
 enum ItemLootPolicy {
     static func progress(level: Int) -> Double {
-        let clamped = Double(min(max(level, LootTuning.minimumLevel), LootTuning.maximumLevel) - LootTuning.minimumLevel)
-        let span = Double(LootTuning.maximumLevel - LootTuning.minimumLevel)
-        return (clamped / (LootTuning.curvature + clamped)) / (span / (LootTuning.curvature + span))
+        let clamped = Double(min(max(level, 1), 40) - 1)
+        let span = 39.0
+        let curvature = 25.0
+        return (clamped / (curvature + clamped)) / (span / (curvature + span))
     }
 
     static func probabilities(
@@ -24,13 +25,18 @@ enum ItemLootPolicy {
         favoredTier: ItemDropTier? = nil,
         tierWeightBonusPercent: Int = 0,
     ) -> [Double] {
-        let clampedLevel = min(max(level, LootTuning.minimumLevel), LootTuning.maximumLevel)
-        let t = progress(level: clampedLevel)
-        let weights = ItemDropTier.allCases.enumerated().map { index, tier in
+        let t = progress(level: level)
+        let weights = ItemDropTier.allCases.map { tier in
             guard availableTiers.contains(tier) else { return 0.0 }
-            var weight = LootTuning.baseWeights[index] + (LootTuning.topWeights[index] - LootTuning.baseWeights[index]) * t
+            let endpoints: (base: Double, top: Double) = switch tier {
+            case .basic: (98, 60)
+            case .astral: (1.5, 20)
+            case .trinket: (0.4, 12)
+            case .unique: (0.1, 8)
+            }
+            var weight = endpoints.base + (endpoints.top - endpoints.base) * t
             if bossContent, tier != .basic {
-                weight *= LootTuning.bossPremiumMultiplier
+                weight *= 3
             }
             if tier == .astral {
                 weight *= 1 + Double(max(0, astralChanceBonusPercent)) / 100

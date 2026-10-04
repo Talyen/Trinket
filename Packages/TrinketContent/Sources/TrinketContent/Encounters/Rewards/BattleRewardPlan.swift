@@ -49,12 +49,18 @@ public struct BattleRewardPlan: Equatable, Sendable {
     }
 
     public func settleDefeat(progress: BattleDefeatProgress, inputs: RewardSettlementInputs) -> BattleRewardSettlement {
-        Self(
-            stageGold: 0, goldFindPercent: 0,
-            heroExperience: progress.experienceAward(from: defeatHeroExperience),
-            companionExperience: progress.experienceAward(from: defeatCompanionExperience),
+        let award = BattleRewardAward(
+            stageGold: 0, battleGold: 0, goldFlow: .init(),
+            heroExperience: ExperienceScaling.cappedAward(
+                progress.experienceAward(from: defeatHeroExperience), for: inputs.heroProgression,
+            ),
+            companionExperience: ExperienceScaling.cappedAward(
+                progress.experienceAward(from: defeatCompanionExperience), for: inputs.companionProgression,
+            ),
             materials: [], items: [],
-        ).settle(battleGold: .init(), inputs: inputs)
+            rewardRemainders: inputs.rewardRemainders,
+        )
+        return BattleRewardSettlement(inputs: inputs, award: award, replacementExperience: 0)
     }
 
     public func resolve(

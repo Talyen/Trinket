@@ -7,6 +7,11 @@ import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
+struct HomesteadBuildControl {
+    var upgradeEventCount = 0
+    var isPending = false
+}
+
 enum HomesteadDetailSheet: Hashable, Identifiable {
     case improvement(Int)
     case wallet
@@ -270,20 +275,18 @@ struct HomesteadNodeDetailView: View {
                 }
                 return result
             }, while: {
-                switch $0 {
-                case .persistFailed, .cloudUnavailable: true
-                default: false
-                }
+                $0 == .persistFailed
             }) else {
                 build.isPending = false
                 return
             }
-            build.complete(result) {
-                purchasePresentation = presentation
-                purchaseCommitted = true
-                pendingCelebration = true
-                sheet = nil
-            }
+            build.isPending = result == .persistFailed
+            guard result == .success else { return }
+            build.upgradeEventCount += 1
+            purchasePresentation = presentation
+            purchaseCommitted = true
+            pendingCelebration = true
+            sheet = nil
         }
     }
 

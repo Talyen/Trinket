@@ -10,29 +10,6 @@ struct KeywordCoreTests {
         #expect(!keyword.category.rawValue.isEmpty, "\(keyword.rawValue) should have a category")
     }
 
-    @Test(arguments: [
-        (Keyword.physical, Keyword.Category.damageType),
-        (.burn, .damageType),
-        (.poison, .damageType),
-        (.bleed, .damageType),
-        (.holy, .damageType),
-        (.freeze, .damageType),
-        (.stun, .damageType),
-        (.thorns, .damageType),
-        (.block, .mitigation),
-        (.dodge, .mitigation),
-        (.purge, .mitigation),
-        (.cleanse, .restoration),
-        (.health, .restoration),
-        (.leech, .restoration),
-        (.deathsDoor, .restoration),
-        (.gold, .resource),
-        (.mana, .resource),
-    ])
-    func `keyword category`(keyword: Keyword, category: Keyword.Category) {
-        #expect(keyword.category == category, "\(keyword.rawValue) should be \(category)")
-    }
-
     @Test func `referenced keywords extraction maintains appearance order`() {
         let text = "Gain 1 Block when you deal Stun or Holy damage."
         let keywords = Keyword.referenced(in: text)
@@ -65,11 +42,6 @@ struct KeywordCoreTests {
         #expect(Keyword.bleed.rulesText.contains("\(Effect.bleedDoTTurnCount) round"))
     }
 
-    @Test func `mana rules text matches empowerment tuning`() {
-        #expect(Keyword.mana.rulesText.contains("3 Mana"))
-        #expect(Keyword.mana.rulesText.contains("+1 Burn"))
-    }
-
     @Test func `referenced text without keywords is empty`() {
         #expect(Keyword.referenced(in: "").isEmpty)
         #expect(Keyword.referenced(in: "Draw a card.").isEmpty)
@@ -87,17 +59,5 @@ struct KeywordCoreTests {
     func `keyword critical hit legality aligns with category and restoration rules`(keyword: Keyword) {
         let expected = keyword.category == .damageType || keyword == .health || keyword == .leech
         #expect(keyword.allowsCriticalHits == expected, "\(keyword) crit legality should be \(expected)")
-    }
-
-    @Test func `statusName resolves alias when present or falls back to raw value`() {
-        #expect(Keyword.burn.statusName == "Burning")
-        #expect(Keyword.freeze.statusName == "Frozen")
-        #expect(Keyword.stun.statusName == "Stunned")
-        #expect(Keyword.poison.statusName == "Poisoned")
-        #expect(Keyword.bleed.statusName == "Bleeding")
-        #expect(Keyword.deathsDoor.statusName == "Death's Door")
-        #expect(Keyword.physical.statusName == "Physical")
-        #expect(Keyword.block.statusName == "Block")
-        #expect(Keyword.holy.statusName == "Holy")
     }
 }

@@ -170,7 +170,6 @@
       "Packages/TrinketAppState/Sources/TrinketAppState/Audio/SFXPlayback.swift"
     ],
     "tests": [
-      "Packages/TrinketAppState/Tests/TrinketAppStateTests/SFXPlayerTests.swift",
       "Packages/TrinketAppState/Tests/TrinketAppStateTests/SFXPlaybackTests.swift"
     ],
     "contracts": [

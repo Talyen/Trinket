@@ -60,11 +60,24 @@ struct ContractBoardTests {
     @Test func `damaged Contract offers do not erase the earned loot milestone`() throws {
         let payload = try JSONSerialization.data(withJSONObject: [
             "offers": "unreadable", "highestWonEncounterLevel": 27, "refreshAvailable": true,
+            "completedOfferIDs": ["claimed-contract"],
         ])
         let restored = PlayerContractsState.decodePayload(payload)
         #expect(restored.offers.isEmpty)
         #expect(restored.highestWonEncounterLevel == 27)
         #expect(restored.refreshAvailable)
+        #expect(restored.completedOfferIDs == ["claimed-contract"])
+
+        // A damaged scalar must not discard readable pinned offers or receipts.
+        var board = PlayerContractsState()
+        board.ensureBoard()
+        let encoded = try JSONEncoder().encode(board)
+        var fields = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        fields["highestWonEncounterLevel"] = "unreadable"
+        fields["completedOfferIDs"] = ["claimed-contract"]
+        let recovered = try PlayerContractsState.decodePayload(JSONSerialization.data(withJSONObject: fields))
+        #expect(recovered.offers == board.offers)
+        #expect(recovered.completedOfferIDs == ["claimed-contract"])
     }
 
     @Test(arguments: ContractDifficulty.allCases)

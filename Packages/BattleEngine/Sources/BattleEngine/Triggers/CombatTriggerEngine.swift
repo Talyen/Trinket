@@ -35,12 +35,6 @@ package enum CombatTriggerEngine {
         livingAllies(in: context).map(\.profile)
     }
 
-    static func livingPartyTriggers(in context: BattleState) -> CombatTraitTriggers {
-        livingAllyModifiers(in: context).reduce(into: CombatTraitTriggers()) { merged, profile in
-            merged.merge(profile.triggers)
-        }
-    }
-
     static func hasLivingPartyTrigger(_ keyPath: KeyPath<CombatTraitTriggers, Bool>, in context: BattleState) -> Bool {
         livingAllies(in: context).contains { $0.profile.triggers[keyPath: keyPath] }
     }

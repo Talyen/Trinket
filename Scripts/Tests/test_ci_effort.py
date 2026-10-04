@@ -37,13 +37,15 @@ class CIEffortTests(unittest.TestCase):
             altered = copy.deepcopy(jobs)
             altered[-1]['conclusion'] = conclusion
             self.assertIsNone(REUSE.proof(run, altered, artifacts, 'abc', 'main'))
-        self.assertIsNone(REUSE.proof(run, jobs, [{**artifacts[0], 'expired': True}], 'abc', 'main'))
+        for expired in (True, 0, None):
+            self.assertIsNone(REUSE.proof(run, jobs, [{**artifacts[0], 'expired': expired}], 'abc', 'main'))
         self.assertEqual(REUSE.proof(run, jobs, artifacts, 'abc', 'main')['assets'], 'false')
 
     def test_reuse_reads_successful_prior_attempts_but_latest_failure_wins(self):
         run, jobs, artifacts = self.proof_fixture()
         jobs = [{**job, 'id': index + 1} for index, job in enumerate(jobs)]
-        responses = [[{'workflow_runs': [run]}], [{'jobs': jobs}], [{'artifacts': artifacts}]]
+        responses = [[{'workflow_runs': [{**run, 'id': 9, 'head_branch': 'other'}, run]}],
+                     [{'jobs': jobs}], [{'artifacts': artifacts}]]
         with patch.object(REUSE, 'api', side_effect=responses):
             self.assertEqual(REUSE.find_proof('owner/repo', 'abc', 'main', '20')['run-id'], '10')
         jobs += [{**jobs[-1], 'id': 100, 'conclusion': 'failure'}]
@@ -79,6 +81,10 @@ class CIEffortTests(unittest.TestCase):
             incomplete = copy.deepcopy(evidence)
             incomplete['tests'][1]['result'] = 'Not Run'
             self.assertEqual(RETRY.failed_cases(original, report, incomplete, ['BattleTests']), [])
+            for malformed in ({**evidence, 'tests': [None]}, {**evidence, 'summary': []},
+                              {**evidence, 'expected_tests': [None]}):
+                self.assertEqual(RETRY.failed_cases(original, report, malformed, ['BattleTests']), [])
+            self.assertEqual(RETRY.failed_cases(original, report, evidence, []), [])
 
     def test_recovery_requires_matching_successful_retry_and_keeps_original_failure(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -103,7 +109,8 @@ class CIEffortTests(unittest.TestCase):
             normalized = AGGREGATE.normalise_report(None, report, manifest=original)
             self.assertFalse(normalized['failed'])
             self.assertTrue(normalized['infrastructure_recovered'])
-            for changes in ({'session_id': 'unrelated'}, {'status': 'failed'}, {'exit_code': 1}):
+            for changes in ({'session_id': 'unrelated'}, {'status': 'failed'}, {'exit_code': 1},
+                            {'exit_code': False}, {'exit_code': 0.0}):
                 retry_path.write_text(json.dumps({**retry, **changes}))
                 self.assertFalse(RETRY.recovery_valid(original, report))
             retry_path.write_text(json.dumps(retry))
@@ -126,6 +133,7 @@ class CIEffortTests(unittest.TestCase):
                     report_path.write_text(json.dumps(report))
                     original['diagnostics_json'] = str(report_path)
                     (results / 'original-invocation.json').write_text(json.dumps(original))
+                    (results / 'unrelated-invocation.json').write_text('broken')
                     return 65
                 self.assertEqual(env['TRINKET_REPREP_UI_SIMULATOR'], '1')
                 bundle = results / 'retry.xcresult'
@@ -144,6 +152,7 @@ class CIEffortTests(unittest.TestCase):
             final = json.loads((results / 'original-invocation.json').read_text())
             self.assertEqual(final['status'], 'failed')
             self.assertTrue(RETRY.recovery_valid(final, report))
+            (results / 'unrelated-invocation.json').unlink()
             maintenance = load_script('ci_recovery_cleanup_test', 'diagnostic_maintenance.py')
             maintenance.cleanup(results.resolve(), False)
             self.assertFalse(list(results.glob('*-invocation.json')))

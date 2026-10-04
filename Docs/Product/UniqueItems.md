@@ -58,7 +58,7 @@ identifiers use underscores.
 | Sapphire Ring | Winter’s Credit | When empowering a Freeze card, spend 3 Block per missing Mana. |
 | Emerald Ring | Serpent’s Eye | Your attacks against Poisoned enemies ignore Block. |
 | Emerald Amulet | Wildheart’s Favor | Dodging draws a Poison card and guarantees your next Poison card’s damage Critically Hits. |
-| Topaz Amulet | The Golden Crucible | Gold gained in combat adds equal damage to your next Holy hit. |
+| Topaz Amulet | The Golden Crucible | Gold gained in combat adds equal damage to your next Holy hit from a manually played card. |
 
 ## Card cadence and reactions
 
@@ -133,7 +133,8 @@ uses full equipped Basic abilities, including utility effects, with normal
   before refunds. Free or entirely Block-funded empowerment cannot qualify.
 - The Golden Crucible stores actual positive combat Gold attributed to the
   wearer. Starting Gold, another character's gains, and post-battle rewards do
-  not contribute. Consume the bonus on the next ordinary Holy hit; Gold earned
+  not contribute. Consume the bonus on the next Holy hit from a manually played
+  card; automatic abilities and reactions retain the charge. Gold earned
   by that hit prepares a later hit.
 
 Battle-local counters and readiness live in BattleEngine's in-memory state.

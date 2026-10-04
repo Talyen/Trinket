@@ -374,3 +374,32 @@ struct ManaEmpowermentTests {
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == manaBeforeShield + 1)
     }
 }
+
+extension ManaEmpowermentTests {
+    @Test(arguments: [Keyword.burn, .freeze])
+    func `Arcane Breath strengthens Astral Arrow Freeze without adding Freeze to Burn`(keyword: Keyword) throws {
+        var profile = CombatantTalentCatalog.profile(for: ["frost_whelp_mana_t1_2"])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxMana: 3, companionMana: 3,
+            companionModifiers: profile, dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        let branches = try #require(Ability.astralArrow.outcomeBranches)
+        let branch = try #require(branches.first { $0.damageComponents.first?.keyword == keyword })
+        let ability = Ability.astralArrow.resolving(branch: branch, using: &battle.rng)
+        let events = BattleTurnEngine.performAction(
+            ability: ability, actor: battle.companion, abilityTarget: battle.enemy, context: &battle,
+        )
+        let hits = events.filter { $0.kind == .abilityDamage }
+        let expectedDamage = keyword == .freeze ? 9 : 8
+        #expect(hits.count == 1)
+        #expect(hits.first?.keyword == keyword)
+        #expect(hits.first?.amount == expectedDamage)
+        #expect(battle.health(of: battle.enemy) == 100 - expectedDamage)
+        #expect(battle.mana(of: battle.companion) == 0)
+        if keyword == .burn {
+            #expect(!battle.activeEffects(of: battle.enemy).contains { $0.keyword == .freeze })
+        }
+    }
+}

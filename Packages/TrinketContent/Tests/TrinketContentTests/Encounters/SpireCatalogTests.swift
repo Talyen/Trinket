@@ -19,8 +19,9 @@ struct SpireCatalogTests {
     @Test func `floors resolve existing enemies`() throws {
         for spire in GameContent.spires {
             for floor in GameContent.spireFloors(for: spire.id) {
-                try #expect(GameContent.enemy(matching: floor.enemyID) != nil, "Missing enemy \(floor.enemyID)")
-                let isBoss = GameContent.enemy(matching: floor.enemyID)?.isBoss == true
+                #expect(GameContent.spireFloor(spireID: spire.id, floor: floor.floor) == floor)
+                let enemy = try #require(GameContent.enemy(matching: floor.enemyID), "Missing enemy \(floor.enemyID)")
+                let isBoss = enemy.isBoss
                 try #expect(isBoss == floor.floor.isMultiple(of: 10), "Floor \(floor.floor) boss mismatch")
             }
         }
@@ -48,29 +49,10 @@ struct SpireCatalogTests {
         )
     }
 
-    @Test func `every spire has attunable hero and companion`() throws {
-        for spire in GameContent.spires {
-            let heroes = GameContent.heroes.filter { SpireAttunement.matches($0, spire: spire) }
-            let companions = GameContent.companions.filter {
-                SpireAttunement.matches($0, spire: spire)
-            }
-            let hero = try #require(heroes.first, "\(spire.title) needs a Hero with \(spire.keyword.rawValue)")
-            let companion = try #require(companions.first, "\(spire.title) needs a Companion with \(spire.keyword.rawValue)")
-            #expect(SpireAttunement.evaluate(hero: hero, companion: companion, spire: spire) == .ready)
-        }
-    }
-
-    @Test func `spire floor lookup returns indexed floor and handles out of bounds`() throws {
-        for spire in GameContent.spires {
-            for floorIndex in 1 ... spire.floorCount {
-                let floor = try #require(GameContent.spireFloor(spireID: spire.id, floor: floorIndex))
-                #expect(floor.floor == floorIndex)
-                #expect(floor.spireID == spire.id)
-            }
-            #expect(GameContent.spireFloor(spireID: spire.id, floor: 0) == nil)
-            #expect(GameContent.spireFloor(spireID: spire.id, floor: spire.floorCount + 1) == nil)
-            #expect(GameContent.spireFloor(spireID: spire.id, floor: -1) == nil)
-        }
+    @Test func `floor lookup rejects invalid floor numbers`() throws {
+        let spire = try #require(GameContent.spire(id: .ironVein))
+        #expect(GameContent.spireFloor(spireID: spire.id, floor: 0) == nil)
+        #expect(GameContent.spireFloor(spireID: spire.id, floor: spire.floorCount + 1) == nil)
     }
 
     @Test func `every floor rolls one stable modifier from its keyword pool`() throws {

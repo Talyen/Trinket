@@ -75,8 +75,13 @@ public struct VolumeOptionRow: View {
             .accessibilityLabel(title)
             .accessibilityValue(percentageText)
             .onChange(of: draft) { _, newValue in
-                guard isEditing else { return }
-                onLiveChange?(newValue)
+                if isEditing {
+                    onLiveChange?(newValue)
+                } else if value != newValue {
+                    // Native non-drag adjustments have no drag-end commit.
+                    value = newValue
+                    onLiveChange?(newValue)
+                }
             }
         }
         .accessibilityIdentifier("\(title) Volume")

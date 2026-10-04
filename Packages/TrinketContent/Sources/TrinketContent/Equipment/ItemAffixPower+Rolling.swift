@@ -100,16 +100,9 @@ public extension ItemAffixPower {
         }
     }
 
-    enum BumpTarget: Sendable {
+    enum BumpTarget: Equatable, Sendable {
         case modifier(Int)
         case trigger(Int)
-
-        fileprivate func matches(_ other: Self) -> Bool {
-            switch (self, other) {
-            case let (.modifier(lhs), .modifier(rhs)), let (.trigger(lhs), .trigger(rhs)): lhs == rhs
-            default: false
-            }
-        }
     }
 
     func bumpCandidates(direction: ItemAffixPowerBumpDirection) -> [BumpTarget] {
@@ -124,28 +117,12 @@ public extension ItemAffixPower {
 
     func bumped(target: BumpTarget, direction: ItemAffixPowerBumpDirection) -> Self {
         transformingMagnitudes { candidate, value in
-            candidate.matches(target) ? value.bumped(direction: direction) ?? value : value
+            candidate == target ? value.bumped(direction: direction) ?? value : value
         }
     }
 
     static func hasBumpableField(in powers: [ItemAffixPower], direction: ItemAffixPowerBumpDirection) -> Bool {
         powers.contains { $0.hasBumpableField(direction: direction) }
-    }
-
-    static func applyBump(
-        direction: ItemAffixPowerBumpDirection,
-        to powers: inout [ItemAffixPower],
-        affixIDs: [String],
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> (title: String, affixIndex: Int)? {
-        let candidates = powers.enumerated().flatMap { index, power in
-            power.bumpCandidates(direction: direction).map { (powerIndex: index, target: $0) }
-        }
-        guard let pick = candidates.randomElement(using: &randomNumberGenerator) else { return nil }
-        powers[pick.powerIndex] = powers[pick.powerIndex].bumped(target: pick.target, direction: direction)
-        let title = GameContent.itemAffixDefinition(matching: affixIDs[pick.powerIndex])?.title
-            ?? affixIDs[pick.powerIndex]
-        return (title, pick.powerIndex)
     }
 }
 

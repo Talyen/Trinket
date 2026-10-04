@@ -18,8 +18,8 @@ package extension DamagePipeline {
                     target: state.combatant, sourceID: state.sourceActorID, keyword: state.damageKeyword, in: &context,
                 ))
             }
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.drawAfterHealthLoss(
-                by: state.combatant, in: &context,
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterSurvivingHealthLoss(
+                target: state.combatant, in: &context,
             ))
         }
     }

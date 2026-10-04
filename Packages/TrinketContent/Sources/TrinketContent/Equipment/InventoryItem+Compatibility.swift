@@ -6,6 +6,8 @@ extension InventoryItem {
         var description = original.description
         var triggers = original.triggers
         switch affixID {
+        case "leeching", "vampiric":
+            return Self.normalizedLeechPower(original)
         case "smugglers_map":
             triggers.victoryGoldFlat = 0
             triggers.goldTheftDrawChancePercent = 0.20
@@ -41,6 +43,8 @@ extension InventoryItem {
             description = "Every other turn, lose 1 Health and draw a card"
         case "the_returning_gale":
             description = "Once per turn, Dodging returns the last card you played to your hand."
+        case "the_golden_crucible":
+            description = "Gold gained in combat adds equal damage to your next Holy hit from a manually played card."
         case "the_patient_edge":
             if !triggers.blockPreparesCritical {
                 guard triggers.partnerFirstAttackDamage > 0 || triggers.heldCardNextAttackDamage > 0 else { return original }
@@ -55,6 +59,19 @@ extension InventoryItem {
             return original
         }
         return ItemAffixPower(description: description, modifiers: original.modifiers, triggers: triggers)
+    }
+
+    private static func normalizedLeechPower(_ power: ItemAffixPower) -> ItemAffixPower {
+        guard let modifier = power.modifiers.first(where: {
+            if case .leechGainedPercent = $0 {
+                return true
+            }
+            return false
+        }), case let .leechGainedPercent(amount) = modifier else { return power }
+        return ItemAffixPower(
+            description: "Leech restores an additional \(Int((amount * 100).rounded()))% of damage dealt.",
+            modifiers: power.modifiers, triggers: power.triggers,
+        )
     }
 
     private static func normalizedReworkedUnique(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower {

@@ -49,7 +49,15 @@ struct ModeProgressionToolingTests {
         #expect(controller.state.battlesWon == 10)
     }
 
-    @Test func `hotspot analyzer classifies envelopes`() throws {
+    @Test(arguments: [
+        (0, 8, 0, 5, HotspotStatus.overtuned),
+        (0, 0, 8, 5, .smooth),
+        (1, 0, 8, 5, .smooth),
+        (0, 8, 0, Int.max, .overtuned),
+    ])
+    func `hotspot analyzer classifies decided envelopes`(
+        wins: Int, defeats: Int, timeouts: Int, level: Int, expected: HotspotStatus,
+    ) throws {
         let step = ModeProgressionStep(
             id: "step-1",
             mode: .campaign,
@@ -62,27 +70,35 @@ struct ModeProgressionToolingTests {
             isBoss: false,
         )
 
-        let overtunedRecords = (0 ..< 8).map { index in
+        let records = (0 ..< (wins + defeats + timeouts)).map { index in
             ProgressionBattleRecord(
                 step: step,
-                playerLevel: 5,
-                enemyLevel: 5,
+                playerLevel: level,
+                enemyLevel: level,
                 seed: UInt64(index),
                 result: BattleSimResult(
-                    outcome: .defeat,
+                    outcome: (index < wins) ? .victory : .defeat,
                     rounds: 10,
                     actions: 20,
-                    timedOut: false,
+                    timedOut: index >= wins + defeats,
                     partyHPRemainingFraction: 0,
                     enemyHPRemainingFraction: 0.8,
                 ),
             )
         }
 
-        let summaries = HotspotAnalyzer.analyze(records: overtunedRecords)
+        let summaries = HotspotAnalyzer.analyze(records: records)
         let summary = try #require(summaries.first)
-        #expect(summary.status == .overtuned)
-        #expect(summary.isFlagged == true)
+        let decided = wins + defeats
+        #expect(summary.status == expected)
+        #expect(summary.battles == decided)
+        #expect(summary.wins == wins)
+        #expect(summary.winRate == (decided == 0 ? 0 : Double(wins) / Double(decided)))
+        let confidence = BalanceStatsAggregator.wilson(wins: wins, battles: decided)
+        #expect(summary.wilsonLow == confidence.low)
+        #expect(summary.wilsonHigh == confidence.high)
+        #expect(summary.averagePlayerLevel == (decided == 0 ? 0 : Double(level)))
+        #expect(summary.averageEnemyLevel == (decided == 0 ? 0 : Double(level)))
     }
 
     @Test func `progression matchup spends legal talents at current level`() {
@@ -226,9 +242,22 @@ struct ModeProgressionToolingTests {
     }
 
     @Test func `mode progression report formatter renders summary`() {
+        let records = [ProgressionBattleRecord(
+            step: ModeProgressionStep(
+                id: "unfinished", mode: .campaign, containerID: "c1", containerTitle: "Chapter 1",
+                stepIndex: 1, displayTitle: "Stage 1", enemyID: "goblin", enemyLevel: 5, isBoss: false,
+            ),
+            playerLevel: 5, enemyLevel: 5, seed: 1,
+            result: BattleSimResult(
+                outcome: .defeat, rounds: 100, actions: 200, timedOut: true,
+                partyHPRemainingFraction: 0.5, enemyHPRemainingFraction: 0.8,
+            ),
+        )]
         let report = BalanceSweepReport(
             config: BalanceSweepConfig(mode: .modeProgression, battlesPerTier: 2, jobs: 1),
             policyID: "greedy-v1",
+            progressionHotspots: HotspotAnalyzer.analyze(records: records),
+            progressionRecords: records,
             progressionPlayerStates: [
                 PlayerProgressionState(heroLevel: 4, companionLevel: 3),
                 PlayerProgressionState(heroLevel: 5, companionLevel: 4),
@@ -239,6 +268,10 @@ struct ModeProgressionToolingTests {
         #expect(markdown.contains("# Multi-Mode Progression & Hotspot Balance Report"))
         #expect(markdown.contains("Progression Summary"))
         #expect(markdown.contains("**Simulated Runs**: 2"))
+        #expect(markdown.contains("**Total Battles Simulated**: 1"))
+        #expect(markdown.contains("**Decided Battles**: 0"))
+        #expect(markdown.contains("**Unfinished Battles**: 1"))
+        #expect(markdown.contains("| 0 | n/a | n/a | n/a | n/a | n/a | NO DECIDED SAMPLES |"))
     }
 
     @Test func `mode all markdown includes progression`() {

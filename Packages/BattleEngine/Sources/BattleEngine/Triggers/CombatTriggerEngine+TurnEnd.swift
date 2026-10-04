@@ -59,7 +59,7 @@ package extension CombatTriggerEngine {
         guard triggers.endTurnWithBlockHealFlat > 0,
               DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor)) > 0
         else { return [] }
-        let target = BattleTargetResolver.lowestHealthAlly(for: actor, in: context)
+        let target = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
         guard context.roster.health(for: target) < context.roster.maxHealth(for: target) else { return [] }
         return emitHeal(
             "endTurnWithBlockHealFlat", "Hibernation",

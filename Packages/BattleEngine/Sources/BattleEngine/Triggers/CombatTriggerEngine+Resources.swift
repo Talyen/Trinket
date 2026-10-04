@@ -125,7 +125,7 @@ package extension CombatTriggerEngine {
     ) -> CombatOutcome {
         let amount = context.modifiers(for: source.id).triggers.gainGoldBonusHealSelf
         guard amount > 0 else { return .empty }
-        let target = BattleTargetResolver.lowestHealthAlly(for: source, in: context)
+        let target = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
         return resolveBonusHeal(
             amount: amount,
             source: source,
@@ -259,7 +259,7 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         guard context.resolution.depth(.leechOverflowGold) == 0,
               triggers.goldGainHealChancePercent > 0, triggers.goldGainHealAmount > 0 else { return [] }
-        let target = BattleTargetResolver.lowestHealthAlly(for: combatant, in: context)
+        let target = BattleActionContext(actor: combatant, in: context).target(.lowestHealthAlly, in: context)
         guard context.roster.health(for: target) < context.roster.maxHealth(for: target),
               BattleChance.succeeds(probability: triggers.goldGainHealChancePercent, using: &context.rng)
         else { return [] }

@@ -10,6 +10,9 @@ extension CloudSaveMerge {
             incoming.homestead.lastProductionAt > $0.homestead.lastProductionAt
                 && existing.homestead.lastProductionAt > $0.homestead.lastProductionAt
         } ?? false
+        let producedResources = overlappingProduction ? productionResources(
+            in: [base?.homestead, incoming.homestead, existing.homestead].compactMap(\.self),
+        ) : []
         let overlappingUpgrade = base.map { base in
             HomesteadNodeID.allCases.contains { id in
                 incoming.homestead.tier(for: id) > base.homestead.tier(for: id)
@@ -18,6 +21,7 @@ extension CloudSaveMerge {
         } ?? false
         let canCombine = branches.canCombineIndependentRewards
         let repeatedGold = overlappingProduction
+            && producedResources.contains(.gold)
             && incoming.roster.gold > (base?.roster.gold ?? 0)
             && existing.roster.gold > (base?.roster.gold ?? 0)
         var combinedResources: Set<HomesteadResource> = []
@@ -32,7 +36,8 @@ extension CloudSaveMerge {
             let first = incoming.homestead.resources[resource, default: 0]
             let second = existing.homestead.resources[resource, default: 0]
             let starting = base?.homestead.resources[resource, default: 0]
-            let repeated = overlappingProduction && first > (starting ?? 0) && second > (starting ?? 0)
+            let repeated = overlappingProduction && producedResources.contains(resource)
+                && first > (starting ?? 0) && second > (starting ?? 0)
             if canCombine, !overlappingUpgrade, !repeated {
                 combinedResources.insert(resource)
             }
@@ -49,6 +54,19 @@ extension CloudSaveMerge {
             into: &merged, incoming: incoming, existing: existing,
             base: base, overlappingProduction: overlappingProduction,
         )
+    }
+
+    private static func productionResources(in homesteads: [PlayerHomesteadState]) -> Set<HomesteadResource> {
+        var resources: Set<HomesteadResource> = []
+        for homestead in homesteads {
+            // Pending credit can still be collected without an active producer.
+            resources.formUnion(homestead.validPendingProduction.keys)
+            for (id, activeTier) in homestead.nodeTiers where activeTier > 0 {
+                guard let tier = GameContent.homesteadNode(matching: id)?.tier(activeTier) else { continue }
+                resources.formUnion(tier.production.filter { $0.quantity > 0 }.map(\.resource))
+            }
+        }
+        return resources
     }
 
     private static func mergeRewardRemainders(
@@ -97,14 +115,22 @@ extension CloudSaveMerge {
         into merged: inout PlayerSave, incoming: PlayerSave, existing: PlayerSave,
         base: PlayerSave?, overlappingProduction: Bool,
     ) {
+        var incomingProduction = incoming.homestead
+        var existingProduction = existing.homestead
+        if overlappingProduction {
+            // Compare uncollected credit at one cursor; an earlier collection must
+            // not erase production earned after it on the later branch.
+            incomingProduction.settleProduction(at: merged.homestead.lastProductionAt, roster: incoming.roster)
+            existingProduction.settleProduction(at: merged.homestead.lastProductionAt, roster: existing.roster)
+        }
         let sameProductionInterval = overlappingProduction && base.map {
             incoming.homestead.lastProductionAt == existing.homestead.lastProductionAt
                 && incoming.homestead.nodeTiers == $0.homestead.nodeTiers
                 && existing.homestead.nodeTiers == $0.homestead.nodeTiers
         } == true
         for resource in HomesteadResource.allCases {
-            let current = incoming.homestead.pendingProduction[resource, default: 0]
-            let amount = existing.homestead.pendingProduction[resource, default: 0]
+            let current = incomingProduction.pendingProduction[resource, default: 0]
+            let amount = existingProduction.pendingProduction[resource, default: 0]
             let baseBalance = resource == .gold ? base?.roster.gold : base?.homestead.resources[resource, default: 0]
             let incomingBalance = resource == .gold ? incoming.roster.gold : incoming.homestead.resources[resource, default: 0]
             let existingBalance = resource == .gold ? existing.roster.gold : existing.homestead.resources[resource, default: 0]

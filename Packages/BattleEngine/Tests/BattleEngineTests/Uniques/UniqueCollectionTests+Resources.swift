@@ -135,7 +135,23 @@ extension UniqueCollectionTests {
     }
 
     @Test func `crucible stores actual gains but not starting gold or other owners gold`() throws {
-        var context = try battle(["the_golden_crucible"], extra: CombatModifierProfile(goldGainedBonus: 2))
+        let current = try #require(GameContent.unique(matching: "the_golden_crucible"))
+        let signature = try #require(current.affixPowers?.first)
+        let owned = InventoryItem(
+            id: "saved-crucible", templateID: current.templateID, baseType: current.baseType,
+            rarity: current.rarity, displayName: current.displayName, affixes: current.affixes,
+            affixPowers: [ItemAffixPower(
+                description: "Gold gained in combat adds equal damage to your next Holy hit.",
+                modifiers: signature.modifiers, triggers: signature.triggers,
+            )],
+        )
+        let power = try #require(owned.resolvedPower(at: 0))
+        #expect(current.displayedAffixes.first?.description.contains("manually played card") == true)
+        #expect(owned.displayedAffixes.first?.description.contains("manually played card") == true)
+        var profile = CombatModifierProfile(goldGainedBonus: 2)
+        profile.merge(power.modifiers)
+        power.triggers.apply(to: &profile)
+        var context = try battle([], extra: profile)
         context.gold = 100
         try play(attack(.holy), in: &context)
         #expect(context.roster.enemy.currentHealth == 1990)
@@ -151,9 +167,13 @@ extension UniqueCollectionTests {
             options: .reaction(),
         ))
         #expect(context.uniques.owners[.hero]?.goldDamage == 5)
+        #expect(context.effectSummaries(of: context.hero).contains {
+            $0.keyword == .holy && $0.text.contains("manually played card") && $0.text.contains("5")
+        })
         try play(attack(.holy), in: &context)
         #expect(context.roster.enemy.currentHealth == 1974)
         #expect(context.uniques.owners[.hero]?.goldDamage == 0)
+        #expect(!context.effectSummaries(of: context.hero).contains { $0.text.contains("The Golden Crucible") })
     }
 
     @Test func `crucible gold from holy hit prepares next hit`() throws {

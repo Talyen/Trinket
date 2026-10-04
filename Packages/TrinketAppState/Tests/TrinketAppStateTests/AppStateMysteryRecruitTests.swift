@@ -25,7 +25,7 @@ struct AppStateMysteryRecruitTests {
         let session = try #require(state.encounters.activeMysteryEncounter)
         #expect(session.event.id == "recruit-bear")
         #expect(session.combatant?.id == "bear")
-        #expect(session.phase == .revealing)
+        #expect(session.showsReveal)
         #expect(session.unlockedCombatantID == "bear")
         #expect(state.playerSave.roster.isCompanionUnlocked("bear"))
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
@@ -189,7 +189,7 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: "stale-choice-id"))
 
         let session = try #require(state.encounters.activeMysteryEncounter)
-        #expect(session.phase == .reading)
+        #expect(session.canResolveChoice)
         #expect(session.persistFailureMessage == MysteryEncounterSession.choiceUnavailableMessage)
         #expect(!state.playerSave.journey.completedStageIDs.contains(stage.id))
         #expect(state.playerSave.roster.gold == goldBefore)
@@ -211,7 +211,7 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: "welcome"))
         #expect(state.playerSave.roster.gold == goldBefore)
 
-        #expect(session.phase == .reading)
+        #expect(session.canResolveChoice)
         #expect(!state.playerSave.journey.completedStageIDs.contains(session.stage.id))
     }
 
@@ -269,7 +269,7 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: "corrupt-item"))
 
         let session = try #require(state.encounters.activeMysteryEncounter)
-        #expect(session.phase == .reading)
+        #expect(session.canResolveChoice)
         #expect(session.persistFailureMessage == MysteryEncounterSession.choiceUnavailableMessage)
         #expect(!state.playerSave.journey.completedStageIDs.contains(session.stage.id))
     }
@@ -291,7 +291,7 @@ struct AppStateMysteryRecruitTests {
         #expect(state.playerSave.roster.gold == goldBefore)
 
         try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
-        #expect(state.encounters.activeMysteryEncounter?.phase == .reward)
+        #expect(state.encounters.activeMysteryEncounter?.showsReward == true)
         #expect(session.applyResult?.grantedItems == [shown.item])
         #expect(state.playerSave.journey.mysteryOfferPayloads[session.stage.id] == nil)
         #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: shown.choiceID))

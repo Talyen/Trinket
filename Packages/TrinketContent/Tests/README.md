@@ -9,19 +9,20 @@ Tests follow the content domains in `Abilities/`, `Equipment/`, `Encounters/`,
 | Ability catalog and descriptions | `AbilityCatalogTests` | IDs, authored operations, and player-facing card text |
 | Ability validation | `AbilityValidationTests` | Base, random, and conditional paths; target rules, tier damage, and description overrides |
 | Ultimate cinematic catalog | `UltimateCinematicCatalogTests` | Actor-scoped resolve + fallback |
-| Art catalog cross-references | `ArtCatalogIntegrationTests` | Manifest IDs resolve to expected content owners |
+| Art catalog cross-references | `ArtCatalogIntegrationTests` | Ability/item/stage wiring and artwork for every player combatant and enemy |
 | Combatant catalog graph | `CombatantCatalogTests` | Hero/companion loadouts, health/mana |
 | Homestead node catalog | `HomesteadCatalogTests` | Node IDs, tiers, unlock graph, tier effects |
-| Contracts | `ContractGeneratorTests` | Offer identity per enemy |
+| Contracts | `ContractGeneratorTests` | Exclusions, exhausted-pool fallback, saved offers, and independent identities for repeated targets |
 | Voyage | `VoyageTests` | Regional route generation, chapter keyword affinity, and completion-bonus rounding/saturation |
 | Content access policy | `ContentAccessPolicyTests` | Free/full chapter/labyrinth/spire gates |
 | Unique catalog | `UniqueCatalogTests` | Counts, slots, pinned powers, save decode |
 | Combatant talent trees | `CombatantTalentCatalogTests` | Three trees with at least seven nodes each, affinities, authored IDs, no placeholders |
 | Trigger family schema | `Scripts/internal/content/content_codegen_triggers.py` + `Scripts/internal/content/trigger_families/index.json` | Generated `*Triggers` fields must match the schema; generation fails on drift |
-| Catalog cross-invariants | `GameContentCatalogInvariantTests` | Cross-catalog ID and wiring checks |
-| Enemy traits | `GameContentTraitCatalogTests` | Enemy→trait ID refs and non-empty trait copy |
-| Enemy balance classification | `EnemyCatalogTests` | Normal/boss bands, kits, HP bands |
-| Loadout selection | `AbilityLoadoutTests` | Tier unlock filtering, `AbilityChoices` fallback |
+| Catalog cross-invariants | `GameContentCatalogInvariantTests` | Authored encounter ID uniqueness and stage wiring; manifest ID validation stays in codegen |
+| Affix modifier compatibility | `AffixModifierTests` | Saved representations and minimum bump boundaries; transformations are exercised by `ItemAffixRollCoverageTests` |
+| Enemy traits | `GameContentTraitCatalogTests` | Enemy→trait ID refs and boss resistance rules; `KeywordCohesionTests` checks mechanic descriptions |
+| Enemy kits and Health | `EnemyCatalogTests` | Normal HP band, complete kits, canonical ability references; Journey/Spire tests own boss placement |
+| Loadout selection | `AbilityLoadoutTests` | Tier ordering, canonical selection/fallback, preserved empty tiers |
 | Item generation | `ItemGeneratorTests`, `ThemedGearGeneratorTests` | Seeded RNG, affix counts |
 | Item affix magnitude rolls | `ItemAffixMagnitudeRollTests` | Seeded magnitude ranges |
 | Shop offers | `ShopOfferGeneratorTests` | Offer count, price/rarity rules, seed stability |

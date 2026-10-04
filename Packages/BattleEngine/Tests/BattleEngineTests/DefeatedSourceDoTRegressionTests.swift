@@ -5,6 +5,25 @@ import TrinketCore
 @testable import BattleEngine
 
 struct DefeatedSourceDoTRegressionTests {
+    @Test(arguments: [false, true])
+    func `Blood Money rewards a lethal Bleed tick only while its Rogue survives`(survives: Bool) {
+        let bleed = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 1, sourceActorID: "hero")
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 4),
+            enemyEffects: [bleed], heroHealth: survives ? 10 : 0,
+            heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_bleed_t2_2"]),
+        )
+        battle.appliesFightPacing = false
+
+        let events = EffectHandlers.handler(for: .bleed).advanceTurn(bleed, on: battle.enemy, in: &battle)
+
+        #expect(battle.health(of: battle.enemy) == 0)
+        #expect(battle.gold == (survives ? 5 : 0))
+        #expect(events.contains { $0.abilityName == "Blood Money" && $0.amount == 5 } == survives)
+    }
+
     @Test(arguments: [Keyword.poison, .burn])
     func `Bleed converts damage after its source is defeated without granting personal rewards`(conversion: Keyword) {
         var profile = CombatModifierProfile.zero

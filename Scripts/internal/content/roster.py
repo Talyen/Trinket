@@ -137,31 +137,11 @@ def validate_combatant_rows(
             raise ValueError(f"max_health for {row.id} must be at least 6")
         _validate_positive_int("max_mana", row.max_mana, row.id)
 
-        _validate_ability_symbols(
-            row.basics,
-            row.id,
-            ability_symbols,
-            expected_count=4,
-            expected_tier="basic",
-            ability_tiers=ability_tiers,
-        )
-        _validate_ability_symbols(
-            row.skills,
-            row.id,
-            ability_symbols,
-            expected_count=4,
-            expected_tier="skill",
-            ability_tiers=ability_tiers,
-        )
-        _validate_ability_symbols(
-            row.ultimates,
-            row.id,
-            ability_symbols,
-            expected_count=4,
-            expected_tier="ultimate",
-            ability_tiers=ability_tiers,
-        )
-        render_party_combatant(row)
+        for tier, raw in (("basic", row.basics), ("skill", row.skills), ("ultimate", row.ultimates)):
+            _validate_ability_symbols(
+                raw, row.id, ability_symbols, expected_count=4,
+                expected_tier=tier, ability_tiers=ability_tiers,
+            )
 
 
 def validate_enemy_rows(
@@ -188,7 +168,6 @@ def validate_enemy_rows(
                 raise ValueError(f"Unknown trait_id '{trait_id}' for enemy {row.id}")
         if row.faction not in VALID_ENEMY_FACTIONS:
             raise ValueError(f"Invalid faction '{row.faction}' for enemy {row.id}")
-        render_enemy(row)
 
 
 def render_party_combatant(row: CombatantRow) -> str:

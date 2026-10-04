@@ -352,10 +352,15 @@ prepare_generated_inputs results
 
     def test_unit_dispatch_forwards_flags_and_exit_without_app_preparation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            scripts = Path(directory) / "Scripts"
-            shutil.copytree(ROOT / "Scripts", scripts)
+            root = self.make_repo_fixture(directory, (
+                "Scripts/test.sh", "Scripts/build-freshness.sh", "Scripts/build-inputs.env",
+                "Scripts/lib/args.sh", "Scripts/xcode-runner.sh", "Scripts/config/diagnostic-limits.env",
+                "Scripts/lib/xcode-manifest.sh", "Scripts/lib/xcode-watchdog.sh",
+            ))
+            scripts = root / "Scripts"
             (scripts / "run-env.sh").write_text('trinket_run_env_init() { exit 91; }\n')
             (scripts / "test-package.sh").write_text('#!/bin/bash\nprintf "%s\\n" "$@"\nexit 17\n')
+            (scripts / "test-package.sh").chmod(0o755)
             for flags in (("--no-build", "--verbose"), ("--quiet",)):
                 result = subprocess.run([str(scripts / "test.sh"), "unit", *flags],
                                         env={**os.environ, "GITHUB_ACTIONS": "true"}, capture_output=True, text=True)
@@ -368,8 +373,12 @@ prepare_generated_inputs results
 
     def test_package_build_prepares_generated_inputs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            scripts = Path(directory) / "Scripts"
-            shutil.copytree(ROOT / "Scripts", scripts)
+            root = self.make_repo_fixture(directory, (
+                "Scripts/test-package.sh", "Scripts/phase-timing.py", "Scripts/lib/args.sh",
+                "Scripts/lib/app-build.sh", "Scripts/xcode-runner.sh", "Scripts/config/diagnostic-limits.env",
+                "Scripts/lib/xcode-manifest.sh", "Scripts/lib/xcode-watchdog.sh",
+            ))
+            scripts = root / "Scripts"
             (scripts / "run-env.sh").write_text(
                 'source Scripts/lib/args.sh\ntrinket_run_env_init() { RESULTS_DIR="$PWD/results"; }\ntrinket_track_test_guests() { :; }\n'
             )

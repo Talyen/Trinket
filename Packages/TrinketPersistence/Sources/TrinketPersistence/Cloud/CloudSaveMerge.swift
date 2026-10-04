@@ -213,7 +213,8 @@ enum CloudSaveMerge {
             else { continue }
             // The other branch's primary made this newer secondary unusable.
             chosen.itemIDsBySlot[.weapon] = recentLoadout.itemID(for: .weapon)
-            merged.roster.equipmentLoadouts[id] = chosen
+            // Reclaim the restored primary from any older assignment on another combatant.
+            merged.roster.setEquipmentLoadout(chosen, for: combatant)
         }
     }
 

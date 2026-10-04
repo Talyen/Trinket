@@ -6,11 +6,10 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
-from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from internal.cli import read_json
-from internal.performance.performance_model import REQUIRED_NUMERIC_FIELDS, finite_number, group_reports_by_scenario, load_baseline, load_results_reports, validate_report, goal_findings
+from internal.performance.performance_model import METRICS, group_reports_by_scenario, load_baseline, load_results_reports, validate_report, goal_findings
 
 
 def main() -> int:
@@ -37,13 +36,13 @@ def main() -> int:
             continue
 
         report = records[0]
-        failures.extend(validate_report(report, baseline))
+        report_failures = validate_report(report, baseline)
         if report.get("iteration") != 1:
-            failures.append(f"{scenario}: expected measured iteration 1, found {report.get('iteration')!r}")
-        try:
-            values = {key: finite_number(report, key) for key in REQUIRED_NUMERIC_FIELDS}
-        except ValueError:
+            report_failures.append(f"{scenario}: expected measured iteration 1, found {report.get('iteration')!r}")
+        failures.extend(report_failures)
+        if report_failures:
             continue
+        values = {key: float(report[key]) for key in METRICS}
 
         rows.append(
             f"| {scenario} | {values['averageFPS']:.2f} | "

@@ -160,44 +160,21 @@ def simplify_line(line: str) -> str:
     for term in TECHNICAL_TERMS:
         if term in line:
             return ""
-    return line
-
-
-def capitalize_line(line: str) -> str:
-    if not line:
-        return ""
-    if not line[0].isupper():
-        return line[0].upper() + line[1:]
-    return line
-
-
-def subject_to_user_line(subject: str) -> str:
-    line = CONVENTIONAL_TYPE.sub("", subject, count=1)
-    return capitalize_line(simplify_line(line))
-
-
-def extract_bullets(body: str) -> list[str]:
-    bullets: list[str] = []
-    for raw in body.splitlines():
-        raw = raw.strip()
-        if not raw.startswith("- "):
-            continue
-        cleaned = simplify_line(raw[2:])
-        if cleaned and not cleaned.lower().startswith(("co-authored-by", "user-facing:")):
-            bullets.append(cleaned)
-    return bullets
+    return line[:1].upper() + line[1:]
 
 
 def player_line(commit: Commit) -> str:
-    for bullet in extract_bullets(commit.body):
-        line = capitalize_line(bullet)
-        if line:
+    for raw in commit.body.splitlines():
+        raw = raw.strip()
+        if not raw.startswith("- "):
+            continue
+        line = simplify_line(raw[2:])
+        if line and not line.lower().startswith(("co-authored-by", "user-facing:")):
             return line
-    return subject_to_user_line(commit.subject)
+    return simplify_line(CONVENTIONAL_TYPE.sub("", commit.subject, count=1))
 
 
-def build_notes(commits: list[Commit], version: str = "") -> tuple[str, list[str]]:
-    del version
+def build_notes(commits: list[Commit]) -> tuple[str, list[str]]:
     lines: list[str] = []
     for commit in commits:
         if not is_user_facing(commit):
@@ -261,7 +238,7 @@ def format_notes(summary: str, bullets: list[str]) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate App Store release notes.")
-    parser.add_argument("--version", help="Release version (e.g. 0.2.0)")
+    parser.add_argument("--version", help="accepted for release wrapper compatibility")
     parser.add_argument("--since-tag", help="Git tag to start from (default: latest v* tag)")
     parser.add_argument("--dry-run", action="store_true", help="Print to stdout only")
     parser.add_argument(
@@ -281,7 +258,7 @@ def main() -> None:
 
     since = args.since_tag or latest_tag()
     commits = load_commits(since)
-    summary, bullets = build_notes(commits, args.version or "unreleased")
+    summary, bullets = build_notes(commits)
     validate_notes(summary, bullets)
     content = format_notes(summary, bullets)
 

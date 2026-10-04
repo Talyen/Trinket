@@ -1,12 +1,12 @@
-# suite|key|class|shard|shard_order|test_order
-Smoke|BATTLE|SmokeBattleTests|All|0|0
-Smoke|SHELL|SmokeShellTests|All|0|1
-Smoke|SHOP|SmokeShopTests|All|0|2
-Smoke|ONBOARDING|StarterOnboardingSmokeTests|All|0|3
-Smoke|MONETIZATION|FullGamePurchaseSmokeTests|All|0|4
-FullUI||BattleFlowUITests|Play|0|0
-FullUI||PlayModeNavigationUITests|Play|0|1
-FullUI||HomesteadNodeDetailUITests|Shell|1|0
-FullUI||FullGamePurchaseUITests|Shell|1|1
-FullUI||CollectionLoadoutUITests|Collection|2|0
-FullUI||OptionsUITests|Collection|2|1
+# suite|key|class
+Smoke|BATTLE|SmokeBattleTests
+Smoke|SHELL|SmokeShellTests
+Smoke|SHOP|SmokeShopTests
+Smoke|ONBOARDING|StarterOnboardingSmokeTests
+Smoke|MONETIZATION|FullGamePurchaseSmokeTests
+FullUI||BattleFlowUITests
+FullUI||PlayModeNavigationUITests
+FullUI||HomesteadNodeDetailUITests
+FullUI||FullGamePurchaseUITests
+FullUI||CollectionLoadoutUITests
+FullUI||OptionsUITests

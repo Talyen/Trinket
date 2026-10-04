@@ -11,20 +11,14 @@ public struct VoyageCompletionBonus: Equatable, Sendable {
     }
 
     public func applying(to award: BattleRewardAward) -> BattleRewardAward {
-        var totals = materials
-        var rewards: [HomesteadResource: Int] = [:]
-        for reward in award.materials {
-            totals[reward.resource, default: 0] = SaturatedArithmetic.saturatingAdd(
-                totals[reward.resource, default: 0], reward.quantity,
-            )
-            rewards[reward.resource, default: 0] = SaturatedArithmetic.saturatingAdd(
-                rewards[reward.resource, default: 0], reward.quantity,
-            )
-        }
-        for (resource, quantity) in totals {
-            rewards[resource, default: 0] = SaturatedArithmetic.saturatingAdd(
-                rewards[resource, default: 0], quantity / 5,
-            )
+        let finalMaterials = Dictionary(grouping: award.materials, by: \.resource)
+        let resources = Set(materials.keys).union(finalMaterials.keys)
+        let rewards = resources.sorted { $0.rawValue < $1.rawValue }.compactMap { resource -> ResourceAmount? in
+            let quantities = (finalMaterials[resource] ?? []).map(\.quantity)
+            let earned = quantities.reduce(0, SaturatedArithmetic.saturatingAdd)
+            let total = quantities.reduce(materials[resource, default: 0], SaturatedArithmetic.saturatingAdd)
+            let quantity = SaturatedArithmetic.saturatingAdd(earned, total / 5)
+            return quantity > 0 ? ResourceAmount(resource, quantity) : nil
         }
         return BattleRewardAward(
             stageGold: SaturatedArithmetic.saturatingAdd(
@@ -33,10 +27,7 @@ public struct VoyageCompletionBonus: Equatable, Sendable {
             ),
             battleGold: award.battleGold, goldFlow: award.goldFlow,
             heroExperience: award.heroExperience, companionExperience: award.companionExperience,
-            materials: rewards.keys.sorted { $0.rawValue < $1.rawValue }.compactMap { resource in
-                let quantity = rewards[resource, default: 0]
-                return quantity > 0 ? ResourceAmount(resource, quantity) : nil
-            }, items: award.items,
+            materials: rewards, items: award.items,
             rewardRemainders: award.rewardRemainders,
         )
     }

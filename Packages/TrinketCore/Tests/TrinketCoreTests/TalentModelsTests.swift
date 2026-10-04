@@ -41,26 +41,13 @@ struct TalentModelsTests {
     }
 
     @Test func `progression calculates talent points correctly`() {
-        let level1 = CombatantProgression.at(level: 1)
-        #expect(level1.totalTalentPoints == 0)
-        #expect(level1.availableTalentPoints(unlockedCount: 0) == 0)
-
+        #expect(CombatantProgression.initial.availableTalentPoints(unlockedCount: 0) == 0)
         let level2 = CombatantProgression.at(level: 2)
-        #expect(level2.totalTalentPoints == 1)
         #expect(level2.availableTalentPoints(unlockedCount: 0) == 1)
         #expect(level2.availableTalentPoints(unlockedCount: 1) == 0)
-
-        let level3 = CombatantProgression.at(level: 3)
-        #expect(level3.totalTalentPoints == 1)
-
-        let level10 = CombatantProgression.at(level: 10)
-        #expect(level10.totalTalentPoints == 5)
-        #expect(level10.availableTalentPoints(unlockedCount: 3) == 2)
-
-        #expect(CombatantProgression.at(level: 20).totalTalentPoints == 10)
+        #expect(CombatantProgression.at(level: 3).availableTalentPoints(unlockedCount: 1) == 0)
+        #expect(CombatantProgression.at(level: 10).availableTalentPoints(unlockedCount: 3) == 2)
         #expect(CombatantProgression.at(level: 40).totalTalentPoints == 20)
-        #expect(CombatantProgression.at(level: 42).totalTalentPoints == 21)
-        #expect(CombatantProgression.at(level: 44).totalTalentPoints == 22)
     }
 
     @Test func `available talent points clamp extreme counts without trapping`() {
@@ -79,17 +66,15 @@ struct TalentModelsTests {
         #expect(!tree.canUnlock(node: t1Node, unlockedNodeIDs: [t1Node.id], availablePoints: 1))
     }
 
-    @Test(arguments: [1, 2, 3])
-    func `row N plus one requires all row N nodes unlocked`(row: Int) {
+    @Test func `later talent rows require every node in the previous row`() {
         let tree = makeSampleTree()
-        let previousNodes = tree.nodes(forRow: row)
-        let gatedNode = tree.nodes(forRow: row + 1)[0]
+        let previousNodes = tree.nodes(forRow: 3)
+        let gatedNode = tree.nodes(forRow: 4)[0]
         let fullPrevious = Set(previousNodes.map(\.id))
 
         let partialPrevious = fullPrevious.subtracting([previousNodes[0].id])
         #expect(!tree.canUnlock(node: gatedNode, unlockedNodeIDs: partialPrevious, availablePoints: 2))
 
-        #expect(tree.isRowComplete(row, unlockedNodeIDs: fullPrevious))
         #expect(tree.canUnlock(node: gatedNode, unlockedNodeIDs: fullPrevious, availablePoints: 1))
     }
 
@@ -166,17 +151,14 @@ struct TalentModelsTests {
         #expect(config.cappedUnlocks(Set([poison.nodes[0].id]), budget: 1) == [poison.nodes[0].id])
     }
 
-    @Test(arguments: [1, 5, 8])
-    func `config removes incomplete prerequisite chains at every budget`(budget: Int) {
+    @Test func `config removes incomplete prerequisite chains even with spare points`() {
         let tree = makeSampleTree()
         let config = CombatantTalentConfig(combatantID: "rogue", trees: [tree])
         let selected: Set<String> = [tree.nodes[0].id, tree.nodes[2].id, tree.nodes[3].id, tree.nodes[4].id, "unknown"]
-        let kept = config.cappedUnlocks(selected, budget: budget)
+        let kept = config.cappedUnlocks(selected, budget: 8)
 
         #expect(kept == [tree.nodes[0].id])
-        #expect(kept.isSubset(of: selected))
-        #expect(kept.count <= budget)
-        #expect(config.cappedUnlocks(kept, budget: budget) == kept)
+        #expect(config.cappedUnlocks(kept, budget: 8) == kept)
     }
 
     @Test func `config keeps legal row four talent when capping excess unlocks`() {
@@ -190,12 +172,10 @@ struct TalentModelsTests {
     @Test func `capped unlocks follow tree array order`() {
         let poison = makeSampleTree(keyword: .poison)
         let bleed = makeSampleTree(keyword: .bleed)
-        let forward = CombatantTalentConfig(combatantID: "rogue", trees: [poison, bleed])
         let reversed = CombatantTalentConfig(combatantID: "rogue", trees: [bleed, poison])
         let overBudget = Set(poison.nodes.map(\.id) + bleed.nodes.map(\.id))
 
-        // Tree priority is input order: first tree wins ties at budget 1.
-        #expect(forward.cappedUnlocks(overBudget, budget: 1) == [poison.nodes[0].id])
+        // The preceding budget test covers Poison first; reversing priority must select Bleed.
         #expect(reversed.cappedUnlocks(overBudget, budget: 1) == [bleed.nodes[0].id])
     }
 

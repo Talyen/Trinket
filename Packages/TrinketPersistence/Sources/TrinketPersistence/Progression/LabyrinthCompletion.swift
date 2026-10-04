@@ -100,8 +100,8 @@ public enum LabyrinthCompletion {
             award: award,
             grantsCombatExperience: isCombat,
             experienceEarnedPercent: isCombat ? effects.experienceEarnedPercent : 0,
-            materialRewards: VictoryRewardApplier.grantedMaterials(override: materialRewards, loot: resolvedLoot),
-            item: VictoryRewardApplier.grantedItem(override: rewardItem, loot: resolvedLoot),
+            materialRewards: materialRewards ?? resolvedLoot?.materials ?? [],
+            item: rewardItem ?? resolvedLoot?.item,
             save: &save,
         )
 

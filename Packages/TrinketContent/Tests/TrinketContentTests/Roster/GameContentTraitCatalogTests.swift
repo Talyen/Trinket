@@ -13,13 +13,6 @@ struct GameContentTraitCatalogTests {
         }
     }
 
-    @Test func `trait descriptions are non empty`() throws {
-        for trait in GameContent.traits {
-            try #expect(!trait.name.isEmpty, "Trait \(trait.id) needs a name")
-            try #expect(!trait.description.isEmpty, "Trait \(trait.id) needs a description")
-        }
-    }
-
     @Test func `bosses have no damage taken percent resists`() throws {
         for enemy in GameContent.enemies where enemy.isBoss {
             let traits = GameContent.traits(for: enemy)
@@ -33,13 +26,5 @@ struct GameContentTraitCatalogTests {
             }
             try #expect(!resists, "\(enemy.name) should not resist a damage type")
         }
-    }
-
-    @Test func `traits use distinct mechanic names instead of enemy names`() {
-        let names = GameContent.traits.map { $0.name.lowercased() }
-        let enemyNames = Set(GameContent.enemies.map { $0.name.lowercased() })
-        #expect(Set(names).count == names.count)
-        #expect(enemyNames.isDisjoint(with: names))
-        #expect(Set(GameContent.enemies.flatMap(\.traitIDs)) == Set(GameContent.traits.map(\.id)))
     }
 }

@@ -49,6 +49,12 @@ public struct AppEnvironment: Sendable {
         environment: [String: String],
         cloudSyncEnabledByDefault: Bool = false,
     ) -> Self {
+        func value(after flag: String) -> String? {
+            guard let index = arguments.firstIndex(of: flag), arguments.indices.contains(index + 1) else { return nil }
+            let value = arguments[index + 1]
+            return value.isEmpty ? nil : value
+        }
+
         let isRunningTests = environment["XCTestConfigurationFilePath"] != nil
         let equipmentPickerFixture: Bool
         #if DEBUG
@@ -59,13 +65,11 @@ public struct AppEnvironment: Sendable {
         let cloudSyncRequested: Bool
         let launchPreparationDelay: TimeInterval
         #if DEBUG
-        let requestedDelay = argumentValue(after: "-launch-preparation-delay", in: arguments)
+        let requestedDelay = value(after: "-launch-preparation-delay")
             .flatMap(TimeInterval.init) ?? 0
         launchPreparationDelay = requestedDelay.isFinite && requestedDelay > 0 ? requestedDelay : 0
-        let battlePerformanceScenario = argumentValue(
-            after: "-battle-performance-scenario",
-            in: arguments,
-        ).flatMap(BattlePerformanceScenario.init(rawValue:))
+        let battlePerformanceScenario = value(after: "-battle-performance-scenario")
+            .flatMap(BattlePerformanceScenario.init(rawValue:))
         cloudSyncRequested = cloudSyncEnabledByDefault || arguments.contains("-enable-cloud-sync")
         #else
         launchPreparationDelay = 0
@@ -79,8 +83,8 @@ public struct AppEnvironment: Sendable {
             || isRunningTests
 
         return Self(
-            launchTab: launchTab(from: arguments),
-            launchScreen: launchScreen(from: arguments),
+            launchTab: value(after: "-selectedTab").flatMap(launchTab),
+            launchScreen: value(after: "-launch-screen").flatMap(LaunchScreen.parse),
             resetState: arguments.contains("-reset-state"),
             seedTestProgress: arguments.contains("-seed-test-progress"),
             equipmentPickerFixture: equipmentPickerFixture,
@@ -88,14 +92,15 @@ public struct AppEnvironment: Sendable {
             skipOnboardingCeremony: arguments.contains("-skip-onboarding-ceremony"),
             disableCloudSync: disableCloudSync,
             disableAudio: arguments.contains("-disable-audio"),
-            completedStageIDs: completedStageIDs(from: arguments),
-            mysteryRecruitEventID: argumentValue(after: "-mystery-recruit-event", in: arguments),
-            storeName: argumentValue(after: "-store-name", in: arguments),
-            battleTickInterval: argumentValue(after: "-battle-tick-interval", in: arguments)
+            completedStageIDs: (value(after: "-completed-stages") ?? "").split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty },
+            mysteryRecruitEventID: value(after: "-mystery-recruit-event"),
+            storeName: value(after: "-store-name"),
+            battleTickInterval: value(after: "-battle-tick-interval")
                 .flatMap(TimeInterval.init)
                 .flatMap { $0.isFinite && $0 > 0 ? $0 : nil },
             launchPreparationDelay: launchPreparationDelay,
-            startingGold: argumentValue(after: "-starting-gold", in: arguments)
+            startingGold: value(after: "-starting-gold")
                 .flatMap(Int.init)
                 .flatMap { $0 >= 0 ? $0 : nil },
             enableFrameMetrics: arguments.contains("-enable-frame-metrics"),
@@ -103,32 +108,11 @@ public struct AppEnvironment: Sendable {
         )
     }
 
-    private static func launchTab(from arguments: [String]) -> AppTab? {
-        guard let raw = argumentValue(after: "-selectedTab", in: arguments) else { return nil }
+    private static func launchTab(_ raw: String) -> AppTab? {
         let val = raw.lowercased()
         if val == "heroes" || val == "companions" || val == "inventory" || val == "search" {
             return .collection
         }
         return AppTab(rawValue: val)
-    }
-
-    private static func launchScreen(from arguments: [String]) -> LaunchScreen? {
-        argumentValue(after: "-launch-screen", in: arguments).flatMap(LaunchScreen.parse)
-    }
-
-    private static func completedStageIDs(from arguments: [String]) -> [String] {
-        guard let raw = argumentValue(after: "-completed-stages", in: arguments) else { return [] }
-        return raw
-            .split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-    }
-
-    private static func argumentValue(after flag: String, in arguments: [String]) -> String? {
-        guard let index = arguments.firstIndex(of: flag),
-              arguments.indices.contains(index + 1)
-        else { return nil }
-        let value = arguments[index + 1]
-        return value.isEmpty ? nil : value
     }
 }

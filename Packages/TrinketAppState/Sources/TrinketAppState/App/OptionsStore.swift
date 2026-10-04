@@ -51,18 +51,14 @@ public final class OptionsStore {
     public var rememberAutoBattlePreference: Bool {
         didSet {
             defaults.set(rememberAutoBattlePreference, forKey: Self.rememberAutoBattlePreferenceKey)
-            synchronizeAutoBattlePreference()
+            if !rememberAutoBattlePreference, autoBattleEnabled {
+                autoBattleEnabled = false
+            }
         }
     }
 
     public var autoBattleEnabled: Bool {
         didSet { defaults.set(autoBattleEnabled, forKey: Self.autoBattleEnabledKey) }
-    }
-
-    private func synchronizeAutoBattlePreference() {
-        if !rememberAutoBattlePreference, autoBattleEnabled {
-            autoBattleEnabled = false
-        }
     }
 
     public var ultimateCinematicShowPolicy: UltimateCinematicShowPolicy {
@@ -90,7 +86,10 @@ public final class OptionsStore {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let rememberAutoValue = Self.readBool(from: defaults, key: Self.rememberAutoBattlePreferenceKey, default: false)
-        let autoBattleValue = rememberAutoValue && Self.readAutoBattleEnabled(from: defaults)
+        let autoBattleValue = rememberAutoValue && Self.readBool(
+            from: defaults, key: Self.autoBattleEnabledKey,
+            default: defaults.bool(forKey: Self.legacyAutoBattleEnabledKey),
+        )
 
         storedMusicVolume = Self.readVolume(from: defaults, key: Self.musicVolumeKey, default: Self.defaultMusicVolume)
         storedEffectsVolume = Self.readVolume(from: defaults, key: Self.effectsVolumeKey, default: Self.defaultEffectsVolume)
@@ -99,17 +98,8 @@ public final class OptionsStore {
         autoBattleEnabled = autoBattleValue
         ultimateCinematicShowPolicy = Self.resolveShowPolicy(from: defaults)
 
-        // Converge the legacy key onto options.* once: persist the migrated value
-        // before dropping the legacy key, so a carried-over preference survives
-        // a relaunch even if the user never toggles it again.
-        if rememberAutoValue,
-           defaults.object(forKey: Self.autoBattleEnabledKey) == nil,
-           defaults.object(forKey: Self.legacyAutoBattleEnabledKey) != nil {
-            defaults.set(autoBattleValue, forKey: Self.autoBattleEnabledKey)
-        }
-        if !rememberAutoValue {
-            defaults.set(false, forKey: Self.autoBattleEnabledKey)
-        }
+        // Persist the resolved preference before removing its legacy spelling.
+        defaults.set(autoBattleValue, forKey: Self.autoBattleEnabledKey)
         defaults.removeObject(forKey: Self.legacyAutoBattleEnabledKey)
     }
 
@@ -150,14 +140,6 @@ public final class OptionsStore {
 
     private static func readBool(from defaults: UserDefaults, key: String, default defaultValue: Bool) -> Bool {
         defaults.object(forKey: key) != nil ? defaults.bool(forKey: key) : defaultValue
-    }
-
-    private static func readAutoBattleEnabled(from defaults: UserDefaults) -> Bool {
-        if defaults.object(forKey: autoBattleEnabledKey) != nil {
-            return defaults.bool(forKey: autoBattleEnabledKey)
-        }
-        // Legacy key predating the options.* convention.
-        return defaults.bool(forKey: legacyAutoBattleEnabledKey)
     }
 
     private static let defaultEffectsVolume = 0.85

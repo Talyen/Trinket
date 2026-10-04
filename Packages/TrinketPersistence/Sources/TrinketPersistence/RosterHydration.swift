@@ -106,32 +106,25 @@ enum RosterHydration {
 
     static func enforceUniqueEquippedItems(
         _ loadouts: [String: EquipmentLoadout],
+        prioritizing combatantID: String? = nil,
     ) -> [String: EquipmentLoadout] {
+        var orderedIDs = loadouts.keys.sorted()
+        if let combatantID {
+            orderedIDs.removeAll { $0 == combatantID }
+            orderedIDs.insert(combatantID, at: 0)
+        }
         var claimedItemIDs = Set<String>()
         var unique: [String: EquipmentLoadout] = [:]
-        for combatantID in loadouts.keys.sorted() {
+        for combatantID in orderedIDs {
             guard let loadout = loadouts[combatantID] else { continue }
-            unique[combatantID] = EquipmentLoadout(
-                itemIDsBySlot: deduplicatedSlots(in: loadout, claimedItemIDs: &claimedItemIDs),
-            )
+            var slots: [ItemSlot: String] = [:]
+            for slot in ItemSlot.allCases {
+                guard let itemID = loadout.itemID(for: slot), claimedItemIDs.insert(itemID).inserted else { continue }
+                slots[slot] = itemID
+            }
+            unique[combatantID] = EquipmentLoadout(itemIDsBySlot: slots)
         }
         return unique
-    }
-
-    /// Single slot-dedup core shared by within-loadout and cross-loadout
-    /// passes. Iterates `ItemSlot.allCases` in order, keeping the first
-    /// occurrence of each item ID and skipping the rest.
-    private static func deduplicatedSlots(
-        in loadout: EquipmentLoadout,
-        claimedItemIDs: inout Set<String>,
-    ) -> [ItemSlot: String] {
-        var cleaned: [ItemSlot: String] = [:]
-        for slot in ItemSlot.allCases {
-            guard let itemID = loadout.itemID(for: slot) else { continue }
-            guard claimedItemIDs.insert(itemID).inserted else { continue }
-            cleaned[slot] = itemID
-        }
-        return cleaned
     }
 
     static func applyLoadout(
@@ -139,19 +132,10 @@ enum RosterHydration {
         for combatantID: String,
         in loadouts: [String: EquipmentLoadout],
     ) -> [String: EquipmentLoadout] {
-        var claimed = Set<String>()
-        let resolved = EquipmentLoadout(
-            itemIDsBySlot: deduplicatedSlots(in: loadout, claimedItemIDs: &claimed),
-        )
-        let newlyEquipped = Set(resolved.itemIDsBySlot.values)
+        // The edited combatant claims items first; untouched loadouts retain
+        // the same catalog-slot and combatant-ID precedence as sanitization.
         var updated = loadouts
-        for (otherID, otherLoadout) in loadouts where otherID != combatantID {
-            updated[otherID] = EquipmentLoadout(itemIDsBySlot: otherLoadout.itemIDsBySlot.filter { !newlyEquipped.contains($0.value) })
-        }
-        updated[combatantID] = resolved
-        // Final canonical pass: the edited entry already won (others were
-        // stripped of its items), so this only heals pre-existing dupes
-        // among untouched loadouts, matching sanitize.
-        return enforceUniqueEquippedItems(updated)
+        updated[combatantID] = loadout
+        return enforceUniqueEquippedItems(updated, prioritizing: combatantID)
     }
 }

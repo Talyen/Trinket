@@ -202,17 +202,32 @@ public enum BalanceSweepRunner {
             maxActions: config.maxActions,
             appliesFightPacing: config.appliesFightPacing,
         )
-        return makeIdentityRecord(
-            IdentityRecordParts(
-                tier: tier,
-                hero: hero,
-                companion: companion,
-                enemy: enemy,
-                matchup: matchup,
-                battleSeed: battleSeed,
-                policyID: policy.id,
-                result: result,
-            ),
+        return makeIdentityRecord(matchup: matchup, enemy: enemy, policyID: policy.id, result: result)
+    }
+
+    private static func makeIdentityRecord(
+        matchup: ConfiguredSimulationMatchup, enemy: Enemy, policyID: String, result: BattleSimResult,
+    ) -> BalanceBattleRecord {
+        BalanceBattleRecord(
+            tier: matchup.context.tier,
+            heroID: matchup.hero.id,
+            companionID: matchup.companion.id,
+            enemyID: enemy.id,
+            isBoss: enemy.isBoss,
+            heroAbilityIDs: matchup.context.heroLoadout.abilities.map(\.id),
+            companionAbilityIDs: matchup.context.companionLoadout.abilities.map(\.id),
+            enemyAbilityIDs: matchup.enemy.abilities.map(\.id),
+            enemyTraitIDs: enemy.traitIDs,
+            affixIDs: matchup.context.heroAffixIDs + matchup.context.companionAffixIDs,
+            heroAffixIDs: matchup.context.heroAffixIDs,
+            companionAffixIDs: matchup.context.companionAffixIDs,
+            heroItemBaseIDs: matchup.context.heroItemBaseIDs,
+            companionItemBaseIDs: matchup.context.companionItemBaseIDs,
+            heroTalentIDs: matchup.context.heroTalentIDs,
+            companionTalentIDs: matchup.context.companionTalentIDs,
+            seed: matchup.context.seed,
+            policyID: policyID,
+            result: result,
         )
     }
 
@@ -262,41 +277,6 @@ public enum BalanceSweepRunner {
             companionGear: companionGear,
             heroTalents: heroTalents,
             companionTalents: companionTalents,
-        )
-    }
-
-    private struct IdentityRecordParts {
-        var tier: SimulationPowerTier
-        var hero: Combatant
-        var companion: Combatant
-        var enemy: Enemy
-        var matchup: ConfiguredSimulationMatchup
-        var battleSeed: UInt64
-        var policyID: String
-        var result: BattleSimResult
-    }
-
-    private static func makeIdentityRecord(_ parts: IdentityRecordParts) -> BalanceBattleRecord {
-        BalanceBattleRecord(
-            tier: parts.tier,
-            heroID: parts.hero.id,
-            companionID: parts.companion.id,
-            enemyID: parts.enemy.id,
-            isBoss: parts.enemy.isBoss,
-            heroAbilityIDs: parts.matchup.context.heroLoadout.abilities.map(\.id),
-            companionAbilityIDs: parts.matchup.context.companionLoadout.abilities.map(\.id),
-            enemyAbilityIDs: parts.matchup.enemy.abilities.map(\.id),
-            enemyTraitIDs: parts.enemy.traitIDs,
-            affixIDs: parts.matchup.context.heroAffixIDs + parts.matchup.context.companionAffixIDs,
-            heroAffixIDs: parts.matchup.context.heroAffixIDs,
-            companionAffixIDs: parts.matchup.context.companionAffixIDs,
-            heroItemBaseIDs: parts.matchup.context.heroItemBaseIDs,
-            companionItemBaseIDs: parts.matchup.context.companionItemBaseIDs,
-            heroTalentIDs: parts.matchup.context.heroTalentIDs,
-            companionTalentIDs: parts.matchup.context.companionTalentIDs,
-            seed: parts.battleSeed,
-            policyID: parts.policyID,
-            result: parts.result,
         )
     }
 }

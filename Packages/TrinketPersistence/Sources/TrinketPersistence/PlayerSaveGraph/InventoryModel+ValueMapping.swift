@@ -84,7 +84,7 @@ extension InventoryItemModel {
         applyAffixPowers(from: item)
         affixes = reconcileModels(
             existing: affixes ?? [],
-            values: item.affixes.enumerated(),
+            values: Array(item.affixes.enumerated()),
             existingKey: \.id,
             valueKey: { $0.element.id },
             make: { ItemAffixModel() },
@@ -126,7 +126,7 @@ extension InventoryModel {
     func update(from inventory: PlayerInventoryState, context: ModelContext?) {
         items = reconcileModels(
             existing: items ?? [],
-            values: inventory.items.enumerated(),
+            values: Array(inventory.items.enumerated()),
             existingKey: \.id,
             valueKey: { $0.element.id },
             make: { InventoryItemModel() },

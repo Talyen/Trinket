@@ -1,7 +1,7 @@
 # Trinket agent guide
 
 Portrait-first iOS fantasy turn-based card combat. SwiftUI + SPM under `Packages/`;
-Xcode project generated from `project.yml`. Configuration pins toolchains.
+Xcode project generated from `project.yml`; [toolchain ladder](Scripts/Reference.md#toolchain-ladder) owns Xcode selection.
 [Scripts](Scripts/README.md) owns commands; nested `AGENTS.md` files add local
 constraints; [Docs](Docs/README.md) owns policy precedence.
 
@@ -24,12 +24,14 @@ material decisions/risks/blockers, and distinguish verified behavior from infere
 - Every supported player action needs prompt, perceptible feedback under [Design principles](Docs/Product/DesignPrinciples.md); existing visible responses count. Apply it to UI/UX and gameplay interaction changes.
 - Use first-party SwiftUI under the [platform policy](Docs/Platform/ApplePlatformReference.md#platform-support). The deployment target is a minimum, not an adoption ceiling; small supported-window availability checks are appropriate. Avoid legacy compatibility frameworks and UIKit feature chrome; existing measured UIKit feedback follows its package guide.
 - Preserve launch/imminent artwork pins and first-screen prepared artwork; do not replace them with on-demand `Image(name)` or lower [artwork budgets](Docs/Platform/PerformanceInvestigationPlaybook.md) without product approval.
+- Author or generate artwork from the canonical action-anime templates in the [Artwork production guide](Docs/Product/ArtworkStyleGuide.md#prompt-construction).
 - Preserve or migrate saves, serialized identifiers, manifests, and live schemas unless the consumer window is proven closed or a break is approved. Source/API compatibility needs a confirmed current consumer.
 - Prefer self-explanatory code and concise rationale/invariant comments; remove temporary debug output. Use [doc-budget](.agents/skills/doc-budget/SKILL.md) for checker directives or suppressions.
 
 ## Route and read
 
-For an indexed concern, start with `python3 Scripts/agent-session.py brief --task <concern>`;
+For an indexed concern, start with `python3 Scripts/agent-session.py brief --task <concern>`
+(outside Codex, pass `--chat <conversation-id>` before `brief`);
 it routes status, safeguards, initial guidance and source/test pointers together.
 Otherwise discover with `python3 Scripts/agent-search.py --files <pattern> --scope <owner>`;
 use `'<concern>' --task` to find an index entry or `--overview` for an unknown owner.

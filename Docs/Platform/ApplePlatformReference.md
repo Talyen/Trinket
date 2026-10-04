@@ -100,9 +100,10 @@ owns the Trinket application of each source. Revisit the relevant Apple source
 when changing the behavior or adopting a new SDK; a reviewed date does not
 certify runtime behavior.
 
-Broader accessibility remains governed by PD-014. iPad/macOS expansion, controllers,
-and new account or AI features need a product use case; appearing on Apple's
-design site does not add them to Trinket.
+Broader accessibility remains governed by PD-014. Native portrait iPad support
+follows PD-033 and the [device contract](#portrait-device-support). macOS expansion,
+controllers, and new account or AI features need a product use case; appearing on
+Apple's design site does not add them to Trinket.
 New iOS APIs and symbols are evaluated for value and availability, not deferred
 solely because they postdate the minimum supported OS.
 

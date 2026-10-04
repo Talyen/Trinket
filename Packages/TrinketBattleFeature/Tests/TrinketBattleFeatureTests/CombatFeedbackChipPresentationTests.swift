@@ -178,12 +178,16 @@ struct CombatFeedbackBridgeSerializedTests {
         }
     }
 
-    @Test @MainActor func `session trim memory footprint clears glyph atlas and dissolve textures`() {
+    @Test @MainActor func `session trim memory footprint clears glyph atlas and dissolve textures`() throws {
         let session = BattleSession()
-        CardDissolveTexture.prewarm()
+        let atlas = CombatFeedbackGlyphAtlas.shared
+        let face = CombatFeedbackGlyphAtlas.Face(feedbackClass: .buff, displayScaleHundredths: 100)
+        _ = try #require(atlas.icon(.system("sparkles"), face: face, recipe: .forClass(.buff)))
+        let mask = try #require(CardDissolveTexture.thresholdMaskImage(progress: 0.2))
+        #expect(!atlas.icons.isEmpty)
         session.trimMemoryFootprint(releaseBattleLog: true)
-        session.endBattle()
-        #expect(session.lifecyclePhase == .idle)
+        #expect(atlas.icons.isEmpty)
+        #expect(CardDissolveTexture.thresholdMaskImage(progress: 0.2) !== mask)
     }
 
     @Test @MainActor func `session teardown clears published chips from the shared bridge`() {

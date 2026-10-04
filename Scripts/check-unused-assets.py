@@ -45,13 +45,13 @@ def full_only_art_kinds() -> set[str]:
 
 
 def read_tsv_rows(path: Path) -> list[dict[str, str]]:
-    if not path.is_file():
-        return []
     header, rows = read_manifest_table(path)
+    if "asset_name" not in header:
+        raise ValueError(f"{path}: manifest must declare asset_name")
     return [dict(zip(header, row)) for row in rows]
 
 
-def check_assets(verbose: bool = False) -> tuple[list[str], list[str]]:
+def check_assets() -> tuple[list[str], list[str]]:
     missing: list[str] = []
     orphans: list[str] = []
 
@@ -128,10 +128,14 @@ def check_assets(verbose: bool = False) -> tuple[list[str], list[str]]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check bi-directional asset and manifest integrity.")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
-    args = parser.parse_args()
+    parser.add_argument("-v", "--verbose", action="store_true", help="accepted for compatibility; all issues are always printed")
+    parser.parse_args()
 
-    missing, orphans = check_assets(verbose=args.verbose)
+    try:
+        missing, orphans = check_assets()
+    except (OSError, ValueError) as error:
+        print(f"Asset manifest check failed: {error}", file=sys.stderr)
+        return 1
 
     if missing:
         print(f"Error: Found {len(missing)} missing required asset(s):", file=sys.stderr)

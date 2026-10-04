@@ -16,6 +16,9 @@ unfinished deliveries, and finish verified transactions after delivering access.
 Explicit Restore Purchases invokes `AppStore.sync()`. Product lookup failure must
 not erase a verified entitlement. Restore/family ownership is independent of
 Trinket's private CloudKit save synchronization.
+Only the newest started entitlement refresh may publish its result; verified
+transaction updates also invalidate older pending reads. A delayed foreground
+check cannot overwrite ownership resolved by a later restoration.
 
 ## Local development
 

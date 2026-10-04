@@ -125,8 +125,9 @@ manual measurements. Routine FullUI deliberately relinquishes Spire row enableme
 and enemy-detail wiring coverage; package tests cannot detect those UI regressions.
 
 Onboarding and recruitment finish by checking that the earned characters are
-present and unlocked in Collection; shopping checks that the purchased item is
-present and enabled. Their repeated detail-sheet openings are removed. Collection
+present and unlocked in Collection. Shopping verifies the purchase control,
+Gold debit, and return to Play; item ownership remains package-owned as described
+above. Repeated detail-sheet openings are removed. Collection
 character-detail entry remains covered by `FullGamePurchaseSmokeTests`, and item
 detail entry by `CollectionLoadoutUITests`. Character lock labels express the
 unlock contract because locked character cards remain enabled for inspection.

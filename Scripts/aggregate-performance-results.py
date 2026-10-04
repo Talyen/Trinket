@@ -62,9 +62,8 @@ def main() -> int:
                 f"{scenario}: expected {args.expected_repetitions} reports, found {len(records)}"
             )
         suite = str(records[0].get("suite", "unknown")) if records else "unknown"
-        expected_iterations = set(range(1, args.expected_repetitions + 1))
         actual_iterations = [record["iteration"] for record in records]
-        if set(actual_iterations) != expected_iterations or len(actual_iterations) != len(set(actual_iterations)):
+        if actual_iterations != list(range(1, args.expected_repetitions + 1)):
             failures.append(
                 f"{scenario}: expected iterations 1..{args.expected_repetitions}, "
                 f"found {actual_iterations}"

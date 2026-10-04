@@ -10,21 +10,10 @@ struct MusicResumeKey: Hashable {
 
 struct MusicPlaybackRequest: Equatable {
     let track: MusicTrack
-    let resumeKey: MusicResumeKey
+    let enemyID: String?
 
-    static func resumable(
-        track: MusicTrack,
-        contextKind: MusicTrackKind,
-        enemyID: String?,
-    ) -> Self {
-        Self(
-            track: track,
-            resumeKey: MusicResumeKey(
-                contextKind: contextKind,
-                enemyID: enemyID,
-                trackID: track.id,
-            ),
-        )
+    var resumeKey: MusicResumeKey {
+        MusicResumeKey(contextKind: track.kind, enemyID: enemyID, trackID: track.id)
     }
 }
 
@@ -67,13 +56,7 @@ enum MusicRoute: Equatable {
             return .silence(preservingPosition: false)
         }
 
-        return .track(
-            MusicPlaybackRequest.resumable(
-                track: track,
-                contextKind: .menu,
-                enemyID: nil,
-            ),
-        )
+        return .track(MusicPlaybackRequest(track: track, enemyID: nil))
     }
 
     /// Only boss fights get a specific track. Every other battle resolves to the
@@ -81,26 +64,14 @@ enum MusicRoute: Equatable {
     private static func encounter(enemyID: String, currentDate: Date) -> Self {
         if let bossTrackID = MusicCatalog.bossTrackIDByEnemyID[enemyID],
            let bossTrack = MusicCatalog.track(matching: bossTrackID) {
-            return .track(
-                MusicPlaybackRequest.resumable(
-                    track: bossTrack,
-                    contextKind: .boss,
-                    enemyID: enemyID,
-                ),
-            )
+            return .track(MusicPlaybackRequest(track: bossTrack, enemyID: enemyID))
         }
 
         guard let track = normalBattleTrack(enemyID: enemyID) else {
             return menuTrack(currentDate: currentDate)
         }
 
-        return .track(
-            MusicPlaybackRequest.resumable(
-                track: track,
-                contextKind: .battle,
-                enemyID: enemyID,
-            ),
-        )
+        return .track(MusicPlaybackRequest(track: track, enemyID: enemyID))
     }
 
     private static func normalBattleTrack(enemyID: String) -> MusicTrack? {

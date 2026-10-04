@@ -29,25 +29,10 @@ struct ArtCatalogIntegrationTests {
     }
 
     @Test func `roster art references resolve`() throws {
-        for hero in GameContent.heroes {
+        for combatant in GameContent.combatants + GameContent.enemies.map(\.combatant) {
             _ = try #require(
-                ArtCatalog.combatantArtByID[hero.id],
-                "\(hero.name) should have an art reference in the catalog",
-            )
-        }
-
-        for companion in GameContent.companions {
-            _ = try #require(
-                ArtCatalog.combatantArtByID[companion.id],
-                "\(companion.name) should have an art reference in the catalog",
-            )
-        }
-
-        let campaignEnemyIDs = Set(GameContent.chapters.flatMap(\.stages).compactMap(\.encounter.battleEnemyID))
-        for enemy in GameContent.enemies where campaignEnemyIDs.contains(enemy.id) {
-            _ = try #require(
-                ArtCatalog.combatantArtByID[enemy.id],
-                "\(enemy.name) should have an art reference in the catalog",
+                ArtCatalog.combatantArtByID[combatant.id],
+                "\(combatant.name) should have an art reference in the catalog",
             )
         }
     }
@@ -145,16 +130,10 @@ struct ArtCatalogIntegrationTests {
     }
 
     private func referencedAbilityIDs() -> Set<String> {
-        var ids = Set<String>()
         let combatants = GameContent.combatants + GameContent.enemies.map(\.combatant)
-        for combatant in combatants {
-            for ability in combatant.abilityChoices.basics + combatant.abilityChoices.skills + combatant.abilityChoices.ultimates {
-                ids.insert(ability.id)
-            }
-            for ability in combatant.abilityLoadout.abilities {
-                ids.insert(ability.id)
-            }
-        }
-        return ids
+        return Set(combatants.flatMap { combatant in
+            (AbilityTier.allCases.flatMap { combatant.abilityChoices.abilities(for: $0) }
+                + combatant.abilityLoadout.abilities).map(\.id)
+        })
     }
 }

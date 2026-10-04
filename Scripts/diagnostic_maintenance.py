@@ -39,9 +39,9 @@ def reset(root: Path) -> None:
             path.name.endswith(("-diagnostics.json", "-diagnostics.md", "-diagnostics.annotations", "-invocation.json"))
             or path.name in {"ci-diagnostics.json", "phase-timing.jsonl"}
         ):
-            path.unlink()
+            remove(path)
         elif path.is_dir() and path.name.endswith("-diagnostics.attachments"):
-            shutil.rmtree(path)
+            remove(path)
     print(f"Cleared prior CI diagnostic/status artifacts in {root}")
 
 
@@ -93,7 +93,8 @@ def stage(root: Path, artifact_dir: Path) -> None:
     prepare_artifact_dir(root, artifact_dir)
     category_path = root / "ci-diagnostics.json"
     try:
-        category = json.loads(category_path.read_text(encoding="utf-8")).get("category", "unknown")
+        payload = json.loads(category_path.read_text(encoding="utf-8"))
+        category = payload.get("category", "unknown") if isinstance(payload, dict) else "unknown"
     except (OSError, json.JSONDecodeError):
         category = "unknown"
     names = {"ci-diagnostics.json", "timing-log.jsonl", "simulator.log", "phase-timing.jsonl"}
@@ -101,10 +102,9 @@ def stage(root: Path, artifact_dir: Path) -> None:
         if path.is_file() and (path.name in names or path.name.endswith(("-invocation.json", "-diagnostics.json", "-diagnostics.md", "-diagnostics.annotations"))):
             shutil.copy2(path, artifact_dir / path.name)
     if category != "passed":
-        for name in ("raw",):
-            source = root / name
-            if source.is_dir():
-                shutil.copytree(source, artifact_dir / name)
+        source = root / "raw"
+        if source.is_dir():
+            shutil.copytree(source, artifact_dir / "raw")
         for path in root.glob("*.xcresult"):
             shutil.copytree(path, artifact_dir / path.name)
         for path in root.glob("*-diagnostics.attachments"):
@@ -136,8 +136,7 @@ def sweep_orphans(root: Path) -> int:
             continue
         try:
             if bundle.stat().st_mtime <= cutoff:
-                shutil.rmtree(bundle, ignore_errors=True)
-                removed += 1
+                removed += remove(bundle)
         except OSError:
             continue
     raw_dir = root / "raw"
@@ -191,37 +190,25 @@ def cleanup(root: Path, keep: bool) -> None:
         passed = manifest.get("status") == "passed" and type(exit_code) is int and exit_code == 0
         if not passed and manifest_path not in recovered:
             continue
+        artifacts = set()
         result = artifact_path(manifest.get("result_bundle"), root)
         if result is not None:
-            if remove(result):
-                removed += 1
             stem = result.name.removesuffix(".xcresult")
-            if remove(root / "raw" / f"{stem}.log"):
-                removed += 1
-            if remove(root / f"{stem}-diagnostics.attachments"):
-                removed += 1
+            artifacts.update((result, root / "raw" / f"{stem}.log", root / f"{stem}-diagnostics.attachments"))
         report = artifact_path(manifest.get("diagnostics_json"), root)
         if report is not None:
-            stem = report.name.removesuffix(".json")
-            if remove(report):
-                removed += 1
-            if remove(report.with_suffix(".md")):
-                removed += 1
-            if remove(report.with_suffix(".annotations")):
-                removed += 1
-            if remove(report.with_name(f"{stem}.attachments")):
-                removed += 1
-        if remove(manifest_path):
-            removed += 1
+            artifacts.update((report, report.with_suffix(".md"), report.with_suffix(".annotations"),
+                              report.with_name(report.name.removesuffix(".json") + ".attachments")))
+        removed += sum(remove(path) for path in sorted(artifacts))
+        removed += remove(manifest_path)
     if not list(root.glob("*-invocation.json")):
         if remove(root / "ci-diagnostics.json"):
             removed += 1
     sweep_orphans_count = sweep_orphans(root)
-    cleaned = removed
     if sweep_orphans_count:
-        print(f"Cleaned {cleaned} successful diagnostic artifact(s) and {sweep_orphans_count} crashed-run orphan(s) from {root}")
+        print(f"Cleaned {removed} successful diagnostic artifact(s) and {sweep_orphans_count} crashed-run orphan(s) from {root}")
     else:
-        print(f"Cleaned {cleaned} successful diagnostic artifact(s) from {root}")
+        print(f"Cleaned {removed} successful diagnostic artifact(s) from {root}")
 
 
 def main(argv: list[str]) -> int:

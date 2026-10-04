@@ -24,6 +24,9 @@ the recipient's Block; ongoing damage and bypass damage leaving Block intact do 
 Shieldbreaker, Shield Breaker, and Brittle Strike apply their Physical Block-breaking
 multiplier only to attacks. Physical retaliation retains ordinary Block consumption;
 generic Sundering and Holy damage bonuses keep their separate eligibility.
+Heavy Impact and Heavy Slam amplify the owner's Physical retaliation against
+Stunned enemies. Stalk the Wound also amplifies its owner's Bleed ticks against
+Bleeding enemies below half Health.
 Multiple partial Block bypasses
 use the strongest applicable fraction. Partial bypass scales each defense before
 subtracting it and clamping damage. Burn detonation preserves the original
@@ -74,7 +77,12 @@ without enabling other keyword reactions on those paths.
 Barbed adds flat damage to a consumed Thorns stack before blocked or poisoned
 Thorns multipliers; it does nothing without an active Thorns stack.
 Bristling checks Block remaining after the incoming hit. Spiteful heals only
-when Thorns removes enemy Health, at most once per wearer per turn.
+when Thorns removes enemy Health, at most once per surviving wearer per turn.
+Thorns retaliation keeps its Physical or converted damage type and also observes
+Thorns resistance, including Briar Ward; ordinary Physical damage does not.
+Committed Thorns and lingering Bleed still deal damage after their source falls.
+Their personal rewards require a living owner: Martial Guard's Block, both
+Blood Money rewards, and Critical Hit Gold stop after final defeat.
 Spitebloom follows Thorns Health damage with a separate Poison hit and attaches
 Poison only from Health actually lost to that hit.
 Venomtrail checks Bleed at each Poison damage event, including resolved ticks;
@@ -97,6 +105,9 @@ Removal events report what was actually removed: one event per removed buff for
 purge, one per distinct keyword for cleanse. Empty purge reports `didApply:false`;
 empty cleanse still reports any heal and side-effect events as applied
 (`didApply` reflects emitted events).
+Reflective Ward returns a triggered Stun or Freeze at the recipient's control
+threshold, so a larger enemy Health pool cannot turn the reflected status into
+partial buildup. Untriggered buildup retains its removed amount.
 `DoTApplication.reflection` preserves the
 removed potency and duration without new-application bonuses or immediate damage.
 Turn handlers commit their own effect updates and return only events. Decaying
@@ -110,9 +121,15 @@ For a named talent change, look up its rule in [talent interactions](battle-tale
 
 Glacial Barrier and Rimeguard reward each living owner when an opponent becomes
 Frozen, including freezes applied by an ally.
+Cool Moss adds the living Druid's bonus to allied Freeze damage against Poisoned
+enemies. Nerve Agent and Entangling Growth increase allied Stun build-up against
+Poisoned enemies while their Hero lives; the Hero's own bonus applies once.
 Control extensions belong to the active Freeze or Stun that earned them. Simultaneous
 statuses retain their own skipped actions; Cleanse removes the corresponding extension
 without removing another status's extension or an independent action delay.
 
 `DamageDefensePolicy` applies damage caps
 to ordinary damage operations, exempting Health costs.
+After lethal protection restores a party member, living-owner Health-loss rewards
+include Grizzly Guard and Redline. A final defeat grants neither; Second Wind
+keeps its pre-protection checkpoint.

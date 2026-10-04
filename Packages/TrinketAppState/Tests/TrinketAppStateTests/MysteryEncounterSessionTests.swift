@@ -61,7 +61,7 @@ struct MysteryEncounterSessionTests {
         session.markPersistFailed("Unavailable")
         #expect(!session.isResolvingChoice)
         #expect(session.persistFailureMessage == "Unavailable")
-        #expect(session.phase == .selectingCorruptItem)
+        #expect(session.showsCorruptItemChoice)
         #expect(session.corruptibleItems == items)
         #expect(!session.canResolveChoice)
 

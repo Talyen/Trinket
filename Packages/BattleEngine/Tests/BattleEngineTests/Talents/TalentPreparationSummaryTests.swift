@@ -79,6 +79,53 @@ struct TalentPreparationSummaryTests {
         #expect(!hasPreparation(.physical, for: actor, in: context))
     }
 
+    @Test(arguments: [Effect.burn(2), .controlMeter(.freeze, 5, 10)])
+    func `Lesson Learned details follow protected keywords until immunity expires`(effect: Effect) throws {
+        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl", talents: "library_owl_cleanse_t4_1")
+        var battle = BattleStateTestFactory.makeBattle(
+            companion: owl.combatant, companionModifiers: owl.modifiers, dealOpeningHand: false,
+        )
+        battle.appendEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
+        _ = EffectRemovalOperation.resolveCleanse(
+            .all(nil), source: battle.companion, target: battle.hero, abilityName: "Cleanse", in: &battle,
+        )
+
+        #expect(battle.effectSummaries(of: battle.hero).contains { $0.keyword == effect.keyword })
+        let firstAppendSucceeded = battle.appendEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
+        #expect(!firstAppendSucceeded)
+
+        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+
+        #expect(!battle.effectSummaries(of: battle.hero).contains { $0.keyword == effect.keyword })
+        let secondAppendSucceeded = battle.appendEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
+        #expect(secondAppendSucceeded)
+    }
+
+    @Test(arguments: [
+        (Effect.shield(.block, 6), "Block"), (.thorns(3), "Thorns"),
+        (.avatar(holyDamage: 6, blockPerTurn: 4, turns: 1), "Avatar"),
+    ])
+    func `Interdict details name the buff that cannot return until protection expires`(effect: Effect, name: String) throws {
+        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl", talents: "library_owl_holy_t4_1")
+        var battle = BattleStateTestFactory.makeBattle(
+            companion: owl.combatant, companionModifiers: owl.modifiers, dealOpeningHand: false,
+        )
+        battle.appendEffect(effect, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 2)
+        _ = EffectRemovalOperation.resolvePurge(
+            .all(nil), source: battle.companion, target: battle.enemy, abilityName: "Purge", in: &battle,
+        )
+
+        #expect(battle.effectSummaries(of: battle.enemy).contains { $0.keyword == .purge && $0.text.contains(name) })
+        let firstPurgeAppendSucceeded = battle.appendEffect(effect, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 2)
+        #expect(!firstPurgeAppendSucceeded)
+
+        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+
+        #expect(!battle.effectSummaries(of: battle.enemy).contains { $0.keyword == .purge })
+        let secondPurgeAppendSucceeded = battle.appendEffect(effect, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 2)
+        #expect(secondPurgeAppendSucceeded)
+    }
+
     private func hasPreparation(_ keyword: Keyword, for actor: Combatant, in context: BattleState) -> Bool {
         context.effectSummaries(of: actor).contains { $0.keyword == keyword && $0.text.contains("next") }
     }

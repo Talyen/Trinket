@@ -43,6 +43,7 @@ class CodegenStagesTests(ScriptRegressionTestCase):
             stages.validate_stage_rows([row], **catalog)
         bad_rows = (
             ("Duplicate stage id", [self._stage_row(), self._stage_row()]),
+            ("Duplicate chapter number", [self._stage_row(), self._stage_row(chapter_id="chapter-2")]),
             ("requires enemy_id", [self._stage_row(enemy_id="")]),
             ("numbered 1...N contiguously", [self._stage_row(), self._stage_row(stage_number="3")]),
             ("unknown mystery event", [self._stage_row(encounter="mystery", enemy_id="bogus-event")]),

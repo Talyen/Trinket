@@ -191,24 +191,13 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
         guard run.nodes.count == run.offer.difficulty.nodeCount, Set(run.nodes.map(\.id)).count == run.nodes.count,
               run.nodes.first?.type == .battle, run.nodes.last?.type == .boss,
               run.earnedGold >= 0, run.earnedMaterials.values.allSatisfy({ $0 >= 0 }),
+              run.nodes.drop(while: \.isCleared).allSatisfy({ !$0.isCleared }),
               VoyageCatalog.bossID(chapterID: run.offer.chapterID) != nil else { return false }
-        var foundUncleared = false
-        for node in run.nodes {
-            if foundUncleared && node.isCleared {
-                return false
-            }
-            foundUncleared = foundUncleared || !node.isCleared
-            if node.type == .entrance || node.id.isEmpty {
-                return false
-            }
-            if node.type.isCombat, node.enemyID.flatMap({ GameContent.enemy(matching: $0) }) == nil {
-                return false
-            }
-            if node.modifierIDs.contains(where: { NodeModifierCatalog.modifier(id: $0) == nil }) {
-                return false
-            }
+        return run.nodes.allSatisfy { node in
+            node.type != .entrance && !node.id.isEmpty
+                && (!node.type.isCombat || node.enemyID.flatMap { GameContent.enemy(matching: $0) } != nil)
+                && node.modifierIDs.allSatisfy { NodeModifierCatalog.modifier(id: $0) != nil }
         }
-        return true
     }
 
     private static func chapterIDs(access: ContentAccessPolicy) -> [String] {

@@ -1,31 +1,5 @@
 import Foundation
 
-enum ProgressionBracket: Equatable {
-    case early
-    case mid
-    case late
-
-    /// Boundaries are the single source of truth on
-    /// `EnemyPowerCurve.midLevel/lateLevel`; this reads them directly.
-    static func forLevel(_ level: Int) -> Self {
-        if level < EnemyPowerCurve.midLevel {
-            return .early
-        }
-        if level < EnemyPowerCurve.lateLevel {
-            return .mid
-        }
-        return .late
-    }
-
-    var targetBattlesPerLevel: Double {
-        switch self {
-        case .early: 1.5
-        case .mid: 2.5
-        case .late: 3.5
-        }
-    }
-}
-
 public enum ExperienceScaling {
     public static let underlevelCutoff = 10
     public static let maxGrantLevelsEquivalent = 3
@@ -47,7 +21,13 @@ public enum ExperienceScaling {
 
     public static func baseBattleAward(forPlayerLevel level: Int) -> Int {
         let required = CombatantProgression.requiredXP(forLevel: level)
-        let battles = ProgressionBracket.forLevel(level).targetBattlesPerLevel
+        let battles = if level < EnemyPowerCurve.midLevel {
+            1.5
+        } else if level < EnemyPowerCurve.lateLevel {
+            2.5
+        } else {
+            3.5
+        }
         return max(1, CombatRounding.rounded(Double(required) / battles))
     }
 

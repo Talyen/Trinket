@@ -134,7 +134,7 @@ extension UniqueCombatEngine {
         return BattleTurnEngine.performAction(
             ability: ability,
             actor: actor,
-            abilityTarget: BattleTargetResolver.abilityTarget(for: actor, in: context),
+            abilityTarget: BattleActionContext(actor: actor, in: context).selectedTarget,
             origin: .counterattack,
             context: &context,
         )

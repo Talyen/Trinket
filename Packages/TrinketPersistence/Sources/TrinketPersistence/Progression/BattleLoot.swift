@@ -53,8 +53,8 @@ public enum BattleLoot {
         )
         let itemModifier = modifier?.isItemFocused == true ? modifier
             : additionalModifier?.isItemFocused == true ? additionalModifier : nil
-        let focuses = [modifier?.materialFocus, additionalModifier?.materialFocus].compactMap(\.self)
         let modifiers = [modifier, additionalModifier].compactMap(\.self)
+        let focuses = modifiers.compactMap(\.materialFocus)
         let range = quantityRange(forLevel: encounterLevel)
         let multiplier = enemyIsBoss ? 2 : 1
 
@@ -62,7 +62,6 @@ public enum BattleLoot {
         gold = CombatRounding.scaled(gold, byPercent: request.goldFoundPercent + modifiers.reduce(0) { $0 + $1.goldBonusPercent })
 
         var materials = rollDistinctMaterials(
-            count: 2,
             range: range,
             quantityMultiplier: multiplier,
             focuses: focuses,
@@ -99,13 +98,14 @@ public enum BattleLoot {
         astralChanceBonusPercent: Int,
         using rng: inout some RandomNumberGenerator,
     ) -> InventoryItem {
-        let eligibleBaseTypes = modifier?.requiredBaseTypeIDs.map { ids in
+        let requiredBaseTypeIDs = modifier?.requiredBaseTypeIDs
+        let eligibleBaseTypes = requiredBaseTypeIDs.map { ids in
             GameContent.itemBaseTypes.filter { ids.contains($0.id) }
         } ?? GameContent.itemBaseTypes
         precondition(!eligibleBaseTypes.isEmpty, "Guaranteed item family needs a matching base")
         let allowedTiers: Set<ItemDropTier> = if let tier = modifier?.requiredItemTier {
             [tier]
-        } else if modifier?.requiredBaseTypeIDs != nil {
+        } else if requiredBaseTypeIDs != nil {
             [.basic, .astral]
         } else {
             Set(ItemDropTier.allCases)
@@ -128,7 +128,6 @@ public enum BattleLoot {
     }
 
     private static func rollDistinctMaterials(
-        count: Int,
         range: ClosedRange<Int>,
         quantityMultiplier: Int,
         focuses: [HomesteadResource],
@@ -136,8 +135,7 @@ public enum BattleLoot {
     ) -> [ResourceAmount] {
         var pool = materialResources
         var picked: [ResourceAmount] = []
-        for slot in 0 ..< count {
-            guard !pool.isEmpty else { break }
+        for slot in 0 ..< 2 {
             let index: Int = if focuses.indices.contains(slot), let focusIndex = pool.firstIndex(of: focuses[slot]) {
                 focusIndex
             } else {

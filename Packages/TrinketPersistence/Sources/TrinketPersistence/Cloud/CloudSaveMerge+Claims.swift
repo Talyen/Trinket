@@ -15,12 +15,11 @@ extension CloudSaveMerge {
             || hasSharedSpireClaim(incoming: incoming, existing: existing, base: base) {
             return true
         }
-        if hasSharedNodeClaim(incoming: incoming, existing: existing, base: base, onlyCombat: true) {
-            return true
-        }
         let distinctNewItems = !incomingNewItemIDs.isEmpty && !existingNewItemIDs.isEmpty
             && incomingNewItemIDs.isDisjoint(with: existingNewItemIDs)
-        if hasSharedNodeClaim(incoming: incoming, existing: existing, base: base, onlyCombat: false), !distinctNewItems {
+        // Different noncombat choices can grant separate items. Combat claims
+        // still overlap even when the two devices rolled different loot.
+        if hasSharedNodeClaim(incoming: incoming, existing: existing, base: base, onlyCombat: distinctNewItems) {
             return true
         }
         if hasSharedShopPurchase(incoming: incoming, existing: existing, base: base) {

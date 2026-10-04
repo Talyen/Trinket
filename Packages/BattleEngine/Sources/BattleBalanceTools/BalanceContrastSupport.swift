@@ -226,31 +226,6 @@ enum BalanceContrastSupport {
             &+ stableHash64(entityID)
     }
 
-    static func runEntityBaselinePair(
-        matchups: (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup),
-        policy: PlayPolicy,
-        maxRounds: Int,
-        maxActions: Int,
-        appliesFightPacing: Bool,
-    ) -> (entity: BattleSimResult, baseline: BattleSimResult) {
-        (
-            BattleSimulator.run(
-                matchup: matchups.withEntity,
-                policy: policy,
-                maxRounds: maxRounds,
-                maxActions: maxActions,
-                appliesFightPacing: appliesFightPacing,
-            ),
-            BattleSimulator.run(
-                matchup: matchups.withBaseline,
-                policy: policy,
-                maxRounds: maxRounds,
-                maxActions: maxActions,
-                appliesFightPacing: appliesFightPacing,
-            ),
-        )
-    }
-
     static func roundRobinEnemy(enemies: [Enemy], pairIndex: Int) -> Enemy {
         precondition(!enemies.isEmpty, "roundRobinEnemy requires a non-empty enemy list")
         return enemies[pairIndex % enemies.count]
@@ -278,6 +253,14 @@ extension BalanceContrastSupport {
               !foci.isEmpty, !tiers.isEmpty
         else { return [] }
         let config = context.config
+        let summaries = foci.map(summarize)
+        @Sendable func simulate(_ matchup: ConfiguredSimulationMatchup) -> BattleSimResult {
+            BattleSimulator.run(
+                matchup: matchup, policy: policy,
+                maxRounds: config.maxRounds, maxActions: config.maxActions,
+                appliesFightPacing: config.appliesFightPacing,
+            )
+        }
 
         let work = config.workIndices(count: workCount(fociCount: foci.count, config: config))
         let jobs = config.resolvedJobs
@@ -293,27 +276,20 @@ extension BalanceContrastSupport {
                 base: config.seed,
                 tier: tier,
                 pairIndex: pairIndex,
-                entityID: summarize(focus).entityID,
+                entityID: summaries[focusIndex].entityID,
                 primes: primes(focus),
             )
             guard let pair = makePair(focus, tier, pairIndex, pairSeed) else { return nil }
-            let outcome = runEntityBaselinePair(
-                matchups: pair,
-                policy: policy,
-                maxRounds: config.maxRounds,
-                maxActions: config.maxActions,
-                appliesFightPacing: config.appliesFightPacing,
-            )
             return ContrastPairOutcome(
                 focusIndex: focusIndex,
                 tier: tier,
-                entity: outcome.entity,
-                baseline: outcome.baseline,
+                entity: simulate(pair.withEntity),
+                baseline: simulate(pair.withBaseline),
             )
         }
 
         return aggregate(
-            foci: foci.map(summarize),
+            foci: summaries,
             pairResults: pairResults,
             config: config,
         )

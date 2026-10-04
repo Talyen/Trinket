@@ -7,9 +7,9 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         case modifier(AffixModifier, companion: Bool)
         case astralFind
         case forgeAstralOdds
-        case goldFind
-        case experience
-        case gemsFind
+        case goldFind(percent: Bool)
+        case experience(percent: Bool)
+        case gemsFind(percent: Bool)
         case production(HomesteadResource)
     }
 
@@ -57,12 +57,12 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
 
     private static func rewardLines(for bonus: HomesteadTierCombatBonus) -> [Self] {
         let rewards: [(Key, String, String, Bool)] = [
-            (.goldFind, "Gold found", "\(bonus.goldFindPercent)%", bonus.goldFindPercent != 0),
-            (.goldFind, "Gold found", "\(bonus.goldFindFlat)", bonus.goldFindFlat > 0),
-            (.experience, "Experience", "\(bonus.experienceBonusPercent)%", bonus.experienceBonusPercent > 0),
-            (.experience, "Experience", "\(bonus.experienceBonus)", bonus.experienceBonus > 0),
-            (.gemsFind, "Gems found", "\(bonus.gemsFindPercent)%", bonus.gemsFindPercent > 0),
-            (.gemsFind, "Gems in encounter rewards containing Gems", "\(bonus.gemsFindBonus)", bonus.gemsFindBonus > 0),
+            (.goldFind(percent: true), "Gold found", "\(bonus.goldFindPercent)%", bonus.goldFindPercent != 0),
+            (.goldFind(percent: false), "Gold found", "\(bonus.goldFindFlat)", bonus.goldFindFlat > 0),
+            (.experience(percent: true), "Experience", "\(bonus.experienceBonusPercent)%", bonus.experienceBonusPercent > 0),
+            (.experience(percent: false), "Experience", "\(bonus.experienceBonus)", bonus.experienceBonus > 0),
+            (.gemsFind(percent: true), "Gems found", "\(bonus.gemsFindPercent)%", bonus.gemsFindPercent > 0),
+            (.gemsFind(percent: false), "Gems in encounter rewards containing Gems", "\(bonus.gemsFindBonus)", bonus.gemsFindBonus > 0),
         ]
         return rewards.compactMap { key, label, value, enabled in
             enabled ? Self(id: key, label: label, value: value, resource: nil) : nil

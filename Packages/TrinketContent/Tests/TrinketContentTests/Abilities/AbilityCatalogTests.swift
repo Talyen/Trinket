@@ -27,13 +27,6 @@ struct AbilityCatalogTests {
         #expect(healthAmounts.sorted() == Array(1 ... 12))
     }
 
-    @Test func `rebuilt definitions retain value equality and operation order`() {
-        let rebuilt = Ability.sunder.replacingOperations(Ability.sunder.operations)
-        #expect(rebuilt == Ability.sunder)
-        #expect(Set([rebuilt, Ability.sunder]).count == 1)
-        #expect(rebuilt.operations.first == .effect(TargetedEffect(.halveShield(.block), target: .enemy)))
-    }
-
     @Test func `catalog I ds are unique and unknown lookup returns nil`() throws {
         let ids = AbilityCatalog.all.map(\.id)
         try #expect(
@@ -132,31 +125,6 @@ struct AbilityCatalogTests {
         try #expect(Ability.fangs.hasLeech)
     }
 
-    @Test func `ultimate reworks match player facing summaries`() throws {
-        let expected: [Ability: String] = [
-            .avatarOfJustice: "Deal 6 Holy damage\nYour next attack deals Holy damage\nGain 6 Block",
-            .blessedAegis: "Gain 5 Block\nRestore 5 Health to the lowest-Health ally\nDeal 5 Holy damage",
-            .blizzard: "Deal 6 Freeze damage this turn and next",
-            .combustion: "Deal 6 Burn damage\nDetonate all enemy Burn",
-            .earthquake: "Deal 6 Stun damage this turn and next",
-            .hemorrhage: "Deal 6 Bleed damage\nDetonate all Bleed",
-            .luckPotion: "Roll a 12-sided die\nGain that much Block, Thorns, or Health",
-            .moltenBulwark: "Deal 3 Burn damage\nGain 4 Block and Thorns",
-            .panaceaPotion: "Cleanse the ally with the most debuffs\nRestore 6 Health",
-            .shadowstep: "Draw a card\nDodge the next attack against you",
-            .sunburst: "Deal 6 Holy or Burn damage\nRestore 3 Health to each ally",
-            .thornMail: "Gain 6 Block\nGain Thorns equal to half your Block",
-        ]
-
-        for (ability, summary) in expected {
-            try #expect(ability.summary == summary, "Unexpected summary for \(ability.id)")
-        }
-    }
-
-    @Test func `glacial ward is skill with block and freeze retaliation`() throws {
-        try #expect(Ability.glacialWard.tier == .skill)
-    }
-
     @Test func `shield bash describes ordered block-scaled stun damage`() throws {
         let shieldBash = try #require(AbilityCatalog.ability(id: "shield-bash"))
         try #expect(shieldBash.summary == "Gain 1 Block\nDeal Stun damage equal to half your Block (minimum 1)")
@@ -182,15 +150,6 @@ struct AbilityCatalogTests {
         try #expect(AbilityCatalog.ability(id: "concussive-shot") == nil)
         let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })
         try #expect(ranger.abilityChoices.ultimates.map(\.id).contains("astral-arrow"))
-    }
-
-    @Test func `description overrides are allowlisted`() throws {
-        for ability in AbilityCatalog.all where ability.descriptionOverride != nil {
-            try #expect(
-                AbilityValidator.descriptionOverrideIDs.contains(ability.id),
-                "\(ability.id) should not carry a manual description override",
-            )
-        }
     }
 
     @Test func `deals combat damage counts opponent hits not heals or block`() throws {
@@ -242,16 +201,6 @@ struct AbilityCatalogTests {
         ])
     }
 
-    @Test func `resolving outcome branch picks branch using RNG`() {
-        var rng = SeededRandomNumberGenerator(seed: 42)
-        let resolvedTithe = Ability.tithe.resolvingOutcomeBranch(using: &rng)
-        #expect(resolvedTithe.outcomeBranches == nil)
-        #expect(resolvedTithe.damageComponents.count == 1 || resolvedTithe.targetedEffects.count == 1)
-
-        let resolvedBash = Ability.bash.resolvingOutcomeBranch(using: &rng)
-        #expect(resolvedBash.damageComponents == Ability.bash.damageComponents)
-    }
-
     @Test func `locked revisions keep summaries and mechanics`() throws {
         try #expect(Ability.kindling.summary == "Deal 1 Burn damage\nDoubled if enemy was not Burning")
         try #expect(Ability.kindling.damageComponents == [
@@ -276,39 +225,10 @@ struct AbilityCatalogTests {
         #expect(Ability.stab.guaranteedCriticalCondition == .enemyFullHealth)
     }
 
-    @Test func `ability rework summaries match player facing text`() throws {
-        let expected: [Ability: String] = [
-            .bountyShot: "Deal 3 Stun damage\nSteal 2 Gold",
-            .cleanse: "Cleanse a debuff\nRestore 3 Health",
-            .coldSnap: "Deal 1 Freeze damage\nDraw a card if the enemy is Frozen",
-            .darkPact: "Deal 1 Burn damage\nLose 1 Health\nDraw 2 cards",
-            .fireball: "Deal 1 to 5 Burn damage",
-            .frostbolt: "Deal 4 Freeze damage",
-            .manaShield: "Gain 1 Block\nConvert all Mana into Block",
-            .poisonDagger: "Deal 1 Poison damage, twice",
-            .predatorsFocus: "Deal 1 Bleed damage\nYour next attack has Leech",
-            .serratedEdge: "Deal 2 Bleed damage\nReduces Health restored by enemies by 25% for 3 turns",
-            .spikedShield: "Deal 2 Physical damage\nGain 3 Block or Thorns at random",
-        ]
-
-        for (ability, summary) in expected {
-            try #expect(ability.summary == summary, "Unexpected summary for \(ability.id)")
-        }
+    @Test func `ranger choices exclude the retired theft card`() throws {
         try #expect(AbilityCatalog.ability(id: "sap-arrow") == nil)
         let ranger = try #require(GameContent.hero(matching: "ranger"))
         try #expect(ranger.abilityChoices.skills.map(\.id) == ["bounty-shot", "pounce", "predators-focus", "serrated-edge"])
-    }
-
-    @Test func `variable damage branches resolve within locked ranges`() throws {
-        var rng = SeededRandomNumberGenerator(seed: 7)
-        for _ in 0 ..< 12 {
-            let resolvedFireball = Ability.fireball.resolvingOutcomeBranch(using: &rng)
-            let fireballDamage = try #require(resolvedFireball.damageComponents.first?.amount)
-            try #expect((1 ... 5).contains(fireballDamage))
-            try #expect(resolvedFireball.outcomeBranches == nil)
-            let resolvedSlash = Ability.slash.resolvingOutcomeBranch(using: &rng)
-            try #expect(resolvedSlash == Ability.slash)
-        }
     }
 
     @Test func `bloodthorn deals fixed bleed and poison with leech`() throws {

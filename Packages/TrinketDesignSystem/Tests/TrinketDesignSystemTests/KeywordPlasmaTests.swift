@@ -1,8 +1,6 @@
-import CoreGraphics
 import SwiftUI
 import Testing
 import TrinketCore
-import UIKit
 @testable import TrinketDesignSystem
 
 struct KeywordPlasmaTests {
@@ -33,48 +31,15 @@ struct KeywordPlasmaTests {
         #expect(clock.elapsed(at: origin.addingTimeInterval(32)) == 2)
     }
 
-    @Test func `empty keywords fall back to accent`() throws {
-        let resolved = KeywordPlasmaBackground.colors(for: [])
-        #expect(try matches(resolved.primary, asset: "ThemeAntiqueGold"))
-        #expect(try matches(resolved.secondary, asset: "ThemeAntiqueGold"))
+    @Test func `plasma palette uses the first two styles with a single keyword fallback`() {
+        let empty = KeywordPlasmaBackground.colors(for: [])
+        #expect(empty.primary == TrinketDesign.Colors.accent)
+        #expect(empty.secondary == empty.primary)
+        let single = KeywordPlasmaBackground.colors(for: [.burn])
+        #expect(single.primary == Keyword.burn.visualStyle.color)
+        #expect(single.secondary == Keyword.burn.visualStyle.secondaryColor)
+        let multiple = KeywordPlasmaBackground.colors(for: [.burn, .stun, .block])
+        #expect(multiple.primary == single.primary)
+        #expect(multiple.secondary == Keyword.stun.visualStyle.color)
     }
-
-    @Test func `single keyword derives secondary from its visual style`() throws {
-        let resolved = KeywordPlasmaBackground.colors(for: [.burn])
-        #expect(try matches(resolved.primary, asset: "KeywordBurn"))
-        #expect(try matches(resolved.secondary, asset: "KeywordPhysical"))
-    }
-
-    @Test func `keyword list is limited to the first two`() throws {
-        let resolved = KeywordPlasmaBackground.colors(for: [.burn, .stun, .block])
-        #expect(try matches(resolved.primary, asset: "KeywordBurn"))
-        #expect(try matches(resolved.secondary, asset: "KeywordStun"))
-    }
-}
-
-private func matches(_ color: Color, asset name: String, style: UIUserInterfaceStyle = .dark) throws -> Bool {
-    // UIStyleCheck: allow - test compares authored asset components, not semantic Color roles.
-    let lhs = try srgb(UIColor(color), style: style)
-    let rhs = try srgb(named: name, style: style)
-    return abs(lhs.0 - rhs.0) < 0.005 && abs(lhs.1 - rhs.1) < 0.005 && abs(lhs.2 - rhs.2) < 0.005
-}
-
-private func srgb(named name: String, style: UIUserInterfaceStyle) throws -> (Double, Double, Double) {
-    let traits = UITraitCollection(userInterfaceStyle: style)
-    // UIStyleCheck: allow - test resolves authored asset components, not semantic Color roles.
-    let color = try #require(UIColor(named: name, in: .module, compatibleWith: traits))
-    return try srgb(color, style: style)
-}
-
-private func srgb(_ color: UIColor, style: UIUserInterfaceStyle) throws -> (Double, Double, Double) {
-    let traits = UITraitCollection(userInterfaceStyle: style)
-    let resolved = color.resolvedColor(with: traits)
-    var red: CGFloat = 0
-    var green: CGFloat = 0
-    var blue: CGFloat = 0
-    var alpha: CGFloat = 0
-    guard resolved.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else {
-        throw CocoaError(.coderInvalidValue)
-    }
-    return (Double(red), Double(green), Double(blue))
 }

@@ -24,8 +24,17 @@ def render_annotation(issue: DiagnosticIssue) -> str:
     if issue.line is not None:
         properties.append(f"line={issue.line}")
     properties.append(f"title={_escape_annotation(issue.title)}")
-    fields = " " + ",".join(properties) if properties else ""
-    return f"::error{fields}::{_escape_annotation(issue.message)}"
+    return f"::error {','.join(properties)}::{_escape_annotation(issue.message)}"
+
+
+def _issue_heading(issue: DiagnosticIssue, *, markdown: bool) -> str:
+    title = f"**{issue.title}**" if markdown else issue.title
+    test = f" ({issue.test})" if issue.test else ""
+    location = issue.file
+    if issue.line is not None:
+        location = f"{location}:{issue.line}" if location else f"line {issue.line}"
+    suffix = (f" — `{location}`" if markdown else f" [{location}]") if location else ""
+    return title + test + suffix
 
 
 def render_markdown(report: DiagnosticReport) -> str:
@@ -38,12 +47,7 @@ def render_markdown(report: DiagnosticReport) -> str:
     if not report.issues:
         lines.append("No structured failure issues were reported.")
     for index, issue in enumerate(report.issues[:MAX_ISSUES], 1):
-        location = issue.file
-        if issue.line is not None:
-            location = f"{location}:{issue.line}" if location else f"line {issue.line}"
-        suffix = f" — `{location}`" if location else ""
-        test = f" ({issue.test})" if issue.test else ""
-        lines.append(f"{index}. **{issue.title}**{test}{suffix}: {issue.message[:1200]}")
+        lines.append(f"{index}. {_issue_heading(issue, markdown=True)}: {issue.message[:1200]}")
         detail_preview, detail_truncated = bounded_text(issue.details)
         for detail in detail_preview.splitlines():
             lines.append(f"   - {detail}")
@@ -69,12 +73,7 @@ def render_terminal(report: DiagnosticReport) -> list[str]:
         f"Issues: {len(report.issues)} (showing at most {MAX_ISSUES})",
     ]
     for index, issue in enumerate(report.issues[:MAX_ISSUES], 1):
-        location = issue.file
-        if issue.line is not None:
-            location = f"{location}:{issue.line}" if location else f"line {issue.line}"
-        location_suffix = f" [{location}]" if location else ""
-        test_suffix = f" ({issue.test})" if issue.test else ""
-        lines.append(f"{index}. {issue.kind}: {issue.title}{test_suffix}{location_suffix}")
+        lines.append(f"{index}. {issue.kind}: {_issue_heading(issue, markdown=False)}")
         lines.append(f"   {issue.message[:1200]}")
         if issue.attachments:
             lines.append(f"   Attachments: {', '.join(issue.attachments)}")
@@ -106,7 +105,8 @@ def write_report(report: DiagnosticReport, output_prefix: str) -> tuple[Path, Pa
     markdown_path = Path(str(stem) + ".md")
     annotations_path = Path(str(stem) + ".annotations")
     _write_text(json_path, json.dumps(report.to_dict(), indent=2, sort_keys=False) + "\n")
-    _write_text(markdown_path, render_markdown(report))
+    markdown = render_markdown(report)
+    _write_text(markdown_path, markdown)
     annotation_lines = [render_annotation(issue) for issue in report.issues[:MAX_ISSUES]]
     _write_text(annotations_path, "\n".join(annotation_lines) + ("\n" if annotation_lines else ""))
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
@@ -114,7 +114,7 @@ def write_report(report: DiagnosticReport, output_prefix: str) -> tuple[Path, Pa
     if summary_path and per_invocation_summary:
         try:
             with Path(summary_path).open("a", encoding="utf-8") as stream:
-                stream.write("\n" + render_markdown(report))
+                stream.write("\n" + markdown)
         except OSError as error:
             report.sources.errors.append(f"GitHub step summary: {error}")
             print(f"failure_diagnostics.py: could not write GITHUB_STEP_SUMMARY: {error}", file=sys.stderr)

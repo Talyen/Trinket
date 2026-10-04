@@ -94,6 +94,7 @@ Tab-separated columns:
 chapter_id	chapter_number	chapter_title	theme	stage_number	encounter	enemy_id	encounter_art_id	encounter_art_title
 ```
 
+- `chapter_number`: positive and unique across chapters; chapter metadata must agree across its rows. Each chapter's `stage_number` values must run from 1 through N without gaps.
 - `theme`: chapter theme enum case (`forest`, `dungeon`, `desert`, `tundra`).
 - `encounter`: `battle`, `random_battle`, `shop`, `mystery`, or `recruit`.
 - `enemy_id`: required for `battle` (enemy catalog id, validated). For `mystery` / `recruit`, optional event id — empty mystery picks a random non-recruit event at runtime; empty recruit picks any eligible unlock; `random-companion` picks an eligible companion only. Named event ids are validated against the authored pools. Leave empty for `random_battle` / shop.

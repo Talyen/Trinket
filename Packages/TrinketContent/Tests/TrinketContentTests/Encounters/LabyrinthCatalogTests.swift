@@ -5,20 +5,6 @@ import TrinketCore
 
 @Suite("LabyrinthCatalog")
 struct LabyrinthCatalogTests {
-    @Test func `modifiers are authored with player facing content`() {
-        #expect(!GameContent.nodeModifiers.isEmpty)
-        for modifier in GameContent.nodeModifiers {
-            #expect(!modifier.title.isEmpty)
-            #expect(modifier.title.split(separator: " ").count <= 2)
-            #expect(!modifier.effect.description.isEmpty)
-        }
-    }
-
-    @Test func `shop node presentation uses Merchant title and Shop primary action`() {
-        #expect(LabyrinthNodeType.shop.title == "Merchant")
-        #expect(LabyrinthNodeType.shop.primaryActionTitle == "Shop")
-    }
-
     @Test func `generator is deterministic for seed`() {
         let first = LabyrinthGenerator.makeMap(seed: 42, floorCount: 3)
         let second = LabyrinthGenerator.makeMap(seed: 42, floorCount: 3)

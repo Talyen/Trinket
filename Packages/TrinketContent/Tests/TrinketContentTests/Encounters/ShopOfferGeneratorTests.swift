@@ -54,26 +54,6 @@ struct ShopOfferGeneratorTests {
         #expect(offers.isEmpty)
     }
 
-    @Test func `shop offer items resolve art by template ID`() {
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
-        let offers = ShopOfferGenerator.generateOffers(
-            stageID: "chapter-2-stage-8",
-            rewardLevel: 6,
-            using: &randomNumberGenerator,
-        )
-
-        for offer in offers {
-            #expect(
-                offer.item.isTrinket || offer.item.id != offer.item.templateID,
-                "Shop offers use instance ids distinct from template ids",
-            )
-            #expect(
-                offer.item.artReference != nil,
-                "Missing art for shop offer template \(offer.item.templateID)",
-            )
-        }
-    }
-
     @Test func `starter shop uses shared odds and discounts premium offers`() {
         var starterRNG = SeededRandomNumberGenerator(seed: 42)
         var ordinaryRNG = SeededRandomNumberGenerator(seed: 42)

@@ -30,19 +30,22 @@ class CIPathFilterTests(unittest.TestCase):
 
     def test_compare_includes_rename_source_and_fails_closed_at_file_limit(self) -> None:
         cases = [
-            ([{"filename": "Docs/archived.swift", "previous_filename": "Trinket/App.swift"}],
+            ({"files": [{"filename": "Docs/archived.swift", "previous_filename": "Trinket/App.swift"}]},
              ["Docs/archived.swift", "Trinket/App.swift"]),
-            ([{"filename": f"Docs/{index}.md"} for index in range(299)],
+            ({"files": [{"filename": f"Docs/{index}.md"} for index in range(299)]},
              [f"Docs/{index}.md" for index in range(299)]),
-            ([{"filename": f"Docs/{index}.md"} for index in range(300)], None),
+            ({"files": [{"filename": f"Docs/{index}.md"} for index in range(300)]}, None),
+            ({"files": []}, []),
+            ({}, None),
+            ([], None),
+            ({"files": [None]}, None),
+            ({"files": [{"filename": "Docs/a.md", "status": "renamed"}]}, None),
+            ({"files": [{"filename": "Docs/a.md", "previous_filename": 1}]}, None),
+            ({"files": [], "truncated": True}, None),
         ]
-        for files, expected in cases:
-            with self.subTest(count=len(files)), patch.object(self.filter.urllib.request, "urlopen") as request:
-                response = io.StringIO(json.dumps({"files": files}))
-                response.headers = {"Link": '<https://api.github.com/next>; rel="next"'}
-                next_page = io.StringIO('{"commits": []}')
-                next_page.headers = {}
-                request.side_effect = [response, next_page]
+        for payload, expected in cases:
+            with self.subTest(payload=payload), patch.object(self.filter.urllib.request, "urlopen") as request:
+                request.return_value = io.StringIO(json.dumps(payload))
                 self.assertEqual(self.filter.compare_filenames("owner/repo", "before", "after", "token"), expected)
                 request.assert_called_once()
 
@@ -107,12 +110,6 @@ class CIPathFilterTests(unittest.TestCase):
         self.assertFalse(match("Scripts/lint-analyze.sh"))
         self.assertFalse(match("Trinket/App/TrinketApp.swift"))
 
-    def test_prepare_assets_is_asset_and_infra(self) -> None:
-        code, assets, infra = self.filter.classify(["Scripts/prepare-assets.sh"])
-        self.assertTrue(code)
-        self.assertTrue(assets)
-        self.assertTrue(infra)
-
     def test_generation_helpers_route_local_and_ci_verification(self) -> None:
         cases = (("internal/content/content_codegen_modifiers.py", False), ("internal/content/content_codegen_triggers.py", False),
                  ("internal/content/trigger_families/index.json", False), ("prepare-assets.sh", True),
@@ -130,6 +127,9 @@ class CIPathFilterTests(unittest.TestCase):
 
     def test_build_contract_inputs_and_documentation(self) -> None:
         cases = {
+            "Scripts/prepare-assets.sh": (True, True, True),
+            "Scripts/lint-analyze.sh": (False, False, True),
+            "Scripts/build-for-testing.sh": (True, False, True),
             "StoreKit/Trinket.storekit": (True, False, False),
             "Scripts/tool-versions.env": (True, False, True),
             "Scripts/build-inputs.env": (True, False, True),
@@ -150,22 +150,10 @@ class CIPathFilterTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertEqual(self.filter.classify([path]), expected)
 
-    def test_classify_lint_script_only_is_infra(self) -> None:
-        code, assets, infra = self.filter.classify(["Scripts/lint-analyze.sh"])
-        self.assertFalse(code)
-        self.assertFalse(assets)
-        self.assertTrue(infra)
-
     def test_git_hook_changes_select_the_script_gate(self) -> None:
         for hook in ("pre-commit", "pre-push", "commit-msg"):
             with self.subTest(hook=hook):
                 self.assertEqual(self.filter.classify([f".githooks/{hook}"]), (hook == "pre-commit", False, True))
-
-    def test_classify_build_script_is_code_and_infra(self) -> None:
-        code, assets, infra = self.filter.classify(["Scripts/build-for-testing.sh"])
-        self.assertTrue(code)
-        self.assertFalse(assets)
-        self.assertTrue(infra)
 
     def test_smoke_path_classification(self) -> None:
         smoke_cases = {

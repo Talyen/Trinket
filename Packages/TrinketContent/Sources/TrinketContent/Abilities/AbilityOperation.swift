@@ -69,15 +69,6 @@ public enum AbilityOperation: Hashable, Sendable {
     }
 }
 
-public extension Ability {
-    var possibleOperations: [AbilityOperation] {
-        if let outcomeBranches {
-            return outcomeBranches.flatMap(\.operations)
-        }
-        return operations + (conditionalOutcome?.operations ?? [])
-    }
-}
-
 public struct AbilityConditionalOutcome: Hashable, Sendable {
     public let condition: DamageCondition
     public let operations: [AbilityOperation]

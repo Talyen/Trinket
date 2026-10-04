@@ -97,10 +97,6 @@ def generation_inputs() -> tuple[tuple[str, ...], ...]:
     )
 
 
-def _inputs() -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
-    return generation_inputs()
-
-
 def is_generation_input(path: str, inputs: tuple[str, ...]) -> bool:
     return any(glob_match(path, entry) or path.startswith(entry + "/") for entry in inputs)
 
@@ -134,7 +130,7 @@ def matches_any(path: str, patterns: tuple[str, ...]) -> bool:
 def is_code_path(path: str) -> bool:
     if matches_any(path, CODE_EXCLUDES):
         return False
-    content_inputs, asset_inputs, project_inputs = _inputs()
+    content_inputs, asset_inputs, project_inputs = generation_inputs()
     return (matches_any(path, CODE_INCLUDES) or matches_any(path, CODE_SCRIPT_INCLUDES)
             or is_generation_input(path, content_inputs + asset_inputs + project_inputs))
 
@@ -179,7 +175,7 @@ def is_smoke_path(path: str) -> bool:
 
 
 def is_asset_path(path: str) -> bool:
-    _, asset_inputs, _ = _inputs()
+    _, asset_inputs, _ = generation_inputs()
     return not path.endswith(".md") and is_generation_input(path, asset_inputs)
 
 
@@ -245,10 +241,7 @@ def dependency_graph(repo: str, sha: str, token: str) -> dict[str, set[str]]:
     graph = {}
     for package in all_packages():
         url = f"https://api.github.com/repos/{repo}/contents/Packages/{package}/Package.swift?ref={sha}"
-        request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}",
-                                                       "User-Agent": "trinket-ci-path-filter"})
-        with urllib.request.urlopen(request, timeout=30) as response:
-            data = json.load(response)
+        data = github_json(url, token)
         source = base64.b64decode(data["content"]).decode("utf-8")
         # These packages use repository-relative local dependencies. Unknown
         # package forms force the full portfolio rather than guessing ownership.
@@ -276,9 +269,7 @@ def write_output(code: bool, assets: bool, infra: bool, smoke: bool = False, pac
     print(payload, end="")
 
 
-def compare_filenames(repo: str, before: str, sha: str, token: str) -> list[str] | None:
-    encoded = urllib.parse.quote(f"{before}...{sha}")
-    url = f"https://api.github.com/repos/{repo}/compare/{encoded}?per_page=100"
+def github_json(url: str, token: str, *, timeout: int = 30) -> dict:
     request = urllib.request.Request(
         url,
         headers={
@@ -288,23 +279,40 @@ def compare_filenames(repo: str, before: str, sha: str, token: str) -> list[str]
             "User-Agent": "trinket-ci-path-filter",
         },
     )
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        payload = json.load(response)
+    if not isinstance(payload, dict):
+        raise ValueError("GitHub response must be an object")
+    return payload
+
+
+def compare_filenames(repo: str, before: str, sha: str, token: str) -> list[str] | None:
+    encoded = urllib.parse.quote(f"{before}...{sha}")
+    url = f"https://api.github.com/repos/{repo}/compare/{encoded}?per_page=100"
     try:
-        with urllib.request.urlopen(request, timeout=60) as response:
-            payload = json.load(response)
+        payload = github_json(url, token, timeout=60)
     except urllib.error.HTTPError as error:
         if error.code in {404, 422}:
             return None
         body = error.read().decode("utf-8", errors="replace")
         raise SystemExit(f"compare API failed ({error.code}): {body}") from error
-    files = payload.get("files") or []
+    except (OSError, ValueError):
+        return None
+    files = payload.get("files")
     # Compare pagination only pages commits; files stop at 300 on page one.
-    if payload.get("truncated") or len(files) >= 300:
+    if not isinstance(files, list) or payload.get("truncated") or len(files) >= 300:
         return None
     names: list[str] = []
     for entry in files:
+        if not isinstance(entry, dict) or not isinstance(entry.get("filename"), str) or not entry["filename"]:
+            return None
+        if entry.get("status") == "renamed" and not entry.get("previous_filename"):
+            return None
         for key in ("filename", "previous_filename"):
             name = entry.get(key)
             if name:
+                if not isinstance(name, str):
+                    return None
                 names.append(name)
     return names
 
@@ -330,7 +338,7 @@ def main() -> None:
 
     filenames = compare_filenames(repo, before, sha, token)
     if filenames is None:
-        print("Compare result truncated; treating code, assets, infra, and smoke as changed.")
+        print("Compare evidence incomplete; treating code, assets, infra, and smoke as changed.")
         write_output(True, True, True, True)
         return
 

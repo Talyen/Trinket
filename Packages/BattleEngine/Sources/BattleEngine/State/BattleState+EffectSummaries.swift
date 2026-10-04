@@ -27,8 +27,17 @@ package extension BattleState {
                 text: "Perfect Purity: Immune to debuffs until next turn.",
             ))
         }
-        if !talents.turn.negativeStatusImmune, talents.turn.cleansedKeywordProtection.contains(.poison) {
-            summaries.append(EffectSummary(keyword: .poison, text: "Poison cannot affect you until next turn."))
+        if !talents.turn.negativeStatusImmune {
+            for keyword in talents.turn.cleansedKeywordProtection.sorted(by: { $0.rawValue < $1.rawValue }) {
+                summaries.append(EffectSummary(keyword: keyword, text: "Immune to \(keyword.rawValue) debuffs until next turn."))
+            }
+        }
+        let purgedBuffs = talents.turn.purgedEffectProtection.compactMap { purgedBuffName($0) }.sorted()
+        if !purgedBuffs.isEmpty {
+            summaries.append(EffectSummary(
+                keyword: .purge,
+                text: "Interdict: \(purgedBuffs.joined(separator: ", ")) cannot return until next turn.",
+            ))
         }
         if timed.damage.amount > 0, turnCount < timed.damage.expiresAtTurn {
             summaries.append(EffectSummary(keyword: .physical, text: "Damage Up: +\(Int((timed.damage.amount * 100).rounded()))% damage."))
@@ -40,6 +49,29 @@ package extension BattleState {
             ))
         }
         return summaries
+    }
+
+    private func purgedBuffName(_ kind: EffectKind) -> String? {
+        switch kind {
+        case .shield: "Block"
+        case .thorns: "Thorns"
+        case .criticalChanceBonus: "Focused"
+        case .restoreManaOnHit: "Mana Shield"
+        case .damageKeywordOverride: "Consecrated"
+        case .nextHolyStrike: "Holy Strike"
+        case .nextStrikeDouble: "Double Strike"
+        case .nextBurnBonus: "Kindled"
+        case .evadeNextHit: "Evasion"
+        case .maximumManaBonus: "Maximum Mana Up"
+        case .nextStrikeCritical: "Critical Focus"
+        case .nextStrikeLeech: "Leech Focus"
+        case .nextStrikeDamageKeywordOverride: "Attack damage conversion"
+        case .partyDamageBonus: "Sniff Out"
+        case .freezeNextAttacker: "Glacial Ward"
+        case .onHitDamage: "Damage wards"
+        case .avatar: "Avatar"
+        default: nil
+        }
     }
 
     private func preparedEffectSummaries(_ history: HeroTalentHistory?) -> [EffectSummary] {

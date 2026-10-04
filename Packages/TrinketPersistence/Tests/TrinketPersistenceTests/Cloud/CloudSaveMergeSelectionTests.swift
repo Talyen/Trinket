@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct CloudSaveMergeSelectionTests {
@@ -68,26 +69,42 @@ struct CloudSaveMergeSelectionTests {
         #expect(playable.roster.equipmentLoadouts["knight"]?.itemID(for: .accessory) == nil)
     }
 
-    @Test func `the latest valid weapon pair survives conflicting offline equipment edits`() {
+    @Test @MainActor func `the latest valid weapon pair survives an offline item move and reload`() throws {
         var base = PlayerSave.testSeed
         base.modifiedAt = Date(timeIntervalSince1970: 1)
+        let knight = try #require(GameContent.hero(matching: "knight"))
+        let alchemist = try #require(GameContent.hero(matching: "alchemist"))
+        let longsword = try #require(base.inventory.item(matching: "longsword-basic"))
+        let longbow = try #require(base.inventory.item(matching: "longbow-basic"))
+        let shield = try #require(base.inventory.item(matching: "kite_shield-basic"))
         var older = base
-        var bowLoadout = older.roster.equipmentLoadouts["knight"] ?? EquipmentLoadout()
-        bowLoadout.itemIDsBySlot[.weapon] = "longbow-basic"
-        older.roster.equipmentLoadouts["knight"] = bowLoadout
+        var alchemistLoadout = older.roster.equipmentLoadout(for: alchemist)
+        alchemistLoadout.equip(longsword, in: .weapon, inventory: older.inventory.items)
+        older.roster.setEquipmentLoadout(alchemistLoadout, for: alchemist)
+        var bowLoadout = older.roster.equipmentLoadout(for: knight)
+        bowLoadout.equip(longbow, in: .weapon, inventory: older.inventory.items)
+        older.roster.setEquipmentLoadout(bowLoadout, for: knight)
         older.modifiedAt = Date(timeIntervalSince1970: 100)
         var recent = base
-        var shieldLoadout = recent.roster.equipmentLoadouts["knight"] ?? EquipmentLoadout()
-        shieldLoadout.itemIDsBySlot[.secondaryWeapon] = "kite_shield-basic"
-        recent.roster.equipmentLoadouts["knight"] = shieldLoadout
+        var shieldLoadout = recent.roster.equipmentLoadout(for: knight)
+        shieldLoadout.equip(shield, in: .secondaryWeapon, inventory: recent.inventory.items)
+        recent.roster.setEquipmentLoadout(shieldLoadout, for: knight)
         recent.modifiedAt = Date(timeIntervalSince1970: 200)
 
+        #expect(older.roster.equipmentLoadout(for: alchemist).itemID(for: .weapon) == longsword.id)
+        #expect(older.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == longbow.id)
+        #expect(shieldLoadout.sanitized(for: knight, inventory: recent.inventory.items) == shieldLoadout)
         let merged = CloudSaveMerge.merge(incoming: older, existing: recent, base: base, preferIncoming: false)
-        let playable = PlayerSaveSanitizer.sanitize(merged)
+        let context = try PersistenceTestContext()
+        let restored = try context.seedAndReload(merged)
 
-        #expect(playable.roster.equipmentLoadouts["knight"]?.itemID(for: .weapon) == "longsword-basic")
-        #expect(playable.roster.equipmentLoadouts["knight"]?.itemID(for: .secondaryWeapon) == "kite_shield-basic")
-        #expect(playable.inventory.item(matching: "longbow-basic") != nil)
+        #expect(restored.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == longsword.id)
+        #expect(restored.roster.equipmentLoadout(for: knight).itemID(for: .secondaryWeapon) == shield.id)
+        #expect(restored.roster.equipmentLoadout(for: alchemist).itemID(for: .weapon) == nil)
+        #expect(restored.roster.equippedCombatantID(for: longbow.id) == nil)
+        #expect(restored.inventory.item(matching: longbow.id) != nil)
+        let equippedIDs = restored.roster.equipmentLoadouts.values.flatMap(\.itemIDsBySlot.values)
+        #expect(equippedIDs.count == Set(equippedIDs).count)
     }
 
     @Test func `an older weapon edit survives a later unrelated action with an unchanged offhand`() {

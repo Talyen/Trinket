@@ -6,9 +6,10 @@ buttons and system toolbar styling.
 
 | Modifier / API | Use for |
 |----------------|---------|
-| `.trinketScreenBackground()` | Shared tab/screen canvas (`TrinketDesign.Colors.canvas`) |
+| `.trinketScreenBackground()` | Inherited canvas: `TrinketDesign.Colors.canvas` by default, the shared sheet color beneath `.trinketSheetSurface()` |
+| `.trinketSheetSurface()` | Opaque sheet presentation/body surface and inherited canvas color for artwork blends; apply at the sheet boundary |
 | `.trinketSurface(_:)` | Secondary panels, cards, and dense rows |
-| `.trinketMaterial(_:)` | `.bottomBar`: regular glass; `.subtleOverlay`: standard ultra-thin material with a semantic stroke |
+| `.trinketMaterial(_:)` | `.bottomBar`: regular glass; `.subtleOverlay`: standard ultra-thin material with a semantic stroke; `.frostedPanel`: thin material with a subtle border for Homestead action and benefit panels |
 | `.trinketGlassChip(_:)` | Regular-glass capsules; `.standard` / `.emphasis` select shared padding and emphasis stroke |
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
 | `.trinketCardSurface(showsStroke:)` | Card identity tiles (`showsStroke` adds the artwork clip + subtle stroke) |
@@ -29,7 +30,7 @@ buttons and system toolbar styling.
 | `TrinketWalletGrid` / `TrinketWalletResourcePill` / `TrinketCompactResourceChip` | Wallet grid and resource pills/chips |
 | `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
 | `.trinketOnArtText(_:)` | Opaque paper foreground + crisp ink outline on artwork; preserves explicit colored and shine fills |
-| `.trinketBottomArtworkBlend(color:)` | Bottom-edge blend into a destination color (defaults to canvas; pass the surface below the art — surface, panel, or a section fill) |
+| `.trinketBottomArtworkBlend(color:)` | Bottom-edge blend into a destination color (inherits the screen/sheet canvas; pass an explicit color for another surface, panel, or section fill below the art) |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
 | `.trinketDecorativeMotion(_:)` | Park decorative clocks (shine, plasma, aura) for a subtree; AND-composed so descendants cannot re-enable under a suppressed ancestor |
 | `.trinketPresentationVisibility(_:opacity:)` | Retained/reveal visibility owning opacity, hit testing, and accessibility together without unmounting prewarmed surfaces |

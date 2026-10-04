@@ -85,6 +85,8 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
     @State private var revealSequence = RewardRevealSequenceState()
     @State private var selectedRewardItem: InventoryItem?
     @State private var focusedItemID: String?
+    @State private var rewardArtworkLease: PreparedArtworkLease?
+    @State private var preparedRewardArtworkNames: [String]?
 
     public init(
         eyebrow: String?,
@@ -136,21 +138,27 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                 content: {
                     VStack(spacing: contentStackSpacing) {
                         experienceSection
-                        RewardRevealLootSection(
-                            items: loot.items,
-                            gold: loot.gold,
-                            materials: loot.materials,
-                            showsIncreasePrefix: loot.showsIncreasePrefix,
-                            emptyMessage: loot.emptyMessage,
-                            itemAccessibilityID: loot.itemAccessibilityID,
-                            areItemsVisible: revealSequence.areItemsVisible,
-                            visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
-                            spacing: loot.lootSpacing,
-                            isCollected: collection.isCollected,
-                            focusedItemID: $focusedItemID,
-                            onSelectItem: { selectedRewardItem = $0 },
-                        )
-                        .accessibilityIdentifier(loot.lootAccessibilityIdentifier ?? titleAccessibilityIdentifier)
+                        if preparedRewardArtworkNames == rewardArtworkNames {
+                            RewardRevealLootSection(
+                                items: loot.items,
+                                gold: loot.gold,
+                                materials: loot.materials,
+                                showsIncreasePrefix: loot.showsIncreasePrefix,
+                                emptyMessage: loot.emptyMessage,
+                                itemAccessibilityID: loot.itemAccessibilityID,
+                                areItemsVisible: revealSequence.areItemsVisible,
+                                visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
+                                spacing: loot.lootSpacing,
+                                isCollected: collection.isCollected,
+                                focusedItemID: $focusedItemID,
+                                onSelectItem: { selectedRewardItem = $0 },
+                            )
+                            .accessibilityIdentifier(loot.lootAccessibilityIdentifier ?? titleAccessibilityIdentifier)
+                        } else {
+                            ProgressView()
+                                .padding(TrinketDesign.Spacing.large)
+                                .accessibilityLabel("Preparing rewards")
+                        }
                     }
                 },
                 primaryActionTitle: primaryActionTitle,
@@ -178,15 +186,24 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
             }
             .trinketDetailSheet()
         }
+        .task(id: rewardArtworkNames) {
+            let names = rewardArtworkNames
+            let lease = await PreparedArtworkLease(names: names)
+            guard !Task.isCancelled, rewardArtworkNames == names else { return }
+            rewardArtworkLease = lease
+            preparedRewardArtworkNames = names
+            revealSequence.start(walletCount: walletRewardCount)
+        }
         .onAppear {
             if focusedItemID == nil {
                 focusedItemID = loot.items.first?.id
             }
-            revealSequence.start(walletCount: walletRewardCount)
         }
         .onDisappear {
             collection.finish()
             revealSequence.cancel(walletCount: walletRewardCount)
+            preparedRewardArtworkNames = nil
+            rewardArtworkLease = nil
         }
     }
 
@@ -225,6 +242,12 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
 
     private var walletRewardCount: Int {
         RewardRevealLootSection.walletRewardCount(gold: loot.gold, materials: loot.materials)
+    }
+
+    private var rewardArtworkNames: [String] {
+        Array(Set(loot.items.flatMap {
+            [$0.artReference?.imageName, $0.artReference?.thumbnailImageName].compactMap(\.self)
+        })).sorted()
     }
 }
 

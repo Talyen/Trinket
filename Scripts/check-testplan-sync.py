@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate UI registration, generate plan selections, or emit CI matrices."""
+"""Validate UI registration and emit ordered test-plan selections or CI filters."""
 from __future__ import annotations
 
 import argparse
@@ -16,42 +16,25 @@ REGISTRY = 'Scripts/config/ui-tests.tsv'
 
 def registrations(root: Path = ROOT) -> list[dict]:
     rows, classes, keys = [], set(), set()
-    shard_orders, shard_names, test_orders = {}, {}, set()
     for number, line in enumerate((root / REGISTRY).read_text().splitlines(), 1):
         if not line.strip() or line.startswith('#'):
             continue
         parts = line.split('|')
-        if len(parts) != 6:
-            raise ValueError(f'{REGISTRY}:{number}: expected suite|key|class|shard|shard_order|test_order')
-        suite, key, name, shard, rank, order = parts
+        if len(parts) != 3:
+            raise ValueError(f'{REGISTRY}:{number}: expected suite|key|class')
+        suite, key, name = parts
         if (suite not in {'Smoke', 'FullUI'} or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', name)
-                or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*', shard)
                 or (suite == 'Smoke' and not re.fullmatch(r'[A-Z][A-Z0-9_]*', key))
-                or (suite == 'FullUI' and key) or not rank.isdigit() or not order.isdigit()):
+                or (suite == 'FullUI' and key)):
             raise ValueError(f'{REGISTRY}:{number}: invalid registration')
-        rank, order = int(rank), int(order)
         if name in classes or (key and key in keys):
             raise ValueError(f'{REGISTRY}:{number}: duplicate class or routing key')
-        if (shard_orders.get((suite, shard), rank) != rank
-                or shard_names.get((suite, rank), shard) != shard
-                or (suite, shard, order) in test_orders):
-            raise ValueError(f'{REGISTRY}:{number}: conflicting shard or test order')
         classes.add(name)
         keys.add(key)
-        shard_orders[suite, shard] = rank
-        shard_names[suite, rank] = shard
-        test_orders.add((suite, shard, order))
-        rows.append(dict(suite=suite, key=key, name=name, shard=shard, rank=rank, order=order))
+        rows.append(dict(suite=suite, key=key, name=name))
     if {row['suite'] for row in rows} != {'Smoke', 'FullUI'}:
         raise ValueError(f'{REGISTRY}: both Smoke and FullUI must be nonempty')
     return rows
-
-
-def matrix(rows: list[dict], suite: str) -> dict:
-    shards = {}
-    for row in sorted((row for row in rows if row['suite'] == suite), key=lambda row: (row['rank'], row['order'])):
-        shards.setdefault(row['shard'], []).append(row['name'])
-    return {'include': [dict(name=name, target=' '.join(classes)) for name, classes in shards.items()]}
 
 
 def registration_failures(root: Path, rows: list[dict]) -> list[str]:
@@ -130,19 +113,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--generate', action='store_true', help='update only UI test-plan selections')
-    mode.add_argument('--matrix', choices=('Smoke', 'FullUI'), help='emit one compact CI matrix')
     mode.add_argument('--classes', choices=('Smoke', 'FullUI'), help='emit class filters for a serial suite')
     parser.add_argument('--root', type=Path, default=ROOT, help='project root for generation')
     args = parser.parse_args()
     try:
-        if args.generate or args.matrix or args.classes:
+        if args.generate or args.classes:
             rows = registrations(args.root)
             if args.generate:
                 generate(args.root, rows)
-            elif args.classes:
-                print(' '.join(row['name'] for row in rows if row['suite'] == args.classes))
             else:
-                print(json.dumps(matrix(rows, args.matrix), separators=(',', ':')))
+                print(' '.join(row['name'] for row in rows if row['suite'] == args.classes))
             return 0
         failures = testplan_failures()
         if failures:

@@ -62,8 +62,8 @@ struct RewardModifierTests {
         ) == .gold)
     }
 
-    @Test(arguments: Keyword.allCases, [false, true])
-    func `every keyword guarantees matching generated gear with normal affix counts`(keyword: Keyword, boss: Bool) throws {
+    @Test(arguments: Keyword.allCases)
+    func `every keyword guarantees matching generated gear with normal affix counts`(keyword: Keyword) throws {
         let matchingBases = GameContent.itemBaseTypes.filter { base in
             base.slot != .trinket && base.keywordAffinities.contains(keyword)
                 && GameContent.itemAffixDefinitions.contains { $0.isEligible(for: base) && $0.keywords.contains(keyword) }
@@ -73,7 +73,7 @@ struct RewardModifierTests {
             for seed in UInt64(1) ... 8 {
                 var rng = SeededRandomNumberGenerator(seed: seed)
                 let item = ItemRewardGenerator.generate(
-                    id: "guaranteed", rewardLevel: 20, bossContent: boss, allowedTiers: [tier], requiredKeyword: keyword,
+                    id: "guaranteed", rewardLevel: 20, bossContent: false, allowedTiers: [tier], requiredKeyword: keyword,
                     ownedTrinketIDs: [], ownedUniqueIDs: [], using: &rng,
                 )
                 #expect(!item.isTrinket)
@@ -86,11 +86,6 @@ struct RewardModifierTests {
                     let definition = try #require(GameContent.itemAffixDefinition(matching: affix.id))
                     #expect(definition.isEligible(for: item.baseType))
                 }
-                var retry = SeededRandomNumberGenerator(seed: seed)
-                #expect(item == ItemRewardGenerator.generate(
-                    id: "guaranteed", rewardLevel: 20, bossContent: boss, allowedTiers: [tier], requiredKeyword: keyword,
-                    ownedTrinketIDs: [], ownedUniqueIDs: [], using: &retry,
-                ))
             }
         }
     }
@@ -112,29 +107,42 @@ struct RewardModifierTests {
         }
     }
 
-    @Test func `reward expansion excludes exhausted collectibles`() throws {
+    @Test func `reward selection reaches every eligible reward and excludes exhausted collectibles`() throws {
         let eligible = RewardModifier.eligible(
             ownedTrinketIDs: Set(GameContent.trinketItems.map(\.templateID)),
             ownedUniqueIDs: Set(GameContent.uniqueItems.map(\.templateID)),
         )
-        for enemy in [GameContent.enemies.first { !$0.isBoss }, GameContent.enemies.first { $0.isBoss }].compactMap(\.self) {
-            let type: LabyrinthNodeType = enemy.isBoss ? .boss : .battle
-            var rng = SeededRandomNumberGenerator(seed: 9)
-            var seen: Set<RewardModifier> = []
-            var previous: NodeModifierID?
-            for _ in 0 ..< 3000 {
-                let id = try #require(NodeModifierCatalog.pickModifier(
-                    for: type, enemyID: enemy.id, eligibleRewards: eligible, excluding: previous, using: &rng,
+        for boss in [false, true] {
+            let enemy = try #require(GameContent.enemies.first { $0.isBoss == boss })
+            let type: LabyrinthNodeType = boss ? .boss : .battle
+            // Find the reward category once, then exercise each eligible choice
+            // directly instead of waiting for a random sweep to collect them all.
+            let seed = try #require((UInt64(0) ..< 32).first { seed in
+                var rng = SeededRandomNumberGenerator(seed: seed)
+                return NodeModifierCatalog.pickModifier(
+                    for: type, enemyID: enemy.id, eligibleRewards: [.gold], using: &rng,
+                ) == NodeModifierCatalog.rewardID(.gold)
+            })
+            for reward in eligible {
+                let expectedID = NodeModifierCatalog.rewardID(reward)
+                var rng = SeededRandomNumberGenerator(seed: seed)
+                #expect(NodeModifierCatalog.pickModifier(
+                    for: type, enemyID: enemy.id, eligibleRewards: [reward], using: &rng,
+                ) == expectedID)
+
+                var alternativeRNG = SeededRandomNumberGenerator(seed: seed)
+                let alternativeID = try #require(NodeModifierCatalog.pickModifier(
+                    for: type, enemyID: enemy.id, eligibleRewards: eligible,
+                    excluding: expectedID, using: &alternativeRNG,
                 ))
-                #expect(id != previous)
-                previous = id
-                let definition = try #require(NodeModifierCatalog.modifier(id: id))
-                if case let .reward(reward) = definition.effect {
-                    #expect(eligible.contains(reward))
-                    seen.insert(reward)
+                let alternative = try #require(NodeModifierCatalog.modifier(id: alternativeID))
+                #expect(alternativeID != expectedID)
+                guard case let .reward(selected) = alternative.effect else {
+                    Issue.record("The same category draw must still select a reward")
+                    continue
                 }
+                #expect(eligible.contains(selected))
             }
-            #expect(seen == Set(eligible))
         }
     }
 

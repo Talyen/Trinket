@@ -16,7 +16,7 @@ struct HomesteadView: View {
     @Environment(OptionsStore.self) private var options
     @Environment(\.playSFX) private var playSFX
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @State private var collection = HomesteadCollectionControl()
+    @State private var isCollecting = false
     @State private var depositEvent: HomesteadDepositEvent?
     @Environment(\.scenePhase) private var scenePhase
     @State private var depositGeometry = HomesteadDepositGeometry()
@@ -136,7 +136,7 @@ struct HomesteadView: View {
                         } label: {
                             collectLabel
                         }
-                        .disabled(collection.isPending || depositEvent != nil)
+                        .disabled(isCollecting || depositEvent != nil)
                         .trinketPrimaryActionButton(
                             accessibilityIdentifier: AccessibilityID.Homestead.collectButton,
                         )
@@ -157,7 +157,7 @@ struct HomesteadView: View {
     private var collectLabel: some View {
         Label {
             HStack {
-                if collection.isPending {
+                if isCollecting {
                     ProgressView()
                 }
                 Text("Collect")
@@ -178,21 +178,21 @@ struct HomesteadView: View {
     }
 
     private func collectProduction(at date: Date) {
-        guard depositEvent == nil, !collection.isPending else { return }
-        collection.isPending = true
+        guard depositEvent == nil, !isCollecting else { return }
+        isCollecting = true
         Task {
             guard let result = await playerSave.retryingTransientOperation({
                 await playerSave.collectProduction(at: date)
             }, while: {
-                switch $0 {
-                case .persistFailed, .cloudUnavailable: true
-                default: false
-                }
+                $0 == .persistFailed
             }) else {
-                collection.isPending = false
+                isCollecting = false
                 return
             }
-            collection.complete(result, onSuccess: presentCollection)
+            isCollecting = result == .persistFailed
+            if case let .success(amounts) = result {
+                presentCollection(amounts)
+            }
         }
     }
 

@@ -6,8 +6,11 @@ import TrinketCore
 struct LabyrinthCategoryOddsTests {
     @Test func `new combat rules preserve the original reward category odds`() throws {
         let originalDamageBonuses: Set<Keyword> = [.physical, .burn, .bleed, .poison, .freeze, .holy, .stun]
+        var testedProfiles: Set<Set<Keyword>> = []
         for enemy in GameContent.enemies {
             let keywords = NodeModifierCatalog.enemyDamageKeywords(for: enemy.id)
+            // Modifier eligibility depends on this keyword set, not the enemy identity.
+            guard testedProfiles.insert(keywords).inserted else { continue }
             let originalCombatCount = 2 + keywords.intersection(originalDamageBonuses).count
                 + (keywords.contains(.physical) ? 1 : 0) + (keywords.contains(.freeze) ? 1 : 0)
             for seed in 0 ..< 32 {
@@ -24,7 +27,7 @@ struct LabyrinthCategoryOddsTests {
                 default:
                     false
                 }
-                #expect(isReward == expectsReward)
+                #expect(isReward == expectsReward, "Category odds changed for \(enemy.id), seed \(seed)")
             }
         }
     }

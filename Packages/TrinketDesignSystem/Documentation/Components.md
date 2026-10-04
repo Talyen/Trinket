@@ -6,8 +6,9 @@
 | `DesignAssetColors.swift` | Package-private semantic color loader (`Bundle.module`); feature code must use `TrinketDesign.Colors` instead |
 | `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, resource, and chapter color sets |
 | `VisualFoundation.swift` | Screen background, surface/material roles, typography, glass chips (default specs with per-role overrides) |
+| `SheetSurface.swift` | Opaque sheet surface and inherited canvas color shared by sheet bodies and artwork blends |
 | `OnArtText.swift` | On-art text styling (`.trinketOnArtText`) |
-| `ArtworkBlend.swift` | Bottom-edge artwork blend into a destination color (`.trinketBottomArtworkBlend()`; defaults to canvas, pass the actual surface below the art) |
+| `ArtworkBlend.swift` | Bottom-edge artwork blend into a destination color (`.trinketBottomArtworkBlend()`; inherits the screen/sheet canvas, pass an explicit color for another surface below the art) |
 | `Keyword+VisualStyle.swift` | Color + game icon per Keyword (uses `Opacity` tokens); `gold` aliases accent and `thorns` aliases Physical (no dedicated assets); `beneficialStatus`/`negativeStatus` are feedback-owned values sharing the type |
 | `GameIcon.swift` | SF Symbol identity (`sf:` authored IDs, bare names resolve identically) and native SwiftUI rendering |
 | `HomesteadResource+Color.swift` | Homestead resource tint resolution (gold resolves to the theme accent; icon/displayName live in `TrinketFeatureSupport/Models/Homestead.swift`) |

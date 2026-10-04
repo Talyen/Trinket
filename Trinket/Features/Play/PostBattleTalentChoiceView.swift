@@ -61,7 +61,8 @@ private struct PostBattleTalentChoiceContent: View {
     @Environment(OptionsStore.self) private var options
     @Environment(\.playSFX) private var playSFX
     @Environment(\.scenePhase) private var scenePhase
-    @State private var navigationPath: [String] = []
+    @State private var requestedTalentTree: TalentTree?
+    @State private var selectedTalentTree: TalentTree?
     @State private var attentionTreeID: String?
     @State private var hasFinishedEntrance = false
     @State private var treeSelectionTrigger = 0
@@ -69,19 +70,35 @@ private struct PostBattleTalentChoiceContent: View {
     let combatantID: String
 
     var body: some View {
-        NavigationStack(path: $navigationPath) {
+        NavigationStack {
             if let combatant, let config {
                 treeSelection(combatant: combatant, config: config)
                     .trinketPresentationVisibility(play.currentPostBattleTalentCombatantID == combatantID, opacity: 1)
-                    .navigationDestination(for: String.self) { treeID in
-                        if let tree = config.tree(matching: treeID) {
-                            talentSelection(combatant: combatant, tree: tree)
-                                .trinketPresentationVisibility(play.currentPostBattleTalentCombatantID == combatantID, opacity: 1)
-                        }
+                    .navigationDestination(item: $selectedTalentTree) { tree in
+                        talentSelection(combatant: combatant, tree: tree)
+                            .trinketPresentationVisibility(play.currentPostBattleTalentCombatantID == combatantID, opacity: 1)
                     }
             } else {
                 Color.clear
                     .onAppear(perform: play.dismissPostBattleTalentChoice)
+            }
+        }
+        .preparingArtwork(request: $requestedTalentTree, presentation: $selectedTalentTree) {
+            [$0.keyword.artReference?.imageName, $0.keyword.artReference?.thumbnailImageName].compactMap(\.self)
+        }
+        .onChange(of: selectedTalentTree) { _, tree in
+            if tree != nil {
+                treeSelectionTrigger &+= 1
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                requestedTalentTree = nil
+            }
+        }
+        .onChange(of: play.currentPostBattleTalentCombatantID) { _, current in
+            if current != combatantID {
+                requestedTalentTree = nil
             }
         }
         .trinketPresentationVisibility(play.currentPostBattleTalentCombatantID == combatantID, opacity: 1)
@@ -105,7 +122,7 @@ private struct PostBattleTalentChoiceContent: View {
 
     private var isEntranceActive: Bool {
         scenePhase == .active
-            && navigationPath.isEmpty
+            && selectedTalentTree == nil
             && play.currentPostBattleTalentCombatantID == combatantID
     }
 
@@ -194,8 +211,7 @@ private struct PostBattleTalentChoiceContent: View {
         let nodes = legalNodes(in: tree, combatantID: combatantID)
 
         return Button {
-            navigationPath.append(tree.id)
-            treeSelectionTrigger &+= 1
+            requestedTalentTree = tree
         } label: {
             TalentTreeCard(
                 tree: tree,
@@ -204,6 +220,14 @@ private struct PostBattleTalentChoiceContent: View {
                 showsShine: !nodes.isEmpty,
                 accessibilityID: AccessibilityID.TalentChoice.tree(id: tree.id),
             )
+            .overlay(alignment: .topTrailing) {
+                if requestedTalentTree == tree {
+                    ProgressView()
+                        .padding(TrinketDesign.Spacing.small)
+                        .trinketMaterial(.subtleOverlay)
+                        .accessibilityLabel("Preparing talents")
+                }
+            }
         }
         .trinketArtworkCardButtonStyle(pressedScale: TrinketMotion.Interaction.choiceCardPressedScale)
         .shadow(
@@ -237,7 +261,7 @@ private struct PostBattleTalentChoiceContent: View {
                 playSFX(SFXID.talentUnlock, options.effectsVolume)
             }
         case .unavailable:
-            navigationPath.removeAll()
+            selectedTalentTree = nil
         case .persistenceFailed:
             playerSave.retrySaveAction(key: "talent-\(combatantID)") {
                 _ = choose(node: node, tree: tree)

@@ -237,6 +237,7 @@ package enum DamagePipeline {
         target: Combatant,
         sourceActorID: String?,
         requireTargetAlive: Bool = false,
+        isThornsDamage: Bool = false,
         requireSourceAlive source: Combatant? = nil,
         in context: inout BattleState,
     ) -> CombatOutcome {
@@ -249,12 +250,14 @@ package enum DamagePipeline {
         if let source, context.roster.health(for: source) == 0 {
             return .empty
         }
+        var options = DamageOperation.reaction()
+        options.isThornsDamage = isThornsDamage
         return context.resolveDamage(DamageRequest(
             amount: amount,
             target: target,
             keyword: keyword,
             sourceActorID: sourceActorID,
-            options: .reaction(),
+            options: options,
         ))
     }
 
@@ -270,6 +273,7 @@ package enum DamagePipeline {
         abilityName: String,
         target: Combatant,
         defender: Combatant,
+        isThornsDamage: Bool = false,
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) -> Int {
@@ -279,6 +283,7 @@ package enum DamagePipeline {
             keyword: keyword,
             target: target,
             sourceActorID: defender.id,
+            isThornsDamage: isThornsDamage,
             in: &context,
         )
         var retaliationEvents = outcome.events

@@ -10,7 +10,8 @@ enum AbilityDescriptionFormatter {
             let branchTexts = branches.map(formatBranch)
             return ([joinOr(branchTexts)] + riderLines(for: ability).map(capitalize)).joined(separator: "\n")
         }
-        return formatFixed(ability)
+        return (formatOperations(ability.operations) + riderLines(for: ability))
+            .map(capitalize).joined(separator: "\n")
     }
 
     private static func formatBranch(_ branch: AbilityOutcomeBranch) -> String {
@@ -23,8 +24,10 @@ enum AbilityDescriptionFormatter {
 
     private static func riderLines(for ability: Ability) -> [String] {
         var riders: [String] = []
-        if let critical = criticalClause(for: ability) {
-            riders.append(critical)
+        if ability.guaranteedCriticalIfEnemyBuffed {
+            riders.append("always Criticals if the enemy has a buff")
+        } else if ability.criticalChanceBonus > 0 {
+            riders.append("gain +\(Int(ability.criticalChanceBonus * 100))% Critical chance")
         }
         if ability.repeatsManaEmpowerment {
             riders.append(manaEmpowermentRider)
@@ -33,22 +36,6 @@ enum AbilityDescriptionFormatter {
             riders.append("leech")
         }
         return riders
-    }
-
-    private static func criticalClause(for ability: Ability) -> String? {
-        if ability.guaranteedCriticalIfEnemyBuffed {
-            return "always Criticals if the enemy has a buff"
-        }
-        if ability.criticalChanceBonus > 0 {
-            return "gain +\(Int(ability.criticalChanceBonus * 100))% Critical chance"
-        }
-        return nil
-    }
-
-    private static func formatFixed(_ ability: Ability) -> String {
-        var lines = formatOperations(ability.operations)
-        lines.append(contentsOf: riderLines(for: ability))
-        return lines.map(capitalize).joined(separator: "\n")
     }
 
     private static func formatOperations(_ operations: [AbilityOperation]) -> [String] {

@@ -126,14 +126,6 @@ def source_fingerprint(root: Path) -> str:
 def probe(root: Path, workflow: str = "paths", suite: str = 'core') -> dict:
     root = root.resolve()
     initial_source = source_fingerprint(root)
-    search_source = (root / "Scripts/agent-search.py").read_text()
-    reader_source = (root / "Scripts/agent-read.py").read_text()
-    related = '"--related"' in search_source or "'--related'" in search_source
-    batch = '"targets", nargs="+"' in reader_source
-    # New readers use optional positional targets for per-target requests.
-    batch |= '"targets", nargs="*"' in reader_source
-    requests = '"--request"' in reader_source
-    concern_route = '--task CONCERN' in (root / "Scripts/agent-context.sh").read_text()
     concern_ids = {"combat": "mana", "shop": "shop", "persistence": "talents", "tooling": "tooling"}
     tasks = []
     for name, request, owner, symbol, scopes in (SCENARIOS + EXTENDED_SCENARIOS if suite == 'extended' else SCENARIOS):
@@ -156,8 +148,7 @@ def probe(root: Path, workflow: str = "paths", suite: str = 'core') -> dict:
             try:
                 arguments = [sys.executable, 'Scripts/agent-session.py', '--chat', chat, 'brief', '--task', task['id']]
                 briefing = run(arguments)
-                incremental = ['--reuse-guidance'] if '"--reuse-guidance"' in reader_source else []
-                run([*arguments, *incremental])
+                run([*arguments, "--reuse-guidance"])
             finally:
                 receipt.unlink(missing_ok=True)
             tasks.append({'id': name, 'request': request,
@@ -168,13 +159,13 @@ def probe(root: Path, workflow: str = "paths", suite: str = 'core') -> dict:
             continue
         if workflow == "concerns":
             task = select_task(root, concern_ids.get(name, name))
-            arguments = ["--task", task["id"]] if concern_route else ["--paths", *task["sources"]]
+            arguments = ["--task", task["id"]]
         else:
             arguments = ["--paths", owner]
         briefing = run(["bash", "Scripts/agent-context.sh", "--agent", *arguments])
         references = []
         in_guidance = False
-        focused = workflow == "concerns" and concern_route
+        focused = workflow == "concerns"
         for line in briefing.splitlines():
             if not line.startswith("  "):
                 headers = ("Read first", "Ownership and integration", "Concern focus") if focused else (
@@ -186,32 +177,23 @@ def probe(root: Path, workflow: str = "paths", suite: str = 'core') -> dict:
         # Root guidance is already injected. Skills/knowledge stay trigger-based;
         # these probes do not implement visual, API, or schema changes.
         end = min(80, len((root / owner).read_text().splitlines()))
-        if workflow == "concerns" and requests:
+        if workflow == "concerns":
             arguments = []
             for ref in references:
                 flags = ["--full"] if "#" not in ref and len((root / ref).read_text()) > 12_000 else []
                 arguments += ["--request", shlex.join([ref, *flags])]
             arguments += ["--request", shlex.join([owner, "--lines", f"1:{end}"])]
             run([sys.executable, "Scripts/agent-read.py", *arguments], read_targets=[*references, owner])
-        elif batch:
+        else:
             small = [ref for ref in references if "#" in ref or len((root / ref).read_text()) <= 12_000]
             large = [ref for ref in references if ref not in small]
             if small:
                 run([sys.executable, "Scripts/agent-read.py", *small], read_targets=small)
             if large:
                 run([sys.executable, "Scripts/agent-read.py", *large, "--full"], read_targets=large)
-        else:
-            for ref in references:
-                flags = ["--full"] if "#" not in ref and len((root / ref).read_text()) > 12_000 else []
-                run([sys.executable, "Scripts/agent-read.py", ref, *flags], read_targets=[ref])
-        scope_args = [argument for scope in scopes for argument in ("--scope", scope)]
-        if related:
-            run([sys.executable, "Scripts/agent-search.py", symbol, "--related", *scope_args])
-        else:
-            run([sys.executable, "Scripts/agent-search.py", symbol, *scope_args])
-            run([sys.executable, "Scripts/agent-search.py", symbol, "--mode", "tests", *scope_args])
-        if not (workflow == "concerns" and requests):
             run([sys.executable, "Scripts/agent-read.py", owner, "--lines", f"1:{end}"], read_targets=[owner])
+        scope_args = [argument for scope in scopes for argument in ("--scope", scope)]
+        run([sys.executable, "Scripts/agent-search.py", symbol, "--related", *scope_args])
         tasks.append({"id": name, "request": request,
                       "metrics": {"output_characters": sum(step["output_characters"] for step in trace),
                                   "commands": len(trace), "failed_commands": 0},

@@ -69,59 +69,55 @@ final class PlaythroughJournal {
             node.shopPayload = original.shopPayload.map(canonicalPayload)
             return node
         }
+        if !value.voyage.isUnreadable,
+           let voyage = try? JSONDecoder().decode(
+               PlayerVoyageState.self, from: canonicalVoyagePayload(value.voyage.encodedPayload),
+           ) {
+            value.voyage = voyage
+        }
         return CloudSaveSnapshot(value)
     }
 
     static func decodeRecord(_ data: Data) throws -> PlaythroughRecord {
         let object = try JSONSerialization.jsonObject(with: data)
-        let normalized = normalizePayloadFields(object)
+        let normalized = normalize(object)
         return try JSONDecoder().decode(PlaythroughRecord.self, from: JSONSerialization.data(withJSONObject: normalized))
     }
 
-    private static func normalizePayloadFields(_ value: Any) -> Any {
+    private static func normalize(_ value: Any) -> Any {
         if let dictionary = value as? [String: Any] {
-            return dictionary.mapValues { normalizePayloadFields($0) }
-                .reduce(into: [String: Any]()) { result, pair in
-                    let (key, value) = pair
-                    if ["mysteryOfferPayloads", "shopPayloads"].contains(key), let values = value as? [String: String] {
-                        result[key] = values.mapValues { Data(base64Encoded: $0).map { canonicalPayload($0).base64EncodedString() } ?? $0 }
-                    } else if ["mysteryOffersPayload", "shopPayload"].contains(key), let string = value as? String,
-                              let data = Data(base64Encoded: string) {
-                        result[key] = canonicalPayload(data).base64EncodedString()
-                    } else {
-                        result[key] = value
-                    }
+            return dictionary.reduce(into: [String: Any]()) { result, pair in
+                let (key, value) = pair
+                if key == "keywords", let keywords = value as? [String] {
+                    result[key] = keywords.sorted()
+                } else if ["mysteryOfferPayloads", "shopPayloads"].contains(key), let values = value as? [String: String] {
+                    result[key] = values.mapValues { Data(base64Encoded: $0).map { canonicalPayload($0).base64EncodedString() } ?? $0 }
+                } else if ["mysteryOffersPayload", "shopPayload", "voyagePayload"].contains(key),
+                          let string = value as? String, let data = Data(base64Encoded: string) {
+                    result[key] = (key == "voyagePayload" ? canonicalVoyagePayload(data) : canonicalPayload(data)).base64EncodedString()
+                } else {
+                    result[key] = normalize(value)
                 }
+            }
         }
         if let array = value as? [Any] {
-            return array.map(normalizePayloadFields)
+            return array.map(normalize)
         }
         return value
+    }
+
+    private static func canonicalVoyagePayload(_ data: Data) -> Data {
+        guard !PlayerVoyageState.decodePayload(data).isUnreadable else { return data }
+        return canonicalPayload(data)
     }
 
     private static func canonicalPayload(_ data: Data) -> Data {
         do {
             let object = try JSONSerialization.jsonObject(with: data)
-            return try JSONSerialization.data(withJSONObject: sortedKeywordSets(object), options: [.sortedKeys])
+            return try JSONSerialization.data(withJSONObject: normalize(object), options: [.sortedKeys])
         } catch {
             // Preserve malformed evidence verbatim; normalization must never repair it.
             return data
         }
-    }
-
-    private static func sortedKeywordSets(_ value: Any) -> Any {
-        if let dictionary = value as? [String: Any] {
-            return dictionary.reduce(into: [String: Any]()) { result, pair in
-                if pair.key == "keywords", let keywords = pair.value as? [String] {
-                    result[pair.key] = keywords.sorted()
-                } else {
-                    result[pair.key] = sortedKeywordSets(pair.value)
-                }
-            }
-        }
-        if let array = value as? [Any] {
-            return array.map(sortedKeywordSets)
-        }
-        return value
     }
 }

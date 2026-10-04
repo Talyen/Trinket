@@ -37,7 +37,8 @@ that convention; Poison decay divides potency by four before applying its
 minimum one-point loss, avoiding multiplication overflow.
 `Effect.durationTurns == 0` covers both instant effects and indefinite buffs;
 `EffectKind` flags (`isInstant`, `advancesEachTurn`, removable buff/debuff) are
-the source of truth for lifecycle, locked by `EffectModelTests`. Documented
+the source of truth for lifecycle, classified by an exhaustive switch.
+`EffectModelTests` protects representative lifecycle and arithmetic behavior. Documented
 quirks pending battle-owner review: `hemorrhage` never advances,
 `maximumManaBonus` is both instant and a buff, `blessedAegis` is instant with
 neither buff nor debuff flag. `BattleGoldFlow` clamps negatives and saturates

@@ -134,18 +134,18 @@ enum LabyrinthFloorTypePlacement {
         var result: [LabyrinthNodeType] = []
         while state.index < planned.count {
             let best = search.minimumConflicts(from: state)
-            var optimal: [LabyrinthNodeType] = []
+            var optimal: [(type: LabyrinthNodeType, state: PlacementState)] = []
             for type in search.choices(from: state) {
                 let (next, conflicts) = search.advance(state, type: type)
                 if conflicts + search.minimumConflicts(from: next) == best {
-                    optimal.append(type)
+                    optimal.append((type, next))
                 }
             }
-            guard let type = optimal.randomElement(using: &rng) else {
+            guard let selected = optimal.randomElement(using: &rng) else {
                 preconditionFailure("Room counts must permit an optimal placement")
             }
-            result.append(type)
-            state = search.advance(state, type: type).0
+            result.append(selected.type)
+            state = selected.state
         }
         return result
     }

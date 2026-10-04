@@ -4,12 +4,16 @@ import TrinketCore
 import TrinketDesignSystem
 
 public struct AbilityTierPickerSheet: View {
+    @Environment(\.scenePhase) private var scenePhase
+
     let combatant: Combatant
     let tier: AbilityTier
     let selectedAbilityID: String?
     let onSelectAbility: (Ability) -> Bool
 
     @State private var selectedAbility: Ability?
+    @State private var requestedAbility: Ability?
+    @State private var loadingAbility: Ability?
 
     public init(
         combatant: Combatant,
@@ -41,8 +45,8 @@ public struct AbilityTierPickerSheet: View {
             isSelected: { ability in
                 ability.id == selectedAbilityID
             },
-            onSelect: { selectedAbility = $0 },
-            onLongPress: { selectedAbility = $0 },
+            onSelect: { requestedAbility = $0 },
+            onLongPress: { requestedAbility = $0 },
             accessibilityIdentifier: { ability in
                 AccessibilityID.LoadoutPicker.abilityCandidate(ability.id)
             },
@@ -54,6 +58,21 @@ public struct AbilityTierPickerSheet: View {
                     shine: isSelected ? .keywords(equippedKeywords) : .none,
                     shineLineWidth: 3,
                 )
+                .overlay(alignment: .topTrailing) {
+                    if loadingAbility == ability, requestedAbility == ability {
+                        ProgressView()
+                            .padding(TrinketDesign.Spacing.small)
+                            .trinketMaterial(.subtleOverlay)
+                            .padding(TrinketDesign.Spacing.extraSmall)
+                            .accessibilityLabel("Preparing ability")
+                    }
+                }
+                .overlay {
+                    TrinketDesign.cardShape
+                        .strokeBorder(TrinketDesign.Colors.accent, lineWidth: 2)
+                        .opacity(requestedAbility == ability ? 0.7 : 0)
+                        .animation(TrinketMotion.Interaction.selection, value: requestedAbility)
+                }
             },
         )
         .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityGrid(tier.rawValue))
@@ -69,6 +88,25 @@ public struct AbilityTierPickerSheet: View {
                     selectedAbility = nil
                 },
             )
+        }
+        .preparingArtwork(request: $requestedAbility, presentation: $selectedAbility) {
+            [$0.artReference?.imageName, $0.artReference?.thumbnailImageName].compactMap(\.self)
+        }
+        .task(id: requestedAbility) {
+            loadingAbility = nil
+            guard let ability = requestedAbility else { return }
+            do {
+                try await Task.sleep(for: .seconds(TrinketMotion.Interaction.pendingIndicatorDelay))
+                try Task.checkCancellation()
+                guard requestedAbility == ability else { return }
+                loadingAbility = ability
+            } catch {}
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                requestedAbility = nil
+                loadingAbility = nil
+            }
         }
     }
 }

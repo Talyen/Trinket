@@ -46,6 +46,15 @@ class InternalCliTests(unittest.TestCase):
         self.assertIn("Raw Assets", parsed["TRINKET_ASSET_GENERATION_INPUTS"])
         self.assertIn("*.xctestplan", parsed["TRINKET_PROJECT_GENERATION_INPUTS"])
 
+        # A silent path mismatch can omit a build input from freshness checks.
+        with tempfile.TemporaryDirectory() as directory:
+            env = Path(directory) / "quoted.env"
+            env.write_text(r'''WANT=("a\"b" "a""b" a\#b literal#hash ")" "x)y" path" with space"/file)''')
+            expected = subprocess.check_output(
+                ["bash", "-eu", "-c", 'source "$1"; printf "%s\\0" "${WANT[@]}"', "_", str(env)],
+            ).decode().split("\0")[:-1]
+            self.assertEqual(list(read_env_arrays(env, ["WANT"])["WANT"]), expected)
+
     def test_read_env_arrays_rejects_expansion_and_missing(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             env = Path(directory) / "test.env"
@@ -58,6 +67,12 @@ class InternalCliTests(unittest.TestCase):
             env.write_text('UNTERMINATED=(a\n')
             with self.assertRaises(ValueError):
                 read_env_arrays(env, ["UNTERMINATED"])
+            env.write_text('WANT=(\n a # ignored $expansion\n "b c"\n) # paths\n')
+            self.assertEqual(read_env_arrays(env, ["WANT"]), {"WANT": ("a", "b c")})
+            for content in ('WANT=(a)\nWANT=(b)\n', 'WANT=(a)\nWANT+=(b)\n'):
+                env.write_text(content)
+                with self.assertRaises(ValueError):
+                    read_env_arrays(env, ["WANT"])
 
     def test_validate_repo_paths(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

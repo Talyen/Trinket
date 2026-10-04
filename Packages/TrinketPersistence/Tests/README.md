@@ -25,7 +25,7 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | Roster / inventory state | `PlayerRosterStateTests` | Loadouts, equipment, gold, equipped-item lookup |
 | Unique items | `UniqueItemRuleTests` | Unique affix-power reload; altar exclusion; trinket catalog refresh from stale rows |
 | Talents | `TalentPersistenceTests` | Sanitizer filter, unlock API, reload |
-| Journey progression | `JourneyProgressTests` | Unlock chain, `nextStage`, pin/progress reload, duplicate-stage repair |
+| Journey progression | `JourneyProgressTests` | Unlock chain and campaign end, pin/progress reload, duplicate-stage repair |
 | Stage rewards | `StageRewardTests` | Claim policy, gold/XP, party-adjusted claim fallback (journey + spire) |
 | Combat loot rolls | `BattleLootTests` | Quantity bands, rarity ladder, seed-stable journey loot (pure; durable proof via Shop cross-applier reload) |
 | Shop | `ShopPurchaseApplierTests` | Purchase rules; one cross-applier reload proof |
@@ -45,6 +45,5 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | Labyrinth unreadable blob | `LabyrinthSaveRecoveryTests` | Rebuild unreadable maps with the saved seed and retain the repaired map across reload |
 | Transport error mapping | `CloudTransportErrorMappingTests` | Conflict vs surfacing classification (pure; no live CloudKit I/O) |
 | Item degradation | `ItemResolutionTests` | Unknown-base drop, keyword strip, rarity fallback across codecs (pure) |
-| Cross-slice invariants | `PersistenceInvariantsTests` | Sanitize/journey, labyrinth reachability, ownership, store URL (pure) |
 
 Harnesses: `Support/PersistenceTestContext.swift` (fresh temp dir per test) and `TrinketPersistenceTestSupport.SaveTestSupport` (`writeRoot`, `makeSave`, `makeSideContext`, `makeGeneratedItem`, store factory).

@@ -4,23 +4,11 @@ import TrinketContent
 import TrinketCore
 
 struct UniqueCatalogTests {
-    @Test func `uniques resolve for every definition`() throws {
-        try #expect(GameContent.uniqueItems.count == GameContent.uniqueDefinitions.count)
-        for definition in GameContent.uniqueDefinitions {
-            let item = try #require(GameContent.unique(matching: definition.id))
-            #expect(item.rarity == .unique)
-            #expect(item.displayName == definition.displayName)
-        }
-    }
-
     @Test func `one unique per base type across slots`() {
         let baseIDs = GameContent.uniqueItems.map(\.baseType.id)
         #expect(Set(baseIDs).count == baseIDs.count)
         let equipmentBaseIDs = Set(GameContent.itemBaseTypes.filter { $0.slot != .trinket }.map(\.id))
         #expect(Set(baseIDs) == equipmentBaseIDs)
-
-        let slots = Set(GameContent.uniqueItems.map(\.baseType.slot.baseItemSlot))
-        #expect(slots == [.weapon, .armor, .accessory])
     }
 
     @Test func `unique affix keywords stay within base affinities`() {
@@ -58,18 +46,6 @@ struct UniqueCatalogTests {
         }
     }
 
-    @Test func `uniques pin exact powers and stable identity`() throws {
-        for item in GameContent.uniqueItems {
-            let powers = try #require(item.affixPowers)
-            #expect(powers.count == item.affixes.count)
-            #expect(item.id == item.templateID)
-            #expect(item.rewardInstance(for: "any-stage") == item)
-            for power in powers {
-                #expect(!power.description.isEmpty)
-            }
-        }
-    }
-
     @Test func `basic astral unique and trinket catalogs do not overlap`() {
         #expect(GameContent.uniqueItems.allSatisfy { !$0.isTrinket && $0.rarity == .unique })
         #expect(GameContent.sampleInventoryItems.allSatisfy { !$0.isTrinket && $0.rarity != .unique })
@@ -83,27 +59,19 @@ struct UniqueCatalogTests {
         #expect(sampleIDs.isDisjoint(with: uniqueIDs))
     }
 
-    @Test func `unique items use base item astral artwork`() throws {
-        for item in GameContent.uniqueItems {
-            let art = try #require(item.artReference, "Unique item \(item.id) should have an art reference")
-            let astralArt = try #require(
-                ArtCatalog.itemArtByID["\(item.baseType.id)-astral"],
-                "Base type \(item.baseType.id) should have Astral art",
-            )
-            #expect(
-                art == astralArt,
-                "Unique item \(item.id) art (\(art.imageName)) must match base type \(item.baseType.id) Astral art",
-            )
-        }
-    }
-
     @Test func `unique powers match every authored source at astral roll max`() throws {
         let randomPoolIDs = Set(GameContent.itemAffixDefinitions.map(\.id))
-        for item in GameContent.uniqueItems {
+        for definition in GameContent.uniqueDefinitions {
+            let item = try #require(GameContent.unique(matching: definition.id))
+            #expect(item.rarity == .unique)
+            #expect(item.displayName == definition.displayName)
+            #expect(item.id == item.templateID)
+            #expect(item.rewardInstance(for: "any-stage") == item)
             let powers = try #require(item.affixPowers)
-            let sources = try #require(GameContent.uniqueDefinitions.first { $0.id == item.id }?.affixes)
+            let sources = definition.affixes
             try #require(powers.count == sources.count && item.affixes.count == sources.count)
             for (index, source) in sources.enumerated() {
+                #expect(!powers[index].description.isEmpty)
                 switch source {
                 case let .catalog(id):
                     let definition = try #require(GameContent.itemAffixDefinition(matching: id))

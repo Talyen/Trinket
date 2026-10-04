@@ -6,7 +6,7 @@ struct BlockBuffHandler: BattleEffectHandler {
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = DefensePoolEngine.blockPoints(in: stacks)
         guard total > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): Absorbs up to \(total) incoming damage.")
+        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total) points ready to absorb incoming damage.")
     }
 
     func apply(

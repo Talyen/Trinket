@@ -138,11 +138,9 @@ def swift_code_tokens(source: str) -> list[tuple[str, str, int, int, int]]:
 
 
 def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
-    code = swift_code_tokens(source)
-    tokens = [token[:4] for token in code]
-    offsets = [token[4] for token in code]
+    tokens = swift_code_tokens(source)
     pairs, stack = {}, []
-    for i, (kind, value, _, _) in enumerate(tokens):
+    for i, (kind, value, _, _, _) in enumerate(tokens):
         if kind == 'startOfScope' and value in {'{', '(', '[', '<'}:
             stack.append((value, i))
         elif kind == 'endOfScope' and value in {'}', ')', ']', '>'}:
@@ -165,7 +163,7 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
     def scan(begin: int, stop: int, owner: str = '', local: bool = False):
         i = begin
         while i < stop:
-            kind, value, number, _ = tokens[i]
+            kind, value, number, _, offset = tokens[i]
             if i in pairs:
                 if value == '{':
                     scan(i + 1, pairs[i], owner, True)
@@ -192,7 +190,7 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
             j, body, last = name_index + 1, None, name_index
             signature_end = None
             while j < stop:
-                next_kind, next_value, next_line, _ = tokens[j]
+                _, next_value, next_line, _, next_offset = tokens[j]
                 previous = tokens[last]
                 if next_value in {';', '}'}:
                     break
@@ -205,7 +203,7 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
                     last = pairs[j]
                     if next_value == '{':
                         if signature_end is None:
-                            signature_end = offsets[j]
+                            signature_end = next_offset
                         body = j
                         j = last + 1
                         if value in {'var', 'let'}:
@@ -216,15 +214,15 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
                     j = last + 1
                 else:
                     if next_value == '=' and value in {'var', 'let'} and signature_end is None:
-                        signature_end = offsets[j]
+                        signature_end = next_offset
                     last, j = j, j + 1
             start = documented_start(lines, number)
             if include_locals or not local:
                 if signature_end is None:
-                    signature_end = offsets[j] if j < stop else line_offsets[tokens[last][3]]
+                    signature_end = tokens[j][4] if j < stop else line_offsets[tokens[last][3]]
                 # Include same-line modifiers; nested one-line declarations begin after the enclosing brace.
                 signature_start = line_offsets[number - 1]
-                prior = source[signature_start:offsets[i]]
+                prior = source[signature_start:offset]
                 if '{' in prior or ';' in prior:
                     signature_start += max(prior.rfind('{'), prior.rfind(';')) + 1
                 found.append(Declaration(qualified, value, start, tokens[last][3],

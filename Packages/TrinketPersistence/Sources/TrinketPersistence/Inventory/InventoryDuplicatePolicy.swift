@@ -1,26 +1,11 @@
 import TrinketContent
 
 enum InventoryDuplicatePolicy {
-    private enum OwnershipKey: Hashable {
-        case instance(String)
-        case trinket(String)
-        case unique(String)
-    }
-
-    private static func ownershipKeys(for item: InventoryItem) -> [OwnershipKey] {
-        var keys: [OwnershipKey] = [.instance(item.id)]
-        if item.isTrinket {
-            keys.append(.trinket(item.templateID))
-        }
-        if item.rarity == .unique {
-            keys.append(.unique(item.templateID))
-        }
-        return keys
-    }
-
     static func containsDuplicate(of candidate: InventoryItem, in items: [InventoryItem]) -> Bool {
-        let keys = Set(ownershipKeys(for: candidate))
-        return items.contains { !keys.isDisjoint(with: ownershipKeys(for: $0)) }
+        items.contains {
+            $0.id == candidate.id || ($0.templateID == candidate.templateID
+                && (($0.isTrinket && candidate.isTrinket) || ($0.rarity == .unique && candidate.rarity == .unique)))
+        }
     }
 
     static func deduplicated(_ items: [InventoryItem]) -> [InventoryItem] {
@@ -31,15 +16,21 @@ enum InventoryDuplicatePolicy {
     }
 
     static func appendUniqueItems(_ candidates: some Sequence<InventoryItem>, to items: inout [InventoryItem]) {
-        var claimed = Set<OwnershipKey>()
-        for item in items {
-            claimed.formUnion(ownershipKeys(for: item))
-        }
+        var instances = Set(items.map(\.id))
+        var trinkets = Set(items.lazy.filter(\.isTrinket).map(\.templateID))
+        var uniques = Set(items.lazy.filter { $0.rarity == .unique }.map(\.templateID))
         for item in candidates {
-            let keys = ownershipKeys(for: item)
-            guard !keys.contains(where: claimed.contains) else { continue }
+            guard !instances.contains(item.id),
+                  !item.isTrinket || !trinkets.contains(item.templateID),
+                  item.rarity != .unique || !uniques.contains(item.templateID) else { continue }
             // A rejected item must not reserve any of its other ownership keys.
-            claimed.formUnion(keys)
+            instances.insert(item.id)
+            if item.isTrinket {
+                trinkets.insert(item.templateID)
+            }
+            if item.rarity == .unique {
+                uniques.insert(item.templateID)
+            }
             items.append(item)
         }
     }

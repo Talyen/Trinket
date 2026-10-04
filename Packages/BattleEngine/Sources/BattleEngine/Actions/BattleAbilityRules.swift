@@ -10,11 +10,9 @@ enum BattleAbilityRules {
     }
 
     static func healthCost(_ components: [DamageComponent], actor: Combatant, in context: BattleState) -> Int {
-        let abilityTarget = BattleTargetResolver.abilityTarget(for: actor, in: context)
+        let action = BattleActionContext(actor: actor, in: context)
         return components.reduce(0) { total, component in
-            let target = BattleTargetResolver.effectTarget(
-                component.target, actor: actor, abilityTarget: abilityTarget, in: context,
-            )
+            let target = action.target(component.target, in: context)
             guard target.id == actor.id else { return total }
             var amount = component.amount
             if let condition = component.condition {

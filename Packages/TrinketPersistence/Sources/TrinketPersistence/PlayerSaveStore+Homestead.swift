@@ -6,16 +6,12 @@ public enum HomesteadBuildResult: Equatable, Sendable {
     case success
     case insufficientResources
     case notAvailable
-    case cloudSyncUnsupported
-    case cloudUnavailable
     case persistFailed
 }
 
 public enum HomesteadCollectionResult: Equatable, Sendable {
     case success([ResourceAmount])
     case noProduction
-    case cloudSyncUnsupported
-    case cloudUnavailable
     case persistFailed
 }
 

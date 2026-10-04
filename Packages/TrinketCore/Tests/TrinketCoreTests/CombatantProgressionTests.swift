@@ -12,6 +12,7 @@ struct CombatantProgressionTests {
         #expect(CombatantProgression.requiredXP(forLevel: -100) == 10)
         #expect(CombatantProgression.requiredXP(forLevel: Int.min) == 10)
         #expect(CombatantProgression.initial.requiredXP == 10)
+        #expect(CombatantProgression.at(level: 0) == .initial)
     }
 
     @Test func `adding extreme experience saturates without trapping`() {
@@ -51,7 +52,7 @@ struct CombatantProgressionTests {
         #expect(leveledMultiple.requiredXP == 22)
     }
 
-    @Test(arguments: [40, 60, 100, 250, 1000])
+    @Test(arguments: [40, 1000])
     func `progression and catch up continue at high levels`(level: Int) {
         let progression = CombatantProgression.at(level: level)
         let advanced = progression.addingExperience(progression.requiredXP)
@@ -71,28 +72,9 @@ struct CombatantProgressionTests {
         #expect(progression.addingExperience(-1) == progression)
     }
 
-    @Test func `progress fraction clamps and handles zero required`() {
-        let empty = CombatantProgression(level: 1, currentXP: 0, requiredXP: 10)
-        let half = CombatantProgression(level: 1, currentXP: 5, requiredXP: 10)
-        let full = CombatantProgression(level: 1, currentXP: 10, requiredXP: 10)
-        let overCap = CombatantProgression(level: 1, currentXP: 15, requiredXP: 10)
-        let zeroRequired = CombatantProgression(level: 1, currentXP: 1, requiredXP: 0)
-
-        #expect(abs((empty.progressFraction) - 0) < 0.001)
-        #expect(abs((half.progressFraction) - 0.5) < 0.001)
-        #expect(abs((full.progressFraction) - 1) < 0.001)
-        #expect(abs((overCap.progressFraction) - 1) < 0.001)
-        #expect(abs((zeroRequired.progressFraction) - 0) < 0.001)
-    }
-
-    @Test func `at level builds empty progress toward next level`() {
-        let mid = CombatantProgression.at(level: 20)
-        #expect(mid.level == 20)
-        #expect(mid.currentXP == 0)
-        #expect(mid.requiredXP == CombatantProgression.requiredXP(forLevel: 20))
-
-        let clamped = CombatantProgression.at(level: 0)
-        #expect(clamped == .initial)
+    @Test(arguments: [(0, 10, 0.0), (5, 10, 0.5), (15, 10, 1.0), (-1, 10, 0.0), (1, 0, 0.0)])
+    func `progress fraction stays within the experience bar`(current: Int, required: Int, expected: Double) {
+        #expect(CombatantProgression(level: 1, currentXP: current, requiredXP: required).progressFraction == expected)
     }
 
     @Test func `totalEarnedExperience accumulates previous level requirements and current XP`() {

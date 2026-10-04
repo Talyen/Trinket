@@ -61,7 +61,7 @@ struct PlayerSaveStoreTests {
         #expect(reloaded.roster.activeHeroID == heroID)
         #expect(reloaded.roster.loadout(for: hero) == loadout)
         #expect(reloaded.roster.progression(for: hero) == .initial)
-        #expect(reloaded.roster.battleConfiguredCombatant(hero).abilities.map(\.id) == loadout.abilities.map(\.id))
+        #expect(reloaded.roster.configuredCombatant(hero).abilities.map(\.id) == loadout.abilities.map(\.id))
     }
 
     @Test @MainActor func `player save persists journey roster inventory and homestead`() throws {

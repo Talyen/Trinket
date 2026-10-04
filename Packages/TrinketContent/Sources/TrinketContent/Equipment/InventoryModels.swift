@@ -129,6 +129,11 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         itemIDsBySlot[slot]
     }
 
+    private func equippedItem(in slot: ItemSlot, inventory: [InventoryItem]) -> InventoryItem? {
+        guard let id = itemID(for: slot) else { return nil }
+        return inventory.first { $0.id == id }
+    }
+
     public mutating func equip(
         _ item: InventoryItem,
         in slot: ItemSlot? = nil,
@@ -152,8 +157,7 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     /// two-handed primaries and ranged primaries paired with non-quiver
     /// secondaries alike.
     private mutating func clearDisallowedSecondary(primary: ItemBaseType, inventory: [InventoryItem]) {
-        guard let secondaryID = itemIDsBySlot[.secondaryWeapon],
-              let secondary = inventory.first(where: { $0.id == secondaryID }),
+        guard let secondary = equippedItem(in: .secondaryWeapon, inventory: inventory),
               !Self.secondaryWeaponAllows(primary: primary, secondary: secondary.baseType)
         else { return }
         itemIDsBySlot[.secondaryWeapon] = nil
@@ -185,18 +189,12 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     ) -> Bool {
         guard baseType.canEquip(in: slot) else { return false }
         guard trinketBaseIsFree(baseType: baseType, candidateID: candidateID, excluding: slot, inventory: inventory) else { return false }
-        if slot == .weapon, !baseType.isRanged {
-            if let secondaryID = itemID(for: .secondaryWeapon),
-               let secondary = inventory.first(where: { $0.id == secondaryID }),
-               secondary.baseType.isQuiver {
-                return false
-            }
+        if slot == .weapon, !baseType.isRanged,
+           equippedItem(in: .secondaryWeapon, inventory: inventory)?.baseType.isQuiver == true {
+            return false
         }
         guard slot == .secondaryWeapon else { return true }
-        guard
-            let primaryID = itemID(for: .weapon),
-            let primary = inventory.first(where: { $0.id == primaryID })
-        else {
+        guard let primary = equippedItem(in: .weapon, inventory: inventory) else {
             return !baseType.isQuiver
         }
         return Self.secondaryWeaponAllows(primary: primary.baseType, secondary: baseType)
@@ -224,7 +222,7 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
                   slot.baseItemSlot == destination.baseItemSlot,
                   let siblingID = itemID(for: slot),
                   siblingID != candidateID,
-                  let worn = inventory.first(where: { $0.id == siblingID })
+                  let worn = equippedItem(in: slot, inventory: inventory)
             else { return true }
             return worn.baseType.id != baseType.id
         }
@@ -232,21 +230,11 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
 
     public func isAvailable(_ slot: ItemSlot, inventory: [InventoryItem]) -> Bool {
         guard slot == .secondaryWeapon else { return true }
-        guard
-            let primaryID = itemID(for: .weapon),
-            let primary = inventory.first(where: { $0.id == primaryID })
-        else {
-            return true
+        guard let primary = equippedItem(in: .weapon, inventory: inventory) else { return true }
+        if let secondary = equippedItem(in: .secondaryWeapon, inventory: inventory), secondary.baseType.isQuiver {
+            return Self.secondaryWeaponAllows(primary: primary.baseType, secondary: secondary.baseType)
         }
-        if let secondaryID = itemID(for: .secondaryWeapon),
-           let secondary = inventory.first(where: { $0.id == secondaryID }),
-           secondary.baseType.isQuiver {
-            return primary.baseType.isRanged
-        }
-        if primary.baseType.isRanged {
-            return true
-        }
-        return primary.baseType.weaponKind != .twoHanded
+        return primary.baseType.isRanged || primary.baseType.weaponKind != .twoHanded
     }
 
     public mutating func unequip(_ slot: ItemSlot) {

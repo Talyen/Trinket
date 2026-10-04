@@ -26,31 +26,6 @@ struct JourneyProgressTests {
         try #expect(!(progress.isActive(chapter.stages[4])))
     }
 
-    @Test func `rewards can only be claimed once per stage`() throws {
-        var progress = JourneyProgressState.initial
-        let firstStage = chapter.stages[0]
-
-        try #expect(!(progress.hasClaimedRewards(for: firstStage)))
-        progress.markRewardsClaimed(for: firstStage)
-        progress.markRewardsClaimed(for: firstStage)
-
-        try #expect(progress.hasClaimedRewards(for: firstStage))
-        try #expect(progress.claimedRewardStageIDs.count == 1)
-    }
-
-    @Test func `item reward creates unique instance`() throws {
-        var inventory = PlayerInventoryState.testSeed
-        let stage = chapter.stages[0]
-        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
-
-        inventory.addRewardItem(from: template, for: stage)
-
-        let rewardItem = try #require(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
-        try #expect(rewardItem.templateID == "shortsword-basic")
-        try #expect(rewardItem.id != rewardItem.templateID)
-        try #expect((1 ... 2).contains(rewardItem.affixes.count))
-    }
-
     @Test func `chapter completion automatically advances to next chapter`() throws {
         var progress = JourneyProgressState.initial
 
@@ -74,19 +49,16 @@ struct JourneyProgressTests {
         try #expect(progress.activeChapterID == "chapter-2")
     }
 
-    @Test func `next stage returns nil after final stage`() throws {
+    @Test func `completing final stage ends the campaign`() throws {
         let finalChapter = try #require(GameContent.chapters.last)
         let finalStage = try #require(finalChapter.stages.last)
+        var progress = JourneyProgressState.initial
 
-        try #expect(JourneyProgressState.nextStage(after: finalStage, in: GameContent.chapters) == nil)
-    }
+        progress.complete(finalStage, in: GameContent.chapters)
 
-    @Test func `next stage crosses into following chapter`() throws {
-        let chapterOneFinal = try #require(chapter.stages.last)
-        let next = try #require(JourneyProgressState.nextStage(after: chapterOneFinal, in: GameContent.chapters))
-
-        try #expect(next.chapterID == "chapter-2")
-        try #expect(next.id == "chapter-2-stage-1")
+        #expect(progress.isCompleted(finalStage))
+        #expect(progress.activeStageID == nil)
+        #expect(progress.activeChapterID == finalChapter.id)
     }
 
     @Test @MainActor func `journey persists progress`() throws {

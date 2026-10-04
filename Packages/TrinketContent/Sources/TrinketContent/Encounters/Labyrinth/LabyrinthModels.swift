@@ -72,10 +72,18 @@ public struct LabyrinthGridPosition: Hashable, Codable, Sendable {
     public func isAdjacent(to other: Self) -> Bool {
         let rowDelta = other.row - row
         let columnDelta = other.column - column
-        return (rowDelta == 0 && abs(columnDelta) == 1)
-            || (rowDelta == 1 && (columnDelta == 0 || columnDelta == -1))
-            || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
+        return Self.neighborOffsets.contains { $0.row == rowDelta && $0.column == columnDelta }
     }
+
+    public var neighbors: [Self] {
+        Self.neighborOffsets.map { Self(row: row + $0.row, column: column + $0.column) }
+    }
+
+    private static let neighborOffsets = [
+        (row: 0, column: -1), (row: 0, column: 1),
+        (row: -1, column: 0), (row: -1, column: 1),
+        (row: 1, column: -1), (row: 1, column: 0),
+    ]
 
     public static func isOrderedBefore(_ lhs: Self, _ rhs: Self) -> Bool {
         lhs.row == rhs.row ? lhs.column < rhs.column : lhs.row < rhs.row

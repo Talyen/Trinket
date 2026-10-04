@@ -46,3 +46,5 @@ class CodegenHomesteadTests(ScriptRegressionTestCase):
     def test_negative_homestead_cost_cannot_ship_a_free_upgrade(self) -> None:
         with self.assertRaisesRegex(ValueError, "non-negative"):
             homestead.validate_homestead_cost("wood:-10|stone:4", "wheatField-tier-1")
+        with self.assertRaisesRegex(ValueError, "at least one resource"):
+            homestead.validate_homestead_cost(" | | ", "wheatField-tier-1")

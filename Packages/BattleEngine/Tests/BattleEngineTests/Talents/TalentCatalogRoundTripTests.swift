@@ -5,30 +5,13 @@ import TrinketCore
 @testable import BattleEngine
 
 struct TalentCatalogRoundTripTests {
-    @Test func `catalog build matches every authored talent`() throws {
-        try #expect(CombatantTalentCatalog.validNodeIDsByCombatantID.values.contains { !$0.isEmpty })
-        for (combatantID, talentIDs) in CombatantTalentCatalog.validNodeIDsByCombatantID {
-            for talentID in talentIDs.sorted() {
-                try assertCatalogBuildMatchesAuthoredTalent(combatantID: combatantID, talentID: talentID)
+    @Test func `catalog profiles retain authored triggers and their names`() {
+        for (talentID, authored) in CombatantTalentCatalog.signatureTalents {
+            let profile = CombatantTalentCatalog.profile(for: [talentID])
+            #expect(profile.triggers == authored.triggers, "Triggers on \(talentID)")
+            for field in authored.triggers.populatedFieldNames {
+                #expect(profile.triggerAbilityName(field, fallback: "") == authored.name, "Name on \(talentID) \(field)")
             }
-        }
-    }
-
-    private func assertCatalogBuildMatchesAuthoredTalent(combatantID: String, talentID: String) throws {
-        let authored = try #require(CombatantTalentCatalog.effect(for: talentID), "missing talent \(talentID)")
-        let profile = CombatantTalentCatalog.profile(for: [talentID])
-        let build = try BattleTestFixtures.catalogBuild(combatantID: combatantID, talents: talentID)
-        try #expect(build.modifiers.triggers == authored.triggers, "triggers \(talentID)")
-        try #expect(build.modifiers.triggers == profile.triggers, "profile triggers \(talentID)")
-        try #expect(
-            build.modifiers.triggerAbilityNames == profile.triggerAbilityNames,
-            "trigger names \(talentID)",
-        )
-        for key in authored.triggers.populatedFieldNames {
-            try #expect(
-                build.modifiers.triggerAbilityName(key, fallback: "") == authored.name,
-                "ability name \(talentID) \(key)",
-            )
         }
     }
 

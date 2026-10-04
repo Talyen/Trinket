@@ -13,22 +13,6 @@ struct BattleStateTests {
         GameContent.companions.first { $0.id == "wolf" } ?? GameContent.companions[0]
     }
 
-    @Test func `combatant accessors follow roster definitions`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", name: "Hero", role: .hero)
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy)
-        let replacementEnemy = CombatantFixtures.combatant(
-            id: "replacement-enemy",
-            name: "Replacement Enemy",
-            role: .enemy,
-        )
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
-
-        battle.roster.enemy = CombatantRuntime(combatant: replacementEnemy)
-
-        try #expect(battle.enemy == replacementEnemy)
-    }
-
     @Test func `party not defeated when one member on deaths door`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 5)
         let companion = CombatantFixtures.passiveCompanion(maxHealth: 1)
@@ -160,7 +144,6 @@ struct BattleStateTests {
         try #expect(outcome.didApply)
         let ids = battle.activeEffects(of: battle.enemy).map(\.id)
         try #expect(Set(ids).count == ids.count)
-        try #expect(!(ids.contains(1) && ids.count(where: { $0 == 1 }) > 1))
         try #expect(ids.contains(2))
     }
 
@@ -206,34 +189,5 @@ struct BattleStateTests {
         try #expect(battle.health(of: battle.companion) == 20)
         try #expect(!(battle.isPartyDefeated))
         try #expect(!(battle.isEnemyDefeated))
-    }
-
-    @Test func `turn cadence tracks and resets state`() throws {
-        var cadence = BattleTurnCadence()
-        cadence.cardsPlayed[.hero] = 2
-        cadence.skillCardsPlayed[.hero] = 1
-        cadence.freezeCardsPlayed[.hero] = 1
-        cadence.burnManaRestored[.hero] = 3
-        cadence.spendManaDrawOwners.insert(.hero)
-        cadence.healthLossDrawOwners.insert(.hero)
-        cadence.goldDrawOwners.insert(.hero)
-
-        try #expect(cadence.cardsPlayed[.hero] == 2)
-        try #expect(cadence.skillCardsPlayed[.hero] == 1)
-        try #expect(cadence.freezeCardsPlayed[.hero] == 1)
-        try #expect(cadence.burnManaRestored[.hero] == 3)
-        try #expect(cadence.spendManaDrawOwners.contains(.hero))
-        try #expect(cadence.healthLossDrawOwners.contains(.hero))
-        try #expect(cadence.goldDrawOwners.contains(.hero))
-
-        cadence.reset()
-
-        try #expect(cadence.cardsPlayed.isEmpty)
-        try #expect(cadence.skillCardsPlayed.isEmpty)
-        try #expect(cadence.freezeCardsPlayed.isEmpty)
-        try #expect(cadence.burnManaRestored.isEmpty)
-        try #expect(cadence.spendManaDrawOwners.isEmpty)
-        try #expect(cadence.healthLossDrawOwners.isEmpty)
-        try #expect(cadence.goldDrawOwners.isEmpty)
     }
 }

@@ -115,21 +115,6 @@ struct LabyrinthProgressTests {
         #expect(second.labyrinth.worldSeed == 55)
     }
 
-    @Test func `completion grants gold and clears node`() throws {
-        var save = PlayerSave.fresh
-        save.labyrinth.ensureMap(seed: 17)
-        let nodeID = try #require(save.labyrinth.reachableNodeIDs().first)
-        let goldBefore = save.roster.gold
-        LabyrinthCompletion.complete(
-            nodeID: nodeID,
-            hero: save.roster.activeHero,
-            companion: save.roster.activeCompanion,
-            save: &save,
-        )
-        #expect(save.labyrinth.nodes[nodeID]?.isCleared == true)
-        #expect(save.roster.gold >= goldBefore)
-    }
-
     @Test(arguments: [false, true])
     func `completion grants battle experience only for combat nodes`(isCombat: Bool) throws {
         var save = PlayerSave.fresh
@@ -148,6 +133,7 @@ struct LabyrinthProgressTests {
                 save: &save,
             )
             let heroXPAfter = save.roster.progression(for: save.roster.activeHero)
+            #expect(save.labyrinth.nodes[combatID]?.isCleared == true)
             #expect(
                 heroXPAfter.level > heroXPBefore.level
                     || heroXPAfter.currentXP > heroXPBefore.currentXP,
@@ -444,48 +430,5 @@ extension LabyrinthProgressTests {
         )
 
         #expect(save.roster.gold == goldBefore + 7)
-    }
-
-    @Test func `completion clears node`() throws {
-        var save = PlayerSave.fresh
-        save.labyrinth.ensureMap(seed: 17)
-        let combatID = try #require(
-            save.labyrinth.reachableNodeIDs().first(where: {
-                save.labyrinth.nodes[$0]?.type.isCombat == true
-            }),
-        )
-        LabyrinthCompletion.complete(
-            nodeID: combatID,
-            hero: save.roster.activeHero,
-            companion: save.roster.activeCompanion,
-            save: &save,
-        )
-        #expect(save.labyrinth.nodes[combatID]?.isCleared == true)
-    }
-
-    @Test func `map payload round trips nodes`() throws {
-        let model = LabyrinthProgressModel()
-        model.worldSeed = 9
-        model.hasEntered = true
-        let node = LabyrinthNode(
-            id: "health-node",
-            type: .mystery,
-            depth: 1,
-            clusterID: "cluster",
-            isRevealed: true,
-        )
-        model.mapPayload = try JSONEncoder().encode(
-            LabyrinthMapPayload(clusters: [], nodes: [node]),
-        )
-        #expect(model.toPlayerLabyrinthState().nodes["health-node"]?.type == .mystery)
-
-        model.update(from: PlayerLabyrinthState(
-            worldSeed: 9,
-            hasEntered: true,
-            clusters: [],
-            nodes: [node.id: node],
-        ))
-        let reloaded = model.toPlayerLabyrinthState()
-        #expect(reloaded.nodes["health-node"]?.type == .mystery)
     }
 }

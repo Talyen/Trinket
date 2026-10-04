@@ -307,7 +307,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
-        guard triggers.freezeDamageGrantsBlock, amount > 0 else { return [] }
+        guard triggers.freezeDamageGrantsBlock, amount > 0, context.health(of: source) > 0 else { return [] }
         return context.applyBlock(
             amount,
             to: source,
@@ -379,13 +379,14 @@ package extension CombatTriggerEngine {
             }
         }
 
-        if profile.triggers.criticalGoldFlat > 0 {
+        if profile.triggers.criticalGoldFlat > 0, context.roster.health(for: source) > 0 {
             events.append(contentsOf: emitGold(
                 "criticalGoldFlat", "Cutpurse", amount: profile.triggers.criticalGoldFlat, to: source, in: &context,
             ))
         }
 
         if profile.triggers.criticalActionGoldFlat > 0,
+           context.roster.health(for: source) > 0,
            context.claimActionGuard(.criticalActionGold, actorID: source.id) {
             events.append(contentsOf: emitGold(
                 "criticalActionGoldFlat", "Lucky Clover",
@@ -426,6 +427,7 @@ package extension CombatTriggerEngine {
             context.roster.setActiveEffects(effects, for: enemy)
         }
         if profile.triggers.criticalVsStunnedEnemyGold > 0,
+           context.roster.health(for: source) > 0,
            context.roster.hasControlStatus(for: enemy, keyword: .stun) {
             events.append(contentsOf: context.grantGoldEvent(
                 profile.triggers.criticalVsStunnedEnemyGold,

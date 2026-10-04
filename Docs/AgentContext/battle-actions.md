@@ -35,7 +35,7 @@ preparation, consumption, and completion operations. `ResolvedActionFacts` is an
 card reactions, talents, and Uniques read its selected outcome and qualifying
 keywords, while talent execution results track what actually happened separately.
 Capture facts at preparation; evaluate later operation conditions at their existing
-execution checkpoints. Do not classify a played card from `possibleOperations` or
+execution checkpoints. Do not classify a played card from unresolved alternatives or
 reconstruct its outcome from another talent's bookkeeping. Keep these immutable
 records shared so nested actions do not copy their full payload onto the stack.
 `BattleActionContext` likewise shares immutable participants while preserving value
@@ -47,9 +47,9 @@ restoration still use their existing per-card and per-action claims.
 Ability definitions share immutable storage so nested automatic casts and combat
 snapshots do not copy the complete definition through each stack frame.
 `Ability.operations` is the authoritative ordered traversal for classification,
-empowerment, descriptions, and execution; `possibleOperations` includes unresolved
-outcomes. Deterministic conditional outcomes resolve once at action preparation,
-without RNG, and card assessment uses the same selection before quoting costs.
+empowerment, descriptions, and execution. Deterministic conditional outcomes resolve
+once at action preparation, without RNG, and card assessment uses the same selection
+before quoting costs.
 Random outcomes remain separate. Conditional guaranteed criticals snapshot their
 eligibility at preparation. `BattleActionContext`
 binds the selected target for an action and resolves allies/opponents relative to
@@ -126,7 +126,8 @@ Critically Hits; critical healing or Leech restoration cannot extend it.
 
 Combatant effect details include active talent preparations and readied Unique
 powers, including Wrenflight's temporary Dodge and accumulated Golden Crucible
-damage. Entries follow the same consumption and expiry rules as their bonuses.
+damage, Lesson Learned's protected debuff keywords, and Interdict's blocked buffs.
+Entries follow the same consumption and expiry rules as their bonuses.
 Full automatic Basic abilities use ordinary attack damage talents such as Razor
 Claws, Ground Slam, and Battering Ram; card-only cadences retain their restrictions.
 

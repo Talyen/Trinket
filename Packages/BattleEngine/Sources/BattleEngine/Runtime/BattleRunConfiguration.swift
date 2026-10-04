@@ -10,9 +10,6 @@ public struct BattleRunConfiguration: Identifiable {
         public let modifiers: CombatModifierProfile
         public let unlockedTalents: Set<String>
         public let startingHealth: Int?
-        public var baselineMaxHealth: Int {
-            CombatantMaxValues.maxHealth(for: combatant, modifiers: modifiers)
-        }
 
         public init(
             combatant: Combatant,

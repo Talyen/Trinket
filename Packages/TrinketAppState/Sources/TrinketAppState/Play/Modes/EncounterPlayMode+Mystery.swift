@@ -45,37 +45,23 @@ public extension EncounterPlayMode {
         if let paywall = mysteryPaywallMessage(for: session.event) {
             return paywall
         }
-        return finishOpeningMystery(
-            session,
-            origin: origin,
-            forcedEventID: forcedEventID,
-            pinnedLabyrinthEventID: inputs.pinnedLabyrinthEventID,
-            pinnedJourneyEventID: inputs.pinnedJourneyEventID,
-        )
+        return finishOpeningMystery(session, forcedEventID: forcedEventID)
     }
 
     /// Publishes only after the event pin and offers commit together. Recruit
     /// auto-resolution has its own transaction and retry path.
     private func finishOpeningMystery(
         _ session: MysteryEncounterSession,
-        origin: PlayEncounterOrigin,
         forcedEventID: String?,
-        pinnedLabyrinthEventID: String?,
-        pinnedJourneyEventID: String?,
     ) -> StageMapMessage? {
         if !session.event.isRecruit {
-            switch prepareMysteryEncounter(
-                session,
-                origin: origin,
-                pinnedLabyrinthEventID: pinnedLabyrinthEventID,
-                pinnedJourneyEventID: pinnedJourneyEventID,
-            ) {
+            switch prepareMysteryEncounter(session) {
             case let .committed(offers):
                 session.installOffers(offers)
             case .rejected:
                 return Self.mysteryPinFailureMessage
             case .persistFailed:
-                retryOpeningMystery(origin: origin, forcedEventID: forcedEventID)
+                retryOpeningMystery(origin: session.origin, forcedEventID: forcedEventID)
                 return nil
             }
         }
@@ -116,19 +102,14 @@ public extension EncounterPlayMode {
 
     private func prepareMysteryEncounter(
         _ session: MysteryEncounterSession,
-        origin: PlayEncounterOrigin,
-        pinnedLabyrinthEventID: String?,
-        pinnedJourneyEventID: String?,
     ) -> SaveTransactionResult<[MysteryOffer], MysteryChoiceFailure> {
         playerSave.persistTransaction(logging: "Failed to open mystery encounter") { save -> Result<
             [MysteryOffer],
             MysteryChoiceFailure,
         > in
             guard pinMysteryEventIfNeeded(
-                origin: origin,
+                origin: session.origin,
                 eventID: session.event.id,
-                pinnedLabyrinthEventID: pinnedLabyrinthEventID,
-                pinnedJourneyEventID: pinnedJourneyEventID,
                 save: &save,
             ) else { return .failure(.unavailable) }
             guard !session.isCorruptionAltar else { return .success([]) }
@@ -331,23 +312,20 @@ public extension EncounterPlayMode {
     private func pinMysteryEventIfNeeded(
         origin: PlayEncounterOrigin,
         eventID: String,
-        pinnedLabyrinthEventID: String?,
-        pinnedJourneyEventID: String?,
         save: inout PlayerSave,
     ) -> Bool {
         switch origin {
         case let .voyage(runID, nodeID):
-            guard pinnedLabyrinthEventID == nil else { return true }
+            guard save.voyage.node(runID: runID, nodeID: nodeID)?.mysteryEventID == nil else { return true }
             guard save.voyage.isPlayable(runID: runID, nodeID: nodeID) else { return false }
             save.voyage.updateNode(runID: runID, nodeID: nodeID) { $0.mysteryEventID = eventID }
             return true
         case let .labyrinth(nodeID):
-            guard pinnedLabyrinthEventID == nil else { return true }
             return MysteryEventPinApplier.pinLabyrinthEvent(
                 nodeID: nodeID, eventID: eventID, save: &save,
             )
         case let .journey(stage):
-            guard pinnedJourneyEventID == nil, stage.mysteryEvent == nil else { return true }
+            guard stage.mysteryEvent == nil else { return true }
             return MysteryEventPinApplier.pinJourneyEvent(
                 stageID: stage.id, eventID: eventID, save: &save,
             )

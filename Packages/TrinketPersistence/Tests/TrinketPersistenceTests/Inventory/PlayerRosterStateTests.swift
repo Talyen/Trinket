@@ -4,23 +4,7 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct PlayerRosterStateTests {
-    @Test func `set loadout overrides default ability choices`() throws {
-        var roster = PlayerRosterState.testSeed
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let customLoadout = AbilityLoadout(
-            basic: .bash,
-            skill: .smite,
-            ultimate: .avatarOfJustice,
-        )
-
-        roster.setLoadout(customLoadout, for: knight)
-        let configured = roster.configuredCombatant(knight)
-
-        try #expect(configured.abilityLoadout.skill?.id == "smite")
-        try #expect(configured.abilityLoadout.ultimate?.id == "avatar-of-justice")
-    }
-
-    @Test func `battle configured combatant includes all player ability tiers by default`() throws {
+    @Test func `configured combatant includes all selected player ability tiers`() throws {
         var roster = PlayerRosterState.freshStart
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let customLoadout = AbilityLoadout(
@@ -30,7 +14,7 @@ struct PlayerRosterStateTests {
         )
 
         roster.setLoadout(customLoadout, for: knight)
-        let configured = roster.battleConfiguredCombatant(knight)
+        let configured = roster.configuredCombatant(knight)
 
         try #expect(roster.loadout(for: knight).skill?.id == "sunder")
         try #expect(configured.abilityLoadout.basic?.id == "block")
@@ -39,10 +23,10 @@ struct PlayerRosterStateTests {
         try #expect(configured.abilities.map(\.id) == ["block", "sunder", "molten-bulwark"])
     }
 
-    @Test func `battle configured combatant does not filter enemy abilities`() throws {
+    @Test func `configured combatant retains enemy abilities`() throws {
         let roster = PlayerRosterState.freshStart
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configured = roster.battleConfiguredCombatant(enemy)
+        let configured = roster.configuredCombatant(enemy)
 
         try #expect(configured.abilityLoadout.skill?.tier == .skill)
         try #expect(configured.abilityLoadout.ultimate?.tier == .ultimate)

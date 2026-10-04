@@ -136,7 +136,7 @@ def main():
     schemes_dir = root / "Trinket.xcodeproj/xcshareddata/xcschemes"
     if not schemes_dir.is_dir():
         return 0
-    changed = []
+    updates = []
     for scheme, identifier in sorted(wanted.items()):
         if not (root / identifier).is_file():
             print(f"error: {spec_path}: scheme {scheme} run.storeKitConfiguration "
@@ -157,10 +157,11 @@ def main():
             print(f"error: {scheme_path}: {error}", file=sys.stderr)
             return 1
         if did_change:
-            scheme_path.write_text(updated)
-            changed.append(scheme)
-    for scheme in changed:
-        print(f"pinned StoreKit configuration for scheme {scheme}")
+            updates.append((scheme_path, updated))
+    # Validate every scheme before changing any of them.
+    for path, updated in updates:
+        path.write_text(updated)
+        print(f"pinned StoreKit configuration for scheme {path.stem}")
     return 0
 
 

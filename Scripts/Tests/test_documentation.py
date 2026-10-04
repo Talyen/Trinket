@@ -68,14 +68,17 @@ class DocumentationTests(ScriptRegressionTestCase):
                 "---\n\n# Plan\n",
                 encoding="utf-8",
             )
-            metadata, errors = self.check_docs.plan_metadata(valid)
+            metadata, errors = self.check_docs._check_plans.plan_metadata(valid)
             self.assertEqual(errors, [])
             self.assertEqual(metadata["status"], "active")
 
             blocked = root / "blocked.md"
             blocked.write_text(valid.read_text(encoding="utf-8").replace("status: active", "status: blocked"), encoding="utf-8")
-            _, errors = self.check_docs.plan_metadata(blocked)
+            _, errors = self.check_docs._check_plans.plan_metadata(blocked)
             self.assertIn("blocked plans require reason", errors)
+            blocked.write_text(valid.read_text().replace("status: active", "status: active\nstatus: blocked\nreason: pending"))
+            _, errors = self.check_docs._check_plans.plan_metadata(blocked)
+            self.assertIn("duplicate status", errors)
 
     def test_plan_checks_scope_closure_but_preserve_global_validation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -92,7 +95,7 @@ class DocumentationTests(ScriptRegressionTestCase):
             for name, content in {
                 "Scripts/Reference.md": "Scripts/change-classification.sh",
                 "Scripts/change-classification.sh": "",
-                "Scripts/config/ui-tests.tsv": "Smoke|SHELL|SmokeFixture|Shell|0|0\nFullUI||FullFixture|All|0|0\n",
+                "Scripts/config/ui-tests.tsv": "Smoke|SHELL|SmokeFixture\nFullUI||FullFixture\n",
                 "TrinketUITests/Smoke/Fixture.swift": "class SmokeFixture: TrinketUITestCase {}",
                 "TrinketUITests/Fixture.swift": "class FullFixture: TrinketUITestCase {}",
                 "Smoke.xctestplan": json.dumps({"testTargets": [{"automaticallyIncludesTests": False, "selectedTests": ["SmokeFixture"], "target": {"name": "TrinketUITests"}}]}),
@@ -223,18 +226,20 @@ class DocumentationTests(ScriptRegressionTestCase):
             self.assertIn("Scripts/deleted.sh", failures[0])
             self.assertIn("does not exist", failures[0])
 
-    def test_document_heading_cache_reuses_parsed_targets(self) -> None:
-        from unittest.mock import patch
+    def test_links_preserve_encoded_filenames_and_check_heading_destinations(self) -> None:
         links = load_script("review_links", "check-links.py")
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            target = root / "target.md"
+            target = root / "target #1.md"
             target.write_text("# Target\n")
             source = root / "source.md"
-            source.write_text("[one](target.md#target) [two](target.md#target)\n")
-            with patch.object(links, "ROOT", root), patch.object(links, "heading_slugs", wraps=links.heading_slugs) as parse:
+            source.write_text('[one](target%20%231.md#target) [two](<target %231.md>)\n'
+                              '[three](<target %231.md#target> "title") [empty]()\n'
+                              '[external](codex://threads/fixture)\n')
+            with patch.object(links, "ROOT", root):
                 self.assertEqual(links.broken_links([source]), [])
-                parse.assert_called_once_with(target.resolve())
+                source.write_text('[missing](target%20%231.md#absent)\n')
+                self.assertEqual(links.broken_links([source]), ['source.md:1: missing heading #absent'])
 
     def test_markdown_inventory_preserves_git_filenames_and_excludes_ignored_reports(self) -> None:
         links = load_script("documentation_inventory", "check-links.py")
@@ -292,7 +297,8 @@ class DocumentationTests(ScriptRegressionTestCase):
                   "Scripts/Tests/test_agent_investigate.py", "Scripts/Tests/test_agent_search.py"]
         self.assertEqual(select(["Scripts/agent-search.py", "Scripts/README.md"]), search)
         performance = select(["Scripts/compare-performance.py"])
-        self.assertIn("Scripts/Tests/test_exec_wrappers.py", performance)
+        self.assertIn("Scripts/Tests/test_compare_performance.py", performance)
+        self.assertNotIn("Scripts/Tests/test_exec_wrappers.py", performance)
         self.assertEqual(select(["Scripts/agent-search.py", "Scripts/compare-performance.py"]), sorted(set(search + performance)))
         self.assertLess(len(select(["Scripts/check-links.py"])), len(all_tests))
         for shared in ("Scripts/test-scripts.sh", "Scripts/new-script.py",
@@ -310,15 +316,13 @@ class DocumentationTests(ScriptRegressionTestCase):
                                    "Scripts/Tests/test_ci_handoff_routing.py",
                                    "Scripts/Tests/test_verification_policy.py",
                                    "Scripts/Tests/test_documentation.py",
-                                   "Scripts/Tests/test_exec_wrappers.py",
                                    "Scripts/Tests/test-lib-args.sh"},
             "Scripts/check-unused-assets.py": {"Scripts/Tests/test_check_unused_assets.py"},
             "Scripts/ci-path-filter.py": {"Scripts/Tests/test_ci_path_filter.py"},
             "Scripts/balance-sweep.sh": {"Scripts/Tests/test_balance_report_retention.py"},
             "Scripts/test-timing.py": {"Scripts/Tests/test_test_timing.py",
                                        "Scripts/Tests/test_ci_build_scripts.py"},
-            "Scripts/run-env.sh": {"Scripts/Tests/test_exec_wrappers.py",
-                                   "Scripts/Tests/test_ci_session_scripts.py",
+            "Scripts/run-env.sh": {"Scripts/Tests/test_ci_session_scripts.py",
                                    "Scripts/Tests/test_ci_build_scripts.py",
                                    "Scripts/Tests/test_build_process.py",
                                    "Scripts/Tests/test-run-env.sh"},
@@ -329,7 +333,6 @@ class DocumentationTests(ScriptRegressionTestCase):
             "Scripts/lint.sh": {"Scripts/Tests/test_build_artifacts.py",
                                 "Scripts/Tests/test_build_process.py",
                                 "Scripts/Tests/test_ci_build_scripts.py",
-                                "Scripts/Tests/test_exec_wrappers.py",
                                 "Scripts/Tests/test-lib-args.sh",
                                 "Scripts/Tests/test-lib-tempdir.sh"},
             "Scripts/assert-generated-output.sh": {"Scripts/Tests/test_project_generation.py",

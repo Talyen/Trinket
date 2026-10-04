@@ -11,24 +11,28 @@ package extension HealingEngine {
         in context: BattleState,
     ) -> Bool {
         let profile = context.modifiers(for: actor.id)
-        let actorCombatant = actor.combatant
-        return damageKeyword == .freeze && profile.triggers.freezeDamageLeech
-            || damageKeyword == .poison && profile.triggers.poisonDamageLeech
-            || damageKeyword == .poison && criticalAttack && profile.triggers.poisonCriticalHasLeech
-            || damageKeyword == .bleed && criticalAttack && profile.triggers.bleedCriticalHasLeech
-            || damageKeyword == .burn && profile.triggers.burnDamageLeech
-            || damageKeyword == .burn && profile.triggers.undyingEmber
-            && context.roster.isDeathsDoorActive(for: actorCombatant)
-            || damageKeyword == .bleed && profile.triggers.bleedDamageLeech
-            || damageKeyword == .bleed && attackHit
-            && actor.currentHealth > 0 && actor.maxHealth > 0
-            && Double(actor.currentHealth) / Double(actor.maxHealth)
-            < profile.triggers.bleedAttackLeechBelowHealthThreshold
-            || damageKeyword == .physical && attackHit
-            && actor.currentHealth > 0 && actor.currentHealth * 2 < actor.maxHealth
-            && profile.triggers.physicalAttackLeechBelowHalfHealth
-            || attackHit && profile.triggers.borrowedLife
-            && context.roster.isDeathsDoorActive(for: actorCombatant)
+        let triggers = profile.triggers
+        if attackHit, triggers.borrowedLife, context.roster.isDeathsDoorActive(for: actor.combatant) {
+            return true
+        }
+        switch damageKeyword {
+        case .freeze:
+            return triggers.freezeDamageLeech
+        case .poison:
+            return triggers.poisonDamageLeech || criticalAttack && triggers.poisonCriticalHasLeech
+        case .burn:
+            return triggers.burnDamageLeech
+                || triggers.undyingEmber && context.roster.isDeathsDoorActive(for: actor.combatant)
+        case .bleed:
+            return triggers.bleedDamageLeech || criticalAttack && triggers.bleedCriticalHasLeech
+                || attackHit && actor.currentHealth > 0 && actor.maxHealth > 0
+                && Double(actor.currentHealth) / Double(actor.maxHealth) < triggers.bleedAttackLeechBelowHealthThreshold
+        case .physical:
+            return attackHit && actor.currentHealth > 0 && actor.currentHealth * 2 < actor.maxHealth
+                && triggers.physicalAttackLeechBelowHalfHealth
+        default:
+            return false
+        }
     }
 
     // swiftlint:disable:next function_body_length cyclomatic_complexity - leech resolution is one atomic pipeline

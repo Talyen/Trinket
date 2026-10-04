@@ -10,7 +10,7 @@ enum CloudSaveReconciler {
     }
 
     static func resolve(_ request: CloudSaveRequest, against server: CloudServerSave?) throws -> Resolution {
-        _ = try request.revision.snapshot.restored()
+        let incomingSave = try request.revision.snapshot.restored()
         guard let server else {
             guard request.baseEpoch == nil else { throw CloudSaveError.missingHead }
             let head = CloudSaveHead(
@@ -39,7 +39,7 @@ enum CloudSaveReconciler {
             // Reset keeps the request's game content (gold/inventory included:
             // reset means fresh game, not wiped wallet) but zeroes the
             // production clock so no pre-reset pending production survives.
-            var resetSave = try request.revision.snapshot.restored()
+            var resetSave = incomingSave
             resetSave.homestead.lastProductionAt = server.serverTime
             resetSave.homestead.pendingProduction = [:]
             head.epoch = request.id
@@ -60,7 +60,7 @@ enum CloudSaveReconciler {
 
         switch request.action {
         case .upload:
-            return try reconcileUpload(request, existing: existing, head: head, settledSave: oldSave)
+            return try reconcileUpload(request, incomingSave: incomingSave, existing: existing, head: head, settledSave: oldSave)
         case .reset:
             throw CloudSaveError.conflict
         case .collect, .upgrade:
@@ -74,6 +74,7 @@ enum CloudSaveReconciler {
 
     private static func reconcileUpload(
         _ request: CloudSaveRequest,
+        incomingSave: PlayerSave,
         existing: CloudSaveHead,
         head: CloudSaveHead,
         settledSave: PlayerSave,
@@ -100,7 +101,6 @@ enum CloudSaveReconciler {
                 suffix: useIncoming ? "previous" : "incoming",
             ))
         }
-        let incomingSave = try incoming.snapshot.restored()
         let shouldMerge = concurrent || (request.baseEpoch == nil && incoming.snapshot.hasProgress && current.snapshot.hasProgress)
         let mutations = request.mutations ?? []
         var selected: PlayerSave

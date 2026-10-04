@@ -115,9 +115,12 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             "damage_below_health_percent:50:shadow:5",
             "turn_random_damage_all_enemies:burn:shadow",
             "bonusManaOnTurns:[1, banana]",
+            "bonusManaOnTurns:[1,,4]",
+            "bonusManaOnTurns:[,4]",
         ]:
             with self.subTest(token=token), self.assertRaises(ValueError):
                 content_codegen_triggers.triggers_swift(token)
+        self.assertIn('bonusManaOnTurns: [1, 4,]', content_codegen_triggers.triggers_swift('bonusManaOnTurns:[1, 4,]'))
 
     def test_boolean_aliases_and_canonical_fields_emit_swift_literals(self) -> None:
         for field in ("first_hit_double_damage", "firstHitDoubleDamage"):

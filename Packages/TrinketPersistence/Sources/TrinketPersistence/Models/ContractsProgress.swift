@@ -20,10 +20,13 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
 
     public init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        offers = try values.decode([ContractOffer].self, forKey: .offers)
-        completedOfferIDs = try values.decodeIfPresent(Set<String>.self, forKey: .completedOfferIDs)
-        refreshAvailable = try values.decodeIfPresent(Bool.self, forKey: .refreshAvailable) ?? false
-        highestWonEncounterLevel = try max(0, values.decodeIfPresent(Int.self, forKey: .highestWonEncounterLevel) ?? 0)
+        // Offers are regenerable. Recover independent milestones and receipts
+        // even when another field is damaged, using the same typed codec.
+        // PersistenceCheck: allow - Decode independent fields; corrupt data uses each field's recovery default.
+        offers = (try? values.decode([ContractOffer].self, forKey: .offers)) ?? []
+        completedOfferIDs = try? values.decode(Set<String>.self, forKey: .completedOfferIDs)
+        refreshAvailable = (try? values.decode(Bool.self, forKey: .refreshAvailable)) ?? false
+        highestWonEncounterLevel = max(0, (try? values.decode(Int.self, forKey: .highestWonEncounterLevel)) ?? 0)
     }
 
     public func offer(for difficulty: ContractDifficulty) -> ContractOffer? {
@@ -36,12 +39,15 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
     ) {
         self = sanitized()
         var excludedEnemyIDs = Set(offers.map(\.enemyID))
-        for difficulty in ContractDifficulty.allCases where offer(for: difficulty) == nil {
+        let previous = offers
+        offers = ContractDifficulty.allCases.map { difficulty in
+            if let offer = previous.first(where: { $0.difficulty == difficulty }) {
+                return offer
+            }
             let newOffer = makeOffer(difficulty, excludedEnemyIDs, eligibleModifiers)
             excludedEnemyIDs.insert(newOffer.enemyID)
-            offers.append(newOffer)
+            return newOffer
         }
-        offers = ContractDifficulty.allCases.compactMap { offer(for: $0) }
     }
 
     @discardableResult
@@ -120,22 +126,13 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
 
     static func decodePayload(_ data: Data?) -> Self {
         guard let data else { return .freshStart }
-        do {
-            return try JSONDecoder().decode(Self.self, from: data)
-        } catch {
-            // Offers are regenerable. Retain the independently earned quality
-            // milestone when an otherwise readable payload has damaged offers.
-            let fields: [String: Any]?
-            do {
-                fields = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-            } catch {
-                fields = nil
-            }
-            let level = fields?[CodingKeys.highestWonEncounterLevel.rawValue] as? Int ?? 0
-            let refreshAvailable = fields?[CodingKeys.refreshAvailable.rawValue] as? Bool ?? false
-            var repaired = Self(refreshAvailable: refreshAvailable, highestWonEncounterLevel: level)
-            repaired.completedOfferIDs = (fields?[CodingKeys.completedOfferIDs.rawValue] as? [String]).map { Set($0) }
-            return repaired
+        // PersistenceCheck: allow - Decode only; malformed payloads recover below with unknown claim history.
+        if let state = try? JSONDecoder().decode(Self.self, from: data) {
+            return state
         }
+        var recovered = Self()
+        // Unreadable data cannot establish that claim history was tracked.
+        recovered.completedOfferIDs = nil
+        return recovered
     }
 }

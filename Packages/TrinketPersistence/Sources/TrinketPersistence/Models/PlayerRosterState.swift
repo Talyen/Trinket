@@ -144,16 +144,6 @@ public struct PlayerRosterState: Equatable, Sendable {
         combatants.map(configuredCombatant)
     }
 
-    public func battleConfiguredCombatant(_ combatant: Combatant) -> Combatant {
-        let configured = configuredCombatant(combatant)
-        guard combatant.role != .enemy else { return configured }
-        return configured.withAbilityLoadoutPreservingEmptyTiers(configured.abilityLoadout)
-    }
-
-    public func battleConfiguredCombatants(_ combatants: [Combatant]) -> [Combatant] {
-        combatants.map(battleConfiguredCombatant)
-    }
-
     public func progression(for combatant: Combatant) -> CombatantProgression {
         progressions[combatant.id] ?? .initial
     }
@@ -293,13 +283,13 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public var heroes: [Combatant] {
-        battleConfiguredCombatants(
+        configuredCombatants(
             GameContent.heroes.filter { isUnlocked($0) },
         )
     }
 
     public var companions: [Combatant] {
-        battleConfiguredCombatants(
+        configuredCombatants(
             GameContent.companions.filter { isUnlocked($0) },
         )
     }
@@ -322,10 +312,10 @@ public struct PlayerRosterState: Equatable, Sendable {
 
     private func activeCombatant(id: String, role: Combatant.Role, catalog: [Combatant], starterID: String) -> Combatant {
         if let combatant = GameContent.combatant(matching: id), combatant.role == role, isUnlocked(combatant) {
-            return battleConfiguredCombatant(combatant)
+            return configuredCombatant(combatant)
         }
         if let firstUnlocked = catalog.first(where: { isUnlocked($0) }) {
-            return battleConfiguredCombatant(firstUnlocked)
+            return configuredCombatant(firstUnlocked)
         }
         if let starter = catalog.first(where: { $0.id == starterID }) ?? orderedCollectionCombatants(catalog).first {
             return starter

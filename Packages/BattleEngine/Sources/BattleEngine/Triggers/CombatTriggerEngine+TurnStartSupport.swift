@@ -17,7 +17,7 @@ extension CombatTriggerEngine {
             ))
         }
         if triggers.healthPerTurn > 0, context.isPlayerTurn(every: 2, startingAt: 1) {
-            let target = BattleTargetResolver.lowestHealthAlly(for: actor, in: context)
+            let target = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
             events.append(contentsOf: emitHeal(
                 "healthPerTurn", "Grove's Favor",
                 amount: triggers.healthPerTurn, to: target, source: actor, in: &context,

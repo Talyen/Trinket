@@ -187,6 +187,15 @@ printf cached > "$cache"
                        '   </LaunchAction>\n</Scheme>\n')
         command = ('python3', 'Scripts/apply-scheme-storekit.py',
                    '--project-root', str(self.root))
+        schemes = self.root / 'Trinket.xcodeproj/xcshareddata/xcschemes'
+        before = {path: path.read_bytes() for path in schemes.glob('*.xcscheme')}
+        broken = schemes / 'Trinket.xcscheme'
+        broken.write_text('<Scheme />\n')
+        self.run_command(*command, expected=1)
+        for path, content in before.items():
+            if path != broken:
+                self.assertEqual(path.read_bytes(), content, 'invalid later scheme must not partially update earlier schemes')
+        broken.write_bytes(before[broken])
         self.run_command(*command)
         for scheme in (self.root / 'Trinket.xcodeproj/xcshareddata/xcschemes').glob('*.xcscheme'):
             references = ET.parse(scheme).findall('./LaunchAction/StoreKitConfigurationFileReference')

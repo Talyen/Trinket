@@ -1,39 +1,18 @@
 import Foundation
 
-/// Text-search machinery for `Keyword` (highlighting + `referenced(in:)`).
-///
-/// Lives in its own file so the `Keyword` enum stays a data model
-/// (cases, categories, aliases, inflections, rules copy) while this file owns
-/// the compiled-regex singletons and matching behavior. Same module, same
-/// public API — a pure file move.
+/// Shared terms for text highlighting and keyword extraction.
 public extension Keyword {
     internal static let styledTerms: [(term: String, keyword: Self)] = {
-        var terms: [(String, Self)] = []
-        for keyword in allCases {
-            terms.append((keyword.rawValue, keyword))
-            if let alias = keyword.statusAlias {
-                terms.append((alias, keyword))
-            }
-            for inflection in keyword.inflections {
-                terms.append((inflection, keyword))
-            }
-        }
         var seen = Set<String>()
         var unique: [(String, Self)] = []
-        for (term, keyword) in terms {
-            let lower = term.lowercased()
-            if seen.insert(lower).inserted {
-                unique.append((term, keyword))
-            }
-            if term.contains("'") {
-                let curly = term.replacingOccurrences(of: "'", with: "’")
-                if seen.insert(curly.lowercased()).inserted {
-                    unique.append((curly, keyword))
-                }
-            } else if term.contains("’") {
-                let straight = term.replacingOccurrences(of: "’", with: "'")
-                if seen.insert(straight.lowercased()).inserted {
-                    unique.append((straight, keyword))
+        for keyword in allCases {
+            let terms = [keyword.rawValue] + [keyword.statusAlias].compactMap(\.self) + keyword.inflections
+            for term in terms {
+                let alternate = term.contains("'")
+                    ? term.replacingOccurrences(of: "'", with: "’")
+                    : term.replacingOccurrences(of: "’", with: "'")
+                for spelling in [term, alternate] where seen.insert(spelling.lowercased()).inserted {
+                    unique.append((spelling, keyword))
                 }
             }
         }

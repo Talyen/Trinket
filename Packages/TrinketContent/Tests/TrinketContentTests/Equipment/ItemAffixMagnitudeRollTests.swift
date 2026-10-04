@@ -4,6 +4,29 @@ import TrinketContentTestSupport
 import TrinketCore
 
 struct ItemAffixMagnitudeRollTests {
+    @Test(arguments: [("leeching", "double_axe", 26), ("vampiric", "ruby_ring", 13)])
+    func `saved Leech powers describe their rolled damage fraction without changing strength`(
+        affixID: String, baseID: String, displayedPercent: Int,
+    ) throws {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: affixID))
+        let old = ItemAffixPower(
+            description: "Leech restores 13% more Health.",
+            modifiers: [.leechGainedPercent(0.13), .maximumHealth(7)],
+            triggers: CombatTraitTriggers(healing: HealingTriggers(leechThornsWithoutThorns: 2)),
+        )
+        let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
+        let item = try ItemFixtures.makeBareItem(
+            baseID, affixes: [definition.resolved(for: .basic)], affixPowers: decoded,
+        )
+        let power = try #require(item.resolvedPower(at: 0))
+        let multiplier = item.baseType.affixPowerMultiplier
+        #expect(power.modifiers == old.scaled(by: multiplier).modifiers)
+        #expect(power.triggers == old.scaled(by: multiplier).triggers)
+        #expect(power.description == "Leech restores an additional \(displayedPercent)% of damage dealt.")
+        #expect(item.displayedAffixes.first?.description == power.description)
+        #expect(item.affixPowers == decoded)
+    }
+
     @Test func `integer ranges match the catalog formula`() {
         #expect(ItemAffixMagnitudeRoll.integerRange(around: 1) == 1 ... 2)
         #expect(ItemAffixMagnitudeRoll.integerRange(around: 2) == 1 ... 3)

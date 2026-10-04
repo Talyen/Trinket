@@ -80,6 +80,23 @@ public extension GameContent {
         )
     }
 
+    static func eligibleRecruitEvents(
+        unlockedHeroIDs: Set<String>,
+        unlockedCompanionIDs: Set<String>,
+        role: Combatant.Role? = nil,
+        access: ContentAccessPolicy = .fullGame,
+    ) -> [MysteryEvent] {
+        recruitEvents.filter { event in
+            guard let combatantID = event.unlockCombatantID,
+                  access.allowsCombatant(combatantID),
+                  !unlockedHeroIDs.contains(combatantID),
+                  !unlockedCompanionIDs.contains(combatantID)
+            else { return false }
+            guard let role else { return true }
+            return Self.combatant(matching: combatantID)?.role == role
+        }
+    }
+
     static func resolveRecruitEncounter(
         configuredEventID: String?,
         encounterID: String,
@@ -90,17 +107,13 @@ public extension GameContent {
     ) -> RecruitEncounterResolution {
         let roleFilter: Combatant.Role? =
             configuredEventID == StageEncounter.randomCompanionRecruitID ? .companion : nil
-        let eligible = RecruitEventPool.eligible(
+        let eligible = eligibleRecruitEvents(
             unlockedHeroIDs: unlockedHeroIDs,
             unlockedCompanionIDs: unlockedCompanionIDs,
             role: roleFilter,
-        ).filter { $0.unlockCombatantID.map(access.allowsCombatant) == true }
-        let configuredID = configuredEventID.flatMap { id -> String? in
-            guard !id.isEmpty, id != StageEncounter.randomCompanionRecruitID else { return nil }
-            return id
-        }
-        if let configuredID,
-           let configured = RecruitEventPool.event(matching: configuredID),
+            access: access,
+        )
+        if let configured = configuredEventID.flatMap({ recruitEvent(matching: $0) }),
            eligible.contains(configured) {
             return .recruit(configured)
         }

@@ -83,16 +83,6 @@ struct VoyageMapPresentationTests {
 }
 
 extension StageMapPresentationTests {
-    @Test func `boss and recruitment presentation are derived from live content`() {
-        let chapter = GameContent.chapters[0]
-        let recruit = chapter.stages[1]
-        let bosses = chapter.stages.filter(\.isBossEncounter)
-
-        #expect(recruit.encounterCombatantArtReference(worldSeed: 0) == nil)
-        #expect(recruit.encounterArtReference != nil)
-        #expect(bosses.count == 1)
-    }
-
     @Test func `campaign recruit stages always use mystery recruit scene art`() throws {
         let recruits = GameContent.chapters.flatMap(\.stages).filter {
             $0.encounter.recruitEventID != nil
@@ -104,6 +94,7 @@ extension StageMapPresentationTests {
                 stage.encounterArtReference,
                 "Recruit stage \(stage.id) should use mystery recruit scene art",
             )
+            #expect(stage.encounterCombatantArtReference(worldSeed: 0) == nil)
             #expect(
                 art.imageName == "encounter_mystery_recruit_heroes"
                     || art.imageName == "encounter_mystery_recruit_companions",
@@ -189,12 +180,17 @@ extension StageMapPresentationTests {
             context: .excludingCorruptionAltar,
         )
         #expect(!event.isRecruit)
-        if let artID = event.artID {
-            #expect(
-                ArtCatalog.encounterArtByID[artID] != nil
-                    || ArtCatalog.backgroundArtByID[artID] != nil,
-            )
-        }
+        let artID = try #require(event.artID, "Seeded mystery \(event.id) must provide scene art")
+        let art = try #require(ArtCatalog.encounterArtByID[artID])
+        let resolvedStage = Stage(
+            id: stage.id,
+            chapterID: stage.chapterID,
+            chapterNumber: stage.chapterNumber,
+            stageNumber: stage.stageNumber,
+            encounter: .mysteryEvent(eventID: event.id),
+            rewards: stage.rewards,
+        )
+        #expect(resolvedStage.encounterArtReference == art)
     }
 
     @Test func `spire rows hide cleared floors and end with boss before completion`() throws {
@@ -309,7 +305,7 @@ extension StageMapPresentationTests {
         )
     }
 
-    @Test func `labyrinth effective type falls back to mystery when no recruits remain`() {
+    @Test func `labyrinth exhausted recruit becomes mystery without recruit art`() {
         let node = LabyrinthNode(id: "recruit", type: .recruit, depth: 1, clusterID: "floor")
         #expect(
             LabyrinthMapPresentation.effectiveType(
@@ -319,94 +315,6 @@ extension StageMapPresentationTests {
                 unlockedCompanionIDs: Set(GameContent.companions.map(\.id)),
             ) == .mystery,
         )
-    }
-
-    @Test func `labyrinth effective type keeps A configured eligible recruit`() throws {
-        let event = GameContent.recruitEvents.first { $0.unlockCombatantID != nil }
-        let recruitEvent = try #require(event)
-        let node = LabyrinthNode(
-            id: "recruit-configured",
-            type: .recruit,
-            depth: 1,
-            clusterID: "floor",
-            recruitEventID: recruitEvent.id,
-        )
-        let lockedID = recruitEvent.unlockCombatantID
-        let unlockedHeroIDs = Set(GameContent.heroes.map(\.id)).subtracting(lockedID.map { [$0] } ?? [])
-        let unlockedCompanionIDs = Set(GameContent.companions.map(\.id)).subtracting(
-            lockedID.map { [$0] } ?? [],
-        )
-        #expect(
-            LabyrinthMapPresentation.effectiveType(
-                for: node,
-                worldSeed: 1,
-                unlockedHeroIDs: unlockedHeroIDs,
-                unlockedCompanionIDs: unlockedCompanionIDs,
-            ) == .recruit,
-        )
-    }
-
-    @Test func `labyrinth recruit encounter art uses seeded hero or companion scene`() throws {
-        let heroEvent = try #require(
-            GameContent.recruitEvents.first { event in
-                guard let combatant = GameContent.combatant(forMysteryEvent: event) else { return false }
-                return combatant.role == .hero
-            },
-        )
-        let companionEvent = try #require(
-            GameContent.recruitEvents.first { event in
-                guard let combatant = GameContent.combatant(forMysteryEvent: event) else { return false }
-                return combatant.role == .companion
-            },
-        )
-        let heroNode = LabyrinthNode(
-            id: "recruit-hero",
-            type: .recruit,
-            depth: 1,
-            clusterID: "floor",
-            recruitEventID: heroEvent.id,
-        )
-        let companionNode = LabyrinthNode(
-            id: "recruit-companion",
-            type: .recruit,
-            depth: 1,
-            clusterID: "floor",
-            recruitEventID: companionEvent.id,
-        )
-        let lockedHeroID = heroEvent.unlockCombatantID
-        let lockedCompanionID = companionEvent.unlockCombatantID
-        let heroUnlocks = (
-            Set(GameContent.heroes.map(\.id)).subtracting(lockedHeroID.map { [$0] } ?? []),
-            Set(GameContent.companions.map(\.id)),
-        )
-        let companionUnlocks = (
-            Set(GameContent.heroes.map(\.id)),
-            Set(GameContent.companions.map(\.id)).subtracting(lockedCompanionID.map { [$0] } ?? []),
-        )
-
-        let heroArt = try #require(
-            LabyrinthMapPresentation.recruitEncounterArtReference(
-                for: heroNode,
-                worldSeed: 1,
-                unlockedHeroIDs: heroUnlocks.0,
-                unlockedCompanionIDs: heroUnlocks.1,
-            ),
-        )
-        let companionArt = try #require(
-            LabyrinthMapPresentation.recruitEncounterArtReference(
-                for: companionNode,
-                worldSeed: 1,
-                unlockedHeroIDs: companionUnlocks.0,
-                unlockedCompanionIDs: companionUnlocks.1,
-            ),
-        )
-
-        #expect(heroArt.imageName == "encounter_mystery_recruit_heroes")
-        #expect(companionArt.imageName == "encounter_mystery_recruit_companions")
-    }
-
-    @Test func `labyrinth recruit encounter art is nil when pool falls back to mystery`() {
-        let node = LabyrinthNode(id: "recruit", type: .recruit, depth: 1, clusterID: "floor")
         #expect(
             LabyrinthMapPresentation.recruitEncounterArtReference(
                 for: node,
@@ -415,5 +323,42 @@ extension StageMapPresentationTests {
                 unlockedCompanionIDs: Set(GameContent.companions.map(\.id)),
             ) == nil,
         )
+    }
+
+    @Test(arguments: [Combatant.Role.hero, .companion])
+    func `labyrinth eligible recruit keeps its type and role scene`(role: Combatant.Role) throws {
+        let event = try #require(GameContent.recruitEvents.first {
+            GameContent.combatant(forMysteryEvent: $0)?.role == role
+        })
+        let lockedID = try #require(event.unlockCombatantID)
+        let node = LabyrinthNode(
+            id: "recruit-configured",
+            type: .recruit,
+            depth: 1,
+            clusterID: "floor",
+            recruitEventID: event.id,
+        )
+        let unlockedHeroIDs = Set(GameContent.heroes.map(\.id)).subtracting([lockedID])
+        let unlockedCompanionIDs = Set(GameContent.companions.map(\.id)).subtracting([lockedID])
+        #expect(
+            LabyrinthMapPresentation.effectiveType(
+                for: node,
+                worldSeed: 1,
+                unlockedHeroIDs: unlockedHeroIDs,
+                unlockedCompanionIDs: unlockedCompanionIDs,
+            ) == .recruit,
+        )
+        let art = try #require(
+            LabyrinthMapPresentation.recruitEncounterArtReference(
+                for: node,
+                worldSeed: 1,
+                unlockedHeroIDs: unlockedHeroIDs,
+                unlockedCompanionIDs: unlockedCompanionIDs,
+            ),
+        )
+        let expectedImageName = role == .hero
+            ? "encounter_mystery_recruit_heroes"
+            : "encounter_mystery_recruit_companions"
+        #expect(art.imageName == expectedImageName)
     }
 }

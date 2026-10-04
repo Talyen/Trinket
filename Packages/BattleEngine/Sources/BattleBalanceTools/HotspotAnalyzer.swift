@@ -29,6 +29,7 @@ public enum HotspotStatus: String, CaseIterable, Codable, Sendable {
 
 public struct NodeHotspotSummary: Equatable, Codable, Sendable {
     public var step: ModeProgressionStep
+    /// Decided samples used for the win rate and confidence interval.
     public var battles: Int
     public var wins: Int
     public var winRate: Double
@@ -50,22 +51,19 @@ public enum HotspotAnalyzer {
     public static let targetUpperBound = 0.95
 
     public static func analyze(records: [ProgressionBattleRecord]) -> [NodeHotspotSummary] {
-        var buckets: [String: (step: ModeProgressionStep, records: [ProgressionBattleRecord])] = [:]
-        for record in records {
-            var entry = buckets[record.step.id] ?? (record.step, [])
-            entry.records.append(record)
-            buckets[record.step.id] = entry
-        }
+        let buckets = Dictionary(grouping: records, by: \.step.id)
 
-        let summaries = buckets.values.map { step, recs in
+        let summaries = buckets.values.map { samples in
+            let step = samples[0].step
+            let recs = samples.filter(\.result.isDecided)
             let total = recs.count
-            let wins = recs.filter(\.result.isVictory).count
+            let wins = recs.count { $0.result.isVictory }
             let winRate = total == 0 ? 0.0 : Double(wins) / Double(total)
             let wilson = BalanceStatsAggregator.wilson(wins: wins, battles: total)
 
-            let avgPlayer = total == 0 ? 0.0 : Double(recs.reduce(0) { $0 + $1.playerLevel }) / Double(total)
-            let avgEnemy = total == 0 ? 0.0 : Double(recs.reduce(0) { $0 + $1.enemyLevel }) / Double(total)
-            let avgPowerRating = averageEnemyPowerRating(for: step, averageEnemyLevel: avgEnemy)
+            let avgPlayer = total == 0 ? 0.0 : recs.reduce(0.0) { $0 + Double($1.playerLevel) } / Double(total)
+            let avgEnemy = total == 0 ? 0.0 : recs.reduce(0.0) { $0 + Double($1.enemyLevel) } / Double(total)
+            let avgPowerRating = total == 0 ? 0 : averageEnemyPowerRating(for: step, averageEnemyLevel: avgEnemy)
             let levelGap = avgEnemy - avgPlayer
 
             let status: HotspotStatus
@@ -121,7 +119,7 @@ public enum HotspotAnalyzer {
         averageEnemyLevel: Double,
     ) -> Double {
         guard let enemy = GameContent.enemy(matching: step.enemyID) else { return 0 }
-        let level = max(1, Int(averageEnemyLevel.rounded()))
+        let level = max(1, CombatRounding.rounded(averageEnemyLevel))
         let snapshot = CombatantLevelScaler.powerRating(for: enemy, level: level)
         return Double(snapshot.maxHealth) * (1 + snapshot.rawDamagePercent)
     }

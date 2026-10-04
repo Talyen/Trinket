@@ -39,46 +39,38 @@ def unique_constants() -> list[str]:
     return sorted(value for value, count in counts.items() if count > 1)
 
 
-def raw_uitest_literals(allowed: set[str]) -> list[str]:
+def uitest_findings(allowed: set[str]) -> tuple[list[str], list[str]]:
     violations: list[str] = []
+    warnings: list[str] = []
     for path in sorted(UITESTS.rglob("*.swift")):
-        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        text = path.read_text(encoding="utf-8")
+        relative = path.relative_to(ROOT)
+        for line_number, line in enumerate(text.splitlines(), start=1):
             stripped = line.lstrip()
             if stripped.startswith("//"):
                 continue
             for value in RAW_QUERY.findall(line):
                 if value in allowed:
                     continue
-                if "AccessibilityID." in line:
-                    continue
-                relative = path.relative_to(ROOT)
                 violations.append(
                     f"{relative}:{line_number}: raw UITest identifier {value!r}; use AccessibilityID.*"
                 )
-    return violations
-
-
-def hittability_wrapper_warnings() -> list[str]:
-    violations: list[str] = []
-    for path in sorted(UITESTS.rglob("*.swift")):
-        text = path.read_text(encoding="utf-8")
         if "waitForExistence(timeout:" in text and "trinketWaitForExistence" not in text:
             if "XCTest" in text or "TrinketUITest" in text:
-                violations.append(
-                    f"{path.relative_to(ROOT)}: use trinketWaitForExistence(timeout:) for MainActor-safe waits"
+                warnings.append(
+                    f"{relative}: use trinketWaitForExistence(timeout:) for MainActor-safe waits"
                 )
-    return violations
+    return violations, warnings
 
 
 def main() -> int:
     failures = [f"duplicate AccessibilityID constant: {value}" for value in unique_constants()]
-    failures.extend(raw_uitest_literals(allowlist()))
-    if not failures:
-        warnings = hittability_wrapper_warnings()
-        if warnings:
-            print("Accessibility ID advisory:", file=sys.stderr)
-            for warning in warnings:
-                print(f"  {warning}", file=sys.stderr)
+    raw, warnings = uitest_findings(allowlist())
+    failures.extend(raw)
+    if not failures and warnings:
+        print("Accessibility ID advisory:", file=sys.stderr)
+        for warning in warnings:
+            print(f"  {warning}", file=sys.stderr)
     if failures:
         print("Accessibility ID check failed:", file=sys.stderr)
         for failure in failures:

@@ -64,7 +64,10 @@ def plan_metadata(path: Path) -> tuple[dict[str, str], list[str]]:
         if match is None:
             errors.append(f"invalid metadata line {line!r}")
             continue
-        metadata[match.group(1)] = match.group(2).strip()
+        key, value = match.groups()
+        if key in metadata:
+            errors.append(f"duplicate {key}")
+        metadata[key] = value.strip()
     for key in ("type", "status", "created", "updated", "expires"):
         if not metadata.get(key):
             errors.append(f"missing {key}")
@@ -137,10 +140,7 @@ def plan_failures(
                 f"{relative_plan}: {status} plans must be summarized in Docs/Plans/Archived/README.md and deleted"
             )
             continue
-        try:
-            expires = date.fromisoformat(metadata["expires"])
-        except ValueError:
-            continue
+        expires = date.fromisoformat(metadata["expires"])
         today = date.today()
         if expires <= today:
             DOC_WARNINGS.append(

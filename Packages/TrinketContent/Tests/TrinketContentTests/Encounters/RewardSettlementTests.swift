@@ -52,6 +52,13 @@ struct RewardSettlementTests {
         #expect(settlement.award.companionExperience == ExperienceScaling.cappedAward(49500, for: .at(level: 1)))
     }
 
+    @Test func `defeat experience avoids overflowing before division`() {
+        let progress = BattleDefeatProgress(remainingHealth: 1, maximumHealth: Int.max)
+        #expect(progress.experienceAward(from: Int.max) == (Int.max - 1) / 2)
+        #expect(progress.experienceAward(from: Int.min) == 0)
+        #expect(BattleDefeatProgress(remainingHealth: 0, maximumHealth: 3).experienceAward(from: 5) == 2)
+    }
+
     @Test func `defeat experience retains launch-baked bonuses`() {
         let progress = BattleDefeatProgress(remainingHealth: 50, maximumHealth: 100)
         let base = BattleRewardPlan(

@@ -107,21 +107,7 @@ public struct NodeModifierEffects: Equatable, Sendable {
     public var astralShopOffers: Bool
     public var rewardModifier: RewardModifier?
 
-    public static let zero = Self(
-        damageDealtBonus: [:],
-        damageTakenReduction: [:],
-        blockGainedBonus: 0,
-        leechGainedPercent: 0,
-        startBattleBlock: 0,
-        attackLeech: false,
-        attackBlockRemoval: 0,
-        attackPurgeCount: 0,
-        goldFoundPercent: 0,
-        experienceEarnedPercent: 0,
-        materialsFoundPercent: 0,
-        shopDiscountPercent: 0,
-        astralShopOffers: false,
-    )
+    public static let zero = Self(damageDealtBonus: [:])
 
     public init(
         damageDealtBonus: [Keyword: Int],

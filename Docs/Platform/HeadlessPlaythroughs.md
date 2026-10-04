@@ -136,7 +136,9 @@ but is deliberately omitted from the agent report. Retrieve only a named career
 and bounded evidence range when investigating a specific anomaly; do not dump a
 whole `actions.jsonl`, `.xcresult`, log, checkpoint, or store into agent context.
 
-Baseline comparison requires identical scenario settings and seed populations.
+Baseline comparison requires complete recorded scenario manifests, identical
+scenario settings, and unique matching seed populations; missing or ambiguous
+records are rejected.
 The policy may differ intentionally for a paired policy comparison. Reports retain
 paired outcomes and Gold effects; uncertainty uses careers, not correlated battles.
 The Wilson interval for careers reaching a victory is conditional on completed

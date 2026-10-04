@@ -15,15 +15,6 @@ struct AppStateTests {
         context = try AppTestContext()
     }
 
-    @Test func `default init selects play tab with fresh save`() throws {
-        let state = try context.makeAppState(environment: context.makeEnvironment())
-
-        #expect(state.selectedTab == .play)
-        #expect(state.playerSave.roster == .freshStart)
-        #expect(state.playerSave.inventory == .freshStart)
-        #expect(state.playerSave.starterSelection == .complete)
-    }
-
     @Test func `starter selection completes with chosen party and leaves Play at its root`() throws {
         let state = try context.makeAppState(environment: context.makeOnboardingEnvironment())
 
@@ -90,43 +81,32 @@ struct AppStateTests {
         #expect(playerSave.lastPersistenceError == nil)
     }
 
-    @Test func `collection detail launch screens map to collection presentations`() throws {
+    @Test(arguments: [
+        ("hero", "knight", CombatantDetailContext.Kind.hero),
+        ("companion", "wolf", .companion),
+    ])
+    func `collection combatant launch screens open the requested detail`(
+        screen: String, combatantID: String, kind: CombatantDetailContext.Kind,
+    ) throws {
         let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-launch-screen", "hero:knight"]),
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "\(screen):\(combatantID)"]),
         )
-
         #expect(state.selectedTab == .collection)
-        guard case let .collectionCombatant(detail) = state.pendingCollectionPresentation else {
+        guard case let .collectionCombatant(presentation) = state.pendingCollectionPresentation else {
             Issue.record("Expected pending collection combatant presentation")
             return
         }
-        assertCollectionDetail(
-            detail,
-            kind: .hero,
-            combatantID: "knight",
-        )
+        let detail = try #require(presentation)
+        #expect(detail.kind == kind)
+        #expect(detail.combatantID == combatantID)
+    }
 
-        let companionState = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-launch-screen", "companion:wolf"]),
-        )
-
-        #expect(companionState.selectedTab == .collection)
-        guard case let .collectionCombatant(detail) = companionState.pendingCollectionPresentation else {
-            Issue.record("Expected pending collection combatant presentation")
-            return
-        }
-        assertCollectionDetail(
-            detail,
-            kind: .companion,
-            combatantID: "wolf",
-        )
-
-        let itemState = try context.makeAppState(
+    @Test func `collection item launch screen opens the requested item`() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "item:shortsword-basic"]),
         )
-
-        #expect(itemState.selectedTab == .collection)
-        guard case let .collectionItem(itemID) = itemState.pendingCollectionPresentation else {
+        #expect(state.selectedTab == .collection)
+        guard case let .collectionItem(itemID) = state.pendingCollectionPresentation else {
             Issue.record("Expected pending collection item presentation")
             return
         }
@@ -202,38 +182,6 @@ struct AppStateTests {
         #expect(reloadedStore.roster == .freshStart)
     }
 
-    @Test func `seed test progress applies deterministic baseline`() throws {
-        let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-seed-test-progress"]),
-        )
-
-        #expect(state.playerSave.roster == .testSeed)
-        #expect(state.playerSave.inventory == .testSeed)
-    }
-
-    @Test func `progress status stays up while storage is degraded`() {
-        // A healthy store reports nothing, and a transient write failure still
-        // hides behind the silent retry.
-        #expect(AppState.statusMessage(for: nil, isDegraded: false) == nil)
-        #expect(AppState.statusMessage(for: .writeFailed, isDegraded: false) == nil)
-
-        // A later successful save clears the error but not the degradation, so
-        // the row must keep reporting the fallback store.
-        #expect(AppState.statusMessage(for: nil, isDegraded: true) != nil)
-        #expect(AppState.statusMessage(for: .writeFailed, isDegraded: true) != nil)
-
-        #expect(
-            AppState.statusMessage(for: .invalidSave("Save unreadable."), isDegraded: false)
-                == "Save unreadable.",
-        )
-        let unavailable = PlayerSavePersistenceError.storeUnavailable("Restoring progress on this device.")
-        #expect(
-            AppState.statusMessage(for: unavailable, isDegraded: false)
-                == "Restoring progress on this device.",
-        )
-        #expect(AppState.statusMessage(for: unavailable, isDegraded: true) == unavailable.statusMessage)
-    }
-
     @Test(arguments: [
         (stageIDs: "chapter-1-stage-1", known: true),
         (stageIDs: "missing-stage", known: false),
@@ -252,23 +200,5 @@ struct AppStateTests {
         } else {
             #expect(state.playerSave.journey == .initial)
         }
-    }
-
-    private func assertCollectionDetail(
-        _ detail: CombatantDetailContext?,
-        kind: CombatantDetailContext.Kind,
-        combatantID: String,
-        location: SourceLocation = #_sourceLocation,
-    ) {
-        guard let detail else {
-            Issue.record(
-                "Expected collection detail context",
-                sourceLocation: location,
-            )
-            return
-        }
-
-        #expect(detail.kind == kind, sourceLocation: location)
-        #expect(detail.combatantID == combatantID, sourceLocation: location)
     }
 }

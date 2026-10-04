@@ -73,7 +73,7 @@ class CodegenAbilitiesTests(ScriptRegressionTestCase):
                 self.assertEqual(logs[0].read_bytes(), payload * 1000)
                 self.assertFalse((root / "stamp").exists())
 
-    def test_successful_inventory_keeps_bytes_and_cleans_subprocess_log(self) -> None:
+    def test_inventory_publishes_only_complete_matching_catalogs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             payload = "id\tname\ttier\tsummary\nslash\tSlash\tbasic\tDeal damage\\nGain Block\n"
@@ -82,14 +82,33 @@ class CodegenAbilitiesTests(ScriptRegressionTestCase):
                 return subprocess.CompletedProcess(command, 0)
             with patch.object(abilities, "GENERATED_DIR", root), \
                  patch.object(abilities, "ABILITY_INVENTORY_STAMP", root / "stamp"), \
-                 patch.object(abilities, "parse_authored_ability_inventory_rows", return_value=[("slash", "Slash", "basic")]), \
+                 patch.object(abilities, "parse_authored_ability_inventory_rows", return_value=[("slash", "Slash", "basic")]) as authored, \
                  patch.object(abilities, "_ability_inventory_digest", return_value="digest"), \
                  patch.object(abilities.subprocess, "run", side_effect=run), \
-                 patch.dict(os.environ, {"RESULTS_DIR": str(root / "logs")}):
+                 patch.dict(os.environ, {"RESULTS_DIR": str(root / "logs"), "TRINKET_FORCE_ABILITY_DUMP": "1"}):
                 abilities.generate_ability_inventory()
-            self.assertEqual((root / "AbilityInventory.generated.tsv").read_text(), payload)
-            self.assertEqual((root / "stamp").read_text(), "digest")
-            self.assertEqual(list((root / "logs").iterdir()), [])
+                published = (root / "AbilityInventory.generated.tsv").read_bytes()
+                self.assertEqual(published.decode(), payload)
+                self.assertEqual((root / "stamp").read_text(), "digest")
+                self.assertEqual(list((root / "logs").iterdir()), [])
+
+                for invalid in (
+                    payload.replace("slash\t", "missing\t"),
+                    payload.replace("\tbasic\t", "\tskill\t"),
+                    payload + payload.splitlines()[1] + "\n",
+                ):
+                    with self.subTest(invalid=invalid):
+                        payload = invalid
+                        with self.assertRaises(RuntimeError):
+                            abilities.generate_ability_inventory()
+                        self.assertEqual((root / "AbilityInventory.generated.tsv").read_bytes(), published)
+                        self.assertEqual((root / "stamp").read_text(), "digest")
+
+                payload = published.decode()
+                authored.return_value *= 2
+                with self.assertRaisesRegex(RuntimeError, "duplicate IDs"):
+                    abilities.generate_ability_inventory()
+                self.assertEqual((root / "AbilityInventory.generated.tsv").read_bytes(), published)
 
     def test_tier_sources_share_authored_locations_and_reject_duplicate_symbols(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

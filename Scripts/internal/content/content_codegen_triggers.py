@@ -208,20 +208,6 @@ def _apply_bespoke_trigger(token: str, values: dict[str, str]) -> bool:
     return True
 
 
-@functools.cache
-def _trigger_schema_info() -> tuple[dict[str, str], list[str], dict[str, str]]:
-    families = _trigger_families()
-    field_group = {
-        field["name"]: family["family"]
-        for family in families
-        for field in family["fields"]
-    }
-    group_order = [family["family"] for family in families]
-    family_types = {family["family"]: family["file_stem"] for family in families}
-    return field_group, group_order, family_types
-
-
-@functools.cache
 def _trigger_field_types() -> dict[str, str]:
     return {
         field["name"]: field["type"]
@@ -230,8 +216,7 @@ def _trigger_field_types() -> dict[str, str]:
     }
 
 
-def _validate_trigger_value(field: str, raw_value: str, row_id: str) -> None:
-    field_type = _trigger_field_types().get(field)
+def _validate_trigger_value(field: str, field_type: str | None, raw_value: str, row_id: str) -> str:
     if field_type is None:
         raise ValueError(f"Unknown trigger field: {field}")
     value = raw_value.strip()
@@ -241,8 +226,8 @@ def _validate_trigger_value(field: str, raw_value: str, row_id: str) -> None:
         "Bool": parse_typed_bool,
     }
     if field_type in scalar_parsers:
-        scalar_parsers[field_type](value, f"{field} for {row_id}")
-        return
+        parsed = scalar_parsers[field_type](value, f"{field} for {row_id}")
+        return ("true" if parsed else "false") if field_type == "Bool" else raw_value
     if field_type == "Keyword?":
         if not value.startswith(".") or value[1:] not in VALID_KEYWORDS:
             raise ValueError(
@@ -256,20 +241,16 @@ def _validate_trigger_value(field: str, raw_value: str, row_id: str) -> None:
                 f"Trigger value for {field} for {row_id} must be an integer list like [1, 4], "
                 f"got {raw_value!r}"
             )
-        for part in inner.split(","):
-            if not part.strip():
-                continue
-            try:
-                int(part.strip())
-            except ValueError as error:
-                raise ValueError(
-                    f"Trigger value for {field} for {row_id} must be an integer list, "
-                    f"got {raw_value!r}"
-                ) from error
+        parts = inner.split(",") if inner.strip() else []
+        if parts and not parts[-1].strip():
+            parts.pop()  # Swift permits one trailing comma.
+        for part in parts:
+            parse_typed_int(part, f"{field} for {row_id}")
+    return raw_value
 
 
 def parse_trigger_values(raw: str, row_id: str = "") -> dict[str, str]:
-    known_fields = set(_trigger_field_types())
+    field_types = _trigger_field_types()
     label = row_id or "triggers"
     seen_fields: dict[str, str] = {}
     values: dict[str, str] = {}
@@ -284,7 +265,7 @@ def parse_trigger_values(raw: str, row_id: str = "") -> dict[str, str]:
                 if any(not part for part in parts):
                     raise ValueError(f"Malformed trigger token {token!r}: empty snake_case segment")
                 field = parts[0] + "".join(part.title() for part in parts[1:])
-            if field not in known_fields:
+            if field not in field_types:
                 raise ValueError(f"Unknown trigger token: {token}")
             if re.search(r",[A-Za-z_][A-Za-z0-9_]*:", value):
                 raise ValueError(f"Glued trigger token {token!r}; separate fields with |")
@@ -298,31 +279,18 @@ def parse_trigger_values(raw: str, row_id: str = "") -> dict[str, str]:
             seen_fields[field] = token
         values.update(resolved)
     for field, raw_value in values.items():
-        _validate_trigger_value(field, raw_value, label)
-        if _trigger_field_types()[field] == "Bool":
-            values[field] = "true" if parse_typed_bool(raw_value, label) else "false"
+        values[field] = _validate_trigger_value(field, field_types.get(field), raw_value, label)
     return values
 
 
 def triggers_swift(raw: str, row_id: str = "") -> str:
-    field_group, group_order, family_types = _trigger_schema_info()
     values = parse_trigger_values(raw, row_id)
-    grouped: dict[str, list[str]] = {g: [] for g in group_order}
-    for label in values:
-        try:
-            grouped[field_group[label]].append(label)
-        except KeyError as error:
-            raise ValueError(f"Unknown trigger field: {label}") from error
     parts = []
-    for g in group_order:
-        fields = grouped[g]
-        if not fields:
-            continue
-        gtype = family_types[g]
-        inner = ", ".join(f"{label}: {values[label]}" for label in fields)
-        parts.append(f"{g}: {gtype}({inner})")
-    if not parts:
-        return "CombatTraitTriggers()"
+    for family in _trigger_families():
+        fields = {field["name"] for field in family["fields"]}
+        inner = ", ".join(f"{label}: {value}" for label, value in values.items() if label in fields)
+        if inner:
+            parts.append(f"{family['family']}: {family['file_stem']}({inner})")
     return "CombatTraitTriggers(" + ", ".join(parts) + ")"
 
 

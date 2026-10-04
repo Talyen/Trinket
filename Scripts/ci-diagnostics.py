@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
@@ -12,42 +13,21 @@ from pathlib import Path
 
 from ci_ui_retry import recovery_valid
 
-from internal.diagnostics.diagnostic_limits import MAX_AGGREGATE_ISSUES, MAX_DETAIL_CHARS, MAX_DETAIL_LINES, MAX_LABELS_IN_DETAIL, MAX_LINE_CHARS, MAX_MESSAGE_CHARS
+from internal.diagnostics.diagnostic_limits import MAX_AGGREGATE_ISSUES, MAX_LABELS_IN_DETAIL, MAX_MESSAGE_CHARS
 from internal.diagnostics.diagnostic_model import CLASSIFICATION_PRECEDENCE, bounded_text
 
-FULL_REPORT = False
-SESSION_ID = ""
-results_dir = Path.cwd()
-output_path = Path.cwd() / "ci-diagnostics.json"
 
+def parse_args(argv: list[str], environ: dict[str, str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--full', action='store_true')
+    parser.add_argument('results_dir', type=Path)
+    parser.add_argument('output_path', type=Path)
+    args = parser.parse_args(argv)
+    args.results_dir = args.results_dir.resolve()
+    args.output_path = args.output_path.resolve()
+    args.session_id = environ.get('TRINKET_DIAGNOSTICS_SESSION_ID', '').strip()
+    return args
 
-def parse_args(argv: list[str], environ: dict[str, str]) -> None:
-    """Parse CLI into module config. Raises SystemExit on usage errors.
-
-    Kept as explicit globals (assigned once from main) so the pure report
-    helpers below keep their signatures; nothing executes on import.
-    """
-    global FULL_REPORT, SESSION_ID, results_dir, output_path
-    FULL_REPORT = False
-    args = list(argv)
-    SESSION_ID = environ.get("TRINKET_DIAGNOSTICS_SESSION_ID", "").strip()
-    while args and args[0].startswith("--"):
-        option = args.pop(0)
-        if option == "--full":
-            FULL_REPORT = True
-        else:
-            print(f"Unknown argument: {option}", file=sys.stderr)
-            raise SystemExit(1)
-
-    if len(args) < 2:
-        print(
-            "Usage: ci-diagnostics.py [--full] <RESULTS_DIR> <OUTPUT_PATH>",
-            file=sys.stderr,
-        )
-        raise SystemExit(1)
-
-    results_dir = Path(args[0]).resolve()
-    output_path = Path(args[1]).resolve()
 
 # Classification precedence is owned by diagnostic_model (single source); the
 # order keeps the aggregate category useful when a build emits more than one
@@ -73,26 +53,26 @@ def iso_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _resolve_bundle_candidates(value: object) -> list[Path]:
+def _resolve_bundle_candidates(value: str, results_dir: Path | None = None) -> list[Path]:
     candidate = Path(value).expanduser()
     candidates = [candidate]
     if not candidate.is_absolute():
-        candidates.extend((results_dir / candidate, Path.cwd() / candidate))
+        candidates.extend(((results_dir or Path.cwd()) / candidate, Path.cwd() / candidate))
     return candidates
 
 
-def result_bundle_exists(value: object) -> bool:
+def result_bundle_exists(value: object, results_dir: Path | None = None) -> bool:
     """Resolve a reporter's result bundle path without reparsing it."""
     if not isinstance(value, str) or not value.strip():
         return False
-    return any(path.is_dir() for path in _resolve_bundle_candidates(value))
+    return any(path.is_dir() for path in _resolve_bundle_candidates(value, results_dir))
 
 
-def result_bundle_complete(value: object) -> bool:
+def result_bundle_complete(value: object, results_dir: Path | None = None) -> bool:
     """A finalized xcresult has a root Info.plist; partial watchdog output does not."""
     if not isinstance(value, str) or not value.strip():
         return False
-    return any((path / "Info.plist").is_file() for path in _resolve_bundle_candidates(value))
+    return any((path / "Info.plist").is_file() for path in _resolve_bundle_candidates(value, results_dir))
 
 
 def watchdog_log_proves_pass(manifest: dict, status: str, exit_code: int) -> bool:
@@ -149,15 +129,15 @@ def normalized_issue(issue: object) -> dict:
         "line": line,
         "test": str(issue.get("test", "")),
         "details": bounded_details,
-        "details_truncated": details_truncated or issue.get("details_truncated") is True,
+        "details_truncated": details_truncated,
         "attachments": [str(item) for item in attachments],
     }
 
 
-def resolve_reference(value: object) -> Path | None:
+def resolve_reference(value: object, results_dir: Path) -> Path | None:
     if not isinstance(value, str) or not value.strip():
         return None
-    candidates = _resolve_bundle_candidates(value)
+    candidates = _resolve_bundle_candidates(value, results_dir)
     for path in candidates:
         if path.exists():
             return path.resolve()
@@ -190,6 +170,8 @@ def normalise_report(
     *,
     manifest_path: Path | None = None,
     manifest: dict | None = None,
+    results_dir: Path | None = None,
+    full: bool = False,
 ) -> dict:
     payload = payload or {}
     manifest = manifest or {}
@@ -207,8 +189,8 @@ def normalise_report(
         else:
             status = "failed" if exit_code != 0 else "unknown"
     result_bundle = manifest.get("result_bundle", payload.get("result_bundle", ""))
-    has_result_bundle = result_bundle_exists(result_bundle)
-    has_complete_result_bundle = result_bundle_complete(result_bundle)
+    has_result_bundle = result_bundle_exists(result_bundle, results_dir)
+    has_complete_result_bundle = result_bundle_complete(result_bundle, results_dir)
     has_watchdog_proof = watchdog_log_proves_pass(manifest, status, exit_code)
     has_build_proof = successful_build(manifest)
     report_exists = path is not None and path.is_file()
@@ -227,7 +209,7 @@ def normalise_report(
     raw_issues = payload.get("issues", [])
     if not isinstance(raw_issues, list):
         raw_issues = []
-    if FULL_REPORT:
+    if full:
         issues = [dict(issue) if isinstance(issue, dict) else normalized_issue(issue) for issue in raw_issues]
     else:
         issues = [normalized_issue(issue) for issue in raw_issues]
@@ -270,14 +252,14 @@ def normalise_report(
     return invocation
 
 
-def load_reports() -> tuple[list[dict], int, bool, int, str, int]:
+def load_reports(results_dir: Path, output_path: Path, session_id: str, full: bool) -> tuple[list[dict], int, bool, int, str, int]:
     """Load current invocation manifests, falling back to reports for legacy callers.
 
     The final value counts the distinct non-empty session ids present in the
     directory, so shared tenants can warn when stale sessions dilute triage.
     """
     manifests = [(path, *read_json(path)) for path in sorted(results_dir.glob("*-invocation.json"))]
-    selected_session = SESSION_ID
+    selected_session = session_id
     distinct_sessions: set[str] = set()
     if manifests and not selected_session:
         session_candidates: list[tuple[str, str]] = []
@@ -309,18 +291,18 @@ def load_reports() -> tuple[list[dict], int, bool, int, str, int]:
                         None,
                         None,
                         manifest_path=manifest_path,
-                        manifest={},
+                        manifest={}, results_dir=results_dir, full=full,
                     )
                 )
                 continue
-            diagnostics_path = resolve_reference(manifest.get("diagnostics_json"))
+            diagnostics_path = resolve_reference(manifest.get("diagnostics_json"), results_dir)
             report_path = diagnostics_path
             payload = None
             manifest_passed = (
                 str(manifest.get("status", "")).strip().lower() == "passed"
                 and as_exit_code(manifest.get("exit_code", 1)) == 0
                 and (
-                    result_bundle_complete(manifest.get("result_bundle", ""))
+                    result_bundle_complete(manifest.get("result_bundle", ""), results_dir)
                     or watchdog_log_proves_pass(manifest, "passed", 0)
                     or successful_build(manifest)
                 )
@@ -341,7 +323,7 @@ def load_reports() -> tuple[list[dict], int, bool, int, str, int]:
                     report_path,
                     payload,
                     manifest_path=manifest_path,
-                    manifest=manifest,
+                    manifest=manifest, results_dir=results_dir, full=full,
                 )
             )
         return reports, parse_errors, True, missing_diagnostics, selected_session, len(distinct_sessions)
@@ -356,17 +338,18 @@ def load_reports() -> tuple[list[dict], int, bool, int, str, int]:
         if not valid:
             parse_errors += 1
             continue
-        reports.append(normalise_report(path, payload))
+        reports.append(normalise_report(path, payload, results_dir=results_dir, full=full))
     return reports, parse_errors, False, 0, selected_session, len(distinct_sessions)
-
-
 
 
 def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -> int:
     """Aggregate invocation diagnostics. Pure orchestration; safe to import."""
-    parse_args(list(sys.argv[1:] if argv is None else argv), dict(os.environ) if environ is None else environ)
+    environ = dict(os.environ) if environ is None else environ
+    args = parse_args(list(sys.argv[1:] if argv is None else argv), environ)
+    results_dir, output_path = args.results_dir, args.output_path
+    full = args.full
 
-    reports, parse_errors, manifests_present, missing_diagnostics_invocations, selected_session, distinct_session_count = load_reports()
+    reports, parse_errors, manifests_present, missing_diagnostics_invocations, selected_session, distinct_session_count = load_reports(results_dir, output_path, args.session_id, full)
     recorded_invocations = len(reports)
     failed_reports = [report for report in reports if report["failed"]]
     missing_result_invocations = sum(1 for report in reports if not report["result_bundle_exists"] and report["action"] not in {"build", "build-for-testing"})
@@ -438,7 +421,7 @@ def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -
     # session id the aggregate silently covers only the newest one. Say so instead
     # of letting a green summary hide stale red state (or the reverse).
     session_warning = ""
-    if manifests_present and not SESSION_ID and distinct_session_count > 1:
+    if manifests_present and not args.session_id and distinct_session_count > 1:
         session_warning = (
             f"{distinct_session_count} diagnostics sessions share this results directory; "
             "this aggregate covers only the newest session. Scope with "
@@ -468,32 +451,22 @@ def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -
 
 
     aggregate_issues = []
-    seen_issues: set[tuple[str, str, str]] = set()
+    issues_by_key: dict[tuple[str, str, str], dict] = {}
     for report in reports:
         for issue in report.get("issues", []):
-            if FULL_REPORT:
+            if full:
                 aggregate_issues.append({"label": report["label"], **issue})
                 continue
-            key = (
-                report["label"],
-                str(issue.get("id", "unknown")),
-                str(issue.get("message", "")),
-            )
-            if key in seen_issues:
-                for existing in aggregate_issues:
-                    if (
-                        existing.get("label"),
-                        str(existing.get("id", "unknown")),
-                        str(existing.get("message", "")),
-                    ) == key:
-                        existing["occurrences"] = int(existing.get("occurrences", 1)) + 1
-                        break
-                continue
-            seen_issues.add(key)
-            aggregate_issues.append({"label": report["label"], "occurrences": 1, **normalized_issue(issue)})
+            key = (report["label"], str(issue.get("id", "unknown")), str(issue.get("message", "")))
+            if key in issues_by_key:
+                issues_by_key[key]["occurrences"] += 1
+            else:
+                grouped = {**issue, "label": report["label"], "occurrences": 1}
+                issues_by_key[key] = grouped
+                aggregate_issues.append(grouped)
 
     aggregate_issues_total = len(aggregate_issues)
-    if not FULL_REPORT:
+    if not full:
         aggregate_issues = aggregate_issues[:MAX_AGGREGATE_ISSUES]
 
     generated_at = iso_now()
@@ -522,7 +495,7 @@ def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -
             "missing_diagnostics": missing_diagnostics_invocations,
             "by_classification": by_classification,
         },
-        "invocations": reports if FULL_REPORT else [compact_invocation(report) for report in reports],
+        "invocations": reports if full else [compact_invocation(report) for report in reports],
         "issues": aggregate_issues,
         "issues_total": aggregate_issues_total,
         "issues_truncated": aggregate_issues_total > MAX_AGGREGATE_ISSUES,
@@ -534,8 +507,8 @@ def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -
         handle.write("\n")
 
     print(f"CI diagnostic category: {category} — {detail}")
-    if os.environ.get("GITHUB_STEP_SUMMARY"):
-        summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
+    if environ.get("GITHUB_STEP_SUMMARY"):
+        summary_path = Path(environ["GITHUB_STEP_SUMMARY"])
         with summary_path.open("a", encoding="utf-8") as summary:
             summary.write("## CI diagnostics\n\n")
             summary.write(f"- **Category:** `{category}`\n")

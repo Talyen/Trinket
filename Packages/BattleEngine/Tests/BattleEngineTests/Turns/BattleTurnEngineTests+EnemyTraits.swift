@@ -57,7 +57,7 @@ extension BattleTurnEngineTests {
         var context = try enemyTraitContext("plague_doctor")
         let enemy = context.enemy
         context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 39 }
-        let target = BattleTargetResolver.abilityTarget(for: enemy, in: context)
+        let target = BattleActionContext(actor: enemy, in: context).selectedTarget
 
         let events = BattleTurnEngine.performAction(
             ability: .poisonDagger, actor: enemy, abilityTarget: target, context: &context,

@@ -250,16 +250,6 @@ public struct Ability: Identifiable, Hashable, Sendable {
         }
     }
 
-    public func resolvingOutcomeBranch(
-        using rng: inout some RandomNumberGenerator,
-    ) -> Self {
-        guard let branches = outcomeBranches, !branches.isEmpty else {
-            return self
-        }
-        let index = Int.random(in: 0 ..< branches.count, using: &rng)
-        return resolving(branch: branches[index], using: &rng)
-    }
-
     public func resolving(
         branch: AbilityOutcomeBranch,
         using rng: inout some RandomNumberGenerator,

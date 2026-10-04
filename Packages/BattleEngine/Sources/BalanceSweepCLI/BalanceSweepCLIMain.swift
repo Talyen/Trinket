@@ -137,6 +137,7 @@ enum CLIError: Error, CustomStringConvertible {
     case invalidTier(String)
     case invalidMode(String)
     case invalidPolicy(String)
+    case invalidPacing(String)
     case emptyFilter
 
     var description: String {
@@ -155,6 +156,8 @@ enum CLIError: Error, CustomStringConvertible {
             "invalid mode \(raw)"
         case let .invalidPolicy(raw):
             "invalid policy \(raw); use greedy-v1 or setup-v1"
+        case let .invalidPacing(raw):
+            "--pacing invalid value \(raw); use on or off"
         case .emptyFilter:
             "--hero/--companion/--enemy matched no combatants"
         }

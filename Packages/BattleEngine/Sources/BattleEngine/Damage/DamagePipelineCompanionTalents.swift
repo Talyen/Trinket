@@ -162,7 +162,7 @@ package extension DamagePipeline {
               context.roster.combatant(for: sourceActorID)?.role == .companion
         else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
-        if state.options.isAttackHit, state.targetStatus.isBleeding,
+        if state.targetStatus.isBleeding,
            context.roster.health(for: state.combatant) * 2 < context.roster.maxHealth(for: state.combatant),
            triggers.attackVsBleedingBelowHalfMultiplier > 1 {
             state.remaining = CombatRounding.scaled(
@@ -180,7 +180,7 @@ package extension DamagePipeline {
            context.consumeTalentPreparation(\.doubleNextBleedAttack, for: source.combatant) == true {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
         }
-        if state.options.isAttackHit, state.damageKeyword == .physical, state.targetStatus.isStunned,
+        if state.damageKeyword == .physical, state.targetStatus.isStunned,
            triggers.physicalDamageVsStunnedMultiplier > 1 {
             state.remaining = CombatRounding.scaled(
                 state.remaining, multiplier: triggers.physicalDamageVsStunnedMultiplier,

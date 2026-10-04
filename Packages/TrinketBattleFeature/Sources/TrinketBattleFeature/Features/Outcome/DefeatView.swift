@@ -8,6 +8,7 @@ import TrinketFeatureSupport
 struct DefeatView: View {
     let configuration: BattleRunConfiguration
     let settlement: BattleRewardSettlement
+    let didRetreat: Bool
     let onAction: (BattleDefeatAction) -> Bool
 
     @State private var isCompleting = false
@@ -17,7 +18,9 @@ struct DefeatView: View {
             eyebrow: nil,
             eyebrowAccessibilityIdentifier: nil,
             title: "Defeat",
-            subtitle: "Your party fell to \(configuration.enemy?.name ?? "Enemy").",
+            subtitle: didRetreat
+                ? "Your party retreated from \(configuration.enemy?.name ?? "Enemy")."
+                : "Your party fell to \(configuration.enemy?.name ?? "Enemy").",
             titleAccessibilityIdentifier: AccessibilityID.Battle.defeat,
             titleColor: TrinketDesign.Colors.accent,
             content: {

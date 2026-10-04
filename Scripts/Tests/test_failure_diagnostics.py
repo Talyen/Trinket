@@ -38,7 +38,6 @@ from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CLI_SCRIPT = ROOT / "Scripts" / "failure_diagnostics.py"
 FIXTURES = ROOT / "Scripts" / "Tests" / "Fixtures"
 sys.path.insert(0, str(ROOT / "Scripts"))
 import failure_diagnostics as REPORTER  # noqa: E402
@@ -123,6 +122,24 @@ class ReporterTests(unittest.TestCase):
                 "Expectation failed: health == 10",
             },
         )
+
+    def test_reexported_attachments_cannot_include_previous_failure_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            output = root / "attachments"
+            output.mkdir()
+            (output / "old.png").write_text("previous invocation")
+            (output / "manifest.json").write_text("[]")
+
+            def export(command, **_kwargs):
+                destination = Path(command[command.index("--output-path") + 1])
+                (destination / "new.png").write_text("current invocation")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+            with patch.object(REPORTER.xcresult.subprocess, "run", side_effect=export):
+                self.assertEqual(REPORTER.xcresult.export_failure_attachments(root / "run.xcresult", output), (True, None))
+            attachments = REPORTER.xcresult.read_exported_attachments(output)
+            self.assertEqual([record.exported_file_name for record in attachments], ["new.png"])
 
     def test_attachments_are_assigned_by_test_identifier(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -460,39 +477,6 @@ class ReporterTests(unittest.TestCase):
             self.assertNotIn("issues", compact["invocations"][0])
             self.assertIn("issues", full["invocations"][0])
             self.assertTrue(compact["issues"][0]["details_truncated"])
-
-    def test_executable_cli_invokes_main_guard_and_writes_artifacts(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            log = root / "opaque.log"
-            log.write_text("opaque runner output\n", encoding="utf-8")
-            prefix = root / "cli-report"
-            completed = subprocess.run(
-                [
-                    sys.executable,
-                    str(CLI_SCRIPT),
-                    "--result-bundle",
-                    str(root / "missing.xcresult"),
-                    "--log",
-                    str(log),
-                    "--exit-code",
-                    "1",
-                    "--label",
-                    "cli",
-                    "--output-prefix",
-                    str(prefix),
-                    "--defer-terminal-output",
-                ],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(completed.returncode, 0, completed.stderr)
-            self.assertEqual(completed.stdout, "")
-            self.assertEqual(completed.stderr, "")
-            self.assertTrue((root / "cli-report.json").exists())
-            self.assertTrue((root / "cli-report.md").exists())
-            self.assertTrue((root / "cli-report.annotations").exists())
 
     def test_unknown_log_fallback_is_bounded_and_exposes_raw_path_only_for_unknown(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

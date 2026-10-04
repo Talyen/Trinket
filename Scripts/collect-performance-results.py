@@ -20,25 +20,26 @@ def main() -> int:
     seen: set[str] = set()
     malformed: list[str] = []
     for path in sorted(args.results_dir.rglob("*.log")):
-        for line in path.read_text(errors="replace").splitlines():
-            marker_index = line.find(MARKER)
-            if marker_index < 0:
-                continue
-            payload = line[marker_index + len(MARKER) :].strip()
-            try:
-                record = json.loads(payload)
-            except json.JSONDecodeError:
-                malformed.append(f"{path}: invalid JSON after performance marker")
-                continue
-            if not isinstance(record, dict):
-                malformed.append(f"{path}: performance payload is not an object")
-                continue
-            key = json.dumps(record, sort_keys=True)
-            if key in seen:
-                continue
-            seen.add(key)
-            record["sourceLog"] = str(path.relative_to(args.results_dir))
-            records.append(record)
+        with path.open(errors="replace") as source:
+            for line in source:
+                marker_index = line.find(MARKER)
+                if marker_index < 0:
+                    continue
+                payload = line[marker_index + len(MARKER) :].strip()
+                try:
+                    record = json.loads(payload)
+                except json.JSONDecodeError:
+                    malformed.append(f"{path}: invalid JSON after performance marker")
+                    continue
+                if not isinstance(record, dict):
+                    malformed.append(f"{path}: performance payload is not an object")
+                    continue
+                key = json.dumps(record, sort_keys=True)
+                if key in seen:
+                    continue
+                seen.add(key)
+                record["sourceLog"] = str(path.relative_to(args.results_dir))
+                records.append(record)
 
     # Keep malformed iterations in the evidence; the schema validator owns
     # their rejection. Sorting must not prevent reports.json from being saved.

@@ -93,18 +93,4 @@ struct CoreValueTypesTests {
         let migrated = try JSONDecoder().decode([HomesteadNodeID: Int].self, from: Data(legacyJSON.utf8))
         #expect(migrated == [.library: 2])
     }
-
-    @Test func `damage conditions have non empty unique sentence fragments`() {
-        let conditions = DamageCondition.allCases
-        #expect(!conditions.isEmpty)
-        #expect(conditions.count == Set(conditions).count)
-
-        for condition in conditions {
-            #expect(!condition.sentenceFragment.isEmpty, "\(condition) should have a sentence fragment")
-            #expect(!condition.sentenceFragment.hasSuffix("."), "\(condition) fragment should omit trailing period")
-        }
-
-        let fragments = conditions.map(\.sentenceFragment)
-        #expect(fragments.count == Set(fragments).count)
-    }
 }

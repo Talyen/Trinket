@@ -373,7 +373,7 @@ def parse_log(log_path: Path, exit_code: int) -> list[IssueObservation]:
         stream = log_path.open("r", encoding="utf-8", errors="replace")
     except OSError:
         return []
-    observations: list[IssueObservation] = []
+    observations: dict[tuple, IssueObservation] = {}
     diagnostic = re.compile(r"^(?P<file>[^\n:]+(?::[^\n:]+)*):(?P<line>\d+)(?::\d+)?:\s*(?:fatal )?error:\s*(?P<message>.+)$", re.I)
     xctest_failure = re.compile(
         r"^-\[(?P<test>[^\]]+)\]\s*:\s*failed\s*-\s*(?P<message>.*)$",
@@ -441,23 +441,13 @@ def parse_log(log_path: Path, exit_code: int) -> list[IssueObservation]:
                     observation.file,
                     observation.line,
                 )
-                if any(
-                    (
-                        existing.kind,
-                        existing.title,
-                        existing.message,
-                        existing.file,
-                        existing.line,
-                    ) == identity
-                    for existing in observations
-                ):
+                if identity in observations:
                     continue
-                if len(observations) < MAX_ISSUES:
-                    observations.append(observation)
-                else:
-                    observations[MAX_ISSUES - 1] = observation
+                if len(observations) == MAX_ISSUES:
+                    observations.popitem()
+                observations[identity] = observation
     finally:
         stream.close()
     if not observations and exit_code != 0:
-        observations.append(IssueObservation("unknown", "Xcode invocation", f"Xcode exited with code {exit_code}"))
-    return observations
+        return [IssueObservation("unknown", "Xcode invocation", f"Xcode exited with code {exit_code}")]
+    return list(observations.values())

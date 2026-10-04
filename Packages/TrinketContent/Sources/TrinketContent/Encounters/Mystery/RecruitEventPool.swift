@@ -60,19 +60,4 @@ enum RecruitEventPool {
     static func event(unlocking combatantID: String) -> MysteryEvent? {
         all.first { $0.unlockCombatantID == combatantID }
     }
-
-    static func eligible(
-        unlockedHeroIDs: Set<String>,
-        unlockedCompanionIDs: Set<String>,
-        role: Combatant.Role? = nil,
-    ) -> [MysteryEvent] {
-        all.filter { event in
-            guard let combatantID = event.unlockCombatantID else { return false }
-            guard !unlockedHeroIDs.contains(combatantID),
-                  !unlockedCompanionIDs.contains(combatantID)
-            else { return false }
-            guard let role else { return true }
-            return GameContent.combatant(matching: combatantID)?.role == role
-        }
-    }
 }

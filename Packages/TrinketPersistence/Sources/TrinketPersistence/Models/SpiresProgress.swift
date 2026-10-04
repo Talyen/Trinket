@@ -16,10 +16,6 @@ public struct PlayerSpiresState: Codable, Equatable, Sendable {
         min(highestClearedFloor(for: spireID) + 1, max(floorCount, 1))
     }
 
-    public func isFloorUnlocked(_ floor: Int, spireID: String, floorCount: Int) -> Bool {
-        floor >= 1 && floor <= activeFloor(for: spireID, floorCount: floorCount)
-    }
-
     public func isFloorCleared(_ floor: Int, spireID: String) -> Bool {
         floor <= highestClearedFloor(for: spireID)
     }

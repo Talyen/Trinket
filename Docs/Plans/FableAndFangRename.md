@@ -2,7 +2,7 @@
 type: execution-plan
 status: active
 created: 2026-09-29
-updated: 2026-09-29
+updated: 2026-10-03
 expires: 2026-10-13
 ---
 
@@ -40,7 +40,7 @@ Line numbers below identify the baseline and may move during implementation.
 | App Store and beta copy draft | [AppStoreMetadata.md](../Platform/AppStoreMetadata.md):3,38,42,50,85,92,97 | Use `Fable & Fang`, replacing the recorded `Trinket: Heroes & Companions` title and game-name prose in the description, review notes, and prepared cloud-enabled beta copy. Add an explicit Name row. Keep local-only and cloud-enabled copy separate. |
 | Default TestFlight What to Test text | [Scripts/internal/testflight.rb](../../Scripts/internal/testflight.rb):158 | Change the fallback `Trinket <version> (<build>)…` to `Fable & Fang…`. Explicit `--notes` files still need their own copy review. The READY message at line 333 is developer output and can remain. |
 | Public GitHub release title | [.github/workflows/release.yml](../../.github/workflows/release.yml):117 | Change `Trinket ${{ github.ref_name }}` to `Fable & Fang ${{ github.ref_name }}`. Keep workflow identity, tags, release gates, and artifact paths unchanged. |
-| Public repository introduction | [README.md](../../README.md):1; [CHANGELOG.md](../../CHANGELOG.md):3 | Rename the game heading and changelog introduction. Preserve package links and existing release URLs. No title-brand references were found in current `ReleaseNotes/` text. |
+| Public repository introduction | [README.md](../../README.md):1; [cliff.toml](../../cliff.toml), `changelog.header` (generates the introduction in [CHANGELOG.md](../../CHANGELOG.md)) | Rename the README game heading and authored changelog header. Regenerate the changelog through the requested release workflow; do not hand-edit it. Preserve package links and existing release URLs. No title-brand references were found in current `ReleaseNotes/` text. |
 
 The loading/recovery UI has **four game-name string literals**: three rendered
 title layers and one accessibility label. No separate Options/About game-name
@@ -133,7 +133,9 @@ rename into a whole-repository symbol or historical-record rewrite.
   SwiftUI/design skills and routed safeguards before editing. Preserve the launch
   artwork pins, loading timing, accent-fill animation, and recovery behavior.
 - [ ] Update both website pages, App Store/beta drafts, the TestFlight fallback,
-  public release title, README/changelog introductions, and current product prose.
+  public release title, README introduction, authored `cliff.toml` changelog header,
+  and current product prose. Changelog output changes only through the requested
+  release workflow under [Release.md](../Platform/Release.md#sources-of-truth).
 - [ ] Regenerate through `./Scripts/generate.sh`; never hand-edit `Info.plist`,
   entitlements, Icon Composer installed output, or the Xcode project.
 - [ ] Verify the built plist's display/name values and unchanged bundle, purchase,

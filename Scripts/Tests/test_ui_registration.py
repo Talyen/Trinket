@@ -1,4 +1,4 @@
-"""UI registration controls both Xcode selections and CI shard membership."""
+"""UI registration controls ordered Xcode selections and serial CI filters."""
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
@@ -32,30 +32,18 @@ class UIRegistrationTests(unittest.TestCase):
             self.assertEqual(filters, expected)
             plan = json.loads((ROOT / f'{suite}.xctestplan').read_text())
             self.assertEqual(REGISTRY.plan_target(plan)['selectedTests'], expected)
-            matrix_classes = [name for shard in REGISTRY.matrix(rows, suite)['include'] for name in shard['target'].split()]
-            self.assertCountEqual(matrix_classes, expected)
         output = subprocess.check_output(['bash', '-c', 'source Scripts/lib/smoke-classes.sh; env'], cwd=ROOT, text=True)
         for row in rows:
             if row['suite'] == 'Smoke':
                 self.assertIn(f"TRINKET_SMOKE_CLASS_{row['key']}={row['name']}", output)
         self.assertEqual(REGISTRY.testplan_failures(), [])
 
-    def test_matrix_preserves_group_and_class_order_from_input(self):
-        rows = [
-            dict(suite='FullUI', name='Later', shard='Play', rank=1, order=1),
-            dict(suite='FullUI', name='First', shard='Shell', rank=0, order=0),
-            dict(suite='FullUI', name='Earlier', shard='Play', rank=1, order=0),
-        ]
-        self.assertEqual(REGISTRY.matrix(rows, 'FullUI'), {'include': [
-            {'name': 'Shell', 'target': 'First'}, {'name': 'Play', 'target': 'Earlier Later'},
-        ]})
-
     def test_generation_preserves_settings_and_rejects_missing_or_duplicate_classes(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             registry = root / REGISTRY.REGISTRY
             registry.parent.mkdir(parents=True)
-            original = 'Smoke|SHELL|SmokeFixture|Shell|0|0\nFullUI||FullFixture|All|0|0\n'
+            original = 'Smoke|SHELL|SmokeFixture\nFullUI||FullFixture\n'
             registry.write_text(original)
             for suite, name, folder in [('Smoke', 'SmokeFixture', 'Smoke'), ('FullUI', 'FullFixture', 'Flows')]:
                 source = root / 'TrinketUITests' / folder / 'Fixture.swift'
@@ -75,7 +63,7 @@ class UIRegistrationTests(unittest.TestCase):
                 self.assertEqual(json.loads((root / f'{suite}.xctestplan').read_text()), expected)
             REGISTRY.generate(root, rows)
             self.assertEqual(before, [(root / f'{suite}.xctestplan').read_bytes() for suite in ('Smoke', 'FullUI')])
-            registry.write_text(original + 'FullUI||FullFixture|Other|1|0\n')
+            registry.write_text(original + 'FullUI||FullFixture\n')
             with self.assertRaisesRegex(ValueError, 'duplicate'):
                 REGISTRY.registrations(root)
             registry.write_text(original.replace('FullFixture', 'Absent'))

@@ -147,7 +147,7 @@ public enum StageCompletion {
             stageGold = stage.rewards.gold
             materialFallback = resolvedMaterialRewards(stageReward: stage.rewards)
         }
-        let item = VictoryRewardApplier.grantedItem(override: rewardItem, loot: resolvedLoot)
+        let item = rewardItem ?? resolvedLoot?.item
         VictoryRewardApplier.grantVictoryRewards(
             hero: hero,
             companion: companion,
@@ -156,11 +156,7 @@ public enum StageCompletion {
             battleGold: battleGold,
             award: award,
             grantsCombatExperience: stage.encounter.isCombat,
-            materialRewards: VictoryRewardApplier.grantedMaterials(
-                override: materialRewards,
-                loot: resolvedLoot,
-                fallback: materialFallback,
-            ),
+            materialRewards: materialRewards ?? resolvedLoot?.materials ?? materialFallback,
             item: item,
             save: &save,
         )

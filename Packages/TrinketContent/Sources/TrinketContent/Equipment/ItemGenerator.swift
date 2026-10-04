@@ -89,9 +89,9 @@ public struct ItemGenerator: Sendable {
 
         switch rarity {
         case .basic:
-            return roll <= LootTuning.basicSingleAffixPercent ? LootTuning.basicAffixCounts.single : LootTuning.basicAffixCounts.double
+            return roll <= 80 ? 1 : 2
         case .astral:
-            return roll <= LootTuning.astralTripleAffixPercent ? LootTuning.astralAffixCounts.triple : LootTuning.astralAffixCounts.quad
+            return roll <= 75 ? 3 : 4
         case .unique:
             preconditionFailure("Unique affix counts are authored in the catalog.")
         }
@@ -130,10 +130,8 @@ public struct ItemGenerator: Sendable {
     ) -> Int {
         let baseWeight = max(0, definition.weight)
         guard baseWeight > 0, !keywordBias.isEmpty else { return baseWeight }
-        let overlap = definition.keywords.reduce(0) { count, keyword in
-            count + (keywordBias.contains(keyword) ? 1 : 0)
-        }
+        let overlap = definition.keywords.count(where: keywordBias.contains)
         guard overlap > 0 else { return baseWeight }
-        return baseWeight * (LootTuning.biasWeightBase + overlap)
+        return baseWeight * (2 + overlap)
     }
 }

@@ -42,15 +42,14 @@ struct ItemResolutionTests {
     }
 
     @Test func `cloud codec drops unknown base instead of rejecting snapshot`() throws {
-        let homeless = CloudItemSnapshot(
-            Self.storedItem(baseTypeID: "removed-family"),
-        )
-        #expect(homeless.restored() == nil)
-
         var save = PlayerSaveSanitizer.sanitize(.testSeed)
         save.sessionGeneration = 0
+        let expected = save
+        save.inventory.items.append(Self.storedItem(baseTypeID: "removed-family"))
         let snapshot = CloudSaveSnapshot(save)
-        #expect(try snapshot.restored() == save)
+        let encoded = try JSONEncoder().encode(snapshot)
+        let decoded = try JSONDecoder().decode(CloudSaveSnapshot.self, from: encoded)
+        #expect(try decoded.restored() == expected)
     }
 
     @Test func `json codecs strip unknown keywords instead of failing payload`() throws {

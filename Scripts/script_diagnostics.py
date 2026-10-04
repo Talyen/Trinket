@@ -26,20 +26,25 @@ def _read_tail_lines(log: Path) -> tuple[list[str], bool]:
 
 def excerpt(log: Path) -> list[str]:
     lines, truncated_input = _read_tail_lines(log)
-    selected: set[int] = set()
+    budget = MAX_LINES - 1
+    indices: list[int] = []
     for index, line in enumerate(lines):
         if FAILURE_RE.search(line):
-            selected.update(range(max(0, index - 2), min(len(lines), index + MAX_DETAIL_LINES + 1)))
-    budget = MAX_LINES - 1
-    indices = sorted(selected)[:budget] if selected else list(range(max(0, len(lines) - budget), len(lines)))
+            start = max(0, index - 2, indices[-1] + 1 if indices else 0)
+            indices.extend(range(start, min(len(lines), index + MAX_DETAIL_LINES + 1, start + budget - len(indices))))
+            if len(indices) == budget:
+                break
+    if not indices:
+        indices = list(range(max(0, len(lines) - budget), len(lines)))
     output = []
     shortened = False
     for index in indices:
-        line = f"{index + 1}: {lines[index]}"
+        line = f"{'tail+' if truncated_input else ''}{index + 1}: {lines[index]}"
         shortened |= len(line) > MAX_LINE_CHARS
         output.append(line if len(line) <= MAX_LINE_CHARS else line[:MAX_LINE_CHARS - 1] + "…")
     if len(indices) < len(lines) or shortened or truncated_input:
-        output.append("… output omitted; full log retained at the path above.")
+        omitted = "output omitted (including log prefix)" if truncated_input else "output omitted"
+        output.append(f"… {omitted}; full log retained at the path above.")
     return output
 
 

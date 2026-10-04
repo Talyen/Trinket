@@ -99,7 +99,7 @@ package extension DamagePipeline {
     ) {
         if triggers.sunwallChancePercent > 0, keyword == .holy, state.healthLost > 0,
            context.roster.companion.isAlive,
-           !state.options.isCardAttack || context.claimHeroCardBonus("Sunwall", actorID: source.id),
+           context.claimTalentAbility("Sunwall", actorID: source.id),
            BattleChance.succeeds(probability: triggers.sunwallChancePercent, using: &context.rng) {
             state.damageEvents.append(contentsOf: grantTalentCompanionBlock(
                 state.healthLost,

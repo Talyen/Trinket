@@ -31,8 +31,7 @@ struct BattleSimulatorSweepReportTests {
                 enemyIDs: ["living_armor"],
             ),
         )
-        #expect(sequential.records.map(\.result) == parallel.records.map(\.result))
-        #expect(sequential.records.map(\.seed) == parallel.records.map(\.seed))
+        #expect(sequential.records == parallel.records)
     }
 
     @Test func `ability contrast produces lift rows`() {
@@ -130,6 +129,20 @@ struct BattleSimulatorSweepReportTests {
         let byEnemy = Dictionary(grouping: report.records, by: \.enemyID)
         #expect(byEnemy["living_armor"]?.count == 3)
         #expect(byEnemy["mimic"]?.count == 3)
+        let markdown = BalanceMarkdownReporter.render(report)
+        for heading in [
+            "# Balance Sweep Report",
+            "### Heroes",
+            "### Duration",
+            "### Party Abilities",
+            "### Enemy Abilities",
+            "### Enemy Traits",
+            "SHORT%",
+            "Avg rounds",
+        ] {
+            #expect(markdown.contains(heading))
+        }
+        #expect(report.records.allSatisfy { !$0.enemyAbilityIDs.isEmpty && !$0.enemyTraitIDs.isEmpty })
     }
 
     @Test func `identity work slices concatenate to full sweep`() {
@@ -174,8 +187,7 @@ struct BattleSimulatorSweepReportTests {
         )
         #expect(first.records.count == 2)
         #expect(second.records.count == 2)
-        #expect(merged.records.map(\.result) == full.records.map(\.result))
-        #expect(merged.records.map(\.seed) == full.records.map(\.seed))
+        #expect(merged.records == full.records)
     }
 
     @Test func `identity early spends one talent and one starter item`() {
@@ -291,30 +303,5 @@ struct BattleSimulatorSweepReportTests {
         #expect(!(report.talentContrasts.isEmpty))
         #expect(report.talentContrasts.allSatisfy { $0.tier == .early })
         #expect(report.talentKitContrasts.isEmpty)
-    }
-
-    @Test func `identity sweep produces markdown with secondary metrics`() {
-        let report = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 4,
-                seed: 3,
-                tiers: [.early],
-                jobs: 1,
-                enemyIDs: ["living_armor"],
-            ),
-        )
-        #expect(report.records.count == 4)
-        let markdown = BalanceMarkdownReporter.render(report)
-        #expect(markdown.contains("# Balance Sweep Report"))
-        #expect(markdown.contains("### Heroes"))
-        #expect(markdown.contains("### Duration"))
-        #expect(markdown.contains("### Party Abilities"))
-        #expect(markdown.contains("### Enemy Abilities"))
-        #expect(markdown.contains("### Enemy Traits"))
-        #expect(markdown.contains("SHORT%"))
-        #expect(markdown.contains("Avg rounds"))
-        #expect(report.records.allSatisfy { !$0.enemyAbilityIDs.isEmpty })
-        #expect(report.records.allSatisfy { !$0.enemyTraitIDs.isEmpty })
     }
 }

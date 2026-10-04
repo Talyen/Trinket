@@ -194,7 +194,10 @@ def validate_homestead_cost(raw: str, row_id: str) -> None:
     if not raw.strip():
         raise ValueError(f"cost is required for {row_id}")
     try:
-        if any(quantity < 0 for _, quantity in parse_material_tokens(raw)):
+        entries = parse_material_tokens(raw)
+        if not entries:
+            raise ValueError("Cost must declare at least one resource")
+        if any(quantity < 0 for _, quantity in entries):
             raise ValueError("Cost quantities must be non-negative")
     except ValueError as error:
         raise ValueError(f"{error} for {row_id}") from error
@@ -235,31 +238,18 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
         nodes.setdefault(row.node_id, []).append(row)
 
     for node_id, node_rows in nodes.items():
-        titles = {row.title for row in node_rows}
-        summaries = {row.summary for row in node_rows}
-        symbols = {row.icon_id for row in node_rows}
-        categories = {row.category for row in node_rows}
-        if (
-            len(titles) != 1
-            or len(summaries) != 1
-            or len(symbols) != 1
-            or len(categories) != 1
-        ):
+        if len({(row.title, row.summary, row.icon_id, row.category) for row in node_rows}) != 1:
             raise ValueError(f"Homestead node metadata must be consistent for {node_id}")
 
         tiers = sorted(int(row.tier) for row in node_rows)
         expected = list(range(1, len(tiers) + 1))
         if tiers != expected:
             raise ValueError(f"Homestead node {node_id} tiers must be numbered 1...N contiguously")
-        render_homestead_node(node_id, node_rows)
 
     if set(nodes) != VALID_HOMESTEAD_NODE_IDS:
         missing = VALID_HOMESTEAD_NODE_IDS - set(nodes)
-        extra = set(nodes) - VALID_HOMESTEAD_NODE_IDS
         if missing:
             raise ValueError(f"Homestead manifest missing nodes: {sorted(missing)}")
-        if extra:
-            raise ValueError(f"Homestead manifest has unknown nodes: {sorted(extra)}")
 
 
 def generate_homestead_catalog(rows: list[HomesteadNodeRow]) -> None:

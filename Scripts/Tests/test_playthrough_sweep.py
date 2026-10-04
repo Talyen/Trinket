@@ -6,6 +6,7 @@ SCRIPT_INPUTS = (
     'Scripts/internal/playthrough_report.py',
 )
 
+import copy
 import json
 from pathlib import Path
 import plistlib
@@ -103,7 +104,16 @@ class PlaythroughSweepTests(unittest.TestCase):
                             outcomes=["defeat", "victory"] + ["victory"] * 8, processWallSeconds=1.0),
                        dict(worker="second", seed=43, termination="completedObjective", exitCode=0,
                             outcomes=["victory"] * 10, processWallSeconds=1.0)]
-            baseline = dict(MODULE.report(args, workers, {}), policy="greedy-v1")
+            for worker in workers:
+                worker["scenarioManifest"] = dict(version=1, worldSeed=worker["seed"], combatSeed=99,
+                                                  policySeed=100, heroID="knight", companionID="wolf",
+                                                  fullAccess=False, attempts=10, maxActions=2000,
+                                                  maxTurns=100, maxSteps=200, maxArtifactBytes=33554432,
+                                                  startDate=821692800, policy="setupAware-v1", mode="campaign",
+                                                  invest=True, sessionSeconds=3600)
+            baseline = copy.deepcopy(dict(MODULE.report(args, workers, {}), policy="greedy-v1"))
+            for worker in baseline["workers"]:
+                worker["scenarioManifest"]["policy"] = "greedy-v1"
             baseline_path = Path(temporary) / "baseline.json"
             baseline_path.write_text(json.dumps(baseline))
             args.baseline = baseline_path
@@ -118,6 +128,25 @@ class PlaythroughSweepTests(unittest.TestCase):
             self.assertNotIn("Run the same seed cohort with setupAware-v1", recommendations)
             retry_insight = next(insight for insight in agent_report["insights"] if insight["id"] == "retry-delta")
             self.assertNotIn("longer horizon", retry_insight["recommendation"])
+
+            # Missing or ambiguous evidence must not produce a paired comparison,
+            # even when both reports share the same malformed scenario record.
+            for manifest in (None, {}, [], "scenario", {"policy": "greedy-v1"}):
+                with self.subTest(manifest=manifest):
+                    bad_baseline, bad_workers = copy.deepcopy(baseline), copy.deepcopy(workers)
+                    for worker in bad_baseline["workers"] + bad_workers:
+                        worker["scenarioManifest"] = manifest
+                    baseline_path.write_text(json.dumps(bad_baseline))
+                    with self.assertRaisesRegex(ValueError, "scenario manifest"):
+                        MODULE.report(args, bad_workers, {})
+            for population in ("baseline", "current"):
+                with self.subTest(duplicate=population):
+                    bad_baseline, bad_workers = copy.deepcopy(baseline), copy.deepcopy(workers)
+                    duplicate_workers = bad_baseline["workers"] if population == "baseline" else bad_workers
+                    duplicate_workers.append(copy.deepcopy(duplicate_workers[0]))
+                    baseline_path.write_text(json.dumps(bad_baseline))
+                    with self.assertRaisesRegex(ValueError, "seed population"):
+                        MODULE.report(args, bad_workers, {})
 
     def test_agent_report_groups_failure_context_without_raw_journal(self):
         with tempfile.TemporaryDirectory() as temporary:

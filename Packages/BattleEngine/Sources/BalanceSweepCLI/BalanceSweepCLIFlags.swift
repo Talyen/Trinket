@@ -88,7 +88,7 @@ extension BalanceSweepCLI {
             case "--max-actions":
                 config.maxActions = try BalanceSweepCLI.intValue(after: arg, in: arguments, index: &index)
             case "--work-offset":
-                config.workOffset = try BalanceSweepCLI.nonNegativeIntValue(after: arg, in: arguments, index: &index)
+                config.workOffset = try BalanceSweepCLI.intValue(after: arg, in: arguments, index: &index, minimum: 0)
             case "--work-limit":
                 config.workLimit = try BalanceSweepCLI.intValue(after: arg, in: arguments, index: &index)
             case "--peer-delta":
@@ -104,7 +104,7 @@ extension BalanceSweepCLI {
                 switch raw.lowercased() {
                 case "on", "true", "1": config.appliesFightPacing = true
                 case "off", "false", "0": config.appliesFightPacing = false
-                default: throw CLIError.invalidInt("--pacing", raw)
+                default: throw CLIError.invalidPacing(raw)
                 }
             case "--policy":
                 config.policyID = try BalanceSweepCLI.stringValue(after: arg, in: arguments, index: &index)
@@ -150,12 +150,9 @@ extension BalanceSweepCLI {
     }
 
     static let aliasTier: [String: SimulationPowerTier] = [
-        "early": .early,
         "mid": .middle,
-        "middle": .middle,
         "late": .lateGame,
         "lategame": .lateGame,
-        "lateGame": .lateGame,
     ]
 
     static func stringValue(
@@ -183,19 +180,10 @@ extension BalanceSweepCLI {
         after flag: String,
         in arguments: [String],
         index: inout Int,
+        minimum: Int = 1,
     ) throws -> Int {
         let raw = try stringValue(after: flag, in: arguments, index: &index)
-        guard let value = Int(raw), value > 0 else { throw CLIError.invalidInt(flag, raw) }
-        return value
-    }
-
-    static func nonNegativeIntValue(
-        after flag: String,
-        in arguments: [String],
-        index: inout Int,
-    ) throws -> Int {
-        let raw = try stringValue(after: flag, in: arguments, index: &index)
-        guard let value = Int(raw), value >= 0 else { throw CLIError.invalidInt(flag, raw) }
+        guard let value = Int(raw), value >= minimum else { throw CLIError.invalidInt(flag, raw) }
         return value
     }
 

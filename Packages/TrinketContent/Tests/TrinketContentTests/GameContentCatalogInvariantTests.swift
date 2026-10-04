@@ -2,30 +2,10 @@ import Testing
 @testable import TrinketContent
 
 struct GameContentCatalogInvariantTests {
-    /// Committed-output guard mirroring codegen validation. Runtime coverage
-    /// stays because hand-authored Swift pools (MysteryEventPool,
-    /// RecruitEventPool) only get regex-scraped by codegen, not validated.
-    @Test func `item base I ds are unique`() throws {
-        let ids = GameContent.itemBaseTypes.map(\.id)
-        try #expect(ids.count == Set(ids).count)
-    }
-
-    @Test func `catalog I ds are unique`() throws {
-        let catalogs: [[String]] = [
-            GameContent.itemAffixDefinitions.map(\.id),
-            GameContent.traits.map(\.id),
-            (GameContent.mysteryEvents + GameContent.recruitEvents).map(\.id),
-        ]
-        for ids in catalogs {
-            try #expect(ids.count == Set(ids).count)
-        }
-    }
-
-    @Test func `sfx catalog index matches clips`() throws {
-        try #expect(SFXCatalog.clipsByID.count == SFXCatalog.clips.count)
-        for clip in SFXCatalog.clips {
-            try #expect(SFXCatalog.clipsByID[clip.id] == clip, "Missing SFX catalog index entry \(clip.id)")
-        }
+    /// Unlike manifest-generated IDs, authored Mystery/Recruit IDs are only scraped by codegen.
+    @Test func `authored encounter I ds are unique across both pools`() {
+        let ids = (GameContent.mysteryEvents + GameContent.recruitEvents).map(\.id)
+        #expect(ids.count == Set(ids).count)
     }
 
     @Test func `every stage references known encounter content`() throws {

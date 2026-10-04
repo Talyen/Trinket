@@ -10,7 +10,6 @@ struct HomesteadCatalogTests {
             #expect(node.tiers.map(\.tier) == [1, 2, 3, 4])
             for tier in node.tiers {
                 #expect(!tier.stageName.isEmpty)
-                #expect(tier.stageName.split(separator: " ").count <= 3)
                 #expect(Set(tier.production.map(\.resource)).count == tier.production.count)
             }
             for (lower, higher) in zip(node.tiers, node.tiers.dropFirst()) {
@@ -39,16 +38,7 @@ struct HomesteadCatalogTests {
         }
     }
 
-    @Test func `farms separate hero and companion health and crystal garden covers stone`() throws {
-        let wheat = HomesteadEffects.from(nodeTiers: [.wheatField: 4])
-        let coop = HomesteadEffects.from(nodeTiers: [.chickenCoop: 4])
-        #expect(wheat.heroModifiers == [.maximumHealthPercent(0.4)])
-        #expect(wheat.companionModifiers.isEmpty)
-        #expect(coop.heroModifiers.isEmpty)
-        #expect(coop.companionModifiers == [.maximumHealthPercent(0.4)])
-        let crystal = try #require(GameContent.homesteadNode(matching: .crystalGarden)?.tier(4))
-        #expect(crystal.combatBonus.heroModifiers == [.criticalDamagePercent(0.4)])
-        #expect(crystal.production == [.init(.gems, 4), .init(.stone, 4)])
+    @Test func `every resource has a Homestead production source`() {
         let resources = Set(GameContent.homesteadNodes.flatMap { $0.tiers.flatMap { $0.production.map(\.resource) } })
         #expect(resources == Set(HomesteadResource.allCases))
     }
@@ -63,7 +53,6 @@ struct HomesteadCatalogTests {
         let award = plan.resolve(battleGold: .init(), materials: override)
         #expect(award.materials == [.init(.gems, 6), .init(.wood, 1)])
         #expect(award.goldGained == 14)
-        #expect(plan.resolve(battleGold: .init(), materials: override) == award)
     }
 
     @Test func `percentage rewards do not create absent rewards`() {

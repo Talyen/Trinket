@@ -100,7 +100,7 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
 
     public init(
         description: String,
-        modifiers: [AffixModifier],
+        modifiers: [AffixModifier] = [],
         triggers: CombatTraitTriggers = CombatTraitTriggers(),
     ) {
         self.description = description

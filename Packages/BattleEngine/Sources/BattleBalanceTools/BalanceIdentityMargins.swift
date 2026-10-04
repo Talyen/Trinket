@@ -2,18 +2,6 @@ import BattleEngine
 import Foundation
 
 enum BalanceIdentityMargins {
-    private struct WinRateSpec {
-        var id: String
-        var ownerID: String?
-        var wins: Int
-        var battles: Int
-        var peerRate: Double
-        var threshold: Double
-        var positiveFlag: String
-        var negativeFlag: String
-        var targetBandDelta: Double?
-    }
-
     static func ownerMargins(
         records: [BalanceBattleRecord],
         id: KeyPath<BalanceBattleRecord, String>,
@@ -21,19 +9,15 @@ enum BalanceIdentityMargins {
         threshold: Double,
         targetBand: (lower: Double, upper: Double)? = nil,
     ) -> [WinRateSummary] {
-        margins(buckets: tally(records) { [$0[keyPath: id]] }) { id, bucket in
-            WinRateSpec(
+        tally(records) { [$0[keyPath: id]] }.map { id, bucket in
+            bucket.summary(
                 id: id,
                 ownerID: nil,
-                wins: bucket.wins,
-                battles: bucket.battles,
                 peerRate: peerRate,
                 threshold: threshold,
-                positiveFlag: "HIGH",
-                negativeFlag: "LOW",
                 targetBandDelta: targetBand.map { bucket.rate - (($0.lower + $0.upper) / 2) },
             )
-        }
+        }.sorted(by: flaggedFirst)
     }
 
     static func margin(
@@ -45,18 +29,16 @@ enum BalanceIdentityMargins {
         negativeFlag: String = "LOW",
         ownerID: String? = nil,
     ) -> [WinRateSummary] {
-        margins(buckets: tally(records, keys: ids)) { id, bucket in
-            WinRateSpec(
+        tally(records, keys: ids).map { id, bucket in
+            bucket.summary(
                 id: id,
                 ownerID: ownerID,
-                wins: bucket.wins,
-                battles: bucket.battles,
                 peerRate: peerRate,
                 threshold: threshold,
                 positiveFlag: positiveFlag,
                 negativeFlag: negativeFlag,
             )
-        }
+        }.sorted(by: flaggedFirst)
     }
 
     static func withinOwnerMargins(
@@ -65,24 +47,14 @@ enum BalanceIdentityMargins {
         ownerRates: [String: Double],
         threshold: Double,
     ) -> [WinRateSummary] {
-        margins(
-            buckets: tally(records) { ownerAndIDs($0).map { OwnerID(owner: $0.0, id: $0.1) } },
-        ) { key, bucket in
-            WinRateSpec(
+        tally(records) { ownerAndIDs($0).map { OwnerID(owner: $0.0, id: $0.1) } }.map { key, bucket in
+            bucket.summary(
                 id: key.id,
                 ownerID: key.owner,
-                wins: bucket.wins,
-                battles: bucket.battles,
                 peerRate: ownerRates[key.owner] ?? 0,
                 threshold: threshold,
-                positiveFlag: "HIGH",
-                negativeFlag: "LOW",
             )
-        }
-    }
-
-    private static func margins<Key: Hashable>(buckets: [Key: Tally], spec: (Key, Tally) -> WinRateSpec) -> [WinRateSummary] {
-        buckets.map { makeWinRate(spec($0.key, $0.value)) }.sorted(by: flaggedFirst)
+        }.sorted(by: flaggedFirst)
     }
 
     private struct OwnerID: Hashable {
@@ -199,6 +171,20 @@ enum BalanceIdentityMargins {
             return delta > 0 ? positive : negative
         }
 
+        func summary(
+            id: String, ownerID: String?, peerRate: Double, threshold: Double,
+            positiveFlag: String = "HIGH", negativeFlag: String = "LOW", targetBandDelta: Double? = nil,
+        ) -> WinRateSummary {
+            let ci = interval
+            let reason = flagReason(peerRate: peerRate, threshold: threshold, positive: positiveFlag, negative: negativeFlag)
+            return WinRateSummary(
+                id: id, ownerID: ownerID, wins: wins, battles: battles,
+                winRate: rate, wilsonLow: ci.low, wilsonHigh: ci.high,
+                deltaVsPeer: rate - peerRate, targetBandDelta: targetBandDelta,
+                flagged: reason != nil, flagReason: reason, sampleTooLow: sampleTooLow,
+            )
+        }
+
         mutating func record(_ result: BattleSimResult) {
             battles += 1
             if result.isVictory {
@@ -237,28 +223,5 @@ enum BalanceIdentityMargins {
             return lhs.id < rhs.id
         }
         return (lhs.ownerID ?? "") < (rhs.ownerID ?? "")
-    }
-
-    private static func makeWinRate(_ spec: WinRateSpec) -> WinRateSummary {
-        let tally = Tally(wins: spec.wins, battles: spec.battles)
-        let ci = tally.interval
-        let reason = tally.flagReason(
-            peerRate: spec.peerRate, threshold: spec.threshold,
-            positive: spec.positiveFlag, negative: spec.negativeFlag,
-        )
-        return WinRateSummary(
-            id: spec.id,
-            ownerID: spec.ownerID,
-            wins: spec.wins,
-            battles: spec.battles,
-            winRate: tally.rate,
-            wilsonLow: ci.low,
-            wilsonHigh: ci.high,
-            deltaVsPeer: tally.rate - spec.peerRate,
-            targetBandDelta: spec.targetBandDelta,
-            flagged: reason != nil,
-            flagReason: reason,
-            sampleTooLow: tally.sampleTooLow,
-        )
     }
 }

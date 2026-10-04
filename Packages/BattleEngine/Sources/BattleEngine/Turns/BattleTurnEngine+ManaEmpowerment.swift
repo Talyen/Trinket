@@ -112,7 +112,7 @@ private extension BattleTurnEngine {
         guard triggers.flashFreeze || triggers.empowerFreezeDamageBonus > 0
             || triggers.empowerBurnDamageBonus > 0 else { return ability }
         let freezeBonus = (triggers.flashFreeze ? 2 : 0) + triggers.empowerFreezeDamageBonus
-        var operations = ability.operations.map {
+        let operations = ability.operations.map {
             if $0.keyword == .freeze, freezeBonus > 0 {
                 return $0.empowered(by: freezeBonus)
             }
@@ -120,12 +120,6 @@ private extension BattleTurnEngine {
                 return $0.empowered(by: triggers.empowerBurnDamageBonus)
             }
             return $0
-        }
-        if !operations.contains(where: { $0.keyword == .freeze }), triggers.empowerFreezeDamageBonus > 0,
-           let first = ability.operations.first(where: \.isManaEmpowerable) {
-            operations.append(.damage(DamageComponent(
-                freezeBonus, keyword: .freeze, target: first.target, condition: first.condition,
-            )))
         }
         return ability.replacingOperations(operations)
     }

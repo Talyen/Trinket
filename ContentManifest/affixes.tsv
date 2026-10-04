@@ -11,7 +11,7 @@ lingering	Lingering	weapon	bleed	8	Bleed lasts 1 additional turn.	Bleed lasts 2 
 sentinel	Sentinel	weapon	block	8	Gain 1 additional Block.	Gain 3 additional Block.	block_gained:1	block_gained:3
 fortified	Fortified	weapon	block	8	Gain 1 additional Block.	Gain 2 additional Block.	block_gained:1	block_gained:2
 defenders	Defender's	weapon	block	8	Gain 2 additional Block.	Gain 4 additional Block.	block_gained:2	block_gained:4
-leeching	Leeching	weapon	leech	8	Leech restores 5% more.	Leech restores 10% more.	leech_gained_percent:0.05	leech_gained_percent:0.10
+leeching	Leeching	weapon	leech	8	Leech restores an additional 5% of damage dealt.	Leech restores an additional 10% of damage dealt.	leech_gained_percent:0.05	leech_gained_percent:0.10
 bulwark	Bulwark	armor	block	12	Gain 2 additional Block.	Gain 5 additional Block.	block_gained:2	block_gained:5
 vital	Vital	armor	health	10	Restore 1 additional Health.	Restore 3 additional Health.	health_restored:1	health_restored:3
 emberguard	Emberguard	armor	burn,block	8	Take 10% less Burn damage.	Take 25% less Burn damage.	damage_taken_percent:burn:0.10	damage_taken_percent:burn:0.25
@@ -23,7 +23,7 @@ insulated	Insulated	armor	stun,block	8	Take 10% less Stun damage.	Take 25% less 
 bloodbound	Bloodbound	armor	leech,bleed	8	Restore 1 additional Health when you Leech.	Restore 2 additional Health when you Leech.	leech_healing:1	leech_healing:2
 hale	Hale	accessory	health	10	Increase Maximum Health by 6.	Increase Maximum Health by 12.	maximum_health:6	maximum_health:12
 lucky	Lucky	accessory	gold	10	Gain 1 additional Gold.	Gain 2 additional Gold.	gold_gained:1	gold_gained:2
-vampiric	Vampiric	accessory	leech	8	Leech restores 10% more Health.	Leech restores 20% more Health.	leech_gained_percent:0.10	leech_gained_percent:0.20
+vampiric	Vampiric	accessory	leech	8	Leech restores an additional 10% of damage dealt.	Leech restores an additional 20% of damage dealt.	leech_gained_percent:0.10	leech_gained_percent:0.20
 bloodstone	Bloodstone	accessory	leech,health	8	Leech restores 1 additional Health.	Leech restores 2 additional Health.	leech_healing:1	leech_healing:2
 rime	Rime	accessory	freeze	8	Increase Freeze damage by 1.	Increase Freeze damage by 2.	damage_dealt:freeze:1	damage_dealt:freeze:2
 stunning	Stunning	accessory	stun	8	Increase Stun damage by 1.	Increase Stun damage by 2.	damage_dealt:stun:1	damage_dealt:stun:2

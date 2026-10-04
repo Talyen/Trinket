@@ -420,6 +420,49 @@ def build_agent_report(args, result):
     }
 
 
+def baseline_workers(baseline, current):
+    """Validate recorded scenario evidence before matching careers by seed."""
+    if not isinstance(baseline, dict) or any(
+        baseline.get(key) != current[key] for key in ("horizon", "fullAccess", "mode", "hero", "companion")
+    ):
+        raise ValueError("baseline manifest does not match horizon/access/mode/party")
+    # These are the persisted inputs to PlaythroughScenario; partial records
+    # cannot prove that the two careers ran the same experiment.
+    required = ("version", "worldSeed", "combatSeed", "policySeed", "heroID", "companionID",
+                "fullAccess", "attempts", "maxActions", "maxTurns", "maxSteps", "maxArtifactBytes",
+                "startDate", "policy", "mode", "invest", "sessionSeconds")
+    populations = []
+    for report in (baseline, current):
+        workers = report.get("workers")
+        if not isinstance(workers, list):
+            raise ValueError("baseline must have a unique seed population")
+        indexed = {}
+        for worker in workers:
+            seed = worker.get("seed") if isinstance(worker, dict) else None
+            if type(seed) is not int or seed in indexed:
+                raise ValueError("baseline must have a unique seed population")
+            manifest = worker.get("scenarioManifest")
+            if not isinstance(manifest, dict) or any(manifest.get(key) is None for key in required):
+                raise ValueError("baseline requires complete scenario manifests")
+            if (type(manifest["version"]) is not int or manifest["version"] != 1
+                or type(manifest["worldSeed"]) is not int or manifest["worldSeed"] != seed
+                or any(manifest[key] != report.get(setting) for key, setting in (
+                    ("attempts", "horizon"), ("fullAccess", "fullAccess"), ("mode", "mode"),
+                    ("heroID", "hero"), ("companionID", "companion"), ("policy", "policy")
+                ))):
+                raise ValueError("baseline scenario manifests must match the recorded experiment")
+            indexed[seed] = worker
+        populations.append(indexed)
+    old, new = populations
+    if old.keys() != new.keys() or any(
+        {key: value for key, value in old[seed]["scenarioManifest"].items() if key != "policy"}
+        != {key: value for key, value in new[seed]["scenarioManifest"].items() if key != "policy"}
+        for seed in old
+    ):
+        raise ValueError("baseline must have identical scenario manifests and seed population")
+    return old
+
+
 def report(args, summaries, host):
     result = {"schemaVersion": 1, "identity": host, "planned": 0 if args.crash_proof or args.replay_bundle else args.scenarios,
               "horizon": args.horizon, "fullAccess": args.full_access, "mode": args.mode, "policy": args.policy,
@@ -431,23 +474,12 @@ def report(args, summaries, host):
                                "replayedUnknownOutcome", "recoveredCapturedStore"} for s in summaries)
     if args.baseline:
         baseline = json.loads(args.baseline.read_text())
-        if any(baseline.get(key) != result[key] for key in ("horizon", "fullAccess", "mode", "hero", "companion")):
-            raise ValueError("baseline manifest does not match horizon/access")
-        old = {s["seed"]: s for s in baseline["workers"]}
-
-        def comparable_manifest(manifest):
-            return {key: value for key, value in (manifest or {}).items() if key != "policy"}
-
-        if set(old) != {s["seed"] for s in summaries} or any(
-            comparable_manifest(old[s["seed"]].get("scenarioManifest")) != comparable_manifest(s.get("scenarioManifest"))
-            for s in summaries
-        ):
-            raise ValueError("baseline must have identical scenario manifests and seed population")
+        old = baseline_workers(baseline, result)
         result["baselinePolicy"] = baseline.get("policy")
         result["pairedComparison"] = [{"seed": s["seed"], "before": old[s["seed"]].get("outcomes", []),
                                        "after": s.get("outcomes", []),
                                        "goldEarnedDelta": s.get("goldEarned", 0) - old[s["seed"]].get("goldEarned", 0)}
-                                      for s in summaries if s["seed"] in old]
+                                      for s in summaries]
         deltas = [pair["goldEarnedDelta"] for pair in result["pairedComparison"]]
         result["goldEarnedEffect"] = {"pairedCareers": len(deltas), "meanDelta": statistics.mean(deltas) if deltas else None,
                                      "standardError": statistics.stdev(deltas) / math.sqrt(len(deltas)) if len(deltas) > 1 else None}

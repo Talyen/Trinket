@@ -11,22 +11,7 @@ struct BattleLootTests {
         var save = SaveTestSupport.makeSave()
         // Exhausted collectibles must become Gold through every mode's loot path.
         save.inventory = PlayerInventoryState(items: GameContent.trinketItems + GameContent.uniqueItems)
-        let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
-        let ids = [NodeModifierCatalog.rewardID(modifier)]
-        let node = LabyrinthNode(id: "reward-node", type: .battle, enemyID: enemy.id, depth: 10, clusterID: "cluster", modifierIDs: ids)
-        let voyage = VoyageNode(id: node.id, type: .battle, enemyID: enemy.id, modifierIDs: ids, recruitEventID: nil)
-        let offer = ContractOffer(id: node.id, difficulty: .standard, enemyID: enemy.id, rewardModifier: modifier)
-        let effects = NodeModifierEffects.combining(NodeModifierCatalog.modifiers(ids: ids))
-        let labyrinthLoot = try #require(LabyrinthCompletion.resolveCombatLoot(
-            for: node, effects: effects, worldSeed: save.worldSeed,
-            ownedTrinketIDs: save.inventory.ownedTrinketIDs, ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-        ))
-        let packages = [
-            labyrinthLoot,
-            VoyageCompletion.resolveLoot(node: voyage, encounterLevel: 10, save: save),
-            ContractsCompletion.resolveLoot(for: offer, encounterLevel: 10, save: save),
-        ]
-        for loot in packages {
+        for loot in try modeLoot(modifier: modifier, save: save) {
             #expect(loot.materials.count == 2)
             #expect(Set(loot.materials.map(\.resource)).count == 2)
             if let keyword = modifier.requiredKeyword {
@@ -52,21 +37,7 @@ struct BattleLootTests {
     ])
     func `hoards guarantee their advertised item across all battle modes`(modifier: RewardModifier) throws {
         let save = SaveTestSupport.makeSave()
-        let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
-        let ids = [NodeModifierCatalog.rewardID(modifier)]
-        let node = LabyrinthNode(id: "hoard-node", type: .battle, enemyID: enemy.id, depth: 10, clusterID: "cluster", modifierIDs: ids)
-        let voyage = VoyageNode(id: node.id, type: .battle, enemyID: enemy.id, modifierIDs: ids, recruitEventID: nil)
-        let offer = ContractOffer(id: node.id, difficulty: .standard, enemyID: enemy.id, rewardModifier: modifier)
-        let effects = NodeModifierEffects.combining(NodeModifierCatalog.modifiers(ids: ids))
-        let labyrinth = try #require(LabyrinthCompletion.resolveCombatLoot(
-            for: node, effects: effects, worldSeed: save.worldSeed,
-            ownedTrinketIDs: [], ownedUniqueIDs: [],
-        ))
-        for loot in [
-            labyrinth,
-            VoyageCompletion.resolveLoot(node: voyage, encounterLevel: 10, save: save),
-            ContractsCompletion.resolveLoot(for: offer, encounterLevel: 10, save: save),
-        ] {
+        for loot in try modeLoot(modifier: modifier, save: save) {
             switch modifier {
             case .armsHoard, .armorHoard, .ringHoard, .amuletHoard:
                 #expect(modifier.requiredBaseTypeIDs?.contains(loot.item.baseType.id) == true)
@@ -116,40 +87,20 @@ struct BattleLootTests {
         #expect(boosted.item == base.item)
     }
 
-    @Test func `resolve always grants one item two distinct materials and gold`() {
-        let package = BattleLoot.resolve(
+    @Test(arguments: [false, true])
+    func `ordinary and boss loot grants one item and two distinct material rewards`(boss: Bool) {
+        let loot = BattleLoot.resolve(
             LootRequest(seedSalt: "test", itemID: "test-loot"),
-            encounterLevel: 1,
-            enemyIsBoss: false,
-            worldSeed: 42,
-            ownership: RewardOwnership(),
+            encounterLevel: 1, enemyIsBoss: boss, worldSeed: 42, ownership: RewardOwnership(),
         )
-        let isCatalogIdentity = package.item.isTrinket || package.item.rarity == .unique
-        #expect(isCatalogIdentity || package.item.id == "test-loot")
-        if !isCatalogIdentity {
-            #expect(package.item.rarity == .basic || package.item.rarity == .astral)
-        }
-        #expect((3 ... 4).contains(package.gold))
-        #expect(package.materials.count == 2)
-        #expect(Set(package.materials.map(\.resource)).count == 2)
-        for material in package.materials {
-            #expect(BattleLoot.materialResources.contains(material.resource))
-            #expect((3 ... 4).contains(material.quantity))
-        }
-    }
-
-    @Test func `boss doubles currency independently of item rarity`() {
-        let package = BattleLoot.resolve(
-            LootRequest(seedSalt: "test", itemID: "boss-loot"),
-            encounterLevel: 1,
-            enemyIsBoss: true,
-            worldSeed: 99,
-            ownership: RewardOwnership(),
-        )
-        #expect((6 ... 8).contains(package.gold))
-        for material in package.materials {
-            #expect((6 ... 8).contains(material.quantity))
-        }
+        let range = boss ? 6 ... 8 : 3 ... 4
+        #expect(loot.item.isTrinket || loot.item.rarity == .unique || loot.item.id == "test-loot")
+        #expect(range.contains(loot.gold))
+        #expect(loot.materials.count == 2)
+        #expect(Set(loot.materials.map(\.resource)).count == 2)
+        #expect(loot.materials.allSatisfy {
+            BattleLoot.materialResources.contains($0.resource) && range.contains($0.quantity)
+        })
     }
 
     @Test(arguments: BattleLoot.materialResources, [false, true])
@@ -196,30 +147,15 @@ struct BattleLootTests {
 
     @Test func `journey loot is seed stable`() throws {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
-        let first = BattleLoot.resolve(
-            .journey(stage: stage),
-            encounterLevel: 1,
-            enemyIsBoss: false,
-            worldSeed: 8,
-            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
-        )
-        let second = BattleLoot.resolve(
-            .journey(stage: stage),
-            encounterLevel: 1,
-            enemyIsBoss: false,
-            worldSeed: 8,
-            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
-        )
-        #expect(first == second)
-
-        let otherWorld = BattleLoot.resolve(
-            .journey(stage: stage),
-            encounterLevel: 1,
-            enemyIsBoss: false,
-            worldSeed: 9,
-            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
-        )
-        #expect(first != otherWorld)
+        func resolve(seed: UInt64) -> BattleLootResult {
+            BattleLoot.resolve(
+                .journey(stage: stage), encounterLevel: 1, enemyIsBoss: false,
+                worldSeed: seed, ownership: RewardOwnership(),
+            )
+        }
+        let first = resolve(seed: 8)
+        #expect(first == resolve(seed: 8))
+        #expect(first != resolve(seed: 9))
     }
 
     @Test func `noncombat offer quality follows won encounters across modes`() {
@@ -323,5 +259,22 @@ struct BattleLootTests {
         let range = BattleLoot.quantityRange(forLevel: 10)
         #expect(save.roster.gold - goldBefore == (range.lowerBound + range.upperBound) / 2)
         #expect(save.inventory.items.count(where: { $0.templateID == trinket.templateID }) == 1)
+    }
+
+    private func modeLoot(modifier: RewardModifier, save: PlayerSave) throws -> [BattleLootResult] {
+        let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
+        let ids = [NodeModifierCatalog.rewardID(modifier)]
+        let node = LabyrinthNode(id: "mode-node", type: .battle, enemyID: enemy.id, depth: 10, clusterID: "cluster", modifierIDs: ids)
+        let voyage = VoyageNode(id: node.id, type: .battle, enemyID: enemy.id, modifierIDs: ids, recruitEventID: nil)
+        let offer = ContractOffer(id: node.id, difficulty: .standard, enemyID: enemy.id, rewardModifier: modifier)
+        let effects = NodeModifierEffects.combining(NodeModifierCatalog.modifiers(ids: ids))
+        return try [
+            #require(LabyrinthCompletion.resolveCombatLoot(
+                for: node, effects: effects, worldSeed: save.worldSeed,
+                ownedTrinketIDs: save.inventory.ownedTrinketIDs, ownedUniqueIDs: save.inventory.ownedUniqueIDs,
+            )),
+            VoyageCompletion.resolveLoot(node: voyage, encounterLevel: 10, save: save),
+            ContractsCompletion.resolveLoot(for: offer, encounterLevel: 10, save: save),
+        ]
     }
 }

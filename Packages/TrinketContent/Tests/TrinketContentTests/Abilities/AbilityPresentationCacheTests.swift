@@ -3,19 +3,6 @@ import TrinketCore
 @testable import TrinketContent
 
 struct AbilityPresentationCacheTests {
-    @Test func `cached presentation preserves catalog text and keyword order`() {
-        for ability in AbilityCatalog.all {
-            let expectedDescription = AbilityDescriptionFormatter.format(ability)
-            var expectedKeywords = ability.keywords
-            for keyword in Keyword.referenced(in: ability.descriptionOverride ?? expectedDescription)
-                where !expectedKeywords.contains(keyword) {
-                expectedKeywords.append(keyword)
-            }
-            #expect(ability.generatedDescription == expectedDescription)
-            #expect(ability.presentationKeywords == expectedKeywords)
-        }
-    }
-
     @Test func `warm caches stay isolated across transformations and value equality`() {
         let original = Ability(
             id: "cached-presentation", name: "Cached Presentation", tier: .basic,
@@ -41,7 +28,6 @@ struct AbilityPresentationCacheTests {
         #expect(rebuilt == original)
         #expect(Set([original, rebuilt]).count == 1)
         #expect(rebuilt.presentationKeywords == original.presentationKeywords)
-        #expect(Set([original, rebuilt]).count == 1)
     }
 
     @Test func `empowerment and branch resolution refresh warmed presentation`() {

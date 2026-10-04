@@ -15,6 +15,10 @@ template for Trinkets, and Unique template for Unique items. Repair retains the
 first accepted item in save order; a rejected record reserves no other keys.
 Normal equipment copies with distinct physical IDs remain valid.
 
+Contracts decode independent fields separately: unreadable offers can regenerate
+without erasing earned encounter levels or completion receipts, and a damaged
+scalar does not discard otherwise readable pinned offers.
+
 ## Save compatibility
 
 Distributed TestFlight builds have local player saves that must be preserved or
@@ -110,6 +114,8 @@ removals from the shared base, so a talent reset survives unrelated progress;
 unrelated saves without a shared base union talents. Use the latest valid party/loadout
 edit, retaining displaced gear in Inventory. A one-sided change to an existing item,
 including corruption or salvage, survives unrelated progress on the other branch.
+Restoring a newer valid weapon pair reclaims its primary from an older assignment
+on another combatant before enforcing unique equipped items.
 For a shared physical item, salvage on either branch retires the item even if
 the other branch corrupted it; the merged save cannot retain both gear and its materials.
 New recruits use initial progression as the shared baseline when independent XP
@@ -147,9 +153,13 @@ identified transition while retaining recent actions and any actions already in
 a pending request. The compacted transition keeps its first before-snapshot and
 last after-snapshot; a receipt removes only the actions it actually submitted.
 
-The merged Homestead cursor cannot move backward. Overlapping collections of the
-same production interval count once; distinct upgrades persist, and a shortage
-from concurrent spending is forgiven at zero balance. Pending legacy production
+The merged Homestead cursor cannot move backward. Compare pending production at
+that shared cursor so an earlier collection retains production earned afterward.
+Only resources with a producer or retained production credit qualify for
+production deduplication; unrelated earned Gold and materials still combine.
+Overlapping collections of the same production interval count once; distinct
+upgrades persist, and a shortage from concurrent spending is forgiven at zero
+balance. Pending legacy production
 receipts remain recoverable after a lost response.
 [Progression](persistence-progression.md) owns the claim transaction.
 

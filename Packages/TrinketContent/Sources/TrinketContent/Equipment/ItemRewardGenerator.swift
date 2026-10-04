@@ -43,7 +43,8 @@ public enum ItemRewardGenerator {
         if uniques.isEmpty {
             available.remove(.unique)
         }
-        if fallbackBaseType == nil, !baseTypes.contains(where: { $0.slot != .trinket }) {
+        let hasGearPool = fallbackBaseType != nil || baseTypes.contains(where: { $0.slot != .trinket })
+        if !hasGearPool {
             available.subtract([.basic, .astral])
         }
         if available.isEmpty {
@@ -72,7 +73,7 @@ public enum ItemRewardGenerator {
         case .basic: rarity = .basic
         }
         let baseType = rewardBaseType(
-            baseTypes: baseTypes, fallbackBaseType: fallbackBaseType,
+            baseTypes: hasGearPool ? baseTypes : GameContent.itemBaseTypes, fallbackBaseType: fallbackBaseType,
             requiredKeyword: requiredKeyword, keywordBias: keywordBias,
             itemGenerator: itemGenerator, using: &randomNumberGenerator,
         )
@@ -96,15 +97,8 @@ public enum ItemRewardGenerator {
         itemGenerator: ItemGenerator,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemBaseType {
-        // Degraded basic-gear fallback must not trap when the caller passed
-        // trinket-only baseTypes with no fallback: use the default gear pool
-        // for base selection so the degrade path stays total.
-        let effectiveBases = baseTypes.contains(where: { $0.slot != .trinket })
-            || fallbackBaseType != nil
-            ? baseTypes : GameContent.itemBaseTypes
-        let baseType: ItemBaseType
         if let keyword = requiredKeyword {
-            let candidates = effectiveBases.filter { base in
+            let candidates = baseTypes.filter { base in
                 base.slot != .trinket && base.keywordAffinities.contains(keyword)
                     && itemGenerator.affixDefinitions.contains {
                         $0.weight > 0 && $0.keywords.contains(keyword) && $0.isEligible(for: base)
@@ -113,13 +107,11 @@ public enum ItemRewardGenerator {
             guard let selected = candidates.randomElement(using: &randomNumberGenerator) else {
                 preconditionFailure("Required keyword must have a matching equipment pool")
             }
-            baseType = selected
-        } else {
-            baseType = ItemBasePolicy.uniformFallbackBase(
-                from: effectiveBases, keywordBias: keywordBias, fallback: fallbackBaseType,
-                using: &randomNumberGenerator,
-            )
+            return selected
         }
-        return baseType
+        return ItemBasePolicy.uniformFallbackBase(
+            from: baseTypes, keywordBias: keywordBias, fallback: fallbackBaseType,
+            using: &randomNumberGenerator,
+        )
     }
 }

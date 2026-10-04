@@ -140,7 +140,7 @@ public enum VoyageGenerator {
             remaining[.mystery, default: 0] += 1
         }
         // Finite backtracking over at most ten middle slots; no unbounded reroll loop.
-        guard let middle = arrange(remaining, prefix: [.battle], using: &rng) else {
+        guard let middle = arrange(remaining, previous: .battle, battleStreak: 1, using: &rng) else {
             preconditionFailure("Voyage encounter counts must admit a valid route")
         }
         let types: [LabyrinthNodeType] = [.battle] + middle + [.boss]
@@ -176,23 +176,18 @@ public enum VoyageGenerator {
     }
 
     private static func arrange(
-        _ remaining: [LabyrinthNodeType: Int], prefix: [LabyrinthNodeType], using rng: inout some RandomNumberGenerator,
+        _ remaining: [LabyrinthNodeType: Int], previous: LabyrinthNodeType, battleStreak: Int,
+        using rng: inout some RandomNumberGenerator,
     ) -> [LabyrinthNodeType]? {
         if remaining.values.allSatisfy({ $0 == 0 }) {
             return []
         }
         let choices = LabyrinthNodeType.allCases.filter { remaining[$0, default: 0] > 0 }.shuffled(using: &rng)
         for type in choices {
-            if type == .battle {
-                if prefix.suffix(2).count == 2, prefix.suffix(2).allSatisfy({ $0 == .battle }) {
-                    continue
-                }
-            } else if prefix.last == type {
-                continue
-            }
+            guard type == .battle ? battleStreak < 2 : previous != type else { continue }
             var next = remaining
             next[type, default: 0] -= 1
-            if let tail = arrange(next, prefix: prefix + [type], using: &rng) {
+            if let tail = arrange(next, previous: type, battleStreak: type == .battle ? battleStreak + 1 : 0, using: &rng) {
                 return [type] + tail
             }
         }

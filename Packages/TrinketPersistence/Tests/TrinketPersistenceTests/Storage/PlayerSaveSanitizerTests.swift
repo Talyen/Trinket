@@ -1,9 +1,27 @@
+import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
 struct PlayerSaveSanitizerTests {
+    @Test func `sanitize journey prunes completed shop payloads`() {
+        var journey = JourneyProgressState.initial
+        let completedStage = "chapter-1-stage-1"
+        let activeStage = "chapter-1-stage-2"
+        journey.completedStageIDs = [completedStage]
+        journey.activeStageID = activeStage
+        journey.shopPayloads = [
+            completedStage: Data([0x01, 0x02]),
+            activeStage: Data([0x03, 0x04]),
+        ]
+
+        let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
+
+        #expect(sanitized.shopPayloads[completedStage] == nil)
+        #expect(sanitized.shopPayloads[activeStage] == Data([0x03, 0x04]))
+    }
+
     @Test func `sanitize inventory removes duplicate item I ds`() throws {
         let baseType = try #require(GameContent.itemBaseTypes.first)
         let duplicate = InventoryItem(

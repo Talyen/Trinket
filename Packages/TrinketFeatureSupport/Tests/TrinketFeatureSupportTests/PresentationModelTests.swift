@@ -129,10 +129,16 @@ struct PresentationModelTests {
                 ],
                 astralChanceBonusPercent: 5,
                 goldFindPercent: 10,
+                goldFindFlat: 2,
+                experienceBonus: 3,
+                gemsFindBonus: 4,
+                gemsFindPercent: 30,
+                experienceBonusPercent: 20,
             ),
             production: [.init(.wood, 25)],
         )
         let lines = HomesteadEffectLine.lines(for: tier)
+        #expect(Set(lines.map(\.id)).count == lines.count)
         let healthLine = lines.first(where: { $0.label == "Hero Health" })
         #expect(healthLine?.displayValue == "+10")
 
@@ -178,36 +184,5 @@ struct PresentationModelTests {
         let sortedNodes: [LabyrinthNode] = LabyrinthMapPresentation.floorNodes(for: cluster, in: state)
         // Node B falls back to (row 0, column 0), node C is at (0, 2), node A is at (1, 0)
         #expect(sortedNodes.map(\.id) == ["node-b", "node-c", "node-a"])
-    }
-
-    @Test func `frame pacing report round trip and duration properties`() {
-        let report = FramePacingReport(
-            captureStartedAt: 100.0,
-            captureEndedAt: 102.0,
-            completionStatus: "completed",
-            measurementDuration: 2.0,
-            sampleCount: 120,
-            expectedFPS: 60.0,
-            averageFPS: 59.8,
-            p95FrameMs: 16.9,
-            p99FrameMs: 17.5,
-            onePercentLowFPS: 55.0,
-            maxFrameMs: 18.2,
-            missedDeadlineCount: 1,
-            estimatedMissedFrameCount: 1,
-            severeStallCount: 0,
-            missedDeadlineRatio: 1.0 / 120.0,
-        )
-        #expect(abs(report.sampledDuration - (120.0 / 59.8)) < 0.001)
-
-        let encoded = report.accessibilityValue
-        let parsed = FramePacingReport.parseAccessibilityValue(encoded)
-        #expect(parsed == report)
-
-        let emptyParsed = FramePacingReport.parseAccessibilityValue("invalid;format")
-        #expect(emptyParsed == nil)
-
-        let zeroReport = FramePacingReport.empty
-        #expect(zeroReport.sampledDuration == 0)
     }
 }

@@ -79,8 +79,9 @@ relies on this encapsulation; storage references must never escape the wrapper.
 
 `ItemRewardGenerator` owns category selection and candidate filtering for battles,
 shops, Mysteries, and Blacksmith forging. Tune level endpoints, tier weights,
-curvature, and the boss multiplier in `Sources/TrinketContent/Equipment/LootTuning.swift`.
-`ItemLootPolicy.swift` blends the endpoint weights using normalized curved level
+curvature, and the boss multiplier in `Sources/TrinketContent/Equipment/ItemLootPolicy.swift`;
+affix counts and keyword bias live with `ItemGenerator.swift`.
+The loot policy blends the endpoint weights using normalized curved level
 progression, clamped to levels 1–40. Bosses triple premium weights; Moonlit Sanctum multiplies
 Astral weight by `1 + bonus/100`. After ownership, reservations, keywords, and
 explicit pools remove unavailable categories, the remaining weights normalize.

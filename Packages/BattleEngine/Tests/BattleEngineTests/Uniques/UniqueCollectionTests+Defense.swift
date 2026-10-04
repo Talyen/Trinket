@@ -210,4 +210,22 @@ extension UniqueCollectionTests {
         #expect(!context.activeEffects(of: enemy).contains { $0.effect.kind == .thorns })
         #expect(events.isEmpty)
     }
+
+    @Test(arguments: [false, true])
+    func `Rimeheart does not grant Block to a wearer finally defeated by Thorns`(finallyDefeated: Bool) throws {
+        var context = try battle(["rimeheart_locket"])
+        context.roster.hero.currentHealth = 1
+        context.roster.hero.hasConsumedDeathsDoor = finallyDefeated
+        context.appendEffect(.thorns(8), to: context.enemy, sourceID: context.enemy.id, remainingTurns: 0)
+
+        let outcome = context.resolveDamage(DamageRequest(
+            amount: 4, target: context.enemy, keyword: .freeze, sourceActorID: context.hero.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ))
+
+        #expect(context.health(of: context.enemy) == 1996)
+        #expect(context.health(of: context.hero) == (finallyDefeated ? 0 : 1))
+        #expect(blockAmount(.hero, in: context) == (finallyDefeated ? 0 : 4))
+        #expect(outcome.events.contains { $0.abilityName == "Rimeheart" && $0.amount == 4 } == !finallyDefeated)
+    }
 }

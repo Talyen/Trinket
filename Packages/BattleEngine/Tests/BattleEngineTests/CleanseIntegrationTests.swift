@@ -366,3 +366,34 @@ struct CleanseIntegrationTests {
         #expect(battle.hand.count == initialHandCount + 1)
     }
 }
+
+extension CleanseIntegrationTests {
+    @Test(arguments: [Keyword.stun, .freeze])
+    func `Reflective Ward returns triggered control to a tougher enemy`(keyword: Keyword) throws {
+        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl", talents: "library_owl_cleanse_t3_1")
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20),
+            companion: owl.combatant, enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            companionModifiers: owl.modifiers, dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        let hero = battle.hero
+        let enemy = battle.enemy
+        _ = ControlMeterEngine.applyMeterCharge(
+            100, keyword: keyword, to: hero, sourceActorID: enemy.id,
+            applyFightPacing: false, in: &battle,
+        )
+        #expect(battle.roster.hasPendingActionSkip(for: hero, keyword: keyword))
+        let card = BattleCardCombatEngine.deal(.panaceaPotion, owner: .companion, context: &battle)
+
+        let events = try battle.playCard(cardID: card.id)
+
+        #expect(!battle.roster.hasPendingActionSkip(for: hero, keyword: keyword))
+        #expect(battle.roster.hasPendingActionSkip(for: enemy, keyword: keyword))
+        #expect(events.contains { $0.effectKind == .controlTriggered && $0.targetID == enemy.id && $0.keyword == keyword })
+        #expect(battle.health(of: enemy) == 100)
+        let skipped = BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle)
+        #expect(skipped.contains { $0.effectKind == .controlActionSkipped && $0.keyword == keyword })
+        #expect(!battle.roster.hasPendingActionSkip(for: enemy, keyword: keyword))
+    }
+}

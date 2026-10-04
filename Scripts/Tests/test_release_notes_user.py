@@ -57,19 +57,6 @@ class ReleaseNotesUserTests(unittest.TestCase):
             with self.subTest(subject=candidate.subject):
                 self.assertEqual(notes.is_user_facing(candidate), expected)
 
-    def test_player_line_prefers_body_bullet(self) -> None:
-        line = notes.player_line(
-            commit(
-                "feat(battle): retarget when a hero dies mid-turn",
-                "Packages/BattleEngine/Sources/BattleEngine/Turns/BattleTurnEngine.swift",
-                body="- Enemies now pick a new target if the current one dies mid-turn.",
-            )
-        )
-        self.assertEqual(
-            line,
-            "Enemies now pick a new target if the current one dies mid-turn.",
-        )
-
     def test_build_notes_skips_infra_and_uses_fallback(self) -> None:
         summary, bullets = notes.build_notes(
             [
@@ -86,13 +73,15 @@ class ReleaseNotesUserTests(unittest.TestCase):
                 commit(
                     "feat(content): add a new hero",
                     "ContentManifest/heroes.tsv",
-                    body="- Recruit a new hero in the collection.",
+                    body="- SwiftFormat cleanup.\n- User-Facing: yes\n"
+                         "- recruit a new hero in the collection.\n- Unused later detail.",
                 ),
                 commit(
                     "fix(battle): dodge blocked hits",
                     "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine+Dodge.swift",
                 ),
                 commit("chore: regenerate project", "project.yml"),
+                commit("fix: dodge blocked hits", "Packages/BattleEngine/Sources/Rule.swift"),
             ]
         )
         self.assertEqual(summary, "Recruit a new hero in the collection.")

@@ -17,7 +17,6 @@ METRICS = (
 )
 COUNT_METRICS = {"missedDeadlineCount", "severeStallCount"}
 NON_NEGATIVE_METRICS = set(METRICS) - {"missedDeadlineRatio"}
-REQUIRED_NUMERIC_FIELDS = METRICS
 REMOVED_FIELDS = ("p999FrameMs", "pointOnePercentLowFPS")
 REQUIRED_SCHEMA_VERSION = 6
 
@@ -56,7 +55,7 @@ def load_results_reports(payload: dict[str, Any]) -> list[dict[str, Any]]:
     Single source for the shape check previously restated in
     compare-performance.py and aggregate-performance-results.py.
     """
-    reports = payload.get("reports")
+    reports = payload.get("reports") if isinstance(payload, dict) else None
     if not isinstance(reports, list):
         raise SystemExit("results payload must contain a reports array")
     return reports
@@ -110,12 +109,13 @@ def group_reports_by_scenario(
 def validate_report(report: dict[str, Any], baseline: dict[str, Any] | None = None) -> list[str]:
     scenario = report.get("scenario")
     failures = validate_report_domains(report)
-    if report.get("schemaVersion") not in (5, REQUIRED_SCHEMA_VERSION):
+    version = report.get("schemaVersion")
+    if type(version) is not int or version not in (5, REQUIRED_SCHEMA_VERSION):
         failures.append(f"{scenario}: expected frame report schema {REQUIRED_SCHEMA_VERSION}, found {report.get('schemaVersion')!r}")
     iteration = report.get("iteration")
     if isinstance(iteration, bool) or not isinstance(iteration, int) or iteration < 1:
         failures.append(f"{scenario}: iteration must be a positive integer")
-    if report.get("schemaVersion") == 6:
+    if version == REQUIRED_SCHEMA_VERSION:
         if report.get("completionStatus") != "complete":
             failures.append(f"{scenario}: interaction capture is not complete")
         if report.get("step") != scenario:
@@ -134,7 +134,6 @@ def validate_report(report: dict[str, Any], baseline: dict[str, Any] | None = No
                 failures.append(f"{scenario}: invalid measurement boundaries or samples")
         except ValueError as error:
             failures.append(f"{scenario}: {error}")
-    version = report.get("schemaVersion")
     if baseline and (not isinstance(version, int) or isinstance(version, bool) or version < baseline.get("minimumReportSchema", 5)):
         failures.append(f"{scenario}: legacy report cannot establish interaction coverage")
     removed = [key for key in REMOVED_FIELDS if key in report]

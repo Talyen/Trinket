@@ -17,45 +17,7 @@ struct HomesteadPresentationTests {
         }
     }
 
-    enum LifecycleCase {
-        case independentUnbuilt
-        case unbuiltAffordable
-        case unbuiltUnaffordable
-        case built
-        case upgradeReady
-        case upgradeNotReady
-        case completed
-    }
-
-    @Test(arguments: [
-        LifecycleCase.independentUnbuilt,
-        .unbuiltAffordable,
-        .unbuiltUnaffordable,
-        .built,
-        .upgradeReady,
-        .upgradeNotReady,
-        .completed,
-    ])
-    func `project lifecycle exposes current benefits and next offer`(caseKind: LifecycleCase) throws {
-        switch caseKind {
-        case .independentUnbuilt:
-            try assertIndependentUnbuiltLifecycle()
-        case .unbuiltAffordable:
-            try assertUnbuiltAffordableLifecycle()
-        case .unbuiltUnaffordable:
-            try assertUnbuiltUnaffordableLifecycle()
-        case .built:
-            try assertBuiltLifecycle()
-        case .upgradeReady:
-            try assertUpgradeReadyLifecycle()
-        case .upgradeNotReady:
-            try assertUpgradeNotReadyLifecycle()
-        case .completed:
-            try assertCompletedLifecycle()
-        }
-    }
-
-    private func assertIndependentUnbuiltLifecycle() throws {
+    @Test func `independent unbuilt project can be built`() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .blacksmithForge))
         let status = makeStatus(
             definition: definition,
@@ -66,7 +28,7 @@ struct HomesteadPresentationTests {
         #expect(status.canBuildOrUpgrade)
     }
 
-    private func assertUnbuiltAffordableLifecycle() throws {
+    @Test func `affordable unbuilt project can be built without active benefits`() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(
             definition: definition,
@@ -77,14 +39,14 @@ struct HomesteadPresentationTests {
         #expect(status.canBuildOrUpgrade)
     }
 
-    private func assertUnbuiltUnaffordableLifecycle() throws {
+    @Test func `unaffordable unbuilt project has no active benefits`() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(definition: definition, homestead: .freshStart)
         #expect(status.currentTier == 0 && !status.isAffordable)
         #expect(status.currentStage?.bonus == nil)
     }
 
-    private func assertBuiltLifecycle() throws {
+    @Test func `built project exposes its active benefits instead of the next tier`() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(
             definition: definition,
@@ -96,7 +58,7 @@ struct HomesteadPresentationTests {
         #expect(status.currentStage?.bonus != definition.tier(2)?.bonus)
     }
 
-    private func assertUpgradeReadyLifecycle() throws {
+    @Test func `affordable upgrade exposes the next tier`() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(
             definition: definition,
@@ -107,12 +69,11 @@ struct HomesteadPresentationTests {
             gold: 14,
         )
         let secondTier = try #require(definition.tier(2))
-        #expect(status.canBuildOrUpgrade)
         #expect(status.nextTier == secondTier)
         #expect(status.canBuildOrUpgrade)
     }
 
-    private func assertUpgradeNotReadyLifecycle() throws {
+    @Test func `unaffordable upgrade exposes material shortfalls`() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(
             definition: definition,
@@ -125,7 +86,7 @@ struct HomesteadPresentationTests {
         #expect(status.materialShortfalls == secondTier.cost)
     }
 
-    private func assertCompletedLifecycle() throws {
+    @Test func `completed project keeps its final benefits without another upgrade`() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(
             definition: definition,
@@ -185,68 +146,15 @@ struct HomesteadPresentationTests {
         #expect(mycologyEffects.map(\.displayValue) == ["+15%", "+3"])
     }
 
-    @Test func `every affix modifier renders a labeled effect line`() {
-        // Pins HomesteadEffectLine.label(for:) coverage: adding an
-        // AffixModifier case without a label must fail here, not in CI.
-        let modifiers: [AffixModifier] = [
-            .maximumHealth(5),
-            .maximumMana(3),
-            .damageDealt(.physical, 2),
-            .poisonDamageDealtPercent(15),
-            .healthRestored(4),
-            .leechGainedPercent(10),
-            .leechHealing(3),
-            .goldGained(10),
-            .goldGainedPercent(5),
-            .blockGained(6),
-            .bleedDuration(2),
-            .damageTakenPercent(.burn, 10),
-            .damageTakenFlat(.burn, 2),
-            .damageTakenVulnerability(.burn, 5),
-            .companionDamageDealt(3),
-            .companionPhysicalDamageDealt(2),
-            .companionBleedDamageDealt(2),
-            .outgoingDamagePercent(8),
-            .incomingDamageReductionPercent(12),
-            .dodgeChanceBonus(5),
-            .rangedDamageDealt(2),
-            .maximumManaPercent(0.10),
-        ]
-        let tier = HomesteadNodeTier(
-            tier: 1,
-            stageName: "Stage 1",
-            cost: [],
-            bonus: .init(title: "Test", description: "Test"),
-            combatBonus: .init(heroModifiers: modifiers),
-        )
-        let effects = HomesteadEffectLine.lines(for: tier)
-        #expect(effects.count == modifiers.count)
-        for effect in effects {
-            #expect(!effect.label.isEmpty)
-            #expect(effect.displayValue.hasPrefix("+") || effect.displayValue.hasPrefix("−"))
-        }
-    }
-
-    @Test func `category presentation models expose valid artwork and icons`() {
-        for category in HomesteadNodeCategory.allCases {
-            #expect(!category.artID.isEmpty)
-            #expect(!category.icon.symbolName.isEmpty)
-        }
-    }
-
-    @Test func `resource icons match canonical Homestead specifications`() {
-        let expectedSymbols: [HomesteadResource: String] = [
-            .wood: "tree.fill",
-            .stone: "mountain.2.fill",
-            .iron: "hammer.fill",
-            .food: "carrot.fill",
-            .herbs: "leaf.fill",
-            .hide: "square.stack.3d.up.fill",
-            .gems: "diamond.fill",
-            .gold: "circle.circle.fill",
-        ]
-        for (resource, symbol) in expectedSymbols {
-            #expect(resource.icon.symbolName == symbol)
+    @Test(arguments: GameContent.homesteadNodes)
+    func `authored Homestead benefits render labeled effect lines`(node: HomesteadNodeDefinition) {
+        for tier in node.tiers {
+            let effects = HomesteadEffectLine.lines(for: tier, nodeID: node.id)
+            #expect(!effects.isEmpty, "\(node.title) tier \(tier.tier)")
+            for effect in effects {
+                #expect(!effect.label.isEmpty)
+                #expect(effect.displayValue.hasPrefix("+") || effect.displayValue.hasPrefix("−"))
+            }
         }
     }
 

@@ -5,34 +5,33 @@ import Testing
 @Suite(.serialized)
 @MainActor
 struct BalanceSweepSliceTests {
-    @Test func `identity slices replay exact records across enemy and tier boundaries`() {
+    @Test func `identity slices replay exact records across enemy and tier boundaries`() throws {
         let config = Self.config(mode: .identity)
         let complete = BalanceSweepRunner.run(config: config)
+        try #require(!complete.records.isEmpty)
         let slices = Self.slices(config, count: complete.records.count).map {
             BalanceSweepRunner.run(config: $0)
         }
         #expect(slices.flatMap(\.records) == complete.records)
     }
 
-    @Test func `contrast slices preserve paired outcomes across focus and tier boundaries`() {
+    @Test func `contrast slices preserve paired outcomes across focus and tier boundaries`() throws {
         let config = Self.config(mode: .abilityContrast)
         let complete = BalanceSweepRunner.run(config: config)
+        try #require(!complete.abilityContrasts.isEmpty)
         let count = BalanceAbilityContrastRunner.workCount(config: config)
         let slices = Self.slices(config, count: count).map {
             BalanceSweepRunner.run(config: $0)
         }
         let merged = BalanceSweepReport.merged(slices, config: config, policyID: config.policyID, elapsedSeconds: 0)
-        #expect(merged.abilityContrasts.count == complete.abilityContrasts.count)
+        try #require(merged.abilityContrasts.count == complete.abilityContrasts.count)
         for (actual, expected) in zip(merged.abilityContrasts, complete.abilityContrasts) {
-            #expect(actual.entityID == expected.entityID && actual.baselineID == expected.baselineID)
-            #expect(actual.ownerID == expected.ownerID && actual.tier == expected.tier)
-            #expect(actual.pairs == expected.pairs && actual.decidedPairs == expected.decidedPairs)
-            #expect(actual.winsWithEntity == expected.winsWithEntity && actual.winsWithBaseline == expected.winsWithBaseline)
-            #expect(actual.entityOnlyWins == expected.entityOnlyWins && actual.baselineOnlyWins == expected.baselineOnlyWins)
-            #expect(actual.entityTimeouts == expected.entityTimeouts && actual.baselineTimeouts == expected.baselineTimeouts)
             #expect(abs(actual.meanDeltaPartyHP - expected.meanDeltaPartyHP) < 1e-12)
             #expect(abs(actual.meanDeltaRounds - expected.meanDeltaRounds) < 1e-12)
-            #expect(actual.lift == expected.lift && actual.flagReason == expected.flagReason)
+            var comparable = actual
+            comparable.meanDeltaPartyHP = expected.meanDeltaPartyHP
+            comparable.meanDeltaRounds = expected.meanDeltaRounds
+            #expect(comparable == expected)
         }
     }
 

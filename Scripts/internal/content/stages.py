@@ -184,8 +184,8 @@ def validate_stage_rows(
             _validate_positive_int(field_name, value, stage_id, minimum=1)
 
         chapters.setdefault(row.chapter_id, []).append(row)
-        render_stage(row)
 
+    chapter_numbers: set[int] = set()
     for chapter_id, chapter_rows in chapters.items():
         numbers = [int(row.stage_number) for row in chapter_rows]
         expected = list(range(1, len(numbers) + 1))
@@ -193,26 +193,28 @@ def validate_stage_rows(
             raise ValueError(f"Chapter {chapter_id} stages must be numbered 1...N contiguously")
         titles = {row.chapter_title for row in chapter_rows}
         themes = {row.theme for row in chapter_rows}
-        chapter_numbers = {row.chapter_number for row in chapter_rows}
-        if len(titles) != 1 or len(themes) != 1 or len(chapter_numbers) != 1:
+        numbers_in_chapter = {row.chapter_number for row in chapter_rows}
+        if len(titles) != 1 or len(themes) != 1 or len(numbers_in_chapter) != 1:
             raise ValueError(f"Chapter metadata must be consistent for {chapter_id}")
+        number = int(chapter_rows[0].chapter_number)
+        if number in chapter_numbers:
+            raise ValueError(f"Duplicate chapter number: {number}")
+        chapter_numbers.add(number)
 
 
 def generate_chapters_catalog(rows: list[StageRow]) -> None:
     chapters: dict[str, list[StageRow]] = {}
-    chapter_meta: dict[str, StageRow] = {}
     for row in rows:
         chapters.setdefault(row.chapter_id, []).append(row)
-        chapter_meta[row.chapter_id] = row
 
     chapter_blocks: list[str] = []
-    for chapter_id in sorted(chapters, key=lambda cid: int(chapter_meta[cid].chapter_number)):
-        chapter_rows = sorted(chapters[chapter_id], key=lambda row: int(row.stage_number))
-        meta = chapter_meta[chapter_id]
+    for rows_in_chapter in sorted(chapters.values(), key=lambda rows: int(rows[0].chapter_number)):
+        chapter_rows = sorted(rows_in_chapter, key=lambda row: int(row.stage_number))
+        meta = chapter_rows[0]
         stage_blocks = ",\n".join(render_stage(row) for row in chapter_rows)
         chapter_blocks.append(
             f"""        Chapter(
-            id: "{swift_escape(chapter_id)}",
+            id: "{swift_escape(meta.chapter_id)}",
             number: {meta.chapter_number},
             title: "{swift_escape(meta.chapter_title)}",
             theme: .{meta.theme},

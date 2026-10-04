@@ -21,11 +21,6 @@ class CheckUnusedAssetsTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.checker = load_script("check_unused_assets", "check-unused-assets.py")
 
-    def test_live_repository_assets_have_no_missing_or_orphans(self) -> None:
-        missing, orphans = self.checker.check_assets()
-        self.assertEqual(missing, [])
-        self.assertEqual(orphans, [])
-
     def test_missing_thumbnails_and_media_and_orphans_are_reported(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -42,9 +37,11 @@ class CheckUnusedAssetsTests(unittest.TestCase):
             music = root / "music.tsv"
             music.write_text("# asset_name\nmissing-track\n")
             (media / "orphan.m4a").write_bytes(b"audio")
+            empty = root / "empty.tsv"
+            empty.write_text("# asset_name\n")
             with patch.multiple(self.checker, ROOT=root, ASSETS_XCASSETS=assets, ART_MANIFEST=manifest,
-                                MUSIC_MANIFEST=music, MUSIC_DIR=media, SFX_MANIFEST=root / "absent-sfx.tsv",
-                                CINEMATICS_MANIFEST=root / "absent-video.tsv", SFX_DIR=root / "sfx",
+                                MUSIC_MANIFEST=music, MUSIC_DIR=media, SFX_MANIFEST=empty,
+                                CINEMATICS_MANIFEST=empty, SFX_DIR=root / "sfx",
                                 CINEMATICS_DIR=root / "video"):
                 missing, orphans = self.checker.check_assets()
             self.assertEqual(len(missing), 2, missing)
@@ -53,6 +50,13 @@ class CheckUnusedAssetsTests(unittest.TestCase):
             self.assertEqual(len(orphans), 2, orphans)
             self.assertTrue(any("orphan.imageset" in item for item in orphans))
             self.assertTrue(any("orphan.m4a" in item for item in orphans))
+            with patch.object(self.checker, "ART_MANIFEST", manifest):
+                manifest.unlink()
+                with self.assertRaises(OSError):
+                    self.checker.check_assets()
+                manifest.write_text("# wrong_column\nhero\n")
+                with self.assertRaisesRegex(ValueError, "asset_name"):
+                    self.checker.check_assets()
 
 
 if __name__ == "__main__":

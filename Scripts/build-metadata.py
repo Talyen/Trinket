@@ -68,10 +68,20 @@ def group(fingerprint):
 
 
 def differences(saved, current):
+    if not isinstance(saved, dict):
+        raise ValueError("Build identity must be an object")
     keys = set(current)
     if os.environ.get("CI") != "true" and os.environ.get("GITHUB_ACTIONS") != "true":
         keys.remove("commit")  # Local source freshness remains owned by build-freshness.sh.
     return sorted(key for key in keys if saved.get(key) != current[key])
+
+
+def validate_metadata(saved, current, fingerprint):
+    changed = differences(saved, current)
+    if saved.get("fingerprint") != fingerprint:
+        changed.append("fingerprint")
+    if changed:
+        raise ValueError(f"Build metadata mismatch ({', '.join(changed)}); rebuild before reuse.")
 
 
 def read_metadata(path):
@@ -126,12 +136,7 @@ def main():
     else:
         if not stamp.is_file():
             raise ValueError(f"Missing build stamp for {args.fingerprint}; rebuild before reuse.")
-        saved = read_metadata(metadata)
-        changed = differences(saved, current)
-        if saved.get("fingerprint") != args.fingerprint:
-            changed.append("fingerprint")
-        if changed:
-            raise ValueError(f"Build metadata mismatch ({', '.join(changed)}); rebuild before reuse.")
+        validate_metadata(read_metadata(metadata), current, args.fingerprint)
 
 
 if __name__ == "__main__":

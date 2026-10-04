@@ -10,6 +10,12 @@ helpers, `config/` owns shared configuration, and `Tests/` owns script regressio
 
 ## Everyday workflow
 
+Start indexed concerns with `python3 Scripts/agent-session.py brief --task <concern>`
+for scoped status, safeguards, initial guidance, and source/test pointers. Find a
+concern with `agent-search.py '<concern>' --task`; unindexed work starts with
+filename discovery. The [AgentContext quickstart](../Docs/AgentContext/README.md#quickstart)
+owns discovery and guidance reuse. Once task files are known:
+
 ```sh
 ./Scripts/agent-context.sh --agent --status --paths <changed-paths...>
 ./Scripts/handoff.sh --isolate --quiet --paths <changed-paths...>

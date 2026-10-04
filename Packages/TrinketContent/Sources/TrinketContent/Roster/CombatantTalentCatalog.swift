@@ -202,16 +202,7 @@ public enum CombatantTalentCatalog {
             var rowNodes: [(node: TalentNode, slot: Int)] = []
             for col in 1 ... 2 {
                 let nodeID = "\(combatantID)_\(kwSlug)_t\(row)_\(col)"
-                guard let signature = signatureTalents[nodeID] else {
-                    #if DEBUG
-                    if row <= 3 {
-                        assertionFailure(
-                            "Missing authored talent \(nodeID) for \(combatantID) \(keyword.rawValue), check ContentManifest/talents.tsv",
-                        )
-                    }
-                    #endif
-                    continue
-                }
+                guard let signature = signatureTalents[nodeID] else { continue }
                 let position = positions[nodeID] ?? (row, col)
                 rowNodes.append((
                     TalentNode(
@@ -226,11 +217,9 @@ public enum CombatantTalentCatalog {
             }
             if row <= 3 {
                 precondition(rowNodes.count == 2, "Missing authored talent row \(row) for \(combatantID) \(keyword.rawValue)")
-                nodes.append(contentsOf: rowNodes)
-            } else {
-                guard !rowNodes.isEmpty else { break }
-                nodes.append(contentsOf: rowNodes)
             }
+            guard !rowNodes.isEmpty else { break }
+            nodes.append(contentsOf: rowNodes)
             row += 1
         }
         precondition(row <= 20, "Talent row generation exceeded safety limit for \(combatantID) \(keyword.rawValue)")

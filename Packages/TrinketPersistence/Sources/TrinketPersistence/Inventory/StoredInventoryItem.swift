@@ -2,8 +2,7 @@ import TrinketContent
 import TrinketCore
 
 /// Codable snapshot of an inventory item embedded in offer-payload blobs
-/// (shop stock, mystery offers) and CloudKit save snapshots. Unifies the
-/// previously duplicate `CloudItemSnapshot` into a single canonical type.
+/// (shop stock, mystery offers) and CloudKit save snapshots.
 ///
 /// Payloads round-trip verbatim (rarity/powers preserved, unknown base drops
 /// the offer or item) so a saved offer resolves identically on claim and cloud
@@ -18,13 +17,7 @@ public struct StoredInventoryItem: Codable, Equatable, Sendable {
     public let displayName: String
     public let isCorrupted: Bool
     public let affixes: [StoredAffix]
-    public let powers: [ItemAffixPower]?
-
-    public var affixPowers: [ItemAffixPower]? {
-        powers
-    }
-
-    public typealias Affix = StoredAffix
+    public let affixPowers: [ItemAffixPower]?
 
     private enum CodingKeys: String, CodingKey {
         case id, templateID, baseTypeID, rarity, displayName, isCorrupted, affixes, powers, affixPowers
@@ -38,7 +31,7 @@ public struct StoredInventoryItem: Codable, Equatable, Sendable {
         displayName = item.displayName
         isCorrupted = item.isCorrupted
         affixes = item.affixes.map(StoredAffix.init)
-        powers = item.affixPowers
+        affixPowers = item.affixPowers
     }
 
     /// Lossy rarity and dual-key powers decode matching `ItemResolution`:
@@ -54,7 +47,7 @@ public struct StoredInventoryItem: Codable, Equatable, Sendable {
         displayName = try container.decode(String.self, forKey: .displayName)
         isCorrupted = try container.decode(Bool.self, forKey: .isCorrupted)
         affixes = try container.decode([StoredAffix].self, forKey: .affixes)
-        powers = try container.decodeIfPresent([ItemAffixPower].self, forKey: .powers)
+        affixPowers = try container.decodeIfPresent([ItemAffixPower].self, forKey: .powers)
             ?? container.decodeIfPresent([ItemAffixPower].self, forKey: .affixPowers)
     }
 
@@ -67,8 +60,8 @@ public struct StoredInventoryItem: Codable, Equatable, Sendable {
         try container.encode(displayName, forKey: .displayName)
         try container.encode(isCorrupted, forKey: .isCorrupted)
         try container.encode(affixes, forKey: .affixes)
-        try container.encodeIfPresent(powers, forKey: .powers)
-        try container.encodeIfPresent(powers, forKey: .affixPowers)
+        try container.encodeIfPresent(affixPowers, forKey: .powers)
+        try container.encodeIfPresent(affixPowers, forKey: .affixPowers)
     }
 
     /// Non-throwing by design: an unknown base drops the item (nil + log)
@@ -78,13 +71,8 @@ public struct StoredInventoryItem: Codable, Equatable, Sendable {
         guard let base = ItemResolution.baseType(matching: baseTypeID, itemID: id) else { return nil }
         return InventoryItem(
             id: id, templateID: templateID, baseType: base, rarity: rarity, displayName: displayName,
-            affixes: affixes.map(\.resolved), isCorrupted: isCorrupted, affixPowers: powers,
+            affixes: affixes.map(\.resolved), isCorrupted: isCorrupted, affixPowers: affixPowers,
         )
-    }
-
-    /// Alias for `resolved()` ensuring backward compatibility with `CloudItemSnapshot.restored()`.
-    public func restored() -> InventoryItem? {
-        resolved()
     }
 
     public struct StoredAffix: Codable, Equatable, Sendable {
@@ -132,5 +120,3 @@ public struct StoredInventoryItem: Codable, Equatable, Sendable {
         }
     }
 }
-
-public typealias CloudItemSnapshot = StoredInventoryItem

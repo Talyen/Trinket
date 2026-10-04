@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/Tests/performance_test_support.py',
     'Scripts/aggregate-performance-results.py',
     'Scripts/collect-performance-results.py',
     'Scripts/compare-performance.py',
@@ -13,7 +14,6 @@ SCRIPT_INPUTS = (
 )
 
 
-import importlib.util
 import json
 import subprocess
 import sys
@@ -22,12 +22,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from performance_test_support import report
+from script_test_support import ROOT, load_script
 
-SCRIPT = Path(__file__).parents[1] / "aggregate-performance-results.py"
-SPEC = importlib.util.spec_from_file_location("aggregate_performance", SCRIPT)
-assert SPEC and SPEC.loader
-aggregate_performance = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(aggregate_performance)
+
+SCRIPT = ROOT / "Scripts/aggregate-performance-results.py"
+aggregate_performance = load_script("aggregate_performance", "aggregate-performance-results.py")
 
 
 class AggregatePerformanceTests(unittest.TestCase):
@@ -85,7 +85,7 @@ class AggregatePerformanceTests(unittest.TestCase):
                 "--expected-repetitions", str(repetitions),
                 "--baseline", str(baseline),
             ]
-            with patch.object(sys, "argv", argv):
+            with patch.object(sys, "argv", argv), patch("builtins.print"):
                 status = aggregate_performance.main()
             return status, summary.read_text()
 
@@ -97,57 +97,23 @@ class AggregatePerformanceTests(unittest.TestCase):
         self.assertIn("averageFPS is missing or non-numeric", summary)
 
     def test_missing_baseline_scenario_fails(self) -> None:
-        report = {
-            "scenario": "other",
-            "schemaVersion": 5,
-            "iteration": 1,
-            "averageFPS": 60,
-            "onePercentLowFPS": 60,
-            "p95FrameMs": 1,
-            "p99FrameMs": 1,
-            "maxFrameMs": 1,
-            "missedDeadlineCount": 0,
-            "missedDeadlineRatio": 0,
-            "severeStallCount": 0,
-        }
-        status, summary = self.run_aggregate([report])
+        status, summary = self.run_aggregate([report(scenario="other")])
         self.assertEqual(status, 1)
         self.assertIn("navigation: expected 1 reports, found 0", summary)
 
     def test_deadline_and_max_frame_checks_remain_strict_only_for_battle_gestures(self) -> None:
-        def report(scenario: str) -> dict[str, object]:
-            return {
-                "scenario": scenario,
-                "schemaVersion": 5,
-                "iteration": 1,
-                "averageFPS": 60,
-                "onePercentLowFPS": 60,
-                "p95FrameMs": 10,
-                "p99FrameMs": 10,
-                "maxFrameMs": 30,
-                "missedDeadlineCount": 2,
-                "missedDeadlineRatio": 0.1,
-                "severeStallCount": 0,
-            }
-
-        status, summary = self.run_aggregate([report("navigation")], ["navigation"])
+        status, summary = self.run_aggregate([report(scenario="navigation", maxFrameMs=30, missedDeadlineCount=2)], ["navigation"])
         self.assertEqual(status, 0)
         self.assertNotIn("missed deadlines", summary)
         self.assertNotIn("max frame ms", summary)
 
-        status, summary = self.run_aggregate([report("real-card-play")], ["real-card-play"])
+        status, summary = self.run_aggregate([report(scenario="real-card-play", maxFrameMs=30, missedDeadlineCount=2)], ["real-card-play"])
         self.assertEqual(status, 1)
         self.assertIn("missed deadlines", summary)
         self.assertIn("max frame ms 30.00 above 20.00", summary)
 
     def test_observe_mode_reports_each_bad_repetition_but_rejects_invalid_evidence(self) -> None:
-        report = {
-            "scenario": "navigation", "schemaVersion": 5, "iteration": 1,
-            "averageFPS": 60, "onePercentLowFPS": 60, "p95FrameMs": 16.7,
-            "p99FrameMs": 16.7, "maxFrameMs": 16.7, "missedDeadlineCount": 0,
-            "missedDeadlineRatio": 0, "severeStallCount": 0,
-        }
-        reports = [report | {"iteration": n} for n in range(1, 6)]
+        reports = [report(iteration=n) for n in range(1, 6)]
         reports[-1]["onePercentLowFPS"] = 10
         status, summary = self.run_aggregate(reports, mode="observe", repetitions=5)
         self.assertEqual(status, 0)

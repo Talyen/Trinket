@@ -13,7 +13,7 @@ from internal.markdown import heading_slugs, unfenced_lines
 from internal.cli import ROOT
 from internal.doc_diagnostics import report_failures
 SKIP_PARTS = {".git", ".DerivedData", ".tools", ".build", "Generated", "BalanceSweepReports"}
-LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
+LINK = re.compile(r"\[[^\]]*\]\(\s*(<[^>]*>|[^\s)]*)(?:\s+[^)]*)?\)")
 
 
 def markdown_files() -> list[Path]:
@@ -43,10 +43,11 @@ def broken_links(files: list[Path]) -> list[str]:
     for source in files:
         for line_number, line in unfenced_lines(source.read_text(encoding="utf-8").splitlines()):
             for raw in LINK.findall(line):
-                target = raw.strip().split(maxsplit=1)[0].strip("<>")
-                if not target or target.startswith(("http://", "https://", "mailto:")):
+                target = raw.strip("<>")
+                if not target or re.match(r"[A-Za-z][A-Za-z0-9+.-]*:", target):
                     continue
-                path_text, _, fragment = unquote(target).partition("#")
+                path_text, _, fragment = target.partition("#")
+                path_text, fragment = unquote(path_text), unquote(fragment)
                 if path_text:
                     resolved = (source.parent / path_text).resolve()
                     if not resolved.exists():
@@ -73,7 +74,7 @@ def broken_links(files: list[Path]) -> list[str]:
 
 
 def main() -> int:
-    for argument in sys.argv[1:]:
+    if sys.argv[1:]:
         print(f"Usage: {Path(sys.argv[0]).name}", file=sys.stderr)
         return 2
     files = markdown_files()

@@ -10,20 +10,15 @@ enum BalanceMarkdownTables {
         lines.append("## \(tierStats.tier.displayName)")
         lines.append("")
         let winPct = BalanceStatsAggregator.winPercent(wins: tierStats.wins, decided: tierStats.decidedBattles)
-        var summary = String(
-            format: "Battles: %d · Decided: %d · Wins: %d (%.1f%%) · Timeouts: %d · Avg rounds: %.1f · Avg party HP on win: %.0f%% · Avg enemy HP on loss: %.0f%%",
-            tierStats.battles,
-            tierStats.decidedBattles,
-            tierStats.wins,
-            winPct,
-            tierStats.timeouts,
-            tierStats.averageRounds,
-            tierStats.averagePartyHPOnWin * 100,
-            tierStats.averageEnemyHPOnLoss * 100,
-        )
+        var summary = """
+        Battles: \(tierStats.battles) · Decided: \(tierStats.decidedBattles) · Wins: \(tierStats.wins) (\(decimal(winPct))%) · \
+        Timeouts: \(tierStats.timeouts) · Avg rounds: \(decimal(tierStats.averageRounds)) · \
+        Avg party HP on win: \(decimal(tierStats.averagePartyHPOnWin * 100, "%.0f"))% · \
+        Avg enemy HP on loss: \(decimal(tierStats.averageEnemyHPOnLoss * 100, "%.0f"))%
+        """
         if let compared {
             let comparedPct = BalanceStatsAggregator.winPercent(wins: compared.wins, decided: compared.decidedBattles)
-            summary += String(format: " · Compare win%%: %.1f%%", comparedPct)
+            summary += " · Compare win%: \(decimal(comparedPct))%"
         }
         lines.append(summary)
         lines.append("")
@@ -86,20 +81,11 @@ enum BalanceMarkdownTables {
     private static func durationRow(label: String, goalBand: String, stats: BalanceDurationBucketStats) -> String {
         let flag = stats.flagged ? "⚠ \(stats.flagReason ?? "")" : ""
         let worst = stats.worstEnemyID.map { "`\($0)`" } ?? "-"
-        return String(
-            format: "| %@ | %@ | %d | %.1f%% | %.1f%% | %.1f | %.1f | %.1f | %d | %@ | %@ |",
-            label,
-            goalBand,
-            stats.battles,
-            stats.shortRate * 100,
-            stats.longRate * 100,
-            stats.averageRounds,
-            stats.averageRoundsWhenShort,
-            stats.averageRoundsWhenLong,
-            stats.maxRounds,
-            worst,
-            flag,
-        )
+        return """
+        | \(label) | \(goalBand) | \(stats.battles) | \(decimal(stats.shortRate * 100))% | \(decimal(stats.longRate * 100))% | \
+        \(decimal(stats.averageRounds)) | \(decimal(stats.averageRoundsWhenShort)) | \(decimal(stats.averageRoundsWhenLong)) | \
+        \(stats.maxRounds) | \(worst) | \(flag) |
+        """
     }
 
     static func appendEnemyDurationSection(
@@ -112,15 +98,11 @@ enum BalanceMarkdownTables {
             heading: "### Enemy duration",
             header: "| Enemy | n | Avg rounds | SHORT% | LONG% |",
             separator: "|---|---:|---:|---:|---:|",
-            rows: stats.map {
-                String(
-                    format: "| `%@` | %d | %.1f | %.1f%% | %.1f%% |",
-                    $0.enemyID,
-                    $0.battles,
-                    $0.averageRounds,
-                    $0.shortRate * 100,
-                    $0.longRate * 100,
-                )
+            rows: stats.map { row in
+                """
+                | `\(row.enemyID)` | \(row.battles) | \(decimal(row.averageRounds)) | \
+                \(decimal(row.shortRate * 100))% | \(decimal(row.longRate * 100))% |
+                """
             },
         )
     }
@@ -134,22 +116,12 @@ enum BalanceMarkdownTables {
         let rest = summaries.filter { !$0.flagged }
         let rows = (flagged + Array(rest.prefix(max(0, 40 - flagged.count)))).map { row in
             let flag = row.flagReason.map { row.flagged ? "⚠ \($0)" : $0 } ?? ""
-            return String(
-                format: "| `%@` | `%@` | %@ | `%@` | %@ | %.1f%% | %.1f%% | %+.1f pp | %+.2f | %+.1f | %d | %d | %@ |",
-                row.entityID,
-                row.baselineID,
-                row.baselineKind.rawValue,
-                row.ownerID,
-                row.tier.displayName,
-                row.entityWinRate * 100,
-                row.baselineWinRate * 100,
-                row.lift * 100,
-                row.meanDeltaPartyHP,
-                row.meanDeltaRounds,
-                row.pairs,
-                row.decidedPairs,
-                flag,
-            )
+            return """
+            | `\(row.entityID)` | `\(row.baselineID)` | \(row.baselineKind.rawValue) | `\(row.ownerID)` | \(row.tier.displayName) | \
+            \(decimal(row.entityWinRate * 100))% | \(decimal(row.baselineWinRate * 100))% | \(decimal(row.lift * 100, "%+.1f")) pp | \
+            \(decimal(row.meanDeltaPartyHP, "%+.2f")) | \(decimal(row.meanDeltaRounds, "%+.1f")) | \
+            \(row.pairs) | \(row.decidedPairs) | \(flag) |
+            """
         }
         table(
             into: &lines,
@@ -182,17 +154,11 @@ enum BalanceMarkdownTables {
             rows: rows.map { row in
                 let flag = row.flagged ? "⚠ \(row.flagReason ?? "")" : ""
                 let owner = row.ownerID.map { "`\($0)`" } ?? "-"
-                return String(
-                    format: "| `%@` | %@ | %.1f%% | [%.1f–%.1f] | %d | %+.1f pp | %@ |",
-                    row.id,
-                    owner,
-                    row.winRate * 100,
-                    row.wilsonLow * 100,
-                    row.wilsonHigh * 100,
-                    row.battles,
-                    row.deltaVsPeer * 100,
-                    flag,
-                )
+                return """
+                | `\(row.id)` | \(owner) | \(decimal(row.winRate * 100))% | \
+                [\(decimal(row.wilsonLow * 100))–\(decimal(row.wilsonHigh * 100))] | \(row.battles) | \
+                \(decimal(row.deltaVsPeer * 100, "%+.1f")) pp | \(flag) |
+                """
             },
         )
     }
@@ -208,26 +174,23 @@ enum BalanceMarkdownTables {
             heading: "### \(title)",
             header: "| Left | Right | Win% | n | Δ peer | Flag |",
             separator: "|---|---|---:|---:|---:|---|",
-            rows: cells.map {
-                String(
-                    format: "| `%@` | `%@` | %.1f%% | %d | %+.1f pp | ⚠ %@ |",
-                    $0.leftID,
-                    $0.rightID,
-                    $0.winRate * 100,
-                    $0.battles,
-                    $0.deltaVsPeer * 100,
-                    $0.flagReason ?? "",
-                )
+            rows: cells.map { row in
+                """
+                | `\(row.leftID)` | `\(row.rightID)` | \(decimal(row.winRate * 100))% | \(row.battles) | \
+                \(decimal(row.deltaVsPeer * 100, "%+.1f")) pp | ⚠ \(row.flagReason ?? "") |
+                """
             },
         )
+    }
+
+    private static func decimal(_ value: Double, _ format: String = "%.1f") -> String {
+        String(format: format, value)
     }
 
     private static func rowsTable(into lines: inout [String], header: String, separator: String, rows: [String]) {
         lines.append(header)
         lines.append(separator)
-        for row in rows {
-            lines.append(row)
-        }
+        lines.append(contentsOf: rows)
         lines.append("")
     }
 

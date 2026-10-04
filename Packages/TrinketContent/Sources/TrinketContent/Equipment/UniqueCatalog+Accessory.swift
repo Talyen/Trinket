@@ -47,7 +47,7 @@ extension UniqueCatalog {
             name: "The Golden Crucible",
             base: "topaz_amulet",
             keywords: [.gold, .holy],
-            description: "Gold gained in combat adds equal damage to your next Holy hit.",
+            description: "Gold gained in combat adds equal damage to your next Holy hit from a manually played card.",
             triggers: CombatTraitTriggers(gold: GoldTriggers(goldGainedNextHolyDamage: true)),
             supports: ["lucky", "gilded", "absolving"],
         ),

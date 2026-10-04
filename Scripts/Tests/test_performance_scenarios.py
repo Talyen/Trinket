@@ -12,7 +12,6 @@ SCRIPT_INPUTS = (
 
 
 import copy
-import importlib.util
 import json
 import unittest
 from unittest import mock
@@ -23,11 +22,9 @@ import shutil
 import tempfile
 import subprocess
 
-ROOT = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location('performance_scenarios', ROOT / 'Scripts/performance-scenarios.py')
-assert SPEC and SPEC.loader
-module = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(module)
+from script_test_support import ROOT, load_script
+
+module = load_script('performance_scenarios', 'performance-scenarios.py')
 
 
 class PerformanceScenarioTests(unittest.TestCase):

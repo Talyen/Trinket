@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import os
@@ -155,36 +156,19 @@ def append_entry(results_dir: Path, log_path: Path, entry: dict) -> None:
 
 
 def parse_options(args: list[str]) -> dict:
-    values: dict = {"targets": []}
-    index = 0
-    while index < len(args):
-        token = args[index]
-        if token in {"--mode", "--run", "--wall", "--xcresult", "--max-wall"}:
-            if index + 1 >= len(args):
-                label = token.lstrip("-")
-                raise SystemExit(f"{token} requires a finite non-negative number" if label in {"wall", "max-wall"} else f"{token} requires a value")
-            values[token[2:].replace("-", "_")] = args[index + 1]
-            index += 2
-        elif token in {"--no-xcresult", "--no-build", "--skip-if-missing", "--by-class"}:
-            values[token[2:].replace("-", "_")] = True
-            index += 1
-        elif token in {"--last", "--top"}:
-            label = "positive" if token == "--last" else "non-negative"
-            if index + 1 >= len(args):
-                raise SystemExit(f"{token} must be a {label} integer")
-            try:
-                number = int(args[index + 1])
-            except ValueError:
-                raise SystemExit(f"{token} must be a {label} integer")
-            if (token == "--last" and number < 1) or (token == "--top" and number < 0):
-                raise SystemExit(f"{token} must be a {label} integer")
-            values[token[2:]] = number
-            index += 2
-        elif token.startswith("-"):
-            raise SystemExit(f"unknown option: {token}")
-        else:
-            values["targets"].append(token)
-            index += 1
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False,
+                                     argument_default=argparse.SUPPRESS)
+    for option in ("--mode", "--run", "--wall", "--xcresult", "--max-wall"):
+        parser.add_argument(option)
+    for option in ("--no-xcresult", "--no-build", "--skip-if-missing", "--by-class"):
+        parser.add_argument(option, action="store_true")
+    parser.add_argument("--last", type=int)
+    parser.add_argument("--top", type=int)
+    parser.add_argument("targets", nargs="*", default=[])
+    values = vars(parser.parse_intermixed_args(args))
+    for key, minimum in (("last", 1), ("top", 0)):
+        if key in values and values[key] < minimum:
+            parser.error(f"--{key} must be {'positive' if minimum else 'non-negative'}")
     return values
 
 

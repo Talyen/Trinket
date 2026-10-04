@@ -9,11 +9,10 @@ struct BattleRosterTests {
         id: String,
         role: Combatant.Role,
         maxHealth: Int = 20,
-        actionIntervalTurns: Int? = nil,
         initialHealth: Int? = nil,
     ) -> CombatantRuntime {
         CombatantRuntime(
-            combatant: CombatantFixtures.combatant(id: id, role: role, maxHealth: maxHealth, actionIntervalTurns: actionIntervalTurns),
+            combatant: CombatantFixtures.combatant(id: id, role: role, maxHealth: maxHealth),
             initialHealth: initialHealth,
         )
     }
@@ -28,36 +27,6 @@ struct BattleRosterTests {
             companion: companion ?? runtime(id: "companion", role: .companion),
             enemy: enemy ?? runtime(id: "enemy", role: .enemy),
         )
-    }
-
-    @Test func `effect turn order is enemy hero companion`() throws {
-        try #expect(BattleParticipant.effectTurnOrder == [.enemy, .hero, .companion])
-    }
-
-    @Test func `lookup helpers resolve participants by role and ID`() throws {
-        let heroRuntime = runtime(id: "hero", role: .hero)
-        let companionRuntime = runtime(id: "companion", role: .companion)
-        let enemyRuntime = runtime(id: "enemy", role: .enemy)
-        let roster = BattleRoster(hero: heroRuntime, companion: companionRuntime, enemy: enemyRuntime)
-
-        try #expect(roster.runtime(for: heroRuntime.combatant)?.id == "hero")
-        try #expect(roster.runtime(for: companionRuntime.combatant)?.id == "companion")
-        try #expect(roster.runtime(for: enemyRuntime.combatant)?.id == "enemy")
-
-        try #expect(roster.combatant(for: "hero")?.role == .hero)
-        try #expect(roster.combatant(for: "companion")?.role == .companion)
-        try #expect(roster.combatant(for: "enemy")?.role == .enemy)
-        try #expect(roster.combatant(for: "missing") == nil)
-    }
-
-    @Test func `update replaces matching runtime`() throws {
-        var roster = makeRoster()
-        var hero = roster.hero
-        hero.takeRawDamage(5)
-        roster.update(hero)
-
-        try #expect(roster.hero.currentHealth == hero.maxHealth - 5)
-        try #expect(roster.companion.currentHealth == roster.companion.maxHealth)
     }
 
     @Test func `enemy attack target covers alive dead and health priority`() throws {

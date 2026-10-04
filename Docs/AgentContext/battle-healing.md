@@ -20,12 +20,18 @@ Duplication, transfer, and already-scaled gains use `.resolved` to avoid applyin
 outgoing bonuses and fight pacing again; consequences read `BlockGain.applied`.
 Resolved Block also preserves its amount through recipient gain multipliers and
 leaves a prepared next-Block-gain bonus available for the next base grant.
-Rimeheart Locket grants resolved Block equal to the Freeze hit's actual Health damage.
+Rimeheart Locket grants resolved Block equal to the Freeze hit's actual Health damage
+only if its wearer survives the hit's retaliation. Holy restoration, Block, Cleanse,
+Mana and preparation rewards likewise require a living source; committed offensive
+consequences retain their own eligibility.
 Bloodward rolls only when Leech directly restores Health, then grants a resolved
 Block amount equal to that restoration. Overflow does not fund its Block.
 Bloodroot grants Thorns after direct Leech restoration only when the wearer has
 no Thorns. Scarfeast grants Leech to the wearer's Physical attacks while their
 Health was below half before the hit.
+Leeching and Vampiric add their displayed fraction of damage dealt to Leech
+restoration, rather than multiplying the existing restoration. Saved rolled
+powers retain their strength and describe that same additional fraction.
 Heartshock reacts only to direct Leech restoration below half Health. Its Stun
 follow-up cannot Leech, so it cannot trigger another Heartshock hit.
 Taste for Blood, Necrotic Bleed, Toxic Touch, Armor Pierce, and Vitality Infusion

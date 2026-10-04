@@ -58,17 +58,14 @@ public struct TalentTree: Identifiable, Hashable, Codable, Sendable {
     }
 
     public func canUnlock(node: TalentNode, unlockedNodeIDs: Set<String>, availablePoints: Int) -> Bool {
-        guard availablePoints > 0 else { return false }
-        guard let node = self.node(matching: node.id) else { return false }
-        guard !unlockedNodeIDs.contains(node.id) else { return false }
+        guard availablePoints > 0, let node = self.node(matching: node.id) else { return false }
         // Eligibility resolves the row from the owning tree, not the supplied node.
-        if node.row == 1 {
-            return true
-        }
-        guard node.row > 1 else {
-            return false
-        }
-        return isRowComplete(node.row - 1, unlockedNodeIDs: unlockedNodeIDs)
+        return canUnlockOwnedNode(node, unlockedNodeIDs: unlockedNodeIDs)
+    }
+
+    fileprivate func canUnlockOwnedNode(_ node: TalentNode, unlockedNodeIDs: Set<String>) -> Bool {
+        !unlockedNodeIDs.contains(node.id)
+            && (node.row == 1 || node.row > 1 && isRowComplete(node.row - 1, unlockedNodeIDs: unlockedNodeIDs))
     }
 
     public func isRowComplete(_ row: Int, unlockedNodeIDs: Set<String>) -> Bool {
@@ -119,11 +116,7 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
         guard availablePoints > 0 else { return false }
         return trees.contains { tree in
             tree.nodes.contains { node in
-                tree.canUnlock(
-                    node: node,
-                    unlockedNodeIDs: unlockedNodeIDs,
-                    availablePoints: availablePoints,
-                )
+                tree.canUnlockOwnedNode(node, unlockedNodeIDs: unlockedNodeIDs)
             }
         }
     }
@@ -145,11 +138,7 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
         for row in rows {
             for tree in trees {
                 for node in tree.nodes where node.row == row && nodeIDs.contains(node.id) {
-                    guard tree.canUnlock(
-                        node: node,
-                        unlockedNodeIDs: kept,
-                        availablePoints: budget - kept.count,
-                    ) else { continue }
+                    guard tree.canUnlockOwnedNode(node, unlockedNodeIDs: kept) else { continue }
                     kept.insert(node.id)
                     if kept.count == budget {
                         return kept

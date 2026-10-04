@@ -1,13 +1,14 @@
+import Foundation
 import Testing
-import TrinketFeatureSupport
+import TrinketPersistenceTestSupport
 @testable import TrinketAppState
 
 @MainActor
 struct OptionsStoreTests {
-    let context: AppTestContext
+    private let context: OptionsDefaults
 
     init() throws {
-        context = try AppTestContext()
+        context = try OptionsDefaults()
     }
 
     @Test func `saved ultimate show policy replaces the default on reload`() {
@@ -133,5 +134,18 @@ struct OptionsStoreTests {
         #expect(defaults.object(forKey: OptionsStore.rememberAutoBattlePreferenceKey) == nil)
         #expect(defaults.object(forKey: OptionsStore.autoBattleEnabledKey) == nil)
         #expect(defaults.object(forKey: OptionsStore.ultimateCinematicShowPolicyKey) == nil)
+    }
+}
+
+private final class OptionsDefaults {
+    let suiteName = "OptionsStoreTests.\(UUID().uuidString)"
+    let userDefaults: UserDefaults
+
+    init() throws {
+        userDefaults = try SaveTestSupport.makeUserDefaults(suiteName: suiteName)
+    }
+
+    deinit {
+        SaveTestSupport.removeUserDefaults(suiteName: suiteName, defaults: userDefaults)
     }
 }

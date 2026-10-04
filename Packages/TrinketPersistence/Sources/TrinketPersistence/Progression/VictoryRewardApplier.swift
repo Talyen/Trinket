@@ -61,21 +61,6 @@ public enum VictoryRewardApplier {
         )
     }
 
-    static func grantedMaterials(
-        override: [ResourceAmount]?,
-        loot: BattleLootResult?,
-        fallback: [ResourceAmount] = [],
-    ) -> [ResourceAmount] {
-        override ?? loot?.materials ?? fallback
-    }
-
-    static func grantedItem(
-        override: InventoryItem?,
-        loot: BattleLootResult?,
-    ) -> InventoryItem? {
-        override ?? loot?.item
-    }
-
     /// Applies a battle's rewards. A pre-settled `award` from the battle that
     /// just ran wins by design: it snapshots homestead production at battle
     /// end, and re-settling at completion would accrue production a second

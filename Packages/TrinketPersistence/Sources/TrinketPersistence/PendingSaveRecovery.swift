@@ -90,19 +90,12 @@ final class PendingSaveRecovery {
         return try entries.filter { url in
             let name = url.lastPathComponent
             if name != baseName {
-                guard name.hasPrefix(numberedPrefix) else {
-                    return false
-                }
+                guard name.hasPrefix(numberedPrefix) else { return false }
                 let suffix = name.dropFirst(numberedPrefix.count)
                 guard Int(suffix).map({ $0 >= 2 }) == true,
-                      suffix.utf8.allSatisfy({ $0 >= 48 && $0 <= 57 }) else {
-                    return false
-                }
+                      suffix.utf8.allSatisfy({ $0 >= 48 && $0 <= 57 }) else { return false }
             }
-            guard try url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true else {
-                return false
-            }
-            return true
+            return try url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true
         }
     }
 
@@ -129,20 +122,9 @@ final class PendingSaveRecovery {
     }
 
     /// Atomic sidecar write shared by pending/previous/restore paths.
-    /// Pure file helper (nonisolated) so future callers can move sidecar I/O
-    /// off the store's actor without restructuring call sites.
     nonisolated static func writeDataAtomically(_ data: Data, to destination: URL) throws {
         try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
         try data.write(to: destination, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
-    }
-
-    /// Record encode/decode without actor state, for the same future use.
-    nonisolated static func encodedRecord(save: PlayerSave, cloudState: Data?) throws -> Data {
-        try JSONEncoder().encode(Record(save: save, cloudState: cloudState))
-    }
-
-    nonisolated static func decodedRecord(from data: Data) throws -> Record {
-        try JSONDecoder().decode(Record.self, from: data)
     }
 
     /// True when the error means "device locked before first unlock" rather
@@ -181,7 +163,7 @@ final class PendingSaveRecovery {
     func read() throws -> Record? {
         guard hasPendingSave else { return nil }
         do {
-            return try Self.decodedRecord(from: Data(contentsOf: url))
+            return try JSONDecoder().decode(Record.self, from: Data(contentsOf: url))
         } catch {
             if Self.isFileProtectionError(error) {
                 throw PlayerSavePersistenceError.storeUnavailable("Device locked; retry after first unlock.")
@@ -237,7 +219,7 @@ final class PendingSaveRecovery {
         }
         #endif
         do {
-            try Self.writeDataAtomically(Self.encodedRecord(save: save, cloudState: cloudState), to: url)
+            try preserve(save: save, cloudState: cloudState, to: url)
         } catch {
             if Self.isFileProtectionError(error) {
                 throw PlayerSavePersistenceError.storeUnavailable("Device locked; retry after first unlock.")
@@ -248,8 +230,12 @@ final class PendingSaveRecovery {
     }
 
     func preservePrevious(save: PlayerSave, cloudState: Data?) throws {
-        let data = try Self.encodedRecord(save: save, cloudState: cloudState)
-        try Self.writeDataAtomically(data, to: previousFileURL)
+        try preserve(save: save, cloudState: cloudState, to: previousFileURL)
+    }
+
+    private func preserve(save: PlayerSave, cloudState: Data?, to destination: URL) throws {
+        let data = try JSONEncoder().encode(Record(save: save, cloudState: cloudState))
+        try Self.writeDataAtomically(data, to: destination)
     }
 
     /// Clears only the pending record. Forensics (`previous.json`,

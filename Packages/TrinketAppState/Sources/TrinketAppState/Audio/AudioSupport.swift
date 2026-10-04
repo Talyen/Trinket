@@ -1,6 +1,7 @@
 import AVFoundation
 import Foundation
 import os
+import Synchronization
 import TrinketContent
 import TrinketPersistence
 
@@ -38,31 +39,25 @@ enum AudioSupport {
 }
 
 enum AudioSession {
-    // Concurrency-Safety: lock-guarded flag box; all access serializes on `lock`.
-    private final class State: @unchecked Sendable {
-        let lock = NSLock()
-        var hasConfigured = false
-    }
-
-    private static let state = State()
+    private static let hasConfigured = Mutex(false)
 
     /// Configures the shared ambient session once. Safe to call from any
     /// isolation; concurrent callers serialize on a lock and only the first
     /// successful configuration sticks. Failures leave the flag clear so a
     /// later call retries.
     static func configureIfNeeded(logger: Logger) {
-        state.lock.lock()
-        defer { state.lock.unlock() }
-        guard !state.hasConfigured else { return }
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
-            try session.setActive(true)
-            state.hasConfigured = true
-        } catch {
-            logger.error(
-                "Unable to configure audio session: \(error.localizedDescription, privacy: .public)",
-            )
+        hasConfigured.withLock { configured in
+            guard !configured else { return }
+            do {
+                let session = AVAudioSession.sharedInstance()
+                try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
+                try session.setActive(true)
+                configured = true
+            } catch {
+                logger.error(
+                    "Unable to configure audio session: \(error.localizedDescription, privacy: .public)",
+                )
+            }
         }
     }
 }

@@ -5,6 +5,67 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct CloudSaveMergeEconomyRegressionTests {
+    @Test(arguments: [false, true]) @MainActor
+    func `overlapping Food collections preserve independent Herbs and Gold rewards through reload`(reverseBranches: Bool) throws {
+        let start = Date(timeIntervalSince1970: 2000000000)
+        let date = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
+        var base = PlayerSave.testSeed
+        base.roster.gold = 0
+        base.homestead = PlayerHomesteadState(
+            resources: [:], nodeTiers: [.wheatField: 1], lastProductionAt: start,
+        )
+        var first = base
+        var second = base
+        #expect(first.grantMaterials([ResourceAmount(.herbs, 5)], at: date) == [ResourceAmount(.herbs, 5)])
+        #expect(second.grantMaterials([ResourceAmount(.herbs, 7)], at: date) == [ResourceAmount(.herbs, 7)])
+        #expect(first.grantGold(11, at: date) == 11)
+        #expect(second.grantGold(13, at: date) == 13)
+        #expect(first.homestead.collectProduction(at: date, roster: &first.roster) == [ResourceAmount(.food, 1)])
+        #expect(second.homestead.collectProduction(at: date, roster: &second.roster) == [ResourceAmount(.food, 1)])
+
+        let merged = CloudSaveMerge.merge(
+            incoming: reverseBranches ? second : first, existing: reverseBranches ? first : second,
+            base: base, preferIncoming: true,
+        )
+        let restored = try CloudSaveSnapshot(merged).restored()
+        let context = try PersistenceTestContext()
+        var reloaded = try context.seedAndReload(restored).currentSave
+        #expect(reloaded.homestead.resources[.herbs] == 12)
+        #expect(reloaded.roster.gold == 24)
+        #expect(reloaded.homestead.resources[.food] == 1)
+        #expect(reloaded.homestead.collectProduction(at: date, roster: &reloaded.roster).isEmpty)
+    }
+
+    @Test(arguments: [false, true]) @MainActor
+    func `an earlier collection preserves later production through reload`(reverseBranches: Bool) throws {
+        let start = Date(timeIntervalSince1970: 2000000000)
+        let firstDay = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
+        let secondDay = firstDay.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
+        var base = PlayerSave.testSeed
+        base.homestead = PlayerHomesteadState(
+            resources: [:], nodeTiers: [.wheatField: 1], lastProductionAt: start,
+        )
+        var collected = base
+        #expect(collected.homestead.collectProduction(at: firstDay, roster: &collected.roster) == [ResourceAmount(.food, 1)])
+        var stillPending = base
+        stillPending.homestead.settleProduction(at: secondDay, roster: stillPending.roster)
+        #expect(stillPending.homestead.pendingProduction[.food] == 2)
+
+        let merged = CloudSaveMerge.merge(
+            incoming: reverseBranches ? stillPending : collected, existing: reverseBranches ? collected : stillPending,
+            base: base, preferIncoming: true,
+        )
+        let restored = try CloudSaveSnapshot(merged).restored()
+        let context = try PersistenceTestContext()
+        var reloaded = try context.seedAndReload(restored).currentSave
+        #expect(reloaded.homestead.lastProductionAt == secondDay)
+        #expect(reloaded.homestead.resources[.food] == 1)
+        #expect(reloaded.homestead.pendingProduction[.food] == 1)
+        #expect(reloaded.homestead.collectProduction(at: secondDay, roster: &reloaded.roster) == [ResourceAmount(.food, 1)])
+        #expect(reloaded.homestead.resources[.food] == 2)
+        #expect(reloaded.homestead.collectProduction(at: secondDay, roster: &reloaded.roster).isEmpty)
+    }
+
     @Test(arguments: [false, true])
     func `a shared build preserves Food spent on another building`(reverseBranches: Bool) throws {
         let date = Date(timeIntervalSince1970: 2000000000)
@@ -64,7 +125,7 @@ struct CloudSaveMergeEconomyRegressionTests {
         )
         let restored = try CloudSaveSnapshot(merged).restored()
         let context = try PersistenceTestContext()
-        let reloaded = try context.seedAndReload(restored)
+        let reloaded = try context.seedAndReload(restored).currentSave
         #expect(reloaded.roster.gold == 95)
         #expect(reloaded.homestead.tier(for: .wishingWell) == 1)
         #expect(reloaded.inventory.item(matching: item.id) == nil)

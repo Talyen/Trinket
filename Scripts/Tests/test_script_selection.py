@@ -259,6 +259,17 @@ class ScriptSelectionTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'invalid test ownership'):
                     select_tests(['Scripts/domain/known.json'], root)
 
+    def test_scope_validation_precedes_fallback_and_rejects_symlink_escapes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'repo'
+            (root / 'Scripts/Tests').mkdir(parents=True)
+            outside = Path(directory) / 'outside.py'
+            outside.touch()
+            (root / 'alias.py').symlink_to(outside)
+            for path in ('alias.py', '../outside.py', 'Scripts'):
+                with self.subTest(path=path), self.assertRaises(ValueError):
+                    select_tests(['unknown-input', path], root)
+
 
 if __name__ == "__main__":
     unittest.main()

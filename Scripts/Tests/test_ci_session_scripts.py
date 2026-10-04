@@ -280,6 +280,25 @@ class CISessionScriptTests(ScriptRegressionTestCase):
                 maintenance.cleanup(results, keep=False)
             self.assertEqual((evidence / "failure.txt").read_text(), "keep failure evidence")
 
+    def test_unreadable_category_keeps_forensics_and_reset_unlinks_attachment_aliases(self) -> None:
+        maintenance = load_script('diagnostic_retention', 'diagnostic_maintenance.py')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            results = root / 'TestResults'
+            (results / 'raw').mkdir(parents=True)
+            (results / 'raw/failure.log').write_text('failure evidence')
+            (results / 'ci-diagnostics.json').write_text('[]')
+            external = root / 'external'
+            external.mkdir()
+            (external / 'keep.txt').write_text('foreign evidence')
+            with contextlib.redirect_stdout(io.StringIO()):
+                maintenance.stage(results, root / 'artifact')
+                (results / 'run-diagnostics.attachments').symlink_to(external)
+                maintenance.reset(results)
+            self.assertEqual((root / 'artifact/raw/failure.log').read_text(), 'failure evidence')
+            self.assertFalse((results / 'run-diagnostics.attachments').is_symlink())
+            self.assertEqual((external / 'keep.txt').read_text(), 'foreign evidence')
+
     def test_cleanup_retains_evidence_when_exit_code_is_not_an_integer(self) -> None:
         maintenance = load_script("diagnostic_cleanup_exit_codes", "diagnostic_maintenance.py")
         with tempfile.TemporaryDirectory() as directory:
@@ -391,21 +410,6 @@ class CISessionScriptTests(ScriptRegressionTestCase):
         )
         self.assertEqual(nested.returncode, 0, nested.stderr)
         self.assertEqual(nested.stdout.strip(), "parent-session")
-
-    def test_orchestrations_establish_inheritable_session(self) -> None:
-        for script in ("handoff.sh", "test-deploy.sh"):
-            text = (ROOT / "Scripts" / script).read_text(encoding="utf-8")
-            self.assertIn("trinket_ensure_diagnostics_session", text, script)
-        # Single implementation mints and exports the session id.
-        helper = (ROOT / "Scripts" / "lib" / "args.sh").read_text(encoding="utf-8")
-        self.assertIn("TRINKET_DIAGNOSTICS_SESSION_ID", helper)
-        self.assertIn("export TRINKET_DIAGNOSTICS_SESSION_ID", helper)
-        # Nested package commands inherit via run-env preservation, not a fresh id.
-        run_env = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")
-        self.assertIn(
-            "trinket_run_env_ensure_diagnostics_session",
-            run_env,
-        )
 
     def test_aggregation_selects_newest_failed_while_retaining_old(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

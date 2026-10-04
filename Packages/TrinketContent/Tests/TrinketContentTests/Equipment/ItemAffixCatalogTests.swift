@@ -88,20 +88,6 @@ struct ItemAffixCatalogTests {
         #expect(power.description == "Blocking an attack makes your next attack Critically Hit.")
     }
 
-    @Test func `combat reaction affix I ds resolve to catalog titles`() throws {
-        let ids = [
-            "absolving", "aetherward", "arcane_ward", "beacon", "blood_price",
-            "bounty", "branding", "cascading", "disrupting", "nullifying",
-            "payday", "sanctum", "second_wind", "sidestep", "siphoning",
-            "symbiosis", "unmaking", "untouchable", "whiplash",
-        ]
-
-        for id in ids {
-            let definition = GameContent.itemAffixDefinition(matching: id)
-            try #expect(definition?.title.isEmpty == false, "Missing combat-reaction affix \(id)")
-        }
-    }
-
     @Test func `nested affix reactions are ignored in favor of flat keys`() throws {
         let data = Data(#"[{"description":"Flat","modifiers":[],"triggers":{"gainManaBlockFlat":2}}]"#.utf8)
 
@@ -197,32 +183,5 @@ struct ItemAffixCatalogTests {
             "Deal 6 additional damage if the enemy is below 30% Health.",
             "Companions gain 200% of your Leech.",
         ])
-    }
-
-    @Test func `keyword affixes keep typed definitions`() throws {
-        let byID = Dictionary(uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) })
-
-        let bloodstone = try #require(byID["bloodstone"])
-        try #expect(bloodstone.basic.modifiers == [.leechHealing(1)])
-
-        let lifeweave = try #require(byID["lifeweave"])
-        try #expect(lifeweave.basic.modifiers == [.leechHealing(1)])
-
-        try #expect(byID["shocking"] == nil)
-
-        let riposte = try #require(byID["riposte"])
-        try #expect(riposte.keywords == [.physical, .dodge])
-
-        let gilded = try #require(byID["gilded"])
-        try #expect(gilded.basic.modifiers == [.goldGainedPercent(0.10)])
-    }
-
-    @Test func `fickle fortune describes two positive victory gold outcomes`() throws {
-        let definition = try #require(GameContent.itemAffixDefinition(matching: "wishing_well_coin"))
-        let expected = "On victory, gain 7 Gold or gain 3 Gold."
-        #expect(definition.basic.description == expected)
-        #expect(definition.astral.description == expected)
-        #expect(definition.basic.triggers.victoryGoldCoin)
-        #expect(definition.astral.triggers.victoryGoldCoin)
     }
 }

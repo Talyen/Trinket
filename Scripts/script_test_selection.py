@@ -8,7 +8,7 @@ import ast
 from fnmatch import fnmatchcase
 from pathlib import Path
 
-from internal.cli import ROOT
+from internal.cli import ROOT, validate_repo_paths
 
 # Keep each leaf with its consumers' regressions. Infrastructure, runners,
 # and shared fixtures without declared ownership use the full-suite fallback.
@@ -112,15 +112,15 @@ def select_tests(paths: list[str], root: Path = ROOT) -> list[str]:
     )
     if not paths:
         return available
+    # Validate the complete scope before a full-suite fallback can short-circuit it.
+    paths = [Path(path).as_posix() for path in paths]
+    if any(Path(path).is_absolute() for path in paths):
+        raise ValueError("--paths requires repository-relative files")
+    validate_repo_paths(paths, root)
     routes = regression_families(root)
     available_set = set(available)
     selected: set[str] = set()
-    for raw in paths:
-        path = Path(raw).as_posix()
-        if Path(path).is_absolute() or ".." in Path(path).parts:
-            raise ValueError("--paths requires repository-relative files")
-        if (root / path).is_dir():
-            raise ValueError("--paths requires individual files, not directories")
+    for path in paths:
         if path.endswith(".md"):
             continue
         if path in INTENTIONALLY_UNMAPPED:
