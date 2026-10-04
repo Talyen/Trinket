@@ -21,9 +21,14 @@ extension BattleSession {
             snapshot.hand = Array((remaining + snapshot.hand.filter { !remainingIDs.contains($0.id) })
                 .prefix(BattleHand.maxSize))
         }
-        if playback.snapshot.hand.contains(where: { !previousIDs.contains($0.id) })
-            || playback.events.contains(where: { $0.effectKind == .cardsDrawn }) {
-            dependencies.playSFX([SFXID.abilityDraw])
+        let actionEventIDs = Set(playback.actions.flatMap(\.eventIDs))
+        let standaloneDraws = playback.events.filter {
+            $0.effectKind == .cardsDrawn && !actionEventIDs.contains($0.id)
+        }
+        let hasImplicitDeal = playback.snapshot.hand.contains { !previousIDs.contains($0.id) }
+            && !playback.events.contains { $0.effectKind == .cardsDrawn }
+        if !standaloneDraws.isEmpty || hasImplicitDeal {
+            feedback.record(standaloneDraws, at: date, environment: dependencies, didDrawCards: hasImplicitDeal)
         }
         withAnimation(BattleMotion.handReflow) {
             presentation.install(snapshot)

@@ -54,6 +54,12 @@ struct SalvageDetailState {
         transmutationEvent?.hasReturned = true
     }
 
+    mutating func claimSalvageSound(id: UUID) -> Bool {
+        guard transmutationEvent?.id == id, transmutationEvent?.hasPlayedSound == false else { return false }
+        transmutationEvent?.hasPlayedSound = true
+        return true
+    }
+
     mutating func finishTransmutation(id: UUID) {
         guard transmutationEvent?.id == id else { return }
         withAnimation(TrinketMotion.Reward.collectionStateChange) {

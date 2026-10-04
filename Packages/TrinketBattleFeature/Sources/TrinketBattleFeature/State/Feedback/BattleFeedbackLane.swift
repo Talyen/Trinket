@@ -27,6 +27,9 @@ final class BattleFeedbackLane {
     @ObservationIgnored
     var scheduler: FeedbackDeadlineTimer?
 
+    @ObservationIgnored private var soundEventIDs: Set<Int> = []
+    @ObservationIgnored private var soundGroupIDs: Set<Int> = []
+
     @ObservationIgnored var actionQueue = BattleActionQueue()
 
     var scheduledActions: [BattleScheduledAction] {
@@ -138,8 +141,10 @@ final class BattleFeedbackLane {
         environment: BattleRuntimeDependencies = .silent,
         actionGroupID: Int? = nil,
         damage: [BattleResolvedDamage] = [],
+        didDrawCards: Bool = false,
     ) {
         pruneExpired(at: date)
+        presentSound(events, damage: damage, actionGroupID: actionGroupID, didDrawCards: didDrawCards, environment: environment)
         let knownIDs = Set(activeItems.lazy.flatMap(\.sourceEventIDs))
         let prepared = CombatFeedbackPresenter.makeItems(
             from: events.filter { !knownIDs.contains($0.id) },
@@ -153,7 +158,7 @@ final class BattleFeedbackLane {
         }
         limitCornerItems()
         noteItemsChanged()
-        applyMultimodalPresentation(for: prepared, damage: damage, at: date, environment: environment)
+        applyHitReactions(for: prepared, damage: damage, at: date)
         updatePruneDate()
     }
 
@@ -212,6 +217,8 @@ final class BattleFeedbackLane {
 
     func clear() {
         actionQueue.clear()
+        soundEventIDs.removeAll()
+        soundGroupIDs.removeAll()
         recordedHitExpirations.removeAll()
         attackOwners.removeAll()
         previewActors.removeAll()
@@ -269,19 +276,25 @@ final class BattleFeedbackLane {
         return scheduler
     }
 
-    private func applyMultimodalPresentation(
+    private func presentSound(
+        _ events: [ActionEvent], damage: [BattleResolvedDamage], actionGroupID: Int?, didDrawCards: Bool,
+        environment: BattleRuntimeDependencies,
+    ) {
+        if let actionGroupID, !soundGroupIDs.insert(actionGroupID).inserted {
+            return
+        }
+        let fresh = events.filter { soundEventIDs.insert($0.id).inserted }
+        guard events.isEmpty || !fresh.isEmpty else { return }
+        if let clip = CombatSFXMapper.clipID(for: fresh, damage: damage, didDrawCards: didDrawCards) {
+            environment.playSFX([clip])
+        }
+    }
+
+    private func applyHitReactions(
         for due: [CombatFeedbackItem],
         damage: [BattleResolvedDamage],
         at date: Date,
-        environment: BattleRuntimeDependencies,
     ) {
-        let damageKeywords = damage.compactMap { damage -> Keyword? in
-            if case let .landed(_, healthLost) = damage.impact, healthLost > 0 {
-                return damage.keyword
-            }
-            return nil
-        }
-        environment.playSFX(CombatSFXMapper.uniqueClipIDs(for: due, damageKeywords: damageKeywords))
         let recordedTargets = Set(damage.lazy.filter { $0.reactionKind != nil }.map(\.targetID))
         var reactions: [String: CombatantHitReaction] = [:]
         for (targetID, items) in Dictionary(grouping: due, by: \.targetID) {

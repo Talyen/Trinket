@@ -252,7 +252,6 @@ public extension EncounterPlayMode {
         guard let mysterySession = activeMysteryEncounter, mysterySession.showsCorruptionReveal else {
             return false
         }
-        sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
         activeMysteryEncounter = nil
         return true
     }
@@ -282,7 +281,9 @@ public extension EncounterPlayMode {
     func collectMysteryReward(session: MysteryEncounterSession) -> Bool {
         guard activeMysteryEncounter === session, session.showsReward,
               finishActiveMysteryEncounter(dismiss: false) else { return false }
-        sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
+        if session.claimRewardCollectionSound() {
+            sfxPlayer.play(SFXID.lootCollect, volume: options.effectsVolume)
+        }
         return true
     }
 
@@ -308,7 +309,14 @@ public extension EncounterPlayMode {
             mysterySession.applyOutcome(outcome)
             sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
             return true
-        case .reveal, .corruptionReveal:
+        case .corruptionReveal:
+            let isNewReveal = !mysterySession.showsCorruptionReveal
+            mysterySession.applyOutcome(outcome)
+            if isNewReveal {
+                sfxPlayer.play(SFXID.itemCorrupt, volume: options.effectsVolume)
+            }
+            return true
+        case .reveal:
             mysterySession.applyOutcome(outcome)
             return true
         case .refreshedOffers:

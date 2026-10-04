@@ -1,10 +1,13 @@
 import SwiftUI
 import TrinketAppState
+import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
 private struct SalvageInventoryPresentationModifier: ViewModifier {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(OptionsStore.self) private var options
+    @Environment(\.playSFX) private var playSFX
     @Namespace private var zoomNamespace
     @State private var pinnedArtwork: [String] = []
     @Binding var salvageDetail: SalvageDetailState
@@ -56,13 +59,16 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
                     SalvageTransmutationLayer(event: event, sourceFrame: frame) {
                         salvageDetail.finishTransmutation(id: event.id)
                     }
+                    .onAppear { playSalvageSound(id: event.id) }
                     .onChange(of: isVisible, initial: true) { _, visible in
                         if !visible {
+                            playSalvageSound(id: event.id)
                             salvageDetail.finishTransmutation(id: event.id)
                         }
                     }
                 } else {
                     Color.clear.onAppear {
+                        playSalvageSound(id: event.id)
                         salvageDetail.finishTransmutation(id: event.id)
                     }
                 }
@@ -71,6 +77,11 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
         .clipped()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+    }
+
+    private func playSalvageSound(id: UUID) {
+        guard scenePhase == .active, salvageDetail.claimSalvageSound(id: id) else { return }
+        playSFX(SFXID.itemSalvage, options.effectsVolume)
     }
 
     private func prepareDetail() async {

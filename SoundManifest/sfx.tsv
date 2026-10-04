@@ -20,3 +20,15 @@ deaths_door	deathsDoor	sfx_deaths_door	Raw Assets/Sound Effects/outcomes/defeat/
 victory	victory	sfx_victory	Raw Assets/Sound Effects/outcomes/victory/victory_01.wav	1.0
 defeat	defeat	sfx_defeat	Raw Assets/Sound Effects/outcomes/defeat/defeat_01.wav	1.0
 mystery_event	mysteryEvent	sfx_mystery_event	Raw Assets/Sound Effects/outcomes/events/mystery_event.wav	1.0
+block_absorb	blockAbsorb	sfx_block_absorb	Raw Assets/Sound Effects/combat/defense/parry_01.wav	0.97
+dodge	dodge	sfx_dodge	Raw Assets/Sound Effects/combat/defense/dodge_01.wav	1.0
+item_forge	itemForge	sfx_item_forge	Raw Assets/Sound Effects/progression/forge_01.wav	1.0
+item_salvage	itemSalvage	sfx_item_salvage	Raw Assets/Sound Effects/progression/salvage_01.wav	1.0
+homestead_build	homesteadBuild	sfx_homestead_build	Raw Assets/Sound Effects/progression/homestead_build_01.wav	1.0
+loot_collect	lootCollect	sfx_loot_collect	Raw Assets/Sound Effects/progression/collect_01.wav	1.0
+talent_unlock	talentUnlock	sfx_talent_unlock	Raw Assets/Sound Effects/progression/talent_unlock_01.wav	1.0
+item_corrupt	itemCorrupt	sfx_item_corrupt	Raw Assets/Sound Effects/progression/corrupt_01.wav	1.0
+hit_stun	hitStun	sfx_hit_stun	Raw Assets/Sound Effects/combat/attacks/hit_stun_01.wav	1.0
+hit_piercing	hitPiercing	sfx_hit_piercing	Raw Assets/Sound Effects/combat/attacks/hit_piercing_01.ogg	1.0
+hit_holy	hitHoly	sfx_hit_holy	Raw Assets/Sound Effects/combat/attacks/hit_holy_01.ogg	1.0
+restore_mana	restoreMana	sfx_restore_mana	Raw Assets/Sound Effects/magic/support/restore_mana_01.wav	1.0

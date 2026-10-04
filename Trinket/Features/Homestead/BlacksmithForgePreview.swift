@@ -182,6 +182,7 @@ struct BlacksmithForgePreview: View {
 
 struct BlacksmithForgedItemView: View {
     @Environment(OptionsStore.self) private var options
+    @Environment(\.playSFX) private var playSFX
     @Environment(\.scenePhase) private var scenePhase
     @State private var successCount = 0
     @State private var hasAppeared = false
@@ -202,6 +203,7 @@ struct BlacksmithForgedItemView: View {
             guard !hasAppeared else { return }
             hasAppeared = true
             if celebrates, scenePhase == .active {
+                playSFX(SFXID.itemForge, options.effectsVolume)
                 successCount += 1
             }
         }

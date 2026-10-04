@@ -41,4 +41,13 @@ Set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.
 
 `SFXCatalog.clipsByID` looks up clips by stable `id`. Playback is owned by [SFXPlayer.swift](../Packages/TrinketAppState/Sources/TrinketAppState/Audio/SFXPlayer.swift), which applies `OptionsStore.effectsVolume` × `volumeGain`.
 
-Stable IDs cover UI chrome, ability draw/play, keyword-typed combat feedback, and outcome / mystery stingers — not per-ability, enemy, hero, or companion content.
+Stable IDs cover UI chrome, card draws, typed combat feedback, progression outcomes,
+and outcome/Mystery stingers. Bleed and Poison share `hit_piercing`; Homestead,
+battle, and Mystery collection share `loot_collect`. The single-cue selection and
+outcome timing policy lives in [audio.md](../Docs/AgentContext/audio.md#action-sound-selection).
+
+The selected feedback sources come from `Documents/Asset Library/Sounds`. Import
+FLAC inputs as lossless PCM WAV; retain original WAV/OGG inputs. The Homestead
+hammer source `hammer_multiple_exterior_fienup_013` uses 0.82–1.65 seconds with
+10 ms entry and 60 ms exit fades. Selected source clips default to gain `1.0`; `block_absorb` uses `0.97` for
+AAC decoding headroom. Attacks and ticks share their clip and gain.

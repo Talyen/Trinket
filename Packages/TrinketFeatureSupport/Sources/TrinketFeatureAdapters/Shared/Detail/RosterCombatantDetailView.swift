@@ -8,6 +8,8 @@ import TrinketPersistence
 public struct RosterCombatantDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(\.playSFX) private var playSFX
+    @Environment(\.scenePhase) private var scenePhase
 
     let kind: CombatantDetailContext.Kind
     let combatantID: String
@@ -53,23 +55,30 @@ public struct RosterCombatantDetailView: View {
                     return saved
                 },
                 onUnlockTalent: { node, tree in
-                    let result = playerSave.unlockTalent(
-                        nodeID: node.id,
-                        treeID: tree.id,
-                        for: combatant.id,
-                    )
-                    if result == .persistenceFailed {
-                        playerSave.retrySaveAction(key: "combatant-talent-\(combatant.id)") {
-                            _ = playerSave.unlockTalent(nodeID: node.id, treeID: tree.id, for: combatant.id)
-                        }
-                    }
-                    return result
+                    unlockTalent(node: node, tree: tree, for: combatant.id)
                 },
             )
             .disabled(playerSave.isRetryingSaveAction)
         } else {
             Color.clear.onAppear { dismiss() }
         }
+    }
+
+    private func unlockTalent(node: TalentNode, tree: TalentTree, for id: String) -> TalentUnlockResult {
+        let result = playerSave.unlockTalent(nodeID: node.id, treeID: tree.id, for: id)
+        switch result {
+        case .unlocked:
+            if scenePhase == .active {
+                playSFX(SFXID.talentUnlock, effectsVolume)
+            }
+        case .persistenceFailed:
+            playerSave.retrySaveAction(key: "combatant-talent-\(id)") {
+                _ = unlockTalent(node: node, tree: tree, for: id)
+            }
+        case .unavailable:
+            break
+        }
+        return result
     }
 
     private func resolveCombatant() -> Combatant? {

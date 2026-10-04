@@ -14,6 +14,7 @@ struct HomesteadView: View {
     @State private var showsCategoryProgress = false
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
+    @Environment(\.playSFX) private var playSFX
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var collection = HomesteadCollectionControl()
     @State private var depositEvent: HomesteadDepositEvent?
@@ -201,6 +202,7 @@ struct HomesteadView: View {
               shellSession.homesteadPath.isEmpty,
               scenePhase == .active else { return }
         guard depositGeometry.supports(granted) else {
+            playSFX(SFXID.lootCollect, options.effectsVolume)
             collectionSuccessTrigger &+= 1
             return
         }
@@ -248,6 +250,7 @@ struct HomesteadView: View {
         guard let event = depositEvent, event.id == eventID,
               !event.landed.contains(resource) else { return }
         if event.landed.isEmpty {
+            playSFX(SFXID.lootCollect, options.effectsVolume)
             collectionSuccessTrigger &+= 1
         }
         depositEvent?.landed.insert(resource)

@@ -20,6 +20,7 @@ enum HomesteadDetailSheet: Hashable, Identifiable {
 struct HomesteadNodeDetailView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
+    @Environment(\.playSFX) private var playSFX
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var build = HomesteadBuildControl()
@@ -289,6 +290,7 @@ struct HomesteadNodeDetailView: View {
     private func finishSheetDismissal() {
         preparedCraft = nil
         if pendingCelebration, scenePhase == .active {
+            playSFX(SFXID.homesteadBuild, options.effectsVolume)
             purchasePresentation?.displayedTierNumber = status.currentTier
             celebrationCount &+= 1
             celebrationGeneration &+= 1

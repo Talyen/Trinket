@@ -184,11 +184,7 @@ public struct BattleView: View {
             // the primary action re-arms instead of locking on completion.
             return restartBattle()
         }
-        let didPersist = completeVictory(summary)
-        if didPersist {
-            battleSession.playPresentationSFX(SFXID.uiBuySell)
-        }
-        return didPersist
+        return completeVictory(summary)
     }
 
     private var debugPerformanceScenario: BattlePerformanceScenario? {

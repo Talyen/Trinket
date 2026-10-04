@@ -11,6 +11,7 @@ struct SalvageTransmutationEvent: Identifiable {
     let yields: [ResourceAmount]
     let inventoryIndex: Int?
     var hasReturned = false
+    var hasPlayedSound = false
 }
 
 struct SalvageItemButton: View {

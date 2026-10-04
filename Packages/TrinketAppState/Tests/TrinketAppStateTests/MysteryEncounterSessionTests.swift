@@ -17,6 +17,8 @@ struct MysteryEncounterSessionTests {
         session.applyOutcome(.reward(result))
         #expect(session.showsReward)
         #expect(session.applyResult == result)
+        #expect(session.claimRewardCollectionSound())
+        #expect(!session.claimRewardCollectionSound())
         #expect(session.unlockedCombatantID == nil)
         #expect(!session.showsReveal)
 

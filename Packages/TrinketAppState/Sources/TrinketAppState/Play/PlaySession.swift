@@ -29,6 +29,7 @@ public final class PlaySession {
 
     public private(set) var pendingDestination: PlayLaunchDestination?
     private var postBattleTalentChoices = PostBattleTalentChoices()
+    @ObservationIgnored private var collectedBattleConfigurationID: UUID?
 
     public var postBattleTalentConfirmationID: UUID? {
         postBattleTalentChoices.confirmationID
@@ -153,6 +154,7 @@ public final class PlaySession {
         defersPresentationExit: Bool = false,
     ) -> BattleCompletionResult {
         let combatants = [configuration.hero.combatant, configuration.companion.combatant]
+        let hasNewClaim = battlePresentation(for: configuration.runKey)?.stageRewardsAlreadyClaimed != true
         let result = battleCompletion.completeActiveBattle(
             configuration,
             battleGold: battleGold,
@@ -171,6 +173,10 @@ public final class PlaySession {
                 self?.restoreBattleOrigin(from: origin)
             },
         )
+        if result.didComplete, hasNewClaim, collectedBattleConfigurationID != configuration.id {
+            collectedBattleConfigurationID = configuration.id
+            sfxPlayer.play(SFXID.lootCollect, volume: options.effectsVolume)
+        }
         if result == .persistenceFailed {
             // Retry the same settlement so a stale award refreshes instead of
             // paying out unchecked. The retry exits immediately rather than

@@ -59,6 +59,7 @@ private struct PostBattleTalentChoiceContent: View {
     @Environment(PlayerSaveStore.self) private var playerSave
 
     @Environment(OptionsStore.self) private var options
+    @Environment(\.playSFX) private var playSFX
     @Environment(\.scenePhase) private var scenePhase
     @State private var navigationPath: [String] = []
     @State private var attentionTreeID: String?
@@ -232,7 +233,9 @@ private struct PostBattleTalentChoiceContent: View {
         let result = play.choosePostBattleTalent(nodeID: node.id, treeID: tree.id)
         switch result {
         case .unlocked:
-            break
+            if scenePhase == .active {
+                playSFX(SFXID.talentUnlock, options.effectsVolume)
+            }
         case .unavailable:
             navigationPath.removeAll()
         case .persistenceFailed:

@@ -379,6 +379,32 @@ struct BattleActionPresentationTests {
 }
 
 extension BattleActionPresentationTests {
+    @Test func `a damaging draw card has one immediate cue without a health cost sound`() throws {
+        var sounds: [[String]] = []
+        let environment = BattleRuntimeDependencies(
+            playSFX: { sounds.append($0) }, warmSFX: { _, _ in }, hapticsEnabled: { false },
+            effectsVolume: { 1 }, shouldAutoSkipUltimateCinematic: { _, _ in false },
+        )
+        let session = BattleSessionTestSupport.makeConfiguredSession(
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
+            autoEndTurnDelay: 60, presentationEnvironment: environment,
+        )
+        defer { session.endBattle() }
+        var state = try #require(session.engineState)
+        state.hand = BattleHand()
+        let card = BattleCardCombatEngine.deal(.bloodOffering, owner: .hero, context: &state)
+        session.engineState = state
+        session.installSimulationPresentation()
+        session.feedback.clear()
+        sounds.removeAll()
+        let date = Date.now
+
+        #expect(session.playCard(cardID: card.id, at: date) == .committed)
+        #expect(sounds == [[SFXID.hitPiercing]])
+        session.feedback.advance(to: date.addingTimeInterval(1))
+        #expect(sounds == [[SFXID.hitPiercing]])
+    }
+
     private func installAttacks(in session: BattleSession) throws -> [BattleCard] {
         var state = try #require(session.engineState)
         state.hand = BattleHand()

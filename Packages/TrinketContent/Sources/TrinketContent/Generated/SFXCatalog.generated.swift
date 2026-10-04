@@ -24,6 +24,18 @@ public enum SFXID {
     public static let victory = "victory"
     public static let defeat = "defeat"
     public static let mysteryEvent = "mystery_event"
+    public static let blockAbsorb = "block_absorb"
+    public static let dodge = "dodge"
+    public static let itemForge = "item_forge"
+    public static let itemSalvage = "item_salvage"
+    public static let homesteadBuild = "homestead_build"
+    public static let lootCollect = "loot_collect"
+    public static let talentUnlock = "talent_unlock"
+    public static let itemCorrupt = "item_corrupt"
+    public static let hitStun = "hit_stun"
+    public static let hitPiercing = "hit_piercing"
+    public static let hitHoly = "hit_holy"
+    public static let restoreMana = "restore_mana"
 }
 
 public struct SFXClip: Identifiable, Hashable, Sendable {
@@ -158,6 +170,78 @@ public enum SFXCatalog {
         SFXClip(
             id: "mystery_event",
             resourceName: "sfx_mystery_event",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "block_absorb",
+            resourceName: "sfx_block_absorb",
+            fileExtension: "m4a",
+            volumeGain: 0.97
+        ),
+        SFXClip(
+            id: "dodge",
+            resourceName: "sfx_dodge",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "item_forge",
+            resourceName: "sfx_item_forge",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "item_salvage",
+            resourceName: "sfx_item_salvage",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "homestead_build",
+            resourceName: "sfx_homestead_build",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "loot_collect",
+            resourceName: "sfx_loot_collect",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "talent_unlock",
+            resourceName: "sfx_talent_unlock",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "item_corrupt",
+            resourceName: "sfx_item_corrupt",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "hit_stun",
+            resourceName: "sfx_hit_stun",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "hit_piercing",
+            resourceName: "sfx_hit_piercing",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "hit_holy",
+            resourceName: "sfx_hit_holy",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "restore_mana",
+            resourceName: "sfx_restore_mana",
             fileExtension: "m4a",
             volumeGain: 1.0
         ),

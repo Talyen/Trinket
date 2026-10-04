@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
@@ -146,9 +147,37 @@ struct BattleFeedbackLaneTests {
         lane.pruneExpired(at: start.addingTimeInterval(1))
         #expect(lane.hitReactionsByTargetID["enemy"] == nil)
         #expect(lane.hitReactionsByTargetID["hero"]?.kind == .celebrate)
+        lane.record([event], at: start.addingTimeInterval(1.2), environment: environment)
+        #expect(sounds == 1)
         lane.clear()
         #expect(lane.activeItems.isEmpty)
         #expect(lane.celebrateReactionExpiresAt.isEmpty)
         #expect(lane.nextPruneAt == nil)
+    }
+
+    @Test @MainActor func `sound selection precedes hidden chips and separates action beats`() {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        var sounds: [[String]] = []
+        let environment = BattleRuntimeDependencies(
+            playSFX: { sounds.append($0) }, warmSFX: { _, _ in }, hapticsEnabled: { false },
+            effectsVolume: { 1 }, shouldAutoSkipUltimateCinematic: { _, _ in false },
+        )
+        let absorbed = makeEvent(id: 1, kind: .effect, effectKind: .shieldAbsorbed, amount: 5, keyword: .block)
+        lane.record([absorbed], environment: environment, actionGroupID: 1, damage: [
+            .init(targetID: "enemy", keyword: .burn, impact: .landed(blocked: 5, healthLost: 2), isCritical: false),
+        ])
+        #expect(lane.activeItems.isEmpty)
+        lane.record([absorbed], environment: environment, actionGroupID: 1, damage: [
+            .init(targetID: "enemy", keyword: .burn, impact: .landed(blocked: 5, healthLost: 2), isCritical: false),
+        ])
+        lane.record([
+            makeEvent(id: 2, kind: .abilityDamage, amount: 3, keyword: .poison),
+            makeEvent(id: 3, kind: .effect, effectKind: .cardsDrawn, amount: 1, keyword: .mana),
+        ], environment: environment, actionGroupID: 2)
+        lane.record([
+            makeEvent(id: 4, kind: .effect, effectKind: .cardsDrawn, amount: 2, keyword: .mana),
+        ], environment: environment, actionGroupID: 3)
+        #expect(sounds == [[SFXID.blockAbsorb], [SFXID.hitPiercing], [SFXID.abilityDraw]])
     }
 }

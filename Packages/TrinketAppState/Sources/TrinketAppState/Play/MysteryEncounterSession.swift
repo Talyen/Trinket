@@ -47,6 +47,7 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
 
     private var presentation: Presentation = .reading
     private var choiceAttempt: ChoiceAttempt = .ready
+    @ObservationIgnored private var hasCollectedReward = false
 
     var phase: MysteryEncounterPhase {
         switch presentation {
@@ -189,6 +190,12 @@ public final class MysteryEncounterSession: Identifiable, EncounterSession {
             event: event,
             combatant: GameContent.combatant(forMysteryEvent: event),
         )
+    }
+
+    func claimRewardCollectionSound() -> Bool {
+        guard showsReward, !hasCollectedReward else { return false }
+        hasCollectedReward = true
+        return true
     }
 
     var resolutionRequest: MysteryEncounterRequest {
