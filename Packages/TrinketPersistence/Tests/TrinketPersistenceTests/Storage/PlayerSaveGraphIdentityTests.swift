@@ -9,20 +9,23 @@ struct PlayerSaveGraphIdentityTests {
         let context = try PersistenceTestContext()
         let store = try context.makeReloadedStore()
         try store.applyTestSeed()
-        let before = try GraphIdentity(context)
+        let before = try GraphIdentity(store.container)
+        #expect(try GraphIdentity(store.container) == before)
         var homestead = store.homestead
         homestead.grant([ResourceAmount(.wood, 1)])
 
         #expect(store.persistBatch(logging: "Test setup") { $0.homestead = homestead })
 
-        try #expect(GraphIdentity(context) == before)
+        #expect(try GraphIdentity(store.container) == before)
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.homestead.resources[.wood] == homestead.resources[.wood])
     }
 
     @Test @MainActor func `inventory reconciliation preserves unchanged rows and ordering`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeReloadedStore()
         try store.applyTestSeed()
-        let before = try GraphIdentity(context)
+        let before = try GraphIdentity(store.container)
         var inventory = store.inventory
         try #require(Set(before.inventoryItems.keys) == Set(inventory.items.map(\.id)))
         let changedItem = try #require(inventory.items.first)
@@ -33,7 +36,7 @@ struct PlayerSaveGraphIdentityTests {
 
         #expect(store.persistBatch(logging: "Test setup") { $0.inventory = inventory })
 
-        let after = try GraphIdentity(context)
+        let after = try GraphIdentity(store.container)
         let survivingRows = before.inventoryItems.filter { $0.key != removedItem.id }
         try #expect(after.inventoryItems == survivingRows)
         try #expect(after.rosterProgressions == before.rosterProgressions)
@@ -75,8 +78,10 @@ private struct GraphIdentity: Equatable {
     let inventoryItems: [String: PersistentIdentifier]
     let rosterProgressions: [String: PersistentIdentifier]
 
-    init(_ context: PersistenceTestContext) throws {
-        let modelContext = try context.makeSideContext()
+    init(_ container: ModelContainer) throws {
+        // Fresh contexts avoid stale fetched rows; one container keeps identifier
+        // comparisons within the same store instance across both snapshots.
+        let modelContext = ModelContext(container)
         let inventoryItems = try modelContext.fetch(FetchDescriptor<InventoryItemModel>())
         let rosterProgressions = try modelContext.fetch(FetchDescriptor<CombatantProgressionModel>())
         try #require(!inventoryItems.isEmpty)
