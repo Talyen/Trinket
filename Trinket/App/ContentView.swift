@@ -44,6 +44,8 @@ struct ContentView: View {
             }
         }
         .fullGameOfferHost()
+        // Keep the phone's navigation and stacked hubs on every portrait canvas.
+        .environment(\.horizontalSizeClass, .compact)
         .animation(TrinketMotion.Screen.crossfade, value: playerSave.starterSelection.phase)
         .trinketSensoryFeedback(
             .success,

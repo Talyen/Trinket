@@ -12,6 +12,11 @@ Battle lifecycle, presentation, and SwiftUI for Trinket.
 - Battle views, layout, effects, and outcome presentation
 - Ability cards stay **3:4** full-bleed art with no face text. Party portraits stay **3:4**; enemy viewport is **4:3**. Health anchors to the bottom of each combatant’s art. Show mana only when live `maxMana > 0`. No pause control, global crystals, or other top chrome.
 
+- Phone and iPad retain the same portrait battlefield above the fanned hand.
+  Wider containers grow the hand and its reserved band together; manual and
+  automatic casts use that same measured geometry. Extra width does not select
+  a different combat arrangement. Compact hand geometry stays unchanged.
+
 Battle simulation rules remain in `BattleEngine`. App options and audio enter through
 the closure-backed `BattleRuntimeDependencies`; this package must not import or
 depend on `TrinketAppState`. Progression capabilities are configured once by the app composition root; BattleSession

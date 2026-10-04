@@ -36,6 +36,37 @@ The language mode is distinct from the compiler and package tools versions:
 `swiftc -swift-version` accepts `6`, not `6.4`. Do not change `SWIFT_VERSION`
 merely to match Xcode's bundled Swift compiler.
 
+## Portrait device support
+
+[PD-033](../Product/Decisions.md) owns the shared portrait design for iPhone and
+native iPad. `project.yml` is authoritative for device families and orientations;
+regenerate the project through the managed build workflow after changing it.
+Keep both platforms restricted to upright portrait, including onboarding,
+encounters, and native presentations.
+
+`PortraitAppRoot` supplies a first-party `UIHostingController` with
+`prefersInterfaceOrientationLocked` enabled and a portrait geometry preference.
+The game content and lifecycle remain SwiftUI. Forward public scene/display inputs
+into the hosted root; copying the entire `EnvironmentValues` replaces hosting's
+internal accessibility state and hides cold-launch controls. Keep the hosting
+boundary full-window and let the game content retain its original safe areas.
+Root scroll-edge and appearance modifiers belong inside the hosted content;
+let hosting resolve the color scheme from that preference instead of copying
+the outer window's scheme over it.
+
+Trinket deliberately requests `UIRequiresFullScreen` because iPad windowing can
+otherwise ignore the portrait-only orientation declaration. This is an orientation
+compatibility choice, not a guarantee that the OS prevents windows or resizing.
+Apple deprecates the key and changes its resize behavior in iPadOS 27; see
+[TN3192](https://developer.apple.com/documentation/technotes/tn3192-Migrating-your-app-from-the-deprecated-UIRequiresFullScreen-key).
+Verify orientation and reachable actions on each supported runtime. System-owned
+window presentation must not be mistaken for approval to introduce landscape
+gameplay. Preserve the shared SwiftUI layouts and existing phone geometry when
+adapting content sizes. The app keeps compact horizontal presentation for the
+shared portrait interface: bottom tabs retain their icons and hub cards remain
+vertically stacked on iPad as on iPhone. Do not inherit the regular-width tab bar
+or hub rearrangements merely because a device has a wider screen.
+
 ## Apple skill references
 
 Two repository skills incorporate Apple's Xcode guidance:

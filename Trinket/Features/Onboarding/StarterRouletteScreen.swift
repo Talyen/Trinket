@@ -277,7 +277,10 @@ private struct RouletteLayout {
     let containerSize: CGSize
 
     var cardWidth: CGFloat {
-        min(containerSize.width * 0.58, 250)
+        let scale = max(1, containerSize.width / 500)
+        let horizontalLimit = min(containerSize.width * 0.58, 250 * scale)
+        guard containerSize.width > 500 else { return horizontalLimit }
+        return min(horizontalLimit, max(0, containerSize.height * 0.45) * 3.0 / 4.0)
     }
 
     var cardHeight: CGFloat {

@@ -29,6 +29,13 @@ trinket_simulator_is_shared_name() {
   return 1
 }
 
+trinket_watch_agent_simulator() {
+  [[ "${TRINKET_ISOLATE:-}" == "1" && -n "${TRINKET_SIM_SLOT_PATH:-}" && -n "${TRINKET_SIM_SLOT_OWNER_PID:-}" && -n "${SIMULATOR_UDID:-}" ]] || return 0
+  python3 "$(trinket_run_env_repo_root)/Scripts/agent-sim-lifetime.py" register \
+    --slot "$TRINKET_SIM_SLOT_PATH" --owner "${TRINKET_SIM_SLOT_OWNER_PID%%:*}" --udid "$SIMULATOR_UDID" \
+    --name "$SIMULATOR_NAME" --grace "${TRINKET_AGENT_SIM_IDLE_SECONDS:-60}"
+}
+
 trinket_simulator_is_active_agent_name() {
   local name="$1"
   [[ "$name" =~ ^Trinket\ Agent\ ([0-9]+)$ ]] \

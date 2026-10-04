@@ -22,6 +22,7 @@ rubric to directly related retirement candidates.
 | Chip host delivery and availability | `CombatFeedbackChipPresentationTests` |
 | Feedback motion and typography | `CombatFeedbackMotionTests` |
 | Card gesture policy | `BattleCardGesturePolicyTests` |
+| Wide portrait hand / battlefield clearance for visible party resource bars | `BattleHandLayoutTests` |
 | Effect descriptors and recipe fallbacks | `CombatFeedbackEffectPresentationTests` |
 | Raster warmup and invalidation | `CombatFeedbackRasterCatalogTests` |
 | Dissolve-mask transparency and shared storage | `CardDissolveTextureTests` |

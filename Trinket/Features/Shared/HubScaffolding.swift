@@ -3,6 +3,8 @@ import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
+private let hubArtworkCardAspectRatio: CGFloat = 1.35
+
 struct HubGridScaffold<Content: View>: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -11,16 +13,25 @@ struct HubGridScaffold<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        ScrollView {
-            LazyVGrid(
-                columns: TrinketDesign.Layout.hubGridItems(for: horizontalSizeClass),
-                spacing: TrinketDesign.Spacing.large,
-            ) {
-                content()
+        GeometryReader { geometry in
+            let verticalSpacing = TrinketDesign.Layout.compactContentTopPadding
+                + TrinketDesign.Spacing.extraLarge + TrinketDesign.Spacing.large
+            let fittedWidth = max(0, (geometry.size.height - verticalSpacing) / 2) * hubArtworkCardAspectRatio
+
+            ScrollView {
+                LazyVGrid(
+                    columns: TrinketDesign.Layout.hubGridItems(for: horizontalSizeClass),
+                    spacing: TrinketDesign.Spacing.large,
+                ) {
+                    content()
+                }
+                // Preserve phone sizing; wider canvases fit two cards in the viewport.
+                .frame(maxWidth: max(500, fittedWidth))
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                .padding(.top, TrinketDesign.Layout.compactContentTopPadding)
+                .padding(.bottom, TrinketDesign.Spacing.extraLarge)
             }
-            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-            .padding(.top, TrinketDesign.Layout.compactContentTopPadding)
-            .padding(.bottom, TrinketDesign.Spacing.extraLarge)
         }
         .scrollIndicators(.hidden)
         .navigationTitle(title)
@@ -77,7 +88,7 @@ struct HubArtworkCard: View {
             }
             .padding(TrinketDesign.Spacing.large)
         }
-        .aspectRatio(1.35, contentMode: .fit)
+        .aspectRatio(hubArtworkCardAspectRatio, contentMode: .fit)
         .contentShape(TrinketDesign.cardShape)
         .clipShape(TrinketDesign.cardShape)
         .overlay {

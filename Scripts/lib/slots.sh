@@ -53,7 +53,9 @@ trinket_release_owned_slot() {
   local current_owner
   trinket_slot_owner_token current_owner
   if [[ -n "$path" && "$owner" == "$current_owner" && -e "$path" ]]; then
-    rm -f "$path"
+    local recorded_owner=""
+    read -r recorded_owner _ < "$path" || return 1
+    [[ "$recorded_owner" != "${owner%%:*}" ]] || rm -f "$path"
   fi
 }
 
@@ -98,6 +100,17 @@ trinket_bind_agent_slot() {
 }
 
 trinket_sim_slot_acquire() {
+  local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}"
+  local lock="$active_dir/.sim-lifecycle.lock" result=0 owner_pid="${BASHPID:-}"
+  [[ -n "$owner_pid" ]] || owner_pid="$(exec /bin/sh -c 'echo "$PPID"')"
+  mkdir -p "$active_dir"
+  trinket_dir_lock_acquire "$lock" 10 || return 1
+  trinket_sim_slot_acquire_locked || result=$?
+  trinket_dir_lock_release "$lock" "$owner_pid"
+  return "$result"
+}
+
+trinket_sim_slot_acquire_locked() {
   local max="${TRINKET_MAX_AGENT_SIMS:-1}"
   local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}"
   local n slot_path owner_pid owner_token

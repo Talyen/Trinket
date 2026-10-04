@@ -169,6 +169,7 @@ PY
 }
 
 boot_simulator() {
+  trinket_watch_agent_simulator
   local state
   state="$(xcrun simctl list devices "$SIMULATOR_UDID" -j 2>/dev/null \
     | trinket_simctl_json state-for-udid "$SIMULATOR_UDID" 2>/dev/null || echo "Unknown")"

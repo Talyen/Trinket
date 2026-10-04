@@ -11,11 +11,17 @@
 - Erase is a recovery operation after a failed cold boot, not routine cleanup.
 
 `Scripts/run-env.sh` leases a simulator and a corresponding
-`.DerivedData/runs/agent-N/` tree. Top-level cleanup preserves warm managed
-devices per tenant — one **Trinket Run** plus one **Trinket Agent N** may stay
-`Booted` concurrently so an agent run never shuts down a human's `Trinket Run`
-session (and vice versa); only unleased excess `Run` or `Agent` boots are shut
-down. Every active lease is protected, even when multiple agents are running. In CI (`GITHUB_ACTIONS=true`) there is no human `Run`, so the
+`.DerivedData/runs/agent-N/` tree. Agent simulator launches automatically record
+their lease owner and device identity, including launches from nested commands.
+A detached watcher waits for lease release or owner exit (OS notifications on
+macOS), then allows 60 seconds for warm reuse.
+It reserves the slot before shutting down the exact still-unleased agent device;
+new leases, renamed human devices and foreign XCTest guests are preserved. Busy
+lifecycle locks retry; a replacement registration supersedes the old watcher.
+`TRINKET_AGENT_SIM_IDLE_SECONDS` can select a 0–3600-second grace period.
+No extra registration or cleanup commands are required. **Trinket Run** stays
+available for human play. Existing top-level hygiene also reclaims unleased excess
+boots. Every active lease is protected, even when multiple agents are running. In CI (`GITHUB_ACTIONS=true`) there is no human `Run`, so the
 legacy single-warm rule across all managed devices still applies. Preview
 devices are reclaimed and bulky artifacts age-pruned. Nested commands release
 only their own leases. Cancellation stops owned child processes before EXIT

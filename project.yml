@@ -109,11 +109,15 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.ryanmcintire.Trinket
         "ENTITLEMENTS_ALLOWED[sdk=iphonesimulator*]": YES
         GENERATE_INFOPLIST_FILE: YES
-        TARGETED_DEVICE_FAMILY: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait
+        # iPad windowing otherwise ignores the portrait-only orientation mask.
+        INFOPLIST_KEY_UIRequiresFullScreen: YES
         # Unlock >60Hz CADisplayLink / CAAnimation on ProMotion iPhones (Apple opt-in).
         INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: YES
   TrinketUITests:
@@ -128,7 +132,7 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
-        TARGETED_DEVICE_FAMILY: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
     dependencies:
       - target: Trinket
       - package: TrinketFeatureSupport

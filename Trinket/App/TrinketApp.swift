@@ -169,22 +169,25 @@ struct TrinketApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Group {
-                if let appState {
-                    PreparedAppRoot(
-                        appState: appState,
-                        priorityImageNames: launchPriorityImageNames,
-                    )
-                    // Intentional: Trinket hides scroll indicators app-wide as an
-                    // art-forward choice; individual screens must not re-enable
-                    // them without product approval.
-                    .scrollIndicators(.never)
-                } else {
-                    AppBootstrapRecoveryView(isRetrying: isRetryingBootstrap, retry: retryBootstrap)
+            PortraitAppRoot {
+                Group {
+                    if let appState {
+                        PreparedAppRoot(
+                            appState: appState,
+                            priorityImageNames: launchPriorityImageNames,
+                        )
+                        // Intentional: Trinket hides scroll indicators app-wide as an
+                        // art-forward choice; individual screens must not re-enable
+                        // them without product approval.
+                        .scrollIndicators(.never)
+                    } else {
+                        AppBootstrapRecoveryView(isRetrying: isRetryingBootstrap, retry: retryBootstrap)
+                    }
                 }
+                .scrollEdgeEffectStyle(.soft, for: .top)
+                .preferredColorScheme(.dark)
             }
-            .scrollEdgeEffectStyle(.soft, for: .top)
-            .preferredColorScheme(.dark)
+            .ignoresSafeArea()
         }
         // Intentional: game screens manage their own chrome; system overlays
         // stay hidden app-wide unless product approves a scoped exception.

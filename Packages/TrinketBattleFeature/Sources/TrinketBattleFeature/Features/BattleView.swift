@@ -213,12 +213,10 @@ struct BattleFieldLane: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let battlefieldSize = CGSize(
-                width: geometry.size.width,
-                height: max(0, geometry.size.height - BattleHandLayout.reservedHeight + BattleHandLayout.overlapAllowance),
-            )
-            let layout = BattleCardGridLayout.metrics(in: battlefieldSize)
             let handFrame = BattleHandLayout.frame(in: geometry.size)
+            let handScale = BattleHandLayout.scale(for: geometry.size.width)
+            let battlefieldSize = BattleHandLayout.battlefieldSize(in: geometry.size)
+            let layout = BattleCardGridLayout.metrics(in: battlefieldSize)
             let hapticsEnabled = battleSession.hapticsEnabled
 
             ZStack(alignment: .bottom) {
@@ -242,8 +240,8 @@ struct BattleFieldLane: View {
                     onLift: beginCardLift,
                     onLiftCancel: cancelCardLift(for:),
                 )
-                .frame(height: BattleHandLayout.reservedHeight)
-                .offset(y: -BattleHandLayout.bottomRise)
+                .frame(height: handFrame.height)
+                .offset(y: -BattleHandLayout.bottomRise * handScale)
                 .zIndex(1)
 
                 cardCastLane()

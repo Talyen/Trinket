@@ -27,12 +27,45 @@ enum BattleHandLayout {
         let startX: CGFloat
     }
 
+    /// Keep compact hand geometry unchanged; grow the same fan in wider space.
+    static func scale(for containerWidth: CGFloat) -> CGFloat {
+        max(1, containerWidth / 700)
+    }
+
+    static func battlefieldSize(in containerSize: CGSize) -> CGSize {
+        let handFrame = frame(in: containerSize)
+        let existingHeight = containerSize.height - handFrame.height
+            + overlapAllowance * scale(for: containerSize.width)
+        guard containerSize.width > 500 else {
+            return CGSize(width: containerSize.width, height: max(0, existingHeight))
+        }
+
+        // A wider portrait canvas must leave the party's resource bars above
+        // the resting fan, including its rotation about each card's bottom.
+        let metrics = metrics(containerWidth: containerSize.width, cardCount: 3)
+        let cardBounds = CGRect(
+            x: -metrics.cardWidth / 2,
+            y: -metrics.cardHeight,
+            width: metrics.cardWidth,
+            height: metrics.cardHeight,
+        )
+        let handTop = (0 ..< 3).map { index in
+            let center = restingCenter(index: index, metrics: metrics, cardCount: 3, handFrame: handFrame)
+            let rotatedBounds = cardBounds.applying(CGAffineTransform(
+                rotationAngle: rotation(index: index, cardCount: 3) * .pi / 180,
+            ))
+            return center.y + metrics.cardHeight / 2 + rotatedBounds.minY
+        }.min() ?? handFrame.minY
+        return CGSize(width: containerSize.width, height: max(0, min(existingHeight, handTop)))
+    }
+
     static func frame(in containerSize: CGSize) -> CGRect {
-        CGRect(
+        let scale = scale(for: containerSize.width)
+        return CGRect(
             x: 0,
-            y: containerSize.height - reservedHeight - bottomRise,
+            y: containerSize.height - (reservedHeight + bottomRise) * scale,
             width: containerSize.width,
-            height: reservedHeight,
+            height: reservedHeight * scale,
         )
     }
 
@@ -40,15 +73,16 @@ enum BattleHandLayout {
         containerWidth: CGFloat,
         cardCount: Int,
     ) -> Metrics {
+        let scale = scale(for: containerWidth)
         let cardWidth = min(
-            maxCardWidth,
-            max(minCardWidth, containerWidth * widthRatio),
+            maxCardWidth * scale,
+            max(minCardWidth * scale, containerWidth * widthRatio),
         )
         let cardHeight = cardWidth * aspectRatio
         let overlap: CGFloat = cardCount > 1
             ? min(
                 cardWidth * maxOverlapRatio,
-                (containerWidth - cardWidth - horizontalInset * 2) / CGFloat(cardCount - 1),
+                (containerWidth - cardWidth - horizontalInset * 2 * scale) / CGFloat(cardCount - 1),
             )
             : 0
         let totalWidth = cardWidth + overlap * CGFloat(max(cardCount - 1, 0))
