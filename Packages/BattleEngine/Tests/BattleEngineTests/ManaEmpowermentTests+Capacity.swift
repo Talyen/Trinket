@@ -13,7 +13,8 @@ extension ManaEmpowermentTests {
             companionModifiers: patron, dealOpeningHand: false,
         )
         var shared = ManaEmpowermentBudget(ability: .frostbolt, actor: battle.hero, in: battle)
-        let payment = try #require(shared.nextPayment())
+        let sharedPayment = shared.nextPayment()
+        let payment = try #require(sharedPayment)
         #expect(payment.ownMana == 1 && payment.partnerMana == 2)
         #expect(shared.nextPayment() == nil)
 
@@ -26,8 +27,10 @@ extension ManaEmpowermentTests {
         discountedBattle.roster.hero.talents.pending.nextManaEmpowerDiscount = 1
         var repeated = ManaEmpowermentBudget(ability: .meteor, actor: discountedBattle.hero, in: discountedBattle)
         #expect(repeated.purchaseLimit == Int.max)
-        #expect(try #require(repeated.nextPayment()).ownMana == 0)
-        #expect(try #require(repeated.nextPayment()).ownMana == 1)
+        let freePayment = repeated.nextPayment()
+        #expect(try #require(freePayment).ownMana == 0)
+        let paidPayment = repeated.nextPayment()
+        #expect(try #require(paidPayment).ownMana == 1)
         #expect(repeated.nextPayment() == nil)
     }
 }
