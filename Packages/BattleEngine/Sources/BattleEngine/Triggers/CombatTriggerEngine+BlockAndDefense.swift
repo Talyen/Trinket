@@ -96,7 +96,7 @@ package extension CombatTriggerEngine {
         attackerID: String?,
         power: Int,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard power > 0,
               let attackerID,
               let attacker = context.roster.combatant(for: attackerID),
@@ -108,7 +108,7 @@ package extension CombatTriggerEngine {
 
         var events: [ActionEvent] = []
         for keyword in [Keyword.holy, .stun] where context.roster.health(for: attacker.combatant) > 0 {
-            let outcome = context.resolveDamage(
+            let outcome = await context.resolveDamage(
                 DamageRequest(
                     amount: power,
                     target: attacker.combatant,
@@ -119,7 +119,7 @@ package extension CombatTriggerEngine {
             )
             events.append(contentsOf: outcome.events)
             if keyword == .holy, outcome.healthLost > 0 {
-                events.append(contentsOf: afterHolyDamageDealt(
+                await events.append(contentsOf: afterHolyDamageDealt(
                     to: attacker.combatant,
                     source: target,
                     in: &context,
@@ -127,7 +127,7 @@ package extension CombatTriggerEngine {
             }
         }
         let healTarget = BattleActionContext(actor: target, in: context).target(.lowestHealthAlly, in: context)
-        events.append(contentsOf: emitHeal(
+        await events.append(contentsOf: emitHeal(
             "blockBrokenSaintfallPower", "Saintfall",
             amount: power, to: healTarget, source: target, in: &context,
         ))
@@ -140,7 +140,7 @@ package extension CombatTriggerEngine {
         on target: Combatant,
         attackerID: String?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
         var events: [ActionEvent] = []
         if profile.triggers.blockBreakNextPhysicalBonus > 0, target.role != .enemy {
@@ -169,7 +169,7 @@ package extension CombatTriggerEngine {
         }
         if target.role == .companion, profile.triggers.blockBreakStealGoldFlat > 0,
            context.roster.enemy.isAlive {
-            events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGoldEvent(
                 profile.triggers.blockBreakStealGoldFlat,
                 to: target, abilityName: "Trophy Scales", isTheft: true,
             ))
@@ -181,14 +181,14 @@ package extension CombatTriggerEngine {
             ))
         }
         if profile.triggers.blockBrokenThornsFlat > 0 {
-            events.append(contentsOf: heroTalentThorns(
+            await events.append(contentsOf: heroTalentThorns(
                 to: target, source: target, amount: profile.triggers.blockBrokenThornsFlat,
                 name: triggerAbilityName("blockBrokenThornsFlat", for: target, fallback: "Briarward", in: context),
                 in: &context,
             ))
         }
 
-        events.append(contentsOf: saintfallAfterBlockBroken(
+        await events.append(contentsOf: saintfallAfterBlockBroken(
             on: target,
             attackerID: attackerID,
             power: profile.triggers.blockBrokenSaintfallPower,
@@ -210,7 +210,7 @@ package extension CombatTriggerEngine {
         }
     }
 
-    static func afterEnemyStunned(sourceActorID: String?, in context: inout BattleState) -> [ActionEvent] {
+    static func afterEnemyStunned(sourceActorID: String?, in context: inout BattleState) async -> [ActionEvent] {
         // Pure read: hoisted so the three source-gated blocks below share one fetch.
         let triggers = sourceActorID.map { context.modifiers(for: $0).triggers }
         if let sourceActorID, let triggers, context.roster.enemy.isAlive {
@@ -250,7 +250,7 @@ package extension CombatTriggerEngine {
         }
         var events: [ActionEvent] = []
         for (_, member) in livingPartyMembers(in: context) {
-            events.append(contentsOf: afterEnemyStunnedReactions(for: member, sourceActorID: sourceActorID, in: &context))
+            await events.append(contentsOf: afterEnemyStunnedReactions(for: member, sourceActorID: sourceActorID, in: &context))
         }
         return events
     }
@@ -259,7 +259,7 @@ package extension CombatTriggerEngine {
         for member: CombatantRuntime,
         sourceActorID: String?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let profile = context.modifiers(for: member.id)
         let triggers = profile.triggers
         let shouldReact = triggers.stunDealPhysicalFlat > 0
@@ -275,7 +275,7 @@ package extension CombatTriggerEngine {
 
         var events: [ActionEvent] = []
         if triggers.stunDealPhysicalFlat > 0 {
-            events.append(contentsOf: context.resolveDamage(
+            await events.append(contentsOf: context.resolveDamage(
                 DamageRequest(
                     amount: triggers.stunDealPhysicalFlat,
                     target: enemy,
@@ -298,14 +298,14 @@ package extension CombatTriggerEngine {
 
         if context.roster.health(for: enemy) > 0 {
             if triggers.stunPurgeDealHolyPerEffect > 0, actor.id == sourceActorID {
-                events.append(contentsOf: wardbreakerStunPurge(
+                await events.append(contentsOf: wardbreakerStunPurge(
                     perEffectHolyDamage: triggers.stunPurgeDealHolyPerEffect,
                     actor: actor,
                     enemy: enemy,
                     in: &context,
                 ))
             } else {
-                events.append(contentsOf: applyPurge(
+                await events.append(contentsOf: applyPurge(
                     to: enemy,
                     source: actor,
                     abilityName: triggerAbilityName(
@@ -328,8 +328,8 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         enemy: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        let purge = EffectRemovalOperation.resolvePurge(
+    ) async -> [ActionEvent] {
+        let purge = await EffectRemovalOperation.resolvePurge(
             .all(nil),
             source: actor,
             target: enemy,
@@ -338,7 +338,7 @@ package extension CombatTriggerEngine {
         )
         var events = purge.events
         if !purge.removed.isEmpty, context.roster.health(for: enemy) > 0 {
-            events.append(contentsOf: context.resolveDamage(
+            await events.append(contentsOf: context.resolveDamage(
                 DamageRequest(
                     amount: perEffectHolyDamage * purge.removed.count,
                     target: enemy,
@@ -354,9 +354,9 @@ package extension CombatTriggerEngine {
     static func afterHealthDropped(
         target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
-        var events = afterSurvivingHealthLoss(target: target, in: &context)
+        var events = await afterSurvivingHealthLoss(target: target, in: &context)
         let belowHalfThreshold = profile.triggers.onceBelowHealthPercentThreshold > 0
             && context.roster.maxHealth(for: target) > 0
             && Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
@@ -366,7 +366,7 @@ package extension CombatTriggerEngine {
            context.roster.enemy.isAlive,
            context.claimBattleGuard(.seismicRoar, actorID: target.id) {
             let threshold = ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
-            events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+            await events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
                 threshold,
                 keyword: .stun,
                 to: context.roster.enemy.combatant,
@@ -393,7 +393,7 @@ package extension CombatTriggerEngine {
         let percent = Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
         guard percent < profile.triggers.onceBelowHealthPercentThreshold else { return events }
         context.roster.mutateRuntime(for: target) { $0.hasTriggeredSecondWind = true }
-        events.append(contentsOf: emitHeal(
+        await events.append(contentsOf: emitHeal(
             "onceBelowHealthPercentHeal", "Second Wind",
             amount: profile.triggers.onceBelowHealthPercentHeal, to: target, source: target, in: &context,
         ))
@@ -405,11 +405,11 @@ package extension CombatTriggerEngine {
     static func afterSurvivingHealthLoss(
         target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.roster.health(for: target) > 0 else { return [] }
         var events = drawAfterHealthLoss(by: target, in: &context)
         preparePantherRedline(afterHealthLoss: target, in: &context)
-        events.append(contentsOf: vitalInfusionAfterHealthDrop(target: target, in: &context))
+        await events.append(contentsOf: vitalInfusionAfterHealthDrop(target: target, in: &context))
         if target.id == context.roster.hero.id, context.roster.hero.isAlive,
            context.roster.companion.isAlive,
            context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target),
@@ -428,14 +428,14 @@ package extension CombatTriggerEngine {
     private static func vitalInfusionAfterHealthDrop(
         target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let amount = context.modifiers(for: target.id).triggers.firstBelowHalfHealthHeal
         guard amount > 0,
               context.roster.health(for: target) > 0,
               context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target),
               context.resolution.claim(.heroTalent("Vital Infusion"), actorID: target.id, cadence: .battle)
         else { return [] }
-        return context.healEmitting(amount: amount, target: target, source: target, abilityName: "Vital Infusion")
+        return await context.healEmitting(amount: amount, target: target, source: target, abilityName: "Vital Infusion")
     }
 
     static func applyPurge(
@@ -445,8 +445,8 @@ package extension CombatTriggerEngine {
         count: Int,
         purgeAll: Bool,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        EffectRemovalOperation.resolvePurge(
+    ) async -> [ActionEvent] {
+        await EffectRemovalOperation.resolvePurge(
             purgeAll ? .all(nil) : .randomBuffs(count), source: source, target: target,
             abilityName: abilityName, in: &context,
         ).events
@@ -468,13 +468,13 @@ package extension CombatTriggerEngine {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard removedCount > 0,
               source.role != .enemy,
               target.role == .enemy,
               hasLivingPartyTrigger(\.crownfall, in: context)
         else { return [] }
-        return context.resolveDamage(DamageRequest(
+        return await context.resolveDamage(DamageRequest(
             amount: removedCount * 3,
             target: target,
             keyword: .holy,

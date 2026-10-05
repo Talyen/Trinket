@@ -85,7 +85,7 @@ public extension EncounterPlayMode {
     }
 
     /// Character paywall for mystery events that unlock combatants. Also
-    /// enforced in `PlayBattleLaunch.activateBattle` and
+    /// enforced in `PlayBattleCoordinator.activateBattle` and
     /// `resolveActiveMysteryChoice`; checked here so the paywall surfaces
     /// before any pin writes.
     private func mysteryPaywallMessage(for event: MysteryEvent) -> StageMapMessage? {

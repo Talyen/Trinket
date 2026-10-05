@@ -14,9 +14,9 @@ package extension CombatTriggerEngine {
         to target: Combatant,
         sourceActorID: String,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.roster.combatant(for: sourceActorID) != nil else { return [] }
-        return withDoTRecursionScope(site: "afterBleedDamageConversions", context: &context) { context in
+        return await withDoTRecursionScope(site: "afterBleedDamageConversions", context: &context) { context in
             let profile = context.modifiers(for: sourceActorID)
             var events: [ActionEvent] = []
 
@@ -26,7 +26,7 @@ package extension CombatTriggerEngine {
             )
             if profile.triggers.onBleedApplyPoison > 0, bleedPoisonChance > 0,
                BattleChance.succeeds(probability: min(1, bleedPoisonChance), using: &context.rng) {
-                events.append(contentsOf: context.applyDecayingDoT(
+                await events.append(contentsOf: context.applyDecayingDoT(
                     keyword: .poison,
                     potency: profile.triggers.onBleedApplyPoison,
                     to: target,
@@ -41,7 +41,7 @@ package extension CombatTriggerEngine {
             )
             if profile.triggers.onBleedDealBurnDamage > 0, bleedBurnChance > 0,
                BattleChance.succeeds(probability: min(1, bleedBurnChance), using: &context.rng) {
-                events.append(contentsOf: DoTDamage.resolveDamage(
+                await events.append(contentsOf: DoTDamage.resolveDamage(
                     basePotency: profile.triggers.onBleedDealBurnDamage,
                     keyword: .burn,
                     target: target,
@@ -74,14 +74,14 @@ package extension CombatTriggerEngine {
         to target: Combatant,
         sourceActorID: String,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let triggers = context.modifiers(for: sourceActorID).triggers
         let potency = triggers.onBurnApplyPoison
         guard potency > 0 else { return [] }
-        return withDoTRecursionScope(site: "afterBurnDamageConversion", context: &context) { context in
+        return await withDoTRecursionScope(site: "afterBurnDamageConversion", context: &context) { context in
             let chance = chanceOrGuaranteed(triggers.onBurnDealPoisonChancePercent, guaranteed: true)
             guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return [] }
-            return context.applyDecayingDoT(
+            return await context.applyDecayingDoT(
                 keyword: .poison, potency: potency, to: target,
                 sourceActorID: sourceActorID, application: .reaction,
             )
@@ -279,9 +279,9 @@ package extension CombatTriggerEngine {
         source: Combatant,
         healthLost: Int,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
-        var events = burnDamageHeals(triggers: triggers, source: source, in: &context)
+        var events = await burnDamageHeals(triggers: triggers, source: source, in: &context)
         if triggers.onBurnDamageGainBlock > 0 {
             events.append(contentsOf: emitBlock(
                 "onBurnDamageGainBlock", "Flame Shield",
@@ -291,7 +291,7 @@ package extension CombatTriggerEngine {
         events.append(contentsOf: emberShieldIfNeeded(source: source, in: &context))
         if triggers.onBurnDamageRestoreManaFlat > 0,
            healthLost >= triggers.burnDamageManaRestoreThreshold {
-            events.append(contentsOf: restoreManaFromBurnDamage(
+            await events.append(contentsOf: restoreManaFromBurnDamage(
                 sourceActorID: source.id,
                 sourceTriggers: triggers,
                 in: &context,
@@ -321,11 +321,11 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         source: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.onBurnDamageHealLowestAllyFlat > 0 {
             let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
-            events.append(contentsOf: emitHeal(
+            await events.append(contentsOf: emitHeal(
                 "onBurnDamageHealLowestAllyFlat", "Healing Flames",
                 amount: triggers.onBurnDamageHealLowestAllyFlat, to: lowest, source: source, in: &context,
             ))
@@ -356,10 +356,10 @@ package extension CombatTriggerEngine {
         to enemy: Combatant,
         source: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard source.role != .enemy else { return [] }
         let profile = context.modifiers(for: source.id)
-        var events = applyPurge(
+        var events = await applyPurge(
             to: enemy,
             source: source,
             abilityName: triggerAbilityName(
@@ -380,7 +380,7 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.criticalGoldFlat > 0, context.roster.health(for: source) > 0 {
-            events.append(contentsOf: emitGold(
+            await events.append(contentsOf: emitGold(
                 "criticalGoldFlat", "Cutpurse", amount: profile.triggers.criticalGoldFlat, to: source, in: &context,
             ))
         }
@@ -388,7 +388,7 @@ package extension CombatTriggerEngine {
         if profile.triggers.criticalActionGoldFlat > 0,
            context.roster.health(for: source) > 0,
            context.claimActionGuard(.criticalActionGold, actorID: source.id) {
-            events.append(contentsOf: emitGold(
+            await events.append(contentsOf: emitGold(
                 "criticalActionGoldFlat", "Lucky Clover",
                 amount: profile.triggers.criticalActionGoldFlat, to: source, in: &context,
             ))
@@ -398,7 +398,7 @@ package extension CombatTriggerEngine {
             (Keyword.poison, profile.triggers.criticalApplyPoison),
             (Keyword.burn, profile.triggers.criticalApplyBurn),
         ] where potency > 0 && context.roster.health(for: enemy) > 0 {
-            events.append(contentsOf: applyDoT(
+            await events.append(contentsOf: applyDoT(
                 keyword: keyword,
                 potency: potency,
                 to: enemy,
@@ -410,10 +410,10 @@ package extension CombatTriggerEngine {
             || (profile.triggers.criticalOnBleedingDetonateBleedChance > 0
                 && BattleChance.succeeds(probability: profile.triggers.criticalOnBleedingDetonateBleedChance, using: &context.rng))
         if shouldDetonateBleed, context.roster.health(for: enemy) > 0 {
-            events.append(contentsOf: detonateBleed(on: enemy, sourceActorID: source.id, in: &context))
+            await events.append(contentsOf: detonateBleed(on: enemy, sourceActorID: source.id, in: &context))
         }
         if profile.triggers.criticalDetonateBleedAndPoison, context.roster.health(for: enemy) > 0 {
-            events.append(contentsOf: detonateBleedAndPoison(
+            await events.append(contentsOf: detonateBleedAndPoison(
                 on: enemy,
                 sourceActorID: source.id,
                 in: &context,
@@ -429,7 +429,7 @@ package extension CombatTriggerEngine {
         if profile.triggers.criticalVsStunnedEnemyGold > 0,
            context.roster.health(for: source) > 0,
            context.roster.hasControlStatus(for: enemy, keyword: .stun) {
-            events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGoldEvent(
                 profile.triggers.criticalVsStunnedEnemyGold,
                 to: source,
                 abilityName: triggerAbilityName(
@@ -446,18 +446,18 @@ package extension CombatTriggerEngine {
         on target: Combatant,
         sourceActorID: String,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        detonateBleedAndPoison(on: target, sourceActorID: sourceActorID, includePoison: false, in: &context)
+    ) async -> [ActionEvent] {
+        await detonateBleedAndPoison(on: target, sourceActorID: sourceActorID, includePoison: false, in: &context)
     }
 
     static func companionSpitPoison(
         to target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard let companionTriggers = companionReactingToHeroTriggers(in: context),
               companionTriggers.onHeroAttackPoisonedEnemyApplyPoison > 0
         else { return [] }
-        return context.applyDecayingDoT(
+        return await context.applyDecayingDoT(
             keyword: .poison,
             potency: companionTriggers.onHeroAttackPoisonedEnemyApplyPoison,
             to: target,

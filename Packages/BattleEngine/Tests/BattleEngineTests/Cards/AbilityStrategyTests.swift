@@ -57,7 +57,11 @@ struct AbilityStrategyTests {
         state.appliesFightPacing = false
         DefensePoolEngine.set(2, on: state.enemy, in: &state)
         state.appendEffect(.bleed(1), to: state.enemy, sourceID: state.hero.id, remainingTurns: 3)
-        let result = BattleTurnEngine.performEnemyAction(ability: .shieldBash, abilityTarget: state.hero, context: &state)
+        let result = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
+            ability: .shieldBash,
+            abilityTarget: state.hero,
+            context: &state,
+        ) }
         #expect(result.performed)
         #expect(DefensePoolEngine.blockPoints(in: state.roster.enemy.activeEffects) == 2)
         #expect(result.events.first { $0.kind == .abilityDamage }?.amount == 1)
@@ -70,7 +74,11 @@ struct AbilityStrategyTests {
             companionModifiers: CombatModifierProfile(triggers: triggers), dealOpeningHand: false,
         )
         DefensePoolEngine.set(2, on: state.enemy, in: &state)
-        let result = BattleTurnEngine.performEnemyAction(ability: .shieldBash, abilityTarget: state.hero, context: &state)
+        let result = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
+            ability: .shieldBash,
+            abilityTarget: state.hero,
+            context: &state,
+        ) }
         #expect(!result.performed)
         #expect(DefensePoolEngine.blockPoints(in: state.roster.enemy.activeEffects) == 2)
         #expect(!result.events.contains { $0.effectKind == .blockSpent })

@@ -16,7 +16,7 @@ enum CloudSaveMerge {
         /// Overlapping claims may describe the same payout on both branches.
         let canCombineIndependentRewards: Bool
 
-        init(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave?, preferIncoming: Bool) {
+        init(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave?, preferIncoming: Bool, reconcileEconomy: Bool = true) {
             self.incoming = incoming
             self.existing = existing
             self.base = base
@@ -24,7 +24,7 @@ enum CloudSaveMerge {
                 ? preferIncoming : incoming.modifiedAt > existing.modifiedAt
             recent = prefersIncoming ? incoming : existing
             other = prefersIncoming ? existing : incoming
-            canCombineIndependentRewards = base != nil
+            canCombineIndependentRewards = reconcileEconomy && base != nil
                 && !CloudSaveMerge.hasDuplicateClaim(incoming: incoming, existing: existing, base: base)
         }
 
@@ -39,8 +39,15 @@ enum CloudSaveMerge {
 
     static func merge(
         incoming: PlayerSave, existing: PlayerSave, base: PlayerSave?, preferIncoming: Bool,
+        reconcileEconomy: Bool = true,
     ) -> PlayerSave {
-        let branches = Branches(incoming: incoming, existing: existing, base: base, preferIncoming: preferIncoming)
+        let branches = Branches(
+            incoming: incoming,
+            existing: existing,
+            base: base,
+            preferIncoming: preferIncoming,
+            reconcileEconomy: reconcileEconomy,
+        )
         var merged = branches.recent
 
         mergeJourney(into: &merged, from: branches.other)
@@ -48,7 +55,12 @@ enum CloudSaveMerge {
         mergeSelections(into: &merged, branches: branches)
         mergeInventory(into: &merged, from: branches.other, base: branches.base)
         preserveRecentWeaponPairs(into: &merged, recent: branches.recent, base: branches.base)
-        mergeEconomy(into: &merged, branches: branches)
+        if reconcileEconomy {
+            mergeEconomy(into: &merged, branches: branches)
+        } else {
+            merged.homestead.nodeTiers = incoming.homestead.nodeTiers.merging(existing.homestead.nodeTiers, uniquingKeysWith: max)
+            merged.homestead.lastProductionAt = max(incoming.homestead.lastProductionAt, existing.homestead.lastProductionAt)
+        }
         mergeExploration(into: &merged, branches: branches)
         mergeContracts(into: &merged, branches: branches)
         mergeCorruptionAltarCooldown(into: &merged, branches: branches)

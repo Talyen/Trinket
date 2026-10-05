@@ -159,7 +159,7 @@ class AgentContextTests(ScriptRegressionTestCase):
     def test_agent_context_guidance_by_owner(self) -> None:
         cases = (
             ('Raw Assets/Art/example.png', ['Raw\\ Assets/Art/example.png'], []),
-            ('Packages/TrinketAppState/Sources/TrinketAppState/Play/PlayBattleLaunch.swift', ['Docs/AgentContext/battle-runtime.md'], ['Route metadata']),
+            ('Packages/TrinketAppState/Sources/TrinketAppState/Play/PlayBattleCoordinator+Launch.swift', ['Docs/AgentContext/battle-runtime.md'], ['Route metadata']),
             ('Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/Feedback/BattleFeedbackLane.swift', ['Docs/AgentContext/battle-runtime.md'], ['apple-design/SKILL.md']),
             ('Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift', ['Docs/AgentContext/battle-engine.md'], []),
             ('Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/GlassButtons.swift', ['.agents/skills/apple-design/SKILL.md'], ['Docs/AgentContext/swiftui-features.md']),

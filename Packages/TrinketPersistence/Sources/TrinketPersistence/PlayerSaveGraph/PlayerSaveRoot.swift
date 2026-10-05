@@ -34,7 +34,7 @@ public final class PlayerSaveRoot {
     }
 }
 
-enum PlayerSaveSchema: VersionedSchema {
+enum PlayerSaveSchemaV2: VersionedSchema {
     static let versionIdentifier = Schema.Version(2, 0, 0)
 
     static let models: [any PersistentModel.Type] = [
@@ -60,6 +60,16 @@ enum PlayerSaveSchema: VersionedSchema {
         TalentLoadoutModel.self,
         TalentNodeUnlockModel.self,
     ]
+}
+
+enum PlayerSaveSchema: VersionedSchema {
+    static let versionIdentifier = Schema.Version(3, 0, 0)
+    static let models = PlayerSaveSchemaV2.models + [CloudOutboxRecord.self]
+}
+
+enum PlayerSaveMigrationPlan: SchemaMigrationPlan {
+    static let schemas: [any VersionedSchema.Type] = [PlayerSaveSchemaV2.self, PlayerSaveSchema.self]
+    static let stages = [MigrationStage.lightweight(fromVersion: PlayerSaveSchemaV2.self, toVersion: PlayerSaveSchema.self)]
 }
 
 public enum PlayerSaveGraph {

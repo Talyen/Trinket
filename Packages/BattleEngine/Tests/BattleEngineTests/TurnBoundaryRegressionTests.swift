@@ -71,7 +71,7 @@ struct TurnBoundaryRegressionTests {
         battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         DefensePoolEngine.set(1, on: battle.companion, in: &battle)
 
-        let events = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
+        let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
 
         #expect(battle.isBattleOver)
         #expect(battle.health(of: battle.companion) == 13)
@@ -88,7 +88,7 @@ struct TurnBoundaryRegressionTests {
         battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.appendEffect(.burn(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
 
-        let events = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(battle.isBattleOver)
         #expect(!battle.roster.hasAffliction(.poison, on: battle.hero))
@@ -108,7 +108,7 @@ struct TurnBoundaryRegressionTests {
         companion.triggers.criticalChanceBonus = -1
         var battle = cadenceBattle(heroModifiers: hero, companionModifiers: companion)
 
-        let events = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(battle.isBattleOver)
         #expect(battle.gold == 1)

@@ -8,7 +8,11 @@ Campaign reward and completion **domain write policies** also live here (`Battle
 
 `persistTransaction` returns a committed domain value, a domain rejection, or a
 storage failure. It shares candidate validation, slice reconciliation, and commit
-with `persistBatch` and `performBatchMutation`. Domain operations mutate a candidate
+with `persistBatch` and `performBatchMutation`. Receipt-backed operations use the overload supplying a synchronous
+`SaveEconomicReceipt` collector and forward it to their appliers. Receipts and game
+progress share the same durable commit and compensation. Other operations retain
+the existing save-only overload.
+Domain operations mutate a candidate
 save; rejection discards it without publishing or writing. Immediate writes publish
 the observed candidate only after the graph or durable recovery file accepts it.
 Total write failures use compensation and silent action retries, as described in

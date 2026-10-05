@@ -16,14 +16,14 @@ struct CombatRuleAuditRegressionTests {
             heroModifiers: hero, companionModifiers: companion, dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
-        _ = ControlMeterEngine.applyMeterCharge(
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             ControlMeterEngine.threshold(for: battle.enemy, in: battle), keyword: .stun,
             to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false, in: &battle,
-        )
-        _ = BattleCardCombatEngine.endTurn(context: &battle)
-        let recovered = BattleCardCombatEngine.endTurn(context: &battle)
+        ) }
+        _ = CombatExecutor.run { await BattleCardCombatEngine.endTurn(context: &battle) }
+        let recovered = CombatExecutor.run { await BattleCardCombatEngine.endTurn(context: &battle) }
         #expect(recovered.filter { $0.kind == .abilityDamage && $0.actorID == battle.enemy.id }.map(\.amount) == [5])
-        let later = BattleCardCombatEngine.endTurn(context: &battle)
+        let later = CombatExecutor.run { await BattleCardCombatEngine.endTurn(context: &battle) }
         #expect(later.filter { $0.kind == .abilityDamage && $0.actorID == battle.enemy.id }.map(\.amount) == [10])
     }
 
@@ -89,6 +89,6 @@ struct CombatRuleAuditRegressionTests {
 
     private func play(_ ability: Ability, in battle: inout BattleState) throws -> [ActionEvent] {
         let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
-        return try BattleCardCombatEngine.playDrawnCard(card, context: &battle)
+        return try CombatExecutor.run { try await BattleCardCombatEngine.playDrawnCard(card, context: &battle) }
     }
 }

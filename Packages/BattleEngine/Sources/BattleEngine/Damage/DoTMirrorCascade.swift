@@ -11,7 +11,7 @@ enum DoTMirrorCascade {
         target: Combatant,
         sourceActorID: String,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard initialHealthLost > 0, context.resolution.depth(.dotMirror) == 0 else { return [] }
         context.resolution.enter(.dotMirror)
         defer { context.resolution.leave(.dotMirror) }
@@ -28,7 +28,7 @@ enum DoTMirrorCascade {
             }
             guard chance > 0, BattleChance.succeeds(probability: chance, using: &context.rng) else { break }
             let mirrored: Keyword = currentKeyword == .burn ? .bleed : .burn
-            let outcome = DoTDamage.resolveDamage(
+            let outcome = await DoTDamage.resolveDamage(
                 basePotency: 1,
                 keyword: mirrored,
                 target: target,

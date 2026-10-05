@@ -10,7 +10,7 @@ package extension BattleState {
         isTheft: Bool = false,
         isDirectCardGain: Bool = false,
         isLeechOverflow: Bool = false,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         if isLeechOverflow {
             resolution.enter(.leechOverflowGold)
         }
@@ -57,9 +57,9 @@ package extension BattleState {
             origin: isDirectCardGain ? .direct : .automatic,
         )]
         if isTheft, granted > 0 {
-            events.append(contentsOf: CombatTriggerEngine.afterGoldTheft(by: combatant, in: &self))
+            await events.append(contentsOf: CombatTriggerEngine.afterGoldTheft(by: combatant, in: &self))
         }
-        events.append(contentsOf: CombatTriggerEngine.goldGainTriggerEvents(
+        await events.append(contentsOf: CombatTriggerEngine.goldGainTriggerEvents(
             granted: granted,
             previousEarned: previousEarned,
             currentEarned: currentEarned,
@@ -145,7 +145,7 @@ package extension BattleState {
         to combatant: Combatant,
         abilityName: String,
         actorName: String? = nil,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let standalone = resolution.beginStandaloneRestoration()
         defer {
             if standalone {
@@ -153,7 +153,7 @@ package extension BattleState {
             }
         }
         let restored = restoreMana(amount, to: combatant)
-        let overflowEvents = CombatTriggerEngine.consumeManaOverflowTalents(
+        let overflowEvents = await CombatTriggerEngine.consumeManaOverflowTalents(
             for: combatant, restoredMana: restored > 0, in: &self,
         )
         guard restored > 0 else { return overflowEvents }
@@ -167,7 +167,7 @@ package extension BattleState {
             amount: restored,
             keyword: .mana,
         ))
-        events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: combatant, in: &self))
+        await events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: combatant, in: &self))
         events.append(contentsOf: overflowEvents)
         return events
     }
@@ -179,7 +179,7 @@ package extension BattleState {
         abilityName: String,
         keyword: Keyword = .health,
         isDirectCardHeal: Bool = false,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var request = HealRequest(
             amount: amount,
             target: target,
@@ -187,7 +187,7 @@ package extension BattleState {
             origin: .restoration(keyword), logAs: .instantHeal(actorName: source.name, abilityName: abilityName, keyword: keyword),
         )
         request.isDirectCardHeal = isDirectCardHeal
-        return HealingEngine.resolveHeal(request, in: &self).events
+        return await HealingEngine.resolveHeal(request, in: &self).events
     }
 
     internal mutating func payMana(_ amount: Int, for combatant: Combatant) -> ManaPayment {

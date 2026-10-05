@@ -9,7 +9,8 @@ extension TalentCatalogRoundTripTests {
         var battle = capstoneBattle(hero: ["wildcard_physical_t1_1"])
         DefensePoolEngine.set(block, on: battle.enemy, in: &battle)
         let before = battle.roster.enemy.currentHealth
-        _ = CombatTriggerEngine.heroTalentDamage(.burn, source: battle.hero, name: "Prismatic Edge", in: &battle)
+        _ = CombatExecutor
+            .run { await CombatTriggerEngine.heroTalentDamage(.burn, source: battle.hero, name: "Prismatic Edge", in: &battle) }
         #expect(before - battle.roster.enemy.currentHealth == 1 - block)
         #expect(talentPoints(.burn, on: .enemy, in: battle) == 1 - block)
     }

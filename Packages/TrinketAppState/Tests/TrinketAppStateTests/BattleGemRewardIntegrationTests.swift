@@ -31,7 +31,7 @@ struct BattleGemRewardIntegrationTests {
         let battle = try #require(state.battle as? BattleSession)
         let configuration = try #require(battle.activeBattle)
         let presentation = try #require(state.battlePresentation(for: configuration.runKey))
-        let baseGems = try #require(presentation.materialRewards.first { $0.resource == .gems }).quantity
+        let baseGems = try #require(presentation.rewardPlan.materials.first { $0.resource == .gems }).quantity
         let startingGems = state.playerSave.homestead.resources[.gems, default: 0]
         battle.presentLaunchVictory()
         let summary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)

@@ -12,8 +12,8 @@
     "id": "victory",
     "label": "Victory rewards",
     "aliases": ["battle loot", "reward settlement", "battle completion", "gold overflow", "victory claim"],
-    "symbols": ["BattleLoot", "PlayBattleCompletion"],
-    "sources": ["Packages/TrinketPersistence/Sources/TrinketPersistence/Progression/BattleLoot.swift", "Packages/TrinketAppState/Sources/TrinketAppState/Play/PlayBattleCompletion.swift"],
+    "symbols": ["BattleLoot", "PlayBattleCoordinator"],
+    "sources": ["Packages/TrinketPersistence/Sources/TrinketPersistence/Progression/BattleLoot.swift", "Packages/TrinketAppState/Sources/TrinketAppState/Play/PlayBattleCoordinator+Completion.swift"],
     "tests": ["Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Progression/BattleLootTests.swift"],
     "contracts": ["Docs/AgentContext/battle-launch.md#reward-settlement-and-completion", "Docs/AgentContext/persistence-progression.md#reward-levels", "Docs/AgentContext/persistence-progression.md#victory-settlement", "Docs/AgentContext/persistence-progression.md#reward-modifiers", "Docs/AgentContext/persistence-progression.md#battle-experience", "Docs/AgentContext/persistence-progression.md#voyage-identities"]
   },

@@ -15,7 +15,7 @@ struct StatusDamageScopeRegressionTests {
         battle.roster.enemy.currentHealth = enemyHealth
         battle.appendEffect(.bleed(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
 
-        _ = EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle)
+        _ = CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle) }
 
         #expect(battle.roster.enemy.currentHealth == enemyHealth - (enemyHealth < 50 ? 10 : 8))
     }

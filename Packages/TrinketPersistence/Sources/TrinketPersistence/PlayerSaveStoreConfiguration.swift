@@ -114,6 +114,7 @@ enum PlayerSaveStoreConfiguration {
     static func clearSaveRoot(in context: ModelContext, logger: Logger) throws {
         do {
             try context.delete(model: PlayerSaveRoot.self)
+            try context.delete(model: CloudOutboxRecord.self)
             try context.save()
         } catch {
             logger.error(

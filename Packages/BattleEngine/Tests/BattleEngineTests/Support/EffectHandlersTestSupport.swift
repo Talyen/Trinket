@@ -38,7 +38,7 @@ enum EffectHandlersTestSupport {
                 $0.activeEffects.append(active)
             }
             context.nextEffectID = max(context.nextEffectID, active.id + 1)
-            let outcome = handler.advanceTurn(active, on: target, in: &context)
+            let outcome = CombatExecutor.run { await handler.advanceTurn(active, on: target, in: &context) }
             return TickObservation(
                 events: outcome,
                 currentEffect: context.roster.activeEffects(for: target).first { $0.id == active.id },

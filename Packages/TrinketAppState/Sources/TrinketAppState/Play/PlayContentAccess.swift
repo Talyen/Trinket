@@ -5,7 +5,7 @@ import TrinketPersistence
 @MainActor
 extension PlayerSaveStore {
     /// Battle paywall for a battle origin. Also re-checked inside
-    /// `PlayBattleLaunch.activateBattle`, so modes pre-check only when they
+    /// `PlayBattleCoordinator.activateBattle`, so modes pre-check only when they
     /// need a specific message to take precedence.
     func accessRestriction(for origin: PlayBattleOrigin?) -> StageMapMessage? {
         switch origin {

@@ -6,6 +6,7 @@ import TrinketPersistence
 
 struct BattleLaunchAssembly {
     let configuration: BattleRunConfiguration
+    let rewardPlan: BattleRewardPlan
     let presentation: BattlePresentationContext
     let inputs: BattlePreparationInputs
     var universalModifiers: [AffixModifier] {
@@ -13,7 +14,7 @@ struct BattleLaunchAssembly {
     }
 }
 
-extension PlayBattleLaunch {
+extension PlayBattleCoordinator {
     static func assembleLaunch(_ inputs: BattlePreparationInputs) -> BattleLaunchAssembly {
         let input = inputs.launch
         let rosterState = inputs.party.roster
@@ -45,9 +46,11 @@ extension PlayBattleLaunch {
             enemyModifiers: enemyModifiers,
             enemyFaction: GameContent.enemy(matching: input.enemy?.id ?? "")?.faction ?? .mortal,
         )
+        let rewardPlan = BattleRewardAssembly.makePlan(inputs: inputs, configuration: configuration)
         return BattleLaunchAssembly(
             configuration: configuration,
-            presentation: BattleRewardPresentation.make(inputs: inputs, configuration: configuration),
+            rewardPlan: rewardPlan,
+            presentation: BattleRewardAssembly.makePresentation(inputs: inputs, configuration: configuration, rewardPlan: rewardPlan),
             inputs: inputs,
         )
     }

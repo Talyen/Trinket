@@ -16,18 +16,18 @@ public final class SpiresPlayMode {
 
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
-    private let battleLaunch: PlayBattleLaunch
+    private let battleCoordinator: PlayBattleCoordinator
     private let encounters: EncounterPlayMode
 
     init(
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
-        battleLaunch: PlayBattleLaunch,
+        battleCoordinator: PlayBattleCoordinator,
         encounters: EncounterPlayMode,
     ) {
         self.playerSave = playerSave
         self.battle = battle
-        self.battleLaunch = battleLaunch
+        self.battleCoordinator = battleCoordinator
         self.encounters = encounters
     }
 
@@ -54,10 +54,10 @@ public final class SpiresPlayMode {
 
     @discardableResult
     public func startBattle(for floor: SpireFloor) -> StageMapMessage? {
-        battleLaunch.startBattle(
+        battleCoordinator.startBattle(
             origin: .spire(spireID: floor.spireID, floor: floor.floor),
             encounters: encounters,
-            busyMessage: PlayBattleLaunch.activationFailureMessage,
+            busyMessage: PlayBattleCoordinator.activationFailureMessage,
             resolve: {
                 switch floorEligibility(for: floor) {
                 case let .ready(encounter):
@@ -116,7 +116,7 @@ public final class SpiresPlayMode {
         else { return }
 
         let request = combatRequest(for: floor, encounter: encounter)
-        battleLaunch.prepareCombat(request.input, route: request.route)
+        battleCoordinator.prepareCombat(request.input, route: request.route)
     }
 
     private func combatRequest(

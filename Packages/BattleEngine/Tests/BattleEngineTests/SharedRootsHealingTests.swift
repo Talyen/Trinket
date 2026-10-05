@@ -19,10 +19,10 @@ struct SharedRootsHealingTests {
         battle.roster.hero.currentHealth = 10
         battle.roster.companion.currentHealth = companionHealth
 
-        let result = HealingEngine.resolveHealing(HealRequest(
+        let result = CombatExecutor.run { await HealingEngine.resolveHealing(HealRequest(
             amount: 10, target: battle.companion, sourceActorID: battle.hero.id,
             origin: .restoration(.health),
-        ), in: &battle)
+        ), in: &battle) }
 
         let expectedRestoration = companionHealth == 1 ? 42 : 9
         let expectedShare = companionHealth == 1 ? 21 : 5

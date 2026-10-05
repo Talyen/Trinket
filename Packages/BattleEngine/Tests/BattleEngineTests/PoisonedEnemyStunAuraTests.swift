@@ -46,10 +46,10 @@ struct PoisonedEnemyStunAuraTests {
         battle.appliesFightPacing = false
         battle.appendEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
-        _ = ControlMeterEngine.applyMeterCharge(
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             4, keyword: .stun, to: battle.enemy, sourceActorID: battle.hero.id,
             applyFightPacing: false, in: &battle,
-        )
+        ) }
 
         let meter = battle.activeEffects(of: battle.enemy).first { $0.keyword == .stun }?.effect.controlMeterValues
         #expect(meter?.amount == 5)

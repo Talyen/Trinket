@@ -9,14 +9,14 @@ struct InstantHealHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         var request = HealRequest(
             amount: amount, target: target, sourceActorID: source.id,
             origin: .restoration(keyword), logAs: .instantHeal(actorName: source.name, abilityName: ability.name, keyword: keyword),
         )
         request.isDirectCardHeal = context.hasHeroCard(for: source.id)
-        let outcome = HealingEngine.resolveHeal(request, in: &context)
+        let outcome = await HealingEngine.resolveHeal(request, in: &context)
         return EffectApplyOutcome(events: outcome.events, didApply: outcome.healthRestored > 0)
     }
 }
@@ -28,7 +28,7 @@ struct ResourceGainHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         switch keyword {
         case .mana:
@@ -47,12 +47,12 @@ struct ResourceGainHandler: BattleEffectHandler {
                 origin: .direct,
             )
             var events = [event]
-            events.append(contentsOf: CombatTriggerEngine.manaRestorationReactions(
+            await events.append(contentsOf: CombatTriggerEngine.manaRestorationReactions(
                 for: target, restored: restored, in: &context,
             ))
             return EffectApplyOutcome(events: events, didApply: true)
         case .gold:
-            return EffectApplyOutcome(
+            return await EffectApplyOutcome(
                 events: context.grantGoldEvent(
                     amount, to: source, abilityName: ability.name,
                     isTheft: ability.stealsGold, isDirectCardGain: true,
@@ -83,7 +83,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         guard case let .maximumManaBonus(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
@@ -108,7 +108,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             origin: .direct,
         )
         var events = [event]
-        events.append(contentsOf: CombatTriggerEngine.manaRestorationReactions(
+        await events.append(contentsOf: CombatTriggerEngine.manaRestorationReactions(
             for: target, restored: restored, in: &context,
         ))
         return EffectApplyOutcome(events: events, didApply: true)

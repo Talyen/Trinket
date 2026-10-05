@@ -141,7 +141,7 @@ struct AppStateLabyrinthTests {
         #expect(state.labyrinth.startBattle(nodeID: nodeID) == nil)
         let battle = try #require(state.battle.activeBattle)
         let presentation = try #require(state.battlePresentation(for: battle.runKey))
-        let item = try #require(presentation.pendingRewardItem)
+        let item = try #require(state.battleRegistration(for: battle.runKey)?.launch.inputs.launch.pendingRewardItem)
         #expect(item.baseType.keywordAffinities.contains(.purge))
         #expect(item.affixes.contains { $0.keywords.contains(.purge) })
         #expect(presentation.nodeModifiers.first?.effect == .reward(.keyword(.purge)))

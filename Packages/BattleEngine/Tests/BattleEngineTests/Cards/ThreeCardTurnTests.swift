@@ -31,7 +31,7 @@ struct ThreeCardTurnTests {
         var state = battle()
         state.heroDeck = CombatDeck(abilities: [.block, .heal, .avatarOfJustice])
         state.companionDeck = CombatDeck(abilities: [.bash, .serratedEdge, .bloodthorn])
-        _ = BattleCardCombatEngine.drawOpeningHand(context: &state)
+        _ = CombatExecutor.run { await BattleCardCombatEngine.drawOpeningHand(context: &state) }
         #expect(state.hand.cards.map(\.owner) == [.hero, .companion, .hero])
         let held = state.hand.cards
         for card in held {
@@ -58,7 +58,7 @@ struct ThreeCardTurnTests {
             sourceID: state.enemy.id,
             remainingTurns: 0,
         )
-        _ = BattleCardCombatEngine.drawOpeningHand(context: &state)
+        _ = CombatExecutor.run { await BattleCardCombatEngine.drawOpeningHand(context: &state) }
         #expect(state.hand.cards.map(\.owner) == [.companion])
         #expect(state.companionDeck.count == 2)
         #expect(state.heroDeck.count == 3)
@@ -122,21 +122,21 @@ struct ThreeCardTurnTests {
         let recipient = state.roster[target].combatant
         state.appendEffect(.burn(1), to: recipient, sourceID: state.enemy.id, remainingTurns: 1)
         state.appendEffect(.poison(1), to: recipient, sourceID: state.enemy.id, remainingTurns: 1)
-        _ = EffectRemovalOperation.resolveCleanse(
+        _ = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .all(nil),
             source: state.hero,
             target: recipient,
             abilityName: "Test Cleanse",
             in: &state,
-        )
+        ) }
         #expect(state.hand.totalCount == (mana == 0 ? 1 : 0))
-        _ = EffectRemovalOperation.resolveCleanse(
+        _ = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .all(nil),
             source: state.hero,
             target: recipient,
             abilityName: "Empty Cleanse",
             in: &state,
-        )
+        ) }
         #expect(state.hand.totalCount == (mana == 0 ? 1 : 0))
         #expect(state.roster.hero.talents.pending.nextManaEmpowerDiscount == 0)
     }
@@ -148,21 +148,21 @@ struct ThreeCardTurnTests {
         state.heroDeck = CombatDeck(abilities: [.block, .heal])
         state.appendEffect(.shield(.block, 3), to: state.enemy, sourceID: state.enemy.id, remainingTurns: 0)
         state.appendEffect(.thorns(3), to: state.enemy, sourceID: state.enemy.id, remainingTurns: 0)
-        _ = EffectRemovalOperation.resolvePurge(
+        _ = CombatExecutor.run { await EffectRemovalOperation.resolvePurge(
             .all(nil),
             source: state.hero,
             target: state.enemy,
             abilityName: "Test Purge",
             in: &state,
-        )
+        ) }
         #expect(state.hand.totalCount == (health < 50 ? 1 : 0))
-        _ = EffectRemovalOperation.resolvePurge(
+        _ = CombatExecutor.run { await EffectRemovalOperation.resolvePurge(
             .all(nil),
             source: state.hero,
             target: state.enemy,
             abilityName: "Empty Purge",
             in: &state,
-        )
+        ) }
         #expect(state.hand.totalCount == (health < 50 ? 1 : 0))
         #expect(!state.roster.hero.talents.pending.doubleNextHolyAttack)
     }

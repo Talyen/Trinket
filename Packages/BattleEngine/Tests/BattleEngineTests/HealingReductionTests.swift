@@ -18,10 +18,10 @@ struct HealingReductionTests {
         battle.roster.hero.currentHealth -= missingHealth
         battle.roster.companion.currentHealth = 1
         battle.appendEffect(.healingReductionPercent(0.5, 3), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 3)
-        let outcome = HealingEngine.leechFromDamage(
+        let outcome = CombatExecutor.run { await HealingEngine.leechFromDamage(
             16, sourceActorID: battle.hero.id, target: battle.enemy,
             abilityHasLeech: true, damageKeyword: .physical, in: &battle,
-        )
+        ) }
         #expect(outcome.flags.contains(.leeched))
         #expect(battle.roster.hero.currentMana == 1)
         #expect(battle.roster.hero.currentHealth == 40)
@@ -186,9 +186,9 @@ extension HealingReductionTests {
         battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 10
         battle.roster.companion.currentHealth = 10
-        let outcome = HealingEngine.leechFromDamage(
+        let outcome = CombatExecutor.run { await HealingEngine.leechFromDamage(
             16, sourceActorID: battle.roster[owner].id, target: battle.enemy, abilityHasLeech: true, in: &battle,
-        )
+        ) }
         #expect(outcome.healthRestored == 24)
         let recipient: BattleParticipant = owner == .hero ? .companion : .hero
         #expect(battle.roster[recipient].currentHealth == 22)
@@ -234,10 +234,10 @@ extension HealingReductionTests {
         #expect(battle.health(of: battle.enemy) == 0)
         #expect(battle.health(of: battle.hero) == 14)
         #expect(battle.health(of: battle.companion) == 14)
-        _ = HealingEngine.leechFromDamage(
+        _ = CombatExecutor.run { await HealingEngine.leechFromDamage(
             8, sourceActorID: battle.companion.id, target: battle.enemy,
             abilityHasLeech: true, in: &battle,
-        )
+        ) }
         #expect(battle.health(of: battle.hero) == 14)
     }
 }

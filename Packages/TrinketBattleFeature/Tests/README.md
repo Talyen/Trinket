@@ -36,7 +36,7 @@ Runtime-contract behavior is exercised here through `BattleSession` (see
 
 Keep both. They are not duplicates:
 
-- `PlayBattleLaunchTestSupport` in `TrinketAppStateTests` wraps `PlayBattleLaunch.assembleLaunch` (Persistence + AppState).
+- `PlayBattleLaunchTestSupport` in `TrinketAppStateTests` wraps `PlayBattleCoordinator.assembleLaunch` (Persistence + AppState).
 - `BattleRunConfigurationTestSupport` in `TrinketBattleFeatureTests` packages explicit launch DTOs and must stay Persistence- and AppState-free.
 
 Package execution follows the [package testing guide](../README.md#testing) and

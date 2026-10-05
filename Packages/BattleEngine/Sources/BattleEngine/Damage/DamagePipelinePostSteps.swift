@@ -21,13 +21,13 @@ package extension DamagePipeline {
     static func applyLeech(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard !state.options.suppressLeech,
               let sourceActorID = state.sourceActorID,
               state.healthLost > 0 || (state.blockedAmount > 0 && context.modifiers(for: sourceActorID).triggers.leechOnBlockDamage),
               sourceActorID != state.combatant.id
         else { return }
-        let leechOutcome = HealingEngine.leechFromDamage(
+        let leechOutcome = await HealingEngine.leechFromDamage(
             state.healthLost,
             sourceActorID: sourceActorID,
             target: state.combatant,
@@ -40,13 +40,13 @@ package extension DamagePipeline {
         )
         state.damageEvents.append(contentsOf: leechOutcome.events)
         state.didLeech = leechOutcome.flags.contains(.leeched)
-        applyFinalCompanionLeechRewards(to: &state, in: &context)
+        await applyFinalCompanionLeechRewards(to: &state, in: &context)
     }
 
     static func applyKeywordReactions(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard state.healthLost > 0,
               let keyword = state.damageKeyword,
               let sourceActorID = state.sourceActorID,
@@ -55,7 +55,7 @@ package extension DamagePipeline {
 
         switch keyword {
         case .holy:
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHolyDamageDealt(
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHolyDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
                 attackHit: state.options.isAttackHit && !state.options.isRetaliation,
@@ -69,7 +69,7 @@ package extension DamagePipeline {
                 in: &context,
             ))
         case .burn:
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBurnDamageDealt(
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBurnDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
                 healthLost: state.healthLost,
@@ -90,7 +90,7 @@ package extension DamagePipeline {
     static func applyThreefoldGrace(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard state.healthLost > 0,
               let keyword = state.damageKeyword,
               state.partySource(in: context) != nil,
@@ -101,7 +101,7 @@ package extension DamagePipeline {
             guard wearer.isAlive, wearer.currentMana < wearer.maxMana else { continue }
             let chance = context.modifiers(for: wearer.combatant.id).triggers.threefoldElementalDamageManaChancePercent
             guard chance > 0, BattleChance.succeeds(probability: chance, using: &context.rng) else { continue }
-            state.damageEvents.append(contentsOf: context.restoreManaEmitting(
+            await state.damageEvents.append(contentsOf: context.restoreManaEmitting(
                 1,
                 to: wearer.combatant,
                 abilityName: "Threefold Grace",
@@ -112,17 +112,17 @@ package extension DamagePipeline {
     static func applyTypedCriticalAttackRewards(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard state.options.isAttackHit, state.isCritical, state.amount > 0,
               state.combatant.role == .enemy,
               let source = state.partySource(in: context) else { return }
         context.resolution.recordCriticalAttack(by: source.id)
         guard !state.options.isCardAttack else { return }
-        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterTypedCriticalAttackHit(
+        await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterTypedCriticalAttackHit(
             keyword: state.damageKeyword, actor: source.combatant, in: &context,
         ))
         if state.damageKeyword == .burn {
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterCompanionBurnCritical(
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterCompanionBurnCritical(
                 actor: source.combatant, in: &context,
             ))
         }
@@ -131,13 +131,13 @@ package extension DamagePipeline {
     static func applyCriticalReaction(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard state.isCritical,
               state.healthLost > 0,
               let source = state.partySource(in: context),
               state.combatant.role == .enemy
         else { return }
-        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterCriticalHit(
+        await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterCriticalHit(
             to: state.combatant,
             source: source.combatant,
             in: &context,
@@ -147,7 +147,7 @@ package extension DamagePipeline {
     static func applyControlMeter(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard state.remaining > 0,
               let damageKeyword = state.damageKeyword,
               damageKeyword == .stun || damageKeyword == .freeze,
@@ -160,7 +160,7 @@ package extension DamagePipeline {
         } else {
             1
         }
-        state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+        await state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
             CombatRounding.scaled(state.remaining, multiplier: criticalMultiplier),
             keyword: damageKeyword,
             to: state.combatant,

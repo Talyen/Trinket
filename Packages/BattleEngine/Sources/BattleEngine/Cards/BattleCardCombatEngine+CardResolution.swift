@@ -6,16 +6,17 @@ extension BattleCardCombatEngine {
     package static func playCard(
         cardID: Int,
         context: inout BattleState,
-    ) throws -> [ActionEvent] {
+    ) async throws -> [ActionEvent] {
         guard let card = context.hand.card(id: cardID) else { throw BattlePlayError.cardNotInHand }
-        return try playDrawnCard(card, context: &context, allowBufferedRemoval: false)
+        return try await playDrawnCard(card, context: &context, allowBufferedRemoval: false)
     }
 
     static func playDrawnCard(
         _ card: BattleCard,
         context: inout BattleState,
         allowBufferedRemoval: Bool = true,
-    ) throws -> [ActionEvent] {
+    ) async throws -> [ActionEvent] {
+        await CombatExecutor.suspend()
         if let error = playError(for: card, in: context) {
             throw error
         }
@@ -32,7 +33,7 @@ extension BattleCardCombatEngine {
         }
         discardPlayedCard(card, context: &context)
         context.recordCardPlay(.cardPlayed(card))
-        let events = resolvePlayedCard(card, actor: actor, context: &context)
+        let events = await resolvePlayedCard(card, actor: actor, context: &context)
         context.recordCardPlay(.cardActions(card))
         return events
     }
@@ -41,7 +42,7 @@ extension BattleCardCombatEngine {
         _ card: BattleCard,
         actor: Combatant,
         context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
         defer { context.resolution.feedbackGroupID = previousFeedbackGroup }
         let previousUniqueCard = context.uniques.card
@@ -55,14 +56,14 @@ extension BattleCardCombatEngine {
         )
         defer { context.resolution.endCard(playSerial) }
         let abilityTarget = BattleActionContext(actor: actor, in: context).selectedTarget
-        var events = BattleTurnEngine.performAction(
+        var events = await BattleTurnEngine.performAction(
             ability: card.ability,
             actor: actor,
             abilityTarget: abilityTarget,
             origin: context.uniques.card == nil ? .card : .ordinaryCard,
             context: &context,
         )
-        finishPlayedCard(card, actor: actor, events: &events, context: &context)
+        await finishPlayedCard(card, actor: actor, events: &events, context: &context)
         return events
     }
 
@@ -71,10 +72,10 @@ extension BattleCardCombatEngine {
         actor: Combatant,
         events: inout [ActionEvent],
         context: inout BattleState,
-    ) {
+    ) async {
         if let outcome = context.resolution.cardOutcome(for: actor.id) {
-            events.append(contentsOf: CombatTriggerEngine.afterCardPlayed(outcome, in: &context))
-            events.append(contentsOf: CombatTriggerEngine.afterPartyCardPlayed(in: &context))
+            await events.append(contentsOf: CombatTriggerEngine.afterCardPlayed(outcome, in: &context))
+            await events.append(contentsOf: CombatTriggerEngine.afterPartyCardPlayed(in: &context))
         }
         events.append(contentsOf: CombatTriggerEngine.finishHeroCard(actor: actor, in: &context))
         events.append(contentsOf: UniqueCombatEngine.finishCardDraws(in: &context))
@@ -83,7 +84,7 @@ extension BattleCardCombatEngine {
         }
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
-        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
+        await events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
         if context.isBattleOver {
             context.phase = .ended
         }

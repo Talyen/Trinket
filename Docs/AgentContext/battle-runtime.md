@@ -4,7 +4,7 @@ Load for the runtime boundary, BattleSession, app battle orchestration, or Battl
 
 ## Ownership
 
-`BattleSession` implements `BattleRuntime` and coordinates mutable `BattleState`, simulation, commands, and lifecycle. App orchestration receives it only through the runtime contract. The app composition root supplies `BattleRuntimeDependencies`, builds one concrete session, and connects progression capabilities through the AppState initializer’s `configureBattleRuntime` hook before bootstrap can launch a battle. `PlaySession.battle` receives that object through the runtime contract.
+`BattleSession` implements `BattleRuntime` and coordinates mutable `BattleState`, simulation, commands, and lifecycle. App orchestration receives it only through the runtime contract. `PlayBattleCoordinator` owns application run metadata, claims, Retry, and reward exits; `BattleSession` retains simulation resources and visual scheduling. The app composition root supplies `BattleRuntimeDependencies`, builds one concrete session, and connects progression capabilities through the AppState initializer’s `configureBattleRuntime` hook before bootstrap can launch a battle. `PlaySession.battle` receives that object through the runtime contract.
 
 `PreparedBattleRuns` owns prepared simulations, preferred preview selection, and
 their revision. `BattleSession` owns the effects of those changes: artwork pins,

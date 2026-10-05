@@ -166,13 +166,13 @@ extension BattleTestFixtures {
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         let handler = EffectHandlers.handler(for: effect.kind)
-        return handler.apply(
+        return CombatExecutor.run { await handler.apply(
             effect,
             ability: ability,
             source: source,
             target: target,
             in: &context,
-        )
+        ) }
     }
 
     static func apply(

@@ -10,10 +10,10 @@ extension TalentCatalogRoundTripTests {
             [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0)],
             for: battle.hero, on: &battle,
         )
-        let first = EffectRemovalOperation.resolveCleanse(
+        let first = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .randomDebuff, source: battle.companion, target: battle.hero,
             abilityName: "Cleanse", in: &battle,
-        )
+        ) }
         #expect(first.removed.count == 1)
 
         BattleStateTestFactory.seedActiveEffects(
@@ -23,10 +23,10 @@ extension TalentCatalogRoundTripTests {
             ],
             for: battle.hero, on: &battle,
         )
-        let second = EffectRemovalOperation.resolveCleanse(
+        let second = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .randomDebuff, source: battle.companion, target: battle.hero,
             abilityName: "Cleanse", in: &battle,
-        )
+        ) }
         #expect(second.removed.count == 1)
         #expect(battle.activeEffects(of: battle.hero).count(where: \.effect.isRemovableDebuff) == 1)
     }
@@ -43,10 +43,10 @@ extension TalentCatalogRoundTripTests {
                 ],
                 for: battle.hero, on: &battle,
             )
-            let result = EffectRemovalOperation.resolveCleanse(
+            let result = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
                 .all(.poison), source: battle.companion, target: battle.hero,
                 abilityName: "Cleanse", in: &battle,
-            )
+            ) }
             #expect(result.removed.count == 3)
             #expect(battle.activeEffects(of: battle.hero).filter(\.effect.isRemovableDebuff).isEmpty)
         }
@@ -59,12 +59,12 @@ extension TalentCatalogRoundTripTests {
         ] {
             var battle = capstoneBattle(companion: [talentID])
             let triggers = battle.companionModifiers.triggers
-            _ = CombatTriggerEngine.afterFinalCompanionCardHit(
+            _ = CombatExecutor.run { await CombatTriggerEngine.afterFinalCompanionCardHit(
                 keyword: keyword, actor: battle.companion, critical: true,
                 triggers: triggers, in: &battle,
-            )
+            ) }
             battle.roster.enemy.talents.pending.nextAttackMissChance = 1
-            let avoided = CombatTriggerEngine.enemyAttackAvoidance(in: &battle)
+            let avoided = CombatExecutor.run { await CombatTriggerEngine.enemyAttackAvoidance(in: &battle) }
             #expect(avoided.cancelled)
             #expect(avoided.events.first?.abilityName == abilityName)
             #expect(battle.roster.enemy.talents.pending.nextAttackMissAbilityName == nil)
@@ -107,9 +107,9 @@ extension TalentCatalogRoundTripTests {
         battle.appliesFightPacing = false
         let heroHealth = battle.health(of: battle.hero)
         let companionHealth = battle.health(of: battle.companion)
-        let result = BattleTurnEngine.performEnemyAction(
+        let result = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
             ability: attack, abilityTarget: battle.hero, context: &battle,
-        )
+        ) }
         #expect(!result.performed)
         #expect(result.events.count { $0.effectKind == .dodgeApplied } == 1)
         #expect(!result.events.contains { $0.kind == .abilityDamage })
@@ -162,10 +162,10 @@ extension TalentCatalogRoundTripTests {
         ))
         #expect(first.healthRestored == 3)
         #expect(battle.health(of: battle.hero) == 4)
-        let next = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        let next = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(battle.health(of: battle.hero) == 7)
         #expect(next.count { $0.abilityName == "Lingering Blessing" } == 1)
-        let later = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        let later = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(battle.health(of: battle.hero) == 7)
         #expect(!later.contains { $0.abilityName == "Lingering Blessing" })
     }
@@ -281,10 +281,10 @@ extension TalentCatalogRoundTripTests {
         )
         battle.appliesFightPacing = false
         let threshold = ControlMeterEngine.threshold(for: battle.enemy, in: battle)
-        _ = ControlMeterEngine.applyMeterCharge(
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             threshold, keyword: .stun, to: battle.enemy,
             sourceActorID: battle.companion.id, applyFightPacing: false, in: &battle,
-        )
+        ) }
         let attack = DamageRequest(
             amount: 2, target: battle.enemy, keyword: .physical,
             sourceActorID: battle.companion.id,

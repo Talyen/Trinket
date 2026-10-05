@@ -6,6 +6,42 @@ public enum SaveTransactionResult<Value, Failure: Error> {
 
 @MainActor
 public extension PlayerSaveStore {
+    /// Domain owners supply receipts in the same synchronous candidate mutation.
+    /// A rejection or refused durable write discards both the save and receipts.
+    func persistTransaction<Value, Failure: Error>(
+        logging message: String,
+        _ mutation: (inout PlayerSave, (SaveEconomicReceipt) -> Void) -> Result<Value, Failure>,
+    ) -> SaveTransactionResult<Value, Failure> {
+        var candidate = currentSave
+        var receipts: [SaveEconomicReceipt] = []
+        switch mutation(&candidate, { receipts.append($0) }) {
+        case let .failure(error): return .rejected(error)
+        case let .success(value):
+            do {
+                try commit(candidate, receipts: receipts)
+                return .committed(value)
+            } catch {
+                notePersistenceFailure(error, logging: message)
+                return .persistFailed
+            }
+        }
+    }
+
+    @discardableResult
+    func persistBatch(
+        logging message: String,
+        _ mutation: (inout PlayerSave, (SaveEconomicReceipt) -> Void) -> Void,
+    ) -> Bool {
+        let result: SaveTransactionResult<Void, Never> = persistTransaction(logging: message) { save, recordReceipt in
+            mutation(&save, recordReceipt)
+            return .success(())
+        }
+        if case .committed = result {
+            return true
+        }
+        return false
+    }
+
     /// Transactional commit spelling. Transactions are always immediate;
     /// deferred writes use `performBatchMutation(persistImmediately: false)`.
     func persistTransaction<Value, Failure: Error>(

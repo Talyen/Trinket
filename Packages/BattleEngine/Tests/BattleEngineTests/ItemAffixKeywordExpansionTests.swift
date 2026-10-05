@@ -48,12 +48,22 @@ struct ItemAffixKeywordExpansionTests {
         let hero = battle.hero
         let enemy = battle.enemy
 
-        let first = CombatTriggerEngine.afterHeroTalentSpendMana(actor: hero, amount: 3, empowered: true, in: &battle)
+        let first = CombatExecutor.run { await CombatTriggerEngine.afterHeroTalentSpendMana(
+            actor: hero,
+            amount: 3,
+            empowered: true,
+            in: &battle,
+        ) }
         #expect(first.contains { $0.effectKind == .purgeApplied })
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 2)
         #expect(battle.health(of: enemy) == 38)
 
-        let second = CombatTriggerEngine.afterHeroTalentSpendMana(actor: hero, amount: 3, empowered: true, in: &battle)
+        let second = CombatExecutor.run { await CombatTriggerEngine.afterHeroTalentSpendMana(
+            actor: hero,
+            amount: 3,
+            empowered: true,
+            in: &battle,
+        ) }
         #expect(!second.contains { $0.effectKind == .purgeApplied })
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 2)
         #expect(battle.health(of: enemy) == 38)
@@ -89,7 +99,7 @@ struct ItemAffixKeywordExpansionTests {
         ))
         #expect(attack.isCritical)
 
-        let expiry = DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &battle)
+        let expiry = CombatExecutor.run { await DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &battle) }
         #expect(expiry.contains { $0.effectKind == .instantHeal && $0.amount == 3 })
         #expect(battle.health(of: hero) == 4)
     }
@@ -110,7 +120,7 @@ struct ItemAffixKeywordExpansionTests {
         battle.appliesFightPacing = false
         let hero = battle.hero
 
-        _ = DefensePoolEngine.decayBlock(on: hero, in: &battle)
+        _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: hero, in: &battle) }
         #expect(battle.roster.activeEffects(for: hero).contains {
             if case .thorns(1) = $0.effect {
                 return true
@@ -125,9 +135,9 @@ struct ItemAffixKeywordExpansionTests {
                     tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
                 ),
             ))
-            _ = CombatTriggerEngine.heroTalentThorns(
+            _ = CombatExecutor.run { await CombatTriggerEngine.heroTalentThorns(
                 to: hero, source: hero, amount: 1, name: "Test Thorns", in: &battle,
-            )
+            ) }
         }
         #expect(battle.health(of: battle.enemy) == 34)
         #expect(battle.health(of: hero) == 12)

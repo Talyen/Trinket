@@ -8,12 +8,14 @@ final class PendingSaveRecovery {
         let snapshot: CloudSaveSnapshot
         let sessionGeneration: UInt64
         let cloudState: Data?
+        let outboxRecords: [CloudSaveOutbox.StoredRecord]?
 
-        init(save: PlayerSave, cloudState: Data?) {
+        init(save: PlayerSave, cloudState: Data?, outboxRecords: [CloudSaveOutbox.StoredRecord]?) {
             version = 1
             snapshot = CloudSaveSnapshot(save)
             sessionGeneration = save.sessionGeneration
             self.cloudState = cloudState
+            self.outboxRecords = outboxRecords
         }
 
         func restoredSave() throws -> PlayerSave {
@@ -172,7 +174,10 @@ final class PendingSaveRecovery {
         }
     }
 
-    func restore(into root: PlayerSaveRoot, context: ModelContext, preservesPrevious: Bool) throws {
+    func restore(
+        into root: PlayerSaveRoot, context: ModelContext, preservesPrevious: Bool,
+        outbox: CloudSaveOutbox? = nil,
+    ) throws {
         guard let record = try read() else { return }
         let recovered = try record.restoredSave()
         let persisted = root.toPlayerSave()
@@ -180,7 +185,11 @@ final class PendingSaveRecovery {
         // cleanup. An older sidecar must not undo that durable reset on relaunch.
         guard recovered.sessionGeneration >= persisted.sessionGeneration else { return }
         if preservesPrevious, persisted.hasDomainDifference(from: recovered) {
-            try preservePrevious(save: persisted, cloudState: root.cloudStatePayload)
+            try preservePrevious(save: persisted, cloudState: root.cloudStatePayload, outboxRecords: outbox?.storedRecords)
+        }
+        if let records = record.outboxRecords {
+            guard let outbox else { throw CloudSaveError.unavailable }
+            try outbox.restore(records)
         }
         root.apply(recovered, slices: .all, context: context)
         if let cloudState = record.cloudState {
@@ -194,15 +203,16 @@ final class PendingSaveRecovery {
     /// only while the app runs and cannot outlive the fallback session.
     func persist(
         save: PlayerSave, cloudState: Data?, memoryFallback: Bool,
+        outboxRecords: () -> [CloudSaveOutbox.StoredRecord]? = { nil },
         primaryWrite: () throws -> Void,
     ) throws -> Bool {
         if memoryFallback || hasPendingSave {
-            try write(save: save, cloudState: cloudState)
+            try write(save: save, cloudState: cloudState, outboxRecords: outboxRecords())
         }
         do {
             try primaryWrite()
         } catch {
-            try write(save: save, cloudState: cloudState)
+            try write(save: save, cloudState: cloudState, outboxRecords: outboxRecords())
             return true
         }
         if !memoryFallback {
@@ -211,7 +221,7 @@ final class PendingSaveRecovery {
         return false
     }
 
-    func write(save: PlayerSave, cloudState: Data?) throws {
+    func write(save: PlayerSave, cloudState: Data?, outboxRecords: [CloudSaveOutbox.StoredRecord]? = nil) throws {
         #if DEBUG
         if forcesNextWriteFailure {
             forcesNextWriteFailure = false
@@ -219,7 +229,7 @@ final class PendingSaveRecovery {
         }
         #endif
         do {
-            try preserve(save: save, cloudState: cloudState, to: url)
+            try preserve(save: save, cloudState: cloudState, outboxRecords: outboxRecords, to: url)
         } catch {
             if Self.isFileProtectionError(error) {
                 throw PlayerSavePersistenceError.storeUnavailable("Device locked; retry after first unlock.")
@@ -229,12 +239,14 @@ final class PendingSaveRecovery {
         hasPendingSave = true
     }
 
-    func preservePrevious(save: PlayerSave, cloudState: Data?) throws {
-        try preserve(save: save, cloudState: cloudState, to: previousFileURL)
+    func preservePrevious(save: PlayerSave, cloudState: Data?, outboxRecords: [CloudSaveOutbox.StoredRecord]? = nil) throws {
+        try preserve(save: save, cloudState: cloudState, outboxRecords: outboxRecords, to: previousFileURL)
     }
 
-    private func preserve(save: PlayerSave, cloudState: Data?, to destination: URL) throws {
-        let data = try JSONEncoder().encode(Record(save: save, cloudState: cloudState))
+    private func preserve(
+        save: PlayerSave, cloudState: Data?, outboxRecords: [CloudSaveOutbox.StoredRecord]?, to destination: URL,
+    ) throws {
+        let data = try JSONEncoder().encode(Record(save: save, cloudState: cloudState, outboxRecords: outboxRecords))
         try Self.writeDataAtomically(data, to: destination)
     }
 

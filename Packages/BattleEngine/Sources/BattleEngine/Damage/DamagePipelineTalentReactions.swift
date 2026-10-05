@@ -27,17 +27,17 @@ package extension DamagePipeline {
     static func applyAttackerMirroredReactions(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard let keyword = state.damageKeyword,
               let source = state.partySource(in: context),
               state.combatant.role == .enemy,
               state.amount > 0
         else { return }
         let triggers = context.modifiers(for: source.id).triggers
-        applyTalentMirroredDoTs(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
-        applyTalentBlockAndManaReactions(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
-        applyTalentDetonations(to: &state, triggers: triggers, source: source, in: &context)
-        applyTalentCardAndEconomyReactions(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
+        await applyTalentMirroredDoTs(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
+        await applyTalentBlockAndManaReactions(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
+        await applyTalentDetonations(to: &state, triggers: triggers, source: source, in: &context)
+        await applyTalentCardAndEconomyReactions(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
     }
 
     private static func applyTalentMirroredDoTs(
@@ -46,7 +46,7 @@ package extension DamagePipeline {
         keyword: Keyword,
         source: CombatantRuntime,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard state.remaining > 0 else { return }
         let scaled = keyword == .bleed
             ? state.remaining
@@ -80,7 +80,7 @@ package extension DamagePipeline {
         }
 
         for dst in destinations {
-            state.damageEvents.append(contentsOf: dealTalentMirroredDamage(
+            await state.damageEvents.append(contentsOf: dealTalentMirroredDamage(
                 scaled,
                 keyword: dst,
                 target: state.combatant,
@@ -96,7 +96,7 @@ package extension DamagePipeline {
         keyword: Keyword,
         source: CombatantRuntime,
         in context: inout BattleState,
-    ) {
+    ) async {
         if triggers.sunwallChancePercent > 0, keyword == .holy, state.healthLost > 0,
            context.roster.health(for: source.combatant) > 0,
            context.roster.companion.isAlive,
@@ -109,7 +109,7 @@ package extension DamagePipeline {
             ))
         }
         if triggers.eyeOfTheStorm, keyword == .stun {
-            state.damageEvents.append(contentsOf: context.restoreManaEmitting(
+            await state.damageEvents.append(contentsOf: context.restoreManaEmitting(
                 state.remaining,
                 to: source.combatant,
                 abilityName: "Eye of the Storm",
@@ -122,10 +122,10 @@ package extension DamagePipeline {
         triggers: CombatTraitTriggers,
         source: CombatantRuntime,
         in context: inout BattleState,
-    ) {
+    ) async {
         let shouldDetonateBleed = triggers.arterialCascade && state.options.isAttackHit && state.isCritical
         if shouldDetonateBleed {
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.detonateBleed(
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.detonateBleed(
                 on: state.combatant,
                 sourceActorID: source.id,
                 in: &context,
@@ -139,7 +139,7 @@ package extension DamagePipeline {
         keyword: Keyword,
         source: CombatantRuntime,
         in context: inout BattleState,
-    ) {
+    ) async {
         if triggers.ashenArsenal, keyword == .burn {
             state.damageEvents.append(contentsOf: drawTalentCard(
                 .physical,
@@ -148,7 +148,7 @@ package extension DamagePipeline {
             ))
         }
         if triggers.bountyBlade, state.isCritical {
-            state.damageEvents.append(contentsOf: context.grantGoldEvent(
+            await state.damageEvents.append(contentsOf: context.grantGoldEvent(
                 3,
                 to: source.combatant,
                 abilityName: "Bounty Blade",
@@ -168,9 +168,9 @@ package extension DamagePipeline {
         target: Combatant,
         source: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: target) > 0 else { return [] }
-        if let applied = DoTApplicator.applyDoT(
+        if let applied = await DoTApplicator.applyDoT(
             keyword: keyword,
             potency: amount,
             to: target,
@@ -180,7 +180,7 @@ package extension DamagePipeline {
         ) {
             return applied
         }
-        return resolveNestedDamage(
+        return await resolveNestedDamage(
             amount: amount,
             keyword: keyword,
             target: target,

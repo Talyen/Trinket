@@ -65,11 +65,11 @@ struct TalentPreparationSummaryTests {
         var context = try fixtures.battle([], owner: .companion, extra: CombatantTalentCatalog.profile(for: [talentID]))
         let actor = context.companion
         if talentID == "fox_stun_t4_1" {
-            _ = CombatTriggerEngine.afterEnemyStunned(sourceActorID: actor.id, in: &context)
+            _ = CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(sourceActorID: actor.id, in: &context) }
         } else {
             _ = context.restoreManaEmitting(1, to: actor, abilityName: "Restore Mana")
             let payment = context.payMana(1, for: actor)
-            _ = CombatTriggerEngine.afterSpendMana(payment, in: &context)
+            _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &context) }
         }
 
         #expect(hasPreparation(.physical, for: actor, in: context))
@@ -86,15 +86,15 @@ struct TalentPreparationSummaryTests {
             companion: owl.combatant, companionModifiers: owl.modifiers, dealOpeningHand: false,
         )
         battle.appendEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
-        _ = EffectRemovalOperation.resolveCleanse(
+        _ = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .all(nil), source: battle.companion, target: battle.hero, abilityName: "Cleanse", in: &battle,
-        )
+        ) }
 
         #expect(battle.effectSummaries(of: battle.hero).contains { $0.keyword == effect.keyword })
         let firstAppendSucceeded = battle.appendEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
         #expect(!firstAppendSucceeded)
 
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(!battle.effectSummaries(of: battle.hero).contains { $0.keyword == effect.keyword })
         let secondAppendSucceeded = battle.appendEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
@@ -111,15 +111,15 @@ struct TalentPreparationSummaryTests {
             companion: owl.combatant, companionModifiers: owl.modifiers, dealOpeningHand: false,
         )
         battle.appendEffect(effect, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 2)
-        _ = EffectRemovalOperation.resolvePurge(
+        _ = CombatExecutor.run { await EffectRemovalOperation.resolvePurge(
             .all(nil), source: battle.companion, target: battle.enemy, abilityName: "Purge", in: &battle,
-        )
+        ) }
 
         #expect(battle.effectSummaries(of: battle.enemy).contains { $0.keyword == .purge && $0.text.contains(name) })
         let firstPurgeAppendSucceeded = battle.appendEffect(effect, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 2)
         #expect(!firstPurgeAppendSucceeded)
 
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(!battle.effectSummaries(of: battle.enemy).contains { $0.keyword == .purge })
         let secondPurgeAppendSucceeded = battle.appendEffect(effect, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 2)

@@ -70,6 +70,10 @@ struct BattleSessionAppIntegrationTests {
         #expect(state.playerSave.roster.progression(for: configuration.hero.combatant) == refreshed.heroProgressionAfter)
         #expect(state.playerSave.roster.progression(for: configuration.companion.combatant) == refreshed.companionProgressionAfter)
         #expect((battle.activeBattle != nil) == defersExit)
+        if defersExit {
+            #expect(state.restartActiveBattle()?.title == PlayBattleCoordinator.activationFailureMessage.title)
+            #expect(battle.activeBattle?.id == configuration.id)
+        }
         let claimedSave = state.playerSave.currentSave
         #expect(!battle.claimVictory(configurationID: configuration.id, summary: refreshedSummary, defersPresentationExit: defersExit))
         #expect(state.playerSave.currentSave == claimedSave)
@@ -127,13 +131,13 @@ struct BattleSessionAppIntegrationTests {
             pendingRewardItem: original.pendingRewardItem, stageRewardsAlreadyClaimed: original.stageRewardsAlreadyClaimed,
             universalModifiers: original.universalModifiers, nodeModifiers: original.nodeModifiers,
         )
-        #expect(state.battleLaunch.activateBattle(input, route: registration.route))
+        #expect(state.battleCoordinator.activateBattle(input, route: registration.route))
         let active = try #require(state.battle.activeBattle)
         #expect((active.id != registration.launch.configuration.id) == changedEncounter)
         #expect(active.enemyEncounterLevel == input.enemyEncounterLevel)
         #expect(active.rngSeed == registration.launch.configuration.rngSeed)
         #expect(state.battle.hasPreparedRun(sibling))
-        let stale = PlayBattleLaunch.assembleLaunch(registration.launch.inputs).configuration
+        let stale = PlayBattleCoordinator.assembleLaunch(registration.launch.inputs).configuration
         #expect(!state.battle.restart(stale))
         #expect(!state.completeActiveBattle(stale, battleGold: .init(gained: 5)).didComplete)
         #expect(state.battle.activeBattle?.id == active.id)
@@ -155,11 +159,10 @@ struct BattleSessionAppIntegrationTests {
         let active = try #require(state.battle.activeBattle)
         let presentation = try #require(state.battlePresentation(for: active.runKey))
         let heroBefore = state.playerSave.roster.progression(for: state.playerSave.roster.activeHero)
-        #expect(presentation.experienceBonusPercent == 25)
         #expect(state.completeActiveBattle(active, battleGold: .init(gained: 0)).didComplete)
         #expect(
             state.playerSave.roster.progression(for: state.playerSave.roster.activeHero)
-                == heroBefore.addingExperience(presentation.heroExperienceAward),
+                == heroBefore.addingExperience(presentation.rewardPlan.heroExperience),
         )
     }
 
@@ -238,7 +241,7 @@ struct BattleSessionAppIntegrationTests {
         )
         #expect(appState.labyrinth.startBattle(nodeID: combatNodeID) == nil)
         let original = try #require(appState.battle.activeBattle)
-        let originalPresentation = try #require(appState.battlePresentation(for: original.runKey))
+        let originalLaunch = try #require(appState.battleRegistration(for: original.runKey)?.launch)
         let effects = appState.playerSave.labyrinth.effects(for: combatNodeID)
         let originalUniversalModifiers = appState.battleUniversalModifiers(for: original.runKey)
         #expect(originalUniversalModifiers.count == 1)
@@ -251,13 +254,13 @@ struct BattleSessionAppIntegrationTests {
         appState.restartActiveBattle()
 
         let restarted = try #require(appState.battle.activeBattle)
-        let restartedPresentation = try #require(appState.battlePresentation(for: restarted.runKey))
+        let restartedLaunch = try #require(appState.battleRegistration(for: restarted.runKey)?.launch)
         #expect(restarted.runKey == PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey)
         #expect(
             appState.battleUniversalModifiers(for: restarted.runKey) == originalUniversalModifiers,
         )
-        #expect(restartedPresentation.pendingRewardItem == originalPresentation.pendingRewardItem)
-        #expect(restartedPresentation.rewardItems == originalPresentation.rewardItems)
+        #expect(restartedLaunch.inputs.launch.pendingRewardItem == originalLaunch.inputs.launch.pendingRewardItem)
+        #expect(restartedLaunch.rewardPlan.items == originalLaunch.rewardPlan.items)
         #expect(restarted.id != original.id)
     }
 
@@ -332,7 +335,7 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battlePresentation(for: secondRunKey) != nil)
         #expect(battle.hasPreparedRun(firstRunKey))
         #expect(!battle.hasPreparedRun(secondRunKey))
-        appState.battleLaunch.keepPreparedRuns([])
+        appState.battleCoordinator.keepPreparedRuns([])
         #expect(appState.battlePresentation(for: firstRunKey) != nil)
         #expect(appState.battlePresentation(for: secondRunKey) != nil)
         #expect(battle.hasPreparedRun(firstRunKey))
@@ -360,7 +363,7 @@ struct BattleSessionAppIntegrationTests {
         battle.partyCelebrateDelayOverride = .zero
         let state = try context.makePlaySession(playerSave: playerSave, battleRuntime: battle)
         // Persistence retries need a repeatable victory, not a sampled matchup.
-        state.battleLaunch.nextCombatSeed = { CombatantFixtures.deterministicBattleSeed }
+        state.battleCoordinator.nextCombatSeed = { CombatantFixtures.deterministicBattleSeed }
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
@@ -398,5 +401,57 @@ struct BattleSessionAppIntegrationTests {
             break
         }
         battle.handleOutcomeIfNeeded(at: .now)
+    }
+}
+
+extension BattleSessionAppIntegrationTests {
+    @Test(arguments: [false, true])
+    func `presentation replacement cannot change rewards or retry inputs`(retries: Bool) throws {
+        let play = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        #expect(play.journey.startBattle(for: stage) == nil)
+        let first = try #require(play.battle.activeBattle)
+        let initial = try #require(play.battleRegistration(for: first.runKey))
+        play.endBattleReturningToOrigin()
+        let request = BattleLaunchInput(
+            origin: initial.launch.inputs.launch.origin,
+            hero: initial.launch.inputs.launch.hero, companion: initial.launch.inputs.launch.companion,
+            enemy: initial.launch.inputs.launch.enemy, enemyEncounterLevel: initial.launch.inputs.launch.enemyEncounterLevel,
+            stageReward: initial.launch.inputs.launch.stageReward, experienceBonusPercent: 25,
+            pendingRewardItem: initial.launch.inputs.launch.pendingRewardItem,
+            universalModifiers: [.damageDealt(.burn, 7)],
+        )
+        play.battleCoordinator.nextCombatSeed = { 41 }
+        #expect(play.battleCoordinator.activateBattle(request, route: initial.route))
+        let original = try #require(play.battleCoordinator.activeRun)
+        // Replace the entire display projection while retaining the gameplay record.
+        play.battleCoordinator.activeRun = PlayBattleRunRegistration(
+            route: original.route,
+            launch: BattleLaunchAssembly(
+                configuration: original.launch.configuration, rewardPlan: original.launch.rewardPlan,
+                presentation: .empty, inputs: original.launch.inputs,
+            ),
+        )
+        if retries {
+            #expect(play.playerSave.persistBatch(logging: "Advance progression before Retry") { save in
+                save.roster.grantExperience(1, to: request.hero)
+            })
+            play.battleCoordinator.nextCombatSeed = { 42 }
+            #expect(play.restartActiveBattle() == nil)
+            let restarted = try #require(play.battleCoordinator.activeRun)
+            #expect(restarted.launch.inputs.launch == request)
+            #expect(restarted.launch.configuration.rngSeed == 42)
+            #expect(restarted.launch.configuration.id != original.launch.configuration.id)
+            #expect(restarted.launch.configuration.hero.progression == play.playerSave.roster.progression(for: request.hero))
+            #expect(restarted.launch.configuration.enemyModifiers.damageDealtBonus(for: .burn) == 7)
+        }
+        let active = try #require(play.battle.activeBattle)
+        let award = try #require(play.settleBattleRewards(active, battleGold: .init(gained: 5)))
+        #expect(award.award.heroExperience > 0)
+        #expect(award.award.stageGold > 0)
+        #expect(play.completeActiveBattle(active, battleGold: .init(gained: 5), settlement: award).didComplete)
+        #expect(play.playerSave.journey.hasClaimedRewards(for: stage))
+        #expect(play.playerSave.roster.progression(for: request.hero) == award.heroProgressionAfter)
+        #expect(play.playerSave.roster.progression(for: request.companion) == award.companionProgressionAfter)
     }
 }

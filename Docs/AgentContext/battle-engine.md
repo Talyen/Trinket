@@ -9,6 +9,16 @@ log lifecycle are the public mutation boundary; handler dispatch and turn/card e
 drivers stay package-scoped. Consumers that inspect future RNG values must copy the
 generator rather than advance the live battle's generator.
 
+`CombatExecutor` drains each synchronous command on its calling thread. Internal
+rules use async continuations; entering damage, healing, or automatic card play
+suspends before child resolution so parent state lives on the heap. Await child
+rules in their existing order. These continuations must not await I/O, actors,
+timers, or independent tasks. Use synchronous facade commands only at command
+entry; internal reactions await their async overloads to retain one executor.
+Keep existing chain limits and post-damage counterattack/Block-answer timing.
+`CombatExecutorTests` owns small-stack, ordered-unwind and recorded-battle parity
+coverage; package compilation and execution follow the normal CI-owned policy.
+
 On-hit and reaction work is split on purpose:
 
 - `DamagePipeline` orders committed-damage reactions; `AttackerOnHitEngine` owns attacker-side on-hit applications during that checkpoint, including first-hit bonuses and attacker-ward DoTs. Keep live roster checks inside rider execution because earlier reactions can change Health and effects.

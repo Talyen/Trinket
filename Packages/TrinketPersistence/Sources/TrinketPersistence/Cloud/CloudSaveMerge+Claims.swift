@@ -136,7 +136,7 @@ extension CloudSaveMerge {
         }
     }
 
-    private static func hasSharedShopPurchase(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave) -> Bool {
+    static func hasSharedShopPurchase(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave) -> Bool {
         let stages = Set(incoming.journey.shopPayloads.keys).intersection(existing.journey.shopPayloads.keys)
         if stages.contains(where: { id in
             ShopStockPersistence.hasSharedNewPurchase(

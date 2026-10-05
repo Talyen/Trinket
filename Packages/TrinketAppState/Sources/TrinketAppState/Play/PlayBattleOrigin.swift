@@ -37,7 +37,7 @@ public enum PlayBattleOrigin: Hashable, Sendable {
 
 @MainActor
 struct PlayBattleRunRegistration {
-    let route: PlayBattleRoute
+    let route: PlayBattleRoute?
     let launch: BattleLaunchAssembly
     var presentation: BattlePresentationContext {
         launch.presentation

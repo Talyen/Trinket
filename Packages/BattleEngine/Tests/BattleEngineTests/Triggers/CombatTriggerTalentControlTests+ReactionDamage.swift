@@ -15,11 +15,11 @@ extension CombatTriggerTalentControlTests {
             )),
             dealOpeningHand: false,
         )
-        _ = CombatTriggerEngine.afterDodge(
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: battle.roster.hero.combatant,
             attackerID: battle.roster.enemy.id,
             in: &battle,
-        )
+        ) }
         #expect(battle.roster.health(for: battle.roster.enemy.combatant) == 98)
         let effects = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
         #expect(effects.contains { $0.effect.keyword == Keyword.poison || $0.effect.keyword == Keyword.bleed })
@@ -60,14 +60,14 @@ extension CombatTriggerTalentControlTests {
             )),
             dealOpeningHand: false,
         )
-        _ = ControlMeterEngine.applyMeterCharge(
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             ControlMeterEngine.threshold(for: battle.enemy, in: battle),
             keyword: .stun,
             to: battle.enemy,
             sourceActorID: battle.hero.id,
             applyFightPacing: false,
             in: &battle,
-        )
+        ) }
         #expect(battle.roster.health(for: battle.roster.enemy.combatant) == 98)
         let burns = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
             .filter { $0.effect.keyword == Keyword.burn }

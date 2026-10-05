@@ -41,7 +41,10 @@ public enum ItemSalvage {
 }
 
 public enum ItemSalvageApplier {
-    public static func salvage(itemID: String, save: inout PlayerSave) -> Result<[ResourceAmount], ItemSalvageFailure> {
+    public static func salvage(
+        itemID: String, save: inout PlayerSave,
+        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+    ) -> Result<[ResourceAmount], ItemSalvageFailure> {
         guard let item = save.inventory.items.first(where: { $0.id == itemID }) else {
             return .failure(.itemNotFound)
         }
@@ -49,7 +52,11 @@ public enum ItemSalvageApplier {
         guard !yields.isEmpty else { return .failure(.ineligible) }
         save.roster.unequip(itemID: itemID)
         save.inventory.removeItem(id: itemID)
-        return .success(save.grantMaterials(yields))
+        let granted = save.grantMaterials(yields)
+        recordReceipt(SaveEconomicReceipt(kind: .reward, effects: .committed(
+            claim: .salvage(itemID), materials: Dictionary(uniqueKeysWithValues: granted.map { ($0.resource, $0.quantity) }),
+        )))
+        return .success(granted)
     }
 }
 
@@ -57,8 +64,8 @@ public enum ItemSalvageApplier {
 public extension PlayerSaveStore {
     @discardableResult
     func salvageItem(id: String) -> SaveTransactionResult<[ResourceAmount], ItemSalvageFailure> {
-        persistTransaction(logging: "Failed to salvage item \(id)") { save in
-            ItemSalvageApplier.salvage(itemID: id, save: &save)
+        persistTransaction(logging: "Failed to salvage item \(id)") { save, recordReceipt in
+            ItemSalvageApplier.salvage(itemID: id, save: &save, recordReceipt: recordReceipt)
         }
     }
 }

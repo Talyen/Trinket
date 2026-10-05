@@ -15,12 +15,12 @@ extension TalentMigrationTests {
             )
         }
         _ = battle.withEngineContext { ctx in
-            CombatTriggerEngine.afterCleanseAction(
+            CombatExecutor.run { await CombatTriggerEngine.afterCleanseAction(
                 source: ctx.roster.hero.combatant,
                 target: ctx.roster.hero.combatant,
                 removedCount: 2,
                 in: &ctx,
-            )
+            ) }
         }
         #expect(battle.health(of: battle.hero) > 10)
     }
@@ -52,12 +52,12 @@ extension TalentMigrationTests {
             ctx.roster.setActiveEffects([ActiveEffect(id: 1, effect: .poison(1), remainingTurns: 1)], for: ctx.roster.hero.combatant)
         }
         _ = battle.withEngineContext { ctx in
-            CombatTriggerEngine.afterCleanseAction(
+            CombatExecutor.run { await CombatTriggerEngine.afterCleanseAction(
                 source: ctx.roster.hero.combatant,
                 target: ctx.roster.hero.combatant,
                 removedCount: 1,
                 in: &ctx,
-            )
+            ) }
         }
         #expect(battle.health(of: battle.hero) > 10)
     }
@@ -89,12 +89,12 @@ extension TalentMigrationTests {
         }
         let enemyHealthBefore = battle.health(of: battle.enemy)
         _ = battle.withEngineContext { ctx in
-            CombatTriggerEngine.afterCleanseAction(
+            CombatExecutor.run { await CombatTriggerEngine.afterCleanseAction(
                 source: ctx.roster.enemy.combatant,
                 target: ctx.roster.enemy.combatant,
                 removedCount: 1,
                 in: &ctx,
-            )
+            ) }
         }
         #expect(battle.health(of: battle.enemy) == enemyHealthBefore)
     }
@@ -155,19 +155,19 @@ extension TalentMigrationTests {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(overhealFirstBlockPerTurn: 3)))
         for expected in [3, 3] {
             _ = battle.withEngineContext { ctx in
-                _ = HealingEngine.resolveHeal(
+                _ = CombatExecutor.run { await HealingEngine.resolveHeal(
                     HealRequest(amount: 5, target: ctx.roster.hero.combatant, sourceActorID: ctx.roster.hero.id, logAs: .silent),
                     in: &ctx,
-                )
+                ) }
             }
             #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == expected)
         }
         battle.turnCount += 1
         _ = battle.withEngineContext { ctx in
-            _ = HealingEngine.resolveHeal(
+            _ = CombatExecutor.run { await HealingEngine.resolveHeal(
                 HealRequest(amount: 5, target: ctx.roster.hero.combatant, sourceActorID: ctx.roster.hero.id, logAs: .silent),
                 in: &ctx,
-            )
+            ) }
         }
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 6)
     }
@@ -176,10 +176,10 @@ extension TalentMigrationTests {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(overhealShieldCap: 4)))
         battle.appliesFightPacing = false
         _ = battle.withEngineContext { ctx in
-            _ = HealingEngine.resolveHeal(
+            _ = CombatExecutor.run { await HealingEngine.resolveHeal(
                 HealRequest(amount: 10, target: ctx.roster.hero.combatant, sourceActorID: ctx.roster.hero.id, logAs: .silent),
                 in: &ctx,
-            )
+            ) }
         }
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 4)
     }

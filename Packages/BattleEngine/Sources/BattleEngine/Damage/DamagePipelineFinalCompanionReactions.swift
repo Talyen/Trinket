@@ -5,7 +5,7 @@ package extension DamagePipeline {
     static func applyFinalCompanionLeechRewards(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard state.combatant.role == .enemy,
               let sourceID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceID), source.role == .companion
@@ -25,7 +25,7 @@ package extension DamagePipeline {
         }
         if state.isCritical, state.options.isAttackHit,
            triggers.leechCriticalPoisonDamage > 0, context.roster.enemy.isAlive {
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.heroTalentDamage(
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.heroTalentDamage(
                 .poison, amount: triggers.leechCriticalPoisonDamage,
                 source: source.combatant, name: "Toxic Touch", in: &context,
             ))

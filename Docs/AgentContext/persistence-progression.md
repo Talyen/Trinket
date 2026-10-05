@@ -34,6 +34,11 @@ Contract victories record the completed offer ID before replacement; refreshing 
 without creating a claim. Voyage victories record completed run IDs before
 dismissing their cleared routes.
 
+Completion appliers supply explicit committed economic receipts to the transaction
+collector, including one claim identity per award in a batch. Standalone victories
+and defeat XP carry unclaimed effects; normal battle/Salvage claims retain their
+domain identities. Failed or rejected transactions publish neither awards nor receipts.
+
 ## Reward modifiers
 
 Contracts and Labyrinth/Voyage combat share Content's `RewardModifier` catalog.
@@ -117,6 +122,10 @@ removal and reload; singleton ownership is a separate check.
 Views and commands share its availability query. Never infer claims from inventory
 ID prefixes or session flags. Homestead build commands require the displayed target
 tier and validate that tier inside the transaction.
+
+Purchase receipts retain the pinned offer's exact item and price; upgrade receipts
+retain the costs paid for that installed tier. Replay does not read current authored
+prices to reconstruct these charges.
 
 ## Noncombat completion
 

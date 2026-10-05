@@ -9,7 +9,7 @@ package extension CombatTriggerEngine {
         attackHit: Bool = false,
         sourceHadNoBlock: Bool = false,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let profile = context.modifiers(for: source.id)
         var events: [ActionEvent] = []
         events.append(contentsOf: reviveCompanionIfNeeded(to: enemy, source: source, in: &context))
@@ -28,7 +28,7 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.holyDamageCleanseCount > 0, context.health(of: source) > 0 {
-            events.append(contentsOf: performRandomCleanses(
+            await events.append(contentsOf: performRandomCleanses(
                 source: source,
                 target: source,
                 count: profile.triggers.holyDamageCleanseCount,
@@ -39,7 +39,7 @@ package extension CombatTriggerEngine {
 
         if profile.triggers.holyDamageHealFlat > 0, context.health(of: source) > 0 {
             let target = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
-            events.append(contentsOf: emitHeal(
+            await events.append(contentsOf: emitHeal(
                 "holyDamageHealFlat", "Beacon",
                 amount: profile.triggers.holyDamageHealFlat, to: target, source: source, in: &context,
             ))
@@ -47,13 +47,13 @@ package extension CombatTriggerEngine {
 
         if profile.triggers.holyDamageHealLowestAllyFlat > 0, context.health(of: source) > 0 {
             let lowest = BattleActionContext(actor: source, selectedTarget: enemy).target(.lowestHealthAlly, in: context)
-            events.append(contentsOf: emitHeal(
+            await events.append(contentsOf: emitHeal(
                 "holyDamageHealLowestAllyFlat", "Divine Blessing",
                 amount: profile.triggers.holyDamageHealLowestAllyFlat, to: lowest, source: source, in: &context,
             ))
         }
         if profile.triggers.holyDamageHealHeroFlat > 0, context.health(of: source) > 0, context.roster.hero.isAlive {
-            events.append(contentsOf: emitHeal(
+            await events.append(contentsOf: emitHeal(
                 "holyDamageHealHeroFlat", "Sun Glyph",
                 amount: profile.triggers.holyDamageHealHeroFlat,
                 to: context.roster.hero.combatant, source: source, in: &context,
@@ -61,7 +61,7 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.onHolyDamageRestoreMana > 0, context.health(of: source) > 0 {
-            events.append(contentsOf: emitMana(
+            await events.append(contentsOf: emitMana(
                 "onHolyDamageRestoreMana", "Radiant Wisdom",
                 amount: profile.triggers.onHolyDamageRestoreMana, to: source, in: &context,
             ))
@@ -82,7 +82,7 @@ package extension CombatTriggerEngine {
             )
         }
         if profile.triggers.holyDamagePurgeAll, context.roster.health(for: enemy) > 0 {
-            events.append(contentsOf: applyPurge(
+            await events.append(contentsOf: applyPurge(
                 to: enemy,
                 source: source,
                 abilityName: triggerAbilityName("holyDamagePurgeAll", for: source, fallback: "Purifying Light", in: context),
@@ -102,7 +102,7 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.holyDamagePurgeCount > 0 {
-            events.append(contentsOf: applyPurge(
+            await events.append(contentsOf: applyPurge(
                 to: enemy,
                 source: source,
                 abilityName: triggerAbilityName("holyDamagePurgeCount", for: source, fallback: "Nullifying", in: context),
@@ -113,7 +113,7 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.holyDamagePoisonFlat > 0, context.roster.health(for: enemy) > 0 {
-            events.append(contentsOf: context.resolveDamage(
+            await events.append(contentsOf: context.resolveDamage(
                 DamageRequest(
                     amount: profile.triggers.holyDamagePoisonFlat,
                     target: enemy,

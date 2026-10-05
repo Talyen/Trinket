@@ -5,41 +5,14 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-@MainActor
-final class PlayBattleCompletion {
-    let playerSave: PlayerSaveStore
-    let battle: any BattleRuntime
-    private let runs: PlayBattleRuns
-
-    private struct PendingExit {
-        let configurationID: UUID
-        let origin: PlayBattleOrigin?
-        let onFinished: () -> Void
-        let restoreOrigin: (PlayBattleOrigin?) -> Void
-    }
-
-    private enum ClaimState {
-        case unclaimed
-        case defeat(configurationID: UUID)
-        case victory(PendingExit)
-    }
-
-    private var claimState: ClaimState = .unclaimed
-    private var talentProgressionsBefore: [String: CombatantProgression] = [:]
-
-    init(playerSave: PlayerSaveStore, battle: any BattleRuntime, runs: PlayBattleRuns) {
-        self.playerSave = playerSave
-        self.battle = battle
-        self.runs = runs
-    }
-
+extension PlayBattleCoordinator {
     func finishPresentation(configurationID: UUID) {
         guard case let .victory(pendingExit) = claimState,
               pendingExit.configurationID == configurationID else { return }
-        claimState = .unclaimed
         guard battle.activeBattle?.id == configurationID else { return }
-        pendingExit.restoreOrigin(pendingExit.origin)
-        runs.endBattle()
+        claimState = .unclaimed
+        restoreOrigin(pendingExit.origin)
+        endBattle()
         pendingExit.onFinished()
     }
 
@@ -81,49 +54,34 @@ final class PlayBattleCompletion {
         battleGold: BattleGoldFlow,
         materialRewards: [ResourceAmount]? = nil,
         settlement: BattleRewardSettlement? = nil,
-        route: PlayBattleRoute?,
-        makeContractOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
-        presentation: BattlePresentationContext?,
+        makeContractOffer: @escaping (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
         defersPresentationExit: Bool,
         onFinished: @escaping () -> Void,
-        restoreOrigin: @escaping (PlayBattleOrigin?) -> Void,
+        onClaimed: @escaping () -> Void,
     ) -> BattleCompletionResult {
         // Fail closed while any presentation exit is pending. Same-ID calls
         // are duplicate claims; a different ID would overwrite the pending
-        // onFinished/restoreOrigin and leak the first battle's exit.
+        // onFinished and leak the first battle's exit.
         guard canClaimVictory(configurationID: configuration.id) else { return .unavailable }
-        guard battle.lifecyclePhase == .active, battle.activeBattle?.id == configuration.id else { return .unavailable }
-
-        guard PlayBattleRoute.matches(
-            route,
-            runKey: configuration.runKey,
-            missingLog: "Missing route for active battle completion",
-        ) else {
-            return .unavailable
-        }
-
-        guard route == nil || presentation != nil else {
-            appStateLogger.error("Missing presentation metadata for active battle completion")
-            return .unavailable
-        }
-
+        guard let run = activeRegistration(for: configuration) else { return .unavailable }
+        let route = run.route
         // A settled award already includes material bonuses. With a supplied
         // settlement, validate against the launch plan's unadjusted materials.
         let baseMaterials = settlement == nil ? materialRewards : nil
-        let resolved = settleRewards(
-            configuration, battleGold: battleGold, materialRewards: baseMaterials, presentation: presentation,
+        guard let resolved = settleRewards(
+            configuration, battleGold: battleGold, materialRewards: baseMaterials,
             at: settlement?.inputs.productionDate ?? Date(),
-        )
+        ) else { return .unavailable }
         guard settlement == nil || settlement == resolved else { return .staleSettlement(resolved) }
         let origin = route?.origin
         let loot = Self.preparedLoot(
-            from: presentation,
+            from: run.launch,
             materialRewards: baseMaterials,
         )
-        let result: BattleCompletionResult = if let route, let presentation {
+        let result: BattleCompletionResult = if let route {
             route.complete(
                 configuration,
-                presentation: presentation,
+                launch: run.launch,
                 award: settlement ?? resolved,
                 materialRewards: baseMaterials,
                 loot: loot,
@@ -131,12 +89,12 @@ final class PlayBattleCompletion {
                 makeContractOffer: makeContractOffer,
             )
         } else {
-            playerSave.persistBatch(logging: "Failed to persist battle rewards") { save in
+            playerSave.persistBatch(logging: "Failed to persist battle rewards") { save, recordReceipt in
                 VictoryRewardApplier.apply(
                     resolved,
                     hero: configuration.hero.combatant,
                     companion: configuration.companion.combatant,
-                    save: &save,
+                    save: &save, recordReceipt: recordReceipt,
                 )
             } ? .completed : .persistenceFailed
         }
@@ -144,24 +102,37 @@ final class PlayBattleCompletion {
             recordTalentProgressions(settlement ?? resolved, configuration: configuration)
             claimState = .victory(PendingExit(
                 configurationID: configuration.id, origin: origin,
-                onFinished: onFinished, restoreOrigin: restoreOrigin,
+                onFinished: onFinished,
             ))
+            if !run.launch.inputs.launch.stageRewardsAlreadyClaimed {
+                onClaimed()
+            }
             if !defersPresentationExit {
                 finishPresentation(configurationID: configuration.id)
+            }
+        }
+        if result == .persistenceFailed {
+            playerSave.retrySaveAction(key: SaveRetryKey.victory(configuration.id)) { [weak self] in
+                guard let self, activeRegistration(for: configuration) != nil else { return }
+                _ = completeActiveBattle(
+                    configuration, battleGold: battleGold, materialRewards: materialRewards,
+                    settlement: settlement, makeContractOffer: makeContractOffer,
+                    defersPresentationExit: false, onFinished: onFinished, onClaimed: onClaimed,
+                )
             }
         }
         return result
     }
 
     static func preparedLoot(
-        from presentation: BattlePresentationContext?,
+        from launch: BattleLaunchAssembly,
         materialRewards: [ResourceAmount]?,
     ) -> BattleLootResult? {
-        guard let presentation, let item = presentation.pendingRewardItem else { return nil }
+        guard let item = launch.inputs.launch.pendingRewardItem else { return nil }
         return BattleLootResult(
             item: item,
-            gold: presentation.stageReward?.gold ?? 0,
-            materials: materialRewards ?? presentation.materialRewards,
+            gold: launch.inputs.launch.stageReward?.gold ?? 0,
+            materials: materialRewards ?? launch.rewardPlan.materials,
         )
     }
 
@@ -169,18 +140,10 @@ final class PlayBattleCompletion {
         _ configuration: BattleRunConfiguration,
         battleGold: BattleGoldFlow,
         materialRewards: [ResourceAmount]? = nil,
-        presentation: BattlePresentationContext?,
         at date: Date = Date(),
-    ) -> BattleRewardSettlement {
-        let plan = presentation?.rewardPlan ?? BattleRewardPlan(
-            stageGold: 0, goldFindPercent: 0,
-            goldOverflowExperience: RewardExperiencePolicy.encounterAward(
-                encounterLevel: configuration.enemyEncounterLevel ?? configuration.hero.progression.level,
-                roster: playerSave.roster,
-            ),
-            heroExperience: 0, companionExperience: 0, materials: [], items: [],
-        )
-        return plan.settle(
+    ) -> BattleRewardSettlement? {
+        guard let run = activeRegistration(for: configuration) else { return nil }
+        return run.launch.rewardPlan.settle(
             battleGold: battleGold,
             inputs: RewardSettlementInputs(
                 save: playerSave.currentSave, hero: configuration.hero.combatant, companion: configuration.companion.combatant, at: date,
@@ -191,12 +154,11 @@ final class PlayBattleCompletion {
 
     func settleDefeat(
         _ configuration: BattleRunConfiguration,
-        presentation: BattlePresentationContext,
         at date: Date,
     ) -> BattleRewardSettlement? {
-        guard battle.activeBattle?.id == configuration.id,
+        guard let run = activeRegistration(for: configuration),
               let progress = battle.resolvedDefeatProgress else { return nil }
-        return presentation.rewardPlan.settleDefeat(
+        return run.launch.rewardPlan.settleDefeat(
             progress: progress,
             inputs: RewardSettlementInputs(
                 save: playerSave.currentSave,
@@ -208,10 +170,9 @@ final class PlayBattleCompletion {
 
     func claimDefeat(
         _ configuration: BattleRunConfiguration,
-        presentation: BattlePresentationContext,
         settlement: BattleRewardSettlement,
     ) -> BattleCompletionResult {
-        guard battle.lifecyclePhase == .active, battle.activeBattle?.id == configuration.id,
+        guard activeRegistration(for: configuration) != nil,
               battle.resolvedDefeatProgress != nil else { return .unavailable }
         switch claimState {
         case .victory:
@@ -221,17 +182,50 @@ final class PlayBattleCompletion {
         case .unclaimed, .defeat:
             break
         }
-        guard let resolved = settleDefeat(configuration, presentation: presentation, at: settlement.inputs.productionDate)
+        guard let resolved = settleDefeat(configuration, at: settlement.inputs.productionDate)
         else { return .unavailable }
         guard resolved == settlement else { return .staleSettlement(resolved) }
-        let didPersist = playerSave.persistBatch(logging: "Failed to persist defeat experience") { save in
+        let didPersist = playerSave.persistBatch(logging: "Failed to persist defeat experience") { save, recordReceipt in
             BattleExperienceReward.apply(
                 resolved, hero: configuration.hero.combatant, companion: configuration.companion.combatant, save: &save,
+                recordReceipt: recordReceipt,
             )
         }
         guard didPersist else { return .persistenceFailed }
         claimState = .defeat(configurationID: configuration.id)
         recordTalentProgressions(resolved, configuration: configuration)
         return .completed
+    }
+
+    func activeRegistration(for configuration: BattleRunConfiguration) -> PlayBattleRunRegistration? {
+        guard battle.lifecyclePhase == .active, battle.activeBattle?.id == configuration.id,
+              let activeRun, activeRun.launch.configuration.id == configuration.id else { return nil }
+        return activeRun
+    }
+
+    func completeDefeat(
+        _ configuration: BattleRunConfiguration,
+        settlement: BattleRewardSettlement,
+        action: BattleDefeatAction,
+        onFinished: @escaping () -> Void,
+    ) -> BattleCompletionResult {
+        let result = claimDefeat(configuration, settlement: settlement)
+        guard result.didComplete else {
+            if result == .persistenceFailed {
+                playerSave.retrySaveAction(key: SaveRetryKey.defeat(configuration.id)) { [weak self] in
+                    guard let self, let refreshed = settleDefeat(configuration, at: Date()) else { return }
+                    _ = completeDefeat(configuration, settlement: refreshed, action: action, onFinished: onFinished)
+                }
+            }
+            return result
+        }
+        switch action {
+        case .retry:
+            _ = requestRestart(onFinished: onFinished)
+            return battle.activeBattle?.id != configuration.id ? .completed : .unavailable
+        case .leave:
+            endBattleReturningToOrigin(onFinished: onFinished)
+            return .completed
+        }
     }
 }

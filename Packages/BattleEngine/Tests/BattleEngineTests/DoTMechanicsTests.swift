@@ -15,10 +15,10 @@ struct DoTMechanicsTests {
         battle.appliesFightPacing = false
         battle.roster.mutateRuntime(for: battle.hero) { $0.hasConsumedDeathsDoor = true }
 
-        _ = DoTApplicator.applyBleed(
+        _ = CombatExecutor.run { await DoTApplicator.applyBleed(
             potency: 1, to: battle.hero, sourceActorID: battle.enemy.id,
             application: .reaction, in: &battle,
-        )
+        ) }
 
         #expect(battle.roster.health(for: battle.hero) == 0)
         #expect(!battle.roster.activeEffects(for: battle.hero).contains { $0.effect.isBleed })
@@ -35,10 +35,10 @@ struct DoTMechanicsTests {
         let enemy = battle.roster.enemy.combatant
         if frozen {
             let threshold = ControlMeterEngine.threshold(for: enemy, in: battle)
-            _ = ControlMeterEngine.applyMeterCharge(
+            _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
                 threshold, keyword: .freeze, to: enemy,
                 sourceActorID: battle.roster.hero.id, applyFightPacing: false, in: &battle,
-            )
+            ) }
         }
         #expect(battle.roster.hasControlStatus(for: enemy, keyword: .freeze) == frozen)
         let initialHit = battle.resolveDamage(DamageRequest(
@@ -51,7 +51,7 @@ struct DoTMechanicsTests {
         let handler = EffectHandlers.handler(for: effect.kind)
         let healthBefore = battle.health(of: enemy)
 
-        _ = handler.advanceTurn(active, on: enemy, in: &battle)
+        _ = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
 
         let expectedDamage = keyword == .burn ? 2 : 3
         #expect(healthBefore - battle.health(of: enemy) == expectedDamage)
@@ -272,7 +272,7 @@ struct DoTMechanicsTests {
         let poison = battle.activeEffects(of: enemy).first { $0.keyword == .poison }
         let active = try #require(poison)
         let handler = EffectHandlers.handler(for: .poison)
-        _ = handler.advanceTurn(active, on: enemy, in: &battle)
+        _ = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
         #expect(battle.health(of: hero) == 31)
         #expect(battle.health(of: enemy) == enemy.maxHealth - 22)
     }
@@ -294,7 +294,7 @@ struct DoTMechanicsTests {
         )
         if isTick {
             let handler = EffectHandlers.handler(for: .bleed)
-            _ = handler.advanceTurn(bleed, on: battle.enemy, in: &battle)
+            _ = CombatExecutor.run { await handler.advanceTurn(bleed, on: battle.enemy, in: &battle) }
         } else {
             _ = BattleTurnEngine.performAction(
                 ability: .rendingSlash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
@@ -318,7 +318,7 @@ struct DoTMechanicsTests {
             dealOpeningHand: false,
         )
         for expected in [1, 2, 3, 4, 4] {
-            _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+            _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
             let runtime = try #require(battle.roster.runtime(for: battle.roster.hero.combatant))
             #expect(runtime.talents.battle.keywordDamageRamp[.burn] == expected)
         }
@@ -340,7 +340,7 @@ struct DoTMechanicsTests {
             dealOpeningHand: false,
         )
         for expected in [1, 2, 3, 4, 5] {
-            _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+            _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
             let runtime = try #require(battle.roster.runtime(for: battle.roster.hero.combatant))
             #expect(runtime.talents.battle.keywordDamageRamp[.burn] == expected)
         }
@@ -359,7 +359,7 @@ struct DoTMechanicsTests {
             ),
             dealOpeningHand: false,
         )
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(DamagePipeline.outgoingDamageBonus(
             for: battle.roster.hero.id,
             keyword: .burn,
@@ -395,7 +395,7 @@ extension DoTMechanicsTests {
         let active = try #require(burn)
         #expect(active.effect.potency == 20)
         let handler = EffectHandlers.handler(for: .burn)
-        let ticks = handler.advanceTurn(active, on: enemy, in: &battle)
+        let ticks = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
         #expect(statusAmounts(from: ticks, keyword: .burn) == [10, 10])
         #expect(battle.activeEffects(of: enemy).first { $0.keyword == .burn }?.effect.potency == 10)
     }
@@ -415,17 +415,17 @@ extension DoTMechanicsTests {
         let hero = battle.roster.hero.combatant
         let enemy = battle.roster.enemy.combatant
         battle.roster.mutateRuntime(for: hero) { $0.talents.battle.criticalMultiplierBonus = 0.5 }
-        let initial = DoTDamage.resolveDamage(
+        let initial = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 4, keyword: .bleed, target: enemy,
             sourceActorID: hero.id, in: &battle,
-        )
+        ) }
         #expect(initial.healthLost == 6)
         #expect(!initial.isCritical)
         let active = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 2, sourceActorID: hero.id)
         battle.roster.setActiveEffects([active], for: enemy)
         let handler = EffectHandlers.handler(for: .bleed)
 
-        let events = handler.advanceTurn(active, on: enemy, in: &battle)
+        let events = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
 
         #expect(statusAmounts(from: events, keyword: .bleed) == [specialCrit ? 15 : 6])
         let status = events.first { $0.kind == .status && $0.keyword == .bleed }
@@ -492,7 +492,7 @@ extension DoTMechanicsTests {
         let active = ActiveEffect(id: 100, effect: .burn(4), remainingTurns: 0, sourceActorID: hero.id)
         battle.roster.setActiveEffects([active], for: enemy)
         let handler = EffectHandlers.handler(for: .burn)
-        _ = handler.advanceTurn(active, on: enemy, in: &battle)
+        _ = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
         #expect(battle.roster.hero.currentMana == 1)
         #expect(battle.turnCadence.burnManaRestored[.hero] == 1)
     }

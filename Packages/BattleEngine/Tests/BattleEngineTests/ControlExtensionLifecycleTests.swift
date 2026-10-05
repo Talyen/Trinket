@@ -8,12 +8,12 @@ struct ControlExtensionLifecycleTests {
     func `cleansed extended control does not extend a later ordinary status`(keyword: Keyword) {
         var battle = extendedControlBattle()
         applyControl(keyword, source: battle.hero, in: &battle)
-        _ = EffectRemovalOperation.resolveCleanse(
+        _ = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .all(keyword), source: battle.companion, target: battle.enemy, abilityName: "Cleanse", in: &battle,
-        )
+        ) }
         applyControl(keyword, source: battle.companion, in: &battle)
 
-        _ = BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle)
+        _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
 
         #expect(!battle.roster.hasPendingActionSkip(for: battle.enemy))
         #expect(!CombatTriggerEngine.consumeEnemyActionDelay(in: &battle).cancelled)
@@ -24,15 +24,15 @@ struct ControlExtensionLifecycleTests {
         applyControl(.freeze, source: battle.hero, in: &battle)
         applyControl(.stun, source: battle.hero, in: &battle)
         battle.additionalControlSkipsByCombatantID[battle.enemy.id] = 1
-        _ = EffectRemovalOperation.resolveCleanse(
+        _ = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .all(.freeze), source: battle.companion, target: battle.enemy, abilityName: "Cleanse", in: &battle,
-        )
+        ) }
 
         #expect(CombatTriggerEngine.consumeEnemyActionDelay(in: &battle).cancelled)
         #expect(!CombatTriggerEngine.consumeEnemyActionDelay(in: &battle).cancelled)
-        _ = BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle)
+        _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
         #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun))
-        _ = BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle)
+        _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
         #expect(!battle.roster.hasPendingActionSkip(for: battle.enemy))
     }
 
@@ -52,16 +52,16 @@ struct ControlExtensionLifecycleTests {
         applyControl(.stun, source: battle.hero, in: &battle)
 
         for _ in 0 ..< 2 {
-            let events = BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle)
+            let events = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
             #expect(events.first?.keyword == .freeze)
         }
         #expect(!battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .freeze))
         #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun))
 
-        let firstStunSkip = BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle)
+        let firstStunSkip = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
         #expect(firstStunSkip.first?.keyword == .stun)
         #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun))
-        let finalStunSkip = BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle)
+        let finalStunSkip = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
         #expect(finalStunSkip.first?.keyword == .stun)
         #expect(!battle.roster.hasPendingActionSkip(for: battle.enemy))
     }
@@ -75,9 +75,9 @@ struct ControlExtensionLifecycleTests {
     }
 
     private func applyControl(_ keyword: Keyword, source: Combatant, in battle: inout BattleState) {
-        _ = ControlMeterEngine.applyMeterCharge(
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             100, keyword: keyword, to: battle.enemy, sourceActorID: source.id,
             applyFightPacing: false, in: &battle,
-        )
+        ) }
     }
 }

@@ -18,8 +18,8 @@ enum AttackerOnHitEngine {
     static func apply(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
-        applyStoredAdditionalDamage(to: &state, in: &context)
+    ) async {
+        await applyStoredAdditionalDamage(to: &state, in: &context)
         guard let sourceRuntime = state.partySource(in: context),
               let keyword = state.damageKeyword
         else { return }
@@ -31,7 +31,7 @@ enum AttackerOnHitEngine {
 
         if hit.keyword == .bleed, state.healthLost > 0, hit.triggers.bleedDamageGoldFlat > 0,
            context.roster.health(for: hit.source) > 0 {
-            state.damageEvents.append(contentsOf: context.grantGoldEvent(
+            await state.damageEvents.append(contentsOf: context.grantGoldEvent(
                 hit.triggers.bleedDamageGoldFlat,
                 to: hit.source,
                 abilityName: "Cutpurse Knife",
@@ -40,7 +40,12 @@ enum AttackerOnHitEngine {
 
         if state.healthLost > 0, state.combatant.role == .enemy,
            hit.triggers.carrionClaim, hit.keyword == .poison || hit.keyword == .bleed {
-            state.damageEvents.append(contentsOf: context.grantGoldEvent(1, to: hit.source, abilityName: "Carrion Claim", isTheft: true))
+            await state.damageEvents.append(contentsOf: context.grantGoldEvent(
+                1,
+                to: hit.source,
+                abilityName: "Carrion Claim",
+                isTheft: true,
+            ))
         }
 
         if hit.keyword == .holy {
@@ -50,18 +55,18 @@ enum AttackerOnHitEngine {
                 let current = context.heroTalents.history[state.combatant.id]?.blindingReduction ?? 0
                 context.heroTalents.history[state.combatant.id, default: HeroTalentHistory()].blindingReduction = max(current, reduction)
             }
-            applyHolyStunReactions(to: &state, hit: hit, in: &context)
+            await applyHolyStunReactions(to: &state, hit: hit, in: &context)
         }
 
-        applyPhysicalDamageReactions(to: &state, hit: hit, in: &context)
+        await applyPhysicalDamageReactions(to: &state, hit: hit, in: &context)
         guard state.options.isAttackHit else { return }
-        applyTalentAttackApplications(to: &state, hit: hit, in: &context)
+        await applyTalentAttackApplications(to: &state, hit: hit, in: &context)
     }
 
     private static func applyStoredAdditionalDamage(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard let sourceID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceID)
         else { return }
@@ -69,7 +74,7 @@ enum AttackerOnHitEngine {
             (state.additionalHolyDamage, Keyword.holy),
             (state.additionalPhysicalDamage, Keyword.physical),
         ] {
-            state.damageEvents.append(contentsOf: DamagePipeline.resolveNestedDamage(
+            await state.damageEvents.append(contentsOf: DamagePipeline.resolveNestedDamage(
                 amount: bonus,
                 keyword: keyword,
                 target: state.combatant,
@@ -85,14 +90,14 @@ enum AttackerOnHitEngine {
         to state: inout DamageResolutionState,
         hit: Hit,
         in context: inout BattleState,
-    ) {
+    ) async {
         let triggers = hit.triggers
         if hit.keyword == .physical, state.healthLost > 0, triggers.physicalStunBuildupPercent > 0 {
             let buildup = CombatRounding.scaled(
                 state.healthLost,
                 multiplier: triggers.physicalStunBuildupPercent,
             )
-            state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+            await state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
                 buildup,
                 keyword: .stun,
                 to: state.combatant,
@@ -122,14 +127,14 @@ enum AttackerOnHitEngine {
         to state: inout DamageResolutionState,
         hit: Hit,
         in context: inout BattleState,
-    ) {
+    ) async {
         let triggers = hit.triggers
         guard state.remaining > 0, triggers.holyStunBuildupPercent > 0 else { return }
         let buildup = CombatRounding.scaled(
             state.remaining,
             multiplier: triggers.holyStunBuildupPercent,
         )
-        let stunEvents = ControlMeterEngine.applyMeterCharge(
+        let stunEvents = await ControlMeterEngine.applyMeterCharge(
             buildup,
             keyword: .stun,
             to: state.combatant,
@@ -143,7 +148,7 @@ enum AttackerOnHitEngine {
                   $0.effectKind == .controlTriggered && $0.keyword == .stun
               })
         else { return }
-        state.damageEvents.append(contentsOf: context.grantGoldEvent(
+        await state.damageEvents.append(contentsOf: context.grantGoldEvent(
             triggers.holyTriggeredStunGoldFlat,
             to: hit.source,
             abilityName: CombatTriggerEngine.triggerAbilityName(
@@ -160,8 +165,8 @@ enum AttackerOnHitEngine {
         triggers: CombatTraitTriggers,
         source: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        context.healEmitting(
+    ) async -> [ActionEvent] {
+        await context.healEmitting(
             amount: triggers.onAttackBleedingEnemyHeal,
             target: source,
             source: source,
@@ -177,7 +182,7 @@ enum AttackerOnHitEngine {
     static func applyNimbleFang(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard state.options.isAttackHit,
               let sourceActorID = state.sourceActorID,
               let attacker = context.roster.combatant(for: sourceActorID),
@@ -186,7 +191,7 @@ enum AttackerOnHitEngine {
         else { return }
         let potency = runtime.talents.pending.bleedAfterDodge
         context.roster.mutateRuntime(for: attacker.combatant) { $0.talents.pending.bleedAfterDodge = 0 }
-        appendTargetBleed(potency: potency, state: &state, context: &context)
+        await appendTargetBleed(potency: potency, state: &state, context: &context)
     }
 
     /// Attached-bleed fan-out for attacker on-hit riders: the target is
@@ -195,9 +200,9 @@ enum AttackerOnHitEngine {
         potency: Int,
         state: inout DamageResolutionState,
         context: inout BattleState,
-    ) {
+    ) async {
         guard let sourceActorID = state.sourceActorID else { return }
-        state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
+        await state.damageEvents.append(contentsOf: DoTApplicator.applyBleed(
             potency: potency,
             to: state.combatant,
             sourceActorID: sourceActorID,

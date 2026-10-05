@@ -10,18 +10,13 @@ enum CloudSaveReconciler {
     }
 
     static func resolve(_ request: CloudSaveRequest, against server: CloudServerSave?) throws -> Resolution {
+        try validateEffects(in: request)
         let incomingSave = try request.revision.snapshot.restored()
         guard let server else {
-            guard request.baseEpoch == nil else { throw CloudSaveError.missingHead }
-            let head = CloudSaveHead(
-                epoch: request.id,
-                resetCount: request.action == .reset ? 1 : 0,
-                authoritySequence: 0,
-                revision: request.revision,
-            )
-            return resolution(head, request: request, outcome: .synchronized, backups: [], acceptedLocal: true)
+            return try firstAttachment(request)
         }
-        guard server.head.formatVersion == 1 else { throw CloudSaveError.unsupportedSave }
+        guard (1 ... 2).contains(server.head.formatVersion) else { throw CloudSaveError.unsupportedSave }
+        try server.head.productionClaims?.validate()
         let existing = server.head
         var oldSave = try existing.revision.snapshot.restored()
         if !existing.productionClockEstablished {
@@ -45,6 +40,8 @@ enum CloudSaveReconciler {
             head.epoch = request.id
             head.resetCount += 1
             head.authoritySequence = 0
+            head.productionClaims = nil
+            head.retiredItemIDs = nil
             head.revision.snapshot = CloudSaveSnapshot(resetSave)
             return resolution(head, request: request, outcome: .synchronized, backups: [
                 backup(existing.revision, epoch: existing.epoch, requestID: request.id, suffix: "previous"),
@@ -102,11 +99,62 @@ enum CloudSaveReconciler {
             ))
         }
         let shouldMerge = concurrent || (request.baseEpoch == nil && incoming.snapshot.hasProgress && current.snapshot.hasProgress)
-        let mutations = request.mutations ?? []
+        let mutations = request.mutations ?? CloudSaveJournal()
+        var selected = try selectUpload(
+            request, incomingSave: incomingSave, settledSave: settledSave,
+            shouldMerge: shouldMerge, useIncoming: useIncoming, head: &head,
+        )
+        // Server production cursor is authoritative: the winner adopts the
+        // settled clock/pending so a branch predating a committed claim or
+        // upgrade can never undo that operation via Campaign rank.
+        selected.homestead.lastProductionAt = max(selected.homestead.lastProductionAt, settledSave.homestead.lastProductionAt)
+        CloudReceiptReplay(head: head).retireItems(in: &selected)
+        if mutations.isEmpty, !shouldMerge, request.baseSnapshot?.homestead == incoming.snapshot.homestead {
+            selected.homestead.pendingProduction = settledSave.homestead.pendingProduction
+        }
+        head.revision.snapshot = CloudSaveSnapshot(selected)
+        return resolution(
+            head, request: request, outcome: .synchronized, backups: backups,
+            acceptedLocal: (useIncoming && !shouldMerge) || selected == incomingSave,
+        )
+    }
+
+    private static func validateEffects(in request: CloudSaveRequest) throws {
+        for mutation in request.mutations?.records ?? [] {
+            try mutation.economy?.validate()
+            for receipt in mutation.receipts ?? [] {
+                try receipt.validate()
+            }
+        }
+    }
+
+    private static func firstAttachment(_ request: CloudSaveRequest) throws -> Resolution {
+        guard request.baseEpoch == nil else { throw CloudSaveError.missingHead }
+        var head = CloudSaveHead(
+            epoch: request.id, resetCount: request.action == .reset ? 1 : 0,
+            authoritySequence: 0, revision: request.revision,
+        )
+        if let mutations = request.mutations, mutations.records.contains(where: { $0.receipts != nil }) {
+            var replay = CloudReceiptReplay(head: head)
+            replay.includeAccepted(mutations)
+            replay.install(into: &head)
+        }
+        return resolution(head, request: request, outcome: .synchronized, backups: [], acceptedLocal: true)
+    }
+
+    private static func selectUpload(
+        _ request: CloudSaveRequest, incomingSave: PlayerSave, settledSave: PlayerSave,
+        shouldMerge: Bool, useIncoming: Bool, head: inout CloudSaveHead,
+    ) throws -> PlayerSave {
+        let mutations = request.mutations ?? CloudSaveJournal()
         var selected: PlayerSave
         if !mutations.isEmpty {
-            selected = try replay(mutations, onto: settledSave)
-            if let last = try mutations.last?.after.restored(), last.hasDomainDifference(from: incomingSave) {
+            var receiptReplay = CloudReceiptReplay(head: head)
+            selected = try replay(mutations, onto: settledSave, receiptReplay: &receiptReplay)
+            if mutations.records.contains(where: { $0.receipts != nil }) {
+                receiptReplay.install(into: &head)
+            }
+            if let last = try mutations.lastSnapshot?.restored(), last.hasDomainDifference(from: incomingSave) {
                 selected = CloudSaveMerge.merge(
                     incoming: incomingSave, existing: selected, base: last, preferIncoming: true,
                 )
@@ -119,27 +167,29 @@ enum CloudSaveReconciler {
         } else {
             selected = useIncoming ? incomingSave : settledSave
         }
-        // Server production cursor is authoritative: the winner adopts the
-        // settled clock/pending so a branch predating a committed claim or
-        // upgrade can never undo that operation via Campaign rank.
-        selected.homestead.lastProductionAt = max(selected.homestead.lastProductionAt, settledSave.homestead.lastProductionAt)
-        if mutations.isEmpty, !shouldMerge, request.baseSnapshot?.homestead == incoming.snapshot.homestead {
-            selected.homestead.pendingProduction = settledSave.homestead.pendingProduction
-        }
-        head.revision.snapshot = CloudSaveSnapshot(selected)
-        return resolution(
-            head, request: request, outcome: .synchronized, backups: backups,
-            acceptedLocal: (useIncoming && !shouldMerge) || selected == incomingSave,
-        )
+        return selected
     }
 
-    private static func replay(_ mutations: [CloudSaveMutation], onto initial: PlayerSave) throws -> PlayerSave {
+    private static func replay(
+        _ mutations: CloudSaveJournal, onto initial: PlayerSave,
+        receiptReplay: inout CloudReceiptReplay,
+    ) throws -> PlayerSave {
         var projected = initial
         var seen: Set<String> = []
         for mutation in mutations where mutation.changedSliceMask != 0 && seen.insert(mutation.id).inserted {
             let before = try mutation.before.restored()
             let after = try mutation.after.restored()
-            projected = CloudSaveMerge.merge(incoming: after, existing: projected, base: before, preferIncoming: true)
+            var merged = CloudSaveMerge.merge(
+                incoming: after, existing: projected, base: before, preferIncoming: true,
+                reconcileEconomy: mutation.receipts == nil,
+            )
+            if let receipts = mutation.receipts {
+                try receiptReplay.apply(receipts, mutation: mutation, before: before, after: after, existing: projected, merged: &merged)
+            } else if let economy = mutation.economy {
+                try economy.replay(onto: &merged, existing: projected, before: before)
+            }
+            receiptReplay.retireItems(in: &merged)
+            projected = merged
         }
         return projected
     }
@@ -172,6 +222,15 @@ enum CloudSaveReconciler {
             outcome = .collected(Dictionary(uniqueKeysWithValues: collected.map { ($0.resource, $0.quantity) }))
             if !collected.isEmpty {
                 head.authoritySequence += 1
+                var claims = head.productionClaims ?? CloudProductionClaims()
+                for amount in collected {
+                    let start = claims.positions[amount.resource, default: 0]
+                    if !start.addingReportingOverflow(UInt64(amount.quantity)).overflow {
+                        _ = claims.claim(amount.resource, start: start, quantity: amount.quantity)
+                    }
+                }
+                head.productionClaims = claims
+                head.formatVersion = 2
             }
         case let .upgrade(nodeID, tier):
             guard let definition = GameContent.homesteadNode(matching: nodeID)

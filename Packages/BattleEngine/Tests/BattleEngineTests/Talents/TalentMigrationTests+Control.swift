@@ -11,7 +11,7 @@ extension TalentMigrationTests {
             ctx.roster.setActiveEffects([ActiveEffect(id: 1, effect: .bleed(6), remainingTurns: 2)], for: ctx.roster.enemy.combatant)
         }
         let first = battle.withEngineContext { ctx in
-            _ = CombatTriggerEngine.afterEnemyStunned(sourceActorID: ctx.roster.hero.id, in: &ctx)
+            _ = CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(sourceActorID: ctx.roster.hero.id, in: &ctx) }
             return ctx.resolveDamage(DamageRequest(
                 amount: 4,
                 target: ctx.roster.enemy.combatant,
@@ -156,16 +156,16 @@ extension TalentMigrationTests {
                         for: ctx.roster.enemy.combatant,
                     )
                 }
-                _ = ControlMeterEngine.applyMeterCharge(
+                _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
                     20, keyword: .stun, to: ctx.roster.enemy.combatant,
                     sourceActorID: ctx.roster.hero.id, applyFightPacing: false, in: &ctx,
-                )
+                ) }
             }
             #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
-            _ = BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle)
+            _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
             #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun) == burning)
             if burning {
-                _ = BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle)
+                _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
                 #expect(!battle.roster.hasPendingActionSkip(for: battle.enemy))
             }
         }

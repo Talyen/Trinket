@@ -4,11 +4,21 @@ Use with the [common runtime contract](battle-runtime.md) for preparation, activ
 
 ## Preparation and activation
 
-`PlaySession` stays in the environment for shell concerns such as pending destination and victory routing via `PlayBattleCompletion`. `PlayBattleRuns` owns app-side lifecycle transitions for runtime resources and
-their `PlayBattleRunRegistration` metadata, keyed by `BattleRunKey`. Launch,
-completion, and shell exits use that owner rather than mutating runtime lifecycle
-and registration separately. It exposes no independent registration mutation.
-`PlayBattleLaunch` owns save-backed input assembly and access policy. Play validates the current hero, companion, and enemy IDs against the baked run before requesting activation. A mismatch fails closed: Play must not fall through to a fresh `activate`, which would re-roll RNG and wipe sibling labyrinth prepares. `activatePreparedBattle(runKey:configurationID:)` consumes only the matched prepared resource. Production launches prepare, register metadata, then activate; failed activation retains a coherent retryable preparation. Other prepared runs remain until pruning, restart, or end; ending clears their registrations along with their runtime resources. Standalone launches without a mode origin still use `activate`. Pruning while active must leave both runtime resources and registrations untouched.
+`PlaySession` stays in the environment for shell navigation and adapts battle actions
+into `PlayBattleCoordinator`. The coordinator owns launch/access policy, prepared
+registrations, the active run, claims, save-action retries, and keyed reward exits.
+Each registration retains the exact launch inputs, configuration, reward plan, and
+optional completion route; standalone runs retain the same record without a route.
+BattleRuntime owns simulation resources. Only the coordinator pairs resource
+transitions with their application metadata.
+
+Play validates current hero, companion, and enemy IDs against a prepared run before
+activation. A mismatch fails closed rather than falling through to fresh activation.
+Production launches prepare, register, then activate. Matched activation consumes
+only that preparation after installation succeeds; failed activation retains both
+halves. Sibling preparations survive until pruning, restart, or end. Pruning while
+active changes neither runtime resources nor registrations. Restart stages its new
+record for synchronous presentation lookup and restores the old record if rejected.
 
 Mode launch requests resolve only after the shared access, active-battle, and transient-encounter gates. A mode can return its specific eligibility message or the common missing-encounter message. Spires uses one floor eligibility decision for both prewarming and launch, so locked floors and unattuned parties cannot be prepared and cannot launch through a stale preparation. Contracts looks up the chosen offer inside that same gate, so a stale offer cannot bypass access or busy precedence. Spires, Labyrinth, and Voyage resolve node modifiers through `ModeBattleModifiers`; combat effects, experience bonus, and reward presentation must come from that same definition set. Spire loot uses the same world-seeded modifier as battle launch.
 
@@ -19,12 +29,12 @@ Eligibility stays visible before the action under the
 [SwiftUI interaction contract](swiftui-features.md).
 
 `BattleLaunchAssembly` retains the exact `BattlePreparationInputs` used to build
-its configuration and reward presentation. These include the launch request,
+its configuration, authoritative reward plan, and display projection. These include the launch request,
 party/save inputs, world seed, and combat seed. The run key and progression-reward
 policy derive from the launch origin instead of separate stored inputs.
 Prepared activation compares that complete value with current inputs and requires
 the registered configuration ID as well as matching party/enemy identities.
-Prewarming and activation share the same snapshot comparison in `PlayBattleLaunch`;
+Prewarming and activation share the same snapshot comparison in `PlayBattleCoordinator`;
 modes select eligible encounters and prune their runs without separate freshness caches.
 Changed inputs refresh only that run, retaining its combat seed and sibling
 preparations. Unchanged inputs, including revisiting a previously warmed encounter,
@@ -44,8 +54,8 @@ Pending destinations remain for initial launch routing. Both use
 
 The app composition root installs presentation lookup, reward settlement, and
 completion capabilities once through `BattleSession.configureProgression`. These
-closures weakly capture Play; they are independent of overlay appearance. AppState
-settles the launch reward plan against final `BattleGoldFlow` and a save snapshot.
+closures weakly capture Play; they are independent of overlay appearance. The coordinator
+settles the retained launch reward plan against final `BattleGoldFlow` and a save snapshot.
 `BattleVictorySummary` projects that settlement, and Continue passes the exact value
 through `BattleSession.claimVictory(configurationID:summary:)` for validation and
 persistence. If a configured settlement lookup is unavailable, BattleSession
@@ -56,7 +66,7 @@ unavailable runs, and storage failure. A stale settlement refreshes the reveal;
 storage failure retains the award and retries the chosen completion internally. Already-claimed victories use
 the same completion capability without waiting for an overlay. BattleFeature never
 imports Persistence or AppState; these capabilities stay outside `BattleRuntime`.
-`PlayBattleCompletion` owns one claim state: unclaimed, committed defeat, or
+`PlayBattleCoordinator` owns one claim state: unclaimed, committed defeat, or
 committed victory awaiting its keyed exit. A configuration cannot claim both
 outcomes. Failed writes do not advance this state; failed Retry retains its
 committed defeat so Leave cannot award XP again. It also privately retains the
@@ -64,6 +74,10 @@ earliest saved progression baseline across defeat retries and victory. Every
 reward exit consumes that baseline once to queue Talent choices, including an
 explicit leave during victory collection. Shell code never mutates claim or
 baseline storage.
+
+`BattlePresentationContext` receives an immutable reward plan and launch-time inputs
+for provisional display. It does not construct reward policy. Completion reads the
+coordinator record even if the display projection is absent or replaced.
 
 Capacity, reservations, and transaction rules live in
 [persistence context](persistence.md). Current combat content only grants Gold;
@@ -74,7 +88,9 @@ progression capability. Revalidate the active configuration, resolved defeat (in
 settlement before saving; stale inputs refresh the reveal and storage failures
 retain the chosen action for an automatic retry without an error alert. A committed configuration retains its settlement
 until exit/replacement so a failed restart followed by either action cannot pay
-again. Retry rebuilds the encounter from updated saved progression. Leave restores
+again. Retry rebuilds from the retained launch request with updated saved party inputs
+and a fresh combat seed. It preserves encounter identity, rolled loot, bonuses,
+and modifiers; it never reconstructs gameplay inputs from presentation fields. Leave restores
 the origin and exposes newly earned talent choices, including points deferred
 across Retry attempts. Neither completes the mode's
 encounter. Active battle claims are transient; no battle-resume schema is added.

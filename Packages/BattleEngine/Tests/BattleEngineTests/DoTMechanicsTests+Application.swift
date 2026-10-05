@@ -30,7 +30,7 @@ extension DoTMechanicsTests {
             if let active {
                 let handler = EffectHandlers.handler(for: active.effect.kind)
                 let tickBefore = battle.health(of: target)
-                _ = handler.advanceTurn(active, on: target, in: &battle)
+                _ = CombatExecutor.run { await handler.advanceTurn(active, on: target, in: &battle) }
                 #expect(tickBefore - battle.health(of: target) == active.effect.potencyAfterTurn())
             }
         }
@@ -45,10 +45,10 @@ extension DoTMechanicsTests {
             DefensePoolEngine.set(block, on: target, in: &battle)
             let before = battle.health(of: target)
 
-            _ = DoTApplicator.applyDecayingDoT(
+            _ = CombatExecutor.run { await DoTApplicator.applyDecayingDoT(
                 keyword: keyword, potency: 4, to: target, sourceActorID: battle.hero.id,
                 application: application, in: &battle,
-            )
+            ) }
 
             #expect(before - battle.health(of: target) == 6 - block)
             #expect(battle.activeEffects(of: target).first { $0.keyword == keyword }?.effect.potency ?? 0 == 6 - block)
@@ -72,7 +72,7 @@ extension DoTMechanicsTests {
         let before = battle.health(of: target)
         let handler = EffectHandlers.handler(for: active.effect.kind)
 
-        _ = handler.advanceTurn(active, on: target, in: &battle)
+        _ = CombatExecutor.run { await handler.advanceTurn(active, on: target, in: &battle) }
 
         #expect(before - battle.health(of: target) == active.effect.potencyAfterTurn() - 1 - 2)
         #expect(battle.activeEffects(of: target).first { $0.keyword == keyword }?.effect.potency == active.effect.potencyAfterTurn())
@@ -91,7 +91,13 @@ extension DoTMechanicsTests {
             }
             let request = DamageRequest(amount: 4, target: target, keyword: keyword, sourceActorID: battle.enemy.id)
 
-            _ = UniqueCombatEngine.repeatHit(request, actor: battle.enemy, name: "Repeat", attachDoT: true, in: &battle)
+            _ = CombatExecutor.run { await UniqueCombatEngine.repeatHit(
+                request,
+                actor: battle.enemy,
+                name: "Repeat",
+                attachDoT: true,
+                in: &battle,
+            ) }
 
             #expect(!battle.activeEffects(of: target).contains { $0.keyword == keyword })
         }

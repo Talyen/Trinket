@@ -46,7 +46,7 @@ struct ReturningGaleRegressionTests {
     @discardableResult
     private func play(_ ability: Ability, owner: BattleParticipant, in context: inout BattleState) throws -> [ActionEvent] {
         let card = BattleCardCombatEngine.deal(ability, owner: owner, context: &context)
-        return try BattleCardCombatEngine.playDrawnCard(card, context: &context)
+        return try CombatExecutor.run { try await BattleCardCombatEngine.playDrawnCard(card, context: &context) }
     }
 
     // 1-5: Play ordinary card, end turn, Dodge during enemy turn, assert return from deck
@@ -72,9 +72,9 @@ struct ReturningGaleRegressionTests {
         try #expect((context.hand.cards + context.hand.buffer).contains { $0.owner == .hero && $0.ability.id == "played" })
         try #expect(!context.heroDeck.abilities.contains { $0.id == "played" })
         // 4. Complete enemy turn, state resets, normal next-turn draws.
-        _ = BattleCardCombatEngine.endTurnWithoutDraw(context: &context)
+        _ = CombatExecutor.run { await BattleCardCombatEngine.endTurnWithoutDraw(context: &context) }
         _ = BattleCardCombatEngine.drawNextTurnStartCard(context: &context)
-        _ = BattleCardCombatEngine.finalizeTurnStart(context: &context)
+        _ = CombatExecutor.run { await BattleCardCombatEngine.finalizeTurnStart(context: &context) }
         // 5. Returned ability remains available in visible hand or buffer.
         try #expect((context.hand.cards + context.hand.buffer).contains { $0.owner == .hero && $0.ability.id == "played" })
     }
@@ -197,7 +197,7 @@ struct ReturningGaleRegressionTests {
         try #expect(context.uniques.owners[.hero]?.returnedFlightThisTurn == true)
         // Replaying cannot repeatedly return (allowance claimed).
         let returnedCard = try #require((context.hand.cards + context.hand.buffer).first { $0.ability.id == "played" })
-        _ = try BattleCardCombatEngine.playDrawnCard(returnedCard, context: &context)
+        _ = try CombatExecutor.run { try await BattleCardCombatEngine.playDrawnCard(returnedCard, context: &context) }
         try #expect(!(context.hand.cards + context.hand.buffer).contains { $0.ability.id == "played" })
         // Second play cycled to deck (not returned).
         try #expect(context.heroDeck.discarded.contains { $0.ability.id == "played" })
@@ -215,7 +215,7 @@ struct ReturningGaleRegressionTests {
         // Automatic abilities do not replace tracked ordinary card.
         _ = try context.withAutomaticPlay { context in
             let card = BattleCardCombatEngine.deal(attack(id: "auto"), owner: .hero, context: &context)
-            return try BattleCardCombatEngine.playDrawnCard(card, context: &context)
+            return try CombatExecutor.run { try await BattleCardCombatEngine.playDrawnCard(card, context: &context) }
         }
         try #expect(context.uniques.owners[.hero]?.lastOrdinaryCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
             .copyID)

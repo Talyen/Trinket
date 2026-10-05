@@ -3,14 +3,15 @@ import TrinketContent
 import TrinketCore
 
 package enum HealingEngine {
-    static func resolveHeal(_ request: HealRequest, in context: inout BattleState) -> CombatOutcome {
-        resolveHealing(request, in: &context).combatOutcome
+    static func resolveHeal(_ request: HealRequest, in context: inout BattleState) async -> CombatOutcome {
+        await CombatExecutor.suspend()
+        return await resolveHealing(request, in: &context).combatOutcome
     }
 
     static func resolveHealing(
         _ request: HealRequest,
         in context: inout BattleState,
-    ) -> HealingResult {
+    ) async -> HealingResult {
         // Flawless Bounty preserves Gold reactions, but none of their nested work can restore Health.
         guard context.resolution.depth(.leechOverflowGold) == 0 else { return .empty }
         let standalone = context.resolution.beginStandaloneRestoration()
@@ -41,7 +42,7 @@ package enum HealingEngine {
 
         var allocation = HealingAllocation(resolvedAmount: amount, directRestoration: restored)
         let overflow = allocation.overflow
-        var events = applyPreLogTalentReactions(
+        var events = await applyPreLogTalentReactions(
             request: request, restored: restored, preHealth: preHealth,
             maxHealth: maxHealth, allocation: &allocation, in: &context,
         )
@@ -61,10 +62,10 @@ package enum HealingEngine {
             ))
         }
         if !request.suppressTalentReactions {
-            events.append(contentsOf: applyRestoredReactions(
+            await events.append(contentsOf: applyRestoredReactions(
                 restored: restored, request: request, sourceTriggers: sourceTriggers, in: &context,
             ))
-            events.append(contentsOf: applyHeroHealingTalents(
+            await events.append(contentsOf: applyHeroHealingTalents(
                 request: request,
                 restored: restored,
                 sourceTriggers: sourceTriggers,
@@ -85,7 +86,7 @@ package enum HealingEngine {
         maxHealth: Int,
         allocation: inout HealingAllocation,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard !request.suppressTalentReactions else { return [] }
         let sourceTriggers = request.sourceActorID.map { context.modifiers(for: $0).triggers }
         let targetTriggers = context.modifiers(for: request.target.id).triggers
@@ -99,15 +100,15 @@ package enum HealingEngine {
             preHealth: preHealth, maxHealth: maxHealth, restored: restored,
             request: request, sourceTriggers: sourceTriggers, in: &context,
         )
-        let cardTransfer = transferOverhealToAlly(overflow, request: request, in: &context)
+        let cardTransfer = await transferOverhealToAlly(overflow, request: request, in: &context)
         allocation.allocate(cardTransfer.healthRestored, to: .transfer)
         events.append(contentsOf: cardTransfer.events)
-        events.append(contentsOf: applyCleanSlate(overflow: overflow, request: request, in: &context))
-        events.append(contentsOf: applyOverhealConversion(
+        await events.append(contentsOf: applyCleanSlate(overflow: overflow, request: request, in: &context))
+        await events.append(contentsOf: applyOverhealConversion(
             allocation: &allocation, request: request,
             sourceTriggers: sourceTriggers, targetTriggers: targetTriggers, in: &context,
         ))
-        events.append(contentsOf: applyOnHealGrants(
+        await events.append(contentsOf: applyOnHealGrants(
             restored: restored, request: request, sourceTriggers: sourceTriggers, in: &context,
         ))
         return events
@@ -136,7 +137,7 @@ package enum HealingEngine {
         overflow: Int,
         request: HealRequest,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         if overflow > 0,
            let srcID = request.sourceActorID,
            let src = context.roster.combatant(for: srcID),
@@ -144,7 +145,7 @@ package enum HealingEngine {
            request.target.role != .enemy,
            CombatTriggerEngine.hasLivingPartyTrigger(\.cleanSlate, in: context),
            context.resolution.depth(.talentReaction) == 0 {
-            CombatTriggerEngine.performRandomCleanses(
+            await CombatTriggerEngine.performRandomCleanses(
                 source: src.combatant,
                 target: request.target,
                 count: 1,
@@ -161,7 +162,7 @@ package enum HealingEngine {
         request: HealRequest,
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard restored > 0, let sourceTriggers else { return [] }
         var events: [ActionEvent] = []
         if sourceTriggers.onHealGrantBlock > 0,
@@ -181,7 +182,7 @@ package enum HealingEngine {
                 "onHealCleanseTargetChance",
                 fallback: "Sanctified Scroll",
             )
-            events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
+            await events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
                 source: source.combatant,
                 target: request.target,
                 count: 1,
@@ -204,7 +205,7 @@ package enum HealingEngine {
            sourceTriggers.onHealRestoreCasterMana > 0,
            let caster = context.roster.combatant(for: sourceActorID),
            caster.id != request.target.id {
-            events.append(contentsOf: context.restoreManaEmitting(
+            await events.append(contentsOf: context.restoreManaEmitting(
                 sourceTriggers.onHealRestoreCasterMana,
                 to: caster.combatant,
                 abilityName: "Font of Magic",
@@ -245,9 +246,9 @@ package enum HealingEngine {
         request: HealRequest,
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard restored > 0 else { return [] }
-        var events = CombatTriggerEngine.afterHealthRestored(
+        var events = await CombatTriggerEngine.afterHealthRestored(
             restored,
             to: request.target,
             in: &context,
@@ -256,7 +257,7 @@ package enum HealingEngine {
            let sourceID = request.sourceActorID,
            let source = context.roster.combatant(for: sourceID), source.isAlive,
            source.role != .enemy, request.target.role != .enemy, context.roster.enemy.isAlive {
-            events.append(contentsOf: context.resolveDamage(DamageRequest(
+            await events.append(contentsOf: context.resolveDamage(DamageRequest(
                 amount: sourceTriggers.onHealDealHoly, target: context.enemy,
                 keyword: .holy, sourceActorID: sourceID, options: .reaction(),
             )).events)
@@ -322,7 +323,7 @@ package enum HealingEngine {
         return max(0, amount)
     }
 
-    static func resolveHealingEchoes(in context: inout BattleState) -> [ActionEvent] {
+    static func resolveHealingEchoes(in context: inout BattleState) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
             let target = context.roster[owner].combatant
@@ -339,7 +340,7 @@ package enum HealingEngine {
                     ),
                 )
                 request.amountBasis = .resolved
-                events.append(contentsOf: resolveHeal(request, in: &context).events)
+                await events.append(contentsOf: resolveHeal(request, in: &context).events)
             }
         }
         return events

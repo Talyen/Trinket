@@ -46,7 +46,7 @@ struct AbilityEffectIntegrationTests {
         #expect(events.contains { $0.effectKind == .dodgeApplied })
         #expect(battle.roster.hero.currentHealth == before)
         #expect(!battle.roster.hero.activeEffects.contains { $0.keyword == keyword })
-        _ = EffectTurnEngine.advanceAll(context: &battle)
+        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         #expect(battle.roster.hero.currentHealth == before)
     }
 

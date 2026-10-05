@@ -7,22 +7,22 @@ extension UniqueCollectionTests {
     @Test func `unclosing wound preserves duration then halves to expiration`() throws {
         var context = try battle(["the_unclosing_wound"], extra: CombatModifierProfile(bleedDurationBonus: 2))
         let target = context.roster.enemy.combatant
-        _ = DoTApplicator.applyBleed(
+        _ = CombatExecutor.run { await DoTApplicator.applyBleed(
             potency: 8,
             to: target,
             sourceActorID: context.roster.hero.id,
             application: .afterHit,
             in: &context,
-        )
+        ) }
         let duration = Effect.bleedDoTTurnCount + 2
         for _ in 0 ..< duration {
-            _ = EffectTurnEngine.advanceAll(context: &context)
+            _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &context) }
         }
         #expect(context.roster.enemy.currentHealth == 2000 - 8 * duration)
         #expect(context.roster.enemy.activeEffects.first?.effect == .bleed(4))
         #expect(context.roster.enemy.activeEffects.first?.remainingTurns == 1)
         for _ in 0 ..< 3 {
-            _ = EffectTurnEngine.advanceAll(context: &context)
+            _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &context) }
         }
         #expect(context.roster.enemy.currentHealth == 2000 - 8 * duration - 7)
         #expect(context.roster.enemy.activeEffects.isEmpty)
@@ -48,41 +48,41 @@ extension UniqueCollectionTests {
         var context = try battle(["the_lingering_bell"])
         let enemy = context.roster.enemy.combatant
         let sourceID = context.roster.hero.id
-        _ = ControlMeterEngine.applyMeterCharge(
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             900,
             keyword: .stun,
             to: enemy,
             sourceActorID: sourceID,
             applyFightPacing: false,
             in: &context,
-        )
+        ) }
         #expect(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun))
         #expect(context.uniques.retainedStunByEffectID.values.first == 100)
-        _ = ControlMeterEngine.applyMeterCharge(
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             100,
             keyword: .stun,
             to: enemy,
             sourceActorID: sourceID,
             applyFightPacing: false,
             in: &context,
-        )
+        ) }
         #expect(context.uniques.retainedStunByEffectID.values.first == 100)
-        _ = BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
+        _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context) }
         #expect(context.roster.hasControlStatus(for: enemy, keyword: .stun))
         for _ in 0 ..< BattleTiming.controlStatusLingerTurns {
-            _ = EffectTurnEngine.advanceAll(context: &context)
+            _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &context) }
         }
         #expect(!context.roster.hasControlStatus(for: enemy, keyword: .stun))
         let meter = try #require(context.roster.enemy.activeEffects.first { $0.keyword == .stun })
         #expect(meter.effect.controlMeterValues?.amount == 100)
-        _ = ControlMeterEngine.applyMeterCharge(
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             300,
             keyword: .stun,
             to: enemy,
             sourceActorID: sourceID,
             applyFightPacing: false,
             in: &context,
-        )
+        ) }
         #expect(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun))
     }
 
@@ -91,14 +91,14 @@ extension UniqueCollectionTests {
         extra.triggers.enemyStunThresholdReductionPercent = 0.25
         var context = try battle(["the_lingering_bell"], extra: extra)
         let enemy = context.roster.enemy.combatant
-        _ = ControlMeterEngine.applyMeterCharge(
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             1000,
             keyword: .stun,
             to: enemy,
             sourceActorID: context.roster.hero.id,
             applyFightPacing: false,
             in: &context,
-        )
+        ) }
         #expect(context.uniques.retainedStunByEffectID.values.first == 75)
         context.roster.setActiveEffects([], for: enemy)
         _ = UniqueCombatEngine.startTurn(in: &context)
@@ -123,7 +123,7 @@ extension UniqueCollectionTests {
         #expect(hit.isDodged)
         #expect(context.roster.enemy.currentHealth == 1994)
         #expect(blockAmount(owner, in: context) == 9)
-        DefensePoolEngine.decayBlock(on: actor, in: &context)
+        CombatExecutor.run { await DefensePoolEngine.decayBlock(on: actor, in: &context) }
         #expect(blockAmount(owner, in: context) == 9)
         #expect(DefensePoolEngine.halveBlock(on: actor, in: &context))
         #expect(blockAmount(owner, in: context) == 4)
@@ -151,9 +151,9 @@ extension UniqueCollectionTests {
         var context = try battle(["the_knights_answer"], heroBasic: basic)
         block(10, owner: .hero, in: &context)
         let claw = Ability(id: "claw", name: "Claw", tier: .basic, directDamage: 5, damageKeyword: .physical)
-        let (events, performed) = BattleTurnEngine.performEnemyAction(
+        let (events, performed) = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
             ability: claw, abilityTarget: context.hero, context: &context,
-        )
+        ) }
         #expect(performed)
         #expect(events.contains { $0.kind == .ability && $0.abilityID == "answer" })
         #expect(context.uniques.pendingBlockAnswerOwners.isEmpty)
@@ -184,7 +184,7 @@ extension UniqueCollectionTests {
         let enemy = context.enemy
         context.appendEffect(.shield(.block, 10), to: enemy, sourceID: enemy.id, remainingTurns: 0)
         context.appendEffect(.thorns(2), to: enemy, sourceID: enemy.id, remainingTurns: 0)
-        let events = CombatTriggerEngine.afterEnemyStunned(sourceActorID: context.hero.id, in: &context)
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(sourceActorID: context.hero.id, in: &context) }
         #expect(events.count { $0.effectKind == .purgeApplied } == 1)
         #expect(blockAmount(.enemy, in: context) == 8)
     }
@@ -196,7 +196,14 @@ extension UniqueCollectionTests {
         var context = try battle([], extra: extra)
         let enemy = context.enemy
         context.appendEffect(.thorns(2), to: enemy, sourceID: enemy.id, remainingTurns: 0)
-        _ = CombatTriggerEngine.applyPurge(to: enemy, source: context.hero, abilityName: "Purge", count: 1, purgeAll: false, in: &context)
+        _ = CombatExecutor.run { await CombatTriggerEngine.applyPurge(
+            to: enemy,
+            source: context.hero,
+            abilityName: "Purge",
+            count: 1,
+            purgeAll: false,
+            in: &context,
+        ) }
         var triggers = CombatTraitTriggers()
         triggers.blockGainThornsPercent = 0.5
         triggers.retainedBlockGainThornsPercent = 0.5

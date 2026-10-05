@@ -40,17 +40,18 @@ enum PlayBattleRoute {
 
     func complete(
         _ configuration: BattleRunConfiguration,
-        presentation: BattlePresentationContext,
+        launch: BattleLaunchAssembly,
         award: BattleRewardSettlement,
         materialRewards: [ResourceAmount]?,
         loot: BattleLootResult?,
         playerSave: PlayerSaveStore,
         makeContractOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> BattleCompletionResult {
-        let transaction = playerSave.persistTransaction(logging: failureLog) { save -> Result<Void, Rejection> in
+        let transaction = playerSave.persistTransaction(logging: failureLog) { save, recordReceipt -> Result<Void, Rejection> in
             switch apply(
-                configuration, presentation: presentation, award: award,
-                materialRewards: materialRewards, loot: loot, save: &save, makeContractOffer: makeContractOffer,
+                configuration, launch: launch, award: award,
+                rewards: (materialRewards, loot), save: &save, makeContractOffer: makeContractOffer,
+                recordReceipt: recordReceipt,
             ) {
             case .completed: .success(())
             case .alreadyCompleted, .unavailable: .failure(.unavailable)
@@ -67,49 +68,51 @@ enum PlayBattleRoute {
 
     private func apply(
         _ configuration: BattleRunConfiguration,
-        presentation: BattlePresentationContext,
+        launch: BattleLaunchAssembly,
         award: BattleRewardSettlement,
-        materialRewards: [ResourceAmount]?,
-        loot: BattleLootResult?,
+        rewards: (materials: [ResourceAmount]?, loot: BattleLootResult?),
         save: inout PlayerSave,
         makeContractOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer,
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         let hero = configuration.hero.combatant
         let companion = configuration.companion.combatant
         let battleGold = award.award.goldFlow
-        let item = presentation.pendingRewardItem
+        let item = launch.inputs.launch.pendingRewardItem
         let level = configuration.enemyEncounterLevel
+        let (materialRewards, loot) = rewards
         switch self {
         case let .journey(stage):
             return StageCompletion.complete(
                 stage, hero: hero, companion: companion, battleGold: battleGold, award: award,
                 materialRewards: materialRewards, rewardItem: item, loot: loot, enemyEncounterLevel: level,
-                in: GameContent.chapters, save: &save,
+                in: GameContent.chapters, save: &save, recordReceipt: recordReceipt,
             )
         case let .spire(floor):
             return SpireCompletion.complete(
                 floor: floor, hero: hero, companion: companion, battleGold: battleGold, award: award,
                 materialRewards: materialRewards, rewardItem: item, loot: loot, enemyEncounterLevel: level, save: &save,
+                recordReceipt: recordReceipt,
             )
         case let .labyrinth(nodeID, access):
             return LabyrinthCompletion.complete(
                 nodeID: nodeID, hero: hero, companion: companion, battleGold: battleGold, award: award,
                 materialRewards: materialRewards, rewardItem: item, loot: loot, enemyEncounterLevel: level,
-                save: &save, access: access,
+                save: &save, access: access, recordReceipt: recordReceipt,
             )
         case let .contract(offerID):
             guard let loot, let level else { return .unavailable }
             return ContractsCompletion.complete(
                 offerID: offerID, hero: hero, companion: companion, encounterLevel: level, loot: loot,
-                battleGold: battleGold, award: award, save: &save, makeOffer: makeContractOffer,
+                battleGold: battleGold, award: award, save: &save, makeOffer: makeContractOffer, recordReceipt: recordReceipt,
             )
         case let .voyage(runID, nodeID, encounterLevel, access):
-            let earned = presentation.rewardPlan.resolve(
+            let earned = launch.rewardPlan.resolve(
                 battleGold: battleGold, materials: materialRewards, includingCompletionBonus: false,
             )
             return VoyageCompletion.completeBattle(
                 runID: runID, nodeID: nodeID, hero: hero, companion: companion,
-                rewards: (award, earned, encounterLevel), save: &save, access: access,
+                rewards: (award, earned, encounterLevel), save: &save, access: access, recordReceipt: recordReceipt,
             )
         }
     }

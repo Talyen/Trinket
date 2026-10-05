@@ -21,7 +21,7 @@ struct DodgeCounterDamageFeedbackTests {
         DefensePoolEngine.set(1, on: enemy, in: &battle)
         let before = battle.health(of: enemy)
 
-        let events = CombatTriggerEngine.afterDodge(by: hero, attackerID: enemy.id, in: &battle)
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(by: hero, attackerID: enemy.id, in: &battle) }
         let healthLost = before - battle.health(of: enemy)
         let items = CombatFeedbackPresenter.makeItems(from: events, at: .now)
 

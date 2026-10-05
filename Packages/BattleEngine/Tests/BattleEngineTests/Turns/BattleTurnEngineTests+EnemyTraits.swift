@@ -116,10 +116,10 @@ extension BattleTurnEngineTests {
     @Test func `yeti gains block for each party member frozen`() throws {
         var context = try enemyTraitContext("yeti")
         for target in [context.hero, context.companion] {
-            _ = ControlMeterEngine.applyMeterCharge(
+            _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
                 100, keyword: .freeze, to: target, sourceActorID: context.enemy.id,
                 applyFightPacing: false, in: &context,
-            )
+            ) }
         }
 
         #expect(DefensePoolEngine.blockPoints(in: context.roster.enemy.activeEffects) == 2)
@@ -206,8 +206,8 @@ extension BattleTurnEngineTests {
             context.turnCount = turn
             let heroHealth = context.health(of: context.hero)
             let companionHealth = context.health(of: context.companion)
-            _ = EnemyTraitEngine.turnFreeze(for: enemy, context: &context)
-            _ = EnemyTraitEngine.turnRandomDamageAllEnemies(for: enemy, context: &context)
+            _ = CombatExecutor.run { await EnemyTraitEngine.turnFreeze(for: enemy, context: &context) }
+            _ = CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: enemy, context: &context) }
             let expectedDamage = turn.isMultiple(of: 2) ? 1 : 0
             #expect(heroHealth - context.health(of: context.hero) == expectedDamage)
             #expect(companionHealth - context.health(of: context.companion) == expectedDamage)
@@ -224,7 +224,7 @@ extension BattleTurnEngineTests {
         }
         context.turnCount = 2
 
-        _ = EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context)
+        _ = CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context) }
 
         for (index, target) in targets.enumerated() {
             #expect(healthBefore[index] - context.health(of: target) == 1 - block)
@@ -257,7 +257,7 @@ extension BattleTurnEngineTests {
             DefensePoolEngine.set(block, on: target, in: &context)
         }
 
-        _ = EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context)
+        _ = CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context) }
 
         for (index, target) in targets.enumerated() {
             #expect(healthBefore[index] - context.health(of: target) == 4 - block)

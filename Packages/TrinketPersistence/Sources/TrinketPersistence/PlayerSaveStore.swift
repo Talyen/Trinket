@@ -58,6 +58,7 @@ public final class PlayerSaveStore {
     /// closure commits or discards that preparation after the durable save write.
     @ObservationIgnored public var prepareExternalProgress: (@MainActor (PlayerSave) async throws -> @MainActor (Bool) -> Void)?
     @ObservationIgnored var cloudDeviceState = CloudDeviceState()
+    @ObservationIgnored var cloudOutbox: CloudSaveOutbox?
     var preservesUnreadableCloudState = false
     /// Copy used when the store runs degraded (in-memory fallback or a pending
     /// write) and has no newer error to surface.
@@ -195,25 +196,8 @@ public final class PlayerSaveStore {
             logger: logger,
         )
         root = loadedRoot.root
-        do {
-            try pendingSaveRecovery?.restore(
-                into: root, context: context, preservesPrevious: !usesMemoryFallback && loadedRoot.wasExisting,
-            )
-        } catch {
-            // PersistenceCheck: allow - record is preserved aside when possible; retry persists newer progress
-            archivePendingSaveIfCorrupt(error)
-            logger.error(
-                "Pending save could not be read; continuing with readable progress: \(String(describing: error), privacy: .public)",
-            )
-            isPersistenceDegraded = true
-        }
-        do {
-            cloudDeviceState = try CloudDeviceState.decode(root.cloudStatePayload)
-            resetAffectsCloudProgress = cloudDeviceState.activeAccountID != nil
-        } catch {
-            preservesUnreadableCloudState = true
+        if !restoreCloudMetadataAndPendingSave(preservesPrevious: !usesMemoryFallback && loadedRoot.wasExisting) {
             isCloudSyncEnabled = false
-            logger.error("iCloud metadata could not be read; keeping progress local: \(String(describing: error), privacy: .public)")
         }
         let rawSave = root.toPlayerSave()
         guard rawSave.schemaVersion == PlayerSave.currentSchemaVersion else {
@@ -244,16 +228,6 @@ public final class PlayerSaveStore {
         for task in saveActionRetries.values {
             task.cancel()
         }
-    }
-
-    /// Archives an unreadable pending record without destroying device-locked
-    /// progress: a locked read stays for retry after first unlock.
-    private func archivePendingSaveIfCorrupt(_ error: Error) {
-        if let saveError = error as? PlayerSavePersistenceError, case .storeUnavailable = saveError {
-            return
-        }
-        // PersistenceCheck: allow - corrupt record is preserved aside; retry persists newer progress
-        try? pendingSaveRecovery?.moveCorruptAside()
     }
 
     static func openSaveContainer(

@@ -15,12 +15,12 @@ package protocol BattleEffectHandler: Sendable {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome
+    ) async -> EffectApplyOutcome
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent]
+    ) async -> [ActionEvent]
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary?
 }
 

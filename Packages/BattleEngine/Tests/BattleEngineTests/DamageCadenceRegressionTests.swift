@@ -37,9 +37,9 @@ struct DamageCadenceRegressionTests {
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
         battle.appliesFightPacing = false
         battle.appendEffect(.controlMeter(.stun, 10, 10), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
-        let tick = DoTDamage.resolveDamage(
+        let tick = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 4, keyword: .bleed, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,
-        )
+        ) }
         #expect(tick.healthLost == 8)
     }
 
@@ -54,10 +54,10 @@ struct DamageCadenceRegressionTests {
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
         battle.appliesFightPacing = false
         let before = battle.health(of: battle.enemy)
-        _ = DoTDamage.resolveDamage(
+        _ = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 4, keyword: keyword, target: battle.enemy, sourceActorID: battle.hero.id,
             operation: keyword == .burn ? .resolvedPeriodic : .periodic, in: &battle,
-        )
+        ) }
         #expect(battle.health(of: battle.enemy) == before - 6)
         #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 2)
     }
@@ -70,7 +70,13 @@ struct DamageCadenceRegressionTests {
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
         battle.appliesFightPacing = false
         let before = battle.health(of: battle.enemy)
-        _ = DoTDamage.resolveDamage(basePotency: 4, keyword: .bleed, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle)
+        _ = CombatExecutor.run { await DoTDamage.resolveDamage(
+            basePotency: 4,
+            keyword: .bleed,
+            target: battle.enemy,
+            sourceActorID: battle.hero.id,
+            in: &battle,
+        ) }
         #expect(battle.health(of: battle.enemy) == before - 6)
     }
 
@@ -84,14 +90,14 @@ struct DamageCadenceRegressionTests {
         profile.triggers.onBurnDealPoisonChancePercent = 1
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
         battle.appliesFightPacing = false
-        _ = DoTApplicator.applyDoT(
+        _ = CombatExecutor.run { await DoTApplicator.applyDoT(
             keyword: keyword, potency: 4, to: battle.enemy, sourceActorID: battle.hero.id,
             application: .attached, in: &battle,
-        )
+        ) }
         DefensePoolEngine.set(100, on: battle.enemy, in: &battle)
-        let tick = DoTDamage.resolveDamage(
+        let tick = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 4, keyword: keyword, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,
-        )
+        ) }
         #expect(tick.healthLost == 0)
         #expect(battle.health(of: battle.enemy) == 50)
         #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 0)

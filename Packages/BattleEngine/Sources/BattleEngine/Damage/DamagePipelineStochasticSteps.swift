@@ -7,7 +7,7 @@ package extension DamagePipeline {
     static func applyDodgeGate(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard state.options.applyDodge,
               state.amount > 0,
               context.roster.health(for: state.combatant) > 0,
@@ -67,9 +67,9 @@ package extension DamagePipeline {
             milestone: nil,
         ))
         state.isDodged = true
-        applyWinterWake(to: &state, in: &context)
+        await applyWinterWake(to: &state, in: &context)
         if !state.options.causedByDodge {
-            state.damageEvents.append(contentsOf: UniqueCombatEngine.afterUniqueDodge(
+            await state.damageEvents.append(contentsOf: UniqueCombatEngine.afterUniqueDodge(
                 by: state.combatant,
                 attackerID: state.sourceActorID,
                 in: &context,
@@ -77,7 +77,7 @@ package extension DamagePipeline {
         }
         state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentDodge(by: state.combatant, in: &context))
         if !state.options.causedByDodge {
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(
                 by: state.combatant,
                 attackerID: state.sourceActorID,
                 allowsCounterattacks: !autoDodge,

@@ -94,7 +94,7 @@ final class PlaythroughCareer {
             playerSave: save, battleRuntime: runtime,
             contentAccess: scenario.fullAccess ? .fullGame : .free,
         )
-        play.battleLaunch.nextCombatSeed = { [weak self] in self?.launchSeed ?? 0 }
+        play.battleCoordinator.nextCombatSeed = { [weak self] in self?.launchSeed ?? 0 }
         play.encounters.currentDate = { [weak self] in self?.date ?? .distantPast }
         try checkInvariants()
     }

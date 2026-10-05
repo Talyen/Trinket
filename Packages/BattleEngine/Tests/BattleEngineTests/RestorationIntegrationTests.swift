@@ -18,7 +18,7 @@ struct RestorationIntegrationTests {
         )
         request.amountBasis = .resolved
 
-        let result = HealingEngine.resolveHealing(request, in: &battle)
+        let result = CombatExecutor.run { await HealingEngine.resolveHealing(request, in: &battle) }
 
         #expect(battle.health(of: battle.hero) == battle.hero.maxHealth)
         #expect(result.directRestoration == missingHealth)
@@ -34,9 +34,9 @@ struct RestorationIntegrationTests {
             enemy: CombatantFixtures.passiveEnemy(),
         )
         battle.appliesFightPacing = false
-        let result = HealingEngine.leechFromDamage(
+        let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
             20, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle,
-        )
+        ) }
         #expect(result.healthDelta == 0)
         #expect(!result.flags.contains(.leeched))
         #expect(result.events.contains { $0.effectKind == .overheal && $0.amount > 0 })
@@ -143,7 +143,7 @@ struct RestorationIntegrationTests {
         battle.roster.companion.currentHealth -= 5
         let healthBefore = battle.roster.companion.currentHealth
         let events = battle.withEngineContext {
-            HealingEngine.shareLeechWithAlly(restored: 1, source: $0.hero, in: &$0)
+            CombatExecutor.run { await HealingEngine.shareLeechWithAlly(restored: 1, source: $0.hero, in: &$0) }
         }
         #expect(events.isEmpty)
         #expect(battle.roster.companion.currentHealth == healthBefore)
@@ -163,7 +163,7 @@ struct RestorationIntegrationTests {
         battle.roster.hero.currentMana = 0
         var request = HealRequest(amount: 10, target: battle.hero, sourceActorID: battle.hero.id, origin: .leech, logAs: .silent)
         request.amountBasis = .resolved
-        let result = HealingEngine.resolveHealing(request, in: &battle)
+        let result = CombatExecutor.run { await HealingEngine.resolveHealing(request, in: &battle) }
         let transferred = companionHealth > 0 ? 10 - companionHealth : 0
         #expect(result.allocation.transferred == transferred)
         #expect(result.allocation.block == 10 - transferred)
@@ -198,10 +198,10 @@ struct RestorationIntegrationTests {
         battle.roster.companion.currentHealth = 10
         var request = HealRequest(amount: 10, target: battle.hero, sourceActorID: battle.hero.id, origin: .leech, logAs: .silent)
         request.amountBasis = .resolved
-        _ = HealingEngine.resolveHealing(request, in: &battle)
+        _ = CombatExecutor.run { await HealingEngine.resolveHealing(request, in: &battle) }
         #expect(battle.roster.companion.currentHealth == 20)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 0)
-        _ = HealingEngine.resolveHealing(request, in: &battle)
+        _ = CombatExecutor.run { await HealingEngine.resolveHealing(request, in: &battle) }
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 3)
     }
 }
@@ -241,7 +241,7 @@ extension RestorationIntegrationTests {
         var request = HealRequest(amount: 4, target: battle.hero, sourceActorID: battle.hero.id)
         request.amountBasis = .resolved
 
-        let result = HealingEngine.resolveHealing(request, in: &battle)
+        let result = CombatExecutor.run { await HealingEngine.resolveHealing(request, in: &battle) }
 
         #expect(result.allocation.block == 4)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 4)

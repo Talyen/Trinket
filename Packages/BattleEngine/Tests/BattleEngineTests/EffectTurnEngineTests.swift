@@ -15,7 +15,7 @@ struct EffectTurnEngineTests {
             battle.roster.setActiveEffects([burn], for: combatant)
         }
 
-        _ = EffectTurnEngine.advanceAll(context: &battle)
+        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
 
         #expect(battle.roster.enemy.currentHealth == 0)
         #expect(battle.roster.hero.currentHealth == 1)
@@ -56,10 +56,10 @@ struct EffectTurnEngineTests {
         var context = makeContext(enemyHP: 50, enemyEffects: [shield, burn])
         let enemy = context.roster.enemy.combatant
 
-        _ = EffectTurnEngine.advanceEffects(
+        _ = CombatExecutor.run { await EffectTurnEngine.advanceEffects(
             on: enemy,
             context: &context,
-        )
+        ) }
 
         let shields = context.roster.activeEffects(for: enemy).compactMap { activeEffect -> Int? in
             guard case let .shield(_, buffer) = activeEffect.effect else { return nil }
@@ -75,10 +75,10 @@ struct EffectTurnEngineTests {
         let hero = context.roster.hero.combatant
         context.roster.setActiveEffects([burn], for: hero)
 
-        _ = EffectTurnEngine.advanceEffects(
+        _ = CombatExecutor.run { await EffectTurnEngine.advanceEffects(
             on: hero,
             context: &context,
-        )
+        ) }
 
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(context.roster.isDeathsDoorActive(for: hero))

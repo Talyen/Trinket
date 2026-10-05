@@ -103,8 +103,8 @@ extension UniqueCollectionTests {
         #expect(recurring.map(\.remainingTurns) == original.map(\.remainingTurns))
         #expect(events.count(where: { $0.effectKind == .recurringDamageApplied }) == 1)
         for _ in 0 ..< 3 {
-            _ = EffectTurnEngine.advanceAll(context: &ordinary)
-            let ticks = EffectTurnEngine.advanceAll(context: &spark)
+            _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &ordinary) }
+            let ticks = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &spark) }
             #expect(ordinary.roster.enemy.currentHealth - spark.roster.enemy.currentHealth == initialDamage)
             #expect(!ticks.contains { $0.abilityName == "The Final Spark" })
         }
@@ -203,7 +203,11 @@ extension UniqueCollectionTests {
         #expect(context.roster.hero.maxMana == 0)
         block(9, owner: .hero, in: &context)
         var ability = attack(.freeze)
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &ability, actor: wearer, context: &context)
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &ability,
+            actor: wearer,
+            context: &context,
+        ) }
         #expect(blockAmount(.hero, in: context) == 0)
         #expect(ability.damageComponents.first?.amount == 11)
     }

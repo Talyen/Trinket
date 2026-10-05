@@ -26,6 +26,8 @@ struct CloudSaveHead: Codable, Equatable, Sendable {
     var authoritySequence: UInt64
     var productionClockEstablished = false
     var revision: CloudSaveRevision
+    var productionClaims: CloudProductionClaims?
+    var retiredItemIDs: Set<String>?
 }
 
 struct CloudSaveRequest: Codable, Equatable, Sendable {
@@ -43,12 +45,12 @@ struct CloudSaveRequest: Codable, Equatable, Sendable {
     let authoritySequence: UInt64
     let revision: CloudSaveRevision
     let baseSnapshot: CloudSaveSnapshot?
-    let mutations: [CloudSaveMutation]?
+    let mutations: CloudSaveJournal?
 
     init(
         id: String, action: Action, baseEpoch: String?, baseRevisionID: String?,
         authoritySequence: UInt64, revision: CloudSaveRevision, baseSnapshot: CloudSaveSnapshot? = nil,
-        mutations: [CloudSaveMutation]? = nil,
+        mutations: CloudSaveJournal? = nil,
     ) {
         self.id = id
         self.action = action
@@ -66,6 +68,25 @@ struct CloudSaveMutation: Codable, Equatable, Sendable {
     let changedSliceMask: UInt16
     let before: CloudSaveSnapshot
     let after: CloudSaveSnapshot
+    let economy: CloudEconomicAction?
+    let receipts: [SaveEconomicReceipt]?
+    let collectionPositions: [HomesteadResource: UInt64]?
+
+    init(
+        id: String, changedSliceMask: UInt16,
+        before: CloudSaveSnapshot, after: CloudSaveSnapshot,
+        economy: CloudEconomicAction? = nil,
+        receipts: [SaveEconomicReceipt]? = nil,
+        collectionPositions: [HomesteadResource: UInt64]? = nil,
+    ) {
+        self.id = id
+        self.changedSliceMask = changedSliceMask
+        self.before = before
+        self.after = after
+        self.economy = economy
+        self.receipts = receipts
+        self.collectionPositions = collectionPositions
+    }
 }
 
 struct CloudSaveReceipt: Codable, Equatable, Sendable {
@@ -95,7 +116,8 @@ struct CloudAccountState: Codable, Equatable, Sendable {
     var base: CloudSaveHead?
     var pending: CloudSaveRequest?
     var resetRequested = false
-    var journal: [CloudSaveMutation]?
+    var journal: CloudSaveJournal?
+    var collectionPositions: [HomesteadResource: UInt64]?
 }
 
 struct CloudAccountArchive: Codable, Equatable, Sendable {
@@ -104,7 +126,7 @@ struct CloudAccountArchive: Codable, Equatable, Sendable {
 }
 
 struct CloudDeviceState: Codable, Equatable, Sendable {
-    var formatVersion = 1
+    var formatVersion = 2
     var deviceID = UUID().uuidString
     var counter: UInt64 = 0
     var activeAccountID: String?
@@ -132,8 +154,9 @@ struct CloudDeviceState: Codable, Equatable, Sendable {
 
     static func decode(_ data: Data?) throws -> Self {
         guard let data else { return Self() }
-        let value = try JSONDecoder().decode(Self.self, from: data)
-        guard value.formatVersion == 1 else { throw CloudSaveError.unsupportedSave }
+        var value = try JSONDecoder().decode(Self.self, from: data)
+        guard (1 ... 3).contains(value.formatVersion) else { throw CloudSaveError.unsupportedSave }
+        value.formatVersion = max(2, value.formatVersion)
         return value
     }
 }

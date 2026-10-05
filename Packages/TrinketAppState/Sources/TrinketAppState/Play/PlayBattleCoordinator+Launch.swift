@@ -11,29 +11,7 @@ enum PlayBattleRequestResolution {
     case unavailable(StageMapMessage)
 }
 
-@MainActor
-final class PlayBattleLaunch {
-    let playerSave: PlayerSaveStore
-    let shellSession: ShellSession
-    let battle: any BattleRuntime
-    let runs: PlayBattleRuns
-    let battlePerformanceScenario: BattlePerformanceScenario?
-    var nextCombatSeed: () -> UInt64 = { UInt64.random(in: .min ... .max) }
-
-    init(
-        playerSave: PlayerSaveStore,
-        shellSession: ShellSession,
-        battle: any BattleRuntime,
-        runs: PlayBattleRuns,
-        battlePerformanceScenario: BattlePerformanceScenario?,
-    ) {
-        self.playerSave = playerSave
-        self.shellSession = shellSession
-        self.battle = battle
-        self.runs = runs
-        self.battlePerformanceScenario = battlePerformanceScenario
-    }
-
+extension PlayBattleCoordinator {
     static let activationFailureMessage = StageMapMessage(
         title: "Battle Unavailable",
         message: "Could not start this battle. Try again.",
@@ -77,7 +55,7 @@ final class PlayBattleLaunch {
               ) else { return false }
         let launch: BattleLaunchAssembly
         if let runKey = input.origin?.runKey, battle.hasPreparedRun(runKey),
-           let registration = runs.registration(for: runKey) {
+           let registration = registration(for: runKey) {
             // The registered snapshot owns freshness and RNG for this run.
             // Refreshing inputs must not reroll combat or rebuild sibling runs.
             let inputs = preparationInputs(input, rngSeed: registration.launch.inputs.rngSeed)
@@ -88,14 +66,7 @@ final class PlayBattleLaunch {
         } else {
             launch = makeBattleLaunch(input)
         }
-        return runs.prepare(launch, route: route)
-    }
-
-    func keepPreparedRuns(
-        _ keys: Set<BattleRunKey>,
-        preservingWhere preserve: (PlayBattleOrigin) -> Bool = { _ in false },
-    ) {
-        runs.keepPreparedRuns(keys, preservingWhere: preserve)
+        return prepare(launch, route: route)
     }
 
     @discardableResult
@@ -114,17 +85,17 @@ final class PlayBattleLaunch {
         ) else { return false }
         if let origin = input.origin {
             if battle.hasPreparedRun(origin.runKey) {
-                guard let registration = runs.registration(for: origin.runKey),
+                guard let registration = registration(for: origin.runKey),
                       registration.launch.configuration.hero.combatant.id == input.hero.id,
                       registration.launch.configuration.companion.combatant.id == input.companion.id,
                       registration.launch.configuration.enemy?.id == input.enemy?.id else { return false }
             }
             guard let route else { return false }
             guard prepareCombat(input, route: route),
-                  let launch = runs.registration(for: origin.runKey)?.launch,
-                  runs.activatePrepared(launch.configuration) else { return false }
+                  let launch = registration(for: origin.runKey)?.launch,
+                  activatePrepared(launch.configuration) else { return false }
         } else {
-            guard runs.activateStandalone(makeBattleLaunch(input).configuration) else { return false }
+            guard activateStandalone(makeBattleLaunch(input)) else { return false }
         }
         shellSession.selectedTab = .play
         return true
@@ -146,36 +117,40 @@ final class PlayBattleLaunch {
         )
     }
 
-    func restartActiveBattle(
-        _ activeBattle: BattleRunConfiguration,
-        route: PlayBattleRoute?,
-        presentation: BattlePresentationContext?,
-        universalModifiers: [AffixModifier],
-    ) -> Bool {
+    func requestRestart(onFinished: () -> Void) -> StageMapMessage? {
+        if case .victory = claimState {
+            return Self.activationFailureMessage
+        }
+        guard let configuration = battle.activeBattle,
+              let run = activeRegistration(for: configuration) else { return nil }
+        if let restriction = playerSave.accessRestriction(for: run.route?.origin) {
+            endBattleReturningToOrigin(onFinished: onFinished)
+            return restriction
+        }
+        guard restartActiveBattle(configuration) else { return Self.activationFailureMessage }
+        return nil
+    }
+
+    func restartActiveBattle(_ configuration: BattleRunConfiguration) -> Bool {
+        guard let run = activeRun, run.launch.configuration.id == configuration.id,
+              battle.activeBattle?.id == configuration.id else { return false }
+        let original = run.launch.inputs.launch
         let roster = playerSave.roster
-        let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.combatant.id })
-            ?? roster.activeHero
-        let companion = roster.companions.first(where: { $0.id == activeBattle.companion.combatant.id })
-            ?? roster.activeCompanion
-        let launch = makeBattleLaunch(
-            BattleLaunchInput(
-                origin: route?.origin,
-                hero: hero,
-                companion: companion,
-                enemy: activeBattle.enemy,
-                enemyEncounterLevel: activeBattle.enemyEncounterLevel,
-                stageReward: presentation?.stageReward,
-                experienceBonusPercent: presentation?.experienceBonusPercent ?? 0,
-                victoryOnlyExperienceBonusPercent: presentation?.victoryOnlyExperienceBonusPercent ?? 0,
-                pendingRewardItem: presentation?.pendingRewardItem,
-                additionalRewardItems: presentation?.additionalRewardItems ?? [],
-                stageRewardsAlreadyClaimed: presentation?.stageRewardsAlreadyClaimed ?? false,
-                universalModifiers: universalModifiers,
-                nodeModifiers: presentation?.nodeModifiers ?? [],
-                completionBonus: presentation?.completionBonus,
-            ),
-        )
-        guard runs.restart(launch, route: route) else { return false }
+        let hero = roster.heroes.first { $0.id == configuration.hero.combatant.id } ?? roster.activeHero
+        let companion = roster.companions.first { $0.id == configuration.companion.combatant.id } ?? roster.activeCompanion
+        let launch = makeBattleLaunch(BattleLaunchInput(
+            origin: original.origin, hero: hero, companion: companion,
+            enemy: original.enemy, enemyEncounterLevel: original.enemyEncounterLevel,
+            stageReward: original.stageReward,
+            experienceBonusPercent: original.experienceBonusPercent,
+            victoryOnlyExperienceBonusPercent: original.victoryOnlyExperienceBonusPercent,
+            pendingRewardItem: original.pendingRewardItem,
+            additionalRewardItems: original.additionalRewardItems,
+            stageRewardsAlreadyClaimed: original.stageRewardsAlreadyClaimed,
+            universalModifiers: original.universalModifiers,
+            nodeModifiers: original.nodeModifiers, completionBonus: original.completionBonus,
+        ))
+        guard restart(launch, route: run.route) else { return false }
         shellSession.selectedTab = .play
         return true
     }

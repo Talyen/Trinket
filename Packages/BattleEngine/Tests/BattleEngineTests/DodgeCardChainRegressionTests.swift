@@ -19,9 +19,9 @@ struct DodgeCardChainRegressionTests {
         battle.appliesFightPacing = false
         battle.heroDeck = CombatDeck(abilities: [.stab, .block])
 
-        let events = CombatTriggerEngine.afterDodge(
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: battle.hero, attackerID: battle.enemy.id, in: &battle,
-        )
+        ) }
 
         #expect(events.contains { $0.kind == .abilityDamage && $0.abilityID == Ability.stab.id && $0.isCritical })
         #expect(battle.heroDeck.abilities.isEmpty)
@@ -43,9 +43,9 @@ struct DodgeCardChainRegressionTests {
         battle.appliesFightPacing = false
         battle.heroDeck = CombatDeck(abilities: [.fangs, .block])
 
-        let events = CombatTriggerEngine.afterDodge(
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: battle.hero, attackerID: battle.enemy.id, in: &battle,
-        )
+        ) }
 
         #expect(events.contains { $0.keyword == .leech && $0.isCritical })
         #expect(events.contains { $0.kind == .abilityDamage && $0.abilityID == Ability.fangs.id && !$0.isCritical })

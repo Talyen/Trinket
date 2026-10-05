@@ -13,10 +13,10 @@ struct ManaEmpowermentTests {
         )
         battle.appliesFightPacing = false
         let companion = battle.companion
-        _ = HealingEngine.resolveHealing(HealRequest(
+        _ = CombatExecutor.run { await HealingEngine.resolveHealing(HealRequest(
             amount: 1, target: companion, sourceActorID: companion.id,
             origin: .restoration(.health), logAs: .silent,
-        ), in: &battle)
+        ), in: &battle) }
         #expect(battle.roster.companion.talents.pending.nextManaEmpowerDiscount == 3)
         battle.nextCardID += 1
         let card = BattleCard(id: battle.nextCardID, ability: .meteor, owner: .companion)
@@ -35,9 +35,9 @@ struct ManaEmpowermentTests {
         #expect(battle.roster.companion.talents.pending.nextManaEmpowerDiscount == 3)
 
         var ability = Ability.meteor
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: companion, context: &battle,
-        )
+        ) }
         #expect(battle.mana(of: companion) == 0)
         #expect(ability.directDamage == Ability.meteor.directDamage + 1 + mana / 3)
         #expect(battle.roster.companion.talents.pending.nextManaEmpowerDiscount == 0)
@@ -52,9 +52,9 @@ struct ManaEmpowermentTests {
         )
         #expect(ManaEmpowermentBudget(ability: .meteor, actor: battle.hero, in: battle).purchaseLimit == 1)
         var ability = Ability.meteor
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.hero, context: &battle,
-        )
+        ) }
         #expect(battle.mana(of: battle.hero) == 9)
         #expect(ability.directDamage == Ability.meteor.directDamage + 1)
     }
@@ -75,7 +75,11 @@ struct ManaEmpowermentTests {
             targetedEffects: [TargetedEffect(.resourceGain(.mana, 2), target: .companion)],
         )])
         var ability = Ability.frostbolt
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &ability, actor: battle.hero, context: &battle)
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &ability,
+            actor: battle.hero,
+            context: &battle,
+        ) }
         #expect(battle.mana(of: battle.hero) == 0)
         #expect(battle.mana(of: battle.companion) == 2)
         #expect(battle.roster.enemy.currentHealth == 97)
@@ -93,9 +97,9 @@ struct ManaEmpowermentTests {
         battle.appendEffect(.thorns(5), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         var ability = BattleAbilityRules.resolveOutcome(.cinderbloom, actor: battle.hero, in: &battle)
         #expect(ability.damageComponents.first?.keyword == .burn)
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.hero, context: &battle,
-        )
+        ) }
         #expect(battle.mana(of: battle.hero) == 0)
         #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .thorns(5) })
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 6)
@@ -110,9 +114,9 @@ struct ManaEmpowermentTests {
         )
         battle.heroDeck = CombatDeck(abilities: [.kindling])
         var ability = Ability.rayOfFrost
-        let events = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        let events = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.hero, context: &battle,
-        )
+        ) }
         #expect(battle.mana(of: battle.hero) == 0)
         #expect(events.contains { $0.effectKind == .cardsDrawn })
         #expect(battle.hand.cards.contains { $0.ability.id == Ability.kindling.id })
@@ -127,9 +131,9 @@ struct ManaEmpowermentTests {
         )
         for expectedMana in [3, 0] {
             var ability = Ability.frostbolt
-            _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
                 for: &ability, actor: battle.hero, context: &battle,
-            )
+            ) }
             #expect(battle.mana(of: battle.hero) == expectedMana)
             #expect(ability.directDamage == Ability.frostbolt.directDamage + 1)
         }
@@ -143,14 +147,14 @@ struct ManaEmpowermentTests {
             )),
         )
         var ability = Ability.frostbolt
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.hero, context: &battle,
-        )
+        ) }
         #expect(ability.directDamage == Ability.frostbolt.directDamage)
         _ = battle.endTurn()
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.hero, context: &battle,
-        )
+        ) }
         #expect(battle.mana(of: battle.hero) == 0)
         #expect(ability.directDamage == Ability.frostbolt.directDamage + 1)
     }
@@ -164,9 +168,9 @@ struct ManaEmpowermentTests {
             )),
         )
         var ability = Ability.frostbolt
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.hero, context: &battle,
-        )
+        ) }
         #expect(battle.mana(of: battle.hero) == discount)
         #expect(ability.directDamage == Ability.frostbolt.directDamage + 4)
     }

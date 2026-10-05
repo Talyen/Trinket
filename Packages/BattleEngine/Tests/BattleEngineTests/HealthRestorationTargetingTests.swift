@@ -44,9 +44,9 @@ struct HealthRestorationTargetingTests {
             healing: HealingTriggers(holyDamageHealFlat: 3),
         ))
         var holyBattle = battle(heroModifiers: holy)
-        _ = CombatTriggerEngine.afterHolyDamageDealt(
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(
             to: holyBattle.enemy, source: holyBattle.hero, in: &holyBattle,
-        )
+        ) }
         #expect(holyBattle.health(of: holyBattle.companion) == 4)
         #expect(holyBattle.health(of: holyBattle.hero) == 20)
 
@@ -54,10 +54,10 @@ struct HealthRestorationTargetingTests {
             dodge: DodgeTriggers(dodgeHealFlat: 3),
         ))
         var dodgeBattle = battle(heroModifiers: dodge)
-        _ = CombatTriggerEngine.afterDodge(
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: dodgeBattle.hero, attackerID: dodgeBattle.enemy.id,
             allowsCounterattacks: false, in: &dodgeBattle,
-        )
+        ) }
         #expect(dodgeBattle.health(of: dodgeBattle.companion) == 4)
         #expect(dodgeBattle.health(of: dodgeBattle.hero) == 20)
     }
@@ -78,7 +78,7 @@ struct HealthRestorationTargetingTests {
         ))
         var battle = battle(companionModifiers: profile, heroHealth: 1, companionHealth: 20)
         DefensePoolEngine.set(3, on: battle.companion, in: &battle)
-        _ = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
         #expect(battle.health(of: battle.hero) == 3)
         #expect(battle.health(of: battle.companion) == 20)
     }
@@ -91,10 +91,10 @@ struct HealthRestorationTargetingTests {
         ))
         var battle = battle(heroModifiers: profile)
         battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 1)
-        _ = EffectRemovalOperation.resolveCleanse(
+        _ = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .all(.poison), source: battle.hero, target: battle.hero,
             abilityName: "Cleanse", in: &battle,
-        )
+        ) }
         #expect(battle.health(of: battle.companion) == 9)
         #expect(battle.health(of: battle.hero) == 20)
     }

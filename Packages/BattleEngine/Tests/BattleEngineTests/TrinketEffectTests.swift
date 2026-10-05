@@ -16,7 +16,7 @@ struct TrinketEffectTests {
             battle.turnCount = turn
             battle.hand = BattleHand()
             battle.companionDeck.putOnBottom(.slash)
-            let events = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+            let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
             let drawn = events.filter { $0.effectKind == .cardsDrawn }.reduce(0) { $0 + $1.amount }
             #expect(drawn == (turn.isMultiple(of: 2) ? 1 : 0))
             #expect(battle.hand.cards.allSatisfy { $0.owner == .companion })

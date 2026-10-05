@@ -10,7 +10,7 @@ package extension ControlMeterEngine {
         sourceActorID: String?,
         abilityName: String,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard factor > 1,
               keyword == .freeze,
               context.roster.health(for: combatant) > 0,
@@ -47,7 +47,7 @@ package extension ControlMeterEngine {
         )
 
         if newAmount >= threshold {
-            let thresholdEvents = applyThresholdReached(
+            let thresholdEvents = await applyThresholdReached(
                 ControlMeterThresholdContext(
                     keyword: keyword,
                     combatant: combatant,

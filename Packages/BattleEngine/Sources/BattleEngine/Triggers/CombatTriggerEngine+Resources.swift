@@ -2,10 +2,10 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    static func afterGoldTheft(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
+    static func afterGoldTheft(by actor: Combatant, in context: inout BattleState) async -> [ActionEvent] {
         guard context.roster.health(for: actor) > 0 else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
-        var events = afterCompanionGoldTheft(by: actor, in: &context)
+        var events = await afterCompanionGoldTheft(by: actor, in: &context)
         if triggers.goldTheftBlockAmount > 0, triggers.goldTheftBlockChancePercent > 0,
            context.claimTalentAbility("Hoard Armor", actorID: actor.id),
            BattleChance.succeeds(probability: triggers.goldTheftBlockChancePercent, using: &context.rng) {
@@ -57,7 +57,7 @@ package extension CombatTriggerEngine {
         }
         if triggers.firstGoldTheftHeal > 0,
            context.claimHeroTalent("scavengersCache", actorID: actor.id) {
-            events.append(contentsOf: emitHeal(
+            await events.append(contentsOf: emitHeal(
                 "firstGoldTheftHeal", "Scavenger's Cache",
                 amount: triggers.firstGoldTheftHeal, to: actor, source: actor, in: &context,
             ))
@@ -65,21 +65,21 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    static func afterEnemyDefeated(in context: inout BattleState) -> [ActionEvent] {
+    static func afterEnemyDefeated(in context: inout BattleState) async -> [ActionEvent] {
         var events: [ActionEvent] = []
 
         for (_, member) in livingPartyMembers(in: context) {
             let actor = member.combatant
             let amount = context.modifiers(for: actor.id).triggers.defeatEnemyGoldFlat
             if amount > 0 {
-                events.append(contentsOf: emitGold(
+                await events.append(contentsOf: emitGold(
                     "defeatEnemyGoldFlat", "Bounty", amount: amount, to: actor, in: &context,
                 ))
             }
         }
 
         for (_, member) in livingPartyMembers(in: context) {
-            events.append(contentsOf: afterEnemyDefeatedReactions(for: member.combatant, in: &context))
+            await events.append(contentsOf: afterEnemyDefeatedReactions(for: member.combatant, in: &context))
         }
         return events
     }
@@ -87,31 +87,31 @@ package extension CombatTriggerEngine {
     private static func afterEnemyDefeatedReactions(
         for actor: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.roster.health(for: actor) > 0,
               context.lastEnemyDefeatWasCritical,
               context.lastEnemyDefeatSourceActorID == actor.id
         else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         guard triggers.critOnDefeatGold > 0 else { return [] }
-        return emitGold(
+        return await emitGold(
             "critOnDefeatGold", "Bounty Hunter", amount: triggers.critOnDefeatGold, to: actor, in: &context,
         )
     }
 
-    static func afterVictory(in context: inout BattleState) -> [ActionEvent] {
+    static func afterVictory(in context: inout BattleState) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         for (_, member) in livingPartyMembers(in: context) {
             let actor = member.combatant
             let triggers = context.modifiers(for: actor.id).triggers
             if triggers.victoryGoldFlat > 0 {
-                events.append(contentsOf: emitGold(
+                await events.append(contentsOf: emitGold(
                     "victoryGoldFlat", "Smuggler's Map", amount: triggers.victoryGoldFlat, to: actor, in: &context,
                 ))
             }
             if triggers.victoryGoldCoin {
                 let amount = BattleChance.succeeds(probability: 0.5, using: &context.rng) ? 7 : 3
-                events.append(contentsOf: emitGold(
+                await events.append(contentsOf: emitGold(
                     "victoryGoldCoin", "Wishing Well Coin", amount: amount, to: actor, in: &context,
                 ))
             }
@@ -122,11 +122,11 @@ package extension CombatTriggerEngine {
     static func healLowestAfterGoldGain(
         source: Combatant,
         in context: inout BattleState,
-    ) -> CombatOutcome {
+    ) async -> CombatOutcome {
         let amount = context.modifiers(for: source.id).triggers.gainGoldBonusHealSelf
         guard amount > 0 else { return .empty }
         let target = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
-        return resolveBonusHeal(
+        return await resolveBonusHeal(
             amount: amount,
             source: source,
             target: target,
@@ -141,21 +141,21 @@ package extension CombatTriggerEngine {
         currentEarned: Int,
         combatant: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let triggers = context.modifiers(for: combatant.id).triggers
         let maxHealth = context.roster.maxHealth(for: combatant)
         let wasBelowHalfHealth = context.roster.health(for: combatant) < maxHealth / 2 + maxHealth % 2
-        let restoration = beginGoldRestoration(granted: granted, combatant: combatant, triggers: triggers, in: &context)
+        let restoration = await beginGoldRestoration(granted: granted, combatant: combatant, triggers: triggers, in: &context)
         var events = restoration.events
         let wildcardGoldGain = granted > 0 && context.allowsHeroTalentReaction
             && (!context.hasHeroCard(for: combatant.id)
                 || context.claimHeroCardBonus("wildcardGoldGain", actorID: combatant.id))
         if wildcardGoldGain {
-            events.append(contentsOf: healthIsWealthHealing(for: combatant, triggers: triggers, in: &context))
+            await events.append(contentsOf: healthIsWealthHealing(for: combatant, triggers: triggers, in: &context))
             if triggers.goldGainCleanseChancePercent > 0,
                context.hasTalentDebuff(on: combatant),
                BattleChance.succeeds(probability: triggers.goldGainCleanseChancePercent, using: &context.rng) {
-                events.append(contentsOf: performRandomCleanses(
+                await events.append(contentsOf: performRandomCleanses(
                     source: combatant, target: combatant, count: 1,
                     abilityName: "Lucky Charm", in: &context,
                 ))
@@ -204,7 +204,7 @@ package extension CombatTriggerEngine {
         }
         if restoration.restoresParty {
             for (_, member) in livingPartyMembers(in: context) {
-                events.append(contentsOf: emitHeal(
+                await events.append(contentsOf: emitHeal(
                     "onGainGoldHealParty", "Golden Recovery",
                     amount: triggers.onGainGoldHealParty, to: member.combatant, source: combatant, in: &context,
                 ))
@@ -243,12 +243,12 @@ package extension CombatTriggerEngine {
         combatant: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> (events: [ActionEvent], restoresParty: Bool) {
+    ) async -> (events: [ActionEvent], restoresParty: Bool) {
         guard context.resolution.depth(.leechOverflowGold) == 0 else { return ([], false) }
         let restoresParty = granted > 0 && triggers.onGainGoldHealParty > 0
             && context.resolution.claim(.heroTalent("goldenRecovery"), actorID: combatant.id, cadence: .turn(context.turnCount))
-        var events = healLowestAfterGoldGain(source: combatant, in: &context).events
-        events.append(contentsOf: afterFinalCompanionGoldGain(granted: granted, actor: combatant, in: &context))
+        var events = await healLowestAfterGoldGain(source: combatant, in: &context).events
+        await events.append(contentsOf: afterFinalCompanionGoldGain(granted: granted, actor: combatant, in: &context))
         return (events, restoresParty)
     }
 
@@ -256,14 +256,14 @@ package extension CombatTriggerEngine {
         for combatant: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.resolution.depth(.leechOverflowGold) == 0,
               triggers.goldGainHealChancePercent > 0, triggers.goldGainHealAmount > 0 else { return [] }
         let target = BattleActionContext(actor: combatant, in: context).target(.lowestHealthAlly, in: context)
         guard context.roster.health(for: target) < context.roster.maxHealth(for: target),
               BattleChance.succeeds(probability: triggers.goldGainHealChancePercent, using: &context.rng)
         else { return [] }
-        return context.healEmitting(
+        return await context.healEmitting(
             amount: triggers.goldGainHealAmount,
             target: target,
             source: combatant,
@@ -279,13 +279,13 @@ package extension CombatTriggerEngine {
         by actor: Combatant,
         target: Combatant?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let profile = context.modifiers(for: actor.id)
         let triggers = profile.triggers
         var events: [ActionEvent] = []
 
         if triggers.leechRestoreManaFlat > 0 {
-            events.append(contentsOf: emitMana(
+            await events.append(contentsOf: emitMana(
                 "leechRestoreManaFlat", "Siphoning",
                 amount: context.paced(triggers.leechRestoreManaFlat, sourceActorID: actor.id),
                 to: actor, in: &context,
@@ -293,7 +293,7 @@ package extension CombatTriggerEngine {
         }
 
         if triggers.leechGoldFlat > 0 {
-            events.append(contentsOf: emitGold(
+            await events.append(contentsOf: emitGold(
                 "leechGoldFlat", "Blood Price", amount: triggers.leechGoldFlat, to: actor, in: &context,
             ))
         }
@@ -303,7 +303,7 @@ package extension CombatTriggerEngine {
             (Keyword.poison, triggers.onLeechApplyPoison),
             (Keyword.bleed, triggers.onLeechApplyBleed),
         ] where potency > 0 {
-            events.append(contentsOf: applyDoT(
+            await events.append(contentsOf: applyDoT(
                 keyword: keyword,
                 potency: potency,
                 to: target,

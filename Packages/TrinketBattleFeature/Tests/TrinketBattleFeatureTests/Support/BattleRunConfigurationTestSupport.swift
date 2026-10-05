@@ -25,8 +25,6 @@ enum BattleRunConfigurationTestSupport {
         inventoryItems: [InventoryItem] = [],
         stageReward: StageReward? = nil,
         rewardItems: [InventoryItem] = [],
-        pendingRewardItem: InventoryItem? = nil,
-        experienceBonusPercent: Int = 0,
         goldFindPercent: Int = 0,
         stageRewardsAlreadyClaimed: Bool = false,
         hasProgressionRewards: Bool = false,
@@ -56,17 +54,17 @@ enum BattleRunConfigurationTestSupport {
         )
         let presentation = BattlePresentationContext(
             inventoryItems: inventoryItems,
-            stageReward: stageReward,
-            rewardItems: rewardItems,
-            pendingRewardItem: pendingRewardItem,
-            experienceBonusPercent: experienceBonusPercent,
-            goldFindPercent: goldFindPercent,
+            rewardPlan: BattleRewardPlan(
+                stageGold: stageRewardsAlreadyClaimed ? 0 : stageReward?.gold ?? 0,
+                goldFindPercent: goldFindPercent,
+                heroExperience: stageRewardsAlreadyClaimed ? 0 : heroExperienceAward,
+                companionExperience: stageRewardsAlreadyClaimed ? 0 : companionExperienceAward,
+                materials: stageRewardsAlreadyClaimed ? [] : materialRewards,
+                items: stageRewardsAlreadyClaimed ? [] : rewardItems,
+            ),
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             hasProgressionRewards: hasProgressionRewards,
             musicStageID: musicStageID,
-            heroExperienceAward: heroExperienceAward,
-            companionExperienceAward: companionExperienceAward,
-            materialRewards: materialRewards,
         )
         return (configuration, presentation)
     }

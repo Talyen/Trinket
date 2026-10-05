@@ -15,11 +15,11 @@ struct ImportedAffixBattleTests {
             heroModifiers: profile,
         )
 
-        let first = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        let first = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(first.contains { $0.effectKind == .thornsApplied && $0.amount == 1 })
         #expect(thorns(on: battle.hero, in: battle) == 1)
         battle.turnCount = 1
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(thorns(on: battle.hero, in: battle) == 1)
     }
 
@@ -33,9 +33,9 @@ struct ImportedAffixBattleTests {
             heroModifiers: profile,
         )
 
-        let events = CombatTriggerEngine.afterBlockBroken(
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterBlockBroken(
             on: battle.hero, attackerID: battle.enemy.id, in: &battle,
-        )
+        ) }
         #expect(events.contains { $0.effectKind == .thornsApplied && $0.amount == 2 })
         #expect(thorns(on: battle.hero, in: battle) == 2)
     }
@@ -76,9 +76,9 @@ struct ImportedAffixBattleTests {
         )
         battle.appliesFightPacing = false
 
-        let outcome = HealingEngine.leechFromDamage(
+        let outcome = CombatExecutor.run { await HealingEngine.leechFromDamage(
             8, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle,
-        )
+        ) }
         let restored = battle.health(of: battle.hero) - 10
         #expect(outcome.flags.contains(.leeched))
         #expect(restored > 0)

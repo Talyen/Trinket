@@ -27,7 +27,7 @@ package extension DamagePipeline {
     static func applyEnemyAttackPurge(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard state.options.isAttackHit, state.amount > 0,
               let sourceID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceID), source.role == .enemy,
@@ -36,7 +36,7 @@ package extension DamagePipeline {
         else { return }
         let count = context.modifiers(for: sourceID).triggers.attackPurgeCount
         guard count > 0 else { return }
-        let purge = EffectRemovalOperation.resolvePurge(
+        let purge = await EffectRemovalOperation.resolvePurge(
             .randomBuffs(count), source: source.combatant, target: state.combatant,
             abilityName: "Unbinding Strike", in: &context,
         )

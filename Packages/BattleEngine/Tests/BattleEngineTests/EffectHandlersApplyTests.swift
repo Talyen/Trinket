@@ -358,7 +358,7 @@ extension EffectHandlersApplyTests {
             heroModifiers: .init(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldCoin: true))),
         )
         successBattle.rng = SeededRandomNumberGenerator(seed: successSeed)
-        let successEvents = CombatTriggerEngine.afterVictory(in: &successBattle)
+        let successEvents = CombatExecutor.run { await CombatTriggerEngine.afterVictory(in: &successBattle) }
         #expect(successBattle.gold == 17)
         #expect(successBattle.goldFlow == BattleGoldFlow(gained: 7))
         #expect(successEvents.contains { $0.effectKind == .resourceGain && $0.amount == 7 })
@@ -368,7 +368,7 @@ extension EffectHandlersApplyTests {
             heroModifiers: .init(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldCoin: true))),
         )
         fallbackBattle.rng = SeededRandomNumberGenerator(seed: fallbackSeed)
-        let fallbackEvents = CombatTriggerEngine.afterVictory(in: &fallbackBattle)
+        let fallbackEvents = CombatExecutor.run { await CombatTriggerEngine.afterVictory(in: &fallbackBattle) }
         #expect(fallbackBattle.gold == 13)
         #expect(fallbackBattle.goldFlow == BattleGoldFlow(gained: 3))
         #expect(fallbackEvents.contains { $0.effectKind == .resourceGain && $0.amount == 3 })

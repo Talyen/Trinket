@@ -184,9 +184,9 @@ extension AbilityEffectIntegrationTests {
                 context: &context,
             )
             #expect(context.health(of: context.enemy) == initialHealth - 6)
-            _ = EffectTurnEngine.advanceAll(context: &context)
+            _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &context) }
             #expect(context.health(of: context.enemy) == initialHealth - 12)
-            _ = EffectTurnEngine.advanceAll(context: &context)
+            _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &context) }
             #expect(context.health(of: context.enemy) == initialHealth - 12)
         }
     }

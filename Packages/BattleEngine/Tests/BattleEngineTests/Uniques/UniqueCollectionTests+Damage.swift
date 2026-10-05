@@ -27,7 +27,7 @@ extension UniqueCollectionTests {
         let active = try #require(context.roster.enemy.activeEffects.first)
         let handler = EffectHandlers.handler(for: effect.kind)
 
-        let events = handler.advanceTurn(active, on: enemy, in: &context)
+        let events = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &context) }
 
         let followups = chained ? DoTMirrorCascade.maxChainDepth : 1
         #expect(before - context.roster.enemy.currentHealth == 10 + followups)
@@ -63,10 +63,10 @@ extension UniqueCollectionTests {
         context.appendEffect(.thorns(3), to: enemy, sourceID: enemy.id, remainingTurns: 0)
         let threshold = ControlMeterEngine.threshold(for: enemy, in: context)
 
-        _ = ControlMeterEngine.applyMeterCharge(
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             threshold, keyword: .stun, to: enemy, sourceActorID: context.roster[source].id,
             applyFightPacing: false, in: &context,
-        )
+        ) }
 
         #expect(context.roster.hasControlStatus(for: enemy, keyword: .stun))
         #expect(context.roster.enemy.activeEffects.contains { $0.effect == .thorns(3) } == (source == .companion))
@@ -148,7 +148,7 @@ extension UniqueCollectionTests {
         let active = try #require(context.roster.enemy.activeEffects.first { $0.keyword == keyword && $0.effect.potency == potency })
         let handler = EffectHandlers.handler(for: active.effect.kind)
         let before = context.health(of: context.enemy)
-        _ = handler.advanceTurn(active, on: context.enemy, in: &context)
+        _ = CombatExecutor.run { await handler.advanceTurn(active, on: context.enemy, in: &context) }
         #expect(before - context.health(of: context.enemy) == (keyword == .burn ? 10 : 21))
     }
 
@@ -162,10 +162,10 @@ extension UniqueCollectionTests {
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 100 }
         for keyword in [Keyword.burn, .bleed] {
             let before = context.roster.hero.currentHealth
-            let outcome = DoTDamage.resolveDamage(
+            let outcome = CombatExecutor.run { await DoTDamage.resolveDamage(
                 basePotency: 10, keyword: keyword, target: context.roster.enemy.combatant,
                 sourceActorID: context.roster.hero.id, in: &context,
-            )
+            ) }
             #expect(outcome.healthLost == 15)
             let expectedHealing = outcome.events.filter { $0.kind == .status }.reduce(0) {
                 $0 + CombatRounding.scaled($1.amount, multiplier: 0.5)
@@ -177,7 +177,7 @@ extension UniqueCollectionTests {
     @Test func `viper readiness survives reaction and pays typed followups once`() throws {
         var context = try battle(["vipers_courtesy"], extra: CombatModifierProfile(damageDealtBonus: [.poison: 2, .bleed: 3]))
         let actor = context.roster.hero.combatant
-        _ = UniqueCombatEngine.afterUniqueDodge(by: actor, attackerID: context.roster.enemy.id, in: &context)
+        _ = CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(by: actor, attackerID: context.roster.enemy.id, in: &context) }
         _ = context.resolveDamage(DamageRequest(
             amount: 1,
             target: context.roster.enemy.combatant,
@@ -209,7 +209,11 @@ extension UniqueCollectionTests {
             criticalChanceBonus: -1,
         )
         context.heroDeck = CombatDeck(abilities: [attack(id: "other"), poison])
-        _ = UniqueCombatEngine.afterUniqueDodge(by: context.roster.hero.combatant, attackerID: context.roster.enemy.id, in: &context)
+        _ = CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(
+            by: context.roster.hero.combatant,
+            attackerID: context.roster.enemy.id,
+            in: &context,
+        ) }
         #expect(context.hand.cards.map(\.ability.id) == ["venom"])
         _ = try context.withAutomaticPlay { context in try play(poison, in: &context) }
         #expect(context.uniques.owners[.hero]?.wildheartReady == true)

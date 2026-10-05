@@ -149,9 +149,9 @@ extension KeywordCohesionMechanicsTests {
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 10 }
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 10 }
         battle.roster.mutateRuntime(for: battle.enemy) { $0.currentHealth = 50 }
-        let (events, performed) = BattleTurnEngine.performEnemyAction(
+        let (events, performed) = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
             ability: .sunburst, abilityTarget: battle.hero, context: &battle,
-        )
+        ) }
         try #require(performed)
         // The 6 Holy damage lands on the hero; no heal reaches the party.
         try #expect(battle.roster.health(for: battle.hero) == 4)
@@ -401,18 +401,18 @@ extension KeywordCohesionMechanicsTests {
         )
         battle.appliesFightPacing = false
         let heroBefore = battle.roster.health(for: battle.hero)
-        let first = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        let first = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         try #expect(battle.roster.health(for: battle.hero) == heroBefore - 1)
         try #expect(first.first { $0.effectKind == .cardsDrawn }?.amount == 1)
 
         battle.turnCount = 1
-        let second = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        let second = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         try #expect(battle.roster.health(for: battle.hero) == heroBefore - 1)
         try #expect(!second.contains { $0.effectKind == .cardsDrawn })
 
         battle.turnCount = 2
         battle.heroDeck = CombatDeck(abilities: [.slash])
-        let third = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        let third = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         try #expect(battle.roster.health(for: battle.hero) == heroBefore - 2)
         try #expect(third.first { $0.effectKind == .cardsDrawn }?.amount == 1)
     }
@@ -432,7 +432,7 @@ extension KeywordCohesionMechanicsTests {
         )
         battle.roster.mutateRuntime(for: battle.companion) { $0.hasConsumedDeathsDoor = true }
 
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(battle.roster.health(for: battle.companion) == 0)
         #expect(battle.roster.activeEffects(for: battle.hero).contains { $0.effect.isBleed })
@@ -456,7 +456,7 @@ extension KeywordCohesionMechanicsTests {
             buffer: [BattleCard(id: 3, ability: .block, owner: .companion)],
         )
 
-        _ = BattleCardCombatEngine.finalizeOpeningHand(context: &battle)
+        _ = CombatExecutor.run { await BattleCardCombatEngine.finalizeOpeningHand(context: &battle) }
 
         #expect(battle.roster.health(for: battle.hero) == 0)
         #expect(battle.hand.cards.map(\.owner) == [.companion, .companion])
@@ -477,7 +477,7 @@ extension KeywordCohesionMechanicsTests {
         )
         battle.appliesFightPacing = false
 
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(battle.isEnemyDefeated)
         #expect(battle.gold == 0)
@@ -491,14 +491,14 @@ extension KeywordCohesionMechanicsTests {
             heroHealth: 10, companionHealth: 5, heroModifiers: profile,
         )
         battle.appliesFightPacing = false
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(battle.roster.health(for: battle.companion) == 7)
         #expect(battle.roster.health(for: battle.hero) == 10)
         battle.turnCount = 1
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(battle.roster.health(for: battle.companion) == 7)
         battle.turnCount = 2
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(battle.roster.health(for: battle.companion) == 9)
     }
 
@@ -510,15 +510,15 @@ extension KeywordCohesionMechanicsTests {
             companionHealth: 10, companionModifiers: profile,
         )
         battle.appliesFightPacing = false
-        let events = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
+        let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
         #expect(events.contains { $0.abilityName == "Campfire Comfort" && $0.effectKind == .instantHeal })
         #expect(battle.roster.health(for: battle.companion) == 12)
         #expect(battle.roster.health(for: battle.hero) == 20)
         battle.turnCount = 1
-        _ = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
         #expect(battle.roster.health(for: battle.companion) == 12)
         battle.turnCount = 2
-        _ = CombatTriggerEngine.atPlayerEndTurn(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
         #expect(battle.roster.health(for: battle.companion) == 14)
     }
 
@@ -602,7 +602,7 @@ extension KeywordCohesionMechanicsTests {
         battle.companionDeck = CombatDeck(abilities: [.slash, .smite, .block])
         battle.turnCount = 0
 
-        let events = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(events.contains { $0.abilityName == "Tattered Pages" })
         #expect(events.contains { $0.abilityName == "Companion's Collar" })
         #expect(battle.hand.cards.contains { $0.owner == BattleParticipant.hero })

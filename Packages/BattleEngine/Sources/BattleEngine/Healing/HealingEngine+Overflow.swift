@@ -4,7 +4,7 @@ import TrinketCore
 extension HealingEngine {
     static func transferOverhealToAlly(
         _ overflow: Int, request: HealRequest, in context: inout BattleState,
-    ) -> CombatOutcome {
+    ) async -> CombatOutcome {
         guard overflow > 0, let sourceID = request.sourceActorID,
               let source = context.roster.combatant(for: sourceID), source.isAlive,
               request.target.role != .enemy else { return .empty }
@@ -25,7 +25,7 @@ extension HealingEngine {
             ),
         )
         transfer.amountBasis = .resolved
-        return resolveHeal(transfer, in: &context)
+        return await resolveHeal(transfer, in: &context)
     }
 
     static func applyOverhealConversion(
@@ -34,15 +34,15 @@ extension HealingEngine {
         sourceTriggers: CombatTraitTriggers?,
         targetTriggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let overflow = allocation.overflow
         guard overflow > 0 else { return [] }
-        var events = applyLeechOverhealing(
+        var events = await applyLeechOverhealing(
             allocation: &allocation, request: request, sourceTriggers: sourceTriggers, in: &context,
         )
         prepareFreeManaEmpowermentAfterOverheal(request: request, triggers: sourceTriggers, in: &context)
         if sourceTriggers?.wishspring == true {
-            events.append(contentsOf: context.restoreManaEmitting(
+            await events.append(contentsOf: context.restoreManaEmitting(
                 CombatRounding.scaled(overflow, multiplier: 0.5), to: request.target,
                 abilityName: "Wishspring",
                 actorName: request.sourceActorID.flatMap { context.roster.combatant(for: $0)?.name },
@@ -190,7 +190,7 @@ extension HealingEngine {
         request: HealRequest,
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         let transferAmount = CombatGain.amount(
             allocation.remaining, current: context.roster.companion.currentHealth, cap: context.roster.companion.maxHealth,
@@ -203,7 +203,7 @@ extension HealingEngine {
                 origin: .leech, logAs: .silent,
             )
             transfer.amountBasis = .resolved
-            let outcome = resolveHeal(transfer, in: &context)
+            let outcome = await resolveHeal(transfer, in: &context)
             events.append(contentsOf: outcome.events)
             if outcome.healthRestored > 0 {
                 allocation.allocate(outcome.healthRestored, to: .transfer)

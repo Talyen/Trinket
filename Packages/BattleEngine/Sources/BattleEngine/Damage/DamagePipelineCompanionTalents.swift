@@ -93,7 +93,7 @@ package extension DamagePipeline {
     static func applyCompanionDamageRetaliation(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         guard state.options.isAttackHit || state.options.isPeriodic,
               !state.options.isRetaliation || state.options.isPeriodic, state.healthLost > 0,
               let attackerID = state.sourceActorID,
@@ -107,7 +107,7 @@ package extension DamagePipeline {
            BattleChance.succeeds(
                probability: triggers.onDamageFreezeRetaliationChancePercent, using: &context.rng,
            ) {
-            appendNestedDamage(
+            await appendNestedDamage(
                 amount: triggers.onDamageFreezeRetaliationDamage,
                 keyword: .freeze, abilityName: "Chilling Scales",
                 target: attacker.combatant, defender: defender, to: &state, in: &context,
@@ -118,7 +118,7 @@ package extension DamagePipeline {
            BattleChance.succeeds(
                probability: triggers.onDamageBurnRetaliationChancePercent, using: &context.rng,
            ) {
-            appendNestedDamage(
+            await appendNestedDamage(
                 amount: triggers.onDamageBurnRetaliationDamage,
                 keyword: .burn, abilityName: "Blazing Feathers",
                 target: attacker.combatant, defender: defender, to: &state, in: &context,

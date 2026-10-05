@@ -40,20 +40,10 @@ final class BattleTransitionLabFixture {
         _ = session.activate(configuration, presentation: .empty)
         // Freeze the opening projection. The lab never drives turns or gameplay input.
         session.setSuspendedForScenePhase(true)
-        let plan = BattlePresentationContext(
-            inventoryItems: [],
-            stageReward: StageReward(gold: 75, itemTemplateIDs: []),
-            rewardItems: [],
-            pendingRewardItem: nil,
-            experienceBonusPercent: 0,
-            goldFindPercent: 0,
-            stageRewardsAlreadyClaimed: false,
-            hasProgressionRewards: true,
-            musicStageID: nil,
-            heroExperienceAward: 24,
-            companionExperienceAward: 18,
-            materialRewards: [],
-        ).rewardPlan
+        let plan = BattleRewardPlan(
+            stageGold: 75, goldFindPercent: 0,
+            heroExperience: 24, companionExperience: 18, materials: [], items: [],
+        )
         summary = BattleVictorySummary.make(
             configuration: configuration,
             settlement: plan.settle(

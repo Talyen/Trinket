@@ -37,12 +37,12 @@ struct ContractsPlayModeTests {
         #expect(configuration.enemyEncounterLevel == 20)
         #expect(play.playerSave.contracts == board)
         let presentation = try #require(play.battlePresentation(for: configuration.runKey))
-        #expect(presentation.heroExperienceAward == 0)
-        #expect(presentation.companionExperienceAward > 0)
+        #expect(presentation.rewardPlan.heroExperience == 0)
+        #expect(presentation.rewardPlan.companionExperience > 0)
 
         #expect(play.contracts.refresh() != nil)
         #expect(play.contracts.startBattle(offerID: standard.id) != nil)
-        #expect(play.contracts.startBattle(offerID: "missing-offer")?.title == PlayBattleLaunch.activationFailureMessage.title)
+        #expect(play.contracts.startBattle(offerID: "missing-offer")?.title == PlayBattleCoordinator.activationFailureMessage.title)
         #expect(play.playerSave.contracts == board)
         #expect(play.battle.activeBattle?.id == configuration.id)
         play.endBattleReturningToOrigin()
@@ -96,8 +96,8 @@ struct ContractsPlayModeTests {
         #expect(play.contracts.startBattle(offerID: hard.id) == nil)
         let configuration = try #require(play.battle.activeBattle)
         let presentation = try #require(play.battlePresentation(for: configuration.runKey))
-        #expect(presentation.experienceBonusPercent == modifier.experienceBonusPercent)
-        let pendingItem = try #require(presentation.pendingRewardItem)
+        let pendingItem = try #require(play.battleRegistration(for: play.battle.activeBattle?.runKey)?.launch.inputs.launch
+            .pendingRewardItem)
         if let keyword = modifier.requiredKeyword {
             #expect(pendingItem.baseType.keywordAffinities.contains(keyword))
             #expect(pendingItem.affixes.contains { $0.keywords.contains(keyword) })
@@ -113,9 +113,9 @@ struct ContractsPlayModeTests {
         #expect(play.playerSave.contracts.offer(for: .standard) == board.offer(for: .standard))
         #expect(play.playerSave.inventory.item(matching: pendingItem.id) == pendingItem)
         #expect(play.playerSave.roster.progression(for: before.roster.activeHero)
-            == before.roster.progression(for: before.roster.activeHero).addingExperience(presentation.heroExperienceAward))
+            == before.roster.progression(for: before.roster.activeHero).addingExperience(presentation.rewardPlan.heroExperience))
         #expect(play.playerSave.roster.progression(for: before.roster.activeCompanion)
-            == before.roster.progression(for: before.roster.activeCompanion).addingExperience(presentation.companionExperienceAward))
+            == before.roster.progression(for: before.roster.activeCompanion).addingExperience(presentation.rewardPlan.companionExperience))
         let claimed = play.playerSave.currentSave
         #expect(!play.completeActiveBattle(configuration, battleGold: .init(gained: 0)).didComplete)
         #expect(play.playerSave.currentSave == claimed)

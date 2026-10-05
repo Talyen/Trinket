@@ -11,13 +11,13 @@ import TrinketPersistence
 public final class VoyagePlayMode {
     public let playerSave: PlayerSaveStore
     private let battle: any BattleRuntime
-    private let battleLaunch: PlayBattleLaunch
+    private let battleCoordinator: PlayBattleCoordinator
     private let encounters: EncounterPlayMode
 
-    init(playerSave: PlayerSaveStore, battle: any BattleRuntime, battleLaunch: PlayBattleLaunch, encounters: EncounterPlayMode) {
+    init(playerSave: PlayerSaveStore, battle: any BattleRuntime, battleCoordinator: PlayBattleCoordinator, encounters: EncounterPlayMode) {
         self.playerSave = playerSave
         self.battle = battle
-        self.battleLaunch = battleLaunch
+        self.battleCoordinator = battleCoordinator
         self.encounters = encounters
     }
 
@@ -107,7 +107,7 @@ public final class VoyagePlayMode {
         switch node.type {
         case .battle, .boss:
             prepareNextBattle()
-            return battleLaunch.startBattle(origin: origin, encounters: encounters, busyMessage: nil, resolve: {
+            return battleCoordinator.startBattle(origin: origin, encounters: encounters, busyMessage: nil, resolve: {
                 guard let request = request(runID: runID, node: node) else { return .missing }
                 return .ready(input: request.input, route: request.route)
             })
@@ -128,8 +128,8 @@ public final class VoyagePlayMode {
             prunePrepared()
             return
         }
-        battleLaunch.prepareCombat(request.input, route: request.route)
-        battleLaunch.keepPreparedRuns([PlayBattleOrigin.voyage(runID: run.id, nodeID: node.id).runKey], preservingWhere: {
+        battleCoordinator.prepareCombat(request.input, route: request.route)
+        battleCoordinator.keepPreparedRuns([PlayBattleOrigin.voyage(runID: run.id, nodeID: node.id).runKey], preservingWhere: {
             if case .voyage = $0 {
                 false
             } else {
@@ -167,7 +167,7 @@ public final class VoyagePlayMode {
     }
 
     private func prunePrepared() {
-        battleLaunch.keepPreparedRuns([], preservingWhere: {
+        battleCoordinator.keepPreparedRuns([], preservingWhere: {
             if case .voyage = $0 {
                 false
             } else {

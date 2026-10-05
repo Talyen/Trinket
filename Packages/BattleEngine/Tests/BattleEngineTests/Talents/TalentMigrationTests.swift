@@ -34,6 +34,6 @@ struct TalentMigrationTests {
             original: ability, resolved: resolved, action: BattleActionContext(actor: context.hero, in: context),
             origin: .card, in: context,
         )
-        return CombatTriggerEngine.afterCardPlayed(facts, in: &context)
+        return CombatExecutor.run { await CombatTriggerEngine.afterCardPlayed(facts, in: &context) }
     }
 }

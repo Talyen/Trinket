@@ -37,7 +37,7 @@ struct BattleTurnEngineTests {
         let enemy = context.roster.enemy.combatant
         let before = try #require(context.roster.runtime(for: enemy)?.actionCount)
 
-        let events = BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
+        let events = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context) }
 
         try #expect(events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
         try #expect(!(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
@@ -535,7 +535,7 @@ struct BattleTurnEngineComponentTests {
                 runtime.talents.turn.blockedFaeWard = true
             }
         }
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &context)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &context) }
         for participant in BattleParticipant.allCases {
             let runtime = try #require(context.roster.runtime(for: context.roster[participant].combatant))
             #expect(!runtime.talents.turn.tookAttackHit)

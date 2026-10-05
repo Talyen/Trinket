@@ -39,6 +39,7 @@ public enum ContractsCompletion {
         award: BattleRewardSettlement? = nil,
         save: inout PlayerSave,
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
+        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
     ) -> EncounterCompletion {
         guard !(save.contracts.completedOfferIDs ?? []).contains(offerID),
               let offer = save.contracts.offers.first(where: { $0.id == offerID }) else { return .alreadyCompleted }
@@ -53,7 +54,7 @@ public enum ContractsCompletion {
             experienceEarnedPercent: modifier.experienceBonusPercent,
             materialRewards: loot.materials,
             item: loot.item,
-            save: &save,
+            save: &save, claim: .contract(offerID), recordReceipt: recordReceipt,
         )
         save.contracts.replace(
             offerID: offerID, eligibleModifiers: eligibleModifiers(in: save.inventory), makeOffer: makeOffer,

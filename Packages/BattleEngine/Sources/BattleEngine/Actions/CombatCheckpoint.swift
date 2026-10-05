@@ -8,7 +8,7 @@ enum CombatCheckpoint {
     case controlRecovery(String, Keyword)
     case cardCompletion(String)
 
-    typealias Reaction = (inout BattleState) -> [ActionEvent]
+    typealias Reaction = (inout BattleState) async -> [ActionEvent]
 
     func allowsContinuation(in context: borrowing BattleState) -> Bool {
         switch self {
@@ -33,17 +33,17 @@ enum CombatCheckpoint {
         }
     }
 
-    func resolve(_ reactions: [Reaction], in context: inout BattleState) -> [ActionEvent] {
+    func resolve(_ reactions: [Reaction], in context: inout BattleState) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         for reaction in reactions {
             guard allowsContinuation(in: context) else { break }
-            events.append(contentsOf: reaction(&context))
+            await events.append(contentsOf: reaction(&context))
         }
         return events
     }
 
-    func perform(in context: inout BattleState, _ reaction: (inout BattleState) -> Void) {
+    func perform(in context: inout BattleState, _ reaction: (inout BattleState) async -> Void) async {
         guard allowsContinuation(in: context) else { return }
-        reaction(&context)
+        await reaction(&context)
     }
 }

@@ -179,10 +179,10 @@ enum ActiveEffectMutation {
         to target: Combatant,
         source: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         switch active.effect {
         case let .burn(potency), let .poison(potency), let .bleed(potency):
-            return DoTApplicator.applyDoT(
+            return await DoTApplicator.applyDoT(
                 keyword: active.keyword, potency: potency, to: target, sourceActorID: source.id, application: .reflection,
                 durationTurns: active.remainingTurns, in: &context,
             ) ?? []
@@ -190,7 +190,7 @@ enum ActiveEffectMutation {
             // A triggered status remains triggered when its new recipient has a larger Health pool.
             let reflectedAmount = threshold > 0 && amount >= threshold
                 ? max(amount, ControlMeterEngine.threshold(for: target, in: context)) : amount
-            return ControlMeterEngine.applyMeterCharge(
+            return await ControlMeterEngine.applyMeterCharge(
                 reflectedAmount, keyword: keyword, to: target, sourceActorID: source.id, applyFightPacing: false, in: &context,
             )
         default:

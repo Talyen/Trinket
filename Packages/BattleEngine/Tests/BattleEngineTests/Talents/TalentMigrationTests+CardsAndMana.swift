@@ -9,14 +9,14 @@ extension TalentMigrationTests {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(closedCircuit: true)))
         let enemyHealthBefore = battle.health(of: battle.enemy)
         _ = battle.withEngineContext { ctx in
-            CombatTriggerEngine.afterSpendMana(
+            CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
                 ManaPayment(
                     payer: ctx.roster.hero.combatant,
                     balanceBefore: ctx.mana(of: ctx.roster.hero.combatant) + 3,
                     balanceAfter: ctx.mana(of: ctx.roster.hero.combatant),
                 ),
                 in: &ctx,
-            )
+            ) }
         }
         #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
     }
@@ -74,9 +74,9 @@ extension TalentMigrationTests {
         battle.heroDeck = CombatDeck(abilities: [.slash])
         battle.uniques.owners[.hero, default: .init()].cardsPlayed = 2
         let healthBefore = battle.roster.enemy.currentHealth
-        let events = CombatTriggerEngine.afterDodge(
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: battle.hero, attackerID: battle.enemy.id, in: &battle,
-        )
+        ) }
         #expect(battle.roster.enemy.currentHealth < healthBefore)
         #expect(battle.hand.isEmpty)
         #expect(battle.heroDeck.discarded.map(\.ability.id) == [Ability.slash.id])
@@ -91,9 +91,9 @@ extension TalentMigrationTests {
             heroAbilities: [.fangs],
         )
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 5 }
-        let events = CombatTriggerEngine.afterDodge(
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: battle.hero, attackerID: battle.enemy.id, in: &battle,
-        )
+        ) }
         #expect(battle.roster.hero.currentHealth > 5)
         #expect(battle.roster.hasAffliction(.bleed, on: battle.enemy))
         #expect(battle.heroDeck.abilities.map(\.id) == Array(repeating: Ability.fangs.id, count: CombatDeck.standardBasicsCount))
@@ -133,9 +133,9 @@ extension TalentMigrationTests {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(onEmpowerBurnRestoreMana: 1)))
         var ability = Ability.meteor
         _ = battle.withEngineContext { ctx in
-            _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
                 for: &ability, actor: ctx.roster.hero.combatant, context: &ctx,
-            )
+            ) }
         }
         #expect(battle.roster.runtime(for: battle.roster.hero.combatant)?.currentMana == 3)
     }
@@ -144,9 +144,9 @@ extension TalentMigrationTests {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(empowerFreezeDamageBonus: 1)))
         var ability = Ability.frostbolt
         _ = battle.withEngineContext { ctx in
-            _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
                 for: &ability, actor: ctx.roster.hero.combatant, context: &ctx,
-            )
+            ) }
         }
         #expect(ability.damageComponents.first(where: { $0.keyword == .freeze })?.amount == 6)
     }
@@ -159,14 +159,14 @@ extension TalentMigrationTests {
         }
         let before = battle.health(of: battle.enemy)
         _ = battle.withEngineContext { ctx in
-            _ = CombatTriggerEngine.afterSpendMana(
+            _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
                 ManaPayment(
                     payer: ctx.roster.hero.combatant,
                     balanceBefore: ctx.mana(of: ctx.roster.hero.combatant) + 1,
                     balanceAfter: ctx.mana(of: ctx.roster.hero.combatant),
                 ),
                 in: &ctx,
-            )
+            ) }
         }
         #expect(before - battle.health(of: battle.enemy) == 3)
     }

@@ -75,7 +75,7 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         let block: Int
         var payment: ManaPayment?
         switch effect {
@@ -106,7 +106,7 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         )
         var events: [ActionEvent] = []
         if let payment {
-            events = CombatTriggerEngine.afterSpendMana(payment, in: &context)
+            events = await CombatTriggerEngine.afterSpendMana(payment, in: &context)
         }
         events.append(contentsOf: applied.events)
         return EffectApplyOutcome(events: events, didApply: applied.applied > 0)

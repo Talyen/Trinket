@@ -119,7 +119,7 @@ struct AppStatePlayFlowTests {
         }
 
         let shown = try #require(message)
-        #expect(shown.title == PlayBattleLaunch.activationFailureMessage.title)
+        #expect(shown.title == PlayBattleCoordinator.activationFailureMessage.title)
         #expect(state.battle.activeBattle == nil)
     }
 
@@ -132,7 +132,7 @@ struct AppStatePlayFlowTests {
         state.journey.prepareBattle(for: stage)
         #expect(runtime.prepareCount == 1)
         #expect(state.battlePresentation(for: runKey) != nil)
-        #expect(state.journey.startBattle(for: stage)?.title == PlayBattleLaunch.activationFailureMessage.title)
+        #expect(state.journey.startBattle(for: stage)?.title == PlayBattleCoordinator.activationFailureMessage.title)
         #expect(state.battle.activeBattle == nil)
         #expect(state.battlePresentation(for: runKey) != nil)
 
@@ -159,7 +159,7 @@ struct AppStatePlayFlowTests {
         PlayBattleLaunchTestSupport.setActiveCompanion(otherCompanion, in: state)
 
         let message = state.journey.startBattle(for: stage)
-        #expect(message?.title == PlayBattleLaunch.activationFailureMessage.title)
+        #expect(message?.title == PlayBattleCoordinator.activationFailureMessage.title)
         #expect(state.battle.activeBattle == nil)
         #expect(battle.hasPreparedRun(runKey))
         #expect(state.battlePresentation(for: runKey) != nil)
@@ -173,7 +173,7 @@ struct AppStatePlayFlowTests {
         let presentation = try #require(state.battlePresentation(for: configuration.runKey))
         let initialGold = state.playerSave.roster.gold
         let expectedGold = VictoryRewardApplier.resolvedGoldReward(
-            stageGold: presentation.stageReward?.gold ?? 0,
+            stageGold: presentation.rewardPlan.stageGold,
             battleGold: .init(gained: 5),
             homestead: state.playerSave.homestead,
         )
@@ -225,15 +225,15 @@ struct AppStatePlayFlowTests {
 
     private func checkDuplicateDelivery(state: PlaySession) throws {
         let configuration = try #require(state.battle.activeBattle)
-        let presentation = try #require(state.battlePresentation(for: configuration.runKey))
+        let launch = try #require(state.battleRegistration(for: configuration.runKey)?.launch)
         let settlement = try #require(state.settleBattleRewards(configuration, battleGold: .init(gained: 5)))
-        let loot = PlayBattleCompletion.preparedLoot(from: presentation, materialRewards: nil)
+        let loot = PlayBattleCoordinator.preparedLoot(from: launch, materialRewards: nil)
         let route = try #require(state.route(for: configuration.runKey))
 
         #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 5)).didComplete)
         let saveAfterVictory = state.playerSave.currentSave
         #expect(route.complete(
-            configuration, presentation: presentation, award: settlement, materialRewards: nil, loot: loot, playerSave: state.playerSave,
+            configuration, launch: launch, award: settlement, materialRewards: nil, loot: loot, playerSave: state.playerSave,
         ) == .unavailable)
         #expect(state.playerSave.currentSave == saveAfterVictory)
     }
@@ -241,13 +241,12 @@ struct AppStatePlayFlowTests {
     @Test func `complete active battle without stage grants gold only`() throws {
         let state = try context.makePlaySession()
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = PlayBattleLaunchTestSupport.make(
-            rngSeed: 0,
+        #expect(state.battleCoordinator.activateBattle(BattleLaunchInput(
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,
             enemy: enemy,
-        )
-        _ = state.battle.activate(configuration)
+        )))
+        let configuration = try #require(state.battle.activeBattle)
         let journeyBefore = state.playerSave.journey
         let initialGold = state.playerSave.roster.gold
 
@@ -266,13 +265,12 @@ struct AppStatePlayFlowTests {
         try state.playerSave.performBatchMutation { $0 = save }
 
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = PlayBattleLaunchTestSupport.make(
-            rngSeed: 0,
+        #expect(state.battleCoordinator.activateBattle(BattleLaunchInput(
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,
             enemy: enemy,
-        )
-        _ = state.battle.activate(configuration)
+        )))
+        let configuration = try #require(state.battle.activeBattle)
 
         state.completeActiveBattle(configuration, battleGold: .init(gained: 10))
 
@@ -384,7 +382,7 @@ struct AppStatePlayFlowTests {
         let rawBattleEarnedGold = 20
         let presentation = try #require(state.battlePresentation(for: configuration.runKey))
         let expectedTotal = VictoryRewardApplier.resolvedGoldReward(
-            stageGold: presentation.stageReward?.gold ?? 0,
+            stageGold: presentation.rewardPlan.stageGold,
             battleGold: .init(gained: rawBattleEarnedGold),
             homestead: state.playerSave.homestead,
         )
@@ -421,7 +419,7 @@ extension AppStatePlayFlowTests {
         })
         let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
         var seedDraws = 0
-        state.battleLaunch.nextCombatSeed = {
+        state.battleCoordinator.nextCombatSeed = {
             seedDraws += 1
             return UInt64(seedDraws)
         }
@@ -442,7 +440,7 @@ extension AppStatePlayFlowTests {
         let stage = try PlayBattleLaunchTestSupport.firstJourneyStage()
         let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
         var seedDraws = 0
-        state.battleLaunch.nextCombatSeed = {
+        state.battleCoordinator.nextCombatSeed = {
             seedDraws += 1
             return UInt64(seedDraws)
         }
@@ -481,7 +479,7 @@ extension AppStatePlayFlowTests {
             $0.homestead.nodeTiers[.agilityTraining] = 1
         })
         runtime.shouldRejectPreparation = true
-        #expect(!state.battleLaunch.prepareCombat(original.launch.inputs.launch, route: original.route))
+        #expect(try !state.battleCoordinator.prepareCombat(original.launch.inputs.launch, route: #require(original.route)))
         #expect(!runtime.hasPreparedRun(runKey))
         #expect(state.battleRegistration(for: runKey) == nil)
         #expect(runtime.hasPreparedRun(siblingKey))
@@ -512,7 +510,7 @@ extension AppStatePlayFlowTests {
                 && state.battlePresentation(for: configuration) != nil
         }
 
-        #expect(state.restartActiveBattle()?.title == PlayBattleLaunch.activationFailureMessage.title)
+        #expect(state.restartActiveBattle()?.title == PlayBattleCoordinator.activationFailureMessage.title)
         #expect(lookedUpReplacement)
         #expect(runtime.activeBattle?.id == active.id)
         #expect(state.battleRegistration(for: active.runKey)?.launch.configuration.id == active.id)

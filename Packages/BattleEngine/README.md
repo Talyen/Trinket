@@ -49,7 +49,8 @@ side; party-wide talent bonuses remain restricted to the party.
 ## Key types
 
 `BattleState` and the runtime contracts form the integration surface;
-`CombatResolution` and `CombatCheckpoint` own internal resolution. Names are
+`CombatExecutor` drives heap continuations on the caller's thread;
+`CombatResolution` and `CombatCheckpoint` own identity and reaction eligibility. Names are
 navigation hints, not access-control rules.
 New engine code defaults to `package` access; `public` is reserved for the
 integration surface above.

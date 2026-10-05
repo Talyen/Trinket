@@ -40,10 +40,10 @@ struct HealingGainBoundaryTests {
         battle.appliesFightPacing = false
         battle.appendEffect(.poison(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
 
-        let result = HealingEngine.leechFromDamage(
+        let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
             8, sourceActorID: battle.companion.id, target: battle.enemy,
             abilityHasLeech: true, in: &battle,
-        )
+        ) }
 
         #expect(battle.gold == 4)
         #expect(battle.health(of: battle.hero) == 10)

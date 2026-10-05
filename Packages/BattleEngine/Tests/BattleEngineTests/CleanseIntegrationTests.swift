@@ -9,7 +9,7 @@ struct CleanseIntegrationTests {
     func `cleansing control lets an ally play newly drawn cards this turn`(keyword: Keyword) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(heroAbilities: [.slash], dealOpeningHand: false)
         battle.appendEffect(.controlMeter(keyword, 10, 10), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
-        _ = BattleCardCombatEngine.finalizeOpeningHand(context: &battle)
+        _ = CombatExecutor.run { await BattleCardCombatEngine.finalizeOpeningHand(context: &battle) }
         #expect(battle.ownersSkippingThisPlayerTurn.contains(.hero))
 
         _ = EffectHandlersTestSupport.dispatch(
@@ -34,9 +34,9 @@ struct CleanseIntegrationTests {
         let handler = EffectHandlers.handler(for: cleanse.kind)
         let enemyHealth = battle.roster.enemy.currentHealth
 
-        _ = handler.apply(
+        _ = CombatExecutor.run { await handler.apply(
             cleanse, ability: .panaceaPotion, source: battle.companion, target: battle.hero, in: &battle,
-        )
+        ) }
 
         #expect(battle.roster.hero.activeEffects.isEmpty)
         let reflected = try #require(battle.roster.enemy.activeEffects.first { $0.effect.kind == debuff.effect.kind })
@@ -379,10 +379,10 @@ extension CleanseIntegrationTests {
         battle.appliesFightPacing = false
         let hero = battle.hero
         let enemy = battle.enemy
-        _ = ControlMeterEngine.applyMeterCharge(
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             100, keyword: keyword, to: hero, sourceActorID: enemy.id,
             applyFightPacing: false, in: &battle,
-        )
+        ) }
         #expect(battle.roster.hasPendingActionSkip(for: hero, keyword: keyword))
         let card = BattleCardCombatEngine.deal(.panaceaPotion, owner: .companion, context: &battle)
 
@@ -392,7 +392,7 @@ extension CleanseIntegrationTests {
         #expect(battle.roster.hasPendingActionSkip(for: enemy, keyword: keyword))
         #expect(events.contains { $0.effectKind == .controlTriggered && $0.targetID == enemy.id && $0.keyword == keyword })
         #expect(battle.health(of: enemy) == 100)
-        let skipped = BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle)
+        let skipped = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle) }
         #expect(skipped.contains { $0.effectKind == .controlActionSkipped && $0.keyword == keyword })
         #expect(!battle.roster.hasPendingActionSkip(for: enemy, keyword: keyword))
     }

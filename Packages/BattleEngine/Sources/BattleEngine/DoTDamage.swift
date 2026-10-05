@@ -12,7 +12,7 @@ package enum DoTDamage {
         provenance: DamageProvenance? = nil,
         operation: DamageOperation = .periodic,
         in context: inout BattleState,
-    ) -> CombatOutcome {
+    ) async -> CombatOutcome {
         guard basePotency > 0 else { return .empty }
 
         var request = DamageRequest(
@@ -24,7 +24,7 @@ package enum DoTDamage {
         )
         request.options.guaranteedCritical = guaranteedCritical
         request.provenance = provenance
-        let damageOutcome = context.resolveDamage(request)
+        let damageOutcome = await context.resolveDamage(request)
         guard damageOutcome.healthLost > 0 else { return damageOutcome }
 
         let statusEvent = context.nextEvent(

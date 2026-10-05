@@ -11,18 +11,18 @@ import TrinketPersistence
 public final class LabyrinthPlayMode {
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
-    private let battleLaunch: PlayBattleLaunch
+    private let battleCoordinator: PlayBattleCoordinator
     private let encounters: EncounterPlayMode
 
     init(
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
-        battleLaunch: PlayBattleLaunch,
+        battleCoordinator: PlayBattleCoordinator,
         encounters: EncounterPlayMode,
     ) {
         self.playerSave = playerSave
         self.battle = battle
-        self.battleLaunch = battleLaunch
+        self.battleCoordinator = battleCoordinator
         self.encounters = encounters
     }
 
@@ -96,10 +96,10 @@ public final class LabyrinthPlayMode {
 
     @discardableResult
     func startBattle(nodeID: String) -> StageMapMessage? {
-        // No access pre-check here: PlayBattleLaunch.startBattle owns the
+        // No access pre-check here: PlayBattleCoordinator.startBattle owns the
         // gate and returns the restriction first. handleNodeAction keeps its
         // own check so the paywall takes precedence over reachability messages.
-        battleLaunch.startBattle(
+        battleCoordinator.startBattle(
             origin: .labyrinth(nodeID: nodeID),
             encounters: encounters,
             busyMessage: nil, // Map taps swallow a busy battle.
@@ -150,7 +150,7 @@ public final class LabyrinthPlayMode {
                 preparedKeys.insert(PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey)
             }
         }
-        battleLaunch.keepPreparedRuns(preparedKeys, preservingWhere: { !$0.isLabyrinth })
+        battleCoordinator.keepPreparedRuns(preparedKeys, preservingWhere: { !$0.isLabyrinth })
     }
 
     private func prepareBattle(
@@ -160,7 +160,7 @@ public final class LabyrinthPlayMode {
         guard let encounter = resolvedEncounter(for: node) else { return false }
         guard battle.lifecyclePhase != .active else { return false }
         let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter)
-        return battleLaunch.prepareCombat(request.input, route: request.route)
+        return battleCoordinator.prepareCombat(request.input, route: request.route)
     }
 }
 

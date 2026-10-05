@@ -71,7 +71,7 @@ extension TalentCatalogRoundTripTests {
         let gold = battle.gold
         _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Gold")
         #expect(battle.gold == gold + 2)
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(DefensePoolEngine.add(7, to: battle.enemy, in: &battle) == 7)
     }
 
@@ -91,7 +91,7 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.hero.currentHealth == heroHealth)
         #expect(battle.roster.companion.currentHealth == companionHealth)
         #expect(battle.activeEffects(of: battle.enemy).isEmpty)
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         let applied = EffectHandlersTestSupport.dispatch(
             avatar, ability: .avatarOfJustice, source: battle.enemy, target: battle.enemy, battle: &battle,
         )
@@ -128,7 +128,7 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.enemy.talents.pending.nextAttackMissChance == 0.20)
         battle.roster.enemy.talents.pending.nextAttackMissChance = 1
         let attack = Ability(id: "two-hits", name: "Two Hits", tier: .basic, damageComponents: [DamageComponent(4), DamageComponent(4)])
-        let avoided = CombatTriggerEngine.enemyAttackAvoidance(in: &battle)
+        let avoided = CombatExecutor.run { await CombatTriggerEngine.enemyAttackAvoidance(in: &battle) }
         #expect(avoided.cancelled)
         let before = battle.roster.hero.currentHealth
         _ = BattleTurnEngine.performAction(ability: attack, actor: battle.enemy, abilityTarget: battle.hero, context: &battle)
@@ -147,7 +147,7 @@ extension TalentCatalogRoundTripTests {
         ))
         #expect(battle.gold == 0)
         if detonates {
-            _ = CombatTriggerEngine.detonateBleed(on: battle.enemy, sourceActorID: battle.hero.id, in: &battle)
+            _ = CombatExecutor.run { await CombatTriggerEngine.detonateBleed(on: battle.enemy, sourceActorID: battle.hero.id, in: &battle) }
         } else {
             _ = battle.resolveDamage(DamageRequest(
                 amount: 4, target: battle.enemy, keyword: .physical,

@@ -39,10 +39,10 @@ package enum DoTApplicator {
         durationTurns: Int? = nil,
         provenance: DamageProvenance? = nil,
         in context: inout BattleState,
-    ) -> [ActionEvent]? {
+    ) async -> [ActionEvent]? {
         switch keyword {
         case .bleed:
-            applyBleed(
+            await applyBleed(
                 potency: potency,
                 to: effectTarget,
                 sourceActorID: sourceActorID,
@@ -52,7 +52,7 @@ package enum DoTApplicator {
                 in: &context,
             )
         case .burn, .poison:
-            applyDecayingDoT(
+            await applyDecayingDoT(
                 keyword: keyword,
                 potency: potency,
                 to: effectTarget,
@@ -74,13 +74,13 @@ package enum DoTApplicator {
         application: DoTApplication,
         provenance: DamageProvenance? = nil,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
         var collected: [ActionEvent] = []
         var appliedPotency = potency
         if application.dealsImmediateDamage {
-            let outcome = DoTDamage.resolveDamage(
+            let outcome = await DoTDamage.resolveDamage(
                 basePotency: potency, keyword: keyword, target: effectTarget,
                 sourceActorID: sourceActorID, provenance: provenance, in: &context,
             )
@@ -126,10 +126,10 @@ package enum DoTApplicator {
         durationTurns: Int? = nil,
         provenance: DamageProvenance? = nil,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
-        var collected = immediateDamage(
+        var collected = await immediateDamage(
             keyword: .bleed, potency: potency, target: effectTarget,
             sourceActorID: sourceActorID, application: application,
             provenance: provenance, in: &context,
@@ -146,7 +146,7 @@ package enum DoTApplicator {
                 }
                 for bleed in bleeds {
                     guard context.roster.health(for: effectTarget) > 0 else { break }
-                    collected.append(contentsOf: DoTDamage.resolveDamage(
+                    await collected.append(contentsOf: DoTDamage.resolveDamage(
                         basePotency: bleed.effect.potency ?? 0,
                         keyword: .bleed,
                         target: effectTarget,
@@ -156,7 +156,7 @@ package enum DoTApplicator {
                 }
             }
             if sourceTriggers.onBleedAppliedToBleedingDealDamage > 0 {
-                collected.append(contentsOf: DoTDamage.resolveDamage(
+                await collected.append(contentsOf: DoTDamage.resolveDamage(
                     basePotency: sourceTriggers.onBleedAppliedToBleedingDealDamage,
                     keyword: .bleed,
                     target: effectTarget,
@@ -188,9 +188,9 @@ package enum DoTApplicator {
         application: DoTApplication,
         provenance: DamageProvenance?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard application.dealsImmediateDamage else { return [] }
-        return DoTDamage.resolveDamage(
+        return await DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: keyword,
             target: target,

@@ -109,8 +109,8 @@ public final class EncounterPlayMode {
         guard let shopSession = activeShopEncounter else { return .rejected }
         guard !shopSession.isPurchasing else { return .rejected }
         shopSession.markPurchaseStarted()
-        switch playerSave.persistTransaction(logging: "Failed to purchase shop offer", { save in
-            ShopPurchaseApplier.purchase(offerID: offerID, encounter: shopSession.encounter, save: &save)
+        switch playerSave.persistTransaction(logging: "Failed to purchase shop offer", { save, recordReceipt in
+            ShopPurchaseApplier.purchase(offerID: offerID, encounter: shopSession.encounter, save: &save, recordReceipt: recordReceipt)
         }) {
         case .committed:
             shopSession.markPurchaseFinished()

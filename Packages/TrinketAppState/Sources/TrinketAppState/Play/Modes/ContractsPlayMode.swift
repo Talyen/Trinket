@@ -12,20 +12,20 @@ public final class ContractsPlayMode {
     // Offer IDs rotate on refresh/replace, so cached runs would rarely hit.
     public let playerSave: PlayerSaveStore
     private let battle: any BattleRuntime
-    private let battleLaunch: PlayBattleLaunch
+    private let battleCoordinator: PlayBattleCoordinator
     var makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer
     private let encounters: EncounterPlayMode
 
-    init(playerSave: PlayerSaveStore, battle: any BattleRuntime, battleLaunch: PlayBattleLaunch, encounters: EncounterPlayMode) {
+    init(playerSave: PlayerSaveStore, battle: any BattleRuntime, battleCoordinator: PlayBattleCoordinator, encounters: EncounterPlayMode) {
         self.playerSave = playerSave
         self.battle = battle
-        self.battleLaunch = battleLaunch
+        self.battleCoordinator = battleCoordinator
         self.encounters = encounters
     }
 
     @discardableResult
     public func enter() -> StageMapMessage? {
-        guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
+        guard battle.lifecyclePhase != .active else { return PlayBattleCoordinator.activationFailureMessage }
         guard encounters.canBeginTransientEncounter else { return nil }
         guard playerSave.persistBatch(logging: "Failed to open Contracts", { save in
             save.contracts.ensureBoard(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: save.inventory), makeOffer: makeOffer)
@@ -38,7 +38,7 @@ public final class ContractsPlayMode {
 
     @discardableResult
     public func refresh() -> StageMapMessage? {
-        guard battle.lifecyclePhase != .active else { return PlayBattleLaunch.activationFailureMessage }
+        guard battle.lifecyclePhase != .active else { return PlayBattleCoordinator.activationFailureMessage }
         guard encounters.canBeginTransientEncounter else { return nil }
         guard playerSave.contracts.refreshAvailable else { return nil }
         guard playerSave.persistBatch(logging: "Failed to refresh Contracts", { save in
@@ -59,10 +59,10 @@ public final class ContractsPlayMode {
 
     @discardableResult
     public func startBattle(offerID: String) -> StageMapMessage? {
-        battleLaunch.startBattle(
+        battleCoordinator.startBattle(
             origin: .contract(offerID: offerID),
             encounters: encounters,
-            busyMessage: PlayBattleLaunch.activationFailureMessage,
+            busyMessage: PlayBattleCoordinator.activationFailureMessage,
             resolve: {
                 guard let offer = playerSave.contracts.offers.first(where: { $0.id == offerID }) else {
                     return .unavailable(StageMapMessage(

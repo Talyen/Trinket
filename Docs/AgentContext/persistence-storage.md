@@ -41,6 +41,8 @@ Labyrinth's map is a JSON blob (`LabyrinthProgressModel.mapPayload`) while roste
 A database write failure first preserves the complete candidate in an atomic
 `.pending-save.json` file beside the store. The versioned local envelope reuses
 `CloudSaveSnapshot` and includes local session generation and exact cloud metadata.
+New recovery records also carry the referenced outbox row payloads; older records
+remain readable. Restore those rows with the save before resolving journal references.
 A pending recovery record is authoritative unless the primary graph has a newer
 local session generation from a durable reset. Subsequent writes update a
 pending record before the primary graph, so account switches, resets, receipts,
@@ -106,7 +108,7 @@ recovery during migration.
 
 Approved reconciliation merges concurrent branches within the same reset epoch
 without player conflict prompts. Each immediate durable game mutation records an
-identified domain action with before/after snapshots in the local cloud outbox;
+identified domain action with reconstructible before/after snapshots in the local cloud outbox;
 deferred mutations remain in the complete save projection. Upload requests
 carry those actions, their acknowledged base snapshot, and a stable request ID;
 the server replays the actions into one complete projected save and an immutable
@@ -154,17 +156,69 @@ balance per resource. Archive conflicting snapshots in the same atomic server
 operation before installing the merge. A failed archive leaves
 the local snapshot and outbox intact.
 
-Long offline journals compact older, unsubmitted adjacent actions into one
-identified transition while retaining recent actions and any actions already in
-a pending request. The compacted transition keeps its first before-snapshot and
-last after-snapshot; a receipt removes only the actions it actually submitted.
+Offline journals retain each durable mutation's identity, ordering, and committed
+effects using a checkpoint and lossless snapshot-field deltas. A receipt removes only the actions it actually submitted;
+pending-request retries and reloads retain those same identities. Do not collapse
+separate payouts into one snapshot pair: duplicate-claim detection would then
+suppress unrelated earnings in the collapsed batch.
+
+Battle rewards (including defeat XP), Salvage, Shop purchases, and Homestead
+operations supply version-one `SaveEconomicReceipt` values from their domain
+appliers through the synchronous transaction collector. Each receipt records the
+actual committed currency, materials, XP, and fractional effects plus its claim
+identity, pinned item/price, or installed building tier. Composite transactions
+retain each receipt separately. Receipt-backed replay skips snapshot economic
+inference and applies only effects whose claims have not already been accepted;
+non-economic fields retain their snapshot reconciliation. Shop charges deduplicate
+only for matching pinned offers. Salvage retirement survives purchase-and-salvage
+in one transaction, where the starting Inventory has no item row.
+
+Homestead collections record pending credit, its production context, and per-resource
+consumption coordinates within the reset epoch. The remote head unions consumed
+ranges, including gaps from out-of-order uploads; overlapping collections pay only
+the uncovered quantities. Local metadata caches the next coordinates so a gameplay
+write never scans accumulated history. Action snapshots record the coordinates
+already consumed locally, preventing stale pending credit from returning through
+an unrelated reward. Spending does not alter these collection identities.
+
+Older records retain their version-one economic or conservative snapshot replay,
+including historically compacted records whose separate actions cannot be recovered.
+Uncovered operations and generic save batches retain that fallback; do not use a
+receipt collector for economic mutations that do not supply their effects. Unsupported
+receipt/economic versions reject the entire upload before acknowledging or changing
+progress. Local device metadata advances to version 3 when receipts are recorded;
+new readers also accept versions 1 and 2. Receipt-backed remote heads use version 2;
+new readers accept version 1, while older writers reject the newer head. This protects
+receipt identities from downgrade writes without changing the player-save value or
+SwiftData graph schema.
+
+`CloudOutboxRecord` stores checkpoint and action payloads as independent local
+SwiftData rows. Schema 3 adds this entity through a lightweight migration from the
+unchanged schema-2 graph; the player-value and remote snapshot schemas are unchanged.
+Preserve that schema-2 model shape when making future graph migrations.
+Device metadata reads version-one legacy arrays without inferring missing
+economic effects or changing action/request identities. Gameplay and outbox changes share one durable
+commit or recovery record, including compensation after a refused write.
+
+Save metadata carries journal IDs and prefix lengths, so new actions append rows
+without encoding or copying accumulated history. Pending requests freeze a prefix;
+account archives and pending requests retain their referenced rows. A receipt
+rebases only remaining actions and prunes unreferenced rows in the same transaction.
+Missing or unreadable referenced rows disable sync and preserve opaque metadata
+while local play continues. Immutable in-memory history also shares prefixes.
+Reconciliation restores snapshot inputs and explicit receipts one action at a time;
+the approved concurrent-spending and selection policies remain unchanged. Changed snapshot fields are stored as
+replacement values; a Gold edit does not repeat Inventory or Labyrinth maps.
+Recovery-file writes serialize the complete compact outbox to remain self-contained.
+Distribution remains disabled; CI owns reload, interrupted-request and long-offline
+scaling checks, with device write-cost measurements required before wider enablement.
 
 The merged Homestead cursor cannot move backward. Compare pending production at
 that shared cursor so an earlier collection retains production earned afterward.
 Only resources with a producer or retained production credit qualify for
 production deduplication; unrelated earned Gold and materials still combine.
-Overlapping collections of the same production interval count once, including after
-the collected resources are spent. With unchanged producers and uncapped Gold
+Overlapping collections count once, including after their resources are spent.
+For legacy snapshot records, with unchanged producers and uncapped Gold
 production, infer collections from pending credit at a shared cursor rather than
 wallet growth; capped Gold retains conservative overlap handling. Shared building tiers
 charge their authored cost once; distinct upgrades retain their separate costs.

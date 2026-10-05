@@ -50,6 +50,7 @@ public enum SpireCompletion {
         loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
+        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
     ) -> EncounterCompletion {
         let spireID = floor.spireID.rawValue
         guard let spire = GameContent.spire(id: floor.spireID) else {
@@ -85,7 +86,7 @@ public enum SpireCompletion {
             award: award,
             materialRewards: materialRewards ?? resolvedLoot.materials,
             item: rewardItem ?? resolvedLoot.item,
-            save: &save,
+            save: &save, claim: .spire(id: spireID, floor: floor.floor), recordReceipt: recordReceipt,
         )
 
         save.spires.markFloorCleared(floor.floor, spireID: spireID)

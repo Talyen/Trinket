@@ -97,7 +97,8 @@ struct HomesteadCombatTests {
         battle.appliesFightPacing = false
         _ = battle.resolveHeal(HealRequest(amount: 10, target: battle.hero, sourceActorID: battle.hero.id))
         #expect(battle.roster.hero.currentHealth == 24)
-        _ = HealingEngine.leechFromDamage(20, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle)
+        _ = CombatExecutor
+            .run { await HealingEngine.leechFromDamage(20, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle) }
         #expect(battle.roster.hero.currentHealth == 41)
         _ = battle.payMana(1000, for: battle.hero)
         #expect(battle.restoreMana(0, to: battle.hero) == 0)
@@ -120,9 +121,9 @@ struct HomesteadCombatTests {
         )
         battle.appliesFightPacing = false
         battle.roster.enemy.currentHealth = 40
-        _ = HealingEngine.leechFromDamage(
+        _ = CombatExecutor.run { await HealingEngine.leechFromDamage(
             20, sourceActorID: battle.hero.id, target: battle.enemy, abilityHasLeech: true, in: &battle,
-        )
+        ) }
         #expect(battle.roster.hero.currentHealth == 34)
     }
 }

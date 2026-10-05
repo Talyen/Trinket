@@ -33,7 +33,7 @@ package extension CombatTriggerEngine {
         )]
     }
 
-    internal static func afterSpendMana(_ payment: ManaPayment, in context: inout BattleState) -> [ActionEvent] {
+    internal static func afterSpendMana(_ payment: ManaPayment, in context: inout BattleState) async -> [ActionEvent] {
         guard let actor = context.roster.combatant(for: payment.payerID)?.combatant else { return [] }
         let amountSpent = payment.amountSpent
         let spentLastMana = payment.spentLastMana
@@ -49,20 +49,20 @@ package extension CombatTriggerEngine {
                 )
             }
         }
-        return CombatCheckpoint.payment(payment).resolve([
-            { afterHeroTalentSpendMana(actor: actor, amount: amountSpent, in: &$0) },
+        return await CombatCheckpoint.payment(payment).resolve([
+            { await afterHeroTalentSpendMana(actor: actor, amount: amountSpent, in: &$0) },
             { drawAfterSpendMana(by: actor, in: &$0) },
             { drawOnManaSpendChance(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
             { spendManaBlockIfNeeded(actor: actor, triggers: triggers, in: &$0) },
             { heroSpendManaCompanionIfNeeded(actor: actor, in: &$0) },
-            { spendManaRefundIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
-            { spendManaBurnIfNeeded(actor: actor, triggers: triggers, in: &$0) },
-            { heroSpendManaAfflictionIfNeeded(actor: actor, triggers: triggers, in: &$0) },
+            { await spendManaRefundIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
+            { await spendManaBurnIfNeeded(actor: actor, triggers: triggers, in: &$0) },
+            { await heroSpendManaAfflictionIfNeeded(actor: actor, triggers: triggers, in: &$0) },
             { spendManaEqualBlockIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
             { spendManaOverchargeIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
             { spendManaCleanseIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
             {
-                spendManaChaosRiftIfNeeded(
+                await spendManaChaosRiftIfNeeded(
                     payment: payment,
                     actor: actor,
                     triggers: triggers,
@@ -71,12 +71,20 @@ package extension CombatTriggerEngine {
                 )
             },
             { spendManaDamageBonusIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
-            { zeroManaRestoreIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
+            { await zeroManaRestoreIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
             { drawOnLastManaIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
-            { spendManaStunIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, spentLastMana: spentLastMana, in: &$0) },
-            { autoPlayAfterManaSpend(by: actor, amountSpent: amountSpent, in: &$0) },
-            { spendManaRandomDoTIfNeeded(actor: actor, triggers: triggers, in: &$0) },
-            { afterFinalCompanionManaSpend(actor: actor, amountSpent: amountSpent, in: &$0) },
+            {
+                await spendManaStunIfNeeded(
+                    actor: actor,
+                    triggers: triggers,
+                    amountSpent: amountSpent,
+                    spentLastMana: spentLastMana,
+                    in: &$0,
+                )
+            },
+            { await autoPlayAfterManaSpend(by: actor, amountSpent: amountSpent, in: &$0) },
+            { await spendManaRandomDoTIfNeeded(actor: actor, triggers: triggers, in: &$0) },
+            { await afterFinalCompanionManaSpend(actor: actor, amountSpent: amountSpent, in: &$0) },
         ], in: &context)
     }
 
@@ -140,13 +148,13 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         amountSpent: Int,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard amountSpent > 0, triggers.spendManaRefundChancePercent > 0,
               context.claimTalentAbility("Mana Flow", actorID: actor.id),
               BattleChance.succeeds(probability: triggers.spendManaRefundChancePercent, using: &context.rng) else {
             return []
         }
-        return emitMana("spendManaRefundChancePercent", "Mana Flow", amount: amountSpent, to: actor, in: &context)
+        return await emitMana("spendManaRefundChancePercent", "Mana Flow", amount: amountSpent, to: actor, in: &context)
     }
 
     private static func drawOnManaSpendChance(
@@ -167,10 +175,10 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard triggers.onSpendManaBurnBurningEnemies > 0, context.roster.enemy.isAlive,
               context.roster.hasAffliction(.burn, on: context.enemy) else { return [] }
-        return applyDoT(
+        return await applyDoT(
             keyword: .burn,
             potency: triggers.onSpendManaBurnBurningEnemies,
             to: context.roster.enemy.combatant,
@@ -183,12 +191,12 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard actor.role == .hero, triggers.onHeroSpendManaApplyRandomAffliction,
               context.roster.enemy.isAlive else { return [] }
         let keywords: [Keyword] = [.bleed, .burn, .poison]
         let keyword = keywords.randomElement(using: &context.rng) ?? .burn
-        return applyDoT(
+        return await applyDoT(
             keyword: keyword,
             potency: 1,
             to: context.roster.enemy.combatant,
@@ -248,7 +256,7 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         amountSpent: Int,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         guard triggers.spendManaRandomElementDamage, amountSpent > 0, context.roster.enemy.isAlive else {
             return events
@@ -257,7 +265,7 @@ package extension CombatTriggerEngine {
         let amounts = [amountSpent / 2 + amountSpent % 2, amountSpent / 2]
         for (keyword, amount) in zip(keywords.prefix(2), amounts) where amount > 0 {
             guard CombatCheckpoint.payment(payment).allowsContinuation(in: context) else { break }
-            events.append(contentsOf: context.resolveDamage(
+            await events.append(contentsOf: context.resolveDamage(
                 DamageRequest(
                     amount: amount,
                     target: context.roster.enemy.combatant,
@@ -289,11 +297,11 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         spentLastMana: Bool,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard triggers.onReachZeroManaRestoreMana > 0,
               spentLastMana,
               context.claimBattleGuard(.darkRecovery, actorID: actor.id) else { return [] }
-        return emitMana(
+        return await emitMana(
             "onReachZeroManaRestoreMana", "Dark Recovery",
             amount: triggers.onReachZeroManaRestoreMana, to: actor, in: &context,
         )
@@ -305,13 +313,13 @@ package extension CombatTriggerEngine {
         amountSpent: Int,
         spentLastMana: Bool,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.closedCircuit, amountSpent > 0 {
-            events.append(contentsOf: spendManaStunDamage(amount: amountSpent, actor: actor, in: &context))
+            await events.append(contentsOf: spendManaStunDamage(amount: amountSpent, actor: actor, in: &context))
         }
         if triggers.spendLastManaStunDamage > 0, spentLastMana {
-            events.append(contentsOf: spendManaStunDamage(amount: triggers.spendLastManaStunDamage, actor: actor, in: &context))
+            await events.append(contentsOf: spendManaStunDamage(amount: triggers.spendLastManaStunDamage, actor: actor, in: &context))
         }
         return events
     }
@@ -320,9 +328,9 @@ package extension CombatTriggerEngine {
         amount: Int,
         actor: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.roster.enemy.isAlive else { return [] }
-        return context.resolveDamage(DamageRequest(
+        return await context.resolveDamage(DamageRequest(
             amount: amount,
             target: context.roster.enemy.combatant,
             keyword: .stun,
@@ -335,12 +343,12 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let randomDoT = triggers.spendManaRandomDoTFlat
         guard randomDoT > 0, context.roster.enemy.isAlive else { return [] }
         let enemy = context.roster.enemy.combatant
         if BattleChance.succeeds(probability: 0.5, using: &context.rng) {
-            return context.applyDecayingDoT(
+            return await context.applyDecayingDoT(
                 keyword: .burn,
                 potency: randomDoT,
                 to: enemy,
@@ -348,7 +356,7 @@ package extension CombatTriggerEngine {
                 application: .ability,
             )
         }
-        return context.resolveDamage(DamageRequest(
+        return await context.resolveDamage(DamageRequest(
             amount: randomDoT,
             target: enemy,
             keyword: .freeze,
@@ -361,13 +369,13 @@ package extension CombatTriggerEngine {
         by actor: Combatant,
         amountSpent: Int,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let threshold = context.modifiers(for: actor.id).triggers.spendManaThresholdAutoPlayCard
         guard threshold > 0, amountSpent > 0, !context.resolution.isAutomaticPlay else { return [] }
         let totalSpent = (context.roster.runtime(for: actor)?.talents.battle.manaSpentTowardAutoPlay ?? 0) + amountSpent
         context.roster.mutateRuntime(for: actor) { $0.talents.battle.manaSpentTowardAutoPlay = totalSpent % threshold }
         guard totalSpent >= threshold else { return [] }
-        return context.withAutomaticPlay { context in
+        return await context.withAutomaticPlay { context in
             var events: [ActionEvent] = []
             for _ in 0 ..< totalSpent / threshold {
                 guard context.roster.health(for: actor) > 0, !context.isBattleOver else { break }
@@ -389,16 +397,16 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard triggers.cardsPlayedManaThreshold > 0, triggers.cardsPlayedManaFlat > 0,
               count == triggers.cardsPlayedManaThreshold else { return [] }
-        return emitMana(
+        return await emitMana(
             "cardsPlayedManaThreshold", "Resonant Chimes",
             amount: triggers.cardsPlayedManaFlat, to: actor, in: &context,
         )
     }
 
-    static func afterGainMana(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
+    static func afterGainMana(by actor: Combatant, in context: inout BattleState) async -> [ActionEvent] {
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
         events.append(contentsOf: HealingEngine.drawOwlFontOfMagic(
@@ -413,7 +421,7 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.onGainManaHealFlat > 0 {
-            events.append(contentsOf: emitHeal(
+            await events.append(contentsOf: emitHeal(
                 "onGainManaHealFlat", "Life Tap",
                 amount: triggers.onGainManaHealFlat, to: actor, source: actor, in: &context,
             ))
@@ -427,9 +435,9 @@ package extension CombatTriggerEngine {
         for actor: Combatant,
         restored: Int,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        var events = restored > 0 ? afterGainMana(by: actor, in: &context) : []
-        events.append(contentsOf: consumeManaOverflowTalents(for: actor, restoredMana: restored > 0, in: &context))
+    ) async -> [ActionEvent] {
+        var events = restored > 0 ? await afterGainMana(by: actor, in: &context) : []
+        await events.append(contentsOf: consumeManaOverflowTalents(for: actor, restoredMana: restored > 0, in: &context))
         return events
     }
 
@@ -437,7 +445,7 @@ package extension CombatTriggerEngine {
         for actor: Combatant,
         restoredMana: Bool,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let overflow = context.roster.runtime(for: actor)?.talents.pending.manaOverflowThorns ?? 0
         let block = context.roster.runtime(for: actor)?.talents.pending.manaOverflowBlock ?? 0
         let arcane = restoredMana ? context.modifiers(for: actor.id).triggers.arcaneThornsOnManaRestore : 0
@@ -449,7 +457,7 @@ package extension CombatTriggerEngine {
         }
         var events: [ActionEvent] = []
         if amount > 0 {
-            events.append(contentsOf: heroTalentThorns(
+            await events.append(contentsOf: heroTalentThorns(
                 to: actor, source: actor, amount: amount,
                 name: overflow > 0 ? "Living Conduit" : "Arcane Thorns", in: &context,
             ))

@@ -75,6 +75,7 @@ public enum StageCompletion {
         enemyEncounterLevel: Int? = nil,
         in chapters: [Chapter],
         save: inout PlayerSave,
+        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
     ) -> EncounterCompletion {
         let claim = claimRewardsIfNeeded(
             for: stage,
@@ -86,7 +87,7 @@ public enum StageCompletion {
             rewardItem: rewardItem,
             loot: loot,
             enemyEncounterLevel: enemyEncounterLevel,
-            save: &save,
+            save: &save, recordReceipt: recordReceipt,
         )
         guard !save.journey.isCompleted(stage) else {
             return claim
@@ -107,6 +108,7 @@ public enum StageCompletion {
         loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
+        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
     ) -> EncounterCompletion {
         guard !save.journey.hasClaimedRewards(for: stage) else {
             return .alreadyCompleted
@@ -158,7 +160,7 @@ public enum StageCompletion {
             grantsCombatExperience: stage.encounter.isCombat,
             materialRewards: materialRewards ?? resolvedLoot?.materials ?? materialFallback,
             item: item,
-            save: &save,
+            save: &save, claim: .journey(stage.id), recordReceipt: recordReceipt,
         )
         if award == nil, item == nil {
             grantAuthoredItems(for: stage, inventory: &save.inventory)

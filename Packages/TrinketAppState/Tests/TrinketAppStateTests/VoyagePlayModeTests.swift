@@ -47,7 +47,7 @@ struct VoyagePlayModeTests {
         #expect(play.voyage.handleNode(runID: run.id, nodeID: node.id) == nil)
         let retry = try #require(play.battle.activeBattle)
         #expect(retry.id != battle.id)
-        let item = try #require(play.battlePresentation(for: retry)?.pendingRewardItem)
+        let item = try #require(play.battleRegistration(for: retry.runKey)?.launch.inputs.launch.pendingRewardItem)
         #expect(item.baseType.keywordAffinities.contains(.freeze))
         #expect(item.affixes.contains { $0.keywords.contains(.freeze) })
         let state = play.playerSave.currentSave
@@ -74,7 +74,7 @@ struct VoyagePlayModeTests {
             if node.type.isCombat {
                 let battle = try #require(play.battle.activeBattle)
                 let presentation = try #require(play.battlePresentation(for: battle))
-                #expect((presentation.completionBonus != nil) == (node.type == .boss))
+                #expect((presentation.rewardPlan.completionBonus != nil) == (node.type == .boss))
                 if node.type == .boss {
                     let base = presentation.rewardPlan.resolve(battleGold: .init(gained: 4), includingCompletionBonus: false)
                     let all = presentation.rewardPlan.resolve(battleGold: .init(gained: 4))
@@ -158,8 +158,6 @@ struct VoyagePlayModeTests {
         #expect(play.voyage.handleNode(runID: run.id, nodeID: boss.id) == nil)
         let battle = try #require(play.battle.activeBattle)
         let presentation = try #require(play.battlePresentation(for: battle))
-        #expect(presentation.experienceBonusPercent == 25)
-        #expect(presentation.victoryOnlyExperienceBonusPercent == 25)
         #expect(presentation.rewardPlan.heroExperience > presentation.rewardPlan.defeatHeroExperience)
         let inputs = try #require(presentation.rewardInputs)
         let defeat = presentation.rewardPlan.settleDefeat(

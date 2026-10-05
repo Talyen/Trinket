@@ -46,7 +46,7 @@ package extension HealingEngine {
         attackHit: Bool = false,
         damageKeyword: Keyword? = nil,
         in context: inout BattleState,
-    ) -> CombatOutcome {
+    ) async -> CombatOutcome {
         guard context.resolution.depth(.leechOverflowGold) == 0 else { return .empty }
         guard let actor = context.roster.combatant(for: sourceActorID),
               context.roster.health(for: actor.combatant) > 0
@@ -147,7 +147,7 @@ package extension HealingEngine {
 
         let preHealth = context.roster.health(for: actorCombatant)
         let maxHealth = context.roster.maxHealth(for: actorCombatant)
-        var healing = resolveHealing(
+        var healing = await resolveHealing(
             HealRequest(
                 amount: restored,
                 target: actorCombatant,
@@ -157,7 +157,7 @@ package extension HealingEngine {
             in: &context,
         )
         if profile.triggers.excessLeechHealthToGold, healing.allocation.remaining > 0 {
-            healing.events.append(contentsOf: context.grantGoldEvent(
+            await healing.events.append(contentsOf: context.grantGoldEvent(
                 healing.allocation.remaining, to: actorCombatant, abilityName: "Flawless Bounty",
                 isLeechOverflow: true,
             ))
@@ -203,7 +203,7 @@ package extension HealingEngine {
            let target, target.role == .enemy, context.roster.health(for: target) > 0 {
             var operation = DamageOperation.reaction()
             operation.suppressLeech = true
-            let stun = context.resolveDamage(DamageRequest(
+            let stun = await context.resolveDamage(DamageRequest(
                 amount: profile.triggers.leechStunBelowHalfHealth,
                 target: target, keyword: .stun,
                 sourceActorID: actorCombatant.id, options: operation,
@@ -254,7 +254,7 @@ package extension HealingEngine {
             ))
         }
         if actorCombatant.role != .enemy {
-            events.append(contentsOf: Self.shareLeechWithAlly(
+            await events.append(contentsOf: Self.shareLeechWithAlly(
                 restored: actualRestored,
                 source: actorCombatant,
                 in: &context,
@@ -269,7 +269,7 @@ package extension HealingEngine {
             if share > 0 {
                 var request = HealRequest(amount: share, target: context.roster.hero.combatant, sourceActorID: sourceActorID)
                 request.amountBasis = .resolved
-                events.append(contentsOf: Self.resolveHeal(request, in: &context).events)
+                await events.append(contentsOf: Self.resolveHeal(request, in: &context).events)
             }
         }
         if actorCombatant.role == .companion, context.roster.hero.isAlive,
@@ -281,17 +281,17 @@ package extension HealingEngine {
                 sourceActorID: sourceActorID,
             )
             request.amountBasis = .resolved
-            events.append(contentsOf: Self.resolveHeal(request, in: &context).events)
+            await events.append(contentsOf: Self.resolveHeal(request, in: &context).events)
         }
         if actorCombatant.role == .companion, context.roster.hero.isAlive,
            profile.triggers.onCompanionLeechRestoreHeroMana > 0 {
-            events.append(contentsOf: context.restoreManaEmitting(
+            await events.append(contentsOf: context.restoreManaEmitting(
                 profile.triggers.onCompanionLeechRestoreHeroMana,
                 to: context.roster.hero.combatant,
                 abilityName: "Vitality Infusion",
             ))
         }
-        events.append(contentsOf: CombatTriggerEngine.afterLeech(by: actorCombatant, target: target, in: &context))
+        await events.append(contentsOf: CombatTriggerEngine.afterLeech(by: actorCombatant, target: target, in: &context))
         healing.events = events
         return healing.combatOutcome
     }
@@ -300,7 +300,7 @@ package extension HealingEngine {
         restored: Int,
         source: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         // Symbiosis follows its wearer; companion-only talent shares keep their
         // separate rules above. Resolved shares never fund another Leech share.
         let ally = source.role == .hero ? context.roster.companion : context.roster.hero
@@ -323,6 +323,6 @@ package extension HealingEngine {
             ),
         )
         request.amountBasis = .resolved
-        return resolveHeal(request, in: &context).events
+        return await resolveHeal(request, in: &context).events
     }
 }

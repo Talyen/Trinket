@@ -22,7 +22,7 @@ struct DodgeCounterDamageEventsTests {
         }
 
         let before = battle.health(of: battle.enemy)
-        let events = CombatTriggerEngine.afterDodge(by: battle.hero, attackerID: battle.enemy.id, in: &battle)
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(by: battle.hero, attackerID: battle.enemy.id, in: &battle) }
 
         #expect(before - battle.health(of: battle.enemy) == 3)
         let damage = events.filter { $0.kind == .abilityDamage && $0.abilityName == "Whiplash" }

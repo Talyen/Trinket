@@ -52,17 +52,17 @@ struct BattleArithmeticBoundaryTests {
         #expect(gained == 1)
         #expect(full == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == Int.max)
-        _ = DefensePoolEngine.decayBlock(on: battle.hero, in: &battle)
+        _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.hero, in: &battle) }
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 6917529027641081855)
     }
 
     @Test func `large control damage completes existing buildup without overflowing`() {
         var battle = makeBattle()
         battle.appendEffect(.controlMeter(.stun, 3, 4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        let events = ControlMeterEngine.applyMeterCharge(
+        let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             Int.max, keyword: .stun, to: battle.enemy, sourceActorID: nil,
             applyFightPacing: false, in: &battle,
-        )
+        ) }
         #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
         #expect(events.contains { $0.effectKind == .controlTriggered })
     }

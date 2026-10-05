@@ -375,16 +375,16 @@ extension BattleCardCombatTests {
         context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 1 }
 
         for _ in 0 ..< 2 {
-            let events = BattleCardCombatEngine.resolveEnemyTurn(context: &context)
+            let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &context) }
             #expect(events.contains { $0.kind == .ability && $0.abilityTier == .basic })
         }
-        let skippedEvents = BattleCardCombatEngine.resolveEnemyTurn(context: &context)
+        let skippedEvents = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &context) }
 
         #expect(skippedEvents.isEmpty)
         #expect(context.roster.enemy.currentHealth == 1)
         #expect(context.roster.enemy.actionCount == 3)
 
-        let resumedEvents = BattleCardCombatEngine.resolveEnemyTurn(context: &context)
+        let resumedEvents = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &context) }
 
         #expect(resumedEvents.contains { $0.kind == .ability && $0.abilityID == Ability.rendingSlash.id })
         #expect(context.roster.enemy.actionCount == 4)
@@ -403,8 +403,8 @@ extension BattleCardCombatTests {
         )
         battle.turnCount = 1
         _ = opening
-            ? BattleCardCombatEngine.finalizeOpeningHand(context: &battle)
-            : BattleCardCombatEngine.finalizeTurnStart(context: &battle)
+            ? CombatExecutor.run { await BattleCardCombatEngine.finalizeOpeningHand(context: &battle) }
+            : CombatExecutor.run { await BattleCardCombatEngine.finalizeTurnStart(context: &battle) }
         #expect(battle.isBattleOver)
         #expect(battle.phase == .ended)
     }
@@ -421,8 +421,8 @@ extension BattleCardCombatTests {
             companionModifiers: profile,
         )
         _ = opening
-            ? BattleCardCombatEngine.finalizeOpeningHand(context: &battle)
-            : BattleCardCombatEngine.finalizeTurnStart(context: &battle)
+            ? CombatExecutor.run { await BattleCardCombatEngine.finalizeOpeningHand(context: &battle) }
+            : CombatExecutor.run { await BattleCardCombatEngine.finalizeTurnStart(context: &battle) }
         let card = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &battle)
         #expect(!battle.roster.hasPendingActionSkip(for: battle.hero))
         #expect(BattleCardCombatEngine.isCardPlayable(card, in: battle))
@@ -571,7 +571,7 @@ extension BattleCardCombatTests {
         battle.heroDeck = CombatDeck(abilities: [.block, .block])
         battle.companionDeck = CombatDeck(abilities: [.slash])
         let card = BattleCardCombatEngine.deal(.packTactics, owner: .hero, context: &battle)
-        let events = try BattleCardCombatEngine.playDrawnCard(card, context: &battle)
+        let events = try CombatExecutor.run { try await BattleCardCombatEngine.playDrawnCard(card, context: &battle) }
         #expect(!events.contains { $0.kind == .ability && $0.abilityID == Ability.block.id })
         #expect(battle.hand.cards.map(\.ability.id) == [Ability.block.id])
         #expect(battle.hand.cards.first?.owner == .hero)

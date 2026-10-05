@@ -49,7 +49,7 @@ extension TalentCatalogRoundTripTests {
         battle.appliesFightPacing = false
         for _ in 0 ..< 2 {
             seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle)
-            _ = EffectTurnEngine.advanceAll(context: &battle)
+            _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         }
         try playHeroTalentCard(.causticJab, in: &battle)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 2)
@@ -63,7 +63,7 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 1)
         ActiveEffectMutation.removeMatching(from: battle.enemy, in: &battle) { $0.kind == .poison }
         seedHeroTalentEffect(.poison(1), on: .hero, in: &battle)
-        _ = EffectTurnEngine.advanceAll(context: &battle)
+        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         try playHeroTalentCard(.causticJab, in: &battle)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 1)
     }

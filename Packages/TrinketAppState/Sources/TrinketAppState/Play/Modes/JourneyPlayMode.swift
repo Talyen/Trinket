@@ -11,18 +11,18 @@ import TrinketPersistence
 public final class JourneyPlayMode {
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
-    private let battleLaunch: PlayBattleLaunch
+    private let battleCoordinator: PlayBattleCoordinator
     private let encounters: EncounterPlayMode
 
     init(
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
-        battleLaunch: PlayBattleLaunch,
+        battleCoordinator: PlayBattleCoordinator,
         encounters: EncounterPlayMode,
     ) {
         self.playerSave = playerSave
         self.battle = battle
-        self.battleLaunch = battleLaunch
+        self.battleCoordinator = battleCoordinator
         self.encounters = encounters
     }
 
@@ -40,9 +40,9 @@ public final class JourneyPlayMode {
 
     @discardableResult
     public func startBattle(for stage: Stage) -> StageMapMessage? {
-        // No access pre-check here: PlayBattleLaunch.startBattle owns the
+        // No access pre-check here: PlayBattleCoordinator.startBattle owns the
         // gate and returns the restriction first.
-        battleLaunch.startBattle(
+        battleCoordinator.startBattle(
             origin: .journey(stageID: stage.id),
             encounters: encounters,
             busyMessage: nil, // Map taps swallow a busy battle.
@@ -60,7 +60,7 @@ public final class JourneyPlayMode {
               let encounter = resolvedEncounter(for: stage)
         else { return }
         let request = combatRequest(for: stage, encounter: encounter)
-        battleLaunch.prepareCombat(request.input, route: request.route)
+        battleCoordinator.prepareCombat(request.input, route: request.route)
     }
 
     @discardableResult
@@ -146,7 +146,7 @@ public final class JourneyPlayMode {
     ) -> Bool {
         guard !stages.isEmpty else { return false }
 
-        return playerSave.persistBatch(logging: "Failed to persist stage completions") { save in
+        return playerSave.persistBatch(logging: "Failed to persist stage completions") { save, recordReceipt in
             if resetJourney {
                 save.journey = .initial
             }
@@ -156,7 +156,7 @@ public final class JourneyPlayMode {
                     hero: hero,
                     companion: companion,
                     in: GameContent.chapters,
-                    save: &save,
+                    save: &save, recordReceipt: recordReceipt,
                 )
             }
         }

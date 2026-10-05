@@ -7,13 +7,13 @@ package extension CombatTriggerEngine {
         target: Combatant,
         sourceActorID: String?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard healthLost > 0, let sourceActorID,
               let caster = context.roster.combatant(for: sourceActorID),
               caster.id != target.id else { return [] }
         // Committed Bleed retains its conversions; personal rewards require a living source.
         guard caster.isAlive else {
-            return afterBleedDamageConversions(to: target, sourceActorID: sourceActorID, in: &context)
+            return await afterBleedDamageConversions(to: target, sourceActorID: sourceActorID, in: &context)
         }
         let triggers = context.modifiers(for: sourceActorID).triggers
         if triggers.onBleedDamageNextBasicGuaranteedCrit {
@@ -24,9 +24,9 @@ package extension CombatTriggerEngine {
                 $0.talents.pending.basicCriticalBonus = max($0.talents.pending.basicCriticalBonus, triggers.onBleedDamageNextBasicCritBonus)
             }
         }
-        var events = afterBleedDamageConversions(to: target, sourceActorID: sourceActorID, in: &context)
+        var events = await afterBleedDamageConversions(to: target, sourceActorID: sourceActorID, in: &context)
         if triggers.onBleedDamageHealSelf > 0 {
-            events.append(contentsOf: HealingEngine.resolveHeal(
+            await events.append(contentsOf: HealingEngine.resolveHeal(
                 HealRequest(amount: triggers.onBleedDamageHealSelf, target: caster.combatant, sourceActorID: sourceActorID),
                 in: &context,
             ).events)
@@ -34,7 +34,7 @@ package extension CombatTriggerEngine {
         if triggers.bleedConsumesPoison, context.roster.health(for: target) > 0 {
             let poisonPotency = DoTApplicator.consume(.poison, upTo: healthLost, on: target, in: &context)
             if poisonPotency > 0 {
-                events.append(contentsOf: DoTDamage.resolveDamage(
+                await events.append(contentsOf: DoTDamage.resolveDamage(
                     basePotency: poisonPotency,
                     keyword: .poison,
                     target: target,
@@ -53,13 +53,13 @@ package extension CombatTriggerEngine {
         target: Combatant,
         sourceActorID: String?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard let sourceActorID else { return [] }
         let sourceTriggers = context.modifiers(for: sourceActorID).triggers
         var events: [ActionEvent] = []
         if keyword == .burn {
             if sourceTriggers.onBurnTickHolyDamage > 0 {
-                events.append(contentsOf: context.resolveDamage(
+                await events.append(contentsOf: context.resolveDamage(
                     DamageRequest(
                         amount: sourceTriggers.onBurnTickHolyDamage,
                         target: target,
@@ -75,7 +75,7 @@ package extension CombatTriggerEngine {
             )
             if detonateChance > 0, healthLost > 0,
                BattleChance.succeeds(probability: min(1, detonateChance), using: &context.rng) {
-                events.append(contentsOf: detonateBleed(
+                await events.append(contentsOf: detonateBleed(
                     on: target,
                     sourceActorID: sourceActorID,
                     in: &context,
@@ -84,7 +84,7 @@ package extension CombatTriggerEngine {
             // Periodic damage skips pipeline keyword reactions; dispatch its
             // damage rewards here once, only when the tick lost Health.
             if healthLost > 0, let source = context.roster.combatant(for: sourceActorID) {
-                events.append(contentsOf: afterBurnDamageDealt(
+                await events.append(contentsOf: afterBurnDamageDealt(
                     to: target, source: source.combatant, healthLost: healthLost, in: &context,
                 ))
             }
@@ -97,17 +97,17 @@ package extension CombatTriggerEngine {
         target: Combatant,
         sourceActorID: String?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard healthLost > 0, let sourceActorID,
               let caster = context.roster.combatant(for: sourceActorID) else { return [] }
-        return poisonParalysis(target: target, sourceActorID: caster.id, in: &context)
+        return await poisonParalysis(target: target, sourceActorID: caster.id, in: &context)
     }
 
     private static func poisonParalysis(
         target: Combatant,
         sourceActorID: String,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let sourceTriggers = context.modifiers(for: sourceActorID).triggers
         guard sourceTriggers.poisonThresholdStunAmount > 0,
               target.role == .enemy,
@@ -121,7 +121,7 @@ package extension CombatTriggerEngine {
         else { return [] }
         let chance = chanceOrGuaranteed(sourceTriggers.poisonStunChancePercent, guaranteed: true)
         guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return [] }
-        return ControlMeterEngine.applyMeterCharge(
+        return await ControlMeterEngine.applyMeterCharge(
             ControlMeterEngine.threshold(for: target, in: context),
             keyword: .stun,
             to: target,
@@ -135,7 +135,7 @@ package extension CombatTriggerEngine {
         sourceActorID: String,
         sourceTriggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard let caster = context.roster.combatant(for: sourceActorID),
               let participant = context.roster.participant(for: caster.combatant)
         else { return [] }
@@ -147,7 +147,7 @@ package extension CombatTriggerEngine {
             cap > 0 ? cap - already : sourceTriggers.onBurnDamageRestoreManaFlat,
         )
         let restored = context.restoreMana(toRestore, to: caster.combatant)
-        let overflowEvents = consumeManaOverflowTalents(
+        let overflowEvents = await consumeManaOverflowTalents(
             for: caster.combatant, restoredMana: restored > 0, in: &context,
         )
         guard restored > 0 else { return overflowEvents }
@@ -166,7 +166,7 @@ package extension CombatTriggerEngine {
             amount: restored,
             keyword: .mana,
         )]
-        events.append(contentsOf: afterGainMana(by: caster.combatant, in: &context))
+        await events.append(contentsOf: afterGainMana(by: caster.combatant, in: &context))
         events.append(contentsOf: overflowEvents)
         return events
     }
@@ -176,7 +176,7 @@ package extension CombatTriggerEngine {
         sourceActorID: String,
         includePoison: Bool = true,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.resolution.depth(.detonation) == 0 else { return [] }
         context.resolution.enter(.detonation)
         defer { context.resolution.leave(.detonation) }
@@ -200,10 +200,10 @@ package extension CombatTriggerEngine {
         )
 
         var events: [ActionEvent] = []
-        events.append(contentsOf: Self.detonateBleedStacks(bleeds, on: target, sourceActorID: sourceActorID, in: &context))
+        await events.append(contentsOf: Self.detonateBleedStacks(bleeds, on: target, sourceActorID: sourceActorID, in: &context))
 
         for active in poisons {
-            events.append(contentsOf: DecayingDoTDetonation.resolve(
+            await events.append(contentsOf: DecayingDoTDetonation.resolve(
                 active, factor: 1, target: target, sourceActorID: sourceActorID, in: &context,
             ))
         }
@@ -216,7 +216,7 @@ package extension CombatTriggerEngine {
         sourceActorID: String,
         provenance: DamageProvenance? = nil,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         if context.modifiers(for: sourceActorID).triggers.redline,
            bleeds.contains(where: { $0.remainingTurns > 0 && ($0.effect.potency ?? 0) > 0 }) {
             context.heroTalents.history[sourceActorID, default: HeroTalentHistory()].preparations.insert(.bleedDamage)
@@ -228,7 +228,7 @@ package extension CombatTriggerEngine {
             let damageSourceID = extends ? (active.sourceActorID ?? sourceActorID) : sourceActorID
             for _ in 0 ..< active.remainingTurns {
                 guard context.roster.health(for: target) > 0 else { break }
-                events.append(contentsOf: DoTDamage.resolveDamage(
+                await events.append(contentsOf: DoTDamage.resolveDamage(
                     basePotency: potency,
                     keyword: .bleed,
                     target: target,
@@ -239,7 +239,7 @@ package extension CombatTriggerEngine {
             }
             var tail = extends ? potency / 2 : 0
             while tail > 0, context.roster.health(for: target) > 0 {
-                events.append(contentsOf: DoTDamage.resolveDamage(
+                await events.append(contentsOf: DoTDamage.resolveDamage(
                     basePotency: tail,
                     keyword: .bleed,
                     target: target,
@@ -260,10 +260,10 @@ package extension CombatTriggerEngine {
         sourceActorID: String,
         application: DoTApplication = .reaction,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         switch keyword {
         case .bleed:
-            DoTApplicator.applyBleed(
+            await DoTApplicator.applyBleed(
                 potency: potency,
                 to: target,
                 sourceActorID: sourceActorID,
@@ -271,7 +271,7 @@ package extension CombatTriggerEngine {
                 in: &context,
             )
         default:
-            context.applyDecayingDoT(
+            await context.applyDecayingDoT(
                 keyword: keyword,
                 potency: potency,
                 to: target,

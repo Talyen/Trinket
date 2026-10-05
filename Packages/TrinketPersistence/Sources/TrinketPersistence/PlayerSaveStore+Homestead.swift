@@ -24,11 +24,11 @@ public extension PlayerSaveStore {
     ) async -> HomesteadBuildResult {
         await Task.yield()
         guard prepareLocalProduction() else { return .persistFailed }
-        let result = persistTransaction(logging: "Failed to build or upgrade homestead node") { save -> Result<
+        let result = persistTransaction(logging: "Failed to build or upgrade homestead node") { save, recordReceipt -> Result<
             Void,
             HomesteadBuildFailure,
         > in
-            HomesteadBuildMutation.apply(definition, targetTier: targetTier, at: date, to: &save)
+            HomesteadBuildMutation.apply(definition, targetTier: targetTier, at: date, to: &save, recordReceipt: recordReceipt)
         }
         switch result {
         case .committed: return .success
@@ -42,8 +42,19 @@ public extension PlayerSaveStore {
         await Task.yield()
         guard prepareLocalProduction() else { return .persistFailed }
         var collected: [ResourceAmount] = []
-        guard persistBatch(logging: "Failed to collect homestead production", { save in
+        guard persistBatch(logging: "Failed to collect homestead production", { save, recordReceipt in
+            save.homestead.settleProduction(at: date, roster: save.roster)
+            let collection = SaveEconomicReceipt.Collection(
+                pending: save.homestead.pendingProduction, nodeTiers: save.homestead.nodeTiers,
+                date: save.homestead.lastProductionAt, gold: save.roster.gold,
+            )
             collected = save.homestead.collectProduction(at: date, roster: &save.roster)
+            let amounts = Dictionary(uniqueKeysWithValues: collected.map { ($0.resource, $0.quantity) })
+            if !collected.isEmpty {
+                recordReceipt(SaveEconomicReceipt(kind: .collection(collection), effects: .committed(
+                    gold: amounts[.gold, default: 0], materials: amounts.filter { $0.key != .gold },
+                )))
+            }
         }) else {
             return .persistFailed
         }
@@ -62,11 +73,19 @@ enum HomesteadBuildMutation {
         targetTier: Int,
         at date: Date,
         to save: inout PlayerSave,
+        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
     ) -> Result<Void, HomesteadBuildFailure> {
         guard let tier = save.homestead.nextTier(for: definition), tier.tier == targetTier else { return .failure(.notAvailable) }
         save.homestead.settleProduction(at: date, roster: save.roster)
         guard save.homestead.canAfford(tier, roster: save.roster) else { return .failure(.insufficientResources) }
         guard save.homestead.buildOrUpgrade(definition, roster: &save.roster) else { return .failure(.notAvailable) }
+        var costs: [HomesteadResource: Int] = [:]
+        for amount in tier.cost {
+            costs[amount.resource, default: 0] -= amount.quantity
+        }
+        recordReceipt(SaveEconomicReceipt(kind: .upgrade(definition.id, tier.tier), effects: .committed(
+            gold: costs[.gold, default: 0], materials: costs.filter { $0.key != .gold },
+        )))
         return .success(())
     }
 }

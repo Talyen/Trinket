@@ -39,9 +39,9 @@ struct ResolvedHealingReductionTests {
         battle.roster.hero.currentHealth = 10
         battle.roster.companion.currentHealth = 10
 
-        let result = HealingEngine.leechFromDamage(
+        let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
             16, sourceActorID: battle.companion.id, target: battle.enemy, abilityHasLeech: true, in: &battle,
-        )
+        ) }
 
         #expect(result.healthRestored == 18)
         #expect(battle.health(of: battle.companion) == 28)
@@ -74,9 +74,9 @@ struct ResolvedHealingReductionTests {
         battle.roster.hero.currentHealth = 10
         battle.roster.companion.currentHealth = 10
 
-        let result = HealingEngine.leechFromDamage(
+        let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
             16, sourceActorID: battle.hero.id, target: battle.enemy, abilityHasLeech: true, in: &battle,
-        )
+        ) }
 
         let expectedHeroRestoration = heroSapped ? 14 : 18
         let expectedCompanionShare = heroSapped ? 5 : 7

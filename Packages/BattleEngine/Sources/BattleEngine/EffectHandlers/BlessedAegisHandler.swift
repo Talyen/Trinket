@@ -8,7 +8,7 @@ struct BlessedAegisHandler: BattleEffectHandler {
         source: Combatant,
         target _: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         guard case let .blessedAegis(block, holyDamage) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
@@ -19,11 +19,11 @@ struct BlessedAegisHandler: BattleEffectHandler {
             guard context.health(of: source) > 0 else { break }
             // Route through effect dispatch so BlessedAegis always composes the
             // canonical handlers for these kinds rather than a private copy.
-            let shield = applyEffect(
+            let shield = await applyEffect(
                 .shield(.block, block), ability: ability, source: source, target: ally, in: &context,
             )
             events.append(contentsOf: shield.events)
-            let ward = applyEffect(
+            let ward = await applyEffect(
                 .onHitDamage(.holy, holyDamage),
                 ability: ability, source: source, target: ally, in: &context,
             )
@@ -39,8 +39,8 @@ struct BlessedAegisHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         let handler = EffectHandlers.handler(for: effect.kind)
-        return handler.apply(effect, ability: ability, source: source, target: target, in: &context)
+        return await handler.apply(effect, ability: ability, source: source, target: target, in: &context)
     }
 }

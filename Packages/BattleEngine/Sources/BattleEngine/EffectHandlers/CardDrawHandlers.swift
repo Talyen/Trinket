@@ -62,7 +62,7 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         guard case let .drawAndPlayCards(count) = effect, count > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
@@ -97,8 +97,8 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
             ),
         ]
         context.recordCardPlay(.cardsDrawn(drawnCards))
-        events.append(contentsOf: context.withAutomaticPlay { context in
-            autoPlayDrawnCards(drawnCards, in: &context)
+        await events.append(contentsOf: context.withAutomaticPlay { context in
+            await autoPlayDrawnCards(drawnCards, in: &context)
         })
         return EffectApplyOutcome(events: events, didApply: true)
     }
@@ -137,7 +137,7 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
     private func autoPlayDrawnCards(
         _ drawnCards: [BattleCard],
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         context.resolution.enter(.draw)
         defer { context.resolution.leave(.draw) }
         guard context.resolution.depth(.draw) <= BattleState.maxDrawAndPlayDepth else { return [] }
@@ -146,7 +146,7 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         for card in drawnCards {
             guard BattleCardCombatEngine.isCardPlayable(card, in: context) else { continue }
             do {
-                let played = try BattleCardCombatEngine.playDrawnCard(card, context: &context)
+                let played = try await BattleCardCombatEngine.playDrawnCard(card, context: &context)
                 events.append(contentsOf: played)
             } catch {
                 cardDrawLogger.info(

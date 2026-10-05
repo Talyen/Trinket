@@ -4,10 +4,10 @@ import TrinketCore
 /// Turn and pacing guards on the BattleState facade: automatic-play scoping,
 /// player-turn numbering, fight-pacing scaling, and talent claim guards.
 package extension BattleState {
-    mutating func withAutomaticPlay(_ body: (inout BattleState) throws -> [ActionEvent]) rethrows -> [ActionEvent] {
+    mutating func withAutomaticPlay(_ body: (inout BattleState) async throws -> [ActionEvent]) async rethrows -> [ActionEvent] {
         resolution.beginAutomaticPlay()
         defer { resolution.endAutomaticPlay() }
-        return try body(&self)
+        return try await body(&self)
     }
 
     var playerTurnNumber: Int {

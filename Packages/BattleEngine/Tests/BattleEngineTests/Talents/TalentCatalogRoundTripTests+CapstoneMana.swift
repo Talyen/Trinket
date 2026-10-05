@@ -13,7 +13,11 @@ extension TalentCatalogRoundTripTests {
         )
         battle.appliesFightPacing = false
         var card = Ability.rayOfFrost
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &card, actor: battle.companion, context: &battle)
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &card,
+            actor: battle.companion,
+            context: &battle,
+        ) }
         #expect(card.damageComponents == [
             DamageComponent(2, keyword: .freeze),
             DamageComponent(2, keyword: .freeze),
@@ -29,18 +33,30 @@ extension TalentCatalogRoundTripTests {
         battle.roster.hero.currentMana = 1
         battle.roster.companion.currentMana = 1
         var card = Ability.rayOfFrost
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &card, actor: battle.hero, context: &battle)
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &card,
+            actor: battle.hero,
+            context: &battle,
+        ) }
         #expect(card == Ability.rayOfFrost)
         #expect(battle.roster.hero.currentMana == 1)
         #expect(battle.roster.companion.currentMana == 1)
         battle.roster.companion.currentMana = 10
         card = .kindling
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &card, actor: battle.hero, context: &battle)
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &card,
+            actor: battle.hero,
+            context: &battle,
+        ) }
         #expect(card == Ability.kindling)
         #expect(battle.roster.companion.currentMana == 10)
         battle.roster.companion.currentHealth = 0
         card = .rayOfFrost
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &card, actor: battle.hero, context: &battle)
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &card,
+            actor: battle.hero,
+            context: &battle,
+        ) }
         #expect(card == Ability.rayOfFrost)
         #expect(battle.roster.hero.currentMana == 1)
     }
@@ -51,12 +67,20 @@ extension TalentCatalogRoundTripTests {
             id: "mixed", name: "Mixed", tier: .skill,
             damageComponents: [DamageComponent(2, keyword: .burn), DamageComponent(3, keyword: .freeze)],
         )
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &mixed, actor: battle.companion, context: &battle)
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &mixed,
+            actor: battle.companion,
+            context: &battle,
+        ) }
         #expect(mixed.damageComponents.map(\.amount) == [3, 4])
         #expect(battle.roster.companion.currentMana == 7)
         battle.roster.companion.currentMana = 2
         var unpaid = Ability.rayOfFrost
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &unpaid, actor: battle.companion, context: &battle)
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &unpaid,
+            actor: battle.companion,
+            context: &battle,
+        ) }
         #expect(unpaid == Ability.rayOfFrost)
         #expect(battle.roster.companion.currentMana == 2)
     }

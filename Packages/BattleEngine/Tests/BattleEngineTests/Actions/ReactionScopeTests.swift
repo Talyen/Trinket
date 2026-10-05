@@ -29,7 +29,11 @@ struct ReactionScopeTests {
         for _ in 0 ..< (ReactionScope.maxDepth) {
             state.resolution.enter(.dot)
         }
-        let events = CombatTriggerEngine.afterBleedDamageConversions(to: target, sourceActorID: state.roster.hero.combatant.id, in: &state)
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterBleedDamageConversions(
+            to: target,
+            sourceActorID: state.roster.hero.combatant.id,
+            in: &state,
+        ) }
         #expect(events.isEmpty)
         #expect(state.resolution.depth(.dot) == ReactionScope.maxDepth)
 

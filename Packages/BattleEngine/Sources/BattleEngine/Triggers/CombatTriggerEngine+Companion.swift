@@ -11,11 +11,11 @@ package extension CombatTriggerEngine {
         healthLost: Int,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard actor.role == .companion else { return [] }
         var events: [ActionEvent] = []
         if critical, triggers.criticalGoldStealFlat > 0 {
-            events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGoldEvent(
                 triggers.criticalGoldStealFlat, to: actor,
                 abilityName: "Pickpocket", isTheft: true,
             ))
@@ -26,27 +26,27 @@ package extension CombatTriggerEngine {
            BattleChance.succeeds(probability: triggers.poisonAttackStunChancePercent, using: &context.rng),
            context.roster.enemy.isAlive {
             let enemy = context.roster.enemy.combatant
-            events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+            await events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
                 ControlMeterEngine.threshold(for: enemy, in: context),
                 keyword: .stun, to: enemy,
                 sourceActorID: actor.id, applyFightPacing: false, in: &context,
             ))
         }
         if keyword == .burn {
-            events.append(contentsOf: afterCompanionBurnHit(
+            await events.append(contentsOf: afterCompanionBurnHit(
                 actor: actor, critical: critical, healthLost: healthLost,
                 triggers: triggers, in: &context,
             ))
         }
         if keyword == .holy {
-            events.append(contentsOf: afterCompanionHolyHit(
+            await events.append(contentsOf: afterCompanionHolyHit(
                 actor: actor, critical: critical, triggers: triggers, in: &context,
             ))
         }
         if keyword == .bleed, critical {
-            events.append(contentsOf: afterCompanionBleedCritical(actor: actor, triggers: triggers, in: &context))
+            await events.append(contentsOf: afterCompanionBleedCritical(actor: actor, triggers: triggers, in: &context))
         }
-        events.append(contentsOf: afterFinalCompanionCardHit(
+        await events.append(contentsOf: afterFinalCompanionCardHit(
             keyword: keyword, actor: actor, critical: critical, triggers: triggers, in: &context,
         ))
         return events
@@ -57,7 +57,7 @@ package extension CombatTriggerEngine {
         critical: Bool,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if critical, triggers.holyCriticalAllyIgnoreBlock, context.roster.hero.isAlive {
             let serial = context.resolution.cardTalents?.playSerial
@@ -66,7 +66,7 @@ package extension CombatTriggerEngine {
             }
         }
         if critical, triggers.holyCriticalPurgeCount > 0, context.roster.enemy.isAlive {
-            events.append(contentsOf: applyPurge(
+            await events.append(contentsOf: applyPurge(
                 to: context.roster.enemy.combatant, source: actor,
                 abilityName: "Bane of Evil", count: triggers.holyCriticalPurgeCount,
                 purgeAll: false, in: &context,
@@ -87,7 +87,7 @@ package extension CombatTriggerEngine {
            context.hasTalentDebuff(on: context.roster.hero.combatant),
            context.claimTalentAbility("Purifying Light", actorID: actor.id),
            BattleChance.succeeds(probability: triggers.holyAttackCleanseAllyChancePercent, using: &context.rng) {
-            events.append(contentsOf: EffectRemovalOperation.resolveCleanse(
+            await events.append(contentsOf: EffectRemovalOperation.resolveCleanse(
                 .randomDebuff, source: actor, target: context.roster.hero.combatant,
                 abilityName: "Purifying Light", in: &context,
             ).events)
@@ -101,7 +101,7 @@ package extension CombatTriggerEngine {
         healthLost: Int,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if healthLost > 0, triggers.burnAttackBlockAmount > 0,
            context.claimTalentAbility("Flame Shield", actorID: actor.id),
@@ -115,41 +115,41 @@ package extension CombatTriggerEngine {
            BattleChance.succeeds(probability: triggers.burnAttackHealLowestChancePercent, using: &context.rng) {
             let target = BattleConditionEvaluator.lowestHealthAlly(in: context)
             if context.roster.health(for: target) < context.roster.maxHealth(for: target) {
-                events.append(contentsOf: context.healEmitting(
+                await events.append(contentsOf: context.healEmitting(
                     amount: triggers.burnAttackHealLowestAmount,
                     target: target, source: actor, abilityName: "Healing Flames",
                 ))
             }
         }
         if critical {
-            events.append(contentsOf: afterCompanionBurnCritical(actor: actor, in: &context))
+            await events.append(contentsOf: afterCompanionBurnCritical(actor: actor, in: &context))
         }
         return events
     }
 
-    static func afterCompanionBurnCritical(actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
+    static func afterCompanionBurnCritical(actor: Combatant, in context: inout BattleState) async -> [ActionEvent] {
         let triggers = context.modifiers(for: actor.id).triggers
         let name = triggerAbilityName("burnCriticalRestoreMana", for: actor, fallback: "Furnace Rhythm", in: context)
         guard context.allowsHeroTalentReaction, actor.role == .companion,
               context.roster.health(for: actor) > 0, triggers.burnCriticalRestoreMana > 0,
               context.claimTalentAbility(name, actorID: actor.id) else { return [] }
-        return context.restoreManaEmitting(triggers.burnCriticalRestoreMana, to: actor, abilityName: name)
+        return await context.restoreManaEmitting(triggers.burnCriticalRestoreMana, to: actor, abilityName: name)
     }
 
     private static func afterCompanionBleedCritical(
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.bleedCriticalPoisonDamage > 0 {
-            events.append(contentsOf: heroTalentDamage(
+            await events.append(contentsOf: heroTalentDamage(
                 .poison, amount: triggers.bleedCriticalPoisonDamage,
                 source: actor, name: "Cross-Contamination", in: &context,
             ))
         }
         if triggers.bleedCriticalThorns > 0 {
-            events.append(contentsOf: heroTalentThorns(
+            await events.append(contentsOf: heroTalentThorns(
                 to: actor, source: actor, amount: triggers.bleedCriticalThorns,
                 name: "Spiny Carapace", in: &context,
             ))
@@ -176,9 +176,9 @@ package extension CombatTriggerEngine {
         critical: Bool,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
-        events.append(contentsOf: finalCompanionGoldFromAttack(actor: actor, critical: critical, triggers: triggers, in: &context))
+        await events.append(contentsOf: finalCompanionGoldFromAttack(actor: actor, critical: critical, triggers: triggers, in: &context))
         if keyword == .physical {
             if triggers.firstPhysicalAttackBlockPerTurn > 0,
                context.claimHeroTalent("Bone Shield", actorID: actor.id) {
@@ -188,7 +188,7 @@ package extension CombatTriggerEngine {
                 ))
             }
             if critical, triggers.physicalCriticalBleedDamage > 0, context.roster.enemy.isAlive {
-                events.append(contentsOf: heroTalentDamage(
+                await events.append(contentsOf: heroTalentDamage(
                     .bleed, amount: triggers.physicalCriticalBleedDamage,
                     source: actor, name: "Cleaving Bones", in: &context,
                 ))
@@ -203,7 +203,7 @@ package extension CombatTriggerEngine {
                 ))
             }
             if critical, triggers.holyCriticalStunDamage > 0, context.roster.enemy.isAlive {
-                events.append(contentsOf: heroTalentDamage(
+                await events.append(contentsOf: heroTalentDamage(
                     .stun, amount: triggers.holyCriticalStunDamage,
                     source: actor, name: "Stun Flare", in: &context,
                 ))
@@ -228,19 +228,19 @@ package extension CombatTriggerEngine {
         critical: Bool,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.attackGoldStealAmount > 0,
            context.claimTalentAbility("Snatch", actorID: actor.id),
            BattleChance.succeeds(probability: triggers.attackGoldStealChancePercent, using: &context.rng) {
-            events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGoldEvent(
                 triggers.attackGoldStealAmount, to: actor, abilityName: "Snatch", isTheft: true,
             ))
         }
         if critical, triggers.criticalGoldStealAmount > 0,
            context.claimTalentAbility("Lucky Strike", actorID: actor.id),
            BattleChance.succeeds(probability: triggers.criticalGoldStealChancePercent, using: &context.rng) {
-            events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGoldEvent(
                 triggers.criticalGoldStealAmount, to: actor, abilityName: "Lucky Strike", isTheft: true,
             ))
         }
@@ -272,7 +272,7 @@ package extension CombatTriggerEngine {
         return drawCards(1, for: owner, actor: actor, abilityName: "Rimewind", in: &context)
     }
 
-    static func afterEnemyFrozen(sourceActorID: String?, in context: inout BattleState) -> [ActionEvent] {
+    static func afterEnemyFrozen(sourceActorID: String?, in context: inout BattleState) async -> [ActionEvent] {
         guard let sourceActorID,
               let source = context.roster.combatant(for: sourceActorID), source.isAlive
         else { return [] }
@@ -280,7 +280,7 @@ package extension CombatTriggerEngine {
         let triggers = context.modifiers(for: sourceActorID).triggers
         var events: [ActionEvent] = []
         if triggers.onFreezeEnemyRestoreMana > 0 {
-            events.append(contentsOf: context.restoreManaEmitting(
+            await events.append(contentsOf: context.restoreManaEmitting(
                 triggers.onFreezeEnemyRestoreMana, to: actor, abilityName: "Frost Siphon",
             ))
         }
@@ -292,7 +292,7 @@ package extension CombatTriggerEngine {
         }
         if triggers.onFreezeBurningEnemyBurnDamage > 0,
            context.roster.hasAffliction(.burn, on: context.roster.enemy.combatant) {
-            events.append(contentsOf: heroTalentDamage(
+            await events.append(contentsOf: heroTalentDamage(
                 .burn, amount: triggers.onFreezeBurningEnemyBurnDamage,
                 source: actor, name: "Steam Explosion", in: &context,
             ))
@@ -308,7 +308,7 @@ package extension CombatTriggerEngine {
 
     // MARK: - Companion dodge (including final-companion follow-ups)
 
-    static func afterCompanionDodge(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
+    static func afterCompanionDodge(by actor: Combatant, in context: inout BattleState) async -> [ActionEvent] {
         let triggers = context.modifiers(for: actor.id).triggers
         if triggers.dodgeNextManaEmpowerFree || triggers.dodgeNextFreezeIgnoreBlock
             || triggers.dodgeNextAttackIgnoreBlock || triggers.firstDodgeDoubleNextAttack {
@@ -332,7 +332,7 @@ package extension CombatTriggerEngine {
         }
         var events: [ActionEvent] = []
         if triggers.dodgeDealBleedFlat > 0, context.roster.enemy.isAlive {
-            events.append(contentsOf: applyDoT(
+            await events.append(contentsOf: applyDoT(
                 keyword: .bleed,
                 potency: triggers.dodgeDealBleedFlat,
                 to: context.roster.enemy.combatant,
@@ -352,8 +352,8 @@ package extension CombatTriggerEngine {
         }
         if actor.role == .companion {
             prepareFinalDodgeBonuses(by: actor, triggers: triggers, in: &context)
-            events.append(contentsOf: finalDodgeResources(by: actor, triggers: triggers, in: &context))
-            events.append(contentsOf: finalDodgeDamage(by: actor, triggers: triggers, in: &context))
+            await events.append(contentsOf: finalDodgeResources(by: actor, triggers: triggers, in: &context))
+            await events.append(contentsOf: finalDodgeDamage(by: actor, triggers: triggers, in: &context))
         }
         return events
     }
@@ -415,11 +415,11 @@ package extension CombatTriggerEngine {
         by actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.dodgeGoldAmount > 0,
            BattleChance.succeeds(probability: triggers.dodgeGoldChancePercent, using: &context.rng) {
-            events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGoldEvent(
                 triggers.dodgeGoldAmount, to: actor, abilityName: "Palmed Coin",
             ))
         }
@@ -427,7 +427,7 @@ package extension CombatTriggerEngine {
            context.roster.health(for: actor) > 0,
            context.roster.health(for: actor) * 2 < context.roster.maxHealth(for: actor),
            context.claimHeroTalent("Stolen Breath", actorID: actor.id) {
-            events.append(contentsOf: context.healEmitting(
+            await events.append(contentsOf: context.healEmitting(
                 amount: triggers.belowHalfFirstDodgeHealPerTurn,
                 target: actor, source: actor, abilityName: "Stolen Breath",
             ))
@@ -439,7 +439,7 @@ package extension CombatTriggerEngine {
         by actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.roster.enemy.isAlive else { return [] }
         var events: [ActionEvent] = []
         for (keyword, chance, amount, name) in [
@@ -448,7 +448,7 @@ package extension CombatTriggerEngine {
             (.stun, triggers.dodgeStunChancePercent, triggers.dodgeStunDamage, "Dazzling Tail"),
         ] where amount > 0 && context.roster.enemy.isAlive {
             if BattleChance.succeeds(probability: chance, using: &context.rng) {
-                events.append(contentsOf: heroTalentDamage(
+                await events.append(contentsOf: heroTalentDamage(
                     keyword, amount: amount, source: actor, name: name, in: &context,
                 ))
             }
@@ -462,15 +462,15 @@ package extension CombatTriggerEngine {
         granted: Int,
         actor: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let amount = context.modifiers(for: actor.id).triggers.belowHalfFirstGoldGainHealPerTurn
         guard granted > 0, amount > 0, context.roster.health(for: actor) > 0,
               context.roster.health(for: actor) * 2 < context.roster.maxHealth(for: actor),
               context.claimHeroTalent("Golden Recovery", actorID: actor.id) else { return [] }
-        return context.healEmitting(amount: amount, target: actor, source: actor, abilityName: "Golden Recovery")
+        return await context.healEmitting(amount: amount, target: actor, source: actor, abilityName: "Golden Recovery")
     }
 
-    static func afterCompanionGoldTheft(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
+    static func afterCompanionGoldTheft(by actor: Combatant, in context: inout BattleState) async -> [ActionEvent] {
         let triggers = context.modifiers(for: actor.id).triggers
         if triggers.goldTheftNextBlockMultiplier > 1 {
             let preparedCardSerial = context.resolution.cardTalents?.playSerial
@@ -507,7 +507,7 @@ package extension CombatTriggerEngine {
         }
         if triggers.goldTheftHealAllyFlat > 0, context.roster.hero.isAlive,
            context.roster.hero.currentHealth < context.roster.hero.maxHealth {
-            events.append(contentsOf: context.healEmitting(
+            await events.append(contentsOf: context.healEmitting(
                 amount: triggers.goldTheftHealAllyFlat,
                 target: context.roster.hero.combatant,
                 source: actor,
@@ -528,7 +528,7 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         amountSpent: Int,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard amountSpent > 0 else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         if triggers.selfManaSpendNextAttackBonus > 0 {
@@ -543,7 +543,7 @@ package extension CombatTriggerEngine {
         }
         guard triggers.firstManaSpendRefundPerTurn > 0,
               context.claimHeroTalent("Aetherial Surge", actorID: actor.id) else { return [] }
-        return context.restoreManaEmitting(
+        return await context.restoreManaEmitting(
             triggers.firstManaSpendRefundPerTurn,
             to: actor,
             abilityName: "Aetherial Surge",

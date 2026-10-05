@@ -28,7 +28,7 @@ extension BattleTurnEngineTests {
             if !attacks {
                 supportOutcomes += 1
             }
-            let events = BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
+            let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
             #expect(battle.roster.companion.talents.battle.negatedFirstEnemyAttack == attacks)
             #expect(events.contains { $0.effectKind == .shieldApplied && $0.targetID == battle.enemy.id } == !attacks)
             #expect(battle.rng == expected.rng)
@@ -51,7 +51,7 @@ extension BattleTurnEngineTests {
         battle.appliesFightPacing = false
         battle.appendEffect(.poison(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
-        let events = BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
+        let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
 
         #expect(events.contains { $0.effectKind == .shieldApplied && $0.targetID == battle.enemy.id })
         #expect(!battle.roster.companion.talents.battle.negatedFirstEnemyAttack)
@@ -71,7 +71,7 @@ extension BattleTurnEngineTests {
             battle.appendEffect(.controlMeter(control, 20, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
-        let events = BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
+        let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
 
         #expect(battle.roster.enemy.currentHealth == 100)
         #expect(events.contains { $0.effectKind == (control == nil ? .shieldApplied : .controlActionSkipped) })

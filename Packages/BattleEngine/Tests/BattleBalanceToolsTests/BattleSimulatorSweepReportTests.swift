@@ -4,11 +4,7 @@ import TrinketContent
 import TrinketCore
 @testable import BattleBalanceTools
 
-/// Sweep sims run deep battles (notably lateGame) that overflow small
-/// worker-thread stacks (SIGBUS). Main-actor isolation runs them on the
-/// main thread's larger stack; execution is already serialized.
 @Suite(.serialized)
-@MainActor
 struct BattleSimulatorSweepReportTests {
     @Test func `parallel identity matches sequential outcomes`() {
         let sequential = BalanceSweepRunner.run(
@@ -54,9 +50,7 @@ struct BattleSimulatorSweepReportTests {
         #expect(markdown.contains("Ability Contrasts"))
     }
 
-    /// Serial tier loop, not @Test(arguments:): parameterized cases run
-    /// concurrently despite @Suite(.serialized), and concurrent lateGame
-    /// sims overflow small worker-thread stacks (SIGBUS).
+    /// Reuse one serial tier loop to keep the diagnostic workload bounded.
     @Test func `affix contrast produces lift rows in every tier`() {
         for tier in SimulationPowerTier.allCases {
             let report = BalanceSweepRunner.run(

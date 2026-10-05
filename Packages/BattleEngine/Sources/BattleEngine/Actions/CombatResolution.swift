@@ -343,19 +343,20 @@ struct CombatResolution {
 }
 
 enum CombatResolver {
-    static func damage(_ request: DamageRequest, in context: inout BattleState) -> CombatOutcome {
+    static func damage(_ request: DamageRequest, in context: inout BattleState) async -> CombatOutcome {
         guard request.amount > 0 else { return .empty }
         guard context.resolution.depth(.damage) < ReactionScope.maxDepth else {
             ReactionScope.capHit(site: "damage", depth: context.resolution.depth(.damage))
             return .empty
         }
+        await CombatExecutor.suspend()
         context.resolution.enter(.damage)
         var state = DamageResolutionState(
             amount: request.amount, combatant: request.target, sourceActorID: request.sourceActorID,
             damageKeyword: request.keyword, options: request.options,
         )
         state.provenance = request.provenance
-        DamagePipeline.run(state: &state, in: &context)
+        await DamagePipeline.run(state: &state, in: &context)
         var outcome = CombatOutcome.fromDamage(state: state)
         // Recording is scoped to a resolved action, including its immediate DoT pulses.
         if !request.options.isHealthCost, let impact = outcome.damageImpact {
@@ -364,20 +365,15 @@ enum CombatResolver {
             ))
         }
         context.resolution.leave(.damage)
-        // Drain deferred out-of-turn attacks once the outermost damage
-        // completes, so a full Basic never nests inside the damage pipeline
-        // on small worker-thread stacks. Queues always empty here even when
-        // the summons no-op, so nothing strands. The guard keeps the drain
-        // iterative: nested damage during a drain only enqueues, and the
-        // outer loop picks it up instead of recursing drain -> Basic ->
-        // damage -> drain. Loop across both queues since counter Basics can
-        // enqueue Block answers and vice versa.
+        // Preserve the post-damage timing of counter Basics and Block answers.
+        // During this drain, reactions only enqueue; the outer loop then visits
+        // both queues again. No-op attacks are removed too, so none strand.
         if context.resolution.depth(.damage) == 0, !context.uniques.isDrainingOutOfTurnAttacks {
             context.uniques.isDrainingOutOfTurnAttacks = true
             while !context.uniques.pendingCounterAttackActorIDs.isEmpty
                 || !context.uniques.pendingBlockAnswerOwners.isEmpty {
-                outcome.events.append(contentsOf: CombatTriggerEngine.drainPendingCounterAttacks(in: &context))
-                outcome.events.append(contentsOf: UniqueCombatEngine.drainPendingBlockAnswers(in: &context))
+                await outcome.events.append(contentsOf: CombatTriggerEngine.drainPendingCounterAttacks(in: &context))
+                await outcome.events.append(contentsOf: UniqueCombatEngine.drainPendingBlockAnswers(in: &context))
             }
             context.uniques.isDrainingOutOfTurnAttacks = false
         }

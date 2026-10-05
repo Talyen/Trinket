@@ -20,7 +20,7 @@ struct AvatarHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         guard case let .avatar(holyDamage, blockPerTurn, turns) = effect,
               holyDamage > 0, blockPerTurn >= 0, turns > 0
         else {
@@ -36,7 +36,7 @@ struct AvatarHandler: BattleEffectHandler {
             event: (.avatarApplied, holyDamage, .holy),
         )
         guard application.didApply else { return application }
-        let events = pulse(
+        let events = await pulse(
             holyDamage: holyDamage,
             blockPerTurn: blockPerTurn,
             from: target,
@@ -50,13 +50,13 @@ struct AvatarHandler: BattleEffectHandler {
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard case let .avatar(holyDamage, blockPerTurn, _) = active.effect,
               active.remainingTurns > 0
         else {
             return []
         }
-        let events = pulse(
+        let events = await pulse(
             holyDamage: holyDamage,
             blockPerTurn: blockPerTurn,
             from: target,
@@ -77,9 +77,9 @@ struct AvatarHandler: BattleEffectHandler {
         from caster: Combatant,
         provenance: DamageProvenance? = nil,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let opponent = BattleActionContext(actor: caster, in: context).selectedTarget
-        var events = DoTDamage.resolveDamage(
+        var events = await DoTDamage.resolveDamage(
             basePotency: holyDamage,
             keyword: .holy,
             target: opponent,

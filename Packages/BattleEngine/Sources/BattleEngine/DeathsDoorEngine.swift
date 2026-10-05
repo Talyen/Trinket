@@ -29,20 +29,20 @@ package enum DeathsDoorEngine {
     package static func resolveAfterDamage(
         to combatant: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard applies(to: combatant) else { return [] }
 
         let health = context.roster.health(for: combatant)
         if health == 0 {
             if combatant.role == .hero,
-               let gift = tryPhoenixGift(on: combatant, in: &context) {
+               let gift = await tryPhoenixGift(on: combatant, in: &context) {
                 return gift
             }
-            if let reviveEvents = tryTraitDeathRevive(on: combatant, in: &context) {
+            if let reviveEvents = await tryTraitDeathRevive(on: combatant, in: &context) {
                 return reviveEvents
             }
             if !context.roster.hasConsumedDeathsDoor(for: combatant) {
-                return trigger(on: combatant, in: &context)
+                return await trigger(on: combatant, in: &context)
             }
             if hasLethalProtection(for: combatant, in: context) {
                 clampToMinimumHP(on: combatant, in: &context)
@@ -53,7 +53,7 @@ package enum DeathsDoorEngine {
            context.roster.enemy.isAlive {
             let explosion = context.modifiers(for: combatant.id).triggers.onDeathDealPhysicalDamageAllEnemies
             if explosion > 0 {
-                let outcome = context.resolveDamage(
+                let outcome = await context.resolveDamage(
                     DamageRequest(
                         amount: explosion,
                         target: context.roster.enemy.combatant,
@@ -71,7 +71,7 @@ package enum DeathsDoorEngine {
     private static func tryPhoenixGift(
         on combatant: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent]? {
+    ) async -> [ActionEvent]? {
         let companionTriggers = context.companionModifiers.triggers
         guard combatant.role == .hero,
               context.roster.companion.isAlive,
@@ -82,7 +82,7 @@ package enum DeathsDoorEngine {
         context.roster.mutateRuntime(for: context.roster.companion.combatant) { runtime in
             runtime.hasTriggeredPhoenixGift = true
         }
-        return HealingEngine.resolveHeal(
+        return await HealingEngine.resolveHeal(
             HealRequest(
                 amount: companionTriggers.onHeroFatalReviveHealth,
                 target: combatant,
@@ -102,7 +102,7 @@ package enum DeathsDoorEngine {
     private static func tryTraitDeathRevive(
         on combatant: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent]? {
+    ) async -> [ActionEvent]? {
         guard let runtime = context.roster.runtime(for: combatant),
               !runtime.hasTriggeredDeathRevive
         else { return nil }
@@ -139,7 +139,7 @@ package enum DeathsDoorEngine {
             ))
         }
         if triggers.reviveDealBurnDamage > 0, context.roster.enemy.isAlive {
-            events.append(contentsOf: context.applyDecayingDoT(
+            await events.append(contentsOf: context.applyDecayingDoT(
                 keyword: .burn,
                 potency: triggers.reviveDealBurnDamage,
                 to: context.roster.enemy.combatant,
@@ -153,7 +153,7 @@ package enum DeathsDoorEngine {
     private static func trigger(
         on combatant: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         context.roster.mutateRuntime(for: combatant) { runtime in
             runtime.hasConsumedDeathsDoor = true
             runtime.currentHealth = 1
@@ -179,7 +179,7 @@ package enum DeathsDoorEngine {
         var events = [event]
         if triggers.firstBelowHalfHealthHeal > 0,
            context.resolution.claim(.heroTalent("Vital Infusion"), actorID: combatant.id, cadence: .battle) {
-            events.append(contentsOf: context.healEmitting(
+            await events.append(contentsOf: context.healEmitting(
                 amount: triggers.firstBelowHalfHealthHeal,
                 target: combatant, source: combatant, abilityName: "Vital Infusion",
             ))
@@ -199,8 +199,8 @@ package enum DeathsDoorEngine {
                 abilityName: "Deathgrip",
             ))
         }
-        events.append(contentsOf: phoenixEnteringDeathsDoor(on: combatant, triggers: triggers, in: &context))
-        events.append(contentsOf: guardianArchive(on: combatant, in: &context))
+        await events.append(contentsOf: phoenixEnteringDeathsDoor(on: combatant, triggers: triggers, in: &context))
+        await events.append(contentsOf: guardianArchive(on: combatant, in: &context))
         return events
     }
 
@@ -208,10 +208,10 @@ package enum DeathsDoorEngine {
         on combatant: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.enterDeathsDoorHeal > 0 {
-            events.append(contentsOf: context.healEmitting(
+            await events.append(contentsOf: context.healEmitting(
                 amount: triggers.enterDeathsDoorHeal,
                 target: combatant,
                 source: combatant,
@@ -219,7 +219,7 @@ package enum DeathsDoorEngine {
             ))
         }
         if triggers.enterDeathsDoorBurnDamage > 0, context.roster.enemy.isAlive {
-            events.append(contentsOf: context.applyDecayingDoT(
+            await events.append(contentsOf: context.applyDecayingDoT(
                 keyword: .burn,
                 potency: triggers.enterDeathsDoorBurnDamage,
                 to: context.roster.enemy.combatant,
@@ -233,13 +233,13 @@ package enum DeathsDoorEngine {
     private static func guardianArchive(
         on combatant: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let companionTriggers = context.companionModifiers.triggers
         guard combatant.role != .enemy,
               context.roster.companion.isAlive,
               companionTriggers.onAllyDeathsDoorRestoreHealth > 0
         else { return [] }
-        return context.healEmitting(
+        return await context.healEmitting(
             amount: companionTriggers.onAllyDeathsDoorRestoreHealth,
             target: combatant,
             source: context.roster.companion.combatant,
@@ -250,7 +250,7 @@ package enum DeathsDoorEngine {
     private static func afterglow(
         on combatant: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let companionTriggers = context.companionModifiers.triggers
         guard combatant.role == .companion, companionTriggers.surviveDeathsDoorPartyHealFlat > 0 else {
             return []
@@ -261,7 +261,7 @@ package enum DeathsDoorEngine {
             guard member.isAlive else { continue }
             let maxHealth = context.roster.maxHealth(for: member.combatant)
             guard context.roster.health(for: member.combatant) < maxHealth else { continue }
-            events.append(contentsOf: HealingEngine.resolveHeal(
+            await events.append(contentsOf: HealingEngine.resolveHeal(
                 HealRequest(
                     amount: companionTriggers.surviveDeathsDoorPartyHealFlat,
                     target: member.combatant,
@@ -282,7 +282,7 @@ package enum DeathsDoorEngine {
     static func afterDeathsDoorExpired(
         on combatant: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.roster.health(for: combatant) > 0 else { return [] }
         let triggers = context.modifiers(for: combatant.id).triggers
         if triggers.surviveDeathsDoorNextAttackDouble {
@@ -290,9 +290,9 @@ package enum DeathsDoorEngine {
                 $0.talents.pending.doubleNextAttackAfterDeathsDoor = true
             }
         }
-        var events = afterglow(on: combatant, in: &context)
+        var events = await afterglow(on: combatant, in: &context)
         if triggers.affixDeathsDoorSurviveHealFlat > 0 {
-            events.append(contentsOf: context.healEmitting(
+            await events.append(contentsOf: context.healEmitting(
                 amount: triggers.affixDeathsDoorSurviveHealFlat,
                 target: combatant, source: combatant,
                 abilityName: context.modifiers(for: combatant.id).triggerAbilityName(
@@ -320,7 +320,7 @@ package enum DeathsDoorEngine {
         let currentHealth = context.roster.health(for: combatant)
         let delta = min(max(currentHealth, amount), maxHealth) - currentHealth
         guard delta > 0 else { return events }
-        events.append(contentsOf: HealingEngine.resolveHeal(
+        await events.append(contentsOf: HealingEngine.resolveHeal(
             HealRequest(
                 amount: delta,
                 target: combatant,

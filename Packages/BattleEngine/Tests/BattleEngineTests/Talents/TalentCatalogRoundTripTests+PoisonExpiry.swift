@@ -9,7 +9,7 @@ extension TalentCatalogRoundTripTests {
         battle.roster.hero.currentHealth = 5
         seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle)
 
-        let events = EffectTurnEngine.advanceAll(context: &battle)
+        let events = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
 
         #expect(!battle.roster.hasAffliction(.poison, on: battle.enemy))
         #expect(battle.roster.hero.currentHealth == 8)

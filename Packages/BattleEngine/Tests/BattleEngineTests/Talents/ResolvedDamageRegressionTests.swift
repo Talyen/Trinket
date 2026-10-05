@@ -27,10 +27,10 @@ struct ResolvedDamageRegressionTests {
         )
         battle.appliesFightPacing = false
         battle.appendEffect(.controlMeter(.freeze, 100, 100), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
-        let result = DoTDamage.resolveDamage(
+        let result = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 100, keyword: .burn, target: battle.enemy, sourceActorID: battle.companion.id,
             operation: .resolvedPeriodic, in: &battle,
-        )
+        ) }
         #expect(result.healthLost == 100)
     }
 
@@ -62,14 +62,14 @@ struct ResolvedDamageRegressionTests {
             amount: 1, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
             options: .attack(tier: .basic, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
         ))
-        let first = DoTDamage.resolveDamage(
+        let first = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 10, keyword: .poison, target: battle.enemy, sourceActorID: battle.hero.id,
             operation: .resolvedPeriodic, in: &battle,
-        )
-        let second = DoTDamage.resolveDamage(
+        ) }
+        let second = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 10, keyword: .poison, target: battle.enemy, sourceActorID: battle.hero.id,
             operation: .resolvedPeriodic, in: &battle,
-        )
+        ) }
         #expect(first.healthLost == 20)
         #expect(second.healthLost == 10)
         #expect(!battle.roster.hero.talents.pending.doubleNextPoisonDamage)

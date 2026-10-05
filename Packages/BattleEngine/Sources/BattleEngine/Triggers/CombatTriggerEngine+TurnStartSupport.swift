@@ -9,18 +9,18 @@ extension CombatTriggerEngine {
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard !context.isBattleOver, context.health(of: actor) > 0 else { return [] }
         var events: [ActionEvent] = []
         if triggers.goldPerTurn > 0 {
-            events.append(contentsOf: emitGold(
+            await events.append(contentsOf: emitGold(
                 "goldPerTurn", "Merchant's Favor", amount: triggers.goldPerTurn, to: actor, in: &context,
             ))
         }
         guard !context.isBattleOver, context.health(of: actor) > 0 else { return events }
         if triggers.healthPerTurn > 0, context.isPlayerTurn(every: 2, startingAt: 1) {
             let target = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
-            events.append(contentsOf: emitHeal(
+            await events.append(contentsOf: emitHeal(
                 "healthPerTurn", "Grove's Favor",
                 amount: triggers.healthPerTurn, to: target, source: actor, in: &context,
             ))
@@ -41,7 +41,7 @@ extension CombatTriggerEngine {
             )
             request.amountBasis = .resolved
             request.suppressTalentReactions = true
-            events.append(contentsOf: HealingEngine.resolveHeal(request, in: &context).events)
+            await events.append(contentsOf: HealingEngine.resolveHeal(request, in: &context).events)
             context.roster.mutateRuntime(for: actor) {
                 guard var current = $0.talents.timed.lingeringBlessing else { return }
                 current.turnsRemaining -= 1
@@ -55,19 +55,19 @@ extension CombatTriggerEngine {
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.goldEveryNTurnsInterval > 0,
            context.turnCount > 0,
            context.isPlayerTurn(every: triggers.goldEveryNTurnsInterval) {
-            events.append(contentsOf: emitGold(
+            await events.append(contentsOf: emitGold(
                 "goldEveryNTurnsAmount", "Dig for Treasure",
                 amount: triggers.goldEveryNTurnsAmount, to: actor, in: &context,
             ))
         }
         if triggers.healthRegenFirstTurnsDuration > 0,
            context.turnCount < triggers.healthRegenFirstTurnsDuration {
-            events.append(contentsOf: emitHeal(
+            await events.append(contentsOf: emitHeal(
                 "healthRegenFirstTurnsAmount", "Sprite Touch",
                 amount: triggers.healthRegenFirstTurnsAmount, to: actor, source: actor, in: &context,
             ))
@@ -75,7 +75,7 @@ extension CombatTriggerEngine {
         if triggers.healthRegenAboveHalfHealth > 0,
            context.roster.maxHealth(for: actor) > 0,
            context.roster.health(for: actor) * 2 > context.roster.maxHealth(for: actor) {
-            events.append(contentsOf: emitHeal(
+            await events.append(contentsOf: emitHeal(
                 "healthRegenAboveHalfHealth", "Safe Perch",
                 amount: triggers.healthRegenAboveHalfHealth, to: actor, source: actor, in: &context,
             ))
@@ -88,7 +88,7 @@ extension CombatTriggerEngine {
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.startTurnFullManaDrawCards > 0,
            let runtime = context.roster.runtime(for: actor),
@@ -108,7 +108,7 @@ extension CombatTriggerEngine {
             ))
         }
         if triggers.bonusManaOnTurns.contains(context.playerTurnNumber) {
-            events.append(contentsOf: emitMana(
+            await events.append(contentsOf: emitMana(
                 "bonusManaOnTurns", "Aetherial Surge", amount: 1, to: actor, in: &context,
             ))
         }

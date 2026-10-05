@@ -19,7 +19,7 @@ extension AbilityEffectIntegrationTests {
         let kind: EffectKind = ability.id == "ray-of-frost" ? .recurringDamage : .bleed
         let active = try #require(battle.activeEffects(of: battle.hero).first { $0.effect.kind == kind })
         let handler = EffectHandlers.handler(for: kind)
-        _ = handler.advanceTurn(active, on: battle.hero, in: &battle)
+        _ = CombatExecutor.run { await handler.advanceTurn(active, on: battle.hero, in: &battle) }
         #expect(battle.health(of: battle.hero) == 97)
     }
 

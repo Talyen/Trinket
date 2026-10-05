@@ -103,23 +103,91 @@ struct CloudSaveSyncTests {
         #expect(reloaded.roster.gold == 15)
     }
 
-    @Test @MainActor func `long offline play compacts its journal without losing earned Gold`() async throws {
+    @Test @MainActor func `long offline Contract branches retain independent earnings and replay once after reload`() async throws {
         let transport = CloudSaveTestTransport()
-        let context = try PersistenceTestContext()
-        let store = try cloudStore(context, transport: transport)
-        #expect(await store.cloudSync?.synchronize() == true)
-        for _ in 0 ..< 70 {
-            #expect(store.persistBatch(logging: "Offline Gold") { $0.roster.gold += 1 })
+        let first = try PersistenceTestContext()
+        let second = try PersistenceTestContext()
+        let a = try cloudStore(first, transport: transport)
+        #expect(a.persistBatch(logging: "Contract setup") { save in
+            save.starterSelection = .complete
+            save.roster.gold = 100
+            save.contracts.ensureBoard()
+        })
+        #expect(await a.cloudSync?.synchronize() == true)
+        var b: PlayerSaveStore? = try cloudStore(second, transport: transport)
+        #expect(await b?.cloudSync?.synchronize() == true)
+        let base = a.currentSave
+        let hero = base.roster.activeHero
+        let offer = try #require(base.contracts.offer(for: .easy))
+        let item = try #require(GameContent.sampleInventoryItems.first)
+        let loot = BattleLootResult(item: item, gold: 10, materials: [ResourceAmount(.herbs, 3)])
+        let claimed = playOfflineContract(a, offerID: offer.id, loot: loot, gains: 1, spending: (7, 0))
+        _ = try playOfflineContract(#require(b), offerID: offer.id, loot: loot, gains: 2, spending: (11, 5))
+        let journal = try #require(b?.cloudDeviceState.account.journal)
+        #expect(journal.count == 72)
+        #expect(journal.allSatisfy { $0.economy != nil || $0.receipts != nil })
+        #if DEBUG
+        b?.forcesNextSaveFailure = true
+        #expect(b?.persistBatch(logging: "Rejected earnings") { $0.roster.gold += 9 } == false)
+        #expect(b?.cloudDeviceState.account.journal == journal)
+        #endif
+        #expect(await a.cloudSync?.synchronize() == true)
+        await transport.configure(loseResponse: true)
+        #expect(await b?.cloudSync?.synchronize() == false)
+        let request = try #require(b?.cloudDeviceState.account.pending)
+        #expect(request.mutations == journal)
+        b = nil
+        let reloaded = try cloudStore(second, transport: transport)
+        #expect(reloaded.cloudDeviceState.account.pending == request)
+        #expect(reloaded.cloudDeviceState.account.journal == journal)
+        #expect(await reloaded.cloudSync?.synchronize() == true)
+        #expect(await a.cloudSync?.synchronize() == true)
+        for store in [a, reloaded] {
+            #expect(store.roster.gold == claimed.roster.gold + 210 - 18)
+            #expect(store.homestead.resources[.food, default: 0] == claimed.homestead.resources[.food, default: 0] + 205)
+            #expect(store.homestead.resources[.herbs] == claimed.homestead.resources[.herbs])
+            #expect(store.roster.progression(for: hero).totalEarnedExperience == claimed.roster.progression(for: hero)
+                .totalEarnedExperience + 210)
+            #expect(store.cloudDeviceState.account.journal?.isEmpty == true)
         }
-        #expect((store.cloudDeviceState.account.journal?.count ?? 0) <= 64)
-        #expect(await store.cloudSync?.synchronize() == true)
-        #expect(store.roster.gold == 70)
-        #expect(store.cloudDeviceState.account.journal?.isEmpty == true)
-        #expect(await transport.account().head?.head.revision.snapshot.roster.gold == 70)
+        let server = await transport.account()
+        #expect(await reloaded.cloudSync?.synchronize() == true)
+        #expect(await transport.account().head?.head.revision.snapshot == server.head?.head.revision.snapshot)
+        #expect(await transport.account().receipts.count == server.receipts.count)
+        let restored = try second.makeReloadedStore()
+        #expect(restored.roster == reloaded.roster)
+        #expect(restored.homestead == reloaded.homestead)
     }
 }
 
 extension CloudSaveSyncTests {
+    @MainActor private func playOfflineContract(
+        _ store: PlayerSaveStore, offerID: String, loot: BattleLootResult,
+        gains: Int, spending: (gold: Int, food: Int),
+    ) -> PlayerSave {
+        let hero = store.roster.activeHero
+        #expect(store.persistBatch(logging: "Shared Contract") { save, recordReceipt in
+            #expect(ContractsCompletion.complete(
+                offerID: offerID, hero: hero, companion: save.roster.activeCompanion,
+                encounterLevel: 1, loot: loot, save: &save, recordReceipt: recordReceipt,
+            ) == .completed)
+        })
+        #expect(store.cloudDeviceState.account.journal?.first?.receipts?.first?.effects.claim == .contract(offerID))
+        let claimed = store.currentSave
+        for _ in 0 ..< 70 {
+            #expect(store.persistBatch(logging: "Offline battle") { save in
+                save.roster.gold += gains
+                save.homestead.resources[.food, default: 0] += gains
+                save.roster.grantExperience(gains, to: hero)
+            })
+        }
+        #expect(store.persistBatch(logging: "Offline spending") { save in
+            save.roster.gold -= spending.gold
+            save.homestead.resources[.food, default: 0] -= spending.food
+        })
+        return claimed
+    }
+
     @Test @MainActor func `stale production authority retries offline earned progress`() async throws {
         let transport = CloudSaveTestTransport()
         let first = try PersistenceTestContext()
@@ -528,7 +596,7 @@ extension CloudSaveSyncTests {
         #expect(try first.makeReloadedStore().roster.gold == 110)
     }
 
-    @MainActor private func cloudStore(
+    @MainActor func cloudStore(
         _ context: PersistenceTestContext,
         transport: CloudSaveTestTransport,
     ) throws -> PlayerSaveStore {
@@ -543,7 +611,7 @@ extension CloudSaveSyncTests {
         )
     }
 
-    @MainActor private func seedHomestead(_ store: PlayerSaveStore) throws {
+    @MainActor func seedHomestead(_ store: PlayerSaveStore) throws {
         try store.performBatchMutation { save in
             save.starterSelection = .complete
             save.roster.gold = 100

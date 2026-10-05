@@ -1,7 +1,6 @@
 import BattleEngine
 import Foundation
 import Observation
-import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts
@@ -23,13 +22,10 @@ public final class PlaySession {
     public let contracts: ContractsPlayMode
     public let encounters: EncounterPlayMode
 
-    private let battleRuns: PlayBattleRuns
-    let battleLaunch: PlayBattleLaunch
-    let battleCompletion: PlayBattleCompletion
+    let battleCoordinator: PlayBattleCoordinator
 
     public private(set) var pendingDestination: PlayLaunchDestination?
     private var postBattleTalentChoices = PostBattleTalentChoices()
-    @ObservationIgnored private var collectedBattleConfigurationID: UUID?
 
     public var postBattleTalentConfirmationID: UUID? {
         postBattleTalentChoices.confirmationID
@@ -62,14 +58,10 @@ public final class PlaySession {
         self.sfxPlayer = sfxPlayer
         self.pendingDestination = pendingDestination
 
-        let runs = PlayBattleRuns(battle: battle)
-        battleRuns = runs
-
-        let battleLaunch = PlayBattleLaunch(
+        let battleCoordinator = PlayBattleCoordinator(
             playerSave: playerSave,
             shellSession: shellSession,
             battle: battle,
-            runs: runs,
             battlePerformanceScenario: battlePerformanceScenario,
         )
         let encounters = EncounterPlayMode(
@@ -81,34 +73,28 @@ public final class PlaySession {
         let journey = JourneyPlayMode(
             playerSave: playerSave,
             battle: battle,
-            battleLaunch: battleLaunch,
+            battleCoordinator: battleCoordinator,
             encounters: encounters,
         )
         let labyrinth = LabyrinthPlayMode(
             playerSave: playerSave,
             battle: battle,
-            battleLaunch: battleLaunch,
+            battleCoordinator: battleCoordinator,
             encounters: encounters,
         )
         let spires = SpiresPlayMode(
             playerSave: playerSave,
             battle: battle,
-            battleLaunch: battleLaunch,
+            battleCoordinator: battleCoordinator,
             encounters: encounters,
         )
-        let battleCompletion = PlayBattleCompletion(
-            playerSave: playerSave,
-            battle: battle,
-            runs: runs,
-        )
-        self.battleLaunch = battleLaunch
+        self.battleCoordinator = battleCoordinator
         self.journey = journey
         self.labyrinth = labyrinth
         self.spires = spires
-        voyage = VoyagePlayMode(playerSave: playerSave, battle: battle, battleLaunch: battleLaunch, encounters: encounters)
-        contracts = ContractsPlayMode(playerSave: playerSave, battle: battle, battleLaunch: battleLaunch, encounters: encounters)
+        voyage = VoyagePlayMode(playerSave: playerSave, battle: battle, battleCoordinator: battleCoordinator, encounters: encounters)
+        contracts = ContractsPlayMode(playerSave: playerSave, battle: battle, battleCoordinator: battleCoordinator, encounters: encounters)
         self.encounters = encounters
-        self.battleCompletion = battleCompletion
     }
 
     public func consumePendingDestination() -> PlayLaunchDestination? {
@@ -116,33 +102,12 @@ public final class PlaySession {
         return pendingDestination
     }
 
-    private func restoreBattleOrigin(from origin: PlayBattleOrigin?) {
-        pendingDestination = nil
-        if let path = PlayLaunchDestination.returnPath(from: origin) {
-            var transaction = Transaction()
-            transaction.disablesAnimations = true
-            withTransaction(transaction) {
-                shellSession.playPath = path
-            }
-        }
-    }
-
     public func endBattleReturningToOrigin() {
-        let configuration = battle.activeBattle
-        let runKey = configuration?.runKey
-        let origin = route(for: runKey)?.origin
-        if runKey != nil, origin == nil {
-            appStateLogger.error("Missing route for active battle dismissal")
+        let combatants = battle.activeBattle.map { [$0.hero.combatant, $0.companion.combatant] } ?? []
+        pendingDestination = nil
+        battleCoordinator.endBattleReturningToOrigin {
+            queuePostBattleTalentChoices(for: combatants)
         }
-        restoreBattleOrigin(from: origin)
-        shellSession.selectedTab = .play
-        battleRuns.endBattle()
-        if let configuration {
-            queuePostBattleTalentChoices(
-                for: [configuration.hero.combatant, configuration.companion.combatant],
-            )
-        }
-        battleCompletion.reset()
     }
 
     @discardableResult
@@ -154,46 +119,25 @@ public final class PlaySession {
         defersPresentationExit: Bool = false,
     ) -> BattleCompletionResult {
         let combatants = [configuration.hero.combatant, configuration.companion.combatant]
-        let hasNewClaim = battlePresentation(for: configuration.runKey)?.stageRewardsAlreadyClaimed != true
-        let result = battleCompletion.completeActiveBattle(
+        return battleCoordinator.completeActiveBattle(
             configuration,
             battleGold: battleGold,
             materialRewards: materialRewards,
             settlement: settlement,
-            route: route(for: configuration.runKey),
             makeContractOffer: contracts.makeOffer,
-            presentation: battlePresentation(for: configuration.runKey),
             defersPresentationExit: defersPresentationExit,
             onFinished: { [weak self] in
-                self?.queuePostBattleTalentChoices(
-                    for: combatants,
-                )
+                self?.finishBattleExit(for: combatants)
             },
-            restoreOrigin: { [weak self] origin in
-                self?.restoreBattleOrigin(from: origin)
+            onClaimed: { [weak self] in
+                guard let self else { return }
+                sfxPlayer.play(SFXID.lootCollect, volume: options.effectsVolume)
             },
         )
-        if result.didComplete, hasNewClaim, collectedBattleConfigurationID != configuration.id {
-            collectedBattleConfigurationID = configuration.id
-            sfxPlayer.play(SFXID.lootCollect, volume: options.effectsVolume)
-        }
-        if result == .persistenceFailed {
-            // Retry the same settlement so a stale award refreshes instead of
-            // paying out unchecked. The retry exits immediately rather than
-            // re-deferring: recovery must converge without another tap.
-            playerSave.retrySaveAction(key: SaveRetryKey.victory(configuration.id)) { [weak self] in
-                guard let self, battle.activeBattle?.id == configuration.id else { return }
-                _ = completeActiveBattle(
-                    configuration, battleGold: battleGold, materialRewards: materialRewards,
-                    settlement: settlement, defersPresentationExit: false,
-                )
-            }
-        }
-        return result
     }
 
     public func finishBattleRewardPresentation(configurationID: UUID) {
-        battleCompletion.finishPresentation(configurationID: configurationID)
+        battleCoordinator.finishPresentation(configurationID: configurationID)
     }
 
     public func settleBattleRewards(
@@ -204,9 +148,9 @@ public final class PlaySession {
     ) -> BattleRewardSettlement? {
         guard battle.activeBattle?.id == configuration.id,
               configuration.runKey == nil || route(for: configuration.runKey) != nil else { return nil }
-        return battleCompletion.settleRewards(
+        return battleCoordinator.settleRewards(
             configuration, battleGold: battleGold, materialRewards: materialRewards,
-            presentation: battlePresentation(for: configuration.runKey), at: date,
+            at: date,
         )
     }
 
@@ -223,8 +167,8 @@ public final class PlaySession {
     }
 
     func clearTransientState() {
-        battleCompletion.reset()
-        battleRuns.endBattle()
+        battleCoordinator.reset()
+        battleCoordinator.endBattle()
         dismissPostBattleTalentChoice()
         encounters.activeMysteryEncounter = nil
         encounters.activeShopEncounter = nil
@@ -233,26 +177,30 @@ public final class PlaySession {
     }
 
     func route(for runKey: BattleRunKey?) -> PlayBattleRoute? {
-        battleRuns.registration(for: runKey)?.route
+        battleCoordinator.registration(for: runKey)?.route
     }
 
     public func battlePresentation(for configuration: BattleRunConfiguration) -> BattlePresentationContext? {
-        guard let runKey = configuration.runKey else { return .empty }
-        guard let registration = battleRuns.registration(for: runKey),
+        guard let registration = battleCoordinator.registration(for: configuration.runKey),
               registration.launch.configuration.id == configuration.id else { return nil }
         return registration.presentation
     }
 
     func battlePresentation(for runKey: BattleRunKey?) -> BattlePresentationContext? {
-        battleRuns.registration(for: runKey)?.presentation
+        battleCoordinator.registration(for: runKey)?.presentation
     }
 
     func battleUniversalModifiers(for runKey: BattleRunKey?) -> [AffixModifier] {
-        battleRuns.registration(for: runKey)?.universalModifiers ?? []
+        battleCoordinator.registration(for: runKey)?.universalModifiers ?? []
     }
 
     func battleRegistration(for runKey: BattleRunKey?) -> PlayBattleRunRegistration? {
-        battleRuns.registration(for: runKey)
+        battleCoordinator.registration(for: runKey)
+    }
+
+    func finishBattleExit(for combatants: [Combatant]) {
+        pendingDestination = nil
+        queuePostBattleTalentChoices(for: combatants)
     }
 
     private func queuePostBattleTalentChoices(
@@ -260,7 +208,7 @@ public final class PlaySession {
     ) {
         postBattleTalentChoices.queue(
             for: combatants,
-            progressionsBefore: battleCompletion.takeTalentProgressions(),
+            progressionsBefore: battleCoordinator.takeTalentProgressions(),
             roster: playerSave.roster,
         )
     }

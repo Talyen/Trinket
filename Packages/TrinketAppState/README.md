@@ -14,19 +14,19 @@ encounter orchestration plus `Modes/`; `Purchases/` owns StoreKit access;
 - `PlaySession`: Play shell and mode composition
 - `PostBattleTalentChoices`: transient queue, eligibility, and confirmation
   transitions after settled battle rewards; `PlaySession` forwards screen actions
-- `PlayBattleRuns`: paired runtime/route metadata lifecycle; preparation, activation,
-  restart rollback, pruning, and exit. Its registration storage is private.
-- `PlayBattleLaunch`: access policy and save-backed launch assembly. Immutable
-  `BattlePreparationInputs` retain the full launch snapshot; combat configuration
-  assembly and `BattleRewardPresentation` build from that same snapshot.
-  `PlaySession` owns the shell-facing Retry entry point.
-- `PlayBattleCompletion`: reward settlement and persistence, mutually exclusive
-  victory/defeat claim transitions, keyed deferred exits, and Talent baselines
-  retained across Retry attempts and consumed on reward exit
+- `PlayBattleCoordinator`: application battle transitions, access policy, prepared
+  registrations and active run, reward claims/save retries, keyed presentation exit,
+  and Talent baselines across Retry. Each run retains authoritative launch inputs,
+  configuration, reward plan, and optional route, including standalone battles.
+- `BattleLaunchAssembly` / `BattleRewardAssembly`: pure configuration, reward-plan,
+  and display assembly from one immutable `BattlePreparationInputs` snapshot.
+  Retry uses that retained launch request with current saved party inputs and a fresh
+  combat seed; completion settles its reward plan against the current save.
+  Neither reads presentation fields for gameplay inputs.
 - Mode coordinators (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
   `ContractsPlayMode`, `VoyagePlayMode`, `EncounterPlayMode`): constructor-injected
   collaborators, no `PlaySession` back-pointer
-- Battle entry runs through one `PlayBattleLaunch.startBattle` gate
+- Battle entry runs through one `PlayBattleCoordinator.startBattle` gate
   (paywall → busy → resolve → activate). Mode-specific eligibility and request
   construction run at resolve time. A busy battle returns a rejection value for
   explicit board/floor taps (Spires/Contracts) and swallows map taps

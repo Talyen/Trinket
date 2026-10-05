@@ -102,11 +102,11 @@ extension CombatTriggerTalentDamageTests {
         battle.appendEffect(.bleed(4), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
         let active = try #require(battle.activeEffects(of: battle.enemy).first)
         let handler = EffectHandlers.handler(for: .bleed)
-        let outcome = handler.advanceTurn(active, on: battle.enemy, in: &battle)
+        let outcome = CombatExecutor.run { await handler.advanceTurn(active, on: battle.enemy, in: &battle) }
         #expect(outcome.contains(where: { $0.effectKind == .cardsDrawn }))
         #expect(battle.hand.cards.map(\.ability.id) == [Ability.slash.id])
         let remaining = try #require(battle.activeEffects(of: battle.enemy).first { $0.effect.isBleed })
-        let next = handler.advanceTurn(remaining, on: battle.enemy, in: &battle)
+        let next = CombatExecutor.run { await handler.advanceTurn(remaining, on: battle.enemy, in: &battle) }
         #expect(!next.contains { $0.effectKind == .cardsDrawn })
         #expect(battle.companionDeck.count == 1)
     }
@@ -155,7 +155,7 @@ extension CombatTriggerTalentDamageTests {
                 damageKeyword: .bleed, options: .periodic,
             )
             hit.remaining = amount
-            DamagePipeline.applyAttackerMirroredReactions(to: &hit, in: &battle)
+            CombatExecutor.run { await DamagePipeline.applyAttackerMirroredReactions(to: &hit, in: &battle) }
             let poison = battle.activeEffects(of: battle.enemy).first { $0.effect.keyword == .poison }
             #expect((poison != nil) == shouldProc)
             if shouldProc {

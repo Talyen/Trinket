@@ -20,11 +20,11 @@ package extension CombatTriggerEngine {
         count: Int,
         abilityName: String,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard count > 0, context.roster.health(for: target) > 0 else { return [] }
         var events: [ActionEvent] = []
         for _ in 0 ..< count {
-            let outcome = EffectRemovalOperation.resolveCleanse(
+            let outcome = await EffectRemovalOperation.resolveCleanse(
                 .randomDebuff, source: source, target: target, abilityName: abilityName, in: &context,
             )
             events.append(contentsOf: outcome.events)
@@ -41,7 +41,7 @@ package extension CombatTriggerEngine {
         removedCount: Int,
         allowMassCleanse: Bool = true,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         var events: [ActionEvent] = []
         if removedCount > 0 {
@@ -64,7 +64,7 @@ package extension CombatTriggerEngine {
                 ))
             }
             if triggers.onCleanseRestoreMana > 0 {
-                events.append(contentsOf: emitMana(
+                await events.append(contentsOf: emitMana(
                     "onCleanseRestoreMana", "Solace",
                     amount: triggers.onCleanseRestoreMana * removedCount, to: source, in: &context,
                 ))
@@ -79,8 +79,8 @@ package extension CombatTriggerEngine {
             ))
         }
         if allowMassCleanse {
-            events.append(contentsOf: dispelMagicPurge(triggers: triggers, source: source, in: &context))
-            events.append(contentsOf: cleansePartyReactions(
+            await events.append(contentsOf: dispelMagicPurge(triggers: triggers, source: source, in: &context))
+            await events.append(contentsOf: cleansePartyReactions(
                 triggers: triggers,
                 source: source,
                 target: target,
@@ -89,7 +89,7 @@ package extension CombatTriggerEngine {
         }
         if source.role != .enemy, Self.hasLivingPartyTrigger(\.purifyingWaters, in: context), removedCount > 0 {
             let healTarget = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
-            events.append(contentsOf: context.healEmitting(
+            await events.append(contentsOf: context.healEmitting(
                 amount: 4 * removedCount,
                 target: healTarget,
                 source: source,
@@ -104,10 +104,10 @@ package extension CombatTriggerEngine {
         removedKeyword: Keyword,
         removedCount: Int,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         var events: [ActionEvent] = []
-        events.append(contentsOf: toxicBacklashDamage(
+        await events.append(contentsOf: toxicBacklashDamage(
             triggers: triggers,
             source: source,
             removedKeyword: removedKeyword,
@@ -153,7 +153,7 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         source: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.roster.enemy.isAlive else { return [] }
         var count = triggers.cleanseAlsoPurgesEnemyBuffs
         if count == 0, triggers.cleansePurgeChancePercent > 0,
@@ -163,7 +163,7 @@ package extension CombatTriggerEngine {
             count = 1
         }
         guard count > 0 else { return [] }
-        return applyPurge(
+        return await applyPurge(
             to: context.roster.enemy.combatant,
             source: source,
             abilityName: triggerAbilityName("cleanseAlsoPurgesEnemyBuffs", for: source, fallback: "Dispel Magic", in: context),
@@ -179,12 +179,12 @@ package extension CombatTriggerEngine {
         removedKeyword: Keyword,
         removedCount: Int,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard triggers.onCleansePoisonDealDamagePerStack > 0, removedKeyword == .poison,
               removedCount > 0, context.roster.enemy.isAlive,
               context.roster.health(for: context.roster.enemy.combatant) > 0
         else { return [] }
-        return context.resolveDamage(
+        return await context.resolveDamage(
             DamageRequest(
                 amount: triggers.onCleansePoisonDealDamagePerStack * removedCount,
                 target: context.roster.enemy.combatant,
@@ -199,13 +199,13 @@ package extension CombatTriggerEngine {
         _ removed: [ActiveEffect],
         source: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.modifiers(for: source.id).triggers.cleanseReflectDebuffToEnemy,
               source.role != .enemy, context.roster.enemy.isAlive else { return [] }
         let enemy = context.roster.enemy.combatant
         var events: [ActionEvent] = []
         for active in removed where active.sourceActorID == enemy.id {
-            events.append(contentsOf: ActiveEffectMutation.reflect(active, to: enemy, source: source, in: &context))
+            await events.append(contentsOf: ActiveEffectMutation.reflect(active, to: enemy, source: source, in: &context))
         }
         return events
     }
@@ -215,18 +215,18 @@ package extension CombatTriggerEngine {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         if triggers.cleanseDodgeChanceBonus > 0 {
             EffectRemovalOperation.grantSecondaryCleanseDodge(source: source, target: target, in: &context)
         }
-        return cleanseOtherPartyMember(source: source, target: target, in: &context)
+        return await cleanseOtherPartyMember(source: source, target: target, in: &context)
     }
 
     static func cleanseOtherPartyMember(
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         guard triggers.cleanseAffectsBothHeroAndCompanion,
               context.claimHeroTalent("Mass Cleanse", actorID: source.id)
@@ -242,7 +242,7 @@ package extension CombatTriggerEngine {
             fallback: "Mass Cleanse",
             in: context,
         )
-        return EffectRemovalOperation.resolveCleanse(
+        return await EffectRemovalOperation.resolveCleanse(
             .all(nil), source: source, target: other, abilityName: abilityName,
             propagation: .secondary, in: &context,
         ).events
@@ -254,12 +254,12 @@ package extension CombatTriggerEngine {
         amount: Int,
         requireWoundedTarget: Bool,
         in context: inout BattleState,
-    ) -> CombatOutcome {
+    ) async -> CombatOutcome {
         guard amount > 0 else { return .empty }
         if requireWoundedTarget {
             guard context.roster.health(for: target) < context.roster.maxHealth(for: target) else { return .empty }
         }
-        return resolveBonusHeal(
+        return await resolveBonusHeal(
             amount: amount,
             source: source,
             target: target,

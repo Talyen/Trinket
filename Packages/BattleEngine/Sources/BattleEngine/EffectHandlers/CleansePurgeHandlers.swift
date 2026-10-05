@@ -9,30 +9,30 @@ struct CleansePurgeHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         switch effect {
         case let .cleanse(keyword):
-            EffectRemovalOperation.resolveCleanse(
+            await EffectRemovalOperation.resolveCleanse(
                 .all(keyword), source: source, target: target, abilityName: ability.name,
                 origin: .direct, in: &context,
             ).application
         case let .cleanseHealPerDebuff(healPerDebuff):
-            EffectRemovalOperation.resolveCleanse(
+            await EffectRemovalOperation.resolveCleanse(
                 .all(nil), source: source, target: target, abilityName: ability.name,
                 healPerDebuff: healPerDebuff, origin: .direct, in: &context,
             ).application
         case .cleanseRandom:
-            EffectRemovalOperation.resolveCleanse(
+            await EffectRemovalOperation.resolveCleanse(
                 .randomDebuff, source: source, target: target, abilityName: ability.name,
                 origin: .direct, in: &context,
             ).application
         case let .purge(keyword):
-            EffectRemovalOperation.resolvePurge(
+            await EffectRemovalOperation.resolvePurge(
                 .all(keyword), source: source, target: target, abilityName: ability.name,
                 origin: .direct, in: &context,
             ).application
         case .purgeRandom:
-            EffectRemovalOperation.resolvePurge(
+            await EffectRemovalOperation.resolvePurge(
                 .randomBuffs(1), source: source, target: target, abilityName: ability.name,
                 origin: .direct, in: &context,
             ).application
@@ -49,13 +49,13 @@ struct PanaceaHandler: BattleEffectHandler {
         source: Combatant,
         target _: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         guard case let .panacea(baseHeal, healPerDebuff) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let action = BattleActionContext(actor: source, in: context)
         let cleanseTarget = BattleActionContext.mostDebuffed(in: action.allies(in: context), state: context)
-        return EffectRemovalOperation.resolveCleanse(
+        return await EffectRemovalOperation.resolveCleanse(
             .all(nil), source: source, target: cleanseTarget, abilityName: ability.name,
             baseHeal: baseHeal, healPerDebuff: healPerDebuff,
             healTarget: .lowestHealthAlly, origin: .direct, in: &context,

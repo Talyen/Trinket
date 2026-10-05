@@ -31,7 +31,7 @@ extension BattleTurnEngine {
         guaranteedCritical: Bool,
         reservedKeywordOverride: inout Keyword?,
         context: inout BattleState,
-    ) -> DamageComponentOutcome {
+    ) async -> DamageComponentOutcome {
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
         guard action.canContinue(in: context) else { return .empty }
         let target = action.target(component.target, in: context)
@@ -40,7 +40,7 @@ extension BattleTurnEngine {
                   component, ability: ability, action: action, target: target, guaranteedCritical: guaranteedCritical,
                   reservedKeywordOverride: &reservedKeywordOverride, context: &context,
               ) else { return .empty }
-        return resolveDamageComponent(prepared, ability: ability, actor: actor, context: &context)
+        return await resolveDamageComponent(prepared, ability: ability, actor: actor, context: &context)
     }
 
     private static func damageAmount(
@@ -142,8 +142,8 @@ extension BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         context: inout BattleState,
-    ) -> DamageComponentOutcome {
-        let damageOutcome = context.resolveDamage(prepared.request)
+    ) async -> DamageComponentOutcome {
+        let damageOutcome = await context.resolveDamage(prepared.request)
         let dealt = damageOutcome.healthLost
         var events = damageOutcome.events
         let componentEvent = context.nextEvent(
@@ -164,12 +164,12 @@ extension BattleTurnEngine {
 
         if case .landed = damageOutcome.damageImpact {
             if prepared.nextStrike.contains(.holyStrike) {
-                events.append(contentsOf: context.applyDecayingDoT(
+                await events.append(contentsOf: context.applyDecayingDoT(
                     keyword: .burn, potency: prepared.holyStrikeBurnPotency, to: prepared.target,
                     sourceActorID: actor.id, application: .ability,
                 ))
             }
-            events.append(contentsOf: applyDoTStackFromDamage(
+            await events.append(contentsOf: applyDoTStackFromDamage(
                 keyword: prepared.keyword,
                 potency: prepared.keyword == .burn || prepared.keyword == .poison
                     ? dealt : prepared.stackPotency,
@@ -191,13 +191,13 @@ extension BattleTurnEngine {
         sourceActorID: String,
         isCritical: Bool = false,
         context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let profile = context.modifiers(for: sourceActorID)
         let criticalDurationBonus = keyword == .bleed && isCritical
             ? profile.triggers.bleedDurationFromCriticalBonus : 0
         let duration = criticalDurationBonus > 0
             ? Effect.bleedDoTTurnCount + profile.bleedDurationBonus + criticalDurationBonus : nil
-        return DoTApplicator.applyDoT(
+        return await DoTApplicator.applyDoT(
             keyword: keyword,
             potency: potency,
             to: target,
@@ -272,7 +272,7 @@ extension BattleTurnEngine {
     static func consumeHemorrhageIfActive(
         for actor: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var hemorrhageDamage: Int?
         var sourceActorID: String?
         for active in context.roster.activeEffects(for: actor) {
@@ -285,7 +285,7 @@ extension BattleTurnEngine {
         guard let hemorrhageDamage else { return [] }
         ActiveEffectMutation.removeMatching(from: actor, in: &context) { $0.kind == .hemorrhage }
         let casterID = sourceActorID ?? actor.id
-        let hemorrhageOutcome = context.resolveDamage(
+        let hemorrhageOutcome = await context.resolveDamage(
             DamageRequest(
                 amount: hemorrhageDamage,
                 target: actor,
@@ -315,7 +315,7 @@ extension BattleTurnEngine {
                 keyword: .bleed,
             ))
         }
-        hemorrhageEvents.append(contentsOf: DoTApplicator.applyBleed(
+        await hemorrhageEvents.append(contentsOf: DoTApplicator.applyBleed(
             potency: hemorrhageDamage,
             to: actor,
             sourceActorID: casterID,
@@ -332,7 +332,7 @@ extension BattleTurnEngine {
         abilityTarget: Combatant,
         context: inout BattleState,
         events: inout [ActionEvent],
-    ) -> [String] {
+    ) async -> [String] {
         var appliedEffectLogs: [String] = []
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
         for targetedEffect in effects {
@@ -359,7 +359,7 @@ extension BattleTurnEngine {
                 guard context.roster.health(for: effectTarget) > 0 || effect.canApplyToDefeatedTarget,
                       !CombatTriggerEngine.preventsPurgedEffect(effect, on: effectTarget, in: context)
                 else { continue }
-                let outcome = handler.apply(
+                let outcome = await handler.apply(
                     effect,
                     ability: ability,
                     source: actor,

@@ -171,7 +171,6 @@ struct BattleVictorySummaryTests {
             companionProgression: CombatantProgression(level: 2, currentXP: 0, requiredXP: 15),
             stageReward: StageReward(gold: 10, itemTemplateIDs: []),
             rewardItems: [pendingItem],
-            experienceBonusPercent: 20,
             hasProgressionRewards: true,
             heroExperienceAward: 4,
             companionExperienceAward: 4,
@@ -180,7 +179,6 @@ struct BattleVictorySummaryTests {
         #expect(summary.experience == 4)
         #expect(summary.companionExperience == 4)
         #expect(summary.rewardItems == [pendingItem])
-        #expect(context.experienceBonusPercent == 20)
     }
 
     private func makeDrivenVictorySummary(
@@ -227,9 +225,9 @@ struct BattleVictorySummaryTests {
             heroModifiers: [],
             companionModifiers: [],
             astralChanceBonusPercent: 0,
-            goldFindPercent: context.goldFindPercent,
+            goldFindPercent: context.rewardPlan.goldFindPercent,
         ).adjustedGold(100 + earnedGold)
-        #expect(context.goldFindPercent > 0)
+        #expect(context.rewardPlan.goldFindPercent > 0)
         #expect(summary.goldFlow.net == earnedGold)
         #expect(summary.totalGold == expectedTotal)
         #expect(summary.battleGold >= summary.goldFlow.net)
@@ -238,7 +236,7 @@ struct BattleVictorySummaryTests {
                 heroModifiers: [],
                 companionModifiers: [],
                 astralChanceBonusPercent: 0,
-                goldFindPercent: context.goldFindPercent,
+                goldFindPercent: context.rewardPlan.goldFindPercent,
             ).adjustedGold(100 + summary.battleGold) > expectedTotal,
         )
     }

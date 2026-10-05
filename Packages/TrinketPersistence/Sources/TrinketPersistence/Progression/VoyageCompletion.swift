@@ -81,11 +81,15 @@ public enum VoyageCompletion {
         runID: String, nodeID: String, hero: Combatant, companion: Combatant,
         rewards: (settled: BattleRewardSettlement, earned: BattleRewardAward, encounterLevel: Int),
         save: inout PlayerSave, access: ContentAccessPolicy,
+        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
     ) -> EncounterCompletion {
         guard save.voyage.isPlayable(runID: runID, nodeID: nodeID),
               let node = save.voyage.node(runID: runID, nodeID: nodeID), node.type.isCombat else { return .unavailable }
         let earned = rewards.earned
-        VictoryRewardApplier.apply(rewards.settled, hero: hero, companion: companion, save: &save)
+        VictoryRewardApplier.apply(
+            rewards.settled, hero: hero, companion: companion, save: &save,
+            claim: .voyage(runID: runID, nodeID: nodeID), recordReceipt: recordReceipt,
+        )
         save.contracts.recordVictory(encounterLevel: rewards.encounterLevel)
         if var activeRun = save.voyage.activeRun {
             activeRun.earnedGold = SaturatedArithmetic.saturatingAdd(activeRun.earnedGold, earned.goldGained)

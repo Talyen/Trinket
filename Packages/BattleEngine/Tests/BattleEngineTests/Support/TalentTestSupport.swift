@@ -60,7 +60,7 @@ extension TalentCatalogRoundTripTests {
         let card = BattleCard(id: battle.nextCardID, ability: ability, owner: owner)
         battle.nextCardID += 1
         battle.hand.append(card)
-        return try BattleCardCombatEngine.playDrawnCard(card, context: &battle)
+        return try CombatExecutor.run { try await BattleCardCombatEngine.playDrawnCard(card, context: &battle) }
     }
 
     func seedHeroTalentEffect(

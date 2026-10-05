@@ -6,10 +6,10 @@ package extension DamagePipeline {
     static func applyTakeDamage(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         let cap = context.modifiers(for: state.combatant.id).triggers.maxDamagePerHitCap
         state.remaining = DamageDefensePolicy.cappedDamage(state.remaining, operation: state.options, cap: cap)
-        if applyMansBestFriend(to: &state, in: &context) {
+        if await applyMansBestFriend(to: &state, in: &context) {
             return
         }
         var lost = 0
@@ -24,7 +24,7 @@ package extension DamagePipeline {
                 // defeat before its own stack attaches, so both disjuncts matter.
                 let gold = context.modifiers(for: source.id).triggers.defeatBleedingEnemyGold
                 if gold > 0 {
-                    state.damageEvents.append(contentsOf: context.grantGoldEvent(
+                    await state.damageEvents.append(contentsOf: context.grantGoldEvent(
                         gold, to: source.combatant, abilityName: "Blood Money",
                     ))
                 }
@@ -32,21 +32,21 @@ package extension DamagePipeline {
         }
         if lost > 0 {
             if state.combatant.role != .hero || context.roster.health(for: state.combatant) > 0 {
-                state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentHealthLoss(
+                await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentHealthLoss(
                     target: state.combatant, sourceID: state.sourceActorID, keyword: state.damageKeyword, in: &context,
                 ))
             }
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHealthDropped(
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHealthDropped(
                 target: state.combatant,
                 in: &context,
             ))
-            state.damageEvents.append(contentsOf: applyDefenderOnTakenReactions(
+            await state.damageEvents.append(contentsOf: applyDefenderOnTakenReactions(
                 defender: state.combatant,
                 isRetaliation: state.options.isRetaliation,
                 isAttackHit: state.options.isAttackHit,
                 in: &context,
             ))
-            state.damageEvents.append(contentsOf: applyCompanionLeechToHero(
+            await state.damageEvents.append(contentsOf: applyCompanionLeechToHero(
                 lost: lost,
                 defender: state.combatant,
                 sourceActorID: state.sourceActorID,
@@ -59,7 +59,7 @@ package extension DamagePipeline {
     private static func applyMansBestFriend(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) -> Bool {
+    ) async -> Bool {
         guard !state.options.isHealthCost,
               state.combatant.role == .hero,
               state.remaining > 0,
@@ -76,7 +76,7 @@ package extension DamagePipeline {
         }
         var options = DamageOperation.redirected
         options.isThornsDamage = state.options.isThornsDamage
-        state.damageEvents.append(contentsOf: context.resolveDamage(DamageRequest(
+        await state.damageEvents.append(contentsOf: context.resolveDamage(DamageRequest(
             amount: redirected,
             target: companion,
             keyword: state.damageKeyword ?? .physical,
@@ -93,7 +93,7 @@ package extension DamagePipeline {
         isRetaliation: Bool,
         isAttackHit: Bool,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         let defenderTriggers = context.modifiers(for: defender.id).triggers
         if defenderTriggers.toughnessOnHit > 0, isAttackHit, !isRetaliation {
@@ -130,7 +130,7 @@ package extension DamagePipeline {
                 guard member.id != defender.id else { continue }
                 let amount = context.modifiers(for: member.id).triggers.onAllyDamageHeal
                 if amount > 0 {
-                    events.append(contentsOf: HealingEngine.resolveHeal(
+                    await events.append(contentsOf: HealingEngine.resolveHeal(
                         HealRequest(amount: amount, target: defender, sourceActorID: member.id),
                         in: &context,
                     ).events)
@@ -145,7 +145,7 @@ package extension DamagePipeline {
         defender: Combatant,
         sourceActorID: String?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard defender.role == .enemy,
               let sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
@@ -156,7 +156,7 @@ package extension DamagePipeline {
         guard percent > 0 else { return [] }
         let leechAmount = CombatRounding.scaled(lost, multiplier: min(1, max(0, percent)))
         guard leechAmount > 0 else { return [] }
-        return context.healEmitting(
+        return await context.healEmitting(
             amount: leechAmount,
             target: context.roster.hero.combatant,
             source: source.combatant,

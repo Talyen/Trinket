@@ -17,6 +17,7 @@ enum ModelContainerBootstrap {
         do {
             let container = try ModelContainer(
                 for: schema,
+                migrationPlan: PlayerSaveMigrationPlan.self,
                 configurations: primaryConfiguration,
             )
             return OpenResult(container: container, usedInMemoryFallback: false)

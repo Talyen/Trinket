@@ -62,6 +62,7 @@ public enum LabyrinthCompletion {
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
         access: ContentAccessPolicy = .fullGame,
+        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
     ) -> EncounterCompletion {
         let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs(access: access)
         save.labyrinth.ensureMap(
@@ -91,6 +92,7 @@ public enum LabyrinthCompletion {
                 astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
             )
             : loot
+        let claim = CloudEconomicAction.Claim.labyrinth(seed: save.labyrinth.worldSeed, nodeID: nodeID)
         VictoryRewardApplier.grantVictoryRewards(
             hero: hero,
             companion: companion,
@@ -102,7 +104,7 @@ public enum LabyrinthCompletion {
             experienceEarnedPercent: isCombat ? effects.experienceEarnedPercent : 0,
             materialRewards: materialRewards ?? resolvedLoot?.materials ?? [],
             item: rewardItem ?? resolvedLoot?.item,
-            save: &save,
+            save: &save, claim: claim, recordReceipt: recordReceipt,
         )
 
         save.labyrinth.markCleared(

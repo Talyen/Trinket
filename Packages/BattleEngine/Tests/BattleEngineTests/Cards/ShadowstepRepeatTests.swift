@@ -139,17 +139,29 @@ struct ShadowstepRepeatTests {
 
     @Test func `Bandit Shadowstep repeats its next ability once without advancing cadence twice`() {
         var battle = makeBattle()
-        _ = BattleTurnEngine.performEnemyAction(ability: .shadowstep, abilityTarget: battle.hero, context: &battle)
+        _ = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
+            ability: .shadowstep,
+            abilityTarget: battle.hero,
+            context: &battle,
+        ) }
         #expect(hasRepeat(on: battle.enemy, in: battle))
         let count = battle.roster.enemy.actionCount
 
-        let repeated = BattleTurnEngine.performEnemyAction(ability: .stab, abilityTarget: battle.hero, context: &battle)
+        let repeated = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
+            ability: .stab,
+            abilityTarget: battle.hero,
+            context: &battle,
+        ) }
 
         #expect(repeated.performed)
         #expect(repeated.events.count(where: { $0.kind == .ability && $0.abilityID == Ability.stab.id }) == 2)
         #expect(battle.roster.enemy.actionCount == count + 1)
         #expect(!hasRepeat(on: battle.enemy, in: battle))
-        let ordinary = BattleTurnEngine.performEnemyAction(ability: .block, abilityTarget: battle.hero, context: &battle)
+        let ordinary = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
+            ability: .block,
+            abilityTarget: battle.hero,
+            context: &battle,
+        ) }
         #expect(ordinary.events.count(where: { $0.effectKind == .shieldApplied }) == 1)
     }
 
@@ -181,7 +193,7 @@ struct ShadowstepRepeatTests {
             battle.appendEffect(.controlMeter(control, 20, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
-        let events = BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
+        let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
 
         #expect(!events.contains { $0.kind == .ability && $0.abilityID == attack().id })
         #expect(hasRepeat(on: battle.enemy, in: battle))

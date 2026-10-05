@@ -6,13 +6,13 @@ package extension BattleCardCombatEngine {
     @discardableResult
     static func endTurnWithoutDraw(
         context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard !context.isBattleOver, context.phase == .playerTurn else {
             assertionFailure("BattleCardCombatEngine.endTurnWithoutDraw called outside playerTurn")
             return []
         }
 
-        var events = advanceRoundCommon(context: &context)
+        var events = await advanceRoundCommon(context: &context)
         if context.phase == .ended {
             return events
         }
@@ -52,17 +52,17 @@ package extension BattleCardCombatEngine {
     @discardableResult
     static func finalizeTurnStart(
         context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         context.pendingTurnDrawState = nil
         var events: [ActionEvent] = []
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
-        events.append(contentsOf: restoreManaAtPlayerTurnStart(context: &context))
-        events.append(contentsOf: CombatTriggerEngine.atPlayerTurnStart(in: &context))
+        await events.append(contentsOf: restoreManaAtPlayerTurnStart(context: &context))
+        await events.append(contentsOf: CombatTriggerEngine.atPlayerTurnStart(in: &context))
         for owner in [BattleParticipant.hero, .companion] {
             UniqueCombatEngine.recoverStunBeforeClearing(on: context.roster[owner].combatant, in: &context)
             context.roster.clearControlStatusLinger(for: context.roster[owner].combatant)
         }
-        events.append(contentsOf: finishPlayerTurnStart(context: &context))
+        await events.append(contentsOf: finishPlayerTurnStart(context: &context))
         return events
     }
 

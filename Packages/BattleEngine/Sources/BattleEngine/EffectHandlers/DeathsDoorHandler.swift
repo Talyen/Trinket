@@ -28,7 +28,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var updated = active
         updated.remainingTurns -= 1
         ActiveEffectMutation.finishTurn(
@@ -49,7 +49,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
                 origin: .direct,
             )
             var events = [event]
-            events.append(contentsOf: DeathsDoorEngine.afterDeathsDoorExpired(on: target, in: &context))
+            await events.append(contentsOf: DeathsDoorEngine.afterDeathsDoorExpired(on: target, in: &context))
             return events
         }
         return []

@@ -116,7 +116,7 @@ struct PlayBattleLaunchTests {
         let launch = makeLaunch(input)
         let profile = launch.configuration.enemyModifiers
         #expect(launch.presentation.nodeModifiers == definitions)
-        #expect(launch.presentation.experienceBonusPercent == RewardModifier.bonusPercent)
+        #expect(launch.inputs.launch.experienceBonusPercent == RewardModifier.bonusPercent)
         #expect(profile.triggers.startBattleBlock == 6)
         #expect(profile.triggers.attackLeechPercent == Effect.abilityLeechPercent)
         #expect(profile.triggers.attackBlockRemoval == 2)
@@ -145,9 +145,9 @@ struct PlayBattleLaunchTests {
             homesteadState: homestead,
         )
 
-        #expect(launch.presentation.goldFindPercent == homestead.effects.goldFindPercent)
-        #expect(launch.presentation.goldFindPercent > 0)
-        #expect(launch.presentation.goldFindFlat == 0)
+        #expect(launch.presentation.rewardPlan.goldFindPercent == homestead.effects.goldFindPercent)
+        #expect(launch.presentation.rewardPlan.goldFindPercent > 0)
+        #expect(launch.presentation.rewardPlan.goldFindFlat == 0)
         #expect(launch.presentation.stageRewardsAlreadyClaimed)
     }
 
@@ -203,9 +203,9 @@ struct PlayBattleLaunchTests {
             inventoryState: .testSeed,
         )
 
-        #expect(launch.presentation.heroExperienceAward > 0)
-        #expect(launch.presentation.companionExperienceAward > 0)
-        #expect(launch.presentation.materialRewards == stageReward.materialRewards)
+        #expect(launch.presentation.rewardPlan.heroExperience > 0)
+        #expect(launch.presentation.rewardPlan.companionExperience > 0)
+        #expect(launch.presentation.rewardPlan.materials == stageReward.materialRewards)
     }
 
     @Test func `assemble resolves reward items from pending or stage policy`() throws {
@@ -223,6 +223,7 @@ struct PlayBattleLaunchTests {
 
         let withPending = makeLaunch(
             BattleLaunchInput(
+                origin: .journey(stageID: "reward-test"),
                 hero: knight,
                 companion: wolf,
                 enemy: enemy,
@@ -230,32 +231,34 @@ struct PlayBattleLaunchTests {
                 pendingRewardItem: pendingItem,
             ),
         )
-        #expect(withPending.presentation.rewardItems == [pendingItem])
+        #expect(withPending.presentation.rewardPlan.items == [pendingItem])
 
         let noPendingNilStage = makeLaunch(
             BattleLaunchInput(hero: knight, companion: wolf, enemy: enemy),
         )
-        #expect(noPendingNilStage.presentation.rewardItems.isEmpty)
+        #expect(noPendingNilStage.presentation.rewardPlan.items.isEmpty)
 
         let noPendingEmptyStage = makeLaunch(
             BattleLaunchInput(
+                origin: .journey(stageID: "reward-test"),
                 hero: knight,
                 companion: wolf,
                 enemy: enemy,
                 stageReward: StageReward(gold: 0, itemTemplateIDs: []),
             ),
         )
-        #expect(noPendingEmptyStage.presentation.rewardItems.isEmpty)
+        #expect(noPendingEmptyStage.presentation.rewardPlan.items.isEmpty)
 
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         let fromStage = makeLaunch(
             BattleLaunchInput(
+                origin: .journey(stageID: "reward-test"),
                 hero: knight,
                 companion: wolf,
                 enemy: enemy,
                 stageReward: StageReward(gold: 10, itemTemplateIDs: ["shortsword-basic"]),
             ),
         )
-        #expect(fromStage.presentation.rewardItems == [template])
+        #expect(fromStage.presentation.rewardPlan.items == [template])
     }
 }

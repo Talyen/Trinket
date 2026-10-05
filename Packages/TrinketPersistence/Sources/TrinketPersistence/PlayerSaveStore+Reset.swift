@@ -36,6 +36,7 @@ extension PlayerSaveStore {
                     try pendingSaveRecovery.write(
                         save: sanitized,
                         cloudState: root.cloudStatePayload,
+                        outboxRecords: cloudOutbox?.storedRecords,
                     )
                 } catch {
                     notePersistenceFailure(error, logging: "Failed to align pending player save after reset")
@@ -90,7 +91,7 @@ extension PlayerSaveStore {
                 "Couldn't reset saved progress on this device.",
             )
         }
-        let previous = (container: container, context: context, root: root)
+        let previous = (container: container, context: context, root: root, outbox: cloudOutbox)
         // PersistenceCheck: allow - backup is best-effort; missing backup clears a partial reset record
         let pendingBackup = try? pendingSaveRecovery?.pendingData()
         do {
@@ -109,6 +110,7 @@ extension PlayerSaveStore {
             container = replacement
             context = replacementContext
             root = replacementRoot
+            cloudOutbox = try CloudSaveOutbox(context: replacementContext)
             usesMemoryFallback = false
             // Recompute cloud enablement now that durable storage is back;
             // init disables cloud on memory fallback, so re-enable when a
@@ -126,6 +128,7 @@ extension PlayerSaveStore {
             container = previous.container
             context = previous.context
             root = previous.root
+            cloudOutbox = previous.outbox
             usesMemoryFallback = true
             isPersistenceDegraded = true
             let mapped = PlayerSavePersistenceError.mapped(error)

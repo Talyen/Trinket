@@ -56,7 +56,7 @@ struct DetonateDoTHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         guard case let .detonateDoT(keyword, factor) = effect, factor > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
@@ -78,7 +78,7 @@ struct DetonateDoTHandler: BattleEffectHandler {
         context.roster.setActiveEffects(effects, for: target)
         var events: [ActionEvent] = []
         for active in matching {
-            events.append(contentsOf: detonate(active, factor: factor, source: source, target: target, in: &context))
+            await events.append(contentsOf: detonate(active, factor: factor, source: source, target: target, in: &context))
         }
         return EffectApplyOutcome(events: events, didApply: true)
     }
@@ -89,16 +89,16 @@ struct DetonateDoTHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         if active.effect.isBleed {
             var amplified = active
             amplified.effect = .bleed((active.effect.potency ?? 0) * factor)
-            return CombatTriggerEngine.detonateBleedStacks(
+            return await CombatTriggerEngine.detonateBleedStacks(
                 [amplified], on: target, sourceActorID: source.id,
                 provenance: context.resolution.damageProvenance(for: source.id), in: &context,
             )
         }
-        return DecayingDoTDetonation.resolve(
+        return await DecayingDoTDetonation.resolve(
             active,
             factor: factor,
             target: target,

@@ -20,7 +20,7 @@ struct DamageTrinketSurvivalRegressionTests {
         battle.appliesFightPacing = false
         battle.appendEffect(.bleed(4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
 
-        _ = EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle)
+        _ = CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle) }
 
         #expect(battle.roster.enemy.currentHealth == 96)
         #expect(battle.gold == (wearerDefeated ? 0 : 1))

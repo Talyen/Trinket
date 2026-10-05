@@ -10,7 +10,7 @@ package extension BattleTurnEngine {
         for ability: inout Ability,
         actor: Combatant,
         context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard ability.hasManaEmpowerableBurnOrFreezeDamage else { return [] }
         let empoweredKeyword = ability.operations.first(where: \.isManaEmpowerable)?.keyword
         let triggers = context.modifiers(for: actor.id).triggers
@@ -20,15 +20,19 @@ package extension BattleTurnEngine {
         let purchaseLimit = ManaEmpowermentBudget(ability: ability, actor: actor, in: context).purchaseLimit
         while purchases < purchaseLimit, !context.isBattleOver, context.roster.health(for: actor) > 0 {
             guard let payment = payEmpowerment(ability: ability, actor: actor, in: &context) else { break }
-            context.roster.mutateRuntime(for: actor) { $0.talents.battle.hasEmpoweredWithMana = true }
-            context.roster.mutateRuntime(for: actor) { $0.talents.pending.nextManaEmpowerDiscount = 0 }
+            context.roster.mutateRuntime(for: actor) {
+                $0.talents.battle.hasEmpoweredWithMana = true
+                $0.talents.pending.nextManaEmpowerDiscount = 0
+            }
             purchases += 1
             totalManaSpent += payment.reduce(0) { $0 + $1.amountSpent }
             ability = empoweredAbility(ability, triggers: triggers)
-            events.append(contentsOf: CombatTriggerEngine.afterHeroTalentSpendMana(actor: actor, amount: 0, empowered: true, in: &context))
+            await events.append(contentsOf: CombatTriggerEngine.afterHeroTalentSpendMana(
+                actor: actor, amount: 0, empowered: true, in: &context,
+            ))
             for contribution in payment where contribution.amountSpent > 0 {
                 guard CombatCheckpoint.preparedAction(actor.id).allowsContinuation(in: context) else { break }
-                events.append(contentsOf: CombatTriggerEngine.afterSpendMana(
+                await events.append(contentsOf: CombatTriggerEngine.afterSpendMana(
                     contribution, in: &context,
                 ))
             }
@@ -55,7 +59,7 @@ package extension BattleTurnEngine {
             ))
         }
         if totalManaSpent > 0, empoweredKeyword == .burn, triggers.onEmpowerBurnRestoreMana > 0 {
-            events.append(contentsOf: context.restoreManaEmitting(
+            await events.append(contentsOf: context.restoreManaEmitting(
                 triggers.onEmpowerBurnRestoreMana,
                 to: actor,
                 abilityName: CombatTriggerEngine.triggerAbilityName(

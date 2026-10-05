@@ -120,11 +120,8 @@ public struct BattleState {
     public package(set) var additionalControlSkipsByCombatantID: [String: Int]
     var additionalControlSkipsByEffectID: [Int: Int] = [:]
     public package(set) var isEchoingSkill: Bool
-    /// Cap for nested draw-and-play resolution. Each nesting level costs on
-    /// the order of 70KB of stack in Debug, and this path runs on 512KB
-    /// worker-thread stacks (tests, sweep workers) where the shared
-    /// damage/DoT budget of 10 overflows the stack guard. Chains this deep
-    /// are pathological automatic chains; ordinary play nests one or two levels.
+    /// Retains the shipped automatic-chain limit. CombatExecutor suspends
+    /// nested plays on the heap, independently of the caller's stack size.
     /// Played deck copies remain discarded until the next turn.
     public static let maxDrawAndPlayDepth = 4
     public let enemyFaction: EnemyFaction
@@ -275,7 +272,7 @@ public struct BattleState {
         }
 
         if dealOpeningHand {
-            BattleCardCombatEngine.bootstrapDecksAndOpeningHand(context: &self)
+            CombatExecutor.run { await BattleCardCombatEngine.bootstrapDecksAndOpeningHand(context: &self) }
         } else {
             BattleCardCombatEngine.bootstrapDecks(context: &self)
         }
@@ -310,10 +307,10 @@ public struct BattleState {
         guard !isBattleOver else { throw BattlePlayError.battleOver }
         cardPlayRecording = recording.map(BattleCardPlayRecording.init)
         defer { cardPlayRecording = nil }
-        let events = try BattleCardCombatEngine.playCard(
+        let events = try CombatExecutor.run { try await BattleCardCombatEngine.playCard(
             cardID: cardID,
             context: &self,
-        )
+        ) }
         finishMutation(rebuildLog: rebuildLog)
         recordCardPlay(.ready)
         return events
@@ -335,7 +332,10 @@ public struct BattleState {
             }
         }
         defer { cardPlayRecording = nil }
-        let events = BattleCardCombatEngine.endTurn(context: &self, recording: BattleCardPlayRecording.detached(recording))
+        let events = CombatExecutor.run { await BattleCardCombatEngine.endTurn(
+            context: &self,
+            recording: BattleCardPlayRecording.detached(recording),
+        ) }
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
@@ -355,7 +355,10 @@ public struct BattleState {
             }
         }
         defer { cardPlayRecording = nil }
-        let events = BattleCardCombatEngine.drawOpeningHand(context: &self, recording: BattleCardPlayRecording.detached(recording))
+        let events = CombatExecutor.run { await BattleCardCombatEngine.drawOpeningHand(
+            context: &self,
+            recording: BattleCardPlayRecording.detached(recording),
+        ) }
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
@@ -371,14 +374,14 @@ public struct BattleState {
 
     @discardableResult
     package mutating func finalizeOpeningHand(rebuildLog: Bool = true) -> [ActionEvent] {
-        let events = BattleCardCombatEngine.finalizeOpeningHand(context: &self)
+        let events = CombatExecutor.run { await BattleCardCombatEngine.finalizeOpeningHand(context: &self) }
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
 
     @discardableResult
     package mutating func endTurnWithoutDraw(rebuildLog: Bool = true) -> [ActionEvent] {
-        let events = BattleCardCombatEngine.endTurnWithoutDraw(context: &self)
+        let events = CombatExecutor.run { await BattleCardCombatEngine.endTurnWithoutDraw(context: &self) }
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
@@ -394,7 +397,7 @@ public struct BattleState {
 
     @discardableResult
     package mutating func finalizeTurnStart(rebuildLog: Bool = true) -> [ActionEvent] {
-        let events = BattleCardCombatEngine.finalizeTurnStart(context: &self)
+        let events = CombatExecutor.run { await BattleCardCombatEngine.finalizeTurnStart(context: &self) }
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
@@ -426,12 +429,12 @@ public struct BattleState {
         logProjection = nil
     }
 
-    package mutating func resolveDamage(_ request: DamageRequest) -> CombatOutcome {
-        CombatResolver.damage(request, in: &self)
+    package mutating func resolveDamage(_ request: DamageRequest) async -> CombatOutcome {
+        await CombatResolver.damage(request, in: &self)
     }
 
-    package mutating func resolveHeal(_ request: HealRequest) -> CombatOutcome {
-        HealingEngine.resolveHeal(request, in: &self)
+    package mutating func resolveHeal(_ request: HealRequest) async -> CombatOutcome {
+        await HealingEngine.resolveHeal(request, in: &self)
     }
 
     package mutating func applyControlMeter(
@@ -439,8 +442,8 @@ public struct BattleState {
         keyword: Keyword,
         to combatant: Combatant,
         sourceActorID: String?,
-    ) -> [ActionEvent] {
-        ControlMeterEngine.applyMeterCharge(
+    ) async -> [ActionEvent] {
+        await ControlMeterEngine.applyMeterCharge(
             amount,
             keyword: keyword,
             to: combatant,
@@ -454,8 +457,8 @@ public struct BattleState {
         keyword: Keyword,
         target: Combatant,
         sourceActorID: String?,
-    ) -> CombatOutcome {
-        DoTDamage.resolveDamage(
+    ) async -> CombatOutcome {
+        await DoTDamage.resolveDamage(
             basePotency: basePotency,
             keyword: keyword,
             target: target,
@@ -472,8 +475,8 @@ public struct BattleState {
         sourceActorID: String,
         application: DoTApplication,
         provenance: DamageProvenance? = nil,
-    ) -> [ActionEvent] {
-        DoTApplicator.applyDecayingDoT(
+    ) async -> [ActionEvent] {
+        await DoTApplicator.applyDecayingDoT(
             keyword: keyword,
             potency: potency,
             to: effectTarget,

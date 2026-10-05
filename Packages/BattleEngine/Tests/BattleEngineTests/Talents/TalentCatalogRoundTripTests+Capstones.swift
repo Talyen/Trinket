@@ -17,7 +17,7 @@ extension TalentCatalogRoundTripTests {
         )
         try playHeroTalentCard(card, owner: .companion, in: &battle)
         battle.roster.hero.currentHealth = 0
-        _ = HealingEngine.resolveHealingEchoes(in: &battle)
+        _ = CombatExecutor.run { await HealingEngine.resolveHealingEchoes(in: &battle) }
         #expect(battle.roster.hero.currentHealth == 0)
     }
 
@@ -25,9 +25,9 @@ extension TalentCatalogRoundTripTests {
         var battle = capstoneBattle(companion: ["golden_retriever_health_t4_1"])
         battle.roster.hero.currentHealth = 1
         battle.roster.companion.currentHealth = battle.roster.companion.maxHealth - 2
-        _ = HealingEngine.resolveHeal(HealRequest(
+        _ = CombatExecutor.run { await HealingEngine.resolveHeal(HealRequest(
             amount: 4, target: battle.companion, sourceActorID: battle.companion.id,
-        ), in: &battle)
+        ), in: &battle) }
         #expect(battle.roster.companion.currentHealth == battle.roster.companion.maxHealth)
         #expect(battle.roster.hero.currentHealth == 3)
     }
@@ -40,10 +40,10 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.poison, on: .hero, in: battle) == 0)
         #expect(talentPoints(.burn, on: .companion, in: battle) == 0)
         let health = battle.roster.hero.currentHealth
-        _ = DoTApplicator.applyDecayingDoT(
+        _ = CombatExecutor.run { await DoTApplicator.applyDecayingDoT(
             keyword: .poison, potency: 3, to: battle.hero, sourceActorID: battle.enemy.id,
             application: .ability, in: &battle,
-        )
+        ) }
         #expect(battle.roster.hero.currentHealth == health - 3)
         #expect(talentPoints(.poison, on: .hero, in: battle) == 0)
         seedHeroTalentEffect(.burn(3), on: .companion, in: &battle, source: .enemy)

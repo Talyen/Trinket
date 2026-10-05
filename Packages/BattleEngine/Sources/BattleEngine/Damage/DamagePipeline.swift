@@ -14,12 +14,12 @@ package enum DamagePipeline {
     package static func run(
         state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) {
+    ) async {
         if state.options.isHealthCost {
             state.remaining = state.amount
             state.dealt = state.amount
-            applyTakeDamage(to: &state, in: &context)
-            applyDeathsDoor(to: &state, in: &context)
+            await applyTakeDamage(to: &state, in: &context)
+            await applyDeathsDoor(to: &state, in: &context)
             if state.healthLost > 0,
                let sourceActorID = state.sourceActorID,
                let source = context.roster.combatant(for: sourceActorID)?.combatant,
@@ -34,7 +34,7 @@ package enum DamagePipeline {
             return
         }
 
-        applyDodgeGate(to: &state, in: &context)
+        await applyDodgeGate(to: &state, in: &context)
         if state.isDodged {
             return
         }
@@ -52,15 +52,15 @@ package enum DamagePipeline {
         applyOutgoingDamage(to: &state, in: &context)
         applyPreparedAttackReduction(to: &state, in: &context)
         applyTakenFlatAdjustments(to: &state, in: &context)
-        applyShieldAbsorption(to: &state, in: &context)
-        applyTakeDamage(to: &state, in: &context)
+        await applyShieldAbsorption(to: &state, in: &context)
+        await applyTakeDamage(to: &state, in: &context)
         applyMarkedConsume(to: &state, in: &context)
-        applyDeathsDoor(to: &state, in: &context)
+        await applyDeathsDoor(to: &state, in: &context)
 
-        CombatCheckpoint.committedDamage.perform(in: &context) { context in
+        await CombatCheckpoint.committedDamage.perform(in: &context) { context in
             applyResourceful(to: &state, in: &context)
             applyCrackedGuard(to: &state, in: &context)
-            applyCommittedDamageReactions(to: &state, in: &context)
+            await applyCommittedDamageReactions(to: &state, in: &context)
         }
     }
 
@@ -70,10 +70,10 @@ package enum DamagePipeline {
     /// reactive/keyword → ally Block → Threefold Grace → crit → uniques. DoT mirrors must precede leech so
     /// mirrored ticks count toward the same hit; keyword reactions stay last
     /// among pipeline-owned steps so wards see final healthLost.
-    private static func applyCommittedDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) {
-        applyTypedCriticalAttackRewards(to: &state, in: &context)
+    private static func applyCommittedDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) async {
+        await applyTypedCriticalAttackRewards(to: &state, in: &context)
         if state.options.isCardAttack, state.amount > 0, state.combatant.role == .enemy {
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroCardHit(
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroCardHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID, critical: state.isCritical,
                 healthLost: state.healthLost,
                 fullyBlocked: state.blockedAmount > 0 && state.remaining == 0,
@@ -94,51 +94,51 @@ package enum DamagePipeline {
             CombatTriggerEngine.removeBlockAfterPhysicalCriticalHit(by: state.sourceActorID, in: &context)
         }
 
-        state.damageEvents.append(contentsOf: EnemyTraitEngine.basicFreezeDamage(from: state, context: &context))
-        state.damageEvents.append(contentsOf: EnemyTraitEngine.firstAttackBleedBonus(from: state, context: &context))
-        state.damageEvents.append(contentsOf: EnemyTraitEngine.attacksApplyPoison(from: state, context: &context))
-        applyDoTDamageReactions(to: &state, in: &context)
-        applyCompanionDamageRetaliation(to: &state, in: &context)
-        applyLeech(to: &state, in: &context)
-        applyEnemyAttackPurge(to: &state, in: &context)
-        AttackerOnHitEngine.apply(to: &state, in: &context)
-        applyAttackerMirroredReactions(to: &state, in: &context)
+        await state.damageEvents.append(contentsOf: EnemyTraitEngine.basicFreezeDamage(from: state, context: &context))
+        await state.damageEvents.append(contentsOf: EnemyTraitEngine.firstAttackBleedBonus(from: state, context: &context))
+        await state.damageEvents.append(contentsOf: EnemyTraitEngine.attacksApplyPoison(from: state, context: &context))
+        await applyDoTDamageReactions(to: &state, in: &context)
+        await applyCompanionDamageRetaliation(to: &state, in: &context)
+        await applyLeech(to: &state, in: &context)
+        await applyEnemyAttackPurge(to: &state, in: &context)
+        await AttackerOnHitEngine.apply(to: &state, in: &context)
+        await applyAttackerMirroredReactions(to: &state, in: &context)
 
-        applyControlMeter(to: &state, in: &context)
-        AttackerOnHitEngine.applyNimbleFang(to: &state, in: &context)
+        await applyControlMeter(to: &state, in: &context)
+        await AttackerOnHitEngine.applyNimbleFang(to: &state, in: &context)
         if !state.options.isRetaliation {
-            applyReactiveOnHit(to: &state, in: &context)
-            applyKeywordReactions(to: &state, in: &context)
+            await applyReactiveOnHit(to: &state, in: &context)
+            await applyKeywordReactions(to: &state, in: &context)
         }
         applyFinalCompanionHolyHitRewards(to: &state, in: &context)
         applyCompanionLeechCriticalBlock(to: &state, in: &context)
-        applyThreefoldGrace(to: &state, in: &context)
+        await applyThreefoldGrace(to: &state, in: &context)
         if !state.options.isRetaliation {
-            applyCriticalReaction(to: &state, in: &context)
+            await applyCriticalReaction(to: &state, in: &context)
         }
-        state.damageEvents.append(contentsOf: UniqueCombatEngine.afterDamage(state, in: &context))
+        await state.damageEvents.append(contentsOf: UniqueCombatEngine.afterDamage(state, in: &context))
     }
 
-    private static func applyDoTDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) {
+    private static func applyDoTDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) async {
         if let keyword = state.damageKeyword, keyword == .burn || keyword == .bleed,
            let sourceActorID = state.sourceActorID {
-            state.damageEvents.append(contentsOf: DoTMirrorCascade.resolve(
+            await state.damageEvents.append(contentsOf: DoTMirrorCascade.resolve(
                 keyword: keyword, initialHealthLost: state.healthLost, target: state.combatant,
                 sourceActorID: sourceActorID, in: &context,
             ))
         }
         if state.damageKeyword == .burn, state.healthLost > 0, let sourceID = state.sourceActorID {
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBurnDamageConversion(
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBurnDamageConversion(
                 to: state.combatant, sourceActorID: sourceID, in: &context,
             ))
         }
         if state.damageKeyword == .bleed {
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBleedDamage(
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBleedDamage(
                 healthLost: state.healthLost, target: state.combatant,
                 sourceActorID: state.sourceActorID, in: &context,
             ))
         } else if state.damageKeyword == .poison {
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterPoisonDamage(
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterPoisonDamage(
                 healthLost: state.healthLost, target: state.combatant,
                 sourceActorID: state.sourceActorID, in: &context,
             ))
@@ -149,7 +149,7 @@ package enum DamagePipeline {
     /// a discarded copy: modifier profiles share storage (CoW), so the copy
     /// is cheap, and preview mutations (empower reservations, claims, burn
     /// consumption) must not leak into the real resolution.
-    static func applyWinterWake(to state: inout DamageResolutionState, in context: inout BattleState) {
+    static func applyWinterWake(to state: inout DamageResolutionState, in context: inout BattleState) async {
         guard !state.options.causedByDodge, state.options.isAttackHit,
               context.modifiers(for: state.combatant.id).triggers.wintersWake,
               let attackerID = state.sourceActorID,
@@ -167,7 +167,7 @@ package enum DamagePipeline {
         }()
         guard amount > 0 else { return }
         let options = DamageOperation.reaction(cause: .dodge, scaling: .resolved, accuracy: .normal)
-        let outcome = context.resolveDamage(DamageRequest(
+        let outcome = await context.resolveDamage(DamageRequest(
             amount: amount, target: attacker.combatant, keyword: .freeze,
             sourceActorID: state.combatant.id, options: options,
         ))
@@ -250,7 +250,7 @@ package enum DamagePipeline {
         isThornsDamage: Bool = false,
         requireSourceAlive source: Combatant? = nil,
         in context: inout BattleState,
-    ) -> CombatOutcome {
+    ) async -> CombatOutcome {
         guard amount > 0 else {
             return .empty
         }
@@ -262,7 +262,7 @@ package enum DamagePipeline {
         }
         var options = DamageOperation.reaction()
         options.isThornsDamage = isThornsDamage
-        return context.resolveDamage(DamageRequest(
+        return await context.resolveDamage(DamageRequest(
             amount: amount,
             target: target,
             keyword: keyword,
@@ -286,9 +286,9 @@ package enum DamagePipeline {
         isThornsDamage: Bool = false,
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) -> Int {
+    ) async -> Int {
         guard amount > 0 else { return 0 }
-        let outcome = resolveNestedDamage(
+        let outcome = await resolveNestedDamage(
             amount: amount,
             keyword: keyword,
             target: target,

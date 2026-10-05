@@ -3,14 +3,13 @@ import TrinketContent
 import TrinketFeatureContracts
 import TrinketPersistence
 
-enum BattleRewardPresentation {
-    static func make(
+enum BattleRewardAssembly {
+    static func makePlan(
         inputs: BattlePreparationInputs,
         configuration: BattleRunConfiguration,
-    ) -> BattlePresentationContext {
+    ) -> BattleRewardPlan {
         let input = inputs.launch
         let rosterState = inputs.party.roster
-        let inventoryState = inputs.party.inventory
         let homesteadEffects = inputs.party.homestead.effects
         let heroMember = configuration.hero
         let companionMember = configuration.companion
@@ -24,44 +23,57 @@ enum BattleRewardPresentation {
             for: companionMember, highestLevel: rosterState.highestCompanionLevel,
             enemyLevel: enemyLevel, launch: input, homesteadBonus: homesteadEffects.experienceBonusPercent,
         )
-        return BattlePresentationContext(
-            inventoryItems: inventoryState.items,
-            stageReward: input.stageReward,
-            rewardItems: resolvedRewardItems(
-                stageReward: input.stageReward,
-                pendingRewardItem: input.pendingRewardItem,
-                additionalRewardItems: input.additionalRewardItems,
-            ),
-            additionalRewardItems: input.additionalRewardItems,
-            pendingRewardItem: input.pendingRewardItem,
-            experienceBonusPercent: input.experienceBonusPercent,
-            victoryOnlyExperienceBonusPercent: input.victoryOnlyExperienceBonusPercent,
+        guard input.origin != nil else {
+            return BattleRewardPlan(
+                stageGold: 0, goldFindPercent: 0,
+                goldOverflowExperience: RewardExperiencePolicy.encounterAward(encounterLevel: enemyLevel, roster: rosterState),
+                heroExperience: 0, companionExperience: 0, materials: [], items: [],
+            )
+        }
+        let claimed = input.stageRewardsAlreadyClaimed
+        return BattleRewardPlan(
+            stageGold: claimed ? 0 : input.stageReward?.gold ?? 0,
             goldFindPercent: homesteadEffects.goldFindPercent,
             goldFindFlat: homesteadEffects.goldFindFlat,
             gemsFindBonus: homesteadEffects.gemsFindBonus,
             gemsFindPercent: homesteadEffects.gemsFindPercent,
-            rewardRemainders: inputs.party.homestead.rewardRemainders ?? .zero,
-            stageRewardsAlreadyClaimed: input.stageRewardsAlreadyClaimed,
-            hasProgressionRewards: input.origin != nil,
-            musicStageID: nil,
-            heroExperienceAward: heroExperience.victory,
-            companionExperienceAward: companionExperience.victory,
-            defeatHeroExperienceAward: heroExperience.defeat,
-            defeatCompanionExperienceAward: companionExperience.defeat,
-            materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: input.stageReward ?? .empty),
-            nodeModifiers: input.nodeModifiers,
+            initialRewardRemainders: inputs.party.homestead.rewardRemainders ?? .zero,
             goldOverflowExperience: RewardExperiencePolicy.encounterAward(
-                encounterLevel: enemyLevel, roster: rosterState,
-                percent: victoryPercent,
+                encounterLevel: enemyLevel, roster: rosterState, percent: victoryPercent,
             ),
+            heroExperience: claimed ? 0 : heroExperience.victory,
+            companionExperience: claimed ? 0 : companionExperience.victory,
+            defeatHeroExperience: claimed ? 0 : heroExperience.defeat,
+            defeatCompanionExperience: claimed ? 0 : companionExperience.defeat,
+            materials: claimed ? [] : StageCompletion.resolvedMaterialRewards(stageReward: input.stageReward ?? .empty),
+            items: claimed ? [] : resolvedRewardItems(
+                stageReward: input.stageReward, pendingRewardItem: input.pendingRewardItem,
+                additionalRewardItems: input.additionalRewardItems,
+            ),
+            completionBonus: claimed ? nil : input.completionBonus,
+        )
+    }
+
+    static func makePresentation(
+        inputs: BattlePreparationInputs,
+        configuration: BattleRunConfiguration,
+        rewardPlan: BattleRewardPlan,
+    ) -> BattlePresentationContext {
+        BattlePresentationContext(
+            inventoryItems: inputs.party.inventory.items,
+            rewardPlan: rewardPlan,
+            stageRewardsAlreadyClaimed: inputs.launch.stageRewardsAlreadyClaimed,
+            hasProgressionRewards: inputs.launch.origin != nil,
+            musicStageID: nil,
+            nodeModifiers: inputs.launch.nodeModifiers,
             rewardInputs: RewardSettlementInputs(
-                gold: rosterState.gold,
+                gold: inputs.party.roster.gold,
                 reservedGold: PlayerRosterState.reservedGold(from: inputs.party.homestead.pendingProduction),
                 goldLimit: PlayerRosterState.maxGoldBalance,
-                heroProgression: heroMember.progression, companionProgression: companionMember.progression,
+                heroProgression: configuration.hero.progression,
+                companionProgression: configuration.companion.progression,
                 productionDate: inputs.party.homestead.lastProductionAt,
             ),
-            completionBonus: input.completionBonus,
         )
     }
 

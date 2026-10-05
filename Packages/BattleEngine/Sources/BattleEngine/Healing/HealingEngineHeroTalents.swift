@@ -78,17 +78,17 @@ extension HealingEngine {
         restored: Int,
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        var events = applyAlchemistHealingTalents(
+    ) async -> [ActionEvent] {
+        var events = await applyAlchemistHealingTalents(
             request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context,
         )
-        events.append(contentsOf: applyDruidHealingTalents(
+        await events.append(contentsOf: applyDruidHealingTalents(
             request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context,
         ))
-        events.append(contentsOf: applyRetrieverHealingTalents(
+        await events.append(contentsOf: applyRetrieverHealingTalents(
             request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context,
         ))
-        events.append(contentsOf: applyOwlHealingTalents(
+        await events.append(contentsOf: applyOwlHealingTalents(
             request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context,
         ))
         events.append(contentsOf: applyFinalCompanionHealingTalents(
@@ -126,7 +126,7 @@ extension HealingEngine {
         restored: Int,
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard restored > 0, let sourceID = request.sourceActorID,
               let source = context.roster.combatant(for: sourceID), source.isAlive,
               request.target.role != .enemy, let triggers = sourceTriggers
@@ -157,7 +157,7 @@ extension HealingEngine {
         if triggers.healthRestoreThornsAmount > 0, triggers.healthRestoreThornsChancePercent > 0,
            context.claimTalentAbility("Living Archive", actorID: sourceID),
            BattleChance.succeeds(probability: triggers.healthRestoreThornsChancePercent, using: &context.rng) {
-            events.append(contentsOf: CombatTriggerEngine.heroTalentThorns(
+            await events.append(contentsOf: CombatTriggerEngine.heroTalentThorns(
                 to: target, source: actor, amount: triggers.healthRestoreThornsAmount,
                 name: "Living Archive", in: &context,
             ))
@@ -179,7 +179,7 @@ extension HealingEngine {
         restored: Int,
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard restored > 0, let sourceID = request.sourceActorID,
               let source = context.roster.combatant(for: sourceID), source.isAlive,
               request.target.role != .enemy, let sourceTriggers
@@ -195,7 +195,7 @@ extension HealingEngine {
         }
         if sourceTriggers.healthRestorationCleansesOne,
            context.hasTalentDebuff(on: request.target) {
-            events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
+            await events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
                 source: actor, target: request.target, count: 1,
                 abilityName: "Protective Lick", in: &context,
             ))
@@ -208,7 +208,7 @@ extension HealingEngine {
         restored: Int,
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard restored > 0, context.allowsHeroTalentReaction,
               let sourceActorID = request.sourceActorID,
               let source = context.roster.combatant(for: sourceActorID)?.combatant,
@@ -223,7 +223,7 @@ extension HealingEngine {
             }
         }
         if sourceTriggers.cleansingDew, context.roster.hasAffliction(.poison, on: request.target) {
-            events.append(contentsOf: EffectRemovalOperation.resolveCleanse(
+            await events.append(contentsOf: EffectRemovalOperation.resolveCleanse(
                 .all(.poison), source: source, target: request.target,
                 abilityName: "Cleansing Dew", in: &context,
             ).events)
@@ -232,7 +232,7 @@ extension HealingEngine {
            context.roster.hero.isAlive {
             let amount = CombatRounding.scaled(restored, multiplier: sourceTriggers.sharedRootsHealPercent)
             if amount > 0 {
-                events.append(contentsOf: CombatTriggerEngine.withHeroReaction(in: &context) { context in
+                await events.append(contentsOf: CombatTriggerEngine.withHeroReaction(in: &context) { context in
                     var share = HealRequest(
                         amount: amount,
                         target: context.roster.hero.combatant,
@@ -241,7 +241,7 @@ extension HealingEngine {
                         logAs: .instantHeal(actorName: source.name, abilityName: "Shared Roots", keyword: .health),
                     )
                     share.amountBasis = .resolved
-                    return Self.resolveHeal(share, in: &context).events
+                    return await Self.resolveHeal(share, in: &context).events
                 })
             }
         }
@@ -253,7 +253,7 @@ extension HealingEngine {
         restored: Int,
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard let sourceActorID = request.sourceActorID,
               let source = context.roster.combatant(for: sourceActorID)?.combatant,
               context.roster.health(for: source) > 0,
@@ -285,12 +285,12 @@ extension HealingEngine {
             }
             if canRoll, sourceTriggers.healthRestoreManaChancePercent > 0,
                BattleChance.succeeds(probability: sourceTriggers.healthRestoreManaChancePercent, using: &context.rng) {
-                events.append(contentsOf: context.restoreManaEmitting(
+                await events.append(contentsOf: context.restoreManaEmitting(
                     1, to: source, abilityName: "Masterwork Mixture",
                 ))
             }
             if sourceTriggers.coolingSalve, context.roster.hasAffliction(.burn, on: request.target) {
-                events.append(contentsOf: EffectRemovalOperation.resolveCleanse(
+                await events.append(contentsOf: EffectRemovalOperation.resolveCleanse(
                     .all(.burn), source: source, target: request.target,
                     abilityName: "Cooling Salve", in: &context,
                 ).events)
@@ -298,7 +298,7 @@ extension HealingEngine {
         }
         if request.isDirectCardHeal, sourceTriggers.clearSolution,
            context.claimHeroCardBonus("Clear Solution", actorID: sourceActorID) {
-            events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
+            await events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
                 source: source, target: request.target, count: 1,
                 abilityName: "Clear Solution", in: &context,
             ))

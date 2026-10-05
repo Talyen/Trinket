@@ -5,7 +5,7 @@ package extension CombatTriggerEngine {
     internal static func afterCardPlayed(
         _ facts: ResolvedActionFacts,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let actor = facts.action.actor
         let ability = facts.originalAbility
         let abilityTarget = facts.action.selectedTarget
@@ -13,12 +13,12 @@ package extension CombatTriggerEngine {
               context.roster[owner].isAlive else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
         let keywords = facts.damageKeywords
-        var events = CombatCheckpoint.cardCompletion(actor.id).resolve([
-            { spellEchoIfNeeded(ability: ability, actor: actor, owner: owner, abilityTarget: abilityTarget, in: &$0) },
-            { scholarlySmiteIfNeeded(keywords: keywords, actor: actor, in: &$0) },
-            { infernoBarrageIfNeeded(ability: ability, actor: actor, triggers: triggers, in: &$0) },
-            { blizzardIfNeeded(keywords: keywords, actor: actor, owner: owner, triggers: triggers, in: &$0) },
-            { talentRepeatIfNeeded(ability: ability, keywords: keywords, actor: actor, abilityTarget: abilityTarget, in: &$0) },
+        var events = await CombatCheckpoint.cardCompletion(actor.id).resolve([
+            { await spellEchoIfNeeded(ability: ability, actor: actor, owner: owner, abilityTarget: abilityTarget, in: &$0) },
+            { await scholarlySmiteIfNeeded(keywords: keywords, actor: actor, in: &$0) },
+            { await infernoBarrageIfNeeded(ability: ability, actor: actor, triggers: triggers, in: &$0) },
+            { await blizzardIfNeeded(keywords: keywords, actor: actor, owner: owner, triggers: triggers, in: &$0) },
+            { await talentRepeatIfNeeded(ability: ability, keywords: keywords, actor: actor, abilityTarget: abilityTarget, in: &$0) },
             { talentPrimeIfNeeded(keywords: keywords, actor: actor, in: &$0) },
         ], in: &context)
 
@@ -31,7 +31,7 @@ package extension CombatTriggerEngine {
             context.additionalControlSkipsByCombatantID[context.roster.enemy.id, default: 0] += 1
         }
 
-        events.append(contentsOf: cardsPlayedManaIfNeeded(count: count, actor: actor, triggers: triggers, in: &context))
+        await events.append(contentsOf: cardsPlayedManaIfNeeded(count: count, actor: actor, triggers: triggers, in: &context))
         return events
     }
 
@@ -41,7 +41,7 @@ package extension CombatTriggerEngine {
         owner: BattleParticipant,
         abilityTarget: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard ability.tier == .skill, !context.isEchoingSkill else { return [] }
         let skillCount = context.turnCadence.skillCardsPlayed[owner, default: 0] + 1
         context.turnCadence.skillCardsPlayed[owner] = skillCount
@@ -52,7 +52,7 @@ package extension CombatTriggerEngine {
         else { return [] }
         context.isEchoingSkill = true
         defer { context.isEchoingSkill = false }
-        return BattleTurnEngine.performAction(
+        return await BattleTurnEngine.performAction(
             ability: ability,
             actor: actor,
             abilityTarget: abilityTarget,
@@ -65,13 +65,13 @@ package extension CombatTriggerEngine {
         keywords: Set<Keyword>,
         actor: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard actor.role == .hero, keywords.contains(.holy),
               let companionTriggers = companionReactingToHeroTriggers(in: context),
               companionTriggers.onHeroHolyAbilityCompanionHolyDamage > 0,
               context.roster.enemy.isAlive
         else { return [] }
-        return context.resolveDamage(
+        return await context.resolveDamage(
             DamageRequest(
                 amount: companionTriggers.onHeroHolyAbilityCompanionHolyDamage,
                 target: context.roster.enemy.combatant,
@@ -87,12 +87,12 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard ability.tier == .ultimate,
               triggers.ultimateAppliesBurnPotency > 0,
               context.roster.enemy.isAlive
         else { return [] }
-        return context.applyDecayingDoT(
+        return await context.applyDecayingDoT(
             keyword: .burn,
             potency: triggers.ultimateAppliesBurnPotency,
             to: context.roster.enemy.combatant,
@@ -107,14 +107,14 @@ package extension CombatTriggerEngine {
         owner: BattleParticipant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard keywords.contains(.freeze) else { return [] }
         let freezeCount = context.turnCadence.freezeCardsPlayed[owner, default: 0] + 1
         context.turnCadence.freezeCardsPlayed[owner] = freezeCount
         let threshold = triggers.freezeCardsPlayedThisTurnFreezeAll
         guard threshold > 0, freezeCount == threshold, context.roster.enemy.isAlive else { return [] }
         let enemyThreshold = ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
-        return ControlMeterEngine.applyMeterCharge(
+        return await ControlMeterEngine.applyMeterCharge(
             enemyThreshold,
             keyword: .freeze,
             to: context.roster.enemy.combatant,
@@ -156,7 +156,7 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         abilityTarget: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.resolution.depth(.damage) < ReactionScope.maxDepth,
               !context.resolution.isAutomaticPlay
         else { return [] }
@@ -165,7 +165,7 @@ package extension CombatTriggerEngine {
             && context.primedRepeatKeywords.remove(keyword) != nil {
             context.resolution.enter(.damage)
             defer { context.resolution.leave(.damage) }
-            return BattleTurnEngine.performAction(
+            return await BattleTurnEngine.performAction(
                 ability: ability,
                 actor: actor,
                 abilityTarget: abilityTarget,
@@ -226,7 +226,7 @@ package extension CombatTriggerEngine {
         _ amount: Int,
         to actor: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         resetPantherRedline(afterHealthRestoration: actor, in: &context)
         let percent = context.modifiers(for: actor.id).triggers.healthRestoredPoisonPercent
         guard amount > 0, percent > 0, context.roster.enemy.isAlive, context.resolution.depth(.talentReaction) == 0 else {
@@ -236,7 +236,7 @@ package extension CombatTriggerEngine {
         guard damage > 0 else { return [] }
         context.resolution.enter(.talentReaction)
         defer { context.resolution.leave(.talentReaction) }
-        return DamagePipeline.resolveNestedDamage(
+        return await DamagePipeline.resolveNestedDamage(
             amount: damage,
             keyword: .poison,
             target: context.roster.enemy.combatant,
@@ -269,7 +269,7 @@ package extension CombatTriggerEngine {
 // MARK: - Party cards
 
 package extension CombatTriggerEngine {
-    static func afterPartyCardPlayed(in context: inout BattleState) -> [ActionEvent] {
+    static func afterPartyCardPlayed(in context: inout BattleState) async -> [ActionEvent] {
         let count = context.turnCadence.cardsPlayed.values.reduce(0, +)
         var events: [ActionEvent] = []
         for (_, actor) in livingPartyMembers(in: context) {
@@ -279,7 +279,7 @@ package extension CombatTriggerEngine {
                   context.resolution.claim(.heroTalent("playfulEnergy"), actorID: actor.id, cadence: .turn(context.turnCount))
             else { continue }
             for (_, target) in livingPartyMembers(in: context) {
-                events.append(contentsOf: emitHeal(
+                await events.append(contentsOf: emitHeal(
                     "cardsPlayedHealPartyThreshold", "Playful Energy",
                     amount: triggers.cardsPlayedHealPartyAmount,
                     to: target.combatant, source: actor.combatant, in: &context,

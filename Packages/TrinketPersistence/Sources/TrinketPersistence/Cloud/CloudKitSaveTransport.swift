@@ -38,7 +38,8 @@ actor CloudKitSaveTransport: CloudSaveTransport {
             throw CloudSaveError.unsupportedSave
         }
         let head = try JSONDecoder().decode(CloudSaveHead.self, from: Data(contentsOf: url))
-        guard head.formatVersion == 1 else { throw CloudSaveError.unsupportedSave }
+        guard (1 ... 2).contains(head.formatVersion) else { throw CloudSaveError.unsupportedSave }
+        try head.productionClaims?.validate()
         _ = try head.revision.snapshot.restored()
         return try serverSave(record, head: head)
     }

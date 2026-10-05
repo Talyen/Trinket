@@ -89,6 +89,9 @@ enum CloudSaveTransitions {
         guard original.account.base?.revision.snapshot == local,
               !original.account.resetRequested else { return nil }
         var state = original
+        if original.account.base?.epoch != head.epoch {
+            state.account.collectionPositions = nil
+        }
         state.account.base = head
         let replacement = original.account.base == head ? nil : try head.revision.snapshot.restored()
         return CloudSaveTransition(sourceState: original, sourceSnapshot: local, state: state, replacement: replacement)
@@ -106,6 +109,9 @@ enum CloudSaveTransitions {
         guard original.account.pending?.id == request.id else { return nil }
         var state = original
         state.account.pending = nil
+        if original.account.base?.epoch != head.epoch {
+            state.account.collectionPositions = nil
+        }
         if receipt.outcome == .progressChanged, request.action == .upload,
            receipt.epoch == head.epoch, request.baseEpoch == head.epoch {
             state.account.base = head
@@ -116,8 +122,8 @@ enum CloudSaveTransitions {
             )
         }
         if let applied = request.mutations, !applied.isEmpty {
-            let ids = Set(applied.map(\.id))
-            state.account.journal?.removeAll { ids.contains($0.id) }
+            let ids = Set(applied.records.map(\.id))
+            state.account.journal?.acknowledge(ids)
         }
         let sourceUnchanged = local == request.revision.snapshot
         let transition: CloudSaveTransition

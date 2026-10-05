@@ -2,8 +2,8 @@ import Foundation
 import os
 
 package enum ReactionScope {
-    /// Single shared recursion budget for damage, DoT, and draw-and-play
-    /// nesting. Only the DoT mirror chain keeps a tighter bound below.
+    /// Retained damage and DoT chain budget. Automatic card plays keep their
+    /// existing separate bound on BattleState; limits are independent of stack size.
     package static let maxDepth = 10
     package static let maxDoTMirrorChainDepth = 5
 

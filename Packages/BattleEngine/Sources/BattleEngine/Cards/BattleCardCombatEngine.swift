@@ -19,20 +19,20 @@ package enum BattleCardCombatEngine {
         context.ownersSkippingThisPlayerTurn = []
     }
 
-    package static func bootstrapDecksAndOpeningHand(context: inout BattleState) {
+    package static func bootstrapDecksAndOpeningHand(context: inout BattleState) async {
         bootstrapDecks(context: &context)
-        drawOpeningHand(context: &context)
+        await drawOpeningHand(context: &context)
     }
 
     @discardableResult
     package static func drawOpeningHand(
         context: inout BattleState,
         recording: ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)? = nil,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         while drawNextOpeningHandCard(context: &context) {
             recording?(.cardDrawn, context, [])
         }
-        let events = finalizeOpeningHand(context: &context)
+        let events = await finalizeOpeningHand(context: &context)
         recording?(.ready, context, events)
         return events
     }
@@ -56,7 +56,7 @@ package enum BattleCardCombatEngine {
     }
 
     @discardableResult
-    package static func finalizeOpeningHand(context: inout BattleState) -> [ActionEvent] {
+    package static func finalizeOpeningHand(context: inout BattleState) async -> [ActionEvent] {
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         // Later rounds receive this grant during effect advancement; opening
         // has no preceding round to advance.
@@ -68,16 +68,16 @@ package enum BattleCardCombatEngine {
                 in: &context,
             ))
         }
-        events.append(contentsOf: CombatTriggerEngine.atPlayerTurnStart(in: &context))
-        events.append(contentsOf: finishPlayerTurnStart(context: &context))
+        await events.append(contentsOf: CombatTriggerEngine.atPlayerTurnStart(in: &context))
+        await events.append(contentsOf: finishPlayerTurnStart(context: &context))
         return events
     }
 
-    static func finishPlayerTurnStart(context: inout BattleState) -> [ActionEvent] {
+    static func finishPlayerTurnStart(context: inout BattleState) async -> [ActionEvent] {
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
-        let events = context.appendDefeatMilestonesIfNeeded()
+        let events = await context.appendDefeatMilestonesIfNeeded()
         context.phase = context.isBattleOver ? .ended : .playerTurn
         return events
     }
@@ -86,13 +86,13 @@ package enum BattleCardCombatEngine {
     package static func endTurn(
         context: inout BattleState,
         recording: ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)? = nil,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard !context.isBattleOver, context.phase == .playerTurn else {
             assertionFailure("BattleCardCombatEngine.endTurn called outside playerTurn or after battle ended")
             return []
         }
 
-        var events = endTurnWithoutDraw(context: &context)
+        var events = await endTurnWithoutDraw(context: &context)
         recording?(.turnActions, context, events)
         if context.phase == .ended {
             recording?(.ready, context, [])
@@ -110,7 +110,7 @@ package enum BattleCardCombatEngine {
         while promoteNextFromBuffer(context: &context) != nil {
             recording?(.bufferPromoted, context, [])
         }
-        let finalEvents = finalizeTurnStart(context: &context)
+        let finalEvents = await finalizeTurnStart(context: &context)
         events.append(contentsOf: finalEvents)
         recording?(.ready, context, finalEvents)
         return events
@@ -118,13 +118,13 @@ package enum BattleCardCombatEngine {
 
     static func restoreManaAtPlayerTurnStart(
         context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
             let runtime = context.roster[owner]
             guard runtime.isAlive, runtime.maxMana > 0 else { continue }
             let combatant = runtime.combatant
-            events.append(contentsOf: context.restoreManaEmitting(
+            await events.append(contentsOf: context.restoreManaEmitting(
                 1,
                 to: combatant,
                 abilityName: Keyword.mana.rawValue,
@@ -168,14 +168,14 @@ package enum BattleCardCombatEngine {
 
     static func resolveEnemyTurn(
         context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive else { return [] }
 
-        var leadingEvents = DefensePoolEngine.decayBlock(on: enemy, in: &context)
+        var leadingEvents = await DefensePoolEngine.decayBlock(on: enemy, in: &context)
 
         if context.roster.hasPendingActionSkip(for: enemy) {
-            return leadingEvents + BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
+            return leadingEvents + await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
         }
 
         UniqueCombatEngine.recoverStunBeforeClearing(on: enemy, in: &context)
@@ -202,10 +202,10 @@ package enum BattleCardCombatEngine {
         }
 
         let abilityTarget = BattleActionContext(actor: enemy, in: context).selectedTarget
-        let action = BattleTurnEngine.performEnemyAction(ability: ability, abilityTarget: abilityTarget, context: &context)
+        let action = await BattleTurnEngine.performEnemyAction(ability: ability, abilityTarget: abilityTarget, context: &context)
         var events = action.events
         if action.performed {
-            events.append(contentsOf: CombatTriggerEngine.afterEnemyAbility(in: &context))
+            await events.append(contentsOf: CombatTriggerEngine.afterEnemyAbility(in: &context))
         }
         return leadingEvents + events
     }
@@ -221,12 +221,12 @@ package enum BattleCardCombatEngine {
         return skipping
     }
 
-    static func advanceRoundCommon(context: inout BattleState) -> [ActionEvent] {
+    static func advanceRoundCommon(context: inout BattleState) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         for owner in context.ownersSkippingThisPlayerTurn {
             let combatant = context.roster[owner].combatant
             if context.roster.hasPendingActionSkip(for: combatant) {
-                events.append(contentsOf: BattleTurnEngine.consumeActionSkip(
+                await events.append(contentsOf: BattleTurnEngine.consumeActionSkip(
                     for: combatant,
                     context: &context,
                 ))
@@ -234,18 +234,18 @@ package enum BattleCardCombatEngine {
         }
         context.ownersSkippingThisPlayerTurn = []
 
-        if finishRoundIfBattleOver(context: &context, events: &events) {
+        if await finishRoundIfBattleOver(context: &context, events: &events) {
             return events
         }
 
-        events.append(contentsOf: CombatTriggerEngine.atPlayerEndTurn(in: &context))
+        await events.append(contentsOf: CombatTriggerEngine.atPlayerEndTurn(in: &context))
         context.primedRepeatKeywords.removeAll()
-        if finishRoundIfBattleOver(context: &context, events: &events) {
+        if await finishRoundIfBattleOver(context: &context, events: &events) {
             return events
         }
 
-        events.append(contentsOf: resolveEnemyTurn(context: &context))
-        if finishRoundIfBattleOver(context: &context, events: &events) {
+        await events.append(contentsOf: resolveEnemyTurn(context: &context))
+        if await finishRoundIfBattleOver(context: &context, events: &events) {
             return events
         }
 
@@ -257,11 +257,11 @@ package enum BattleCardCombatEngine {
             }
         }
         context.turnCount += 1
-        events.append(contentsOf: EffectTurnEngine.advanceAll(context: &context))
+        await events.append(contentsOf: EffectTurnEngine.advanceAll(context: &context))
         for combatant in [context.roster.hero.combatant, context.roster.companion.combatant] {
-            events.append(contentsOf: DefensePoolEngine.decayBlock(on: combatant, in: &context))
+            await events.append(contentsOf: DefensePoolEngine.decayBlock(on: combatant, in: &context))
         }
-        if finishRoundIfBattleOver(context: &context, events: &events) {
+        if await finishRoundIfBattleOver(context: &context, events: &events) {
             return events
         }
 
@@ -269,9 +269,9 @@ package enum BattleCardCombatEngine {
         return events
     }
 
-    private static func finishRoundIfBattleOver(context: inout BattleState, events: inout [ActionEvent]) -> Bool {
+    private static func finishRoundIfBattleOver(context: inout BattleState, events: inout [ActionEvent]) async -> Bool {
         // Milestones can trigger victory rewards; finish them before checking the final roster.
-        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
+        await events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
         guard context.isBattleOver else { return false }
         context.phase = .ended
         return true

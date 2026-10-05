@@ -12,7 +12,7 @@ struct CombatTriggerTalentControlTests {
             for: battle.roster.enemy.combatant,
             on: &battle,
         )
-        _ = BattleCardCombatEngine.endTurn(context: &battle)
+        _ = CombatExecutor.run { await BattleCardCombatEngine.endTurn(context: &battle) }
         let meter = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
             .compactMap(\.effect.controlMeterValues)
             .first
@@ -27,17 +27,17 @@ struct CombatTriggerTalentControlTests {
         )
         let enemy = battle.roster.enemy.combatant
         let threshold = ControlMeterEngine.threshold(for: enemy, in: battle)
-        _ = ControlMeterEngine.applyMeterCharge(
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             threshold,
             keyword: .stun,
             to: enemy,
             sourceActorID: "source",
             applyFightPacing: false,
             in: &battle,
-        )
-        _ = BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle)
+        ) }
+        _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle) }
         #expect(battle.roster.hasPendingActionSkip(for: enemy, keyword: .stun))
-        _ = BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle)
+        _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle) }
         #expect(!battle.roster.hasPendingActionSkip(for: enemy))
     }
 
@@ -73,7 +73,7 @@ struct CombatTriggerTalentControlTests {
         battle.appendEffect(.poison(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
         let active = try #require(battle.activeEffects(of: battle.enemy).first)
         let handler = EffectHandlers.handler(for: .poison)
-        _ = handler.advanceTurn(active, on: battle.enemy, in: &battle)
+        _ = CombatExecutor.run { await handler.advanceTurn(active, on: battle.enemy, in: &battle) }
         #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun) == stunned)
     }
 
@@ -132,11 +132,11 @@ struct CombatTriggerTalentControlTests {
         }
 
         var livingPin = bleedBattle(heroAlive: true)
-        _ = CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &livingPin)
+        _ = CombatExecutor.run { await CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &livingPin) }
         #expect(livingPin.roster.health(for: livingPin.roster.enemy.combatant) == 35)
 
         var deadPin = bleedBattle(heroAlive: false)
-        _ = CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &deadPin)
+        _ = CombatExecutor.run { await CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &deadPin) }
         #expect(deadPin.roster.health(for: deadPin.roster.enemy.combatant) == 40)
 
         func poisonBattle(heroAlive: Bool) -> BattleState {
@@ -157,10 +157,10 @@ struct CombatTriggerTalentControlTests {
         }
 
         var livingMiss = poisonBattle(heroAlive: true)
-        #expect(CombatTriggerEngine.enemyAttackAvoidance(in: &livingMiss).cancelled)
+        #expect(CombatExecutor.run { await CombatTriggerEngine.enemyAttackAvoidance(in: &livingMiss) }.cancelled)
 
         var deadMiss = poisonBattle(heroAlive: false)
-        #expect(!CombatTriggerEngine.enemyAttackAvoidance(in: &deadMiss).cancelled)
+        #expect(!CombatExecutor.run { await CombatTriggerEngine.enemyAttackAvoidance(in: &deadMiss) }.cancelled)
     }
 
     @Test func `frozen cannot block aura requires living owner`() {
@@ -221,14 +221,14 @@ struct CombatTriggerTalentControlTests {
             )),
             dealOpeningHand: false,
         )
-        _ = CombatTriggerEngine.afterSpendMana(
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
             ManaPayment(
                 payer: companionSpend.roster.companion.combatant,
                 balanceBefore: companionSpend.mana(of: companionSpend.roster.companion.combatant) + 2,
                 balanceAfter: companionSpend.mana(of: companionSpend.roster.companion.combatant),
             ),
             in: &companionSpend,
-        )
+        ) }
         #expect(!enemyIsAfflicted(companionSpend))
 
         var heroSpend = BattleStateTestFactory.makeBattle(
@@ -240,14 +240,14 @@ struct CombatTriggerTalentControlTests {
             )),
             dealOpeningHand: false,
         )
-        _ = CombatTriggerEngine.afterSpendMana(
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
             ManaPayment(
                 payer: heroSpend.roster.hero.combatant,
                 balanceBefore: heroSpend.mana(of: heroSpend.roster.hero.combatant) + 2,
                 balanceAfter: heroSpend.mana(of: heroSpend.roster.hero.combatant),
             ),
             in: &heroSpend,
-        )
+        ) }
         #expect(enemyIsAfflicted(heroSpend))
         #expect(heroSpend.roster.health(for: heroSpend.roster.enemy.combatant) == 99)
     }

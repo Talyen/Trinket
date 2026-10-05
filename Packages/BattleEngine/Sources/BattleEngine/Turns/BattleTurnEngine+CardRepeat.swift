@@ -22,7 +22,7 @@ extension BattleTurnEngine {
         _ facts: ResolvedActionFacts,
         ability: Ability,
         context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let actor = facts.action.actor
         guard !context.isBattleOver, facts.action.canContinue(in: context),
               BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context)
@@ -41,14 +41,14 @@ extension BattleTurnEngine {
         )
         defer { context.cardPlayRecording?.endAction(state: context) }
         // Replay prepared effects without another cost, empowerment, or card-completion cadence.
-        return executePreparedOperations(repeated, ability: ability, context: &context)
+        return await executePreparedOperations(repeated, ability: ability, context: &context)
     }
 
     static func executePreparedOperations(
         _ facts: ResolvedActionFacts,
         ability resolvedAbility: Ability,
         context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let actor = facts.action.actor
         let abilityTarget = facts.action.selectedTarget
         var events: [ActionEvent] = []
@@ -59,7 +59,7 @@ extension BattleTurnEngine {
         for operation in resolvedAbility.operations {
             switch operation {
             case let .damage(component):
-                let outcome = applyDamageComponent(
+                let outcome = await applyDamageComponent(
                     component, ability: resolvedAbility, actor: actor, abilityTarget: abilityTarget,
                     guaranteedCritical: facts.guaranteedCritical,
                     reservedKeywordOverride: &reservedKeywordOverride, context: &context,
@@ -68,7 +68,7 @@ extension BattleTurnEngine {
                 totalDealt += outcome.healthLost
                 logKeyword = outcome.logDamageKeyword ?? logKeyword
             case let .effect(targeted):
-                appliedEffectLogs.append(contentsOf: applyTargetedEffects(
+                await appliedEffectLogs.append(contentsOf: applyTargetedEffects(
                     [targeted], ability: resolvedAbility, actor: actor, abilityTarget: abilityTarget,
                     context: &context, events: &events,
                 ))
@@ -92,7 +92,7 @@ extension BattleTurnEngine {
             ),
         )
 
-        events.append(contentsOf: UniqueCombatEngine.repeatCardDamage(actor: actor, in: &context))
+        await events.append(contentsOf: UniqueCombatEngine.repeatCardDamage(actor: actor, in: &context))
         return events
     }
 }

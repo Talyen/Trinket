@@ -38,9 +38,9 @@ struct AlchemyAffixPortTests {
         )
         battle.appliesFightPacing = false
 
-        _ = HealingEngine.leechFromDamage(8, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle)
+        _ = CombatExecutor.run { await HealingEngine.leechFromDamage(8, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle) }
         #expect(thorns(on: battle.hero, in: battle) == 2)
-        _ = HealingEngine.leechFromDamage(8, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle)
+        _ = CombatExecutor.run { await HealingEngine.leechFromDamage(8, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle) }
         #expect(thorns(on: battle.hero, in: battle) == 2)
 
         var full = BattleStateTestFactory.makeMinimalBattle(
@@ -49,7 +49,7 @@ struct AlchemyAffixPortTests {
             enemy: CombatantFixtures.passiveEnemy(),
             heroModifiers: profile,
         )
-        _ = HealingEngine.leechFromDamage(8, sourceActorID: full.hero.id, abilityHasLeech: true, in: &full)
+        _ = CombatExecutor.run { await HealingEngine.leechFromDamage(8, sourceActorID: full.hero.id, abilityHasLeech: true, in: &full) }
         #expect(thorns(on: full.hero, in: full) == 0)
     }
 
@@ -90,10 +90,10 @@ struct AlchemyAffixPortTests {
         )
         battle.appliesFightPacing = false
 
-        _ = HealingEngine.leechFromDamage(
+        _ = CombatExecutor.run { await HealingEngine.leechFromDamage(
             8, sourceActorID: battle.hero.id, target: battle.enemy,
             abilityHasLeech: true, in: &battle,
-        )
+        ) }
         #expect(battle.health(of: battle.hero) == 14)
         #expect(battle.health(of: battle.enemy) == 38)
 
@@ -104,10 +104,10 @@ struct AlchemyAffixPortTests {
             heroHealth: 20,
             heroModifiers: profile,
         )
-        _ = HealingEngine.leechFromDamage(
+        _ = CombatExecutor.run { await HealingEngine.leechFromDamage(
             8, sourceActorID: healthy.hero.id, target: healthy.enemy,
             abilityHasLeech: true, in: &healthy,
-        )
+        ) }
         #expect(healthy.health(of: healthy.enemy) == 40)
     }
 
@@ -176,10 +176,10 @@ struct AlchemyAffixPortTests {
             )
             battle.appliesFightPacing = false
             if stunned {
-                _ = ControlMeterEngine.applyMeterCharge(
+                _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
                     20, keyword: .stun, to: battle.enemy,
                     sourceActorID: battle.hero.id, applyFightPacing: false, in: &battle,
-                )
+                ) }
             }
             _ = battle.resolveDamage(DamageRequest(
                 amount: 8, target: battle.enemy, keyword: .holy,

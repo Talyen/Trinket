@@ -3,19 +3,19 @@ import TrinketContent
 import TrinketCore
 
 struct CloudSaveSnapshot: Codable, Equatable, Sendable {
-    let schemaVersion: Int
-    let modifiedAt: Date
-    let worldSeed: UInt64
-    let starterSelection: StarterSelectionState
-    let journey: JourneyProgressState
-    let roster: CloudRosterSnapshot
-    let inventory: [StoredInventoryItem]
-    let homestead: PlayerHomesteadState
-    let spires: PlayerSpiresState
-    let labyrinth: PlayerLabyrinthState
-    let voyagePayload: Data?
-    let contracts: PlayerContractsState
-    let corruptionAltarCooldownRemaining: Int
+    var schemaVersion: Int
+    var modifiedAt: Date
+    var worldSeed: UInt64
+    var starterSelection: StarterSelectionState
+    var journey: JourneyProgressState
+    var roster: CloudRosterSnapshot
+    var inventory: [StoredInventoryItem]
+    var homestead: PlayerHomesteadState
+    var spires: PlayerSpiresState
+    var labyrinth: PlayerLabyrinthState
+    var voyagePayload: Data?
+    var contracts: PlayerContractsState
+    var corruptionAltarCooldownRemaining: Int
 
     init(_ save: PlayerSave) {
         schemaVersion = save.schemaVersion
@@ -88,15 +88,15 @@ struct CloudSaveSnapshot: Codable, Equatable, Sendable {
 }
 
 struct CloudRosterSnapshot: Codable, Equatable, Sendable {
-    let activeHeroID: String
-    let activeCompanionID: String
-    let unlockedHeroIDs: Set<String>
-    let unlockedCompanionIDs: Set<String>
-    let abilityLoadouts: [String: RosterHydration.AbilityLoadoutIDs]
-    let progressions: [String: CombatantProgression]
-    let equipment: [String: [String: String]]
-    let unlockedTalents: [String: Set<String>]
-    let gold: Int
+    var activeHeroID: String
+    var activeCompanionID: String
+    var unlockedHeroIDs: Set<String>
+    var unlockedCompanionIDs: Set<String>
+    var abilityLoadouts: [String: RosterHydration.AbilityLoadoutIDs]
+    var progressions: [String: CombatantProgression]
+    var equipment: [String: [String: String]]
+    var unlockedTalents: [String: Set<String>]
+    var gold: Int
 
     init(_ roster: PlayerRosterState) {
         activeHeroID = roster.activeHeroID

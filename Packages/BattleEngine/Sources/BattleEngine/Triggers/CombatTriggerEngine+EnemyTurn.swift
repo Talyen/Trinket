@@ -66,32 +66,32 @@ package extension CombatTriggerEngine {
         return (events, false)
     }
 
-    static func beforeEnemyAttackBleedReactions(in context: inout BattleState) -> [ActionEvent] {
+    static func beforeEnemyAttackBleedReactions(in context: inout BattleState) async -> [ActionEvent] {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive, context.roster.hasAffliction(.bleed, on: enemy) else { return [] }
         let (damage, source) = partyChanceAndSource(\.bleedingEnemyAttackDealDamage, in: context)
         guard damage > 0, let source else { return [] }
-        return context.resolveDamage(DamageRequest(
+        return await context.resolveDamage(DamageRequest(
             amount: damage, target: enemy, keyword: .physical, sourceActorID: source.id, options: .reaction(),
         )).events
     }
 
     internal static func beforeEnemyAttack(
         _ facts: ResolvedActionFacts, in context: inout BattleState,
-    ) -> (events: [ActionEvent], cancelled: Bool) {
+    ) async -> (events: [ActionEvent], cancelled: Bool) {
         guard !facts.damageKeywords.isEmpty else { return ([], false) }
         let actor = facts.action.actor
         let checkpoint = CombatCheckpoint.attackEligibility(actor.id)
         guard checkpoint.allowsContinuation(in: context) else { return ([], true) }
-        let avoidance = enemyAttackAvoidance(in: &context)
+        let avoidance = await enemyAttackAvoidance(in: &context)
         guard !avoidance.cancelled else { return avoidance }
         var events = avoidance.events
-        events.append(contentsOf: checkpoint.resolve([
-            { beforeEnemyAttackBleedReactions(in: &$0) },
+        await events.append(contentsOf: checkpoint.resolve([
+            { await beforeEnemyAttackBleedReactions(in: &$0) },
         ], in: &context))
         guard context.roster.health(for: actor) > 0 else { return (events, true) }
         if context.roster.hasPendingActionSkip(for: actor) {
-            events.append(contentsOf: BattleTurnEngine.consumeActionSkip(for: actor, context: &context))
+            await events.append(contentsOf: BattleTurnEngine.consumeActionSkip(for: actor, context: &context))
             return (events, true)
         }
         return (events, context.isBattleOver)
@@ -99,7 +99,7 @@ package extension CombatTriggerEngine {
 
     private static func companionNegateEnemyAttack(
         in context: inout BattleState,
-    ) -> (events: [ActionEvent], cancelled: Bool)? {
+    ) async -> (events: [ActionEvent], cancelled: Bool)? {
         let companion = context.roster.companion
         guard companion.isAlive else { return nil }
         let companionTriggers = context.companionModifiers.triggers
@@ -109,7 +109,7 @@ package extension CombatTriggerEngine {
         // Claim the combat allowance before resolving reactions.
         context.roster.mutateRuntime(for: companion.combatant) { $0.talents.battle.negatedFirstEnemyAttack = true }
         let protected = context.talentAdjustedEnemyTarget
-        return dodgeEntireEnemyAbility(
+        return await dodgeEntireEnemyAbility(
             by: protected,
             abilityName: triggerAbilityName(
                 "negateFirstEnemyAttack",
@@ -125,7 +125,7 @@ package extension CombatTriggerEngine {
         by protected: Combatant,
         abilityName: String,
         in context: inout BattleState,
-    ) -> (events: [ActionEvent], cancelled: Bool) {
+    ) async -> (events: [ActionEvent], cancelled: Bool) {
         var events: [ActionEvent] = [
             context.nextEvent(
                 kind: .effect,
@@ -137,13 +137,13 @@ package extension CombatTriggerEngine {
                 keyword: .dodge,
             ),
         ]
-        events.append(contentsOf: UniqueCombatEngine.afterUniqueDodge(
+        await events.append(contentsOf: UniqueCombatEngine.afterUniqueDodge(
             by: protected,
             attackerID: context.roster.enemy.id,
             in: &context,
         ))
         events.append(contentsOf: Self.afterHeroTalentDodge(by: protected, in: &context))
-        events.append(contentsOf: Self.afterDodge(
+        await events.append(contentsOf: Self.afterDodge(
             by: protected,
             attackerID: context.roster.enemy.id,
             allowsCounterattacks: true,
@@ -168,8 +168,8 @@ package extension CombatTriggerEngine {
         return ([], false)
     }
 
-    static func enemyAttackAvoidance(in context: inout BattleState) -> (events: [ActionEvent], cancelled: Bool) {
-        if let companionNegation = companionNegateEnemyAttack(in: &context) {
+    static func enemyAttackAvoidance(in context: inout BattleState) async -> (events: [ActionEvent], cancelled: Bool) {
+        if let companionNegation = await companionNegateEnemyAttack(in: &context) {
             return companionNegation
         }
 
@@ -187,7 +187,7 @@ package extension CombatTriggerEngine {
                probability: context.companionModifiers.triggers.swapAndDodgeForHeroChance,
                using: &context.rng,
            ) {
-            return dodgeEntireEnemyAbility(
+            return await dodgeEntireEnemyAbility(
                 by: context.roster.companion.combatant,
                 abilityName: "Decoy Swap",
                 in: &context,
@@ -252,12 +252,12 @@ package extension CombatTriggerEngine {
         )], true)
     }
 
-    static func afterEnemyAbility(in context: inout BattleState) -> [ActionEvent] {
+    static func afterEnemyAbility(in context: inout BattleState) async -> [ActionEvent] {
         guard context.roster.companion.isAlive else { return [] }
         let retrieverTriggers = context.companionModifiers.triggers
         var events: [ActionEvent] = []
         if retrieverTriggers.onEnemyAbilityGold > 0 {
-            events.append(contentsOf: emitGold(
+            await events.append(contentsOf: emitGold(
                 "onEnemyAbilityGold", "Fetch!",
                 amount: retrieverTriggers.onEnemyAbilityGold,
                 to: context.roster.companion.combatant,
@@ -267,7 +267,7 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    static func afterEnemyStunRecover(in context: inout BattleState) -> [ActionEvent] {
+    static func afterEnemyStunRecover(in context: inout BattleState) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         let enemy = context.roster.enemy.combatant
         for (owner, member) in livingPartyMembers(in: context) {
@@ -289,7 +289,7 @@ package extension CombatTriggerEngine {
             if triggers.onEnemyStunRecoverApplyAfflictions > 0, context.roster.health(for: enemy) > 0 {
                 let potency = triggers.onEnemyStunRecoverApplyAfflictions
                 for keyword in [Keyword.poison, .burn, .bleed] {
-                    events.append(contentsOf: applyDoT(
+                    await events.append(contentsOf: applyDoT(
                         keyword: keyword,
                         potency: potency,
                         to: enemy,
@@ -300,7 +300,7 @@ package extension CombatTriggerEngine {
                 }
             }
             if triggers.onStunExpirePoisonDamage > 0, context.roster.health(for: enemy) > 0 {
-                events.append(contentsOf: heroTalentDamage(
+                await events.append(contentsOf: heroTalentDamage(
                     .poison, amount: triggers.onStunExpirePoisonDamage,
                     source: member.combatant, name: "Venom Trap", in: &context,
                 ))

@@ -75,7 +75,7 @@ struct ControlMeterHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         guard case let .controlMeter(keyword, amount, _) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
@@ -83,7 +83,7 @@ struct ControlMeterHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let effectsBefore = context.roster.activeEffects(for: target)
-        let events = ControlMeterEngine.applyMeterCharge(
+        let events = await ControlMeterEngine.applyMeterCharge(
             amount,
             keyword: keyword,
             to: target,
@@ -103,7 +103,7 @@ struct MultiplyControlMeterHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) async -> EffectApplyOutcome {
         guard case let .multiplyControlMeter(keyword, factor) = effect,
               keyword == .freeze,
               factor > 1
@@ -112,7 +112,7 @@ struct MultiplyControlMeterHandler: BattleEffectHandler {
         }
 
         let effectsBefore = context.roster.activeEffects(for: target)
-        let events = ControlMeterEngine.multiplyBuildup(
+        let events = await ControlMeterEngine.multiplyBuildup(
             factor,
             keyword: keyword,
             to: target,

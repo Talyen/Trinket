@@ -37,7 +37,11 @@ extension TalentCatalogRoundTripTests {
             dealOpeningHand: false,
         )
         let before = battle.roster.enemy.currentHealth
-        let events = CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle)
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+            by: battle.companion,
+            attackerID: battle.enemy.id,
+            in: &battle,
+        ) }
         #expect(battle.roster.enemy.currentHealth == before - 2)
         #expect(events.contains { $0.keyword == .freeze && $0.amount == 2 })
         #expect(battle.additionalControlSkipsByCombatantID[battle.enemy.id, default: 0] == 0)
@@ -48,20 +52,20 @@ extension TalentCatalogRoundTripTests {
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = 0 }
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 1 }
         seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle)
-        _ = EffectTurnEngine.advanceAll(context: &battle)
+        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         #expect(battle.roster.hero.currentMana == 2)
         #expect(battle.roster.companion.currentHealth == 4)
         seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle)
-        _ = EffectTurnEngine.advanceAll(context: &battle)
+        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         #expect(battle.roster.hero.currentMana == 4)
         battle.turnCount += 1
         seedHeroTalentEffect(.poison(1), on: .hero, in: &battle)
         battle.removeTalentPoint(.poison, from: battle.hero)
-        _ = EffectTurnEngine.advanceAll(context: &battle)
+        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         #expect(battle.roster.hero.currentMana == 4)
         #expect(battle.roster.companion.currentHealth == 7)
         seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle, source: .companion)
-        _ = EffectTurnEngine.advanceAll(context: &battle)
+        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         #expect(battle.roster.hero.currentMana == 4)
     }
 
@@ -101,9 +105,9 @@ extension TalentCatalogRoundTripTests {
     @Test func `shared current empowers the companion's next attack`() {
         var battle = capstoneBattle(hero: ["druid_mana_t3_1"])
         var ability = Ability.kindling
-        _ = BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.hero, context: &battle,
-        )
+        ) }
         #expect(battle.roster.companion.talents.pending.cardDamageBonus == 2)
         let hit = battle.resolveDamage(DamageRequest(
             amount: 3, target: battle.enemy, keyword: .physical, sourceActorID: battle.companion.id,

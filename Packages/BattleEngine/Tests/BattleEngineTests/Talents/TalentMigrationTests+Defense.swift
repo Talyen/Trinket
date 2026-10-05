@@ -143,7 +143,7 @@ extension TalentMigrationTests {
 
     @Test func `slip away dodges the first attack each combat`() {
         var battle = makeBattle(companionTriggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeFirstAttackEachCombat: true)))
-        _ = CombatTriggerEngine.atPlayerTurnStart(in: &battle)
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(battle.roster.activeEffects(for: battle.companion).contains {
             if case .evadeNextHit = $0.effect {
                 return true
@@ -172,17 +172,17 @@ extension TalentMigrationTests {
         var battle = makeBattle(companionTriggers: CombatTraitTriggers(control: ControlTriggers(dodgeDealFreezeFlat: 2)))
         battle.appliesFightPacing = false
         let before = battle.health(of: battle.enemy)
-        _ = CombatTriggerEngine.afterDodge(
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: battle.roster.companion.combatant, attackerID: battle.roster.enemy.id, in: &battle,
-        )
+        ) }
         #expect(before - battle.health(of: battle.enemy) == 2)
     }
 
     @Test func `vanish guarantees critical after dodge`() {
         var battle = makeBattle(companionTriggers: CombatTraitTriggers(dodge: DodgeTriggers(onDodgeNextAttackGuaranteedCritical: true)))
-        _ = CombatTriggerEngine.afterDodge(
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: battle.roster.companion.combatant, attackerID: battle.roster.enemy.id, in: &battle,
-        )
+        ) }
         #expect(battle.roster.runtime(for: battle.roster.companion.combatant)?.talents.pending.guaranteedCriticalAfterDodge == true)
     }
 
@@ -229,7 +229,7 @@ extension TalentMigrationTests {
                 [ActiveEffect(id: 1, effect: .shield(.block, 8), remainingTurns: 0)],
                 for: ctx.roster.companion.combatant,
             )
-            _ = DefensePoolEngine.decayBlock(on: ctx.roster.companion.combatant, in: &ctx)
+            _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: ctx.roster.companion.combatant, in: &ctx) }
         }
         let thorns = battle.activeEffects(of: battle.companion).reduce(0) { sum, active in
             guard case let .thorns(stacks) = active.effect else { return sum }
@@ -245,7 +245,7 @@ extension TalentMigrationTests {
                 [ActiveEffect(id: 1, effect: .shield(.block, 50), remainingTurns: 0)],
                 for: ctx.roster.companion.combatant,
             )
-            _ = DefensePoolEngine.decayBlock(on: ctx.roster.companion.combatant, in: &ctx)
+            _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: ctx.roster.companion.combatant, in: &ctx) }
         }
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 25)
     }

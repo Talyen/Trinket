@@ -16,14 +16,20 @@ extension PlayerSaveStore {
     /// `persistBatch` (Bool), and `persistTransaction` (tri-state): sanitize,
     /// diff slices, reconcile, write. The public spellings differ only in how
     /// they report failure.
-    func commit(_ proposed: PlayerSave, persistImmediately: Bool = true) throws {
+    func commit(_ proposed: PlayerSave, persistImmediately: Bool = true, receipts: [SaveEconomicReceipt]? = nil) throws {
         let mutationInterval = Self.performanceSignposter.beginInterval("PlayerSaveMutation")
         defer {
             Self.performanceSignposter.endInterval("PlayerSaveMutation", mutationInterval)
         }
         let snapshot = currentSave
         let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed)
-        try applyCandidate(candidate, replacing: snapshot, slices: changedSlices, persistImmediately: persistImmediately)
+        try applyCandidate(
+            candidate,
+            replacing: snapshot,
+            slices: changedSlices,
+            persistImmediately: persistImmediately,
+            receipts: receipts,
+        )
     }
 
     @discardableResult
@@ -98,7 +104,8 @@ extension PlayerSaveStore {
     func setCloudDeviceState(_ state: CloudDeviceState) throws {
         cloudDeviceState = state
         if !preservesUnreadableCloudState {
-            root.cloudStatePayload = try JSONEncoder().encode(state)
+            guard let cloudOutbox else { throw CloudSaveError.unavailable }
+            root.cloudStatePayload = try cloudOutbox.stage(state)
         }
     }
 
@@ -112,11 +119,12 @@ extension PlayerSaveStore {
         slices: PlayerSaveSlice,
         persistImmediately: Bool = true,
         recordsCloudMutation: Bool = true,
+        receipts: [SaveEconomicReceipt]? = nil,
     ) throws {
         guard !slices.isEmpty else { return }
         let previousCloudState = cloudDeviceState
         if recordsCloudMutation, persistImmediately {
-            try recordCloudMutation(from: snapshot, to: candidate, slices: slices)
+            try recordCloudMutation(from: snapshot, to: candidate, slices: slices, receipts: receipts)
         }
         root.apply(candidate, slices: slices, context: context)
         if persistImmediately {
@@ -158,7 +166,9 @@ extension PlayerSaveStore {
         }
         if try pendingSaveRecovery.persist(
             save: root.toPlayerSave(), cloudState: root.cloudStatePayload,
-            memoryFallback: usesMemoryFallback, primaryWrite: savePrimaryGraph,
+            memoryFallback: usesMemoryFallback,
+            outboxRecords: { self.cloudOutbox?.storedRecords },
+            primaryWrite: savePrimaryGraph,
         ) {
             scheduleRecoveryRetry()
         }

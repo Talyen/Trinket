@@ -10,7 +10,7 @@ package enum ControlMeterEngine {
         sourceActorID: String?,
         applyFightPacing: Bool = true,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
         if keyword == .stun || keyword == .freeze,
            context.modifiers(for: combatant.id).triggers.blockedControlPrevention,
@@ -55,7 +55,7 @@ package enum ControlMeterEngine {
         let newAmount = min(SaturatedArithmetic.saturatingAdd(existingAmount, adjustedAmount), effectiveThreshold)
 
         if newAmount >= effectiveThreshold {
-            return applyThresholdReached(
+            return await applyThresholdReached(
                 ControlMeterThresholdContext(
                     keyword: keyword,
                     combatant: combatant,
@@ -113,7 +113,7 @@ package enum ControlMeterEngine {
         _ thresholdContext: ControlMeterThresholdContext,
         currentEffects: inout [ActiveEffect],
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let keyword = thresholdContext.keyword
         let combatant = thresholdContext.combatant
         let sourceActorID = thresholdContext.sourceActorID
@@ -178,10 +178,10 @@ package enum ControlMeterEngine {
             ),
         ]
         if keyword == .stun, combatant.id == context.roster.enemy.id {
-            events.append(contentsOf: CombatTriggerEngine.afterEnemyStunned(sourceActorID: sourceActorID, in: &context))
+            await events.append(contentsOf: CombatTriggerEngine.afterEnemyStunned(sourceActorID: sourceActorID, in: &context))
         }
         if keyword == .freeze, combatant.id == context.roster.enemy.id {
-            events.append(contentsOf: CombatTriggerEngine.afterEnemyFrozen(sourceActorID: sourceActorID, in: &context))
+            await events.append(contentsOf: CombatTriggerEngine.afterEnemyFrozen(sourceActorID: sourceActorID, in: &context))
         }
         if keyword == .freeze {
             events.append(contentsOf: frozenOpponentBlock(on: combatant, in: &context))
@@ -194,7 +194,7 @@ package enum ControlMeterEngine {
             let owner = source.combatant
             let currentBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: owner))
             if currentBlock > 0 {
-                events.append(contentsOf: context.restoreManaEmitting(
+                await events.append(contentsOf: context.restoreManaEmitting(
                     currentBlock,
                     to: owner,
                     abilityName: "Rimeheart",
@@ -224,7 +224,7 @@ package enum ControlMeterEngine {
            let sourceActorID,
            context.modifiers(for: sourceActorID).triggers.onStunEnemyApplyBurn > 0,
            context.roster.health(for: combatant) > 0 {
-            events.append(contentsOf: context.applyDecayingDoT(
+            await events.append(contentsOf: context.applyDecayingDoT(
                 keyword: .burn,
                 potency: context.modifiers(for: sourceActorID).triggers.onStunEnemyApplyBurn,
                 to: combatant,

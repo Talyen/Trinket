@@ -84,7 +84,7 @@ enum EffectRemovalOperation {
         propagation: Propagation = .primary,
         origin: ActionEvent.Origin = .automatic,
         in context: inout BattleState,
-    ) -> Outcome {
+    ) async -> Outcome {
         var effects = context.roster.activeEffects(for: target)
         var removed: [ActiveEffect] = switch selection {
         case let .all(keyword): EffectRemoval.removeDebuffs(from: &effects, keyword: keyword)
@@ -115,10 +115,10 @@ enum EffectRemovalOperation {
         // (Panacea heal-only case). Purge has no such side effects, so its
         // empty path reports didApply:false. The asymmetry is intentional.
         guard !removed.isEmpty else {
-            var events = CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
+            var events = await CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
             if healAmount > 0 {
                 let recipient = healTarget.map { BattleActionContext(actor: source, in: context).target($0, in: context) } ?? target
-                events.append(contentsOf: context.healEmitting(
+                await events.append(contentsOf: context.healEmitting(
                     amount: healAmount, target: recipient, source: source, abilityName: abilityName,
                     isDirectCardHeal: context.hasHeroCard(for: source.id),
                 ))
@@ -137,7 +137,7 @@ enum EffectRemovalOperation {
                 1, for: owner, actor: source, abilityName: "Clear Mind", in: &context,
             ))
         }
-        events.append(contentsOf: cleanseReactions(
+        await events.append(contentsOf: cleanseReactions(
             removed: removed, abilityName: abilityName, source: source, target: target,
             healAmount: healAmount, healTarget: healTarget,
             allowMassCleanse: propagation == .primary, origin: origin, in: &context,
@@ -155,10 +155,10 @@ enum EffectRemovalOperation {
         allowMassCleanse: Bool = true,
         origin: ActionEvent.Origin,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         let orderedKeywords = EffectRemoval.distinctSortedKeywords(from: removed)
-        var events = CombatTriggerEngine.afterHeroCleanse(
+        var events = await CombatTriggerEngine.afterHeroCleanse(
             source: source, target: target, removed: removed.map(\.keyword), in: &context,
         )
         events.append(contentsOf: removalEvents(
@@ -167,7 +167,7 @@ enum EffectRemovalOperation {
         ))
         if healAmount > 0 {
             let recipient = healTarget.map { BattleActionContext(actor: source, in: context).target($0, in: context) } ?? target
-            events.append(contentsOf: context.healEmitting(
+            await events.append(contentsOf: context.healEmitting(
                 amount: healAmount,
                 target: recipient,
                 source: source,
@@ -175,15 +175,15 @@ enum EffectRemovalOperation {
                 isDirectCardHeal: context.hasHeroCard(for: source.id),
             ))
         }
-        events.append(contentsOf: CombatTriggerEngine.bonusHealAfterCleanse(
+        await events.append(contentsOf: CombatTriggerEngine.bonusHealAfterCleanse(
             source: source, target: target, amount: triggers.cleanseBonusHeal, requireWoundedTarget: true, in: &context,
         ).events)
-        events.append(contentsOf: CombatTriggerEngine.bonusHealAfterCleanse(
+        await events.append(contentsOf: CombatTriggerEngine.bonusHealAfterCleanse(
             source: source, target: BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context),
             amount: triggers.cleanseSelfHeal, requireWoundedTarget: false, in: &context,
         ).events)
         events.append(contentsOf: CombatTriggerEngine.drawAfterCleanse(source: source, removedCount: removed.count, in: &context))
-        events.append(contentsOf: CombatTriggerEngine.afterCleanseAction(
+        await events.append(contentsOf: CombatTriggerEngine.afterCleanseAction(
             source: source,
             target: target,
             removedCount: removed.count,
@@ -191,14 +191,14 @@ enum EffectRemovalOperation {
             in: &context,
         ))
         for keyword in orderedKeywords {
-            events.append(contentsOf: CombatTriggerEngine.afterCleanseKeywordReaction(
+            await events.append(contentsOf: CombatTriggerEngine.afterCleanseKeywordReaction(
                 source: source,
                 removedKeyword: keyword,
                 removedCount: removed.count(where: { $0.keyword == keyword }),
                 in: &context,
             ))
         }
-        events.append(contentsOf: CombatTriggerEngine.reflectCleansedEffects(removed, source: source, in: &context))
+        await events.append(contentsOf: CombatTriggerEngine.reflectCleansedEffects(removed, source: source, in: &context))
         return events
     }
 
@@ -209,7 +209,7 @@ enum EffectRemovalOperation {
         abilityName: String,
         origin: ActionEvent.Origin = .automatic,
         in context: inout BattleState,
-    ) -> Outcome {
+    ) async -> Outcome {
         var effects = context.roster.activeEffects(for: target)
         // Purge-only by design: sealedSarcophagus guards .shield Block, which
         // is always a removable buff. Cleanse strips debuffs, so the flag
@@ -244,7 +244,7 @@ enum EffectRemovalOperation {
                 1, for: owner, actor: source, abilityName: "Smite the Wicked", in: &context,
             ))
         }
-        events.append(contentsOf: CombatTriggerEngine.crownfallDamage(
+        await events.append(contentsOf: CombatTriggerEngine.crownfallDamage(
             removedCount: removed.count, source: source, target: target, in: &context,
         ))
         if target.role == .enemy, context.roster.health(for: source) > 0 {
@@ -258,7 +258,7 @@ enum EffectRemovalOperation {
                 ))
             }
             if triggers.onPurgeDealHolyDamage > 0, context.roster.enemy.isAlive {
-                events.append(contentsOf: context.resolveDamage(
+                await events.append(contentsOf: context.resolveDamage(
                     DamageRequest(
                         amount: triggers.onPurgeDealHolyDamage,
                         target: target, keyword: .holy, sourceActorID: source.id,

@@ -145,7 +145,7 @@ package enum DefensePoolEngine {
     package static func decayBlock(
         on target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         let current = blockPoints(in: context.roster.activeEffects(for: target))
         guard current > 0 else { return [] }
         let triggers = context.modifiers(for: target.id).triggers
@@ -165,7 +165,7 @@ package enum DefensePoolEngine {
         guard retained > 0 else { return [] }
         var events: [ActionEvent] = []
         if triggers.retainedBlockThornsFlat > 0 {
-            events.append(contentsOf: CombatTriggerEngine.heroTalentThorns(
+            await events.append(contentsOf: CombatTriggerEngine.heroTalentThorns(
                 to: target, source: target, amount: triggers.retainedBlockThornsFlat,
                 name: context.modifiers(for: target.id).triggerAbilityName(
                     "retainedBlockThornsFlat", fallback: "Ironbriar",
