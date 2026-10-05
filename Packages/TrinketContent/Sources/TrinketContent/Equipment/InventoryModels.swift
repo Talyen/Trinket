@@ -66,6 +66,10 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         }
         if affixes.indices.contains(affixIndex) {
             let affixID = affixes[affixIndex].id
+            if affixID == "symbiosis" {
+                // Describe the effective share after equipment scales the saved magnitude.
+                return Self.normalizedPower(power.scaled(by: baseType.affixPowerMultiplier), affixID: affixID)
+            }
             power = Self.normalizedPower(power, affixID: affixID)
         }
         return power.scaled(by: baseType.affixPowerMultiplier)

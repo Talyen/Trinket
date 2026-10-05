@@ -7,7 +7,7 @@ import TrinketContentTestSupport
 @testable import TrinketBattleFeature
 
 extension BattleSessionSimulationTests {
-    @Test(arguments: [Ability.packTactics, .shadowstep])
+    @Test(arguments: [Ability.packTactics, .feint])
     func `manual draw followups remain playable while earlier attacks animate`(ability: Ability) throws {
         let session = BattleSessionTestSupport.makePassiveSession()
         defer { session.endBattle() }
