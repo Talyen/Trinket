@@ -231,12 +231,6 @@ final class CombatFeedbackGlyphAtlas {
                     requests.append(.fragment(key, recipe))
                 }
             }
-            for fragment in CombatFeedbackClosedVocabulary.wordAtlasFragments(for: typography) {
-                let key = FragmentKey(face: face, text: fragment)
-                if fragments[key] == nil {
-                    requests.append(.fragment(key, recipe))
-                }
-            }
         }
         return requests
     }

@@ -77,32 +77,6 @@ enum CombatFeedbackClosedVocabulary {
         CombatFeedbackOrdering.orderedChips(from: enumerateItems(at: date))
     }
 
-    private static let staticWordAtlasFragments: [CombatFeedbackTypographyTier: [String]] = {
-        var table: [CombatFeedbackTypographyTier: [String]] = [:]
-        for typography in CombatFeedbackTypographyTier.allCases {
-            var seen: Set<String> = []
-            var fragments: [String] = []
-            for source in staticSources where source.feedbackClass.typographyTier == typography {
-                let presentation = CombatFeedbackChipPresentation.resolve(
-                    label: source.label,
-                    keyword: source.keyword,
-                    visualRole: source.visualRole,
-                    feedbackClass: source.feedbackClass,
-                )
-                guard let text = presentation.text, !text.isEmpty else { continue }
-                if seen.insert(text).inserted {
-                    fragments.append(text)
-                }
-            }
-            table[typography] = fragments
-        }
-        return table
-    }()
-
-    static func wordAtlasFragments(for typography: CombatFeedbackTypographyTier) -> [String] {
-        staticWordAtlasFragments[typography] ?? []
-    }
-
     private struct ResolvedAppearance: Hashable {
         let typography: CombatFeedbackTypographyTier
         let presentation: CombatFeedbackChipPresentation

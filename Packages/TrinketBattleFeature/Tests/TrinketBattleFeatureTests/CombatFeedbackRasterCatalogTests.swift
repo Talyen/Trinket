@@ -76,18 +76,6 @@ struct CombatFeedbackRasterCatalogTests {
         #expect(Set(appearances).count == sources.count)
     }
 
-    @Test func `word atlas fragments match static source words`() {
-        for typography in CombatFeedbackTypographyTier.allCases {
-            let fragments = CombatFeedbackClosedVocabulary.wordAtlasFragments(for: typography)
-            #expect(Set(fragments).count == fragments.count, "Fragments should be strictly unique")
-            for fragment in fragments {
-                #expect(!fragment.isEmpty)
-            }
-        }
-        let normalFragments = CombatFeedbackClosedVocabulary.wordAtlasFragments(for: .normal)
-        #expect(!normalFragments.isEmpty)
-    }
-
     @Test @MainActor func `diagnostics distinguish numeric misses from unexpected vocabulary builds`() async throws {
         let pool = CombatFeedbackRasterPool()
         await pool.prewarmInfrastructureAndWait(displayScale: 1)
