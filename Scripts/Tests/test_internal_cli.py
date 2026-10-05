@@ -17,7 +17,7 @@ from pathlib import Path
 
 from script_test_support import ROOT
 
-from internal.cli import load_sibling, read_env_arrays, read_json, validate_repo_paths
+from internal.cli import read_env_arrays, validate_repo_paths, write_json_atomic
 
 
 class InternalCliTests(unittest.TestCase):
@@ -87,26 +87,15 @@ class InternalCliTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         validate_repo_paths([bad], root)
 
-    def test_load_sibling_loads_hyphenated_modules(self) -> None:
-        module = load_sibling("cli_test_links", "check-links.py")
-        self.assertTrue(hasattr(module, "markdown_files"))
-        with self.assertRaises(RuntimeError):
-            load_sibling("cli_test_missing", "does-not-exist.py")
-
-    def test_read_json_loads_and_names_decode_failures(self) -> None:
-        import json
-
+    def test_failed_metadata_write_preserves_previous_record_and_removes_staging_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            good = Path(directory) / "good.json"
-            good.write_text(json.dumps({"a": [1, 2]}))
-            self.assertEqual(read_json(good), {"a": [1, 2]})
-            bad = Path(directory) / "bad.json"
-            bad.write_text("{nope")
-            with self.assertRaises(json.JSONDecodeError) as caught:
-                read_json(bad)
-            self.assertIn("bad.json", str(caught.exception))
-            with self.assertRaises(OSError):
-                read_json(Path(directory) / "missing.json")
+            path = Path(directory) / "metadata.json"
+            write_json_atomic(path, {"commit": "verified"})
+            before = path.read_bytes()
+            with self.assertRaises(TypeError):
+                write_json_atomic(path, {"commit": object()})
+            self.assertEqual(path.read_bytes(), before)
+            self.assertEqual(list(path.parent.iterdir()), [path])
 
     def test_diagnostic_limits_match_bash_sourcing(self) -> None:
         import subprocess

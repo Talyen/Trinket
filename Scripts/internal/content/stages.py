@@ -11,7 +11,9 @@ from internal.content.common import (
     MANIFEST_DIR,
     _ensure_unique,
     _parse_tsv_rows,
+    _require_non_empty,
     _validate_positive_int,
+    KEBAB_IDENTIFIER,
     list_catalog_property,
     read_manifest_table,
     swift_escape,
@@ -83,19 +85,13 @@ def parse_stage_rows() -> list[StageRow]:
 def render_stage_encounter(row: StageRow) -> str:
     stage_id = f"{row.chapter_id}-stage-{row.stage_number}"
     if row.encounter == "battle":
-        if not row.enemy_id.strip():
-            raise ValueError(f"battle encounter requires enemy_id for {stage_id}")
+        _require_non_empty("battle enemy_id", row.enemy_id, stage_id)
         return f'.battle(enemyID: "{swift_escape(row.enemy_id)}")'
-    if row.encounter == "random_battle":
-        return ".randomBattle"
-    if row.encounter == "shop":
-        return ".shop"
-    if row.encounter == "mystery":
-        event_id = row.enemy_id.strip()
-        return f'.mysteryEvent(eventID: "{swift_escape(event_id)}")'
-    if row.encounter == "recruit":
-        event_id = row.enemy_id.strip()
-        return f'.recruit(eventID: "{swift_escape(event_id)}")'
+    if row.encounter in {"shop", "random_battle"}:
+        return ".shop" if row.encounter == "shop" else ".randomBattle"
+    if row.encounter in {"mystery", "recruit"}:
+        kind = "mysteryEvent" if row.encounter == "mystery" else "recruit"
+        return f'.{kind}(eventID: "{swift_escape(row.enemy_id.strip())}")'
     raise ValueError(f"Unknown encounter '{row.encounter}' for {stage_id}")
 
 
@@ -129,6 +125,9 @@ def validate_stage_rows(
     for row in rows:
         stage_id = f"{row.chapter_id}-stage-{row.stage_number}"
         _ensure_unique(seen_stage_ids, stage_id, "stage id")
+        if not KEBAB_IDENTIFIER.fullmatch(row.chapter_id):
+            raise ValueError(f"Invalid chapter id '{row.chapter_id}'")
+        _require_non_empty("chapter title", row.chapter_title, stage_id)
 
         if row.theme not in VALID_CHAPTER_THEMES:
             raise ValueError(f"Unknown chapter theme '{row.theme}' for {stage_id}")
@@ -141,20 +140,12 @@ def validate_stage_rows(
             sentinel = row.encounter == "recruit" and row.enemy_id == RANDOM_COMPANION_RECRUIT_ID
             if row.enemy_id.strip() and not sentinel and known_ids is not None and row.enemy_id not in known_ids:
                 raise ValueError(f"Stage {stage_id} references unknown {label} '{row.enemy_id}'")
-        if row.encounter == "random_battle" and row.enemy_id.strip():
-            raise ValueError(f"random_battle must leave enemy_id empty at {stage_id}")
-        if row.encounter not in {"battle", "mystery", "recruit"} and row.enemy_id.strip():
+        if row.encounter not in references and row.enemy_id.strip():
             raise ValueError(f"enemy_id only allowed for battle/mystery/recruit encounters at {stage_id}")
-        if row.encounter in {"battle", "random_battle"} and (
+        if row.encounter != "shop" and (
             row.encounter_art_id.strip() or row.encounter_art_title.strip()
         ):
-            raise ValueError(f"encounter art fields only allowed for non-battle encounters at {stage_id}")
-        if row.encounter in {"mystery", "recruit"} and (
-            row.encounter_art_id.strip() or row.encounter_art_title.strip()
-        ):
-            raise ValueError(
-                f"{row.encounter} encounters use event art; leave encounter art empty for {stage_id}"
-            )
+            raise ValueError(f"encounter art fields only allowed for shop encounters at {stage_id}")
         if bool(row.encounter_art_id.strip()) != bool(row.encounter_art_title.strip()):
             raise ValueError(
                 f"encounter_art_id and encounter_art_title must both be set or empty for {stage_id}"

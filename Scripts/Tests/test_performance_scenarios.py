@@ -12,6 +12,7 @@ SCRIPT_INPUTS = (
 
 
 import copy
+import hashlib
 import json
 import unittest
 from unittest import mock
@@ -21,6 +22,7 @@ import os
 import shutil
 import tempfile
 import subprocess
+import sys
 
 from script_test_support import ROOT, load_script
 
@@ -30,6 +32,42 @@ module = load_script('performance_scenarios', 'performance-scenarios.py')
 class PerformanceScenarioTests(unittest.TestCase):
     def setUp(self) -> None:
         self.baseline = json.loads((ROOT / 'Performance/Baselines/simulator-60.json').read_text())
+
+    def test_provenance_hashes_exact_diff_and_unusual_untracked_source_names(self) -> None:
+        environment = load_script('performance_environment', 'performance_environment.py')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return subprocess.run(['git', '-c', 'commit.gpgsign=false', *args], cwd=root,
+                                      check=True, capture_output=True).stdout
+            git('init', '-q')
+            tracked = root / 'tracked.swift'
+            tracked.write_bytes(b'before\r\n')
+            git('add', '.')
+            git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'baseline')
+            tracked.write_bytes(b'after\r\n')
+            untracked = root / 'new source\nfile.swift'
+            untracked.write_bytes(b'new source')
+            original = environment.command
+            def command(*args, **kwargs):
+                if args[0] != 'git':
+                    return 'fixture toolchain'
+                with mock.patch.object(environment.subprocess, 'check_output',
+                                       side_effect=lambda command, **options: git(*command[1:])):
+                    return original(*args, **kwargs)
+            output = root / 'environment.json'
+            with mock.patch.object(environment, 'command', side_effect=command), \
+                    mock.patch.object(sys, 'argv', ['performance_environment.py', str(output), '2']):
+                # main hashes repository-relative untracked paths.
+                previous = Path.cwd()
+                try:
+                    os.chdir(root)
+                    environment.main()
+                finally:
+                    os.chdir(previous)
+            payload = json.loads(output.read_text())
+            self.assertEqual(payload['trackedDiffSHA256'], hashlib.sha256(git('diff', '--binary', 'HEAD')).hexdigest())
+            self.assertEqual(payload['untrackedSourceSHA256'], {untracked.name: hashlib.sha256(untracked.read_bytes()).hexdigest()})
 
     def test_full_selection_and_group_selection_keep_exact_coverage(self) -> None:
         full = module.select(self.baseline, [])

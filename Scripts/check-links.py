@@ -40,6 +40,7 @@ def markdown_files() -> list[Path]:
 def broken_links(files: list[Path]) -> list[str]:
     failures: list[str] = []
     slug_cache: dict[Path, set[str]] = {}
+    resolved_root = ROOT.resolve()
     for source in files:
         for line_number, line in unfenced_lines(source.read_text(encoding="utf-8").splitlines()):
             for raw in LINK.findall(line):
@@ -67,8 +68,9 @@ def broken_links(files: list[Path]) -> list[str]:
                     slug_cache[resolved] = heading_slugs(resolved)
                 slugs = slug_cache[resolved]
                 if fragment not in slugs:
+                    destination = resolved.relative_to(resolved_root) if resolved.is_relative_to(resolved_root) else resolved
                     failures.append(
-                        f"{source.relative_to(ROOT)}:{line_number}: missing heading #{fragment}"
+                        f"{source.relative_to(ROOT)}:{line_number}: missing heading {destination}#{fragment}"
                     )
     return failures
 

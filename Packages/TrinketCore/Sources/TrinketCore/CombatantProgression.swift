@@ -11,10 +11,13 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         // Quadratic curve 10 + 5·steps + steps²/2 with saturation instead of
         // trapping; steps is non-negative here so saturation only goes upward.
         let fiveSteps = SaturatedArithmetic.saturatingMul(steps, 5)
-        let square = SaturatedArithmetic.saturatingMul(steps, steps)
-        guard fiveSteps < Int.max, square < Int.max else { return Int.max }
+        // Divide before multiplying: the square can overflow while half of it still fits.
+        let halfSquare = SaturatedArithmetic.saturatingAdd(
+            SaturatedArithmetic.saturatingMul(steps / 2, steps),
+            steps.isMultiple(of: 2) ? 0 : steps / 2,
+        )
         let base = SaturatedArithmetic.saturatingAdd(10, fiveSteps)
-        return SaturatedArithmetic.saturatingAdd(base, square / 2)
+        return SaturatedArithmetic.saturatingAdd(base, halfSquare)
     }
 
     public static let initial = Self(

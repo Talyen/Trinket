@@ -58,8 +58,8 @@ public struct ProductCardShell<Art: View, Label: View>: View {
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
                 art()
-                    .clipShape(TrinketDesign.cardShape)
             }
+            .clipShape(TrinketDesign.cardShape)
             .trinketLockedCardEffect(isLocked: isLocked)
 
         Group {
@@ -68,7 +68,6 @@ public struct ProductCardShell<Art: View, Label: View>: View {
                     .trinketCardSurface()
             } else {
                 baseTile
-                    .clipShape(TrinketDesign.cardShape)
             }
         }
         .shineBorder(

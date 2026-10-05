@@ -22,7 +22,7 @@ package enum DefensePoolEngine {
     package static func blockPoints(in effects: [ActiveEffect]) -> Int {
         effects.reduce(0) { sum, active in
             if case let .shield(_, buffer) = active.effect {
-                return sum + buffer
+                return SaturatedArithmetic.saturatingAdd(sum, buffer)
             }
             return sum
         }
@@ -79,8 +79,8 @@ package enum DefensePoolEngine {
         let pacedAmount = applyFightPacing
             ? (sourceActorID.map { context.paced(amount, sourceActorID: $0) } ?? amount)
             : amount
-        let gainAmount: Int = if target.role == .enemy, context.roster.hero.isAlive,
-                                 context.roster.hasAffliction(.burn, on: target) {
+        let adjustedAmount: Int = if target.role == .enemy, context.roster.hero.isAlive,
+                                     context.roster.hasAffliction(.burn, on: target) {
             CombatRounding.scaled(
                 pacedAmount,
                 multiplier: context.heroModifiers.triggers.burningEnemyBlockGainMultiplier,
@@ -88,6 +88,9 @@ package enum DefensePoolEngine {
         } else {
             pacedAmount
         }
+        let gainAmount = CombatGain.amount(
+            adjustedAmount, current: blockPoints(in: context.roster.activeEffects(for: target)), cap: Int.max,
+        )
         guard gainAmount > 0 else { return 0 }
         var updatedExisting = false
         context.roster.mutateRuntime(for: target) { runtime in
@@ -150,7 +153,7 @@ package enum DefensePoolEngine {
             || triggers.retainAllBlockDuringDeathsDoor && context.roster.isDeathsDoorActive(for: target) {
             current
         } else if triggers.blockRetainsThreeQuarters {
-            (current * 3) / 4
+            current / 4 * 3 + current % 4 * 3 / 4
         } else if triggers.blockRetainsHalf {
             min(30, current / 2)
         } else {

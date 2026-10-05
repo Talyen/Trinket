@@ -94,6 +94,8 @@ class TestTimingTests(unittest.TestCase):
                 ],
             }
             malformed = [
+                valid_entry | {"recorded_at": 10},
+                valid_entry | {"xcresult": []},
                 valid_entry | {"schema_version": True},
                 valid_entry | {"summary": valid_entry["summary"] | {"passed": True}},
                 valid_entry | {"tests": [{"id": "invalid", "name": "invalid", "seconds": False}]},

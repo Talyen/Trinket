@@ -2,7 +2,7 @@ import Testing
 import TrinketCore
 
 struct CombatantProgressionTests {
-    @Test(arguments: [(1, 10), (2, 15), (3, 22), (6, 47)])
+    @Test(arguments: [(1, 10), (2, 15), (3, 22), (6, 47), (3100000001, 4805000015500000010), (3100000002, 4805000018600000015)])
     private func `required XP follows quadratic curve`(level: Int, expectedXP: Int) {
         #expect(CombatantProgression.requiredXP(forLevel: level) == expectedXP)
     }

@@ -6,7 +6,7 @@ import TrinketCore
 
 struct CombatFeedbackBurstTests {
     @Test(arguments: [Keyword.freeze, .stun])
-    @MainActor func `only genuine control activations notify including a second activation while visible`(keyword: Keyword) {
+    @MainActor func `freeze and stun use dedicated animations without floating chips`(keyword: Keyword) {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
@@ -16,10 +16,9 @@ struct CombatFeedbackBurstTests {
             event(3, .controlActionSkipped, keyword: keyword),
             event(4, .controlActionSkipped, keyword: keyword),
         ], at: start)
-        #expect(lane.activeItems.map(\.sourceEventIDs) == [[2]])
-        #expect(lane.activeItems.first?.chipPresentation.text == (keyword == .freeze ? "Frozen" : "Stunned"))
+        #expect(lane.activeItems.isEmpty)
         lane.record([event(5, .controlTriggered, keyword: keyword)], at: start.addingTimeInterval(0.1))
-        #expect(lane.activeItems.map(\.sourceEventIDs) == [[2], [5]])
+        #expect(lane.activeItems.isEmpty)
         lane.record([event(6, .controlActionSkipped, keyword: .bleed)], at: start.addingTimeInterval(0.2))
         #expect(lane.activeItems.contains { $0.sourceEventIDs == [6] })
         #expect(lane.activeItems.last?.chipPresentation.text == nil)
@@ -88,7 +87,7 @@ struct CombatFeedbackBurstTests {
             event(10, .shieldAbsorbed, amount: 5, keyword: .block),
         ], at: start)
         let visibleIDs = Set(visible(lane).map(\.id))
-        #expect(visibleIDs == [1, 2, 6, 7, 8, 9, 10])
+        #expect(visibleIDs == [2, 4, 6, 7, 8, 9, 10])
         #expect(publications.count == 1 && Set(publications[0]) == visibleIDs)
         lane.noteItemsChanged()
         #expect(Set(publications.last ?? []) == visibleIDs)

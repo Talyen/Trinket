@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
 import sys
 import tempfile
 from pathlib import Path
 from urllib.parse import unquote
 
-from internal.cli import ROOT
+from internal.cli import ROOT, write_json_atomic
 from internal.markdown import headings
 
 
@@ -68,16 +67,7 @@ def record_read(path: Path, chat: str, root: Path, target: str, data: bytes) -> 
     receipt["reads"] = {key: value for key, value in receipt["reads"].items()
                         if key.partition("#")[0] != relative or value == digest}
     receipt["reads"][reference] = digest
-    temporary = None
-    try:
-        with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, prefix=".agent-receipt-", delete=False) as stream:
-            temporary = Path(stream.name)
-            json.dump(receipt, stream, indent=2)
-            stream.write("\n")
-        os.replace(temporary, path)
-    finally:
-        if temporary and temporary.exists():
-            temporary.unlink()
+    write_json_atomic(path, receipt)
 
 
 def can_reuse(receipt: dict, root: Path, target: str) -> bool:

@@ -101,11 +101,6 @@ def strip_unreleased_section(text: str) -> str:
     return UNRELEASED_PLACEHOLDER.sub("\n", text, count=1)
 
 
-def conventional_type(subject: str) -> str | None:
-    match = CONVENTIONAL_TYPE.match(subject)
-    return match.group(1).lower() if match else None
-
-
 def is_infra_path(path: str) -> bool:
     if path in INFRA_NAMES or path.endswith(".md") or path.endswith(".xctestplan"):
         return True
@@ -120,38 +115,24 @@ def is_product_path(path: str) -> bool:
     return not is_infra_path(path) and path.startswith(PRODUCT_PREFIXES)
 
 
-def is_infra_only(files: tuple[str, ...]) -> bool:
-    return bool(files) and all(is_infra_path(path) for path in files)
-
-
-def has_product_path(files: tuple[str, ...]) -> bool:
-    return any(is_product_path(path) for path in files)
-
-
-def user_facing_trailer(body: str) -> str | None:
-    match = USER_FACING_TRAILER.search(body)
-    return match.group(1).lower() if match else None
-
-
 def is_user_facing(commit: Commit) -> bool:
     subject = commit.subject.strip()
     if subject.startswith(("Merge ", "Revert ")):
         return False
-    trailer = user_facing_trailer(commit.body)
-    if trailer == "no":
+    trailer = USER_FACING_TRAILER.search(commit.body)
+    if trailer:
+        return trailer.group(1).lower() == "yes"
+    if commit.files and all(is_infra_path(path) for path in commit.files):
         return False
-    if trailer == "yes":
-        return True
-    if is_infra_only(commit.files):
-        return False
-    commit_type = conventional_type(subject)
+    match = CONVENTIONAL_TYPE.match(subject)
+    commit_type = match.group(1).lower() if match else None
     if commit_type in SKIP_TYPES:
         return False
     if commit_type in KEEP_TYPES:
         return True
     if SKIP_VERB_PREFIX.match(subject):
         return False
-    return has_product_path(commit.files)
+    return any(is_product_path(path) for path in commit.files)
 
 
 def simplify_line(line: str) -> str:
@@ -175,13 +156,8 @@ def player_line(commit: Commit) -> str:
 
 
 def build_notes(commits: list[Commit]) -> tuple[str, list[str]]:
-    lines: list[str] = []
-    for commit in commits:
-        if not is_user_facing(commit):
-            continue
-        line = player_line(commit)
-        if line and line not in lines:
-            lines.append(line)
+    lines = list(dict.fromkeys(line for commit in commits if is_user_facing(commit)
+                               if (line := player_line(commit))))
 
     if not lines:
         return "Bug fixes and improvements.", ["• Stability and performance improvements"]

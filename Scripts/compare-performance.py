@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from internal.cli import read_json
-from internal.performance.performance_model import METRICS, group_reports_by_scenario, load_baseline, load_results_reports, validate_report, goal_findings
+from internal.performance.performance_model import METRICS, group_reports_by_scenario, load_baseline, load_results_reports, goal_findings
 
 
 def main() -> int:
@@ -28,7 +28,7 @@ def main() -> int:
     minimum_average = float(goals["minimumAverageFPS"])
     minimum_low = float(goals["minimumOnePercentLowFPS"])
     maximum_severe = float(goals["maximumSevereStallCount"])
-    grouped, failures = group_reports_by_scenario(reports, scenarios)
+    grouped, failures = group_reports_by_scenario(reports, scenarios, baseline)
 
     severe_limit_text = "zero" if maximum_severe == 0 else f"{maximum_severe:g}"
     findings: list[str] = []
@@ -40,11 +40,8 @@ def main() -> int:
             continue
 
         report = records[0]
-        report_failures = validate_report(report, baseline)
         if report.get("iteration") != 1:
-            report_failures.append(f"{scenario}: expected measured iteration 1, found {report.get('iteration')!r}")
-        failures.extend(report_failures)
-        if report_failures:
+            failures.append(f"{scenario}: expected measured iteration 1, found {report.get('iteration')!r}")
             continue
         values = {key: float(report[key]) for key in METRICS}
 

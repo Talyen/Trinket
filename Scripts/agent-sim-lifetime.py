@@ -11,6 +11,7 @@ import subprocess
 import sys
 import time
 import uuid
+from internal.cli import write_json_atomic
 
 
 def identity(pid):
@@ -24,9 +25,7 @@ def identity(pid):
 
 
 def write_record(path, record):
-    temporary = path.with_suffix(f".{os.getpid()}.tmp")
-    temporary.write_text(json.dumps(record))
-    temporary.replace(path)
+    write_json_atomic(path, record)
 
 
 def record_is_current(path, record):

@@ -47,36 +47,22 @@ def unquote(value):
 def scheme_run_storekit_paths(spec_text):
     """Map scheme name to its run.storeKitConfiguration path from project.yml."""
     found = {}
-    scheme = None
-    in_schemes = False
-    in_run = False
+    sections = []
     for raw_line in spec_text.splitlines():
         line = strip_comment(raw_line).rstrip()
         if not line.strip():
             continue
         indent = len(line) - len(line.lstrip(" "))
-        stripped = line.strip()
-        if indent == 0:
-            in_schemes = stripped == "schemes:"
-            scheme = None
-            in_run = False
+        while sections and sections[-1][0] >= indent:
+            sections.pop()
+        key, separator, value = line.strip().partition(":")
+        if not separator:
             continue
-        if not in_schemes:
-            continue
-        if indent == 2 and stripped.endswith(":"):
-            scheme = stripped[:-1]
-            in_run = False
-            continue
-        if scheme is None:
-            continue
-        if indent == 4 and stripped.endswith(":"):
-            in_run = stripped[:-1] == "run"
-            continue
-        if indent <= 4:
-            in_run = False
-            continue
-        if in_run and indent == 6 and stripped.startswith("storeKitConfiguration:"):
-            found[scheme] = unquote(stripped.split(":", 1)[1])
+        if key == "storeKitConfiguration" and indent == 6 and len(sections) == 3:
+            if sections[0] == (0, "schemes") and sections[1][0] == 2 and sections[2] == (4, "run"):
+                found[sections[1][1]] = unquote(value)
+        elif not value.strip():
+            sections.append((indent, unquote(key)))
     return found
 
 

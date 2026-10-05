@@ -78,20 +78,20 @@ package enum FightPacing {
     package static func poolMetrics(in context: BattleState) -> PoolMetrics {
         let partyMax = max(
             1,
-            context.roster.maxHealth(for: context.hero) + context.roster.maxHealth(for: context.companion),
+            Double(context.roster.maxHealth(for: context.hero)) + Double(context.roster.maxHealth(for: context.companion)),
         )
         let partyCurrent = max(
             0,
-            context.roster.health(for: context.hero) + context.roster.health(for: context.companion),
+            Double(context.roster.health(for: context.hero)) + Double(context.roster.health(for: context.companion)),
         )
-        let enemyMax = max(1, context.roster.maxHealth(for: context.enemy))
-        let enemyCurrent = max(0, context.roster.health(for: context.enemy))
+        let enemyMax = max(1, Double(context.roster.maxHealth(for: context.enemy)))
+        let enemyCurrent = max(0, Double(context.roster.health(for: context.enemy)))
         let totalMax = partyMax + enemyMax
         let totalCurrent = partyCurrent + enemyCurrent
         return PoolMetrics(
-            partyFraction: Double(partyCurrent) / Double(partyMax),
-            enemyFraction: Double(enemyCurrent) / Double(enemyMax),
-            actualBurnFraction: Double(totalMax - totalCurrent) / Double(totalMax),
+            partyFraction: partyCurrent / partyMax,
+            enemyFraction: enemyCurrent / enemyMax,
+            actualBurnFraction: (totalMax - totalCurrent) / totalMax,
         )
     }
 

@@ -104,7 +104,7 @@ def validate_manifests() -> ManifestRows:
     validate_affix_rows(affix_rows)
     validate_trait_rows(trait_rows)
     validate_talent_rows(talent_rows, combatant_ids)
-    validate_combatant_rows(combatant_rows, ability_symbols, ability_tiers)
+    validate_combatant_rows(combatant_rows, ability_tiers)
     validate_enemy_rows(
         enemy_rows,
         ability_symbols,

@@ -21,16 +21,13 @@ from internal.content import common
 
 
 class CodegenCommonTests(ScriptRegressionTestCase):
-    def test_manifest_table_rejects_ragged_rows(self) -> None:
-        with tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False) as f:
-            f.write("# id\tasset_name\n")
-            f.write("only_one_column\n")
-            temp_path = Path(f.name)
-        try:
-            with self.assertRaises(ValueError):
-                common.read_manifest_table(temp_path)
-        finally:
-            temp_path.unlink(missing_ok=True)
+    def test_manifest_table_rejects_truncated_rows_and_quotes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "media.tsv"
+            for row in ('only_one_column\n', 'image\t"unfinished\n', 'image\t"asset"junk\n'):
+                path.write_text('# id\tasset_name\n' + row)
+                with self.subTest(row=row), self.assertRaisesRegex(ValueError, r'media.tsv:2\b'):
+                    common.read_manifest_table(path)
 
     def test_parse_tsv_rows_pads_optional_columns_and_enforces_min_columns(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -55,10 +52,7 @@ class CodegenCommonTests(ScriptRegressionTestCase):
                 common._parse_tsv_rows(tsv_path, DummyRow, min_columns=3)
 
     def test_swift_escape_handles_quotes_backslashes_and_newlines(self) -> None:
-        self.assertEqual(common.swift_escape("plain"), "plain")
-        self.assertEqual(common.swift_escape('say "hi"'), 'say \\"hi\\"')
-        self.assertEqual(common.swift_escape("deal {n} damage"), "deal {n} damage")
-        self.assertEqual(common.swift_escape("a\\b"), "a\\\\b")
+        self.assertEqual(common.swift_escape('say "hi"\r\n\t\0a\\b'), 'say \\"hi\\"\\r\\n\\t\\0a\\\\b')
         self.assertEqual(
             common.swift_escape("Increase X by 1\\nProduces 1 Hide per day"),
             "Increase X by 1\\nProduces 1 Hide per day",

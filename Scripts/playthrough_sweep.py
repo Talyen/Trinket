@@ -88,6 +88,26 @@ def process_identity(pid):
     return result.stdout.strip() if result.returncode == 0 and "xctest" in result.stdout else None
 
 
+def stop_worker(process, owned_worker, *, immediate=False):
+    if owned_worker and process_identity(owned_worker[0]) == owned_worker[1]:
+        try:
+            os.kill(owned_worker[0], signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+    try:
+        os.killpg(process.pid, signal.SIGKILL if immediate else signal.SIGTERM)
+    except ProcessLookupError:
+        pass
+    try:
+        process.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        process.wait()
+
+
 def worker(args, template, name, operation="run", source=None, crash_after=None, seed=None, crash_settlement=False, expected=None):
     folder = args.output / name
     request = args.output / f"{name}-request.json"
@@ -124,32 +144,10 @@ def worker(args, template, name, operation="run", source=None, crash_after=None,
             code = process.returncode
             termination = "crash" if code else "missingWorkerResult"
         except subprocess.TimeoutExpired:
-            if owned_worker and process_identity(owned_worker[0]) == owned_worker[1]:
-                try:
-                    os.kill(owned_worker[0], signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
-            try:
-                os.killpg(process.pid, signal.SIGTERM)
-            except ProcessLookupError:
-                pass
-            try:
-                process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                os.killpg(process.pid, signal.SIGKILL)
-                process.wait()
+            stop_worker(process, owned_worker)
             code, termination = (86, "injectedInterruption") if (folder / "interrupted.json").exists() else (124, "watchdogTimeout")
         except KeyboardInterrupt:
-            if owned_worker and process_identity(owned_worker[0]) == owned_worker[1]:
-                try:
-                    os.kill(owned_worker[0], signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
-            try:
-                os.killpg(process.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-            process.wait()
+            stop_worker(process, owned_worker, immediate=True)
             raise
     summary_path = folder / "summary.json"
     summary = json.loads(summary_path.read_text()) if summary_path.exists() else {"termination": termination}
@@ -257,6 +255,7 @@ def build_agent_report(args, result):
     career_count = len(completed)
     confidence = "high" if career_count >= 50 and incomplete == 0 else "medium" if career_count >= 20 and incomplete == 0 else "low"
     verdict = "insufficient-data" if career_count == 0 else "incomplete-run" if incomplete else "directional-signal"
+    comparison_policy = "greedy-v1" if result["policy"] == "setupAware-v1" else "setupAware-v1"
     insights = []
     next_experiments = []
     limitations = [
@@ -292,7 +291,6 @@ def build_agent_report(args, result):
         career_rate = percentage(career_victories.get("successes", 0), career_count)
         interval = career_victories.get("interval95", [None, None])
         interval_text = f" ({round(interval[0] * 100, 1)}–{round(interval[1] * 100, 1)}% 95% interval)" if interval[0] is not None else ""
-        comparison_policy = "greedy-v1" if result["policy"] == "setupAware-v1" else "setupAware-v1"
         policy_comparison_available = result.get("baselinePolicy") == comparison_policy
         insights.append({"id": "career-outcomes", "severity": "info", "title": "Career outcome signal",
                          "observation": f"{career_victories.get('successes', 0)} of {career_count} careers reached at least one victory ({career_rate}%){interval_text}.",
@@ -306,7 +304,6 @@ def build_agent_report(args, result):
         delta = second["proportion"] - first["proportion"]
         if abs(delta) >= 0.1:
             direction = "higher" if delta > 0 else "lower"
-            comparison_policy = "greedy-v1" if result["policy"] == "setupAware-v1" else "setupAware-v1"
             retry_recommendation = ("Inspect persistent progression across attempts; the horizon and paired policy comparison are already present."
                                     if result["horizon"] >= 10 and result.get("baselinePolicy") == comparison_policy else
                                     "Confirm whether persistence or retry progression drives this pattern with a longer horizon and a comparison policy.")
@@ -318,17 +315,18 @@ def build_agent_report(args, result):
                 next_experiments.append("Use a longer horizon to separate retry progression from seed variance.")
 
     largest_regression = None
-    for index in range(1, len(attempt_rates)):
-        rates = attempt_rates[:index + 1]
-        if not all(rate["settled"] for rate in rates):
-            continue
-        prior_peak = max(rates[:-1], key=lambda rate: rate["proportion"])
-        delta = rates[-1]["proportion"] - prior_peak["proportion"]
-        if delta <= -0.1 and (largest_regression is None or delta < largest_regression["delta"]):
-            largest_regression = {"attempt": rates[-1]["attempt"], "priorPeak": prior_peak["attempt"], "delta": delta,
-                                  "currentRate": rates[-1]["proportion"], "priorRate": prior_peak["proportion"]}
+    prior_peak = None
+    for rate in attempt_rates:
+        if not rate["settled"]:
+            break
+        if prior_peak is not None:
+            delta = rate["proportion"] - prior_peak["proportion"]
+            if delta <= -0.1 and (largest_regression is None or delta < largest_regression["delta"]):
+                largest_regression = {"attempt": rate["attempt"], "priorPeak": prior_peak["attempt"], "delta": delta,
+                                      "currentRate": rate["proportion"], "priorRate": prior_peak["proportion"]}
+        if prior_peak is None or rate["proportion"] > prior_peak["proportion"]:
+            prior_peak = rate
     if largest_regression:
-        comparison_policy = "greedy-v1" if result["policy"] == "setupAware-v1" else "setupAware-v1"
         regression_recommendation = ("Inspect progression or encounter changes around the regression point; the paired policy comparison is already present."
                                      if result.get("baselinePolicy") == comparison_policy else
                                      "Compare the same horizon with the opposite policy and inspect progression or encounter changes around the regression point.")

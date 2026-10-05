@@ -13,6 +13,7 @@ import plistlib
 import tempfile
 from types import SimpleNamespace
 import unittest
+from unittest.mock import Mock, patch
 
 from script_test_support import load_script
 
@@ -20,6 +21,16 @@ MODULE = load_script("playthrough_sweep", "playthrough_sweep.py")
 
 
 class PlaythroughSweepTests(unittest.TestCase):
+    def test_timeout_cleanup_preserves_reused_pid_and_reaps_vanished_process_group(self):
+        process = Mock(pid=100)
+        process.wait.side_effect = [MODULE.subprocess.TimeoutExpired('fixture', 10), 0]
+        with patch.object(MODULE, 'process_identity', return_value='new owner'), \
+                patch.object(MODULE.os, 'kill') as kill, \
+                patch.object(MODULE.os, 'killpg', side_effect=[None, ProcessLookupError]):
+            MODULE.stop_worker(process, (200, 'old owner'))
+        kill.assert_not_called()
+        self.assertEqual(process.wait.call_count, 2)
+
     def test_worker_configuration_relocates_products_and_passes_request(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

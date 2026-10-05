@@ -12,7 +12,7 @@ from statistics import median
 from datetime import datetime, timezone
 from pathlib import Path
 
-from internal.diagnostics.xcresult_diagnostics import run_xcresulttool
+from internal.diagnostics.xcresult_diagnostics import run_xcresulttool, walk_test_nodes
 
 
 def duration_number(value: object) -> float:
@@ -38,6 +38,8 @@ def valid_entry(entry: object) -> bool:
         return False
     if "run" in entry and (not isinstance(entry["run"], str) or not entry["run"]):
         return False
+    if any(key in entry and not isinstance(entry[key], str) for key in ("recorded_at", "xcresult")):
+        return False
     summary = entry.get("summary")
     tests = entry.get("tests")
     if not isinstance(summary, dict) or not isinstance(tests, list):
@@ -55,7 +57,7 @@ def valid_entry(entry: object) -> bool:
         return False
     for key in ("passed", "failed", "skipped"):
         value = summary.get(key)
-        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        if type(value) is not int or value < 0:
             return False
     targets = entry.get("targets", [])
     if not isinstance(targets, list) or not all(isinstance(item, str) for item in targets):
@@ -74,31 +76,21 @@ def parse_xcresult(path: Path) -> dict:
 
     summary = read("summary")
     payload = read("tests")
-    tests: list[dict] = []
-
-    def walk(nodes: object) -> None:
-        if not isinstance(nodes, list):
-            return
-        for node in nodes:
-            if not isinstance(node, dict):
-                continue
-            if node.get("nodeType") == "Test Case":
-                tests.append(
-                    {
-                        "id": node.get("nodeIdentifier", node.get("name", "unknown")),
-                        "name": node.get("name", ""),
-                        "seconds": finite_nonnegative(node.get("durationInSeconds", 0.0), "xcresult test duration"),
-                        "result": node.get("result", "Unknown"),
-                    }
-                )
-            walk(node.get("children"))
-
-    walk(payload.get("testNodes"))
+    tests = [
+        {"id": node.get("nodeIdentifier", node.get("name", "unknown")),
+         "name": node.get("name", ""),
+         "seconds": finite_nonnegative(node.get("durationInSeconds", 0.0), "xcresult test duration"),
+         "result": node.get("result", "Unknown")}
+        for node in walk_test_nodes(payload.get("testNodes")) if node.get("nodeType") == "Test Case"
+    ]
     start = summary.get("startTime")
     finish = summary.get("finishTime")
     xcresult_seconds = None
-    if isinstance(start, (int, float)) and isinstance(finish, (int, float)):
-        xcresult_seconds = finite_nonnegative(float(finish) - float(start), "xcresult duration")
+    if start is not None and finish is not None:
+        xcresult_seconds = finite_nonnegative(
+            finite_nonnegative(finish, "xcresult finish") - finite_nonnegative(start, "xcresult start"),
+            "xcresult duration",
+        )
     return {
         "summary": {
             "passed": summary.get("passedTests", 0),
@@ -112,7 +104,7 @@ def parse_xcresult(path: Path) -> dict:
     }
 
 
-def load_entries(log_path: Path) -> list[dict]:
+def load_entries(log_path: Path, mode: str | None = None) -> list[dict]:
     if not log_path.exists():
         return []
     entries: list[dict] = []
@@ -121,7 +113,7 @@ def load_entries(log_path: Path) -> list[dict]:
             candidate = json.loads(line)
         except (json.JSONDecodeError, TypeError, ValueError):
             continue
-        if valid_entry(candidate):
+        if valid_entry(candidate) and (not mode or candidate['mode'] == mode):
             entries.append(candidate)
     return entries
 
@@ -231,10 +223,7 @@ def xcresult_state(entry: dict) -> str:
 
 def show(log_path: Path, args: list[str]) -> None:
     values = parse_options(args)
-    entries = load_entries(log_path)
-    mode = values.get("mode")
-    if mode:
-        entries = [entry for entry in entries if entry.get("mode") == mode]
+    entries = load_entries(log_path, values.get("mode"))
     if not entries:
         print(f"No timing entries in {log_path}")
         return
@@ -253,10 +242,7 @@ def show(log_path: Path, args: list[str]) -> None:
 
 def report(log_path: Path, args: list[str]) -> None:
     values = parse_options(args)
-    entries = load_entries(log_path)
-    mode = values.get("mode")
-    if mode:
-        entries = [entry for entry in entries if entry.get("mode") == mode]
+    entries = load_entries(log_path, values.get("mode"))
     if not entries:
         print(f"No timing entries in {log_path}")
         print("Run ./Scripts/test.sh to populate the log.")
@@ -303,7 +289,7 @@ def assert_budget(log_path: Path, args: list[str]) -> None:
     if not mode or maximum is None:
         raise SystemExit("assert-budget requires --mode and --max-wall")
     maximum_seconds = finite_nonnegative(maximum, "--max-wall")
-    entries = [entry for entry in load_entries(log_path) if entry.get("mode") == mode]
+    entries = load_entries(log_path, mode)
     if not entries:
         if values.get("skip_if_missing"):
             print(f"No timing entries for mode '{mode}'; skipping budget check.")

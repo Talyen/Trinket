@@ -59,14 +59,8 @@ struct CombatFeedbackChipPresentation: Hashable {
         switch word {
         case .dodge:
             iconOnly(trailing: .keyword(.dodge))
-        case let .plain(chipKeyword), let .applied(chipKeyword):
+        case let .plain(chipKeyword), let .applied(chipKeyword), let .triggered(chipKeyword):
             iconOnly(trailing: .keyword(chipKeyword))
-        case let .triggered(chipKeyword):
-            Self(
-                leadingStyle: nil,
-                trailingStyle: .keyword(chipKeyword),
-                text: chipKeyword == .freeze ? "Frozen" : chipKeyword == .stun ? "Stunned" : nil,
-            )
         case let .cleanse(chipKeyword):
             dualAction(leading: .keyword(.cleanse), trailing: .keyword(chipKeyword))
         case let .purge(chipKeyword):

@@ -226,7 +226,9 @@ package enum DamagePipeline {
         }
         UniqueCombatEngine.captureCardDamage(
             state,
-            outgoingAmount: cardRepeatAmount + state.unique.outgoingDamage - outgoingBeforeBackdraft,
+            outgoingAmount: SaturatedArithmetic.saturatingAdd(
+                cardRepeatAmount, state.unique.outgoingDamage - outgoingBeforeBackdraft,
+            ),
             in: &context,
         )
     }

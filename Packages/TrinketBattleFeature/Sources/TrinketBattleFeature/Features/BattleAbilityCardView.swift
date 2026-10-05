@@ -26,7 +26,6 @@ struct BattleAbilityCardView: View {
     @State private var didExceedTapSlop = false
     @State private var interactionResolution: InteractionResolution = .idle
     @State private var didAnnounceWindUp = false
-    @State private var availabilityFeedbackToken = 0
     @State private var inspectFeedbackToken = 0
     @State private var denyFeedbackToken = 0
     @State private var didAnnounceDeny = false
@@ -127,9 +126,7 @@ struct BattleAbilityCardView: View {
             returnDrag()
         }
         .onChange(of: isPlayable) { _, playable in
-            if playable {
-                availabilityFeedbackToken &+= 1
-            } else if interactionResolution != .inspecting {
+            if !playable, interactionResolution != .inspecting {
                 cancelInteraction()
             }
         }
@@ -348,16 +345,6 @@ private extension BattleAbilityCardView {
                 lineWidth: BattleMotion.cardReadyRingLineWidth,
             )
             .animation(TrinketMotion.Interaction.stateChange, value: isPlayable)
-            .overlay {
-                TrinketDesign.cardShape
-                    .strokeBorder(TrinketDesign.Colors.accent, lineWidth: BattleMotion.cardReadyRingLineWidth)
-                    .keyframeAnimator(initialValue: 0.0, trigger: availabilityFeedbackToken) { content, opacity in
-                        content.opacity(isPlayable ? opacity : 0)
-                    } keyframes: { _ in
-                        LinearKeyframe(BattleMotion.cardReadyPulseOpacity, duration: 0.08)
-                        CubicKeyframe(0, duration: TrinketMotion.Interaction.confirmationDuration)
-                    }
-            }
             .allowsHitTesting(false)
     }
 

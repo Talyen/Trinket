@@ -62,8 +62,14 @@ public struct BattleState {
     public package(set) var nextEventID: Int
     public package(set) var events: [ActionEvent]
     public package(set) var gold: Int {
-        get { initialGold + goldFlow.net }
-        set { goldFlow.record(delta: newValue - gold) }
+        get { SaturatedArithmetic.saturatingAdd(initialGold, goldFlow.net) }
+        set { goldFlow.record(delta: SaturatedArithmetic.saturatingSub(newValue, gold)) }
+    }
+
+    mutating func recordGoldGain(_ amount: Int) -> Int {
+        let previous = goldFlow.gained
+        goldFlow.record(delta: max(0, amount))
+        return goldFlow.gained - previous
     }
 
     public private(set) var goldFlow: BattleGoldFlow

@@ -36,12 +36,15 @@ SNAKE_IDENTIFIER = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
 def _tsv_records(path: Path):
     """Yield physical row starts, including quoted rows spanning several lines."""
     with path.open(newline="", encoding="utf-8") as handle:
-        reader = csv.reader(handle, delimiter="\t")
+        reader = csv.reader(handle, delimiter="\t", strict=True)
         start = 1
-        for row in reader:
-            line = start
-            start = reader.line_num + 1
-            yield line, row
+        try:
+            for row in reader:
+                line = start
+                start = reader.line_num + 1
+                yield line, row
+        except csv.Error as error:
+            raise ValueError(f"{path}:{start}: malformed TSV: {error}") from error
 
 
 def read_tsv_records(path: Path) -> list[tuple[int, tuple[str, ...]]]:
@@ -120,14 +123,9 @@ def swift_escape(value: str) -> str:
     every backslash, quote, and newline exactly once.
     """
     value = value.replace("\\n", "\n")
-    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
-
-
-def parse_keywords(raw: str) -> str:
-    if not raw:
-        return "[]"
-    parts = [part.strip() for part in raw.split(",") if part.strip()]
-    return "[" + ", ".join(f".{part}" for part in parts) + "]"
+    return value.translate(str.maketrans({
+        "\\": "\\\\", '"': '\\"', "\n": "\\n", "\r": "\\r", "\t": "\\t", "\0": "\\0",
+    }))
 
 
 def write_generated_file(path: Path, body: str) -> None:
@@ -174,7 +172,7 @@ def list_catalog_property(
 
 
 def _validate_snake_id(label: str, value: str, row_id: str) -> None:
-    if not SNAKE_IDENTIFIER.match(value):
+    if not SNAKE_IDENTIFIER.fullmatch(value):
         raise ValueError(
             f"{label} '{value}' for {row_id} must use lowercase letters, numbers, and underscores"
         )
@@ -195,26 +193,30 @@ def _require_non_empty(label: str, value: str, row_id: str) -> None:
 
 
 def _validate_swift_symbol(label: str, value: str, row_id: str) -> None:
-    if not SWIFT_IDENTIFIER.match(value):
+    if not SWIFT_IDENTIFIER.fullmatch(value):
         raise ValueError(f"{label} '{value}' for {row_id} must be a valid Swift identifier")
 
 
-def parse_material_tokens(raw: str) -> list[tuple[str, int]]:
+def parse_material_tokens(raw: str, minimum: int = 0) -> list[tuple[str, int]]:
+    if not raw.strip():
+        return []
     tokens: list[tuple[str, int]] = []
+    seen: set[str] = set()
     for token in raw.split("|"):
         token = token.strip()
-        if not token:
-            continue
         if ":" not in token:
             raise ValueError(f"Resource entry {token!r} must be resource:amount")
         resource, quantity = token.split(":", 1)
         resource = resource.strip()
         if resource not in VALID_HOMESTEAD_RESOURCES:
             raise ValueError(f"Unknown homestead resource '{resource}'")
-        try:
-            amount = int(quantity.strip())
-        except ValueError as error:
-            raise ValueError(f"Resource quantity {quantity.strip()!r} must be an integer") from error
+        _ensure_unique(seen, resource, "resource")
+        if not re.fullmatch(r"[+-]?[0-9]+", quantity.strip()):
+            raise ValueError(f"Resource quantity {quantity.strip()!r} must be an integer")
+        amount = int(quantity.strip())
+        if amount < minimum:
+            requirement = "positive" if minimum == 1 else "non-negative"
+            raise ValueError(f"Resource quantity for {resource} must be {requirement}")
         tokens.append((resource, amount))
     return tokens
 

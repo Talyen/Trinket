@@ -12,7 +12,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from internal.cli import read_json
-from internal.performance.performance_model import METRICS, load_baseline, load_results_reports, validate_report, goal_findings, group_reports_by_scenario
+from internal.performance.performance_model import METRICS, load_baseline, load_results_reports, goal_findings, group_reports_by_scenario
 
 
 def aggregate(values: list[float]) -> dict[str, float]:
@@ -42,15 +42,7 @@ def main() -> int:
     reports = load_results_reports(payload)
     baseline = read_json(args.baseline)
     scenarios_value, mode = load_baseline(baseline)
-    grouped, failures = group_reports_by_scenario(reports, scenarios_value)
-    for scenario, records in grouped.items():
-        valid = []
-        for record in records:
-            report_failures = validate_report(record, baseline)
-            failures.extend(report_failures)
-            if not report_failures:
-                valid.append(record)
-        grouped[scenario] = valid
+    grouped, failures = group_reports_by_scenario(reports, scenarios_value, baseline)
 
     findings: list[str] = []
     scenarios: dict[str, Any] = {}

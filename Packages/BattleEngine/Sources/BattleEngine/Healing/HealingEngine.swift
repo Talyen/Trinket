@@ -300,7 +300,9 @@ package enum HealingEngine {
         }
         let bonus = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
         let percent = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredPercent } ?? 0
-        var amount = CombatRounding.scaled(request.amount + bonus, multiplier: 1 + percent)
+        var amount = CombatRounding.scaled(
+            SaturatedArithmetic.saturatingAdd(request.amount, bonus), multiplier: 1 + percent,
+        )
         if request.origin != .leech, let sourceActorID = request.sourceActorID, !request.skipFightPacing {
             amount = context.paced(amount, sourceActorID: sourceActorID)
         }

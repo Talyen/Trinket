@@ -28,10 +28,9 @@ def group_failures(failures: list[str]) -> list[tuple[str, list[str]]]:
     return list(groups.items())
 
 
-def render(failures: list[str], *, offset: int = 0, limit: int = 20, full: bool = False) -> int:
-    groups = group_failures(failures)
+def render(groups: list[tuple[str, list[str]]], *, offset: int = 0, limit: int = 20, full: bool = False) -> int:
     stop = min(len(groups), offset + limit)
-    print(f"{len(failures)} failures in {len(groups)} groups; groups {offset}:{stop}.", file=sys.stderr)
+    print(f"{sum(len(entries) for _, entries in groups)} failures in {len(groups)} groups; groups {offset}:{stop}.", file=sys.stderr)
     for cause, entries in groups[offset:stop]:
         title = cause if full or len(cause) <= 240 else cause[:240] + "… [shortened]"
         print(f"- {title} ({len(entries)} occurrences)", file=sys.stderr)
@@ -46,7 +45,8 @@ def render(failures: list[str], *, offset: int = 0, limit: int = 20, full: bool 
 
 def report_failures(title: str, failures: list[str], *, root: Path = ROOT) -> None:
     print(title, file=sys.stderr)
-    stop = render(failures)
+    groups = group_failures(failures)
+    stop = render(groups)
     try:
         directory = Path(os.environ.get("RESULTS_DIR", str(root / ".DerivedData/DocumentationResults")))
         directory.mkdir(parents=True, exist_ok=True)
@@ -56,7 +56,7 @@ def report_failures(title: str, failures: list[str], *, root: Path = ROOT) -> No
             path = Path(handle.name).resolve()
         print(f"Complete report: {path}", file=sys.stderr)
         command = ["python3", "-m", "internal.doc_diagnostics", str(path)]
-        if stop < len(group_failures(failures)):
+        if stop < len(groups):
             print("Next groups: PYTHONPATH=Scripts " + shlex.join([*command, "--offset", str(stop)]), file=sys.stderr)
         print("Expand locations: PYTHONPATH=Scripts " + shlex.join([*command, "--full"]), file=sys.stderr)
     except OSError as error:
@@ -73,8 +73,9 @@ def main() -> None:
     if args.offset < 0 or args.limit < 1:
         parser.error("--offset must be nonnegative and --limit positive")
     payload = json.loads(args.report.read_text(encoding="utf-8"))
-    stop = render(payload["failures"], offset=args.offset, limit=args.limit, full=args.full)
-    if stop < len(group_failures(payload["failures"])):
+    groups = group_failures(payload["failures"])
+    stop = render(groups, offset=args.offset, limit=args.limit, full=args.full)
+    if stop < len(groups):
         command = ["python3", "-m", "internal.doc_diagnostics", str(args.report), "--offset", str(stop), "--limit", str(args.limit)]
         if args.full:
             command.append("--full")

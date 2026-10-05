@@ -58,9 +58,9 @@ signature trait use gold, while supporting traits use keyword shine.
 Title palettes do not limit border or plasma keywords. Text delegates to
 DesignSystem's `trinketShineText(colors:)`; source owns palette and motion tuning.
 Apply `shineText` before fixed foreground fallbacks, including `trinketOnArtText`.
-Animated borders rasterize the static gradient before rotation and then mask it
-to the card outline. Keep the changing angle outside the drawing group to reuse
-the raster instead of redrawing an offscreen surface each frame. Selected product
+Artwork clips at the composed card tile's bounds, shared by its border overlays.
+Animated borders stroke the angular gradient directly into the inset card outline;
+the changing angle rotates the color sweep while the outline stays fixed. Selected product
 cards draw a 3-point outline above the shine so selection remains distinct on
 Astral and corrupted gear.
 

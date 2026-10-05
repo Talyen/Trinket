@@ -58,9 +58,16 @@ def registration_failures(root: Path, rows: list[dict]) -> list[str]:
 
 
 def plan_target(plan: dict) -> dict:
-    targets = [target for target in plan['testTargets'] if target.get('target', {}).get('name') == 'TrinketUITests']
+    candidates = plan.get('testTargets') if isinstance(plan, dict) else None
+    if not isinstance(candidates, list) or any(
+        not isinstance(target, dict) or not isinstance(target.get('target'), dict) for target in candidates
+    ):
+        raise ValueError('UI plan must contain a testTargets array of target objects')
+    targets = [target for target in candidates if target['target'].get('name') == 'TrinketUITests']
     if len(targets) != 1 or targets[0].get('automaticallyIncludesTests') is not False:
         raise ValueError('UI plan must explicitly select tests in exactly one TrinketUITests target')
+    if targets[0].get('enabled', True) is not True or targets[0].get('skippedTests'):
+        raise ValueError('UI plan must enable every selected TrinketUITests test without exclusions')
     return targets[0]
 
 
@@ -122,6 +129,9 @@ def main() -> int:
             if args.generate:
                 generate(args.root, rows)
             else:
+                failures = registration_failures(args.root, rows)
+                if failures:
+                    raise ValueError('; '.join(failures))
                 print(' '.join(row['name'] for row in rows if row['suite'] == args.classes))
             return 0
         failures = testplan_failures()

@@ -109,7 +109,8 @@ class ComparePerformanceTests(unittest.TestCase):
     def test_invalid_evidence_fails_even_in_observe_mode(self) -> None:
         for reports in ([], [report(schemaVersion="unknown")], [report(schemaVersion=4)], [report(iteration=True)],
                         [report(averageFPS=float("nan"))], [report(missedDeadlineCount=-1)],
-                        [report(missedDeadlineRatio=2)], [report(schemaVersion=6.0)]):
+                        [report(missedDeadlineRatio=2)], [report(schemaVersion=6.0)],
+                        [report(averageFPS=10 ** 400)]):
             with self.subTest(reports=reports):
                 status, summary = self.run_comparison(reports, mode="observe")
                 self.assertEqual(status, 1)
@@ -134,7 +135,9 @@ class ComparePerformanceTests(unittest.TestCase):
         for invalid in (None, baseline | {"goals": []},
                         baseline | {"goals": baseline["goals"] | {"minimumAverageFPS": True}},
                         baseline | {"scenarioGoals": {"navigation": {"maximumFrameMs": float("nan")}}},
-                        baseline | {"refreshTargetHz": "sixty"}, baseline | {"minimumReportSchema": True}):
+                        baseline | {"refreshTargetHz": "sixty"}, baseline | {"minimumReportSchema": True},
+                        baseline | {"goals": baseline["goals"] | {"maximumFrameMS": 20}},
+                        baseline | {"goals": baseline["goals"] | {"minimumAverageFPS": 10 ** 400}}):
             with self.subTest(baseline=invalid), self.assertRaises(SystemExit):
                 load_baseline(invalid)
 

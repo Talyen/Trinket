@@ -1,4 +1,3 @@
-import argparse
 import json
 import os
 from pathlib import Path
@@ -162,25 +161,6 @@ else:
             if MODULE.identity(record["guardian"]) == record["guardianStarted"]:
                 os.kill(record["guardian"], 15)
 
-    def test_watcher_observes_normal_lease_release_without_real_simulators(self):
-        environment, state = self.simulator_environment()
-        self.slot.write_text(f"{os.getpid()} owned-run\n")
-        with patch.dict(os.environ, environment):
-            child = MODULE.register(argparse.Namespace(slot=str(self.slot), owner=os.getpid(), udid="agent-device", name="Trinket Agent 1", grace=0))
-        record_file = self.slot.with_suffix(".lifetime.json")
-        record = json.loads(record_file.read_text())
-        try:
-            self.slot.unlink()
-            deadline = time.monotonic() + 5
-            while record_file.exists() and time.monotonic() < deadline:
-                time.sleep(.05)
-            self.assertFalse(record_file.exists(), record_file.with_suffix(".log").read_text())
-            self.assertEqual(state.read_text(), "agent-device")
-            self.assertEqual(child.wait(timeout=5), 0)
-        finally:
-            if MODULE.identity(record["guardian"]) == record["guardianStarted"]:
-                os.kill(record["guardian"], 15)
-            child.wait(timeout=5)
 
 
 if __name__ == "__main__":

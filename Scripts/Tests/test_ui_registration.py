@@ -63,6 +63,16 @@ class UIRegistrationTests(unittest.TestCase):
                 self.assertEqual(json.loads((root / f'{suite}.xctestplan').read_text()), expected)
             REGISTRY.generate(root, rows)
             self.assertEqual(before, [(root / f'{suite}.xctestplan').read_bytes() for suite in ('Smoke', 'FullUI')])
+            smoke = root / 'Smoke.xctestplan'
+            for exclusion in ({'enabled': False}, {'skippedTests': ['SmokeFixture']}):
+                rejected = json.loads(before[0])
+                rejected['testTargets'][0].update(exclusion)
+                smoke.write_text(json.dumps(rejected))
+                with self.subTest(exclusion=exclusion), self.assertRaisesRegex(ValueError, 'exclusions'):
+                    REGISTRY.generate(root, rows)
+                self.assertEqual(json.loads(smoke.read_text()), rejected)
+                self.assertEqual((root / 'FullUI.xctestplan').read_bytes(), before[1])
+            smoke.write_bytes(before[0])
             registry.write_text(original + 'FullUI||FullFixture\n')
             with self.assertRaisesRegex(ValueError, 'duplicate'):
                 REGISTRY.registrations(root)

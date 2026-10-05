@@ -10,7 +10,7 @@ import platform
 import plistlib
 import subprocess
 import sys
-import tempfile
+from internal.cli import write_json_atomic
 
 
 def capture(*args, timeout=120):
@@ -131,13 +131,7 @@ def main():
             raise ValueError("Build environment changed during compilation; rebuild before reuse.")
         current["fingerprint"] = args.fingerprint
         args.results.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile(mode="w", dir=args.results, delete=False) as handle:
-            json.dump(current, handle, sort_keys=True)
-            temporary = Path(handle.name)
-        try:
-            temporary.replace(metadata)
-        finally:
-            temporary.unlink(missing_ok=True)
+        write_json_atomic(metadata, current)
     else:
         if not stamp.is_file():
             raise ValueError(f"Missing build stamp for {args.fingerprint}; rebuild before reuse.")

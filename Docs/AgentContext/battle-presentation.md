@@ -83,6 +83,11 @@ start with the committed action. Manual results and recoil publish at commitment
 while attacker motion continues. Skipped and support actions
 do not invent attacks.
 
+Combatant artwork, feedback, Health and Mana bars, clipping, and borders compose
+before status motion, so the whole card moves together during Stun wobble.
+Attack and hit-reaction transforms wrap that composed card. Defeated enemy artwork
+retains its slice-owned clipping and border without an outer frame.
+
 Impact delivery groups results by the presentation beat, independent of the
 engine's broader feedback group. Recoil chooses the strongest result per recipient,
 including directional Block recoil and immediate DoT damage resolved by an action.
@@ -95,13 +100,11 @@ recording parity remains in BattleEngine's card tests.
 
 ## Floating combat feedback
 
-Floating chips contain game icons and numbers. Only actual Freeze and Stun
-activation events show “Frozen” and “Stunned” beside their icons. Their build-up
-and skipped-action reminders do not float; other action-skip feedback stays
-icon-only. Logs, ability descriptions, and accessibility wording remain text.
-A later actual control activation gets its own chip, even while the previous
-activation is visible. No-result cards do not invent a zero chip; card motion
-acknowledges their play.
+Floating chips contain game icons and numbers. Freeze and Stun use their dedicated
+animations and activation sounds; their activation, build-up, and skipped-action
+reminders do not float. Other action-skip feedback stays icon-only. Logs, ability
+descriptions, and accessibility wording remain text. No-result cards do not invent
+a zero chip; card motion acknowledges their play.
 
 `CombatFeedbackPresenter` consolidates source events before projecting final chips;
 grouping retains the event and its source IDs rather than a parallel presentation DTO.
@@ -208,6 +211,9 @@ Holding a hand card to inspect it preserves its held appearance and foreground
 ordering through detail-sheet presentation until dismissal. Gesture release or
 cancellation during inspection must not return or play the card; dismissal
 returns it with the existing hand motion.
+
+Playable hand cards use a steady border with an animated visibility transition;
+becoming playable or dismissing card detail does not pulse the border.
 
 Hand cards remain fully opaque whenever visible, including opening and subsequent
 draws. Deal motion uses offset and scale without an opacity transition. Battle

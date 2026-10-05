@@ -97,14 +97,9 @@ def check_assets() -> tuple[list[str], list[str]]:
     )
 
     for manifest_path, media_dir, extension, manifest_label in media_pipelines:
-        registered_media: set[str] = set()
-
-        for row in read_tsv_rows(manifest_path):
-            asset_name = row.get("asset_name")
-            if not asset_name:
-                continue
-            filename = f"{asset_name}.{extension}"
-            registered_media.add(filename)
+        registered_media = {f"{row['asset_name']}.{extension}" for row in read_tsv_rows(manifest_path)
+                            if row['asset_name']}
+        for filename in sorted(registered_media):
             asset_path = media_dir / filename
             if not asset_path.is_file():
                 missing.append(f"{manifest_label}: missing media file '{filename}' ({asset_path.relative_to(ROOT)})")

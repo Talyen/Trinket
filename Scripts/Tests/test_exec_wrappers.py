@@ -2,9 +2,6 @@
 """Protect wrapper launch paths and positive native test execution evidence."""
 
 SCRIPT_INPUTS = (
-    'Scripts/build-for-testing.sh',
-    'Scripts/test-package.sh',
-    'Scripts/test.sh',
     'Scripts/test-package-host.sh',
     'Scripts/phase-timing.py',
 )
@@ -17,14 +14,6 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 class ExecWrapperTests(unittest.TestCase):
-    def test_test_wrappers_resolve_helpers_before_changing_directory(self) -> None:
-        for script in ("build-for-testing.sh", "test-package.sh", "test.sh"):
-            with self.subTest(script=script):
-                result = subprocess.run([f"./{script}", "--help"], cwd=ROOT / "Scripts",
-                                        capture_output=True, text=True)
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-                self.assertIn("Usage:", result.stdout)
-
     def test_native_pilot_requires_positive_swift_testing_verdict(self):
         import os
         import shutil

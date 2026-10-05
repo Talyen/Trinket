@@ -5,23 +5,14 @@ import TrinketCore
 @testable import TrinketBattleFeature
 
 struct AbilityStrategyFeedbackTests {
-    @Test func `floating vocabulary names freeze and stun alongside icons and numbers`() {
+    @Test func `floating vocabulary uses only icons and numbers`() {
         for outcome in ActionEvent.EffectOutcome.allCases {
             for keyword in Keyword.allCases {
                 let event = BattleSessionTestSupport.makeActionEvent(
                     id: 1, kind: .effect, effectKind: outcome, amount: 3, keyword: keyword,
                 )
                 for item in CombatFeedbackPresenter.makeItems(from: [event], at: .now) {
-                    switch item.label {
-                    case .word(.triggered(.freeze)):
-                        #expect(item.chipPresentation.text == "Frozen")
-                        #expect(item.chipPresentation.trailingStyle == .keyword(.freeze))
-                    case .word(.triggered(.stun)):
-                        #expect(item.chipPresentation.text == "Stunned")
-                        #expect(item.chipPresentation.trailingStyle == .keyword(.stun))
-                    default:
-                        #expect(item.chipPresentation.text?.allSatisfy(\.isNumber) ?? true)
-                    }
+                    #expect(item.chipPresentation.text?.allSatisfy(\.isNumber) ?? true)
                 }
             }
         }

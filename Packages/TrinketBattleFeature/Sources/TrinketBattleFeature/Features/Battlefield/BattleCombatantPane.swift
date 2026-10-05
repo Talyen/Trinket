@@ -55,12 +55,9 @@ struct BattleCombatantPane: View {
                     combatantID: combatant.id,
                     hapticsEnabled: hapticsEnabled,
                     recoilDirection: recoilDirection,
-                    borderVisible: !isDefeated,
-                    borderAccentKeyword: borderAccentKeyword,
                 ) {
-                    ZStack(alignment: .bottom) {
-                        artworkPresentation
-                        resourceBars
+                    CombatantStatusEffectPresentation(keyword: isDefeated ? nil : borderAccentKeyword) {
+                        framedCard
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -75,6 +72,36 @@ struct BattleCombatantPane: View {
     }
 
     @ViewBuilder
+    private var framedCard: some View {
+        let card = ZStack(alignment: .bottom) {
+            artworkPresentation
+            resourceBars
+        }
+        if isDefeated, recoilDirection == .up {
+            card
+        } else {
+            card
+                .combatantCardChrome()
+                .overlay {
+                    cardBorder
+                        .opacity(isDefeated ? 0 : 1)
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var cardBorder: some View {
+        if borderAccentKeyword == .deathsDoor, let keyword = borderAccentKeyword {
+            CombatantStatusBorderPulse(keyword: keyword)
+        } else {
+            TrinketDesign.cardShape.strokeBorder(
+                TrinketDesign.Colors.subtleStroke,
+                lineWidth: 1,
+            )
+        }
+    }
+
+    @ViewBuilder
     private var artworkPresentation: some View {
         if isDefeated, recoilDirection == .up {
             BattleSliceArtwork {
@@ -83,12 +110,10 @@ struct BattleCombatantPane: View {
                     .overlay { feedbackLayer }
             }
         } else {
-            CombatantStatusEffectPresentation(keyword: isDefeated ? nil : borderAccentKeyword) {
-                artworkLayer
-                    .saturation(isDefeated ? 0 : 1)
-                    .colorMultiply(isDefeated ? .gray : .white)
-                    .overlay { feedbackLayer }
-            }
+            artworkLayer
+                .saturation(isDefeated ? 0 : 1)
+                .colorMultiply(isDefeated ? .gray : .white)
+                .overlay { feedbackLayer }
         }
     }
 
@@ -145,8 +170,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     let combatantID: String
     let hapticsEnabled: Bool
     let recoilDirection: CombatantHitRecoilDirection
-    let borderVisible: Bool
-    let borderAccentKeyword: Keyword?
     @ViewBuilder let artwork: () -> Artwork
 
     @State private var playToken = 0
@@ -175,7 +198,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     }
 
     private func hitReactionAnimator() -> some View {
-        let card = framedArtwork
+        let card = artwork()
         let layout = ReactionLayoutState(
             activeKind: activeKind,
             recoilDirection: recoilDirection,
@@ -231,32 +254,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                     }
                 }
             }
-        }
-    }
-
-    @ViewBuilder
-    private var framedArtwork: some View {
-        if !borderVisible, recoilDirection == .up {
-            artwork()
-        } else {
-            artwork()
-                .combatantCardChrome()
-                .overlay {
-                    cardBorder
-                        .opacity(borderVisible ? 1 : 0)
-                }
-        }
-    }
-
-    @ViewBuilder
-    private var cardBorder: some View {
-        if borderAccentKeyword == .deathsDoor, let keyword = borderAccentKeyword {
-            CombatantStatusBorderPulse(keyword: keyword)
-        } else {
-            TrinketDesign.cardShape.strokeBorder(
-                TrinketDesign.Colors.subtleStroke,
-                lineWidth: 1,
-            )
         }
     }
 

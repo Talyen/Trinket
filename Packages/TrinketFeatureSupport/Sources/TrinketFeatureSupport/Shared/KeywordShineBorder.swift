@@ -89,23 +89,15 @@ private struct KeywordShineBorderStroke: View {
     let angle: Double
 
     var body: some View {
+        let shape = TrinketDesign.shape(cornerRadius: cornerRadius)
         ZStack {
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            shape
                 .strokeBorder(TrinketDesign.Colors.panel, lineWidth: lineWidth)
-            GeometryReader { geometry in
-                let width = geometry.size.width
-                let height = geometry.size.height
-                let diameter = (width * width + height * height).squareRoot()
-                AngularGradient(gradient: gradient, center: .center)
-                    .frame(width: diameter, height: diameter)
-                    .drawingGroup()
-                    .rotationEffect(.degrees(angle))
-                    .position(x: width / 2, y: height / 2)
-            }
-            .mask {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(TrinketDesign.Colors.Overlay.paper, lineWidth: lineWidth)
-            }
+            shape
+                .strokeBorder(
+                    AngularGradient(gradient: gradient, center: .center, angle: .degrees(angle)),
+                    lineWidth: lineWidth,
+                )
         }
     }
 }

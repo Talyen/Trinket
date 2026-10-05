@@ -23,7 +23,9 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public var activePartyAverageLevel: Int {
-        (progression(for: activeHero).level + progression(for: activeCompanion).level) / 2
+        let heroLevel = max(1, progression(for: activeHero).level)
+        let companionLevel = max(1, progression(for: activeCompanion).level)
+        return heroLevel / 2 + companionLevel / 2 + (heroLevel % 2 + companionLevel % 2) / 2
     }
 
     public static let maxGoldBalance = 999

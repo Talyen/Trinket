@@ -6,7 +6,9 @@ from __future__ import annotations
 import os
 import re
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
+
+from .xcresult_diagnostics import walk_test_nodes
 
 from .diagnostic_model import (
     CLASSIFICATION_PRECEDENCE,
@@ -226,22 +228,10 @@ def parse_summary(summary: dict[str, Any]) -> list[IssueObservation]:
     return observations
 
 
-def _walk_test_nodes(node: Any) -> Iterable[dict[str, Any]]:
-    if isinstance(node, dict):
-        yield node
-        for child in node.get("children", []) or []:
-            yield from _walk_test_nodes(child)
-        for child in _values(node.get("subtests")):
-            yield from _walk_test_nodes(child)
-    elif isinstance(node, list):
-        for child in node:
-            yield from _walk_test_nodes(child)
-
-
 def parse_test_nodes(tests: dict[str, Any]) -> tuple[list[IssueObservation], list[str]]:
     observations: list[IssueObservation] = []
     failed_ids: list[str] = []
-    for node in _walk_test_nodes(tests.get("testNodes", [])):
+    for node in walk_test_nodes(tests.get("testNodes", [])):
         if _text(node.get("result")).lower() != "failed":
             continue
         node_type = _text(node.get("nodeType")).lower()
@@ -262,7 +252,7 @@ def parse_test_nodes(tests: dict[str, Any]) -> tuple[list[IssueObservation], lis
                 generic=True,
             )
         )
-        for child in _walk_test_nodes(node.get("children", [])):
+        for child in walk_test_nodes(node.get("children", [])):
             if "failure" not in _text(child.get("nodeType")).lower():
                 continue
             match = re.search(

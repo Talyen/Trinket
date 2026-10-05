@@ -150,7 +150,8 @@ enum CombatFeedbackPresenter {
                 return true
             case .effect:
                 guard let effectKind = event.effectKind else { return true }
-                if effectKind == .controlActionSkipped, event.keyword == .freeze || event.keyword == .stun {
+                if effectKind == .controlActionSkipped || effectKind == .controlTriggered,
+                   event.keyword == .freeze || event.keyword == .stun {
                     return false
                 }
                 if effectKind == .shieldAbsorbed {

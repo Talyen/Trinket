@@ -21,26 +21,26 @@ package extension BattleState {
         }
         let theftBonus = isTheft && amount > 0 && roster.health(for: combatant) > 0
             ? modifiers(for: combatant.id).triggers.goldStealFlatBonus : 0
-        let baseGold = goldGranted(for: amount + theftBonus, sourceActorID: combatant.id)
+        let baseGold = goldGranted(for: SaturatedArithmetic.saturatingAdd(amount, theftBonus), sourceActorID: combatant.id)
         var granted = baseGold
         if isTheft, granted > 0,
            roster.runtime(for: combatant)?.talents.pending.doubleNextGoldSteal == true {
-            granted *= 2
+            granted = SaturatedArithmetic.saturatingMul(granted, 2)
             roster.mutateRuntime(for: combatant) { $0.talents.pending.doubleNextGoldSteal = false }
         }
         if isTheft, granted > 0,
            modifiers(for: combatant.id).triggers.firstGoldTheftDoubleBattle,
            claimHeroTalent("Golden Opportunity", actorID: combatant.id, battle: true) {
-            granted *= 2
+            granted = SaturatedArithmetic.saturatingMul(granted, 2)
         }
         if isTheft, granted > 0,
            resolution.hasCriticalHit(by: combatant.id),
            modifiers(for: combatant.id).triggers.criticalGoldTheftBonus > 0,
            claimTalentAbility("Jackpot", actorID: combatant.id) {
-            granted += modifiers(for: combatant.id).triggers.criticalGoldTheftBonus
+            granted = SaturatedArithmetic.saturatingAdd(granted, modifiers(for: combatant.id).triggers.criticalGoldTheftBonus)
         }
         let previousEarned = goldFlow.gained
-        gold += granted
+        granted = recordGoldGain(granted)
         if isTheft, granted > 0, modifiers(for: combatant.id).triggers.gildedClaws {
             heroTalents.history[combatant.id, default: HeroTalentHistory()].stolenGoldDamage += granted
         }
@@ -84,9 +84,9 @@ package extension BattleState {
            roster.companion.isAlive,
            roster.maxHealth(for: roster.companion.combatant) > 0,
            roster.health(for: roster.companion.combatant) == roster.maxHealth(for: roster.companion.combatant) {
-            scaled *= 2
+            scaled = SaturatedArithmetic.saturatingMul(scaled, 2)
         }
-        return scaled + profile.goldGainedBonus
+        return SaturatedArithmetic.saturatingAdd(scaled, profile.goldGainedBonus)
     }
 
     @discardableResult
@@ -102,8 +102,12 @@ package extension BattleState {
         let deepRoots = amount > 0 && profile.triggers.deepRoots &&
             roster.activeEffects(for: combatant).contains { $0.effect.kind == .thorns }
         let requested = amount > 0
-            ? CombatRounding.scaled(amount + profile.manaRestoredBonus, multiplier: 1 + profile.manaRestoredPercent)
-            + (deepRoots ? 1 : 0) : amount
+            ? SaturatedArithmetic.saturatingAdd(
+                CombatRounding.scaled(
+                    SaturatedArithmetic.saturatingAdd(amount, profile.manaRestoredBonus),
+                    multiplier: 1 + profile.manaRestoredPercent,
+                ), deepRoots ? 1 : 0,
+            ) : amount
         let actual = runtime.restoreMana(requested)
         var total = actual
         var overflow = max(0, requested - actual)
@@ -111,20 +115,26 @@ package extension BattleState {
            BattleChance.succeeds(probability: profile.triggers.manaGainDoubleChancePercent, using: &rng) {
             let doubled = runtime.restoreMana(requested)
             total += doubled
-            overflow += max(0, requested - doubled)
+            overflow = SaturatedArithmetic.saturatingAdd(overflow, max(0, requested - doubled))
         }
         if actual > 0, profile.triggers.manaRestorationDoubleChancePercent > 0,
            claimTalentAbility("Arcane Reservoir", actorID: combatant.id),
            BattleChance.succeeds(probability: profile.triggers.manaRestorationDoubleChancePercent, using: &rng) {
             let doubled = runtime.restoreMana(requested)
             total += doubled
-            overflow += max(0, requested - doubled)
+            overflow = SaturatedArithmetic.saturatingAdd(overflow, max(0, requested - doubled))
         }
         if overflow > 0, profile.triggers.livingConduit {
-            runtime.talents.pending.manaOverflowThorns += overflow
+            runtime.talents.pending.manaOverflowThorns = SaturatedArithmetic.saturatingAdd(
+                runtime.talents.pending.manaOverflowThorns,
+                overflow,
+            )
         }
         if overflow > 0, profile.triggers.excessManaRestorationBlock {
-            runtime.talents.pending.manaOverflowBlock += overflow
+            runtime.talents.pending.manaOverflowBlock = SaturatedArithmetic.saturatingAdd(
+                runtime.talents.pending.manaOverflowBlock,
+                overflow,
+            )
         }
         roster.update(runtime)
         return total

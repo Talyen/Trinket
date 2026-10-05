@@ -151,8 +151,7 @@ public struct ItemDetailView: View {
         if showsSalvageAction {
             VStack(spacing: TrinketDesign.Spacing.medium) {
                 if isSalvageConfirmationPresented {
-                    Text(salvageConfirmationMessage)
-                        .trinketTypography(.secondaryBody)
+                    salvageMaterialPreview
                     Button("Cancel") { isSalvageConfirmationPresented = false }
                         .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Collection.salvageCancelButton)
                     Button("Salvage", role: .destructive) {
@@ -172,17 +171,39 @@ public struct ItemDetailView: View {
                         )
                 }
             }
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+            .frame(maxWidth: .infinity, alignment: .center)
             .padding(.top, TrinketDesign.Layout.sectionSpacing)
         }
     }
 
-    private var salvageConfirmationMessage: String {
-        guard let salvage else { return "" }
-        let message = "You will receive \(salvage.yields.formattedYieldList)."
-        if let equippedByName = salvage.equippedByName {
-            return message + " This unequips it from \(equippedByName)."
+    @ViewBuilder
+    private var salvageMaterialPreview: some View {
+        if let salvage {
+            let positiveYields = salvage.yields.filter { $0.quantity > 0 }
+            Text("You will receive")
+                .trinketTypography(.secondaryBody)
+
+            if !positiveYields.isEmpty {
+                TrinketWalletGrid(columnCount: min(4, positiveYields.count)) {
+                    ForEach(positiveYields, id: \.resource) { yield in
+                        TrinketWalletResourcePill(
+                            title: yield.resource.displayName,
+                            amount: yield.quantity,
+                            showsIncreasePrefix: true,
+                        ) {
+                            HomesteadResourceArtwork(resource: yield.resource)
+                        }
+                    }
+                }
+            }
+
+            if let equippedByName = salvage.equippedByName {
+                Text("This unequips it from \(equippedByName).")
+                    .trinketTypography(.secondaryBody)
+            }
         }
-        return message
     }
 
     private func confirmSalvage() {

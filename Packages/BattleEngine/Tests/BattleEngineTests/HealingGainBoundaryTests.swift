@@ -5,6 +5,21 @@ import TrinketCore
 @testable import BattleEngine
 
 struct HealingGainBoundaryTests {
+    @Test func `healing with a saturated flat bonus fills available Health without overflowing`() {
+        var profile = CombatModifierProfile(healthRestoredBonus: Int.max)
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: Int.max),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+            heroHealth: 1, heroModifiers: profile,
+        )
+        battle.appliesFightPacing = false
+        let result = battle.resolveHeal(HealRequest(amount: 1, target: battle.hero, sourceActorID: battle.hero.id))
+        #expect(battle.health(of: battle.hero) == Int.max)
+        #expect(result.healthRestored == Int.max - 1)
+    }
+
     @Test func `Flawless Bounty grants Gold and Block without Windfall or nested restoration`() {
         var profile = CombatantTalentCatalog.profile(for: ["lizard_scout_gold_t3_1"])
         profile.triggers.criticalChanceBonus = -1

@@ -4,6 +4,15 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct PlayerRosterStateTests {
+    @Test func `party average preserves the encounter level of extreme saved progressions`() {
+        var roster = PlayerRosterState.freshStart
+        roster.progressions[roster.activeHeroID] = .at(level: Int.max)
+        roster.progressions[roster.activeCompanionID] = .at(level: Int.max - 2)
+        #expect(roster.activePartyAverageLevel == Int.max - 1)
+        roster.progressions[roster.activeCompanionID] = .at(level: 2)
+        #expect(roster.activePartyAverageLevel == Int.max / 2 + 1)
+    }
+
     @Test func `configured combatant includes all selected player ability tiers`() throws {
         var roster = PlayerRosterState.freshStart
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })

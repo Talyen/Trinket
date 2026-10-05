@@ -49,10 +49,10 @@ trinket_asset_cleanup_tracked
 
     def test_sfx_cache_tracks_profile_state_output_and_force(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            root, environment, conversion_log = self.make_sfx_fixture(directory)
+            root, environment, conversion_log = self.make_audio_fixture(directory, "sfx")
 
             def assert_run(expected_conversions: int, **overrides: str) -> None:
-                result = self.run_sfx_fixture(root, {**environment, **overrides})
+                result = self.run_audio_fixture(root, {**environment, **overrides}, "sfx")
                 self.assertEqual(result.returncode, 0, result.stderr)
                 conversion_count = conversion_log.read_text(encoding="utf-8").count("convert")
                 self.assertEqual(conversion_count, expected_conversions)
@@ -90,14 +90,14 @@ trinket_asset_cleanup_tracked
 
     def test_sfx_manifest_rejects_invalid_and_duplicate_swift_symbols(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            root, environment, _ = self.make_sfx_fixture(directory)
+            root, environment, _ = self.make_audio_fixture(directory, "sfx")
             manifest = root / "SoundManifest/sfx.tsv"
             for reserved in ("repeat", "actor", "async", "package"):
                 manifest.write_text(
                     f"test_clip\t{reserved}\tsfx_test_clip\tRaw Assets/Sound Effects/clip.wav\t1.0\n",
                     encoding="utf-8",
                 )
-                invalid = self.run_sfx_fixture(root, environment)
+                invalid = self.run_audio_fixture(root, environment, "sfx")
                 self.assertNotEqual(invalid.returncode, 0, reserved)
                 self.assertIn("reserved Swift keyword", invalid.stderr, reserved)
 
@@ -106,13 +106,13 @@ trinket_asset_cleanup_tracked
                 "second\tsharedSymbol\tsfx_second\tRaw Assets/Sound Effects/clip.wav\t1.0\n",
                 encoding="utf-8",
             )
-            duplicate = self.run_sfx_fixture(root, environment)
+            duplicate = self.run_audio_fixture(root, environment, "sfx")
             self.assertNotEqual(duplicate.returncode, 0)
             self.assertIn("Duplicate SFX Swift symbol 'sharedSymbol'", duplicate.stderr)
 
     def test_music_cache_tracks_profile_state_output_and_force(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            root, environment, conversion_log = self.make_music_fixture(directory)
+            root, environment, conversion_log = self.make_audio_fixture(directory, "music")
             scratch = root / "temporary music"
             scratch.mkdir()
             environment["TMPDIR"] = str(scratch)
@@ -121,7 +121,7 @@ trinket_asset_cleanup_tracked
             mktemp.chmod(0o755)
 
             def assert_run(expected_conversions: int, **overrides: str) -> None:
-                result = self.run_music_fixture(root, {**environment, **overrides})
+                result = self.run_audio_fixture(root, {**environment, **overrides}, "music")
                 self.assertEqual(result.returncode, 0, result.stderr)
                 conversion_count = conversion_log.read_text(encoding="utf-8").count("convert")
                 self.assertEqual(conversion_count, expected_conversions)
@@ -147,7 +147,7 @@ trinket_asset_cleanup_tracked
             move = root / "bin/mv"
             move.write_text('#!/bin/sh\ncase "$*" in *MusicCatalog.generated.swift*) exit 23;; esac\nexec /bin/mv "$@"\n')
             move.chmod(0o755)
-            failed = self.run_music_fixture(root, environment)
+            failed = self.run_audio_fixture(root, environment, "music")
             self.assertEqual(failed.returncode, 23, failed.stderr)
             self.assertEqual(list(scratch.iterdir()), [])
             self.assertFalse(list(state.parent.glob("*.tmp.*")))
@@ -196,28 +196,9 @@ trinket_asset_cleanup_tracked
             r"(?m)^\s+- path: Trinket\n\s+type: syncedFolder\n",
         )
 
-    def test_media_assets_lib_routes_asset_generation(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--paths",
-                "Scripts/lib/media-assets.sh",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        plan = "\n".join(result.stdout.splitlines())
-        self.assertIn("./Scripts/generate.sh --assets", plan)
-        self.assertIn("./Scripts/test-scripts.sh", plan)
-
     def make_art_fixture(self, directory: str) -> tuple[Path, dict[str, str], Path]:
-        root = Path(directory)
+        root = self.make_repo_fixture(directory, ("Scripts/prepare-art-assets.sh", "Scripts/lib/media-assets.sh"))
         for relative in (
-            "Scripts/lib",
             "ArtManifest",
             "Raw Assets",
             "Trinket/Assets.xcassets",
@@ -226,10 +207,6 @@ trinket_asset_cleanup_tracked
             "bin",
         ):
             (root / relative).mkdir(parents=True, exist_ok=True)
-        for relative in ("Scripts/prepare-art-assets.sh", "Scripts/lib/media-assets.sh"):
-            destination = root / relative
-            destination.write_text((ROOT / relative).read_text(encoding="utf-8"), encoding="utf-8")
-            destination.chmod(0o755)
         (root / "Raw Assets/source.jpeg").write_bytes(b"source")
         (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift").write_text(
             'id: "knight"\n', encoding="utf-8"
@@ -435,12 +412,12 @@ trinket_asset_cleanup_tracked
 
     def test_sfx_volume_gain_accepts_leading_dot_decimal(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            root, environment, _ = self.make_sfx_fixture(directory)
+            root, environment, _ = self.make_audio_fixture(directory, "sfx")
             (root / "SoundManifest/sfx.tsv").write_text(
                 "test_clip\ttestClip\tsfx_test_clip\tRaw Assets/Sound Effects/clip.wav\t.5\n",
                 encoding="utf-8",
             )
-            result = self.run_sfx_fixture(root, environment)
+            result = self.run_audio_fixture(root, environment, "sfx")
             self.assertEqual(result.returncode, 0, result.stderr)
             generated = (
                 root

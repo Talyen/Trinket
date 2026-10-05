@@ -22,6 +22,7 @@ def load_tasks(root: Path) -> list[dict]:
     if not isinstance(tasks, list):
         raise ValueError("agent task index must contain a list")
     ids = set()
+    checked_references = set()
     for task in tasks:
         if not isinstance(task, dict) or not isinstance(task.get("id"), str) or not task["id"] or task["id"] in ids:
             raise ValueError("agent task IDs must be nonempty and unique")
@@ -35,10 +36,13 @@ def load_tasks(root: Path) -> list[dict]:
             if len(values) != len(set(values)):
                 raise ValueError(f"{task['id']}: duplicate {field}")
         for reference in (*task["sources"], *task["tests"], *task["contracts"]):
+            if reference in checked_references:
+                continue
             name = reference.partition("#")[0]
             if Path(name).is_absolute() or ".." in Path(name).parts:
                 raise ValueError(f"{task['id']}: index paths must be repository-relative")
             fingerprint(root, reference)
+            checked_references.add(reference)
     return tasks
 
 
@@ -54,13 +58,13 @@ def find_tasks(root: Path, query: str, scopes: list[str]) -> list[str]:
 
 
 def matching_tasks(root: Path, query: str, scopes: list[str]) -> list[dict]:
-    words = re.findall(r"\w+", query.casefold())
+    words = set(re.findall(r"\w+", query.casefold()))
     if not words:
         raise ValueError("--task requires a concern name, such as 'Shop purchase'")
     matches = []
     for task in load_tasks(root):
         names = [task["id"], task["label"], *task["aliases"]]
-        if not any(all(word in re.findall(r"\w+", name.casefold()) for word in words) for name in names):
+        if not any(words <= set(re.findall(r"\w+", name.casefold())) for name in names):
             continue
         if not any(within(name, scopes) for name in task["sources"]):
             continue

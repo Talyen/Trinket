@@ -114,8 +114,10 @@ class BuildArtifactTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "Scripts").mkdir()
-            for name in ("build-freshness.sh", "build-inputs.env", "build-metadata.py"):
-                shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
+            for name in ("build-freshness.sh", "build-inputs.env", "build-metadata.py", "internal/cli.py"):
+                target = root / "Scripts" / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(ROOT / "Scripts" / name, target)
             (root / "StoreKit").mkdir()
             source = root / "StoreKit/Trinket.storekit"
             source.write_text("before")

@@ -5,6 +5,19 @@ import TrinketContentTestSupport
 import TrinketCore
 
 struct FightPacingTests {
+    @Test func `fight pacing keeps Health fractions when combined pools exceed integer capacity`() {
+        let context = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: Int.max),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: Int.max),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: Int.max),
+            heroHealth: Int.max / 4, companionHealth: Int.max / 4, enemyHealth: Int.max / 2,
+        )
+        let metrics = FightPacing.poolMetrics(in: context)
+        #expect(abs(metrics.partyFraction - 0.25) < 0.000_001)
+        #expect(abs(metrics.enemyFraction - 0.5) < 0.000_001)
+        #expect(abs(metrics.actualBurnFraction - 2.0 / 3.0) < 0.000_001)
+    }
+
     private func makeContext(
         heroHP: Int = 50,
         companionHP: Int = 50,

@@ -6,7 +6,6 @@ from dataclasses import dataclass
 
 from internal.content.abilities import (
     ability_symbols_swift,
-    collect_ability_tiers,
     parse_ability_symbol_list,
 )
 from internal.content.common import (
@@ -81,10 +80,9 @@ def parse_enemy_rows() -> list[EnemyRow]:
 def _validate_ability_symbols(
     raw: str,
     row_id: str,
-    ability_symbols: set[str],
+    ability_symbols: set[str] | dict[str, str],
     expected_count: int | None = None,
     expected_tier: str | None = None,
-    ability_tiers: dict[str, str] | None = None,
 ) -> None:
     symbols = parse_ability_symbol_list(raw)
     if expected_count is not None and len(symbols) != expected_count:
@@ -95,9 +93,9 @@ def _validate_ability_symbols(
         _validate_swift_symbol("ability symbol", symbol, row_id)
         if symbol not in ability_symbols:
             raise ValueError(f"Unknown ability symbol '{symbol}' for {row_id}")
-        if expected_tier is not None and ability_tiers is not None and ability_tiers[symbol] != expected_tier:
+        if expected_tier is not None and ability_symbols[symbol] != expected_tier:
             raise ValueError(
-                f"Ability symbol '{symbol}' for {row_id} belongs to the {ability_tiers[symbol]} tier, "
+                f"Ability symbol '{symbol}' for {row_id} belongs to the {ability_symbols[symbol]} tier, "
                 f"not {expected_tier}"
             )
 
@@ -119,10 +117,8 @@ def validate_trait_rows(rows: list[TraitRow]) -> None:
 
 def validate_combatant_rows(
     rows: list[CombatantRow],
-    ability_symbols: set[str],
-    ability_tiers: dict[str, str] | None = None,
+    ability_tiers: dict[str, str],
 ) -> None:
-    ability_tiers = ability_tiers or collect_ability_tiers()
     seen: set[str] = set()
     for row in rows:
         _ensure_unique(seen, row.id, "combatant id")
@@ -139,8 +135,7 @@ def validate_combatant_rows(
 
         for tier, raw in (("basic", row.basics), ("skill", row.skills), ("ultimate", row.ultimates)):
             _validate_ability_symbols(
-                raw, row.id, ability_symbols, expected_count=4,
-                expected_tier=tier, ability_tiers=ability_tiers,
+                raw, row.id, ability_tiers, expected_count=4, expected_tier=tier,
             )
 
 

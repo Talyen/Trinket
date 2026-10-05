@@ -3,6 +3,16 @@ import TrinketContentTestSupport
 @testable import BattleEngine
 
 struct CombatantMaxValuesTests {
+    @Test func `party level scaling preserves extreme saved levels without overflowing stats`() {
+        let hero = CombatantFixtures.passiveHero(maxHealth: 20, maxMana: Int.max)
+        let scaled = CombatantLevelScaler.scale(combatant: hero, level: Int.max)
+        #expect(scaled.maxHealth == Int.max)
+        #expect(scaled.maxMana == Int.max)
+        let invalid = CombatantLevelScaler.scale(combatant: hero, level: Int.min)
+        #expect(invalid.maxHealth == hero.maxHealth)
+        #expect(invalid.maxMana == hero.maxMana)
+    }
+
     @Test func `maximum mana percent scales combatants with mana and leaves zero mana unchanged`() {
         let heroWithMana = CombatantFixtures.passiveHero(maxMana: 20)
         #expect(heroWithMana.hasMana)

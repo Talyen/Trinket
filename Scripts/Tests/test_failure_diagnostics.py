@@ -103,7 +103,10 @@ class ReporterTests(unittest.TestCase):
         accumulator = REPORTER.IssueAccumulator()
         for observation in REPORTER.parse_summary(fixture("test-summary-multiple.json")):
             accumulator.add(observation)
-        observations, failed_ids = REPORTER.parse_test_nodes(fixture("tests-multiple.json"))
+        nodes = fixture("tests-multiple.json")["testNodes"]
+        for _ in range(1500):
+            nodes = [{"children": nodes, "subtests": {"_values": [{"children": 7}]}}]
+        observations, failed_ids = REPORTER.parse_test_nodes({"testNodes": nodes})
         for observation in observations:
             accumulator.add(observation)
 

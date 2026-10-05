@@ -52,7 +52,7 @@ package enum ControlMeterEngine {
             return false
         }
         let existingAmount = existingMeterAmount(at: existingIndex, in: currentEffects)
-        let newAmount = min(existingAmount + adjustedAmount, effectiveThreshold)
+        let newAmount = min(SaturatedArithmetic.saturatingAdd(existingAmount, adjustedAmount), effectiveThreshold)
 
         if newAmount >= effectiveThreshold {
             return applyThresholdReached(

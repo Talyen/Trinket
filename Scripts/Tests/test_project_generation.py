@@ -172,7 +172,7 @@ printf cached > "$cache"
   Trinket:
     run:
       storeKitConfiguration: StoreKit/Trinket.storekit
-  Trinket Development:
+  'Trinket Development':
     run:
       storeKitConfiguration: StoreKit/Trinket.storekit
 ''')

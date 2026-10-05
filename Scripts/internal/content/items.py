@@ -14,8 +14,8 @@ from internal.content.common import (
     _parse_tsv_rows,
     _require_non_empty,
     _validate_positive_int,
+    _validate_snake_id,
     list_catalog_property,
-    parse_keywords,
     swift_escape,
     write_generated_file,
 )
@@ -84,17 +84,25 @@ def generate_affix_catalog(rows: list[AffixRow]) -> None:
 
 
 def _validate_affix_id(value: str, row_id: str) -> None:
-    if KEBAB_IDENTIFIER.match(value) or SNAKE_IDENTIFIER.match(value):
+    if KEBAB_IDENTIFIER.fullmatch(value) or SNAKE_IDENTIFIER.fullmatch(value):
         return
     raise ValueError(
         f"affix id '{value}' for {row_id} must use lowercase letters, numbers, hyphens, or underscores"
     )
 
 
-def _validate_keywords(raw: str, row_id: str) -> None:
-    for keyword in sorted(_keyword_set(raw)):
+def keyword_tokens(raw: str, row_id: str = "item keywords") -> list[str]:
+    keywords = [part.strip() for part in raw.split(",")] if raw.strip() else []
+    seen: set[str] = set()
+    for keyword in keywords:
         if keyword not in VALID_KEYWORDS:
             raise ValueError(f"Unknown keyword '{keyword}' for {row_id}")
+        _ensure_unique(seen, keyword, f"keyword for {row_id}")
+    return keywords
+
+
+def parse_keywords(raw: str) -> str:
+    return "[" + ", ".join(f".{keyword}" for keyword in keyword_tokens(raw)) + "]"
 
 
 def validate_affix_rows(rows: list[AffixRow]) -> None:
@@ -106,7 +114,7 @@ def validate_affix_rows(rows: list[AffixRow]) -> None:
         _require_non_empty("affix title", row.title, row.id)
         if row.slot not in VALID_SLOTS:
             raise ValueError(f"Invalid affix slot '{row.slot}' for {row.id}")
-        _validate_keywords(row.keywords, row.id)
+        keyword_tokens(row.keywords, row.id)
         _validate_positive_int("Affix weight", row.weight, row.id, minimum=1)
         for tier, description, modifiers, triggers in (
             ("basic", row.basic_description, row.basic_modifiers, row.basic_triggers),
@@ -122,6 +130,8 @@ def validate_item_base_rows(rows: list[ItemBaseRow]) -> None:
     seen_ids: set[str] = set()
     for row in rows:
         _ensure_unique(seen_ids, row.id, "item base id")
+        _validate_snake_id("item base id", row.id, row.id)
+        _require_non_empty("item base name", row.name, row.id)
         if row.slot not in VALID_SLOTS:
             raise ValueError(f"Unknown item slot '{row.slot}' for {row.id}")
         valid_weapon_kinds = {"one_handed", "two_handed", "off_hand"}
@@ -129,11 +139,7 @@ def validate_item_base_rows(rows: list[ItemBaseRow]) -> None:
             raise ValueError(f"Unknown weapon kind '{row.weapon_kind}' for {row.id}")
         if row.slot != "weapon" and row.weapon_kind:
             raise ValueError(f"Non-weapon item base {row.id} cannot declare a weapon kind")
-        _validate_keywords(row.keywords, f"item base {row.id}")
-
-
-def _keyword_set(raw: str) -> set[str]:
-    return {part.strip() for part in raw.split(",") if part.strip()}
+        keyword_tokens(row.keywords, f"item base {row.id}")
 
 
 def validate_affix_reachability(affix_rows: list[AffixRow], item_base_rows: list[ItemBaseRow]) -> None:
@@ -145,9 +151,9 @@ def validate_affix_reachability(affix_rows: list[AffixRow], item_base_rows: list
     """
     affinities: dict[str, set[str]] = {}
     for row in item_base_rows:
-        affinities.setdefault(row.slot, set()).update(_keyword_set(row.keywords))
+        affinities.setdefault(row.slot, set()).update(keyword_tokens(row.keywords, row.id))
     for row in affix_rows:
-        if _keyword_set(row.keywords) & affinities.get(row.slot, set()):
+        if set(keyword_tokens(row.keywords, row.id)) & affinities.get(row.slot, set()):
             continue
         raise ValueError(
             f"affix '{row.id}' ({row.slot}) shares no keyword with any {row.slot} item base"

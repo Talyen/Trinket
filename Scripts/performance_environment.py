@@ -13,14 +13,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-def command(*args: str) -> str:
+def command(*args: str, raw: bool = False) -> str | bytes:
     try:
-        return subprocess.check_output(args, text=True, stderr=subprocess.DEVNULL).strip()
-    except (OSError, subprocess.CalledProcessError) as error:
+        output = subprocess.check_output(args, stderr=subprocess.DEVNULL, timeout=120)
+        return output if raw else output.decode().strip()
+    except (OSError, subprocess.SubprocessError) as error:
         # Provenance matters here: name the failed command so "unknown"
         # fields can be told apart from genuinely empty ones.
         print(f"performance_environment.py: {' '.join(args)} failed ({error}); recording unknown", file=sys.stderr)
-        return "unknown"
+        return b"unknown" if raw else "unknown"
 
 
 def main() -> None:
@@ -33,6 +34,8 @@ def main() -> None:
     output = Path(sys.argv[1])
     # --porcelain is the stable spelling of --short: one status run feeds both.
     git_status = command("git", "status", "--porcelain")
+    untracked = [Path(os.fsdecode(name)) for name in
+                 command("git", "ls-files", "-z", "--others", "--exclude-standard", raw=True).split(b"\0") if name]
     payload = {
         "capturedAt": datetime.now(timezone.utc).isoformat(),
         "host": platform.platform(),
@@ -40,11 +43,10 @@ def main() -> None:
         "gitCommit": command("git", "rev-parse", "HEAD"),
         "gitDirty": bool(git_status),
         "gitStatus": git_status,
-        "trackedDiffSHA256": hashlib.sha256(command("git", "diff", "HEAD").encode()).hexdigest(),
+        "trackedDiffSHA256": hashlib.sha256(command("git", "diff", "--binary", "HEAD", raw=True)).hexdigest(),
         "untrackedSourceSHA256": {
-            name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
-            for name in command("git", "ls-files", "--others", "--exclude-standard").splitlines()
-            if Path(name).is_file() and Path(name).suffix in {".swift", ".py", ".sh", ".json", ".xctestplan"}
+            str(path): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in untracked if path.is_file() and path.suffix in {".swift", ".py", ".sh", ".json", ".xctestplan"}
         },
         "configuration": "Debug with SWIFT_OPTIMIZATION_LEVEL=-O",
         "quickSamplerPreparation": os.environ.get("TRINKET_PERFORMANCE_QUICK") == "1",

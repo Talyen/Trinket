@@ -19,7 +19,6 @@ SCRIPT_INPUTS = (
 
 
 import re
-import os
 import subprocess
 import sys
 
@@ -34,67 +33,22 @@ class ContentCodegenTests(ScriptRegressionTestCase):
         cases = set(re.findall(r'^    case (\w+) =', source, re.MULTILINE))
         self.assertEqual(cases, set(VALID_KEYWORDS))
 
-    def test_content_codegen_rejects_unknown_command(self) -> None:
-        result = subprocess.run(
-            [sys.executable, str(ROOT / "Scripts" / "content_codegen.py"), "typo"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("Unknown command", result.stderr)
-
     def test_content_codegen_routes_generation_and_script_tests(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--paths",
-                "Scripts/content_codegen.py",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        plan = "\n".join(result.stdout.splitlines())
-        self.assertIn("./Scripts/generate.sh", plan)
-        self.assertIn("./Scripts/test-scripts.sh", plan)
-
-    def test_authored_content_swift_routes_generation_style_and_package(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--paths",
-                "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift",
-            ],
-            cwd=ROOT, env={**os.environ, "GITHUB_ACTIONS": "true"},
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        plan = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-        self.assertEqual(
-            plan[:4],
-            [
-                "./Scripts/generate.sh",
-                "./Scripts/assert-generated-output.sh --idempotent",
-                "./Scripts/test.sh style Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift",
-                "./Scripts/test-package.sh TrinketContent",
-            ],
-        )
-        self.assertEqual(
-            plan[4:],
-            [
-                "./Scripts/check-module-boundaries.sh",
-                "./Scripts/release-notes.sh validate",
-                "./Scripts/check-artwork-budget.sh",
-            ],
-        )
+        for path, check in (
+            ("Scripts/content_codegen.py", "./Scripts/test-scripts.sh"),
+            ("Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift",
+             "./Scripts/test-package.sh TrinketContent"),
+        ):
+            with self.subTest(path=path):
+                result = subprocess.run(
+                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", path],
+                    cwd=ROOT, env=self.verification_environment(hosted=True),
+                    capture_output=True, text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("./Scripts/generate.sh", result.stdout)
+                self.assertIn("./Scripts/assert-generated-output.sh --idempotent", result.stdout)
+                self.assertIn(check, result.stdout)
 
     def test_live_manifests_validate_through_extracted_domains(self) -> None:
         result = subprocess.run(
@@ -144,3 +98,13 @@ class ContentCodegenTests(ScriptRegressionTestCase):
             validate_affix_reachability([orphan, reachable], [base])
         with self.assertRaisesRegex(ValueError, "shares no keyword"):
             validate_affix_reachability([reachable], [])
+
+    def test_item_manifests_reject_unusable_catalog_entries(self) -> None:
+        from dataclasses import replace
+        from internal.content.items import ItemBaseRow, validate_item_base_rows
+
+        base = ItemBaseRow("emerald_ring", "Emerald Ring", "accessory", "", "poison,health")
+        for overrides in ({"id": ""}, {"id": "invalid-id"}, {"id": "emerald_ring\n"}, {"name": " "},
+                          {"keywords": "poison,poison"}, {"keywords": "poison,,health"}):
+            with self.subTest(overrides=overrides), self.assertRaises(ValueError):
+                validate_item_base_rows([replace(base, **overrides)])

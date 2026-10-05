@@ -154,14 +154,7 @@ def render_homestead_tier(row: HomesteadNodeRow) -> str:
 def parse_homestead_production(raw: str) -> str | None:
     if not raw.strip():
         return None
-    if any(not token.strip() for token in raw.split("|")):
-        raise ValueError("Production entries must not be empty")
-    entries = parse_material_tokens(raw)
-    if any(quantity <= 0 for _, quantity in entries):
-        raise ValueError("Production quantity must be positive")
-    resources = [resource for resource, _ in entries]
-    if len(set(resources)) != len(resources):
-        raise ValueError("Duplicate production resource")
+    entries = parse_material_tokens(raw, minimum=1)
     return "[" + ", ".join(f"ResourceAmount(.{resource}, {quantity})" for resource, quantity in entries) + "]"
 
 
@@ -187,8 +180,6 @@ def validate_homestead_cost(raw: str, row_id: str) -> None:
         entries = parse_material_tokens(raw)
         if not entries:
             raise ValueError("Cost must declare at least one resource")
-        if any(quantity < 0 for _, quantity in entries):
-            raise ValueError("Cost quantities must be non-negative")
     except ValueError as error:
         raise ValueError(f"{error} for {row_id}") from error
 

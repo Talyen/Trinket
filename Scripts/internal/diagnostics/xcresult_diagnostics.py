@@ -9,6 +9,22 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from collections.abc import Iterator
+
+
+def walk_test_nodes(node: Any) -> Iterator[dict[str, Any]]:
+    """Walk current children and legacy subtests in source order without recursion."""
+    pending = [node]
+    while pending:
+        current = pending.pop()
+        if isinstance(current, list):
+            pending.extend(reversed(current))
+        elif isinstance(current, dict):
+            yield current
+            subtests = current.get("subtests")
+            if isinstance(subtests, dict):
+                subtests = subtests.get("_values")
+            pending.extend((subtests, current.get("children")))
 
 
 @dataclass(frozen=True)

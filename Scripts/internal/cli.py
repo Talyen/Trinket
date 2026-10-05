@@ -18,6 +18,7 @@ import importlib.util
 import json
 import shlex
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any, NoReturn
 
@@ -66,6 +67,20 @@ def read_json(path: Path | str) -> Any:
         return json.loads(text)
     except json.JSONDecodeError as error:
         raise json.JSONDecodeError(f"{path}: {error.msg}", error.doc, error.pos) from None
+
+
+def write_json_atomic(path: Path, value: Any) -> None:
+    """Replace metadata only after serialization succeeds; always remove staging files."""
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent, delete=False) as stream:
+            temporary = Path(stream.name)
+            json.dump(value, stream, indent=2, sort_keys=True)
+            stream.write("\n")
+        temporary.replace(path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 def read_env_arrays(path: Path | str, names: list[str]) -> dict[str, tuple[str, ...]]:

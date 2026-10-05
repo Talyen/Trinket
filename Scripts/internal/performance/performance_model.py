@@ -32,7 +32,10 @@ def finite_number(report: dict[str, Any], key: str) -> float:
     value = report.get(key)
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ValueError(f"{key} is missing or non-numeric")
-    result = float(value)
+    try:
+        result = float(value)
+    except OverflowError as error:
+        raise ValueError(f"{key} is not finite") from error
     if not math.isfinite(result):
         raise ValueError(f"{key} is not finite")
     return result
@@ -57,11 +60,7 @@ def validate_report_domains(report: dict[str, Any]) -> list[str]:
 
 
 def load_results_reports(payload: dict[str, Any]) -> list[dict[str, Any]]:
-    """Extract the reports array from a collected results payload.
-
-    Single source for the shape check previously restated in
-    compare-performance.py and aggregate-performance-results.py.
-    """
+    """Extract the reports array from a collected results payload."""
     reports = payload.get("reports") if isinstance(payload, dict) else None
     if not isinstance(reports, list):
         raise SystemExit("results payload must contain a reports array")
@@ -88,6 +87,9 @@ def load_baseline(baseline: dict[str, Any]) -> tuple[list[str], str]:
         for settings in (goals, *overrides.values()):
             if not isinstance(settings, dict):
                 raise ValueError("scenario goals must be objects")
+            unknown = settings.keys() - {goal for _, goal, *_ in GOAL_CHECKS}
+            if unknown:
+                raise ValueError(f"unknown performance goals: {sorted(unknown)}")
             for _, goal, *_ in GOAL_CHECKS:
                 if goal in settings and finite_number(settings, goal) < 0:
                     raise ValueError(f"{goal} must be non-negative")
@@ -105,13 +107,9 @@ def load_baseline(baseline: dict[str, Any]) -> tuple[list[str], str]:
 
 
 def group_reports_by_scenario(
-    reports: list, scenarios: list[str]
+    reports: list, scenarios: list[str], baseline: dict[str, Any]
 ) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
-    """Group raw reports by maintained scenario; unknown/malformed entries fail.
-
-    Single source for the grouping both aggregate (repeated runs) and compare
-    (single report) used to copy-paste with different non-dict messages.
-    """
+    """Group raw reports by maintained scenario; unknown/malformed entries fail."""
     grouped: dict[str, list[dict[str, Any]]] = {scenario: [] for scenario in scenarios}
     failures: list[str] = []
     for index, raw_report in enumerate(reports, 1):
@@ -122,7 +120,10 @@ def group_reports_by_scenario(
         if not isinstance(scenario, str) or scenario not in grouped:
             failures.append(f"report {index}: unexpected or missing scenario {scenario!r}")
             continue
-        grouped[scenario].append(raw_report)
+        invalid = validate_report(raw_report, baseline)
+        failures.extend(invalid)
+        if not invalid:
+            grouped[scenario].append(raw_report)
     return grouped, failures
 
 

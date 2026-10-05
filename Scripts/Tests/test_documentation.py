@@ -238,8 +238,13 @@ class DocumentationTests(ScriptRegressionTestCase):
                               '[external](codex://threads/fixture)\n')
             with patch.object(links, "ROOT", root):
                 self.assertEqual(links.broken_links([source]), [])
-                source.write_text('[missing](target%20%231.md#absent)\n')
-                self.assertEqual(links.broken_links([source]), ['source.md:1: missing heading #absent'])
+                (root / 'other.md').write_text('# Other\n')
+                source.write_text('[missing](target%20%231.md#absent)\n[other](other.md#absent)\n')
+                failures = links.broken_links([source])
+                self.assertEqual(failures, ['source.md:1: missing heading target #1.md#absent',
+                                            'source.md:2: missing heading other.md#absent'])
+                from internal.doc_diagnostics import group_failures
+                self.assertEqual(len(group_failures(failures)), 2)
 
     def test_markdown_inventory_preserves_git_filenames_and_excludes_ignored_reports(self) -> None:
         links = load_script("documentation_inventory", "check-links.py")
@@ -472,5 +477,5 @@ class DocumentationTests(ScriptRegressionTestCase):
             self.assertEqual(len(reports), 1)
             self.assertEqual(json.loads(reports[0].read_text())["failures"], failures)
             with contextlib.redirect_stderr(io.StringIO()) as expanded:
-                self.assertEqual(render(failures, offset=20, full=True), 26)
+                self.assertEqual(render(group_failures(failures), offset=20, full=True), 26)
             self.assertIn("distinct issue 24", expanded.getvalue())

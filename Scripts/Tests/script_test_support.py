@@ -8,7 +8,6 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 import unittest
 from collections.abc import Iterable
 from pathlib import Path
@@ -52,59 +51,29 @@ class ScriptRegressionTestCase(unittest.TestCase):
                 shutil.copy2(ROOT / 'Scripts/lib/verification-policy.sh', policy)
         return root
 
-    # Shared audio-fixture shape; only the manifest/raw/media layout differs.
     _AUDIO_FIXTURES = {
-        "sfx": {
-            "manifest_dir": "SoundManifest",
-            "manifest_file": "sfx.tsv",
-            "manifest_row": (
-                "# id\tswift_symbol\tasset_name\tsource_path\tvolume_gain\n"
-                "test_clip\ttestClip\tsfx_test_clip\tRaw Assets/Sound Effects/clip.wav\t1.0\n"
-            ),
-            "raw_dir": "Raw Assets/Sound Effects",
-            "raw_file": "clip.wav",
-            "raw_bytes": b"fixture audio",
-            "media_dir": "Trinket/Media/SFX",
-        },
-        "music": {
-            "manifest_dir": "MusicManifest",
-            "manifest_file": "music.tsv",
-            "manifest_row": (
-                "# kind\tid\tasset_name\tsource_path\tboss_enemy_id\tlooping\tvolume_gain\n"
-                "menu\ttest_track\tmusic_test_track\tRaw Assets/Music/track.mp3\tnone\ttrue\t1.0\n"
-            ),
-            "raw_dir": "Raw Assets/Music",
-            "raw_file": "track.mp3",
-            "raw_bytes": b"fixture music",
-            "media_dir": "Trinket/Media/Music",
-        },
+        "sfx": (
+            "SoundManifest/sfx.tsv", "Raw Assets/Sound Effects/clip.wav", "Trinket/Media/SFX",
+            "# id\tswift_symbol\tasset_name\tsource_path\tvolume_gain\n"
+            "test_clip\ttestClip\tsfx_test_clip\tRaw Assets/Sound Effects/clip.wav\t1.0\n",
+            b"fixture audio",
+        ),
+        "music": (
+            "MusicManifest/music.tsv", "Raw Assets/Music/track.mp3", "Trinket/Media/Music",
+            "# kind\tid\tasset_name\tsource_path\tboss_enemy_id\tlooping\tvolume_gain\n"
+            "menu\ttest_track\tmusic_test_track\tRaw Assets/Music/track.mp3\tnone\ttrue\t1.0\n",
+            b"fixture music",
+        ),
     }
 
     def make_audio_fixture(self, directory: str, kind: str) -> tuple[Path, dict[str, str], Path]:
-        fixture = self._AUDIO_FIXTURES[kind]
-        root = Path(directory)
-        for relative in (
-            "Scripts/lib",
-            fixture["manifest_dir"],
-            fixture["raw_dir"],
-            fixture["media_dir"],
-            "Packages/TrinketContent/Sources/TrinketContent/Generated",
-            "bin",
-        ):
+        manifest, source, media, row, audio = self._AUDIO_FIXTURES[kind]
+        root = self.make_repo_fixture(directory, ("Scripts/prepare-audio-assets.sh", "Scripts/lib/media-assets.sh"))
+        for relative in (Path(manifest).parent, Path(source).parent, media,
+                         "Packages/TrinketContent/Sources/TrinketContent/Generated", "bin"):
             (root / relative).mkdir(parents=True, exist_ok=True)
-
-        for relative in ("Scripts/prepare-audio-assets.sh", "Scripts/lib/media-assets.sh"):
-            destination = root / relative
-            destination.write_text((ROOT / relative).read_text(encoding="utf-8"), encoding="utf-8")
-            destination.chmod(0o755)
-
-        source = root / fixture["raw_dir"] / fixture["raw_file"]
-        source.write_bytes(fixture["raw_bytes"])
-        (root / fixture["manifest_dir"] / fixture["manifest_file"]).write_text(
-            fixture["manifest_row"],
-            encoding="utf-8",
-        )
-
+        (root / source).write_bytes(audio)
+        (root / manifest).write_text(row, encoding="utf-8")
         conversion_log = root / "afconvert.log"
         afconvert = root / "bin/afconvert"
         afconvert.write_text(
@@ -121,29 +90,11 @@ class ScriptRegressionTestCase(unittest.TestCase):
         }
         return root, environment, conversion_log
 
-    def make_sfx_fixture(self, directory: str) -> tuple[Path, dict[str, str], Path]:
-        return self.make_audio_fixture(directory, "sfx")
-
-    def run_sfx_fixture(
-        self, root: Path, environment: dict[str, str]
+    def run_audio_fixture(
+        self, root: Path, environment: dict[str, str], kind: str
     ) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
-            [str(root / "Scripts/prepare-audio-assets.sh"), "sfx"],
-            cwd=root,
-            env=environment,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-
-    def make_music_fixture(self, directory: str) -> tuple[Path, dict[str, str], Path]:
-        return self.make_audio_fixture(directory, "music")
-
-    def run_music_fixture(
-        self, root: Path, environment: dict[str, str]
-    ) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(
-            ["bash", "Scripts/prepare-audio-assets.sh", "music"],
+            ["bash", "Scripts/prepare-audio-assets.sh", kind],
             cwd=root,
             env=environment,
             capture_output=True,
@@ -163,9 +114,8 @@ class ScriptRegressionTestCase(unittest.TestCase):
     )
 
     def make_cinematic_fixture(self, directory: str) -> tuple[Path, dict[str, str], Path]:
-        root = Path(directory)
+        root = self.make_repo_fixture(directory, ("Scripts/prepare-cinematic-assets.sh", "Scripts/lib/media-assets.sh"))
         for relative in (
-            "Scripts/lib",
             "CinematicManifest",
             "ContentManifest",
             "Raw Assets/Animations",
@@ -174,10 +124,6 @@ class ScriptRegressionTestCase(unittest.TestCase):
             "bin",
         ):
             (root / relative).mkdir(parents=True, exist_ok=True)
-        for relative in ("Scripts/prepare-cinematic-assets.sh", "Scripts/lib/media-assets.sh"):
-            destination = root / relative
-            destination.write_text((ROOT / relative).read_text(encoding="utf-8"), encoding="utf-8")
-            destination.chmod(0o755)
         (root / "Raw Assets/Animations/slash.mp4").write_bytes(b"master")
         (root / "CinematicManifest/cinematics.tsv").write_text(
             self._CINEMATIC_MANIFEST_ROW, encoding="utf-8"

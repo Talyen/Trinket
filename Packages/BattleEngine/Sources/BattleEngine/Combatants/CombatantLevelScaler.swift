@@ -4,10 +4,10 @@ import TrinketCore
 
 public enum CombatantLevelScaler {
     public static func scale(combatant: Combatant, level: Int) -> Combatant {
-        let levelsAbove = max(0, level - 1)
-        let scaledHealth = combatant.maxHealth + levelsAbove
+        let levelsAbove = max(1, level) - 1
+        let scaledHealth = SaturatedArithmetic.saturatingAdd(combatant.maxHealth, levelsAbove)
         let scaledMana = if combatant.hasMana {
-            combatant.maxMana + (levelsAbove / 2)
+            SaturatedArithmetic.saturatingAdd(combatant.maxMana, levelsAbove / 2)
         } else {
             combatant.maxMana
         }

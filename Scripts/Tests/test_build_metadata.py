@@ -57,9 +57,11 @@ class BuildMetadataTests(unittest.TestCase):
         self.root = Path(self.temporary.name)
         scripts = self.root / 'Scripts'
         scripts.mkdir()
-        for name in ('build-metadata.py', 'build-freshness.sh', 'build-inputs.env',
+        for name in ('build-metadata.py', 'internal/cli.py', 'build-freshness.sh', 'build-inputs.env',
                      'restore-ci-test-products.sh', 'stage-ci-test-artifact.sh'):
-            shutil.copy2(ROOT / 'Scripts' / name, scripts)
+            target = scripts / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / 'Scripts' / name, target)
         self.env = fake_toolchain(self.root)
         # Keep inherited runner paths from redirecting the copied helper scripts
         # outside this isolated fixture checkout.
