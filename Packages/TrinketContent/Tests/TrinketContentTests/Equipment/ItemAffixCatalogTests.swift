@@ -178,10 +178,10 @@ struct ItemAffixCatalogTests {
 
         let uncappedPower = try #require(item.resolvedPower(at: 1))
         try #expect(uncappedPower.triggers.companionLeechSharePercent == 2)
-        try #expect(uncappedPower.description == "Companions gain 200% of your Leech.")
+        try #expect(uncappedPower.description == "Your ally receives 100% of the Health you restore with Leech.")
         try #expect(item.displayedAffixes.map(\.description) == [
             "Deal 6 additional damage if the enemy is below 30% Health.",
-            "Companions gain 200% of your Leech.",
+            "Your ally receives 100% of the Health you restore with Leech.",
         ])
     }
 }
