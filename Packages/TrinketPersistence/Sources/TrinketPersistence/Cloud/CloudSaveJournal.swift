@@ -1,4 +1,5 @@
 import Foundation
+import TrinketCore
 
 /// A checkpoint and ordered, immutable effects. A copied journal freezes a
 /// request prefix; appends share immutable history without copying it.
