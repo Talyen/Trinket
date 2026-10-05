@@ -203,19 +203,22 @@ def validate_notes(summary: str, bullets: list[str]) -> None:
 
 
 def parse_git_log(raw: str) -> list[Commit]:
-    commits: list[Commit] = []
-    for block in raw.split("===COMMIT===\n"):
-        block = block.strip("\n")
-        if not block:
-            continue
-        if "\n===BODY===\n" not in block or "\n===FILES===" not in block:
-            continue
-        subject_part, rest = block.split("\n===BODY===\n", 1)
-        body_part, files_part = rest.split("\n===FILES===", 1)
-        files = tuple(path.strip() for path in files_part.splitlines() if path.strip())
-        commits.append(
-            Commit(subject=subject_part.strip(), body=body_part.strip(), files=files)
-        )
+    # Git cannot store NUL in commit messages or filenames. Consume subject/body
+    # before looking for the empty token separating the variable-length file lists.
+    tokens = iter(raw.split("\0"))
+    if next(tokens) != "":
+        raise ValueError("Git log is missing its initial NUL")
+    commits = []
+    for subject in tokens:
+        if not subject:
+            break
+        body = next(tokens)
+        files = []
+        for path in tokens:
+            if not path:
+                break
+            files.append(path.removeprefix("\n") if not files else path)
+        commits.append(Commit(subject=subject, body=body.strip(), files=tuple(files)))
     return commits
 
 
@@ -225,7 +228,8 @@ def load_commits(since_tag: str | None) -> list[Commit]:
         "git",
         "log",
         log_range,
-        "--pretty=format:===COMMIT===%n%s%n===BODY===%n%b%n===FILES===",
+        "--format=%x00%s%x00%b",
+        "-z",
         "--name-only",
         "--no-merges",
     )

@@ -27,7 +27,6 @@ import tempfile
 from unittest.mock import patch
 
 from script_test_support import ScriptRegressionTestCase, load_script
-from internal.content.common import _parse_tsv_rows
 from internal.content.talents import TalentRow
 
 INSPECT = load_script("content_inspect", "content-inspect.py")
@@ -65,13 +64,12 @@ class ContentInspectTests(ScriptRegressionTestCase):
                             '# comment\n\n'
                             'one\tOne\ticon\t"first\nsecond"\t\ton_cleanse_draw:1\n'
                             'two\tTwo\ticon\tOther\t\tcleanseBonusDraw:2\n')
-            parser = lambda: _parse_tsv_rows(path, TalentRow)
             def run(*args):
                 output = io.StringIO()
                 with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
                     status = INSPECT.main(list(args))
                 return status, output.getvalue()
-            with patch.object(INSPECT, 'MANIFEST_DIR', path.parent), patch.dict(INSPECT.PARSERS, {'talents': parser}):
+            with patch.object(INSPECT, 'MANIFEST_DIR', path.parent), patch.dict(INSPECT.TABLE_SCHEMAS, {'talents': (TalentRow, 4)}):
                 status, output = run('--kind', 'talents', '--id', 'one')
                 self.assertEqual(status, 0)
                 self.assertIn('talents.tsv:4', output)

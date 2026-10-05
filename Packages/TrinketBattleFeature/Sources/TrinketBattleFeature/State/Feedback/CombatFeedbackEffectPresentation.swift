@@ -107,7 +107,7 @@ enum CombatFeedbackEffectPresentation {
         case .blockSpent:
             Descriptor(.buff, labelRule: .negatedAmount)
         case .blockStripped:
-            Descriptor(.block, labelRule: .negatedAmount)
+            Descriptor(.control, labelRule: .negatedAmount)
         case .shieldApplied:
             Descriptor(.buff, isAdditive: true, labelRule: .amount)
         case .shieldAbsorbed:

@@ -80,6 +80,9 @@ Bristling checks Block remaining after the incoming hit. Spiteful heals only
 when Thorns removes enemy Health, at most once per surviving wearer per turn.
 Thorns retaliation keeps its Physical or converted damage type and also observes
 Thorns resistance, including Briar Ward; ordinary Physical damage does not.
+Retaliatory reflection can trigger Spitebloom and earn Spiteful after positive
+Health damage, sharing Spiteful's once-per-turn allowance with a consumed Thorns stack.
+Its Physical reflection also observes Thorns resistance.
 Committed Thorns and lingering Bleed still deal damage after their source falls.
 Their personal rewards require a living owner: Martial Guard's Block, both
 Blood Money rewards, and Critical Hit Gold stop after final defeat.

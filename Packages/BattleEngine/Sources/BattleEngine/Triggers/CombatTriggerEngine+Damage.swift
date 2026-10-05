@@ -372,7 +372,7 @@ package extension CombatTriggerEngine {
             purgeAll: profile.triggers.criticalPurgeAll,
             in: &context,
         )
-        if source.role == .companion, context.roster.hero.isAlive,
+        if source.role == .companion, context.roster.health(for: source) > 0, context.roster.hero.isAlive,
            context.heroModifiers.triggers.toxicTransfusion {
             context.roster.mutateRuntime(for: context.roster.hero.combatant) {
                 $0.talents.pending.doubleNextPoisonAttack = true

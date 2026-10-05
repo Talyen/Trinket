@@ -9,20 +9,21 @@ import shlex
 import sys
 
 from internal.cli import ROOT
-from internal.content.common import MANIFEST_DIR, read_tsv_records
+from internal.content.common import MANIFEST_DIR, located_tsv_rows, AFFIX_REQUIRED_COLUMNS, TALENT_REQUIRED_COLUMNS
 from internal.content.abilities import located_ability_decls
 from internal.content.content_codegen_triggers import _trigger_field_types, parse_trigger_values
-from internal.content.homestead import parse_homestead_node_rows
-from internal.content.items import parse_affix_rows, parse_item_base_rows
-from internal.content.roster import parse_combatant_rows, parse_enemy_rows, parse_trait_rows
-from internal.content.stages import parse_stage_rows
-from internal.content.talents import parse_talent_rows
+from internal.content.homestead import HomesteadNodeRow
+from internal.content.items import AffixRow, ItemBaseRow
+from internal.content.roster import CombatantRow, EnemyRow, TraitRow
+from internal.content.stages import StageRow
+from internal.content.talents import TalentRow
 from internal.content.inspection import related_references
 
-PARSERS = {
-    "talents": parse_talent_rows, "traits": parse_trait_rows, "affixes": parse_affix_rows,
-    "homestead_nodes": parse_homestead_node_rows, "combatants": parse_combatant_rows,
-    "enemies": parse_enemy_rows, "item_bases": parse_item_base_rows, "stages": parse_stage_rows,
+TABLE_SCHEMAS = {
+    "talents": (TalentRow, TALENT_REQUIRED_COLUMNS), "traits": (TraitRow, None),
+    "affixes": (AffixRow, AFFIX_REQUIRED_COLUMNS), "homestead_nodes": (HomesteadNodeRow, None),
+    "combatants": (CombatantRow, None), "enemies": (EnemyRow, None),
+    "item_bases": (ItemBaseRow, None), "stages": (StageRow, None),
 }
 
 
@@ -34,11 +35,8 @@ def records(kind: str):
             }
         return
     path = MANIFEST_DIR / f"{kind}.tsv"
-    locations = read_tsv_records(path)[1:]
-    rows = PARSERS[kind]()
-    if len(rows) != len(locations):
-        raise ValueError(f"{path}: parser and source locations disagree")
-    for row, (line, _) in zip(rows, locations):
+    row_type, min_columns = TABLE_SCHEMAS[kind]
+    for line, row in located_tsv_rows(path, row_type, min_columns):
         fields = asdict(row)
         identity = fields.get("id", fields.get("node_id"))
         if identity is None:
@@ -52,7 +50,7 @@ def main(argv: list[str] | None = None) -> int:
     query.add_argument("--id", help="exact manifest or ability ID; all Homestead tiers; stages use chapter_id:stage_number")
     query.add_argument("--name", help="case-insensitive player-facing name substring; lists all matching records")
     query.add_argument("--trigger", help="exact canonical Swift trigger field (aliases resolve through codegen)")
-    parser.add_argument("--kind", choices=(*PARSERS, "abilities"), help="restrict to one manifest or authored abilities")
+    parser.add_argument("--kind", choices=(*TABLE_SCHEMAS, "abilities"), help="restrict to one manifest or authored abilities")
     parser.add_argument("--limit", type=int, default=5, help="records per page")
     parser.add_argument("--offset", type=int, default=0)
     parser.add_argument("--full", action="store_true", help="show complete fields in this page")
@@ -68,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.trigger and args.trigger not in _trigger_field_types():
             raise ValueError(f"Unknown canonical trigger field: {args.trigger}")
         matches = []
-        kinds = [args.kind] if args.kind else [*PARSERS, *(["abilities"] if args.trigger is None else [])]
+        kinds = [args.kind] if args.kind else [*TABLE_SCHEMAS, *(["abilities"] if args.trigger is None else [])]
         for kind in kinds:
             for location, identity, fields in records(kind):
                 if args.id is not None:

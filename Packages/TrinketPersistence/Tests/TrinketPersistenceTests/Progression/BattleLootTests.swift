@@ -104,7 +104,7 @@ struct BattleLootTests {
     }
 
     @Test(arguments: BattleLoot.materialResources, [false, true])
-    func `focused materials guarantee one boosted slot and a distinct ordinary slot`(resource: HomesteadResource, boss: Bool) throws {
+    func `focused rewards retain general material bonuses on both distinct slots`(resource: HomesteadResource, boss: Bool) throws {
         let modifier = try #require(RewardModifier(rawValue: resource.rawValue))
         func resolve(bonus: Int) -> BattleLootResult {
             BattleLoot.resolve(
@@ -115,14 +115,19 @@ struct BattleLootTests {
                 encounterLevel: 20, enemyIsBoss: boss, worldSeed: 42, ownership: RewardOwnership(),
             )
         }
+        let rawFocus = resolve(bonus: -RewardModifier.bonusPercent)
         let base = resolve(bonus: 0)
-        let boosted = resolve(bonus: RewardModifier.bonusPercent)
+        let boosted = resolve(bonus: 2 * RewardModifier.bonusPercent)
         #expect(boosted.materials.count == 2)
         #expect(Set(boosted.materials.map(\.resource)).count == 2)
         let focused = try #require(boosted.materials.first)
         #expect(focused.resource == resource)
-        #expect(focused.quantity == CombatRounding.scaled(base.materials[0].quantity, byPercent: 25))
-        #expect(boosted.materials[1] == base.materials[1])
+        #expect(focused.quantity == CombatRounding.scaled(rawFocus.materials[0].quantity, byPercent: 3 * RewardModifier.bonusPercent))
+        #expect(boosted.materials[1].resource == base.materials[1].resource)
+        #expect(boosted.materials[1].quantity == CombatRounding.scaled(
+            base.materials[1].quantity,
+            byPercent: 2 * RewardModifier.bonusPercent,
+        ))
         #expect(boosted.gold == base.gold)
         #expect(boosted.item == base.item)
     }

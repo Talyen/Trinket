@@ -17,9 +17,9 @@ from internal.content.common import (
     swift_escape,
     write_generated_file,
 )
-from internal.content.content_codegen_modifiers import modifier_field_key
-from internal.content.content_codegen_modifiers import modifier_token_to_swift
-from internal.content.content_codegen_modifiers import parse_modifier_tokens
+from internal.content.content_codegen_modifiers import (
+    modifier_field_key, modifier_token_to_swift, parse_modifier_tokens, parse_typed_int,
+)
 
 
 VALID_HOMESTEAD_CATEGORIES = frozenset(
@@ -89,24 +89,14 @@ def parse_homestead_combat_tokens(
                     f"Duplicate homestead bonus {name!r}: {token!r} repeats {seen[name]!r}"
                 )
             seen[name] = token
-            try:
-                number = int(amount.strip())
-            except ValueError as error:
-                raise ValueError(
-                    f"Homestead bonus {name!r} must be an integer, got {amount!r}"
-                ) from error
+            number = parse_typed_int(amount, f"Homestead bonus {name!r}")
             if name not in {"astral_chance", "gold_find"} and number <= 0:
                 raise ValueError(f"Homestead bonus {name} must be positive")
             bonuses[name] = number
             continue
-        scope = "both"
-        body = token
-        if token.startswith("hero."):
-            scope = "hero"
-            body = token.removeprefix("hero.")
-        elif token.startswith("companion."):
-            scope = "companion"
-            body = token.removeprefix("companion.")
+        scope, separator, body = token.partition(".")
+        if not separator or scope not in {"hero", "companion"}:
+            scope, body = "both", token
         key = (scope, *modifier_field_key(body))
         if key in seen:
             raise ValueError(

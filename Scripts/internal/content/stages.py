@@ -9,6 +9,7 @@ from internal.cli import ROOT
 from internal.content.common import (
     GENERATED_DIR,
     MANIFEST_DIR,
+    _ensure_unique,
     _parse_tsv_rows,
     _validate_positive_int,
     list_catalog_property,
@@ -119,12 +120,15 @@ def validate_stage_rows(
 ) -> None:
     seen_stage_ids: set[str] = set()
     chapters: dict[str, list[StageRow]] = {}
+    references = {
+        "battle": (enemy_ids, "enemy"),
+        "mystery": (mystery_event_ids, "mystery event"),
+        "recruit": (recruit_event_ids, "recruit event"),
+    }
 
     for row in rows:
         stage_id = f"{row.chapter_id}-stage-{row.stage_number}"
-        if stage_id in seen_stage_ids:
-            raise ValueError(f"Duplicate stage id: {stage_id}")
-        seen_stage_ids.add(stage_id)
+        _ensure_unique(seen_stage_ids, stage_id, "stage id")
 
         if row.theme not in VALID_CHAPTER_THEMES:
             raise ValueError(f"Unknown chapter theme '{row.theme}' for {stage_id}")
@@ -132,24 +136,11 @@ def validate_stage_rows(
             raise ValueError(f"Unknown encounter '{row.encounter}' for {stage_id}")
         if row.encounter == "battle" and not row.enemy_id.strip():
             raise ValueError(f"battle encounter requires enemy_id for {stage_id}")
-        if row.encounter == "battle" and enemy_ids is not None and row.enemy_id not in enemy_ids:
-            raise ValueError(f"Stage {stage_id} references unknown enemy '{row.enemy_id}'")
-        if (
-            row.encounter == "mystery"
-            and row.enemy_id.strip()
-            and mystery_event_ids is not None
-            and row.enemy_id not in mystery_event_ids
-        ):
-            raise ValueError(f"Stage {stage_id} references unknown mystery event '{row.enemy_id}'")
-        if row.encounter == "recruit" and row.enemy_id.strip():
-            if (
-                row.enemy_id != RANDOM_COMPANION_RECRUIT_ID
-                and recruit_event_ids is not None
-                and row.enemy_id not in recruit_event_ids
-            ):
-                raise ValueError(
-                    f"Stage {stage_id} references unknown recruit event '{row.enemy_id}'"
-                )
+        if row.encounter in references:
+            known_ids, label = references[row.encounter]
+            sentinel = row.encounter == "recruit" and row.enemy_id == RANDOM_COMPANION_RECRUIT_ID
+            if row.enemy_id.strip() and not sentinel and known_ids is not None and row.enemy_id not in known_ids:
+                raise ValueError(f"Stage {stage_id} references unknown {label} '{row.enemy_id}'")
         if row.encounter == "random_battle" and row.enemy_id.strip():
             raise ValueError(f"random_battle must leave enemy_id empty at {stage_id}")
         if row.encounter not in {"battle", "mystery", "recruit"} and row.enemy_id.strip():
@@ -191,10 +182,8 @@ def validate_stage_rows(
         expected = list(range(1, len(numbers) + 1))
         if sorted(numbers) != expected:
             raise ValueError(f"Chapter {chapter_id} stages must be numbered 1...N contiguously")
-        titles = {row.chapter_title for row in chapter_rows}
-        themes = {row.theme for row in chapter_rows}
-        numbers_in_chapter = {row.chapter_number for row in chapter_rows}
-        if len(titles) != 1 or len(themes) != 1 or len(numbers_in_chapter) != 1:
+        metadata = {(row.chapter_title, row.theme, row.chapter_number) for row in chapter_rows}
+        if len(metadata) != 1:
             raise ValueError(f"Chapter metadata must be consistent for {chapter_id}")
         number = int(chapter_rows[0].chapter_number)
         if number in chapter_numbers:

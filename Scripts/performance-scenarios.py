@@ -16,11 +16,11 @@ def test_measurements(source: str) -> dict[str, list[str]]:
     # Test methods end at the next method declaration; nested measurement
     # closures stay inside their owner. Interpolated category names retain
     # their literal prefix/suffix when matching inventory entries.
-    source = re.sub(
-        r'"(?:\\.|[^"\\])*"|//[^\n]*|/\*[\s\S]*?\*/',
-        lambda token: token[0] if token[0].startswith('"') else '', source,
-    )
-    methods = list(re.finditer(r'\bfunc\s+(\w+)\s*\(', source))
+    lexemes = r'"(?:\\.|[^"\\])*"|//[^\n]*|/\*[\s\S]*?\*/'
+    source = re.sub(lexemes, lambda token: token[0] if token[0].startswith('"') else ' ' * len(token[0]), source)
+    # Keep offsets identical while excluding declarations mentioned in strings.
+    declarations = re.sub(lexemes, lambda token: ' ' * len(token[0]), source)
+    methods = list(re.finditer(r'\bfunc\s+(\w+)\s*\(', declarations))
     result = {}
     for index, method in enumerate(methods):
         end = methods[index + 1].start() if index + 1 < len(methods) else len(source)

@@ -94,6 +94,9 @@ class TestTimingTests(unittest.TestCase):
                 ],
             }
             malformed = [
+                valid_entry | {"schema_version": True},
+                valid_entry | {"summary": valid_entry["summary"] | {"passed": True}},
+                valid_entry | {"tests": [{"id": "invalid", "name": "invalid", "seconds": False}]},
                 [],
                 {"schema_version": 2, "mode": "unit", "summary": {}, "tests": []},
                 {"schema_version": 1, "mode": "unit", "summary": {}, "tests": [{"seconds": "NaN"}]},

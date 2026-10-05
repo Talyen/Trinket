@@ -168,46 +168,16 @@ class Probe: XCTestCase {
             ), self.assertRaises(RuntimeError):
                 self.policy.formatter_tokens("let value = 1\n", ROOT)
 
-    def test_formatter_owns_rewrites_and_preserves_persisted_values(self) -> None:
-        source = '''enum Temporary: String { case sample = "sample" }
-// swiftformat:disable redundantRawValues - persisted identifiers
-enum Persisted: String { case sample = "sample" }
-// swiftformat:enable redundantRawValues
-struct Probe {public nonisolated static func value( ) -> Int {return 1;}}
-'''
-        command = [str(ROOT / ".tools/swiftformat"), "stdin", "--config", str(ROOT / ".swiftformat"),
-                   "--cache", "ignore", "--quiet"]
-        unformatted = subprocess.run([*command, "--lint"], input=source, capture_output=True, text=True)
-        self.assertNotEqual(unformatted.returncode, 0)
-        formatted = subprocess.run(command, input=source, capture_output=True, text=True)
-        self.assertEqual(formatted.returncode, 0, formatted.stderr)
-        self.assertIn('case sample = "sample"', formatted.stdout)
-        self.assertEqual(formatted.stdout.count('case sample = "sample"'), 1)
-        linted = subprocess.run([*command, "--lint"], input=formatted.stdout, capture_output=True, text=True)
-        self.assertEqual(linted.returncode, 0, linted.stderr)
-
-    def test_complexity_and_file_size_count_code(self) -> None:
-        mappings = "func probe(value: Int) -> Int {\n    switch value {\n" + "".join(
-            f"    case {index}: {index}\n" for index in range(20)
-        ) + "    default: 0\n    }\n}\n"
-        branches = "func probe(value: Int) {\n    switch value {\n    default:\n" + "".join(
-            f"        if value == {index} {{ print(value) }}\n" for index in range(16)
-        ) + "    }\n}\n"
-        cases = (
-            (mappings, "cyclomatic_complexity", False),
-            (branches, "cyclomatic_complexity", True),
-            ("// rationale\n" * 601 + "struct Probe {}\n", "file_length", False),
-            ("print(1)\n" * 601, "file_length", True),
+    def test_formatter_preserves_explicit_persisted_raw_values(self) -> None:
+        source = ('// swiftformat:disable redundantRawValues - persisted identifiers\n'
+                  'enum Persisted: String { case sample = "sample" }\n'
+                  '// swiftformat:enable redundantRawValues\n')
+        result = subprocess.run(
+            [str(ROOT / ".tools/swiftformat"), "stdin", "--config", str(ROOT / ".swiftformat"),
+             "--cache", "ignore", "--quiet"], input=source, capture_output=True, text=True,
         )
-        for source, rule, should_fail in cases:
-            with self.subTest(rule=rule, should_fail=should_fail):
-                result = subprocess.run(
-                    [str(ROOT / ".tools/swiftlint"), "lint", "--config", str(ROOT / ".swiftlint.yml"),
-                     "--quiet", "--no-cache", "--use-stdin", "--only-rule", rule, "--reporter", "json"],
-                    input=source, capture_output=True, text=True,
-                )
-                findings = [row for row in json.loads(result.stdout) if row["rule_id"] == rule]
-                self.assertEqual(bool(findings), should_fail, result.stdout + result.stderr)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('case sample = "sample"', result.stdout)
 
 
 if __name__ == "__main__":

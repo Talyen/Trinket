@@ -31,18 +31,8 @@ def finite_nonnegative(value: object, label: str) -> float:
         raise SystemExit(f"{label} must be a finite non-negative number")
 
 
-def valid_duration(value: object) -> bool:
-    if value is None:
-        return True
-    try:
-        duration_number(value)
-        return True
-    except (TypeError, ValueError, OverflowError):
-        return False
-
-
 def valid_entry(entry: object) -> bool:
-    if not isinstance(entry, dict) or entry.get("schema_version", 1) != 1:
+    if not isinstance(entry, dict) or type(entry.get("schema_version", 1)) is not int or entry.get("schema_version", 1) != 1:
         return False
     if not isinstance(entry.get("mode"), str) or not entry["mode"]:
         return False
@@ -52,11 +42,16 @@ def valid_entry(entry: object) -> bool:
     tests = entry.get("tests")
     if not isinstance(summary, dict) or not isinstance(tests, list):
         return False
-    if not valid_duration(entry.get("wall_seconds")):
-        return False
-    if not valid_duration(summary.get("measured_test_seconds")):
-        return False
-    if "xcresult_seconds" in summary and not valid_duration(summary["xcresult_seconds"]):
+    try:
+        for value in (entry.get("wall_seconds"), summary.get("measured_test_seconds"),
+                      summary.get("xcresult_seconds")):
+            if value is not None:
+                duration_number(value)
+        for test in tests:
+            if not isinstance(test, dict) or not isinstance(test.get("id"), str) or not isinstance(test.get("name"), str):
+                return False
+            duration_number(test.get("seconds"))
+    except (TypeError, ValueError, OverflowError):
         return False
     for key in ("passed", "failed", "skipped"):
         value = summary.get(key)
@@ -67,14 +62,7 @@ def valid_entry(entry: object) -> bool:
         return False
     if "no_build" in entry and not isinstance(entry["no_build"], bool):
         return False
-    return all(
-        isinstance(test, dict)
-        and isinstance(test.get("id"), str)
-        and isinstance(test.get("name"), str)
-        and test.get("seconds") is not None
-        and valid_duration(test.get("seconds"))
-        for test in tests
-    )
+    return True
 
 
 def parse_xcresult(path: Path) -> dict:
@@ -99,7 +87,7 @@ def parse_xcresult(path: Path) -> dict:
                     {
                         "id": node.get("nodeIdentifier", node.get("name", "unknown")),
                         "name": node.get("name", ""),
-                        "seconds": finite_nonnegative(node.get("durationInSeconds") or 0.0, "xcresult test duration"),
+                        "seconds": finite_nonnegative(node.get("durationInSeconds", 0.0), "xcresult test duration"),
                         "result": node.get("result", "Unknown"),
                     }
                 )

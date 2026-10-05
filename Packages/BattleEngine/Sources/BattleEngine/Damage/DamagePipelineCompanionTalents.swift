@@ -260,7 +260,7 @@ package extension DamagePipeline {
     ) {
         guard state.options.isAttackHit, state.isCritical, state.healthLost > 0,
               let sourceID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceID), source.role == .companion,
+              let source = context.roster.combatant(for: sourceID), source.role == .companion, source.isAlive,
               context.roster.hero.isAlive
         else { return }
         let triggers = context.modifiers(for: sourceID).triggers

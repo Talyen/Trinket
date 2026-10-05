@@ -138,32 +138,21 @@ def resolve_scan_paths(explicit: list[str] | None) -> list[str]:
     return [str(ROOT / root) for root in SCAN_ROOTS if (ROOT / root).exists()]
 
 
-def candidate_files(scan_paths: list[str]) -> list[Path] | None:
-    """Find files that need classification, without parsing source lines.
-
-    Returns an empty list when rg finds no candidates, or None when rg is
-    unavailable (caller should fall back to a full Swift scan). Raises
-    RuntimeError when rg is present but the search fails — fail closed.
-    """
+def candidate_files(scan_paths: list[str], pattern: str = RG_PATTERN) -> list[Path]:
+    """Search with NUL-delimited paths, falling back only when rg is unavailable."""
     if not scan_paths:
         return []
-    cmd = [
-        "rg",
-        "--files-with-matches",
-        "--null",
-        "-g",
-        "*.swift",
-        RG_PATTERN,
-        *scan_paths,
-    ]
     try:
-        result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, check=False)
+        result = subprocess.run(
+            ["rg", "--files-with-matches", "--null", "-g", "*.swift", pattern, *scan_paths],
+            cwd=ROOT, capture_output=True, text=True, check=False,
+        )
     except FileNotFoundError:
-        return None
+        regex = re.compile(pattern)
+        return [path for path in fallback_list_swift_files(scan_paths)
+                if regex.search(path.read_text(encoding="utf-8"))]
     if result.returncode not in (0, 1):
-        stderr = (result.stderr or "").strip()
-        detail = f": {stderr}" if stderr else ""
-        raise RuntimeError(f"rg failed (exit {result.returncode}){detail}")
+        raise RuntimeError(f"rg failed (exit {result.returncode}): {result.stderr.strip()}")
     return [ROOT / name for name in result.stdout.split("\0") if name]
 
 
@@ -226,11 +215,7 @@ def scan_file(path: Path) -> list[str]:
     except ValueError:
         rel = path.as_posix()
 
-    try:
-        text = path.read_text(encoding="utf-8")
-    except OSError as exc:
-        print(f"warning: unable to read {rel}: {exc}", file=sys.stderr)
-        return []
+    text = path.read_text(encoding="utf-8")
 
     violations: list[str] = []
     previous_line = ""
@@ -281,33 +266,10 @@ def fallback_list_swift_files(scan_paths: list[str]) -> list[Path]:
 
 def motion_hint_files(scan_paths: list[str]) -> list[str]:
     """Files using inline animation constructors without referencing TrinketMotion."""
-    candidates: list[Path] = []
-    cmd = [
-        "rg",
-        "-l",
-        "--no-heading",
-        "--with-filename",
-        "-g",
-        "*.swift",
-        MOTION_HINT_RE.pattern,
-        *scan_paths,
-    ]
     try:
-        result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, check=False)
-    except FileNotFoundError:
-        candidates = [
-            path
-            for path in fallback_list_swift_files(scan_paths)
-            if MOTION_HINT_RE.search(path.read_text(encoding="utf-8", errors="replace"))
-        ]
-    else:
-        if result.returncode not in (0, 1):
-            return []
-        for line in result.stdout.splitlines():
-            path = Path(line.strip())
-            if not path.is_absolute():
-                path = ROOT / path
-            candidates.append(path)
+        candidates = candidate_files(scan_paths, MOTION_HINT_RE.pattern)
+    except (OSError, UnicodeError, RuntimeError):
+        return []
     hints: list[str] = []
     for path in sorted(set(candidates), key=str):
         try:
@@ -329,15 +291,11 @@ def main(argv: list[str]) -> int:
     violations: list[str] = []
 
     try:
-        candidates = candidate_files(scan_paths)
-    except RuntimeError as exc:
-        print(f"error: UI style guardrail search failed: {exc}", file=sys.stderr)
+        for path in sorted(set(candidate_files(scan_paths)), key=str):
+            violations.extend(scan_file(path))
+    except (OSError, UnicodeError, RuntimeError) as exc:
+        print(f"error: UI style guardrail scan failed: {exc}", file=sys.stderr)
         return 1
-
-    if candidates is None:
-        candidates = fallback_list_swift_files(scan_paths)
-    for path in sorted(set(candidates), key=str):
-        violations.extend(scan_file(path))
 
     if violations:
         print("UI style guardrail found styling or artwork-sizing violations:")

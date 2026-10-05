@@ -13,6 +13,7 @@ SCRIPT_INPUTS = (
 from pathlib import Path
 from unittest.mock import patch
 import os
+import hashlib
 import subprocess
 import tempfile
 
@@ -89,7 +90,7 @@ class CodegenAbilitiesTests(ScriptRegressionTestCase):
                 abilities.generate_ability_inventory()
                 published = (root / "AbilityInventory.generated.tsv").read_bytes()
                 self.assertEqual(published.decode(), payload)
-                self.assertEqual((root / "stamp").read_text(), "digest")
+                self.assertEqual((root / "stamp").read_text(), "digest:" + hashlib.sha256(published).hexdigest())
                 self.assertEqual(list((root / "logs").iterdir()), [])
 
                 for invalid in (
@@ -102,9 +103,16 @@ class CodegenAbilitiesTests(ScriptRegressionTestCase):
                         with self.assertRaises(RuntimeError):
                             abilities.generate_ability_inventory()
                         self.assertEqual((root / "AbilityInventory.generated.tsv").read_bytes(), published)
-                        self.assertEqual((root / "stamp").read_text(), "digest")
+                        self.assertEqual((root / "stamp").read_text(), "digest:" + hashlib.sha256(published).hexdigest())
 
                 payload = published.decode()
+                with patch.dict(os.environ, {"TRINKET_FORCE_ABILITY_DUMP": "0"}):
+                    with patch.object(abilities.subprocess, "run") as cached:
+                        abilities.generate_ability_inventory()
+                        cached.assert_not_called()
+                    (root / "AbilityInventory.generated.tsv").write_text("damaged output")
+                    abilities.generate_ability_inventory()
+                    self.assertEqual((root / "AbilityInventory.generated.tsv").read_bytes(), published)
                 authored.return_value *= 2
                 with self.assertRaisesRegex(RuntimeError, "duplicate IDs"):
                     abilities.generate_ability_inventory()

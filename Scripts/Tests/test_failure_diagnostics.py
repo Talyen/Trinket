@@ -416,6 +416,21 @@ class ReporterTests(unittest.TestCase):
                 REPORTER.write_report(report, str(prefix))
             self.assertFalse(step_summary.exists())
 
+    def test_summary_write_failure_is_retained_in_the_diagnostic_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            report = REPORTER.DiagnosticReport(
+                label="summary-failure", result_bundle="", log="", exit_code=1,
+                classification="unknown", issues=[], sources=REPORTER.SourceStatus(), generated_at="fixture",
+            )
+            with patch.dict(os.environ, GITHUB_STEP_SUMMARY=str(root),
+                            TRINKET_DIAGNOSTICS_PER_INVOCATION_SUMMARY="true"), redirect_stderr(io.StringIO()):
+                json_path, markdown_path, annotations_path = REPORTER.write_report(report, str(root / "retained"))
+            errors = json.loads(json_path.read_text())["structured_sources"]["errors"]
+            self.assertTrue(any("GitHub step summary" in error for error in errors))
+            self.assertTrue(markdown_path.is_file())
+            self.assertTrue(annotations_path.is_file())
+
     def test_structured_issue_details_are_bounded(self) -> None:
         issue = REPORTER.DiagnosticIssue(
             "test-failure",

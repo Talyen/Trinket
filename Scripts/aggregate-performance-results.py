@@ -41,7 +41,7 @@ def main() -> int:
     payload = read_json(args.results)
     reports = load_results_reports(payload)
     baseline = read_json(args.baseline)
-    scenarios_value, mode, _, _, _ = load_baseline(baseline)
+    scenarios_value, mode = load_baseline(baseline)
     grouped, failures = group_reports_by_scenario(reports, scenarios_value)
     for scenario, records in grouped.items():
         valid = []

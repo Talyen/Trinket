@@ -43,12 +43,13 @@ struct ManaEmpowermentBudget {
             BattleTurnEngine.manaEmpowermentCost - max(0, reduction)
                 - max(0, burnReduction),
         )
-        let maxMana = (runtime?.maxMana ?? 0) + (patron?.maxMana ?? 0)
+        let maxMana = SaturatedArithmetic.saturatingAdd(runtime?.maxMana ?? 0, patron?.maxMana ?? 0)
         hasCapacity = maxMana > 0 || blockRate > 0
         let repeats = ability.repeatsManaEmpowerment
             || (ability.hasManaEmpowerableBurnDamage && triggers.repeatManaEmpowerment)
         let discountPurchase = preparedDiscount > 0 || (!hasEmpowered && firstDiscount > 0) ? 1 : 0
-        purchaseLimit = repeats && baseCost > 0 ? max(1, maxMana / baseCost + discountPurchase) : 1
+        purchaseLimit = repeats && baseCost > 0
+            ? max(1, SaturatedArithmetic.saturatingAdd(maxMana / baseCost, discountPurchase)) : 1
     }
 
     mutating func nextPayment() -> Payment? {

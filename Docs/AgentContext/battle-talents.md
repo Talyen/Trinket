@@ -123,7 +123,8 @@ Prismatic Edge's Burn and allied Thorn Shedding's Poison attach only the Health
 damage their respective hits actually dealt; fully blocked hits attach none.
 Sunwall rolls once per Holy ability and, on success, grants the Companion Block
 equal to actual Holy Health damage without applying Block bonuses or pacing
-again. Holy follow-up damage shares that ability's roll allowance.
+again. Holy follow-up damage shares that ability's roll allowance. Committed Holy
+Thorns still deals damage after the Knight falls, but cannot earn Sunwall Block.
 
 ### Physical damage rewards and Burn ticks
 
@@ -238,6 +239,10 @@ restores Mana for each Freeze Critical Hit; Noxious Reaction, Cutpurse Cut, Ashe
 Arsenal, and Companion Burn Critical Hit Mana retain their existing reward cadence.
 Critical healing, ongoing damage, and non-attack effects do not qualify.
 
+Temper Cycle also readies its Bleed bonus after a Burn Basic counterattack.
+Toxic Transfusion requires the Companion to survive the Critical Hit's retaliation
+before preparing the Hero's doubled Poison attack.
+
 Cracked Guard prepares the source's next attack after Physical damage breaks enemy
 Block, including reactive damage. The creating card or action cannot spend that
 preparation. Confounding Loot's Gold is theft, so Golden Opportunity, Master Thief,
@@ -295,6 +300,8 @@ that owner's deck for the battle; no Gold is granted. Feigned Miss still prepare
 double damage for the next Physical attack after an attack is fully Blocked.
 Neither reward requires Health damage, and the creating card cannot consume the
 prepared attack bonus.
+Full Basic counterattacks also qualify for Consolation Prize and Feigned Miss;
+their next-attack preparation retains the creating action's identity.
 
 ### Clear Mind and Smite the Wicked
 

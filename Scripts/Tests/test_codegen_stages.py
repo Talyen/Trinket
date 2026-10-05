@@ -42,6 +42,8 @@ class CodegenStagesTests(ScriptRegressionTestCase):
         for row in (self._stage_row(), self._stage_row(encounter="recruit", enemy_id="random-companion")):
             stages.validate_stage_rows([row], **catalog)
         bad_rows = (
+            ("must be an integer", [self._stage_row(chapter_number="١")]),
+            ("must be an integer", [self._stage_row(stage_number="１")]),
             ("Duplicate stage id", [self._stage_row(), self._stage_row()]),
             ("Duplicate chapter number", [self._stage_row(), self._stage_row(chapter_id="chapter-2")]),
             ("requires enemy_id", [self._stage_row(enemy_id="")]),

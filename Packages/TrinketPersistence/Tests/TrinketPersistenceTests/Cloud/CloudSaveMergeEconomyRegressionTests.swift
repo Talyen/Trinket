@@ -5,6 +5,72 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct CloudSaveMergeEconomyRegressionTests {
+    @Test @MainActor func `shared upgrades charge once while distinct builds retain their costs through reload`() throws {
+        let date = Date(timeIntervalSince1970: 2000000000)
+        var base = PlayerSave.testSeed
+        base.roster.gold = 100
+        base.homestead = PlayerHomesteadState(
+            resources: [.wood: 100, .herbs: 100, .food: 100, .gems: 100], nodeTiers: [:], lastProductionAt: date,
+        )
+        let well = try #require(GameContent.homesteadNode(matching: .wishingWell))
+        let field = try #require(GameContent.homesteadNode(matching: .wheatField))
+        let coop = try #require(GameContent.homesteadNode(matching: .chickenCoop))
+        let garden = try #require(GameContent.homesteadNode(matching: .herbGarden))
+        var first = base
+        var second = base
+        for definition in [well, field, coop] {
+            guard case .success = HomesteadBuildMutation.apply(definition, targetTier: 1, at: date, to: &first) else {
+                Issue.record("The first device should afford its buildings")
+                return
+            }
+        }
+        for definition in [well, field, garden] {
+            guard case .success = HomesteadBuildMutation.apply(definition, targetTier: 1, at: date, to: &second) else {
+                Issue.record("The second device should afford its buildings")
+                return
+            }
+        }
+        for preferIncoming in [true, false] {
+            let merged = CloudSaveMerge.merge(incoming: first, existing: second, base: base, preferIncoming: preferIncoming)
+            let context = try PersistenceTestContext()
+            let reloaded = try context.seedAndReload(merged).currentSave
+            let costs = [well, field, coop, garden].flatMap { $0.tier(1)?.cost ?? [] }
+            for resource in HomesteadResource.allCases {
+                let spent = costs.filter { $0.resource == resource }.reduce(0) { $0 + $1.quantity }
+                #expect(reloaded.homestead.balance(for: resource, roster: reloaded.roster)
+                    == base.homestead.balance(for: resource, roster: base.roster) - spent)
+            }
+            for definition in [well, field, coop, garden] {
+                #expect(reloaded.homestead.tier(for: definition.id) == 1)
+            }
+        }
+    }
+
+    @Test @MainActor func `spent overlapping collections neither duplicate Gold nor restore pending credit after reload`() throws {
+        let start = Date(timeIntervalSince1970: 2000000000)
+        let firstDay = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
+        let secondDay = firstDay.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
+        var base = PlayerSave.testSeed
+        base.roster.gold = 100
+        base.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wishingWell: 1], lastProductionAt: start)
+        var first = base
+        var second = base
+        #expect(first.homestead.collectProduction(at: firstDay, roster: &first.roster) == [ResourceAmount(.gold, 1)])
+        #expect(second.homestead.collectProduction(at: secondDay, roster: &second.roster) == [ResourceAmount(.gold, 2)])
+        let firstSpent = first.roster.spendGold(20)
+        let secondSpent = second.roster.spendGold(10)
+        #expect(firstSpent && secondSpent)
+        for preferIncoming in [true, false] {
+            let merged = CloudSaveMerge.merge(incoming: first, existing: second, base: base, preferIncoming: preferIncoming)
+            let context = try PersistenceTestContext()
+            var reloaded = try context.seedAndReload(merged).currentSave
+            #expect(reloaded.roster.gold == 72)
+            #expect(reloaded.homestead.lastProductionAt == secondDay)
+            #expect(reloaded.homestead.collectProduction(at: secondDay, roster: &reloaded.roster).isEmpty)
+            #expect(reloaded.roster.gold == 72)
+        }
+    }
+
     @Test(arguments: [false, true]) @MainActor
     func `overlapping Food collections preserve independent Herbs and Gold rewards through reload`(reverseBranches: Bool) throws {
         let start = Date(timeIntervalSince1970: 2000000000)

@@ -73,12 +73,6 @@ class ComparePerformanceTests(unittest.TestCase):
             self.assertEqual(status, 1)
             self.assertIn("coverage failure", summary)
 
-    def test_diagnostic_metrics_do_not_fail_gate(self) -> None:
-        status, summary = self.run_comparison([report()])
-        self.assertEqual(status, 0)
-        self.assertIn("configured goals", summary)
-        self.assertIn("Mode: `enforce`", summary)
-
     def test_duplicate_or_missing_reports_fail(self) -> None:
         status, summary = self.run_comparison([report(), report()])
         self.assertEqual(status, 1)
@@ -94,12 +88,12 @@ class ComparePerformanceTests(unittest.TestCase):
 
     def test_only_gate_metrics_fail(self) -> None:
         status, summary = self.run_comparison([
-            report(averageFPS=58.9, onePercentLowFPS=58.8, severeStallCount=1)
-        ])
+            report(averageFPS=54.9, onePercentLowFPS=53.8, severeStallCount=3)
+        ], goals={"minimumAverageFPS": 55, "minimumOnePercentLowFPS": 54, "maximumSevereStallCount": 2})
         self.assertEqual(status, 1)
-        self.assertIn("average FPS 58.90 below 59.00", summary)
-        self.assertIn("1% low 58.80 below 59.00", summary)
-        self.assertIn("severe stalls 1.00 above 0.00", summary)
+        self.assertIn("average FPS 54.90 below 55.00", summary)
+        self.assertIn("1% low 53.80 below 54.00", summary)
+        self.assertIn("severe stalls 3.00 above 2.00", summary)
 
     def test_observe_mode_is_non_blocking(self) -> None:
         for mode in ("observe", None):
@@ -111,26 +105,6 @@ class ComparePerformanceTests(unittest.TestCase):
             self.assertIn("Mode: `observe`", summary)
             self.assertIn("average FPS 40.00 below 59.00", summary)
             self.assertIn("Calibration mode is non-blocking", summary)
-
-    def test_configured_goals_are_enforced(self) -> None:
-        status, rendered = self.run_comparison(
-            [report(
-                averageFPS=54.9,
-                onePercentLowFPS=53.9,
-                missedDeadlineCount=1,
-                missedDeadlineRatio=0.2,
-                severeStallCount=3,
-            )],
-            mode="enforce",
-            goals={
-                "minimumAverageFPS": 55,
-                "minimumOnePercentLowFPS": 54,
-                "maximumSevereStallCount": 2,
-            },
-        )
-        self.assertEqual(status, 1)
-        self.assertIn("below 55.00", rendered)
-        self.assertIn("above 2", rendered)
 
     def test_invalid_evidence_fails_even_in_observe_mode(self) -> None:
         for reports in ([], [report(schemaVersion="unknown")], [report(schemaVersion=4)], [report(iteration=True)],
@@ -151,6 +125,18 @@ class ComparePerformanceTests(unittest.TestCase):
         self.assertIsNotNone(match)
         status, _ = self.run_comparison([report(schemaVersion=int(match.group(1)))])
         self.assertEqual(status, 0)
+
+    def test_malformed_baseline_cannot_disable_performance_goals(self) -> None:
+        from internal.performance.performance_model import load_baseline
+        baseline = {"scenarios": ["navigation"], "goals": {
+            "minimumAverageFPS": 59, "minimumOnePercentLowFPS": 59, "maximumSevereStallCount": 0,
+        }}
+        for invalid in (None, baseline | {"goals": []},
+                        baseline | {"goals": baseline["goals"] | {"minimumAverageFPS": True}},
+                        baseline | {"scenarioGoals": {"navigation": {"maximumFrameMs": float("nan")}}},
+                        baseline | {"refreshTargetHz": "sixty"}, baseline | {"minimumReportSchema": True}):
+            with self.subTest(baseline=invalid), self.assertRaises(SystemExit):
+                load_baseline(invalid)
 
 
 if __name__ == "__main__":

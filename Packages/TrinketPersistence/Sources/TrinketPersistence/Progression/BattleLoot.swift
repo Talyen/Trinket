@@ -68,14 +68,8 @@ public enum BattleLoot {
             using: &rng,
         )
         materials = materials.map { material in
-            let bonus: Int = if additionalModifier != nil {
-                modifiers.reduce(request.materialsFoundPercent) { total, modifier in
-                    total + (modifier == .materials || modifier.materialFocus == material.resource ? RewardModifier.bonusPercent : 0)
-                }
-            } else if focuses.isEmpty || material.resource == focuses.first {
-                request.materialsFoundPercent + (modifier?.materialsBonusPercent ?? 0)
-            } else {
-                0
+            let bonus = modifiers.reduce(request.materialsFoundPercent) { total, modifier in
+                total + (modifier == .materials || modifier.materialFocus == material.resource ? RewardModifier.bonusPercent : 0)
             }
             return ResourceAmount(material.resource, CombatRounding.scaled(material.quantity, byPercent: bonus))
         }

@@ -93,28 +93,32 @@ class ReleaseNotesUserTests(unittest.TestCase):
             ],
         )
 
-    def test_parse_git_log_reads_subject_body_and_files(self) -> None:
-        raw = (
-            "===COMMIT===\n"
-            "feat(content): add a new hero\n"
-            "===BODY===\n"
-            "- Recruit a new hero in the collection.\n"
-            "\n"
-            "===FILES===\n"
-            "ContentManifest/heroes.tsv\n"
-            "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift\n"
-        )
-        parsed = notes.parse_git_log(raw)
-        self.assertEqual(len(parsed), 1)
-        self.assertEqual(parsed[0].subject, "feat(content): add a new hero")
-        self.assertEqual(parsed[0].body, "- Recruit a new hero in the collection.")
-        self.assertEqual(
-            parsed[0].files,
-            (
-                "ContentManifest/heroes.tsv",
-                "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift",
-            ),
-        )
+    def test_git_log_preserves_marker_text_and_unusual_product_filenames(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return subprocess.run(["git", "-c", "commit.gpgsign=false", *args], cwd=root,
+                                      capture_output=True, text=True, check=True)
+            git("init")
+            git("config", "user.name", "Fixture")
+            git("config", "user.email", "fixture@example.invalid")
+            name = "ContentManifest/card \n===COMMIT===.tsv"
+            path = root / name
+            path.parent.mkdir()
+            path.write_text("content")
+            git("add", "--", name)
+            body = "- Restore battle rewards.\n===BODY===\n===FILES===\n===COMMIT==="
+            git("commit", "-m", "fix: restore rewards", "-m", body)
+            # An empty body must not be confused with the file-list separator.
+            path.write_text("changed")
+            git("add", "--", name)
+            git("commit", "-m", "fix: improve rewards")
+            with patch.object(notes, "ROOT", root):
+                parsed = notes.load_commits(None)
+            self.assertEqual(parsed, [commit("fix: improve rewards", name),
+                                      commit("fix: restore rewards", name, body=body)])
+            self.assertEqual(notes.build_notes(parsed)[1],
+                             ["• Improve rewards", "• Restore battle rewards."])
 
     def test_release_dry_run_prints_player_draft_without_writing_notes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

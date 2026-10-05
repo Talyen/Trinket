@@ -46,6 +46,8 @@ Saved IDs stay stable; exhausted collectible bonuses resolve to Gold consistentl
 in artwork/details and launch loot. Keyword guarantees occupy one normal affix
 slot on matching Basic/Astral equipment. New reward modifiers apply only to combat;
 existing Mystery quantity bonuses remain supported.
+General material bonuses apply to both loot slots even with a focused material
+reward; the focused bonus applies only to matching resources.
 Item-family guarantees filter the normal single item to Weapon, Armor, Ring, or
 Amulet bases at Basic/Astral tier odds; guaranteed Astral, Trinket, and Unique
 tiers use their named tier directly. Exhausted collectible guarantees use the

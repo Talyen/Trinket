@@ -85,9 +85,7 @@ def generate_ability_shorthand() -> None:
 
 def parse_authored_ability_inventory_rows() -> list[tuple[str, str, str]]:
     """Regex-extract id/name/tier from the ability catalog (cross-check only)."""
-    rows: list[tuple[str, str, str]] = []
-    for _, ability_id, name, tier in iter_ability_decls():
-        rows.append((ability_id, name, tier))
+    rows = [(ability_id, name, tier) for _, ability_id, name, tier in iter_ability_decls()]
     tier_rank = {"basic": 0, "skill": 1, "ultimate": 2}
     rows.sort(key=lambda item: (tier_rank[item[2]], item[1].lower()))
     return rows
@@ -117,7 +115,8 @@ def generate_ability_inventory() -> None:
     force = os.environ.get("TRINKET_FORCE_ABILITY_DUMP") == "1"
     current_digest = _ability_inventory_digest()
     if not force and out.is_file() and ABILITY_INVENTORY_STAMP.is_file():
-        if ABILITY_INVENTORY_STAMP.read_text(encoding="utf-8").strip() == current_digest:
+        cached_digest = current_digest + ":" + hashlib.sha256(out.read_bytes()).hexdigest()
+        if ABILITY_INVENTORY_STAMP.read_text(encoding="utf-8").strip() == cached_digest:
             return
 
     with tempfile.TemporaryDirectory() as directory:
@@ -172,18 +171,13 @@ def generate_ability_inventory() -> None:
             f"missing={missing!r} extra={extra!r}"
         )
 
-    for ability_id, (name, tier) in dumped.items():
-        expected_name, expected_tier = expected[ability_id]
-        if name != expected_name or tier != expected_tier:
-            raise RuntimeError(
-                f"AbilityInventoryDump metadata mismatch for {ability_id}: "
-                f"got name={name!r} tier={tier!r}, "
-                f"expected name={expected_name!r} tier={expected_tier!r}"
-            )
+    mismatches = [ability_id for ability_id in dumped if dumped[ability_id] != expected[ability_id]]
+    if mismatches:
+        raise RuntimeError(f"AbilityInventoryDump metadata mismatch: {mismatches!r}")
 
     # Skip rewrite when unchanged so generate no-ops do not bump mtimes under
     # Packages/TrinketContent (Xcode watches the package tree).
     write_if_changed(out, tsv)
 
     ABILITY_INVENTORY_STAMP.parent.mkdir(parents=True, exist_ok=True)
-    ABILITY_INVENTORY_STAMP.write_text(current_digest, encoding="utf-8")
+    ABILITY_INVENTORY_STAMP.write_text(current_digest + ":" + hashlib.sha256(tsv.encode("utf-8")).hexdigest(), encoding="utf-8")

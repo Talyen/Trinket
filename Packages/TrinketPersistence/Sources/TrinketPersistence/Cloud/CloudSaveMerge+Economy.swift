@@ -13,14 +13,10 @@ extension CloudSaveMerge {
         let producedResources = overlappingProduction ? productionResources(
             in: [base?.homestead, incoming.homestead, existing.homestead].compactMap(\.self),
         ) : []
-        let overlappingUpgrade = base.map { base in
-            HomesteadNodeID.allCases.contains { id in
-                incoming.homestead.tier(for: id) > base.homestead.tier(for: id)
-                    && existing.homestead.tier(for: id) > base.homestead.tier(for: id)
-            }
-        } ?? false
+        let sharedUpgradeCosts = sharedUpgradeCosts(branches: branches)
+        let collections = productionCollections(branches: branches)
         let canCombine = branches.canCombineIndependentRewards
-        let repeatedGold = overlappingProduction
+        let repeatedGold = collections == nil && overlappingProduction
             && producedResources.contains(.gold)
             && incoming.roster.gold > (base?.roster.gold ?? 0)
             && existing.roster.gold > (base?.roster.gold ?? 0)
@@ -31,18 +27,20 @@ extension CloudSaveMerge {
         merged.roster.gold = balance(
             incoming.roster.gold, existing.roster.gold, base: base?.roster.gold,
             combine: canCombine && !repeatedGold,
+            correction: sharedUpgradeCosts[.gold, default: 0] - (collections?.shared[.gold, default: 0] ?? 0),
         )
         for resource in HomesteadResource.allCases where resource != .gold {
             let first = incoming.homestead.resources[resource, default: 0]
             let second = existing.homestead.resources[resource, default: 0]
             let starting = base?.homestead.resources[resource, default: 0]
-            let repeated = overlappingProduction && producedResources.contains(resource)
+            let repeated = collections == nil && overlappingProduction && producedResources.contains(resource)
                 && first > (starting ?? 0) && second > (starting ?? 0)
-            if canCombine, !overlappingUpgrade, !repeated {
+            if canCombine, !repeated {
                 combinedResources.insert(resource)
             }
             merged.homestead.resources[resource] = balance(
-                first, second, base: starting, combine: canCombine && !overlappingUpgrade && !repeated,
+                first, second, base: starting, combine: canCombine && !repeated,
+                correction: sharedUpgradeCosts[resource, default: 0] - (collections?.shared[resource, default: 0] ?? 0),
             )
         }
         mergeRewardRemainders(into: &merged, branches: branches, combinedResources: combinedResources)
@@ -52,8 +50,63 @@ extension CloudSaveMerge {
         merged.homestead.lastProductionAt = max(incoming.homestead.lastProductionAt, existing.homestead.lastProductionAt)
         mergePendingProduction(
             into: &merged, incoming: incoming, existing: existing,
-            base: base, overlappingProduction: overlappingProduction,
+            base: base, overlappingProduction: overlappingProduction, collectedResources: collections?.collected ?? [],
         )
+    }
+
+    private static func sharedUpgradeCosts(branches: Branches) -> [HomesteadResource: Int] {
+        guard let base = branches.base else { return [:] }
+        // Each shared tier is installed once, so restore one copy of its cost
+        // after combining the branches' spending deltas.
+        var costs: [HomesteadResource: Int] = [:]
+        for id in HomesteadNodeID.allCases {
+            let starting = base.homestead.tier(for: id)
+            let shared = min(branches.incoming.homestead.tier(for: id), branches.existing.homestead.tier(for: id))
+            guard shared > starting, let definition = GameContent.homesteadNode(matching: id) else { continue }
+            for tier in definition.tiers where tier.tier > starting && tier.tier <= shared {
+                for amount in tier.cost {
+                    costs[amount.resource] = SaturatedArithmetic.saturatingAdd(costs[amount.resource, default: 0], amount.quantity)
+                }
+            }
+        }
+        return costs
+    }
+
+    private static func productionCollections(
+        branches: Branches,
+    ) -> (shared: [HomesteadResource: Int], collected: Set<HomesteadResource>)? {
+        guard let base = branches.base,
+              branches.incoming.homestead.lastProductionAt > base.homestead.lastProductionAt,
+              branches.existing.homestead.lastProductionAt > base.homestead.lastProductionAt,
+              branches.incoming.homestead.nodeTiers == base.homestead.nodeTiers,
+              branches.existing.homestead.nodeTiers == base.homestead.nodeTiers else { return nil }
+        // Stable producers let missing pending credit identify collection even
+        // when later spending has hidden it in the wallet balance.
+        let cursor = max(branches.incoming.homestead.lastProductionAt, branches.existing.homestead.lastProductionAt)
+        var starting = base.homestead
+        var first = branches.incoming.homestead
+        var second = branches.existing.homestead
+        starting.settleProduction(at: cursor, roster: base.roster)
+        let goldCredit = starting.pendingProduction[.gold, default: 0]
+        // A capped wallet can change production after spending; the shared
+        // snapshot no longer proves how much Gold either branch generated.
+        if goldCredit > 0, goldCredit >= Double(PlayerRosterState.maxGoldBalance - base.roster.gold) {
+            return nil
+        }
+        first.settleProduction(at: cursor, roster: branches.incoming.roster)
+        second.settleProduction(at: cursor, roster: branches.existing.roster)
+        var shared: [HomesteadResource: Int] = [:]
+        var collected: Set<HomesteadResource> = []
+        for resource in HomesteadResource.allCases {
+            let credit = starting.pendingProduction[resource, default: 0]
+            let left = max(0, SaturatedArithmetic.rounded(credit - first.pendingProduction[resource, default: 0]))
+            let right = max(0, SaturatedArithmetic.rounded(credit - second.pendingProduction[resource, default: 0]))
+            shared[resource] = min(left, right)
+            if left > 0 || right > 0 {
+                collected.insert(resource)
+            }
+        }
+        return (shared, collected)
     }
 
     private static func productionResources(in homesteads: [PlayerHomesteadState]) -> Set<HomesteadResource> {
@@ -113,7 +166,7 @@ extension CloudSaveMerge {
 
     private static func mergePendingProduction(
         into merged: inout PlayerSave, incoming: PlayerSave, existing: PlayerSave,
-        base: PlayerSave?, overlappingProduction: Bool,
+        base: PlayerSave?, overlappingProduction: Bool, collectedResources: Set<HomesteadResource>,
     ) {
         var incomingProduction = incoming.homestead
         var existingProduction = existing.homestead
@@ -134,7 +187,7 @@ extension CloudSaveMerge {
             let baseBalance = resource == .gold ? base?.roster.gold : base?.homestead.resources[resource, default: 0]
             let incomingBalance = resource == .gold ? incoming.roster.gold : incoming.homestead.resources[resource, default: 0]
             let existingBalance = resource == .gold ? existing.roster.gold : existing.homestead.resources[resource, default: 0]
-            let collected = overlappingProduction && baseBalance.map {
+            let collected = collectedResources.contains(resource) || overlappingProduction && baseBalance.map {
                 incomingBalance > $0 || existingBalance > $0
             } == true
             let pending: Double = if collected || sameProductionInterval {
@@ -154,19 +207,20 @@ extension CloudSaveMerge {
         }
     }
 
-    private static func balance(_ lhs: Int, _ rhs: Int, base: Int?, combine: Bool) -> Int {
+    private static func balance(_ lhs: Int, _ rhs: Int, base: Int?, combine: Bool, correction: Int = 0) -> Int {
         guard let base else { return max(lhs, rhs) }
+        if combine {
+            let left = SaturatedArithmetic.saturatingSub(lhs, base)
+            let right = SaturatedArithmetic.saturatingSub(rhs, base)
+            let delta = SaturatedArithmetic.saturatingAdd(SaturatedArithmetic.saturatingAdd(left, correction), right)
+            return max(0, SaturatedArithmetic.saturatingAdd(base, delta))
+        }
         if lhs == base {
             return rhs
         }
         if rhs == base {
             return lhs
         }
-        guard combine else {
-            return max(lhs, rhs)
-        }
-        let left = SaturatedArithmetic.saturatingSub(lhs, base)
-        let right = SaturatedArithmetic.saturatingSub(rhs, base)
-        return max(0, SaturatedArithmetic.saturatingAdd(base, SaturatedArithmetic.saturatingAdd(left, right)))
+        return max(lhs, rhs)
     }
 }

@@ -133,6 +133,9 @@ touch_build_stamp results package_TrinketCore
             for key in current.keys() - {'commit'} | {'fingerprint'}:
                 with self.subTest(key=key), self.assertRaisesRegex(ValueError, key):
                     metadata.validate_metadata(saved | {key: 'incompatible'}, current, 'smoke')
+            for version in (True, 1.0):
+                with self.subTest(version=version), self.assertRaisesRegex(ValueError, 'version'):
+                    metadata.validate_metadata(saved | {'version': version}, current, 'smoke')
             for invalid in (None, [], 'identity'):
                 with self.subTest(identity=invalid), self.assertRaisesRegex(ValueError, 'object'):
                     metadata.differences(invalid, current)

@@ -198,13 +198,15 @@ package enum EnemyTraitEngine {
 
         let thornsAmount = CombatRounding.scaled(damageTaken, multiplier: profile.triggers.thornsPercent)
         guard thornsAmount > 0 else { return [] }
+        var operation = DamageOperation.reaction()
+        operation.isThornsDamage = true
         let outcome = context.resolveDamage(
             DamageRequest(
                 amount: thornsAmount,
                 target: attacker,
                 keyword: .physical,
                 sourceActorID: defender.id,
-                options: .reaction(),
+                options: operation,
             ),
         )
         var events = outcome.events
@@ -219,6 +221,9 @@ package enum EnemyTraitEngine {
                 keyword: .physical,
             ))
         }
+        events.append(contentsOf: DamagePipeline.thornsRewards(
+            healthLost: outcome.healthLost, attacker: attacker, defender: defender, in: &context,
+        ))
         return events
     }
 }

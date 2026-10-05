@@ -33,8 +33,11 @@ def rolling_policies(families: list[dict]) -> dict[str, dict]:
 
 def validate_affix_rolling(raw: str, row_id: str) -> None:
     from internal.content.content_codegen_triggers import _trigger_families, parse_trigger_values
-    policies = rolling_policies(_trigger_families())
-    missing = set(parse_trigger_values(raw, row_id)) - policies.keys()
+    # The schema loader already validates every policy once. Per-affix validation
+    # only needs to check whether each used field has an explicit classification.
+    policies = {field['name'] for family in _trigger_families() for field in family['fields']
+                if field.get('affix_roll') is not None}
+    missing = set(parse_trigger_values(raw, row_id)) - policies
     if missing:
         raise ValueError(f'{row_id}: affix trigger fields need explicit affix_roll policy: {sorted(missing)}')
 

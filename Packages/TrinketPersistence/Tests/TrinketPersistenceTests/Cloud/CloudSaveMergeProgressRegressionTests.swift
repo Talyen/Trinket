@@ -6,6 +6,95 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct CloudSaveMergeProgressRegressionTests {
+    @Test @MainActor func `different choices at one Mystery count as one cooldown completion through reload`() throws {
+        var base = PlayerSave.testSeed
+        base.corruptionAltarCooldownRemaining = 6
+        let stage = try #require(mysteryStages.first)
+        let otherStage = try #require(mysteryStages.dropFirst().first)
+        let event = try #require(GameContent.mysteryEvent(matching: "crystal-geode"))
+        let encounter = EncounterIdentity(location: .journey(stageID: stage.id), save: base)
+        var random = SeededRandomNumberGenerator(seed: 1)
+        let offers = try MysteryOfferPersistence.prepare(event: event, encounter: encounter, save: &base, using: &random)
+        #expect(offers.count == 2)
+        let request = MysteryEncounterRequest(encounter: encounter, event: event, displayedOffers: offers)
+        var first = base
+        var second = base
+        _ = try MysteryEncounterResolution.resolve(
+            choiceID: offers[0].choiceID, request: request, save: &first, using: &random,
+        ).get()
+        _ = try MysteryEncounterResolution.resolve(
+            choiceID: offers[1].choiceID, request: request, save: &second, using: &random,
+        ).get()
+        #expect(first.corruptionAltarCooldownRemaining == 5)
+        #expect(second.corruptionAltarCooldownRemaining == 5)
+        #expect(!CloudSaveMerge.hasDuplicateClaim(incoming: first, existing: second, base: base))
+        let merged = CloudSaveMerge.merge(incoming: first, existing: second, base: base, preferIncoming: true)
+        #expect(merged.corruptionAltarCooldownRemaining == 5)
+        try claimMystery(stage: otherStage, save: &first)
+        let advanced = CloudSaveMerge.merge(incoming: first, existing: second, base: base, preferIncoming: true)
+        let context = try PersistenceTestContext()
+        let reloaded = try context.seedAndReload(advanced).currentSave
+        #expect(reloaded.corruptionAltarCooldownRemaining == 4)
+        #expect(reloaded.inventory.items.contains { $0.id == offers[0].item.id })
+        #expect(reloaded.inventory.items.contains { $0.id == offers[1].item.id })
+    }
+
+    @Test @MainActor func `an altar reset equal to the shared cooldown survives another Mystery and reload`() throws {
+        var base = PlayerSave.testSeed
+        base.corruptionAltarCooldownRemaining = PlayerSave.corruptionAltarCooldownAfterEncounter
+        base.modifiedAt = Date(timeIntervalSince1970: 1)
+        let altarStage = try #require(mysteryStages.first)
+        let otherStage = try #require(mysteryStages.dropFirst().first)
+        let event = try #require(GameContent.mysteryEvent(matching: GameContent.corruptionAltarEventID))
+        let leave = try #require(event.choices.first { $0.effects.contains(.leave) })
+        #expect(MysteryEventPinApplier.pinJourneyEvent(stageID: altarStage.id, eventID: event.id, save: &base))
+        var reset = base
+        let request = MysteryEncounterRequest(
+            encounter: EncounterIdentity(location: .journey(stageID: altarStage.id), save: reset),
+            event: event, displayedOffers: [],
+        )
+        var random = SeededRandomNumberGenerator(seed: 1)
+        #expect(try MysteryEncounterResolution.resolve(
+            choiceID: leave.id, request: request, save: &reset, using: &random,
+        ).get() == .dismiss)
+        reset.modifiedAt = Date(timeIntervalSince1970: 3)
+        var progressed = base
+        try claimMystery(stage: otherStage, save: &progressed)
+        progressed.modifiedAt = Date(timeIntervalSince1970: 2)
+        #expect(reset.corruptionAltarCooldownRemaining == base.corruptionAltarCooldownRemaining)
+        #expect(progressed.corruptionAltarCooldownRemaining == base.corruptionAltarCooldownRemaining - 1)
+        let merged = CloudSaveMerge.merge(incoming: reset, existing: progressed, base: base, preferIncoming: false)
+        let context = try PersistenceTestContext()
+        let reloaded = try context.seedAndReload(merged).currentSave
+        #expect(reloaded.corruptionAltarCooldownRemaining == PlayerSave.corruptionAltarCooldownAfterEncounter)
+        #expect(reloaded.journey.claimedRewardStageIDs.isSuperset(of: [altarStage.id, otherStage.id]))
+    }
+
+    @Test @MainActor func `an altar in a newly entered Labyrinth preserves its reset through reload`() throws {
+        var base = PlayerSave.testSeed
+        base.corruptionAltarCooldownRemaining = PlayerSave.corruptionAltarCooldownAfterEncounter
+        #expect(!base.labyrinth.hasMap)
+        var reset = base
+        reset.labyrinth.ensureMap(seed: base.worldSeed)
+        let node = try #require(reset.labyrinth.nodes.values.first { $0.type == .mystery })
+        #expect(MysteryEventPinApplier.pinLabyrinthEvent(
+            nodeID: node.id, eventID: GameContent.corruptionAltarEventID, save: &reset,
+        ))
+        reset.labyrinth.markCleared(nodeID: node.id)
+        ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &reset)
+        reset.modifiedAt = base.modifiedAt.addingTimeInterval(2)
+        var progressed = base
+        try claimMystery(stage: #require(mysteryStages.first), save: &progressed)
+        progressed.modifiedAt = base.modifiedAt.addingTimeInterval(1)
+
+        let merged = CloudSaveMerge.merge(incoming: reset, existing: progressed, base: base, preferIncoming: false)
+        let context = try PersistenceTestContext()
+        let reloaded = try context.seedAndReload(merged).currentSave
+        #expect(reloaded.corruptionAltarCooldownRemaining == PlayerSave.corruptionAltarCooldownAfterEncounter)
+        #expect(reloaded.labyrinth.nodes[node.id]?.isCleared == true)
+        #expect(reloaded.labyrinth.nodes[node.id]?.mysteryEventID == GameContent.corruptionAltarEventID)
+    }
+
     @Test(arguments: [1, 6], [true, false])
     func `independent Mystery completions both advance the altar cooldown`(
         cooldown: Int, preferIncoming: Bool,

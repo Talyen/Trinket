@@ -51,6 +51,10 @@ def read_tsv_records(path: Path) -> list[tuple[int, tuple[str, ...]]]:
 
 
 def _parse_tsv_rows(path: Path, row_type, min_columns: int | None = None):
+    return [row for _, row in located_tsv_rows(path, row_type, min_columns)]
+
+
+def located_tsv_rows(path: Path, row_type, min_columns: int | None = None):
     expected = [field.name for field in fields(row_type)]
     records = read_tsv_records(path)
     if not records:
@@ -65,7 +69,7 @@ def _parse_tsv_rows(path: Path, row_type, min_columns: int | None = None):
             raise ValueError(f"{path}:{line} missing required columns: expected at least {min_cols}, got {len(raw)}")
         if len(raw) > len(expected):
             raise ValueError(f"{path}:{line} has {len(raw)} columns, expected {len(expected)}")
-        rows.append(row_type(*raw, *([""] * (len(expected) - len(raw)))))
+        rows.append((line, row_type(*raw, *([""] * (len(expected) - len(raw))))))
     return rows
 
 
@@ -177,7 +181,7 @@ def _validate_snake_id(label: str, value: str, row_id: str) -> None:
 
 
 def _validate_positive_int(label: str, value: str, row_id: str, minimum: int = 0) -> None:
-    if not value.isdigit():
+    if not re.fullmatch(r"[0-9]+", value):
         raise ValueError(f"{label} for {row_id} must be an integer")
     if int(value) < minimum:
         if minimum == 1:

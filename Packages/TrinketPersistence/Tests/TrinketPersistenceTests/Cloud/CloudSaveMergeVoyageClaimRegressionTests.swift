@@ -6,6 +6,53 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct CloudSaveMergeVoyageClaimRegressionTests {
+    @Test @MainActor func `merged Voyage totals retain the final bonus for rewards earned on either device`() throws {
+        var base = SaveTestSupport.makeSave()
+        base.roster.gold = 10
+        base.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [:], lastProductionAt: Date(timeIntervalSince1970: 2000000000))
+        base.voyage.ensureBoard(access: .free)
+        let offer = try #require(base.voyage.offers.first)
+        #expect(base.voyage.embark(offerID: offer.id, eligibleRecruitEventIDs: [], access: .free))
+        let run = try #require(base.voyage.activeRun)
+        let battle = try #require(run.nextNode)
+        #expect(battle.type == .battle)
+        func claim(gold: Int, wood: Int) -> PlayerSave {
+            var save = base
+            let hero = save.roster.activeHero
+            let companion = save.roster.activeCompanion
+            let plan = BattleRewardPlan(
+                stageGold: gold, goldFindPercent: 0, heroExperience: 0, companionExperience: 0,
+                materials: [ResourceAmount(.wood, wood)], items: [],
+            )
+            let settled = plan.settle(battleGold: .init(), inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion))
+            #expect(VoyageCompletion.completeBattle(
+                runID: run.id, nodeID: battle.id, hero: hero, companion: companion,
+                rewards: (settled: settled, earned: plan.resolve(battleGold: .init()), encounterLevel: 12),
+                save: &save, access: .free,
+            ) == .completed)
+            return save
+        }
+        var first = claim(gold: 20, wood: 3)
+        first.modifiedAt = Date(timeIntervalSince1970: 100)
+        var second = claim(gold: 10, wood: 5)
+        second.modifiedAt = Date(timeIntervalSince1970: 200)
+        let merged = CloudSaveMerge.merge(incoming: first, existing: second, base: base, preferIncoming: true)
+        let context = try PersistenceTestContext()
+        let reloaded = try context.seedAndReload(merged).currentSave
+        let retained = try #require(reloaded.voyage.activeRun)
+        #expect(reloaded.roster.gold == 30)
+        #expect(reloaded.homestead.resources[.wood] == 5)
+        #expect(retained.earnedGold == 20)
+        #expect(retained.earnedMaterials[.wood] == 5)
+        let bossAward = BattleRewardPlan(
+            stageGold: 5, goldFindPercent: 0, heroExperience: 0, companionExperience: 0,
+            materials: [ResourceAmount(.wood, 5)], items: [],
+        ).resolve(battleGold: .init())
+        let final = VoyageCompletionBonus(gold: retained.earnedGold, materials: retained.earnedMaterials).applying(to: bossAward)
+        #expect(final.goldGained == 10)
+        #expect(final.materials == [ResourceAmount(.wood, 7)])
+    }
+
     @Test @MainActor func `retired destinations on a newer stale board are replaced after merge and reload`() throws {
         var stale = SaveTestSupport.makeSave()
         stale.voyage.ensureBoard(access: .free)

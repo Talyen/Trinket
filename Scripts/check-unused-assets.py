@@ -91,20 +91,12 @@ def check_assets() -> tuple[list[str], list[str]]:
     # asset_name -> Trinket/Media/<dir>/<asset>.<ext>. Orphan pruning in the
     # prepare-*-assets.sh scripts must agree with this table.
     media_pipelines = (
-        (SFX_MANIFEST, SFX_DIR, "m4a", "SoundManifest", "Media/SFX", "SFX audio file", "SFX file"),
-        (MUSIC_MANIFEST, MUSIC_DIR, "m4a", "MusicManifest", "Media/Music", "music audio file", "music file"),
-        (
-            CINEMATICS_MANIFEST,
-            CINEMATICS_DIR,
-            "mp4",
-            "CinematicManifest",
-            "Media/Cinematics",
-            "cinematic video file",
-            "cinematic file",
-        ),
+        (SFX_MANIFEST, SFX_DIR, "m4a", "SoundManifest"),
+        (MUSIC_MANIFEST, MUSIC_DIR, "m4a", "MusicManifest"),
+        (CINEMATICS_MANIFEST, CINEMATICS_DIR, "mp4", "CinematicManifest"),
     )
 
-    for manifest_path, media_dir, extension, manifest_label, media_label, missing_label, orphan_label in media_pipelines:
+    for manifest_path, media_dir, extension, manifest_label in media_pipelines:
         registered_media: set[str] = set()
 
         for row in read_tsv_rows(manifest_path):
@@ -115,13 +107,12 @@ def check_assets() -> tuple[list[str], list[str]]:
             registered_media.add(filename)
             asset_path = media_dir / filename
             if not asset_path.is_file():
-                missing.append(f"{manifest_label}: missing {missing_label} '{filename}' ({asset_path.relative_to(ROOT)})")
+                missing.append(f"{manifest_label}: missing media file '{filename}' ({asset_path.relative_to(ROOT)})")
 
         if media_dir.is_dir():
-            for item in sorted(media_dir.iterdir()):
-                if item.is_file() and not item.name.startswith(".") and item.name.endswith(f".{extension}"):
-                    if item.name not in registered_media:
-                        orphans.append(f"{media_label}: orphaned {orphan_label} '{item.name}' not found in {manifest_label}")
+            for item in sorted(media_dir.glob(f"*.{extension}")):
+                if item.is_file() and not item.name.startswith(".") and item.name not in registered_media:
+                    orphans.append(f"{media_dir.relative_to(ROOT)}: orphaned media file '{item.name}' not found in {manifest_label}")
 
     return missing, orphans
 

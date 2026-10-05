@@ -9,6 +9,21 @@ import TrinketFeatureSupport
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackPresenterTests {
+    @Test func `stripped Block is a setback without an absorption reaction`() throws {
+        let events = [
+            feedbackEvent(1, .blockStripped, .block, origin: .automatic),
+            feedbackEvent(2, .shieldAbsorbed, .block, origin: .direct, fullyBlocked: true),
+        ]
+        let items = CombatFeedbackPresenter.makeItems(from: events, at: .now)
+        let stripped = try #require(items.first { $0.effectKind == .blockStripped })
+        #expect(stripped.label == .amount(-2))
+        #expect(stripped.region == .setback)
+        #expect(stripped.reactionKind == .none)
+        let absorbed = try #require(items.first { $0.effectKind == .shieldAbsorbed })
+        #expect(absorbed.region == .impact)
+        #expect(absorbed.reactionKind == .block)
+    }
+
     @Test(arguments: [0, 3, 10])
     func `healing feedback includes overflow in one health number`(restored: Int) throws {
         let events = [

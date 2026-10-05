@@ -59,9 +59,16 @@ enum CloudSaveMerge {
     private static func mergeCorruptionAltarCooldown(into merged: inout PlayerSave, branches: Branches) {
         let incoming = branches.incoming.corruptionAltarCooldownRemaining
         let existing = branches.existing.corruptionAltarCooldownRemaining
-        if branches.canCombineIndependentRewards, let base = branches.base?.corruptionAltarCooldownRemaining,
+        if let reset = [branches.recent, branches.other].first(where: {
+            hasNewCorruptionAltarCompletion(in: $0, base: branches.base)
+        }) {
+            merged.corruptionAltarCooldownRemaining = reset.corruptionAltarCooldownRemaining
+            return
+        }
+        if let base = branches.base?.corruptionAltarCooldownRemaining,
            incoming < base, existing < base {
-            let completed = SaturatedArithmetic.saturatingAdd(base - incoming, base - existing)
+            let shared = min(sharedMysteryCompletionCount(branches: branches), base - incoming, base - existing)
+            let completed = SaturatedArithmetic.saturatingAdd(base - incoming, base - existing) - shared
             merged.corruptionAltarCooldownRemaining = max(0, base - completed)
         } else {
             merged.corruptionAltarCooldownRemaining = branches.selected(\.corruptionAltarCooldownRemaining)
@@ -273,6 +280,12 @@ enum CloudSaveMerge {
                 .union(branches.existing.voyage.abandonedRunIDs ?? [])
         }
         if let run = merged.voyage.activeRun, let otherRun = mergeVoyage.activeRun, run.id == otherRun.id {
+            // Both routes replay the same linear encounters. Retain earned totals
+            // per resource without paying their shared encounters twice.
+            merged.voyage.activeRun?.earnedGold = max(run.earnedGold, otherRun.earnedGold)
+            for (resource, amount) in otherRun.earnedMaterials {
+                merged.voyage.activeRun?.earnedMaterials[resource] = max(run.earnedMaterials[resource, default: 0], amount)
+            }
             for node in otherRun.nodes {
                 merged.voyage.updateNode(runID: run.id, nodeID: node.id) { current in
                     current.isCleared = current.isCleared || node.isCleared

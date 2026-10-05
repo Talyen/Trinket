@@ -101,26 +101,20 @@ def is_generation_input(path: str, inputs: tuple[str, ...]) -> bool:
     return any(glob_match(path, entry) or path.startswith(entry + "/") for entry in inputs)
 
 
-def _match_segments(pattern_segments: list[str], path_segments: list[str]) -> bool:
-    if not pattern_segments:
-        return not path_segments
-    head, rest = pattern_segments[0], pattern_segments[1:]
-    if head == "**":
-        if not rest:
-            return len(path_segments) >= 1
-        return any(
-            _match_segments(rest, path_segments[index:])
-            for index in range(len(path_segments) + 1)
-        )
-    if not path_segments:
-        return False
-    return fnmatch.fnmatchcase(path_segments[0], head) and _match_segments(
-        rest, path_segments[1:]
-    )
-
-
 def glob_match(path: str, pattern: str) -> bool:
-    return _match_segments(pattern.split("/"), path.split("/"))
+    patterns, segments = pattern.split("/"), path.split("/")
+
+    @functools.cache
+    def match(p: int, s: int) -> bool:
+        if p == len(patterns):
+            return s == len(segments)
+        if patterns[p] == "**":
+            if p == len(patterns) - 1:
+                return s < len(segments)
+            return match(p + 1, s) or (s < len(segments) and match(p, s + 1))
+        return s < len(segments) and fnmatch.fnmatchcase(segments[s], patterns[p]) and match(p + 1, s + 1)
+
+    return match(0, 0)
 
 
 def matches_any(path: str, patterns: tuple[str, ...]) -> bool:

@@ -77,14 +77,13 @@ struct CombatantProgressionTests {
         #expect(CombatantProgression(level: 1, currentXP: current, requiredXP: required).progressFraction == expected)
     }
 
-    @Test func `totalEarnedExperience accumulates previous level requirements and current XP`() {
-        let level1 = CombatantProgression(level: 1, currentXP: 7, requiredXP: 10)
-        #expect(level1.totalEarnedExperience == 7)
-
-        let level2 = CombatantProgression(level: 2, currentXP: 3, requiredXP: 15)
-        #expect(level2.totalEarnedExperience == 10 + 3)
-
-        let level3 = CombatantProgression(level: 3, currentXP: 5, requiredXP: 22)
-        #expect(level3.totalEarnedExperience == 10 + 15 + 5)
+    @Test func `total earned experience preserves the curve and saturates at extreme levels`() {
+        for level in [1, 2, 3, 4, 5, 6, 19, 20, 39, 40, 999, 1000] {
+            let expected = (1 ..< level).reduce(7) { $0 + CombatantProgression.requiredXP(forLevel: $1) }
+            let progression = CombatantProgression(level: level, currentXP: 7, requiredXP: 0)
+            #expect(progression.totalEarnedExperience == expected)
+        }
+        #expect(CombatantProgression.at(level: Int.max).totalEarnedExperience == Int.max)
+        #expect(CombatantProgression(level: 2, currentXP: Int.max, requiredXP: 15).totalEarnedExperience == Int.max)
     }
 }

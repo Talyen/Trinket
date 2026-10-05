@@ -9,7 +9,6 @@ extension PlayerSaveSanitizer {
         heroIDs: Set<String> = Set(GameContent.heroes.map(\.id)),
         companionIDs: Set<String> = Set(GameContent.companions.map(\.id)),
     ) -> PlayerRosterState {
-        let inventoryItemIDs = Set(inventory.items.map(\.id))
         let validHeroIDs = heroIDs
         let validCompanionIDs = companionIDs
 
@@ -38,7 +37,6 @@ extension PlayerSaveSanitizer {
 
         sanitized.equipmentLoadouts = RosterHydration.resolveEquipmentLoadouts(
             from: roster.equipmentLoadouts,
-            inventoryItemIDs: inventoryItemIDs,
             inventoryItems: inventory.items,
         )
 

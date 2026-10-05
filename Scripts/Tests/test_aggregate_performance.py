@@ -51,6 +51,27 @@ class AggregatePerformanceTests(unittest.TestCase):
                 self.assertEqual(status, 1)
                 self.assertIn("iteration must be a positive integer", summary)
 
+    def test_collection_retains_measurements_when_environment_is_damaged(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            logs = root / "TestResults"
+            logs.mkdir()
+            measurement = report()
+            (logs / "run.log").write_text("TRINKET_PERFORMANCE_REPORT " + json.dumps(measurement) + "\n")
+            output = root / "reports.json"
+            for metadata in ("broken JSON", "[]"):
+                with self.subTest(metadata=metadata):
+                    (root / "environment.json").write_text(metadata)
+                    result = subprocess.run(
+                        [sys.executable, str(SCRIPT.with_name("collect-performance-results.py")), str(logs), str(output)],
+                        capture_output=True, text=True,
+                    )
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    record = json.loads(output.read_text())["reports"][0]
+                    self.assertEqual(record["averageFPS"], measurement["averageFPS"])
+                    self.assertEqual(record["sourceLog"], "run.log")
+                    self.assertIn("environment.json", result.stdout)
+
     def run_aggregate(
         self,
         reports: list[dict[str, object]],

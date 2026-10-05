@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import math
+import re
 
 from internal.content.modifier_schema import modifier_definitions
 
@@ -44,7 +45,10 @@ def parse_typed_int(raw: str, label: str) -> int:
     """Single home for integer trigger/modifier values. Accepts surrounding
     whitespace and explicit +/- signs; rejects non-integers and infinities."""
     try:
-        return int(raw.strip())
+        value = raw.strip()
+        if not re.fullmatch(r"[+-]?[0-9]+(?:_[0-9]+)*", value):
+            raise ValueError("not a Swift integer literal")
+        return int(value)
     except ValueError as error:
         raise ValueError(f"Integer value for {label} must be an integer, got {raw!r}") from error
 
@@ -52,7 +56,10 @@ def parse_typed_int(raw: str, label: str) -> int:
 def parse_typed_double(raw: str, label: str) -> float:
     """Single home for floating trigger/modifier values. Finite only."""
     try:
-        value = float(raw.strip())
+        literal = raw.strip()
+        if not re.fullmatch(r"[+-]?[0-9]+(?:_[0-9]+)*(?:\.[0-9]+(?:_[0-9]+)*)?(?:[eE][+-]?[0-9]+)?", literal):
+            raise ValueError("not a Swift numeric literal")
+        value = float(literal)
     except ValueError as error:
         raise ValueError(f"Numeric value for {label} must be a number, got {raw!r}") from error
     if not math.isfinite(value):

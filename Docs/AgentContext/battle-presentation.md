@@ -126,6 +126,8 @@ absorption, and Dodge stay centered and have no count cap. Buffs, cleanse, and
 resource gains appear lower left; debuffs, control, purge, resource losses, and
 Death's Door appear lower right, interpreted from the recipient's perspective.
 DoT applications are status feedback; actual DoT damage stays centered.
+Stripped Block appears as a loss in the lower right and does not trigger a Block
+absorption reaction.
 
 Lower chips use 80% of the central base size, a smaller 0.85-to-1.20 pop settling
 to 1.0 at 0.16 seconds, the same lifetime and fade, and no automatic rise.

@@ -85,6 +85,16 @@ class PerformanceScenarioTests(unittest.TestCase):
                     source.write_text('func testOptions() { ' + call + ' }')
                     self.assertEqual(module.select(baseline, [])['scenarios'], baseline['scenarios'])
 
+    def test_method_names_in_log_strings_cannot_reassign_measurements(self) -> None:
+        methods = module.test_measurements(
+            'func testNavigation() {\n'
+            '  let message = "func testFake()"\n'
+            '  measured("navigation") {}\n'
+            '}\n'
+            'func testOther() { measured("other") {} }'
+        )
+        self.assertEqual(methods, {'testNavigation': ['navigation'], 'testOther': ['other']})
+
     def test_performance_runner_retains_success_and_partial_failure_evidence(self) -> None:
         for test_status in (0, 1):
             with self.subTest(test_status=test_status), tempfile.TemporaryDirectory() as directory:

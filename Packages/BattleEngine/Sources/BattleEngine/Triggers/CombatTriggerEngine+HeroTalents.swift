@@ -35,14 +35,7 @@ package extension CombatTriggerEngine {
         if critical {
             events.append(contentsOf: afterTypedCriticalAttackHit(keyword: keyword, actor: actor, in: &context))
         }
-        if keyword == .burn, triggers.burnPreparesBleedDamageBonus > 0 {
-            context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.nextBleedDamageBonus = max(
-                    $0.talents.pending.nextBleedDamageBonus,
-                    triggers.burnPreparesBleedDamageBonus,
-                )
-            }
-        }
+        prepareTemperCycle(keyword: keyword, actor: actor, triggers: triggers, in: &context)
         events.append(contentsOf: afterOtherCardHits(
             keyword: keyword, actor: actor,
             critical: critical, healthLost: healthLost, fullyBlocked: fullyBlocked,
@@ -54,6 +47,36 @@ package extension CombatTriggerEngine {
             triggers: triggers, in: &context,
         ))
         return events
+    }
+
+    static func afterNonCardAttackHit(
+        keyword: Keyword?,
+        sourceID: String?,
+        fullyBlocked: Bool,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard let sourceID, let source = context.roster.combatant(for: sourceID),
+              source.isAlive, source.role != .enemy else { return [] }
+        let triggers = context.modifiers(for: sourceID).triggers
+        prepareTemperCycle(keyword: keyword, actor: source.combatant, triggers: triggers, in: &context)
+        return afterBlockedAttack(
+            actor: source.combatant, fullyBlocked: fullyBlocked, triggers: triggers, in: &context,
+        )
+    }
+
+    private static func prepareTemperCycle(
+        keyword: Keyword?,
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) {
+        guard keyword == .burn, triggers.burnPreparesBleedDamageBonus > 0 else { return }
+        context.roster.mutateRuntime(for: actor) {
+            $0.talents.pending.nextBleedDamageBonus = max(
+                $0.talents.pending.nextBleedDamageBonus,
+                triggers.burnPreparesBleedDamageBonus,
+            )
+        }
     }
 
     static func afterTypedCriticalAttackHit(
@@ -137,6 +160,23 @@ package extension CombatTriggerEngine {
                 name: "Bloodfire", in: &context,
             ))
         }
+        events.append(contentsOf: afterBlockedAttack(
+            actor: actor, fullyBlocked: fullyBlocked, triggers: triggers, in: &context,
+        ))
+        events.append(contentsOf: afterCompanionCardHit(
+            keyword: keyword, actor: actor, critical: critical,
+            healthLost: healthLost, triggers: triggers, in: &context,
+        ))
+        return events
+    }
+
+    private static func afterBlockedAttack(
+        actor: Combatant,
+        fullyBlocked: Bool,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
         if fullyBlocked, triggers.blockedAttackFirstRandomCard,
            !context.isBattleOver,
            context.claimHeroTalent("Consolation Prize", actorID: actor.id, battle: true),
@@ -150,14 +190,13 @@ package extension CombatTriggerEngine {
         }
         if fullyBlocked, triggers.blockedAttackNextPhysicalDouble {
             let preparedCardSerial = context.resolution.cardTalents?.playSerial
+            let actionID = context.resolution.actionID
             context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.doubleNextPhysicalAttack = PreparedTalentBonus(value: true, cardSerial: preparedCardSerial)
+                $0.talents.pending.doubleNextPhysicalAttack = PreparedTalentBonus(
+                    value: true, cardSerial: preparedCardSerial, actionID: actionID,
+                )
             }
         }
-        events.append(contentsOf: afterCompanionCardHit(
-            keyword: keyword, actor: actor, critical: critical,
-            healthLost: healthLost, triggers: triggers, in: &context,
-        ))
         return events
     }
 

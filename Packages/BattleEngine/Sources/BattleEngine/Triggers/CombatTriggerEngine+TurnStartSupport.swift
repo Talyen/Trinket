@@ -10,12 +10,14 @@ extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) -> [ActionEvent] {
+        guard !context.isBattleOver, context.health(of: actor) > 0 else { return [] }
         var events: [ActionEvent] = []
         if triggers.goldPerTurn > 0 {
             events.append(contentsOf: emitGold(
                 "goldPerTurn", "Merchant's Favor", amount: triggers.goldPerTurn, to: actor, in: &context,
             ))
         }
+        guard !context.isBattleOver, context.health(of: actor) > 0 else { return events }
         if triggers.healthPerTurn > 0, context.isPlayerTurn(every: 2, startingAt: 1) {
             let target = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
             events.append(contentsOf: emitHeal(
@@ -23,6 +25,7 @@ extension CombatTriggerEngine {
                 amount: triggers.healthPerTurn, to: target, source: actor, in: &context,
             ))
         }
+        guard !context.isBattleOver, context.health(of: actor) > 0 else { return events }
         if let blessing = runtime.talents.timed.lingeringBlessing,
            let source = context.roster.combatant(for: blessing.sourceActorID) {
             let amount = blessing.amount

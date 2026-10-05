@@ -13,6 +13,7 @@ from internal.content.common import (
     _ensure_unique,
     _parse_tsv_rows,
     _require_non_empty,
+    _validate_positive_int,
     list_catalog_property,
     parse_keywords,
     swift_escape,
@@ -91,23 +92,9 @@ def _validate_affix_id(value: str, row_id: str) -> None:
 
 
 def _validate_keywords(raw: str, row_id: str) -> None:
-    if not raw:
-        return
-    for part in raw.split(","):
-        keyword = part.strip()
-        if not keyword:
-            continue
+    for keyword in sorted(_keyword_set(raw)):
         if keyword not in VALID_KEYWORDS:
             raise ValueError(f"Unknown keyword '{keyword}' for {row_id}")
-
-
-def _validate_weight(raw: str, row_id: str) -> None:
-    try:
-        weight = int(raw)
-    except ValueError as error:
-        raise ValueError(f"Affix weight for {row_id} must be an integer") from error
-    if weight <= 0:
-        raise ValueError(f"Affix weight for {row_id} must be positive")
 
 
 def validate_affix_rows(rows: list[AffixRow]) -> None:
@@ -120,7 +107,7 @@ def validate_affix_rows(rows: list[AffixRow]) -> None:
         if row.slot not in VALID_SLOTS:
             raise ValueError(f"Invalid affix slot '{row.slot}' for {row.id}")
         _validate_keywords(row.keywords, row.id)
-        _validate_weight(row.weight, row.id)
+        _validate_positive_int("Affix weight", row.weight, row.id, minimum=1)
         for tier, description, modifiers, triggers in (
             ("basic", row.basic_description, row.basic_modifiers, row.basic_triggers),
             ("astral", row.astral_description, row.astral_modifiers, row.astral_triggers),

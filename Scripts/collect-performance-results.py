@@ -46,7 +46,14 @@ def main() -> int:
     records.sort(key=lambda item: (str(item.get("scenario")),
                                   item["iteration"] if type(item.get("iteration")) is int else 0))
     environment_path = args.results_dir.parent / "environment.json"
-    environment = json.loads(environment_path.read_text()) if environment_path.exists() else {}
+    try:
+        environment = json.loads(environment_path.read_text()) if environment_path.exists() else {}
+        if not isinstance(environment, dict):
+            raise ValueError("performance environment is not an object")
+    except (OSError, ValueError) as error:
+        # Preserve collected measurements even when their provenance is damaged.
+        environment = {}
+        malformed.append(f"{environment_path}: {error}")
     for record in records:
         record["environment"] = environment
     args.output.parent.mkdir(parents=True, exist_ok=True)

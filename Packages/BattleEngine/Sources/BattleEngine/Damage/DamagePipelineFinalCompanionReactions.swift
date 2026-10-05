@@ -40,7 +40,7 @@ package extension DamagePipeline {
               state.combatant.role == .enemy,
               context.roster.hero.isAlive,
               let sourceID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceID), source.role == .companion,
+              let source = context.roster.combatant(for: sourceID), source.role == .companion, source.isAlive,
               context.modifiers(for: sourceID).triggers.firstHolyHitAllyBlockPerTurn > 0,
               context.resolution.claim(
                   .heroTalent("Sun Glyph"), actorID: sourceID, cadence: .turn(context.turnCount),

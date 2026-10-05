@@ -94,21 +94,9 @@ def output_stem(value: str) -> Path:
     return stem
 
 
-def _write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
-
-
 def write_report(report: DiagnosticReport, output_prefix: str) -> tuple[Path, Path, Path]:
     stem = output_stem(output_prefix)
-    json_path = Path(str(stem) + ".json")
-    markdown_path = Path(str(stem) + ".md")
-    annotations_path = Path(str(stem) + ".annotations")
-    _write_text(json_path, json.dumps(report.to_dict(), indent=2, sort_keys=False) + "\n")
     markdown = render_markdown(report)
-    _write_text(markdown_path, markdown)
-    annotation_lines = [render_annotation(issue) for issue in report.issues[:MAX_ISSUES]]
-    _write_text(annotations_path, "\n".join(annotation_lines) + ("\n" if annotation_lines else ""))
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     per_invocation_summary = os.environ.get("TRINKET_DIAGNOSTICS_PER_INVOCATION_SUMMARY", "").lower() == "true"
     if summary_path and per_invocation_summary:
@@ -118,4 +106,14 @@ def write_report(report: DiagnosticReport, output_prefix: str) -> tuple[Path, Pa
         except OSError as error:
             report.sources.errors.append(f"GitHub step summary: {error}")
             print(f"failure_diagnostics.py: could not write GITHUB_STEP_SUMMARY: {error}", file=sys.stderr)
-    return json_path, markdown_path, annotations_path
+    annotation_lines = [render_annotation(issue) for issue in report.issues[:MAX_ISSUES]]
+    artifacts = {
+        ".json": json.dumps(report.to_dict(), indent=2, sort_keys=False) + "\n",
+        ".md": markdown,
+        ".annotations": "\n".join(annotation_lines) + ("\n" if annotation_lines else ""),
+    }
+    stem.parent.mkdir(parents=True, exist_ok=True)
+    paths = tuple(Path(str(stem) + suffix) for suffix in artifacts)
+    for path, content in zip(paths, artifacts.values()):
+        path.write_text(content, encoding="utf-8")
+    return paths

@@ -77,6 +77,9 @@ grant after equipment and talent bonuses.
 End-of-player-turn talents resolve before the enemy action. Mana Shield's Block
 can absorb that action, and end-turn healing and Cleanse finish before it begins.
 Round effects and passive Block decay follow the enemy action.
+Turn cadences recheck battle completion and source survival between operations and
+party recipients, including End Turn, Purifying Aura, and Gold/Health regeneration.
+A victory during one of these reactions stops the remaining cadence rewards.
 
 ## Mana payments and cadence
 

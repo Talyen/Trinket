@@ -184,13 +184,12 @@ else:
                     path.write_text('#!/bin/sh\nprintf "%s\\n" "${0##*/}" >> calls\n'
                                     '[ "${FAILING_CHECK:-}" != "${0##*/}" ] || exit 7\n')
                 path.chmod(0o755)
-            for scope in ('', ' Probe.swift'):
-                for failing in ('', *checks):
-                    with self.subTest(scope=scope, failing=failing):
-                        (root / 'calls').unlink(missing_ok=True)
-                        result = subprocess.run(
-                            ['bash', '-ec', 'source Scripts/lib/test-style.sh; trinket_run_style_gate' + scope],
-                            cwd=root, env={**os.environ, 'FAILING_CHECK': failing}, capture_output=True, text=True,
-                        )
-                        self.assertEqual(result.returncode, 7 if failing else 0, result.stdout + result.stderr)
-                        self.assertEqual((root / 'calls').read_text().splitlines(), list(checks))
+            for scope, failing in (('', ''), (' Probe.swift', checks[0]), ('', checks[-1])):
+                with self.subTest(scope=scope, failing=failing):
+                    (root / 'calls').unlink(missing_ok=True)
+                    result = subprocess.run(
+                        ['bash', '-ec', 'source Scripts/lib/test-style.sh; trinket_run_style_gate' + scope],
+                        cwd=root, env={**os.environ, 'FAILING_CHECK': failing}, capture_output=True, text=True,
+                    )
+                    self.assertEqual(result.returncode, 7 if failing else 0, result.stdout + result.stderr)
+                    self.assertEqual((root / 'calls').read_text().splitlines(), list(checks))

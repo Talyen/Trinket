@@ -7,18 +7,27 @@ package extension CombatTriggerEngine {
         for (_, runtime) in livingPartyMembers(in: context) {
             let actor = runtime.combatant
             let triggers = context.modifiers(for: actor.id).triggers
-
-            events.append(contentsOf: endOfTurnBlockConversion(runtime: runtime, actor: actor, triggers: triggers, in: &context))
-            if triggers.endTurnZeroManaCleanse, runtime.maxMana > 0, runtime.currentMana == 0 {
-                events.append(contentsOf: performRandomCleanses(
-                    source: actor, target: actor, count: 1,
-                    abilityName: "Arcane Cleansing", in: &context,
-                ))
+            let steps: [(inout BattleState) -> [ActionEvent]] = [
+                { endOfTurnBlockConversion(runtime: runtime, actor: actor, triggers: triggers, in: &$0) },
+                { context in
+                    guard triggers.endTurnZeroManaCleanse,
+                          let current = context.roster.runtime(for: actor),
+                          current.maxMana > 0, current.currentMana == 0 else { return [] }
+                    return performRandomCleanses(
+                        source: actor, target: actor, count: 1,
+                        abilityName: "Arcane Cleansing", in: &context,
+                    )
+                },
+                { hibernationHeal(actor: actor, triggers: triggers, in: &$0) },
+                { campfireComfortHeal(actor: actor, triggers: triggers, in: &$0) },
+                { partyRegenHeal(actor: actor, triggers: triggers, in: &$0) },
+                { hoardArmorBlock(actor: actor, triggers: triggers, in: &$0) },
+            ]
+            for step in steps {
+                guard !context.isBattleOver else { return events }
+                guard context.health(of: actor) > 0 else { break }
+                events.append(contentsOf: step(&context))
             }
-            events.append(contentsOf: hibernationHeal(actor: actor, triggers: triggers, in: &context))
-            events.append(contentsOf: campfireComfortHeal(actor: actor, triggers: triggers, in: &context))
-            events.append(contentsOf: partyRegenHeal(actor: actor, triggers: triggers, in: &context))
-            events.append(contentsOf: hoardArmorBlock(actor: actor, triggers: triggers, in: &context))
         }
         return events
     }
@@ -91,6 +100,7 @@ package extension CombatTriggerEngine {
         guard triggers.partyRegenPerRound > 0 else { return [] }
         var events: [ActionEvent] = []
         for (_, member) in livingPartyMembers(in: context) {
+            guard !context.isBattleOver, context.health(of: actor) > 0 else { break }
             guard member.currentHealth < member.maxHealth else { continue }
             events.append(contentsOf: emitHeal(
                 "partyRegenPerRound", "Regeneration",

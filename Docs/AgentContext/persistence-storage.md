@@ -140,7 +140,11 @@ payload fields that preserve older saves; retired older routes without receipts
 cannot reconstruct their terminal claims.
 Voyage decoding validates a completed route before normalizing it away, retaining
 malformed payload bytes through the unreadable-state path. Independent Mystery
-completions combine their corruption altar cooldown reductions; duplicate completions count once.
+completions combine their corruption altar cooldown reductions; duplicate completions count once
+even when the devices chose different rewards. A newly completed pinned altar preserves
+its reset when its cooldown equals the shared base, including on a Labyrinth map
+created after that base. Shared Voyage encounters retain the
+larger earned total per resource for the final completion bonus.
 Combine independent balance changes from a shared base and floor concurrent
 overspending at zero. A resource changed on only one branch retains that change
 even when another shared action disables reward combination. On first attachment of unrelated older saves, take the larger
@@ -157,8 +161,12 @@ The merged Homestead cursor cannot move backward. Compare pending production at
 that shared cursor so an earlier collection retains production earned afterward.
 Only resources with a producer or retained production credit qualify for
 production deduplication; unrelated earned Gold and materials still combine.
-Overlapping collections of the same production interval count once; distinct
-upgrades persist, and a shortage from concurrent spending is forgiven at zero
+Overlapping collections of the same production interval count once, including after
+the collected resources are spent. With unchanged producers and uncapped Gold
+production, infer collections from pending credit at a shared cursor rather than
+wallet growth; capped Gold retains conservative overlap handling. Shared building tiers
+charge their authored cost once; distinct upgrades retain their separate costs.
+Upgrades persist, and a shortage from concurrent spending is forgiven at zero
 balance. Pending legacy production
 receipts remain recoverable after a lost response.
 [Progression](persistence-progression.md) owns the claim transaction.

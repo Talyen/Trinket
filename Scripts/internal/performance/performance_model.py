@@ -17,6 +17,13 @@ METRICS = (
 )
 COUNT_METRICS = {"missedDeadlineCount", "severeStallCount"}
 NON_NEGATIVE_METRICS = set(METRICS) - {"missedDeadlineRatio"}
+GOAL_CHECKS = (
+    ("averageFPS", "minimumAverageFPS", "average FPS", "below", True),
+    ("onePercentLowFPS", "minimumOnePercentLowFPS", "1% low", "below", True),
+    ("severeStallCount", "maximumSevereStallCount", "severe stalls", "above", False),
+    ("missedDeadlineCount", "maximumMissedDeadlineCount", "missed deadlines", "above", False),
+    ("maxFrameMs", "maximumFrameMs", "max frame ms", "above", False),
+)
 REMOVED_FIELDS = ("p999FrameMs", "pointOnePercentLowFPS")
 REQUIRED_SCHEMA_VERSION = 6
 
@@ -61,7 +68,9 @@ def load_results_reports(payload: dict[str, Any]) -> list[dict[str, Any]]:
     return reports
 
 
-def load_baseline(baseline: dict[str, Any]) -> tuple[list[str], str, float, float, float]:
+def load_baseline(baseline: dict[str, Any]) -> tuple[list[str], str]:
+    if not isinstance(baseline, dict):
+        raise SystemExit("baseline must be an object")
     scenarios = baseline.get("scenarios")
     if not isinstance(scenarios, list) or not scenarios or any(
         not isinstance(value, str) or not value for value in scenarios
@@ -71,17 +80,28 @@ def load_baseline(baseline: dict[str, Any]) -> tuple[list[str], str, float, floa
         raise SystemExit("baseline scenarios must be unique")
     try:
         goals = baseline["goals"]
-        minimum_average = float(goals["minimumAverageFPS"])
-        minimum_low = float(goals["minimumOnePercentLowFPS"])
-        maximum_severe = float(goals["maximumSevereStallCount"])
-    except (KeyError, TypeError, ValueError) as error:
+        overrides = baseline.get("scenarioGoals", {})
+        if not isinstance(goals, dict) or not isinstance(overrides, dict):
+            raise ValueError("goals and scenarioGoals must be objects")
+        for _, goal, *_ in GOAL_CHECKS[:3]:
+            finite_number(goals, goal)
+        for settings in (goals, *overrides.values()):
+            if not isinstance(settings, dict):
+                raise ValueError("scenario goals must be objects")
+            for _, goal, *_ in GOAL_CHECKS:
+                if goal in settings and finite_number(settings, goal) < 0:
+                    raise ValueError(f"{goal} must be non-negative")
+        if finite_number({"refreshTargetHz": baseline.get("refreshTargetHz", 60)}, "refreshTargetHz") <= 0:
+            raise ValueError("refreshTargetHz must be positive")
+        schema = baseline.get("minimumReportSchema", 5)
+        if type(schema) is not int or schema < 1:
+            raise ValueError("minimumReportSchema must be a positive integer")
+    except (KeyError, ValueError) as error:
         raise SystemExit(f"baseline goals are invalid: {error}") from error
-    if not all(math.isfinite(value) and value >= 0 for value in (minimum_average, minimum_low, maximum_severe)):
-        raise SystemExit("baseline goals must be finite and non-negative")
     mode = baseline.get("mode", "observe")
     if mode not in ("observe", "enforce"):
         raise SystemExit(f"baseline mode must be 'observe' or 'enforce', found {mode!r}")
-    return scenarios, mode, minimum_average, minimum_low, maximum_severe
+    return scenarios, mode
 
 
 def group_reports_by_scenario(
@@ -144,20 +164,11 @@ def validate_report(report: dict[str, Any], baseline: dict[str, Any] | None = No
 
 def goal_findings(report: dict[str, Any], baseline: dict[str, Any]) -> list[str]:
     goals = baseline["goals"] | baseline.get("scenarioGoals", {}).get(report["scenario"], {})
-    checks = (
-        ("averageFPS", "minimumAverageFPS", "average FPS", "below", True),
-        ("onePercentLowFPS", "minimumOnePercentLowFPS", "1% low", "below", True),
-        ("severeStallCount", "maximumSevereStallCount", "severe stalls", "above", False),
-        ("missedDeadlineCount", "maximumMissedDeadlineCount", "missed deadlines", "above", False),
-        ("maxFrameMs", "maximumFrameMs", "max frame ms", "above", False),
-    )
     findings = []
-    for metric, goal, label, direction, minimum in checks:
+    for metric, goal, label, direction, minimum in GOAL_CHECKS:
         if goal not in goals:
             continue
         limit = float(goals[goal])
-        if not math.isfinite(limit) or limit < 0:
-            raise SystemExit(f"baseline {goal} must be finite and non-negative")
         value = float(report[metric])
         outside_goal = value < limit if minimum else value > limit
         if outside_goal:

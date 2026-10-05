@@ -24,6 +24,8 @@ Rimeheart Locket grants resolved Block equal to the Freeze hit's actual Health d
 only if its wearer survives the hit's retaliation. Holy restoration, Block, Cleanse,
 Mana and preparation rewards likewise require a living source; committed offensive
 consequences retain their own eligibility.
+Sun Glyph and Vitality Infusion grant ally Block after the hit's retaliation and
+keyword reactions, only if their Companion owner still lives.
 Bloodward rolls only when Leech directly restores Health, then grants a resolved
 Block amount equal to that restoration. Overflow does not fund its Block.
 Bloodroot grants Thorns after direct Leech restoration only when the wearer has

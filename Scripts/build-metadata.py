@@ -17,6 +17,10 @@ def capture(*args, timeout=120):
     return subprocess.check_output(args, text=True, stderr=subprocess.PIPE, timeout=timeout).strip()
 
 
+def is_ci():
+    return any(os.environ.get(key) == "true" for key in ("CI", "GITHUB_ACTIONS"))
+
+
 def xcode_identity():
     # The selected bundle is the installed product version/build authority.
     # Reading it avoids launching xcodebuild while simulator services are busy.
@@ -38,7 +42,7 @@ def xcode_identity():
 
 
 def identity(sdk="iphonesimulator", configuration="Debug"):
-    ci = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
+    ci = is_ci()
     try:
         commit = capture("git", "rev-parse", "HEAD")
     except subprocess.CalledProcessError:
@@ -71,9 +75,10 @@ def differences(saved, current):
     if not isinstance(saved, dict):
         raise ValueError("Build identity must be an object")
     keys = set(current)
-    if os.environ.get("CI") != "true" and os.environ.get("GITHUB_ACTIONS") != "true":
-        keys.remove("commit")  # Local source freshness remains owned by build-freshness.sh.
-    return sorted(key for key in keys if saved.get(key) != current[key])
+    if not is_ci():
+        keys.discard("commit")  # Local source freshness remains owned by build-freshness.sh.
+    return sorted(key for key in keys
+                  if key not in saved or type(saved[key]) is not type(current[key]) or saved[key] != current[key])
 
 
 def validate_metadata(saved, current, fingerprint):

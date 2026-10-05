@@ -274,46 +274,59 @@ package extension DamagePipeline {
                 sourceActorID: state.combatant.id, application: .attached,
             ))
         }
-        applySpitebloom(healthLost: healthLost, attacker: attacker.combatant, to: &state, in: &context)
-        applySpitefulHeal(healthLost: healthLost, to: &state, in: &context)
+        state.damageEvents.append(contentsOf: thornsRewards(
+            healthLost: healthLost, attacker: attacker.combatant, defender: state.combatant, in: &context,
+        ))
     }
 
-    private static func applySpitebloom(
+    static func thornsRewards(
         healthLost: Int,
         attacker: Combatant,
-        to state: inout DamageResolutionState,
+        defender: Combatant,
         in context: inout BattleState,
-    ) {
-        let amount = context.modifiers(for: state.combatant.id).triggers.poisonOnThornsDamage
-        guard healthLost > 0, amount > 0, context.roster.health(for: attacker) > 0 else { return }
-        let poison = resolveNestedDamage(
-            amount: amount, keyword: .poison,
-            target: attacker, sourceActorID: state.combatant.id, in: &context,
-        )
-        state.damageEvents.append(contentsOf: poison.events)
-        if poison.healthLost > 0 {
-            state.damageEvents.append(contentsOf: context.applyDecayingDoT(
-                keyword: .poison, potency: poison.healthLost, to: attacker,
-                sourceActorID: state.combatant.id, application: .attached,
-            ))
-        }
+    ) -> [ActionEvent] {
+        var events = spitebloomDamage(healthLost: healthLost, attacker: attacker, defender: defender, in: &context)
+        events.append(contentsOf: spitefulHeal(healthLost: healthLost, defender: defender, in: &context))
+        return events
     }
 
-    private static func applySpitefulHeal(
+    private static func spitebloomDamage(
         healthLost: Int,
-        to state: inout DamageResolutionState,
+        attacker: Combatant,
+        defender: Combatant,
         in context: inout BattleState,
-    ) {
-        let heal = context.modifiers(for: state.combatant.id).triggers.firstThornsDamageHealPerTurn
-        if healthLost > 0, heal > 0, context.roster.health(for: state.combatant) > 0,
-           context.resolution.claim(.affix("spiteful"), actorID: state.combatant.id, cadence: .turn(context.turnCount)) {
-            let target = BattleActionContext(actor: state.combatant, in: context).target(.lowestHealthAlly, in: context)
-            state.damageEvents.append(contentsOf: context.healEmitting(
-                amount: heal, target: target, source: state.combatant,
-                abilityName: context.modifiers(for: state.combatant.id).triggerAbilityName(
-                    "firstThornsDamageHealPerTurn", fallback: "Spiteful",
-                ),
+    ) -> [ActionEvent] {
+        let amount = context.modifiers(for: defender.id).triggers.poisonOnThornsDamage
+        guard healthLost > 0, amount > 0, context.roster.health(for: attacker) > 0 else { return [] }
+        let poison = resolveNestedDamage(
+            amount: amount, keyword: .poison,
+            target: attacker, sourceActorID: defender.id, in: &context,
+        )
+        var events = poison.events
+        if poison.healthLost > 0 {
+            events.append(contentsOf: context.applyDecayingDoT(
+                keyword: .poison, potency: poison.healthLost, to: attacker,
+                sourceActorID: defender.id, application: .attached,
             ))
         }
+        return events
+    }
+
+    private static func spitefulHeal(
+        healthLost: Int,
+        defender: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        let heal = context.modifiers(for: defender.id).triggers.firstThornsDamageHealPerTurn
+        guard healthLost > 0, heal > 0, context.roster.health(for: defender) > 0,
+              context.resolution.claim(.affix("spiteful"), actorID: defender.id, cadence: .turn(context.turnCount))
+        else { return [] }
+        let target = BattleActionContext(actor: defender, in: context).target(.lowestHealthAlly, in: context)
+        return context.healEmitting(
+            amount: heal, target: target, source: defender,
+            abilityName: context.modifiers(for: defender.id).triggerAbilityName(
+                "firstThornsDamageHealPerTurn", fallback: "Spiteful",
+            ),
+        )
     }
 }

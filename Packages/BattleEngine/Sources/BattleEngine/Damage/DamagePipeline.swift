@@ -67,7 +67,7 @@ package enum DamagePipeline {
     /// Committed-damage reaction order (load-bearing, do not reorder):
     /// card-hit (or non-card typed critical rewards) → enemy traits → DoT mirrors/ticks → leech → enemy Purge → attacker on-hit
     /// applications → attacker mirrors → control meter/fang → retaliation-gated
-    /// reactive/keyword → Threefold Grace → crit → uniques. DoT mirrors must precede leech so
+    /// reactive/keyword → ally Block → Threefold Grace → crit → uniques. DoT mirrors must precede leech so
     /// mirrored ticks count toward the same hit; keyword reactions stay last
     /// among pipeline-owned steps so wards see final healthLost.
     private static func applyCommittedDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) {
@@ -76,6 +76,14 @@ package enum DamagePipeline {
             state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroCardHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID, critical: state.isCritical,
                 healthLost: state.healthLost,
+                fullyBlocked: state.blockedAmount > 0 && state.remaining == 0,
+                in: &context,
+            ))
+        }
+        if state.options.isAttackHit, !state.options.isCardAttack,
+           state.amount > 0, state.combatant.role == .enemy {
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterNonCardAttackHit(
+                keyword: state.damageKeyword, sourceID: state.sourceActorID,
                 fullyBlocked: state.blockedAmount > 0 && state.remaining == 0,
                 in: &context,
             ))
@@ -93,8 +101,6 @@ package enum DamagePipeline {
         applyCompanionDamageRetaliation(to: &state, in: &context)
         applyLeech(to: &state, in: &context)
         applyEnemyAttackPurge(to: &state, in: &context)
-        applyFinalCompanionHolyHitRewards(to: &state, in: &context)
-        applyCompanionLeechCriticalBlock(to: &state, in: &context)
         AttackerOnHitEngine.apply(to: &state, in: &context)
         applyAttackerMirroredReactions(to: &state, in: &context)
 
@@ -104,6 +110,8 @@ package enum DamagePipeline {
             applyReactiveOnHit(to: &state, in: &context)
             applyKeywordReactions(to: &state, in: &context)
         }
+        applyFinalCompanionHolyHitRewards(to: &state, in: &context)
+        applyCompanionLeechCriticalBlock(to: &state, in: &context)
         applyThreefoldGrace(to: &state, in: &context)
         if !state.options.isRetaliation {
             applyCriticalReaction(to: &state, in: &context)

@@ -1,6 +1,71 @@
 import Foundation
+import TrinketContent
 
 extension CloudSaveMerge {
+    static func hasNewCorruptionAltarCompletion(in save: PlayerSave, base: PlayerSave?) -> Bool {
+        guard let base else { return false }
+        func isAltar(_ eventID: String?) -> Bool {
+            guard let eventID else { return false }
+            return eventID == GameContent.corruptionAltarEventID
+                || GameContent.mysteryEvent(matching: eventID)?.choices.contains { $0.effects.contains(.corruptItem) } == true
+        }
+        if save.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs).contains(where: {
+            isAltar(save.journey.pinnedMysteryEventIDs[$0])
+        }) {
+            return true
+        }
+        if save.labyrinth.worldSeed == (base.labyrinth.hasMap ? base.labyrinth.worldSeed : base.worldSeed),
+           save.labyrinth.nodes.values.contains(where: {
+               $0.isCleared && base.labyrinth.nodes[$0.id]?.isCleared != true && isAltar($0.mysteryEventID)
+           }) {
+            return true
+        }
+        let runs = [save.voyage.activeRun, base.voyage.activeRun].compactMap(\.self)
+        return runs.contains { run in
+            run.nodes.contains { node in
+                base.voyage.node(runID: run.id, nodeID: node.id)?.isCleared != true
+                    && (save.voyage.node(runID: run.id, nodeID: node.id)?.isCleared == true
+                        || save.voyage.completedRunIDs?.contains(run.id) == true)
+                    && isAltar(node.mysteryEventID)
+            }
+        }
+    }
+
+    static func sharedMysteryCompletionCount(branches: Branches) -> Int {
+        guard let base = branches.base else { return 0 }
+        let first = branches.incoming
+        let second = branches.existing
+        let stages = first.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs)
+            .intersection(second.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs))
+        var count = stages.count { id in
+            guard let stage = GameContent.stage(id: id) else { return false }
+            switch stage.encounter {
+            case .mysteryEvent, .recruit: return true
+            default: return false
+            }
+        }
+        if sharesLabyrinthMap(incoming: first, existing: second, base: base) {
+            count += first.labyrinth.nodes.values.count { node in
+                (node.type == .mystery || node.type == .recruit) && node.isCleared
+                    && base.labyrinth.nodes[node.id]?.isCleared != true
+                    && second.labyrinth.nodes[node.id]?.isCleared == true
+            }
+        }
+        var seen: Set<String> = []
+        for run in [first.voyage.activeRun, second.voyage.activeRun, base.voyage.activeRun].compactMap(\.self)
+            where seen.insert(run.id).inserted {
+            count += run.nodes.count { node in
+                (node.type == .mystery || node.type == .recruit)
+                    && base.voyage.node(runID: run.id, nodeID: node.id)?.isCleared != true
+                    && (first.voyage.node(runID: run.id, nodeID: node.id)?.isCleared == true
+                        || first.voyage.completedRunIDs?.contains(run.id) == true)
+                    && (second.voyage.node(runID: run.id, nodeID: node.id)?.isCleared == true
+                        || second.voyage.completedRunIDs?.contains(run.id) == true)
+            }
+        }
+        return count
+    }
+
     static func hasDuplicateClaim(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave?) -> Bool {
         guard let base else { return true }
         let baseItemIDs = Set(base.inventory.items.map(\.id))

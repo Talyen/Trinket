@@ -181,6 +181,7 @@ package extension CombatTriggerEngine {
         )
         var events: [ActionEvent] = []
         for (_, target) in livingPartyMembers(in: context) {
+            guard !context.isBattleOver, context.health(of: actor) > 0 else { break }
             events.append(contentsOf: performRandomCleanses(
                 source: actor,
                 target: target.combatant,

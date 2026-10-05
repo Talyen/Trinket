@@ -74,32 +74,17 @@ enum RosterHydration {
 
     static func resolveEquipmentLoadouts(
         from loadouts: [String: EquipmentLoadout],
-        inventoryItemIDs: Set<String>,
-        inventoryItems: [InventoryItem]? = nil,
+        inventoryItems: [InventoryItem],
     ) -> [String: EquipmentLoadout] {
         guard !loadouts.isEmpty else { return [:] }
-        // Narrow the inventory once for the whole roster, rather than scanning every stored item per combatant.
-        let equippedInventory = inventoryItems.map { items in
-            let equippedIDs = loadouts.values.reduce(into: Set<String>()) {
-                $0.formUnion($1.itemIDsBySlot.values)
-            }
-            return items.filter { equippedIDs.contains($0.id) }
+        let equippedIDs = loadouts.values.reduce(into: Set<String>()) {
+            $0.formUnion($1.itemIDsBySlot.values)
         }
+        let equippedInventory = inventoryItems.filter { equippedIDs.contains($0.id) }
         var resolved: [String: EquipmentLoadout] = [:]
         for (combatantID, loadout) in loadouts {
-            let combatant = GameContent.combatant(matching: combatantID)
-            // Unknown-combatant drop is active only when inventory items are
-            // supplied (sanitizer path). Model/cloud read paths build
-            // equipment directly from stored rows and leave dangling refs for
-            // sanitize to strip, so a raw round trip never loses data here.
-            if equippedInventory != nil, combatant == nil {
-                continue
-            }
-            var cleaned = EquipmentLoadout(itemIDsBySlot: loadout.itemIDsBySlot.filter { inventoryItemIDs.contains($0.value) })
-            if let combatant, let equippedInventory {
-                cleaned = cleaned.sanitized(for: combatant, inventory: equippedInventory)
-            }
-            resolved[combatantID] = cleaned
+            guard let combatant = GameContent.combatant(matching: combatantID) else { continue }
+            resolved[combatantID] = loadout.sanitized(for: combatant, inventory: equippedInventory)
         }
         return enforceUniqueEquippedItems(resolved)
     }

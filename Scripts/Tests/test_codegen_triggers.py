@@ -111,6 +111,10 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
     def test_triggers_swift_rejects_badly_typed_values(self) -> None:
         for token in [
             "block_per_turn:foo",
+            "block_per_turn:١",
+            "block_per_turn:²",
+            "stunnedDamageMultiplier:１.０",
+            "stunnedDamageMultiplier:.5",
             "first_hit_double_damage:banana",
             "damage_below_health_percent:50:shadow:5",
             "turn_random_damage_all_enemies:burn:shadow",
@@ -156,9 +160,9 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             triggers._FLAG_TRIGGERS.items()
         ):
             self.assertIn(field, names, f"alias {token!r} targets unknown field")
-        for prefix, (_, arities) in triggers._BESPOKE_TRIGGER_SPECS.items():
-            for fields in arities.values():
-                for field, _ in fields:
+        for prefix, (_, *shapes) in triggers._BESPOKE_TRIGGER_SPECS.items():
+            for fields in shapes:
+                for field in fields:
                     self.assertIn(field, names, f"bespoke {prefix!r} sets unknown field")
 
     def test_modifiers_swift_rejects_duplicates_and_bad_amounts(self) -> None:
@@ -166,7 +170,9 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             content_codegen_modifiers.modifiers_swift("maximum_health:4|maximum_health:8", "sample")
         with self.assertRaises(ValueError):
             content_codegen_modifiers.modifiers_swift("damage_dealt:burn:1|damage_dealt:burn:2", "sample")
-        for token in ["maximum_health:foo", "outgoing_damage_percent:foo", "damage_dealt:burn:foo"]:
+        for token in ["maximum_health:foo", "maximum_health:١", "outgoing_damage_percent:foo",
+                      "damage_dealt:burn:foo", "damage_dealt:shadow:3", "damage_taken_percent:arcane:0.2",
+                      "damage_dealt:fire"]:
             with self.subTest(token=token), self.assertRaises(ValueError):
                 content_codegen_modifiers.modifiers_swift(token, "sample")
 
@@ -175,16 +181,6 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             content_codegen_modifiers.modifier_token_to_swift("damage_dealt:burn:3"),
             ".damageDealt(.burn, 3)",
         )
-
-    def test_modifier_token_to_swift_rejects_unknown_keyword(self) -> None:
-        with self.assertRaises(ValueError):
-            content_codegen_modifiers.modifier_token_to_swift("damage_dealt:shadow:3")
-        with self.assertRaises(ValueError):
-            content_codegen_modifiers.modifier_token_to_swift("damage_taken_percent:arcane:0.2")
-
-    def test_modifier_token_to_swift_rejects_malformed_token(self) -> None:
-        with self.assertRaises(ValueError):
-            content_codegen_modifiers.modifier_token_to_swift("damage_dealt:fire")
 
     def test_affix_policies_preserve_seeded_order_and_require_explicit_classification(self) -> None:
         import hashlib

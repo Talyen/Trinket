@@ -23,7 +23,11 @@ def main() -> int:
     reports = load_results_reports(payload)
 
     baseline = read_json(args.baseline)
-    scenarios, mode, minimum_average, minimum_low, maximum_severe = load_baseline(baseline)
+    scenarios, mode = load_baseline(baseline)
+    goals = baseline["goals"]
+    minimum_average = float(goals["minimumAverageFPS"])
+    minimum_low = float(goals["minimumOnePercentLowFPS"])
+    maximum_severe = float(goals["maximumSevereStallCount"])
     grouped, failures = group_reports_by_scenario(reports, scenarios)
 
     severe_limit_text = "zero" if maximum_severe == 0 else f"{maximum_severe:g}"

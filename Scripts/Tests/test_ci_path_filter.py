@@ -68,35 +68,6 @@ class CIPathFilterTests(unittest.TestCase):
             self.assertEqual(select([path], graph), self.filter.all_packages())
         self.assertEqual(select(['Packages/TrinketPersistence/Sources/Store.swift'], {}), self.filter.all_packages())
 
-    def test_code_globs_match_app_and_build_scripts(self) -> None:
-        match = self.filter.is_code_path
-        self.assertTrue(match("Trinket/App/TrinketApp.swift"))
-        self.assertTrue(match("Packages/BattleEngine/Sources/BattleEngine/Foo.swift"))
-        self.assertTrue(match("project.yml"))
-        self.assertTrue(match("Smoke.xctestplan"))
-        self.assertTrue(match("Scripts/build-for-testing.sh"))
-        self.assertTrue(match("Scripts/test.sh"))
-        self.assertTrue(match("Scripts/generate.sh"))
-        self.assertTrue(match("Scripts/ensure-simulator.sh"))
-        self.assertTrue(match("Scripts/stage-ci-test-artifact.sh"))
-        self.assertTrue(match("Scripts/run-env.sh"))
-        self.assertTrue(match("Scripts/ci-path-filter.py"))
-        self.assertTrue(match("Scripts/lib/smoke-classes.sh"))
-        self.assertFalse(match("Scripts/lint-analyze.sh"))
-        self.assertFalse(match("Scripts/release-notes-user.py"))
-        self.assertTrue(match(".github/workflows/tests.yml"))
-        self.assertFalse(match("Docs/Platform/Verification.md"))
-        self.assertFalse(match("CHANGELOG.md"))
-
-    def test_infra_globs_match_scripts_and_workflows(self) -> None:
-        match = self.filter.is_infra_path
-        self.assertTrue(match("Scripts/lint-analyze.sh"))
-        self.assertTrue(match("Scripts/ci-path-filter.py"))
-        self.assertTrue(match(".github/workflows/tests.yml"))
-        self.assertTrue(match(".swiftlint.yml"))
-        self.assertFalse(match("Scripts/README.md"))
-        self.assertFalse(match("Trinket/App/TrinketApp.swift"))
-
     def test_asset_globs_match_prepare_scripts(self) -> None:
         match = self.filter.is_asset_path
         self.assertTrue(match("ArtManifest/curated-assets.tsv"))
@@ -127,6 +98,17 @@ class CIPathFilterTests(unittest.TestCase):
 
     def test_build_contract_inputs_and_documentation(self) -> None:
         cases = {
+            "Trinket/App/TrinketApp.swift": (True, False, False),
+            "Packages/BattleEngine/Sources/BattleEngine/Foo.swift": (True, False, False),
+            "project.yml": (True, False, False),
+            "Smoke.xctestplan": (True, False, False),
+            "Scripts/generate.sh": (True, False, True),
+            "Scripts/ensure-simulator.sh": (True, False, True),
+            "Scripts/stage-ci-test-artifact.sh": (True, False, True),
+            "Scripts/lib/smoke-classes.sh": (True, False, True),
+            "Scripts/release-notes-user.py": (False, False, True),
+            "CHANGELOG.md": (False, False, False),
+            ".swiftlint.yml": (False, False, True),
             "Scripts/prepare-assets.sh": (True, True, True),
             "Scripts/lint-analyze.sh": (False, False, True),
             "Scripts/build-for-testing.sh": (True, False, True),

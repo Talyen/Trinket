@@ -138,73 +138,40 @@ def _apply_simple_trigger(token: str, values: dict[str, str]) -> bool:
     return False
 
 
-_BESPOKE_TRIGGER_SPECS: dict[str, tuple[str, dict[int, tuple[tuple[str, bool], ...]]]] = {
+_BESPOKE_TRIGGER_SPECS = {
     "damage_below_health_percent": (
         "threshold[:keyword]:bonus",
-        {
-            2: (
-                ("damageBelowHealthPercentThreshold", False),
-                ("damageBelowHealthPercentBonus", False),
-            ),
-            3: (
-                ("damageBelowHealthPercentThreshold", False),
-                ("damageBelowHealthPercentKeyword", True),
-                ("damageBelowHealthPercentBonus", False),
-            ),
-        },
+        ("damageBelowHealthPercentThreshold", "damageBelowHealthPercentBonus"),
+        ("damageBelowHealthPercentThreshold", "damageBelowHealthPercentKeyword", "damageBelowHealthPercentBonus"),
     ),
     "once_below_health_percent_heal": (
-        "threshold:amount",
-        {
-            2: (
-                ("onceBelowHealthPercentThreshold", False),
-                ("onceBelowHealthPercentHeal", False),
-            ),
-        },
+        "threshold:amount", ("onceBelowHealthPercentThreshold", "onceBelowHealthPercentHeal"),
     ),
     "dodge_chance_below_health_percent": (
-        "threshold:bonus",
-        {
-            2: (
-                ("dodgeChanceBelowHealthPercentThreshold", False),
-                ("dodgeChanceBelowHealthPercentBonus", False),
-            ),
-        },
+        "threshold:bonus", ("dodgeChanceBelowHealthPercentThreshold", "dodgeChanceBelowHealthPercentBonus"),
     ),
     "turn_random_damage_all_enemies": (
         "keyword:keyword:amount",
-        {
-            3: (
-                ("turnRandomDamageAllEnemiesKeywordA", True),
-                ("turnRandomDamageAllEnemiesKeywordB", True),
-                ("turnRandomDamageAllEnemiesAmount", False),
-            ),
-        },
+        ("turnRandomDamageAllEnemiesKeywordA", "turnRandomDamageAllEnemiesKeywordB", "turnRandomDamageAllEnemiesAmount"),
     ),
     "cards_played_mana": (
-        "threshold:amount",
-        {
-            2: (
-                ("cardsPlayedManaThreshold", False),
-                ("cardsPlayedManaFlat", False),
-            ),
-        },
+        "threshold:amount", ("cardsPlayedManaThreshold", "cardsPlayedManaFlat"),
     ),
 }
 
 
-def _apply_bespoke_trigger(token: str, values: dict[str, str]) -> bool:
+def _apply_bespoke_trigger(token: str, values: dict[str, str], field_types: dict[str, str]) -> bool:
     prefix, separator, value = token.partition(":")
     if not separator or prefix not in _BESPOKE_TRIGGER_SPECS:
         return False
-    usage, arities = _BESPOKE_TRIGGER_SPECS[prefix]
+    usage, *shapes = _BESPOKE_TRIGGER_SPECS[prefix]
     args = value.split(":")
-    if len(args) not in arities:
+    fields = next((shape for shape in shapes if len(shape) == len(args)), None)
+    if fields is None:
         raise ValueError(f"{prefix} expects {usage}, got {token!r}")
-    for (field, is_keyword), arg in zip(arities[len(args)], args):
-        if is_keyword and arg not in VALID_KEYWORDS:
-            raise ValueError(f"Unknown keyword {arg!r} in trigger token {token!r}")
-        values[field] = f".{arg}" if is_keyword else arg
+    for field, arg in zip(fields, args):
+        # Field types come from the schema; normal typed validation checks keywords.
+        values[field] = f".{arg}" if field_types[field] == "Keyword?" else arg
     return True
 
 
@@ -256,7 +223,7 @@ def parse_trigger_values(raw: str, row_id: str = "") -> dict[str, str]:
     values: dict[str, str] = {}
     for token in parse_modifier_tokens(raw):
         resolved: dict[str, str] = {}
-        if not (_apply_simple_trigger(token, resolved) or _apply_bespoke_trigger(token, resolved)):
+        if not (_apply_simple_trigger(token, resolved) or _apply_bespoke_trigger(token, resolved, field_types)):
             field, separator, value = token.partition(":")
             if not separator:
                 raise ValueError(f"Unknown trigger token: {token}")

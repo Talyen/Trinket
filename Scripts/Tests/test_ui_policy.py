@@ -83,6 +83,10 @@ class UiPolicyTests(ScriptRegressionTestCase):
                 with self.subTest(source=source), patch.object(checker.subprocess, "run", side_effect=FileNotFoundError), patch("builtins.print"):
                     fixture.write_text(source)
                     self.assertEqual(checker.main(["check-ui-style.py", directory]), expected)
+            with patch.object(checker.subprocess, "run", side_effect=FileNotFoundError), \
+                    patch.object(Path, "read_text", side_effect=PermissionError("unreadable source")), \
+                    patch("builtins.print"):
+                self.assertEqual(checker.main(["check-ui-style.py", directory]), 1)
 
 
     def test_artwork_budget_enforces_constants_and_rejects_96_floor(self) -> None:

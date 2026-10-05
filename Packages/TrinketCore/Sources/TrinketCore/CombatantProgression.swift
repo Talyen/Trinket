@@ -80,13 +80,21 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
     /// Total cumulative experience earned across all prior levels plus currentXP.
     public var totalEarnedExperience: Int {
         guard level > 1 else { return max(0, currentXP) }
-        var total = max(0, currentXP)
-        for lvl in 1 ..< level {
-            total = SaturatedArithmetic.saturatingAdd(total, Self.requiredXP(forLevel: lvl))
-            if total == Int.max {
-                break
-            }
-        }
-        return total
+        let pairs = (level - 1) / 2
+        // Summing pairs of prior levels preserves the curve's integer rounding:
+        // requiredXP(1)...requiredXP(2p) = p·(4p²+27p+44)/3.
+        let factor = SaturatedArithmetic.saturatingAdd(
+            SaturatedArithmetic.saturatingMul(
+                SaturatedArithmetic.saturatingAdd(SaturatedArithmetic.saturatingMul(pairs, 4), 27), pairs,
+            ), 44,
+        )
+        guard factor < Int.max else { return Int.max }
+        let pairedXP = pairs.isMultiple(of: 3)
+            ? SaturatedArithmetic.saturatingMul(pairs / 3, factor)
+            : SaturatedArithmetic.saturatingMul(pairs, factor / 3)
+        let unpairedXP = level.isMultiple(of: 2) ? Self.requiredXP(forLevel: level - 1) : 0
+        return SaturatedArithmetic.saturatingAdd(
+            max(0, currentXP), SaturatedArithmetic.saturatingAdd(pairedXP, unpairedXP),
+        )
     }
 }
