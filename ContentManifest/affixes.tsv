@@ -38,7 +38,7 @@ shatter	Shatter	weapon	freeze	8	Deal 2 additional damage while the enemy is Froz
 executioners	Executioner's	weapon	physical	8	Deal 2 additional damage if the enemy is below 30% Health.	Deal 3 additional damage if the enemy is below 30% Health.			damage_below_health_percent:0.30:2	damage_below_health_percent:0.30:3
 riposte	Riposte	armor	physical,dodge	8	Deal 3 additional damage on your next attack after Dodging.	Deal 6 additional damage on your next attack after Dodging.			damage_after_dodge:3	damage_after_dodge:6
 cascading	Cascading	armor	block	8	Gain 1 Block when your Block is broken.	Gain 2 Block when your Block is broken.			on_block_broken_block:1	on_block_broken_block:2
-symbiosis	Symbiosis	accessory	leech,health	8	Companions gain 50% of your Leech.	Companions gain 100% of your Leech.			companion_leech_share_percent:0.50	companion_leech_share_percent:1.00
+symbiosis	Symbiosis	accessory	leech,health	8	Your ally receives 50% of the Health you restore with Leech.	Your ally receives 100% of the Health you restore with Leech.			companion_leech_share_percent:0.50	companion_leech_share_percent:1.00
 second_wind	Second Wind	armor	health	8	Restore 8 Health the first time you fall below 25% Health.	Restore 16 Health the first time you fall below 25% Health.			once_below_health_percent_heal:0.25:8	once_below_health_percent_heal:0.25:16
 deathgrip	Deathgrip	accessory	block,health,deathsDoor	8	Gain 8 Block when on Death's Door.	Gain 16 Block when on Death's Door.			block_on_deaths_door:8	block_on_deaths_door:16
 frostburn	Frostburn	accessory	burn,freeze	8	Increase Freeze damage by 2 against Burning enemies.	Increase Freeze damage by 4 against Burning enemies.			freeze_damage_while_burning:2	freeze_damage_while_burning:4

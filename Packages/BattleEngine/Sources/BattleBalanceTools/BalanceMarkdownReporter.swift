@@ -67,6 +67,7 @@ public enum BalanceMarkdownReporter {
             "- Jobs: `\(report.config.resolvedJobs)`",
             "- Tiers: \(report.config.tiers.map(\.rawValue).joined(separator: ", "))",
             "- Fight pacing: `\(report.config.appliesFightPacing ? "on" : "off")`",
+            "- Contrast builds: `\(report.config.usesTierTalents ? "tier-legal talents" : "minimal talents (diagnostic)")`",
             "- Identity battles: `\(report.records.count)`",
             "- Expected n/tier: enemies `\(samples)`, heroes ~`\(expectedHeroN)`, companions ~`\(expectedCompanionN)`, contrast pairs/focus `\(samples)`",
             "- Ability contrast rows: `\(report.abilityContrasts.count)`",

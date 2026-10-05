@@ -121,7 +121,7 @@ struct EffectModelTests {
 
     @Test func `flag effect summary phrases are registered`() {
         for effect in [
-            Effect.nextHolyStrike, .nextStrikeDouble, .evadeNextHit, .nextStrikeCritical,
+            Effect.nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .evadeNextHit, .nextStrikeCritical,
             .nextStrikeLeech, .partyDamageBonus(3), .freezeNextAttacker,
             .nextStrikeDamageKeywordOverride(.holy),
         ] {

@@ -48,6 +48,7 @@ struct FlagEffectHandler: BattleEffectHandler {
         switch effect {
         case .nextHolyStrike: event = (.nextHolyStrikeApplied, 0)
         case .nextStrikeDouble: event = (.nextStrikeDoubleApplied, 0)
+        case .playNextCardTwice: event = (.playNextCardTwiceApplied, 0)
         case .evadeNextHit: event = (.evadeNextHitApplied, 0)
         case .nextStrikeCritical: event = (.criticalChanceApplied, 100)
         case .nextStrikeLeech: event = (.leechApplied, 0)

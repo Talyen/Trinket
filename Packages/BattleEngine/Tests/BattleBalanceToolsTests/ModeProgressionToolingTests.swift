@@ -5,6 +5,112 @@ import TrinketCore
 @testable import BattleBalanceTools
 
 struct ModeProgressionToolingTests {
+    @Test func `random encounters cannot attribute one enemy's losses to another enemy`() throws {
+        let records = ["goblin", "skeleton"].flatMap { enemyID in
+            (0 ..< 8).map { sample in
+                ProgressionBattleRecord(
+                    step: ModeProgressionStep(
+                        id: "random-stage", mode: .campaign, containerID: "chapter", containerTitle: "Chapter",
+                        stepIndex: 1, displayTitle: "Random battle", enemyID: enemyID, enemyLevel: 10, isBoss: false,
+                    ),
+                    playerLevel: 10, enemyLevel: 10, seed: UInt64(sample),
+                    result: BattleSimResult(
+                        outcome: enemyID == "goblin" ? .defeat : .victory, rounds: 10, actions: 40,
+                        timedOut: false, partyHPRemainingFraction: 0, enemyHPRemainingFraction: 0,
+                    ),
+                )
+            }
+        }
+        let recoveryRecords = records.map { record in
+            var recovery = record
+            recovery.step.mode = .contract
+            recovery.step.id = "recovery-contract"
+            return recovery
+        }
+        let summaries = HotspotAnalyzer.analyze(records: records + recoveryRecords)
+        #expect(summaries.count == 2)
+        #expect(try #require(summaries.first { $0.step.enemyID == "goblin" }).winRate == 0)
+        #expect(try #require(summaries.first { $0.step.enemyID == "skeleton" }).winRate == 1)
+        let config = BalanceSweepConfig(mode: .modeProgression)
+        let slices = [records, recoveryRecords].map { slice in
+            BalanceSweepReport(config: config, policyID: config.policyID, progressionRecords: slice, elapsedSeconds: 0)
+        }
+        let merged = BalanceSweepReport.merged(slices, config: config, policyID: config.policyID, elapsedSeconds: 0)
+        #expect(merged.progressionHotspots == summaries)
+        #expect(merged.progressionRecords.count == records.count + recoveryRecords.count)
+    }
+
+    @Test func `unattuned Spires cannot become simulated difficulty walls`() throws {
+        let holy = try #require(GameContent.spire(id: .aureateChoir))
+        let controller = InterleavingPlayerController(
+            campaignTracker: .init(steps: []), spireTracker: .spire(spires: [holy]),
+            labyrinthTracker: .init(steps: []),
+        )
+        #expect(controller.isComplete)
+        #expect(controller.selectNextStep() == nil)
+    }
+
+    @Test func `Spire combat uses the seeded floor modifier without replacing loadout aligned gear`() throws {
+        let hero = try #require(GameContent.hero(matching: "ranger"))
+        let companion = try #require(GameContent.companion(matching: "wolf"))
+        let spire = try #require(GameContent.spire(id: .ironVein))
+        let floor = try #require(GameContent.spireFloor(spireID: spire.id, floor: 1))
+        let worldSeed = try #require((UInt64(1) ... 100).first { seed in
+            guard let modifier = GameContent.spireModifier(for: floor, worldSeed: seed) else { return false }
+            if case .damageDealt = modifier.effect {
+                return true
+            }
+            return false
+        })
+        let controller = InterleavingPlayerController(
+            hero: hero, companion: companion, campaignTracker: .init(steps: []),
+            spireTracker: .spire(spires: [spire]), labyrinthTracker: .init(steps: []),
+            initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20), worldSeed: worldSeed,
+        )
+        let step = try #require(controller.selectNextStep())
+        let actual = controller.makeMatchup(for: step, seed: 43)
+        let enemy = try #require(GameContent.enemy(matching: step.enemyID))
+        let expected = SimulationMatchupBuilder.build(
+            hero: hero, companion: companion, enemy: enemy, tier: .middle, enemyLevel: step.enemyLevel,
+            heroLoadout: actual.context.heroLoadout, companionLoadout: actual.context.companionLoadout,
+            seed: 43, heroTalents: Set(actual.context.heroTalentIDs), companionTalents: Set(actual.context.companionTalentIDs),
+        )
+        #expect(actual.context.heroAffixIDs == expected.context.heroAffixIDs)
+        #expect(actual.context.companionAffixIDs == expected.context.companionAffixIDs)
+        #expect(actual.context.heroItemBaseIDs == expected.context.heroItemBaseIDs)
+        #expect(actual.enemyModifiers.damageDealtBonus[.physical, default: 0]
+            == expected.enemyModifiers.damageDealtBonus[.physical, default: 0] + 1)
+    }
+
+    @Test func `Easy Contracts earn recovery XP without clearing or prolonging advancing content`() throws {
+        let step = ModeProgressionStep(
+            id: "wall", mode: .campaign, containerID: "chapter", containerTitle: "Chapter",
+            stepIndex: 1, displayTitle: "Wall", enemyID: "goblin", enemyLevel: 20, isBoss: false,
+        )
+        let controller = InterleavingPlayerController(
+            campaignTracker: .init(steps: [step]), spireTracker: .init(steps: []), labyrinthTracker: .init(steps: []),
+            initialState: PlayerProgressionState(heroLevel: 10, companionLevel: 10), worldSeed: 43,
+        )
+        controller.recordOutcome(step: step, won: false)
+        controller.recordOutcome(step: step, won: false)
+        let recovery = try #require(controller.selectNextStep())
+        try #require(recovery.mode == .contract)
+        #expect(recovery.enemyLevel == 7)
+        #expect(controller.selectNextStep() == recovery)
+        #expect(GameContent.enemy(matching: recovery.enemyID)?.isBoss == false)
+        controller.recordOutcome(step: recovery, won: false)
+        #expect(controller.selectNextStep() == recovery)
+        controller.recordOutcome(step: recovery, won: true)
+        #expect(controller.state.heroXP > 0)
+        #expect(controller.selectNextStep() == step)
+        #expect(!controller.isComplete)
+        controller.recordOutcome(step: step, won: true)
+        #expect(controller.isComplete)
+        #expect(controller.selectNextStep() == nil)
+    }
+}
+
+extension ModeProgressionToolingTests {
     @Test func `mode progression trackers build non empty steps`() {
         let campaign = ModeProgressionTracker.campaign()
         let spire = ModeProgressionTracker.spire()

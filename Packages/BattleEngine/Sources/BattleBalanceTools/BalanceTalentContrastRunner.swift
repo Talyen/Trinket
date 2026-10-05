@@ -146,7 +146,7 @@ enum BalanceTalentContrastRunner {
         }
     }
 
-    private static func makePair(
+    static func makePair(
         focus: Focus,
         tier: SimulationPowerTier,
         pairIndex: Int,
@@ -175,6 +175,7 @@ enum BalanceTalentContrastRunner {
                 pairIndex: pairIndex,
                 context: context,
                 pairSeed: seed,
+                fillsRemainingTalents: false,
             )
         }
     }
@@ -187,6 +188,7 @@ enum BalanceTalentContrastRunner {
         pairIndex: Int,
         context: BalanceContrastContext,
         pairSeed: UInt64,
+        fillsRemainingTalents: Bool = true,
     ) -> BalanceContrastSupport.Pair {
         let base = BalanceContrastSupport.base(
             owner: owner,
@@ -195,9 +197,14 @@ enum BalanceTalentContrastRunner {
             context: context,
             pairSeed: pairSeed,
         )
+        let shared = context.config.usesTierTalents && fillsRemainingTalents
+            ? BalanceContrastSupport.sharedTalentKit(
+                owner: owner, tier: tier, entityTalents: entityTalents,
+                baselineTalents: baselineTalents, seed: pairSeed,
+            ) : entityTalents.intersection(baselineTalents)
         return (
-            base.matchup(ownerTalents: entityTalents),
-            base.matchup(ownerTalents: baselineTalents),
+            base.matchup(ownerTalents: shared.union(entityTalents)),
+            base.matchup(ownerTalents: shared.union(baselineTalents)),
         )
     }
 }

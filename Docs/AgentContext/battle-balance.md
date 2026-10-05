@@ -90,6 +90,15 @@ with sparse samples or omitted modes does not establish balance. Increase
 identity finding depends on autoplay choices. Durations are battle rounds, not
 wall-clock seconds or animation timings.
 
+Paired contrasts use shared legal talent kits and starter equipment in the early
+profile. The focused talent choice is excluded from the common background kit;
+both resulting builds must remain legal. The minimal-talent diagnostic omits
+background talents and retains the focus's prerequisites. Shared kits leave points
+unspent when using them would require the opposing focus or an illegal later row.
+The diagnostic is labeled separately; older JSON reports without the build-context field retain
+their historical minimal-talent interpretation. Do not compare those results as
+if they were tier-kit evidence.
+
 Duration buckets and identity tables share one classification path. Enemy duration
 rows keep boss and regular encounters separate even when their IDs match; Hero and
 Companion rows combine opponents using each encounter's duration band. Equal long-fight
@@ -100,7 +109,20 @@ its sibling when present, or with the same prerequisite build without that node
 for a single-node row. Reordered nodes use their current positions for legality;
 tiers without enough talent points are skipped rather than given illegal builds.
 
+Wizard's Mana Shield talent grants base Block equal to unspent Mana, capped at
+six per turn, without spending Mana. Ordinary Block gain modifiers still apply;
+the Mana Shield card retains its separate Mana-payment rule.
+
 Progression simulations keep each mode's steps, cursor, and loss count together
 in `InterleavingPlayerController`. Selection and advancement share that state.
 Seeded matchups draw both talent kits before starter gear; preserve this order
 when simplifying setup so reports remain comparable across refactors.
+Fixed-party progression excludes unattuned Spires, uses the run's world seed for
+floor modifiers, and keeps Spire affinity as reward metadata rather than forcing equipment.
+When all remaining advancing modes have stalled, Easy Contracts provide recovery
+XP through the shared level and XP rules. These jobs do not clear advancing steps
+or extend the completion criterion, and are not classified as progression hotspots.
+Losses retain the same recovery offer until victory. Random-stage enemy variants
+have separate hotspot rows so one enemy cannot inherit another's losses.
+The battle-count limit still bounds the run. Gear remains an idealized tier profile;
+the Labyrinth tracker samples ten depths, not a full renewable player career.

@@ -35,6 +35,7 @@ public enum SimulationMatchupBuilder {
         companionGear: GearOverride? = nil,
         heroTalents: Set<String> = [],
         companionTalents: Set<String> = [],
+        enemyAdditionalModifiers: [AffixModifier] = [],
         gearKeywordBias: Set<Keyword>? = nil,
         gearGenerator: ThemedGearGenerator = ThemedGearGenerator(includeTrinkets: true),
     ) -> ConfiguredSimulationMatchup {
@@ -73,7 +74,8 @@ public enum SimulationMatchupBuilder {
         )
 
         let enemyBuild = CombatBuildResolver.build(enemy: enemy, level: resolvedEnemyLevel)
-        let scaledEnemy = enemyBuild.combatant
+        var enemyModifiers = enemyBuild.modifiers
+        enemyModifiers.merge(enemyAdditionalModifiers)
 
         let context = SimulationBuildContext(
             tier: tier,
@@ -92,10 +94,10 @@ public enum SimulationMatchupBuilder {
         return ConfiguredSimulationMatchup(
             hero: heroPrepared.build.combatant,
             companion: companionPrepared.build.combatant,
-            enemy: scaledEnemy,
+            enemy: enemyBuild.combatant,
             heroModifiers: heroPrepared.build.modifiers,
             companionModifiers: companionPrepared.build.modifiers,
-            enemyModifiers: enemyBuild.modifiers,
+            enemyModifiers: enemyModifiers,
             context: context,
             enemyID: enemy.id,
             enemyFaction: enemy.faction,

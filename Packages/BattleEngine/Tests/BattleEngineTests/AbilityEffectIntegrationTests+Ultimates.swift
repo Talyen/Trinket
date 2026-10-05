@@ -75,19 +75,19 @@ extension AbilityEffectIntegrationTests {
         #expect(damage?.amount == 4)
     }
 
-    @Test func `shadowstep draws a manual card and dodges the next hit`() throws {
+    @Test func `feint draws a manual card and dodges the next hit`() throws {
         var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         context.appliesFightPacing = false
         context.heroDeck = CombatDeck(abilities: [.slash])
         let enemyBefore = context.health(of: context.enemy)
 
-        let shadowstepEvents = BattleTurnEngine.performAction(
-            ability: .shadowstep,
+        let feintEvents = BattleTurnEngine.performAction(
+            ability: AbilityCatalog.feint,
             actor: context.hero,
             abilityTarget: context.enemy,
             context: &context,
         )
-        try #expect(!shadowstepEvents.contains { $0.abilityID == Ability.slash.id && $0.kind == .abilityDamage })
+        try #expect(!feintEvents.contains { $0.abilityID == Ability.slash.id && $0.kind == .abilityDamage })
         try #expect(context.health(of: context.enemy) == enemyBefore)
         try #expect(context.heroDeck.isEmpty)
         try #expect(context.hand.cards.map(\.ability.id) == [Ability.slash.id])

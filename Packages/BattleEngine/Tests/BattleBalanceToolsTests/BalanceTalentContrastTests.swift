@@ -1,9 +1,54 @@
 import BattleEngine
 import Testing
 import TrinketContent
+import TrinketCore
 @testable import BattleBalanceTools
 
 struct BalanceTalentContrastTests {
+    @Test func `paired talent builds preserve the partner and differ only by the focused choice`() throws {
+        let wizard = try #require(GameContent.hero(matching: "wizard"))
+        let wolf = try #require(GameContent.companion(matching: "wolf"))
+        let enemy = try #require(GameContent.enemy(matching: "goblin"))
+        let config = BalanceSweepConfig(mode: .talentContrast, tiers: [.lateGame], jobs: 1)
+        let context = BalanceContrastContext(config: config, heroes: [wizard], companions: [wolf], enemies: [enemy])
+        let focus = try #require(BalanceTalentContrastRunner.siblingFoci(
+            heroes: [wizard], companions: [], focusIDs: ["wizard_mana_t1_1"],
+        ).first)
+        let pair = try #require(BalanceTalentContrastRunner.makePair(
+            focus: .sibling(focus), tier: .lateGame, pairIndex: 0, seed: 43, context: context,
+        ))
+        let entity = Set(pair.withEntity.context.heroTalentIDs)
+        let baseline = Set(pair.withBaseline.context.heroTalentIDs)
+        let sibling = try #require(focus.siblingID)
+        #expect(entity.subtracting(baseline) == [focus.focusID])
+        #expect(baseline.subtracting(entity) == [sibling])
+        #expect(entity.count > focus.prefix.count + 1)
+        #expect(entity.count <= CombatantProgression.at(level: 40).totalTalentPoints)
+        #expect(baseline.count == entity.count)
+        #expect(pair.withEntity.context.companionTalentIDs == pair.withBaseline.context.companionTalentIDs)
+        #expect(!pair.withEntity.context.companionTalentIDs.isEmpty)
+        #expect(pair.withEntity.context.heroAffixIDs == pair.withBaseline.context.heroAffixIDs)
+    }
+
+    @Test func `early card comparisons share starter gear and legal kits on both sides`() throws {
+        let hero = try #require(GameContent.hero(matching: "warlock"))
+        let companion = try #require(GameContent.companion(matching: "wolf"))
+        let enemy = try #require(GameContent.enemy(matching: "goblin"))
+        let context = BalanceContrastContext(
+            config: BalanceSweepConfig(), heroes: [hero], companions: [companion], enemies: [enemy],
+        )
+        let base = BalanceContrastSupport.base(owner: hero, tier: .early, pairIndex: 0, context: context, pairSeed: 43)
+        let entity = base.matchup()
+        let baseline = base.matchup(ownerLoadout: base.ownerLoadout.selecting(.faustianBargain))
+        #expect(entity.context.heroAffixIDs.count == 1)
+        #expect(entity.context.companionAffixIDs.count == 1)
+        #expect(entity.context.heroAffixIDs == baseline.context.heroAffixIDs)
+        #expect(entity.context.companionAffixIDs == baseline.context.companionAffixIDs)
+        #expect(!entity.context.heroTalentIDs.isEmpty && !entity.context.companionTalentIDs.isEmpty)
+        #expect(entity.context.heroTalentIDs == baseline.context.heroTalentIDs)
+        #expect(entity.context.companionTalentIDs == baseline.context.companionTalentIDs)
+    }
+
     @Test func `focused talent contrasts include both requested nodes in one row`() throws {
         let wildcard = try #require(GameContent.heroes.first { $0.id == "wildcard" })
         let focused = BalanceTalentContrastRunner.siblingFoci(

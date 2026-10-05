@@ -143,11 +143,11 @@ package enum BattleTurnEngine {
             }
         }
         committed = true
+        let repeats = reserveCardRepeat(for: actor, origin: origin, enemyTurn: entry == .enemyTurn, in: &context)
         context.cardPlayRecording?.beginAction(
             id: actionID, actorID: actor.id,
             abilityID: resolvedAbility.id, isAttack: resolvedAbility.dealsCombatDamage, afterEventID: context.nextEventID,
         )
-        defer { context.cardPlayRecording?.endAction(state: context) }
         if blockCost > 0 {
             events.append(context.nextEvent(
                 kind: .effect, effectKind: .blockSpent, actorName: actor.name,
@@ -157,13 +157,12 @@ package enum BattleTurnEngine {
         _ = context.resolution.prepareAction(facts)
         let checkpoint = CombatCheckpoint.preparedAction(actor.id)
         checkpoint.perform(in: &context) { UniqueCombatEngine.prepareResolvedAttack(facts, in: &$0) }
-        events.append(contentsOf: executePreparedAction(facts, context: &context))
+        events.append(contentsOf: executePreparedAction(facts, repeats: repeats, context: &context))
         return (events, true)
     }
 
-    private static func executePreparedAction(_ facts: ResolvedActionFacts, context: inout BattleState) -> [ActionEvent] {
+    private static func executePreparedAction(_ facts: ResolvedActionFacts, repeats: Bool, context: inout BattleState) -> [ActionEvent] {
         let actor = facts.action.actor
-        let abilityTarget = facts.action.selectedTarget
         var resolvedAbility = prepareTalentAction(ability: facts.ability, actor: actor, in: &context)
         var events: [ActionEvent] = []
         events.append(contentsOf: spendManaToEmpowerBurnOrFreezeIfNeeded(
@@ -177,48 +176,12 @@ package enum BattleTurnEngine {
             }
         }
 
-        var totalDealt = 0
-        var logKeyword = resolvedAbility.damageKeyword
-        var appliedEffectLogs: [String] = []
-        var reservedKeywordOverride: Keyword?
-        for operation in resolvedAbility.operations {
-            switch operation {
-            case let .damage(component):
-                let outcome = applyDamageComponent(
-                    component, ability: resolvedAbility, actor: actor, abilityTarget: abilityTarget,
-                    guaranteedCritical: facts.guaranteedCritical,
-                    reservedKeywordOverride: &reservedKeywordOverride, context: &context,
-                )
-                events.append(contentsOf: outcome.events)
-                totalDealt += outcome.healthLost
-                logKeyword = outcome.logDamageKeyword ?? logKeyword
-            case let .effect(targeted):
-                appliedEffectLogs.append(contentsOf: applyTargetedEffects(
-                    [targeted], ability: resolvedAbility, actor: actor, abilityTarget: abilityTarget,
-                    context: &context, events: &events,
-                ))
-            }
-        }
-
-        events.append(
-            context.nextEvent(
-                kind: .ability,
-                actionID: context.resolution.actionID,
-                effectKind: nil,
-                actorID: actor.id,
-                actorName: actor.name,
-                abilityID: resolvedAbility.id,
-                abilityName: resolvedAbility.name,
-                abilityTier: resolvedAbility.tier,
-                target: abilityTarget,
-                amount: totalDealt,
-                keyword: logKeyword,
-                appliedEffectSummaries: appliedEffectLogs,
-            ),
-        )
-
-        events.append(contentsOf: UniqueCombatEngine.repeatCardDamage(actor: actor, in: &context))
+        events.append(contentsOf: executePreparedOperations(facts, ability: resolvedAbility, context: &context))
         recordAction(for: actor, context: &context)
+        context.cardPlayRecording?.endAction(state: context)
+        if repeats {
+            events.append(contentsOf: repeatPreparedCard(facts, ability: resolvedAbility, context: &context))
+        }
         return events
     }
 

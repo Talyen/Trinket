@@ -43,6 +43,9 @@ public enum BalanceFindingsReporter {
         }
         lines.append("- Tiers: \(report.config.tiers.map(\.rawValue).joined(separator: ", "))")
         lines.append("- Fight pacing: `\(report.config.appliesFightPacing ? "on" : "off")`")
+        if !report.contrastSections.allSatisfy(\.rows.isEmpty) {
+            lines.append("- Contrast builds: `\(report.config.usesTierTalents ? "tier-legal talents" : "minimal talents (diagnostic)")`")
+        }
         lines.append(String(format: "- Elapsed: `%.2fs`", report.elapsedSeconds))
         lines.append("")
     }
@@ -67,6 +70,10 @@ public enum BalanceFindingsReporter {
                 "- Progression nodes: `\(report.progressionHotspots.count)`, "
                     + "hotspots: `\(flagged)`, runs: `\(report.progressionPlayerStates.count)`",
             )
+            lines
+                .append(
+                    "- Progression uses fixed parties, attuned Spires, seeded floor modifiers, and Easy Contract recovery. Gear is an idealized tier profile; Labyrinth samples ten depths.",
+                )
             lines.append("")
         }
     }

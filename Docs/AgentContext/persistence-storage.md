@@ -8,7 +8,9 @@ Reads use an in-memory observed projection; load/repair sanitizes `root.toPlayer
 
 Roster sanitization accepts current catalog IDs and applies [Core talent repair](../../Packages/TrinketCore/README.md).
 Roster hydration maps retired `sap-arrow` selections to `bounty-shot` before
-unknown-ID fallback, preserving the Stun-and-Gold choice in local and cloud saves.
+unknown-ID fallback, preserving the Stun-and-Gold choice in local and cloud saves. Rogue
+Venom Fangs Skill selections migrate to Feint before fallback; other combatants
+retain Venom Fangs. Both local save reads and cloud restoration use this mapping.
 
 Inventory admission and repair share ownership keys: physical item ID, Trinket
 template for Trinkets, and Unique template for Unique items. Repair retains the

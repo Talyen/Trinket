@@ -2,7 +2,7 @@ id	name	max_health	is_boss	abilities	trait_ids	faction
 living_armor	Living Armor	15	false	slash,sunder,thornMail	watchful_guard,bloodless	construct
 mimic	Mimic	14	false	fangs,acidPotion,thornMail	hidden_fangs	beast
 mud_elemental	Mud Elemental	15	false	bash,sunder,thornMail	dense_form,toxin_adaptation	elemental
-necromancer	Necromancer	14	false	rendingSlash,bloodOffering,hemorrhage	siphon,profane	undead
+necromancer	Necromancer	14	false	rendingSlash,serratedEdge,hemorrhage	siphon,profane	undead
 plague_doctor	Plague Doctor	13	false	causticJab,poisonDagger,bloodthorn	poison_hardened	mortal
 skeleton	Skeleton	14	false	slash,sunder,hemorrhage	bloodless,profane	undead
 the_blight_treant	The Blight Treant	15	true	causticJab,briarShield,bloodthorn	blighted_pulse,profane	corrupted
@@ -14,26 +14,26 @@ fire_elemental	Fire Elemental	13	false	kindling,fireball,combustion	searing_body
 frost_elemental	Frost Elemental	14	false	rayOfFrost,glacialWard,blizzard	chilling_strikes,kindling	elemental
 slime	Slime	15	false	causticJab,acidPotion,bloodthorn	toughened_hide,toxin_tolerance	beast
 will_o_wisp	Will-o-Wisp	13	false	iceShot,frostbolt,blizzard	incorporeal,winterborn	elemental
-bandit	Bandit	13	false	stab,serratedEdge,shadowstep	ambush,profane	mortal
+bandit	Bandit	13	false	stab,serratedEdge,hemorrhage	ambush,profane	mortal
 ogre	Ogre	15	false	slash,sunder,thornMail	shieldbreaker,profane	mortal
 fire_imp	Fire Imp	13	false	kindling,fireball,combustion	cold_shocked	corrupted
-hellhound	Hellhound	14	false	kindling,pounce,moltenBulwark	fan_the_flames,cold_shocked	beast
+hellhound	Hellhound	14	false	kindling,fireball,moltenBulwark	fan_the_flames,cold_shocked	beast
 pyromancer	Pyromancer	13	false	kindling,fireball,meteor	unquenchable_flame,cold_shocked	mortal
 giant_spider	Giant Spider	14	false	causticJab,venomFangs,bloodthorn	venomous_strikes,kindling	beast
 giant_snake	Giant Snake	14	false	causticJab,venomFangs,bloodthorn	corrosive_venom,cold_shocked	beast
-blood_cultist	Blood Cultist	13	false	rendingSlash,bloodOffering,hemorrhage	profane	mortal
-dire_wolf	Dire Wolf	14	false	fangs,serratedEdge,packTactics	blood_scent,toughened_hide	beast
-vampire	Vampire	14	false	fangs,darkPact,hemorrhage	siphon,sated_fury,profane,kindling	undead
-the_blood_countess	The Blood Countess	15	true	rendingSlash,bloodOffering,hemorrhage	crimson_pulse,profane	undead
+blood_cultist	Blood Cultist	13	false	rendingSlash,serratedEdge,hemorrhage	profane	mortal
+dire_wolf	Dire Wolf	14	false	fangs,serratedEdge,hemorrhage	blood_scent,toughened_hide	beast
+vampire	Vampire	14	false	fangs,venomFangs,hemorrhage	siphon,sated_fury,profane,kindling	undead
+the_blood_countess	The Blood Countess	15	true	rendingSlash,serratedEdge,hemorrhage	crimson_pulse,profane	undead
 zealot	Zealot	14	false	slash,smite,avatarOfJustice	gathering_zeal,thin_blooded	mortal
 cleric	Cleric	13	false	shieldBash,smite,sunburst	restoring_light,watchful_guard	mortal
 inquisitor	Inquisitor	14	false	stab,smite,sunburst	gathering_zeal,thin_blooded	mortal
 paladin	Paladin	15	false	shieldBash,smite,blessedAegis	righteous_guard,hallowed	mortal
 the_seraph	The Seraph	15	true	slash,smite,sunburst	radiant_judgment,thin_blooded	mortal
-winter_wolf	Winter Wolf	14	false	fangs,coldSnap,packTactics	chilling_strikes,kindling	beast
+winter_wolf	Winter Wolf	14	false	fangs,frostbolt,blizzard	chilling_strikes,kindling	beast
 ice_wraith	Ice Wraith	13	false	rayOfFrost,frostbolt,blizzard	numbing_presence,incorporeal,kindling,profane	undead
 yeti	Yeti	15	false	bash,glacialWard,blizzard	rimeguard,winterborn,kindling	beast
-banshee	Banshee	13	false	bash,darkPact,earthquake	dread_exploitation,profane	undead
+banshee	Banshee	13	false	bash,sunder,earthquake	dread_exploitation,profane	undead
 brawler	Brawler	14	false	bash,sunder,earthquake	concussion,thin_blooded	mortal
 stone_golem	Stone Golem	15	false	shieldBash,stoneskinPotion,earthquake	watchful_guard,bulwark_force	construct
 earth_elemental	Earth Elemental	15	false	bash,sunder,earthquake	shattering_impact,cold_tempered,heat_tempered	elemental

@@ -39,7 +39,10 @@ public enum BalanceProgressionRunner {
         let roster = config.resolvedRoster
         let hero = roster.heroes[runIndex % roster.heroes.count]
         let companion = roster.companions[(runIndex / max(roster.heroes.count, 1)) % roster.companions.count]
-        let controller = InterleavingPlayerController(hero: hero, companion: companion)
+        let controller = InterleavingPlayerController(
+            hero: hero, companion: companion,
+            campaignTracker: .campaign(worldSeed: runSeed), worldSeed: runSeed,
+        )
         var records: [ProgressionBattleRecord] = []
         var stepCounter = 0
 

@@ -8,6 +8,10 @@ extension InventoryItem {
         switch affixID {
         case "leeching", "vampiric":
             return Self.normalizedLeechPower(original)
+        case "symbiosis":
+            let share = triggers.companionLeechSharePercent
+            let percent = Int(((share.isNaN ? 0 : min(1, max(0, share))) * 100).rounded())
+            description = "Your ally receives \(percent)% of the Health you restore with Leech."
         case "smugglers_map":
             triggers.victoryGoldFlat = 0
             triggers.goldTheftDrawChancePercent = 0.20

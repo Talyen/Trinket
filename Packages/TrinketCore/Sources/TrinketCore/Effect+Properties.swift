@@ -26,6 +26,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case damageKeywordOverride
     case nextHolyStrike
     case nextStrikeDouble
+    case playNextCardTwice
     case nextBurnBonus
     case evadeNextHit
     case convertManaToBlock
@@ -119,7 +120,7 @@ public extension EffectKind {
             [.instant]
         case .deathsDoor:
             [.advancesEachTurn]
-        case .thorns, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
+        case .thorns, .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .nextBurnBonus, .evadeNextHit,
              .nextStrikeCritical, .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .partyDamageBonus,
              .freezeNextAttacker, .onHitDamage:
             [.removableBuff]
@@ -164,6 +165,7 @@ public extension Effect {
         case .damageKeywordOverride: .damageKeywordOverride
         case .nextHolyStrike: .nextHolyStrike
         case .nextStrikeDouble: .nextStrikeDouble
+        case .playNextCardTwice: .playNextCardTwice
         case .nextBurnBonus: .nextBurnBonus
         case .evadeNextHit: .evadeNextHit
         case .convertManaToBlock: .convertManaToBlock
@@ -248,7 +250,7 @@ public extension Effect {
         case .controlMeter, .shield, .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards,
              .cleanse, .cleanseHealPerDebuff, .panacea, .cleanseRandom, .purge, .purgeRandom,
              .halveShield, .deathsDoor, .thorns, .thornsFromBlockFraction, .marked, .criticalChanceBonus, .restoreManaOnHit,
-             .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
+             .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .nextBurnBonus, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
              .maximumManaBonus, .nextStrikeCritical, .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .partyDamageBonus,
              .freezeNextAttacker, .onHitDamage, .multiplyControlMeter, .blessedAegis, .revive, .damageReductionPercent,

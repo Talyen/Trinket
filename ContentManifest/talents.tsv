@@ -48,7 +48,7 @@ wizard_burn_t2_2	Fuel the Flames	sf:flame.fill	Mana-empowered Burn attacks deal 
 wizard_burn_t3_1	Supernova	sf:burst.fill	Burn attacks have a 10% chance to deal double damage		burnAttackDoubleChancePercent:0.10
 wizard_burn_t3_2	Pyromancer's Spark	sf:sparkles	Empowering Burn attacks costs 1 less Mana		empowerBurnCostReduction:1
 wizard_mana_t1_1	Arcane Focus	sf:scope	Mana empowerment increases attack damage by 1		empowermentDamageBonus:1
-wizard_mana_t1_2	Mana Shield	sf:shield.fill	At the end of your turn, gain 1 Block for each unspent Mana.		unspentManaConvertsToBlock:true
+wizard_mana_t1_2	Mana Shield	sf:shield.fill	At turn’s end, gain 1 Block per unspent Mana, up to 6		unspentManaConvertsToBlock:true
 wizard_mana_t2_1	Overcharge	sf:bolt.fill	Mana empowerment increases your next attack's damage by 20%		manaEmpowerNextAttackPercent:0.20
 wizard_mana_t2_2	Arcane Cleansing	sf:sparkles	Ending a turn at 0 Mana Cleanses a debuff		endTurnZeroManaCleanse:true
 wizard_mana_t3_1	Arcane Surge	sf:wand.and.stars	Spending your last Mana draws a card		spendLastManaDrawCard:true

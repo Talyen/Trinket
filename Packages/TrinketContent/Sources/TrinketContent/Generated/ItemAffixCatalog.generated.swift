@@ -386,8 +386,8 @@ enum ItemAffixCatalogGenerated {
             slot: .accessory,
             keywords: [.leech, .health],
             weight: 8,
-            basic: ItemAffixPower(description: "Companions gain 50% of your Leech.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(companionLeechSharePercent: 0.50))),
-            astral: ItemAffixPower(description: "Companions gain 100% of your Leech.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(companionLeechSharePercent: 1.00)))
+            basic: ItemAffixPower(description: "Your ally receives 50% of the Health you restore with Leech.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(companionLeechSharePercent: 0.50))),
+            astral: ItemAffixPower(description: "Your ally receives 100% of the Health you restore with Leech.", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers(companionLeechSharePercent: 1.00)))
         ),
         ItemAffixCatalog.affix(
             id: "second_wind",

@@ -21,6 +21,25 @@ struct SlicesReloadTests {
         #expect(reloaded.roster.abilityLoadouts["ranger"] == expected)
     }
 
+    @Test @MainActor func `Rogue Venom Fangs migrates to Feint locally and through cloud reload`() throws {
+        let context = try PersistenceTestContext()
+        var save = PlayerSave.testSeed
+        save.roster.abilityLoadouts["rogue"] = AbilityLoadout(basic: .stab, skill: .venomFangs, ultimate: .shadowstep)
+        save.roster.abilityLoadouts["wolf"] = AbilityLoadout(basic: .fangs, skill: .venomFangs, ultimate: .shadowstep)
+        let snapshot = CloudRosterSnapshot(save.roster)
+        let restored = snapshot.restored()
+        #expect(restored.abilityLoadouts["rogue"]?.skill?.id == "feint")
+        #expect(restored.abilityLoadouts["wolf"]?.skill == .venomFangs)
+        let store = try context.seedAndReload(save)
+        #expect(store.roster.abilityLoadouts["rogue"]?.skill?.id == "feint")
+        #expect(store.roster.abilityLoadouts["wolf"]?.skill == .venomFangs)
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.abilityLoadouts["rogue"] == AbilityLoadout(
+            basic: .stab, skill: AbilityCatalog.feint, ultimate: .shadowstep,
+        ))
+        #expect(reloaded.roster.abilityLoadouts["wolf"]?.skill == .venomFangs)
+    }
+
     @Test @MainActor func `sanitize clamps survive reload`() throws {
         let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()

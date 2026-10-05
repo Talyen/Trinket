@@ -112,9 +112,19 @@ refill mid-turn; decks do not reshuffle after battle start.
 Pack Tactics deals 3 Physical damage, then draws a manual card from the caster's
 ally's deck. It falls back to the caster's deck when the ally is defeated, blocked
 from drawing, unable to pay the drawn card's Health cost, or has no card to draw.
-Shadowstep draws a manual card from the caster's deck and prepares Dodge; a missing
-card does not borrow the partner's. Other draw-and-play effects retain automatic
-play and their existing alternating-deck rules.
+Feint prepares Dodge and draws a manual card from the caster's deck; a missing
+card does not borrow the partner's. Shadowstep prepares Dodge and repeats the
+caster's next manually played card, or an enemy's next normally executed ability.
+Partner cards, automatic plays, counterattacks, and echoes preserve that preparation;
+skipped or intercepted enemy actions preserve it too. Refreshes do not stack.
+Reserve the repeat before effects begin. Resolve the prepared card's effects twice,
+including support effects and affordable self-damage, with Block costs and Mana
+empowerment paid once. Physical card movement, action cadence, and card-completion
+rewards occur once. One-shot hit bonuses retain their ordinary consumption rules.
+Repeats cannot consume a freshly readied repeat; repeated Shadowstep readies one
+later card. Stop repeating after combat ends, caster defeat, or an unaffordable
+Health cost. Other draw-and-play effects retain automatic play and their existing
+alternating-deck rules.
 
 Unique returns move the exact physical copy from discard or draw pile into hand,
 never adding another deck copy. The Returning Flight returns the first Physical

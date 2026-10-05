@@ -25,9 +25,9 @@ struct DrawAndPlayRegressionTests {
         #expect(battle.companionDeck.abilities.first?.id == Ability.bloodOffering.id)
     }
 
-    @Test func `Shadowstep does not play a card from the partner's deck`() {
+    @Test func `Feint cannot borrow a card from the partner's deck`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.shadowstep], companionAbilities: [.slash],
+            heroAbilities: [AbilityCatalog.feint], companionAbilities: [.slash],
             enemyMaxHealth: 50, dealOpeningHand: false,
         )
         battle.heroDeck = CombatDeck()
@@ -35,7 +35,7 @@ struct DrawAndPlayRegressionTests {
         let enemyHealth = battle.health(of: battle.enemy)
 
         let events = BattleTurnEngine.performAction(
-            ability: .shadowstep, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+            ability: AbilityCatalog.feint, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
         )
 
         #expect(!events.contains { $0.abilityID == Ability.slash.id })

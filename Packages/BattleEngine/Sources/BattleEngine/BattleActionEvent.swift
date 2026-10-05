@@ -52,6 +52,7 @@ public struct ActionEvent: Identifiable, Equatable {
         case damageKeywordOverrideApplied
         case nextHolyStrikeApplied
         case nextStrikeDoubleApplied
+        case playNextCardTwiceApplied
         case nextBurnBonusApplied
         case evadeNextHitApplied
         case wardApplied

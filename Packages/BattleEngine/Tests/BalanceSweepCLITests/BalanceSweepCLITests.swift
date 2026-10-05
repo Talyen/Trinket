@@ -4,6 +4,17 @@ import Testing
 @testable import BalanceSweepCLI
 
 struct BalanceSweepCLITests {
+    @Test func `older worker and report configurations retain their minimal talent interpretation`() throws {
+        let encoded = try JSONEncoder().encode(BalanceSweepConfig())
+        var fields = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        fields.removeValue(forKey: "usesTierTalentBuilds")
+        let legacy = try JSONDecoder().decode(
+            BalanceSweepConfig.self, from: JSONSerialization.data(withJSONObject: fields),
+        )
+        #expect(!legacy.usesTierTalents)
+        #expect(BalanceSweepConfig().usesTierTalents)
+    }
+
     @Test func `CLI flags use the canonical configuration`() throws {
         #expect(try BalanceSweepCLI.parseInvocation([]).config == BalanceSweepConfig())
         #expect(try BalanceSweepCLI.parseInvocation(["--tiers", ""]).config.tiers == BalanceSweepConfig().tiers)
@@ -14,6 +25,7 @@ struct BalanceSweepCLITests {
             "--hero", "knight", "--companion", "bear", "--enemy", "living_armor", "--focus", "keen",
             "--peer-delta", "0.21", "--duration-flag-rate", "0.31", "--comfort-hp", "0.41",
             "--comfort-rounds", "3.5", "--output-dir", "reports with spaces", "--full-markdown",
+            "--contrast-talents", "minimal",
         ])
         #expect(parsed.config == BalanceSweepConfig(
             mode: .affixContrast, battlesPerTier: 7, seed: 42, tiers: [.middle, .lateGame],
@@ -21,6 +33,7 @@ struct BalanceSweepCLITests {
             jobs: 3, workOffset: 0, workLimit: 2, appliesFightPacing: false, policyID: "setup-v1",
             comparePolicies: true, heroIDs: ["knight"], companionIDs: ["bear"], enemyIDs: ["living_armor"],
             focusIDs: ["keen"], durationFlagRate: 0.31, comfortHPThreshold: 0.41, comfortRoundThreshold: 3.5,
+            usesTierTalentBuilds: false,
         ))
         #expect(parsed.writeFullMarkdown)
     }
@@ -56,6 +69,7 @@ struct BalanceSweepCLITests {
             comparePolicies: true, heroIDs: ["knight"], companionIDs: ["bear"], enemyIDs: ["living_armor"],
             focusIDs: ["ignored,by,identity"], durationFlagRate: 0.37, comfortHPThreshold: 0.43,
             comfortRoundThreshold: 4.5,
+            usesTierTalentBuilds: false,
         )
         try JSONEncoder().encode(config).write(to: input)
         try BalanceSweepCLI.runWorker(configFile: input.path, outputFile: output.path)

@@ -548,7 +548,7 @@ public extension CombatantTalentCatalog {
             "wizard_mana_t1_2": CombatantTalentEffect(
                 name: "Mana Shield",
                 iconID: "sf:shield.fill",
-                description: "At the end of your turn, gain 1 Block for each unspent Mana.",
+                description: "At turn’s end, gain 1 Block per unspent Mana, up to 6",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mana: ManaTriggers(unspentManaConvertsToBlock: true))
             ),

@@ -458,6 +458,10 @@ public enum ArtCatalog {
             imageName: "ability_fire_arrow",
             thumbnailImageName: "ability_fire_arrow_thumb"
         )
+        dict["feint"] = AbilityArtReference(
+            imageName: "ability_feint",
+            thumbnailImageName: "ability_feint_thumb"
+        )
         dict["fireball"] = AbilityArtReference(
             imageName: "ability_fireball",
             thumbnailImageName: "ability_fireball_thumb"

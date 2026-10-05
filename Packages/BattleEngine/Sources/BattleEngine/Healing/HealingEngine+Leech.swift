@@ -253,9 +253,10 @@ package extension HealingEngine {
                 isCritical: healing.isCritical,
             ))
         }
-        if actorCombatant.id == context.roster.hero.id {
-            events.append(contentsOf: Self.shareHeroLeechWithCompanion(
+        if actorCombatant.role != .enemy {
+            events.append(contentsOf: Self.shareLeechWithAlly(
                 restored: actualRestored,
+                source: actorCombatant,
                 in: &context,
             ))
         }
@@ -295,27 +296,27 @@ package extension HealingEngine {
         return healing.combatOutcome
     }
 
-    static func shareHeroLeechWithCompanion(
+    static func shareLeechWithAlly(
         restored: Int,
+        source: Combatant,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        // Intentionally asymmetric with the companion-to-hero share above: each
-        // direction is a separately owned talent reading its owner's modifiers
-        // (Symbiosis on the hero here, leechSharesToHeroPercent on the companion
-        // there), not two ends of one split.
-        let percent = min(max(context.heroModifiers.triggers.companionLeechSharePercent, 0), 1)
+        // Symbiosis follows its wearer; companion-only talent shares keep their
+        // separate rules above. Resolved shares never fund another Leech share.
+        let ally = source.role == .hero ? context.roster.companion : context.roster.hero
+        let percent = min(max(context.modifiers(for: source.id).triggers.companionLeechSharePercent, 0), 1)
         guard restored > 0,
               percent > 0,
-              context.roster.companion.isAlive
+              ally.isAlive
         else { return [] }
         let share = CombatRounding.scaled(restored, multiplier: percent)
         guard share > 0 else { return [] }
         var request = HealRequest(
-            amount: share, target: context.roster.companion.combatant, sourceActorID: context.roster.hero.id,
+            amount: share, target: ally.combatant, sourceActorID: source.id,
             logAs: .instantHeal(
-                actorName: context.roster.hero.name,
+                actorName: source.name,
                 abilityName: CombatTriggerEngine.triggerAbilityName(
-                    "companionLeechSharePercent", for: context.roster.hero.combatant,
+                    "companionLeechSharePercent", for: source,
                     fallback: "Symbiosis", in: context,
                 ),
                 keyword: .health,

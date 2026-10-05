@@ -23,6 +23,7 @@ extension BalanceSweepCLI {
           --pacing <on|off>        FightPacing in simulated battles (default: on)
           --policy <id>            greedy-v1 | setup-v1 (default: greedy-v1; unknown ids error)
           --policy-compare         Identity-only second pass with the other policy
+          --contrast-talents <id>  tier | minimal (default: tier; minimal is a diagnostic)
           --hero <ids>             Comma hero ids (default: all)
           --companion <ids>        Comma companion ids (default: all)
           --enemy <ids>            Comma enemy ids (default: all)
@@ -113,6 +114,13 @@ extension BalanceSweepCLI {
                 }
             case "--policy-compare":
                 config.comparePolicies = true
+            case "--contrast-talents":
+                let raw = try BalanceSweepCLI.stringValue(after: arg, in: arguments, index: &index)
+                switch raw {
+                case "tier": config.usesTierTalentBuilds = true
+                case "minimal": config.usesTierTalentBuilds = false
+                default: throw CLIError.unknownArgument("\(arg) \(raw)")
+                }
             case "--full-markdown":
                 writeFullMarkdown = true
             default:

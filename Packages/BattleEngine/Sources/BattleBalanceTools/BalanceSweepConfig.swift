@@ -32,6 +32,12 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     public var durationFlagRate: Double
     public var comfortHPThreshold: Double
     public var comfortRoundThreshold: Double
+    /// Missing in older reports, whose contrasts used minimal talent builds.
+    public var usesTierTalentBuilds: Bool?
+
+    public var usesTierTalents: Bool {
+        usesTierTalentBuilds ?? false
+    }
 
     public static let defaultBattlesPerTier = 32
     public static let defaultOutputDirectory = "BalanceSweepReports"
@@ -63,6 +69,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         durationFlagRate: Double = Self.durationFlagRateDefault,
         comfortHPThreshold: Double = Self.comfortHPThresholdDefault,
         comfortRoundThreshold: Double = Self.comfortRoundThresholdDefault,
+        usesTierTalentBuilds: Bool = true,
     ) {
         self.mode = mode
         self.battlesPerTier = max(1, battlesPerTier)
@@ -85,6 +92,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         self.durationFlagRate = durationFlagRate
         self.comfortHPThreshold = comfortHPThreshold
         self.comfortRoundThreshold = comfortRoundThreshold
+        self.usesTierTalentBuilds = usesTierTalentBuilds
     }
 
     public func sliceWork<Item>(_ items: [Item]) -> [Item] {

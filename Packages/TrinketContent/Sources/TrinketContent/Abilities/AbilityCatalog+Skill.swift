@@ -68,6 +68,14 @@ public extension AbilityCatalog {
         ],
     )
 
+    static let feint = Ability(
+        id: "feint", name: "Feint", tier: .skill,
+        targetedEffects: [
+            TargetedEffect(.evadeNextHit, target: .actor),
+            TargetedEffect(.drawCards(1), target: .actor),
+        ],
+    )
+
     static let fireball = Ability(
         id: "fireball", name: "Fireball", tier: .skill,
         description: "Deal 1 to 5 Burn damage",
@@ -213,6 +221,7 @@ public extension AbilityCatalog {
         cleanse,
         coldSnap,
         darkPact,
+        feint,
         fireball,
         frostbolt,
         glacialWard,

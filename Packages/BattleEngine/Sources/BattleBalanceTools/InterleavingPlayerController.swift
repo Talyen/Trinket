@@ -36,6 +36,8 @@ public struct PlayerProgressionState: Equatable, Codable, Sendable {
 final class InterleavingPlayerController {
     private let hero: Combatant
     private let companion: Combatant
+    private let worldSeed: UInt64
+    private var pendingContract: ModeProgressionStep?
     private(set) var state: PlayerProgressionState
 
     private struct ModeProgress {
@@ -59,16 +61,24 @@ final class InterleavingPlayerController {
         spireTracker: ModeProgressionTracker = ModeProgressionTracker.spire(),
         labyrinthTracker: ModeProgressionTracker = ModeProgressionTracker.labyrinth(),
         initialState: PlayerProgressionState = PlayerProgressionState(),
+        worldSeed: UInt64 = 1,
     ) {
         self.hero = hero
         self.companion = companion
-        modes = SimulationGameMode.allCases.map { mode in
+        self.worldSeed = worldSeed
+        modes = [SimulationGameMode.campaign, .spire, .labyrinth].map { mode in
             let tracker = switch mode {
             case .campaign: campaignTracker
             case .spire: spireTracker
             case .labyrinth: labyrinthTracker
+            case .contract: preconditionFailure("Contracts are recovery jobs, not advancing content")
             }
-            return ModeProgress(mode: mode, steps: tracker.steps)
+            let steps = tracker.steps.filter { step in
+                guard step.mode == .spire else { return true }
+                guard let spire = GameContent.spire(id: SpireID(step.containerID)) else { return false }
+                return SpireAttunement.evaluate(hero: hero, companion: companion, spire: spire).isReady
+            }
+            return ModeProgress(mode: mode, steps: steps)
         }
         state = initialState
     }
@@ -82,39 +92,47 @@ final class InterleavingPlayerController {
         guard !available.isEmpty else { return nil }
 
         let unblocked = available.filter { modes[$0].consecutiveLosses < 2 }
-        let eligible = unblocked.isEmpty ? available : unblocked
         if unblocked.isEmpty {
-            for index in available {
-                modes[index].consecutiveLosses = 0
+            if let pendingContract {
+                return pendingContract
             }
+            var rng = SeededRandomNumberGenerator(seed: worldSeed &+ UInt64(state.totalBattles) &* 97)
+            let offer = ContractGenerator.makeOffer(
+                difficulty: .easy, eligibleModifiers: [.gold], using: &rng, id: "recovery-\(state.totalBattles)",
+            )
+            let level = EncounterLevelResolver.contractEnemyLevel(difficulty: .easy, partyAverageLevel: partyAverageLevel)
+            let step = ModeProgressionStep(
+                id: "contract-easy-\(offer.enemyID)-\(level)", mode: .contract,
+                containerID: "easy", containerTitle: "Contracts", stepIndex: level,
+                displayTitle: "Easy Contract L\(level)", enemyID: offer.enemyID,
+                enemyLevel: level, isBoss: false,
+            )
+            pendingContract = step
+            return step
         }
 
-        lastEligibleModeIndex = (lastEligibleModeIndex + 1) % eligible.count
-        return modes[eligible[lastEligibleModeIndex]].nextStep
+        lastEligibleModeIndex = (lastEligibleModeIndex + 1) % unblocked.count
+        return modes[unblocked[lastEligibleModeIndex]].nextStep
     }
 
     func recordOutcome(step: ModeProgressionStep, won: Bool) {
-        guard let modeIndex = modes.firstIndex(where: { $0.mode == step.mode }) else {
-            preconditionFailure("Every simulation mode must have progression state")
-        }
+        let modeIndex = modes.firstIndex(where: { $0.mode == step.mode })
+        precondition(modeIndex != nil || step.mode == .contract, "Every advancing mode must have progression state")
         state.totalBattles += 1
 
         if won {
             state.battlesWon += 1
-            modes[modeIndex].consecutiveLosses = 0
-
-            let highestLevel = max(state.heroLevel, state.companionLevel)
             let resolvedEnemyLevel = encounterLevel(for: step)
 
             let heroAward = ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: state.heroLevel,
                 enemyLevel: resolvedEnemyLevel,
-                highestLevel: highestLevel,
+                highestLevel: state.heroLevel,
             )
             let companionAward = ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: state.companionLevel,
                 enemyLevel: resolvedEnemyLevel,
-                highestLevel: highestLevel,
+                highestLevel: state.companionLevel,
             )
 
             let heroProg = CombatantProgression(
@@ -134,12 +152,22 @@ final class InterleavingPlayerController {
             state.companionLevel = companionProg.level
             state.companionXP = companionProg.currentXP
 
-            modes[modeIndex].nextIndex += 1
-        } else {
+            if let modeIndex {
+                modes[modeIndex].consecutiveLosses = 0
+                modes[modeIndex].nextIndex += 1
+            } else {
+                for index in modes.indices {
+                    modes[index].consecutiveLosses = 0
+                }
+            }
+        } else if let modeIndex {
             modes[modeIndex].consecutiveLosses += 1
             if modes[modeIndex].consecutiveLosses == 2 {
                 state.modeBounces += 1
             }
+        }
+        if step.mode == .contract, won {
+            pendingContract = nil
         }
     }
 
@@ -151,7 +179,6 @@ final class InterleavingPlayerController {
         let enemy = GameContent.enemy(matching: step.enemyID) ?? GameContent.enemies[0]
         let loadouts = SimulationMatchupBuilder.samplePartyLoadouts(hero: hero, companion: companion, using: &rng)
         let powerTier = SimulationPowerTier.band(forLevel: state.heroLevel)
-        let keywordBias = step.keywordBias.map { Set([$0]) }
         // Preserve draw order: both talent kits precede either starter-gear roll.
         let heroTalents = SimulationMatchupBuilder.legalTalentKit(for: hero.id, level: state.heroLevel, using: &rng)
         let companionTalents = SimulationMatchupBuilder.legalTalentKit(for: companion.id, level: state.companionLevel, using: &rng)
@@ -173,7 +200,6 @@ final class InterleavingPlayerController {
                 tier: powerTier,
                 level: state.heroLevel,
                 idPrefix: "prog-hero",
-                gearKeywordBias: keywordBias,
                 using: &rng,
             ),
             companionGear: SimulationMatchupBuilder.generateStarterGearIfNeeded(
@@ -182,26 +208,42 @@ final class InterleavingPlayerController {
                 tier: powerTier,
                 level: state.companionLevel,
                 idPrefix: "prog-companion",
-                gearKeywordBias: keywordBias,
                 using: &rng,
             ),
             heroTalents: heroTalents,
             companionTalents: companionTalents,
-            gearKeywordBias: keywordBias,
+            enemyAdditionalModifiers: spireModifiers(for: step),
         )
     }
 
-    func encounterLevel(for step: ModeProgressionStep) -> Int {
+    private func spireModifiers(for step: ModeProgressionStep) -> [AffixModifier] {
+        guard step.mode == .spire,
+              let floor = GameContent.spireFloor(spireID: SpireID(step.containerID), floor: step.stepIndex),
+              let modifier = GameContent.spireModifier(for: floor, worldSeed: worldSeed)
+        else { return [] }
+        switch modifier.effect {
+        case let .damageDealt(keyword, amount): return [.damageDealt(keyword, amount)]
+        case let .damageTakenReduction(keyword, percent): return [.damageTakenPercent(keyword, Double(percent) / 100)]
+        default: return [] // Spire keyword rewards do not modify combat.
+        }
+    }
+
+    private var partyAverageLevel: Int {
         // Floored party mean in integer arithmetic (exact for level ranges).
-        let partyAverage = state.heroLevel / 2 + state.companionLevel / 2
+        state.heroLevel / 2 + state.companionLevel / 2
             + (state.heroLevel % 2 + state.companionLevel % 2) / 2
+    }
+
+    func encounterLevel(for step: ModeProgressionStep) -> Int {
         switch step.mode {
         case .campaign:
-            return EncounterLevelResolver.campaignAdjusted(step.enemyLevel, partyAverageLevel: partyAverage)
+            EncounterLevelResolver.campaignAdjusted(step.enemyLevel, partyAverageLevel: partyAverageLevel)
         case .spire:
-            return step.enemyLevel
+            step.enemyLevel
         case .labyrinth:
-            return EncounterLevelResolver.labyrinthAdjusted(step.enemyLevel, partyAverageLevel: partyAverage)
+            EncounterLevelResolver.labyrinthAdjusted(step.enemyLevel, partyAverageLevel: partyAverageLevel)
+        case .contract:
+            EncounterLevelResolver.contractEnemyLevel(difficulty: .easy, partyAverageLevel: partyAverageLevel)
         }
     }
 }

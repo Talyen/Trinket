@@ -28,6 +28,8 @@ struct ContrastMatchupBase {
     let partnerLoadout: AbilityLoadout
     var ownerGear: SimulationMatchupBuilder.GearOverride?
     var partnerGear: SimulationMatchupBuilder.GearOverride?
+    let ownerTalents: Set<String>
+    let partnerTalents: Set<String>
     let tier: SimulationPowerTier
     let seed: UInt64
 
@@ -40,6 +42,9 @@ struct ContrastMatchupBase {
             keywordBias: sharedBias,
             idPrefix: "contrast-owner",
             using: &gearRNG,
+        ) ?? SimulationMatchupBuilder.generateStarterGearIfNeeded(
+            for: owner, loadout: ownerLoadout, tier: tier,
+            idPrefix: "contrast-owner", gearKeywordBias: sharedBias, using: &gearRNG,
         )
         partnerGear = SimulationMatchupBuilder.generateAlignedGear(
             for: partner.withAbilityLoadoutPreservingEmptyTiers(partnerLoadout),
@@ -47,20 +52,22 @@ struct ContrastMatchupBase {
             keywordBias: sharedBias,
             idPrefix: "contrast-partner",
             using: &gearRNG,
+        ) ?? SimulationMatchupBuilder.generateStarterGearIfNeeded(
+            for: partner, loadout: partnerLoadout, tier: tier,
+            idPrefix: "contrast-partner", gearKeywordBias: sharedBias, using: &gearRNG,
         )
     }
 
-    /// Builds one side of the pair, assigning owner to its roster role. A nil
-    /// `ownerGear`/`ownerLoadout` uses the base value; `ownerTalents` replaces
-    /// the base's default empty kit.
+    /// Builds one side of the pair. Nil overrides retain the shared base build.
     func matchup(
         ownerLoadout: AbilityLoadout? = nil,
         ownerGear: SimulationMatchupBuilder.GearOverride? = nil,
-        ownerTalents: Set<String> = [],
+        ownerTalents: Set<String>? = nil,
     ) -> ConfiguredSimulationMatchup {
         let ownerIsHero = owner.role == .hero
         let loadout = ownerLoadout ?? self.ownerLoadout
         let gear = ownerGear ?? self.ownerGear
+        let talents = ownerTalents ?? self.ownerTalents
         return SimulationMatchupBuilder.build(
             hero: ownerIsHero ? owner : partner,
             companion: ownerIsHero ? partner : owner,
@@ -71,8 +78,8 @@ struct ContrastMatchupBase {
             seed: seed,
             heroGear: ownerIsHero ? gear : partnerGear,
             companionGear: ownerIsHero ? partnerGear : gear,
-            heroTalents: ownerIsHero ? ownerTalents : [],
-            companionTalents: ownerIsHero ? [] : ownerTalents,
+            heroTalents: ownerIsHero ? talents : partnerTalents,
+            companionTalents: ownerIsHero ? partnerTalents : talents,
         )
     }
 }
@@ -159,6 +166,11 @@ enum BalanceContrastSupport {
         let enemy = roundRobinEnemy(enemies: context.enemies, pairIndex: pairIndex)
         let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(for: owner, using: &rng)
         let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(for: partner, using: &rng)
+        var talentRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 29)
+        let ownerTalents = context.config.usesTierTalents
+            ? SimulationMatchupBuilder.legalTalentKit(for: owner.id, level: tier.level, using: &talentRNG) : []
+        let partnerTalents = context.config.usesTierTalents
+            ? SimulationMatchupBuilder.legalTalentKit(for: partner.id, level: tier.level, using: &talentRNG) : []
         return ContrastMatchupBase(
             owner: owner,
             partner: partner,
@@ -167,6 +179,8 @@ enum BalanceContrastSupport {
             partnerLoadout: partnerLoadout,
             ownerGear: nil,
             partnerGear: nil,
+            ownerTalents: ownerTalents,
+            partnerTalents: partnerTalents,
             tier: tier,
             seed: pairSeed,
         )
@@ -178,6 +192,37 @@ enum BalanceContrastSupport {
             hash = ((hash &<< 5) &+ hash) &+ UInt64(byte)
         }
         return hash
+    }
+
+    /// Add only talents legal with either focused choice; neither side can
+    /// acquire the other choice through the shared background build.
+    static func sharedTalentKit(
+        owner: Combatant,
+        tier: SimulationPowerTier,
+        entityTalents: Set<String>,
+        baselineTalents: Set<String>,
+        seed: UInt64,
+    ) -> Set<String> {
+        var common = entityTalents.intersection(baselineTalents)
+        let entityChoice = entityTalents.subtracting(common)
+        let baselineChoice = baselineTalents.subtracting(common)
+        let reserved = max(entityChoice.count, baselineChoice.count)
+        let excluded = entityChoice.union(baselineChoice)
+        let points = CombatantProgression.at(level: tier.level).totalTalentPoints
+        let trees = CombatantTalentCatalog.config(for: owner.id).trees
+        var rng = SeededRandomNumberGenerator(seed: seed &+ 31)
+        while common.count + reserved < points {
+            let candidates = trees.flatMap { tree in
+                tree.nodes.filter { node in
+                    !common.contains(node.id) && !excluded.contains(node.id)
+                        && tree.canUnlock(node: node, unlockedNodeIDs: common.union(entityChoice), availablePoints: 1)
+                        && tree.canUnlock(node: node, unlockedNodeIDs: common.union(baselineChoice), availablePoints: 1)
+                }
+            }
+            guard let pick = candidates.randomElement(using: &rng) else { break }
+            common.insert(pick.id)
+        }
+        return common
     }
 
     static func pickPartner(

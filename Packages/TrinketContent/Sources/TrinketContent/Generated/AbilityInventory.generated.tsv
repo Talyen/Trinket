@@ -27,6 +27,7 @@ cinderbloom	Cinderbloom	skill	Deal 3 Burn or Poison damage at random
 cleanse	Cleanse	skill	Cleanse a debuff\nRestore 3 Health
 cold-snap	Cold Snap	skill	Deal 1 Freeze damage\nDraw a card if the enemy is Frozen
 dark-pact	Dark Pact	skill	Deal 1 Burn damage\nLose 1 Health\nDraw 2 cards
+feint	Feint	skill	Dodge the next attack\nDraw 1 card
 fireball	Fireball	skill	Deal 1 to 5 Burn damage
 frostbolt	Frostbolt	skill	Deal 4 Freeze damage
 glacial-ward	Glacial Ward	skill	Gain 2 Block\nDeal 2 Freeze damage next time you're hit
@@ -60,6 +61,6 @@ molten-bulwark	Molten Bulwark	ultimate	Deal 3 Burn damage\nGain 4 Block and Thor
 pack-tactics	Pack Tactics	ultimate	Deal 3 Physical damage\nDraw a card from your ally's deck
 panacea-potion	Panacea Potion	ultimate	Cleanse the ally with the most debuffs\nRestore 6 Health
 phoenix-feather	Phoenix Feather	ultimate	Deal 3 Burn damage\nRevive an Ally to 1 Health
-shadowstep	Shadowstep	ultimate	Draw a card\nDodge the next attack against you
+shadowstep	Shadowstep	ultimate	Dodge the next attack against you\nYour next card is played twice
 sunburst	Sunburst	ultimate	Deal 6 Holy or Burn damage\nRestore 3 Health to each ally
 thorn-mail	Thorn Mail	ultimate	Gain 6 Block\nGain Thorns equal to half your Block

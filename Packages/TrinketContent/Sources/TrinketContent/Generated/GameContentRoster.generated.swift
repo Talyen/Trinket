@@ -35,7 +35,7 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.stab, .blackjack, .fangs, .rendingSlash],
-                skills: [.poisonDagger, .serratedEdge, .steal, .venomFangs],
+                skills: [.poisonDagger, .serratedEdge, .steal, .feint],
                 ultimates: [.hemorrhage, .shadowstep, .bloodthorn, .luckPotion]
             )
         ))

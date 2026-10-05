@@ -60,6 +60,7 @@ package extension BattleState {
         case .damageKeywordOverride: "Consecrated"
         case .nextHolyStrike: "Holy Strike"
         case .nextStrikeDouble: "Double Strike"
+        case .playNextCardTwice: "Shadowstep"
         case .nextBurnBonus: "Kindled"
         case .evadeNextHit: "Evasion"
         case .maximumManaBonus: "Maximum Mana Up"

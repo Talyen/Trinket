@@ -143,7 +143,7 @@ struct RestorationIntegrationTests {
         battle.roster.companion.currentHealth -= 5
         let healthBefore = battle.roster.companion.currentHealth
         let events = battle.withEngineContext {
-            HealingEngine.shareHeroLeechWithCompanion(restored: 1, in: &$0)
+            HealingEngine.shareLeechWithAlly(restored: 1, source: $0.hero, in: &$0)
         }
         #expect(events.isEmpty)
         #expect(battle.roster.companion.currentHealth == healthBefore)

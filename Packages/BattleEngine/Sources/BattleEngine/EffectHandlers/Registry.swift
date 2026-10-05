@@ -24,7 +24,7 @@ package enum EffectHandlers {
         case .criticalChanceBonus: CriticalChanceBonusHandler()
         case .restoreManaOnHit: RestoreManaOnHitHandler()
         case .damageKeywordOverride: DamageKeywordOverrideHandler()
-        case .nextHolyStrike, .nextStrikeDouble, .evadeNextHit, .nextStrikeCritical,
+        case .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .evadeNextHit, .nextStrikeCritical,
              .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .freezeNextAttacker: FlagEffectHandler()
         case .nextBurnBonus: NextBurnBonusHandler()
         case .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold: ShieldFromResourceHandler()

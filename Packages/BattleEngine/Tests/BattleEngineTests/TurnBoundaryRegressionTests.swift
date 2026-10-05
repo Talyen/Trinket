@@ -5,6 +5,27 @@ import TrinketCore
 @testable import BattleEngine
 
 struct TurnBoundaryRegressionTests {
+    @Test func `Mana reserves cannot indefinitely absorb attacks above the Shield talent budget`() {
+        let attack = Ability(
+            id: "reserve-breaker", name: "Reserve Breaker", tier: .basic,
+            damageComponents: [DamageComponent(10, keyword: .physical, target: .hero)],
+        )
+        var profile = CombatantTalentCatalog.profile(for: ["wizard_mana_t1_2"])
+        profile.triggers.dodgeChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyAbilities: [attack], heroMaxMana: 29, heroMana: 29,
+            heroModifiers: profile,
+        )
+        battle.appliesFightPacing = false
+        let health = battle.health(of: battle.hero)
+
+        let events = battle.endTurn()
+
+        #expect(events.first { $0.abilityName == "Mana Shield" }?.amount == 6)
+        #expect(battle.health(of: battle.hero) == health - 4)
+        #expect(battle.mana(of: battle.hero) == 29)
+    }
+
     @Test func `Mana Shield protects against the enemy attack following End Turn`() {
         let attack = Ability(
             id: "strike", name: "Strike", tier: .basic,

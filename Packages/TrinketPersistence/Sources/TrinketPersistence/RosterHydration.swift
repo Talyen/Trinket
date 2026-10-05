@@ -53,8 +53,12 @@ enum RosterHydration {
             func resolve(_ id: String?, tier: AbilityTier) -> Ability? {
                 let fallback = defaults?.ability(for: tier)
                 guard let id else { return fallback }
-                // Preserve Bandit's Arrow saves after Bounty Shot took over its behavior.
-                let canonicalID = id == "sap-arrow" ? "bounty-shot" : id
+                // Migrate replaced loadout selections before current-choice validation.
+                let canonicalID: String = if combatantID == "rogue", tier == .skill, id == "venom-fangs" {
+                    "feint"
+                } else {
+                    id == "sap-arrow" ? "bounty-shot" : id
+                }
                 return combatant.abilityChoices.abilities(for: tier).first { $0.id == canonicalID } ?? fallback
             }
             resolved[combatantID] = AbilityLoadout(

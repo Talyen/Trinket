@@ -188,7 +188,7 @@ enum CombatSFXMapper {
         case .controlActionSkipped where event.keyword != .freeze && event.keyword != .stun:
             selection.offer(SFXID.controlStun, priority: 2, order: order)
         case .partyDamagePreparationApplied, .leechApplied, .thornsApplied, .criticalChanceApplied,
-             .manaShieldApplied, .damageKeywordOverrideApplied, .nextHolyStrikeApplied, .nextStrikeDoubleApplied,
+             .manaShieldApplied, .damageKeywordOverrideApplied, .nextHolyStrikeApplied, .nextStrikeDoubleApplied, .playNextCardTwiceApplied,
              .nextBurnBonusApplied, .evadeNextHitApplied, .wardApplied, .avatarApplied:
             if isCardEffect(event, in: events) {
                 selection.offer(SFXID.buff, priority: 2, order: order)

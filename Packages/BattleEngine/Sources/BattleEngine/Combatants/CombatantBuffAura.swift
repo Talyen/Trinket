@@ -27,7 +27,7 @@ public enum CombatantBuffAura: Sendable {
 
     public static func kind(for effect: Effect) -> CombatantBuffAuraKind? {
         switch effect {
-        case .nextStrikeDouble, .evadeNextHit:
+        case .nextStrikeDouble, .playNextCardTwice, .evadeNextHit:
             .shadowstep
         case .nextStrikeCritical, .nextStrikeLeech:
             .predatorsFocus

@@ -50,6 +50,8 @@ public enum EffectPresentation {
             "your next Holy attack deals double damage and applies Burning"
         case .nextStrikeDouble:
             "your next attack deals double damage"
+        case .playNextCardTwice:
+            "your next card is played twice"
         case let .nextBurnBonus(bonus):
             "your next Burn attack deals +\(bonus) damage"
         case .nextStrikeCritical:
@@ -138,6 +140,8 @@ public enum EffectPresentation {
             "Holy Strike: Next attack deals double Holy damage and applies Burning."
         case .nextStrikeDouble:
             "Double Strike: Next attack deals double damage."
+        case .playNextCardTwice:
+            "Shadowstep: Next card or enemy ability resolves twice."
         case .evadeNextHit:
             "Evasion: Dodges the next attack."
         case .nextStrikeCritical:

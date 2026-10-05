@@ -6,12 +6,14 @@ public enum SimulationGameMode: String, CaseIterable, Codable, Sendable {
     case campaign
     case spire
     case labyrinth
+    case contract
 
     public var displayName: String {
         switch self {
         case .campaign: "Campaign"
         case .spire: "Spires"
         case .labyrinth: "Labyrinth"
+        case .contract: "Contracts"
         }
     }
 }
@@ -32,10 +34,10 @@ public struct ModeProgressionStep: Identifiable, Equatable, Hashable, Codable, S
 public struct ModeProgressionTracker: Sendable {
     public let steps: [ModeProgressionStep]
 
-    public static func campaign(chapters: [Chapter] = GameContent.chapters) -> Self {
+    public static func campaign(chapters: [Chapter] = GameContent.chapters, worldSeed: UInt64 = 1) -> Self {
         Self(steps: chapters.flatMap { chapter in
             chapter.stages.filter(\.encounter.isCombat).compactMap { stage in
-                guard let enemyID = stage.resolvedBattleEnemyID(worldSeed: 1),
+                guard let enemyID = stage.resolvedBattleEnemyID(worldSeed: worldSeed),
                       let enemy = GameContent.enemy(matching: enemyID)
                 else { return nil }
                 return ModeProgressionStep(

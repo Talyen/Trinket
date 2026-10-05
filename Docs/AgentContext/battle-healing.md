@@ -34,6 +34,10 @@ Health was below half before the hit.
 Leeching and Vampiric add their displayed fraction of damage dealt to Leech
 restoration, rather than multiplying the existing restoration. Saved rolled
 powers retain their strength and describe that same additional fraction.
+Symbiosis shares its wearer's actual Leech restoration with the living partner,
+whether equipped by a Hero or Companion. Its saved `companionLeechSharePercent`
+field remains unchanged. Shares apply recipient healing reduction without
+repeating healer bonuses, and cannot trigger another Leech share.
 Heartshock reacts only to direct Leech restoration below half Health. Its Stun
 follow-up cannot Leech, so it cannot trigger another Heartshock hit.
 Taste for Blood, Necrotic Bleed, Toxic Touch, Armor Pierce, and Vitality Infusion

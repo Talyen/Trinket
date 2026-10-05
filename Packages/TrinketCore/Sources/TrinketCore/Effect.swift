@@ -99,6 +99,7 @@ public enum Effect: Hashable, Sendable {
     case damageKeywordOverride(Keyword, Int, Int)
     case nextHolyStrike
     case nextStrikeDouble
+    case playNextCardTwice
     case nextBurnBonus(Int)
     case evadeNextHit
     case convertManaToBlock
@@ -165,7 +166,7 @@ public enum Effect: Hashable, Sendable {
         case .restoreManaOnHit: .mana
         case let .damageKeywordOverride(k, _, _): k
         case .nextHolyStrike: .holy
-        case .nextStrikeDouble: .physical
+        case .nextStrikeDouble, .playNextCardTwice: .physical
         case .nextBurnBonus: .burn
         case .evadeNextHit: .dodge
         case .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold: .block
@@ -240,7 +241,8 @@ public enum Effect: Hashable, Sendable {
         case let .damageReductionPercent(_, d), let .damageReductionFlat(_, d), let .healingReductionPercent(_, d): d
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
-             .shield, .thorns, .thornsFromBlockFraction, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
+             .shield, .thorns, .thornsFromBlockFraction, .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .nextBurnBonus,
+             .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
              .nextStrikeCritical, .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .partyDamageBonus,
              .freezeNextAttacker, .onHitDamage,
@@ -293,7 +295,7 @@ public enum Effect: Hashable, Sendable {
         case .shield, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .cleanseHealPerDebuff, .panacea,
              .deathsDoor, .thorns, .thornsFromBlockFraction, .criticalChanceBonus, .restoreManaOnHit,
-             .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .nextBurnBonus, .evadeNextHit,
+             .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .nextBurnBonus, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
              .nextStrikeCritical, .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .partyDamageBonus,
              .freezeNextAttacker, .onHitDamage,

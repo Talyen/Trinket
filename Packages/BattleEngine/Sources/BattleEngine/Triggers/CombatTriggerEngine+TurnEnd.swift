@@ -39,7 +39,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.unspentManaConvertsToBlock, runtime.maxMana > 0, runtime.currentMana > 0 else { return [] }
-        let converted = runtime.currentMana
+        let converted = min(runtime.currentMana, 6)
         return emitBlock(
             "unspentManaConvertsToBlock", "Mana Shield",
             amount: converted, to: actor, source: actor, in: &context,

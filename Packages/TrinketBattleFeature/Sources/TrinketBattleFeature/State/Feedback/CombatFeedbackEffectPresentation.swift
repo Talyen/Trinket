@@ -65,7 +65,7 @@ enum CombatFeedbackEffectPresentation {
         switch status {
         case .consecrated, .nextHolyStrike, .avatar:
             CombatFeedbackChipPresentation.dualAction(leading: .beneficialStatus, trailing: .keyword(.holy))
-        case .nextStrikeDouble, .criticalUp:
+        case .nextStrikeDouble, .playNextCardTwice, .criticalUp:
             CombatFeedbackChipPresentation.dualAction(leading: .beneficialStatus, trailing: .keyword(.physical))
         case .kindled:
             CombatFeedbackChipPresentation.dualAction(leading: .beneficialStatus, trailing: .keyword(.burn))
@@ -148,6 +148,8 @@ enum CombatFeedbackEffectPresentation {
             Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.nextHolyStrike))
         case .nextStrikeDoubleApplied:
             Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.nextStrikeDouble))
+        case .playNextCardTwiceApplied:
+            Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.playNextCardTwice))
         case .nextBurnBonusApplied:
             Descriptor(.buff, visualRole: .beneficialStatus, labelRule: .status(.kindled))
         case .evadeNextHitApplied:

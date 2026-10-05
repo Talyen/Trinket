@@ -145,10 +145,10 @@ public extension AbilityCatalog {
 
     static let shadowstep = Ability(
         id: "shadowstep", name: "Shadowstep", tier: .ultimate,
-        description: "Draw a card\nDodge the next attack against you",
+        description: "Dodge the next attack against you\nYour next card is played twice",
         targetedEffects: [
-            TargetedEffect(.drawCards(1), target: .actor),
             TargetedEffect(.evadeNextHit, target: .actor),
+            TargetedEffect(.playNextCardTwice, target: .actor),
         ],
     )
 

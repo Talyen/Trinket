@@ -25,6 +25,7 @@ public extension Ability {
     static let earthquake = AbilityCatalog.earthquake
     static let fangs = AbilityCatalog.fangs
     static let faustianBargain = AbilityCatalog.faustianBargain
+    static let feint = AbilityCatalog.feint
     static let fireArrow = AbilityCatalog.fireArrow
     static let fireball = AbilityCatalog.fireball
     static let frostbolt = AbilityCatalog.frostbolt

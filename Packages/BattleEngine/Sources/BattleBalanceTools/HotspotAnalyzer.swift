@@ -50,8 +50,16 @@ public enum HotspotAnalyzer {
     public static let targetLowerBound = 0.80
     public static let targetUpperBound = 0.95
 
+    private struct EncounterKey: Hashable {
+        let stepID: String
+        let enemyID: String
+    }
+
     public static func analyze(records: [ProgressionBattleRecord]) -> [NodeHotspotSummary] {
-        let buckets = Dictionary(grouping: records, by: \.step.id)
+        // Recovery jobs award XP but are not advancing-content difficulty nodes.
+        let buckets = Dictionary(grouping: records.filter { $0.step.mode != .contract }) {
+            EncounterKey(stepID: $0.step.id, enemyID: $0.step.enemyID)
+        }
 
         let summaries = buckets.values.map { samples in
             let step = samples[0].step
@@ -110,7 +118,10 @@ public enum HotspotAnalyzer {
             if lhs.step.containerID != rhs.step.containerID {
                 return lhs.step.containerID < rhs.step.containerID
             }
-            return lhs.step.stepIndex < rhs.step.stepIndex
+            if lhs.step.stepIndex != rhs.step.stepIndex {
+                return lhs.step.stepIndex < rhs.step.stepIndex
+            }
+            return lhs.step.enemyID < rhs.step.enemyID
         }
     }
 
