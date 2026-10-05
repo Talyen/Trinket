@@ -202,9 +202,9 @@ class ReporterTests(unittest.TestCase):
             unmatched = REPORTER.assign_attachments(
                 issues, root, REPORTER.xcresult.read_exported_attachments(root),
             )
-            self.assertEqual(issues[0].attachments, [str(root / "first/evidence.png")])
-            self.assertEqual(issues[1].attachments, [str(root / "second/evidence.png")])
-            self.assertEqual(unmatched, [str(root / "unlisted/evidence.png")])
+            self.assertEqual([Path(path).resolve() for path in issues[0].attachments], [root / "first/evidence.png"])
+            self.assertEqual([Path(path).resolve() for path in issues[1].attachments], [root / "second/evidence.png"])
+            self.assertEqual([Path(path).resolve() for path in unmatched], [root / "unlisted/evidence.png"])
 
     def test_source_locations_resolve_against_the_current_workspace(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
