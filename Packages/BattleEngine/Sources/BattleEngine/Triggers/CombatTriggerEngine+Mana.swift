@@ -379,7 +379,7 @@ package extension CombatTriggerEngine {
             var events: [ActionEvent] = []
             for _ in 0 ..< totalSpent / threshold {
                 guard context.roster.health(for: actor) > 0, !context.isBattleOver else { break }
-                let outcome = DrawAndPlayCardsHandler().apply(
+                let outcome = await DrawAndPlayCardsHandler().apply(
                     .drawAndPlayCards(1),
                     ability: Ability(id: "arcane-burst", name: "Arcane Burst", tier: .basic),
                     source: actor,

@@ -97,7 +97,7 @@ package extension CombatTriggerEngine {
         }
 
         if allowsCounterattacks, triggers.onDodgeDrawAndPlayCardChainOnCrit {
-            events.append(contentsOf: drawPlayCascade(for: combatant, in: &context))
+            await events.append(contentsOf: drawPlayCascade(for: combatant, in: &context))
         }
 
         await events.append(contentsOf: applySidestepHeal(for: combatant, profile: profile, in: &context))
@@ -258,13 +258,13 @@ package extension CombatTriggerEngine {
     private static func drawPlayCascade(
         for combatant: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard context.roster.health(for: combatant) > 0 else { return [] }
         let cascadeAbility = combatant.abilityLoadout.basic
             ?? Ability(id: "dance-of-blades", name: "Dance of Blades", tier: .basic, directDamage: 0)
         var events: [ActionEvent] = []
         for _ in 0 ..< BattleState.maxDrawAndPlayDepth {
-            let played = DrawAndPlayCardsHandler().apply(
+            let played = await DrawAndPlayCardsHandler().apply(
                 .drawAndPlayCards(1),
                 ability: cascadeAbility,
                 source: combatant,
