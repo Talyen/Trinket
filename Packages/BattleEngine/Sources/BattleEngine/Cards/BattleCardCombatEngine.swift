@@ -175,7 +175,8 @@ package enum BattleCardCombatEngine {
         var leadingEvents = await DefensePoolEngine.decayBlock(on: enemy, in: &context)
 
         if context.roster.hasPendingActionSkip(for: enemy) {
-            return leadingEvents + await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
+            await leadingEvents.append(contentsOf: BattleTurnEngine.consumeActionSkip(for: enemy, context: &context))
+            return leadingEvents
         }
 
         UniqueCombatEngine.recoverStunBeforeClearing(on: enemy, in: &context)
