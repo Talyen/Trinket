@@ -1,8 +1,8 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
+@testable import BattleEngine
 
 struct FightPacingTests {
     @Test func `fight pacing keeps Health fractions when combined pools exceed integer capacity`() {
