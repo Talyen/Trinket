@@ -156,6 +156,7 @@ struct ShadowstepRepeatTests {
     @Test func `fatal Thorns prevents the caster from executing the repeat`() throws {
         var battle = makeBattle()
         battle.roster.hero.currentHealth = 1
+        battle.roster.hero.hasConsumedDeathsDoor = true
         battle.appendEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         readyRepeat(on: battle.hero, in: &battle)
         let card = BattleCardCombatEngine.deal(attack(), owner: .hero, context: &battle)

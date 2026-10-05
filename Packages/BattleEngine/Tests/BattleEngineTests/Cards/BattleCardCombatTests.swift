@@ -366,8 +366,11 @@ struct BattleCardCombatTests {
 }
 
 extension BattleCardCombatTests {
-    @Test func `enemy resumes basic attacks after an unaffordable health cost skill`() throws {
-        let enemy = try #require(GameContent.enemy(matching: "necromancer")).combatant
+    @Test func `enemy resumes basic attacks after an unaffordable health cost skill`() {
+        let enemy = Combatant(
+            id: "health-cost-enemy", name: "Health Cost Enemy", role: .enemy, maxHealth: 14,
+            abilities: [.rendingSlash, .bloodOffering, .hemorrhage],
+        )
         var context = BattleStateTestFactory.makeBattle(enemy: enemy)
         context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 1 }
 

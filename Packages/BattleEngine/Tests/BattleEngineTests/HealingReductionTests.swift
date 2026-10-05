@@ -172,8 +172,11 @@ extension HealingReductionTests {
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `shared leech does not apply healing bonuses twice`(owner: BattleParticipant) {
         var profile = CombatModifierProfile(healthRestoredBonus: 4)
-        profile.triggers.companionLeechSharePercent = 0.5
-        profile.triggers.leechSharesToHeroPercent = 0.5
+        if owner == .hero {
+            profile.triggers.companionLeechSharePercent = 0.5
+        } else {
+            profile.triggers.leechSharesToHeroPercent = 0.5
+        }
         profile.triggers.criticalChanceBonus = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxHealth: 100, companionMaxHealth: 100,
