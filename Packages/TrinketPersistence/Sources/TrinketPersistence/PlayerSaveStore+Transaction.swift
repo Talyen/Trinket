@@ -32,14 +32,16 @@ public extension PlayerSaveStore {
         logging message: String,
         _ mutation: (inout PlayerSave, (SaveEconomicReceipt) -> Void) -> Void,
     ) -> Bool {
-        let result: SaveTransactionResult<Void, Never> = persistTransaction(logging: message) { save, recordReceipt in
-            mutation(&save, recordReceipt)
-            return .success(())
-        }
-        if case .committed = result {
+        var candidate = currentSave
+        var receipts: [SaveEconomicReceipt] = []
+        mutation(&candidate) { receipts.append($0) }
+        do {
+            try commit(candidate, receipts: receipts)
             return true
+        } catch {
+            notePersistenceFailure(error, logging: message)
+            return false
         }
-        return false
     }
 
     /// Transactional commit spelling. Transactions are always immediate;
