@@ -94,7 +94,7 @@ struct SaveEconomicReceipt: Codable, Equatable, Sendable {
                 return before.inventory.item(matching: id) != nil && save.inventory.item(matching: id) == nil
             }
             return effects.claim?.isClaimed(in: save, since: before) == true
-        case let .upgrade(id, tier): save.homestead.tier(for: id) >= tier
+        case let .upgrade(id, tier): return save.homestead.tier(for: id) >= tier
         case let .shop(encounter, offer):
             // Generations are device-local. Read the saved stock with the current
             // generation, while retaining the pinned location, seed, item and price.
@@ -111,7 +111,7 @@ struct SaveEconomicReceipt: Codable, Equatable, Sendable {
             } catch {
                 return false
             }
-        case .collection: false
+        case .collection: return false
         }
     }
 
