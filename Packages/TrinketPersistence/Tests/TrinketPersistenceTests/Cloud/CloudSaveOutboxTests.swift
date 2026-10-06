@@ -46,7 +46,7 @@ struct CloudSaveOutboxTests {
         try reloaded.commitCloudState(archivedState)
         let head = CloudSaveHead(epoch: request.id, resetCount: 0, authoritySequence: 0, revision: request.revision)
         let receipt = CloudSaveReceipt(requestID: request.id, epoch: head.epoch, authoritySequence: 0, outcome: .synchronized)
-        let acknowledgement = try #require(CloudSaveTransitions.acknowledge(
+        let acknowledgement = try #require(try CloudSaveTransitions.acknowledge(
             restoredRequest, receipt: receipt, head: head, accountID: "player-a",
             state: reloaded.cloudDeviceState, local: CloudSaveSnapshot(reloaded.currentSave),
         ))

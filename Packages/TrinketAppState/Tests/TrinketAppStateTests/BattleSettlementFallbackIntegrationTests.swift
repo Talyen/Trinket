@@ -3,6 +3,7 @@ import Testing
 import TrinketContent
 @testable import TrinketAppState
 @testable import TrinketBattleFeature
+@testable import TrinketPersistence
 
 @MainActor
 struct BattleSettlementFallbackIntegrationTests {

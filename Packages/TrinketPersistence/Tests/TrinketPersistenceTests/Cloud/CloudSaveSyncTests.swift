@@ -166,12 +166,13 @@ extension CloudSaveSyncTests {
         gains: Int, spending: (gold: Int, food: Int),
     ) -> PlayerSave {
         let hero = store.roster.activeHero
-        #expect(store.persistBatch(logging: "Shared Contract") { save, recordReceipt in
+        let committed = store.persistBatch(logging: "Shared Contract") { save, recordReceipt in
             #expect(ContractsCompletion.complete(
                 offerID: offerID, hero: hero, companion: save.roster.activeCompanion,
                 encounterLevel: 1, loot: loot, save: &save, recordReceipt: recordReceipt,
             ) == .completed)
-        })
+        }
+        #expect(committed)
         #expect(store.cloudDeviceState.account.journal?.first?.receipts?.first?.effects.claim == .contract(offerID))
         let claimed = store.currentSave
         for _ in 0 ..< 70 {
