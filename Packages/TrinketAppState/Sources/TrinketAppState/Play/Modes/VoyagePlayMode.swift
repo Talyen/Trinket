@@ -30,7 +30,7 @@ public final class VoyagePlayMode {
         guard !playerSave.voyage.isUnreadable else {
             return StageMapMessage(title: "Voyage Unavailable", message: "Your Voyage could not be read. Your progress is preserved.")
         }
-        if !prepareEntry() {
+        if !playerSave.prepareVoyage() {
             playerSave.retrySaveAction(key: SaveRetryKey.voyageEnter) { [weak self] in
                 _ = self?.enter()
             }
@@ -40,38 +40,23 @@ public final class VoyagePlayMode {
 
     public func refresh() {
         guard encounters.canBeginTransientEncounter else { return }
-        let access = playerSave.contentAccess
-        persist(key: SaveRetryKey.voyageRefresh) { save in
-            save.voyage.refresh(access: access, eligibleModifiers: RewardOwnership(save).eligibleModifiers)
-        }
+        persist(key: SaveRetryKey.voyageRefresh) { [playerSave] in playerSave.refreshVoyage() }
     }
 
     public func embark(offerID: String) {
         guard encounters.canBeginTransientEncounter else { return }
-        let access = playerSave.contentAccess
-        persist(key: SaveRetryKey.voyageEmbark(offerID)) { save in
-            _ = save.voyage.embark(
-                offerID: offerID,
-                eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs(access: access),
-                access: access, eligibleRewards: RewardOwnership(save).eligibleModifiers,
-            )
-        }
+        persist(key: SaveRetryKey.voyageEmbark(offerID)) { [playerSave] in playerSave.embarkVoyage(offerID: offerID) }
     }
 
     public func abandon(runID: String) {
         guard encounters.canBeginTransientEncounter else { return }
-        let access = playerSave.contentAccess
-        persist(key: SaveRetryKey.voyageAbandon(runID)) { save in
-            _ = save.voyage.abandon(
-                runID: runID, access: access, eligibleModifiers: RewardOwnership(save).eligibleModifiers,
-            )
-        }
+        persist(key: SaveRetryKey.voyageAbandon(runID)) { [playerSave] in playerSave.abandonVoyage(runID: runID) }
         prunePrepared()
     }
 
     public func dismissCompleted() {
         guard encounters.canBeginTransientEncounter else { return }
-        persist(key: SaveRetryKey.voyageCompleted) { $0.voyage.dismissCompleted() }
+        persist(key: SaveRetryKey.voyageCompleted) { [playerSave] in playerSave.dismissCompletedVoyage() }
     }
 
     public func resolvedEncounter(for node: VoyageNode) -> ScaledEncounter? {
@@ -96,7 +81,7 @@ public final class VoyagePlayMode {
         if let restriction = playerSave.accessRestriction(for: origin) {
             return restriction
         }
-        guard prepareEntry() else {
+        guard playerSave.prepareVoyage() else {
             playerSave.retrySaveAction(key: SaveRetryKey.voyageNode(runID: runID, nodeID: nodeID)) { [weak self] in
                 _ = self?.handleNode(runID: runID, nodeID: nodeID)
             }
@@ -176,45 +161,12 @@ public final class VoyagePlayMode {
         })
     }
 
-    private func prepareEntry() -> Bool {
-        let access = playerSave.contentAccess
-        return playerSave.persistBatch(logging: "Failed to save Voyage") { save in
-            save.voyage.ensureBoard(access: access, eligibleModifiers: RewardOwnership(save).eligibleModifiers)
-            Self.refreshRecruit(save: &save, access: access)
-        }
-    }
-
-    private func persist(key: String, action: @escaping (inout PlayerSave) -> Void) {
-        guard playerSave.persistBatch(logging: "Failed to save Voyage", action) else {
+    private func persist(key: String, action: @escaping () -> Bool) {
+        guard action() else {
             playerSave.retrySaveAction(key: key) { [weak self] in
                 self?.persist(key: key, action: action)
             }
             return
-        }
-    }
-
-    private static func refreshRecruit(save: inout PlayerSave, access: ContentAccessPolicy) {
-        guard let run = save.voyage.activeRun else { return }
-        let eligible = save.roster.eligibleRecruitEventIDs(access: access)
-        for node in run.nodes where node.type == .recruit && !node.isCleared {
-            if let id = node.recruitEventID, eligible.contains(id) {
-                continue
-            }
-            save.voyage.updateNode(runID: run.id, nodeID: node.id) { updated in
-                if let eventID = eligible.min() {
-                    updated.recruitEventID = eventID
-                } else {
-                    updated.type = .mystery
-                    updated.recruitEventID = nil
-                    updated.modifierIDs = NodeModifierCatalog.modifierIDs(
-                        for: .mystery,
-                        enemyID: nil,
-                        worldSeed: run.offer.seed,
-                        nodeID: node.id,
-                        affinityKeywords: VoyageCatalog.affinityKeywords(chapterID: run.offer.chapterID),
-                    )
-                }
-            }
         }
     }
 }

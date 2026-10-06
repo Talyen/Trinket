@@ -1,8 +1,8 @@
 import Testing
 import TrinketContent
 import TrinketCore
-import TrinketPersistence
 @testable import TrinketAppState
+@testable import TrinketPersistence
 
 @MainActor
 struct VoyagePlayModeTests {

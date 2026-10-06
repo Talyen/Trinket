@@ -391,6 +391,14 @@ module TrinketTestFlight
     end
     deployment = Deployment.new(root, settings, configuration, portal, options)
     deployment.execute
+    unless ENV['TRINKET_KEEP_REPORTS'] == '1' || File.exist?(File.join(deployment.run_dir, '.retention-keep'))
+      # Ready deployments no longer need command transcripts; receipts and signed
+      # products remain available for resume, allocation, and symbolication.
+      Dir.glob(File.join(deployment.run_dir, '*.log')).each do |log|
+        next if File.symlink?(log) || File.exist?(log + '.retention-keep')
+        File.unlink(log)
+      end
+    end
     0
   rescue Pending => error
     warn error.message

@@ -60,8 +60,8 @@ and [ArrangementView](https://developer.apple.com/documentation/swiftui/arrangem
    Make outcome, Mystery, Shop, onboarding, and detail content reachable at short
    heights, using scrolling and native sheet adaptation. No persistent detail
    panes, landscape enablement, or broader accessibility redesign.
-7. Complete verification below, update canonical behavior documentation, archive
-   the outcome, and delete this execution plan only when the full work is complete.
+7. Complete verification below, update canonical behavior documentation, report
+   the outcome in the task handoff, and delete this execution plan only when the full work is complete.
 
 ## Verification
 

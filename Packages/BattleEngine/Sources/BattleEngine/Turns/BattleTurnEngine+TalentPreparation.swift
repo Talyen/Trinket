@@ -89,14 +89,14 @@ extension BattleTurnEngine {
     ) {
         guard let card = context.resolution.cardTalents,
               let outcome = context.resolution.cardOutcome(for: actor.id) else { return }
-        if card.preparations.contains(.bleedDamage), context.claimHeroCardBonus("redline", actorID: actor.id) {
+        if card.preparations.contains(.bleedDamage), context.claimHeroCardBonus(.redline, actorID: actor.id) {
             increaseCardDamage(2, keyword: .bleed, components: &components)
         }
         let sealedVial = outcome.damageKeywords.contains(.poison)
             && context.modifiers(for: actor.id).triggers.sealedVial
-            && context.claimHeroTalent("sealedVial", actorID: actor.id, battle: true)
+            && context.claimHeroTalent(.sealedVial, actorID: actor.id, battle: true)
         let unstableCulture = card.preparations.contains(.doublePoison)
-            && context.claimHeroCardBonus("unstableCulture", actorID: actor.id)
+            && context.claimHeroCardBonus(.unstableCulture, actorID: actor.id)
         if sealedVial || unstableCulture {
             components = components.map { component in
                 guard component.keyword == .poison, component.target != .actor else { return component }

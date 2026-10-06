@@ -30,6 +30,9 @@ reaction damage cannot spend that reservation.
 
 `CombatResolution` owns nested action/card identity, selected outcomes, automatic-play
 ancestry, cadence claims, and associated mutable talent action/card bookkeeping.
+Activation allowances use `CombatActivationClaim` mechanic identities, never
+display names or trigger-name lookups. Share a key only for reactions that share
+an allowance; retain the claim namespace, actor, and cadence when changing copy.
 Do not maintain parallel talent stacks or edit frame arrays from handlers; use its
 preparation, consumption, and completion operations. `ResolvedActionFacts` is an immutable shared record:
 card reactions, talents, and Uniques read its selected outcome and qualifying

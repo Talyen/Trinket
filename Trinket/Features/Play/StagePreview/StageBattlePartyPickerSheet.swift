@@ -34,15 +34,6 @@ enum BattlePartySlot: String {
         }
     }
 
-    func select(_ combatant: Combatant, in roster: inout PlayerRosterState) {
-        switch self {
-        case .hero:
-            roster.setActiveHero(combatant)
-        case .companion:
-            roster.setActiveCompanion(combatant)
-        }
-    }
-
     enum Eligibility {
         case available
         case locked
@@ -95,8 +86,9 @@ private func attemptPartySelection(
 ) {
     guard BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .available else { return }
     guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
-    let didPersist = playerSave.mutateRoster(logging: "Failed to persist party selection") {
-        slot.select(combatant, in: &$0)
+    let didPersist = switch slot {
+    case .hero: playerSave.selectParty(hero: combatant)
+    case .companion: playerSave.selectParty(companion: combatant)
     }
     guard didPersist else {
         playerSave.retrySaveAction(key: "party-\(slot.title)", action: onPersistFailed)

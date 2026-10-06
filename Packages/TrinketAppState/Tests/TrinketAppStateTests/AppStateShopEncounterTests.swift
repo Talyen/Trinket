@@ -180,7 +180,7 @@ struct AppStateShopEncounterTests {
         #expect(reloaded.inventory.items == itemsBefore)
         let completed = reloaded.currentSave
         var replay = completed
-        #expect(NonCombatEncounterCompletion.complete(encounter: encounter, save: &replay) == .unavailable)
+        #expect(NonCombatEncounterCompletion.complete(encounter: encounter, save: &replay, recordReceipt: { _ in }) == .unavailable)
         #expect(replay == completed)
     }
 

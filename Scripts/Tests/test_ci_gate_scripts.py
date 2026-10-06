@@ -121,7 +121,7 @@ class CIGateScriptTests(ScriptRegressionTestCase):
         stage = workflow.split('      - name: Stage bounded gate failure diagnostics', 1)[1]
         self.assertIn('if: failure()', stage)
         self.assertIn('--stage-gate-artifacts', stage)
-        self.assertIn('retention-days: 7', stage)
+        self.assertIn('retention-days: 1', stage)
 
     def test_advisory_report_uses_actual_paginated_shard_conclusions(self) -> None:
         module = load_script('exhaustive_report', 'report-exhaustive-ci.py')

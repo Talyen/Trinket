@@ -1,9 +1,9 @@
 import Foundation
 import Testing
 import TrinketContent
-import TrinketPersistence
 @testable import TrinketAppState
 @testable import TrinketBattleFeature
+@testable import TrinketPersistence
 
 @MainActor
 struct BattleGemRewardIntegrationTests {

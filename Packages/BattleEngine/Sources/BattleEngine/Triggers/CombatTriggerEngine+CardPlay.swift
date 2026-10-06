@@ -276,7 +276,7 @@ package extension CombatTriggerEngine {
             let triggers = context.modifiers(for: actor.id).triggers
             guard triggers.cardsPlayedHealPartyThreshold > 0,
                   count == triggers.cardsPlayedHealPartyThreshold,
-                  context.resolution.claim(.heroTalent("playfulEnergy"), actorID: actor.id, cadence: .turn(context.turnCount))
+                  context.resolution.claim(.heroTalent(.playfulEnergy), actorID: actor.id, cadence: .turn(context.turnCount))
             else { continue }
             for (_, target) in livingPartyMembers(in: context) {
                 await events.append(contentsOf: emitHeal(

@@ -162,14 +162,18 @@ pending-request retries and reloads retain those same identities. Do not collaps
 separate payouts into one snapshot pair: duplicate-claim detection would then
 suppress unrelated earnings in the collapsed batch.
 
-Battle rewards (including defeat XP), Salvage, Shop purchases, and Homestead
-operations supply version-one `SaveEconomicReceipt` values from their domain
-appliers through the synchronous transaction collector. Each receipt records the
+Battle rewards (including defeat XP), Salvage, Shop purchases, Homestead,
+Mystery choices and Blacksmith forging supply version-one `SaveEconomicReceipt`
+values inside Persistence-owned commands. Receipt-emitting appliers require the
+synchronous transaction collector; there is no default that silently discards effects. Each receipt records the
 actual committed currency, materials, XP, and fractional effects plus its claim
 identity, pinned item/price, or installed building tier. Composite transactions
 retain each receipt separately. Receipt-backed replay skips snapshot economic
 inference and applies only effects whose claims have not already been accepted;
-non-economic fields retain their snapshot reconciliation. Shop charges deduplicate
+non-economic fields retain their snapshot reconciliation. Mystery records its choice
+and encounter completion as one receipt under the same claim. Commit checks full
+economic coverage before saving or journaling, so partial receipts cannot suppress
+unrecorded earnings during replay. Shop charges deduplicate
 only for matching pinned offers. Salvage retirement survives purchase-and-salvage
 in one transaction, where the starting Inventory has no item row.
 
@@ -183,8 +187,10 @@ an unrelated reward. Spending does not alter these collection identities.
 
 Older records retain their version-one economic or conservative snapshot replay,
 including historically compacted records whose separate actions cannot be recovered.
-Uncovered operations and generic save batches retain that fallback; do not use a
-receipt collector for economic mutations that do not supply their effects. Unsupported
+Legacy generic batches retain that fallback. Current production economic commands
+record explicit effects; non-economic commands and internal test fixtures may use
+save-only batches. Preserve older journal readers rather than reconstructing
+receipts whose separate actions are no longer recoverable. Unsupported
 receipt/economic versions reject the entire upload before acknowledging or changing
 progress. Local device metadata advances to version 3 when receipts are recorded;
 new readers also accept versions 1 and 2. Receipt-backed remote heads use version 2;

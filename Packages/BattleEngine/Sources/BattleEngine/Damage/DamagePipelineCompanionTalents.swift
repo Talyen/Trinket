@@ -29,7 +29,7 @@ package extension DamagePipeline {
                 bonus += party.partyHolyAttackCriticalBonus
             }
             if keyword == .physical, party.partyFirstPhysicalCriticalBonus > 0,
-               context.claimHeroTalent("Alpha Howl", actorID: actor.id, battle: true) {
+               context.claimHeroTalent(.alphaHowl, actorID: actor.id, battle: true) {
                 bonus += party.partyFirstPhysicalCriticalBonus
             }
         }
@@ -103,7 +103,7 @@ package extension DamagePipeline {
         let defender = state.combatant
         let triggers = context.modifiers(for: defender.id).triggers
         if triggers.onDamageFreezeRetaliationDamage > 0,
-           context.claimTalentAbility("Chilling Scales", actorID: defender.id),
+           context.claimTalentAbility(.chillingScales, actorID: defender.id),
            BattleChance.succeeds(
                probability: triggers.onDamageFreezeRetaliationChancePercent, using: &context.rng,
            ) {
@@ -114,7 +114,7 @@ package extension DamagePipeline {
             )
         }
         if triggers.onDamageBurnRetaliationDamage > 0,
-           context.claimTalentAbility("Blazing Feathers", actorID: defender.id),
+           context.claimTalentAbility(.blazingFeathers, actorID: defender.id),
            BattleChance.succeeds(
                probability: triggers.onDamageBurnRetaliationChancePercent, using: &context.rng,
            ) {
@@ -141,12 +141,12 @@ package extension DamagePipeline {
             state.itemBonus += triggers.bleedAttackDamageBonus
         }
         if keyword == .stun, triggers.firstStunAttackBonusPerTurn > 0,
-           context.claimHeroTalent("Ground Slam", actorID: sourceActorID) {
+           context.claimHeroTalent(.groundSlam, actorID: sourceActorID) {
             state.remaining += triggers.firstStunAttackBonusPerTurn
             state.itemBonus += triggers.firstStunAttackBonusPerTurn
         }
         if keyword == .physical, triggers.firstPhysicalAttackBlockDamagePercent > 0,
-           context.claimHeroTalent("Battering Ram", actorID: sourceActorID) {
+           context.claimHeroTalent(.batteringRam, actorID: sourceActorID) {
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant))
             let bonus = CombatRounding.scaled(block, multiplier: triggers.firstPhysicalAttackBlockDamagePercent)
             state.remaining += bonus

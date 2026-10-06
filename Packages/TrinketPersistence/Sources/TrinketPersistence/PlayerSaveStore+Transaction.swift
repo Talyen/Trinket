@@ -5,20 +5,19 @@ public enum SaveTransactionResult<Value, Failure: Error> {
 }
 
 @MainActor
-public extension PlayerSaveStore {
+extension PlayerSaveStore {
     /// Domain owners supply receipts in the same synchronous candidate mutation.
     /// A rejection or refused durable write discards both the save and receipts.
     func persistTransaction<Value, Failure: Error>(
         logging message: String,
         _ mutation: (inout PlayerSave, (SaveEconomicReceipt) -> Void) -> Result<Value, Failure>,
     ) -> SaveTransactionResult<Value, Failure> {
-        var candidate = currentSave
-        var receipts: [SaveEconomicReceipt] = []
-        switch mutation(&candidate, { receipts.append($0) }) {
+        let candidate = SaveEconomicMutation(currentSave)
+        switch mutation(&candidate.save, candidate.record) {
         case let .failure(error): return .rejected(error)
         case let .success(value):
             do {
-                try commit(candidate, receipts: receipts)
+                try commit(candidate.save, receipts: candidate.receipts)
                 return .committed(value)
             } catch {
                 notePersistenceFailure(error, logging: message)
@@ -32,11 +31,10 @@ public extension PlayerSaveStore {
         logging message: String,
         _ mutation: (inout PlayerSave, (SaveEconomicReceipt) -> Void) -> Void,
     ) -> Bool {
-        var candidate = currentSave
-        var receipts: [SaveEconomicReceipt] = []
-        mutation(&candidate) { receipts.append($0) }
+        let candidate = SaveEconomicMutation(currentSave)
+        mutation(&candidate.save, candidate.record)
         do {
-            try commit(candidate, receipts: receipts)
+            try commit(candidate.save, receipts: candidate.receipts)
             return true
         } catch {
             notePersistenceFailure(error, logging: message)

@@ -40,9 +40,7 @@ widen the surface. Scopes and fingerprinted pagination apply to both modes. Scop
 Documentation results put current guides and references first, procedures/knowledge
 next, and task records last, alphabetically within each group. This ordering
 applies before either file or excerpt limits; explicit scopes can still retrieve
-plans, evals, and friction records directly. Resolved friction archives are excluded
-unless `--scope` names `.agents/friction-archive` or a file within it. For direct
-`rg` discovery, likewise omit that archive unless investigating past friction.
+plans, evals, and open friction records directly.
 Search continuation commands use `--offset` and a result fingerprint (`--expect`);
 changed results require restarting instead of silently skipping or repeating matches.
 Bounds always report omitted
@@ -179,7 +177,9 @@ Outlines, signatures, ranges, failed reads and automatically outlined large
 documents do not. A whole-document read covers its sections; reading one section
 does not cover another section or the whole document. Whole-file hashes invalidate
 all sections after any edit. The receipt also binds to the repository path and
-chat ID; mismatches fail explicitly. Delete it when the chat no longer needs it.
+chat ID; mismatches fail explicitly. Receipts expire after 24 hours of inactivity;
+missing or expired receipts require rereading guidance. Delete one when the chat
+no longer needs it.
 
 Rerouting annotates every applicable reference as unchanged/read or requiring an
 applicable read, while retaining all references, skill triggers, boundary warnings
@@ -282,7 +282,9 @@ provider usage, transcript-derived retries/repeated reads/stops, and an independ
 correctness/completion judgement. `collect <trials.json> --output <measured.json>`
 validates the usage export; `compare <before.json> <after.json>` rejects mismatched
 inputs/settings and fails incorrect or incomplete outcomes even when tokens fall.
-Keep reports outside the repository. Without provider usage exports, leave token
+Keep comparison reports under the gitignored `.DerivedData/AgentEvaluationResults/`
+for automatic 24-hour expiry, or manage custom destinations explicitly. Without
+provider usage exports, leave token
 counts unmeasured; retrieval savings do not establish complete-task token savings.
 
 ## Diff review

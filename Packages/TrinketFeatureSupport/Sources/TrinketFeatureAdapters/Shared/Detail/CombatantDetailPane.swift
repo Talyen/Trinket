@@ -26,7 +26,7 @@ public struct CombatantDetailPane: View {
     var activeEffectSummaries: [EffectSummary] = []
     var nodeModifiers: [NodeModifierDefinition] = []
     var hidesNavigationBar = false
-    var onEdit: ((CombatantDetailEdit) -> Bool)?
+    var onEdit: ((CombatantLoadoutEdit) -> Bool)?
     var onUnlockTalent: ((TalentNode, TalentTree) -> TalentUnlockResult)?
 
     @State private var selectedItemSlot: ItemSlot?

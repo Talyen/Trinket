@@ -36,16 +36,16 @@ package extension BattleState {
         return CombatRounding.scaled(amount, multiplier: multiplier)
     }
 
-    mutating func claimActionGuard(_ kind: TalentClaim, actorID: String) -> Bool {
+    mutating func claimActionGuard(_ kind: CombatActivationClaim, actorID: String) -> Bool {
         let cadence = resolution.actionID.map(CombatResolution.Cadence.action) ?? .standaloneAction(actionCount)
         return resolution.claim(.talent(kind), actorID: actorID, cadence: cadence)
     }
 
-    mutating func claimBattleGuard(_ kind: TalentClaim, actorID: String) -> Bool {
+    mutating func claimBattleGuard(_ kind: CombatActivationClaim, actorID: String) -> Bool {
         resolution.claim(.talent(kind), actorID: actorID, cadence: .battle)
     }
 
-    mutating func claimTurnGuard(_ kind: TalentClaim, actorID: String) -> Bool {
+    mutating func claimTurnGuard(_ kind: CombatActivationClaim, actorID: String) -> Bool {
         resolution.claim(.talent(kind), actorID: actorID, cadence: .turn(turnCount))
     }
 }

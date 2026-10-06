@@ -34,8 +34,10 @@ Contract victories record the completed offer ID before replacement; refreshing 
 without creating a claim. Voyage victories record completed run IDs before
 dismissing their cleared routes.
 
-Completion appliers supply explicit committed economic receipts to the transaction
-collector, including one claim identity per award in a batch. Standalone victories
+Persistence-owned battle commands invoke completion appliers and collect explicit
+committed economic receipts, including one claim identity per award in a batch.
+AppState supplies completion inputs and handles presentation after commitment;
+it cannot open a save mutation closure. Standalone victories
 and defeat XP carry unclaimed effects; normal battle/Salvage claims retain their
 domain identities. Failed or rejected transactions publish neither awards nor receipts.
 
@@ -95,8 +97,9 @@ actions, and storage failure; a rejected action never enters commit.
 
 Mystery opening pins the chosen event and prepares any saved offers in one
 transaction; rejected offers leave no new pin, and the session appears only
-after the save commits. `MysteryEncounterResolution` owns choice effects and
-progress together, including required item/unlock validation. Mystery requests,
+after the save commits. `prepareMysteryEncounter` and `resolveMysteryEncounter`
+own these transactions in Persistence. `MysteryEncounterResolution` owns choice
+effects and progress together, including required item/unlock validation. Mystery requests,
 offer preparation, and claims use one required `EncounterIdentity`; levels, payloads,
 and completion derive from its location rather than a parallel stage or optional
 node ID. Direct choices receive normal noncombat completion rewards; pooled offers

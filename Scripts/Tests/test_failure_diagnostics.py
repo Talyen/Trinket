@@ -9,6 +9,8 @@ the tool calls are patched at the process boundary.
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/internal/output_retention.py',
+    'Scripts/lib/output-retention.sh',
     'Scripts/ci-diagnostics.py',
     'Scripts/ci-diagnostics.sh',
     'Scripts/config/diagnostic-limits.env',
@@ -713,7 +715,7 @@ class ReporterTests(unittest.TestCase):
                 scripts = root / "Scripts"
                 for relative in ("lib", "config", "Tests"):
                     (scripts / relative).mkdir(parents=True)
-                for name in ("test-scripts.sh", "script_test_selection.py", "lib/args.sh", "script_diagnostics.py", "internal/cli.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env"):
+                for name in ("test-scripts.sh", "script_test_selection.py", "lib/args.sh", "script_diagnostics.py", "internal/cli.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env", "cleanup-outputs.py", "internal/output_retention.py", "lib/output-retention.sh", "lib/lock.sh"):
                     (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
                 (scripts / "check-build-cache-paths.sh").write_text("#!/bin/bash\nexit 0\n")

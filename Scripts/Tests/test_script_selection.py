@@ -149,7 +149,9 @@ class ScriptSelectionTests(unittest.TestCase):
             tests.mkdir(parents=True)
             (scripts / "lib").mkdir()
             for name in ("test-scripts.sh", "lib/args.sh", "script_diagnostics.py",
-                         "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env"):
+                         "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env",
+                         "cleanup-outputs.py", "internal/output_retention.py", "internal/cli.py",
+                         "lib/output-retention.sh", "lib/lock.sh"):
                 (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, scripts / name)
             (scripts / "script_test_selection.py").write_text(

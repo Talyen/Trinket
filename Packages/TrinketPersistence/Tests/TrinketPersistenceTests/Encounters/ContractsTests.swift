@@ -94,15 +94,17 @@ struct ContractBoardTests {
         let loot = ContractsCompletion.resolveLoot(for: offer, encounterLevel: level, save: save)
         var expected = before
         VictoryRewardApplier.grantVictoryRewards(
-            hero: hero, companion: companion, encounterLevel: level, stageGold: loot.gold,
+            party: (hero, companion), encounterLevel: level, stageGold: loot.gold,
             battleGold: .init(gained: 5),
             experienceEarnedPercent: ContractsCompletion.effectiveModifier(for: offer, inventory: before.inventory).experienceBonusPercent,
             materialRewards: loot.materials, item: loot.item, save: &expected,
+            recordReceipt: { _ in },
         )
 
         #expect(ContractsCompletion.complete(
             offerID: offer.id, hero: hero, companion: companion, encounterLevel: level,
             loot: loot, battleGold: .init(gained: 5), save: &save,
+            recordReceipt: { _ in },
         ) == .completed)
         #expect(save.roster == expected.roster)
         #expect(save.inventory == expected.inventory)
@@ -121,6 +123,7 @@ struct ContractBoardTests {
         #expect(ContractsCompletion.complete(
             offerID: offer.id, hero: hero, companion: companion, encounterLevel: level,
             loot: loot, battleGold: .init(gained: 5), save: &save,
+            recordReceipt: { _ in },
         ) == .alreadyCompleted)
         #expect(save == claimed)
     }
@@ -136,6 +139,7 @@ struct ContractBoardTests {
         #expect(ContractsCompletion.complete(
             offerID: hard.id, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
             encounterLevel: 5, loot: loot, save: &save,
+            recordReceipt: { _ in },
         ) == .completed)
         #expect(save.inventory.item(matching: item.id) == item)
     }
@@ -206,6 +210,7 @@ struct ContractsPersistenceTests {
         let failed = store.persistBatch(logging: "Contracts test") { save in
             _ = ContractsCompletion.complete(
                 offerID: offer.id, hero: hero, companion: companion, encounterLevel: level, loot: loot, save: &save,
+                recordReceipt: { _ in },
             )
         }
         #expect(!failed)
@@ -215,6 +220,7 @@ struct ContractsPersistenceTests {
         #expect(failedReload.persistBatch(logging: "Contracts test") { save in
             _ = ContractsCompletion.complete(
                 offerID: offer.id, hero: hero, companion: companion, encounterLevel: level, loot: loot, save: &save,
+                recordReceipt: { _ in },
             )
         })
         let claimed = failedReload.currentSave
@@ -224,6 +230,7 @@ struct ContractsPersistenceTests {
         #expect(reloaded.persistBatch(logging: "Contracts test") { save in
             applied = ContractsCompletion.complete(
                 offerID: offer.id, hero: hero, companion: companion, encounterLevel: level, loot: loot, save: &save,
+                recordReceipt: { _ in },
             )
         })
         #expect(applied == .alreadyCompleted)

@@ -15,7 +15,10 @@ done
 unset DERIVED_DATA_PATH RESULTS_DIR
 
 REPO="$TMP_DIR/repo"
-mkdir -p "$REPO/Scripts/lib"
+mkdir -p "$REPO/Scripts/lib" "$REPO/Scripts/internal"
+cp "$ROOT_DIR/Scripts/cleanup-outputs.py" "$REPO/Scripts/cleanup-outputs.py"
+cp "$ROOT_DIR/Scripts/internal/output_retention.py" "$REPO/Scripts/internal/output_retention.py"
+cp "$ROOT_DIR/Scripts/internal/cli.py" "$REPO/Scripts/internal/cli.py"
 cp "$ROOT_DIR/Scripts/run-env.sh" "$REPO/Scripts/run-env.sh"
 cp "$ROOT_DIR/Scripts/simctl_json.py" "$REPO/Scripts/simctl_json.py"
 cp "$ROOT_DIR/Scripts/lib/args.sh" "$REPO/Scripts/lib/args.sh"
@@ -556,7 +559,7 @@ bash -c '
   mkdir -p "$TRINKET_SHARED_DERIVED_DATA/TestResults/fresh-bundle"
   mkdir -p "$TRINKET_SHARED_DERIVED_DATA/Build/Products"
   touch "$TRINKET_SHARED_DERIVED_DATA/Build/Products/keep"
-  # mtime older than default 3d
+  # mtime older than default 24h
   touch -t 202001010101 "$TRINKET_SHARED_DERIVED_DATA/TestResults/old-bundle"
   touch "$TRINKET_SHARED_DERIVED_DATA/TestResults/fresh-bundle"
   trinket_derived_data_age_prune
@@ -565,7 +568,7 @@ bash -c '
   [[ -f "$TRINKET_SHARED_DERIVED_DATA/Build/Products/keep" ]]
 ' _ "$REPO"
 
-# --- age-prune drops aged package-local .build / .DerivedData ---
+# --- retention preserves package build caches even when aged ---
 bash -c '
   set -euo pipefail
   cd "$1"
@@ -581,8 +584,8 @@ bash -c '
   touch -t 202001010101 "$1/Packages/DemoPkg/.DerivedData"
   touch "$1/Packages/DemoPkgFresh/.build"
   trinket_derived_data_age_prune
-  [[ ! -e "$1/Packages/DemoPkg/.build" ]]
-  [[ ! -e "$1/Packages/DemoPkg/.DerivedData" ]]
+  [[ -d "$1/Packages/DemoPkg/.build" ]]
+  [[ -d "$1/Packages/DemoPkg/.DerivedData" ]]
   [[ -d "$1/Packages/DemoPkgFresh/.build" ]]
 ' _ "$REPO"
 

@@ -95,7 +95,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.spendLastManaDrawCard, spentLastMana,
-              context.claimHeroCardBonus("Arcane Surge", actorID: actor.id),
+              context.claimHeroCardBonus(.arcaneSurge, actorID: actor.id),
               let owner = context.roster.participant(for: actor)
         else { return [] }
         return drawCards(1, for: owner, actor: actor, abilityName: "Arcane Surge", in: &context)
@@ -150,7 +150,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) async -> [ActionEvent] {
         guard amountSpent > 0, triggers.spendManaRefundChancePercent > 0,
-              context.claimTalentAbility("Mana Flow", actorID: actor.id),
+              context.claimTalentAbility(.manaFlow, actorID: actor.id),
               BattleChance.succeeds(probability: triggers.spendManaRefundChancePercent, using: &context.rng) else {
             return []
         }
@@ -164,7 +164,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard amountSpent > 0, triggers.spendManaDrawChancePercent > 0,
-              context.claimTalentAbility("Dragon Spark", actorID: actor.id),
+              context.claimTalentAbility(.dragonSpark, actorID: actor.id),
               BattleChance.succeeds(probability: triggers.spendManaDrawChancePercent, using: &context.rng),
               let owner = context.roster.participant(for: actor)
         else { return [] }

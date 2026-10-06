@@ -5,7 +5,7 @@ import TrinketContent
 
 @MainActor
 extension PlayerSaveStore {
-    public func performBatchMutation(
+    func performBatchMutation(
         _ update: (inout PlayerSave) -> Void,
         persistImmediately: Bool = true,
     ) throws {
@@ -23,6 +23,9 @@ extension PlayerSaveStore {
         }
         let snapshot = currentSave
         let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed)
+        if let receipts {
+            try SaveEconomicMutation.validate(from: snapshot, to: candidate, receipts: receipts)
+        }
         try applyCandidate(
             candidate,
             replacing: snapshot,
@@ -33,7 +36,7 @@ extension PlayerSaveStore {
     }
 
     @discardableResult
-    public func persistBatch(
+    func persistBatch(
         logging message: String,
         _ mutation: (inout PlayerSave) -> Void,
     ) -> Bool {

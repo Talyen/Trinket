@@ -59,6 +59,7 @@ struct StageRewardEncounterLevelTests {
             battleGold: .init(gained: 5),
             in: GameContent.chapters,
             save: &save,
+            recordReceipt: { _ in },
         )
         #expect(first == .completed)
         let goldAfterFirst = save.roster.gold
@@ -70,6 +71,7 @@ struct StageRewardEncounterLevelTests {
             battleGold: .init(gained: 5),
             in: GameContent.chapters,
             save: &save,
+            recordReceipt: { _ in },
         )
         #expect(second == .alreadyCompleted)
         #expect(save.roster.gold == goldAfterFirst)
@@ -144,6 +146,7 @@ struct StageRewardEncounterLevelTests {
                 companion: save.roster.activeCompanion,
                 enemyEncounterLevel: enemyEncounterLevel,
                 save: &save,
+                recordReceipt: { _ in },
             )
             return save.roster.progression(for: hero).currentXP - before.currentXP
         }
@@ -175,6 +178,7 @@ struct StageRewardEncounterLevelTests {
                 enemyEncounterLevel: enemyEncounterLevel,
                 in: GameContent.chapters,
                 save: &save,
+                recordReceipt: { _ in },
             )
         case .spire:
             let spire = try #require(GameContent.spire(id: .ironVein))
@@ -190,6 +194,7 @@ struct StageRewardEncounterLevelTests {
                 companion: companion,
                 enemyEncounterLevel: enemyEncounterLevel,
                 save: &save,
+                recordReceipt: { _ in },
             )
         }
     }

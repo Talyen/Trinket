@@ -1,7 +1,7 @@
 import Testing
 import TrinketContent
-import TrinketPersistence
 @testable import TrinketAppState
+@testable import TrinketPersistence
 
 @MainActor
 struct ContractsPlayModeTests {

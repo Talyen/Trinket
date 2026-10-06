@@ -73,7 +73,7 @@ enum HomesteadBuildMutation {
         targetTier: Int,
         at date: Date,
         to save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> Result<Void, HomesteadBuildFailure> {
         guard let tier = save.homestead.nextTier(for: definition), tier.tier == targetTier else { return .failure(.notAvailable) }
         save.homestead.settleProduction(at: date, roster: save.roster)

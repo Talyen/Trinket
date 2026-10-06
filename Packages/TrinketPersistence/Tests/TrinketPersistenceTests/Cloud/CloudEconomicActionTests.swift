@@ -112,7 +112,7 @@ struct CloudEconomicActionTests {
         var receipts: [SaveEconomicReceipt] = []
         _ = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &first, recordReceipt: { receipts.append($0) })
             .get()
-        _ = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &second).get()
+        _ = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &second, recordReceipt: { _ in }).get()
         for definition in [well, field] {
             guard case .success = HomesteadBuildMutation.apply(
                 definition,
@@ -123,7 +123,7 @@ struct CloudEconomicActionTests {
             )
             else { Issue.record("Expected affordable build"); return }
         }
-        guard case .success = HomesteadBuildMutation.apply(well, targetTier: 1, at: date, to: &second)
+        guard case .success = HomesteadBuildMutation.apply(well, targetTier: 1, at: date, to: &second, recordReceipt: { _ in })
         else { Issue.record("Expected shared build"); return }
         let materials = try ItemSalvageApplier.salvage(itemID: item.id, save: &first, recordReceipt: { receipts.append($0) }).get()
         let mutation = CloudSaveMutation(

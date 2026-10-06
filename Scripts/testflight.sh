@@ -13,6 +13,7 @@ for argument in "$@"; do
     --doctor) doctor=true ;;
   esac
 done
+source Scripts/lib/output-retention.sh
 source Scripts/lib/testflight-tools.sh
 trinket_testflight_tools "$PWD" false
 if [[ "$doctor" == true ]]; then
@@ -23,6 +24,7 @@ trinket_dir_lock_acquire "$PWD/.DerivedData/testflight/.deploy.lock" 1
 mkdir -p .DerivedData/testflight/commands
 export TRINKET_TESTFLIGHT_COMMAND_LOG
 TRINKET_TESTFLIGHT_COMMAND_LOG="$(mktemp "$PWD/.DerivedData/testflight/commands/deploy.XXXXXX")"
+trinket_output_retention_begin "$TRINKET_TESTFLIGHT_COMMAND_LOG"
 chmod 600 "$TRINKET_TESTFLIGHT_COMMAND_LOG"
 echo "Command log: $TRINKET_TESTFLIGHT_COMMAND_LOG"
 # Keep the shell alive so its EXIT trap retains the deployment lock.

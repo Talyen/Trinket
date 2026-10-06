@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/internal/output_retention.py',
+    'Scripts/lib/output-retention.sh',
     'Scripts/check-docs.py',
     'Scripts/check-links.py',
     'Scripts/check-plans.py',
@@ -51,7 +53,7 @@ class DocumentationTests(ScriptRegressionTestCase):
             self.assertIn("type: execution-plan", text)
             self.assertIn("status: active", text)
             self.assertIn("expires:", text)
-            self.assertIn("Docs/Plans/Archived/README.md", text)
+            self.assertNotIn("Archived", text)
             self.assertIn("delete this plan", text)
 
     def test_plan_metadata_requires_lifecycle_fields_and_blocked_reason(self) -> None:
@@ -89,7 +91,7 @@ class DocumentationTests(ScriptRegressionTestCase):
             root.mkdir()
             scripts = root / "Scripts"
             scripts.mkdir()
-            for name in ("check-docs.py", "check-plans.py", "check-links.py", "check-testplan-sync.py", "internal/markdown.py", "internal/cli.py", "internal/doc_diagnostics.py"):
+            for name in ("check-docs.py", "check-plans.py", "check-links.py", "check-testplan-sync.py", "internal/markdown.py", "internal/cli.py", "internal/doc_diagnostics.py", "internal/output_retention.py"):
                 (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, scripts / name)
             for name, content in {
@@ -141,11 +143,11 @@ class DocumentationTests(ScriptRegressionTestCase):
                     plan.write_text(original.replace("expires: 2000-01-02\n", ""))
                     run(name, "--paths", "README.md", status=1, message="missing expires")
                     plan.write_text(original.replace("status: active", "status: complete"))
-                    run(name, "--paths", "README.md", status=1, message="must be summarized")
+                    run(name, "--paths", "README.md", status=1, message="must be deleted")
                     archive = plan.parent / "Archived" / plan.name
                     archive.parent.mkdir(exist_ok=True)
                     plan.rename(archive)
-                    run(name, "--paths", "README.md", status=1, message="completed plan detail belongs in Git history")
+                    run(name, "--paths", "README.md", status=1, message="execution plans are allowed only directly")
                     archive.unlink()
                     parallel = root / ".agents/plans/Parallel.md"
                     parallel.parent.mkdir(parents=True, exist_ok=True)
@@ -317,7 +319,8 @@ class DocumentationTests(ScriptRegressionTestCase):
         select = load_script("script_test_selection", "script_test_selection.py").select_tests
         all_tests = select([])
         cases = {
-            "Scripts/handoff.sh": {"Scripts/Tests/test_ci_gate_scripts.py",
+            "Scripts/handoff.sh": {"Scripts/Tests/test_output_retention.py",
+                                   "Scripts/Tests/test_ci_gate_scripts.py",
                                    "Scripts/Tests/test_ci_handoff_routing.py",
                                    "Scripts/Tests/test_verification_policy.py",
                                    "Scripts/Tests/test_documentation.py",

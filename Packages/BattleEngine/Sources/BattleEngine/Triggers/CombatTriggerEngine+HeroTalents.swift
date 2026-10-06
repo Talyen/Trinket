@@ -97,7 +97,7 @@ package extension CombatTriggerEngine {
             context.roster.mutateRuntime(for: actor) { $0.talents.pending.guaranteedBleedCritical = true }
         }
         if keyword == .stun, triggers.stunCriticalStealGold > 0,
-           context.claimTalentAbility("Cutpurse Cut", actorID: sourceID) {
+           context.claimTalentAbility(.cutpurseCut, actorID: sourceID) {
             await events.append(contentsOf: context.grantGoldEvent(
                 triggers.stunCriticalStealGold,
                 to: actor,
@@ -106,7 +106,7 @@ package extension CombatTriggerEngine {
             ))
         }
         if keyword == .burn, triggers.burnAttackCritDrawCard,
-           context.claimTalentAbility("Ashen Arsenal", actorID: sourceID),
+           context.claimTalentAbility(.ashenArsenal, actorID: sourceID),
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: drawCards(
                 1, for: owner, actor: actor, abilityName: "Ashen Arsenal", in: &context,
@@ -132,7 +132,7 @@ package extension CombatTriggerEngine {
             removeBlockAfterPhysicalCriticalHit(by: sourceID, in: &context)
         }
         guard triggers.physicalElementChancePercent > 0, triggers.physicalElementDamage > 0,
-              context.claimHeroCardBonus("Prismatic Edge", actorID: sourceID),
+              context.claimHeroCardBonus(.prismaticEdge, actorID: sourceID),
               BattleChance.succeeds(probability: triggers.physicalElementChancePercent, using: &context.rng)
         else { return [] }
         let keyword: Keyword = Bool.random(using: &context.rng) ? .burn : .freeze
@@ -153,7 +153,7 @@ package extension CombatTriggerEngine {
     ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if keyword == .burn, triggers.burnAttackBleedDamage > 0,
-           context.claimHeroCardBonus("Bloodfire", actorID: actor.id),
+           context.claimHeroCardBonus(.bloodfire, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.burnAttackBleedChancePercent, using: &context.rng) {
             await events.append(contentsOf: heroTalentDamage(
                 .bleed, amount: triggers.burnAttackBleedDamage, source: actor,
@@ -179,7 +179,7 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if fullyBlocked, triggers.blockedAttackFirstRandomCard,
            !context.isBattleOver,
-           context.claimHeroTalent("Consolation Prize", actorID: actor.id, battle: true),
+           context.claimHeroTalent(.consolationPrize, actorID: actor.id, battle: true),
            let owner = context.roster.participant(for: actor), owner.isPartyMember,
            let ability = AbilityCatalog.all.randomElement(using: &context.rng) {
             _ = BattleCardCombatEngine.deal(ability, owner: owner, context: &context)
@@ -404,7 +404,7 @@ package extension CombatTriggerEngine {
            context.heroTalents.history[hero.id]?.spentMana == true,
            context.heroTalents.history[context.roster.companion.id]?.spentMana == true,
            context.heroModifiers.triggers.groveAccord,
-           context.claimHeroTalent("groveAccord", actorID: hero.id) {
+           context.claimHeroTalent(.groveAccord, actorID: hero.id) {
             for target in [hero, context.roster.companion.combatant] {
                 await events.append(contentsOf: heroTalentThorns(to: target, source: hero, name: "Grove Accord", in: &context))
             }

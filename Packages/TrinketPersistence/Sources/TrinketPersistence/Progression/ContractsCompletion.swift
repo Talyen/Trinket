@@ -29,7 +29,7 @@ public enum ContractsCompletion {
     }
 
     @discardableResult
-    public static func complete(
+    static func complete(
         offerID: String,
         hero: Combatant,
         companion: Combatant,
@@ -39,14 +39,13 @@ public enum ContractsCompletion {
         award: BattleRewardSettlement? = nil,
         save: inout PlayerSave,
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
-        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         guard !(save.contracts.completedOfferIDs ?? []).contains(offerID),
               let offer = save.contracts.offers.first(where: { $0.id == offerID }) else { return .alreadyCompleted }
         let modifier = effectiveModifier(for: offer, inventory: save.inventory)
         VictoryRewardApplier.grantVictoryRewards(
-            hero: hero,
-            companion: companion,
+            party: (hero, companion),
             encounterLevel: encounterLevel,
             stageGold: loot.gold,
             battleGold: battleGold,

@@ -3,9 +3,9 @@ import Testing
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
-import TrinketPersistence
 import TrinketPersistenceTestSupport
 @testable import TrinketAppState
+@testable import TrinketPersistence
 
 @MainActor
 struct AppStateMysteryRecruitTests {
@@ -68,7 +68,7 @@ struct AppStateMysteryRecruitTests {
     @Test func `completed roster turns recruit stage into mystery`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state", "-seed-test-progress"])
         let completedStage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
-        #expect(state.journey.persistStageCompletions(
+        #expect(state.playerSave.completeJourneyStages(
             [completedStage],
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,

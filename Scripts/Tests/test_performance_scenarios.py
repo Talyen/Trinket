@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/internal/output_retention.py',
+    'Scripts/lib/output-retention.sh',
     'Scripts/aggregate-performance-results.py',
     'Scripts/collect-performance-results.py',
     'Scripts/compare-performance.py',
@@ -139,7 +141,7 @@ class PerformanceScenarioTests(unittest.TestCase):
                 root = Path(directory)
                 scripts = root / "Scripts"
                 (scripts / "lib").mkdir(parents=True)
-                for name in ("performance.sh", "performance-scenarios.py", "collect-performance-results.py", "compare-performance.py", "internal/cli.py", "internal/performance/performance_model.py", "lib/lock.sh", "lib/verification-policy.sh"):
+                for name in ("performance.sh", "performance-scenarios.py", "collect-performance-results.py", "compare-performance.py", "internal/cli.py", "internal/performance/performance_model.py", "lib/lock.sh", "lib/verification-policy.sh", "cleanup-outputs.py", "internal/output_retention.py", "lib/output-retention.sh"):
                     (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
                 (scripts / "performance_environment.py").write_text(

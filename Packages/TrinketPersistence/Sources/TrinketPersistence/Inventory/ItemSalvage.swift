@@ -40,10 +40,10 @@ public enum ItemSalvage {
     }
 }
 
-public enum ItemSalvageApplier {
-    public static func salvage(
+enum ItemSalvageApplier {
+    static func salvage(
         itemID: String, save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> Result<[ResourceAmount], ItemSalvageFailure> {
         guard let item = save.inventory.items.first(where: { $0.id == itemID }) else {
             return .failure(.itemNotFound)

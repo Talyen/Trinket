@@ -36,6 +36,7 @@ struct CloudSaveMergeRetiredAssetTests {
             encounterLevel: 1,
             loot: BattleLootResult(item: #require(GameContent.sampleInventoryItems.first), gold: 10, materials: []),
             save: &restored,
+            recordReceipt: { _ in },
         )
         #expect(outcome == .alreadyCompleted)
         #expect(restored == before)
@@ -53,6 +54,7 @@ struct CloudSaveMergeRetiredAssetTests {
             encounterLevel: 1,
             loot: BattleLootResult(item: #require(GameContent.sampleInventoryItems.first), gold: 10, materials: []),
             save: &save,
+            recordReceipt: { _ in },
         )
         #expect(outcome == .alreadyCompleted)
         #expect(save == before)
@@ -80,7 +82,7 @@ struct CloudSaveMergeRetiredAssetTests {
         corrupted.modifiedAt = Date(timeIntervalSince1970: corruptionIsNewer ? 200 : 100)
         var salvaged = base
         salvaged.modifiedAt = Date(timeIntervalSince1970: corruptionIsNewer ? 100 : 200)
-        let outcome = ItemSalvageApplier.salvage(itemID: item.id, save: &salvaged)
+        let outcome = ItemSalvageApplier.salvage(itemID: item.id, save: &salvaged, recordReceipt: { _ in })
         guard case let .success(yields) = outcome else {
             Issue.record("The shared sword must be salvageable")
             return

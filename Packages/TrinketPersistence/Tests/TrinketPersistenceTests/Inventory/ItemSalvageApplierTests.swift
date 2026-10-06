@@ -70,7 +70,7 @@ struct ItemSalvageApplierTests {
         save.homestead.resources = [.iron: 3]
         let before = save
 
-        let result = ItemSalvageApplier.salvage(itemID: "missing", save: &save)
+        let result = ItemSalvageApplier.salvage(itemID: "missing", save: &save, recordReceipt: { _ in })
 
         #expect(result == .failure(.itemNotFound))
         #expect(save == before)
@@ -82,7 +82,7 @@ struct ItemSalvageApplierTests {
         save.inventory.items = [trinket]
         let before = save
 
-        let result = ItemSalvageApplier.salvage(itemID: trinket.id, save: &save)
+        let result = ItemSalvageApplier.salvage(itemID: trinket.id, save: &save, recordReceipt: { _ in })
 
         #expect(result == .failure(.ineligible))
         #expect(save == before)
@@ -94,7 +94,7 @@ struct ItemSalvageApplierTests {
         save.inventory.items = [unique]
         let before = save
 
-        let result = ItemSalvageApplier.salvage(itemID: unique.id, save: &save)
+        let result = ItemSalvageApplier.salvage(itemID: unique.id, save: &save, recordReceipt: { _ in })
 
         #expect(result == .failure(.ineligible))
         #expect(save == before)
@@ -109,7 +109,7 @@ struct ItemSalvageApplierTests {
             .wood: 999,
         ]
 
-        let result = ItemSalvageApplier.salvage(itemID: item.id, save: &save)
+        let result = ItemSalvageApplier.salvage(itemID: item.id, save: &save, recordReceipt: { _ in })
 
         guard case let .success(yields) = result else {
             Issue.record("Expected successful salvage")

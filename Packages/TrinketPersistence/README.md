@@ -20,7 +20,8 @@ transaction outcomes, observation and reload evidence. Detailed contracts live i
 
 Store methods are `@MainActor`; pure reward/sanitize math (`BattleLoot`,
 `StageCompletion`, `VictoryRewardApplier`, appliers) stays non-isolated
-`save: inout` so app sessions decide when to apply. Mutations reconcile changed
+`save: inout` inside the package. App sessions decide when to invoke domain commands;
+Persistence owns candidate mutation and required receipt collection. Mutations reconcile changed
 slices while preserving retained child-row identities.
 
 ## Doctrine

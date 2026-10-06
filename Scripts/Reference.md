@@ -17,12 +17,12 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `python3 Scripts/agent-search.py <identifier> --related --scope <owner>` | Interleaved declaration/reference/test-file hints within supplied scopes; textual mentions do not establish semantic ownership or coverage; authored source and tests only, with bounded pages |
 | `python3 Scripts/agent-search.py '<concern>' --task` | Player-facing concern lookup with source, contract and test pointers plus a routing command; [task index](config/agent-tasks.json) contains navigation only; related lookup supplements mentions with scoped curated test pointers |
 | `python3 Scripts/agent-read.py <guide>[#anchor] --receipt /tmp/<chat>.json --chat <id>` | Record successfully displayed complete Markdown reads; use the same options before router `--paths` to annotate unchanged reads; [receipt limits](../Docs/AgentContext/Retrieval.md#chat-local-read-receipts) |
-| `python3 Scripts/agent-efficiency.py probe --root <snapshot> --output <report.json>` | Read-only representative retrieval workflows; `compare <before.json> <after.json>` checks matching inputs and compares characters/commands, or measured complete-task reports; [protocol and results](../.agents/evals/token-efficiency.md) |
+| `python3 Scripts/agent-efficiency.py probe --root <snapshot> --output <report.json>` | Read-only representative retrieval workflows; `compare <before.json> <after.json>` checks matching inputs and compares characters/commands, or measured complete-task reports; [comparison protocol](../.agents/evals/token-efficiency.md) |
 | `python3 Scripts/agent-efficiency.py prepare --root <snapshot> --output <trial.json>` | Create unmeasured complete-task scenarios; `collect <trial.json> --output <report.json>` validates independently judged results and imports actual exported per-response usage; missing usage remains unmeasured |
 | `python3 Scripts/content-inspect.py --id <id>` | Inspect authored content by exact ID, player-facing `--name <text>`, or canonical `--trigger <field>`; `--references` follows parsed fields to schemas, rule anchors, authored Swift and tests; record and reference pages disclose omissions; `--full` expands record fields |
 | `node Scripts/agent-worktree.mjs create --task <slug>` | Alternate checkout for an explicitly requested worktree or disposable evaluation, under `.worktrees/<slug>` on `agent/<slug>`; ordinary work stays in the primary checkout on `main` under [AGENTS.md](../AGENTS.md#protect-the-workspace) |
 | `node Scripts/agent-worktree.mjs legacy-detach create <slug>` | Legacy sibling `../Trinket-<slug>` checkout, detached at HEAD |
-| `./Scripts/new-plan.sh <PlanName>` | Scaffold an active execution plan with an advisory review date under `Docs/Plans/`; completed outcomes go in `Docs/Plans/Archived/README.md` and the full plan is deleted |
+| `./Scripts/new-plan.sh <PlanName>` | Scaffold an active execution plan with an advisory review date under `Docs/Plans/`; completed plans are deleted after updating canonical owners |
 | `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |
 | `./Scripts/update-tools.sh [--apply]` | Report newer SwiftFormat/SwiftLint releases; with `--apply`, bump the pins in `tool-versions.env` (checksummed) and re-install |
 | `./Scripts/run-simulator.sh [--isolate] [--agent N] [--inspect]` | Build, resolve the app from the Trinket target’s Xcode build settings (60-second query limit), and launch on a managed simulator (default Trinket Run; `--isolate`/`--agent N` for the isolated pool); `--inspect` holds the lease in a terminal until `stop` or input closes (see [inspection workflow](../Docs/Platform/SimulatorOperations.md#inspection-lease-and-capture)) — also available as `run` alias via `node Scripts/setup-git-safety.mjs` |
@@ -49,7 +49,7 @@ normal Simulator run remains available and uses two local build workers.
 | `./Scripts/test.sh smoke [--no-build]` | CI-owned checked-in smoke registry |
 | `./Scripts/test.sh smoke <Class...>` | CI-owned targeted smoke classes |
 | `./Scripts/test.sh ui <Target>` | CI-owned exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
-| `./Scripts/handoff.sh --isolate --quiet --paths …` | Lightweight local gate; compiled/simulator/generation checks are reported as CI-owned; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` reports targeted UI ownership, `--mirror` requires an expressly requested heavy-local opt-in before installing on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure, `--keep-plan` permits an unfinished plan with `--final`, `--working-tree` opts into whole-tree classification; `--quiet` retains child logs and prints one outcome per phase plus bounded failures |
+| `./Scripts/handoff.sh --isolate --quiet --paths …` | Lightweight local gate; compiled/simulator/generation checks are reported as CI-owned; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` reports targeted UI ownership, `--mirror` requires an expressly requested heavy-local opt-in before installing on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure, `--keep-plan` permits an unfinished plan with `--final`, `--working-tree` opts into whole-tree classification; `--quiet` captures child logs during execution and prints phase outcomes plus bounded failures; successful logs are removed on completion |
 | `./Scripts/ci-gate.sh` | CI-owned full gate; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition) |
 | `./Scripts/ci-gate.sh --fast` | Run only the ordered commands in [the cheap-slice registry](config/cheap-slices.txt); skips generation and style |
 | `./Scripts/test-scripts.sh [--skip-docs] [--fast] [--paths <file> …]` | Script syntax/regressions with leaf-family selection (`script_test_selection.py`); runs docs unless the caller already checked them |
@@ -116,7 +116,7 @@ for their required deploy suites; doctor and dry-run need no opt-in. See
 | `./Scripts/record-time-profiler.sh --output <path.trace> [--time-limit 8s] [--attach Trinket] [--all-processes] [--print-command]` | Host Time Profiler of the Trinket process (no `xctrace --device`; `--all-processes` is opt-in and slow; `--print-command` prints without recording) |
 | `./Scripts/agent-watch-ci.sh [--ref <branch>] [--sha …] [--scope standard\|exhaustive] [--poll-seconds <n>] [--verbose]` | Poll a hosted CI run for a commit; prints failed jobs and annotations when red |
 | `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate the current diagnostics session (`--reset` clears it) |
-| `./Scripts/ci-diagnostics.sh --cleanup [--keep] <RESULTS_DIR>` | Remove completed successful invocations individually after staging; retain failures and keep unfinished logs until orphan-retention expiry; `--keep` preserves evidence |
+| `./Scripts/ci-diagnostics.sh --cleanup [--keep] <RESULTS_DIR>` | Remove completed successful invocations individually after staging; expire failures and unfinished output after 24 hours; `--keep` explicitly retains the results directory until released |
 | `./Scripts/change-budget.sh --paths …` | Advisory authored-surface signals against HEAD; counts can include pre-existing work and are not justification quotas; `--base <rev>` for CI ranges |
 | `./Scripts/prune-derived-data-cache.sh` | Prune safe, old local build artifacts |
 | `./Scripts/balance-sweep.sh` | Run the headless battle balance sweep |
@@ -215,3 +215,36 @@ CI gate are not toolchain-free fallbacks: content generation can compile the
 ability-inventory tool, and the full gate requires the heavy-verification route.
 Do not claim full verification until the routed compiled checks have passed with
 the required toolchain.
+
+### Output retention
+
+`python3 Scripts/cleanup-outputs.py --dry-run` lists expired known output paths,
+protected paths, and allocated-byte totals without writing a report. `--apply`
+removes those candidates. Add `--experiments` for the three abandoned build
+experiments (CPU optimization, BalanceSweep refactor, Labyrinth host tests). This
+explicit option checks for open files and active owners rather than relying on
+directory timestamps, which can change when a checkout moves.
+Current app, package, device, and reusable agent caches, pinned tools, generated
+freshness state, release receipts, signed archives, and symbols are preserved.
+
+Successful logs disappear after consumers finish. Failure and comparison evidence (including agent evaluations under
+`.DerivedData/AgentEvaluationResults/`)
+expires after 24 hours; timing entries expire individually. Live owners, leases,
+locks, and explicitly kept output prevent deletion. Unknown owner state or an
+unreadable process inventory prevents cleanup. Symlinks are never followed.
+Expiry runs opportunistically through the existing tools, with no background job.
+`TRINKET_OUTPUT_MAX_AGE_HOURS` overrides the default for a deliberate investigation.
+
+```sh
+python3 Scripts/cleanup-outputs.py --keep BalanceSweepReports/investigation
+python3 Scripts/cleanup-outputs.py --release BalanceSweepReports/investigation
+```
+
+Keep/release accepts existing paths in the known repository output roots.
+`ci-diagnostics.sh --cleanup --keep` uses the same persistent keep marker.
+`TRINKET_KEEP_REPORTS=1` keeps a wrapper's output until released;
+`TRINKET_CLEANUP_TEST_ARTIFACTS=0` only defers cleanup through downstream consumers.
+Custom destinations outside these roots stay caller-owned. Temporary guidance
+receipts are scoped to this checkout and expire after one day of inactivity.
+Hosted diagnostic/timing artifacts expire after one day; reusable build-product
+artifacts retain their seven-day consumer window.

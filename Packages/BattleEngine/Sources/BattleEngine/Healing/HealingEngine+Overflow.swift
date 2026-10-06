@@ -216,7 +216,7 @@ extension HealingEngine {
         }
         if request.origin == .leech, sourceTriggers?.marrowmend == true,
            request.sourceActorID == request.target.id,
-           context.claimHeroTalent("Marrowmend", actorID: request.target.id) {
+           context.claimHeroTalent(.marrowmend, actorID: request.target.id) {
             let converted = allocation.allocate(
                 CombatRounding.scaled(allocation.remaining, multiplier: 0.5), to: .block,
             )

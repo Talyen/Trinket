@@ -16,14 +16,14 @@ struct BattleGoldRewardTests {
         let contracts = store.currentSave.contracts
         try #require(store.persistBatch(logging: "Grant maximum Gold reward") { save in
             VictoryRewardApplier.grantVictoryRewards(
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
+                party: (save.roster.activeHero, save.roster.activeCompanion),
                 encounterLevel: 1,
                 stageGold: Int.max,
                 grantsCombatExperience: false,
                 materialRewards: [],
                 item: item,
                 save: &save,
+                recordReceipt: { _ in },
             )
         })
         let reloaded = try context.makeReloadedStore()
@@ -46,7 +46,7 @@ struct BattleGoldRewardTests {
             inputs: RewardSettlementInputs(save: before, hero: hero, companion: companion),
         )
         try #require(store.persistBatch(logging: "Save defeat experience") { save in
-            BattleExperienceReward.apply(settlement, hero: hero, companion: companion, save: &save)
+            BattleExperienceReward.apply(settlement, hero: hero, companion: companion, save: &save, recordReceipt: { _ in })
         })
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.roster.progression(for: hero) == settlement.heroProgressionAfter)
@@ -71,7 +71,7 @@ struct BattleGoldRewardTests {
                 battleGold: .init(gained: 3),
                 inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion),
             )
-            VictoryRewardApplier.apply(settlement, hero: hero, companion: companion, save: &save)
+            VictoryRewardApplier.apply(settlement, hero: hero, companion: companion, save: &save, recordReceipt: { _ in })
         })
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.roster.gold == 108)

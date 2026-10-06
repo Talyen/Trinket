@@ -27,9 +27,10 @@ struct CloudSaveMergeVoyageClaimRegressionTests {
             )
             let settled = plan.settle(battleGold: .init(), inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion))
             #expect(VoyageCompletion.completeBattle(
-                runID: run.id, nodeID: battle.id, hero: hero, companion: companion,
+                runID: run.id, nodeID: battle.id, party: (hero, companion),
                 rewards: (settled: settled, earned: plan.resolve(battleGold: .init()), encounterLevel: 12),
                 save: &save, access: .free,
+                recordReceipt: { _ in },
             ) == .completed)
             return save
         }
@@ -252,9 +253,10 @@ struct CloudSaveMergeVoyageClaimRegressionTests {
             battleGold: .init(), inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion),
         )
         #expect(VoyageCompletion.completeBattle(
-            runID: run.id, nodeID: boss.id, hero: hero, companion: companion,
+            runID: run.id, nodeID: boss.id, party: (hero, companion),
             rewards: (settled: settled, earned: plan.resolve(battleGold: .init()), encounterLevel: 12),
             save: &save, access: .fullGame,
+            recordReceipt: { _ in },
         ) == .completed)
         return save
     }

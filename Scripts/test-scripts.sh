@@ -4,6 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 # shellcheck source=lib/args.sh
 source Scripts/lib/args.sh
+source Scripts/lib/output-retention.sh
 
 SKIP_DOCS=false
 FAST=false
@@ -79,7 +80,18 @@ printf 'Script scope: %d Python and %d shell suites.\n' "${#python_modules[@]}" 
 TEST_LOG_ROOT="${RESULTS_DIR:-$PWD/.DerivedData/ScriptTestResults}"
 mkdir -p "$TEST_LOG_ROOT"
 TEST_LOG_DIR="$(mktemp -d "$TEST_LOG_ROOT/script-tests.XXXXXX")"
-trap 'status=$?; if [[ "$status" -eq 0 ]]; then rm -rf "$TEST_LOG_DIR"; else echo "Script test logs retained: $TEST_LOG_DIR" >&2; fi' EXIT
+trinket_output_retention_begin "$TEST_LOG_DIR"
+finish_script_logs() {
+  local status=$?
+  if [[ -f "$TEST_LOG_DIR/.retention-owner.json" ]]; then
+    trinket_output_retention_finish "$TEST_LOG_DIR" "$$" false "$status"
+  elif [[ "$status" == 0 && "${TRINKET_KEEP_REPORTS:-0}" != 1 ]]; then
+    # This invocation created the unique mktemp directory, even in a custom root.
+    rm -rf "$TEST_LOG_DIR"
+  fi
+  if [[ "$status" -ne 0 ]]; then echo "Script test logs retained: $TEST_LOG_DIR" >&2; fi
+}
+trap finish_script_logs EXIT
 
 report_failure() {
   local suite="$1" log="$2" status="$3"

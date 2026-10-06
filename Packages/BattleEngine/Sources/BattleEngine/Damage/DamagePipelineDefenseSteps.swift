@@ -179,7 +179,7 @@ package extension DamagePipeline {
               context.roster.companion.isAlive,
               context.companionModifiers.triggers.guardianHeroBlockFlat > 0,
               state.options.isAttackHit, !state.options.isRetaliation,
-              context.claimHeroTalent("Guardian", actorID: context.roster.companion.id, battle: true)
+              context.claimHeroTalent(.guardian, actorID: context.roster.companion.id, battle: true)
         else { return }
         let block = context.companionModifiers.triggers.guardianHeroBlockFlat
         let granted = context.applyBlockGain(

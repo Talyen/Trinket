@@ -1,6 +1,8 @@
 """Exercise deployment orchestration without credentials, Xcode, or Ruby gems."""
 
 SCRIPT_INPUTS = (
+    'Scripts/internal/output_retention.py',
+    'Scripts/lib/output-retention.sh',
     'Gemfile',
     'Gemfile.lock',
     'Scripts/Tests/testflight_test.rb',

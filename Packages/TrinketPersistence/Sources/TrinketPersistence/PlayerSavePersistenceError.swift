@@ -9,7 +9,10 @@ public enum PlayerSavePersistenceError: Error, Equatable, Sendable {
     /// errors pass through so diagnostics and retry gating keep their cause;
     /// only truly unknown failures collapse to parameterless `writeFailed`.
     static func mapped(_ error: Error) -> Self {
-        (error as? Self) ?? .writeFailed
+        if error is SaveEconomicMutation.ValidationFailure {
+            return .invalidSave("The action could not be saved. Your progress is preserved.")
+        }
+        return (error as? Self) ?? .writeFailed
     }
 
     /// Failures worth a silent background retry: generic writes plus temporary

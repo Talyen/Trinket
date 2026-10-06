@@ -30,7 +30,7 @@ extension HealingEngine {
            let sourceID = request.sourceActorID,
            context.roster.health(for: request.target) < context.roster.maxHealth(for: request.target),
            context.modifiers(for: sourceID).triggers.firstHealthRestorationBonusPerTurn > 0,
-           context.claimHeroTalent("Sprite Touch", actorID: sourceID) {
+           context.claimHeroTalent(.spriteTouch, actorID: sourceID) {
             amount += context.modifiers(for: sourceID).triggers.firstHealthRestorationBonusPerTurn
         }
         if amount > 0, request.amountBasis != .resolved,
@@ -108,7 +108,7 @@ extension HealingEngine {
               let source = context.roster.combatant(for: sourceID), source.isAlive,
               let sourceTriggers else { return [] }
         if sourceTriggers.healthRestorationRepeatNextTurnChancePercent > 0,
-           context.claimTalentAbility("Lingering Blessing", actorID: sourceID),
+           context.claimTalentAbility(.lingeringBlessing, actorID: sourceID),
            BattleChance.succeeds(
                probability: sourceTriggers.healthRestorationRepeatNextTurnChancePercent, using: &context.rng,
            ) {
@@ -147,7 +147,7 @@ extension HealingEngine {
         }
         var events: [ActionEvent] = []
         if triggers.healthRestoreBlockChancePercent > 0,
-           context.claimTalentAbility("Aether Shield", actorID: sourceID),
+           context.claimTalentAbility(.aetherShield, actorID: sourceID),
            BattleChance.succeeds(probability: triggers.healthRestoreBlockChancePercent, using: &context.rng) {
             events.append(contentsOf: context.applyBlock(
                 restored, to: target, source: actor,
@@ -155,7 +155,7 @@ extension HealingEngine {
             ))
         }
         if triggers.healthRestoreThornsAmount > 0, triggers.healthRestoreThornsChancePercent > 0,
-           context.claimTalentAbility("Living Archive", actorID: sourceID),
+           context.claimTalentAbility(.livingArchive, actorID: sourceID),
            BattleChance.succeeds(probability: triggers.healthRestoreThornsChancePercent, using: &context.rng) {
             await events.append(contentsOf: CombatTriggerEngine.heroTalentThorns(
                 to: target, source: actor, amount: triggers.healthRestoreThornsAmount,
@@ -167,7 +167,7 @@ extension HealingEngine {
     }
 
     static func drawOwlFontOfMagic(actor: Combatant, chance: Double, in context: inout BattleState) -> [ActionEvent] {
-        guard chance > 0, context.claimTalentAbility("Font of Magic", actorID: actor.id),
+        guard chance > 0, context.claimTalentAbility(.fontOfMagic, actorID: actor.id),
               BattleChance.succeeds(probability: chance, using: &context.rng),
               let owner = context.roster.participant(for: actor)
         else { return [] }
@@ -187,7 +187,7 @@ extension HealingEngine {
         let actor = source.combatant
         var events: [ActionEvent] = []
         if sourceTriggers.firstHealthRestorationDrawBattle,
-           context.claimHeroTalent("Cheer Up", actorID: sourceID, battle: true),
+           context.claimHeroTalent(.cheerUp, actorID: sourceID, battle: true),
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: CombatTriggerEngine.drawCards(
                 1, for: owner, actor: actor, abilityName: "Cheer Up", in: &context,
@@ -272,7 +272,7 @@ extension HealingEngine {
                     )
                 }
             }
-            let canRoll = context.claimTalentAbility("healthRestorationChance", actorID: sourceActorID)
+            let canRoll = context.claimTalentAbility(.healthRestorationRolls, actorID: sourceActorID)
             if canRoll, sourceTriggers.healthRestoreDrawChancePercent > 0,
                BattleChance.succeeds(probability: sourceTriggers.healthRestoreDrawChancePercent, using: &context.rng),
                let owner = context.roster.participant(for: source) {
@@ -297,7 +297,7 @@ extension HealingEngine {
             }
         }
         if request.isDirectCardHeal, sourceTriggers.clearSolution,
-           context.claimHeroCardBonus("Clear Solution", actorID: sourceActorID) {
+           context.claimHeroCardBonus(.clearSolution, actorID: sourceActorID) {
             await events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
                 source: source, target: request.target, count: 1,
                 abilityName: "Clear Solution", in: &context,

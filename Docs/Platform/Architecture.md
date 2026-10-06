@@ -130,6 +130,10 @@ Keep `BattleState` and `PlayerSaveStore` as thin facades. Keep `AppState` as com
 State, roster, and combatant fields are externally read-only. Handler and engine
 mutation entry points are package-scoped; resolution owns action/card talent frames.
 Save slices are read-only projections updated through explicit Persistence commands.
+Unrestricted save/roster mutation closures and economic receipts are internal to
+Persistence. AppState supplies battle/encounter inputs and acts on committed results;
+loadout and party edits use domain commands. Economic commits reject incomplete
+receipt coverage before publishing the candidate or writing its journal.
 Battle completion and Retry read authoritative coordinator records; presentation
 contracts receive a supplied reward plan and never define saved reward policy.
 

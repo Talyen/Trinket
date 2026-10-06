@@ -131,6 +131,7 @@ struct LabyrinthProgressTests {
                 hero: save.roster.activeHero,
                 companion: save.roster.activeCompanion,
                 save: &save,
+                recordReceipt: { _ in },
             )
             let heroXPAfter = save.roster.progression(for: save.roster.activeHero)
             #expect(save.labyrinth.nodes[combatID]?.isCleared == true)
@@ -163,6 +164,7 @@ struct LabyrinthProgressTests {
                 hero: save.roster.activeHero,
                 companion: save.roster.activeCompanion,
                 save: &save,
+                recordReceipt: { _ in },
             )
             #expect(save.labyrinth.nodes[restID]?.isCleared == true)
             #expect(save.roster.progression(for: save.roster.activeHero) == heroXPBefore)
@@ -236,6 +238,7 @@ struct LabyrinthProgressTests {
             companion: save.roster.activeCompanion,
             rewardItem: pending,
             save: &save,
+            recordReceipt: { _ in },
         )
         #expect(save.inventory.item(matching: pending.id) == pending)
         #expect(save.inventory.items.count(where: { $0.id == pending.id }) == 1)
@@ -427,6 +430,7 @@ extension LabyrinthProgressTests {
             hero: save.roster.activeHero,
             companion: save.roster.activeCompanion,
             save: &save,
+            recordReceipt: { _ in },
         )
 
         #expect(save.roster.gold == goldBefore + 7)

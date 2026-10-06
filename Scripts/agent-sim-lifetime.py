@@ -38,6 +38,7 @@ def record_is_current(path, record):
 def remove_record(path, record):
     if record_is_current(path, record):
         path.unlink()
+        path.with_suffix(".log").unlink(missing_ok=True)
 
 
 def slot_value(slot):
@@ -160,7 +161,7 @@ def register(args):
     record = {"owner": args.owner, "started": started, "lease": lease, "slot": str(slot), "name": args.name,
               "udid": args.udid, "grace": args.grace, "token": uuid.uuid4().hex}
     write_record(path, record)
-    with path.with_suffix(".log").open("a") as log:
+    with path.with_suffix(".log").open("w") as log:
         child = subprocess.Popen([sys.executable, str(Path(__file__).resolve()), "watch", str(path), "--token", record["token"]], stdin=subprocess.DEVNULL,
                                  stdout=log, stderr=log, start_new_session=True)
     record["guardian"] = child.pid

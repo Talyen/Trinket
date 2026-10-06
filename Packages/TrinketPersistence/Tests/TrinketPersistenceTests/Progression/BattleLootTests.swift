@@ -236,6 +236,7 @@ struct BattleLootTests {
             let before = save.inventory.items.count
             StageCompletion.claimRewardsIfNeeded(
                 for: stage, hero: save.roster.activeHero, companion: save.roster.activeCompanion, save: &save,
+                recordReceipt: { _ in },
             )
             #expect(save.inventory.items.count == before + 1)
             #expect(save.inventory.items.last?.templateID == template.templateID)
@@ -252,13 +253,13 @@ struct BattleLootTests {
         let goldBefore = save.roster.gold
 
         VictoryRewardApplier.grantVictoryRewards(
-            hero: hero,
-            companion: companion,
+            party: (hero, companion),
             encounterLevel: 10,
             stageGold: 0,
             materialRewards: [],
             item: trinket,
             save: &save,
+            recordReceipt: { _ in },
         )
 
         let range = BattleLoot.quantityRange(forLevel: 10)

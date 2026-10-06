@@ -7,14 +7,14 @@ package extension CombatTriggerEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         var events = await afterCompanionGoldTheft(by: actor, in: &context)
         if triggers.goldTheftBlockAmount > 0, triggers.goldTheftBlockChancePercent > 0,
-           context.claimTalentAbility("Hoard Armor", actorID: actor.id),
+           context.claimTalentAbility(.hoardArmor, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.goldTheftBlockChancePercent, using: &context.rng) {
             events.append(contentsOf: context.applyBlock(
                 triggers.goldTheftBlockAmount, to: actor, source: actor, abilityName: "Hoard Armor",
             ))
         }
         if triggers.goldTheftDrawChancePercent > 0,
-           context.claimTalentAbility("Scavenger’s Cache", actorID: actor.id),
+           context.claimTalentAbility(.goldTheftChanceDraw, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.goldTheftDrawChancePercent, using: &context.rng),
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: drawCards(
@@ -40,7 +40,7 @@ package extension CombatTriggerEngine {
         }
         if triggers.criticalGoldStealDrawCard,
            context.resolution.hasCriticalHit(by: actor.id),
-           context.claimTalentAbility("Quick Fingers", actorID: actor.id),
+           context.claimTalentAbility(.criticalGoldTheftDraw, actorID: actor.id),
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: drawCards(
                 1, for: owner, actor: actor, abilityName: "Quick Fingers", in: &context,
@@ -48,7 +48,7 @@ package extension CombatTriggerEngine {
         }
         if triggers.firstGoldTheftDraw > 0,
            let owner = context.roster.participant(for: actor), owner.isPartyMember,
-           context.claimHeroTalent("quickFingers", actorID: actor.id) {
+           context.claimHeroTalent(.firstGoldTheftDraw, actorID: actor.id) {
             events.append(contentsOf: drawCards(
                 triggers.firstGoldTheftDraw, for: owner, actor: actor,
                 abilityName: triggerAbilityName("firstGoldTheftDraw", for: actor, fallback: "Quick Fingers", in: context),
@@ -56,7 +56,7 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.firstGoldTheftHeal > 0,
-           context.claimHeroTalent("scavengersCache", actorID: actor.id) {
+           context.claimHeroTalent(.firstGoldTheftHeal, actorID: actor.id) {
             await events.append(contentsOf: emitHeal(
                 "firstGoldTheftHeal", "Scavenger's Cache",
                 amount: triggers.firstGoldTheftHeal, to: actor, source: actor, in: &context,
@@ -149,7 +149,7 @@ package extension CombatTriggerEngine {
         var events = restoration.events
         let wildcardGoldGain = granted > 0 && context.allowsHeroTalentReaction
             && (!context.hasHeroCard(for: combatant.id)
-                || context.claimHeroCardBonus("wildcardGoldGain", actorID: combatant.id))
+                || context.claimHeroCardBonus(.wildcardGoldGain, actorID: combatant.id))
         if wildcardGoldGain {
             await events.append(contentsOf: healthIsWealthHealing(for: combatant, triggers: triggers, in: &context))
             if triggers.goldGainCleanseChancePercent > 0,
@@ -167,7 +167,7 @@ package extension CombatTriggerEngine {
                 ))
             }
             if triggers.goldGainDrawChancePercent > 0, context.roster.enemy.isAlive,
-               context.claimTalentAbility("goldGainDrawChance", actorID: combatant.id),
+               context.claimTalentAbility(.goldGainDrawChance, actorID: combatant.id),
                BattleChance.succeeds(probability: triggers.goldGainDrawChancePercent, using: &context.rng),
                let owner = context.roster.participant(for: combatant) {
                 events.append(contentsOf: drawCards(
@@ -188,7 +188,7 @@ package extension CombatTriggerEngine {
            granted >= triggers.gainGoldDrawThreshold,
            let owner = context.roster.participant(for: combatant),
            owner.isPartyMember,
-           context.resolution.claim(.heroTalent("goldenOpportunity"), actorID: combatant.id, cadence: .turn(context.turnCount)) {
+           context.resolution.claim(.heroTalent(.goldGainThresholdDraw), actorID: combatant.id, cadence: .turn(context.turnCount)) {
             events.append(contentsOf: drawCards(
                 1,
                 for: owner,
@@ -246,7 +246,7 @@ package extension CombatTriggerEngine {
     ) async -> (events: [ActionEvent], restoresParty: Bool) {
         guard context.resolution.depth(.leechOverflowGold) == 0 else { return ([], false) }
         let restoresParty = granted > 0 && triggers.onGainGoldHealParty > 0
-            && context.resolution.claim(.heroTalent("goldenRecovery"), actorID: combatant.id, cadence: .turn(context.turnCount))
+            && context.resolution.claim(.heroTalent(.goldGainPartyHeal), actorID: combatant.id, cadence: .turn(context.turnCount))
         var events = await healLowestAfterGoldGain(source: combatant, in: &context).events
         await events.append(contentsOf: afterFinalCompanionGoldGain(granted: granted, actor: combatant, in: &context))
         return (events, restoresParty)

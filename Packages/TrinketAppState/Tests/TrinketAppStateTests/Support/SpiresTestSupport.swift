@@ -1,7 +1,7 @@
 import Testing
 import TrinketContent
-import TrinketPersistence
 @testable import TrinketAppState
+@testable import TrinketPersistence
 
 @MainActor
 enum SpiresTestSupport {
@@ -16,6 +16,7 @@ enum SpiresTestSupport {
                 hero: roster.activeHero,
                 companion: roster.activeCompanion,
                 save: &save,
+                recordReceipt: { _ in },
             ) == .completed)
         }
     }

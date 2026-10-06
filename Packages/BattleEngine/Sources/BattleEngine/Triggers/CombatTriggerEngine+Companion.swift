@@ -22,7 +22,7 @@ package extension CombatTriggerEngine {
         }
         if keyword == .poison,
            triggers.poisonAttackStunChancePercent > 0,
-           context.claimTalentAbility("Paralysis", actorID: actor.id),
+           context.claimTalentAbility(.paralysis, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.poisonAttackStunChancePercent, using: &context.rng),
            context.roster.enemy.isAlive {
             let enemy = context.roster.enemy.combatant
@@ -78,14 +78,14 @@ package extension CombatTriggerEngine {
             )
         }
         if triggers.holyAttackDrawChancePercent > 0,
-           context.claimTalentAbility("Radiant Wisdom", actorID: actor.id),
+           context.claimTalentAbility(.radiantWisdom, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.holyAttackDrawChancePercent, using: &context.rng),
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: drawCards(1, for: owner, actor: actor, abilityName: "Radiant Wisdom", in: &context))
         }
         if triggers.holyAttackCleanseAllyChancePercent > 0, context.roster.hero.isAlive,
            context.hasTalentDebuff(on: context.roster.hero.combatant),
-           context.claimTalentAbility("Purifying Light", actorID: actor.id),
+           context.claimTalentAbility(.purifyingLight, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.holyAttackCleanseAllyChancePercent, using: &context.rng) {
             await events.append(contentsOf: EffectRemovalOperation.resolveCleanse(
                 .randomDebuff, source: actor, target: context.roster.hero.combatant,
@@ -104,14 +104,14 @@ package extension CombatTriggerEngine {
     ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if healthLost > 0, triggers.burnAttackBlockAmount > 0,
-           context.claimTalentAbility("Flame Shield", actorID: actor.id),
+           context.claimTalentAbility(.flameShield, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.burnAttackBlockChancePercent, using: &context.rng) {
             events.append(contentsOf: context.applyBlock(
                 triggers.burnAttackBlockAmount, to: actor, source: actor, abilityName: "Flame Shield",
             ))
         }
         if healthLost > 0, triggers.burnAttackHealLowestAmount > 0,
-           context.claimTalentAbility("Healing Flames", actorID: actor.id),
+           context.claimTalentAbility(.healingFlames, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.burnAttackHealLowestChancePercent, using: &context.rng) {
             let target = BattleConditionEvaluator.lowestHealthAlly(in: context)
             if context.roster.health(for: target) < context.roster.maxHealth(for: target) {
@@ -132,7 +132,7 @@ package extension CombatTriggerEngine {
         let name = triggerAbilityName("burnCriticalRestoreMana", for: actor, fallback: "Furnace Rhythm", in: context)
         guard context.allowsHeroTalentReaction, actor.role == .companion,
               context.roster.health(for: actor) > 0, triggers.burnCriticalRestoreMana > 0,
-              context.claimTalentAbility(name, actorID: actor.id) else { return [] }
+              context.claimTalentAbility(.burnCriticalMana, actorID: actor.id) else { return [] }
         return await context.restoreManaEmitting(triggers.burnCriticalRestoreMana, to: actor, abilityName: name)
     }
 
@@ -158,7 +158,7 @@ package extension CombatTriggerEngine {
             "bleedCriticalDrawChancePercent", for: actor, fallback: "Frenzied Tail", in: context,
         )
         if triggers.bleedCriticalDrawChancePercent > 0,
-           context.claimTalentAbility(drawName, actorID: actor.id),
+           context.claimTalentAbility(.bleedCriticalDraw, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.bleedCriticalDrawChancePercent, using: &context.rng),
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: drawCards(
@@ -181,7 +181,7 @@ package extension CombatTriggerEngine {
         await events.append(contentsOf: finalCompanionGoldFromAttack(actor: actor, critical: critical, triggers: triggers, in: &context))
         if keyword == .physical {
             if triggers.firstPhysicalAttackBlockPerTurn > 0,
-               context.claimHeroTalent("Bone Shield", actorID: actor.id) {
+               context.claimHeroTalent(.boneShield, actorID: actor.id) {
                 events.append(contentsOf: context.applyBlock(
                     triggers.firstPhysicalAttackBlockPerTurn,
                     to: actor, source: actor, abilityName: "Bone Shield",
@@ -196,7 +196,7 @@ package extension CombatTriggerEngine {
         }
         if keyword == .holy {
             if triggers.firstHolyAttackBlockPerTurn > 0,
-               context.claimHeroTalent("Radiant Barrier", actorID: actor.id) {
+               context.claimHeroTalent(.radiantBarrier, actorID: actor.id) {
                 events.append(contentsOf: context.applyBlock(
                     triggers.firstHolyAttackBlockPerTurn,
                     to: actor, source: actor, abilityName: "Radiant Barrier",
@@ -231,14 +231,14 @@ package extension CombatTriggerEngine {
     ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         if triggers.attackGoldStealAmount > 0,
-           context.claimTalentAbility("Snatch", actorID: actor.id),
+           context.claimTalentAbility(.snatch, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.attackGoldStealChancePercent, using: &context.rng) {
             await events.append(contentsOf: context.grantGoldEvent(
                 triggers.attackGoldStealAmount, to: actor, abilityName: "Snatch", isTheft: true,
             ))
         }
         if critical, triggers.criticalGoldStealAmount > 0,
-           context.claimTalentAbility("Lucky Strike", actorID: actor.id),
+           context.claimTalentAbility(.luckyStrike, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.criticalGoldStealChancePercent, using: &context.rng) {
             await events.append(contentsOf: context.grantGoldEvent(
                 triggers.criticalGoldStealAmount, to: actor, abilityName: "Lucky Strike", isTheft: true,
@@ -314,7 +314,7 @@ package extension CombatTriggerEngine {
             || triggers.dodgeNextAttackIgnoreBlock || triggers.firstDodgeDoubleNextAttack {
             let preparedCardSerial = context.resolution.cardTalents?.playSerial
             let firstDodge = triggers.firstDodgeDoubleNextAttack
-                && context.claimHeroTalent("Surprise Strike", actorID: actor.id, battle: true)
+                && context.claimHeroTalent(.surpriseStrike, actorID: actor.id, battle: true)
             context.roster.mutateRuntime(for: actor) {
                 if firstDodge {
                     $0.talents.pending.doubleDamageAfterDodge = true
@@ -341,7 +341,7 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.firstDodgeDrawForAlly, context.roster.hero.isAlive,
-           context.claimHeroTalent("Tailwind", actorID: actor.id, battle: true) {
+           context.claimHeroTalent(.tailwind, actorID: actor.id, battle: true) {
             let ally = context.roster.hero.combatant
             events.append(contentsOf: drawCards(1, for: .hero, actor: ally, abilityName: "Tailwind", in: &context))
         }
@@ -367,7 +367,7 @@ package extension CombatTriggerEngine {
     ) {
         let serial = context.resolution.cardTalents?.playSerial
         let firstFeint = triggers.firstDodgeNextAttackBonusPerTurn > 0
-            && context.claimHeroTalent("Feint Strike", actorID: actor.id)
+            && context.claimHeroTalent(.feintStrike, actorID: actor.id)
         context.roster.mutateRuntime(for: actor) {
             if triggers.dodgeNextBleedAttackMultiplier > 1 {
                 $0.talents.pending.nextBleedAttackMultiplier = PreparedTalentBonus(
@@ -405,7 +405,7 @@ package extension CombatTriggerEngine {
                 }
             }
             if triggers.firstDodgeAllyEvadeNextHit,
-               context.claimHeroTalent("Evasive Pack", actorID: actor.id, battle: true) {
+               context.claimHeroTalent(.evasivePack, actorID: actor.id, battle: true) {
                 context.prependEffect(.evadeNextHit, to: ally, remainingTurns: 0)
             }
         }
@@ -426,7 +426,7 @@ package extension CombatTriggerEngine {
         if triggers.belowHalfFirstDodgeHealPerTurn > 0,
            context.roster.health(for: actor) > 0,
            context.roster.health(for: actor) * 2 < context.roster.maxHealth(for: actor),
-           context.claimHeroTalent("Stolen Breath", actorID: actor.id) {
+           context.claimHeroTalent(.stolenBreath, actorID: actor.id) {
             await events.append(contentsOf: context.healEmitting(
                 amount: triggers.belowHalfFirstDodgeHealPerTurn,
                 target: actor, source: actor, abilityName: "Stolen Breath",
@@ -466,7 +466,7 @@ package extension CombatTriggerEngine {
         let amount = context.modifiers(for: actor.id).triggers.belowHalfFirstGoldGainHealPerTurn
         guard granted > 0, amount > 0, context.roster.health(for: actor) > 0,
               context.roster.health(for: actor) * 2 < context.roster.maxHealth(for: actor),
-              context.claimHeroTalent("Golden Recovery", actorID: actor.id) else { return [] }
+              context.claimHeroTalent(.belowHalfGoldGainHeal, actorID: actor.id) else { return [] }
         return await context.healEmitting(amount: amount, target: actor, source: actor, abilityName: "Golden Recovery")
     }
 
@@ -496,7 +496,7 @@ package extension CombatTriggerEngine {
             let enemy = context.roster.enemy.combatant
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: enemy))
             if block > 0,
-               context.claimTalentAbility("Light-Fingered", actorID: actor.id),
+               context.claimTalentAbility(.lightFingered, actorID: actor.id),
                BattleChance.succeeds(
                    probability: triggers.goldTheftStealEnemyBlockChancePercent, using: &context.rng,
                ) {
@@ -515,7 +515,7 @@ package extension CombatTriggerEngine {
             ))
         }
         if triggers.firstGoldTheftDrawBattle,
-           context.claimHeroTalent("Fetch!", actorID: actor.id, battle: true),
+           context.claimHeroTalent(.fetch, actorID: actor.id, battle: true),
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: drawCards(1, for: owner, actor: actor, abilityName: "Fetch!", in: &context))
         }
@@ -542,7 +542,7 @@ package extension CombatTriggerEngine {
             }
         }
         guard triggers.firstManaSpendRefundPerTurn > 0,
-              context.claimHeroTalent("Aetherial Surge", actorID: actor.id) else { return [] }
+              context.claimHeroTalent(.aetherialSurge, actorID: actor.id) else { return [] }
         return await context.restoreManaEmitting(
             triggers.firstManaSpendRefundPerTurn,
             to: actor,
@@ -555,7 +555,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         let chance = context.modifiers(for: actor.id).triggers.manaRestorationDrawChancePercent
-        guard chance > 0, context.claimTalentAbility("Prismatic Spark", actorID: actor.id),
+        guard chance > 0, context.claimTalentAbility(.prismaticSpark, actorID: actor.id),
               BattleChance.succeeds(probability: chance, using: &context.rng),
               let owner = context.roster.participant(for: actor)
         else { return [] }

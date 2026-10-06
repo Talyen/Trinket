@@ -56,7 +56,7 @@ package enum EnemyTraitEngine {
         guard amount > 0, state.options.isBasicAttackHit || immediateBasic else { return [] }
         if let actionID = context.resolution.actionID {
             guard context.resolution.claim(
-                .heroTalent("basicAttackFreezeBuildup"), actorID: context.enemy.id, cadence: .action(actionID),
+                .heroTalent(.basicAttackFreezeBuildup), actorID: context.enemy.id, cadence: .action(actionID),
             ) else { return [] }
         }
         return await context.resolveDamage(DamageRequest(

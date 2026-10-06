@@ -50,7 +50,7 @@ public enum LabyrinthCompletion {
     }
 
     @discardableResult
-    public static func complete(
+    static func complete(
         nodeID: String,
         hero: Combatant,
         companion: Combatant,
@@ -62,7 +62,7 @@ public enum LabyrinthCompletion {
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
         access: ContentAccessPolicy = .fullGame,
-        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs(access: access)
         save.labyrinth.ensureMap(
@@ -94,8 +94,7 @@ public enum LabyrinthCompletion {
             : loot
         let claim = CloudEconomicAction.Claim.labyrinth(seed: save.labyrinth.worldSeed, nodeID: nodeID)
         VictoryRewardApplier.grantVictoryRewards(
-            hero: hero,
-            companion: companion,
+            party: (hero, companion),
             encounterLevel: encounterLevel,
             stageGold: isCombat ? resolvedLoot?.gold ?? 0 : nonCombatGoldStipend(for: node),
             battleGold: battleGold,

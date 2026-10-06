@@ -39,27 +39,12 @@ extension AppState {
         )
         if environment.seedTestProgress {
             try resolvedPlayerSave.applyTestSeed()
-            #if DEBUG
-            if environment.equipmentPickerFixture {
-                try resolvedPlayerSave.performBatchMutation { save in
-                    let equipped = save.roster.equipmentLoadouts.values.flatMap(\.itemIDsBySlot.values)
-                    let retained = Set(equipped).union(["longsword-astral"])
-                    save.inventory.items.removeAll { !retained.contains($0.id) }
-                }
-            }
-            #endif
         }
-        if environment.skipStarterSelection,
-           resolvedPlayerSave.starterSelection.phase != .complete {
-            try resolvedPlayerSave.performBatchMutation { save in
-                save.starterSelection = .complete
-            }
-        }
-        if let startingGold = environment.startingGold, startingGold > 0 {
-            resolvedPlayerSave.persistBatch(logging: "Failed to grant starting gold") { save in
-                save.roster.grantGold(startingGold)
-            }
-        }
+        try resolvedPlayerSave.applyLaunchOverrides(
+            skipStarterSelection: environment.skipStarterSelection,
+            startingGold: environment.startingGold,
+            equipmentPickerFixture: environment.equipmentPickerFixture,
+        )
 
         let resolvedShellSession = ShellSession(selectedTab: selectedTab(environment: environment))
 
@@ -108,7 +93,7 @@ private extension PlaySession {
         guard !stages.isEmpty else { return }
 
         let roster = playerSave.roster
-        _ = journey.persistStageCompletions(
+        _ = playerSave.completeJourneyStages(
             stages,
             hero: roster.activeHero,
             companion: roster.activeCompanion,

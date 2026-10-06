@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/internal/output_retention.py',
+    'Scripts/lib/output-retention.sh',
     'Scripts/ci-diagnostics.sh',
     'Scripts/diagnostic_maintenance.py',
     'Scripts/config/infrastructure-patterns.env',
@@ -271,12 +273,12 @@ class CISessionScriptTests(ScriptRegressionTestCase):
                         "status": "passed", "exit_code": 0,
                         "result_bundle": str(artifact), "diagnostics_json": str(artifact),
                     }))
-                    with patch.dict(os.environ, TRINKET_ORPHAN_MAX_AGE_DAYS="-1"), contextlib.redirect_stdout(io.StringIO()):
+                    with contextlib.redirect_stdout(io.StringIO()):
                         maintenance.cleanup(results, keep=False)
                     self.assertEqual((evidence / "failure.txt").read_text(), "keep failure evidence")
                     self.assertEqual((outside / "keep.txt").read_text(), "keep outside evidence")
             (results / "malformed-invocation.json").write_text("[]")
-            with patch.dict(os.environ, TRINKET_ORPHAN_MAX_AGE_DAYS="-1"), contextlib.redirect_stdout(io.StringIO()):
+            with contextlib.redirect_stdout(io.StringIO()):
                 maintenance.cleanup(results, keep=False)
             self.assertEqual((evidence / "failure.txt").read_text(), "keep failure evidence")
 
@@ -314,7 +316,7 @@ class CISessionScriptTests(ScriptRegressionTestCase):
                     manifest.write_text(json.dumps({
                         "status": "passed", "exit_code": code, "result_bundle": str(bundle),
                     }))
-                    with patch.dict(os.environ, TRINKET_ORPHAN_MAX_AGE_DAYS="-1"), contextlib.redirect_stdout(io.StringIO()):
+                    with contextlib.redirect_stdout(io.StringIO()):
                         maintenance.cleanup(results, keep=False)
                     self.assertEqual(evidence.read_text(), "keep failure evidence")
                     self.assertTrue(manifest.exists())

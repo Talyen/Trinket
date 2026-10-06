@@ -1,7 +1,7 @@
 import Testing
 import TrinketContent
-import TrinketPersistence
 @testable import TrinketAppState
+@testable import TrinketPersistence
 
 @MainActor
 enum LabyrinthTestSupport {
@@ -22,6 +22,7 @@ enum LabyrinthTestSupport {
                 companion: roster.activeCompanion,
                 save: &save,
                 access: playerSave.contentAccess,
+                recordReceipt: { _ in },
             ) == .completed)
         }
     }

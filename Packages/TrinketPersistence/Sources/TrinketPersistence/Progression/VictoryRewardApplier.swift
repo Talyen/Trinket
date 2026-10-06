@@ -70,8 +70,7 @@ public enum VictoryRewardApplier {
     /// level-scaled consolation gold instead of granting nothing: the
     /// encounter still marks complete, so the claim must still pay something.
     static func grantVictoryRewards(
-        hero: Combatant,
-        companion: Combatant,
+        party: (hero: Combatant, companion: Combatant),
         encounterLevel: Int,
         stageGold: Int,
         battleGold: BattleGoldFlow = .init(),
@@ -82,8 +81,9 @@ public enum VictoryRewardApplier {
         item: InventoryItem?,
         save: inout PlayerSave,
         claim: CloudEconomicAction.Claim? = nil,
-        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) {
+        let (hero, companion) = party
         let resolved = award ?? unpreparedRewardPlan(
             party: (hero, companion), encounterLevel: encounterLevel,
             stageGold: stageGold, grantsCombatExperience: grantsCombatExperience,
@@ -145,12 +145,12 @@ public enum VictoryRewardApplier {
     /// construction in `grantVictoryRewards` (nil-award path); battle-end
     /// awards carry launch-filtered items, so direct `apply` callers must
     /// filter duplicates first.
-    public static func apply(
+    static func apply(
         _ settlement: BattleRewardSettlement,
         hero: Combatant,
         companion: Combatant,
         save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) {
         apply(settlement, hero: hero, companion: companion, save: &save, claim: nil, recordReceipt: recordReceipt)
     }
@@ -167,7 +167,8 @@ public enum VictoryRewardApplier {
         }
         let now = settlement.inputs.productionDate
         let gold = save.applyGoldDelta(award.goldDelta, at: now)
-        let experience = BattleExperienceReward.apply(settlement, hero: hero, companion: companion, save: &save).effects.experience
+        let experience = BattleExperienceReward.apply(settlement, hero: hero, companion: companion, save: &save, recordReceipt: { _ in })
+            .effects.experience
         let materials = save.grantMaterials(award.materials, at: now)
         for item in award.items {
             save.inventory.appendUniqueItem(item)

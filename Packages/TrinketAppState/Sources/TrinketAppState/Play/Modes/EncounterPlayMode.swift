@@ -9,10 +9,6 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class EncounterPlayMode {
-    private enum CompletionRejection: Error {
-        case unavailable
-    }
-
     private enum ActiveEncounter {
         case mystery(MysteryEncounterSession)
         case shop(ShopEncounterSession)
@@ -79,16 +75,7 @@ public final class EncounterPlayMode {
         guard canBeginTransientEncounter else { return .unavailable }
 
         let encounter = origin.identity(in: playerSave.currentSave)
-        switch playerSave.persistTransaction(logging: "Failed to prepare shop stock", { save -> Result<ShopStock, ShopPurchaseFailure> in
-            let prepared = ShopStockPersistence.prepare(encounter: encounter, save: &save)
-            guard case let .success(stock) = prepared else { return prepared }
-            if stock.offers.isEmpty {
-                guard NonCombatEncounterCompletion.complete(
-                    encounter: encounter, save: &save, access: playerSave.contentAccess,
-                ) == .completed else { return .failure(.invalidOffer) }
-            }
-            return .success(stock)
-        }) {
+        switch playerSave.prepareShop(encounter: encounter) {
         case let .committed(stock):
             guard !stock.offers.isEmpty else { return .autoCompleted }
             let session = ShopEncounterSession(origin: origin, encounter: encounter, offers: stock.offers)
@@ -109,9 +96,7 @@ public final class EncounterPlayMode {
         guard let shopSession = activeShopEncounter else { return .rejected }
         guard !shopSession.isPurchasing else { return .rejected }
         shopSession.markPurchaseStarted()
-        switch playerSave.persistTransaction(logging: "Failed to purchase shop offer", { save, recordReceipt in
-            ShopPurchaseApplier.purchase(offerID: offerID, encounter: shopSession.encounter, save: &save, recordReceipt: recordReceipt)
-        }) {
+        switch playerSave.purchaseShopOffer(offerID: offerID, encounter: shopSession.encounter) {
         case .committed:
             shopSession.markPurchaseFinished()
             sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
@@ -160,12 +145,7 @@ public final class EncounterPlayMode {
     public func finishActiveShopEncounter() -> Bool {
         guard let shopSession = activeShopEncounter else { return false }
 
-        switch playerSave.persistTransaction(logging: "Failed to leave shop", { save -> Result<Void, CompletionRejection> in
-            guard NonCombatEncounterCompletion.complete(
-                encounter: shopSession.encounter, save: &save, access: playerSave.contentAccess,
-            ) == .completed else { return .failure(.unavailable) }
-            return .success(())
-        }) {
+        switch playerSave.finishShop(encounter: shopSession.encounter) {
         case .committed, .rejected:
             clearActiveShopEncounter()
             return true

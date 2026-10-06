@@ -65,8 +65,13 @@ public extension PlayerSaveStore {
         case let .failure(error): return .failure(error)
         }
         let result = await retryingTransientOperation {
-            self.persistTransaction(logging: "Failed to forge Blacksmith item") { save in
-                attempt.apply(to: &save)
+            self.persistTransaction(logging: "Failed to forge Blacksmith item") { save, recordReceipt in
+                let before = save
+                let result = attempt.apply(to: &save)
+                if case .success = result {
+                    recordReceipt(.reward(from: before, to: save))
+                }
+                return result
             }
         } while: {
             if case .persistFailed = $0 {

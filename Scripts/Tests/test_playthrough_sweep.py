@@ -1,6 +1,8 @@
 """Regression checks for playthrough evidence and report acceptance."""
 
 SCRIPT_INPUTS = (
+    'Scripts/internal/output_retention.py',
+    'Scripts/lib/output-retention.sh',
     'Scripts/playthrough-sweep.sh',
     'Scripts/playthrough_sweep.py',
     'Scripts/internal/playthrough_report.py',

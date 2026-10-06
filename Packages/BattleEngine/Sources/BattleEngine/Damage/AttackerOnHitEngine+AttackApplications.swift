@@ -193,7 +193,7 @@ extension AttackerOnHitEngine {
         if triggers.dazingSwipeChancePercent > 0, triggers.dazingSwipeStunDamage > 0,
            state.options.isAttackHit, state.damageKeyword == .physical,
            !state.options.isRetaliation, context.roster.health(for: target) > 0,
-           context.claimTalentAbility("Dazing Swipe", actorID: hit.sourceActorID),
+           context.claimTalentAbility(.dazingSwipe, actorID: hit.sourceActorID),
            BattleChance.succeeds(probability: triggers.dazingSwipeChancePercent, using: &context.rng) {
             await state.damageEvents.append(contentsOf: DamagePipeline.resolveNestedDamage(
                 amount: triggers.dazingSwipeStunDamage,

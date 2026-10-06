@@ -2,9 +2,9 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Committed effects supplied by Persistence domain operations. App orchestration
-/// forwards receipts through a transaction; it cannot construct their policy.
-public struct SaveEconomicReceipt: Codable, Equatable, Sendable {
+/// Committed effects supplied by Persistence domain operations. The synchronous
+/// Persistence transaction records these effects alongside its candidate save.
+struct SaveEconomicReceipt: Codable, Equatable, Sendable {
     enum Kind: Codable, Equatable, Sendable {
         case reward
         case shop(EncounterIdentity, ShopPurchase)

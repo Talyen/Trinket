@@ -11,7 +11,7 @@ is a lookup aid, not a reading checklist.
 | Agent constitution | [AGENTS.md](../AGENTS.md), nested `AGENTS.md` | Guardrails and local hard stops |
 | Standing policy | [Platform](Platform/README.md), [Product](Product/Decisions.md) | Architecture, verification, player decisions |
 | Path-routed depth | [AgentContext](AgentContext/) ([router](AgentContext/README.md)), package and manifest READMEs, [skills](../.agents/skills/) | Applicable ownership constraints and on-demand behavior references |
-| On demand | [Audits](Audits/README.md), performance/CloudKit playbooks, [Plans](Plans/README.md) | Cited audits, investigation, in-flight plans, and archived plan records |
+| On demand | [Audits](Audits/README.md), performance/CloudKit playbooks, [Plans](Plans/README.md) | Cited audits, investigation, in-flight plans |
 
 ## Source of truth
 
@@ -59,7 +59,8 @@ not a substitute for a usable explanation.
 | Audit guides | Re-runnable procedure, never run history or backlog |
 | `Docs/Audits/Proposals.md` | Narrow durable audit memory; evidence pointers must continue to resolve |
 | Active execution plans | Temporary, with advisory review dates; allowed only directly under `Docs/Plans/` |
-| Completed or cancelled plans | One-line outcome in `Docs/Plans/Archived/README.md`; full execution detail stays in Git history |
+| Completed or cancelled plans | Fold current requirements into their canonical owners, then delete; no outcome archive |
+| Tool logs, reports, and comparison evidence | Successful logs are removed after consumers finish; remaining output expires after 24 hours unless explicitly kept for active investigation |
 | Evals | Representative validation fixtures, not standing workflow policy |
 
 Do not create execution plans under `.agents/` or another parallel plan folder.

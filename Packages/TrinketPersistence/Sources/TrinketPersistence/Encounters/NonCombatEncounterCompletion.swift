@@ -2,13 +2,14 @@ import TrinketContent
 
 /// Advances a saved noncombat encounter under its original identity. Pooled
 /// Mystery offers have already paid their rewards and only advance progress.
-public enum NonCombatEncounterCompletion {
+enum NonCombatEncounterCompletion {
     @discardableResult
-    public static func complete(
+    static func complete(
         encounter: EncounterIdentity,
         grantingEncounterRewards: Bool = true,
         save: inout PlayerSave,
         access: ContentAccessPolicy = .fullGame,
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         guard encounter.isPlayable(in: save) else { return .unavailable }
 
@@ -18,7 +19,7 @@ public enum NonCombatEncounterCompletion {
             if grantingEncounterRewards {
                 return StageCompletion.complete(
                     stage, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
-                    in: GameContent.chapters, save: &save,
+                    in: GameContent.chapters, save: &save, recordReceipt: recordReceipt,
                 )
             }
             save.journey.markRewardsClaimed(for: stage)
@@ -28,7 +29,7 @@ public enum NonCombatEncounterCompletion {
             if grantingEncounterRewards {
                 return LabyrinthCompletion.complete(
                     nodeID: nodeID, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
-                    save: &save, access: access,
+                    save: &save, access: access, recordReceipt: recordReceipt,
                 )
             }
             save.labyrinth.markCleared(

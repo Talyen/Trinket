@@ -77,12 +77,13 @@ public enum VoyageCompletion {
         return true
     }
 
-    public static func completeBattle(
-        runID: String, nodeID: String, hero: Combatant, companion: Combatant,
+    static func completeBattle(
+        runID: String, nodeID: String, party: (hero: Combatant, companion: Combatant),
         rewards: (settled: BattleRewardSettlement, earned: BattleRewardAward, encounterLevel: Int),
         save: inout PlayerSave, access: ContentAccessPolicy,
-        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
+        let (hero, companion) = party
         guard save.voyage.isPlayable(runID: runID, nodeID: nodeID),
               let node = save.voyage.node(runID: runID, nodeID: nodeID), node.type.isCombat else { return .unavailable }
         let earned = rewards.earned

@@ -1,9 +1,9 @@
 # Plans
 
 Living product and platform rules belong in their canonical documentation owners.
-Keep implementation plans here only while work is in flight; completed and
-cancelled plans become one-line records in [Archived/README.md](Archived/README.md),
-with full execution detail retained in Git history.
+Keep implementation plans here only while work is in flight. When work completes
+or is cancelled, fold durable requirements and actionable blockers into their
+canonical owners and delete the plan. Do not create outcome archives.
 
 Plans require front matter with `type: execution-plan`, a status (`active` or
 `blocked`), `created`, `updated`, and `expires`. Blocked plans also require a
@@ -20,4 +20,4 @@ final closure scope; omitting it checks all active plans.
 Use `./Scripts/new-plan.sh <PlanName>` to scaffold metadata. Execution plans are
 allowed only directly under this directory; supporting design reference images
 may accompany active work. When a plan finishes, fold durable rules into their
-canonical owners, record its outcome in the archive index, and delete the plan.
+canonical owners and delete the plan. Report the outcome in the task handoff.

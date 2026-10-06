@@ -30,13 +30,13 @@ package extension BattleState {
         }
         if isTheft, granted > 0,
            modifiers(for: combatant.id).triggers.firstGoldTheftDoubleBattle,
-           claimHeroTalent("Golden Opportunity", actorID: combatant.id, battle: true) {
+           claimHeroTalent(.firstGoldTheftDouble, actorID: combatant.id, battle: true) {
             granted = SaturatedArithmetic.saturatingMul(granted, 2)
         }
         if isTheft, granted > 0,
            resolution.hasCriticalHit(by: combatant.id),
            modifiers(for: combatant.id).triggers.criticalGoldTheftBonus > 0,
-           claimTalentAbility("Jackpot", actorID: combatant.id) {
+           claimTalentAbility(.jackpot, actorID: combatant.id) {
             granted = SaturatedArithmetic.saturatingAdd(granted, modifiers(for: combatant.id).triggers.criticalGoldTheftBonus)
         }
         let previousEarned = goldFlow.gained
@@ -118,7 +118,7 @@ package extension BattleState {
             overflow = SaturatedArithmetic.saturatingAdd(overflow, max(0, requested - doubled))
         }
         if actual > 0, profile.triggers.manaRestorationDoubleChancePercent > 0,
-           claimTalentAbility("Arcane Reservoir", actorID: combatant.id),
+           claimTalentAbility(.arcaneReservoir, actorID: combatant.id),
            BattleChance.succeeds(probability: profile.triggers.manaRestorationDoubleChancePercent, using: &rng) {
             let doubled = runtime.restoreMana(requested)
             total += doubled

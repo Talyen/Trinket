@@ -5,8 +5,8 @@ import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 import TrinketFeatureSupport
-import TrinketPersistence
 @testable import TrinketAppState
+@testable import TrinketPersistence
 
 @MainActor
 enum PlayBattleLaunchTestSupport {

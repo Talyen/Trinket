@@ -64,8 +64,9 @@ struct VoyagePersistenceTests {
                 materials: [],
             )
             #expect(VoyageCompletion.completeBattle(
-                runID: run.id, nodeID: battle.id, hero: hero, companion: companion,
+                runID: run.id, nodeID: battle.id, party: (hero, companion),
                 rewards: (settled: settled, earned: earned, encounterLevel: 12), save: &save, access: .free,
+                recordReceipt: { _ in },
             ) == .completed)
         }
         #expect(save.voyage.activeRun?.earnedGold == Int.max)
@@ -265,7 +266,7 @@ struct VoyagePersistenceTests {
         let offer = try #require(stock.offers.first)
         #expect(store.persistBatch(logging: "Voyage purchase") { save in
             save.roster.gold = 10000
-            _ = ShopPurchaseApplier.purchase(offerID: offer.id, encounter: shop, save: &save)
+            _ = ShopPurchaseApplier.purchase(offerID: offer.id, encounter: shop, save: &save, recordReceipt: { _ in })
         })
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.voyage == store.voyage)

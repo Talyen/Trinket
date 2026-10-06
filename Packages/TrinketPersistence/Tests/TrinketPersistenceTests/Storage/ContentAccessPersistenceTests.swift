@@ -1,6 +1,6 @@
 import Testing
 import TrinketContent
-import TrinketPersistence
+@testable import TrinketPersistence
 
 @Suite("Content access preservation")
 struct ContentAccessPersistenceTests {

@@ -23,8 +23,8 @@ struct CloudSaveMergeClaimsRegressionTests {
         let secondPayload = try ShopStockPersistence.encode(ShopStock(offers: [secondOffer]), encounter: encounter)
         ShopStockPersistence.setPayload(firstPayload, encounter: encounter, save: &first)
         ShopStockPersistence.setPayload(secondPayload, encounter: encounter, save: &second)
-        _ = try ShopPurchaseApplier.purchase(offerID: firstOffer.id, encounter: encounter, save: &first).get()
-        _ = try ShopPurchaseApplier.purchase(offerID: secondOffer.id, encounter: encounter, save: &second).get()
+        _ = try ShopPurchaseApplier.purchase(offerID: firstOffer.id, encounter: encounter, save: &first, recordReceipt: { _ in }).get()
+        _ = try ShopPurchaseApplier.purchase(offerID: secondOffer.id, encounter: encounter, save: &second, recordReceipt: { _ in }).get()
 
         #expect(!CloudSaveMerge.hasDuplicateClaim(incoming: first, existing: second, base: base))
         for preferIncoming in [true, false] {
@@ -131,8 +131,8 @@ struct CloudSaveMergeClaimsRegressionTests {
 
         var first = base
         var second = base
-        let firstResult = ItemSalvageApplier.salvage(itemID: item.id, save: &first)
-        let secondResult = ItemSalvageApplier.salvage(itemID: item.id, save: &second)
+        let firstResult = ItemSalvageApplier.salvage(itemID: item.id, save: &first, recordReceipt: { _ in })
+        let secondResult = ItemSalvageApplier.salvage(itemID: item.id, save: &second, recordReceipt: { _ in })
         guard case let .success(yields) = firstResult else {
             Issue.record("The source item must be salvageable")
             return

@@ -49,6 +49,16 @@ class ScriptRegressionTestCase(unittest.TestCase):
                 policy = root / 'Scripts/lib/verification-policy.sh'
                 policy.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / 'Scripts/lib/verification-policy.sh', policy)
+        # Copy the retention substrate when a fixture includes a direct consumer.
+        if any('output_retention' in p.read_text() or 'output-retention.sh' in p.read_text()
+               or 'cleanup-outputs.py' in p.read_text()
+               for p in (root / 'Scripts').rglob('*') if p.is_file() and p.suffix in {'.py', '.sh'}):
+            for relative in ('Scripts/cleanup-outputs.py', 'Scripts/internal/output_retention.py',
+                             'Scripts/internal/cli.py', 'Scripts/lib/output-retention.sh', 'Scripts/lib/lock.sh'):
+                target = root / relative
+                if not target.exists():
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(ROOT / relative, target)
         return root
 
     _AUDIO_FIXTURES = {

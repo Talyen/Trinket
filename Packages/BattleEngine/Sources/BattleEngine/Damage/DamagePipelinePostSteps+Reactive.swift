@@ -319,7 +319,7 @@ package extension DamagePipeline {
     ) async -> [ActionEvent] {
         let heal = context.modifiers(for: defender.id).triggers.firstThornsDamageHealPerTurn
         guard healthLost > 0, heal > 0, context.roster.health(for: defender) > 0,
-              context.resolution.claim(.affix("spiteful"), actorID: defender.id, cadence: .turn(context.turnCount))
+              context.resolution.claim(.affix(.spitefulHeal), actorID: defender.id, cadence: .turn(context.turnCount))
         else { return [] }
         let target = BattleActionContext(actor: defender, in: context).target(.lowestHealthAlly, in: context)
         return await context.healEmitting(

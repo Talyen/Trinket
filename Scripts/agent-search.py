@@ -44,11 +44,6 @@ def inventory(root: Path, mode: str, scopes: list[str]) -> list[str]:
             continue
         if scopes and not any(name == scope or name.startswith(scope + "/") for scope in scopes):
             continue
-        if name.startswith(".agents/friction-archive/") and not any(
-            scope == ".agents/friction-archive" or scope.startswith(".agents/friction-archive/")
-            for scope in scopes
-        ):
-            continue
         if mode == "overview" or (mode == "assets" and (
             path.suffix.lower() in ASSET_SUFFIXES or name.startswith("Raw Assets/")
             or ".xcassets/" in name or name.startswith("Trinket/Media/")
@@ -67,7 +62,7 @@ def inventory(root: Path, mode: str, scopes: list[str]) -> list[str]:
 
 
 def documentation_order(name: str) -> tuple[int, str]:
-    if name.startswith(("Docs/Plans/", ".agents/evals/", ".agents/friction-archive/")) or name in {
+    if name.startswith(("Docs/Plans/", ".agents/evals/")) or name in {
         ".agents/FRICTION_LOG.md", "Docs/Audits/Proposals.md",
     }:
         return (2, name)
@@ -181,7 +176,6 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
           f"Search: {surface}; {len(files)} {unit}; scope: {', '.join(scopes) or 'repository'}")
     if args.mode == "docs":
         print("Order: current documentation, procedures/knowledge, then task records (alphabetical within each).")
-        print("Friction archives require --scope .agents/friction-archive or a file within it.")
     if not files and not args.task:
         if args.expect or args.offset:
             print("Search results changed or offset is beyond the empty surface; restart at --offset 0.", file=sys.stderr)

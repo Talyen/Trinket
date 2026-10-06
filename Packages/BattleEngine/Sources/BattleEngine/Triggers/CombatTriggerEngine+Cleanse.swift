@@ -158,7 +158,7 @@ package extension CombatTriggerEngine {
         var count = triggers.cleanseAlsoPurgesEnemyBuffs
         if count == 0, triggers.cleansePurgeChancePercent > 0,
            context.roster.activeEffects(for: context.roster.enemy.combatant).contains(where: \.effect.isRemovableBuff),
-           context.claimTalentAbility("Dispel Magic", actorID: source.id),
+           context.claimTalentAbility(.dispelMagic, actorID: source.id),
            BattleChance.succeeds(probability: triggers.cleansePurgeChancePercent, using: &context.rng) {
             count = 1
         }
@@ -229,7 +229,7 @@ package extension CombatTriggerEngine {
     ) async -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
         guard triggers.cleanseAffectsBothHeroAndCompanion,
-              context.claimHeroTalent("Mass Cleanse", actorID: source.id)
+              context.claimHeroTalent(.massCleanse, actorID: source.id)
         else { return [] }
         let action = BattleActionContext(actor: source, in: context)
         guard let other = action.allies(in: context).first(where: {
@@ -275,7 +275,7 @@ package extension CombatTriggerEngine {
         guard removedCount > 0 else { return [] }
         let count = context.modifiers(for: source.id).triggers.cleanseBonusDraw
         guard count > 0,
-              context.claimHeroTalent("Purifying Wisdom", actorID: source.id, battle: true)
+              context.claimHeroTalent(.purifyingWisdom, actorID: source.id, battle: true)
         else { return [] }
         guard let owner = context.roster.participant(for: source), owner.isPartyMember else {
             return []

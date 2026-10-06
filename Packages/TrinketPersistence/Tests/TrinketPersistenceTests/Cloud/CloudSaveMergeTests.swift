@@ -313,8 +313,8 @@ struct CloudSaveMergeItemsAndRoutesTests {
         let offer = try #require(stock.offers.first)
         var first = base
         var second = base
-        _ = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &first).get()
-        _ = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &second).get()
+        _ = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &first, recordReceipt: { _ in }).get()
+        _ = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &second, recordReceipt: { _ in }).get()
 
         let merged = CloudSaveMerge.merge(incoming: first, existing: second, base: base, preferIncoming: true)
         #expect(merged.roster.gold == PlayerRosterState.maxGoldBalance - offer.price)
@@ -336,8 +336,8 @@ struct CloudSaveMergeItemsAndRoutesTests {
         let secondOffer = try #require(stock.offers.dropFirst().first)
         var first = base
         var second = base
-        _ = try ShopPurchaseApplier.purchase(offerID: firstOffer.id, encounter: encounter, save: &first).get()
-        _ = try ShopPurchaseApplier.purchase(offerID: secondOffer.id, encounter: encounter, save: &second).get()
+        _ = try ShopPurchaseApplier.purchase(offerID: firstOffer.id, encounter: encounter, save: &first, recordReceipt: { _ in }).get()
+        _ = try ShopPurchaseApplier.purchase(offerID: secondOffer.id, encounter: encounter, save: &second, recordReceipt: { _ in }).get()
 
         let merged = CloudSaveMerge.merge(incoming: first, existing: second, base: base, preferIncoming: true)
         #expect(merged.roster.gold == PlayerRosterState.maxGoldBalance - firstOffer.price - secondOffer.price)
@@ -371,7 +371,7 @@ struct CloudSaveMergeItemsAndRoutesTests {
             otherPayload,
             encounter: encounter, save: &other,
         )
-        _ = try ShopPurchaseApplier.purchase(offerID: offerID, encounter: encounter, save: &other).get()
+        _ = try ShopPurchaseApplier.purchase(offerID: offerID, encounter: encounter, save: &other, recordReceipt: { _ in }).get()
 
         let merged = CloudSaveMerge.merge(incoming: preferred, existing: other, base: base, preferIncoming: true)
         let loaded = try ShopStockPersistence.stock(encounter: encounter, save: merged)

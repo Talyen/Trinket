@@ -89,7 +89,7 @@ package extension HealingEngine {
         }
         if leechPct == 0, attackHit, actor.role == .hero, context.roster.companion.isAlive,
            context.companionModifiers.triggers.allyAttackLeechChancePercent > 0,
-           context.claimTalentAbility("Pack Bloodlust", actorID: sourceActorID),
+           context.claimTalentAbility(.packBloodlust, actorID: sourceActorID),
            BattleChance.succeeds(
                probability: context.companionModifiers.triggers.allyAttackLeechChancePercent,
                using: &context.rng,
@@ -274,7 +274,7 @@ package extension HealingEngine {
         }
         if actorCombatant.role == .companion, context.roster.hero.isAlive,
            actualRestored > 0, profile.triggers.firstLeechRestorationShareAlly,
-           context.claimHeroTalent("Soul Sharing", actorID: actorCombatant.id) {
+           context.claimHeroTalent(.soulSharing, actorID: actorCombatant.id) {
             var request = HealRequest(
                 amount: actualRestored,
                 target: context.roster.hero.combatant,

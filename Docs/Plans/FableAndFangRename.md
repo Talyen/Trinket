@@ -154,7 +154,7 @@ rename into a whole-repository symbol or historical-record rewrite.
   release/TestFlight procedure for a new build. Commit, push, upload, and portal
   writes are outside this planning request.
 - [ ] After implementation and the agreed external rollout are complete, record
-  the outcome in [Archived/README.md](Archived/README.md), delete this plan, and
+  the outcome in the task handoff, delete this plan, and
   run the final handoff including the deleted plan path.
 
 Completion means the installed game and current public copy use **Fable & Fang**,

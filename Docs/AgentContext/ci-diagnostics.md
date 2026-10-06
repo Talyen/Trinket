@@ -146,8 +146,8 @@ and use the current invocation's evidence.
 
 After the aggregate has been staged, successful invocation artifacts are ephemeral
 by default. `ci-diagnostics.sh --cleanup` removes passed bundles, reports, manifests,
-and raw logs while retaining failed evidence and the bounded timing history.
-UI CI jobs retain compact current-job timing and aggregate JSON for three days,
+and raw logs while retaining failed evidence and the recent timing entries (24-hour expiry per entry).
+UI CI jobs retain compact current-job timing and aggregate JSON for one day,
 including passing runs; cached timing is cleared before a CI invocation so old
 runs cannot be mistaken for the current one. Successful full bundles and screenshots
 remain ephemeral. Timing queries are bounded and optional; targeted-test evidence queries are
@@ -155,8 +155,10 @@ bounded and fail when execution cannot be established.
 Pass `--keep` for a deliberate local investigation. The same cleanup sweeps
 orphaned bundles/logs from runs
 that crashed before writing a completion manifest, age-bounded by
-`TRINKET_ORPHAN_MAX_AGE_DAYS` (default 3 days); failed evidence carrying a
-diagnostics report is retained.
+`TRINKET_OUTPUT_MAX_AGE_HOURS` (default 24 hours). Failed manifests, reports,
+attachments, and raw logs also expire after 24 hours. `--keep` marks the results
+directory for an active investigation until explicitly released; see
+[output cleanup](../../Scripts/Reference.md#output-retention).
 
 For GitHub Actions failures, prefer check-run annotations (SwiftLint / compiler)
 and a short `--log-failed` tail over scraping the full log when the excerpt only

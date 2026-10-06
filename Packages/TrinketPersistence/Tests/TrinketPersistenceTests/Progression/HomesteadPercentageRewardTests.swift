@@ -18,9 +18,10 @@ struct HomesteadPercentageRewardTests {
         for _ in 0 ..< 4 {
             #expect(store.persistBatch(logging: "Small battle reward") { save in
                 VictoryRewardApplier.grantVictoryRewards(
-                    hero: save.roster.activeHero, companion: save.roster.activeCompanion,
+                    party: (save.roster.activeHero, save.roster.activeCompanion),
                     encounterLevel: 1, stageGold: 1, grantsCombatExperience: false,
                     materialRewards: [.init(.gems, 1)], item: nil, save: &save,
+                    recordReceipt: { _ in },
                 )
             })
         }
@@ -30,9 +31,10 @@ struct HomesteadPercentageRewardTests {
         #expect(reloaded.homestead.rewardRemainders == .init(gold: 80, gems: 80))
         #expect(reloaded.persistBatch(logging: "Pay fractional reward") { save in
             VictoryRewardApplier.grantVictoryRewards(
-                hero: save.roster.activeHero, companion: save.roster.activeCompanion,
+                party: (save.roster.activeHero, save.roster.activeCompanion),
                 encounterLevel: 1, stageGold: 1, grantsCombatExperience: false,
                 materialRewards: [.init(.gems, 1)], item: nil, save: &save,
+                recordReceipt: { _ in },
             )
         })
         let final = try context.makeReloadedStore()

@@ -136,7 +136,7 @@ package extension CombatTriggerEngine {
               context.modifiers(for: source.id).triggers.holyDamageReviveCompanionChancePercent > 0
         else { return [] }
         let canRoll = !context.hasHeroCard(for: source.id)
-            || context.claimHeroCardBonus("Divine Blessing", actorID: source.id)
+            || context.claimHeroCardBonus(.divineBlessing, actorID: source.id)
         guard canRoll, BattleChance.succeeds(
             probability: context.modifiers(for: source.id).triggers.holyDamageReviveCompanionChancePercent,
             using: &context.rng,

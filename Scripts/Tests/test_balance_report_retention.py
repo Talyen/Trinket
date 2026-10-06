@@ -1,5 +1,7 @@
 
 SCRIPT_INPUTS = (
+    'Scripts/internal/output_retention.py',
+    'Scripts/lib/output-retention.sh',
     'Scripts/balance-sweep.sh',
 )
 
@@ -20,6 +22,11 @@ class BalanceReportRetentionTests(unittest.TestCase):
             (root / "Scripts").mkdir()
             wrapper = root / "Scripts" / "balance-sweep.sh"
             shutil.copy2(ROOT / "Scripts" / "balance-sweep.sh", wrapper)
+            for name in ('cleanup-outputs.py', 'internal/output_retention.py', 'internal/cli.py',
+                         'lib/output-retention.sh', 'lib/lock.sh'):
+                target = root / 'Scripts' / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(ROOT / 'Scripts' / name, target)
             tools = root / "bin"
             tools.mkdir()
             swift = tools / "swift"

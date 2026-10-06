@@ -267,14 +267,16 @@ to bypass product chrome routing.
 ## Failures and reporting
 
 `handoff.sh --quiet` prints one outcome per phase and retains complete child terminal
-output under `RESULTS_DIR` or `.DerivedData/HandoffResults`. Failed phases include a
+output under `RESULTS_DIR` or `.DerivedData/HandoffResults` during execution.
+Successful logs are removed after handoff; failed logs expire after 24 hours unless
+explicitly kept for active investigation. Failed phases include a
 bounded diagnostic excerpt and the full log path. Selected-check, documentation
 and cheap-slice failures also print a shell-quoted rerun preserving the supplied
 flags and paths. Agent commands select quiet mode; omitting the flag retains detailed terminal
 output. Quiet mode does not change selected checks or failure status.
 
 Documentation/link failures are grouped with bounded location previews. Complete
-reports are retained under `RESULTS_DIR` or `.DerivedData/DocumentationResults`;
+reports are available for 24 hours under `RESULTS_DIR` or `.DerivedData/DocumentationResults`;
 use the printed paging/expansion commands to inspect every relevant failure.
 Failure status does not depend on how many locations are printed. SwiftLint
 suppresses per-file progress while retaining violations and a success summary.

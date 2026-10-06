@@ -100,7 +100,7 @@ package extension DamagePipeline {
         if triggers.sunwallChancePercent > 0, keyword == .holy, state.healthLost > 0,
            context.roster.health(for: source.combatant) > 0,
            context.roster.companion.isAlive,
-           context.claimTalentAbility("Sunwall", actorID: source.id),
+           context.claimTalentAbility(.sunwall, actorID: source.id),
            BattleChance.succeeds(probability: triggers.sunwallChancePercent, using: &context.rng) {
             state.damageEvents.append(contentsOf: grantTalentCompanionBlock(
                 state.healthLost,

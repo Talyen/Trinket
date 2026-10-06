@@ -105,24 +105,17 @@ def plan_failures(
 ) -> list[str]:
     failures: list[str] = []
     plans_dir = ROOT / "Docs" / "Plans"
-    archived_dir = plans_dir / "Archived"
     parallel_plan_paths = sorted((ROOT / ".agents" / "plans").glob("*.md"))
     parallel_plan_paths.extend(
         path
         for path in files
         if path.is_file()
-        and plans_dir not in path.parents
+        and path.parent != plans_dir
         and declares_execution_plan(path)
     )
     for path in sorted(set(parallel_plan_paths)):
         failures.append(
             f"{path.relative_to(ROOT)}: execution plans are allowed only directly under Docs/Plans/"
-        )
-    archived_plan_files = sorted(path for path in archived_dir.glob("*.md") if path.name != "README.md")
-    for path in archived_plan_files:
-        failures.append(
-            f"{path.relative_to(ROOT)}: completed plan detail belongs in Git history; "
-            "record one outcome row in Docs/Plans/Archived/README.md"
         )
     active_plans = 0
     plan_paths = sorted(plans_dir.glob("*.md"))
@@ -137,7 +130,7 @@ def plan_failures(
         status = metadata["status"]
         if status in ARCHIVED_PLAN_STATUSES:
             failures.append(
-                f"{relative_plan}: {status} plans must be summarized in Docs/Plans/Archived/README.md and deleted"
+                f"{relative_plan}: {status} plans must be deleted after updating canonical owners"
             )
             continue
         expires = date.fromisoformat(metadata["expires"])
@@ -154,7 +147,7 @@ def plan_failures(
             active_plans += 1
             if final and not keep_plan and (paths is None or plan_path.resolve() in paths):
                 failures.append(
-                    f"{relative_plan}: active plan remains at final handoff; record its outcome in Docs/Plans/Archived/README.md and delete it, or pass --keep-plan"
+                    f"{relative_plan}: active plan remains at final handoff; update canonical owners and delete it, or pass --keep-plan"
                 )
     if active_plans > 3:
         DOC_WARNINGS.append(f"Docs/Plans/: {active_plans} active plans are present")

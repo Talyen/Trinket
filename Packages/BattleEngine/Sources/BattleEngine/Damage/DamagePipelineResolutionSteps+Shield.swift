@@ -209,7 +209,7 @@ package extension DamagePipeline {
         }
         let reflectChance = context.modifiers(for: defender.id).triggers.blockHolyReflectChancePercent
         if reflectChance > 0, attacker.role == .enemy,
-           context.claimTalentAbility("Radiant Shell", actorID: defender.id),
+           context.claimTalentAbility(.radiantShell, actorID: defender.id),
            BattleChance.succeeds(probability: reflectChance, using: &context.rng) {
             await events.append(contentsOf: resolveNestedDamage(
                 amount: absorbed,

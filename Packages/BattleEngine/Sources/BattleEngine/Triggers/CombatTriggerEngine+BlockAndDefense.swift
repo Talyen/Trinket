@@ -76,7 +76,7 @@ package extension CombatTriggerEngine {
             multiplier: min(1, max(0, triggers.companionBlockSharesToHeroPercent)),
         )
         guard share > 0 else { return [] }
-        guard context.claimHeroTalent("Shield Bond", actorID: actor.id) else { return [] }
+        guard context.claimHeroTalent(.shieldBond, actorID: actor.id) else { return [] }
         return context.applyBlock(
             share,
             to: context.roster.hero.combatant,
@@ -203,7 +203,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) {
         guard triggers.firstBlockBreakNextStunDouble,
-              context.claimHeroTalent("Quaking Carapace", actorID: target.id, battle: true) else { return }
+              context.claimHeroTalent(.quakingCarapace, actorID: target.id, battle: true) else { return }
         let serial = context.resolution.cardTalents?.playSerial
         context.roster.mutateRuntime(for: target) {
             $0.talents.pending.nextStunAttackDouble = PreparedTalentBonus(value: true, cardSerial: serial)
@@ -414,7 +414,7 @@ package extension CombatTriggerEngine {
            context.roster.companion.isAlive,
            context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target),
            context.companionModifiers.triggers.allyFirstBelowHalfBlock > 0,
-           context.claimHeroTalent("Grizzly Guard", actorID: context.roster.companion.id, battle: true) {
+           context.claimHeroTalent(.grizzlyGuard, actorID: context.roster.companion.id, battle: true) {
             events.append(contentsOf: context.applyBlock(
                 context.companionModifiers.triggers.allyFirstBelowHalfBlock,
                 to: target,
@@ -433,7 +433,7 @@ package extension CombatTriggerEngine {
         guard amount > 0,
               context.roster.health(for: target) > 0,
               context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target),
-              context.resolution.claim(.heroTalent("Vital Infusion"), actorID: target.id, cadence: .battle)
+              context.resolution.claim(.heroTalent(.vitalInfusion), actorID: target.id, cadence: .battle)
         else { return [] }
         return await context.healEmitting(amount: amount, target: target, source: target, abilityName: "Vital Infusion")
     }

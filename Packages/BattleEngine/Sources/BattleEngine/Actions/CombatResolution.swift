@@ -15,10 +15,10 @@ struct CombatResolution {
     }
 
     enum Claim: Hashable {
-        case talent(TalentClaim)
-        case heroTalent(String)
-        case heroCard(String)
-        case affix(String)
+        case talent(CombatActivationClaim)
+        case heroTalent(CombatActivationClaim)
+        case heroCard(CombatActivationClaim)
+        case affix(CombatActivationClaim)
     }
 
     enum Cadence: Hashable {

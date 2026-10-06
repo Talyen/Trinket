@@ -2,23 +2,28 @@
 
 Use for player progression, roster, inventory, homestead, SwiftData, or CloudKit work.
 
-`TrinketPersistence` owns the SwiftData model graph and stores. `PlayerSaveRoot` owns the graph; `PlayerSaveStore` opens/configures persistence and provides read-only observed slices and explicit domain commands (`PlayerSaveStore+Homestead.swift`, `PlayerSaveStore+Roster.swift`, `PlayerSaveStore+ContentAccess.swift`, plus `salvageItem` in `ItemSalvage.swift` and `corruptItem` in `ItemCorruption.swift`). Prefer value types for rules/calculations. Views must use these commands or an explicit batch; assigning a save slice is not a persistence API.
+`TrinketPersistence` owns the SwiftData model graph and stores. `PlayerSaveRoot` owns the graph; `PlayerSaveStore` opens/configures persistence and provides read-only observed slices and explicit domain commands (`PlayerSaveStore+Homestead.swift`, `PlayerSaveStore+Roster.swift`, `PlayerSaveStore+ContentAccess.swift`, plus `salvageItem` in `ItemSalvage.swift` and `corruptItem` in `ItemCorruption.swift`). Prefer value types for rules/calculations. Views and AppState use domain commands; unrestricted save/roster mutation closures are internal to Persistence. Assigning a save slice is not a persistence API.
 
 Campaign reward and completion **domain write policies** also live here (`BattleLoot`, `StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`, `MysteryEventPinApplier`): app sessions decide when to apply them; Persistence owns the save mutation. Save-store test harnesses live in this package's `TrinketPersistenceTestSupport` target — see the package `AGENTS.md`.
 
-`persistTransaction` returns a committed domain value, a domain rejection, or a
-storage failure. It shares candidate validation, slice reconciliation, and commit
-with `persistBatch` and `performBatchMutation`. Receipt-backed operations use the overload supplying a synchronous
-`SaveEconomicReceipt` collector and forward it to their appliers. Receipts and game
-progress share the same durable commit and compensation. Other operations retain
-the existing save-only overload.
+Domain commands return a committed value, a domain rejection, or a storage failure.
+The internal `persistTransaction`, `persistBatch`, and `performBatchMutation` share
+candidate validation, slice reconciliation, and commit. Economic commands collect
+required `SaveEconomicReceipt` values in a synchronous `SaveEconomicMutation`;
+AppState neither mutates the candidate nor forwards receipts. Before any graph or
+journal write, commit verifies that receipt replay accounts for the candidate's
+Gold, materials, XP and fractional balances. Missing or partial effects reject the
+whole transaction even when cloud sync is disabled. Receipts and game progress
+share the same durable commit and compensation. Non-economic commands retain
+save-only transactions; test fixtures may exercise legacy batches through
+`@testable import TrinketPersistence`.
 Domain operations mutate a candidate
 save; rejection discards it without publishing or writing. Immediate writes publish
 the observed candidate only after the graph or durable recovery file accepts it.
 Total write failures use compensation and silent action retries, as described in
 [storage recovery](persistence-storage.md). Observable sessions apply outcomes and
 navigation only after commit; they do not show technical save-error alerts.
-Deferred mutation is an explicit `performBatchMutation(..., persistImmediately: false)`
+Deferred mutation is an internal `performBatchMutation(..., persistImmediately: false)`
 operation, with a debounced save and a synchronous lifecycle flush; there is no
 store-wide deferred-setter setting or `-defer-persistence` launch argument.
 

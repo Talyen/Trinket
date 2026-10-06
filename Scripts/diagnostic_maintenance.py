@@ -3,17 +3,19 @@
 from __future__ import annotations
 
 import json
-import os
 import shutil
 import sys
-import time
 from pathlib import Path
 
 from ci_ui_retry import recovery_valid
+from internal.output_retention import KEEP, expire_results, process_snapshot, protection, safe_path
 
 
 def require_results_dir(value: str) -> Path:
-    root = Path(value).resolve()
+    original = Path(value).absolute()
+    if not safe_path(original, original):
+        raise SystemExit("refusing a symlinked TestResults directory")
+    root = original.resolve()
     if root.name != "TestResults" or not root.is_dir():
         raise SystemExit("refusing to operate outside an explicit TestResults directory")
     return root
@@ -115,59 +117,24 @@ def stage(root: Path, artifact_dir: Path) -> None:
     print(f"Staged CI artifacts in {artifact_dir} (category={category})")
 
 
-def sweep_orphans(root: Path) -> int:
-    """Remove bundles/logs whose completion manifest never appeared (crashed runs).
-
-    Without this sweep a run killed before manifest write leaves its xcresult and
-    raw log behind forever; age-bound deletion keeps failed evidence available for
-    current triage while bounding disk growth.
-    """
-    try:
-        max_age_days = int(os.environ.get("TRINKET_ORPHAN_MAX_AGE_DAYS", "3"))
-    except ValueError:
-        max_age_days = 3
-    if max_age_days < 0:
-        return 0
-    cutoff = time.time() - max_age_days * 86400
-    manifests = {path.name.removesuffix("-invocation.json") for path in root.glob("*-invocation.json")}
-    removed = 0
-    for bundle in root.glob("*.xcresult"):
-        if bundle.name.removesuffix(".xcresult") in manifests:
-            continue
-        try:
-            if bundle.stat().st_mtime <= cutoff:
-                removed += remove(bundle)
-        except OSError:
-            continue
-    raw_dir = root / "raw"
-    if not raw_dir.is_dir():
-        return removed
-    for log in raw_dir.glob("*.log"):
-        stem = log.name.removesuffix(".log")
-        # Failed-run evidence with a diagnostics report stays until cleanup --keep
-        # policy says otherwise; only unclaimed logs are orphan candidates.
-        if stem in manifests or (root / f"{stem}-diagnostics.json").exists():
-            continue
-        try:
-            if log.stat().st_mtime <= cutoff:
-                log.unlink()
-                removed += 1
-        except OSError:
-            continue
-    return removed
-
-
 def artifact_path(value: object, root: Path) -> Path | None:
     if not isinstance(value, str) or not value:
         return None
-    path = Path(value).expanduser().resolve()
-    return path if root in path.parents else None
+    path = Path(value).expanduser().absolute()
+    return path if path.resolve() != root.resolve() and safe_path(path, root) else None
 
 
 def cleanup(root: Path, keep: bool) -> None:
     if keep:
+        if (root / KEEP).is_symlink():
+            raise SystemExit("refusing a symlinked keep control")
+        (root / KEEP).touch()
         print(f"Keeping diagnostic artifacts in {root} (--keep)")
         return
+    if (root / KEEP).exists():
+        print(f"Keeping explicitly retained diagnostic artifacts in {root}")
+        return
+    processes = process_snapshot()
     removed = 0
     manifests = {}
     recovered = set()
@@ -199,16 +166,15 @@ def cleanup(root: Path, keep: bool) -> None:
         if report is not None:
             artifacts.update((report, report.with_suffix(".md"), report.with_suffix(".annotations"),
                               report.with_name(report.name.removesuffix(".json") + ".attachments")))
+        if any(protection(path, root, processes) for path in artifacts | {manifest_path}):
+            continue
         removed += sum(remove(path) for path in sorted(artifacts))
         removed += remove(manifest_path)
     if not list(root.glob("*-invocation.json")):
         if remove(root / "ci-diagnostics.json"):
             removed += 1
-    sweep_orphans_count = sweep_orphans(root)
-    if sweep_orphans_count:
-        print(f"Cleaned {removed} successful diagnostic artifact(s) and {sweep_orphans_count} crashed-run orphan(s) from {root}")
-    else:
-        print(f"Cleaned {removed} successful diagnostic artifact(s) from {root}")
+    expired, _ = expire_results(root)
+    print(f"Cleaned {removed} successful diagnostic artifact(s) and {expired} expired output(s) from {root}")
 
 
 def main(argv: list[str]) -> int:

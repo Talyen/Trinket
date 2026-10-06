@@ -42,8 +42,9 @@ Manual CLI only — **no CI gates** or scheduled automations. Use the script's
 ```
 
 The CLI writes a findings brief and JSON sidecar under the gitignored
-`BalanceSweepReports/` directory. Runs retain reports for comparison; remove
-completed investigation artifacts explicitly when they are no longer needed. The runner owns process isolation,
+`BalanceSweepReports/` directory. Reports remain available for comparison for 24 hours. Use the
+[keep/release controls](../../Scripts/Reference.md#output-retention) when an active
+investigation needs a longer window, then release its evidence when finished. The runner owns process isolation,
 sampling, pacing, policy, and report schemas. Workers receive the canonical
 `BalanceSweepConfig` as JSON, with only mode, concurrency, and work slice changed;
 do not forward settings through a second CLI flag list. Documentation should not mirror those

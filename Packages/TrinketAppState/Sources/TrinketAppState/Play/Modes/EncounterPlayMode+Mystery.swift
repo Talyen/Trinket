@@ -55,7 +55,9 @@ public extension EncounterPlayMode {
         forcedEventID: String?,
     ) -> StageMapMessage? {
         if !session.event.isRecruit {
-            switch prepareMysteryEncounter(session) {
+            switch playerSave.prepareMysteryEncounter(
+                event: session.event, encounter: session.encounter, using: &mysteryRandom, at: currentDate(),
+            ) {
             case let .committed(offers):
                 session.installOffers(offers)
             case .rejected:
@@ -97,30 +99,6 @@ public extension EncounterPlayMode {
         playerSave.retrySaveAction(key: SaveRetryKey.mysteryOpen) { [weak self] in
             guard let self, activeMysteryEncounter == nil, canBeginTransientEncounter else { return }
             _ = beginMysteryEncounter(origin: origin, forcedEventID: forcedEventID)
-        }
-    }
-
-    private func prepareMysteryEncounter(
-        _ session: MysteryEncounterSession,
-    ) -> SaveTransactionResult<[MysteryOffer], MysteryChoiceFailure> {
-        playerSave.persistTransaction(logging: "Failed to open mystery encounter") { save -> Result<
-            [MysteryOffer],
-            MysteryChoiceFailure,
-        > in
-            guard pinMysteryEventIfNeeded(
-                origin: session.origin,
-                eventID: session.event.id,
-                save: &save,
-            ) else { return .failure(.unavailable) }
-            guard !session.isCorruptionAltar else { return .success([]) }
-            do {
-                return try .success(MysteryOfferPersistence.prepare(
-                    event: session.event, encounter: session.encounter, save: &save, using: &mysteryRandom,
-                    at: currentDate(),
-                ))
-            } catch {
-                return .failure(.unavailable)
-            }
         }
     }
 
@@ -166,15 +144,7 @@ public extension EncounterPlayMode {
             return false
         }
 
-        let date = currentDate()
-        return persistMysteryResolution(mysterySession, logging: "Failed to apply mystery effects") { save, rng in
-            MysteryEncounterResolution.resolve(
-                choiceID: choiceID,
-                request: mysterySession.resolutionRequest,
-                save: &save,
-                using: &rng, at: date,
-            )
-        }
+        return persistMysteryResolution(mysterySession, action: .choice(choiceID), at: currentDate())
     }
 
     @discardableResult
@@ -186,25 +156,18 @@ public extension EncounterPlayMode {
             return false
         }
 
-        return persistMysteryResolution(mysterySession, logging: "Failed to corrupt mystery item") { save, rng in
-            MysteryEncounterResolution.corrupt(
-                itemID: itemID,
-                request: mysterySession.resolutionRequest,
-                save: &save,
-                using: &rng,
-            )
-        }
+        return persistMysteryResolution(mysterySession, action: .corruptItem(itemID), at: currentDate())
     }
 
     private func persistMysteryResolution(
         _ mysterySession: MysteryEncounterSession,
-        logging: String,
-        mutate: @escaping (inout PlayerSave, inout any RandomNumberGenerator) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure>,
+        action: MysteryEncounterAction,
+        at date: Date,
     ) -> Bool {
         mysterySession.markChoiceStarted()
-        switch playerSave.persistTransaction(logging: logging, { save in
-            mutate(&save, &mysteryRandom)
-        }) {
+        switch playerSave.resolveMysteryEncounter(
+            mysterySession.resolutionRequest, action: action, using: &mysteryRandom, at: date,
+        ) {
         case let .committed(outcome):
             return applyMysteryOutcome(outcome, session: mysterySession)
         case .rejected:
@@ -215,7 +178,7 @@ public extension EncounterPlayMode {
             // open; only rejection surfaces "unavailable".
             playerSave.retrySaveAction(key: SaveRetryKey.mysteryResolution) { [weak self] in
                 guard let self, activeMysteryEncounter === mysterySession else { return }
-                _ = persistMysteryResolution(mysterySession, logging: logging, mutate: mutate)
+                _ = persistMysteryResolution(mysterySession, action: action, at: date)
             }
             return false
         }
@@ -306,29 +269,6 @@ public extension EncounterPlayMode {
         case .selectCorruptItem:
             mysterySession.applyOutcome(outcome, inventory: playerSave.inventory)
             return true
-        }
-    }
-
-    private func pinMysteryEventIfNeeded(
-        origin: PlayEncounterOrigin,
-        eventID: String,
-        save: inout PlayerSave,
-    ) -> Bool {
-        switch origin {
-        case let .voyage(runID, nodeID):
-            guard save.voyage.node(runID: runID, nodeID: nodeID)?.mysteryEventID == nil else { return true }
-            guard save.voyage.isPlayable(runID: runID, nodeID: nodeID) else { return false }
-            save.voyage.updateNode(runID: runID, nodeID: nodeID) { $0.mysteryEventID = eventID }
-            return true
-        case let .labyrinth(nodeID):
-            return MysteryEventPinApplier.pinLabyrinthEvent(
-                nodeID: nodeID, eventID: eventID, save: &save,
-            )
-        case let .journey(stage):
-            guard stage.mysteryEvent == nil else { return true }
-            return MysteryEventPinApplier.pinJourneyEvent(
-                stageID: stage.id, eventID: eventID, save: &save,
-            )
         }
     }
 

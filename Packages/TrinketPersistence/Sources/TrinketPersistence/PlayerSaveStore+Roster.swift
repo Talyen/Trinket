@@ -53,7 +53,7 @@ public extension PlayerSaveStore {
     }
 
     @discardableResult
-    func mutateRoster(
+    internal func mutateRoster(
         logging message: String = "Failed to persist roster edits",
         _ update: (inout PlayerRosterState) -> Void,
     ) -> Bool {

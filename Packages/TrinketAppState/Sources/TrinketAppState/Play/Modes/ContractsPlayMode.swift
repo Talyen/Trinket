@@ -27,9 +27,7 @@ public final class ContractsPlayMode {
     public func enter() -> StageMapMessage? {
         guard battle.lifecyclePhase != .active else { return PlayBattleCoordinator.activationFailureMessage }
         guard encounters.canBeginTransientEncounter else { return nil }
-        guard playerSave.persistBatch(logging: "Failed to open Contracts", { save in
-            save.contracts.ensureBoard(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: save.inventory), makeOffer: makeOffer)
-        }) else {
+        guard playerSave.prepareContracts(makeOffer: makeOffer) else {
             playerSave.retrySaveAction(key: SaveRetryKey.contractsEnter) { [weak self] in _ = self?.enter() }
             return nil
         }
@@ -41,9 +39,7 @@ public final class ContractsPlayMode {
         guard battle.lifecyclePhase != .active else { return PlayBattleCoordinator.activationFailureMessage }
         guard encounters.canBeginTransientEncounter else { return nil }
         guard playerSave.contracts.refreshAvailable else { return nil }
-        guard playerSave.persistBatch(logging: "Failed to refresh Contracts", { save in
-            _ = save.contracts.refresh(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: save.inventory), makeOffer: makeOffer)
-        }) else {
+        guard playerSave.refreshContracts(makeOffer: makeOffer) else {
             playerSave.retrySaveAction(key: SaveRetryKey.contractsRefresh) { [weak self] in _ = self?.refresh() }
             return nil
         }

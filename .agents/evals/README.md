@@ -37,10 +37,9 @@ available. A lower token count does not compensate for a missed requirement.
 There is no fixed percentage-savings target. Record configuration and limitations;
 scenario reasoning does not establish measured task-success rates.
 
-[Context-efficiency measurements](context-efficiency.md) preserve the historical
-September baseline. [Agent judgment](agent-judgment.md) records the later scenario
-comparison and additional diagnostic, presentation, and shared-journey probes.
-
-[Token-efficiency tooling](token-efficiency.md) records current reproducible
-retrieval probes and the measured complete-task report format. Retrieval output
-counts remain separate from actual model usage and independently judged completion.
+[Token-efficiency tooling](token-efficiency.md) describes reproducible retrieval
+probes and the complete-task report format. Keep trial output only for the active
+comparison; expire it after 24 hours unless explicitly kept. Fold useful conclusions
+into current guidance rather than retaining past measurements or run reports.
+Retrieval output counts remain separate from actual model usage and independently
+judged completion.

@@ -63,7 +63,7 @@ public enum StageCompletion {
     }
 
     @discardableResult
-    public static func complete(
+    static func complete(
         _ stage: Stage,
         hero: Combatant,
         companion: Combatant,
@@ -75,7 +75,7 @@ public enum StageCompletion {
         enemyEncounterLevel: Int? = nil,
         in chapters: [Chapter],
         save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         let claim = claimRewardsIfNeeded(
             for: stage,
@@ -97,7 +97,7 @@ public enum StageCompletion {
     }
 
     @discardableResult
-    public static func claimRewardsIfNeeded(
+    static func claimRewardsIfNeeded(
         for stage: Stage,
         hero: Combatant,
         companion: Combatant,
@@ -108,7 +108,7 @@ public enum StageCompletion {
         loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         guard !save.journey.hasClaimedRewards(for: stage) else {
             return .alreadyCompleted
@@ -151,8 +151,7 @@ public enum StageCompletion {
         }
         let item = rewardItem ?? resolvedLoot?.item
         VictoryRewardApplier.grantVictoryRewards(
-            hero: hero,
-            companion: companion,
+            party: (hero, companion),
             encounterLevel: encounterLevel,
             stageGold: stageGold,
             battleGold: battleGold,

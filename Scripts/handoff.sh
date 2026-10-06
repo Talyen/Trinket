@@ -13,6 +13,7 @@ cd "$(dirname "$0")/.."
 
 # shellcheck source=Scripts/lib/args.sh
 source Scripts/lib/args.sh
+source Scripts/lib/output-retention.sh
 source Scripts/lib/verification-policy.sh
 trinket_ensure_diagnostics_session
 
@@ -54,6 +55,7 @@ run_phase() {
     local log_root="${RESULTS_DIR:-$PWD/.DerivedData/HandoffResults}"
     mkdir -p "$log_root" || return $?
     HANDOFF_LOG_DIR="$(mktemp -d "$log_root/handoff.XXXXXX")" || return $?
+    trinket_output_retention_begin "$HANDOFF_LOG_DIR"
     echo "Handoff logs: $HANDOFF_LOG_DIR"
   fi
   HANDOFF_PHASE=$((HANDOFF_PHASE + 1))

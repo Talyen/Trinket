@@ -5,6 +5,36 @@ import TrinketCore
 @testable import BattleEngine
 
 struct PassiveTalentCadenceTests {
+    @Test(arguments: [false, true])
+    func `critical talent rewards remain independent of their feedback names`(sharedName: Bool) throws {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.burnCriticalRestoreMana = 2
+        profile.triggers.bleedCriticalDrawChancePercent = 1
+        profile.setTriggerAbilityName("burnCriticalRestoreMana", "Mana Reward")
+        profile.setTriggerAbilityName("bleedCriticalDrawChancePercent", sharedName ? "Mana Reward" : "Card Reward")
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxMana: 10, companionMana: 0, companionModifiers: profile,
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.companionDeck = CombatDeck(abilities: [.stargaze, .stargaze])
+        let attack = Ability(
+            id: "critical-reward-cadence", name: "Critical Reward Cadence", tier: .basic,
+            damageComponents: [Keyword.burn, .bleed, .burn, .bleed].map { DamageComponent(1, keyword: $0) },
+            guaranteedCriticalCondition: .enemyFullHealth,
+        )
+        let card = BattleCardCombatEngine.deal(attack, owner: .companion, context: &battle)
+
+        let events = try battle.playCard(cardID: card.id)
+
+        #expect(events.count { $0.kind == .abilityDamage && $0.isCritical } == 4)
+        #expect(battle.mana(of: battle.companion) == 2)
+        #expect(events.count { $0.effectKind == .resourceGain && $0.keyword == .mana && $0.abilityName == "Mana Reward" } == 1)
+        #expect(events.count { $0.effectKind == .cardsDrawn } == 1)
+        #expect(battle.hand.cards.map(\.ability.id) == [Ability.stargaze.id])
+        #expect(battle.companionDeck.count == 1)
+    }
+
     @Test func `font of magic rolls for separate passive mana and health restorations`() {
         var battle = makeBattle()
         let actionCount = battle.actionCount

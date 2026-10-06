@@ -184,8 +184,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                     self.assertNotIn("cheap-check", result.stdout)
                     logs = Path(next(line.removeprefix("Handoff logs: ") for line in result.stdout.splitlines()
                                      if line.startswith("Handoff logs: ")))
-                    self.assertEqual((logs / "phase-1.log").read_text(), "selected-check\n")
-                    self.assertEqual((logs / "phase-2.log").read_text(), "cheap-check\n")
+                    self.assertFalse(logs.exists(), "successful output must be removed after the outcome")
                 else:
                     self.assertNotIn("Handoff PASS", result.stdout)
                     self.assertIn("Handoff FAIL", result.stderr)

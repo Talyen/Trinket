@@ -45,7 +45,9 @@ OUTPUT_DIR="${BALANCE_SWEEP_OUTPUT_DIR:-BalanceSweepReports}"
 ARGS=()
 HAS_OUTPUT=0
 NO_BUILD=0
+output_value_next=false
 for arg in "$@"; do
+  if [[ "$output_value_next" == true ]]; then OUTPUT_DIR="$arg"; output_value_next=false; fi
   if [[ "$arg" == "--help" || "$arg" == "-h" ]]; then
     CACHED="$ROOT/Packages/BattleEngine/.build/${BALANCE_SWEEP_CONFIGURATION:-release}/BalanceSweepCLI"
     if [[ -x "$CACHED" ]]; then
@@ -56,6 +58,7 @@ for arg in "$@"; do
   fi
   if [[ "$arg" == "--output-dir" ]]; then
     HAS_OUTPUT=1
+    output_value_next=true
   fi
   if [[ "$arg" == "--no-build" ]]; then
     NO_BUILD=1
@@ -68,7 +71,9 @@ if [[ "$HAS_OUTPUT" -eq 0 ]]; then
   ARGS+=(--output-dir "$OUTPUT_DIR")
 fi
 
+source Scripts/lib/output-retention.sh
 mkdir -p "$OUTPUT_DIR"
+trinket_output_retention_begin "$OUTPUT_DIR" true
 
 CONFIGURATION="${BALANCE_SWEEP_CONFIGURATION:-release}"
 if [[ "$NO_BUILD" -eq 1 ]]; then
@@ -83,7 +88,8 @@ if [[ "$NO_BUILD" -eq 1 ]]; then
   else
     echo "note: cached binary may predate current thresholds/flags; rebuild without --no-build if results look stale." >&2
   fi
-  exec "$BIN" "${ARGS[@]}"
+  "$BIN" "${ARGS[@]}"
+  exit $?
 fi
 echo "BalanceSweepCLI via Packages/BattleEngine ($CONFIGURATION) …" >&2
 swift run -c "$CONFIGURATION" --package-path Packages/BattleEngine BalanceSweepCLI "${ARGS[@]}"

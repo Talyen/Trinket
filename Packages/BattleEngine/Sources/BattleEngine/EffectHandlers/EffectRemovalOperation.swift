@@ -96,7 +96,7 @@ enum EffectRemovalOperation {
                 removed.append(contentsOf: EffectRemoval.removeDebuffs(from: &effects, keyword: .freeze))
             }
             if triggers.firstCleanseExtraRemovalPerTurn > 0,
-               context.claimHeroTalent("Fae Ward", actorID: source.id),
+               context.claimHeroTalent(.faeWard, actorID: source.id),
                effects.contains(where: \.effect.isRemovableDebuff),
                let extra = EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng) {
                 removed.append(extra)

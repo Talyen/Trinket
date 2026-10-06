@@ -30,7 +30,7 @@ trinket_require_heavy_verification "Performance measurements" || exit $?
 
 mkdir -p .DerivedData "$(dirname "$OUTPUT_DIR")"
 # shellcheck source=lib/lock.sh
-source Scripts/lib/lock.sh
+source Scripts/lib/output-retention.sh
 # trinket_dir_lock_acquire chains lock release onto EXIT and installs signal
 # traps with child reaping; no bespoke cleanup is needed here.
 if ! trinket_dir_lock_acquire "$LOCK_DIR" 0; then
@@ -43,6 +43,7 @@ if [[ -e "$OUTPUT_DIR" ]]; then
   exit 1
 fi
 mkdir -p "$OUTPUT_DIR/TestResults"
+trinket_output_retention_begin "$OUTPUT_DIR" true
 python3 Scripts/performance-scenarios.py ${SELECTION[@]+"${SELECTION[@]}"} --output "$OUTPUT_DIR/baseline.json" > "$OUTPUT_DIR/tests.txt"
 TESTS=()
 while IFS= read -r test; do TESTS+=("$test"); done < "$OUTPUT_DIR/tests.txt"

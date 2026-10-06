@@ -1,8 +1,8 @@
-# Audit run memory
+# Audit proposals and rationale
 
-Narrow decision memory between audit passes. Run outcomes and actual review coverage
+Current unresolved decisions and unique rationale between audit passes. Run outcomes and actual review coverage
 belong in the handoff/commit/PR. Entries here preserve unresolved decisions and
-intentional exceptions; they do not prove that code was reviewed or remains correct.
+unique implementation rationale; they do not prove that code was reviewed or remains correct.
 
 Hygiene:
 
@@ -11,8 +11,8 @@ Hygiene:
 - Remove implemented or superseded proposals. If a pointer no longer resolves, check
   whether the owner was renamed/moved and update it when the rationale still applies;
   remove the entry when its subject or reason no longer applies.
-- Revisit rejected proposals and non-findings when new evidence or changed assumptions
-  supersede their recorded reason. Do not treat exceptions as permanent allowlists.
+- Keep a conclusion only while its unique rationale affects current decisions; do not
+  duplicate standing contracts or keep past verdicts as permanent allowlists.
 
 ## Open proposals
 
@@ -27,25 +27,12 @@ The snapshot proposal is a measurement-led investigation under the
 [performance playbook](../Platform/PerformanceInvestigationPlaybook.md), not evidence
 that the persistence owner is misplaced.
 
-## Rejected proposals
+## Unique rationale
 
-Do not re-propose unless new evidence or changed assumptions supersede the reason.
+Revisit these conclusions when their assumptions change. Remove an entry once a
+current owner explains the same rationale.
 
-| Owning audit | Proposal | Rejection reason | Decided |
-|--------------|----------|------------------|---------|
-| _none_ | | | |
-
-## Accepted non-findings
-
-Candidates previously confirmed as intentional or not worth fixing under the recorded
-reason. Reuse that conclusion while its assumptions hold.
-
-| Owning audit | Candidate | Why accepted | Decided |
-|--------------|-----------|--------------|---------|
-| 06 | `BattleRuntime` / `PlayBattleLaunch` | Intentional presentation/runtime and launch seams | 2026-08-05 |
-| 06 | Options vs `PlayerSave`; catalog authored vs generated | Architecture hard-stop dual seams | 2026-08-05 |
-| 06 | `TrinketFeatureAdapters` module split | Enforced package DAG boundary | 2026-08-05 |
-| 06 | `PlayerSaveSanitizer` / labyrinth regeneration | Current-data validation and unreadable-map recovery remain required under the [storage contract](../AgentContext/persistence-storage.md); retired development-save migrations do not | 2026-09-11 |
-| 06 | `StageSelectRowPresentation` stage/spire/labyrinth builders | Mode-specific field sources; shared config object would add ceremony | 2026-08-05 |
-| 06 | `check-build-cache-paths.sh` divergent path lists | Intentional CI vs local freshness differences; documented | 2026-08-05 |
-| 01 | Stage-select placeholder SF Symbols using `Font.system(size:)` | Already `@ScaledMetric`; intentional decorative sizing under audit 01 | 2026-08-17 |
+| Owning audit | Candidate | Why retained |
+|--------------|-----------|--------------|
+| 06 | `StageSelectRowPresentation` stage/spire/labyrinth builders | Mode-specific field sources; a shared config object would add ceremony. |
+| 06 | `check-build-cache-paths.sh` divergent path lists | Intentional CI vs local freshness differences; follow the script's input owners. |

@@ -2,19 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-package enum TalentClaim: Hashable, Sendable {
-    case spendOvercharge
-    case darkRecovery
-    case surpriseStrike
-    case seismicRoar
-    case endlessLegion
-    case criticalActionGold
-    case poisonStun
-    case cleanSlate
-    case stolenThunder
-    case overhealFirstBlock
-}
-
 public struct TurnDrawState: Hashable, Sendable {
     var plannedDraws: [BattleParticipant]
 }

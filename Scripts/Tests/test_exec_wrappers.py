@@ -4,6 +4,7 @@
 SCRIPT_INPUTS = (
     'Scripts/test-package-host.sh',
     'Scripts/phase-timing.py',
+    'Scripts/internal/output_retention.py',
 )
 
 import subprocess
@@ -22,7 +23,8 @@ class ExecWrapperTests(unittest.TestCase):
             root = Path(directory)
             scripts = root / 'Scripts'
             (scripts / 'lib').mkdir(parents=True)
-            for name in ('test-package-host.sh', 'phase-timing.py'):
+            for name in ('test-package-host.sh', 'phase-timing.py', 'internal/output_retention.py', 'internal/cli.py'):
+                (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / 'Scripts' / name, scripts / name)
             (scripts / 'lib/verification-policy.sh').write_text('trinket_require_heavy_verification() { :; }\n')
             (scripts / 'run-env.sh').write_text('trinket_run_env_init() { export RESULTS_DIR="$PWD/results" DERIVED_DATA_PATH="$PWD/dd"; }\n')

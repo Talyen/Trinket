@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/internal/output_retention.py',
+    'Scripts/lib/output-retention.sh',
     'Scripts/ci-diagnostics.py',
     'Scripts/ci-diagnostics.sh',
     'Scripts/config/diagnostic-limits.env',
@@ -18,6 +20,7 @@ SCRIPT_INPUTS = (
 )
 
 
+from datetime import datetime, timezone
 import json
 import os
 import subprocess
@@ -279,7 +282,7 @@ class TestTimingTests(unittest.TestCase):
             log_path = results_dir / "timing-log.jsonl"
             base = {
                 "schema_version": 1,
-                "recorded_at": "2026-08-24T14:47:39+00:00",
+                "recorded_at": datetime.now(timezone.utc).isoformat(),
                 "mode": "ui",
                 "targets": ["ExampleTests/testOne"],
                 "no_build": False,
@@ -296,7 +299,7 @@ class TestTimingTests(unittest.TestCase):
             }
             legacy = {
                 **base,
-                "recorded_at": "2026-08-24T14:46:00+00:00",
+                "recorded_at": datetime.now(timezone.utc).isoformat(),
                 "xcresult": "/tmp/ui-legacy-token.xcresult",
             }
             wall_only = {**base, "run": "ui-current-token", "xcresult": ""}

@@ -7,7 +7,8 @@ import time
 import unittest
 from unittest.mock import patch
 
-SCRIPT_INPUTS = ("Scripts/agent-sim-lifetime.py", "Scripts/ensure-simulator.sh", "Scripts/lib/simctl.sh")
+SCRIPT_INPUTS = (
+    'Scripts/internal/output_retention.py',"Scripts/agent-sim-lifetime.py", "Scripts/ensure-simulator.sh", "Scripts/lib/simctl.sh")
 from script_test_support import ROOT, load_script
 
 MODULE = load_script("agent_sim_lifetime", "agent-sim-lifetime.py")
@@ -155,7 +156,8 @@ else:
             deadline = time.monotonic() + 5
             while record_file.exists() and time.monotonic() < deadline:
                 time.sleep(.05)
-            self.assertFalse(record_file.exists(), record_file.with_suffix(".log").read_text())
+            self.assertFalse(record_file.exists())
+            self.assertFalse(record_file.with_suffix(".log").exists())
             self.assertEqual(state.read_text(), "agent-device")
         finally:
             if MODULE.identity(record["guardian"]) == record["guardianStarted"]:

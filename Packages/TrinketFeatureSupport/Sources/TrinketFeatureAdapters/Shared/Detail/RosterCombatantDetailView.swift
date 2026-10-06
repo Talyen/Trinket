@@ -46,10 +46,10 @@ public struct RosterCombatantDetailView: View {
                 effectsVolume: effectsVolume,
                 hidesNavigationBar: hidesNavigationBar,
                 onEdit: { edit in
-                    let saved = edit.apply(to: playerSave, for: combatant)
+                    let saved = playerSave.editCombatant(edit, for: combatant)
                     if !saved {
                         playerSave.retrySaveAction(key: "combatant-edit-\(combatant.id)") {
-                            _ = edit.apply(to: playerSave, for: combatant)
+                            _ = playerSave.editCombatant(edit, for: combatant)
                         }
                     }
                     return saved

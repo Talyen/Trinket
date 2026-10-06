@@ -45,9 +45,7 @@ public final class LabyrinthPlayMode {
                 message: "Couldn't read the Labyrinth map. Progress is preserved. Try again later.",
             )
         }
-        guard playerSave.persistBatch(logging: "Failed to enter Labyrinth", { save in
-            LabyrinthCompletion.enter(save: &save, access: playerSave.contentAccess)
-        }) else {
+        guard playerSave.enterLabyrinth() else {
             return StageMapMessage(title: "Labyrinth Error", message: "Could not open Labyrinth.")
         }
         return nil

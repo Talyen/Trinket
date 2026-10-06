@@ -39,7 +39,7 @@ public enum SpireCompletion {
     }
 
     @discardableResult
-    public static func complete(
+    static func complete(
         floor: SpireFloor,
         hero: Combatant,
         companion: Combatant,
@@ -50,7 +50,7 @@ public enum SpireCompletion {
         loot: BattleLootResult? = nil,
         enemyEncounterLevel: Int? = nil,
         save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         let spireID = floor.spireID.rawValue
         guard let spire = GameContent.spire(id: floor.spireID) else {
@@ -78,8 +78,7 @@ public enum SpireCompletion {
             astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
         )
         VictoryRewardApplier.grantVictoryRewards(
-            hero: hero,
-            companion: companion,
+            party: (hero, companion),
             encounterLevel: encounterLevel,
             stageGold: resolvedLoot.gold,
             battleGold: battleGold,

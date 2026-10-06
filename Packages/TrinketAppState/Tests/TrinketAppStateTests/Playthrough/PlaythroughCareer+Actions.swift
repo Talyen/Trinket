@@ -143,7 +143,7 @@ extension PlaythroughCareer {
                 throw PlaythroughFailure.rejected("equipment identity")
             }
             try require(
-                CombatantDetailEdit.equipItem(item, item.baseType.defaultEquipmentSlot).apply(to: store, for: combatant),
+                store.editCombatant(.equipItem(item, item.baseType.defaultEquipmentSlot), for: combatant),
                 "equip item",
             )
             summary.equipmentChanges += 1
@@ -154,10 +154,7 @@ extension PlaythroughCareer {
                   store.contentAccess.allowsCombatant(heroID), store.contentAccess.allowsCombatant(companionID) else {
                 throw PlaythroughFailure.rejected("party availability")
             }
-            try require(store.mutateRoster { roster in
-                roster.setActiveHero(hero)
-                roster.setActiveCompanion(companion)
-            }, "party change")
+            try require(store.selectParty(hero: hero, companion: companion), "party change")
         case let .upgrade(id, tier):
             guard let definition = GameContent.homesteadNodes.first(where: { $0.id.rawValue == id }) else {
                 throw PlaythroughFailure.unsupported("Homestead node \(id)")

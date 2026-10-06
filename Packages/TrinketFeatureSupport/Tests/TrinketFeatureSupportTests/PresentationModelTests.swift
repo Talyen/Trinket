@@ -2,10 +2,10 @@ import CoreGraphics
 import Testing
 import TrinketContent
 import TrinketCore
-import TrinketPersistence
 import TrinketPersistenceTestSupport
 @testable import TrinketFeatureAdapters
 @testable import TrinketFeatureSupport
+@testable import TrinketPersistence
 
 struct PresentationModelTests {
     #if DEBUG
@@ -24,13 +24,13 @@ struct PresentationModelTests {
             save.roster.setUnlockedTalents([node.id], for: hero)
             save.inventory.items = [item]
         }
-        let commands: [CombatantDetailEdit] = [.selectAbility(.slash), .equipItem(item, .weapon), .unequipItem(.weapon), .resetTalents]
+        let commands: [CombatantLoadoutEdit] = [.selectAbility(.slash), .equipItem(item, .weapon), .unequipItem(.weapon), .resetTalents]
         for command in commands {
             let before = playerSave.roster
             playerSave.forcesNextSaveFailure = true
-            #expect(!command.apply(to: playerSave, for: hero))
+            #expect(!playerSave.editCombatant(command, for: hero))
             #expect(playerSave.roster == before)
-            #expect(command.apply(to: playerSave, for: hero))
+            #expect(playerSave.editCombatant(command, for: hero))
             let reloaded = try SaveTestSupport.makeSaveStore(directoryURL: directory)
             #expect(reloaded.roster == playerSave.roster)
             switch command {

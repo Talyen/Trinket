@@ -89,14 +89,9 @@ extension PlayBattleCoordinator {
                 makeContractOffer: makeContractOffer,
             )
         } else {
-            playerSave.persistBatch(logging: "Failed to persist battle rewards") { save, recordReceipt in
-                VictoryRewardApplier.apply(
-                    resolved,
-                    hero: configuration.hero.combatant,
-                    companion: configuration.companion.combatant,
-                    save: &save, recordReceipt: recordReceipt,
-                )
-            } ? .completed : .persistenceFailed
+            playerSave.claimStandaloneVictory(
+                resolved, hero: configuration.hero.combatant, companion: configuration.companion.combatant,
+            ) ? .completed : .persistenceFailed
         }
         if result.didComplete {
             recordTalentProgressions(settlement ?? resolved, configuration: configuration)
@@ -185,12 +180,9 @@ extension PlayBattleCoordinator {
         guard let resolved = settleDefeat(configuration, at: settlement.inputs.productionDate)
         else { return .unavailable }
         guard resolved == settlement else { return .staleSettlement(resolved) }
-        let didPersist = playerSave.persistBatch(logging: "Failed to persist defeat experience") { save, recordReceipt in
-            BattleExperienceReward.apply(
-                resolved, hero: configuration.hero.combatant, companion: configuration.companion.combatant, save: &save,
-                recordReceipt: recordReceipt,
-            )
-        }
+        let didPersist = playerSave.claimDefeatExperience(
+            resolved, hero: configuration.hero.combatant, companion: configuration.companion.combatant,
+        )
         guard didPersist else { return .persistenceFailed }
         claimState = .defeat(configurationID: configuration.id)
         recordTalentProgressions(resolved, configuration: configuration)

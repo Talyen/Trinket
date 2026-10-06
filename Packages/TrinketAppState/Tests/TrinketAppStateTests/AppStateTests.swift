@@ -3,9 +3,9 @@ import TrinketContent
 import TrinketContentTestSupport
 import TrinketFeatureContracts
 import TrinketFeatureSupport
-import TrinketPersistence
 import TrinketPersistenceTestSupport
 @testable import TrinketAppState
+@testable import TrinketPersistence
 
 @MainActor
 struct AppStateTests {

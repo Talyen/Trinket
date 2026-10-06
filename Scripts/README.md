@@ -36,8 +36,9 @@ own when to select that option. Isolation mechanics live in
 safeguards live in [Release](../Docs/Platform/Release.md#local-hooks-and-push-discipline).
 
 Use [CI diagnostics](../Docs/AgentContext/ci-diagnostics.md) after a failure.
-Run artifacts are ephemeral by default; use the owning command's keep/cleanup
-switches when an investigation needs retained evidence. Preview verification
+Successful logs are removed after their consumers finish. Failure, comparison,
+and timing evidence expires after 24 hours; use the
+[output keep/release controls](Reference.md#output-retention) for active investigations. Preview verification
 with `handoff.sh --isolate --quiet --dry-run --paths <files...>` before an unfamiliar route.
 
 ## Commands by task

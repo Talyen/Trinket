@@ -39,7 +39,8 @@ encounter orchestration plus `Modes/`; `Purchases/` owns StoreKit access;
 
 Production code uses `BattleEngine` (`BattleRuntime`) and feature contracts for its battle
 boundary — never concrete BattleFeature. Persistence owns save-mutation semantics;
-AppState decides when. The app composition root connects battle progression once
+AppState decides when and consumes committed domain results. Unrestricted mutation
+closures and receipt collection stay internal to Persistence. The app composition root connects battle progression once
 before bootstrap through `configureBattleRuntime`; view appearance is not part of
 the reward or completion lifecycle.
 

@@ -75,7 +75,7 @@ runs:
         name: ${{ steps.ids.outputs.artifact-name }}-failure-diagnostics
         path: .DerivedData/TestResults
         include-hidden-files: true
-        retention-days: 7
+        retention-days: 1
         if-no-files-found: ignore
 
     - name: Prune DerivedData before cache/artifact save

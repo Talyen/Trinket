@@ -3,10 +3,10 @@ import Testing
 import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts
-import TrinketPersistence
 @testable import BattleEngine
 @testable import TrinketAppState
 @testable import TrinketBattleFeature
+@testable import TrinketPersistence
 
 @MainActor
 struct DefeatCompletionTests {

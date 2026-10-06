@@ -178,7 +178,7 @@ package enum DeathsDoorEngine {
         )
         var events = [event]
         if triggers.firstBelowHalfHealthHeal > 0,
-           context.resolution.claim(.heroTalent("Vital Infusion"), actorID: combatant.id, cadence: .battle) {
+           context.resolution.claim(.heroTalent(.vitalInfusion), actorID: combatant.id, cadence: .battle) {
             await events.append(contentsOf: context.healEmitting(
                 amount: triggers.firstBelowHalfHealthHeal,
                 target: combatant, source: combatant, abilityName: "Vital Infusion",

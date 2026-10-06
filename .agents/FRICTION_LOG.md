@@ -6,24 +6,14 @@ Centralized intake for agent pain points, confusion, and struggle while working 
 
 1. Add a row to `## Open` when docs mislead, behavior surprises, or repeated friction appears. Review open rows when touching their area.
 2. For longer context, add a `### YYYY-MM-DD — short slug` subsection under `## Details` using the template below.
-3. When resolved, move the row and any associated details to `friction-archive/YYYY.md` for the year of resolution. Preserve the original entry date, replace the symptom with a concise resolution and a commit, PR, or corrected-owner link, and adjust relative links for the archive location. Create the yearly file and add its link below when needed.
-4. Put lasting guidance in the owning document or skill; create a knowledge pattern only when a reusable lesson remains. The archive records history and is not required reading.
+3. When resolved, put any lasting guidance in the owning document or skill, then delete the row and associated details. Do not create a resolved-entry archive.
+4. Create a knowledge pattern only when unique reusable rationale remains; avoid copying rules already enforced by an owner.
 
 ## Open
 
 | Date | Area | Symptom (expected vs actual) |
 |------|------|------------------------------|
 | 2026-09-20 | Simulator inspection | Device Hub is running and the leased app launches, but Computer Use `getApp` times out (`-10005`) by both app path and bundle ID, including after a 2026-10-02 restart. The [native device-interaction skill](skills/device-interaction/SKILL.md) provides an alternative inspection route; [floating-feedback visual verification](../Docs/AgentContext/battle-presentation.md#verification-gap) remains pending. |
-
-## Archive
-
-- [2026 resolved entries](friction-archive/2026.md)
-
-Search past fixes only when investigating recurring friction:
-
-```sh
-python3 Scripts/agent-search.py 'search terms' --mode docs --scope .agents/friction-archive
-```
 
 ## Details
 

@@ -44,11 +44,11 @@ public enum ShopPurchaseApplier {
         }
     }
 
-    public static func purchase(
+    static func purchase(
         offerID: String,
         encounter: EncounterIdentity,
         save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> Result<InventoryItem, ShopPurchaseFailure> {
         guard encounter.isPlayable(in: save) else { return .failure(.invalidOffer) }
         do {

@@ -10,6 +10,7 @@ import os
 import sys
 from statistics import median
 from datetime import datetime, timezone
+from internal.output_retention import read_timing, update_timing
 from pathlib import Path
 
 from internal.diagnostics.xcresult_diagnostics import run_xcresulttool, walk_test_nodes
@@ -108,7 +109,7 @@ def load_entries(log_path: Path, mode: str | None = None) -> list[dict]:
     if not log_path.exists():
         return []
     entries: list[dict] = []
-    for line in log_path.read_text(encoding="utf-8").splitlines():
+    for line in read_timing(log_path):
         try:
             candidate = json.loads(line)
         except (json.JSONDecodeError, TypeError, ValueError):
@@ -128,11 +129,7 @@ def append_entry(results_dir: Path, log_path: Path, entry: dict) -> None:
     if not valid_entry(entry):
         raise SystemExit("refusing to record malformed timing entry")
     results_dir.mkdir(parents=True, exist_ok=True)
-    with log_path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(entry, separators=(",", ":")) + "\n")
-    entries = log_path.read_text(encoding="utf-8").splitlines()
-    if len(entries) > maximum:
-        log_path.write_text("\n".join(entries[-maximum:]) + "\n", encoding="utf-8")
+    update_timing(log_path, entry=entry, maximum=maximum)
 
 
 def parse_options(args: list[str]) -> dict:

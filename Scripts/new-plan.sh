@@ -59,11 +59,11 @@ encountered fixes may expand it under the root agent policy.
 - [ ] Record evidenced scope expansions and include their complete remedies and owners.
 - [ ] Add or extend only consequential coverage.
 - [ ] Run path-scoped verification for the union of requested and adopted changes.
-- [ ] Record the outcome in \`Docs/Plans/Archived/README.md\`, delete this file, and report verification.
+- [ ] Update canonical owners, delete this file, and report the outcome and verification in the task handoff.
 
 ## Notes
 
-Keep durable policy in its canonical documentation owner. When the work is complete, record the outcome in \`Docs/Plans/Archived/README.md\` and delete this plan; Git history retains the full text.
+Keep durable policy in its canonical documentation owner. When the work is complete, update canonical owners and delete this plan. Do not create an outcome archive.
 EOF
 
 echo "Created $path"

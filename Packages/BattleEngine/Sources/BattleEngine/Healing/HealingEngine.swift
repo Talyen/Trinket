@@ -270,7 +270,7 @@ package enum HealingEngine {
            source.isAlive, source.role != .enemy,
            context.modifiers(for: sourceID).triggers.healCompanionDrawsCompanionCard,
            context.resolution.claim(
-               .heroTalent("loyalCompanion"),
+               .heroTalent(.loyalCompanion),
                actorID: sourceID,
                cadence: .turn(context.turnCount),
            ) {

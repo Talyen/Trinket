@@ -37,7 +37,7 @@ package extension DamagePipeline {
         guard state.combatant.role == .enemy else { return }
         let triggers = context.modifiers(for: sourceID).triggers
         if state.options.isAttackHit, keyword == .bleed, triggers.firstBleedAttackLeechPerTurn,
-           context.claimHeroTalent("Carnivore", actorID: sourceID) {
+           context.claimHeroTalent(.carnivore, actorID: sourceID) {
             state.talentAttackHasLeech = true
         }
         if state.options.isAttackHit, HealingEngine.grantsLeech(
@@ -67,17 +67,17 @@ package extension DamagePipeline {
             state.remaining += bonus
         }
         if state.damageKeyword == .holy, triggers.firstHolyAttackBonusPerTurn > 0,
-           context.claimHeroTalent("Sunlight Spark", actorID: source.id) {
+           context.claimHeroTalent(.sunlightSpark, actorID: source.id) {
             state.remaining += triggers.firstHolyAttackBonusPerTurn
         }
         if state.damageKeyword == .physical, triggers.firstPhysicalAttackBattleMultiplier > 1,
-           context.claimHeroTalent("Alpha Strike", actorID: source.id, battle: true) {
+           context.claimHeroTalent(.alphaStrike, actorID: source.id, battle: true) {
             state.remaining = CombatRounding.scaled(
                 state.remaining, multiplier: triggers.firstPhysicalAttackBattleMultiplier,
             )
         }
         if state.damageKeyword == .physical, triggers.physicalAttackBurstChancePercent > 0,
-           context.claimTalentAbility("Feral Frenzy", actorID: source.id),
+           context.claimTalentAbility(.feralFrenzy, actorID: source.id),
            BattleChance.succeeds(probability: triggers.physicalAttackBurstChancePercent, using: &context.rng) {
             state.remaining = CombatRounding.scaled(
                 state.remaining, multiplier: triggers.physicalAttackBurstMultiplier,
@@ -144,7 +144,7 @@ package extension DamagePipeline {
         }
         if state.damageKeyword == .holy, triggers.firstHolyHitDamageMultiplierPerTurn > 1,
            context.resolution.claim(
-               .heroTalent("Crownfall"), actorID: source.id, cadence: .turn(context.turnCount),
+               .heroTalent(.crownfall), actorID: source.id, cadence: .turn(context.turnCount),
            ) {
             multiplier *= triggers.firstHolyHitDamageMultiplierPerTurn
         }

@@ -25,7 +25,13 @@ struct StageRewardTests {
                 battleGold: award.goldFlow,
                 inputs: RewardSettlementInputs(save: save, hero: save.roster.activeHero, companion: save.roster.activeCompanion),
             )
-            VictoryRewardApplier.apply(settlement, hero: save.roster.activeHero, companion: save.roster.activeCompanion, save: &save)
+            VictoryRewardApplier.apply(
+                settlement,
+                hero: save.roster.activeHero,
+                companion: save.roster.activeCompanion,
+                save: &save,
+                recordReceipt: { _ in },
+            )
         })
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.roster.gold == 110)
@@ -63,6 +69,7 @@ struct StageRewardTests {
             loot: loot,
             in: GameContent.chapters,
             save: &save,
+            recordReceipt: { _ in },
         )
 
         try #expect(save.roster.gold == loot.gold + battleEarnedGold)
@@ -120,6 +127,7 @@ struct StageRewardTests {
             battleGold: .init(gained: 0),
             loot: loot,
             save: &save,
+            recordReceipt: { _ in },
         )
 
         let expected = startingGold + HomesteadEffects.from(nodeTiers: [.wishingWell: 2])
@@ -138,6 +146,7 @@ struct StageRewardTests {
             companion: companion,
             in: GameContent.chapters,
             save: &save,
+            recordReceipt: { _ in },
         )
         let goldAfterFirst = save.roster.gold
         let heroXPAfterFirst = save.roster.progression(for: hero).currentXP
@@ -148,6 +157,7 @@ struct StageRewardTests {
             hero: hero,
             companion: companion,
             save: &save,
+            recordReceipt: { _ in },
         )
 
         try #expect(save.roster.gold == goldAfterFirst)
@@ -175,6 +185,7 @@ struct StageRewardTests {
             loot: loot,
             in: GameContent.chapters,
             save: &save,
+            recordReceipt: { _ in },
         )
         let goldAfterFirst = save.roster.gold
 
@@ -186,6 +197,7 @@ struct StageRewardTests {
             loot: loot,
             in: GameContent.chapters,
             save: &save,
+            recordReceipt: { _ in },
         )
 
         try #expect(save.roster.gold == goldAfterFirst)
@@ -211,6 +223,7 @@ struct StageRewardTests {
             hero: hero,
             companion: companion,
             save: &save,
+            recordReceipt: { _ in },
         )
 
         try #expect(save.roster.gold == 10)
@@ -232,6 +245,7 @@ struct StageRewardTests {
             companion: companion,
             enemyEncounterLevel: 5,
             save: &save,
+            recordReceipt: { _ in },
         )
 
         try #expect(save.roster.progression(for: hero).currentXP == heroXPBefore)
@@ -256,6 +270,7 @@ struct StageRewardTests {
             companion: companion,
             in: GameContent.chapters,
             save: &defaulted,
+            recordReceipt: { _ in },
         )
         let defaultedHeroXP = defaulted.roster.progression(for: hero).currentXP
 
@@ -268,6 +283,7 @@ struct StageRewardTests {
             enemyEncounterLevel: 1,
             in: GameContent.chapters,
             save: &lowered,
+            recordReceipt: { _ in },
         )
         let loweredHeroXP = lowered.roster.progression(for: hero).currentXP
 
@@ -292,6 +308,7 @@ struct StageRewardTests {
             companion: companion,
             battleGold: .init(gained: 0),
             save: &save,
+            recordReceipt: { _ in },
         )
         let goldAfterClaim = save.roster.gold
         let heroXPAfterClaim = save.roster.progression(for: hero).currentXP
@@ -303,6 +320,7 @@ struct StageRewardTests {
             companion: companion,
             battleGold: .init(gained: 9),
             save: &save,
+            recordReceipt: { _ in },
         )
 
         try #expect(save.roster.gold == goldAfterClaim)
@@ -339,9 +357,10 @@ struct StageRewardTests {
         })
         try #require(store.persistBatch(logging: "Complete battle with gold spending") { save in
             VictoryRewardApplier.grantVictoryRewards(
-                hero: save.roster.activeHero, companion: save.roster.activeCompanion,
+                party: (save.roster.activeHero, save.roster.activeCompanion),
                 encounterLevel: 1, stageGold: 5, battleGold: .init(spent: 20),
                 materialRewards: [], item: nil, save: &save,
+                recordReceipt: { _ in },
             )
         })
         let reloaded = try context.makeReloadedStore()
@@ -360,6 +379,7 @@ struct StageRewardTests {
             companion: companion,
             materialRewards: overrides,
             save: &save,
+            recordReceipt: { _ in },
         )
 
         try #expect(save.homestead.resources[.gems] == 7)
@@ -395,6 +415,7 @@ extension StageRewardTests {
             companion: companion,
             loot: loot,
             save: &save,
+            recordReceipt: { _ in },
         )
 
         let expected = VictoryRewardApplier.resolvedGoldReward(
@@ -420,7 +441,7 @@ extension StageRewardTests {
         let encounter = EncounterIdentity(location: .journey(stageID: firstStage.id), save: save)
         let before = save
 
-        #expect(NonCombatEncounterCompletion.complete(encounter: encounter, save: &save) == .unavailable)
+        #expect(NonCombatEncounterCompletion.complete(encounter: encounter, save: &save, recordReceipt: { _ in }) == .unavailable)
         #expect(save == before)
     }
 
@@ -448,6 +469,7 @@ extension StageRewardTests {
             companion: companion,
             loot: loot,
             save: &save,
+            recordReceipt: { _ in },
         )
 
         #expect(save.labyrinth.node(id: node.id)?.isCleared == true)
@@ -478,6 +500,7 @@ extension StageRewardTests {
             loot: loot,
             enemyEncounterLevel: encounterLevel,
             save: &journeySave,
+            recordReceipt: { _ in },
         )
 
         var dungeonSave = SaveTestSupport.makeSave()
@@ -496,6 +519,7 @@ extension StageRewardTests {
             loot: loot,
             enemyEncounterLevel: encounterLevel,
             save: &dungeonSave,
+            recordReceipt: { _ in },
         )
 
         var towerSave = SaveTestSupport.makeSave()
@@ -510,6 +534,7 @@ extension StageRewardTests {
             loot: loot,
             enemyEncounterLevel: encounterLevel,
             save: &towerSave,
+            recordReceipt: { _ in },
         )
 
         try #expect(dungeonSave.roster.gold == journeySave.roster.gold)
@@ -527,14 +552,14 @@ extension StageRewardTests {
             let heroBefore = save.roster.progression(for: hero)
             let companionBefore = save.roster.progression(for: companion)
             VictoryRewardApplier.grantVictoryRewards(
-                hero: hero,
-                companion: companion,
+                party: (hero, companion),
                 encounterLevel: 1,
                 stageGold: 20,
                 battleGold: .init(),
                 materialRewards: [],
                 item: nil,
                 save: &save,
+                recordReceipt: { _ in },
             )
             #expect(save.roster.gold == 999)
             #expect(save.roster.progression(for: hero) == heroBefore.addingExperience(7 + compensation))
@@ -567,7 +592,13 @@ extension StageRewardTests {
         #expect(settled.replacementExperience == scenario.replacementXP)
         #expect(settled.award.heroExperience == 4 + scenario.replacementXP)
         #expect(settled.award.companionExperience == 5 + scenario.replacementXP)
-        VictoryRewardApplier.apply(settled, hero: save.roster.activeHero, companion: save.roster.activeCompanion, save: &save)
+        VictoryRewardApplier.apply(
+            settled,
+            hero: save.roster.activeHero,
+            companion: save.roster.activeCompanion,
+            save: &save,
+            recordReceipt: { _ in },
+        )
         #expect(save.roster.gold == scenario.gold + scenario.gained - scenario.spending)
         #expect(save.roster.progression(for: save.roster.activeHero) == inputs.heroProgression.addingExperience(4 + scenario.replacementXP))
         #expect(save.roster.progression(for: save.roster.activeCompanion) == inputs.companionProgression

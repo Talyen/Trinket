@@ -3,8 +3,8 @@ import Testing
 import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
-import TrinketPersistence
 @testable import TrinketAppState
+@testable import TrinketPersistence
 
 @Suite("PartyScaledEncounters")
 @MainActor

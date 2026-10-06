@@ -5,6 +5,77 @@ import TrinketCore
 @testable import TrinketPersistence
 
 extension CloudSaveSyncTests {
+    @Test(arguments: [false, true]) @MainActor
+    func `incomplete receipts refuse the entire save and journal through reload`(partial: Bool) async throws {
+        let transport = CloudSaveTestTransport()
+        let context = try PersistenceTestContext()
+        let store = try cloudStore(context, transport: transport)
+        #expect(await store.cloudSync?.synchronize() == true)
+        let before = store.currentSave
+        let journal = store.cloudDeviceState.account.journal
+        #expect(!store.persistBatch(logging: "Incomplete receipt") { save, recordReceipt in
+            save.roster.gold += 10
+            if partial {
+                recordReceipt(SaveEconomicReceipt(kind: .reward, effects: .committed(gold: 5)))
+            }
+        })
+        #expect(store.currentSave == before)
+        #expect(store.cloudDeviceState.account.journal == journal)
+        guard case .invalidSave? = store.lastPersistenceError else { Issue.record("Expected invalid receipt coverage"); return }
+        #expect(try context.makeReloadedStore().currentSave == before)
+    }
+
+    @Test @MainActor func `Mystery claims and forging retain separate effects through concurrent replay and response loss`() async throws {
+        let transport = CloudSaveTestTransport()
+        let first = try PersistenceTestContext()
+        let second = try PersistenceTestContext()
+        let a = try cloudStore(first, transport: transport)
+        #expect(a.persistBatch(logging: "Economic command setup") { save in
+            save.starterSelection = .complete
+            save.inventory.items = []
+            save.homestead = PlayerHomesteadState(
+                resources: [.iron: 500, .wood: 500, .hide: 500], nodeTiers: [.blacksmithForge: 1],
+                lastProductionAt: Date(timeIntervalSince1970: 2000000000),
+            )
+        })
+        #expect(await a.cloudSync?.synchronize() == true)
+        let b = try cloudStore(second, transport: transport)
+        #expect(await b.cloudSync?.synchronize() == true)
+        let event = try #require(GameContent.mysteryEvent(matching: "crystal-geode"))
+        let date = Date(timeIntervalSince1970: 2000000000)
+        var expectedGems = 0
+        for store in [a, b] {
+            var random = SeededRandomNumberGenerator(seed: 11)
+            let encounter = EncounterIdentity(location: .journey(stageID: "chapter-1-stage-4"), save: store.currentSave)
+            guard case let .committed(offers) = store.prepareMysteryEncounter(event: event, encounter: encounter, using: &random, at: date),
+                  let offer = offers.first else { Issue.record("Expected pinned Mystery offers"); return }
+            expectedGems = offer.bonus.amount
+            let request = MysteryEncounterRequest(encounter: encounter, event: event, displayedOffers: offers)
+            guard case .committed(.reward) = store.resolveMysteryEncounter(
+                request,
+                action: .choice(offer.choiceID),
+                using: &random,
+                at: date,
+            )
+            else { Issue.record("Expected committed Mystery choice"); return }
+        }
+        let forged = try await b.forgeBlacksmithItem(recipeID: "blacksmith-dagger").get()
+        let expectedIron = b.homestead.resources[.iron]
+        let expectedWood = b.homestead.resources[.wood]
+        #expect(await a.cloudSync?.synchronize() == true)
+        await transport.configure(loseResponse: true)
+        #expect(await b.cloudSync?.synchronize() == false)
+        let reloaded = try cloudStore(second, transport: transport)
+        #expect(await reloaded.cloudSync?.synchronize() == true)
+        #expect(reloaded.homestead.resources[.gems] == expectedGems)
+        #expect(reloaded.homestead.resources[.iron] == expectedIron)
+        #expect(reloaded.homestead.resources[.wood] == expectedWood)
+        #expect(reloaded.inventory.item(matching: forged.id) == forged)
+        let durable = try second.makeReloadedStore()
+        #expect(durable.homestead.resources == reloaded.homestead.resources)
+        #expect(durable.inventory.item(matching: forged.id) == forged)
+    }
+
     @Test @MainActor func `capped production receipts survive spending response loss and reload without paying twice`() async throws {
         let transport = CloudSaveTestTransport()
         let first = try PersistenceTestContext()

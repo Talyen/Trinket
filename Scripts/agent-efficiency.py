@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
 import json
 import re
 import shlex
@@ -257,6 +258,17 @@ def compare(before: dict, after: dict) -> tuple[list[str], bool]:
     return [label, *rows], accepted
 
 
+def write_report(output: Path, report: dict) -> None:
+    from internal.cli import ROOT
+    from internal import output_retention as retention
+    if retention.managed_path(output, ROOT):
+        retention.cleanup(ROOT, apply=True, verbose=False)
+        output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(report, indent=2) + "\n")
+    if retention.managed_path(output, ROOT) and os.environ.get('TRINKET_KEEP_REPORTS') == '1':
+        retention.marker(output, retention.KEEP).touch()
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -280,12 +292,12 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command in {"prepare", "collect"}:
             report = prepare_tasks(args.root, args.repetitions, args.suite) if args.command == "prepare" else collect_tasks(args.manifest)
-            args.output.write_text(json.dumps(report, indent=2) + "\n")
+            write_report(args.output, report)
             print(f"{'Unmeasured trial manifest' if args.command == 'prepare' else 'Measured task report'}: {args.output}")
             return 0
         if args.command == "probe":
             report = probe(args.root, args.workflow, args.suite)
-            args.output.write_text(json.dumps(report, indent=2) + "\n")
+            write_report(args.output, report)
             print(f"Retrieval report: {args.output}")
             for task in report["tasks"]:
                 print(f"{task['id']}: {task['metrics']['output_characters']} characters, {task['metrics']['commands']} commands")

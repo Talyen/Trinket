@@ -12,6 +12,7 @@ import sys
 import tempfile
 
 from internal.cli import ROOT
+from internal.output_retention import cleanup
 
 
 def group_failures(failures: list[str]) -> list[tuple[str, list[str]]]:
@@ -44,6 +45,7 @@ def render(groups: list[tuple[str, list[str]]], *, offset: int = 0, limit: int =
 
 
 def report_failures(title: str, failures: list[str], *, root: Path = ROOT) -> None:
+    cleanup(root, apply=True, verbose=False)
     print(title, file=sys.stderr)
     groups = group_failures(failures)
     stop = render(groups)

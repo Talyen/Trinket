@@ -19,9 +19,9 @@ package extension BattleState {
         resolution.depth(.heroReaction) == 0
     }
 
-    mutating func claimHeroTalent(_ name: String, actorID: String, battle: Bool = false) -> Bool {
+    mutating func claimHeroTalent(_ claim: CombatActivationClaim, actorID: String, battle: Bool = false) -> Bool {
         guard allowsHeroTalentReaction else { return false }
-        return resolution.claim(.heroTalent(name), actorID: actorID, cadence: battle ? .battle : .turn(turnCount))
+        return resolution.claim(.heroTalent(claim), actorID: actorID, cadence: battle ? .battle : .turn(turnCount))
     }
 
     mutating func mutateHeroCard(_ body: (inout HeroTalentCardFacts) -> Void) {
@@ -33,12 +33,12 @@ package extension BattleState {
         allowsHeroTalentReaction && resolution.attackOrigin != .counterattack && resolution.cardTalents?.actorID == actorID
     }
 
-    mutating func claimHeroCardBonus(_ name: String, actorID: String) -> Bool {
+    mutating func claimHeroCardBonus(_ claim: CombatActivationClaim, actorID: String) -> Bool {
         guard hasHeroCard(for: actorID), let card = resolution.cardTalents else { return false }
-        return resolution.claim(.heroCard(name), actorID: actorID, cadence: .card(card.playSerial))
+        return resolution.claim(.heroCard(claim), actorID: actorID, cadence: .card(card.playSerial))
     }
 
-    mutating func claimTalentAbility(_ name: String, actorID: String) -> Bool {
+    mutating func claimTalentAbility(_ claim: CombatActivationClaim, actorID: String) -> Bool {
         guard allowsHeroTalentReaction else { return false }
         let cadence: CombatResolution.Cadence = if resolution.cardTalents?.actorID == actorID,
                                                    let serial = resolution.cardTalents?.playSerial {
@@ -50,7 +50,7 @@ package extension BattleState {
         } else {
             .standaloneAction(actionCount)
         }
-        return resolution.claim(.heroTalent(name), actorID: actorID, cadence: cadence)
+        return resolution.claim(.heroTalent(claim), actorID: actorID, cadence: cadence)
     }
 
     func hasTalentDebuff(on target: Combatant) -> Bool {

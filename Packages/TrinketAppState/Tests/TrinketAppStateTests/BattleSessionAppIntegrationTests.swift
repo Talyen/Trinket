@@ -5,9 +5,9 @@ import Testing
 import TrinketContent
 import TrinketContentTestSupport
 import TrinketFeatureSupport
-import TrinketPersistence
 @testable import TrinketAppState
 @testable import TrinketBattleFeature
+@testable import TrinketPersistence
 
 @MainActor
 struct BattleSessionAppIntegrationTests {

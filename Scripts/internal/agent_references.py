@@ -7,11 +7,13 @@ import json
 import re
 import sys
 import tempfile
+import time
 from pathlib import Path
 from urllib.parse import unquote
 
 from internal.cli import ROOT, write_json_atomic
 from internal.markdown import headings
+from internal.output_retention import retention_seconds
 
 
 def content_digest(data: bytes) -> str:
@@ -45,6 +47,8 @@ def read_receipt(path: Path, chat: str, root: Path) -> dict:
         raise ValueError("--chat must identify this chat; do not share receipts between chats")
     empty = {"version": 1, "chat": chat, "root": str(root.resolve()), "reads": {}}
     if not path.exists():
+        return empty
+    if time.time() - path.stat().st_mtime >= retention_seconds():
         return empty
     receipt = json.loads(path.read_text())
     if not isinstance(receipt, dict) or any(receipt.get(key) != empty[key] for key in ("version", "chat", "root")):

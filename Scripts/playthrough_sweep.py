@@ -504,9 +504,7 @@ def interrupt_run(_signal, _frame):
     raise KeyboardInterrupt
 
 
-def main():
-    args = parse_args()
-    signal.signal(signal.SIGTERM, interrupt_run)
+def run_sweep(args):
     if not args.products or not args.destination:
         raise SystemExit("Use Scripts/playthrough-sweep.sh to acquire the managed Simulator lease.")
     manifest_path = args.scenario or (args.replay_bundle / "scenario.json" if args.replay_bundle else None)
@@ -519,6 +517,11 @@ def main():
         raise SystemExit("seed must fit UInt64; horizon and scenarios must be <= 1000")
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=False)
+    if getattr(args, 'retention_root', None) is not None:
+        from internal.output_retention import begin
+        begin(args.output, args.retention_root, os.getpid())
+        if os.environ.get('TRINKET_KEEP_REPORTS') == '1':
+            (args.output / '.retention-keep').touch()
     template = max(args.products.resolve().glob("*.xctestrun"), key=lambda p: p.stat().st_mtime)
     host = identity()
     (args.output / "identity.json").write_text(json.dumps(host, indent=2))
@@ -551,6 +554,38 @@ def main():
     else:
         success = all(s["exitCode"] == 0 and s["termination"] in {"completedObjective", "replayedRecordedActions", "reproducedFailure"} for s in summaries)
     return 0 if success else 1
+
+
+def main():
+    from internal.cli import ROOT
+    from internal import output_retention as retention
+    args = parse_args()
+    signal.signal(signal.SIGTERM, interrupt_run)
+    # Keep an explicitly supplied baseline/replay bundle through this comparison.
+    inputs = [p for p in (args.baseline, args.replay_bundle, args.scenario) if p is not None]
+    pins = []
+    for source in inputs:
+        source = source.resolve()
+        if retention.managed_path(source, ROOT):
+            keep = retention.marker(source, retention.KEEP)
+            if not keep.exists():
+                keep.touch()
+                pins.append(keep)
+    path = args.output.absolute()
+    owned = retention.managed_path(path, ROOT)
+    status = 1
+    try:
+        retention.cleanup(ROOT, apply=True)
+        # The output directory is created by run_sweep; take ownership immediately
+        # after creation, before any long-running worker or product query.
+        args.retention_root = ROOT if owned else None
+        status = run_sweep(args)
+        return status
+    finally:
+        if owned and retention.marker(path, retention.OWNER).exists():
+            retention.finish(path, ROOT, os.getpid(), status, comparison=True)
+        for keep in pins:
+            keep.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

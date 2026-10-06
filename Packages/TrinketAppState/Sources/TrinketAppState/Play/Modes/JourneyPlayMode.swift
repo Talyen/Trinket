@@ -136,31 +136,6 @@ public final class JourneyPlayMode {
             access: playerSave.contentAccess,
         )
     }
-
-    @discardableResult
-    func persistStageCompletions(
-        _ stages: [Stage],
-        hero: Combatant,
-        companion: Combatant,
-        resetJourney: Bool = false,
-    ) -> Bool {
-        guard !stages.isEmpty else { return false }
-
-        return playerSave.persistBatch(logging: "Failed to persist stage completions") { save, recordReceipt in
-            if resetJourney {
-                save.journey = .initial
-            }
-            for stage in stages {
-                StageCompletion.complete(
-                    stage,
-                    hero: hero,
-                    companion: companion,
-                    in: GameContent.chapters,
-                    save: &save, recordReceipt: recordReceipt,
-                )
-            }
-        }
-    }
 }
 
 extension JourneyPlayMode {

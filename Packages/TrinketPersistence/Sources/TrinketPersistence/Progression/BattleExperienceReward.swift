@@ -1,14 +1,14 @@
 import TrinketContent
 import TrinketCore
 
-public enum BattleExperienceReward {
+enum BattleExperienceReward {
     @discardableResult
-    public static func apply(
+    static func apply(
         _ settlement: BattleRewardSettlement,
         hero: Combatant,
         companion: Combatant,
         save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void = { _ in },
+        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> SaveEconomicReceipt {
         var experience: [String: Int] = [:]
         for (combatant, quantity) in [(hero, settlement.award.heroExperience), (companion, settlement.award.companionExperience)] {

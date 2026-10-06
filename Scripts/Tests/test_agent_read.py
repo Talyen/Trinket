@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/internal/output_retention.py',
+    'Scripts/lib/output-retention.sh',
     'Scripts/agent-read.py',
     'Scripts/agent-session.py',
     'Scripts/agent-context.sh',
