@@ -213,6 +213,7 @@ test -f "$1/output.log"
 exit "$2"
 '''
             result = subprocess.run(['bash', '-c', command, '_', str(path), str(status)], cwd=root,
+                                    env={**os.environ, 'TRINKET_CLEANUP_TEST_ARTIFACTS': '1', 'TRINKET_KEEP_REPORTS': '0'},
                                     capture_output=True, text=True)
             self.assertEqual(result.returncode, status, result.stdout + result.stderr)
             self.assertEqual(path.exists(), status != 0, result.stdout + result.stderr)
