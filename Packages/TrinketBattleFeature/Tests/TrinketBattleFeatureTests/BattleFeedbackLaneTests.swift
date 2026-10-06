@@ -109,7 +109,7 @@ struct BattleFeedbackLaneTests {
                 [makeEvent(id: id, kind: .abilityDamage, amount: 1, keyword: .physical)],
                 at: Date.now.addingTimeInterval(-CombatFeedbackMotionSampler.lifetime + 0.05),
             )
-            #expect(try await BattleSessionTestSupport.waitUntil(timeout: .milliseconds(500)) {
+            #expect(try await BattleSessionTestSupport.waitUntil {
                 removedIDs.contains(id)
             })
             #expect(lane.activeItems.isEmpty)
