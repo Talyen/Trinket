@@ -16,6 +16,8 @@ rules in their existing order. These continuations must not await I/O, actors,
 timers, or independent tasks. Use synchronous facade commands only at command
 entry; internal reactions await their async overloads to retain one executor.
 Keep existing chain limits and post-damage counterattack/Block-answer timing.
+Default effect-handler witnesses keep async signatures so direct calls cannot
+bypass a specialized turn handler.
 `CombatExecutorTests` owns small-stack, ordered-unwind and recorded-battle parity
 coverage; package compilation and execution follow the normal CI-owned policy.
 

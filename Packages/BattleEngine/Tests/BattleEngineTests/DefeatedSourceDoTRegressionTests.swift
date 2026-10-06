@@ -17,7 +17,9 @@ struct DefeatedSourceDoTRegressionTests {
         )
         battle.appliesFightPacing = false
 
-        let events = EffectHandlers.handler(for: .bleed).advanceTurn(bleed, on: battle.enemy, in: &battle)
+        let events = CombatExecutor.run { await EffectHandlers.handler(for: .bleed).advanceTurn(
+            bleed, on: battle.enemy, in: &battle,
+        ) }
 
         #expect(battle.health(of: battle.enemy) == 0)
         #expect(battle.gold == (survives ? 5 : 0))
@@ -47,7 +49,9 @@ struct DefeatedSourceDoTRegressionTests {
         )
         battle.appliesFightPacing = false
 
-        _ = EffectHandlers.handler(for: .bleed).advanceTurn(bleed, on: battle.enemy, in: &battle)
+        _ = CombatExecutor.run { await EffectHandlers.handler(for: .bleed).advanceTurn(
+            bleed, on: battle.enemy, in: &battle,
+        ) }
 
         #expect(battle.health(of: battle.enemy) == 94)
         #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == (conversion == .poison ? 2 : 0))

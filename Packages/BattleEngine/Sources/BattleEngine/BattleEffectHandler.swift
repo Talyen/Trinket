@@ -29,7 +29,8 @@ package extension BattleEffectHandler {
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+        // swiftlint:disable:next async_without_await - Match the async protocol witness so synchronous calls cannot bypass specialized turn handlers.
+    ) async -> [ActionEvent] {
         guard active.effect.advancesEachTurn else { return [] }
         var updated = active
         updated.remainingTurns -= 1

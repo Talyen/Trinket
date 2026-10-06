@@ -225,7 +225,9 @@ extension CombatTriggerTalentDamageTests {
         #expect(bleed.remainingTurns == Effect.bleedDoTTurnCount)
         let beforeTick = battle.health(of: battle.enemy)
 
-        _ = EffectHandlers.handler(for: .bleed).advanceTurn(bleed, on: battle.enemy, in: &battle)
+        _ = CombatExecutor.run { await EffectHandlers.handler(for: .bleed).advanceTurn(
+            bleed, on: battle.enemy, in: &battle,
+        ) }
 
         #expect(beforeTick - battle.health(of: battle.enemy) == 4)
         #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.isBleed })

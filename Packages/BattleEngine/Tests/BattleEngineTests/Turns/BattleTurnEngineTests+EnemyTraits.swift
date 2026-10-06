@@ -232,7 +232,9 @@ extension BattleTurnEngineTests {
             #expect(bleed.effect.potency == 1)
             #expect(bleed.sourceActorID == context.enemy.id)
             let beforeTick = context.health(of: target)
-            _ = EffectHandlers.handler(for: bleed.effect.kind).advanceTurn(bleed, on: target, in: &context)
+            _ = CombatExecutor.run { await EffectHandlers.handler(for: bleed.effect.kind).advanceTurn(
+                bleed, on: target, in: &context,
+            ) }
             #expect(beforeTick - context.health(of: target) == 1)
         }
     }

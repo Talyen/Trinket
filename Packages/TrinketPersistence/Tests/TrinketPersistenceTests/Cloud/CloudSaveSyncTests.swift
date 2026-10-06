@@ -115,6 +115,8 @@ struct CloudSaveSyncTests {
         })
         #expect(await a.cloudSync?.synchronize() == true)
         var b: PlayerSaveStore? = try cloudStore(second, transport: transport)
+        // Both offline branches must start with the same Contract identities.
+        try b?.performBatchMutation { $0.contracts = a.contracts }
         #expect(await b?.cloudSync?.synchronize() == true)
         let base = a.currentSave
         let hero = base.roster.activeHero
@@ -167,10 +169,11 @@ extension CloudSaveSyncTests {
     ) -> PlayerSave {
         let hero = store.roster.activeHero
         let committed = store.persistBatch(logging: "Shared Contract") { save, recordReceipt in
-            #expect(ContractsCompletion.complete(
+            let completion = ContractsCompletion.complete(
                 offerID: offerID, hero: hero, companion: save.roster.activeCompanion,
                 encounterLevel: 1, loot: loot, save: &save, recordReceipt: recordReceipt,
-            ) == .completed)
+            )
+            #expect(completion == .completed)
         }
         #expect(committed)
         #expect(store.cloudDeviceState.account.journal?.first?.receipts?.first?.effects.claim == .contract(offerID))
