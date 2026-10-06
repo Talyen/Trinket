@@ -145,7 +145,9 @@ extension TalentCatalogRoundTripTests {
         #expect(result.healthLost == 0)
         #expect(talentPoints(.shield, on: .companion, in: battle) == 1)
         let purge = EffectHandlers.handler(for: .purge)
-        _ = purge.apply(.purge(nil), ability: .cleanse, source: battle.enemy, target: battle.companion, in: &battle)
+        _ = CombatExecutor.run { await purge.apply(
+            .purge(nil), ability: .cleanse, source: battle.enemy, target: battle.companion, in: &battle,
+        ) }
         #expect(talentPoints(.shield, on: .companion, in: battle) == 0)
     }
 

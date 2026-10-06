@@ -173,7 +173,9 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                 registry.write_text(f"echo cheap-check; exit {cheap}\n")
                 result = subprocess.run(
                     [str(scripts / "handoff.sh"), "--quiet", "--paths", "Scripts/test-scripts.sh"],
-                    env={**os.environ, "TRINKET_CHEAP_SLICES_CONFIG": str(registry), "GITHUB_ACTIONS": "true"},
+                    env={**os.environ, "TRINKET_CHEAP_SLICES_CONFIG": str(registry), "GITHUB_ACTIONS": "true",
+                         "RESULTS_DIR": str(Path(directory) / ".DerivedData/HandoffResults"),
+                         "TRINKET_CLEANUP_TEST_ARTIFACTS": "1", "TRINKET_KEEP_REPORTS": "0"},
                     text=True, capture_output=True,
                 )
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
