@@ -348,3 +348,23 @@ trinket_asset_assert_unique() {
   fi
   printf '%s\n' "$value" >> "$seen_file"
 }
+
+# Sources are library-relative; the shell only consumes the Python resolver's path.
+trinket_asset_source_path() {
+  python3 Scripts/asset-library.py --resolve "$1"
+}
+
+trinket_asset_preflight() {
+  if [[ "$1" == all || "$1" == audio ]]; then
+    python3 Scripts/asset-library.py --preflight --kind "$1"
+  else
+    TRINKET_ASSET_INPUT_SNAPSHOT="$(python3 Scripts/asset-library.py --preflight --snapshot --kind "$1")" || return $?
+    local asset_repair
+    asset_repair="$(python3 Scripts/asset-library.py --repair-needed --kind "$1")" || return $?
+    if [[ "$asset_repair" == yes ]]; then export FORCE_ASSET_REENCODE=1; fi
+  fi
+}
+
+trinket_asset_record() {
+  python3 Scripts/asset-library.py --record --kind "$1" --expected-inputs "$TRINKET_ASSET_INPUT_SNAPSHOT"
+}

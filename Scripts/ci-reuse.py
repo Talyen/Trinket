@@ -42,7 +42,7 @@ def proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: 
         return None
     return {
         "standard": "true",
-        "assets": str("tests / Asset codegen" in successful).lower(),
+        "assets": str("tests / Prepared asset integrity" in successful).lower(),
         "run-id": str(run["id"]),
         "build-artifact": max(candidates)[1],
     }

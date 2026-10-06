@@ -26,7 +26,7 @@ readiness, including retained encounter underlays. The authored PNG layers in
 `Trinket/LaunchArtwork/` are decoded once off the main actor by
 `LaunchLoadingArtwork`, independently of the game artwork cache and readiness
 gates; keep decoding out of the animation timeline. Source sheets are preserved
-under `Raw Assets/Launch/`.
+in the Asset Library under `2d Assets/Game Sources/Animation/Source Sheets/`.
 
 Artwork decoding and battle texture/raster preparation start during the hold.
 `PreparedAppRoot` launches them concurrently after enqueueing audio warmup.

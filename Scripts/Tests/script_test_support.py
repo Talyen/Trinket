@@ -41,6 +41,7 @@ class ScriptRegressionTestCase(unittest.TestCase):
         synthetic files (stubs, manifests) on top.
         """
         root = Path(directory)
+        files = tuple(files)
         for relative in files:
             target = root / relative
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -49,6 +50,18 @@ class ScriptRegressionTestCase(unittest.TestCase):
                 policy = root / 'Scripts/lib/verification-policy.sh'
                 policy.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / 'Scripts/lib/verification-policy.sh', policy)
+        if any(relative.startswith("Scripts/prepare-") and "assets" in relative or relative == "Scripts/prepare-app-icon.sh" for relative in files):
+            helper = root / "Scripts/asset-library.py"
+            helper.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / "Scripts/asset-library.py", helper)
+            from unittest.mock import patch
+            environment_patch = patch.dict(os.environ, {"ASSET_LIBRARY_ROOT": str(root)})
+            environment_patch.start()
+            self.addCleanup(environment_patch.stop)
+            if "Scripts/prepare-app-icon.sh" in files:
+                manifest = root / "ArtManifest/app-icon.tsv"
+                manifest.parent.mkdir(parents=True, exist_ok=True)
+                manifest.write_text("# asset_name\tsource_path\nAppIcon.icon\tRaw Assets/App Icon/Trinket App Icon.icon\n")
         # Copy the retention substrate when a fixture includes a direct consumer.
         if any('output_retention' in p.read_text() or 'output-retention.sh' in p.read_text()
                or 'cleanup-outputs.py' in p.read_text()

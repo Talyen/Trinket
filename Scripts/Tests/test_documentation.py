@@ -320,6 +320,7 @@ class DocumentationTests(ScriptRegressionTestCase):
         all_tests = select([])
         cases = {
             "Scripts/handoff.sh": {"Scripts/Tests/test_output_retention.py",
+                                   "Scripts/Tests/test_ci_path_filter.py",
                                    "Scripts/Tests/test_ci_gate_scripts.py",
                                    "Scripts/Tests/test_ci_handoff_routing.py",
                                    "Scripts/Tests/test_verification_policy.py",
@@ -335,6 +336,7 @@ class DocumentationTests(ScriptRegressionTestCase):
                                    "Scripts/Tests/test_build_process.py",
                                    "Scripts/Tests/test-run-env.sh"},
             "Scripts/lib/media-assets.sh": {"Scripts/Tests/test_media_asset_scripts.py",
+                                            "Scripts/Tests/test_asset_library.py",
                                             "Scripts/Tests/test_ci_build_scripts.py",
                                             "Scripts/Tests/test-asset-hash-sort-locale.sh"},
             "Scripts/Tests/test_agent_search.py": {"Scripts/Tests/test_agent_search.py"},

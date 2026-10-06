@@ -28,6 +28,8 @@ if [[ $# -ge 1 ]]; then
   esac
 fi
 
+if [[ "$kind" == all ]]; then trinket_asset_preflight audio; else trinket_asset_preflight "$kind"; fi
+
 cleanup() {
   trinket_asset_cleanup_tracked
   rm -f "${TRINKET_ASSET_STATE_TEMP:-}" "${TRINKET_ASSET_STATE_TEMP:-}.next" "${TRINKET_ASSET_STATE_TEMP:-}.sorted" \
@@ -47,6 +49,7 @@ prepare_music() {
   if ! trinket_asset_require_manifest "$manifest"; then
     exit 1
   fi
+  trinket_asset_preflight music
   trinket_asset_require_afconvert
 
   mkdir -p "$resources_dir" "$generated_dir"
@@ -86,6 +89,7 @@ prepare_music() {
     trinket_asset_assert_unique "$seen_ids_temp" "music track id" "$id"
     trinket_asset_assert_unique "$seen_assets_temp" "music asset name" "$asset_name"
 
+    source_path="$(trinket_asset_source_path "$source_path")"
     if ! trinket_asset_require_source_file "$id" "$source_path"; then
       exit 1
     fi
@@ -192,6 +196,7 @@ SWIFT
   trinket_asset_sort_state "$music_state_temp" "$state_file"
 
   echo "Prepared $processed_count music assets in $resources_dir and regenerated $generated_swift."
+  trinket_asset_record music
 }
 
 prepare_sfx() {
@@ -206,6 +211,7 @@ prepare_sfx() {
   if ! trinket_asset_require_manifest "$manifest"; then
     exit 1
   fi
+  trinket_asset_preflight sfx
   trinket_asset_require_afconvert
 
   mkdir -p "$resources_dir" "$generated_dir"
@@ -239,6 +245,7 @@ prepare_sfx() {
     trinket_asset_assert_unique "$seen_symbols_temp" "SFX Swift symbol" "$swift_symbol"
     trinket_asset_assert_unique "$seen_sfx_assets_temp" "SFX asset name" "$asset_name"
 
+    source_path="$(trinket_asset_source_path "$source_path")"
     if ! trinket_asset_require_source_file "$id" "$source_path"; then
       exit 1
     fi
@@ -301,6 +308,7 @@ SWIFT
   trinket_asset_sort_state "$sfx_state_temp" "$state_file"
 
   echo "Prepared $processed_count SFX assets in $resources_dir and regenerated $generated_swift."
+  trinket_asset_record sfx
 }
 
 case "$kind" in

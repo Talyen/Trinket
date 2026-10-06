@@ -53,10 +53,17 @@ else
   python3 ./Scripts/check-accessibility-ids.py
 fi
 
+if [[ "${TRINKET_NEEDS_ASSET_GENERATION:-false}" == true ]]; then
+  echo "=== Pre-push: local asset source freshness ==="
+  ./Scripts/prepare-assets.sh --check
+else
+  ./Scripts/prepare-assets.sh --check --outputs-only
+fi
+
 echo "=== Pre-push: agent push gate (static generated-output completeness) ==="
 ./Scripts/agent-push-gate.sh --paths "${pushed_paths[@]}"
 
-echo "Package tests, app compilation, generation freshness, and UI verification are deferred to CI."
+echo "Package tests, app compilation, content generation freshness, and UI verification are deferred to CI."
 
 # Checks must not have rewritten tracked files or introduced untracked inputs.
 python3 Scripts/pre-push-paths.py <<< "$push_input" >/dev/null

@@ -30,6 +30,8 @@ if ! trinket_asset_require_manifest "$manifest"; then
   exit 1
 fi
 
+trinket_asset_preflight art
+
 mkdir -p "$asset_catalog" "$generated_dir"
 
 scratch="$(mktemp -d)"
@@ -243,7 +245,7 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
     printf '%s\n' "$thumb_asset" >> "$scratch/active_assets"
   fi
 
-  source_file="$source_path"
+  source_file="$(trinket_asset_source_path "$source_path")"
   if ! trinket_asset_require_source_file "$id" "$source_file"; then
     exit 1
   fi
@@ -614,3 +616,5 @@ done < <(join -t$'\t' -v 1 -1 1 -2 1 "$scratch/prune_pairs" "$scratch/active_ass
 
 
 echo "Prepared $processed_count curated art asset(s) (converted $full_count full / $thumb_count thumb this run; kind-aware variants)."
+
+trinket_asset_record art

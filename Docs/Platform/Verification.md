@@ -158,10 +158,10 @@ available; the CI policy applies to automatic verification, not to playing the g
 
 | Gate | Composition |
 |---|---|
-| `handoff.sh` | Locally: scoped style, fast selected script regressions, docs and cheap static slices; reports generation, compilation, package and UI work as CI-owned |
+| `handoff.sh` | Locally: scoped style, fast selected script regressions, docs, cheap static slices and selected prepared-asset integrity; reports content/project generation, compilation, package and UI work as CI-owned |
 | `ci-gate.sh` | Pinned-tool ensure, generate/stamp alignment, assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation, artwork budget |
 | `ci-gate.sh --fast` | Only the ordered commands in [the cheap-slice registry](../../Scripts/config/cheap-slices.txt) |
-| `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
+| `ci-assets-gate.sh` | Check committed prepared assets and manifest/resource integrity without Asset Library |
 | `test-deploy.sh` | Full CI/release test sequence; local execution requires a deliberate heavy-local diagnostic opt-in. Keep release/TestFlight evidence requirements intact |
 | Main CI | Post-push on `main` (no pull-request workflow): path filter, generation/style/full script regressions, app build with smoke on the same runner, and package unit for product changes |
 | Clean analysis | Explicit local `lint-analyze.sh [SwiftPath ...]` cleanup using a clean app build; unused imports fail the command; never part of CI or handoff |

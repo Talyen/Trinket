@@ -19,6 +19,8 @@ fi
 
 trinket_asset_require_avconvert
 
+trinket_asset_preflight cinematic
+
 mkdir -p "$resources_dir" "$generated_dir"
 
 trinket_asset_begin_state_file "$state_file" "Scripts/prepare-cinematic-assets.sh"
@@ -99,6 +101,7 @@ while IFS=$'\t' read -r actor_id ability_id asset_name source_path has_audio || 
       ;;
   esac
 
+  source_path="$(trinket_asset_source_path "$source_path")"
   if ! trinket_asset_require_source_file "$actor_id / $ability_id" "$source_path"; then
     exit 1
   fi
@@ -203,3 +206,5 @@ trinket_asset_commit_generated "$generated_temp" "$generated_swift"
 trinket_asset_sort_state "$state_temp" "$state_file"
 
 echo "Prepared $processed_count cinematic asset(s)."
+
+trinket_asset_record cinematic

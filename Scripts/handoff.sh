@@ -89,6 +89,7 @@ run_check() {
         *) echo "Unknown assert check: $argument" >&2; return 2 ;;
       esac
       ;;
+    assets) ./Scripts/ci-assets-gate.sh ;;
     test)
       if [[ "$argument" == smoke:* ]]; then
         local -a smoke_targets=()
@@ -270,12 +271,17 @@ trinket_build_verification_plan
 # Preserve routing ownership while keeping the laptop out of compiled/GPU work.
 deferred_checks=()
 if trinket_verification_is_lightweight; then
+  if [[ "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
+    trinket_add_verification assets integrity "./Scripts/ci-assets-gate.sh"
+  fi
   local_commands=(); local_kinds=(); local_args=()
   for i in "${!TRINKET_VERIFICATION_COMMANDS[@]}"; do
     kind="${TRINKET_VERIFICATION_KINDS[$i]}"
     argument="${TRINKET_VERIFICATION_ARGS[$i]}"
     display="${TRINKET_VERIFICATION_COMMANDS[$i]}"
     case "$kind:$argument" in
+      generate:assets) deferred_checks+=("./Scripts/generate.sh"); continue ;;
+      assert:idempotent-assets) deferred_checks+=("./Scripts/assert-generated-output.sh --idempotent"); continue ;;
       generate:*|assert:*|package:*|build:*|test:smoke:*) deferred_checks+=("$display"); continue ;;
       test:style)
         swift_paths=()

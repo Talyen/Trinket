@@ -88,7 +88,7 @@ reserve `report.json` plus worker evidence for targeted diagnostics.
 |---|---|
 | `./Scripts/report-art-memory.sh [--enforce]` | Estimate full-catalog decoded artwork size; `--enforce` fails over budget; interpretation and optional enforcement follow the [art pipeline](../ArtManifest/README.md#decoded-memory-report) |
 | `./Scripts/generate.sh --assets` | Also prepare art, music, SFX, and cinematics (add `--kind <kind>` for one pipeline, `--skip-xcodegen` for codegen only) |
-| `./Scripts/ci-assets-gate.sh` | Asset generation, idempotence, and locale-stability gate |
+| `./Scripts/ci-assets-gate.sh` | Committed asset integrity without Asset Library |
 | `./Scripts/prepare-audio-assets.sh [music\|sfx\|all]` | Validate music/SFX manifests, encode AAC, regenerate `MusicCatalog` / `SFXCatalog` |
 
 ### Release

@@ -5,7 +5,7 @@ name: Build and test
 # Build orchestration changes exercise the product jobs; lint-only changes use the gate.
 # Nightly/dispatch also run exhaustive UI outside the push path.
 # The warm cache preserves incremental state; build uploads test products
-# and build stamps in a tar archive for smoke and nightly UI. Sparse checkouts omit Raw Assets.
+# and build stamps in a tar archive for smoke and nightly UI. Raw sources live outside the repository.
 
 on:
   workflow_call:
@@ -56,7 +56,7 @@ jobs:
     uses: ./.github/workflows/gate.yml
 
   assets-gate:
-    name: Asset codegen
+    name: Prepared asset integrity
     needs: [changes, reuse]
     if: needs.reuse.outputs.assets != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.assets == 'true')
     runs-on: xcode-27
@@ -65,7 +65,7 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-trinket
       # Same semantics as local ./Scripts/ci-assets-gate.sh (single owner).
-      - name: Asset codegen gate
+      - name: Prepared asset integrity gate
         run: ./Scripts/ci-assets-gate.sh
 
   build:
@@ -91,7 +91,7 @@ jobs:
         with:
           fetch-depth: 1
           sparse-checkout-cone-mode: true
-          # Cone mode keeps root files (project.yml, *.xctestplan). Skip Raw Assets.
+          # Cone mode keeps root files (project.yml, *.xctestplan). Raw sources live outside the repository.
           sparse-checkout: |
             Scripts
             Packages
@@ -176,7 +176,7 @@ jobs:
         with:
           fetch-depth: 1
           sparse-checkout-cone-mode: true
-          # Cone mode keeps root files (project.yml, *.xctestplan). Skip Raw Assets.
+          # Cone mode keeps root files (project.yml, *.xctestplan). Raw sources live outside the repository.
           sparse-checkout: |
             Scripts
             Packages

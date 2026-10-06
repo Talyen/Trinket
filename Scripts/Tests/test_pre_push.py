@@ -105,7 +105,7 @@ class PrePushTests(unittest.TestCase):
             'trinket_collect_paths() { :; }\ntrinket_classify_paths() { :; }\n')
         for name in ('ensure-ci-tools.sh', 'test.sh', 'agent-push-gate.sh',
                      'check-api-bans.sh', 'check-exclusivity-footguns.sh',
-                     'check-agent-invariants.sh'):
+                     'check-agent-invariants.sh', 'prepare-assets.sh'):
             path = scripts / name
             path.write_text('#!/bin/bash\nexit 0\n')
             path.chmod(0o755)

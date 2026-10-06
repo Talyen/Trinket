@@ -31,13 +31,16 @@ live in `TrinketContent`'s `TrinketContentTestSupport` target so
 `TrinketContentTests` can use them without a package cycle.
 
 ContentManifest/            affixes.tsv, item_bases.tsv, stages.tsv, combatants.tsv, …
-ArtManifest/                curated-assets.tsv
+ArtManifest/                curated-assets.tsv, app-icon.tsv
 MusicManifest/              music.tsv
 SoundManifest/              sfx.tsv
 CinematicManifest/          cinematics.tsv
-Raw Assets/                 Source art/music/SFX/animations (not in Xcode target)
 Scripts/                    generate, build, test, CI commands; internal/ Python and lib/ shell helpers
 ```
+
+Raw art, music, SFX, and animation masters live in the external Asset Library;
+[the media pipeline](../AgentContext/content-and-manifests.md#media-assets) owns
+source selection and preparation.
 
 ## Module ownership
 

@@ -537,6 +537,7 @@ trinket_path_matches_inputs() {
 # separately skips Generated path parts for link scoping. Content cache, not
 # classification state: it is intentionally not reset per run.
 TRINKET_GENERATED_REGISTRY=()
+TRINKET_GENERATED_ASSET_REGISTRY=()
 trinket_load_generated_registry() {
   if [[ ${#TRINKET_GENERATED_REGISTRY[@]+x} ]] && ((${#TRINKET_GENERATED_REGISTRY[@]} > 0)); then
     return 0
@@ -547,7 +548,13 @@ trinket_load_generated_registry() {
   while IFS='|' read -r kind entry; do
     case "$kind" in content|asset) ;; *) continue ;; esac
     TRINKET_GENERATED_REGISTRY+=("$entry")
+    [[ "$kind" != asset ]] || TRINKET_GENERATED_ASSET_REGISTRY+=("$entry")
   done < <(trinket_generated_registry_rows "$registry")
+}
+
+trinket_is_generated_asset_output() {
+  trinket_load_generated_registry
+  trinket_path_matches_inputs "$1" ${TRINKET_GENERATED_ASSET_REGISTRY[@]+"${TRINKET_GENERATED_ASSET_REGISTRY[@]}"}
 }
 
 trinket_is_generated_output() {
@@ -617,11 +624,14 @@ trinket_classify_path() {
   # Boundary warnings still apply, so they live in one shared helper below.
   if trinket_is_generated_output "$path"; then
     TRINKET_GENERATED_PATHS+=("$path")
-    if [[ "$path" == Packages/*/Generated/* ]]; then
+    if trinket_is_generated_asset_output "$path"; then
+      TRINKET_NEEDS_ASSET_GENERATION=true
+      trinket_add_generated_warning "Prepared asset output detected; edit the manifest/Asset Library source and run ./Scripts/prepare-assets.sh."
+    elif [[ "$path" == Packages/*/Generated/* ]]; then
       case "$path" in
         Packages/*/Generated/*SourceHashes.generated.tsv)
           TRINKET_NEEDS_ASSET_GENERATION=true
-          trinket_add_generated_warning "Generated asset hash state detected; edit the manifest/raw asset source and run ./Scripts/generate.sh --assets."
+          trinket_add_generated_warning "Generated asset hash state detected; edit the manifest/Asset Library source and run ./Scripts/generate.sh --assets."
           ;;
         *)
           TRINKET_NEEDS_CONTENT_GENERATION=true
@@ -630,7 +640,7 @@ trinket_classify_path() {
       esac
     else
       TRINKET_NEEDS_ASSET_GENERATION=true
-      trinket_add_generated_warning "Processed app output detected; edit the manifest/raw asset source and run the appropriate generation command."
+      trinket_add_generated_warning "Processed app output detected; edit the manifest/Asset Library source and run the appropriate generation command."
     fi
     trinket_add_package_boundary_warnings_for_path "$path"
     return 0
@@ -717,7 +727,7 @@ trinket_add_content_sections_for_path() {
       trinket_add_context_card Docs/AgentContext/content-and-manifests.md#manifests ;;
     Scripts/internal/content/trigger_families/*|Scripts/internal/content/modifiers.json|Scripts/internal/content/modifier_schema.py|Scripts/internal/content/content_codegen_triggers.py|Scripts/internal/content/content_codegen_modifiers.py|Scripts/internal/content/affix_rolling.py)
       trinket_add_context_card Docs/AgentContext/content-and-manifests.md#trigger-schemas ;;
-    ArtManifest/*|MusicManifest/*|SoundManifest/*|CinematicManifest/*|Raw\ Assets/*|Trinket/Assets.xcassets/*|Trinket/Media/*|Scripts/prepare-*-assets.sh|Scripts/prepare-app-icon.sh|Scripts/lib/media-assets.sh)
+    ArtManifest/*|MusicManifest/*|SoundManifest/*|CinematicManifest/*|Raw\ Assets/*|Trinket/Assets.xcassets/*|Trinket/Media/*|Scripts/prepare-*-assets.sh|Scripts/prepare-app-icon.sh|Scripts/lib/media-assets.sh|Scripts/asset-library.py|*/PreparedAssets.generated.json)
       trinket_add_context_card Docs/AgentContext/content-and-manifests.md#media-assets ;;
   esac
   case "$1" in

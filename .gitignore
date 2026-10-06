@@ -24,3 +24,6 @@ PlaythroughReports/
 
 # Agent worktrees (isolated checkouts for parallel agents)
 .worktrees/
+
+# Raw masters live in the external Asset Library.
+/Raw Assets/

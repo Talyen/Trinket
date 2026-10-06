@@ -4,7 +4,8 @@ Trinket keeps raw art and app-ready art separate.
 
 ## Folders
 
-- `Raw Assets/`: unoptimized source library copied from Alchemy.
+- Asset Library: shared local raw masters, outside Git and Xcode target membership.
+- `ArtManifest/app-icon.tsv`: library-relative Icon Composer package selection.
 - `ArtManifest/curated-assets.tsv`: source-of-truth manifest for selected art.
 - Art direction: [Docs/Product/ArtworkStyleGuide.md](../Docs/Product/ArtworkStyleGuide.md).
 - `Trinket/Assets.xcassets`: generated app-ready image assets.
@@ -21,12 +22,13 @@ kind	id	asset_name	source_path	focal_x	focal_y
 - `kind`: `combatant`, `ability`, `item`, `slot_background`, `background`, `portrait_background`, `encounter`, `resource`, or `talent`.
 - `id`: game model ID, such as `knight` or `fire_elemental`.
 - `asset_name`: stable asset catalog name used by SwiftUI `Image`.
-- `source_path`: path to the raw source file from the repo root.
+- `source_path`: library-relative path to the raw source file.
 - `focal_x` and `focal_y`: normalized focal point from `0.0` to `1.0`.
 
-For combatants, the raw art filename should match the game entity name exactly,
-ignoring the file extension. Do not map near-synonyms or temporary stand-ins; leave
-the entity unmapped until matching art exists or the game entity is renamed.
+For combatants, the subject name must match the game entity name. Descriptive
+variant suffixes such as facing direction or resolution are allowed; they select
+a distinct master without renaming the entity. Do not map near-synonyms or
+temporary stand-ins. Artwork folders describe subjects, not game ownership.
 
 Focal points are intentionally lightweight. They let hero headers bias a 3:4 portrait image toward the face or upper body when the layout crops the image with `scaledToFill`.
 Background focal points are also emitted into `BackgroundArtReference` so cinematic landscape headers and thumbnails can share a curated crop anchor. Resource entries use the same six-column row shape for pipeline consistency; their focal point should normally be `0.50, 0.50`.

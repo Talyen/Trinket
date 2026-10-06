@@ -168,9 +168,16 @@ def is_smoke_path(path: str) -> bool:
     return matches_any(path, SMOKE_INCLUDES)
 
 
+@functools.cache
+def asset_outputs() -> tuple[str, ...]:
+    registry = Path(__file__).with_name('config') / 'generated-paths.tsv'
+    return tuple(line.partition('|')[2].rstrip('/') for line in registry.read_text().splitlines()
+                 if line.startswith('asset|'))
+
+
 def is_asset_path(path: str) -> bool:
     _, asset_inputs, _ = generation_inputs()
-    return not path.endswith(".md") and is_generation_input(path, asset_inputs)
+    return not path.endswith(".md") and is_generation_input(path, asset_inputs + asset_outputs())
 
 
 def classify(paths: list[str]) -> tuple[bool, bool, bool]:

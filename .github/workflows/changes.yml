@@ -13,7 +13,7 @@ on:
         description: Whether app, package, test, or manifest sources changed
         value: ${{ jobs.changes.outputs.code }}
       assets:
-        description: Whether any processed asset input changed
+        description: Whether any asset input or prepared output changed
         value: ${{ jobs.changes.outputs.assets }}
       infra:
         description: Whether Scripts, workflows, or style config changed
@@ -37,7 +37,7 @@ jobs:
     steps:
       # Push events cannot use dorny REST mode (PR-only). Fetch the filter
       # script and the compare file list from the API so this job does not
-      # clone Raw Assets / Packages.
+      # clone game resources / Packages.
       - name: Detect changed paths
         id: filter
         env:
@@ -47,8 +47,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          mkdir -p /tmp/trinket-path-filter/internal
-          for path in ci-path-filter.py build-inputs.env internal/cli.py; do
+          mkdir -p /tmp/trinket-path-filter/internal /tmp/trinket-path-filter/config
+          for path in ci-path-filter.py build-inputs.env internal/cli.py config/generated-paths.tsv; do
             gh api "repos/${GITHUB_REPOSITORY}/contents/Scripts/${path}?ref=${SHA}" \
               --jq .content | base64 --decode > "/tmp/trinket-path-filter/${path}"
           done

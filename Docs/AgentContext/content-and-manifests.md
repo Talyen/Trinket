@@ -12,11 +12,14 @@ against authored inputs; generation must be idempotent. For generated talent, af
 and Homestead catalogs, `agent-diff.py --summary --paths <generated-files...>`
 provides bounded record/field hints and discloses unrecognized changes. Generated files are committed
 so the app builds without rerunning generation. Routine local handoff defers
-generation and idempotence to CI; pre-push checks committed-output completeness.
-CI regenerates and compares outputs against HEAD, including idempotence.
+content/project generation and idempotence to CI; pre-push checks committed-output
+completeness. CI regenerates content/project outputs and compares them against
+HEAD, including idempotence. Media preparation stays local; CI and the selected
+lightweight handoff check receipt-bound prepared outputs without raw sources.
 
-The router owns verification selection. Manifest-only changes require generation
-and idempotence; semantic content changes use content tests; Swift adds style checks.
+The router owns verification selection. Content manifests require generation and
+idempotence; media manifests use the [media preparation contract](#media-assets).
+Semantic content changes use content tests; Swift adds style checks.
 Commit staging follows [Release](../Platform/Release.md#local-hooks-and-push-discipline).
 
 ## Abilities
@@ -82,13 +85,18 @@ their field ownership. Preserve this order and the existing numeric/save formats
 
 ## Media assets
 
-Shared media-pipeline rules: raw source folders (`Raw Assets/` and per-pipeline
-raw directories) are not in Xcode target membership; processed outputs under
+Shared media-pipeline rules: raw source folders in the external Asset Library are not in Xcode target membership; processed outputs under
 `Trinket/` are. Hash-based media pipelines re-encode when source bytes or encode settings
 change; set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.
 
 Each `prepare-<media>-assets.sh` is that pipeline's focused debugging entry point.
-Use `./Scripts/generate.sh --assets` for media inputs.
+Use `./Scripts/prepare-assets.sh` (or `generate.sh --assets`) locally for media inputs. Both games default to `~/Documents/Asset Library`; override with `ASSET_LIBRARY_ROOT`. Source paths in manifests are library-relative. Artwork lives under shared Characters, Actions, Items, Places, Interface, Animation, and Branding folders. Subject folders group portrait/landscape and facing variants; the manifest selects the exact master. Game names remain in intrinsically branded filenames, not ownership folders. Adding unselected library files cannot change shipping inventories; new revisions use distinct filenames and explicit manifest adoption. App-icon sources are selected in `ArtManifest/app-icon.tsv`.
+
+`./Scripts/prepare-assets.sh --check` verifies local source freshness. Asset-related pre-push checks require selected sources; download offloaded files in Finder before preparation. All selected sources are preflighted before conversion or pruning. Preparation records input fingerprints, source hashes and output/catalog hashes in `PreparedAssets.generated.json`.
+
+Each pipeline captures its input snapshot before preparation and rejects receipt updates if those inputs change while it runs. Missing receipt hashes force re-encoding rather than trusting cached outputs. Receipt updates are serialized across pipelines; a failed update retains the previous receipt and requires another preparation pass.
+
+CI and ordinary build preparation use `./Scripts/prepare-assets.sh --check --outputs-only` plus manifest/resource integrity checks. They require only committed outputs and never access the library or regenerate media. Checks revalidate artwork IDs, boss music enemies, and cinematic actor/Ultimate relationships against current content. Output checks do not prove raw-source freshness. Each project retains its own encoders, crops, gains and catalogs.
 
 ## Project generation
 

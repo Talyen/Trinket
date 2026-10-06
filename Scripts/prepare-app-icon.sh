@@ -7,12 +7,15 @@ source "Scripts/lib/media-assets.sh"
 
 # Icon Composer package is the authored source for iOS 26 Liquid Glass icons.
 # Install as AppIcon.icon so ASSETCATALOG_COMPILER_APPICON_NAME (default AppIcon) matches.
-source_icon="Raw Assets/App Icon/Trinket App Icon.icon"
+source_reference="$(awk -F '\t' '!/^#/ && NF {print $2}' ArtManifest/app-icon.tsv)"
+source_icon="$(trinket_asset_source_path "$source_reference")"
 target_icon="Trinket/AppIcon.icon"
 legacy_appiconset="Trinket/Assets.xcassets/AppIcon.appiconset"
 generated_dir="Packages/TrinketContent/Sources/TrinketContent/Generated"
 state_file="$generated_dir/AppIconSourceHashes.generated.tsv"
 asset_name="AppIcon.icon"
+
+trinket_asset_preflight app-icon
 
 install_icon_package() {
   local src="$1"
@@ -33,7 +36,7 @@ echo "=== Preparing app icon ==="
 
 if [[ ! -d "$source_icon" ]]; then
   echo "Missing Icon Composer source: $source_icon" >&2
-  echo "Author the icon in Icon Composer and save it under Raw Assets/App Icon/." >&2
+  echo "Author the icon in Icon Composer and save it in Asset Library." >&2
   exit 1
 fi
 if [[ ! -f "$source_icon/icon.json" ]]; then
@@ -77,3 +80,5 @@ printf '%s\t%s\t%s\n' "$asset_name" "$source_hash" 'copy' >> "$state_temp"
 trinket_asset_sort_state "$state_temp" "$state_file"
 
 echo "=== App icon ready ==="
+
+trinket_asset_record app-icon

@@ -4,7 +4,7 @@ Trinket keeps source sound effects separate from app-ready audio, matching the m
 
 ## Folders
 
-- `Raw Assets/Sound Effects/`: source `.wav` / `.ogg` files.
+- `Sounds/Game Sources`: source `.wav` / `.ogg` files.
 - `SoundManifest/sfx.tsv`: editable source of truth for curated SFX.
 - `Trinket/Media/SFX/`: generated app-ready AAC `.m4a` files.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift`: generated Swift lookup table for runtime routing.
@@ -20,7 +20,7 @@ id	swift_symbol	asset_name	source_path	volume_gain
 - `id`: stable clip ID used by Swift (snake_case).
 - `swift_symbol`: unique public `SFXID` constant generated for the clip.
 - `asset_name`: bundle-safe generated resource name (`sfx_*` prefix).
-- `source_path`: path to the raw source file from the repo root.
+- `source_path`: library-relative path to the raw source file.
 - `volume_gain`: per-clip multiplier applied after the user sound-effects volume.
 
 Comment lines start with `#`. Generated outputs are always AAC `.m4a`.

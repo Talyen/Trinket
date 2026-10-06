@@ -126,4 +126,4 @@ echo "=== Agent push gate: committed generated outputs ==="
 ./Scripts/assert-generated-output.sh
 report_change_budget
 echo "=== Agent push gate passed (static completeness only) ==="
-echo "CI owns regeneration/idempotence, compilation, package tests, and UI verification."
+echo "Local asset checks own raw-source freshness; CI owns content generation, prepared-output integrity, compilation, package tests, and UI verification."

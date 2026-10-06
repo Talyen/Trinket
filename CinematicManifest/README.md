@@ -9,7 +9,7 @@ cinematics in ordinary battles.
 
 ## Folders
 
-- `Raw Assets/Animations/`: source MP4 files (SDR masters). Do not add this folder to the Xcode target.
+- `Video/Game Sources/Projects/Trinket/Animations/`: source MP4 files (SDR masters). Do not add this folder to the Xcode target.
 - `CinematicManifest/cinematics.tsv`: editable source of truth for Hero/Companion Ultimate cinematics.
 - `Trinket/Media/Cinematics/`: generated app-ready HEVC `.mp4` encodes.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift`: generated Swift lookup keyed by Hero/Companion + ability ID.
@@ -25,7 +25,7 @@ actor_id	ability_id	asset_name	source_path	has_audio
 - `actor_id`: Hero or Companion combatant id (e.g. `knight`, `rogue`) whose Ultimate plays this cinematic.
 - `ability_id`: Ultimate catalog ability ID (e.g. `avatar-of-justice`). Must be one of that actor's authored Ultimates.
 - `asset_name`: bundle-safe resource name without extension.
-- `source_path`: path to the raw source file from the repo root.
+- `source_path`: library-relative path to the raw source file.
 - `has_audio`: `true` or `false` — when true, playback respects Options effects volume.
 
 Cinematics are deliberately scoped to a specific Hero/Companion. A shared Ultimate
@@ -46,13 +46,13 @@ orphaned encodes are pruned.
 
 Delivery is **SDR only**. Battle overlays do not need HDR. If a master is HDR
 (PQ / HLG / Dolby Vision, or Transfer Function tagged as such), export an SDR Rec.709
-master into `Raw Assets/Animations/` before listing it in the manifest.
+master into `Video/Game Sources/Projects/Trinket/Animations/` before listing it in the manifest.
 
 Quick checks on a candidate source:
 
 ```sh
-grep -a -E 'hvc1|hev1' "Raw Assets/Animations/YourFile.mp4" >/dev/null && echo "HEVC OK"
-mdls -name kMDItemCodecs -name kMDItemProfileName "Raw Assets/Animations/YourFile.mp4"
+grep -a -E 'hvc1|hev1' "${ASSET_LIBRARY_ROOT:-$HOME/Documents/Asset Library}/Video/Game Sources/Projects/Trinket/Animations/YourFile.mp4" >/dev/null && echo "HEVC OK"
+mdls -name kMDItemCodecs -name kMDItemProfileName "${ASSET_LIBRARY_ROOT:-$HOME/Documents/Asset Library}/Video/Game Sources/Projects/Trinket/Animations/YourFile.mp4"
 ```
 
 The encode gate requires an `hvc1`/`hev1` sample entry (grep, not Spotlight, so freshly

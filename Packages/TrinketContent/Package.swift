@@ -37,6 +37,7 @@ let package = Package(
             exclude: [
                 "Generated/AbilityInventory.generated.tsv",
                 "Generated/AppIconSourceHashes.generated.tsv",
+                "Generated/PreparedAssets.generated.json",
                 "Generated/ArtSourceHashes.generated.tsv",
                 "Generated/MusicSourceHashes.generated.tsv",
                 "Generated/SFXSourceHashes.generated.tsv",

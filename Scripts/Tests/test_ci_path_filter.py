@@ -3,6 +3,8 @@ from __future__ import annotations
 
 SCRIPT_INPUTS = (
     'Scripts/ci-path-filter.py',
+    'Scripts/config/generated-paths.tsv',
+    'Scripts/handoff.sh',
     '.github/workflows/changes.yml',
 )
 
@@ -71,7 +73,12 @@ class CIPathFilterTests(unittest.TestCase):
     def test_asset_globs_match_prepare_scripts(self) -> None:
         match = self.filter.is_asset_path
         self.assertTrue(match("ArtManifest/curated-assets.tsv"))
-        self.assertTrue(match("Raw Assets/Art/foo.png"))
+        self.assertTrue(match("ArtManifest/app-icon.tsv"))
+        for path in ('Trinket/Media/SFX/sfx_hit.m4a', 'Trinket/Assets.xcassets/hero_knight_card.imageset/Contents.json',
+                     'Trinket/AppIcon.icon/icon.json',
+                     'Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift'):
+            with self.subTest(path=path):
+                self.assertTrue(match(path))
         prepare_scripts = sorted((ROOT / "Scripts").glob("prepare-*.sh"))
         self.assertGreater(len(prepare_scripts), 0)
         for script in prepare_scripts:
@@ -91,10 +98,14 @@ class CIPathFilterTests(unittest.TestCase):
                 self.assertEqual(self.filter.classify([path]), (True, assets, True))
                 output = subprocess.check_output(
                     [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", path], cwd=ROOT, text=True,
+                    env={key: value for key, value in os.environ.items()
+                         if key not in {'CI', 'GITHUB_ACTIONS', 'TRINKET_ALLOW_HEAVY_LOCAL'}},
                 )
                 planned = [line.strip() for line in output.splitlines() if line.startswith("  ")]
-                self.assertIn("./Scripts/generate.sh" + (" --assets" if assets else ""), planned)
-                self.assertIn("./Scripts/assert-generated-output.sh --idempotent" + (" --assets" if assets else ""), planned)
+                self.assertIn("./Scripts/generate.sh", planned)
+                self.assertIn("./Scripts/assert-generated-output.sh --idempotent", planned)
+                if assets:
+                    self.assertIn("./Scripts/ci-assets-gate.sh", planned)
 
     def test_build_contract_inputs_and_documentation(self) -> None:
         cases = {

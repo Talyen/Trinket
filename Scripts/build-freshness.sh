@@ -125,6 +125,8 @@ prepare_generated_inputs() (
   # This subshell owns only preparation; inherited simulator cleanup stays with
   # the parent launcher, including when acquiring the preparation lock fails.
   trap - EXIT INT TERM
+  # Prepared bytes can change independently of generation-input stamps.
+  ./Scripts/prepare-assets.sh --check --outputs-only || return $?
   local tenant_results_dir="$results_dir"
   # Generated files belong to the checkout, not to a simulator's build cache.
   # Check and update freshness under one lock so concurrent tenants prepare once.
@@ -175,8 +177,7 @@ prepare_generated_inputs() (
   fi
 
   if [[ -n "$assets_changed" ]]; then
-    echo "=== Asset inputs changed; running generate --assets ==="
-    generate_args+=(--assets)
+    echo "=== Asset inputs changed; committed prepared outputs checked ==="
   elif [[ -n "$content_changed" && -z "$project_changed" ]]; then
     echo "=== Content inputs changed; running generate (skipping xcodegen) ==="
     generate_args+=(--skip-xcodegen)

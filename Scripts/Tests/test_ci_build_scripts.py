@@ -150,13 +150,6 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("must not include Scripts/**", result.stderr)
 
-    def test_ci_assets_gate_locale_rerun(self) -> None:
-        text = (ROOT / "Scripts" / "ci-assets-gate.sh").read_text(encoding="utf-8")
-        self.assertIn("generate.sh --assets", text)
-        self.assertIn("assert-generated-output.sh --assets", text)
-        self.assertIn("LC_ALL=en_US.UTF-8", text)
-        self.assertIn("LANG=en_US.UTF-8", text)
-
     def test_release_compile_is_required_only_for_nightly_and_manual_runs(self):
         workflow = (ROOT / ".github/workflows/tests.yml").read_text()
         release = workflow.split("  release-device:\n", 1)[1].split("  unit:\n", 1)[0]
@@ -249,6 +242,9 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_repo_fixture(
                 directory, ("Scripts/build-freshness.sh", "Scripts/build-inputs.env"))
+            prepare = root / 'Scripts/prepare-assets.sh'
+            prepare.write_text('#!/bin/bash\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n[[ ! -f invalid-assets ]] || exit 7\nprintf checked >> asset-checks\n')
+            prepare.chmod(0o755)
             generate = root / "Scripts/generate.sh"
             generate.write_text('#!/bin/bash\necho generated >> calls\n')
             generate.chmod(0o755)
@@ -272,6 +268,11 @@ prepare_generated_inputs results
 printf changed > asset
 prepare_generated_inputs results
 [[ $(wc -l < calls) -eq 4 ]]
+touch invalid-assets
+status=0
+prepare_generated_inputs results || status=$?
+[[ $status -eq 7 ]]
+[[ $(wc -l < calls) -eq 4 ]]
 """
             result = subprocess.run(["bash", "-eu", "-c", script], cwd=root, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -287,13 +288,16 @@ prepare_generated_inputs results
             ("Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift", "--skip-xcodegen"),
             ("Packages/TrinketContent/Sources/TrinketContent/Encounters/Mystery/MysteryEventPool+Events.swift", "--skip-xcodegen"),
             ("Packages/TrinketContent/Sources/TrinketContent/Encounters/Mystery/RecruitEventPool.swift", "--skip-xcodegen"),
-            ("Scripts/lib/media-assets.sh", "--assets"),
-            ("Scripts/config/full-only-art-kinds.txt", "--assets"),
-            ("Scripts/prepare-assets.sh", "--assets"),
+            ("Scripts/lib/media-assets.sh", ""),
+            ("Scripts/config/full-only-art-kinds.txt", ""),
+            ("Scripts/prepare-assets.sh", ""),
         ):
             with self.subTest(path=relative), tempfile.TemporaryDirectory() as directory:
                 root = self.make_repo_fixture(
                     directory, ("Scripts/build-freshness.sh", "Scripts/build-inputs.env"))
+                prepare = root / 'Scripts/prepare-assets.sh'
+                prepare.write_text('#!/bin/bash\n[[ "$*" == "--check --outputs-only" ]] || exit 9\nprintf checked >> asset-checks\n')
+                prepare.chmod(0o755)
                 (root / "ContentManifest").mkdir()
                 (root / "ContentManifest/input.tsv").touch()
                 (root / "ArtManifest").mkdir()
@@ -319,6 +323,7 @@ prepare_generated_inputs results
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_repo_fixture(
                 directory, ("Scripts/prepare-assets.sh", "Scripts/lib/args.sh"))
+            (root / 'Scripts/asset-library.py').write_text('import sys\nsys.exit(0)\n')
             for kind in ("art", "cinematic", "audio", "app-icon"):
                 pipeline = root / "Scripts" / f"prepare-{kind}-assets.sh"
                 if kind == "app-icon":

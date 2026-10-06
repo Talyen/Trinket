@@ -1,6 +1,6 @@
 # XP resource artwork provenance
 
-- Source: `Raw Assets/Resources/experience.png`, original generated PNG retained without pixel edits.
+- Source: `2d Assets/Game Sources/Items/Resources/Experience.png`, original generated PNG retained without pixel edits.
 - Created: September 12, 2026, with OpenAI's built-in imagegen tool in Codex.
 - Direction: user-requested two-book XP icon for Trinket. Existing wood and gold icons were inspected locally for style; no reference image was submitted to the generator.
 - Usage-rights evidence: [OpenAI Terms of Use](https://openai.com/policies/terms-of-use/), effective January 1, 2026, accessed September 12, 2026, Content / Ownership of content. These assign OpenAI's rights in output to the user to the extent permitted by law. The terms also note that outputs may be similar and exclude third-party output from that assignment. This records the provider's rights basis, not an independent copyright or exclusivity guarantee.

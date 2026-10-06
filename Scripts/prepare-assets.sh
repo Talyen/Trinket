@@ -9,8 +9,12 @@ cd "$(dirname "$0")/.."
 source Scripts/lib/args.sh
 
 kind="all"
+check=false
+outputs_only=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --check) check=true; shift ;;
+    --outputs-only) outputs_only=true; shift ;;
     --kind)
       if [[ -z "${2:-}" ]]; then
         echo "--kind requires an argument (art|cinematic|music|sfx|app-icon|all)" >&2
@@ -20,7 +24,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --help|-h)
-      echo "Usage: $0 [--kind art|cinematic|music|sfx|app-icon|all]"
+      echo "Usage: $0 [--kind art|cinematic|music|sfx|app-icon|all] [--check [--outputs-only]]"
       exit 0
       ;;
     *)
@@ -33,6 +37,18 @@ case "$kind" in
   art|cinematic|music|sfx|app-icon|all) ;;
   *) echo "Unknown asset kind: $kind" >&2; exit 2 ;;
 esac
+
+if $outputs_only && ! $check; then
+  echo "--outputs-only requires --check" >&2
+  exit 2
+fi
+if $check; then
+  args=(--check --kind "$kind")
+  $outputs_only && args+=(--outputs-only)
+  python3 Scripts/asset-library.py "${args[@]}"
+  exit
+fi
+python3 Scripts/asset-library.py --preflight --kind "$kind"
 
 run_kind() {
   trinket_log_section "Preparing $1"

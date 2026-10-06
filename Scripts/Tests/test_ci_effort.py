@@ -40,6 +40,8 @@ class CIEffortTests(unittest.TestCase):
         for expired in (True, 0, None):
             self.assertIsNone(REUSE.proof(run, jobs, [{**artifacts[0], 'expired': expired}], 'abc', 'main'))
         self.assertEqual(REUSE.proof(run, jobs, artifacts, 'abc', 'main')['assets'], 'false')
+        jobs.append(dict(name='tests / Prepared asset integrity', conclusion='success'))
+        self.assertEqual(REUSE.proof(run, jobs, artifacts, 'abc', 'main')['assets'], 'true')
 
     def test_reuse_reads_successful_prior_attempts_but_latest_failure_wins(self):
         run, jobs, artifacts = self.proof_fixture()

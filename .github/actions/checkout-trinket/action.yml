@@ -1,6 +1,6 @@
 name: Checkout Trinket sources
 description: >
-  Sparse checkout shared by the tests.yml build/test jobs (no Raw Assets),
+  Sparse checkout shared by the tests.yml build/test jobs (committed outputs only),
   plus an assertion that the cone kept the root build inputs. Single owner
   for the sparse path list so the five jobs cannot drift.
 
@@ -11,7 +11,7 @@ runs:
       with:
         fetch-depth: 1
         sparse-checkout-cone-mode: true
-        # Cone mode keeps root files (project.yml, *.xctestplan). Skip Raw Assets.
+        # Cone mode keeps root files (project.yml, *.xctestplan). Raw sources live outside the repository.
         sparse-checkout: |
           Scripts
           Packages

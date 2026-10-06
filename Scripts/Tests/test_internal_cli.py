@@ -43,7 +43,7 @@ class InternalCliTests(unittest.TestCase):
             actual.extend(parsed[name])
         self.assertEqual(actual, expected)
         # Quoting is unwrapped, not preserved.
-        self.assertIn("Raw Assets", parsed["TRINKET_ASSET_GENERATION_INPUTS"])
+        self.assertIn("Scripts/asset-library.py", parsed["TRINKET_ASSET_GENERATION_INPUTS"])
         self.assertIn("*.xctestplan", parsed["TRINKET_PROJECT_GENERATION_INPUTS"])
 
         # A silent path mismatch can omit a build input from freshness checks.

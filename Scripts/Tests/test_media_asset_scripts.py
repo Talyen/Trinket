@@ -427,7 +427,7 @@ trinket_asset_cleanup_tracked
 
     def test_app_icon_fixture_installs_once_and_stays_stable(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
+            root = self.make_repo_fixture(directory, ("Scripts/prepare-app-icon.sh", "Scripts/lib/media-assets.sh"))
             for relative in (
                 "Scripts/lib",
                 "Raw Assets/App Icon/Trinket App Icon.icon",
