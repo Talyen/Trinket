@@ -15,7 +15,8 @@ extension BattleSessionAutoBattleTests {
         defer { session.endBattle() }
         let casts = BattleCastPresentationState()
         defer { casts.reset() }
-        let start = Date.now
+        // Keep wall-clock expiration outside the synthetic pacing window.
+        let start = Date.now.addingTimeInterval(10)
         let card = try #require(session.hand.first)
         casts.append(CardActivationRequest.restingRequest(
             for: card, index: 0, cardCount: session.hand.count,
