@@ -1,5 +1,6 @@
 import Testing
 import TrinketContentTestSupport
+import TrinketCore
 @testable import BattleEngine
 
 struct CombatantMaxValuesTests {
