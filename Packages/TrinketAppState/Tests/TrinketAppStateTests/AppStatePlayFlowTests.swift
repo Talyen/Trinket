@@ -227,13 +227,12 @@ struct AppStatePlayFlowTests {
         let configuration = try #require(state.battle.activeBattle)
         let launch = try #require(state.battleRegistration(for: configuration.runKey)?.launch)
         let settlement = try #require(state.settleBattleRewards(configuration, battleGold: .init(gained: 5)))
-        let loot = PlayBattleCoordinator.preparedLoot(from: launch, materialRewards: nil)
         let route = try #require(state.route(for: configuration.runKey))
 
         #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 5)).didComplete)
         let saveAfterVictory = state.playerSave.currentSave
         #expect(route.complete(
-            configuration, launch: launch, award: settlement, materialRewards: nil, loot: loot, playerSave: state.playerSave,
+            configuration, launch: launch, award: settlement, materialRewards: nil, playerSave: state.playerSave,
         ) == .unavailable)
         #expect(state.playerSave.currentSave == saveAfterVictory)
     }

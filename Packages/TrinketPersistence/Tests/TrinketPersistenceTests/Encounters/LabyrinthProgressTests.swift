@@ -236,7 +236,7 @@ struct LabyrinthProgressTests {
             nodeID: bossID,
             hero: save.roster.activeHero,
             companion: save.roster.activeCompanion,
-            rewardItem: pending,
+            rewards: .unsettled(.init(rewardItem: pending)),
             save: &save,
             recordReceipt: { _ in },
         )

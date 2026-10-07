@@ -43,12 +43,7 @@ public enum SpireCompletion {
         floor: SpireFloor,
         hero: Combatant,
         companion: Combatant,
-        battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardSettlement? = nil,
-        materialRewards: [ResourceAmount]? = nil,
-        rewardItem: InventoryItem? = nil,
-        loot: BattleLootResult? = nil,
-        enemyEncounterLevel: Int? = nil,
+        rewards: EncounterRewards = .unsettled(.init()),
         save: inout PlayerSave,
         recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
@@ -67,26 +62,31 @@ public enum SpireCompletion {
             return .unavailable
         }
 
-        let encounterLevel = enemyEncounterLevel
-            ?? partyAdjustedEncounterLevel(for: floor, save: save)
-        let resolvedLoot = loot ?? resolveLoot(
-            for: floor,
-            encounterLevel: encounterLevel,
-            worldSeed: save.worldSeed,
-            ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-            ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
+        let encounterLevel = rewards.encounterLevel(or: partyAdjustedEncounterLevel(for: floor, save: save))
+        let settlement = rewards.resolve { overrides in
+            let resolvedLoot = overrides.loot ?? resolveLoot(
+                for: floor,
+                encounterLevel: encounterLevel,
+                worldSeed: save.worldSeed,
+                ownedTrinketIDs: save.inventory.ownedTrinketIDs,
+                ownedUniqueIDs: save.inventory.ownedUniqueIDs,
+                astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
+            )
+            return VictoryRewardApplier.settleVictoryRewards(
+                party: (hero, companion),
+                encounterLevel: encounterLevel,
+                stageGold: resolvedLoot.gold,
+                battleGold: overrides.battleGold,
+                materialRewards: overrides.materialRewards ?? resolvedLoot.materials,
+                item: overrides.rewardItem ?? resolvedLoot.item,
+                save: save,
+            )
+        }
+        VictoryRewardApplier.apply(
+            settlement, hero: hero, companion: companion, save: &save,
+            claim: .spire(id: spireID, floor: floor.floor), recordReceipt: recordReceipt,
         )
-        VictoryRewardApplier.grantVictoryRewards(
-            party: (hero, companion),
-            encounterLevel: encounterLevel,
-            stageGold: resolvedLoot.gold,
-            battleGold: battleGold,
-            award: award,
-            materialRewards: materialRewards ?? resolvedLoot.materials,
-            item: rewardItem ?? resolvedLoot.item,
-            save: &save, claim: .spire(id: spireID, floor: floor.floor), recordReceipt: recordReceipt,
-        )
+        save.contracts.recordVictory(encounterLevel: encounterLevel)
 
         save.spires.markFloorCleared(floor.floor, spireID: spireID)
         return .completed

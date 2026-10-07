@@ -7,40 +7,34 @@ public extension PlayerSaveStore {
         at destination: BattleCompletionDestination,
         party: (hero: Combatant, companion: Combatant),
         award: BattleRewardSettlement,
-        loot: (materials: [ResourceAmount]?, item: InventoryItem?, result: BattleLootResult?),
-        enemyEncounterLevel: Int?,
+        enemyEncounterLevel: Int,
         earnedVoyageRewards: BattleRewardAward? = nil,
         makeContractOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> SaveTransactionResult<Void, EncounterCompletionFailure> {
         persistTransaction(logging: "Failed to complete battle encounter") { save, recordReceipt in
             let result: EncounterCompletion
             let (hero, companion) = party
-            let (materialRewards, rewardItem, resolvedLoot) = loot
-            let battleGold = award.award.goldFlow
+            let rewards = EncounterRewards.settled(award, encounterLevel: enemyEncounterLevel)
             switch destination {
             case let .journey(stage):
                 result = StageCompletion.complete(
-                    stage, hero: hero, companion: companion, battleGold: battleGold, award: award,
-                    materialRewards: materialRewards, rewardItem: rewardItem, loot: resolvedLoot, enemyEncounterLevel: enemyEncounterLevel,
+                    stage, hero: hero, companion: companion, rewards: rewards,
                     in: GameContent.chapters, save: &save, recordReceipt: recordReceipt,
                 )
             case let .spire(floor):
                 result = SpireCompletion.complete(
-                    floor: floor, hero: hero, companion: companion, battleGold: battleGold, award: award,
-                    materialRewards: materialRewards, rewardItem: rewardItem, loot: resolvedLoot, enemyEncounterLevel: enemyEncounterLevel,
+                    floor: floor, hero: hero, companion: companion, rewards: rewards,
                     save: &save, recordReceipt: recordReceipt,
                 )
             case let .labyrinth(nodeID, access):
                 result = LabyrinthCompletion.complete(
-                    nodeID: nodeID, hero: hero, companion: companion, battleGold: battleGold, award: award,
-                    materialRewards: materialRewards, rewardItem: rewardItem, loot: resolvedLoot, enemyEncounterLevel: enemyEncounterLevel,
+                    nodeID: nodeID, hero: hero, companion: companion, rewards: rewards,
                     save: &save, access: access, recordReceipt: recordReceipt,
                 )
             case let .contract(offerID):
-                guard let resolvedLoot, let enemyEncounterLevel else { return .failure(.unavailable) }
                 result = ContractsCompletion.complete(
-                    offerID: offerID, hero: hero, companion: companion, encounterLevel: enemyEncounterLevel, loot: resolvedLoot,
-                    battleGold: battleGold, award: award, save: &save, makeOffer: makeContractOffer, recordReceipt: recordReceipt,
+                    offerID: offerID, hero: hero, companion: companion,
+                    rewards: rewards, save: &save, makeOffer: makeContractOffer, recordReceipt: recordReceipt,
                 )
             case let .voyage(runID, nodeID, encounterLevel, access):
                 guard let earnedVoyageRewards else { return .failure(.unavailable) }

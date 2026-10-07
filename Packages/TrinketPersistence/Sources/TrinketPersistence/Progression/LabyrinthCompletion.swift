@@ -54,12 +54,7 @@ public enum LabyrinthCompletion {
         nodeID: String,
         hero: Combatant,
         companion: Combatant,
-        battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardSettlement? = nil,
-        materialRewards: [ResourceAmount]? = nil,
-        rewardItem: InventoryItem? = nil,
-        loot: BattleLootResult? = nil,
-        enemyEncounterLevel: Int? = nil,
+        rewards: EncounterRewards = .unsettled(.init()),
         save: inout PlayerSave,
         access: ContentAccessPolicy = .fullGame,
         recordReceipt: (SaveEconomicReceipt) -> Void,
@@ -73,38 +68,43 @@ public enum LabyrinthCompletion {
         guard let node = save.labyrinth.node(id: nodeID) else { return .unavailable }
         guard !node.isCleared else { return .alreadyCompleted }
 
-        let effects = save.labyrinth.effects(for: nodeID)
-        let encounterLevel = enemyEncounterLevel
-            ?? EncounterLevelResolver.labyrinthAdjusted(
-                EncounterLevelResolver.labyrinthEnemyLevel(for: node),
-                partyAverageLevel: save.roster.activePartyAverageLevel,
-            )
-
+        let encounterLevel = rewards.encounterLevel(or: EncounterLevelResolver.labyrinthAdjusted(
+            EncounterLevelResolver.labyrinthEnemyLevel(for: node),
+            partyAverageLevel: save.roster.activePartyAverageLevel,
+        ))
         let isCombat = node.type.isCombat
-        let resolvedLoot = isCombat
-            ? loot ?? resolveCombatLoot(
-                for: node,
-                effects: effects,
+        let settlement = rewards.resolve { overrides in
+            let effects = save.labyrinth.effects(for: nodeID)
+            let resolvedLoot = isCombat
+                ? overrides.loot ?? resolveCombatLoot(
+                    for: node,
+                    effects: effects,
+                    encounterLevel: encounterLevel,
+                    worldSeed: save.worldSeed,
+                    ownedTrinketIDs: save.inventory.ownedTrinketIDs,
+                    ownedUniqueIDs: save.inventory.ownedUniqueIDs,
+                    astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
+                )
+                : overrides.loot
+            return VictoryRewardApplier.settleVictoryRewards(
+                party: (hero, companion),
                 encounterLevel: encounterLevel,
-                worldSeed: save.worldSeed,
-                ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-                ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-                astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
+                stageGold: isCombat ? resolvedLoot?.gold ?? 0 : nonCombatGoldStipend(for: node),
+                battleGold: overrides.battleGold,
+                grantsCombatExperience: isCombat,
+                experienceEarnedPercent: isCombat ? effects.experienceEarnedPercent : 0,
+                materialRewards: overrides.materialRewards ?? resolvedLoot?.materials ?? [],
+                item: overrides.rewardItem ?? resolvedLoot?.item,
+                save: save,
             )
-            : loot
-        let claim = CloudEconomicAction.Claim.labyrinth(seed: save.labyrinth.worldSeed, nodeID: nodeID)
-        VictoryRewardApplier.grantVictoryRewards(
-            party: (hero, companion),
-            encounterLevel: encounterLevel,
-            stageGold: isCombat ? resolvedLoot?.gold ?? 0 : nonCombatGoldStipend(for: node),
-            battleGold: battleGold,
-            award: award,
-            grantsCombatExperience: isCombat,
-            experienceEarnedPercent: isCombat ? effects.experienceEarnedPercent : 0,
-            materialRewards: materialRewards ?? resolvedLoot?.materials ?? [],
-            item: rewardItem ?? resolvedLoot?.item,
-            save: &save, claim: claim, recordReceipt: recordReceipt,
+        }
+        VictoryRewardApplier.apply(
+            settlement, hero: hero, companion: companion, save: &save,
+            claim: .labyrinth(seed: save.labyrinth.worldSeed, nodeID: nodeID), recordReceipt: recordReceipt,
         )
+        if isCombat {
+            save.contracts.recordVictory(encounterLevel: encounterLevel)
+        }
 
         save.labyrinth.markCleared(
             nodeID: nodeID,

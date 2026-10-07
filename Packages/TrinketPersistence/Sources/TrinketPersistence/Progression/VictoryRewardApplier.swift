@@ -61,11 +61,7 @@ public enum VictoryRewardApplier {
         )
     }
 
-    /// Applies a battle's rewards. A pre-settled `award` from the battle that
-    /// just ran wins by design: it snapshots homestead production at battle
-    /// end, and re-settling at completion would accrue production a second
-    /// time. Callers without a battle pass nil to settle fresh.
-    ///
+    /// Resolves encounter rewards that have no settled battle award.
     /// A duplicate headline item (owned trinket/unique) converts to
     /// level-scaled consolation gold instead of granting nothing: the
     /// encounter still marks complete, so the claim must still pay something.
@@ -74,7 +70,6 @@ public enum VictoryRewardApplier {
         encounterLevel: Int,
         stageGold: Int,
         battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardSettlement? = nil,
         grantsCombatExperience: Bool = true,
         experienceEarnedPercent: Int = 0,
         materialRewards: [ResourceAmount],
@@ -84,7 +79,30 @@ public enum VictoryRewardApplier {
         recordReceipt: (SaveEconomicReceipt) -> Void,
     ) {
         let (hero, companion) = party
-        let resolved = award ?? unpreparedRewardPlan(
+        let resolved = settleVictoryRewards(
+            party: party, encounterLevel: encounterLevel, stageGold: stageGold, battleGold: battleGold,
+            grantsCombatExperience: grantsCombatExperience, experienceEarnedPercent: experienceEarnedPercent,
+            materialRewards: materialRewards, item: item, save: save,
+        )
+        apply(resolved, hero: hero, companion: companion, save: &save, claim: claim, recordReceipt: recordReceipt)
+        if grantsCombatExperience {
+            save.contracts.recordVictory(encounterLevel: encounterLevel)
+        }
+    }
+
+    static func settleVictoryRewards(
+        party: (hero: Combatant, companion: Combatant),
+        encounterLevel: Int,
+        stageGold: Int,
+        battleGold: BattleGoldFlow = .init(),
+        grantsCombatExperience: Bool = true,
+        experienceEarnedPercent: Int = 0,
+        materialRewards: [ResourceAmount],
+        item: InventoryItem?,
+        save: PlayerSave,
+    ) -> BattleRewardSettlement {
+        let (hero, companion) = party
+        return unpreparedRewardPlan(
             party: (hero, companion), encounterLevel: encounterLevel,
             stageGold: stageGold, grantsCombatExperience: grantsCombatExperience,
             experienceEarnedPercent: experienceEarnedPercent,
@@ -93,10 +111,6 @@ public enum VictoryRewardApplier {
             battleGold: battleGold,
             inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion),
         )
-        apply(resolved, hero: hero, companion: companion, save: &save, claim: claim, recordReceipt: recordReceipt)
-        if grantsCombatExperience {
-            save.contracts.recordVictory(encounterLevel: encounterLevel)
-        }
     }
 
     private static func unpreparedRewardPlan(
@@ -142,7 +156,7 @@ public enum VictoryRewardApplier {
     }
 
     /// Applies a settled award verbatim. Dupe conversion happens at plan
-    /// construction in `grantVictoryRewards` (nil-award path); battle-end
+    /// construction in `settleVictoryRewards`; battle-end
     /// awards carry launch-filtered items, so direct `apply` callers must
     /// filter duplicates first.
     static func apply(

@@ -67,12 +67,7 @@ public enum StageCompletion {
         _ stage: Stage,
         hero: Combatant,
         companion: Combatant,
-        battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardSettlement? = nil,
-        materialRewards: [ResourceAmount]? = nil,
-        rewardItem: InventoryItem? = nil,
-        loot: BattleLootResult? = nil,
-        enemyEncounterLevel: Int? = nil,
+        rewards: EncounterRewards = .unsettled(.init()),
         in chapters: [Chapter],
         save: inout PlayerSave,
         recordReceipt: (SaveEconomicReceipt) -> Void,
@@ -81,12 +76,7 @@ public enum StageCompletion {
             for: stage,
             hero: hero,
             companion: companion,
-            battleGold: battleGold,
-            award: award,
-            materialRewards: materialRewards,
-            rewardItem: rewardItem,
-            loot: loot,
-            enemyEncounterLevel: enemyEncounterLevel,
+            rewards: rewards,
             save: &save, recordReceipt: recordReceipt,
         )
         guard !save.journey.isCompleted(stage) else {
@@ -101,12 +91,7 @@ public enum StageCompletion {
         for stage: Stage,
         hero: Combatant,
         companion: Combatant,
-        battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardSettlement? = nil,
-        materialRewards: [ResourceAmount]? = nil,
-        rewardItem: InventoryItem? = nil,
-        loot: BattleLootResult? = nil,
-        enemyEncounterLevel: Int? = nil,
+        rewards: EncounterRewards = .unsettled(.init()),
         save: inout PlayerSave,
         recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
@@ -114,54 +99,63 @@ public enum StageCompletion {
             return .alreadyCompleted
         }
 
-        let encounterLevel = enemyEncounterLevel
-            ?? partyAdjustedEncounterLevel(for: stage, save: save)
-        let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: stage.encounter.battleEnemyID)
+        let encounterLevel = rewards.encounterLevel(or: partyAdjustedEncounterLevel(for: stage, save: save))
+        var grantsAuthoredItems = false
+        let settlement = rewards.resolve { overrides in
+            let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: stage.encounter.battleEnemyID)
 
-        let resolvedLoot: BattleLootResult? = {
-            if let loot {
-                return loot
+            let resolvedLoot: BattleLootResult? = {
+                if let loot = overrides.loot {
+                    return loot
+                }
+                guard stage.encounter.isCombat else {
+                    return nil
+                }
+                return resolveLoot(
+                    for: stage,
+                    encounterLevel: encounterLevel,
+                    enemyIsBoss: enemyIsBoss,
+                    worldSeed: save.worldSeed,
+                    ownedTrinketIDs: save.inventory.ownedTrinketIDs,
+                    ownedUniqueIDs: save.inventory.ownedUniqueIDs,
+                    astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
+                )
+            }()
+
+            let stageGold: Int
+            let materialFallback: [ResourceAmount]
+            if stage.encounter.isCombat {
+                // Combat payouts come entirely from the seeded loot roll; authored
+                // stage rewards never stack on top (all shipped stages author
+                // `.empty` — see JourneyCatalogTests). Non-combat stages have no
+                // loot roll, so their authored rewards apply directly.
+                stageGold = resolvedLoot?.gold ?? 0
+                materialFallback = []
+            } else {
+                stageGold = stage.rewards.gold
+                materialFallback = resolvedMaterialRewards(stageReward: stage.rewards)
             }
-            guard stage.encounter.isCombat else {
-                return nil
-            }
-            return resolveLoot(
-                for: stage,
+            let item = overrides.rewardItem ?? resolvedLoot?.item
+            grantsAuthoredItems = item == nil
+            return VictoryRewardApplier.settleVictoryRewards(
+                party: (hero, companion),
                 encounterLevel: encounterLevel,
-                enemyIsBoss: enemyIsBoss,
-                worldSeed: save.worldSeed,
-                ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-                ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-                astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
+                stageGold: stageGold,
+                battleGold: overrides.battleGold,
+                grantsCombatExperience: stage.encounter.isCombat,
+                materialRewards: overrides.materialRewards ?? resolvedLoot?.materials ?? materialFallback,
+                item: item,
+                save: save,
             )
-        }()
-
-        let stageGold: Int
-        let materialFallback: [ResourceAmount]
-        if stage.encounter.isCombat {
-            // Combat payouts come entirely from the seeded loot roll; authored
-            // stage rewards never stack on top (all shipped stages author
-            // `.empty` — see JourneyCatalogTests). Non-combat stages have no
-            // loot roll, so their authored rewards apply directly.
-            stageGold = resolvedLoot?.gold ?? 0
-            materialFallback = []
-        } else {
-            stageGold = stage.rewards.gold
-            materialFallback = resolvedMaterialRewards(stageReward: stage.rewards)
         }
-        let item = rewardItem ?? resolvedLoot?.item
-        VictoryRewardApplier.grantVictoryRewards(
-            party: (hero, companion),
-            encounterLevel: encounterLevel,
-            stageGold: stageGold,
-            battleGold: battleGold,
-            award: award,
-            grantsCombatExperience: stage.encounter.isCombat,
-            materialRewards: materialRewards ?? resolvedLoot?.materials ?? materialFallback,
-            item: item,
-            save: &save, claim: .journey(stage.id), recordReceipt: recordReceipt,
+        VictoryRewardApplier.apply(
+            settlement, hero: hero, companion: companion, save: &save,
+            claim: .journey(stage.id), recordReceipt: recordReceipt,
         )
-        if award == nil, item == nil {
+        if stage.encounter.isCombat {
+            save.contracts.recordVictory(encounterLevel: encounterLevel)
+        }
+        if grantsAuthoredItems {
             grantAuthoredItems(for: stage, inventory: &save.inventory)
         }
 

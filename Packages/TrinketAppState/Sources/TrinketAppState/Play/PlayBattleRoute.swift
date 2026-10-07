@@ -23,10 +23,10 @@ extension BattleCompletionDestination {
         launch: BattleLaunchAssembly,
         award: BattleRewardSettlement,
         materialRewards: [ResourceAmount]?,
-        loot: BattleLootResult?,
         playerSave: PlayerSaveStore,
         makeContractOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> BattleCompletionResult {
+        guard let enemyEncounterLevel = configuration.enemyEncounterLevel else { return .unavailable }
         let earnedVoyageRewards: BattleRewardAward? = if case .voyage = self {
             launch.rewardPlan.resolve(battleGold: award.award.goldFlow, materials: materialRewards, includingCompletionBonus: false)
         } else {
@@ -34,8 +34,8 @@ extension BattleCompletionDestination {
         }
         let result = playerSave.completeBattle(
             at: self, party: (configuration.hero.combatant, configuration.companion.combatant),
-            award: award, loot: (materialRewards, launch.inputs.launch.pendingRewardItem, loot),
-            enemyEncounterLevel: configuration.enemyEncounterLevel,
+            award: award,
+            enemyEncounterLevel: enemyEncounterLevel,
             earnedVoyageRewards: earnedVoyageRewards,
             makeContractOffer: makeContractOffer,
         )

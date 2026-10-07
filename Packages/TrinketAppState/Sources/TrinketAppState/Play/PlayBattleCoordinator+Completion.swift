@@ -74,17 +74,12 @@ extension PlayBattleCoordinator {
         ) else { return .unavailable }
         guard settlement == nil || settlement == resolved else { return .staleSettlement(resolved) }
         let origin = route?.origin
-        let loot = Self.preparedLoot(
-            from: run.launch,
-            materialRewards: baseMaterials,
-        )
         let result: BattleCompletionResult = if let route {
             route.complete(
                 configuration,
                 launch: run.launch,
                 award: settlement ?? resolved,
                 materialRewards: baseMaterials,
-                loot: loot,
                 playerSave: playerSave,
                 makeContractOffer: makeContractOffer,
             )
@@ -117,18 +112,6 @@ extension PlayBattleCoordinator {
             }
         }
         return result
-    }
-
-    static func preparedLoot(
-        from launch: BattleLaunchAssembly,
-        materialRewards: [ResourceAmount]?,
-    ) -> BattleLootResult? {
-        guard let item = launch.inputs.launch.pendingRewardItem else { return nil }
-        return BattleLootResult(
-            item: item,
-            gold: launch.inputs.launch.stageReward?.gold ?? 0,
-            materials: materialRewards ?? launch.rewardPlan.materials,
-        )
     }
 
     func settleRewards(

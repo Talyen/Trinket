@@ -48,7 +48,7 @@ struct SpiresProgressTests {
                 floor: topFloor,
                 hero: hero,
                 companion: attempt.roster.activeCompanion,
-                enemyEncounterLevel: enemyEncounterLevel,
+                rewards: .unsettled(.init(enemyEncounterLevel: enemyEncounterLevel)),
                 save: &attempt,
                 recordReceipt: { _ in },
             )

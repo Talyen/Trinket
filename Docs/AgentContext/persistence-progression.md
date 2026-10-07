@@ -28,8 +28,11 @@ bonuses and saved run totals; ordinary reward amounts retain their existing valu
 Completion revalidates the recorded
 snapshot and rejects stale settlements before any mode completion; the UI refreshes
 its reveal before another claim. Application uses the recorded production date so
-passive accrual cannot silently shrink a displayed award. Unprepared rewards use
-the same settlement path. Modes retain their existing one-time claim ownership.
+passive accrual cannot silently shrink a displayed award. The save command accepts
+the settled award and captured encounter level; it does not accept a second loot, item, material, or battle-Gold payout. Internally,
+`EncounterRewards` selects either that settled award or unsettled encounter
+inputs. Only unsettled inputs enter loot generation and current bonus settlement.
+Modes retain their existing one-time claim ownership.
 Contract victories record the completed offer ID before replacement; refreshing the board preserves receipts
 without creating a claim. Voyage victories record completed run IDs before
 dismissing their cleared routes.

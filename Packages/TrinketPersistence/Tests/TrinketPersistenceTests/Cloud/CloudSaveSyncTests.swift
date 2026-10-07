@@ -171,7 +171,7 @@ extension CloudSaveSyncTests {
         let committed = store.persistBatch(logging: "Shared Contract") { save, recordReceipt in
             let completion = ContractsCompletion.complete(
                 offerID: offerID, hero: hero, companion: save.roster.activeCompanion,
-                encounterLevel: 1, loot: loot, save: &save, recordReceipt: recordReceipt,
+                rewards: .unsettled(.init(loot: loot, enemyEncounterLevel: 1)), save: &save, recordReceipt: recordReceipt,
             )
             #expect(completion == .completed)
         }

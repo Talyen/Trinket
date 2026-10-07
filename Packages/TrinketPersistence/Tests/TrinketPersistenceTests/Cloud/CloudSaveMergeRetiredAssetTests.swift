@@ -33,8 +33,10 @@ struct CloudSaveMergeRetiredAssetTests {
         let before = restored
         let outcome = try ContractsCompletion.complete(
             offerID: offer.id, hero: restored.roster.activeHero, companion: restored.roster.activeCompanion,
-            encounterLevel: 1,
-            loot: BattleLootResult(item: #require(GameContent.sampleInventoryItems.first), gold: 10, materials: []),
+            rewards: .unsettled(.init(
+                loot: BattleLootResult(item: #require(GameContent.sampleInventoryItems.first), gold: 10, materials: []),
+                enemyEncounterLevel: 1,
+            )),
             save: &restored,
             recordReceipt: { _ in },
         )
@@ -51,8 +53,10 @@ struct CloudSaveMergeRetiredAssetTests {
         let before = save
         let outcome = try ContractsCompletion.complete(
             offerID: offer.id, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
-            encounterLevel: 1,
-            loot: BattleLootResult(item: #require(GameContent.sampleInventoryItems.first), gold: 10, materials: []),
+            rewards: .unsettled(.init(
+                loot: BattleLootResult(item: #require(GameContent.sampleInventoryItems.first), gold: 10, materials: []),
+                enemyEncounterLevel: 1,
+            )),
             save: &save,
             recordReceipt: { _ in },
         )

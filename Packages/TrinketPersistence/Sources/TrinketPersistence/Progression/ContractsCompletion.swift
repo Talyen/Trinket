@@ -33,28 +33,35 @@ public enum ContractsCompletion {
         offerID: String,
         hero: Combatant,
         companion: Combatant,
-        encounterLevel: Int,
-        loot: BattleLootResult,
-        battleGold: BattleGoldFlow = .init(),
-        award: BattleRewardSettlement? = nil,
+        rewards: EncounterRewards = .unsettled(.init()),
         save: inout PlayerSave,
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
         recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         guard !(save.contracts.completedOfferIDs ?? []).contains(offerID),
               let offer = save.contracts.offers.first(where: { $0.id == offerID }) else { return .alreadyCompleted }
-        let modifier = effectiveModifier(for: offer, inventory: save.inventory)
-        VictoryRewardApplier.grantVictoryRewards(
-            party: (hero, companion),
-            encounterLevel: encounterLevel,
-            stageGold: loot.gold,
-            battleGold: battleGold,
-            award: award,
-            experienceEarnedPercent: modifier.experienceBonusPercent,
-            materialRewards: loot.materials,
-            item: loot.item,
-            save: &save, claim: .contract(offerID), recordReceipt: recordReceipt,
+        let encounterLevel = rewards.encounterLevel(or: EncounterLevelResolver.contractEnemyLevel(
+            difficulty: offer.difficulty, partyAverageLevel: save.roster.activePartyAverageLevel,
+        ))
+        let settlement = rewards.resolve { overrides in
+            let loot = overrides.loot ?? resolveLoot(for: offer, encounterLevel: encounterLevel, save: save)
+            let modifier = effectiveModifier(for: offer, inventory: save.inventory)
+            return VictoryRewardApplier.settleVictoryRewards(
+                party: (hero, companion),
+                encounterLevel: encounterLevel,
+                stageGold: loot.gold,
+                battleGold: overrides.battleGold,
+                experienceEarnedPercent: modifier.experienceBonusPercent,
+                materialRewards: overrides.materialRewards ?? loot.materials,
+                item: overrides.rewardItem ?? loot.item,
+                save: save,
+            )
+        }
+        VictoryRewardApplier.apply(
+            settlement, hero: hero, companion: companion, save: &save,
+            claim: .contract(offerID), recordReceipt: recordReceipt,
         )
+        save.contracts.recordVictory(encounterLevel: encounterLevel)
         save.contracts.replace(
             offerID: offerID, eligibleModifiers: eligibleModifiers(in: save.inventory), makeOffer: makeOffer,
         )
