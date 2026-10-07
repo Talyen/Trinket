@@ -17,6 +17,8 @@ class AssetLibraryTests(ScriptRegressionTestCase):
     def test_automatic_healing_retries_interrupted_preparation_and_stays_source_free_on_ci(self):
         with tempfile.TemporaryDirectory() as directory:
             root, env, log = self.make_audio_fixture(directory, 'sfx')
+            for name in ('CI', 'GITHUB_ACTIONS'):
+                env.pop(name, None)
             self.make_repo_fixture(directory, ('Scripts/prepare-assets.sh', 'Scripts/lib/args.sh',
                                                'Scripts/build-freshness.sh', 'Scripts/build-inputs.env'))
             prepare = root / 'Scripts/prepare-assets.sh'
