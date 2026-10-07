@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import ast
 import io
+import re
 import tokenize
 from dataclasses import dataclass
 from pathlib import Path
@@ -41,11 +42,13 @@ def python_signature(source: str) -> str:
     return source.strip()
 
 
-def documented_start(lines: list[str], start: int) -> int:
+def documented_start(lines: list[str], start: int, *, declaration_lines: frozenset[int] = frozenset()) -> int:
     """Include attached comments and attributes, including multiline attributes."""
     cursor = start - 1
     balance = 0
     while cursor > 0:
+        if cursor in declaration_lines:
+            break
         text = lines[cursor - 1].strip()
         if not text:
             break
@@ -69,6 +72,10 @@ def documented_start(lines: list[str], start: int) -> int:
 
 def python_declarations(source: str, include_locals: bool) -> list[Declaration]:
     lines = source.splitlines()
+    # AST columns count UTF-8 bytes. Index physical lines once rather than
+    # splitting the entire file again for every declaration.
+    encoded = source.encode()
+    line_starts = [0, *(match.end() for match in re.finditer(rb'\r\n|\r|\n', encoded))]
     found = []
 
     def visit(node: ast.AST, owner: str = '', local: bool = False):
@@ -88,7 +95,8 @@ def python_declarations(source: str, include_locals: bool) -> list[Declaration]:
                 qualified = f'{owner}.{name}' if owner else name
                 if include_locals or not local:
                     documented = documented_start(lines, start)
-                    segment = ast.get_source_segment(source, node)
+                    segment = encoded[line_starts[node.lineno - 1] + node.col_offset:
+                                      line_starts[node.end_lineno - 1] + node.end_col_offset].decode()
                     found.append(Declaration(qualified, kind, documented, node.end_lineno,
                                              python_signature(segment),
                                              '\n'.join(lines[documented - 1:node.lineno - 1])))
@@ -137,8 +145,8 @@ def swift_code_tokens(source: str) -> list[tuple[str, str, int, int, int]]:
     return tokens
 
 
-def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
-    tokens = swift_code_tokens(source)
+def swift_declarations(source: str, include_locals: bool, *, tokens=None) -> list[Declaration]:
+    tokens = swift_code_tokens(source) if tokens is None else tokens
     pairs, stack = {}, []
     for i, (kind, value, _, _, _) in enumerate(tokens):
         if kind == 'startOfScope' and value in {'{', '(', '[', '<'}:
@@ -152,6 +160,8 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
         raise ValueError('unclosed Swift scope; use an explicit source range')
     types = {'struct', 'class', 'enum', 'actor', 'protocol', 'extension'}
     declarations = types | {'func', 'typealias', 'associatedtype', 'init', 'deinit', 'subscript', 'var', 'let'}
+    declaration_lines = frozenset(number for kind, value, number, _, _ in tokens
+                                  if kind == 'keyword' and value in declarations)
     modifiers = {'public', 'private', 'fileprivate', 'internal', 'package', 'open', 'static', 'final',
                  'override', 'nonisolated', 'mutating', 'nonmutating', 'required', 'convenience', 'indirect'}
     lines = source.splitlines()
@@ -216,7 +226,7 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
                     if next_value == '=' and value in {'var', 'let'} and signature_end is None:
                         signature_end = next_offset
                     last, j = j, j + 1
-            start = documented_start(lines, number)
+            start = documented_start(lines, number, declaration_lines=declaration_lines)
             if include_locals or not local:
                 if signature_end is None:
                     signature_end = tokens[j][4] if j < stop else line_offsets[tokens[last][3]]
@@ -235,5 +245,5 @@ def swift_declarations(source: str, include_locals: bool) -> list[Declaration]:
     return sorted(found, key=lambda entry: (entry.start, entry.name))
 
 
-def source_declarations(path: Path, source: str, include_locals: bool = False) -> list[Declaration]:
-    return python_declarations(source, include_locals) if path.suffix == '.py' else swift_declarations(source, include_locals)
+def source_declarations(path: Path, source: str, include_locals: bool = False, *, tokens=None) -> list[Declaration]:
+    return python_declarations(source, include_locals) if path.suffix == '.py' else swift_declarations(source, include_locals, tokens=tokens)

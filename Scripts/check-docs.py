@@ -41,7 +41,8 @@ def test_suite_names() -> set[str]:
 def source_contains_identifier(identifier: str) -> bool:
     """Return whether an audit evidence identifier still exists in authored source."""
     result = subprocess.run(
-        ["git", "-C", str(ROOT), "grep", "-q", "-w", identifier, "--", *SOURCE_GREP_PATHS],
+        ["git", "-C", str(ROOT), "grep", "--untracked", "-q", "-w", identifier, "--", *SOURCE_GREP_PATHS,
+         ":(exclude)*.md", ":(exclude)*.mdc"],
         capture_output=True,
         text=True,
         check=False,

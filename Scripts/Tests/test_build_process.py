@@ -272,7 +272,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
             for name in ("build-freshness.sh", "build-inputs.env"):
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
             prepare = root / 'Scripts/prepare-assets.sh'
-            prepare.write_text('#!/bin/bash\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
+            prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
             prepare.chmod(0o755)
             generator = root / "Scripts/generate.sh"
             generator.write_text('#!/bin/bash\nexit "${GENERATION_STATUS:-0}"\n')
@@ -305,7 +305,7 @@ prepare_generated_inputs results
             for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh"):
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
             prepare = root / 'Scripts/prepare-assets.sh'
-            prepare.write_text('#!/bin/bash\n[[ "$*" == "--check --outputs-only" ]] || exit 9\nprintf checked >> asset-checks\n')
+            prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\nprintf checked >> asset-checks\n')
             prepare.chmod(0o755)
             generator = root / "Scripts/generate.sh"
             generator.write_text('#!/bin/bash\nsleep 1\necho generated >> calls\n')
@@ -341,7 +341,7 @@ prepare_generated_inputs agent
             for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh"):
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
             prepare = root / 'Scripts/prepare-assets.sh'
-            prepare.write_text('#!/bin/bash\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
+            prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
             prepare.chmod(0o755)
             command = """
 source Scripts/lib/lock.sh
@@ -373,7 +373,7 @@ wait "$holder"
             for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh"):
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
             prepare = root / 'Scripts/prepare-assets.sh'
-            prepare.write_text('#!/bin/bash\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
+            prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
             prepare.chmod(0o755)
             generator = root / "Scripts/generate.sh"
             generator.write_text('#!/bin/bash\necho unexpected > calls\nexit 9\n')

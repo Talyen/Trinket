@@ -1,35 +1,13 @@
-import Foundation
 import Testing
 @testable import TrinketFeatureSupport
 
 struct LaunchPreparationTests {
     private final class DummyToken {}
 
-    @Test
-    @MainActor
-    func `initial gating state`() {
-        let prep = LaunchPreparation(isPreparationDelayComplete: false)
-        #expect(!prep.isResourcePreparationComplete)
-        #expect(!prep.isMinimumLoadingTimeComplete)
-        #expect(!prep.areCastEffectsPrepared)
-        #expect(!prep.didWarmHiddenTabs)
-        #expect(!prep.didLayOutSelectedRoot)
-        #expect(!prep.didCompleteLaunchPreparation)
-        #expect(prep.launchEncounterToken == nil)
-        #expect(!prep.isPreparationDelayComplete)
-        #expect(!prep.shouldMountRoot)
-        #expect(!prep.areRootLayoutsPrepared(starterSelectionComplete: true))
-        #expect(!prep.areRootLayoutsPrepared(starterSelectionComplete: false))
-        #expect(!prep.isPreparationComplete(starterSelectionComplete: true))
-    }
-
-    @Test
-    @MainActor
-    func `initial gating state when delay zero`() {
-        let prep = LaunchPreparation(isPreparationDelayComplete: true)
-        #expect(prep.isPreparationDelayComplete)
-        #expect(!prep.shouldMountRoot)
-    }
+    private static let requiredGates: [LaunchPreparationEvent] = [
+        .resourcesReady, .minimumLoadingTimeComplete, .selectedRootLaidOut,
+        .hiddenTabsWarmed, .castEffectsPrepared, .preparationDelayComplete,
+    ]
 
     @Test
     @MainActor
@@ -37,11 +15,9 @@ struct LaunchPreparationTests {
         let prep = LaunchPreparation(isPreparationDelayComplete: true)
 
         prep.acknowledge(.resourcesReady)
-        #expect(prep.isResourcePreparationComplete)
         #expect(!prep.shouldMountRoot)
 
         prep.acknowledge(.minimumLoadingTimeComplete)
-        #expect(prep.isMinimumLoadingTimeComplete)
         #expect(prep.shouldMountRoot)
     }
 
@@ -57,25 +33,23 @@ struct LaunchPreparationTests {
         #expect(prep.areRootLayoutsPrepared(starterSelectionComplete: false))
         // For completed starter players, hidden tabs MUST be warmed.
         #expect(!prep.areRootLayoutsPrepared(starterSelectionComplete: true))
+        prep.acknowledge(.castEffectsPrepared)
+        #expect(prep.isPreparationComplete(starterSelectionComplete: false))
+        #expect(!prep.isPreparationComplete(starterSelectionComplete: true))
 
         prep.acknowledge(.hiddenTabsWarmed)
         #expect(prep.areRootLayoutsPrepared(starterSelectionComplete: true))
     }
 
-    @Test
+    @Test(arguments: Self.requiredGates)
     @MainActor
-    func `is preparation complete requires all five gates`() {
+    func `each missing gate holds launch until acknowledged`(missing: LaunchPreparationEvent) {
         let prep = LaunchPreparation(isPreparationDelayComplete: false)
-        prep.acknowledge(.resourcesReady)
-        prep.acknowledge(.minimumLoadingTimeComplete)
-        prep.acknowledge(.selectedRootLaidOut)
-        prep.acknowledge(.hiddenTabsWarmed)
+        for gate in Self.requiredGates where gate != missing {
+            prep.acknowledge(gate)
+        }
         #expect(!prep.isPreparationComplete(starterSelectionComplete: true))
-
-        prep.acknowledge(.castEffectsPrepared)
-        #expect(!prep.isPreparationComplete(starterSelectionComplete: true))
-
-        prep.acknowledge(.preparationDelayComplete)
+        prep.acknowledge(missing)
         #expect(prep.isPreparationComplete(starterSelectionComplete: true))
     }
 
@@ -83,6 +57,7 @@ struct LaunchPreparationTests {
     @MainActor
     func `launch encounter token and completion latching`() {
         let prep = LaunchPreparation(isPreparationDelayComplete: true)
+        #expect(!prep.didCompleteLaunchPreparation)
         let dummy = DummyToken()
         let token = ObjectIdentifier(dummy)
 

@@ -162,11 +162,10 @@ public final class VoyagePlayMode {
     }
 
     private func persist(key: String, action: @escaping () -> Bool) {
-        guard action() else {
+        if !action() {
             playerSave.retrySaveAction(key: key) { [weak self] in
                 self?.persist(key: key, action: action)
             }
-            return
         }
     }
 }

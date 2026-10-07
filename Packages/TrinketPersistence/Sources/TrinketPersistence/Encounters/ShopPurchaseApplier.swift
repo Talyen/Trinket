@@ -6,15 +6,6 @@ public enum ShopPurchaseFailure: Error, Equatable, Sendable {
     case soldOut
     case alreadyOwned
     case invalidOffer
-
-    public var message: String {
-        switch self {
-        case .insufficientGold: "Not enough Gold."
-        case .soldOut: "That item is already sold."
-        case .alreadyOwned: "You already own that item."
-        case .invalidOffer: "That offer is unavailable."
-        }
-    }
 }
 
 public enum ShopOfferAvailability: Equatable, Sendable {

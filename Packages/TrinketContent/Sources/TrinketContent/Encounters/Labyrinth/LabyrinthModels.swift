@@ -149,7 +149,7 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         id = try container.decode(String.self, forKey: .id)
         type = try container.decode(LabyrinthNodeType.self, forKey: .type)
         enemyID = try container.decodeIfPresent(String.self, forKey: .enemyID)
-        depth = try container.decode(Int.self, forKey: .depth)
+        depth = try max(0, container.decode(Int.self, forKey: .depth))
         clusterID = try container.decode(String.self, forKey: .clusterID)
         gridPosition = try container.decodeIfPresent(LabyrinthGridPosition.self, forKey: .gridPosition)
         modifierIDs = try container.decodeIfPresent([NodeModifierID].self, forKey: .modifierIDs) ?? []

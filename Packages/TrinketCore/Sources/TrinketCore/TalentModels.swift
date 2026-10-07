@@ -1,5 +1,3 @@
-import Foundation
-
 public struct TalentNode: Identifiable, Hashable, Codable, Sendable {
     public let id: String
     public let name: String

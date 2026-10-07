@@ -18,7 +18,7 @@ from pathlib import Path
 
 from internal.cli import ROOT
 from internal.agent_arguments import AgentArgumentParser
-from internal.agent_tasks import find_tasks, related_tests, within
+from internal.agent_tasks import find_tasks, load_tasks, related_tests, within
 TEXT_SUFFIXES = {
     ".swift", ".metal", ".sh", ".py", ".mjs", ".js", ".ts", ".tsx",
     ".env", ".json", ".yml", ".yaml", ".tsv", ".toml", ".pbxproj",
@@ -104,7 +104,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser = AgentArgumentParser("agent-search.py", description=__doc__)
     parser.add_argument("pattern", nargs="?", help="rg regular expression; use -- before a pattern starting with -")
     parser.add_argument("--mode", choices=("source", "tests", "docs", "generated", "assets"), default="source")
-    parser.add_argument("--overview", action="store_true", help="page owner counts and entry points without listing assets")
+    parser.add_argument("--overview", action="store_true", help="page owner counts and entry points; with --task, list indexed concerns")
     parser.add_argument("--scope", action="append", default=[], help="repository-relative file or directory; repeatable")
     parser.add_argument("--excerpts", action="store_true", help="show matching lines and context instead of file counts")
     parser.add_argument("--files", action="store_true", help="match relative filenames instead of file contents")
@@ -120,7 +120,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser.add_argument("--expect", help="reject continuation if search results changed")
     args = parser.parse_args(argv)
     if args.overview:
-        if args.pattern is not None or args.files or args.excerpts or args.glob or args.related or args.callers or args.task or args.mode != "source":
+        if args.pattern is not None or args.files or args.excerpts or args.glob or args.related or args.callers or args.mode != "source":
             parser.error("--overview accepts scopes and pagination, not a pattern, --mode, --files, or --excerpts")
     elif args.pattern is None:
         parser.error("a pattern is required unless --overview is selected")
@@ -246,7 +246,12 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         return 0 if rows else 1
 
     if args.task:
-        rows = find_tasks(root, args.pattern, scopes)
+        if args.overview:
+            rows = [f"{task['label']} ({task['id']}): " + shlex.join(
+                ['python3', 'Scripts/agent-session.py', 'brief', '--task', task['id']])
+                for task in load_tasks(root) if any(within(name, scopes) for name in task['sources'])]
+        else:
+            rows = find_tasks(root, args.pattern, scopes)
         print("Concern pointers can cross owners; route the source paths. Test pointers are not coverage proof.")
         if not rows:
             print("No indexed concern matched. Try: python3 Scripts/agent-search.py --overview")

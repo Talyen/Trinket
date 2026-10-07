@@ -1,7 +1,5 @@
-import Foundation
 import Observation
 import TrinketContent
-import TrinketCore
 import TrinketFeatureContracts
 
 enum ShopEncounterOpenResult {
@@ -35,7 +33,6 @@ public final class ShopEncounterSession: Identifiable {
     }
 
     public let offers: [ShopOffer]
-    public private(set) var lastPurchaseError: String?
     public private(set) var isPurchasing = false
 
     public init(
@@ -51,16 +48,9 @@ public final class ShopEncounterSession: Identifiable {
 
     func markPurchaseStarted() {
         isPurchasing = true
-        lastPurchaseError = nil
     }
 
     func markPurchaseFinished() {
         isPurchasing = false
-        lastPurchaseError = nil
-    }
-
-    func markPurchaseFailed(message: String) {
-        isPurchasing = false
-        lastPurchaseError = message
     }
 }

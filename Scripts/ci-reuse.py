@@ -8,6 +8,10 @@ from pathlib import Path
 import re
 import subprocess
 
+from internal.cli import load_sibling
+
+SHARDS = load_sibling('reuse_package_scopes', 'ci-path-filter.py').SHARDS
+
 
 def api(endpoint: str) -> list[dict]:
     result = subprocess.run(
@@ -26,13 +30,21 @@ def matching_run(run: dict, sha: str, branch: str) -> bool:
 def proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: str) -> dict[str, str] | None:
     if not matching_run(run, sha, branch):
         return None
-    successful = {job.get("name") for job in jobs if job.get("conclusion") == "success"}
+    successful = {job.get("name"): job for job in jobs if job.get("conclusion") == "success"}
     required = {"tests / CI OK", "tests / gate / Generate and style"}
-    required.update(f"tests / Unit tests ({shard})" for shard in ("Engine", "State", "Content", "Battle"))
+    required.update(f"tests / Unit tests ({shard})" for shard in SHARDS)
     if "tests / Build and smoke UI" not in successful:
         required.update(("tests / Build for testing", "tests / Smoke UI"))
-    if not required <= successful:
+    if not required.issubset(successful):
         return None
+    for shard, packages in SHARDS.items():
+        steps = successful[f"tests / Unit tests ({shard})"].get("steps", [])
+        scope = f"Test packages ({' '.join(packages)})"
+        if not isinstance(steps, list) or not any(
+            isinstance(step, dict) and step.get("name") == scope and step.get("conclusion") == "success"
+            for step in steps
+        ):
+            return None
     # A skipped build/unit suite cannot prove product verification. A missing or
     # expired artifact also forces the ordinary build+smoke path, not a false pass.
     pattern = re.compile(rf"build-derived-data-{int(run['id'])}-(\d+)$")

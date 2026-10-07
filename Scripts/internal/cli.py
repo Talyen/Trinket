@@ -1,16 +1,5 @@
 #!/usr/bin/env python3
-"""Shared scaffolding for Scripts/ Python tools.
-
-Single source for the repo-root discovery, usage-error reporting, shell-env
-array parsing, JSON loading, and sibling-module loading previously copy-pasted
-across the check-*/agent-*/performance helpers.
-
-Scripts run as `python3 Scripts/<tool>.py`, so each tool still needs one
-bootstrap line before importing this module::
-
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from internal.cli import ROOT, die, load_sibling, read_env_arrays, read_json
-"""
+"""Repository paths, literal shell arrays, and file/module I/O for Scripts tools."""
 
 from __future__ import annotations
 
@@ -20,24 +9,10 @@ import shlex
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, NoReturn
+from typing import Any
 
 
-def repo_root() -> Path:
-    """Repository root derived from this file's location (Scripts/internal/)."""
-    return Path(__file__).resolve().parent.parent.parent
-
-
-ROOT = repo_root()
-
-
-def die(message: str, usage: str = "", code: int = 1) -> NoReturn:
-    """Print a usage error to stderr and exit. Replaces ad-hoc prints."""
-    if message:
-        print(message, file=sys.stderr)
-    if usage:
-        print(usage, file=sys.stderr)
-    raise SystemExit(code)
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def load_sibling(name: str, filename: str) -> object:

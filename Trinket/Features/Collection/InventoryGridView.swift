@@ -33,8 +33,9 @@ enum CollectionItemCategory: String, CaseIterable, Identifiable {
         case .uniqueGear: GameContent.uniqueItems
         case .basicGear, .astralGear: []
         }
-        let ownedIDs = Set(owned.map(\.id))
-        return owned + catalog.filter { !ownedIDs.contains($0.id) }
+        guard !catalog.isEmpty else { return owned }
+        let ownedTemplates = Set(owned.lazy.map(\.templateID))
+        return owned + catalog.filter { !ownedTemplates.contains($0.templateID) }
     }
 
     func contains(_ item: InventoryItem) -> Bool {

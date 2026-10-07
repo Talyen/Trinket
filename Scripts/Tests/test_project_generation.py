@@ -250,7 +250,7 @@ printf cached > "$cache"
                          'change-budget.sh', 'test.sh'):
             self.write('Scripts/' + filename, '#!/bin/bash\nexit 0\n', executable=True)
         self.write('Scripts/check-accessibility-ids.py', '')
-        self.write('Scripts/prepare-assets.sh', '#!/bin/bash\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n', executable=True)
+        self.write('Scripts/prepare-assets.sh', '#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n', executable=True)
         self.write('Scripts/generate.sh',
                    '#!/bin/bash\nsource Scripts/lib/project-generation.sh\n'
                    'trinket_generate_project "$PWD" "$PWD"\n', executable=True)

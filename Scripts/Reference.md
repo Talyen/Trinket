@@ -89,6 +89,8 @@ reserve `report.json` plus worker evidence for targeted diagnostics.
 | `./Scripts/report-art-memory.sh [--enforce]` | Estimate full-catalog decoded artwork size; `--enforce` fails over budget; interpretation and optional enforcement follow the [art pipeline](../ArtManifest/README.md#decoded-memory-report) |
 | `./Scripts/generate.sh --assets` | Also prepare art, music, SFX, and cinematics (add `--kind <kind>` for one pipeline, `--skip-xcodegen` for codegen only) |
 | `./Scripts/ci-assets-gate.sh` | Committed asset integrity without Asset Library |
+| `python3 Scripts/asset-library.py --relink --kind art` | Preview unique exact-content matches for missing artwork paths (`--kind app-icon` for packages, or omit `--kind` for all media) |
+| `python3 Scripts/asset-library.py --relink --apply --kind art` | Apply the previewed manifest path repairs; run normal media preparation afterward to refresh receipts. Preparation also relinks automatically. |
 | `./Scripts/prepare-audio-assets.sh [music\|sfx\|all]` | Validate music/SFX manifests, encode AAC, regenerate `MusicCatalog` / `SFXCatalog` |
 
 ### Release

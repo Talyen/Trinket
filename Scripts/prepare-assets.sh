@@ -11,10 +11,12 @@ source Scripts/lib/args.sh
 kind="all"
 check=false
 outputs_only=false
+heal=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --check) check=true; shift ;;
     --outputs-only) outputs_only=true; shift ;;
+    --heal) heal=true; shift ;;
     --kind)
       if [[ -z "${2:-}" ]]; then
         echo "--kind requires an argument (art|cinematic|music|sfx|app-icon|all)" >&2
@@ -25,6 +27,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --help|-h)
       echo "Usage: $0 [--kind art|cinematic|music|sfx|app-icon|all] [--check [--outputs-only]]"
+      echo "       $0 --heal [--kind <kind>] (local relinking and preparation of relocated sources only)"
       exit 0
       ;;
     *)
@@ -33,6 +36,10 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+if $heal && $check; then
+  echo "--heal cannot be combined with --check" >&2
+  exit 2
+fi
 case "$kind" in
   art|cinematic|music|sfx|app-icon|all) ;;
   *) echo "Unknown asset kind: $kind" >&2; exit 2 ;;
@@ -48,8 +55,6 @@ if $check; then
   python3 Scripts/asset-library.py "${args[@]}"
   exit
 fi
-python3 Scripts/asset-library.py --preflight --kind "$kind"
-
 run_kind() {
   trinket_log_section "Preparing $1"
   case "$1" in
@@ -60,6 +65,20 @@ run_kind() {
     app-icon) Scripts/prepare-app-icon.sh ;;
   esac
 }
+
+if $heal; then
+  # Ordinary builds remain source-free on CI and Macs without the local library.
+  if [[ "${CI:-}" == true || "${GITHUB_ACTIONS:-}" == true || ! -d "${ASSET_LIBRARY_ROOT:-$HOME/Documents/Asset Library}" ]]; then
+    exit 0
+  fi
+  relocated="$(python3 Scripts/asset-library.py --relink --apply --kind "$kind")"
+  while IFS= read -r relocated_kind; do
+    [[ -n "$relocated_kind" ]] && run_kind "$relocated_kind"
+  done <<< "$relocated"
+  exit 0
+fi
+
+python3 Scripts/asset-library.py --preflight --kind "$kind"
 
 case "$kind" in
   all)

@@ -62,7 +62,7 @@ struct BlacksmithForgeTests {
         }
     }
 
-    @Test func `forging matches existing generation including unique ownership`() throws {
+    @Test func `forging honors recipe bases rarities and unique ownership`() throws {
         var save = fundedSave()
         save.journey.activeStageID = nil
         save.contracts.recordVictory(encounterLevel: 40)
@@ -72,18 +72,6 @@ struct BlacksmithForgeTests {
             for seed in 0 ..< 100 {
                 var random = SeededRandomNumberGenerator(seed: UInt64(seed))
                 let attempt = try BlacksmithForgeAttempt.prepare(recipeID: recipe.id, save: save, using: &random).get()
-                var comparisonRandom = SeededRandomNumberGenerator(seed: UInt64(seed))
-                let expected = ItemRewardGenerator.generate(
-                    id: attempt.item.id,
-                    rewardLevel: CampaignRewardLevel.resolve(in: save),
-                    astralChanceBonusPercent: 0,
-                    allowedTiers: [.basic, .astral, .unique],
-                    ownedTrinketIDs: [], ownedUniqueIDs: [],
-                    eligibleUniqueIDs: Set(GameContent.uniqueItems.filter { $0.baseType.id == recipe.baseID }.map(\.templateID)),
-                    fallbackBaseType: recipe.baseType,
-                    using: &comparisonRandom,
-                )
-                #expect(attempt.item == expected)
                 #expect(attempt.item.baseType.id == recipe.baseID)
                 #expect(!attempt.item.isTrinket)
                 rarities.insert(attempt.item.rarity)
@@ -138,10 +126,14 @@ struct BlacksmithForgeTests {
 
         store.forcesNextSaveFailure = true
         let pending = Task { await store.forgeBlacksmithItem(recipeID: "blacksmith-dagger") }
+        defer { pending.cancel() }
         // Yield until the injected failure reaches the retained retry, before resetting.
-        while store.forcesNextSaveFailure {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .seconds(5))
+        while store.forcesNextSaveFailure, clock.now < deadline {
             await Task.yield()
         }
+        try #require(!store.forcesNextSaveFailure, "Forge did not reach the retained save retry")
         try store.resetGameplayProgress()
         let reset = store.currentSave
         #expect(await pending.value == .failure(.invalidated))

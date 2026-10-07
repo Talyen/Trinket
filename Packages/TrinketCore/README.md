@@ -21,7 +21,7 @@ Module map: `Keyword.swift` (cases, rules) with `KeywordHighlighting.swift`
 `BattleGoldFlow.swift`, `ActiveEffect.swift` (plus display-only `EffectSummary`),
 `Collection+Safe.swift`, `DamageCondition.swift`
 (evaluation lives in `BattleEngine.BattleConditionEvaluator`; adding a case
-must update its switch — `CoreValueTypesTests` pins the case count).
+must update its exhaustive switch).
 
 Contracts: keyword matching runs through one case-insensitive pattern
 (`Keyword.highlightPattern` with `Keyword.termLookup`), normalizing both straight (`'`)

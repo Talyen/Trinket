@@ -32,6 +32,7 @@ enum PlayBattleLaunchTestSupport {
         for _ in 0 ..< 300 where condition() {
             try await Task.sleep(for: .milliseconds(10))
         }
+        try #require(!condition(), "Timed out waiting for the save retry to settle")
     }
 
     /// First stage of the first campaign chapter. Prefer this over indexing

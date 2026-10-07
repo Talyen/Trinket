@@ -6,10 +6,12 @@ SCRIPT_INPUTS = (
     'Scripts/config/generated-paths.tsv',
     'Scripts/handoff.sh',
     '.github/workflows/changes.yml',
+    'Packages/*/Package.swift',
 )
 
 
 import ast
+import base64
 import io
 import json
 import os
@@ -52,6 +54,8 @@ class CIPathFilterTests(unittest.TestCase):
                 request.assert_called_once()
 
     def test_package_selection_preserves_consumers_and_full_fallback(self):
+        self.assertEqual(self.filter.all_packages(),
+                         {path.parent.name for path in (ROOT / 'Packages').glob('*/Package.swift')})
         graph = {
             'TrinketCore': set(), 'TrinketContent': {'TrinketCore'},
             'BattleEngine': {'TrinketCore', 'TrinketContent'},
@@ -67,20 +71,56 @@ class CIPathFilterTests(unittest.TestCase):
         self.assertEqual(select(['Packages/TrinketPersistence/Sources/Store.swift'], graph),
                          {'TrinketPersistence', 'TrinketAppState'})
         self.assertEqual(select(['Packages/TrinketCore/Sources/Card.swift'], graph), self.filter.all_packages())
+        self.assertEqual(select(['Packages/TrinketCore/Tests/TrinketCoreTests/RulesTests.swift'], graph), {'TrinketCore'})
+        self.assertEqual(select([
+            'Packages/TrinketCore/Tests/TrinketCoreTests/RulesTests.swift',
+            'Packages/TrinketPersistence/Sources/Store.swift',
+        ], graph), {'TrinketCore', 'TrinketPersistence', 'TrinketAppState'})
+        self.assertEqual(select(['Packages/TrinketContent/Sources/TrinketContentTestSupport/Fixture.swift'], graph),
+                         self.filter.all_packages() - {'TrinketCore', 'TrinketDesignSystem'})
         for path in ('Scripts/test.sh', 'Packages/Unknown/Sources/Rule.swift', 'Packages/BattleEngine/Package.swift'):
             self.assertEqual(select([path], graph), self.filter.all_packages())
         self.assertEqual(select(['Packages/TrinketPersistence/Sources/Store.swift'], {}), self.filter.all_packages())
 
     def test_unreadable_dependency_manifests_select_the_full_portfolio(self) -> None:
         environment = {'BEFORE': 'before', 'SHA': 'after', 'GITHUB_REPOSITORY': 'fixture/repo', 'GH_TOKEN': 'fixture'}
-        paths = ['Packages/TrinketPersistence/Sources/Store.swift']
-        for content in (None, ''):
-            with self.subTest(content=content), patch.dict(os.environ, environment, clear=True), \
-                 patch.object(self.filter, 'compare_filenames', return_value=paths), \
-                 patch.object(self.filter, 'github_json', return_value={'content': content}), \
+        for path in ('Packages/TrinketPersistence/Sources/Store.swift',
+                     'Packages/TrinketPersistence/Tests/TrinketPersistenceTests/StoreTests.swift'):
+            for content in (None, ''):
+                with self.subTest(path=path, content=content), patch.dict(os.environ, environment, clear=True), \
+                     patch.object(self.filter, 'compare_filenames', return_value=[path]), \
+                     patch.object(self.filter, 'github_json', return_value={'content': content}), \
+                     patch.object(self.filter, 'write_output') as output, patch('sys.stdout', new=io.StringIO()):
+                    self.filter.main()
+                self.assertEqual(output.call_args.args[-1], self.filter.all_packages())
+
+    def test_narrow_selection_requires_every_manifest_to_match_its_reviewed_bytes(self):
+        manifests = {name: (ROOT / 'Packages' / name / 'Package.swift').read_bytes()
+                     for name in self.filter.all_packages()}
+        reviewed = all(self.filter.hashlib.sha256(data).hexdigest() == self.filter.REVIEWED_MANIFESTS.get(name)
+                       for name, data in manifests.items())
+        mutation = b'''import PackageDescription
+let library = Target.target(name: "TrinketCore")
+library.path = ["Tests", "Shared"].joined(separator: "/")
+let package = Package(name: "TrinketCore",
+    products: [.library(name: "TrinketCore", targets: ["TrinketCore"])],
+    targets: [library, .testTarget(name: "TrinketCoreTests", dependencies: ["TrinketCore"])])
+'''
+        environment = {'BEFORE': 'before', 'SHA': 'after', 'GITHUB_REPOSITORY': 'fixture/repo', 'GH_TOKEN': 'fixture'}
+        for changed in (None, 'TrinketCore', 'TrinketDesignSystem'):
+            def fetch(url, token):
+                name = url.split('/contents/Packages/')[1].split('/')[0]
+                data = manifests[name]
+                if name == changed:
+                    data = mutation if name == 'TrinketCore' else data + b'\n// Unreviewed revision\n'
+                return {'content': base64.encodebytes(data).decode()}
+            with self.subTest(changed=changed), patch.dict(os.environ, environment, clear=True), \
+                 patch.object(self.filter, 'compare_filenames', return_value=['Packages/TrinketCore/Tests/Shared/Rule.swift']), \
+                 patch.object(self.filter, 'github_json', side_effect=fetch), \
                  patch.object(self.filter, 'write_output') as output, patch('sys.stdout', new=io.StringIO()):
                 self.filter.main()
-            self.assertEqual(output.call_args.args[-1], self.filter.all_packages())
+            expected = {'TrinketCore'} if reviewed and changed is None else self.filter.all_packages()
+            self.assertEqual(output.call_args.args[-1], expected)
 
     def test_asset_globs_match_prepare_scripts(self) -> None:
         match = self.filter.is_asset_path

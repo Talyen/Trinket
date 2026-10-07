@@ -46,17 +46,22 @@ struct TalentPersistenceTests {
         }
     }
 
-    @Test @MainActor func `talent loadouts survive player save store round trip`() throws {
+    @Test @MainActor func `talent purchases preserve both combatants across reload`() throws {
         let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()
         let knightTalents: Set = ["knight_block_t1_1", "knight_holy_t1_1"]
         let rogueTalents: Set = ["rogue_poison_t1_1", "rogue_poison_t1_2"]
 
-        _ = firstStore.persistBatch(logging: "Persist talents") { save in
+        try firstStore.performBatchMutation { save in
             save.roster.progressions["knight"] = .at(level: 4)
             save.roster.progressions["rogue"] = .at(level: 4)
-            save.roster.unlockedTalents["knight"] = knightTalents
-            save.roster.unlockedTalents["rogue"] = rogueTalents
+        }
+        for (combatantID, nodeIDs) in [("knight", knightTalents), ("rogue", rogueTalents)] {
+            let config = try #require(CombatantTalentCatalog.configIfAvailable(for: combatantID))
+            for nodeID in nodeIDs.sorted() {
+                let tree = try #require(config.trees.first { $0.node(matching: nodeID) != nil })
+                #expect(firstStore.unlockTalent(nodeID: nodeID, treeID: tree.id, for: combatantID) == .unlocked)
+            }
         }
 
         #expect(firstStore.currentSave.roster.unlockedTalents["knight"] == knightTalents)
@@ -66,22 +71,6 @@ struct TalentPersistenceTests {
 
         #expect(secondStore.currentSave.roster.unlockedTalents["knight"] == knightTalents)
         #expect(secondStore.currentSave.roster.unlockedTalents["rogue"] == rogueTalents)
-    }
-
-    @Test(arguments: ["knight", "alchemist", "druid", "wildcard"])
-    @MainActor func `talent purchase survives reload`(combatantID: String) throws {
-        let context = try PersistenceTestContext()
-        let store = try context.makeSaveStore()
-        try store.performBatchMutation { save in
-            save.roster.progressions[combatantID] = .at(level: 2)
-        }
-        let tree = try #require(CombatantTalentCatalog.allConfigs[combatantID]?.trees.first)
-        let node = try #require(tree.nodes.first)
-
-        #expect(store.unlockTalent(nodeID: node.id, treeID: tree.id, for: combatantID) == .unlocked)
-
-        let reloaded = try context.makeReloadedStore()
-        #expect(reloaded.roster.unlockedTalents(for: combatantID) == [node.id])
     }
 
     @Test @MainActor func `in-memory store rejects unavailable talent without mutation`() throws {

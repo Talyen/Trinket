@@ -49,6 +49,26 @@ struct LabyrinthSaveRecoveryTests {
         #expect(reloaded.labyrinth == expected)
     }
 
+    @Test @MainActor func `negative saved boss depth repairs its exit without losing cleared progress`() throws {
+        var save = PlayerSave.testSeed
+        save.labyrinth.ensureMap(seed: 55)
+        let boss = try #require(save.labyrinth.nodes.values.first { $0.type == .boss })
+        save.labyrinth.nodes[boss.id] = LabyrinthNode(
+            id: boss.id, type: .boss, enemyID: boss.enemyID,
+            depth: -4, clusterID: boss.clusterID, gridPosition: boss.gridPosition,
+            modifierIDs: boss.modifierIDs, isCleared: true, isRevealed: true,
+        )
+        let context = try PersistenceTestContext()
+        let loaded = try context.seedAndReload(save)
+        let repaired = try #require(loaded.labyrinth.node(id: boss.id))
+        let exit = try #require(repaired.outgoingIDs.first)
+        #expect(repaired.depth == 0)
+        #expect(repaired.isCleared)
+        #expect(loaded.labyrinth.isNodeReachable(exit))
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.labyrinth == loaded.labyrinth)
+    }
+
     @Test func `enter rebuilds unreadable map`() {
         var save = PlayerSave.fresh
         let expectedSeed = save.worldSeed

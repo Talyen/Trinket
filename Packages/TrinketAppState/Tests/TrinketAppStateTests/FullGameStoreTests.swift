@@ -3,10 +3,10 @@ import StoreKit
 import Testing
 @testable import TrinketAppState
 
-@Suite("Full Game StoreKit", .serialized)
+@Suite("Full Game StoreKit")
 struct FullGameStoreTests {
     @Test @MainActor
-    func `an older entitlement refresh cannot revoke a newer restored purchase`() async {
+    func `an older entitlement refresh cannot revoke a newer restored purchase`() async throws {
         let store = FullGameStore()
         let response = AsyncStream<FullGameStore.Ownership>.makeStream()
         var firstReadStarted = false
@@ -17,9 +17,15 @@ struct FullGameStoreTests {
                 return await iterator.next() ?? .free
             }
         }
-        while !firstReadStarted {
+        defer {
+            first.cancel()
+            response.continuation.finish()
+        }
+        let deadline = ContinuousClock.now + .seconds(5)
+        while !firstReadStarted, ContinuousClock.now < deadline {
             await Task.yield()
         }
+        try #require(firstReadStarted, "Entitlement refresh did not start")
 
         await store.refreshOwnership { .purchased }
         #expect(store.ownership.access.hasFullGame)

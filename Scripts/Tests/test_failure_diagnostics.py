@@ -625,6 +625,11 @@ class ReporterTests(unittest.TestCase):
             env = {k: v for k, v in os.environ.items() if k not in {"TRINKET_DIAGNOSTICS_SESSION_ID", "GITHUB_STEP_SUMMARY"}}
             for action, code, completion, passed in (
                 ("build", 0, "process-exit", True),
+                ("build", "0", "process-exit", True),
+                ("build", False, "process-exit", False),
+                ("build", 0.5, "process-exit", False),
+                ("build", None, "process-exit", False),
+                ("build", float("inf"), "process-exit", False),
                 ("build-for-testing", 0, "process-exit", True),
                 ("build", 65, "process-exit", False),
                 ("build", 0, "watchdog-log-inference", False),
@@ -633,7 +638,7 @@ class ReporterTests(unittest.TestCase):
             ):
                 with self.subTest(action=action, code=code, completion=completion):
                     manifest_path.write_text(json.dumps({"action": action, "exit_code": code,
-                        "status": "passed" if code == 0 else "failed", "completion_source": completion}))
+                        "status": "passed", "completion_source": completion}))
                     subprocess.run([sys.executable, str(ROOT / "Scripts/ci-diagnostics.py"), str(root), str(output)], env=env, check=True, capture_output=True)
                     aggregate = json.loads(output.read_text())
                     self.assertEqual(aggregate["category"] == "passed", passed)

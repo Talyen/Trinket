@@ -1,5 +1,3 @@
-import Foundation
-
 /// Shared single-value alias-migration decoding for persisted string enums.
 ///
 /// Each conformer lists retired raw values in `aliases`; decoding resolves an

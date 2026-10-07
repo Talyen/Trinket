@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Protect private-source isolation and committed-output integrity."""
 from pathlib import Path
+import hashlib
 import json
 import subprocess
 import sys
@@ -13,6 +14,137 @@ SCRIPT_INPUTS = ('Scripts/asset-library.py', 'Scripts/lib/media-assets.sh',
 
 
 class AssetLibraryTests(ScriptRegressionTestCase):
+    def test_automatic_healing_retries_interrupted_preparation_and_stays_source_free_on_ci(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, env, log = self.make_audio_fixture(directory, 'sfx')
+            self.make_repo_fixture(directory, ('Scripts/prepare-assets.sh', 'Scripts/lib/args.sh',
+                                               'Scripts/build-freshness.sh', 'Scripts/build-inputs.env'))
+            prepare = root / 'Scripts/prepare-assets.sh'
+            prepare.rename(root / 'Scripts/prepare-selected-assets.sh')
+            prepare.write_text('#!/bin/bash\nexec bash Scripts/prepare-selected-assets.sh "$@" --kind sfx\n')
+            prepare.chmod(0o755)
+            generator = root / 'Scripts/generate.sh'
+            generator.write_text('#!/bin/bash\nexit 0\n')
+            generator.chmod(0o755)
+            library = root / 'library'
+            library.mkdir()
+            (root / 'Raw Assets').rename(library / 'Raw Assets')
+            env['ASSET_LIBRARY_ROOT'] = str(library)
+            self.assertEqual(self.run_audio_fixture(root, env, 'sfx').returncode, 0)
+            source = library / 'Raw Assets/Sound Effects/clip.wav'
+            moved = library / 'Renamed.wav'
+            source.rename(moved)
+            manifest = root / 'SoundManifest/sfx.tsv'
+            before = manifest.read_bytes()
+            command = ['bash', '-ec', 'unset TRINKET_SHARED_DERIVED_DATA SKIP_GENERATE; '
+                       'source Scripts/build-freshness.sh; prepare_generated_inputs results']
+            hosted = subprocess.run(command, cwd=root, env={**env, 'CI': 'true'}, capture_output=True, text=True)
+            self.assertEqual(hosted.returncode, 0, hosted.stderr)
+            self.assertEqual(manifest.read_bytes(), before)
+            pipeline = root / 'Scripts/prepare-audio-assets.sh'
+            original = pipeline.read_bytes()
+            pipeline.write_text('#!/bin/bash\nexit 9\n')
+            interrupted = subprocess.run(command, cwd=root, env=env, capture_output=True, text=True)
+            self.assertEqual(interrupted.returncode, 9, interrupted.stderr)
+            self.assertIn('Renamed.wav', manifest.read_text())
+            pipeline.write_bytes(original)
+            healed = subprocess.run(command, cwd=root, env=env, capture_output=True, text=True)
+            self.assertEqual(healed.returncode, 0, healed.stderr)
+            checked = self.run_check(root, env, '--check')
+            self.assertEqual(checked.returncode, 0, checked.stderr)
+            self.assertEqual((root / 'Trinket/Media/SFX/sfx_test_clip.m4a').read_bytes(), b'fixture audio')
+            self.assertEqual(log.read_text().count('convert'), 1)
+
+    def make_relink_fixture(self, directory, kind):
+        root = self.make_repo_fixture(directory, ('Scripts/asset-library.py',))
+        library = root / 'library'
+        library.mkdir()
+        manifest = root / 'ArtManifest' / ('app-icon.tsv' if kind == 'app-icon' else 'curated-assets.tsv')
+        manifest.parent.mkdir()
+        source = 'Old/Icon.icon' if kind == 'app-icon' else 'Old/Knight.jpeg'
+        manifest.write_text('# retained comment\n' + ('AppIcon.icon\t' + source + '\n' if kind == 'app-icon' else
+                            'combatant\tknight\thero_knight_card\t' + source + '\t0.50\t0.50\n'))
+        hashes = {source + '/icon.json': hashlib.sha256(b'icon settings').hexdigest(),
+                  source + '/Assets/master.jpeg': hashlib.sha256(b'art master').hexdigest()} if kind == 'app-icon' else {
+                      source: hashlib.sha256(b'art master').hexdigest()}
+        receipt = root / 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json'
+        receipt.parent.mkdir(parents=True)
+        receipt.write_text(json.dumps({kind: {'sources': hashes}}))
+        env = {**self.verification_environment(), 'ASSET_LIBRARY_ROOT': str(library)}
+        return root, library, manifest, receipt, env
+
+    def test_preflight_relinks_moved_art_and_complete_icon_packages(self):
+        for kind in ('art', 'app-icon'):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as directory:
+                root, library, manifest, receipt, env = self.make_relink_fixture(directory, kind)
+                moved = library / ('New/Renamed.icon' if kind == 'app-icon' else 'New/Renamed.jpeg')
+                if kind == 'app-icon':
+                    (moved / 'Assets').mkdir(parents=True)
+                    (moved / 'icon.json').write_bytes(b'icon settings')
+                    (moved / 'Assets/master.jpeg').write_bytes(b'art master')
+                else:
+                    moved.parent.mkdir()
+                    moved.write_bytes(b'art master')
+                before, recorded = manifest.read_bytes(), receipt.read_bytes()
+                command = [sys.executable, 'Scripts/asset-library.py', '--kind', kind]
+                preview = subprocess.run(command + ['--relink'], cwd=root, env=env, capture_output=True, text=True)
+                self.assertEqual(preview.returncode, 0, preview.stderr)
+                self.assertEqual(manifest.read_bytes(), before)
+                prepared = subprocess.run(command + ['--preflight', '--snapshot'], cwd=root, env=env, capture_output=True, text=True)
+                self.assertEqual(prepared.returncode, 0, prepared.stderr)
+                snapshot = json.loads(prepared.stdout)
+                self.assertTrue(all(name.startswith('New/') for name in snapshot['sources']))
+                self.assertEqual(manifest.read_bytes(), before.replace(b'Old/Icon.icon' if kind == 'app-icon' else b'Old/Knight.jpeg',
+                                                                      b'New/Renamed.icon' if kind == 'app-icon' else b'New/Renamed.jpeg'))
+                self.assertEqual(receipt.read_bytes(), recorded)
+
+    def test_relink_refuses_ambiguous_changed_and_unrecorded_art_without_writing(self):
+        for failure in ('duplicate', 'changed', 'unrecorded', 'escaped', 'icon-members'):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
+                kind = 'app-icon' if failure == 'icon-members' else 'art'
+                root, library, manifest, receipt, env = self.make_relink_fixture(directory, kind)
+                (library / 'Moved.jpeg').write_bytes(b'changed master' if failure == 'changed' else b'art master')
+                if failure == 'duplicate':
+                    (library / 'Copy.jpeg').write_bytes(b'art master')
+                    # A repairable second entry must not be written on partial failure.
+                    with manifest.open('a') as stream:
+                        stream.write('background\tplace\tplace\tOld/Place.jpeg\t0.50\t0.50\n')
+                    record = json.loads(receipt.read_text())
+                    record['art']['sources']['Old/Place.jpeg'] = hashlib.sha256(b'place').hexdigest()
+                    receipt.write_text(json.dumps(record))
+                    (library / 'Place.jpeg').write_bytes(b'place')
+                elif failure == 'unrecorded':
+                    receipt.unlink()
+                elif failure == 'escaped':
+                    (root / 'Outside.jpeg').write_bytes(b'art master')
+                    (library / 'Moved.jpeg').unlink()
+                    (library / 'Moved.jpeg').symlink_to(root / 'Outside.jpeg')
+                elif failure == 'icon-members':
+                    package = library / 'Moved.icon'
+                    package.mkdir()
+                    (package / 'icon.json').write_bytes(b'icon settings')
+                    (package / 'renamed-master.jpeg').write_bytes(b'art master')
+                before = manifest.read_bytes()
+                result = subprocess.run([sys.executable, 'Scripts/asset-library.py', '--preflight', '--kind', kind],
+                                        cwd=root, env=env, capture_output=True, text=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('manifests were preserved', result.stderr)
+                self.assertEqual(manifest.read_bytes(), before)
+
+    def test_existing_art_revision_is_never_replaced_with_an_old_matching_copy(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, library, manifest, _, env = self.make_relink_fixture(directory, 'art')
+            selected = library / 'Old/Knight.jpeg'
+            selected.parent.mkdir()
+            selected.write_bytes(b'intentionally revised artwork')
+            (library / 'old-copy.jpeg').write_bytes(b'art master')
+            before = manifest.read_bytes()
+            result = subprocess.run([sys.executable, 'Scripts/asset-library.py', '--preflight', '--kind', 'art'],
+                                    cwd=root, env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(manifest.read_bytes(), before)
+            self.assertEqual(selected.read_bytes(), b'intentionally revised artwork')
+
     def run_check(self, root, environment, *arguments):
         return subprocess.run(['python3', 'Scripts/asset-library.py', '--kind', 'sfx', *arguments], cwd=root, env=environment, capture_output=True, text=True)
 

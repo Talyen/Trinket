@@ -3,6 +3,7 @@ SCRIPT_INPUTS = (
     'Scripts/ci-reuse.py', 'Scripts/ci_ui_retry.py', 'Scripts/ci-diagnostics.py',
     'Scripts/test.sh', 'Scripts/diagnostic_maintenance.py',
     'Scripts/internal/cli.py',
+    'Scripts/ci-path-filter.py', '.github/workflows/tests.yml',
 )
 
 import copy
@@ -24,8 +25,10 @@ class CIEffortTests(unittest.TestCase):
     def proof_fixture(self):
         run = dict(id=10, head_sha='abc', head_branch='main', event='push', status='completed', conclusion='success')
         names = ['tests / CI OK', 'tests / gate / Generate and style', 'tests / Build and smoke UI']
-        names += [f'tests / Unit tests ({shard})' for shard in ('Engine', 'State', 'Content', 'Battle')]
         jobs = [dict(name=name, conclusion='success') for name in names]
+        jobs += [dict(name=f'tests / Unit tests ({shard})', conclusion='success',
+                      steps=[dict(name=f'Test packages ({" ".join(packages)})', conclusion='success')])
+                 for shard, packages in REUSE.SHARDS.items()]
         return run, jobs, [dict(name='build-derived-data-10-1', expired=False)]
 
     def test_reuse_requires_exact_commit_complete_checks_and_available_products(self):
@@ -36,6 +39,11 @@ class CIEffortTests(unittest.TestCase):
         for conclusion in ('skipped', 'failure', 'cancelled'):
             altered = copy.deepcopy(jobs)
             altered[-1]['conclusion'] = conclusion
+            self.assertIsNone(REUSE.proof(run, altered, artifacts, 'abc', 'main'))
+        for steps in (None, [], [dict(name='Test packages (TrinketContent)', conclusion='success')],
+                      [dict(name='Test packages (TrinketContent TrinketDesignSystem)', conclusion='skipped')]):
+            altered = copy.deepcopy(jobs)
+            next(job for job in altered if job['name'] == 'tests / Unit tests (Content)')['steps'] = steps
             self.assertIsNone(REUSE.proof(run, altered, artifacts, 'abc', 'main'))
         for expired in (True, 0, None):
             self.assertIsNone(REUSE.proof(run, jobs, [{**artifacts[0], 'expired': expired}], 'abc', 'main'))

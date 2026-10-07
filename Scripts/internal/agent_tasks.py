@@ -76,7 +76,7 @@ def select_task(root: Path, query: str) -> dict:
     matches = matching_tasks(root, query, [])
     if len(matches) != 1:
         choices = ", ".join(task["id"] for task in matches) or "none"
-        raise ValueError(f"--task requires one indexed concern; matches: {choices}. Use agent-search.py '<concern>' --task")
+        raise ValueError(f"--task requires one indexed concern; matches: {choices}. List concerns: python3 Scripts/agent-search.py --task --overview")
     return matches[0]
 
 

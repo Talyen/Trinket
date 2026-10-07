@@ -129,6 +129,125 @@ def read_record() -> dict:
     return json.loads((ROOT / RECORD).read_text())
 
 
+def relink_sources(kinds: list[str], apply: bool) -> list[str]:
+    """Recover moved masters by receipt identity, never by a similar filename."""
+    recorded = read_record()
+    missing = [(kind, source) for kind in kinds for source in selected_sources(kind)
+               if not source_path(source).exists()]
+    if not missing:
+        return []
+    root = library_root()
+    if not root.is_dir():
+        raise ValueError(f'Asset Library is unavailable: {root}. Set ASSET_LIBRARY_ROOT.')
+    wanted = {recorded.get(kind, {}).get('sources', {}).get(source)
+              for kind, source in missing if kind != 'app-icon'} - {None}
+    matches = {value: [] for value in wanted}
+    packages = []
+    # Search only when a selected path is missing. Library duplicates deliberately
+    # remain ambiguous, even when one happens to share the old filename.
+    def scan_error(error):
+        raise error
+
+    for directory, folders, files in os.walk(root, followlinks=False, onerror=scan_error):
+        folders[:] = sorted(name for name in folders if not (Path(directory) / name).is_symlink())
+        folder = Path(directory)
+        if folder.suffix == '.icon' and 'icon.json' in files:
+            packages.append(folder)
+        for name in sorted(files) if wanted else []:
+            file = folder / name
+            relative = file.relative_to(root).as_posix()
+            if file.is_symlink() or name == '.DS_Store' or any(char in relative for char in '\t\r\n'):
+                continue
+            value = digest(file)
+            if value in matches:
+                matches[value].append(file.relative_to(root).as_posix())
+    changes = {}
+    errors = []
+    for kind, source in missing:
+        hashes = recorded.get(kind, {}).get('sources', {})
+        if kind == 'app-icon':
+            expected = {name[len(source) + 1:]: value for name, value in hashes.items()
+                        if name.startswith(source + '/')}
+            candidates = []
+            for package in packages if expected else []:
+                if (any(char in package.relative_to(root).as_posix() for char in '\t\r\n')
+                        or any(file.is_symlink() for file in package.rglob('*'))):
+                    continue
+                actual = {file.relative_to(package).as_posix(): digest(file)
+                          for file in package.rglob('*') if file.is_file() and file.name != '.DS_Store'}
+                if actual == expected:
+                    candidates.append(package.relative_to(root).as_posix())
+        else:
+            candidates = matches.get(hashes.get(source), [])
+        if len(candidates) != 1:
+            if not hashes or (kind != 'app-icon' and source not in hashes):
+                reason = 'no recorded source hash'
+            elif not candidates:
+                reason = 'no exact match'
+            else:
+                reason = 'ambiguous exact matches: ' + ', '.join(candidates)
+            errors.append(f'{source}: {reason}')
+        else:
+            changes.setdefault(kind, {})[source] = candidates[0]
+    if errors:
+        raise ValueError('Cannot relink Asset Library sources; manifests were preserved. Existing outputs were preserved:\n' + '\n'.join(errors))
+    updates = []
+    for kind, replacements in changes.items():
+        manifest = ROOT / KINDS[kind][0]
+        before = manifest.read_text()
+        column = list(rows(kind)[0]).index('source_path')
+        lines = []
+        for line in before.splitlines(keepends=True):
+            if line.strip() and not line.startswith('#'):
+                content = line.rstrip('\r\n')
+                ending = line[len(content):]
+                fields = content.split('\t')
+                fields[column] = replacements.get(fields[column], fields[column])
+                line = '\t'.join(fields) + ending
+            lines.append(line)
+        updates.append((manifest, before, ''.join(lines)))
+        for old, new in replacements.items():
+            print(f'{kind}: {old} -> {new}', file=sys.stderr)
+    if apply:
+        for manifest, before, after in updates:
+            if manifest.read_text() != before:
+                raise ValueError(f'Manifest changed during relinking: {manifest}. Rerun preparation.')
+        for manifest, _, after in updates:
+            with tempfile.NamedTemporaryFile(mode='w', dir=manifest.parent, delete=False) as staging:
+                temporary = Path(staging.name)
+                staging.write(after)
+            try:
+                temporary.chmod(manifest.stat().st_mode & 0o777)
+                temporary.replace(manifest)
+            finally:
+                temporary.unlink(missing_ok=True)
+    return list(changes)
+
+
+def pending_relocations(kinds: list[str]) -> list[str]:
+    """Retry preparation if an earlier relink succeeded but encoding failed."""
+    recorded = read_record()
+    pending = []
+    for kind in kinds:
+        previous = recorded.get(kind, {}).get('sources', {})
+        selections = selected_sources(kind)
+        if not previous:
+            continue
+        if all(any(name.startswith(source + '/') for name in previous) if kind == 'app-icon'
+               else source in previous for source in selections):
+            continue
+        current = source_hashes(kind)
+        if kind == 'app-icon':
+            def package_members(hashes):
+                return {name.split('.icon/', 1)[-1]: value for name, value in hashes.items()}
+            identical = package_members(current) == package_members(previous)
+        else:
+            identical = sorted(current.values()) == sorted(previous.values())
+        if identical:
+            pending.append(kind)
+    return pending
+
+
 def input_snapshot(kind: str) -> dict:
     return {'input_hash': input_hash(kind), 'sources': source_hashes(kind)}
 
@@ -223,11 +342,15 @@ def main() -> None:
     group.add_argument('--record', action='store_true')
     group.add_argument('--check', action='store_true')
     group.add_argument('--repair-needed', action='store_true')
+    group.add_argument('--relink', action='store_true', help='preview exact-content source relocations')
+    parser.add_argument('--apply', action='store_true', help='write manifest paths with --relink')
     parser.add_argument('--outputs-only', action='store_true')
     parser.add_argument('--snapshot', action='store_true', help='emit the single-kind preflight input snapshot')
     parser.add_argument('--expected-inputs', help='preflight snapshot required when recording a kind')
     parser.add_argument('--kind', choices=[*KINDS, 'all', 'audio'], default='all')
     args = parser.parse_args()
+    if args.apply and not args.relink:
+        parser.error('--apply requires --relink')
     if args.outputs_only and not args.check:
         parser.error('--outputs-only requires --check')
     if args.snapshot and (not args.preflight or args.kind in ('all', 'audio')):
@@ -238,6 +361,12 @@ def main() -> None:
         print(source_path(args.resolve))
         return
     kinds = list(KINDS) if args.kind == 'all' else ['music', 'sfx'] if args.kind == 'audio' else [args.kind]
+    if args.relink or args.preflight:
+        relinked = relink_sources(kinds, apply=args.preflight or args.apply)
+    if args.relink:
+        if args.apply:
+            print('\n'.join(dict.fromkeys([*relinked, *pending_relocations(kinds)])))
+        return
     for kind in kinds:
         if args.repair_needed:
             recorded = read_record().get(kind, {}).get('outputs', {})

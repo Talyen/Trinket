@@ -203,7 +203,8 @@ different anchors remain visible; verification routing does not narrow.
 
 `agent-search.py '<concern>' --task` searches labels and aliases in
 [the authored index](../../Scripts/config/agent-tasks.json), using case-insensitive
-word matches. Scopes filter concerns by their source entry points; matching
+word matches. Use `--task --overview` without a query to list bounded brief commands.
+Scopes filter concerns by their source entry points; matching
 concerns show the complete cross-owner interaction and a routing command.
 Unindexed concerns fall back to normal discovery. Paths and contract anchors are
 validated; stale pointers fail explicitly rather than silently disappearing.

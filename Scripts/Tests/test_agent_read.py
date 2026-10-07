@@ -511,6 +511,8 @@ struct Owner {
     }()
         .map { $0 + 1 }
     var next = 3
+    @State var first = 0
+    @State var second = 1
 }
 '''
         entries = reader.source_declarations(Path('sample.swift'), source)
@@ -519,6 +521,9 @@ struct Owner {
         self.assertEqual((by_name['Factory.make'].start, by_name['Factory.make'].end), (3, 3))
         self.assertIn('Factory.Value', by_name)
         self.assertEqual(by_name['Owner.next'].end, 12)
+        self.assertEqual((by_name['Owner.first'].start, by_name['Owner.first'].end), (13, 13))
+        self.assertEqual((by_name['Owner.second'].start, by_name['Owner.second'].end), (14, 14))
+        self.assertEqual(by_name['Owner.second'].documentation, '')
 
     def test_large_documents_require_explicit_read_and_outline_can_be_paged(self) -> None:
         reader = load_script('bounded_reader', 'agent-read.py')

@@ -232,9 +232,7 @@ struct AppStateShopEncounterTests {
 
         playerSave.forcesNextSaveFailure = true
         #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id) == .retrying)
-        // The attempt is accepted rather than failed: no session error for the
-        // shop UI to alert on, and the rolled-back write left the save intact.
-        #expect(session.lastPurchaseError == nil)
+        // The accepted attempt's rolled-back write left the save intact.
         #expect(playerSave.roster.gold == offer.price * 3)
         #expect(playerSave.inventory.items.count == itemsBefore)
 

@@ -1,5 +1,3 @@
-import Foundation
-
 public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
     public let level: Int
     public let currentXP: Int

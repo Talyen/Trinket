@@ -267,7 +267,8 @@ jobs:
         id: package-cache
         with:
           shard: ${{ matrix.name }}
-      - uses: ./.github/actions/test-job
+      - name: Test packages (${{ matrix.packages }})
+        uses: ./.github/actions/test-job
         with:
           artifact-name: unit-${{ matrix.name }}
           artifact-prefix: ${{ inputs.artifact-prefix }}

@@ -1,5 +1,3 @@
-import Foundation
-
 /// Ability predicates. Evaluation lives in
 /// `BattleEngine.BattleConditionEvaluator`; keep new cases in sync with its switch.
 public enum DamageCondition: CaseIterable, Hashable, Sendable {

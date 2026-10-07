@@ -164,9 +164,22 @@ class DocumentationTests(ScriptRegressionTestCase):
             self.assertEqual(plan.read_text(), original)
 
     def test_proposal_evidence_identifier_resolution(self) -> None:
-        self.assertTrue(self.check_docs.source_contains_identifier("performBatchMutation"))
-        missing = "RemovedProposal" + "EvidenceSymbol"
-        self.assertFalse(self.check_docs.source_contains_identifier(missing))
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+            scripts = root / "Scripts"
+            scripts.mkdir()
+            (root / ".gitignore").write_text("Scripts/ignored.py\n")
+            (scripts / "tracked.py").write_text("def tracked_evidence(): pass\n")
+            subprocess.run(["git", "add", "Scripts/tracked.py"], cwd=root, check=True)
+            (scripts / "new.py").write_text("def new_evidence(): pass\n")
+            (scripts / "ignored.py").write_text("def ignored_evidence(): pass\n")
+            (scripts / "README.md").write_text("Retired: removed_evidence\n")
+            with patch.object(self.check_docs, "ROOT", root):
+                self.assertTrue(self.check_docs.source_contains_identifier("tracked_evidence"))
+                self.assertTrue(self.check_docs.source_contains_identifier("new_evidence"))
+                self.assertFalse(self.check_docs.source_contains_identifier("ignored_evidence"))
+                self.assertFalse(self.check_docs.source_contains_identifier("removed_evidence"))
 
     def test_audit_inventory_matches_ownership_table(self) -> None:
         self.assertEqual(self.check_docs.audit_inventory_failures(), [])
@@ -327,7 +340,7 @@ class DocumentationTests(ScriptRegressionTestCase):
                                    "Scripts/Tests/test_documentation.py",
                                    "Scripts/Tests/test-lib-args.sh"},
             "Scripts/check-unused-assets.py": {"Scripts/Tests/test_check_unused_assets.py"},
-            "Scripts/ci-path-filter.py": {"Scripts/Tests/test_ci_path_filter.py"},
+            "Scripts/ci-path-filter.py": {"Scripts/Tests/test_ci_path_filter.py", "Scripts/Tests/test_ci_effort.py"},
             "Scripts/balance-sweep.sh": {"Scripts/Tests/test_balance_report_retention.py"},
             "Scripts/test-timing.py": {"Scripts/Tests/test_test_timing.py",
                                        "Scripts/Tests/test_ci_build_scripts.py"},

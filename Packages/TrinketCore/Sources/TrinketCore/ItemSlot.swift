@@ -1,5 +1,3 @@
-import Foundation
-
 public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Codable, Sendable {
     case weapon = "Weapon"
     case secondaryWeapon = "Secondary Weapon"

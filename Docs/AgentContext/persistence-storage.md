@@ -4,6 +4,10 @@ Use with [persistence ownership](persistence.md) for schemas, graph reconciliati
 
 ## Schema and sanitization
 
+Labyrinth node decoding clamps negative saved depth before cleared-boss exit
+repair, which uses that depth to generate the next floor. Preserve the node's
+identity, cleared state and readable payloads when repairing damaged scalars.
+
 Reads use an in-memory observed projection; load/repair sanitizes `root.toPlayerSave()` from the SwiftData graph. `PlayerSave.currentSchemaVersion` versions the value-layer payload and its sanitizer/mapping migrations independently of the SwiftData migration version declared by `PlayerSaveSchema`; bumping one does not imply bumping the other. Slice writes expand through `PlayerSaveSlice.sanitizeTargets`: inventory also sanitizes roster (equipped items must exist), and labyrinth also sanitizes roster (recruit eligibility feeds map healing). Labyrinth sanitize runs on labyrinth mutations and full load, not on every inventory or roster write; recruit eligibility is applied when a map is generated.
 
 Roster sanitization accepts current catalog IDs and applies [Core talent repair](../../Packages/TrinketCore/README.md).

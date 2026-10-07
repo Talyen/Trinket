@@ -189,9 +189,14 @@ publishes products for exhaustive UI. Exhaustive UI runs every registered FullUI
 class on one runner with one product transfer. It restores the exact-run product
 archive through the cache service first, falls back to the retained artifact on
 cache miss, and rebuilds only when transferred products cannot be validated.
-Pushes select changed packages and their transitive dependents. Shared build inputs,
-package-manifest changes, unknown ownership, and missing dependency evidence select
-the full portfolio. Manual and scheduled runs retain full package coverage; partial
+Pushes select owning packages for edits confined to their `Tests/` directories.
+Source and shared test-support edits also select transitive dependents. Shared build
+inputs, package-manifest changes, unknown ownership, and missing dependency evidence
+select the full portfolio. Narrow selection requires all manifests to match the
+reviewed layout fingerprints in `ci-path-filter.py`; any changed manifest retains
+full coverage until its target/input ownership is reviewed and its fingerprint
+deliberately updated. Tests and handoff never refresh these fingerprints.
+Manual and scheduled runs retain full package coverage; partial
 push verification does not substitute for it. The Engine host path is a parity pilot
 on full runs alongside its iOS suite; do not promote it before hosted count/identity
 and behavior evidence agrees. Dispatch `scope=exhaustive-pilot` to bypass prior
@@ -208,7 +213,8 @@ They do not download the app product archive.
 
 Manual runs queue behind current branch verification without allocating a waiting
 runner. They reuse successful standard checks only for the exact commit and branch,
-with actual successful build/smoke, gate, and all unit jobs plus an available product
+with actual successful build/smoke, gate, and all unit jobs proving the full package
+portfolio in their successful test steps, plus an available product
 artifact. Skipped jobs, expired products, and unreadable evidence fall back to ordinary
 verification. Asset verification is reused only with its own successful job evidence;
 manual device Release compilation still runs. New pushes supersede obsolete branch runs.

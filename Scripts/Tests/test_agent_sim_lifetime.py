@@ -1,5 +1,6 @@
 import json
 import os
+from contextlib import suppress
 from pathlib import Path
 import subprocess
 import tempfile
@@ -161,7 +162,9 @@ else:
             self.assertEqual(state.read_text(), "agent-device")
         finally:
             if MODULE.identity(record["guardian"]) == record["guardianStarted"]:
-                os.kill(record["guardian"], 15)
+                # The guardian can finish between the identity check and signal.
+                with suppress(ProcessLookupError):
+                    os.kill(record["guardian"], 15)
 
 
 

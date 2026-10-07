@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import fnmatch
 import base64
+import hashlib
 from collections.abc import Callable
 import re
 import functools
@@ -200,6 +201,19 @@ SHARDS = {
     "Battle": ["TrinketFeatureSupport", "TrinketBattleFeature"],
 }
 
+# Reviewed static layouts keep Tests private and shared support under Sources.
+# Update only after reviewing target/input ownership; never refresh automatically.
+REVIEWED_MANIFESTS = {
+    "BattleEngine": "3ec585663958b4c2352fd58f9439d7f64efb510587d54307790aeb761cb58e34",
+    "TrinketAppState": "a718bfff07a2e0421daacebfb96502e7c9c1e1049d5e5b03b0bcd82f58b1a8e5",
+    "TrinketBattleFeature": "31b3930d5d631029c1b4ca082f118fbd60bd760f639402b1295bf4c2dc393576",
+    "TrinketContent": "0fad35c1e4a5c26490417c0eb9fd224c40b59f4c71747e6600052367d8ba8d9c",
+    "TrinketCore": "a65853629752a8ef2be3b782af81a98e157611d5cc28952b5833233198d992cf",
+    "TrinketDesignSystem": "a3e8ebd730bb083e90bb032641d0cd5029aea715d63fec4840566169e11944bb",
+    "TrinketFeatureSupport": "1e9f3c2d60429248367f3da19cad4354875741476d790ff88564b15ce73d4687",
+    "TrinketPersistence": "66ea7e8ea805f9b686ed97baa802b06b66243c3b09b4e9e3c59a7aedbba4bce1",
+}
+
 
 def all_packages() -> set[str]:
     return {package for packages in SHARDS.values() for package in packages}
@@ -208,6 +222,7 @@ def all_packages() -> set[str]:
 def affected_packages(paths: list[str], load_dependencies: Callable[[], dict[str, set[str]]]) -> set[str]:
     owners = all_packages()
     selected = set()
+    changed_sources = set()
     for path in paths:
         if path.endswith(".md"):
             continue
@@ -218,6 +233,10 @@ def affected_packages(paths: list[str], load_dependencies: Callable[[], dict[str
             if len(parts) < 3 or parts[1] not in owners or parts[-1] == "Package.swift":
                 return owners
             selected.add(parts[1])
+            # Test targets are private to their package. Shared test support
+            # lives under Sources and still invalidates dependent packages.
+            if len(parts) < 4 or parts[2] != "Tests":
+                changed_sources.add(parts[1])
         elif is_code_path(path):
             return owners
     if not selected or selected == owners:
@@ -226,10 +245,10 @@ def affected_packages(paths: list[str], load_dependencies: Callable[[], dict[str
     if set(dependencies) != owners or any(not deps <= owners for deps in dependencies.values()):
         return owners
     while True:
-        expanded = selected | {owner for owner, deps in dependencies.items() if deps & selected}
-        if expanded == selected:
-            return selected
-        selected = expanded
+        expanded = changed_sources | {owner for owner, deps in dependencies.items() if deps & changed_sources}
+        if expanded == changed_sources:
+            return selected | expanded
+        changed_sources = expanded
 
 
 def package_matrix(selected: set[str]) -> dict:
@@ -247,9 +266,10 @@ def dependency_graph(repo: str, sha: str, token: str) -> dict[str, set[str]]:
         data = github_json(url, token)
         if not isinstance(data.get("content"), str):
             raise ValueError(f"Missing dependency manifest content in {package}")
-        source = base64.b64decode(data["content"]).decode("utf-8")
-        if not source.strip():
-            raise ValueError(f"Empty dependency manifest in {package}")
+        manifest = base64.b64decode(data["content"])
+        if hashlib.sha256(manifest).hexdigest() != REVIEWED_MANIFESTS.get(package):
+            raise ValueError(f"Unreviewed target layout in {package}")
+        source = manifest.decode("utf-8")
         # These packages use repository-relative local dependencies. Unknown
         # package forms force the full portfolio rather than guessing ownership.
         paths = re.findall(r'\.package\(path:\s*"\.\./([^"/]+)"\)', source)

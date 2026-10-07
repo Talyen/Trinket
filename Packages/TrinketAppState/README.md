@@ -108,11 +108,13 @@ changes use path-scoped handoff.
 `Support/AppTestContext.swift` builds isolated states (temp directory plus
 `UserDefaults` suite, torn down with the context). It defaults to full-game
 access — pass `contentAccess:` when a test needs anything else — and wires a
-silent battle runtime with the production progression closures. Test arguments
+silent battle runtime with the production progression closures. Normal contexts
+cache an in-memory save; constructing another state in that context is not a disk
+reload. Durability tests inject a file-backed `PlayerSaveStore` and independently
+reopen that store. Test arguments
 stack on `-disable-cloud-sync -disable-audio -skip-starter-selection`; add
 `-reset-state` for a fresh save or `-seed-test-progress` for progressed content.
 `Support/LabyrinthTestSupport.swift` covers map setup and reachable-node lookup;
 `Support/PlayBattleLaunchTestSupport.swift` covers party setup and bare launch
-assembly. Journey, Labyrinth, Spires, Contracts, and Voyage flows each have their own
-test file; shop and mystery encounters share theirs. `#if DEBUG` retry tests use
+assembly and enforces settled retry state after its bounded wait. `#if DEBUG` retry tests use
 `forcesNextSaveFailure` to drive the unbounded `retrySaveAction` paths.

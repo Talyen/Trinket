@@ -13,12 +13,13 @@ from internal.cli import ROOT, validate_repo_paths
 # Keep each leaf with its consumers' regressions. Infrastructure, runners,
 # and shared fixtures without declared ownership use the full-suite fallback.
 #
-# INTENTIONALLY_UNMAPPED names leaves that must keep the safe full-suite
-# fallback (with the reason); test_script_selection.py enforces that every
+# Explicit full-suite exceptions take precedence over declared consumers;
+# test_script_selection.py enforces that every
 # other Scripts/ leaf is owned by suite metadata or the shell families below.
 INTENTIONALLY_UNMAPPED = {
-    "Scripts/internal/cli.py": "shared by six families; any narrow route would under-test consumers",
+    "Scripts/internal/cli.py": "shared CLI and file helpers; a narrow route would miss consumers",
     "Scripts/test-scripts.sh": "the runner itself; self-hosted, always full suite",
+    ".github/workflows/tests.yml": "shared test orchestration; declared consumers cannot narrow its coverage",
 }
 # Product inputs have their own handoff gates. A regression may still claim one
 # explicitly through SCRIPT_INPUTS, which takes precedence over this exclusion.

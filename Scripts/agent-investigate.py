@@ -13,7 +13,7 @@ from internal.cli import ROOT, load_sibling
 from internal.agent_arguments import AgentArgumentParser
 from internal.agent_callers import invocation_lines
 from internal.agent_tasks import load_tasks
-from internal.source_declarations import source_declarations
+from internal.source_declarations import source_declarations, swift_code_tokens
 
 
 def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
@@ -61,10 +61,18 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         if args.expect and args.expect != identity:
             raise ValueError('scoped inputs changed; restart without --offset/--expect')
         declarations = {}
+        token_streams = {}
+
+        def tokens(name):
+            if Path(name).suffix != '.swift':
+                return None
+            if name not in token_streams:
+                token_streams[name] = swift_code_tokens(contents[name])
+            return token_streams[name]
 
         def entries(name):
             if name not in declarations:
-                declarations[name] = source_declarations(root / name, contents[name])
+                declarations[name] = source_declarations(root / name, contents[name], tokens=tokens(name))
             return declarations[name]
 
         def select(name, symbol):
@@ -83,7 +91,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         for name in files:
             if not re.search(r'\b' + re.escape(leaf) + r'\b', contents[name]):
                 continue
-            for line in invocation_lines(root / name, contents[name], leaf):
+            for line in invocation_lines(root / name, contents[name], leaf, tokens=tokens(name)):
                 enclosing = [entry for entry in entries(name) if entry.start <= line <= entry.end]
                 entry = min(enclosing, key=lambda e: (e.end - e.start, -e.start)) if enclosing else None
                 start, end = (entry.start, entry.end) if entry else (line, line)

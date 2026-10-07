@@ -101,8 +101,8 @@ public final class EncounterPlayMode {
             shopSession.markPurchaseFinished()
             sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
             return .committed
-        case let .rejected(reason):
-            shopSession.markPurchaseFailed(message: reason.message)
+        case .rejected:
+            shopSession.markPurchaseFinished()
             sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
             return .rejected
         case .persistFailed:

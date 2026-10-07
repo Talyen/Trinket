@@ -1,5 +1,3 @@
-import Foundation
-
 /// Small progression-domain enums grouped by size, not theme: each is a closed
 /// set with no behavior beyond identity (plus `Rarity.label` display copy and
 /// `AbilityTier.cadenceTurns` tuning). Split if any grows its own logic.

@@ -243,7 +243,7 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
             root = self.make_repo_fixture(
                 directory, ("Scripts/build-freshness.sh", "Scripts/build-inputs.env"))
             prepare = root / 'Scripts/prepare-assets.sh'
-            prepare.write_text('#!/bin/bash\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n[[ ! -f invalid-assets ]] || exit 7\nprintf checked >> asset-checks\n')
+            prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n[[ ! -f invalid-assets ]] || exit 7\nprintf checked >> asset-checks\n')
             prepare.chmod(0o755)
             generate = root / "Scripts/generate.sh"
             generate.write_text('#!/bin/bash\necho generated >> calls\n')
@@ -296,7 +296,7 @@ prepare_generated_inputs results || status=$?
                 root = self.make_repo_fixture(
                     directory, ("Scripts/build-freshness.sh", "Scripts/build-inputs.env"))
                 prepare = root / 'Scripts/prepare-assets.sh'
-                prepare.write_text('#!/bin/bash\n[[ "$*" == "--check --outputs-only" ]] || exit 9\nprintf checked >> asset-checks\n')
+                prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\nprintf checked >> asset-checks\n')
                 prepare.chmod(0o755)
                 (root / "ContentManifest").mkdir()
                 (root / "ContentManifest/input.tsv").touch()

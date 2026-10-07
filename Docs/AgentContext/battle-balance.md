@@ -25,7 +25,7 @@ mode rules. Contracts uses party-average offsets through the same resolver;
 role-specific roster catch-up XP unchanged. Product direction:
 [Decisions.md](../Product/Decisions.md), PD-016 through PD-021.
 
-Hidden fight pacing (`FightPacing`) band-scales authored combat magnitudes via comeback and a progress-based clock. Passive turn-start mana drip is excluded. Percentage multipliers on combat integers round via `CombatRounding` (nearest integer, ties to even); integer division semantics remain truncating division.
+Hidden fight pacing (`FightPacing`) band-scales authored combat magnitudes via comeback and a progress-based clock. Passive turn-start mana drip is excluded. Percentage multipliers on combat integers round via `CombatRounding` (nearest integer, ties away from zero); integer division semantics remain truncating division.
 
 Talent-tree node/row layout is authored in the talent manifest; talent-point award cadence lives in progression code. Power is flat across all rows; do not scale talent magnitude by row level. Talent-trigger names come from `CombatModifierProfile.triggerAbilityNames` (first writer wins). Holy, turn-start, and Mana cleanses use `CombatTriggerEngine.performRandomCleanses`, which resolves removal and reactions through `EffectRemovalOperation`.
 

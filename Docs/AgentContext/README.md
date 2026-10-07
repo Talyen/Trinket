@@ -50,7 +50,8 @@ Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/S
 
 1. For an indexed concern, use `python3 Scripts/agent-session.py brief --task shop`.
    This combines scoped status, safeguards, initial guidance, signatures and test pointers.
-   Find an index entry with `agent-search.py '<concern>' --task`; otherwise discover
+   List indexed concerns with `agent-search.py --task --overview`, or find one with
+   `agent-search.py '<concern>' --task`; otherwise discover
    filenames with `--files <regex> --scope <owner>` or `--overview` for an unknown owner.
 2. Preserve actual task scope with `brief --task <concern> --paths <files...>` or
    `./Scripts/agent-context.sh --agent --status --paths <files...>`.
