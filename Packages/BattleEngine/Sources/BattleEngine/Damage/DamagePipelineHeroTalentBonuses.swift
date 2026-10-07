@@ -87,7 +87,7 @@ package extension DamagePipeline {
             state.itemBonus += bonus
         }
         if keyword == .bleed, state.isCritical, triggers.bleedCriticalBelowHalfMultiplier > 1,
-           context.roster.health(for: state.combatant) * 2 < context.roster.maxHealth(for: state.combatant) {
+           context.roster.isBelowHalfHealth(for: state.combatant) {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.bleedCriticalBelowHalfMultiplier)
         }
         if keyword == .bleed, state.options.isAttackHit, state.targetStatus.isStunned,
@@ -108,7 +108,7 @@ package extension DamagePipeline {
     ) {
         guard let source = context.roster.combatant(for: sourceActorID)?.combatant else { return }
         if keyword == .burn {
-            if context.roster.health(for: source) * 2 < context.roster.maxHealth(for: source),
+            if context.roster.isBelowHalfHealth(for: source),
                triggers.burnBelowHalfHealthMultiplier > 1 {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.burnBelowHalfHealthMultiplier)
             }

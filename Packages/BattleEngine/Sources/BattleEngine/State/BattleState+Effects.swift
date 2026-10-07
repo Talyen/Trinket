@@ -101,7 +101,7 @@ package extension BattleState {
 
     private mutating func adjustedBlockGain(_ amount: Int, to target: Combatant) -> (Int, Bool) {
         let triggers = modifiers(for: target.id).triggers
-        let belowHalf = roster.health(for: target) * 2 < roster.maxHealth(for: target)
+        let belowHalf = roster.isBelowHalfHealth(for: target)
         let healthMultiplier = belowHalf ? triggers.blockGainBelowHalfMultiplier : 1
         let pending = roster.runtime(for: target)?.talents.pending
         let prepared = pending?.nextBlockGainMultiplier?.availableValue(

@@ -83,8 +83,8 @@ class AggregatePerformanceTests(unittest.TestCase):
             root = Path(directory)
             results = root / "results.json"
             baseline = root / "baseline.json"
-            output = root / "aggregate.json"
-            summary = root / "aggregate.md"
+            output = root / "evidence" / "aggregate.json"
+            summary = root / "summary" / "aggregate.md"
             results.write_text(json.dumps({"reports": reports}))
             baseline.write_text(json.dumps({
                 "scenarios": scenarios or ["navigation"],
@@ -120,7 +120,7 @@ class AggregatePerformanceTests(unittest.TestCase):
     def test_missing_baseline_scenario_fails(self) -> None:
         status, summary = self.run_aggregate([report(scenario="other")])
         self.assertEqual(status, 1)
-        self.assertIn("navigation: expected 1 reports, found 0", summary)
+        self.assertIn("navigation: expected iterations 1..1, found []", summary)
 
     def test_deadline_and_max_frame_checks_remain_strict_only_for_battle_gestures(self) -> None:
         status, summary = self.run_aggregate([report(scenario="navigation", maxFrameMs=30, missedDeadlineCount=2)], ["navigation"])

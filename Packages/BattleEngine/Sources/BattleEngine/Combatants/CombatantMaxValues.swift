@@ -22,6 +22,13 @@ public enum CombatantMaxValues {
         )
     }
 
+    static func maximumManaBonus(in effects: [ActiveEffect]) -> Int {
+        effects.reduce(0) { sum, active in
+            guard case let .maximumManaBonus(amount) = active.effect else { return sum }
+            return SaturatedArithmetic.saturatingAdd(sum, amount)
+        }
+    }
+
     public static func maxMana(for combatant: Combatant, flatBonus: Int, effectBonus: Int = 0) -> Int {
         guard combatant.hasMana else { return 0 }
         return SaturatedArithmetic.saturatingAdd(

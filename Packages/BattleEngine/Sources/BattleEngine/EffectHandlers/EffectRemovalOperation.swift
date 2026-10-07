@@ -238,7 +238,7 @@ enum EffectRemovalOperation {
         )
         if target.role == .enemy, source.role != .enemy, triggers.purgeDrawBelowHalf,
            let runtime = context.roster.runtime(for: source), runtime.isAlive,
-           Double(runtime.currentHealth) < Double(runtime.maxHealth) / 2,
+           runtime.isBelowHalfHealth,
            let owner = context.roster.participant(for: source) {
             events.append(contentsOf: CombatTriggerEngine.drawCards(
                 1, for: owner, actor: source, abilityName: "Smite the Wicked", in: &context,

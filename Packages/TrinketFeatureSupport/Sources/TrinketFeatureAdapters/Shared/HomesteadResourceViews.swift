@@ -31,7 +31,7 @@ public struct HomesteadResourceWallet: View {
 
     public var body: some View {
         TrinketWalletGrid {
-            ForEach(Array(HomesteadResource.allCases.enumerated()), id: \.element) { index, resource in
+            ForEach(HomesteadResource.allCases.enumerated(), id: \.element) { index, resource in
                 walletPill(for: resource, index: index)
             }
         }

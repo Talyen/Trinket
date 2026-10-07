@@ -138,7 +138,7 @@ public struct ItemDetailView: View {
     private var traitsSection: some View {
         DetailSection("Traits") {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-                ForEach(Array(item.displayedAffixes.enumerated()), id: \.element.id) { index, affix in
+                ForEach(item.displayedAffixes.enumerated(), id: \.element.id) { index, affix in
                     DetailTraitRow(
                         title: affix.title,
                         description: affix.description,

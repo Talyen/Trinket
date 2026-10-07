@@ -61,7 +61,8 @@ class CIPathFilterTests(unittest.TestCase):
             'TrinketBattleFeature': {'TrinketFeatureSupport', 'BattleEngine'},
             'TrinketAppState': {'TrinketPersistence', 'TrinketBattleFeature'},
         }
-        select = self.filter.affected_packages
+        def select(paths, dependencies):
+            return self.filter.affected_packages(paths, lambda: dependencies)
         self.assertEqual(select(['TrinketUITests/Example.swift'], graph), set())
         self.assertEqual(select(['Packages/TrinketPersistence/Sources/Store.swift'], graph),
                          {'TrinketPersistence', 'TrinketAppState'})
@@ -69,6 +70,17 @@ class CIPathFilterTests(unittest.TestCase):
         for path in ('Scripts/test.sh', 'Packages/Unknown/Sources/Rule.swift', 'Packages/BattleEngine/Package.swift'):
             self.assertEqual(select([path], graph), self.filter.all_packages())
         self.assertEqual(select(['Packages/TrinketPersistence/Sources/Store.swift'], {}), self.filter.all_packages())
+
+    def test_unreadable_dependency_manifests_select_the_full_portfolio(self) -> None:
+        environment = {'BEFORE': 'before', 'SHA': 'after', 'GITHUB_REPOSITORY': 'fixture/repo', 'GH_TOKEN': 'fixture'}
+        paths = ['Packages/TrinketPersistence/Sources/Store.swift']
+        for content in (None, ''):
+            with self.subTest(content=content), patch.dict(os.environ, environment, clear=True), \
+                 patch.object(self.filter, 'compare_filenames', return_value=paths), \
+                 patch.object(self.filter, 'github_json', return_value={'content': content}), \
+                 patch.object(self.filter, 'write_output') as output, patch('sys.stdout', new=io.StringIO()):
+                self.filter.main()
+            self.assertEqual(output.call_args.args[-1], self.filter.all_packages())
 
     def test_asset_globs_match_prepare_scripts(self) -> None:
         match = self.filter.is_asset_path

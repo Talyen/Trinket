@@ -53,7 +53,7 @@ package extension DamagePipeline {
         guard state.options.isAttackHit, let keyword = state.damageKeyword else { return 0 }
         let triggers = context.modifiers(for: actor.id).triggers
         switch keyword {
-        case .physical where actor.currentHealth * 2 < actor.maxHealth:
+        case .physical where actor.isBelowHalfHealth:
             return triggers.physicalCritChanceBelowHalfBonus
         case .bleed:
             return triggers.bleedAttackCriticalBonus
@@ -163,7 +163,7 @@ package extension DamagePipeline {
         else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
         if state.targetStatus.isBleeding,
-           context.roster.health(for: state.combatant) * 2 < context.roster.maxHealth(for: state.combatant),
+           context.roster.isBelowHalfHealth(for: state.combatant),
            triggers.attackVsBleedingBelowHalfMultiplier > 1 {
             state.remaining = CombatRounding.scaled(
                 state.remaining, multiplier: triggers.attackVsBleedingBelowHalfMultiplier,
@@ -193,7 +193,7 @@ package extension DamagePipeline {
             )
         }
         if state.damageKeyword == .bleed,
-           context.roster.health(for: state.combatant) * 2 < context.roster.maxHealth(for: state.combatant),
+           context.roster.isBelowHalfHealth(for: state.combatant),
            triggers.bleedDamageBelowHalfMultiplier > 1 {
             state.remaining = CombatRounding.scaled(
                 state.remaining, multiplier: triggers.bleedDamageBelowHalfMultiplier,

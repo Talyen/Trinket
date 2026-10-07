@@ -18,7 +18,7 @@ package enum EffectHandlers {
         case .panacea: PanaceaHandler()
         case .halveShield: HalveShieldHandler()
         case .deathsDoor: DeathsDoorHandler()
-        case .thorns: ThornsHandler()
+        case .thorns, .nextBurnBonus: StackingAmountBuffHandler()
         case .thornsFromBlockFraction: ThornsFromBlockFractionHandler()
         case .marked: MarkedHandler()
         case .criticalChanceBonus: CriticalChanceBonusHandler()
@@ -26,7 +26,6 @@ package enum EffectHandlers {
         case .damageKeywordOverride: DamageKeywordOverrideHandler()
         case .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .evadeNextHit, .nextStrikeCritical,
              .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .freezeNextAttacker: FlagEffectHandler()
-        case .nextBurnBonus: NextBurnBonusHandler()
         case .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold: ShieldFromResourceHandler()
         case .maximumManaBonus: MaximumManaBonusHandler()
         case .partyDamageBonus: PartyDamageBonusHandler()

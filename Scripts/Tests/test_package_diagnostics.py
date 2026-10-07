@@ -48,6 +48,13 @@ class PackageDiagnosticsTests(ScriptRegressionTestCase):
             self.assertEqual(output[:2], ["tail+1: error: tail sentinel", "tail+2: context"])
             self.assertIn("omitted (including log prefix)", output[-1])
             self.assertIn("full log retained", output[-1])
+            # A newline-free tail is still the only failure preview in quiet mode.
+            sentinel = "ERROR: newline-free tail sentinel"
+            log.write_text("prefix" * 20 + sentinel)
+            with patch.object(script_diagnostics, "MAX_LOG_BYTES", len(sentinel)):
+                output = script_diagnostics.excerpt(log)
+            self.assertEqual(output[0], "tail+1: " + sentinel)
+            self.assertIn("omitted (including log prefix)", output[-1])
 
     def test_aggregate_deduplicates_failures_bounds_detail_and_retains_every_report(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -96,6 +96,11 @@ class InternalCliTests(unittest.TestCase):
                 write_json_atomic(path, {"commit": object()})
             self.assertEqual(path.read_bytes(), before)
             self.assertEqual(list(path.parent.iterdir()), [path])
+            from unittest.mock import patch
+            with patch.object(Path, "replace", side_effect=OSError("publication failed")), self.assertRaises(OSError):
+                write_json_atomic(path, {"commit": "replacement"})
+            self.assertEqual(path.read_bytes(), before)
+            self.assertEqual(list(path.parent.iterdir()), [path])
 
     def test_diagnostic_limits_match_bash_sourcing(self) -> None:
         import subprocess

@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -51,8 +50,7 @@ public enum BattleConditionEvaluator {
             return context.roster.health(for: enemy) < context.roster.health(for: action.actor)
         case .allyBelowHalfHealth:
             return action.allies(in: context).contains {
-                let health = context.health(of: $0)
-                return health > 0 && health * 2 < context.maxHealth(of: $0)
+                context.health(of: $0) > 0 && context.roster.isBelowHalfHealth(for: $0)
             }
         case .enemyHasBuff:
             return context.roster.activeEffects(for: enemy).contains(where: \.effect.isRemovableBuff)

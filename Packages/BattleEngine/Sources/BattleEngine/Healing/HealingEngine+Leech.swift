@@ -28,7 +28,7 @@ package extension HealingEngine {
                 || attackHit && actor.currentHealth > 0 && actor.maxHealth > 0
                 && Double(actor.currentHealth) / Double(actor.maxHealth) < triggers.bleedAttackLeechBelowHealthThreshold
         case .physical:
-            return attackHit && actor.currentHealth > 0 && actor.currentHealth * 2 < actor.maxHealth
+            return attackHit && actor.currentHealth > 0 && actor.isBelowHalfHealth
                 && triggers.physicalAttackLeechBelowHalfHealth
         default:
             return false
@@ -101,7 +101,7 @@ package extension HealingEngine {
 
         if let target, profile.triggers.leechPercentVsLowHealthEnemies > 0,
            context.roster.maxHealth(for: target) > 0,
-           Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target)) < 0.5 {
+           context.roster.isBelowHalfHealth(for: target) {
             leechPct += profile.triggers.leechPercentVsLowHealthEnemies
         }
 
@@ -109,7 +109,7 @@ package extension HealingEngine {
         restored += profile.leechHealingBonus
         if let target, profile.triggers.leechBonusHealVsLowHealthEnemies > 0,
            context.roster.maxHealth(for: target) > 0,
-           Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target)) < 0.5 {
+           context.roster.isBelowHalfHealth(for: target) {
             restored += profile.triggers.leechBonusHealVsLowHealthEnemies
         }
         if let target, profile.triggers.leechBonusHealVsStunned > 0,
@@ -129,7 +129,7 @@ package extension HealingEngine {
                 restored, multiplier: profile.triggers.leechHealingVsBleedingMultiplier,
             )
         }
-        if let target, context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target) {
+        if let target, context.roster.isBelowHalfHealth(for: target) {
             restored = CombatRounding.scaled(
                 restored, multiplier: profile.triggers.leechHealingVsLowEnemyHealthMultiplier,
             )
@@ -198,7 +198,7 @@ package extension HealingEngine {
                 target: actorCombatant, amount: profile.triggers.leechThornsWithoutThorns, keyword: .thorns,
             ))
         }
-        if actualRestored > 0, preHealth * 2 < maxHealth,
+        if actualRestored > 0, HealthThreshold.isBelowHalf(preHealth, maximum: maxHealth),
            profile.triggers.leechStunBelowHalfHealth > 0,
            let target, target.role == .enemy, context.roster.health(for: target) > 0 {
             var operation = DamageOperation.reaction()
@@ -229,7 +229,7 @@ package extension HealingEngine {
                 )
             }
         }
-        if actualRestored > 0, preHealth * 2 < maxHealth,
+        if actualRestored > 0, HealthThreshold.isBelowHalf(preHealth, maximum: maxHealth),
            profile.triggers.leechBlockBelowHalf {
             events.append(contentsOf: context.applyBlock(
                 actualRestored,

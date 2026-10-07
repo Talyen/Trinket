@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -108,7 +107,7 @@ enum TimedBuffSummary {
     }
 
     static func summedAmount(in stacks: [ActiveEffect], amount: (Effect) -> Int?) -> Int {
-        stacks.reduce(0) { sum, active in sum + (amount(active.effect) ?? 0) }
+        stacks.reduce(0) { sum, active in SaturatedArithmetic.saturatingAdd(sum, amount(active.effect) ?? 0) }
     }
 
     static func maxAmount(in stacks: [ActiveEffect], amount: (Effect) -> Int?) -> Int {

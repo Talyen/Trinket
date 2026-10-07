@@ -18,7 +18,7 @@ from pathlib import Path
 
 from internal.cli import ROOT
 from internal.agent_arguments import AgentArgumentParser
-from internal.agent_tasks import find_tasks, related_tests
+from internal.agent_tasks import find_tasks, related_tests, within
 TEXT_SUFFIXES = {
     ".swift", ".metal", ".sh", ".py", ".mjs", ".js", ".ts", ".tsx",
     ".env", ".json", ".yml", ".yaml", ".tsv", ".toml", ".pbxproj",
@@ -28,27 +28,31 @@ ASSET_SUFFIXES = {".png", ".jpg", ".jpeg", ".heic", ".webp", ".gif", ".svg", ".p
                   ".wav", ".mp3", ".m4a", ".aac", ".aiff", ".ogg", ".caf", ".mp4", ".mov"}
 
 
-def inventory(root: Path, mode: str, scopes: list[str]) -> list[str]:
+def inventory(root: Path, modes: tuple[str, ...], scopes: list[str]) -> dict[str, list[str]]:
     generated = [
         line.split("|", 1)[1].rstrip("/")
         for line in (root / "Scripts/config/generated-paths.tsv").read_text().splitlines()
         if line and not line.startswith("#")
     ]
     files = subprocess.check_output(
-        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"], cwd=root,
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard",
+         "--", *(f":(literal){scope}" for scope in scopes)], cwd=root,
     ).decode().split("\0")
-    selected = []
+    selected = {mode: [] for mode in modes}
     for name in sorted(set(files) - {""}):
+        if not within(name, scopes):
+            continue
         path = root / name
         if path.is_symlink() or not path.is_file():
             continue
-        if scopes and not any(name == scope or name.startswith(scope + "/") for scope in scopes):
+        if "overview" in selected:
+            selected["overview"].append(name)
             continue
-        if mode == "overview" or (mode == "assets" and (
+        if "assets" in selected and (
             path.suffix.lower() in ASSET_SUFFIXES or name.startswith("Raw Assets/")
             or ".xcassets/" in name or name.startswith("Trinket/Media/")
-        )):
-            selected.append(name)
+        ):
+            selected["assets"].append(name)
             continue
         is_generated = any(name == entry or name.startswith(entry + "/") for entry in generated)
         is_generated |= "/Generated/" in name or ".generated." in name
@@ -56,8 +60,8 @@ def inventory(root: Path, mode: str, scopes: list[str]) -> list[str]:
         is_test = any(part == "Tests" or part.endswith("TestSupport") or part == "TrinketUITests"
                       for part in path.relative_to(root).parts)
         category = "generated" if is_generated else "docs" if is_docs else "tests" if is_test else "source"
-        if category == mode and (path.suffix in TEXT_SUFFIXES or name.startswith((".githooks/", "Scripts/bin/"))):
-            selected.append(name)
+        if category in selected and (path.suffix in TEXT_SUFFIXES or name.startswith((".githooks/", "Scripts/bin/"))):
+            selected[category].append(name)
     return selected
 
 
@@ -166,10 +170,10 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             return 2
         if normalized != ".":
             scopes.append(normalized)
-    files = [] if args.task else inventory(root, "overview" if args.overview else args.mode, scopes)
-    test_files = set(inventory(root, "tests", scopes)) if args.related else set()
-    if args.related:
-        files = sorted(set(files) | test_files)
+    modes = ("overview",) if args.overview else ("source", "tests") if args.related else (args.mode,)
+    groups = {} if args.task else inventory(root, modes, scopes)
+    files = sorted(name for paths in groups.values() for name in paths)
+    test_files = set(groups.get("tests", [])) if args.related else set()
     surface = "task" if args.task else "overview" if args.overview else "related" if args.related else args.mode
     unit = "files" if args.overview or args.mode == "assets" else "text files"
     print(f"Search: task index; scope: {', '.join(scopes) or 'repository'}" if args.task else

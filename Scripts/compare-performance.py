@@ -35,14 +35,10 @@ def main() -> int:
     rows: list[str] = []
     for scenario in scenarios:
         records = grouped[scenario]
-        if len(records) != 1:
-            failures.append(f"{scenario}: expected exactly one measured report, found {len(records)}")
+        if [report["iteration"] for report in records] != [1]:
             continue
 
         report = records[0]
-        if report.get("iteration") != 1:
-            failures.append(f"{scenario}: expected measured iteration 1, found {report.get('iteration')!r}")
-            continue
         values = {key: float(report[key]) for key in METRICS}
 
         rows.append(

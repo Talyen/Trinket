@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -98,14 +97,8 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
         eligibleRecruitEventIDs: [String] = [],
         eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) {
-        if isMapPayloadUnreadable {
-            isMapPayloadUnreadable = false
-            if hasMap {
-                return
-            }
-        } else if hasMap {
-            return
-        }
+        isMapPayloadUnreadable = false
+        guard !hasMap else { return }
         let resolvedSeed: UInt64 = {
             if let seed, seed != 0 {
                 return seed
@@ -123,7 +116,6 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
         nodes = generated.nodes
         mapVersion = LabyrinthGenerator.currentMapVersion
         hasEntered = true
-        isMapPayloadUnreadable = false
     }
 
     public mutating func markCleared(

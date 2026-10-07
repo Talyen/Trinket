@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import fnmatch
 import base64
+from collections.abc import Callable
 import re
 import functools
 import json
@@ -204,7 +205,7 @@ def all_packages() -> set[str]:
     return {package for packages in SHARDS.values() for package in packages}
 
 
-def affected_packages(paths: list[str], dependencies: dict[str, set[str]]) -> set[str]:
+def affected_packages(paths: list[str], load_dependencies: Callable[[], dict[str, set[str]]]) -> set[str]:
     owners = all_packages()
     selected = set()
     for path in paths:
@@ -219,8 +220,9 @@ def affected_packages(paths: list[str], dependencies: dict[str, set[str]]) -> se
             selected.add(parts[1])
         elif is_code_path(path):
             return owners
-    if not selected:
-        return set()
+    if not selected or selected == owners:
+        return selected
+    dependencies = load_dependencies()
     if set(dependencies) != owners or any(not deps <= owners for deps in dependencies.values()):
         return owners
     while True:
@@ -243,7 +245,11 @@ def dependency_graph(repo: str, sha: str, token: str) -> dict[str, set[str]]:
     for package in all_packages():
         url = f"https://api.github.com/repos/{repo}/contents/Packages/{package}/Package.swift?ref={sha}"
         data = github_json(url, token)
+        if not isinstance(data.get("content"), str):
+            raise ValueError(f"Missing dependency manifest content in {package}")
         source = base64.b64decode(data["content"]).decode("utf-8")
+        if not source.strip():
+            raise ValueError(f"Empty dependency manifest in {package}")
         # These packages use repository-relative local dependencies. Unknown
         # package forms force the full portfolio rather than guessing ownership.
         paths = re.findall(r'\.package\(path:\s*"\.\./([^"/]+)"\)', source)
@@ -348,11 +354,7 @@ def main() -> None:
     print(f"Changed files: {len(filenames)}; code={code}; assets={assets}; infra={infra}; smoke={smoke}")
     selected = all_packages()
     try:
-        # UI-only and shared-input changes can be classified without fetching
-        # package manifests. Only a package change requires the dependency graph.
-        selected = affected_packages(filenames, {})
-        if any(path.startswith("Packages/") and not path.endswith(".md") for path in filenames):
-            selected = affected_packages(filenames, dependency_graph(repo, sha, token))
+        selected = affected_packages(filenames, lambda: dependency_graph(repo, sha, token))
     except (OSError, ValueError, KeyError, urllib.error.URLError):
         print("Dependency evidence unavailable; selecting all package suites.")
     write_output(code, assets, infra, smoke, selected)

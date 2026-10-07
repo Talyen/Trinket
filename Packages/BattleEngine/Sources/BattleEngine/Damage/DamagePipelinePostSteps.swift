@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -10,7 +9,7 @@ package extension DamagePipeline {
         for wearer in state.brokenBlockOwners {
             guard context.modifiers(for: wearer.id).triggers.blockBreakDrawBelowHalf,
                   let runtime = context.roster.runtime(for: wearer), runtime.isAlive,
-                  Double(runtime.currentHealth) < Double(runtime.maxHealth) / 2,
+                  runtime.isBelowHalfHealth,
                   let owner = context.roster.participant(for: wearer) else { continue }
             state.damageEvents.append(contentsOf: CombatTriggerEngine.drawCards(
                 1, for: owner, actor: wearer, abilityName: "Resourceful", in: &context,

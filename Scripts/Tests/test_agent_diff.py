@@ -45,6 +45,18 @@ class AgentDiffTests(unittest.TestCase):
         ):
             summary = ''.join(generated_summary(filename, source.encode(), source.replace('value: 1', 'value: 2').encode()))
             self.assertIn('.' + changed, summary)
+        for prose in ('// ItemAffixCatalog.affix(id: "fake", value: 1)\n',
+                      'let note = "ItemAffixCatalog.affix(value: 1)"\n',
+                      '/* HomesteadNodeDefinition(id: .fake, value: 1) */\n'):
+            filename = 'ItemAffixCatalog.generated.swift' if 'affix' in prose else 'GameContentHomestead.generated.swift'
+            record = 'ItemAffixCatalog.affix(id: "keen", basic: Power(value: 1))' if 'affix' in prose else \
+                     'HomesteadNodeDefinition(id: .farm, tiers: [Tier(value: 1)])'
+            with self.subTest(prose=prose):
+                summary = ''.join(generated_summary(filename, (prose + record).encode(),
+                                                     (prose + record.replace('value: 1', 'value: 2')).encode()))
+                self.assertIn('Changed', summary)
+                self.assertNotIn('Summary unavailable', summary)
+                self.assertNotIn('fake', summary)
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             def git(*args):

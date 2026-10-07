@@ -55,9 +55,9 @@ public struct BattleLogProjection {
         var healthCost = 0
         for packet in damage {
             if packet.targetID == event.actorID {
-                healthCost += packet.amount
+                healthCost = SaturatedArithmetic.saturatingAdd(healthCost, packet.amount)
             } else if let index = totals.firstIndex(where: { $0.targetID == packet.targetID && $0.keyword == packet.keyword }) {
-                totals[index] = packet.with(amount: totals[index].amount + packet.amount)
+                totals[index] = packet.with(amount: SaturatedArithmetic.saturatingAdd(totals[index].amount, packet.amount))
             } else {
                 totals.append(packet)
             }

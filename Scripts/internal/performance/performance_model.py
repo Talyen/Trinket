@@ -107,9 +107,9 @@ def load_baseline(baseline: dict[str, Any]) -> tuple[list[str], str]:
 
 
 def group_reports_by_scenario(
-    reports: list, scenarios: list[str], baseline: dict[str, Any]
+    reports: list, scenarios: list[str], baseline: dict[str, Any], *, repetitions: int = 1,
 ) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
-    """Group raw reports by maintained scenario; unknown/malformed entries fail."""
+    """Validate reports and require each maintained scenario's complete iteration sequence."""
     grouped: dict[str, list[dict[str, Any]]] = {scenario: [] for scenario in scenarios}
     failures: list[str] = []
     for index, raw_report in enumerate(reports, 1):
@@ -124,6 +124,12 @@ def group_reports_by_scenario(
         failures.extend(invalid)
         if not invalid:
             grouped[scenario].append(raw_report)
+    expected = list(range(1, repetitions + 1))
+    for scenario, records in grouped.items():
+        records.sort(key=lambda report: report["iteration"])
+        actual = [report["iteration"] for report in records]
+        if actual != expected:
+            failures.append(f"{scenario}: expected iterations 1..{repetitions}, found {actual}")
     return grouped, failures
 
 

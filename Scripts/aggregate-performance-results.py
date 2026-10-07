@@ -4,14 +4,13 @@
 from __future__ import annotations
 
 import argparse
-import json
 import statistics
 import sys
 from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from internal.cli import read_json
+from internal.cli import read_json, write_json_atomic
 from internal.performance.performance_model import METRICS, load_baseline, load_results_reports, goal_findings, group_reports_by_scenario
 
 
@@ -42,24 +41,13 @@ def main() -> int:
     reports = load_results_reports(payload)
     baseline = read_json(args.baseline)
     scenarios_value, mode = load_baseline(baseline)
-    grouped, failures = group_reports_by_scenario(reports, scenarios_value, baseline)
+    grouped, failures = group_reports_by_scenario(reports, scenarios_value, baseline, repetitions=args.expected_repetitions)
 
     findings: list[str] = []
     scenarios: dict[str, Any] = {}
     for scenario in scenarios_value:
         records = grouped[scenario]
-        records.sort(key=lambda item: item["iteration"])
-        if len(records) != args.expected_repetitions:
-            failures.append(
-                f"{scenario}: expected {args.expected_repetitions} reports, found {len(records)}"
-            )
         suite = str(records[0].get("suite", "unknown")) if records else "unknown"
-        actual_iterations = [record["iteration"] for record in records]
-        if actual_iterations != list(range(1, args.expected_repetitions + 1)):
-            failures.append(
-                f"{scenario}: expected iterations 1..{args.expected_repetitions}, "
-                f"found {actual_iterations}"
-            )
         for record in records:
             findings.extend(goal_findings(record, baseline))
         metrics: dict[str, Any] = {}
@@ -82,7 +70,8 @@ def main() -> int:
         "failures": failures,
         "findings": findings,
     }
-    args.output.write_text(json.dumps(output, indent=2, sort_keys=True) + "\n")
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    write_json_atomic(args.output, output)
 
     status = "coverage failure" if failures else ("performance finding" if findings else "clean observation")
     lines = [
@@ -110,6 +99,7 @@ def main() -> int:
     if mode == "observe":
         lines.extend(["", "Calibration mode is non-blocking for performance findings; invalid evidence always fails."])
     print("\n".join(lines))
+    args.summary.parent.mkdir(parents=True, exist_ok=True)
     args.summary.write_text("\n".join(lines) + "\n")
     return 1 if failures or (findings and mode == "enforce") else 0
 

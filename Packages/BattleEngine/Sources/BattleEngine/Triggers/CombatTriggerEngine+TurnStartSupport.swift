@@ -74,7 +74,7 @@ extension CombatTriggerEngine {
         }
         if triggers.healthRegenAboveHalfHealth > 0,
            context.roster.maxHealth(for: actor) > 0,
-           context.roster.health(for: actor) * 2 > context.roster.maxHealth(for: actor) {
+           context.roster.isAboveHalfHealth(for: actor) {
             await events.append(contentsOf: emitHeal(
                 "healthRegenAboveHalfHealth", "Safe Perch",
                 amount: triggers.healthRegenAboveHalfHealth, to: actor, source: actor, in: &context,

@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -102,22 +101,8 @@ public struct CombatDeck: Hashable, Sendable {
         return drawPile.remove(at: index)
     }
 
-    public static let standardBasicsCount = 1
-    public static let standardSkillsCount = 1
-    public static let standardUltimatesCount = 1
-
     public static func defaultAbilities(from loadout: AbilityLoadout) -> [Ability] {
-        var abilities: [Ability] = []
-        if let basic = loadout.basic {
-            abilities.append(contentsOf: repeatElement(basic, count: standardBasicsCount))
-        }
-        if let skill = loadout.skill {
-            abilities.append(contentsOf: repeatElement(skill, count: standardSkillsCount))
-        }
-        if let ultimate = loadout.ultimate {
-            abilities.append(contentsOf: repeatElement(ultimate, count: standardUltimatesCount))
-        }
-        return abilities
+        [loadout.basic, loadout.skill, loadout.ultimate].compactMap(\.self)
     }
 
     public static func shuffled(

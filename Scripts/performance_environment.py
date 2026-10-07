@@ -4,13 +4,13 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import os
 import platform
 import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from internal.cli import write_json_atomic
 
 
 def command(*args: str, raw: bool = False) -> str | bytes:
@@ -53,7 +53,8 @@ def main() -> None:
         "repetitionsPerScenario": repetitions,
         "suiteWallTimeoutSeconds": int(os.environ.get("TRINKET_XCODE_WALL_TIMEOUT_SECONDS", "1200")),
     }
-    output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    write_json_atomic(output, payload)
 
 
 if __name__ == "__main__":

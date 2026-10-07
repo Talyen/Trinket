@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -148,14 +147,19 @@ public struct CombatantRuntime: Hashable {
         CombatantMaxValues.maxHealth(for: combatant, flatBonus: maximumHealthBonus, talentBonus: talents.battle.maximumHealthBonus)
     }
 
+    var isBelowHalfHealth: Bool {
+        HealthThreshold.isBelowHalf(currentHealth, maximum: maxHealth)
+    }
+
+    var isAboveHalfHealth: Bool {
+        HealthThreshold.isAboveHalf(currentHealth, maximum: maxHealth)
+    }
+
     public var maxMana: Int {
-        let effectBonus = activeEffects.reduce(0) { sum, active in
-            if case let .maximumManaBonus(amount) = active.effect {
-                return sum + amount
-            }
-            return sum
-        }
-        return CombatantMaxValues.maxMana(for: combatant, flatBonus: maximumManaBonus, effectBonus: effectBonus)
+        CombatantMaxValues.maxMana(
+            for: combatant, flatBonus: maximumManaBonus,
+            effectBonus: CombatantMaxValues.maximumManaBonus(in: activeEffects),
+        )
     }
 
     public var abilityLoadout: AbilityLoadout {

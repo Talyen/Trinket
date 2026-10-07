@@ -12,7 +12,7 @@ PATTERNS = {
     'GameContentHomestead.generated.swift': r'HomesteadNodeDefinition\(',
 }
 # These generators emit ordinary escaped Swift strings, not raw/multiline literals.
-TOKENS = re.compile(r'"(?:\\.|[^"\\])*"|[()[\]{},]', re.S)
+TOKENS = r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|[()[\]{},]'
 
 
 def catalog_records(name: str, source: str) -> tuple[dict, str]:
@@ -21,12 +21,17 @@ def catalog_records(name: str, source: str) -> tuple[dict, str]:
     if '#"' in source or '"""' in source:
         raise ValueError('unsupported string literal')
     records, surroundings, previous = {}, [], 0
-    for match in re.finditer(PATTERNS[Path(name).name], source):
+    # Consume each record from the same token stream. Strings/comments stay
+    # opaque, so catalog-looking prose cannot become a record or delimiter.
+    tokens = iter(re.finditer(f'(?P<record>{PATTERNS[Path(name).name]})|{TOKENS}', source, re.S))
+    for match in tokens:
+        if match.lastgroup != 'record':
+            continue
         opening = match.end() - 1
         stack, fields, start, end = ['('], [], opening + 1, None
-        for token in TOKENS.finditer(source, opening + 1):
-            value = token.group()
-            if value.startswith('"'):
+        for token in tokens:
+            value = '(' if token.lastgroup == 'record' else token.group()
+            if value.startswith(('"', '//', '/*')):
                 continue
             if value in '([{':
                 stack.append(value)

@@ -123,7 +123,12 @@ struct AbilityStrategyTests {
         #expect(events.first { $0.kind == .abilityDamage }?.keyword == expected)
     }
 
-    @Test func `conditional self damage cost denies play before removing the card`() throws {
+    @Test(arguments: [
+        [DamageComponent(2, target: .actor)],
+        [DamageComponent(Int.max, target: .actor, bonusAmount: 1, condition: .firstTurn)],
+        [DamageComponent(Int.max, target: .actor), DamageComponent(1, target: .actor)],
+    ])
+    func `conditional self damage cost denies play before removing the card`(costs: [DamageComponent]) throws {
         var state = battle()
         state.roster.hero.currentHealth = 2
         DefensePoolEngine.set(1, on: state.enemy, in: &state)
@@ -132,7 +137,7 @@ struct AbilityStrategyTests {
             effects: [.shield(.block, 1)],
             conditionalOutcome: AbilityConditionalOutcome(
                 condition: .enemyHasBlock,
-                operations: [.damage(DamageComponent(2, target: .actor))],
+                operations: costs.map(AbilityOperation.damage),
             ),
         )
         let card = deal(ability, in: &state)

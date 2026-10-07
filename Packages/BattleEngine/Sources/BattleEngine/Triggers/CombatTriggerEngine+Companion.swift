@@ -425,7 +425,7 @@ package extension CombatTriggerEngine {
         }
         if triggers.belowHalfFirstDodgeHealPerTurn > 0,
            context.roster.health(for: actor) > 0,
-           context.roster.health(for: actor) * 2 < context.roster.maxHealth(for: actor),
+           context.roster.isBelowHalfHealth(for: actor),
            context.claimHeroTalent(.stolenBreath, actorID: actor.id) {
             await events.append(contentsOf: context.healEmitting(
                 amount: triggers.belowHalfFirstDodgeHealPerTurn,
@@ -465,7 +465,7 @@ package extension CombatTriggerEngine {
     ) async -> [ActionEvent] {
         let amount = context.modifiers(for: actor.id).triggers.belowHalfFirstGoldGainHealPerTurn
         guard granted > 0, amount > 0, context.roster.health(for: actor) > 0,
-              context.roster.health(for: actor) * 2 < context.roster.maxHealth(for: actor),
+              context.roster.isBelowHalfHealth(for: actor),
               context.claimHeroTalent(.belowHalfGoldGainHeal, actorID: actor.id) else { return [] }
         return await context.healEmitting(amount: amount, target: actor, source: actor, abilityName: "Golden Recovery")
     }
@@ -567,7 +567,7 @@ package extension CombatTriggerEngine {
     static func preparePantherRedline(afterHealthLoss target: Combatant, in context: inout BattleState) {
         guard context.modifiers(for: target.id).triggers.belowHalfHealthNextBleedDouble,
               context.roster.health(for: target) > 0,
-              context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target),
+              context.roster.isBelowHalfHealth(for: target),
               context.roster.runtime(for: target)?.talents.battle.wasBelowHalfHealth == false
         else { return }
         let preparedCardSerial = context.resolution.cardTalents?.playSerial
@@ -579,7 +579,7 @@ package extension CombatTriggerEngine {
 
     static func resetPantherRedline(afterHealthRestoration target: Combatant, in context: inout BattleState) {
         guard context.modifiers(for: target.id).triggers.belowHalfHealthNextBleedDouble,
-              context.roster.health(for: target) * 2 >= context.roster.maxHealth(for: target)
+              !context.roster.isBelowHalfHealth(for: target)
         else { return }
         context.roster.mutateRuntime(for: target) { $0.talents.battle.wasBelowHalfHealth = false }
     }

@@ -1,44 +1,45 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
-struct ThornsHandler: BattleEffectHandler {
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let total = TimedBuffSummary.summedAmount(in: stacks) { effect in
-            if case let .thorns(amount) = effect {
-                return amount
-            }
-            return nil
+struct StackingAmountBuffHandler: BattleEffectHandler {
+    private static func amount(_ effect: Effect) -> Int? {
+        switch effect {
+        case let .thorns(amount), let .nextBurnBonus(amount): amount
+        default: nil
         }
+    }
+
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+        guard let kind = stacks.first?.effect.kind else { return nil }
+        let total = TimedBuffSummary.summedAmount(in: stacks) { $0.kind == kind ? Self.amount($0) : nil }
         guard total > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "Thorns: Deals \(total) Thorns damage to the next attacker.")
+        let text: String
+        switch kind {
+        case .thorns: text = "Thorns: Deals \(total) Thorns damage to the next attacker."
+        case .nextBurnBonus: text = "Kindled: Next Burn attack deals +\(total) damage."
+        default: return nil
+        }
+        return EffectSummary(keyword: keyword, text: text)
     }
 
     func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
+        _ effect: Effect, ability: Ability, source: Combatant, target: Combatant, in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        guard case let .thorns(amount) = effect, amount > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+        guard let amount = Self.amount(effect), amount > 0 else { return EffectApplyOutcome(events: [], didApply: false) }
+        let existing = TimedBuffSummary.summedAmount(in: context.roster.activeEffects(for: target)) {
+            $0.kind == effect.kind ? Self.amount($0) : nil
         }
-        let existing = TimedBuffSummary.summedAmount(in: context.roster.activeEffects(for: target)) { effect in
-            if case let .thorns(stacks) = effect {
-                return stacks
-            }
-            return nil
+        let total = SaturatedArithmetic.saturatingAdd(existing, amount)
+        let stacked: Effect
+        let event: ActionEvent.EffectOutcome
+        switch effect {
+        case .thorns: stacked = .thorns(total); event = .thornsApplied
+        case .nextBurnBonus: stacked = .nextBurnBonus(total); event = .nextBurnBonusApplied
+        default: return EffectApplyOutcome(events: [], didApply: false)
         }
-        let total = existing + amount
         return ActiveEffectMutation.replaceAndEmit(
-            .thorns(total),
-            to: target,
-            source: source,
-            ability: ability,
-            in: &context,
-            replacing: { $0.kind == .thorns },
-            event: (.thornsApplied, total, .thorns),
+            stacked, to: target, source: source, ability: ability, in: &context,
+            replacing: { $0.kind == effect.kind }, event: (event, total, effect.keyword),
         )
     }
 }
@@ -59,7 +60,7 @@ struct ThornsFromBlockFractionHandler: BattleEffectHandler {
         let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: target))
         let amount = max(minimum, block / divisor)
         guard amount > 0 else { return EffectApplyOutcome(events: [], didApply: false) }
-        return ThornsHandler().apply(
+        return StackingAmountBuffHandler().apply(
             .thorns(amount), ability: ability, source: source, target: target, in: &context,
         )
     }
@@ -289,47 +290,6 @@ struct HemorrhageHandler: BattleEffectHandler {
             in: &context,
             replacing: { $0.kind == .hemorrhage },
             event: (.hemorrhageApplied, amount, .bleed),
-        )
-    }
-}
-
-struct NextBurnBonusHandler: BattleEffectHandler {
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let total = TimedBuffSummary.summedAmount(in: stacks) { effect in
-            if case let .nextBurnBonus(amount) = effect {
-                return amount
-            }
-            return nil
-        }
-        guard total > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "Kindled: Next Burn attack deals +\(total) damage.")
-    }
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        guard case let .nextBurnBonus(amount) = effect, amount > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        let existing = TimedBuffSummary.summedAmount(in: context.roster.activeEffects(for: target)) { effect in
-            if case let .nextBurnBonus(stacks) = effect {
-                return stacks
-            }
-            return nil
-        }
-        let total = existing + amount
-        return ActiveEffectMutation.replaceAndEmit(
-            .nextBurnBonus(total),
-            to: target,
-            source: source,
-            ability: ability,
-            in: &context,
-            replacing: { $0.kind == .nextBurnBonus },
-            event: (.nextBurnBonusApplied, total, .burn),
         )
     }
 }

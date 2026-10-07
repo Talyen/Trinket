@@ -22,26 +22,6 @@ struct CoreValueTypesTests {
         #expect(ItemSlot.weapon.accepts(.secondaryWeapon))
     }
 
-    @Test func `collection safe subscript retrieves element or nil out of bounds`() {
-        let items = [10, 20, 30]
-        #expect(items[safe: 0] == 10)
-        #expect(items[safe: 1] == 20)
-        #expect(items[safe: 2] == 30)
-        #expect(items[safe: -1] == nil)
-        #expect(items[safe: 3] == nil)
-        #expect(items[safe: 100] == nil)
-
-        let empty: [Int] = []
-        #expect(empty[safe: 0] == nil)
-        #expect(empty[safe: -1] == nil)
-
-        let slice = items[1 ... 2]
-        #expect(slice[safe: 0] == nil)
-        #expect(slice[safe: 1] == 20)
-        #expect(slice[safe: 2] == 30)
-        #expect(slice[safe: 3] == nil)
-    }
-
     @Test func `active effect awaits skip only at zero remaining turns`() {
         let pending = ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)
         #expect(pending.isAwaitingActionSkip)

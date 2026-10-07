@@ -235,30 +235,22 @@ struct EffectHandlersApplyBuffDebuffTests {
         #expect(shields.map(\.remainingTurns) == [6, 4])
     }
 
-    @Test func `next burn bonus handler stacks and emits event`() throws {
+    @Test(arguments: [
+        (Effect.nextBurnBonus(1), Effect.nextBurnBonus(2), ActionEvent.EffectOutcome.nextBurnBonusApplied, Keyword.burn, 2),
+        (.thorns(1), .thorns(2), .thornsApplied, .thorns, 2),
+        (.nextBurnBonus(Int.max), .nextBurnBonus(Int.max), .nextBurnBonusApplied, .burn, Int.max),
+        (.thorns(Int.max), .thorns(Int.max), .thornsApplied, .thorns, Int.max),
+    ])
+    func `amount buffs stack once and saturate their state event and summary`(
+        effect: Effect, expected: Effect, event: ActionEvent.EffectOutcome, keyword: Keyword, total: Int,
+    ) {
         var battle = BattleStateTestFactory.makeBattle()
-        let first = EffectHandlersTestSupport.dispatch(
-            .nextBurnBonus(1),
-            source: battle.hero,
-            target: battle.hero,
-            battle: &battle,
-        )
-        try #expect(first.didApply)
-        let second = EffectHandlersTestSupport.dispatch(
-            .nextBurnBonus(1),
-            source: battle.hero,
-            target: battle.hero,
-            battle: &battle,
-        )
-        try #expect(second.didApply)
-        try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case let .nextBurnBonus(amount) = active.effect {
-                return amount == 2
-            }
-            return false
-        })
-        try #expect(second.events.contains {
-            $0.effectKind == .nextBurnBonusApplied && $0.amount == 2 && $0.keyword == .burn
-        })
+        let first = EffectHandlersTestSupport.dispatch(effect, source: battle.hero, target: battle.hero, battle: &battle)
+        let second = EffectHandlersTestSupport.dispatch(effect, source: battle.hero, target: battle.hero, battle: &battle)
+        #expect(first.didApply && second.didApply)
+        #expect(battle.activeEffects(of: battle.hero).filter { $0.effect.kind == effect.kind }.map(\.effect) == [expected])
+        #expect(second.events.last { $0.effectKind == event && $0.keyword == keyword }?.amount == total)
+        let rawStacks = [ActiveEffect(id: 1, effect: effect, remainingTurns: 0), ActiveEffect(id: 2, effect: effect, remainingTurns: 0)]
+        #expect(EffectSummaryBuilder.build(for: rawStacks).first?.text.contains(String(total)) == true)
     }
 }

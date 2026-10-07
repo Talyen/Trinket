@@ -20,6 +20,14 @@ from internal.content.common import GENERATED_DIR, write_if_changed
 
 TRIGGER_FAMILY_SCHEMA = Path(__file__).resolve().parent / "trigger_families" / "index.json"
 
+MERGES_BY_TYPE = {
+    "Int": {"add", "max", "mul", "add_excess"},
+    "Double": {"add", "max", "mul", "add_excess"},
+    "Bool": {"or"},
+    "Keyword?": {"coalesce"},
+    "[Int]": {"union"},
+}
+
 
 @functools.cache
 def _trigger_families() -> list:
@@ -33,14 +41,21 @@ def _trigger_families() -> list:
     fields = [field["name"] for family in families for field in family["fields"]]
     if any(len(values) != len(set(values)) for values in (family_names, stems, fields)):
         raise ValueError("Duplicate trigger family, output stem, or field")
-    valid_types = {"Int", "Bool", "Double", "Keyword?", "[Int]"}
-    valid_merges = {"add", "or", "max", "mul", "add_excess", "coalesce", "union"}
     for family in families:
+        if not all(re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", family[key]) for key in ("family", "file_stem")):
+            raise ValueError("Trigger family and output stem must be Swift identifiers")
         for field in family["fields"]:
-            if field["type"] not in valid_types:
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", field["name"]):
+                raise ValueError(f"Invalid trigger field name {field['name']!r}")
+            if field["type"] not in MERGES_BY_TYPE:
                 raise ValueError(f"Unknown trigger type {field['type']!r} for {field['name']!r}")
-            if field["merge"] not in valid_merges:
-                raise ValueError(f"Unknown merge op {field['merge']!r} for {field['name']!r}")
+            if field["merge"] not in MERGES_BY_TYPE[field["type"]]:
+                raise ValueError(f"Invalid merge op {field['merge']!r} for {field['type']} field {field['name']!r}")
+            if field["type"] == "Keyword?" and field["default"] == "nil":
+                continue
+            normalized = _validate_trigger_value(field["name"], field["type"], field["default"], family["family"])
+            if normalized != field["default"]:
+                raise ValueError(f"Trigger default for {field['name']!r} must use a Swift literal")
     from internal.content.affix_rolling import rolling_policies
     rolling_policies(families)
     return families

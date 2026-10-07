@@ -32,9 +32,12 @@ Do not fold those cadences into the pipeline or merge affix scalar fields on `Co
 Keep this mapping single-owned and explicit so new modifier cases require a combat
 decision at compile time; `AffixModifier.apply(to:)` delegates to it.
 
-`CombatantMaxValues` owns maximum Health/Mana calculations, using shared saturating
-arithmetic and combat rounding for extreme inputs. `CombatBuild` exposes those
-values; content-to-profile adapters live in `CombatModifierProfile+Content.swift`.
+`CombatantMaxValues` owns maximum Health/Mana calculations and Maximum Mana stack
+totals, using shared saturating arithmetic and combat rounding for extreme inputs.
+`CombatBuild` exposes the maximum values; content-to-profile adapters live in
+`CombatModifierProfile+Content.swift`.
+Half-Health checks use `HealthThreshold` to preserve strict odd-number boundaries
+without doubling saturated Health or rounding through `Double`.
 Status-summary duration formatting uses `Effect.durationTurns` by default; handlers
 with selective duration rules supply an extractor.
 
@@ -42,6 +45,8 @@ with selective duration rules supply an extractor.
 there is no optional registration or missing-handler recovery. Handlers implement
 behavior without declaring a second kind. Shared next-hit flag, Cleanse/Purge and resource-to-Block
 handlers select their operation from the incoming effect rather than a configured mode.
+Thorns and Kindled share `StackingAmountBuffHandler`; additions and summary totals
+saturate while retaining their distinct effects, keywords and events.
 For a new effect kind, add its dispatch case. Existing handler and turn-processing
 coverage may suffice; add or extend `EffectHandlersApplyTests` only when a behavior
 gap meets the [Testing.md](../Platform/Testing.md) value threshold. Use a thin

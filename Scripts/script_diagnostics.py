@@ -18,9 +18,10 @@ def _read_tail_lines(log: Path) -> tuple[list[str], bool]:
         size = handle.tell()
         truncated = size > MAX_LOG_BYTES
         handle.seek(max(0, size - MAX_LOG_BYTES))
-        if truncated:
-            handle.readline()
-        text = handle.read().decode("utf-8", errors="replace")
+        data = handle.read(MAX_LOG_BYTES)
+        if truncated and b"\n" in data:
+            data = data.split(b"\n", 1)[1]
+        text = data.decode("utf-8", errors="replace")
     return text.splitlines(), truncated
 
 

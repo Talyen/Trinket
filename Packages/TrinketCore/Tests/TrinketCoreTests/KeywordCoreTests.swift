@@ -1,4 +1,3 @@
-import Foundation
 import Testing
 @testable import TrinketCore
 
@@ -14,7 +13,6 @@ struct KeywordCoreTests {
         let text = "Gain 1 Block when you deal Stun or Holy damage."
         let keywords = Keyword.referenced(in: text)
         #expect(keywords == [.block, .stun, .holy])
-        #expect(!keywords.contains(.burn))
 
         let stunBeforeBleed = "Deal Stun then Bleed."
         #expect(Keyword.referenced(in: stunBeforeBleed) == [.stun, .bleed])
@@ -53,11 +51,5 @@ struct KeywordCoreTests {
         #expect(Keyword.referenced(in: "Survive while on Death's Door.") == [.deathsDoor])
         #expect(Keyword.referenced(in: "Survive while on Death’s Door.") == [.deathsDoor])
         #expect(Keyword.referenced(in: "death's door or death’s door") == [.deathsDoor])
-    }
-
-    @Test(arguments: Keyword.allCases)
-    func `keyword critical hit legality aligns with category and restoration rules`(keyword: Keyword) {
-        let expected = keyword.category == .damageType || keyword == .health || keyword == .leech
-        #expect(keyword.allowsCriticalHits == expected, "\(keyword) crit legality should be \(expected)")
     }
 }

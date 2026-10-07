@@ -412,7 +412,7 @@ package extension CombatTriggerEngine {
         await events.append(contentsOf: vitalInfusionAfterHealthDrop(target: target, in: &context))
         if target.id == context.roster.hero.id, context.roster.hero.isAlive,
            context.roster.companion.isAlive,
-           context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target),
+           context.roster.isBelowHalfHealth(for: target),
            context.companionModifiers.triggers.allyFirstBelowHalfBlock > 0,
            context.claimHeroTalent(.grizzlyGuard, actorID: context.roster.companion.id, battle: true) {
             events.append(contentsOf: context.applyBlock(
@@ -432,7 +432,7 @@ package extension CombatTriggerEngine {
         let amount = context.modifiers(for: target.id).triggers.firstBelowHalfHealthHeal
         guard amount > 0,
               context.roster.health(for: target) > 0,
-              context.roster.health(for: target) * 2 < context.roster.maxHealth(for: target),
+              context.roster.isBelowHalfHealth(for: target),
               context.resolution.claim(.heroTalent(.vitalInfusion), actorID: target.id, cadence: .battle)
         else { return [] }
         return await context.healEmitting(amount: amount, target: target, source: target, abilityName: "Vital Infusion")

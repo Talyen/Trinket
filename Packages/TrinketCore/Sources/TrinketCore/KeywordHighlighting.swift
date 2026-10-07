@@ -24,13 +24,9 @@ public extension Keyword {
         return "\\b(?:\(alternatives.joined(separator: "|")))\\b"
     }()
 
-    static let termLookup: [String: Self] = {
-        var lookup: [String: Self] = [:]
-        for (term, keyword) in styledTerms {
-            lookup[term.lowercased()] = keyword
-        }
-        return lookup
-    }()
+    static let termLookup = Dictionary(uniqueKeysWithValues: styledTerms.map {
+        ($0.term.lowercased(), $0.keyword)
+    })
 
     static let highlightRegex: NSRegularExpression? = try? NSRegularExpression(
         pattern: highlightPattern,

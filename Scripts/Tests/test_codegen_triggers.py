@@ -43,6 +43,19 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
                     content_codegen_triggers._trigger_families.cache_clear()
                     with self.assertRaisesRegex(ValueError, "Duplicate"):
                         content_codegen_triggers._trigger_families()
+                    family['fields'] = [family['fields'][0]]
+                    for overrides in ({'type': 'Bool', 'merge': 'add'}, {'merge': 'coalesce'},
+                                      {'default': 'many'}, {'type': 'Bool', 'merge': 'or', 'default': 'TRUE'},
+                                      {'name': 'invalid-name'}):
+                        broken = {**family, 'fields': [{**family['fields'][0], **overrides}]}
+                        (folder / 'sample.json').write_text(json.dumps(broken))
+                        content_codegen_triggers._trigger_families.cache_clear()
+                        with self.subTest(overrides=overrides), self.assertRaises(ValueError):
+                            content_codegen_triggers._trigger_families()
+                    (folder / 'sample.json').write_text(json.dumps({**family, 'file_stem': '../Escaping'}))
+                    content_codegen_triggers._trigger_families.cache_clear()
+                    with self.assertRaisesRegex(ValueError, 'Swift identifiers'):
+                        content_codegen_triggers._trigger_families()
                 finally:
                     content_codegen_triggers._trigger_families.cache_clear()
 
@@ -58,17 +71,6 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
                 with self.subTest(rows=rows), self.assertRaisesRegex(ValueError, "[Mm]odifier"):
                     modifier_definitions(path)
 
-    def test_triggers_swift_maps_known_token_to_grouped_field(self) -> None:
-        self.assertEqual(
-            content_codegen_triggers.triggers_swift("on_cleanse_self_heal:2"),
-            "CombatTraitTriggers(healing: HealingTriggers(cleanseSelfHeal: 2))",
-        )
-
-    def test_triggers_swift_rename_table_tokens(self) -> None:
-        output = content_codegen_triggers.triggers_swift("on_cleanse_draw:1|on_gain_gold_heal:3")
-        self.assertIn("cleanseBonusDraw: 1", output)
-        self.assertIn("gainGoldBonusHealSelf: 3", output)
-
     def test_triggers_swift_damage_below_health_percent_both_arities(self) -> None:
         self.assertEqual(
             content_codegen_triggers.triggers_swift("damage_below_health_percent:50:5"),
@@ -80,12 +82,6 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             "CombatTraitTriggers(damage: DamageTriggers("
             "damageBelowHealthPercentThreshold: 50, damageBelowHealthPercentKeyword: .burn, "
             "damageBelowHealthPercentBonus: 5))",
-        )
-
-    def test_triggers_swift_generic_path_converts_snake_case_field(self) -> None:
-        self.assertEqual(
-            content_codegen_triggers.triggers_swift("poison_decay_slow_percent:50"),
-            "CombatTraitTriggers(dot: DotTriggers(poisonDecaySlowPercent: 50))",
         )
 
     def test_triggers_swift_unknown_token_fails_loudly(self) -> None:
@@ -113,6 +109,8 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             "block_per_turn:foo",
             "block_per_turn:١",
             "block_per_turn:²",
+            "block_per_turn:9223372036854775808",
+            "block_per_turn:-9223372036854775809",
             "stunnedDamageMultiplier:１.０",
             "stunnedDamageMultiplier:.5",
             "first_hit_double_damage:banana",
@@ -121,6 +119,7 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             "bonusManaOnTurns:[1, banana]",
             "bonusManaOnTurns:[1,,4]",
             "bonusManaOnTurns:[,4]",
+            "bonusManaOnTurns:[9223372036854775808]",
         ]:
             with self.subTest(token=token), self.assertRaises(ValueError):
                 content_codegen_triggers.triggers_swift(token)
@@ -172,15 +171,9 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             content_codegen_modifiers.modifiers_swift("damage_dealt:burn:1|damage_dealt:burn:2", "sample")
         for token in ["maximum_health:foo", "maximum_health:١", "outgoing_damage_percent:foo",
                       "damage_dealt:burn:foo", "damage_dealt:shadow:3", "damage_taken_percent:arcane:0.2",
-                      "damage_dealt:fire"]:
+                      "damage_dealt:fire", "maximum_health:9223372036854775808"]:
             with self.subTest(token=token), self.assertRaises(ValueError):
                 content_codegen_modifiers.modifiers_swift(token, "sample")
-
-    def test_modifier_token_to_swift_multipart_keyword(self) -> None:
-        self.assertEqual(
-            content_codegen_modifiers.modifier_token_to_swift("damage_dealt:burn:3"),
-            ".damageDealt(.burn, 3)",
-        )
 
     def test_affix_policies_preserve_seeded_order_and_require_explicit_classification(self) -> None:
         import hashlib

@@ -65,7 +65,7 @@ extension BattleTurnEngine {
                     reservedKeywordOverride: &reservedKeywordOverride, context: &context,
                 )
                 events.append(contentsOf: outcome.events)
-                totalDealt += outcome.healthLost
+                totalDealt = SaturatedArithmetic.saturatingAdd(totalDealt, outcome.healthLost)
                 logKeyword = outcome.logDamageKeyword ?? logKeyword
             case let .effect(targeted):
                 await appliedEffectLogs.append(contentsOf: applyTargetedEffects(

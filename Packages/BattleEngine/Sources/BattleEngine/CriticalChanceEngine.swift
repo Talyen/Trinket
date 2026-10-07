@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -79,7 +78,7 @@ package enum CriticalChanceEngine {
         if companionMaxHealth > 0, context.roster.companion.currentHealth == companionMaxHealth {
             bonus += companionTriggers.partyCritChanceWhileCompanionFullHealth
         }
-        if companionMaxHealth > 0, context.roster.companion.currentHealth * 2 < companionMaxHealth {
+        if companionMaxHealth > 0, HealthThreshold.isBelowHalf(context.roster.companion.currentHealth, maximum: companionMaxHealth) {
             bonus += companionTriggers.partyCritChanceWhileCompanionBelowHalf
         }
         if actorRole == .hero, companionTriggers.allyCriticalChancePerCombatGold > 0 {

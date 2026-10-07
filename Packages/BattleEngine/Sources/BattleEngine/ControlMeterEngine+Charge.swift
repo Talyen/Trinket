@@ -28,7 +28,7 @@ extension ControlMeterEngine {
         }
         if keyword == .stun, combatant.role == .enemy, let sourceActorID,
            let source = context.roster.combatant(for: sourceActorID),
-           source.currentHealth * 2 < source.maxHealth {
+           source.isBelowHalfHealth {
             adjustedAmount = CombatRounding.scaled(
                 adjustedAmount,
                 multiplier: context.modifiers(for: sourceActorID).triggers.stunBuildupBelowHalfMultiplier,

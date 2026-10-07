@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -99,6 +98,14 @@ public struct BattleRoster {
 
     public func maxHealth(for combatant: Combatant) -> Int {
         runtime(for: combatant)?.maxHealth ?? 0
+    }
+
+    func isBelowHalfHealth(for combatant: Combatant) -> Bool {
+        runtime(for: combatant)?.isBelowHalfHealth ?? false
+    }
+
+    func isAboveHalfHealth(for combatant: Combatant) -> Bool {
+        runtime(for: combatant)?.isAboveHalfHealth ?? false
     }
 
     public func maxMana(for combatant: Combatant) -> Int {

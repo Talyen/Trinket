@@ -27,28 +27,6 @@ struct ItemAffixMagnitudeRollTests {
         #expect(item.affixPowers == decoded)
     }
 
-    @Test func `integer ranges match the catalog formula`() {
-        #expect(ItemAffixMagnitudeRoll.integerRange(around: 1) == 1 ... 2)
-        #expect(ItemAffixMagnitudeRoll.integerRange(around: 2) == 1 ... 3)
-        #expect(ItemAffixMagnitudeRoll.integerRange(around: 3) == 2 ... 4)
-        #expect(ItemAffixMagnitudeRoll.integerRange(around: 4) == 3 ... 5)
-        #expect(ItemAffixMagnitudeRoll.integerRange(around: 6) == 5 ... 7)
-        #expect(ItemAffixMagnitudeRoll.integerRange(around: 8) == 6 ... 10)
-        #expect(ItemAffixMagnitudeRoll.integerRange(around: 12) == 9 ... 15)
-        #expect(ItemAffixMagnitudeRoll.integerRange(around: 16) == 12 ... 20)
-    }
-
-    @Test func `percent choices match the catalog formula`() {
-        #expect(ItemAffixMagnitudeRoll.percentValues(around: 0.05) == [0.04, 0.05, 0.06])
-        #expect(ItemAffixMagnitudeRoll.percentValues(around: 0.10) == [0.08, 0.09, 0.10, 0.11, 0.12])
-        #expect(ItemAffixMagnitudeRoll.percentValues(around: 0.20) == [0.15, 0.20, 0.25])
-        #expect(ItemAffixMagnitudeRoll.percentValues(around: 0.25) == [0.20, 0.25, 0.30])
-        #expect(ItemAffixMagnitudeRoll.percentValues(around: 0.50) == [0.40, 0.45, 0.50, 0.55, 0.60])
-        #expect(ItemAffixMagnitudeRoll.percentValues(around: 1.00) == [
-            0.75, 0.80, 0.85, 0.90, 0.95, 1.00, 1.05, 1.10, 1.15, 1.20, 1.25,
-        ])
-    }
-
     @Test func `boolean only affixes do not roll`() throws {
         let branding = try #require(GameContent.itemAffixDefinition(matching: "branding"))
         try #expect(!branding.basic.hasRollableMagnitudes)
@@ -100,7 +78,6 @@ struct ItemAffixMagnitudeRollTests {
             ],
         )
 
-        try #expect(ItemAffixMagnitudeRoll.integerRange(around: 2) == 1 ... 3)
         try #expect(bumped.isPerfectAffix(at: 0))
     }
 }

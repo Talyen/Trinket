@@ -70,6 +70,8 @@ names, Swift cases, numeric kinds and keyword arguments. It generates the
 `AffixModifier` enum and mechanical transforms; gameplay application, presentation,
 and magnitude bump policy remain authored. Preserve case names, associated-value
 shapes, and Codable representations when evolving these definitions.
+Validation checks Swift identifiers, typed defaults, type-compatible merge operations,
+and 64-bit `Int` bounds before rendering trigger/modifier literals.
 
 Trigger fields used by affixes require `affix_roll` metadata in their family JSON:
 `{"kind": "int" | "percent", "order": N}` for rollable values, or
@@ -81,7 +83,8 @@ rolling behavior, numeric text replacement, and gameplay remain authored.
 Affix scaling, rolling, and corruption share the ordered magnitude traversal in
 `ItemAffixPower+Rolling.swift`. Bind description numbers against the original text,
 including unchanged fields, so equal magnitudes and replacement collisions retain
-their field ownership. Preserve this order and the existing numeric/save formats.
+their field ownership. Corruption availability and candidate selection share one
+lazy eligibility filter. Preserve this order and the existing numeric/save formats.
 
 ## Media assets
 

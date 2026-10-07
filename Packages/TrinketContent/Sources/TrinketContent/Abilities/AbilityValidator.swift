@@ -44,12 +44,23 @@ enum AbilityValidator {
     ]
 
     static func validate(_ ability: Ability) -> [Issue] {
-        let operationSets = authoredOperationSets(for: ability)
-        let operations = operationSets.flatMap(\.self)
-        var issues = validateEffectTargets(in: operations, abilityID: ability.id)
-        issues.append(contentsOf: validateTierDamage(in: operationSets, for: ability))
-        issues.append(contentsOf: validateDescription(for: ability))
-        return issues
+        var targetIssues: [Issue] = []
+        var damageIssues: [Issue] = []
+        for operations in authoredOperationSets(for: ability) {
+            var enemyDamage = 0
+            for operation in operations {
+                if let effect = operation.targetedEffect, let message = invalidTargetMessage(for: effect) {
+                    targetIssues.append(Issue(abilityID: ability.id, message: message))
+                }
+                if let damage = operation.damageComponent, damage.target == .abilityTarget || damage.target == .enemy {
+                    enemyDamage = SaturatedArithmetic.saturatingAdd(enemyDamage, damage.amount)
+                }
+            }
+            if enemyDamage > 0, let issue = tierDamageIssue(tier: ability.tier, total: enemyDamage, abilityID: ability.id) {
+                damageIssues.append(issue)
+            }
+        }
+        return targetIssues + damageIssues + validateDescription(for: ability)
     }
 
     static func validateCatalog() -> [Issue] {
@@ -67,32 +78,16 @@ enum AbilityValidator {
         return sets
     }
 
-    private static func validateEffectTargets(in operations: [AbilityOperation], abilityID: String) -> [Issue] {
-        let allyTargets: Set<EffectTarget> = [.actor, .hero, .companion, .lowestHealthAlly, .eachAlly]
-        let enemyTargets: Set<EffectTarget> = [.abilityTarget, .enemy]
-        return operations.compactMap(\.targetedEffect).compactMap { targetedEffect in
-            let message: String
-            switch targetedEffect.effect {
-            case .cleanse, .cleanseRandom, .cleanseHealPerDebuff, .panacea:
-                guard !allyTargets.contains(targetedEffect.target) else { return nil }
-                message = "cleanse effects must target allies"
-            case .purge, .purgeRandom:
-                guard !enemyTargets.contains(targetedEffect.target) else { return nil }
-                message = "purge effects must target enemies (.abilityTarget or .enemy)"
-            default:
-                return nil
-            }
-            return Issue(abilityID: abilityID, message: message)
-        }
-    }
-
-    private static func validateTierDamage(in operationSets: [[AbilityOperation]], for ability: Ability) -> [Issue] {
-        operationSets.compactMap { operations in
-            let enemyDamageTotal = operations.compactMap(\.damageComponent)
-                .filter { $0.target == .abilityTarget || $0.target == .enemy }
-                .reduce(0) { $0 + $1.amount }
-            guard enemyDamageTotal > 0 else { return nil }
-            return tierDamageIssue(tier: ability.tier, total: enemyDamageTotal, abilityID: ability.id)
+    private static func invalidTargetMessage(for targeted: TargetedEffect) -> String? {
+        switch targeted.effect {
+        case .cleanse, .cleanseRandom, .cleanseHealPerDebuff, .panacea:
+            [.actor, .hero, .companion, .lowestHealthAlly, .eachAlly].contains(targeted.target)
+                ? nil : "cleanse effects must target allies"
+        case .purge, .purgeRandom:
+            [.abilityTarget, .enemy].contains(targeted.target)
+                ? nil : "purge effects must target enemies (.abilityTarget or .enemy)"
+        default:
+            nil
         }
     }
 
@@ -110,13 +105,13 @@ enum AbilityValidator {
     }
 
     private static func tierDamageIssue(tier: AbilityTier, total: Int, abilityID: String) -> Issue? {
-        let allowed: Set<Int> = switch tier {
+        let allowed: ClosedRange<Int> = switch tier {
         case .basic:
-            [1, 2]
+            1 ... 2
         case .skill:
-            [2, 3, 4]
+            2 ... 4
         case .ultimate:
-            [2, 3, 4, 5, 6, 7, 8]
+            2 ... 8
         }
 
         if allowed.contains(total) || allowsAuthoredDamageTotal(abilityID: abilityID, total: total) {

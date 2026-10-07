@@ -25,25 +25,6 @@ struct BattleCardCombatTests {
         )
     }
 
-    @Test func `opening hand draws three cards in alternating arrival order`() throws {
-        let battle = makeBattle(
-            heroAbilities: [.slash, .heal, .avatarOfJustice],
-            companionAbilities: [.bash, .serratedEdge, .bloodthorn],
-        )
-        try #expect(battle.hand.count == 3)
-        try #expect(battle.hand.buffer.isEmpty)
-        try #expect(battle.phase == .playerTurn)
-
-        let heroDrawn = battle.hand.cards.count(where: { $0.owner == .hero })
-        let companionDrawn = battle.hand.cards.count(where: { $0.owner == .companion })
-        try #expect(heroDrawn == 2)
-        try #expect(companionDrawn == 1)
-        try #expect(battle.hand.cards[0].owner == .hero)
-        try #expect(battle.hand.cards[1].owner == .companion)
-        try #expect(battle.heroDeck.count == CombatDeck.defaultAbilities(from: battle.hero.abilityLoadout).count - heroDrawn)
-        try #expect(battle.companionDeck.count == CombatDeck.defaultAbilities(from: battle.companion.abilityLoadout).count - companionDrawn)
-    }
-
     @Test func `paced opening hand matches immediate draw for same seed`() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",

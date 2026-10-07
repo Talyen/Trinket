@@ -143,8 +143,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) async -> [ActionEvent] {
         let triggers = context.modifiers(for: combatant.id).triggers
-        let maxHealth = context.roster.maxHealth(for: combatant)
-        let wasBelowHalfHealth = context.roster.health(for: combatant) < maxHealth / 2 + maxHealth % 2
+        let wasBelowHalfHealth = context.roster.isBelowHalfHealth(for: combatant)
         let restoration = await beginGoldRestoration(granted: granted, combatant: combatant, triggers: triggers, in: &context)
         var events = restoration.events
         let wildcardGoldGain = granted > 0 && context.allowsHeroTalentReaction

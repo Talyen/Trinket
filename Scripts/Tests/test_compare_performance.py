@@ -73,10 +73,10 @@ class ComparePerformanceTests(unittest.TestCase):
             self.assertEqual(status, 1)
             self.assertIn("coverage failure", summary)
 
-    def test_duplicate_or_missing_reports_fail(self) -> None:
+    def test_duplicate_reports_fail(self) -> None:
         status, summary = self.run_comparison([report(), report()])
         self.assertEqual(status, 1)
-        self.assertIn("expected exactly one measured report, found 2", summary)
+        self.assertIn("expected iterations 1..1", summary)
 
     def test_removed_and_malformed_metrics_fail(self) -> None:
         status, summary = self.run_comparison([

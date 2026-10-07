@@ -17,12 +17,12 @@ enum BattleAbilityRules {
             var amount = component.amount
             if let condition = component.condition {
                 if BattleConditionEvaluator.isMet(condition, actor: actor, in: context) {
-                    amount += component.bonusAmount
+                    amount = SaturatedArithmetic.saturatingAdd(amount, component.bonusAmount)
                 } else if component.bonusAmount == 0 {
                     return total
                 }
             }
-            return total + max(0, amount)
+            return SaturatedArithmetic.saturatingAdd(total, max(0, amount))
         }
     }
 

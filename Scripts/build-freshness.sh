@@ -39,6 +39,7 @@ generation_input_snapshots() {
 import glob
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -52,6 +53,19 @@ for pattern in sys.argv[1:]:
     else:
         groups[-1].append(pattern)
 
+excluded = {".build", ".swiftpm", ".DerivedData", "__pycache__"} if build_inputs else set()
+
+def files_for(path):
+    if excluded.intersection(path.parts):
+        return
+    if not path.is_dir():
+        yield path
+        return
+    # Prune build caches before descent rather than visiting every discarded file.
+    for directory, children, names in os.walk(path):
+        children[:] = [name for name in children if name not in excluded]
+        yield from (Path(directory) / name for name in names if name not in excluded)
+
 for patterns in groups:
     records = {}
     for pattern in patterns:
@@ -59,10 +73,7 @@ for patterns in groups:
         records[pattern] = None
         for match in matches:
             path = Path(match)
-            files = path.rglob("*") if path.is_dir() else [path]
-            for file in files:
-                if build_inputs and any(part in {".build", ".swiftpm", ".DerivedData", "__pycache__"} for part in file.parts):
-                    continue
+            for file in files_for(path):
                 if file.is_file() and file.suffix != ".md":
                     stat = file.stat()
                     records[str(file)] = [stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns]

@@ -34,6 +34,12 @@ struct CombatantMaxValuesTests {
         #expect(CombatantMaxValues.maxMana(for: hero, modifiers: modifiers) == Int.max)
         #expect(CombatantMaxValues.maxHealth(for: hero, flatBonus: .max, talentBonus: 1) == Int.max)
         #expect(CombatantMaxValues.maxMana(for: hero, flatBonus: .max, effectBonus: 1) == Int.max)
+        let stacks = [
+            ActiveEffect(id: 1, effect: .maximumManaBonus(Int.max), remainingTurns: 0),
+            ActiveEffect(id: 2, effect: .maximumManaBonus(1), remainingTurns: 0),
+        ]
+        #expect(CombatantRuntime(combatant: hero, initialActiveEffects: stacks).maxMana == Int.max)
+        #expect(EffectSummaryBuilder.build(for: stacks).first?.text.contains(String(Int.max)) == true)
     }
 
     @Test(arguments: [(0.25, 3), (-2.0, 0), (Double.greatestFiniteMagnitude / 4, Int.max), (Double.infinity, 0)])

@@ -71,6 +71,26 @@ struct BattleLogProjectionTests {
         #expect(projection.entries.map(\.text) == ["Hero uses Strike for 9 Physical damage to Enemy."])
     }
 
+    @Test func `saturated damage and Health cost totals remain readable`() {
+        let packets = [("enemy", Int.max), ("enemy", 1), ("hero", Int.max), ("hero", 1)]
+        var events = packets.enumerated().map { id, packet in
+            ActionEvent(
+                id: id, actionID: 1, kind: .abilityDamage, actorID: "hero", actorName: "Hero",
+                abilityID: "strike", abilityName: "Strike", targetID: packet.0,
+                targetName: packet.0 == "hero" ? "Hero" : "Enemy",
+                amount: packet.1, keyword: .physical,
+            )
+        }
+        events.append(ActionEvent(
+            id: 4, actionID: 1, kind: .ability, actorID: "hero", actorName: "Hero",
+            abilityID: "strike", abilityName: "Strike", targetID: "enemy", targetName: "Enemy",
+            amount: Int.max, keyword: .physical,
+        ))
+        #expect(BattleLogProjection.entries(from: events).map(\.text) == [
+            "Hero uses Strike for \(Int.max) Physical damage to Enemy and loses \(Int.max) Health.",
+        ])
+    }
+
     @Test func `battle start log uses names captured by event`() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 10)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 10)

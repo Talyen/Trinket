@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -143,7 +142,7 @@ package extension DamagePipeline {
                 chance += profile.triggers.dodgeChanceBelowHealthPercentBonus
             }
         }
-        if context.roster.health(for: combatant) * 2 > context.roster.maxHealth(for: combatant) {
+        if context.roster.isAboveHalfHealth(for: combatant) {
             chance += profile.triggers.dodgeChanceAboveHalfHealthBonus
         }
         if context.roster.health(for: combatant) == context.roster.maxHealth(for: combatant) {

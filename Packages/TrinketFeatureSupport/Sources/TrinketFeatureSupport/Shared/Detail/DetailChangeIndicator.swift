@@ -17,7 +17,7 @@ struct DetailChangeIndicators: View {
     let indicators: [DetailChangeIndicator]
 
     var body: some View {
-        ForEach(Array(indicators.enumerated()), id: \.offset) { _, indicator in
+        ForEach(indicators.enumerated(), id: \.offset) { _, indicator in
             GameIconImage(indicator.icon)
                 .foregroundStyle(indicator.tint)
                 .accessibilityElement(children: .ignore)

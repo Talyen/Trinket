@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -139,8 +138,7 @@ package extension DamagePipeline {
     ) -> Double {
         let defenderTriggers = context.modifiers(for: owner.id).triggers
         let doublesPhysical = defenderTriggers.doublePhysicalBlockAbsorption && state.damageKeyword == .physical
-        let belowHalfHealth = context.roster.health(for: owner) * 2
-            < context.roster.maxHealth(for: owner)
+        let belowHalfHealth = context.roster.isBelowHalfHealth(for: owner)
         let oathMultiplier = belowHalfHealth ? defenderTriggers.blockAbsorptionMultiplierBelowHalfHealth : 1
         let manaMultiplier = (context.roster.runtime(for: owner)?.currentMana ?? 0) > 0
             ? defenderTriggers.blockAbsorptionMultiplierWhileMana : 1

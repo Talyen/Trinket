@@ -3,7 +3,7 @@ import Foundation
 public extension ItemAffixPower {
     /// Modifiers precede trigger fields in catalog order, preserving seeded rolls
     /// and corruption selection. Description bindings use that same order.
-    private var magnitudes: some Sequence<(target: BumpTarget, value: AffixMagnitude)> {
+    private var magnitudes: some Collection<(target: BumpTarget, value: AffixMagnitude)> {
         let modifierCount = modifiers.count
         let fields = CombatTraitTriggers.affixMagnitudeFields
         return (0 ..< modifierCount + fields.count).lazy.map { index -> (target: BumpTarget, value: AffixMagnitude) in
@@ -92,12 +92,7 @@ public extension ItemAffixPower {
     }
 
     func hasBumpableField(direction: ItemAffixPowerBumpDirection) -> Bool {
-        magnitudes.contains { target, value in
-            if case .trigger = target, !value.isPositive {
-                return false
-            }
-            return value.bumped(direction: direction) != nil
-        }
+        !bumpableMagnitudes(direction: direction).isEmpty
     }
 
     enum BumpTarget: Equatable, Sendable {
@@ -106,12 +101,18 @@ public extension ItemAffixPower {
     }
 
     func bumpCandidates(direction: ItemAffixPowerBumpDirection) -> [BumpTarget] {
-        magnitudes.compactMap { target, value in
+        bumpableMagnitudes(direction: direction).map(\.target)
+    }
+
+    private func bumpableMagnitudes(
+        direction: ItemAffixPowerBumpDirection,
+    ) -> some Collection<(target: BumpTarget, value: AffixMagnitude)> {
+        magnitudes.lazy.filter { target, value in
             // Zero modifiers can be increased; inactive triggers cannot.
             if case .trigger = target, !value.isPositive {
-                return nil
+                return false
             }
-            return value.bumped(direction: direction) == nil ? nil : target
+            return value.bumped(direction: direction) != nil
         }
     }
 

@@ -48,9 +48,12 @@ def parse_typed_int(raw: str, label: str) -> int:
         value = raw.strip()
         if not re.fullmatch(r"[+-]?[0-9]+(?:_[0-9]+)*", value):
             raise ValueError("not a Swift integer literal")
-        return int(value)
+        number = int(value)
     except ValueError as error:
         raise ValueError(f"Integer value for {label} must be an integer, got {raw!r}") from error
+    if not -(1 << 63) <= number < (1 << 63):
+        raise ValueError(f"Integer value for {label} must fit a Swift Int, got {raw!r}")
+    return number
 
 
 def parse_typed_double(raw: str, label: str) -> float:

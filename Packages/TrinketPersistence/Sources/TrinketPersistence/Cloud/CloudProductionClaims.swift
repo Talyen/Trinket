@@ -36,13 +36,17 @@ struct CloudProductionClaims: Codable, Equatable, Sendable {
 
     mutating func claim(_ resource: HomesteadResource, start: UInt64, quantity: Int) -> Int {
         let end = start + UInt64(quantity)
-        let overlaps = resources[resource, default: []].reduce(UInt64(0)) { total, interval in
+        var intervals = resources[resource, default: []]
+        let overlaps = intervals.reduce(UInt64(0)) { total, interval in
             let lower = max(start, interval.start)
             let upper = min(end, interval.end)
             return total + (upper > lower ? upper - lower : 0)
         }
+        // Validated history is already sorted; insert without sorting it again.
+        let insertion = intervals.firstIndex { $0.start > start } ?? intervals.endIndex
+        intervals.insert(Interval(start: start, end: end), at: insertion)
         var merged: [Interval] = []
-        for interval in (resources[resource, default: []] + [Interval(start: start, end: end)]).sorted(by: { $0.start < $1.start }) {
+        for interval in intervals {
             if let last = merged.last, interval.start <= last.end {
                 merged[merged.count - 1] = Interval(start: last.start, end: max(last.end, interval.end))
             } else {

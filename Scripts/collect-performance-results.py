@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from internal.cli import read_json, write_json_atomic
 
 MARKER = "TRINKET_PERFORMANCE_REPORT "
 
@@ -47,7 +48,7 @@ def main() -> int:
                                   item["iteration"] if type(item.get("iteration")) is int else 0))
     environment_path = args.results_dir.parent / "environment.json"
     try:
-        environment = json.loads(environment_path.read_text()) if environment_path.exists() else {}
+        environment = read_json(environment_path) if environment_path.exists() else {}
         if not isinstance(environment, dict):
             raise ValueError("performance environment is not an object")
     except (OSError, ValueError) as error:
@@ -57,7 +58,7 @@ def main() -> int:
     for record in records:
         record["environment"] = environment
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps({"reports": records}, indent=2, sort_keys=True) + "\n")
+    write_json_atomic(args.output, {"reports": records})
     print(f"Collected {len(records)} app performance reports into {args.output}")
     for error in malformed:
         print(error)

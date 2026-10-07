@@ -66,13 +66,7 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
         re.compile(r"\.fill\(\.(regular|thin|ultraThin)Material"),
     ),
     ("AnyView usage (use @ViewBuilder instead)", re.compile(r"AnyView\(")),
-    ("raw RGB color", re.compile(r"Color\s*\(\s*red\s*:")),
-    ("raw RGB color", re.compile(r"Color\s*\(\s*white\s*:")),
-    ("raw RGB color", re.compile(r"Color\s*\(\s*hue\s*:")),
-    ("raw RGB color", re.compile(r"Color\s*\(\s*cgColor\s*:")),
-    ("raw RGB color", re.compile(r"Color\s*\(\s*uiColor\s*:")),
-    ("raw RGB color", re.compile(r"UIColor\s*\(")),
-    ("raw RGB color", re.compile(r"#colorLiteral\(")),
+    ("raw RGB color", re.compile(r"Color\s*\(\s*(?:red|white|hue|cgColor|uiColor)\s*:|UIColor\s*\(|#colorLiteral\(")),
     (
         "design asset colors outside the design system",
         re.compile(r"DesignAssetColors\.named"),
@@ -80,24 +74,10 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     (
         "system color literal",
         re.compile(
-            rf"\.(foregroundStyle|foregroundColor|tint|fill|stroke|background)\(\.({SYSTEM_COLORS})\b"
+            rf"\.(?:foregroundStyle|foregroundColor|tint|fill|stroke|background|strokeBorder)\(\.(?:{SYSTEM_COLORS})\b"
+            rf"|\.shadow\(color:\s*\.(?:{SYSTEM_COLORS})\b"
+            rf"|(^|[^A-Za-z0-9_])(?:Color\.(?:{SYSTEM_COLORS})\b|\.(?:{SYSTEM_COLORS})\.opacity\()"
         ),
-    ),
-    (
-        "system color literal",
-        re.compile(rf"\.strokeBorder\(\.({SYSTEM_COLORS})\b"),
-    ),
-    (
-        "system color literal",
-        re.compile(rf"\.shadow\(color:\s*\.({SYSTEM_COLORS})\b"),
-    ),
-    (
-        "system color literal",
-        re.compile(rf"(^|[^A-Za-z0-9_])Color\.({SYSTEM_COLORS})\b"),
-    ),
-    (
-        "system color literal",
-        re.compile(rf"(^|[^A-Za-z0-9_])\.({SYSTEM_COLORS})\.opacity\("),
     ),
     (
         "app-bundle named color",
@@ -122,7 +102,7 @@ MOTION_HINT_RE = re.compile(
 # a new guard cannot be added to Python without also being candidate-searchable.
 RG_PATTERN = "|".join(
     f"(?:{regex.pattern})" for _, regex in PATTERNS
-) + f"|(?:{FRAME_RE.pattern})"
+) + f"|(?:{FRAME_RE.pattern})|(?:{MOTION_HINT_RE.pattern})"
 
 
 def resolve_scan_paths(explicit: list[str] | None) -> list[str]:
@@ -138,17 +118,17 @@ def resolve_scan_paths(explicit: list[str] | None) -> list[str]:
     return [str(ROOT / root) for root in SCAN_ROOTS if (ROOT / root).exists()]
 
 
-def candidate_files(scan_paths: list[str], pattern: str = RG_PATTERN) -> list[Path]:
+def candidate_files(scan_paths: list[str]) -> list[Path]:
     """Search with NUL-delimited paths, falling back only when rg is unavailable."""
     if not scan_paths:
         return []
     try:
         result = subprocess.run(
-            ["rg", "--files-with-matches", "--null", "-g", "*.swift", pattern, *scan_paths],
+            ["rg", "--files-with-matches", "--null", "-g", "*.swift", RG_PATTERN, *scan_paths],
             cwd=ROOT, capture_output=True, text=True, check=False,
         )
     except FileNotFoundError:
-        regex = re.compile(pattern)
+        regex = re.compile(RG_PATTERN)
         return [path for path in fallback_list_swift_files(scan_paths)
                 if regex.search(path.read_text(encoding="utf-8"))]
     if result.returncode not in (0, 1):
@@ -209,7 +189,7 @@ def classify_line(
     return None
 
 
-def scan_file(path: Path) -> list[str]:
+def scan_file(path: Path) -> tuple[list[str], str | None]:
     try:
         rel = path.resolve().relative_to(ROOT).as_posix()
     except ValueError:
@@ -250,7 +230,10 @@ def scan_file(path: Path) -> list[str]:
         if len(context_lines) > 5:
             context_lines = context_lines[1:]
 
-    return violations
+    hint = f"{rel}: inline animation without TrinketMotion reference" if (
+        "TrinketMotion" not in text and MOTION_HINT_RE.search(text)
+    ) else None
+    return violations, hint
 
 
 def fallback_list_swift_files(scan_paths: list[str]) -> list[Path]:
@@ -264,35 +247,18 @@ def fallback_list_swift_files(scan_paths: list[str]) -> list[Path]:
     return files
 
 
-def motion_hint_files(scan_paths: list[str]) -> list[str]:
-    """Files using inline animation constructors without referencing TrinketMotion."""
-    try:
-        candidates = candidate_files(scan_paths, MOTION_HINT_RE.pattern)
-    except (OSError, UnicodeError, RuntimeError):
-        return []
-    hints: list[str] = []
-    for path in sorted(set(candidates), key=str):
-        try:
-            rel = path.resolve().relative_to(ROOT).as_posix()
-        except ValueError:
-            rel = path.as_posix()
-        try:
-            text = path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            continue
-        if "TrinketMotion" not in text:
-            hints.append(f"{rel}: inline animation without TrinketMotion reference")
-    return hints
-
-
 def main(argv: list[str]) -> int:
     os.chdir(ROOT)
     scan_paths = resolve_scan_paths(argv[1:] or None)
     violations: list[str] = []
+    hints: list[str] = []
 
     try:
         for path in sorted(set(candidate_files(scan_paths)), key=str):
-            violations.extend(scan_file(path))
+            findings, hint = scan_file(path)
+            violations.extend(findings)
+            if hint:
+                hints.append(hint)
     except (OSError, UnicodeError, RuntimeError) as exc:
         print(f"error: UI style guardrail scan failed: {exc}", file=sys.stderr)
         return 1
@@ -316,7 +282,7 @@ def main(argv: list[str]) -> int:
         )
         return 1
 
-    for hint in motion_hint_files(scan_paths):
+    for hint in hints:
         print(f"motion hint: {hint} (prefer a TrinketMotion recipe when the motion is shared)")
         if os.environ.get("GITHUB_ACTIONS") == "true":
             file, message = hint.split(":", 1)

@@ -221,12 +221,10 @@ def parse_material_tokens(raw: str, minimum: int = 0) -> list[tuple[str, int]]:
     return tokens
 
 
-def parse_material_rewards(raw: str) -> str:
-    if not raw.strip():
-        return "[]"
+def parse_material_rewards(raw: str, minimum: int = 0) -> str:
     amounts = [
         f"ResourceAmount(.{resource}, {quantity})"
-        for resource, quantity in parse_material_tokens(raw)
+        for resource, quantity in parse_material_tokens(raw, minimum=minimum)
     ]
     return "[" + ", ".join(amounts) + "]"
 

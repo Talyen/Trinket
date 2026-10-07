@@ -38,9 +38,9 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             if not path.exists():
                 raise ValueError(f'missing path/scope: {name}')
         search = load_sibling('investigation_search', 'agent-search.py')
-        sources = search.inventory(root, 'source', args.scope)
-        tests = search.inventory(root, 'tests', args.scope)
-        all_tests = search.inventory(root, 'tests', []) if args.test else tests
+        groups = search.inventory(root, ('source', 'tests'), args.scope)
+        sources, tests = groups['source'], groups['tests']
+        all_tests = search.inventory(root, ('tests',), [])['tests'] if args.test else tests
         if args.path not in sources or Path(args.path).suffix not in {'.py', '.swift'}:
             raise ValueError('--path must be an authored Swift/Python source within --scope')
         explicit = []

@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -53,7 +52,7 @@ package extension DamagePipeline {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - min(1, talentResistance) * reductionMultiplier)
         }
         if state.combatant.role != .enemy, context.roster.hero.isAlive, hasThorns,
-           context.roster.health(for: state.combatant) * 2 > context.roster.maxHealth(for: state.combatant) {
+           context.roster.isAboveHalfHealth(for: state.combatant) {
             state.remaining = CombatRounding.scaled(
                 state.remaining,
                 multiplier: context.heroModifiers.triggers.verdantShelterDamageMultiplier,

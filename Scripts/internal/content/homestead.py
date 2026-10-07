@@ -152,10 +152,7 @@ def render_homestead_tier(row: HomesteadNodeRow) -> str:
 
 
 def parse_homestead_production(raw: str) -> str | None:
-    if not raw.strip():
-        return None
-    entries = parse_material_tokens(raw, minimum=1)
-    return "[" + ", ".join(f"ResourceAmount(.{resource}, {quantity})" for resource, quantity in entries) + "]"
+    return parse_material_rewards(raw, minimum=1) if raw.strip() else None
 
 
 def render_homestead_node(node_id: str, rows: list[HomesteadNodeRow]) -> str:
@@ -174,12 +171,9 @@ def render_homestead_node(node_id: str, rows: list[HomesteadNodeRow]) -> str:
 
 
 def validate_homestead_cost(raw: str, row_id: str) -> None:
-    if not raw.strip():
-        raise ValueError(f"cost is required for {row_id}")
+    _require_non_empty("cost", raw, row_id)
     try:
-        entries = parse_material_tokens(raw)
-        if not entries:
-            raise ValueError("Cost must declare at least one resource")
+        parse_material_tokens(raw)
     except ValueError as error:
         raise ValueError(f"{error} for {row_id}") from error
 

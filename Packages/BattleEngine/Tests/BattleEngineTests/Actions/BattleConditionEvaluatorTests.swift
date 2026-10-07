@@ -5,6 +5,21 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BattleConditionEvaluatorTests {
+    @Test(arguments: [
+        (5, 2, true, false),
+        (6, 3, false, false),
+        (Int.max, Int.max / 2, true, false),
+        (Int.max, Int.max / 2 + 1, false, true),
+    ])
+    func `half Health conditions preserve odd and saturated boundaries`(
+        maximum: Int, health: Int, below: Bool, above: Bool,
+    ) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroMaxHealth: maximum, dealOpeningHand: false)
+        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = health }
+        #expect(BattleConditionEvaluator.isMet(.allyBelowHalfHealth, actor: battle.hero, in: battle) == below)
+        #expect(HealthThreshold.isAboveHalf(health, maximum: maximum) == above)
+    }
+
     @Test(arguments: [Effect.nextBurnBonus(1), .onHitDamage(.burn, 3)])
     func `burn buffs do not satisfy burning conditions`(buff: Effect) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)

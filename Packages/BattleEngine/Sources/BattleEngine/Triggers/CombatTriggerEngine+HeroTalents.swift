@@ -253,7 +253,7 @@ package extension CombatTriggerEngine {
             }
         }
         if triggers.dodgeBelowHalfDrawCard,
-           context.roster.health(for: actor) * 2 < context.roster.maxHealth(for: actor),
+           context.roster.isBelowHalfHealth(for: actor),
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: drawCards(
                 1, for: owner, actor: actor, abilityName: "Missed Opportunity", in: &context,

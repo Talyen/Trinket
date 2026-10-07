@@ -41,7 +41,7 @@ extension HealingEngine {
         }
         if amount > 0, request.amountBasis != .resolved,
            request.target.role != .enemy,
-           context.roster.health(for: request.target) * 2 < context.roster.maxHealth(for: request.target) {
+           context.roster.isBelowHalfHealth(for: request.target) {
             amount = CombatRounding.scaled(
                 amount,
                 multiplier: context.modifiers(for: request.target.id).triggers.healBelowHalfMultiplier,
@@ -51,7 +51,7 @@ extension HealingEngine {
            request.target.role != .enemy, context.roster.hero.isAlive {
             let hero = context.heroModifiers.triggers
             if hero.fortifyingTonic,
-               context.roster.health(for: request.target) * 2 < context.roster.maxHealth(for: request.target) {
+               context.roster.isBelowHalfHealth(for: request.target) {
                 amount += 2
             }
             if hero.springSapHealthBonus > 0,
@@ -330,7 +330,7 @@ extension HealingEngine {
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        if restored > 0, preHealth * 2 < maxHealth, request.target.role != .enemy,
+        if restored > 0, HealthThreshold.isBelowHalf(preHealth, maximum: maxHealth), request.target.role != .enemy,
            let block = sourceTriggers?.shelterSeedBlock, block > 0,
            let sourceID = request.sourceActorID,
            let source = context.roster.combatant(for: sourceID), source.isAlive {

@@ -25,6 +25,18 @@ struct BattleArithmeticBoundaryTests {
         #expect(battle.isEnemyDefeated)
     }
 
+    @Test func `Blood Offering retains its Health cost when outgoing damage saturates the summary`() {
+        var profile = CombatModifierProfile(damageDealtBonus: [.bleed: Int.max])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = makeBattle(profile: profile, enemyMaxHealth: Int.max)
+        let events = BattleTurnEngine.performAction(
+            ability: AbilityCatalog.bloodOffering, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+        )
+        #expect(battle.health(of: battle.hero) == 18)
+        #expect(battle.isEnemyDefeated)
+        #expect(events.first { $0.kind == .ability }?.amount == Int.max)
+    }
+
     @Test func `Mana restoration with a saturated bonus fills capacity without overflowing`() {
         var battle = makeBattle(profile: CombatModifierProfile(maximumManaBonus: Int.max, manaRestoredBonus: Int.max))
         let restored = battle.restoreMana(1, to: battle.hero)
@@ -67,11 +79,13 @@ struct BattleArithmeticBoundaryTests {
         #expect(events.contains { $0.effectKind == .controlTriggered })
     }
 
-    private func makeBattle(profile: CombatModifierProfile = .zero, heroMaxHealth: Int = 20) -> BattleState {
+    private func makeBattle(
+        profile: CombatModifierProfile = .zero, heroMaxHealth: Int = 20, enemyMaxHealth: Int = 20,
+    ) -> BattleState {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: heroMaxHealth, maxMana: 4),
             companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: enemyMaxHealth),
             heroMana: 0, heroModifiers: profile,
         )
         battle.appliesFightPacing = false

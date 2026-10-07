@@ -51,12 +51,9 @@ public extension PlayerSaveStore {
         while !Task.isCancelled, currentSave.sessionGeneration == generation {
             let result = await operation()
             guard !Task.isCancelled, currentSave.sessionGeneration == generation else { return nil }
-            guard !shouldRetry(result) else {
-                do { try await Task.sleep(for: .seconds(delay)) } catch { return nil }
-                delay = SaveRetryPolicy.nextDelay(after: delay)
-                continue
-            }
-            return result
+            guard shouldRetry(result) else { return result }
+            do { try await Task.sleep(for: .seconds(delay)) } catch { return nil }
+            delay = SaveRetryPolicy.nextDelay(after: delay)
         }
         return nil
     }
