@@ -9,12 +9,6 @@ import TrinketPersistenceTestSupport
 @testable import TrinketAppState
 @testable import TrinketPersistence
 
-enum DuplicateRouteOrigin: Sendable, CaseIterable {
-    case journey
-    case labyrinth
-    case spire
-}
-
 @MainActor
 struct AppStatePlayFlowTests {
     let context: AppTestContext
@@ -92,10 +86,10 @@ struct AppStatePlayFlowTests {
         #expect(battle.preparedBattlePresentationRevision == preparedRevision + 1)
     }
 
-    @Test(arguments: ["journey", "spire", "labyrinth"] as [String])
-    func `battle activation failure shows unavailable message`(mode: String) throws {
+    @Test(arguments: [PlayBattleMode.journey, .spire, .labyrinth])
+    func `battle activation failure shows unavailable message`(mode: PlayBattleMode) throws {
         let runtime = RejectingBattleRuntime()
-        let arguments = mode == "labyrinth" ? ["-reset-state"] : []
+        let arguments = mode == .labyrinth ? ["-reset-state"] : []
         let state = try context.makePlaySession(
             arguments: arguments,
             battleRuntime: runtime,
@@ -103,18 +97,17 @@ struct AppStatePlayFlowTests {
 
         let message: StageMapMessage?
         switch mode {
-        case "journey":
+        case .journey:
             let stage = try #require(GameContent.chapters[0].stages.first)
             message = state.journey.startBattle(for: stage)
-        case "spire":
+        case .spire:
             let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
             message = state.spires.startBattle(for: floor)
-        case "labyrinth":
+        case .labyrinth:
             _ = state.labyrinth.enter()
             let nodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
             message = state.labyrinth.startBattle(nodeID: nodeID)
-        default:
-            Issue.record("Unexpected mode \(mode)")
+        case .contract, .voyage:
             return
         }
 
@@ -202,8 +195,8 @@ struct AppStatePlayFlowTests {
         #expect(reloaded.roster.gold == goldAfterFirstContinue)
     }
 
-    @Test(arguments: [DuplicateRouteOrigin.journey, .labyrinth, .spire])
-    func `duplicate route delivery reports unavailable without paying twice`(origin: DuplicateRouteOrigin) throws {
+    @Test(arguments: [PlayBattleMode.journey, .labyrinth, .spire])
+    func `duplicate route delivery reports unavailable without paying twice`(origin: PlayBattleMode) throws {
         switch origin {
         case .journey:
             let state = try context.makePlaySession()
@@ -220,6 +213,8 @@ struct AppStatePlayFlowTests {
             let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
             _ = state.spires.startBattle(for: floor)
             try checkDuplicateDelivery(state: state)
+        case .contract, .voyage:
+            break
         }
     }
 
@@ -308,10 +303,10 @@ struct AppStatePlayFlowTests {
         #expect(state.play.shellSession.selectedTab == .play)
     }
 
-    @Test(arguments: ["journey", "spire", "labyrinth"] as [String])
-    func `end battle restores the origin path without a deferred deep link`(origin: String) throws {
+    @Test(arguments: [PlayBattleMode.journey, .spire, .labyrinth])
+    func `end battle restores the origin path without a deferred deep link`(origin: PlayBattleMode) throws {
         switch origin {
-        case "journey":
+        case .journey:
             let state = try context.makePlaySession()
             let stage = try #require(GameContent.chapters[0].stages.first)
             _ = state.journey.startBattle(for: stage)
@@ -323,7 +318,7 @@ struct AppStatePlayFlowTests {
             #expect(state.shellSession.selectedTab == .play)
             #expect(state.shellSession.playPath == [.campaign])
             #expect(state.consumePendingDestination() == nil)
-        case "spire":
+        case .spire:
             let state = try makeProgressedStateForReturnTests(context)
             try attunePhysicalPartyForReturnTests(on: state)
 
@@ -337,7 +332,7 @@ struct AppStatePlayFlowTests {
             #expect(state.shellSession.selectedTab == .play)
             #expect(state.shellSession.playPath == [.explore, .spiresHub, .spireClimb(.ironVein)])
             #expect(state.consumePendingDestination() == nil)
-        case "labyrinth":
+        case .labyrinth:
             let state = try context.makePlaySession(arguments: ["-reset-state"])
             _ = state.labyrinth.enter()
             let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
@@ -350,8 +345,8 @@ struct AppStatePlayFlowTests {
             #expect(state.shellSession.selectedTab == .play)
             #expect(state.shellSession.playPath == [.explore, .labyrinthMap])
             #expect(state.consumePendingDestination() == nil)
-        default:
-            Issue.record("Unexpected origin \(origin)")
+        case .contract, .voyage:
+            break
         }
     }
 
@@ -514,6 +509,43 @@ extension AppStatePlayFlowTests {
         #expect(runtime.activeBattle?.id == active.id)
         #expect(state.battleRegistration(for: active.runKey)?.launch.configuration.id == active.id)
         #expect(state.battlePresentation(for: active)?.rewardPlan == original.rewardPlan)
+    }
+
+    @Test func `mode scoped pruning preserves sibling prepared runs`() throws {
+        let state = try context.makePlaySession()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let journeyKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
+
+        state.journey.prepareBattle(for: stage)
+        #expect(state.battle.hasPreparedRun(journeyKey))
+
+        let labyrinthNodeID = "test-node-1"
+        let labyrinthKey = PlayBattleOrigin.labyrinth(nodeID: labyrinthNodeID).runKey
+        let hero = try #require(GameContent.heroes.first)
+        let companion = try #require(GameContent.companions.first)
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+
+        let labyrinthLaunch = PlayBattleLaunchTestSupport.assemble(
+            input: BattleLaunchInput(
+                origin: .labyrinth(nodeID: labyrinthNodeID),
+                hero: hero,
+                companion: companion,
+                enemy: enemy,
+            ),
+            rngSeed: 1,
+            rosterState: state.playerSave.roster,
+            inventoryState: state.playerSave.inventory,
+        )
+        let labyrinthRoute = PlayBattleRoute.labyrinth(nodeID: labyrinthNodeID, access: .free)
+        #expect(state.battleCoordinator.prepare(labyrinthLaunch, route: labyrinthRoute))
+        #expect(state.battle.hasPreparedRun(labyrinthKey))
+        #expect(state.battle.hasPreparedRun(journeyKey))
+
+        // Pruning for .labyrinth with empty survivors drops labyrinth runs
+        // while preserving sibling modes (journey).
+        state.battleCoordinator.prunePreparedRuns(for: .labyrinth, keeping: [])
+        #expect(!state.battle.hasPreparedRun(labyrinthKey))
+        #expect(state.battle.hasPreparedRun(journeyKey))
     }
 }
 

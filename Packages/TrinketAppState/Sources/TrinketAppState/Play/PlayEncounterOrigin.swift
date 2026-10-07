@@ -29,6 +29,22 @@ public enum PlayEncounterOrigin: Hashable, Sendable {
         return nil
     }
 
+    public var mode: PlayBattleMode {
+        switch self {
+        case .journey: .journey
+        case .labyrinth: .labyrinth
+        case .voyage: .voyage
+        }
+    }
+
+    public var battleOrigin: PlayBattleOrigin {
+        switch self {
+        case let .journey(stage): .journey(stageID: stage.id)
+        case let .labyrinth(nodeID): .labyrinth(nodeID: nodeID)
+        case let .voyage(runID, nodeID): .voyage(runID: runID, nodeID: nodeID)
+        }
+    }
+
     func resolvedStage(labyrinthEncounter: StageEncounter) -> Stage {
         switch self {
         case let .journey(stage):

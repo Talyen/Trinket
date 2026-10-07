@@ -114,13 +114,8 @@ public final class VoyagePlayMode {
             return
         }
         battleCoordinator.prepareCombat(request.input, route: request.route)
-        battleCoordinator.keepPreparedRuns([PlayBattleOrigin.voyage(runID: run.id, nodeID: node.id).runKey], preservingWhere: {
-            if case .voyage = $0 {
-                false
-            } else {
-                true
-            }
-        })
+        let warmKey = PlayBattleOrigin.voyage(runID: run.id, nodeID: node.id).runKey
+        battleCoordinator.prunePreparedRuns(for: .voyage, keeping: [warmKey])
     }
 
     private func request(runID: String, node: VoyageNode) -> (input: BattleLaunchInput, route: PlayBattleRoute)? {
@@ -152,13 +147,7 @@ public final class VoyagePlayMode {
     }
 
     private func prunePrepared() {
-        battleCoordinator.keepPreparedRuns([], preservingWhere: {
-            if case .voyage = $0 {
-                false
-            } else {
-                true
-            }
-        })
+        battleCoordinator.prunePreparedRuns(for: .voyage)
     }
 
     private func persist(key: String, action: @escaping () -> Bool) {

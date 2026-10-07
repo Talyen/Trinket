@@ -3,12 +3,34 @@ import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts
 
+public enum PlayBattleMode: String, Hashable, CaseIterable, Sendable {
+    case journey
+    case spire
+    case labyrinth
+    case contract
+    case voyage
+}
+
 public enum PlayBattleOrigin: Hashable, Sendable {
     case journey(stageID: String)
     case spire(spireID: SpireID, floor: Int)
     case labyrinth(nodeID: String)
     case contract(offerID: String)
     case voyage(runID: String, nodeID: String)
+
+    public var mode: PlayBattleMode {
+        switch self {
+        case .journey: .journey
+        case .spire: .spire
+        case .labyrinth: .labyrinth
+        case .contract: .contract
+        case .voyage: .voyage
+        }
+    }
+
+    public func matches(mode: PlayBattleMode) -> Bool {
+        self.mode == mode
+    }
 
     public var runKey: BattleRunKey {
         switch self {
@@ -23,15 +45,6 @@ public enum PlayBattleOrigin: Hashable, Sendable {
         case let .contract(offerID):
             BattleRunKey("contract|\(offerID)")
         }
-    }
-
-    /// Owner scope for prepared-run pruning: one mode's pruning must never
-    /// destroy a sibling mode's warms.
-    var isLabyrinth: Bool {
-        if case .labyrinth = self {
-            return true
-        }
-        return false
     }
 }
 

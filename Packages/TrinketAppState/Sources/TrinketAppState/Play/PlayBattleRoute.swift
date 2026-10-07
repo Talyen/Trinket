@@ -7,6 +7,10 @@ import TrinketPersistence
 typealias PlayBattleRoute = BattleCompletionDestination
 
 extension BattleCompletionDestination {
+    var mode: PlayBattleMode {
+        origin.mode
+    }
+
     var origin: PlayBattleOrigin {
         switch self {
         case let .journey(stage): .journey(stageID: stage.id)

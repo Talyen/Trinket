@@ -115,16 +115,22 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
         }
     }
 
-    static func returnPath(from origin: PlayBattleOrigin?) -> [Self]? {
-        let destination: Self? = switch origin {
-        case .none: nil
+    public static func defaultDestination(for mode: PlayBattleMode) -> Self {
+        switch mode {
         case .journey: .campaign
-        case let .spire(spireID, _): .spireClimb(spireID)
+        case .spire: .spiresHub
         case .labyrinth: .labyrinthMap
         case .contract: .contracts
         case .voyage: .voyage
         }
-        return destination?.navigationPath
+    }
+
+    static func returnPath(from origin: PlayBattleOrigin?) -> [Self]? {
+        guard let origin else { return nil }
+        if case let .spire(spireID, _) = origin {
+            return Self.spireClimb(spireID).navigationPath
+        }
+        return defaultDestination(for: origin.mode).navigationPath
     }
 }
 

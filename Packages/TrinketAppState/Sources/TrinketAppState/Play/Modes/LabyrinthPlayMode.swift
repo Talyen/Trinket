@@ -148,7 +148,7 @@ public final class LabyrinthPlayMode {
                 preparedKeys.insert(PlayBattleOrigin.labyrinth(nodeID: nodeID).runKey)
             }
         }
-        battleCoordinator.keepPreparedRuns(preparedKeys, preservingWhere: { !$0.isLabyrinth })
+        battleCoordinator.prunePreparedRuns(for: .labyrinth, keeping: preparedKeys)
     }
 
     private func prepareBattle(

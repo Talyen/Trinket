@@ -33,7 +33,7 @@ encounter orchestration plus `Modes/`; `Purchases/` owns StoreKit access;
   (Journey/Labyrinth); a busy transient encounter is always silent. The shared
   action-result adapter logs rejections internally and opens the Full Game offer
   for access restrictions; returned diagnostic text is not player-facing. Preparation
-  pruning is ownership-preserving: a mode drops only its own stale warms, never
+  pruning is ownership-preserving under `PlayBattleMode`: a mode drops only its own stale warms, never
   a sibling's.
 - Encounter sessions, device-local options, app audio routing
 

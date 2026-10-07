@@ -65,6 +65,21 @@ extension PlayBattleCoordinator {
         return true
     }
 
+    /// Prunes prepared battle runs belonging to a specific play mode, keeping
+    /// only the specified run keys for that mode, while preserving all prepared
+    /// runs belonging to sibling modes.
+    func prunePreparedRuns(
+        for mode: PlayBattleMode,
+        keeping keys: Set<BattleRunKey> = [],
+    ) {
+        keepPreparedRuns(keys, preservingWhere: { $0.mode != mode })
+    }
+
+    /// Prunes all prepared battle runs across all modes.
+    func pruneAllPreparedRuns() {
+        keepPreparedRuns([])
+    }
+
     func keepPreparedRuns(
         _ keys: Set<BattleRunKey>,
         preservingWhere preserve: (PlayBattleOrigin) -> Bool = { _ in false },

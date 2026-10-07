@@ -44,16 +44,8 @@ extension PlayerSaveStore {
         return nil
     }
 
-    /// Encounter paywall. `PlayBattleOrigin` (battle runs: journey/spire/
-    /// labyrinth/contract) and `PlayEncounterOrigin` (transient encounters:
-    /// journey/labyrinth) stay separate because battles and encounters key
-    /// differently (run key vs encounter identity); this forwards the shared
-    /// journey/labyrinth cases rather than duplicating their rules.
+    /// Encounter paywall. Forwards through the encounter origin's matching battle origin.
     func encounterAccessRestriction(for origin: PlayEncounterOrigin) -> StageMapMessage? {
-        switch origin {
-        case let .voyage(runID, nodeID): accessRestriction(for: .voyage(runID: runID, nodeID: nodeID))
-        case let .journey(stage): accessRestriction(for: .journey(stageID: stage.id))
-        case let .labyrinth(nodeID): accessRestriction(for: PlayBattleOrigin.labyrinth(nodeID: nodeID))
-        }
+        accessRestriction(for: origin.battleOrigin)
     }
 }

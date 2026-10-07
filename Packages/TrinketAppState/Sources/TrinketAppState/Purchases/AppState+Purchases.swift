@@ -11,7 +11,7 @@ public extension AppState {
               !play.isGameplayActive else { return }
         playerSave.contentAccess = fullGame.ownership.access
         if preparedContentAccess != playerSave.contentAccess {
-            play.battleCoordinator.keepPreparedRuns([])
+            play.battleCoordinator.pruneAllPreparedRuns()
             preparedContentAccess = playerSave.contentAccess
         }
         _ = playerSave.reconcileAccessibleParty()
