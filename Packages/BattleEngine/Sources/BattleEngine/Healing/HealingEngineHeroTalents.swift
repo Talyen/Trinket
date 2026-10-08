@@ -238,7 +238,7 @@ extension HealingEngine {
                         target: context.roster.hero.combatant,
                         sourceActorID: source.id,
                         origin: .restoration(.health),
-                        logAs: .instantHeal(actorName: source.name, abilityName: "Shared Roots", keyword: .health),
+                        logAs: .instantHeal(source: .init(source), abilityName: "Shared Roots", keyword: .health),
                     )
                     share.amountBasis = .resolved
                     return await Self.resolveHeal(share, in: &context).events

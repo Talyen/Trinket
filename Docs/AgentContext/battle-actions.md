@@ -61,6 +61,15 @@ remaining support rewards. New actions cannot start after battle ends.
 
 ## Combat log projection
 
+Engine event emitters require `CombatEventSource`, pairing actor identity with its
+display text. Healing and Mana helpers retain that source across redirected gains;
+periodic/environmental captions explicitly carry their owner ID or no owner.
+Effect handlers supply the actual ability ID before automatic-play origin
+classification. Shared gain/removal helpers forward supplied IDs; passive reactions
+do not inherit the surrounding card's ID. Floating feedback and
+combat sound match automatic card effects by feedback group, actor ID, and ability
+ID through `CombatCardSourceKey`, never by display names.
+
 Combat logs summarize committed damage by recipient and keyword, with self-paid
 Health costs reported separately. Damage packets and their summary share the
 resolved action identity so nested actions do not combine their totals. Packets

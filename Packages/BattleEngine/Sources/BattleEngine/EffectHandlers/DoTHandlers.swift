@@ -189,7 +189,7 @@ struct BleedHandler: BattleEffectHandler {
         return [context.nextEvent(
             kind: .effect,
             effectKind: .cardsDrawn,
-            actorName: source.combatant.name,
+            source: .init(source.combatant),
             abilityName: CombatTriggerEngine.triggerAbilityName(
                 "bleedTickDrawChancePercent",
                 for: source.combatant,

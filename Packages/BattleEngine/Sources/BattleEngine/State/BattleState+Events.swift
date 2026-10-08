@@ -1,13 +1,40 @@
 import TrinketContent
 import TrinketCore
 
+/// Event attribution travels with its display text; names never establish identity.
+package struct CombatEventSource: Equatable, Hashable, Sendable {
+    let actorID: String
+    let actorName: String
+
+    init(_ combatant: Combatant) {
+        actorID = combatant.id
+        actorName = combatant.name
+    }
+
+    init(_ runtime: CombatantRuntime) {
+        self.init(runtime.combatant)
+    }
+
+    /// Periodic/environmental captions can retain an owner without naming them.
+    init(actorID: String?, name: String) {
+        self.actorID = actorID ?? ""
+        actorName = name
+    }
+
+    static let none = Self(actorID: nil, name: "")
+}
+
 package extension BattleState {
+    func eventSource(actorID: String?, fallback: Combatant) -> CombatEventSource {
+        guard let actorID else { return .init(fallback) }
+        return CombatEventSource(actorID: actorID, name: roster.combatant(for: actorID)?.name ?? fallback.name)
+    }
+
     mutating func nextEvent(
         kind: ActionEvent.Kind,
         actionID: Int? = nil,
         effectKind: ActionEvent.EffectOutcome? = nil,
-        actorID: String = "",
-        actorName: String,
+        source: CombatEventSource,
         abilityID: String = "",
         abilityName: String,
         abilityTier: AbilityTier? = nil,
@@ -26,8 +53,8 @@ package extension BattleState {
             actionID: actionID ?? (actionCount + 1),
             kind: kind,
             effectKind: effectKind,
-            actorID: actorID,
-            actorName: actorName,
+            actorID: source.actorID,
+            actorName: source.actorName,
             abilityID: abilityID,
             abilityName: abilityName,
             abilityTier: abilityTier,
@@ -54,7 +81,7 @@ package extension BattleState {
     mutating func appendMilestone(_ milestone: ActionEvent.Milestone) -> ActionEvent {
         nextEvent(
             kind: .milestone,
-            actorName: "",
+            source: .none,
             abilityName: "",
             target: enemy,
             amount: 0,

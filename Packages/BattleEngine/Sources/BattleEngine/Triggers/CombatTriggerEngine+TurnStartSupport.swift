@@ -34,7 +34,7 @@ extension CombatTriggerEngine {
                 target: actor,
                 sourceActorID: source.id,
                 origin: .periodic, logAs: .instantHeal(
-                    actorName: source.name,
+                    source: .init(source),
                     abilityName: "Lingering Blessing",
                     keyword: .health,
                 ),

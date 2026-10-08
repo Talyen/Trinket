@@ -42,7 +42,7 @@ package extension DamagePipeline {
         state.damageEvents.append(context.nextEvent(
             kind: .effect,
             effectKind: .markedConsumed,
-            actorName: state.combatant.name,
+            source: .init(state.combatant),
             abilityName: "Marked",
             target: state.combatant,
             amount: bonus,

@@ -117,7 +117,7 @@ package enum UniqueCombatEngine {
         return context.nextEvent(
             kind: .effect,
             effectKind: .cardsDrawn,
-            actorName: actor.name,
+            source: .init(actor),
             abilityName: name,
             target: actor,
             amount: 1,

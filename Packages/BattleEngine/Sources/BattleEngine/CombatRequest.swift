@@ -62,7 +62,7 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
 
 enum HealLogPolicy: Equatable, Hashable {
     case silent
-    case instantHeal(actorName: String, abilityName: String, keyword: Keyword)
+    case instantHeal(source: CombatEventSource, abilityID: String = "", abilityName: String, keyword: Keyword)
 }
 
 public enum HealingOrigin: Equatable, Hashable, Sendable {

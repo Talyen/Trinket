@@ -174,7 +174,7 @@ package enum DamagePipeline {
         state.damageEvents.append(contentsOf: outcome.events)
         if outcome.healthLost > 0 {
             state.damageEvents.append(context.nextEvent(
-                kind: .abilityDamage, actorName: state.combatant.name, abilityName: "Winter’s Wake",
+                kind: .abilityDamage, source: .init(state.combatant), abilityName: "Winter’s Wake",
                 target: attacker.combatant, amount: outcome.healthLost, keyword: .freeze,
             ))
         }
@@ -301,7 +301,7 @@ package enum DamagePipeline {
             retaliationEvents.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .thornsTriggered,
-                actorName: defender.name,
+                source: .init(defender),
                 abilityName: abilityName,
                 target: target,
                 amount: outcome.healthLost,
@@ -316,7 +316,7 @@ package enum DamagePipeline {
         _ amount: Int,
         abilityName: String,
         keyword: Keyword,
-        actorName: String,
+        source: CombatEventSource,
         target: Combatant,
         to state: inout DamageResolutionState,
         in context: inout BattleState,
@@ -325,7 +325,7 @@ package enum DamagePipeline {
         state.damageEvents.append(context.nextEvent(
             kind: .effect,
             effectKind: .shieldAbsorbed,
-            actorName: actorName,
+            source: source,
             abilityName: abilityName,
             target: target,
             amount: amount,

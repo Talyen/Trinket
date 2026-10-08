@@ -48,7 +48,7 @@ package extension CombatTriggerEngine {
         return [context.nextEvent(
             kind: .effect,
             effectKind: .thornsApplied,
-            actorName: actor.name,
+            source: .init(actor),
             abilityName: triggerAbilityName(
                 abilityKey,
                 for: actor,
@@ -289,8 +289,7 @@ package extension CombatTriggerEngine {
         if triggers.enemyStunnedApplyMarked, context.roster.health(for: enemy) > 0 {
             events.append(contentsOf: applyMarked(
                 to: enemy,
-                sourceActorID: actor.id,
-                actorName: actor.name,
+                source: actor,
                 abilityName: triggerAbilityName("enemyStunnedApplyMarked", for: actor, fallback: "Branding", in: context),
                 in: &context,
             ))
@@ -485,8 +484,7 @@ package extension CombatTriggerEngine {
 
     private static func applyMarked(
         to target: Combatant,
-        sourceActorID: String,
-        actorName: String,
+        source: Combatant,
         abilityName: String,
         in context: inout BattleState,
     ) -> [ActionEvent] {
@@ -504,14 +502,14 @@ package extension CombatTriggerEngine {
                 id: context.consumeNextEffectID(),
                 effect: markedEffect,
                 remainingTurns: Effect.standardMarkedDuration,
-                sourceActorID: sourceActorID,
+                sourceActorID: source.id,
             ),
         )
         context.roster.setActiveEffects(effects, for: target)
         return [context.nextEvent(
             kind: .effect,
             effectKind: .markedApplied,
-            actorName: actorName,
+            source: .init(source),
             abilityName: abilityName,
             target: target,
             amount: Effect.standardMarkedBonus,

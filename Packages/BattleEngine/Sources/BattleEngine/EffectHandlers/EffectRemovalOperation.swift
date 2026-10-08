@@ -37,6 +37,7 @@ enum EffectRemovalOperation {
         effectKind: ActionEvent.EffectOutcome,
         source: Combatant,
         target: Combatant,
+        abilityID: String = "",
         abilityName: String,
         origin: ActionEvent.Origin,
         in context: inout BattleState,
@@ -48,8 +49,8 @@ enum EffectRemovalOperation {
             context.nextEvent(
                 kind: .effect,
                 effectKind: effectKind,
-                actorName: source.name,
-                abilityName: abilityName,
+                source: .init(source),
+                abilityID: abilityID, abilityName: abilityName,
                 target: target,
                 amount: 0,
                 keyword: keyword,
@@ -77,6 +78,7 @@ enum EffectRemovalOperation {
         _ selection: CleanseSelection,
         source: Combatant,
         target: Combatant,
+        abilityID: String = "",
         abilityName: String,
         baseHeal: Int = 0,
         healPerDebuff: Int = 0,
@@ -119,7 +121,7 @@ enum EffectRemovalOperation {
             if healAmount > 0 {
                 let recipient = healTarget.map { BattleActionContext(actor: source, in: context).target($0, in: context) } ?? target
                 await events.append(contentsOf: context.healEmitting(
-                    amount: healAmount, target: recipient, source: source, abilityName: abilityName,
+                    amount: healAmount, target: recipient, source: source, abilityID: abilityID, abilityName: abilityName,
                     isDirectCardHeal: context.hasHeroCard(for: source.id),
                 ))
             }
@@ -138,7 +140,7 @@ enum EffectRemovalOperation {
             ))
         }
         await events.append(contentsOf: cleanseReactions(
-            removed: removed, abilityName: abilityName, source: source, target: target,
+            removed: removed, abilityID: abilityID, abilityName: abilityName, source: source, target: target,
             healAmount: healAmount, healTarget: healTarget,
             allowMassCleanse: propagation == .primary, origin: origin, in: &context,
         ))
@@ -147,6 +149,7 @@ enum EffectRemovalOperation {
 
     private static func cleanseReactions(
         removed: [ActiveEffect],
+        abilityID: String = "",
         abilityName: String,
         source: Combatant,
         target: Combatant,
@@ -163,7 +166,7 @@ enum EffectRemovalOperation {
         )
         events.append(contentsOf: removalEvents(
             removed, effectKind: .cleanseApplied, source: source, target: target,
-            abilityName: abilityName, origin: origin, in: &context,
+            abilityID: abilityID, abilityName: abilityName, origin: origin, in: &context,
         ))
         if healAmount > 0 {
             let recipient = healTarget.map { BattleActionContext(actor: source, in: context).target($0, in: context) } ?? target
@@ -171,7 +174,7 @@ enum EffectRemovalOperation {
                 amount: healAmount,
                 target: recipient,
                 source: source,
-                abilityName: abilityName,
+                abilityID: abilityID, abilityName: abilityName,
                 isDirectCardHeal: context.hasHeroCard(for: source.id),
             ))
         }
@@ -206,6 +209,7 @@ enum EffectRemovalOperation {
         _ selection: PurgeSelection,
         source: Combatant,
         target: Combatant,
+        abilityID: String = "",
         abilityName: String,
         origin: ActionEvent.Origin = .automatic,
         in context: inout BattleState,
@@ -234,7 +238,7 @@ enum EffectRemovalOperation {
         // intentionally ignored for the keyword choice.
         var events = removalEvents(
             removed, effectKind: .purgeApplied, source: source, target: target,
-            abilityName: abilityName, origin: origin, in: &context,
+            abilityID: abilityID, abilityName: abilityName, origin: origin, in: &context,
         )
         if target.role == .enemy, source.role != .enemy, triggers.purgeDrawBelowHalf,
            let runtime = context.roster.runtime(for: source), runtime.isAlive,

@@ -6,6 +6,7 @@ package extension BattleState {
     mutating func grantGoldEvent(
         _ amount: Int,
         to combatant: Combatant,
+        abilityID: String = "",
         abilityName: String,
         isTheft: Bool = false,
         isDirectCardGain: Bool = false,
@@ -49,8 +50,8 @@ package extension BattleState {
         var events = [nextEvent(
             kind: .effect,
             effectKind: .resourceGain,
-            actorName: combatant.name,
-            abilityName: abilityName,
+            source: .init(combatant),
+            abilityID: abilityID, abilityName: abilityName,
             target: combatant,
             amount: granted,
             keyword: .gold,
@@ -143,8 +144,9 @@ package extension BattleState {
     mutating func restoreManaEmitting(
         _ amount: Int,
         to combatant: Combatant,
+        abilityID: String = "",
         abilityName: String,
-        actorName: String? = nil,
+        source: Combatant? = nil,
     ) async -> [ActionEvent] {
         let standalone = resolution.beginStandaloneRestoration()
         defer {
@@ -161,8 +163,8 @@ package extension BattleState {
         events.append(nextEvent(
             kind: .effect,
             effectKind: .resourceGain,
-            actorName: actorName ?? combatant.name,
-            abilityName: abilityName,
+            source: .init(source ?? combatant),
+            abilityID: abilityID, abilityName: abilityName,
             target: combatant,
             amount: restored,
             keyword: .mana,
@@ -176,6 +178,7 @@ package extension BattleState {
         amount: Int,
         target: Combatant,
         source: Combatant,
+        abilityID: String = "",
         abilityName: String,
         keyword: Keyword = .health,
         isDirectCardHeal: Bool = false,
@@ -184,7 +187,12 @@ package extension BattleState {
             amount: amount,
             target: target,
             sourceActorID: source.id,
-            origin: .restoration(keyword), logAs: .instantHeal(actorName: source.name, abilityName: abilityName, keyword: keyword),
+            origin: .restoration(keyword), logAs: .instantHeal(
+                source: .init(source),
+                abilityID: abilityID,
+                abilityName: abilityName,
+                keyword: keyword,
+            ),
         )
         request.isDirectCardHeal = isDirectCardHeal
         return await HealingEngine.resolveHeal(request, in: &self).events

@@ -149,8 +149,7 @@ extension BattleTurnEngine {
         let componentEvent = context.nextEvent(
             kind: .abilityDamage,
             actionID: context.resolution.actionID,
-            actorID: actor.id,
-            actorName: actor.name,
+            source: .init(actor),
             abilityID: ability.id,
             abilityName: ability.name,
             abilityTier: ability.tier,
@@ -307,8 +306,7 @@ extension BattleTurnEngine {
             hemorrhageEvents.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .hemorrhageTriggered,
-                actorID: actor.id,
-                actorName: actor.name,
+                source: .init(actor),
                 abilityName: "Hemorrhage",
                 target: actor,
                 amount: hemorrhageOutcome.healthLost,

@@ -12,7 +12,12 @@ struct InstantHealHandler: BattleEffectHandler {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         var request = HealRequest(
             amount: amount, target: target, sourceActorID: source.id,
-            origin: .restoration(keyword), logAs: .instantHeal(actorName: source.name, abilityName: ability.name, keyword: keyword),
+            origin: .restoration(keyword), logAs: .instantHeal(
+                source: .init(source),
+                abilityID: ability.id,
+                abilityName: ability.name,
+                keyword: keyword,
+            ),
         )
         request.isDirectCardHeal = context.hasHeroCard(for: source.id)
         let outcome = await HealingEngine.resolveHeal(request, in: &context)
@@ -38,8 +43,8 @@ struct ResourceGainHandler: BattleEffectHandler {
             let event = context.nextEvent(
                 kind: .effect,
                 effectKind: .resourceGain,
-                actorName: source.name,
-                abilityName: ability.name,
+                source: .init(source),
+                abilityID: ability.id, abilityName: ability.name,
                 target: target,
                 amount: restored,
                 keyword: keyword,
@@ -53,7 +58,7 @@ struct ResourceGainHandler: BattleEffectHandler {
         case .gold:
             return await EffectApplyOutcome(
                 events: context.grantGoldEvent(
-                    amount, to: source, abilityName: ability.name,
+                    amount, to: source, abilityID: ability.id, abilityName: ability.name,
                     isTheft: ability.stealsGold, isDirectCardGain: true,
                 ),
                 didApply: true,
@@ -94,8 +99,8 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .resourceGain,
-            actorName: source.name,
-            abilityName: ability.name,
+            source: .init(source),
+            abilityID: ability.id, abilityName: ability.name,
             target: target,
             amount: max(amount, restored),
             keyword: .mana,
@@ -141,7 +146,7 @@ package extension BattleState {
         return [nextEvent(
             kind: .effect,
             effectKind: .instantHeal,
-            actorName: source.name,
+            source: .init(source),
             abilityName: abilityName,
             target: target,
             amount: revivedHealth,

@@ -96,7 +96,7 @@ package enum CombatTriggerEngine {
                 target: target,
                 sourceActorID: source.id,
                 logAs: .instantHeal(
-                    actorName: source.name,
+                    source: .init(source),
                     abilityName: "Trait",
                     keyword: .health,
                 ),

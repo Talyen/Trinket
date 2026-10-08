@@ -24,7 +24,7 @@ extension PlayerSaveStore {
         } catch {
             restoreSnapshot(snapshot, slices: .all)
             let mapped = PlayerSavePersistenceError.mapped(error)
-            lastPersistenceError = mapped
+            notePersistenceFailure(mapped, logging: "Failed to reset player save")
             throw mapped
         }
         if let pendingSaveRecovery, pendingSaveRecovery.hasPendingSave {
@@ -132,7 +132,7 @@ extension PlayerSaveStore {
             usesMemoryFallback = true
             isPersistenceDegraded = true
             let mapped = PlayerSavePersistenceError.mapped(error)
-            lastPersistenceError = mapped
+            notePersistenceFailure(mapped, logging: "Failed to restore durable player storage")
             // PersistenceCheck: allow - prior recoverable progress is restored best-effort
             try? pendingSaveRecovery?.restorePendingData(pendingBackup)
             throw mapped

@@ -191,7 +191,7 @@ package extension HealingEngine {
            ) {
             events.append(context.nextEvent(
                 kind: .effect, effectKind: .thornsApplied,
-                actorName: actorCombatant.name,
+                source: .init(actorCombatant),
                 abilityName: CombatTriggerEngine.triggerAbilityName(
                     "leechThornsWithoutThorns", for: actorCombatant, fallback: "Bloodroot", in: context,
                 ),
@@ -211,7 +211,7 @@ package extension HealingEngine {
             events.append(contentsOf: stun.events)
             if stun.healthLost > 0 {
                 events.append(context.nextEvent(
-                    kind: .abilityDamage, actorName: actorCombatant.name,
+                    kind: .abilityDamage, source: .init(actorCombatant),
                     abilityName: CombatTriggerEngine.triggerAbilityName(
                         "leechStunBelowHalfHealth", for: actorCombatant, fallback: "Heartshock", in: context,
                     ),
@@ -243,7 +243,7 @@ package extension HealingEngine {
             events.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .leechHeal,
-                actorName: actorCombatant.name,
+                source: .init(actorCombatant),
                 abilityName: "Leech",
                 target: actorCombatant,
                 amount: actualRestored,
@@ -314,7 +314,7 @@ package extension HealingEngine {
         var request = HealRequest(
             amount: share, target: ally.combatant, sourceActorID: source.id,
             logAs: .instantHeal(
-                actorName: source.name,
+                source: .init(source),
                 abilityName: CombatTriggerEngine.triggerAbilityName(
                     "companionLeechSharePercent", for: source,
                     fallback: "Symbiosis", in: context,

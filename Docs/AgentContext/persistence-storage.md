@@ -72,7 +72,11 @@ the recovered values. Production actions use immediate commits.
 
 `retrySaveAction` retains a failed action and retries it without a player prompt.
 Keys prevent duplicate retries; the captured session generation prevents late
-writes or navigation across reset/account boundaries. Interaction owners retain
+writes or navigation across reset/account boundaries. The retry queue uses failures
+recorded by persistence commands within each synchronous attempt; it does not
+clear or use the shared Progress Status diagnostic to decide whether to continue.
+An obsolete callback that performs no write ends its retry without hiding an
+unrelated error. Interaction owners retain
 only current choices/encounters while pending. Linked Homestead actions commit
 locally and upload later; transient sync failures retry without player prompts.
 Pending legacy server receipts remain replay-safe. Total device write refusal cannot guarantee

@@ -184,7 +184,7 @@ package extension CombatTriggerEngine {
            let ability = AbilityCatalog.all.randomElement(using: &context.rng) {
             _ = BattleCardCombatEngine.deal(ability, owner: owner, context: &context)
             events.append(context.nextEvent(
-                kind: .effect, effectKind: .cardsDrawn, actorName: actor.name,
+                kind: .effect, effectKind: .cardsDrawn, source: .init(actor),
                 abilityName: "Consolation Prize", target: actor, amount: 1, keyword: .physical,
             ))
         }
@@ -430,7 +430,7 @@ package extension CombatTriggerEngine {
             return [context.nextEvent(
                 kind: .effect,
                 effectKind: .thornsApplied,
-                actorName: source.name,
+                source: .init(source),
                 abilityName: name,
                 target: target,
                 amount: amount,
@@ -453,7 +453,7 @@ package extension CombatTriggerEngine {
             )
             guard outcome.healthRestored > 0 else { return outcome.events }
             return outcome.events + [context.nextEvent(
-                kind: .effect, effectKind: .instantHeal, actorName: source.name,
+                kind: .effect, effectKind: .instantHeal, source: .init(source),
                 abilityName: name, target: target, amount: outcome.healthRestored, keyword: .health,
             )]
         }
@@ -492,7 +492,7 @@ package extension CombatTriggerEngine {
             if outcome.healthLost > 0 {
                 events.append(context.nextEvent(
                     kind: .abilityDamage,
-                    actorName: source.name,
+                    source: .init(source),
                     abilityName: name,
                     target: target,
                     amount: outcome.healthLost,

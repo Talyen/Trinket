@@ -39,8 +39,8 @@ struct MultiplyDoTHandler: BattleEffectHandler {
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .dotAmplified,
-            actorName: source.name,
-            abilityName: ability.name,
+            source: .init(source),
+            abilityID: ability.id, abilityName: ability.name,
             target: target,
             amount: multiplied,
             keyword: keyword,

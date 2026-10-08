@@ -23,8 +23,13 @@ public final class PlayerSaveStore {
     let recoveryConfiguration: ModelConfiguration?
     let pendingSaveRecovery: PendingSaveRecovery?
     var root: PlayerSaveRoot
-    @ObservationIgnored var saveActionRetries: [String: Task<Void, Never>] = [:]
-    public internal(set) var isRetryingSaveAction = false
+    let saveActionRetries = SaveActionRetryQueue()
+    @ObservationIgnored var saveActionAttempt: SaveActionAttempt?
+
+    public var isRetryingSaveAction: Bool {
+        saveActionRetries.isRetrying
+    }
+
     var deferredSaveTask: Task<Void, Never>?
     var pendingDeferredSave: PendingDeferredSave?
     var observedSave: PlayerSave = .fresh
@@ -225,9 +230,7 @@ public final class PlayerSaveStore {
 
     isolated deinit {
         deferredSaveTask?.cancel()
-        for task in saveActionRetries.values {
-            task.cancel()
-        }
+        saveActionRetries.cancelAll()
     }
 
     static func openSaveContainer(

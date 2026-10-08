@@ -175,4 +175,58 @@ struct PendingSaveRecoveryTests {
         #expect(attempts == (reset ? 0 : 1))
         #expect(store.roster.gold == (reset ? 0 : 3))
     }
+
+    @Test func `obsolete retry preserves an unrelated validation failure`() async throws {
+        let store = try PlayerSaveStore(inMemoryOnly: true)
+        store.forcesNextSaveFailure = true
+        #expect(!store.persistBatch(logging: "Retry fixture") { $0.roster.gold += 3 })
+        var attempts = 0
+        // Represents an encounter callback whose session has already closed.
+        store.retrySaveAction(key: "closed-encounter") { attempts += 1 }
+        #expect(!store.persistBatch(logging: "Invalid action fixture") { $0.schemaVersion = 0 })
+        let failure = try #require(store.lastPersistenceError)
+        guard case .invalidSave = failure else {
+            Issue.record("Expected a validation failure")
+            return
+        }
+
+        for _ in 0 ..< 300 where store.isRetryingSaveAction {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(!store.isRetryingSaveAction)
+        #expect(attempts == 1)
+        #expect(store.lastPersistenceError == failure)
+        #expect(store.roster.gold == 0)
+    }
+
+    @Test(arguments: [false, true])
+    func `retry follows command failures when another command succeeds`(invalid: Bool) async throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        store.forcesNextSaveFailure = true
+        #expect(!store.persistBatch(logging: "Retry fixture") { $0.roster.gold += 3 })
+        var attempts = 0
+        store.retrySaveAction(key: "claim") { [weak store] in
+            guard let store else { return }
+            attempts += 1
+            store.forcesNextSaveFailure = !invalid && attempts == 1
+            _ = store.persistBatch(logging: "Retry fixture") { save in
+                if invalid {
+                    save.schemaVersion = 0
+                } else {
+                    save.roster.gold += 3
+                }
+            }
+            // A separate idempotent write clears the diagnostic, but must not
+            // conceal the first command's uncommitted reward.
+            #expect(store.persistBatch(logging: "Other command fixture") { $0.corruptionAltarCooldownRemaining = 1 })
+        }
+        for _ in 0 ..< 300 where store.isRetryingSaveAction {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(!store.isRetryingSaveAction)
+        #expect(attempts == (invalid ? 1 : 2))
+        #expect(store.roster.gold == (invalid ? 0 : 3))
+        #expect(try context.makeReloadedStore().roster.gold == (invalid ? 0 : 3))
+    }
 }

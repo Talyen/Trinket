@@ -13,6 +13,7 @@ package extension BattleState {
     mutating func grantGoldEvent(
         _ amount: Int,
         to combatant: Combatant,
+        abilityID: String = "",
         abilityName: String,
         isTheft: Bool = false,
         isDirectCardGain: Bool = false,
@@ -21,7 +22,7 @@ package extension BattleState {
         CombatExecutor.run { await grantGoldEvent(
             amount,
             to: combatant,
-            abilityName: abilityName,
+            abilityID: abilityID, abilityName: abilityName,
             isTheft: isTheft,
             isDirectCardGain: isDirectCardGain,
             isLeechOverflow: isLeechOverflow,
@@ -31,16 +32,19 @@ package extension BattleState {
     mutating func restoreManaEmitting(
         _ amount: Int,
         to combatant: Combatant,
+        abilityID: String = "",
         abilityName: String,
-        actorName: String? = nil,
+        source: Combatant? = nil,
     ) -> [ActionEvent] {
-        CombatExecutor.run { await restoreManaEmitting(amount, to: combatant, abilityName: abilityName, actorName: actorName) }
+        CombatExecutor
+            .run { await restoreManaEmitting(amount, to: combatant, abilityID: abilityID, abilityName: abilityName, source: source) }
     }
 
     mutating func healEmitting(
         amount: Int,
         target: Combatant,
         source: Combatant,
+        abilityID: String = "",
         abilityName: String,
         keyword: Keyword = .health,
         isDirectCardHeal: Bool = false,
@@ -49,7 +53,7 @@ package extension BattleState {
             amount: amount,
             target: target,
             source: source,
-            abilityName: abilityName,
+            abilityID: abilityID, abilityName: abilityName,
             keyword: keyword,
             isDirectCardHeal: isDirectCardHeal,
         ) }

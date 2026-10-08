@@ -155,7 +155,7 @@ package extension CombatTriggerEngine {
         var events = [context.nextEvent(
             kind: .effect,
             effectKind: .resourceGain,
-            actorName: caster.name,
+            source: .init(caster),
             abilityName: triggerAbilityName(
                 "onBurnDamageRestoreManaFlat",
                 for: caster.combatant,

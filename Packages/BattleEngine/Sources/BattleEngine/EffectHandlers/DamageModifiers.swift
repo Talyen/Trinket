@@ -17,8 +17,8 @@ struct HalveShieldHandler: BattleEffectHandler {
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .shieldHalved,
-            actorName: source.name,
-            abilityName: ability.name,
+            source: .init(source),
+            abilityID: ability.id, abilityName: ability.name,
             target: target,
             amount: 0,
             keyword: keyword,
@@ -117,7 +117,7 @@ struct MultiplyControlMeterHandler: BattleEffectHandler {
             keyword: keyword,
             to: target,
             sourceActorID: source.id,
-            abilityName: ability.name,
+            abilityID: ability.id, abilityName: ability.name,
             in: &context,
         )
         let didApply = !events.isEmpty || context.roster.activeEffects(for: target) != effectsBefore

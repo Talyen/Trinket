@@ -258,7 +258,7 @@ package extension DamagePipeline {
         for name in names {
             state.damageEvents.append(context.nextEvent(
                 kind: .ability,
-                actorName: source.name,
+                source: .init(source),
                 abilityName: name,
                 target: target,
                 amount: 0,

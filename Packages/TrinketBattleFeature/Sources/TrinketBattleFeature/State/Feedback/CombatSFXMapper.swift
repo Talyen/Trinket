@@ -83,6 +83,7 @@ enum CombatSFXMapper {
         didDrawCards: Bool = false,
     ) -> String? {
         var selection = Selection()
+        let cardSources = Set(events.lazy.filter { $0.kind == .ability }.compactMap(CombatCardSourceKey.init))
         let recorded = Set(damage.map { DamageKey(targetID: $0.targetID, keyword: $0.keyword) })
         for (index, hit) in damage.enumerated() {
             let order = events.firstIndex {
@@ -98,7 +99,7 @@ enum CombatSFXMapper {
             }
         }
         for (order, event) in events.enumerated() {
-            add(event, order: order, events: events, recorded: recorded, to: &selection)
+            add(event, order: order, cardSources: cardSources, recorded: recorded, to: &selection)
         }
         if didDrawCards {
             selection.offer(SFXID.abilityDraw, priority: 4, order: events.count)
@@ -111,17 +112,18 @@ enum CombatSFXMapper {
             || event.effectKind == .thornsTriggered || event.effectKind == .hemorrhageTriggered
     }
 
-    private static func isCardEffect(_ event: ActionEvent, in events: [ActionEvent]) -> Bool {
-        event.origin == .direct || events.contains {
-            $0.kind == .ability && $0.feedbackGroupID == event.feedbackGroupID
-                && $0.actorName == event.actorName && $0.abilityName == event.abilityName
+    private static func isCardEffect(_ event: ActionEvent, in sources: Set<CombatCardSourceKey>) -> Bool {
+        if event.origin == .direct {
+            return true
         }
+        guard let source = CombatCardSourceKey(event) else { return false }
+        return sources.contains(source)
     }
 
     private static func add(
         _ event: ActionEvent,
         order: Int,
-        events: [ActionEvent],
+        cardSources: Set<CombatCardSourceKey>,
         recorded: Set<DamageKey>,
         to selection: inout Selection,
     ) {
@@ -157,28 +159,33 @@ enum CombatSFXMapper {
                 selection.add(event.amount, kind: .blockAbsorption, keyword: .block, clip: SFXID.blockAbsorb, order: order)
             }
         case .shieldApplied:
-            if isCardEffect(event, in: events) {
+            if isCardEffect(event, in: cardSources) {
                 selection.add(event.amount, kind: .blockGain, keyword: .block, clip: SFXID.block, order: order)
             }
         default:
-            addFallback(event, order: order, events: events, to: &selection)
+            addFallback(event, order: order, cardSources: cardSources, to: &selection)
         }
     }
 
-    private static func addFallback(_ event: ActionEvent, order: Int, events: [ActionEvent], to selection: inout Selection) {
+    private static func addFallback(
+        _ event: ActionEvent,
+        order: Int,
+        cardSources: Set<CombatCardSourceKey>,
+        to selection: inout Selection,
+    ) {
         switch event.effectKind {
         case .dodgeApplied:
             selection.offer(SFXID.dodge, priority: 0, order: order)
         case .cleanseApplied:
-            if isCardEffect(event, in: events) {
+            if isCardEffect(event, in: cardSources) {
                 selection.offer(SFXID.heal, priority: 1, order: order)
             }
         case .purgeApplied:
-            if isCardEffect(event, in: events) {
+            if isCardEffect(event, in: cardSources) {
                 selection.offer(SFXID.purge, priority: 1, order: order)
             }
         case .resourceGain:
-            if event.amount > 0, isCardEffect(event, in: events), event.keyword == .mana || event.keyword == .gold {
+            if event.amount > 0, isCardEffect(event, in: cardSources), event.keyword == .mana || event.keyword == .gold {
                 selection.offer(event.keyword == .mana ? SFXID.restoreMana : SFXID.lootCollect, priority: 3, order: order)
             }
         case .cardsDrawn:
@@ -190,7 +197,7 @@ enum CombatSFXMapper {
         case .partyDamagePreparationApplied, .leechApplied, .thornsApplied, .criticalChanceApplied,
              .manaShieldApplied, .damageKeywordOverrideApplied, .nextHolyStrikeApplied, .nextStrikeDoubleApplied, .playNextCardTwiceApplied,
              .nextBurnBonusApplied, .evadeNextHitApplied, .wardApplied, .avatarApplied:
-            if isCardEffect(event, in: events) {
+            if isCardEffect(event, in: cardSources) {
                 selection.offer(SFXID.buff, priority: 2, order: order)
             }
         default:

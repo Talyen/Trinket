@@ -88,7 +88,7 @@ package enum DeathsDoorEngine {
                 target: combatant,
                 sourceActorID: context.roster.companion.id,
                 origin: .restoration(.health), logAs: .instantHeal(
-                    actorName: context.roster.companion.name,
+                    source: .init(context.roster.companion),
                     abilityName: "Phoenix Gift",
                     keyword: .health,
                 ),
@@ -123,7 +123,7 @@ package enum DeathsDoorEngine {
             context.nextEvent(
                 kind: .effect,
                 effectKind: .instantHeal,
-                actorName: combatant.name,
+                source: .init(combatant),
                 abilityName: abilityName,
                 target: combatant,
                 amount: healthToRestore,
@@ -170,7 +170,7 @@ package enum DeathsDoorEngine {
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .deathsDoorTriggered,
-            actorName: combatant.name,
+            source: .init(combatant),
             abilityName: Keyword.deathsDoor.rawValue,
             target: combatant,
             amount: 0,
@@ -267,7 +267,7 @@ package enum DeathsDoorEngine {
                     target: member.combatant,
                     sourceActorID: context.roster.companion.id,
                     origin: .restoration(.health), logAs: .instantHeal(
-                        actorName: combatant.name,
+                        source: .init(combatant),
                         abilityName: "Afterglow",
                         keyword: .health,
                     ),
@@ -326,7 +326,7 @@ package enum DeathsDoorEngine {
                 target: combatant,
                 sourceActorID: combatant.id,
                 origin: .restoration(.health), logAs: .instantHeal(
-                    actorName: combatant.name,
+                    source: .init(combatant),
                     abilityName: "Endless Legion",
                     keyword: .health,
                 ),

@@ -213,7 +213,7 @@ package extension DamagePipeline {
         return [context.nextEvent(
             kind: .effect,
             effectKind: .cardsDrawn,
-            actorName: actor.name,
+            source: .init(actor),
             abilityName: "Talent Draw",
             target: actor,
             amount: 1,

@@ -8,6 +8,7 @@ package extension ControlMeterEngine {
         keyword: Keyword,
         to combatant: Combatant,
         sourceActorID: String?,
+        abilityID: String = "",
         abilityName: String,
         in context: inout BattleState,
     ) async -> [ActionEvent] {
@@ -34,12 +35,11 @@ package extension ControlMeterEngine {
         let newAmount = min(currentAmount * factor, threshold)
         guard newAmount > currentAmount else { return [] }
 
-        let actorName = sourceActorID.flatMap { context.roster.combatant(for: $0)?.name } ?? combatant.name
         let amplificationEvent = context.nextEvent(
             kind: .effect,
             effectKind: .dotAmplified,
-            actorName: actorName,
-            abilityName: abilityName,
+            source: context.eventSource(actorID: sourceActorID, fallback: combatant),
+            abilityID: abilityID, abilityName: abilityName,
             target: combatant,
             amount: newAmount - currentAmount,
             keyword: keyword,

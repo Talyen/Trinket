@@ -70,7 +70,7 @@ package extension DamagePipeline {
                 absorbed,
                 abilityName: abilityName ?? keyword.rawValue,
                 keyword: keyword,
-                actorName: keyword.rawValue,
+                source: .init(actorID: owner.id, name: keyword.rawValue),
                 target: owner,
                 to: &state,
                 in: &context,

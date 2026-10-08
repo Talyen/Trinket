@@ -14,32 +14,30 @@ enum SaveRetryPolicy {
 public extension PlayerSaveStore {
     /// Retains a failed action and retries silently with backoff. Keys prevent
     /// duplicate retries; the captured generation prevents late writes across
-    /// reset/account boundaries. The clear→action→check sequence is safe
-    /// against concurrent keys: `action` is synchronous with no suspension
-    /// between clear and check, so tasks can only interleave at `sleep`.
+    /// reset/account boundaries. Each synchronous attempt records its own
+    /// persistence failures, without clearing or reading shared diagnostics.
     ///
-    /// Failure contract: `action` signals failure by leaving a retryable
-    /// `lastPersistenceError` (see `PlayerSavePersistenceError.isRetryable`)
-    /// behind — typically by running a `persistBatch`/`persistTransaction`
-    /// that records its own failure. A cleared error means success.
+    /// `action` uses the store's persistence commands. A retryable write failure
+    /// schedules another attempt; rejection, success, or an obsolete no-op ends
+    /// it. `lastPersistenceError` gates initial scheduling only and remains the
+    /// Progress Status diagnostic owned by actual persistence operations.
     func retrySaveAction(key: String, action: @escaping @MainActor () -> Void) {
         let generation = currentSave.sessionGeneration
         let key = "\(generation):\(key)"
-        guard let error = lastPersistenceError, error.isRetryable, saveActionRetries[key] == nil else { return }
-        isRetryingSaveAction = true
-        saveActionRetries[key] = Task { @MainActor [weak self] in
-            var delay = SaveRetryPolicy.initialDelay
-            while !Task.isCancelled {
-                do { try await Task.sleep(for: .seconds(delay)) } catch { break }
-                guard let self, currentSave.sessionGeneration == generation else { break }
-                lastPersistenceError = nil
-                action()
-                guard lastPersistenceError?.isRetryable == true else { break }
-                delay = SaveRetryPolicy.nextDelay(after: delay)
-            }
-            self?.saveActionRetries[key] = nil
-            self?.isRetryingSaveAction = !(self?.saveActionRetries.isEmpty ?? true)
+        guard let error = lastPersistenceError, error.isRetryable else { return }
+        saveActionRetries.schedule(key: key) { [weak self] in
+            guard let self, currentSave.sessionGeneration == generation else { return nil }
+            return attemptSaveAction(action)
         }
+    }
+
+    private func attemptSaveAction(_ action: () -> Void) -> PlayerSavePersistenceError? {
+        let previous = saveActionAttempt
+        let attempt = SaveActionAttempt()
+        saveActionAttempt = attempt
+        defer { saveActionAttempt = previous }
+        action()
+        return attempt.failure
     }
 
     func retryingTransientOperation<Value>(

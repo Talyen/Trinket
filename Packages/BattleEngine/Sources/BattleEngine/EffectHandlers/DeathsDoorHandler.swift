@@ -41,7 +41,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
             let event = context.nextEvent(
                 kind: .effect,
                 effectKind: .deathsDoorExpired,
-                actorName: target.name,
+                source: .init(target),
                 abilityName: Keyword.deathsDoor.rawValue,
                 target: target,
                 amount: 0,

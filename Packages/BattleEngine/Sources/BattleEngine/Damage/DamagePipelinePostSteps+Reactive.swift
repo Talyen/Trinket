@@ -103,7 +103,7 @@ package extension DamagePipeline {
                 state.damageEvents.append(context.nextEvent(
                     kind: .effect,
                     effectKind: .manaShieldTriggered,
-                    actorName: state.combatant.name,
+                    source: .init(state.combatant),
                     abilityName: "Mana Shield",
                     target: state.combatant,
                     amount: restored,

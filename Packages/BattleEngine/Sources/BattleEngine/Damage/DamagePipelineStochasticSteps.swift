@@ -57,7 +57,7 @@ package extension DamagePipeline {
         state.damageEvents.append(context.nextEvent(
             kind: .effect,
             effectKind: .dodgeApplied,
-            actorName: state.combatant.name,
+            source: .init(state.combatant),
             abilityName: "Dodge",
             target: state.combatant,
             amount: 0,

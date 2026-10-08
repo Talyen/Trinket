@@ -215,8 +215,8 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .manaShieldApplied,
-            actorName: source.name,
-            abilityName: ability.name,
+            source: .init(source),
+            abilityID: ability.id, abilityName: ability.name,
             target: target,
             amount: amount,
             keyword: .mana,
@@ -308,8 +308,8 @@ struct PartyDamageBonusHandler: BattleEffectHandler {
         let recipient = BattleAbilityRules.preparationRecipient(for: source, in: context)
         context.resolution.preparePartyDamage(amount, recipientID: recipient.id)
         let event = context.nextEvent(
-            kind: .effect, effectKind: .partyDamagePreparationApplied, actorName: source.name,
-            abilityName: ability.name, target: recipient, amount: amount, keyword: .physical, origin: .direct,
+            kind: .effect, effectKind: .partyDamagePreparationApplied, source: .init(source),
+            abilityID: ability.id, abilityName: ability.name, target: recipient, amount: amount, keyword: .physical, origin: .direct,
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

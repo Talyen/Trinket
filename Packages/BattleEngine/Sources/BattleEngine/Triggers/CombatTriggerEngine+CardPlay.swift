@@ -257,7 +257,7 @@ package extension CombatTriggerEngine {
         return [context.nextEvent(
             kind: .effect,
             effectKind: .cardsDrawn,
-            actorName: actor.name,
+            source: .init(actor),
             abilityName: abilityName,
             target: actor,
             amount: drawn,

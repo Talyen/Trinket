@@ -44,8 +44,8 @@ struct DrawCardsHandler: BattleEffectHandler {
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .cardsDrawn,
-            actorName: source.name,
-            abilityName: ability.name,
+            source: .init(source),
+            abilityID: ability.id, abilityName: ability.name,
             target: drawTarget,
             amount: drawn,
             keyword: .physical,
@@ -89,8 +89,8 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
             context.nextEvent(
                 kind: .effect,
                 effectKind: .cardsDrawn,
-                actorName: source.name,
-                abilityName: ability.name,
+                source: .init(source),
+                abilityID: ability.id, abilityName: ability.name,
                 target: target,
                 amount: drawnCards.count,
                 keyword: .physical,

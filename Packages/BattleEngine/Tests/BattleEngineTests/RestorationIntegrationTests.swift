@@ -14,7 +14,7 @@ struct RestorationIntegrationTests {
         battle.roster.hero.currentHealth = battle.hero.maxHealth - missingHealth
         var request = HealRequest(
             amount: 10, target: battle.hero,
-            logAs: .instantHeal(actorName: battle.hero.name, abilityName: "Heal", keyword: .health),
+            logAs: .instantHeal(source: .init(battle.hero), abilityName: "Heal", keyword: .health),
         )
         request.amountBasis = .resolved
 

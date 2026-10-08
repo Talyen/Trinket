@@ -21,18 +21,23 @@ extension PlayerSaveStore {
         defer {
             Self.performanceSignposter.endInterval("PlayerSaveMutation", mutationInterval)
         }
-        let snapshot = currentSave
-        let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed)
-        if let receipts {
-            try SaveEconomicMutation.validate(from: snapshot, to: candidate, receipts: receipts)
+        do {
+            let snapshot = currentSave
+            let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed)
+            if let receipts {
+                try SaveEconomicMutation.validate(from: snapshot, to: candidate, receipts: receipts)
+            }
+            try applyCandidate(
+                candidate,
+                replacing: snapshot,
+                slices: changedSlices,
+                persistImmediately: persistImmediately,
+                receipts: receipts,
+            )
+        } catch {
+            saveActionAttempt?.record(PlayerSavePersistenceError.mapped(error))
+            throw error
         }
-        try applyCandidate(
-            candidate,
-            replacing: snapshot,
-            slices: changedSlices,
-            persistImmediately: persistImmediately,
-            receipts: receipts,
-        )
     }
 
     @discardableResult
@@ -68,7 +73,9 @@ extension PlayerSaveStore {
     /// failures stay diagnosable in one place. Typed errors pass through;
     /// see `PlayerSavePersistenceError.mapped`.
     func notePersistenceFailure(_ error: Error, logging message: String) {
-        lastPersistenceError = PlayerSavePersistenceError.mapped(error)
+        let mapped = PlayerSavePersistenceError.mapped(error)
+        saveActionAttempt?.record(mapped)
+        lastPersistenceError = mapped
         logger.error(
             "\(message, privacy: .public): \(String(describing: error), privacy: .public)",
         )
@@ -193,11 +200,7 @@ extension PlayerSaveStore {
 
     func installObservedSave(_ save: PlayerSave, slices: PlayerSaveSlice = .all) {
         if save.sessionGeneration != observedSave.sessionGeneration {
-            for task in saveActionRetries.values {
-                task.cancel()
-            }
-            saveActionRetries.removeAll()
-            isRetryingSaveAction = false
+            saveActionRetries.cancelAll()
         }
         if slices == .all {
             observedSave = save

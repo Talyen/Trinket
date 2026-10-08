@@ -126,20 +126,8 @@ enum CombatFeedbackPresenter {
         let targetID: String
     }
 
-    private struct CardSourceKey: Hashable {
-        let actionID: Int
-        let abilityName: String
-        let actorName: String
-
-        init(event: ActionEvent) {
-            actionID = event.feedbackGroupID
-            abilityName = event.abilityName
-            actorName = event.actorName
-        }
-    }
-
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
-        let cardSources = Set(events.lazy.filter { $0.kind == .ability }.map { CardSourceKey(event: $0) })
+        let cardSources = Set(events.lazy.filter { $0.kind == .ability }.compactMap(CombatCardSourceKey.init))
         return events.filter { event in
             switch event.kind {
             case .ability, .milestone:
@@ -159,7 +147,7 @@ enum CombatFeedbackPresenter {
                 }
                 let descriptor = CombatFeedbackEffectPresentation.descriptor(for: effectKind)
                 if descriptor.feedbackClass == .buff || descriptor.feedbackClass == .resource, event.origin != .direct {
-                    guard cardSources.contains(CardSourceKey(event: event)) else { return false }
+                    guard let source = CombatCardSourceKey(event), cardSources.contains(source) else { return false }
                 }
                 return descriptor.shouldDisplay(amount: event.amount)
             }

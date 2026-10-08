@@ -23,7 +23,7 @@ struct BlockBuffHandler: BattleEffectHandler {
             amount,
             to: target,
             source: source,
-            abilityName: ability.name,
+            abilityID: ability.id, abilityName: ability.name,
             origin: .direct,
         )
         return EffectApplyOutcome(events: gain.applied > 0 ? gain.events : [], didApply: gain.applied > 0)
@@ -101,7 +101,7 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
             block,
             to: target,
             source: source,
-            abilityName: ability.name,
+            abilityID: ability.id, abilityName: ability.name,
             origin: .direct,
         )
         var events: [ActionEvent] = []

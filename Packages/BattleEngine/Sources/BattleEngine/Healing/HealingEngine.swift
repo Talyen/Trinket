@@ -52,7 +52,7 @@ package enum HealingEngine {
             events.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .overheal,
-                actorName: request.sourceActorID.flatMap { context.roster.combatant(for: $0)?.name } ?? request.target.name,
+                source: context.eventSource(actorID: request.sourceActorID, fallback: request.target),
                 abilityName: "",
                 target: request.target,
                 amount: overflow,
@@ -224,12 +224,13 @@ package enum HealingEngine {
         switch request.logAs {
         case .silent:
             break
-        case let .instantHeal(actorName, abilityName, keyword):
+        case let .instantHeal(source, abilityID, abilityName, keyword):
             events.append(
                 context.nextEvent(
                     kind: .effect,
                     effectKind: .instantHeal,
-                    actorName: actorName,
+                    source: source,
+                    abilityID: abilityID,
                     abilityName: abilityName,
                     target: request.target,
                     amount: restored,
@@ -334,7 +335,7 @@ package enum HealingEngine {
                 var request = HealRequest(
                     amount: echo.amount, target: target, sourceActorID: source.id,
                     origin: .restoration(.health), logAs: .instantHeal(
-                        actorName: source.name,
+                        source: .init(source),
                         abilityName: "Living Archive",
                         keyword: .health,
                     ),

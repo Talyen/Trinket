@@ -158,17 +158,12 @@ package enum ControlMeterEngine {
             }
         }
 
-        let actorName: String = if let sourceActorID, let source = context.roster.combatant(for: sourceActorID) {
-            source.name
-        } else {
-            combatant.name
-        }
         let abilityName = keyword.statusAlias ?? keyword.rawValue
         var events = [
             context.nextEvent(
                 kind: .effect,
                 effectKind: .controlTriggered,
-                actorName: actorName,
+                source: context.eventSource(actorID: sourceActorID, fallback: combatant),
                 abilityName: abilityName,
                 target: combatant,
                 amount: 0,

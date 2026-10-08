@@ -6,6 +6,41 @@ import TrinketCore
 
 @MainActor
 struct CombatSFXMapperTests {
+    @Test func `automatic block cards retain their gain feedback across the engine boundary`() throws {
+        let session = BattleSessionTestSupport.makePassiveSession()
+        defer { session.endBattle() }
+        var state = try #require(session.engineState)
+        state.hand = BattleHand()
+        let card = BattleCardCombatEngine.deal(.block, owner: .hero, context: &state)
+        let events = try state.withAutomaticPlay { state in
+            try state.playCard(cardID: card.id)
+        }
+        let gain = try #require(events.first { $0.effectKind == .shieldApplied })
+        #expect(gain.origin == .automatic)
+        #expect(gain.actorID == state.hero.id)
+        #expect(gain.abilityID == Ability.block.id)
+        #expect(CombatSFXMapper.clipID(for: events) == SFXID.block)
+        #expect(CombatFeedbackPresenter.makeItems(from: events, at: .now).contains {
+            $0.sourceEventIDs.contains(gain.id)
+        })
+    }
+
+    @Test func `automatic card feedback follows identities instead of display names`() {
+        let summary = event(1, kind: .ability, keyword: .physical, origin: .automatic)
+        let gain = event(2, effect: .shieldApplied, amount: 3, keyword: .block, origin: .automatic)
+        let renamed = gain.with(actorName: "Renamed Hero", abilityName: "Renamed Card")
+        let foreignActor = gain.with(actorID: "companion")
+        let passive = ActionEvent(
+            id: 3, actionID: 1, kind: .effect, effectKind: .shieldApplied,
+            actorID: "hero", actorName: "Hero", abilityName: "Test",
+            targetID: "hero", targetName: "Hero", amount: 3, keyword: .block, origin: .automatic,
+        )
+        #expect(CombatSFXMapper.clipID(for: [summary, renamed]) == SFXID.block)
+        #expect(CombatSFXMapper.clipID(for: [summary, foreignActor, passive]) == nil)
+        #expect(CombatFeedbackPresenter.makeItems(from: [summary, renamed], at: .now).count == 1)
+        #expect(CombatFeedbackPresenter.makeItems(from: [summary, foreignActor, passive], at: .now).isEmpty)
+    }
+
     @Test func `attacks and periodic damage share keyword cues`() {
         let mappings: [(Keyword, String)] = [
             (.physical, SFXID.hit), (.holy, SFXID.hitHoly), (.poison, SFXID.hitPiercing),

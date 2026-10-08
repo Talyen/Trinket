@@ -13,27 +13,27 @@ struct CleansePurgeHandler: BattleEffectHandler {
         switch effect {
         case let .cleanse(keyword):
             await EffectRemovalOperation.resolveCleanse(
-                .all(keyword), source: source, target: target, abilityName: ability.name,
+                .all(keyword), source: source, target: target, abilityID: ability.id, abilityName: ability.name,
                 origin: .direct, in: &context,
             ).application
         case let .cleanseHealPerDebuff(healPerDebuff):
             await EffectRemovalOperation.resolveCleanse(
-                .all(nil), source: source, target: target, abilityName: ability.name,
+                .all(nil), source: source, target: target, abilityID: ability.id, abilityName: ability.name,
                 healPerDebuff: healPerDebuff, origin: .direct, in: &context,
             ).application
         case .cleanseRandom:
             await EffectRemovalOperation.resolveCleanse(
-                .randomDebuff, source: source, target: target, abilityName: ability.name,
+                .randomDebuff, source: source, target: target, abilityID: ability.id, abilityName: ability.name,
                 origin: .direct, in: &context,
             ).application
         case let .purge(keyword):
             await EffectRemovalOperation.resolvePurge(
-                .all(keyword), source: source, target: target, abilityName: ability.name,
+                .all(keyword), source: source, target: target, abilityID: ability.id, abilityName: ability.name,
                 origin: .direct, in: &context,
             ).application
         case .purgeRandom:
             await EffectRemovalOperation.resolvePurge(
-                .randomBuffs(1), source: source, target: target, abilityName: ability.name,
+                .randomBuffs(1), source: source, target: target, abilityID: ability.id, abilityName: ability.name,
                 origin: .direct, in: &context,
             ).application
         default:
@@ -56,7 +56,7 @@ struct PanaceaHandler: BattleEffectHandler {
         let action = BattleActionContext(actor: source, in: context)
         let cleanseTarget = BattleActionContext.mostDebuffed(in: action.allies(in: context), state: context)
         return await EffectRemovalOperation.resolveCleanse(
-            .all(nil), source: source, target: cleanseTarget, abilityName: ability.name,
+            .all(nil), source: source, target: cleanseTarget, abilityID: ability.id, abilityName: ability.name,
             baseHeal: baseHeal, healPerDebuff: healPerDebuff,
             healTarget: .lowestHealthAlly, origin: .direct, in: &context,
         ).application

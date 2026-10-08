@@ -14,7 +14,7 @@ package extension CombatTriggerEngine {
         context.nextEvent(
             kind: .effect,
             effectKind: effectKind,
-            actorName: context.roster.enemy.name,
+            source: .init(context.roster.enemy),
             abilityName: abilityName,
             target: target,
             amount: 0,
@@ -130,7 +130,7 @@ package extension CombatTriggerEngine {
             context.nextEvent(
                 kind: .effect,
                 effectKind: .dodgeApplied,
-                actorName: protected.name,
+                source: .init(protected),
                 abilityName: abilityName,
                 target: protected,
                 amount: 0,

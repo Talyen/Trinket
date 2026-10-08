@@ -19,7 +19,7 @@ extension HealingEngine {
         var transfer = HealRequest(
             amount: amount, target: other.combatant, sourceActorID: sourceID,
             origin: .restoration(.health), logAs: .instantHeal(
-                actorName: contagiousJoy ? request.target.name : source.name,
+                source: contagiousJoy ? .init(request.target) : .init(source),
                 abilityName: contagiousJoy ? "Contagious Joy" : (sharedFeast ? "Shared Feast" : "Shared Prescription"),
                 keyword: .health,
             ),
@@ -45,7 +45,7 @@ extension HealingEngine {
             await events.append(contentsOf: context.restoreManaEmitting(
                 CombatRounding.scaled(overflow, multiplier: 0.5), to: request.target,
                 abilityName: "Wishspring",
-                actorName: request.sourceActorID.flatMap { context.roster.combatant(for: $0)?.name },
+                source: context.roster.combatant(for: request.sourceActorID ?? "")?.combatant,
             ))
         }
         let conversion = overhealConversionTriggers(source: sourceTriggers, target: targetTriggers, request: request)
@@ -208,7 +208,7 @@ extension HealingEngine {
             if outcome.healthRestored > 0 {
                 allocation.allocate(outcome.healthRestored, to: .transfer)
                 events.append(context.nextEvent(
-                    kind: .effect, effectKind: .leechHeal, actorName: context.hero.name,
+                    kind: .effect, effectKind: .leechHeal, source: .init(context.hero),
                     abilityName: "Blood Link", target: context.companion,
                     amount: outcome.healthRestored, keyword: .leech,
                 ))

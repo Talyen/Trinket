@@ -87,7 +87,7 @@ package extension CombatTriggerEngine {
                 events.append(context.nextEvent(
                     kind: .effect,
                     effectKind: .cardsDrawn,
-                    actorName: context.roster.hero.name,
+                    source: .init(context.roster.hero),
                     abilityName: triggerAbilityName("onDodgeDrawCardForHero", for: combatant, fallback: "Tailwind", in: context),
                     target: context.roster.hero.combatant,
                     amount: drawn,
@@ -319,8 +319,7 @@ package extension CombatTriggerEngine {
         if outcome.healthLost > 0 {
             events.append(context.nextEvent(
                 kind: .abilityDamage,
-                actorID: combatant.id,
-                actorName: combatant.name,
+                source: .init(combatant),
                 abilityName: name,
                 target: enemy,
                 amount: outcome.healthLost,

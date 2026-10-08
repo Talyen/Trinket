@@ -19,7 +19,7 @@ package extension DamagePipeline {
         DefensePoolEngine.set(current - removed, on: state.combatant, in: &context)
         state.damageEvents.append(context.nextEvent(
             kind: .effect, effectKind: .blockStripped,
-            actorName: source.combatant.name, abilityName: "Sundered Guard",
+            source: .init(source.combatant), abilityName: "Sundered Guard",
             target: state.combatant, amount: removed, keyword: .block,
         ))
     }

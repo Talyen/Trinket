@@ -42,7 +42,7 @@ struct HealingReductionTests {
         ))
         let visibleResult = visible.resolveHeal(HealRequest(
             amount: 5, target: visible.hero, sourceActorID: visible.hero.id, origin: .leech,
-            logAs: .instantHeal(actorName: visible.hero.name, abilityName: "Leech", keyword: .health),
+            logAs: .instantHeal(source: .init(visible.hero), abilityName: "Leech", keyword: .health),
         ))
         #expect(silentResult.healthRestored == visibleResult.healthRestored)
         #expect(silentResult.isCritical == visibleResult.isCritical)

@@ -165,8 +165,7 @@ extension UniqueCombatEngine {
         let result = await context.resolveDamage(request)
         var events = result.events + [context.nextEvent(
             kind: .abilityDamage,
-            actorID: actor.id,
-            actorName: actor.name,
+            source: .init(actor),
             abilityName: name,
             target: request.target,
             amount: result.healthLost,
@@ -204,7 +203,7 @@ extension UniqueCombatEngine {
                 events.append(context.nextEvent(
                     kind: .effect,
                     effectKind: .cardsDrawn,
-                    actorName: actor.name,
+                    source: .init(actor),
                     abilityName: "Wildheart’s Favor",
                     target: actor,
                     amount: 1,
@@ -220,7 +219,7 @@ extension UniqueCombatEngine {
         events.append(context.nextEvent(
             kind: .effect,
             effectKind: .shieldHalved,
-            actorName: actor.name,
+            source: .init(actor),
             abilityName: "Laughing Guard",
             target: actor,
             amount: spent,
@@ -260,7 +259,7 @@ extension UniqueCombatEngine {
         return [context.nextEvent(
             kind: .effect,
             effectKind: .cardsDrawn,
-            actorName: actor.name,
+            source: .init(actor),
             abilityName: "The Returning Gale",
             target: actor,
             amount: 1,
