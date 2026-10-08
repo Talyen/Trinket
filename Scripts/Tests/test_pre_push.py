@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-SCRIPT_INPUTS = ('Scripts/pre-push-paths.py', '.githooks/pre-push')
+SCRIPT_INPUTS = ('.gitignore', 'Scripts/pre-push-paths.py', '.githooks/pre-push')
 
 import os
 from pathlib import Path
@@ -96,7 +96,7 @@ class PrePushTests(unittest.TestCase):
                 self.assertEqual(result.stdout, '')
 
     def test_hook_propagates_discovery_failure_and_rechecks_source(self):
-        for relative in ('.githooks/pre-push', 'Scripts/pre-push-paths.py',
+        for relative in ('.gitignore', '.githooks/pre-push', 'Scripts/pre-push-paths.py',
                          'Scripts/internal/change_routing.py', 'Scripts/internal/agent_status.py',
                          'Scripts/internal/cli.py', 'Scripts/build-inputs.env', 'Scripts/config/ui-tests.tsv'):
             target = self.root / relative

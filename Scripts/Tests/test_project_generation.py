@@ -73,7 +73,7 @@ mkdir -p "$root/Trinket.xcodeproj"
 cp "$spec" "$root/Trinket.xcodeproj/project.pbxproj"
 printf cached > "$cache"
 ''', executable=True)
-        self.write('.gitignore', '.tools/\ncalls\n.DerivedData/\n')
+        self.write('.gitignore', '.tools/\ncalls\n.DerivedData/\n__pycache__/\n*.pyc\n')
         self.write('Smoke.xctestplan', '{}\n')
         self.write('FullUI.xctestplan', '{}\n')
         self.write('project.yml', 'canonical\n')

@@ -19,6 +19,8 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 .DS_Store
 .tools/
+__pycache__/
+*.pyc
 BalanceSweepReports/
 PlaythroughReports/
 
