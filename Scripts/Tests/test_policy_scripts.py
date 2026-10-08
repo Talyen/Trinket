@@ -126,6 +126,8 @@ else:
                             "TrinketFeatureSupport", "TrinketBattleFeature", "TrinketAppState"):
                 (root / "Packages" / package / "Sources" / package).mkdir(parents=True)
                 (root / "Packages" / package / "Package.swift").write_text(manifest)
+            contracts = root / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/Probe.swift"
+            contracts.parent.mkdir(parents=True)
             design_probe = root / "Packages/TrinketDesignSystem/Sources/Probe.swift"
             appstate_manifest = root / "Packages/TrinketAppState/Package.swift"
             seam = root / "Trinket/Features/Play/PlayView.swift"
@@ -133,6 +135,7 @@ else:
             seam.parent.mkdir(parents=True)
             clean = (
                 (design_probe, "struct Probe {}\n"),
+                (contracts, "import BattleEngine\nstruct Contract {}\n"),
                 (seam, "import TrinketBattleFeature\nstruct PlayView {}\n"),
                 (outsider, "struct OutsiderView {}\n"),
                 (appstate_manifest, manifest),
@@ -143,6 +146,9 @@ else:
             )
             cases = (
                 ("clean tree with allowlisted seam", (), None),
+                ("contracts importing persistence",
+                 ((contracts, "import TrinketPersistence\nstruct Contract {}\n"),),
+                 "TrinketFeatureContracts must not import TrinketPersistence"),
                 ("design system importing engine",
                  ((design_probe, "import BattleEngine\nstruct Probe {}\n"),),
                  "TrinketDesignSystem must not import BattleEngine"),
@@ -151,7 +157,7 @@ else:
                  "must use BattleRuntime/FeatureSupport instead of importing BattleFeature"),
                 ("app state depending on battle feature",
                  ((appstate_manifest, appstate_dep),),
-                 "production target must depend on BattleEngine, not BattleFeature"),
+                 "production target must depend on FeatureContracts, not BattleFeature"),
             )
             for label, overwrites, failure in cases:
                 with self.subTest(label=label):

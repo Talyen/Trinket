@@ -252,10 +252,9 @@ private struct TestSFXBackend: SFXPlaybackBackend {
     }
 
     mutating func releaseResources() {
+        stop()
         events.append("release")
         nextVoice = 0
-        isRunning = false
-        voiceStartPolicy.reset()
     }
 }
 

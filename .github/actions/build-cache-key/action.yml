@@ -37,8 +37,8 @@ runs:
         # The committed receipt binds prepared asset bytes and selection/settings.
         # Raw sources remain outside CI and never participate in build-cache keys.
         toolchain="$(xcodebuild -version | shasum -a 256 | awk '{print $1}')"
-        nonsource="${{ runner.os }}-${{ runner.arch }}-${toolchain}-${{ hashFiles('StoreKit/**', 'ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json', 'Scripts/tool-versions.env', 'project.yml', '*.xctestplan') }}"
-        full="${{ hashFiles('StoreKit/**', 'Trinket/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json', 'Scripts/**', 'project.yml', '*.xctestplan') }}"
+        nonsource="${{ runner.os }}-${{ runner.arch }}-${toolchain}-${{ hashFiles('StoreKit/**', 'ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json', 'Scripts/tool-versions.env', 'project.yml', '*.xctestplan') }}"
+        full="${{ hashFiles('StoreKit/**', 'Trinket/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json', 'Scripts/**', 'project.yml', '*.xctestplan') }}"
         echo "cache-key=build-v2-${nonsource}-${full}" >> "$GITHUB_OUTPUT"
         echo "cache-restore-prefix=build-v2-${nonsource}-" >> "$GITHUB_OUTPUT"
         echo "artifact-name=${{ inputs.artifact-prefix }}build-derived-data-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"

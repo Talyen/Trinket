@@ -64,9 +64,6 @@ enum BattleMotion {
     }
 
     static let scrimFade: TimeInterval = 0.2
-    static let ultimateInFrameDuration: TimeInterval = 3.0
-    static let ultimateInFrameFadeDuration: TimeInterval = 0.25
-    static let ultimateCinematicPlaybackSpeed = 1.2
 
     static let chipDisplayDuration: TimeInterval = 0.95
     static let feedbackHandoffDuration: TimeInterval = 0.15

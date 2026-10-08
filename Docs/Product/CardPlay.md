@@ -64,7 +64,7 @@ joining the hand, with the ordinary three-card fan and FIFO overflow promotion.
 ## Turns and battlefield effects
 
 Opening and new-turn cards become playable immediately. Enemy attacks, dealing,
-damage, healing, status effects, and ultimate highlights may still be animating.
+damage, healing, and status effects may still be animating.
 Health, Mana, status, and availability always show the current resolved state.
 
 Combatant attacks retain a visible wind-up, swing, and recovery for taps,

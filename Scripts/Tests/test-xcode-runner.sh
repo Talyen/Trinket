@@ -72,6 +72,7 @@ set -euo pipefail
 case "$WATCHDOG_CASE" in
   finalization)
     echo "Test Suite 'Selected tests' passed."
+    echo "Executed 1 test, with 0 failures"
     sleep 12
     echo "** TEST SUCCEEDED **"
     exit 0 ;;
@@ -246,7 +247,7 @@ PY_MANIFEST
   case "$mode" in
     selected) ! grep -F -- "** TEST SUCCEEDED **" "$XCODE_RUNNER_LOG_PATH" || return 1 ;;
     split-marker) grep -F -- "idle log" "$results/terminal.log" || return 1 ;;
-    zero|zero-options) grep -F -- "did not prove that any tests executed" "$results/terminal.log" || return 1 ;;
+    zero|zero-options) grep -F -- "proved that any tests executed" "$results/terminal.log" || return 1 ;;
     late-failure) grep -F -- "XCTAssertEqual failed" "$XCODE_RUNNER_LOG_PATH" || return 1 ;;
   esac
 )
@@ -335,7 +336,10 @@ PY_MANIFEST
 bash -eu -c '
   source "$1"
   capture="$2/diagnostic-arguments"
-  xcodebuild() { printf "%s\n" "$@" > "$capture"; }
+  xcodebuild() {
+    printf "%s\n" "$@" > "$capture"
+    case "$1" in test|test-without-building) echo "Executed 1 test, with 0 failures" ;; esac
+  }
   source "$3/Scripts/lib/app-build.sh"
   for scenario in test test-without-building build macos explicit app-build device-build; do
     action=test

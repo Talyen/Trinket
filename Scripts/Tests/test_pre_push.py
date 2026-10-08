@@ -96,13 +96,13 @@ class PrePushTests(unittest.TestCase):
                 self.assertEqual(result.stdout, '')
 
     def test_hook_propagates_discovery_failure_and_rechecks_source(self):
-        for relative in ('.githooks/pre-push', 'Scripts/pre-push-paths.py'):
+        for relative in ('.githooks/pre-push', 'Scripts/pre-push-paths.py',
+                         'Scripts/internal/change_routing.py', 'Scripts/internal/agent_status.py',
+                         'Scripts/internal/cli.py', 'Scripts/build-inputs.env', 'Scripts/config/ui-tests.tsv'):
             target = self.root / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / relative, target)
         scripts = self.root / 'Scripts'
-        (scripts / 'change-classification.sh').write_text(
-            'trinket_collect_paths() { :; }\ntrinket_classify_paths() { :; }\n')
         for name in ('ensure-ci-tools.sh', 'test.sh', 'agent-push-gate.sh',
                      'check-api-bans.sh', 'check-exclusivity-footguns.sh',
                      'check-agent-invariants.sh', 'prepare-assets.sh'):

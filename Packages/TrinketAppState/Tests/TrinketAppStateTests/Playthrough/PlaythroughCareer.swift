@@ -85,7 +85,6 @@ final class PlaythroughCareer {
             autoEndTurnDelay: 3600,
             outcomePresentationDelayOverride: 0,
             partyCelebrateDelayOverride: 0,
-            ultimateInFrameDurationOverride: 0,
             presentationEnvironment: .silent,
         )
         context.progressionDate = { [weak self] in self?.date ?? .distantPast }

@@ -9,16 +9,17 @@ into `PlayBattleCoordinator`. The coordinator owns launch/access policy, prepare
 registrations, the active run, claims, save-action retries, and keyed reward exits.
 Each registration retains the exact launch inputs, configuration, reward plan, and
 optional completion route; standalone runs retain the same record without a route.
-BattleRuntime owns simulation resources. Only the coordinator pairs resource
-transitions with their application metadata.
+BattleRuntime creates opaque simulation handles; the coordinator stores them
+with their application metadata and publishes a read-only preview projection.
 
 Play validates current hero, companion, and enemy IDs against a prepared run before
 activation. A mismatch fails closed rather than falling through to fresh activation.
 Production launches prepare, register, then activate. Matched activation consumes
-only that preparation after installation succeeds; failed activation retains both
-halves. Sibling preparations survive until pruning, restart, or end. Pruning while
-active changes neither runtime resources nor registrations. Restart stages its new
-record for synchronous presentation lookup and restores the old record if rejected.
+only that preparation after installation succeeds; failed activation retains the registry entry and handle. Sibling preparations survive until pruning, restart, or end. Pruning while
+active changes neither runtime resources nor registrations. Restart supplies the candidate presentation directly and commits its new
+application record only after runtime installation succeeds.
+Opening-turn outcomes defer settlement and completion until installation returns,
+so the new active registration is available to progression callbacks.
 
 Mode launch requests resolve only after the shared access, active-battle, and transient-encounter gates. A mode can return its specific eligibility message or the common missing-encounter message. Spires uses one floor eligibility decision for both prewarming and launch, so locked floors and unattuned parties cannot be prepared and cannot launch through a stale preparation. Contracts looks up the chosen offer inside that same gate, so a stale offer cannot bypass access or busy precedence. Spires, Labyrinth, and Voyage resolve node modifiers through `ModeBattleModifiers`; combat effects, experience bonus, and reward presentation must come from that same definition set. Spire loot uses the same world-seeded modifier as battle launch.
 
@@ -41,7 +42,7 @@ preparations. Unchanged inputs, including revisiting a previously warmed encount
 reuse the original configuration and simulation;
 missing registration or changed identities fail closed until explicitly prepared.
 
-Play screens read save slices from `PlayerSaveStore` directly. Mode types own map/node/floor selection. `PlayBattleRoute` uses Persistence's closed `BattleCompletionDestination` values: AppState derives the navigation origin and supplies reward inputs to `completeBattle`; Persistence dispatches the matching completion inside one transaction and records its receipts. Registrations retain completion data rather than mode callbacks; the current Contracts offer generator enters at claim time. Modes must not re-absorb the shared victory persist→dismiss sequence. `AppState` prepares audio and requests launch state. BattleSession resolves registered presentation context before publishing activation. Restart installs the new registration before restarting the runtime and restores the previous registration if restart fails. The composition root owns the launch-victory preview; the overlay never installs progression callbacks or presentation context.
+Play screens read save slices from `PlayerSaveStore` directly. Mode types own map/node/floor selection. `PlayBattleRoute` uses Persistence's closed `BattleCompletionDestination` values: AppState derives the navigation origin and supplies reward inputs to `completeBattle`; Persistence dispatches the matching completion inside one transaction and records its receipts. Registrations retain completion data rather than mode callbacks; the current Contracts offer generator enters at claim time. Modes must not re-absorb the shared victory persist→dismiss sequence. `AppState` prepares audio and requests launch state. The coordinator supplies presentation context explicitly for activation and Retry, then publishes the authoritative application record after success. The composition root owns the launch-victory preview; the overlay never installs progression callbacks or presentation context.
 
 Battle completion and Defeat Continue restore the origin's full browsing path without a
 navigation animation before ending the runtime. Do not defer this return to a
@@ -52,20 +53,18 @@ Pending destinations remain for initial launch routing. Both use
 
 ## Reward settlement and completion
 
-The app composition root installs presentation lookup, reward settlement, and
-completion capabilities once through `BattleSession.configureProgression`. These
-closures weakly capture Play; they are independent of overlay appearance. The coordinator
-settles the retained launch reward plan against final `BattleGoldFlow` and a save snapshot.
-`BattleVictorySummary` projects that settlement, and Continue passes the exact value
-through `BattleSession.claimVictory(configurationID:summary:)` for validation and
-persistence. If a configured settlement lookup is unavailable, BattleSession
-shows a provisional award from its captured presentation context. Completion
-still validates against the current save and refreshes a stale reveal before
-granting rewards. `BattleCompletionResult` distinguishes completion, stale settlement,
-unavailable runs, and storage failure. A stale settlement refreshes the reveal;
-storage failure retains the award and retries the chosen completion internally. Already-claimed victories use
-the same completion capability without waiting for an overlay. BattleFeature never
-imports Persistence or AppState; these capabilities stay outside `BattleRuntime`.
+PlaySession implements the typed `BattleProgressionDelegate` and connects once
+before bootstrap. Its reward clock defaults to the current date; deterministic
+career fixtures supply their simulated date during construction. BattleSession
+holds the delegate weakly, independently of overlay appearance. The coordinator
+settles the retained launch reward plan against final Gold flow and a save snapshot.
+`BattleVictorySummary` projects that settlement, and Continue supplies its exact
+value for application validation and persistence. An unavailable settlement lookup
+uses the captured presentation context for provisional display; only application
+completion can authorize the award. Stale settlement refreshes the reveal, storage
+failure retains the chosen action for retry, and already-claimed victories use the
+same delegate without waiting for an overlay. BattleFeature never imports
+Persistence or AppState. Unconnected preview sessions cannot commit rewards.
 `PlayBattleCoordinator` owns one claim state: unclaimed, committed defeat, or
 committed victory awaiting its keyed exit. A configuration cannot claim both
 outcomes. Failed writes do not advance this state; failed Retry retains its

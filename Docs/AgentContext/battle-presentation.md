@@ -10,12 +10,8 @@ Ending or restarting Battle cancels their work and gives the session fresh displ
 of clearing the objects held by outgoing views. The runtime ends or replaces the
 run immediately, while the retiring view keeps its last hand, combatants, and
 outcome until hidden.
-Retiring views must not look up replacement display objects from the session. The captured spectacle is supplied through the view environment,
-including ultimate overlays. Each spectacle owns its cinematic players; they
-release when that presentation retires, so ending a run cannot empty a visible
-video layer or release a subsequent run's players.
-The debug Preview Lab opts into cinematic playback through its runtime dependencies
-and uses the session's preparation method, independently of the gameplay feature flag.
+Retiring views must not look up replacement display objects from the session.
+The captured spectacle is supplied through the view environment for outcome presentation.
 
 Victory chrome reads a settled award derived from launch-baked quantities; do not re-derive `StageCompletion` policy inside BattleFeature outcome math. Keep shared presentation DTOs in `TrinketFeatureContracts` and lifecycle ownership in `BattleRuntime`.
 
@@ -78,8 +74,7 @@ retargeting from its current pose. A prepared drag commits its swing; a tap star
 0.10-second preparation for manual plays (automatic and enemy attacks retain
 0.40 seconds). Later attacks by the same actor can shorten pending preparation
 and interrupt recovery, while distinct impacts remain ordered. Automatic card
-reveal and dissolve use the same scheduled swing time. Ultimate highlights still
-start with the committed action. Manual results and recoil publish at commitment
+reveal and dissolve use the same scheduled swing time. Manual results and recoil publish at commitment
 while attacker motion continues. Skipped and support actions
 do not invent attacks.
 

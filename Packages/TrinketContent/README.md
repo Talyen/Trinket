@@ -1,7 +1,7 @@
 # TrinketContent
 
 Game content catalogs — heroes, companions, enemies, abilities, items, stages,
-homestead nodes, talent trees, and art/music/SFX/cinematic references. Most
+homestead nodes, talent trees, and art/music/SFX references. Most
 data content is manifest-driven (TSV → generated Swift). Abilities are authored
 in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 

@@ -1,7 +1,7 @@
 # TrinketBattleFeature-local guide
 
 Keep rules in `BattleEngine`. Never import `TrinketAppState` or the app module.
-App options/audio cross only through `BattleRuntimeDependencies`. Conform to
+App options/audio cross only through `BattlePresentationDependencies`. Conform to
 the [common runtime contract](../../Docs/AgentContext/battle-runtime.md) and the
 focused contracts selected by the router; load another only when crossing its concern.
 

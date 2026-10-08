@@ -41,8 +41,7 @@ class CheckUnusedAssetsTests(unittest.TestCase):
             empty.write_text("# asset_name\n")
             with patch.multiple(self.checker, ROOT=root, ASSETS_XCASSETS=assets, ART_MANIFEST=manifest,
                                 MUSIC_MANIFEST=music, MUSIC_DIR=media, SFX_MANIFEST=empty,
-                                CINEMATICS_MANIFEST=empty, SFX_DIR=root / "sfx",
-                                CINEMATICS_DIR=root / "video"):
+                                SFX_DIR=root / "sfx"):
                 missing, orphans = self.checker.check_assets()
             self.assertEqual(len(missing), 2, missing)
             self.assertTrue(any("hero_thumb.heic" in item for item in missing))

@@ -68,14 +68,26 @@ def valid_entry(entry: object) -> bool:
     return True
 
 
-def parse_xcresult(path: Path) -> dict:
+def parse_xcresult(path: Path, manifest: dict | None = None) -> dict:
     def read(kind: str) -> dict:
         payload, error = run_xcresulttool(path, ["get", "test-results", kind])
         if not isinstance(payload, dict):
             raise SystemExit(error or f"xcresult {kind} is not an object")
         return payload
 
-    summary = read("summary")
+    summary = None
+    try:
+        if (isinstance(manifest, dict) and type(manifest.get("schema_version")) is int
+                and manifest["schema_version"] == 1
+                and manifest.get("action") in {"test", "test-without-building"}
+                and manifest.get("result_bundle_complete") is True
+                and Path(manifest["result_bundle"]).resolve() == path.resolve()
+                and isinstance(manifest.get("test_summary"), dict)):
+            summary = manifest["test_summary"]
+    except (OSError, ValueError, KeyError, TypeError):
+        pass  # Missing/legacy/mismatched evidence uses a fresh export.
+    if summary is None:
+        summary = read("summary")
     payload = read("tests")
     tests = [
         {"id": node.get("nodeIdentifier", node.get("name", "unknown")),
@@ -135,7 +147,7 @@ def append_entry(results_dir: Path, log_path: Path, entry: dict) -> None:
 def parse_options(args: list[str]) -> dict:
     parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False,
                                      argument_default=argparse.SUPPRESS)
-    for option in ("--mode", "--run", "--wall", "--xcresult", "--max-wall"):
+    for option in ("--mode", "--run", "--wall", "--xcresult", "--max-wall", "--manifest"):
         parser.add_argument(option)
     for option in ("--no-xcresult", "--no-build", "--skip-if-missing", "--by-class"):
         parser.add_argument(option, action="store_true")
@@ -174,7 +186,13 @@ def record(results_dir: Path, log_path: Path, args: list[str]) -> None:
             raise SystemExit(f"xcresult not found: {path}")
         if not (path / "Info.plist").is_file():
             raise SystemExit(f"xcresult is incomplete: {path}")
-        parsed = parse_xcresult(path)
+        manifest = None
+        if values.get("manifest"):
+            try:
+                manifest = json.loads(Path(values["manifest"]).read_text())
+            except (OSError, ValueError):
+                pass
+        parsed = parse_xcresult(path, manifest)
         recorded_xcresult = str(path)
     append_entry(results_dir, log_path, {"recorded_at": datetime.now(timezone.utc).isoformat(), "run": run, "mode": mode, "targets": values["targets"], "no_build": bool(values.get("no_build")), "wall_seconds": wall_seconds, "xcresult": recorded_xcresult, **parsed})
     # Quiet test runs print nothing on success; this single line is the
@@ -270,11 +288,17 @@ def report(log_path: Path, args: list[str]) -> None:
         print(f"{format_seconds(max(seconds)):>8} {format_seconds(median(seconds)):>8} {len(seconds):>5}  {identifier}")
     if values.get("by_class"):
         classes: dict[str, list[float]] = {}
-        for identifier, seconds in aggregate.items():
-            if "/" in identifier:
-                classes.setdefault(identifier.split("/", 1)[0], []).extend(seconds)
-        print(f"\nSlow classes (by total logged duration across {len(entries)} runs)\n────────────────────────────────────────────────────────────────────────────")
-        print(f"{'Total':>8} {'Median':>8} {'Tests':>5}  Class")
+        for entry in entries:
+            totals: dict[str, float] = {}
+            for test in entry["tests"]:
+                identifier = test["id"] or test["name"]
+                if "/" in identifier:
+                    name = identifier.split("/", 1)[0]
+                    totals[name] = totals.get(name, 0) + float(test["seconds"])
+            for name, seconds in totals.items():
+                classes.setdefault(name, []).append(seconds)
+        print(f"\nSlow classes (summed test durations per invocation, across {len(entries)} runs; not wall time)\n────────────────────────────────────────────────────────────────────────────")
+        print(f"{'Total':>8} {'Median':>8} {'Runs':>5}  Class")
         for name, seconds in sorted(classes.items(), key=lambda item: sum(item[1]), reverse=True):
             print(f"{format_seconds(sum(seconds)):>8} {format_seconds(median(seconds)):>8} {len(seconds):>5}  {name}")
 

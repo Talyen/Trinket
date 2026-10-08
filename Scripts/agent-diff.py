@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import shlex
 import subprocess
@@ -48,7 +49,8 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     paths = []
     for name in args.paths or []:
         path = Path(name)
-        if path.is_absolute() or ".." in path.parts or path.as_posix() == "." or (root / path).is_dir():
+        candidate = root / path
+        if path.is_absolute() or ".." in path.parts or path.as_posix() == "." or (candidate.is_dir() and not candidate.is_symlink()):
             parser.error("--paths requires individual repository-relative files")
         paths.append(path.as_posix())
     generated = [line.split("|", 1)[1].rstrip("/")
@@ -77,6 +79,12 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             for name, added, removed in rows:
                 units.append(f"{label}: +{added} -{removed} {json.dumps(name, ensure_ascii=False)}\n")
     if args.summary:
+        indexed_links = {
+            record.split(b'\t', 1)[1].decode()
+            for record in git('ls-files', '--stage', '-z', '--', *(name for name, _, _ in outputs)).split(b'\0')
+            if record.startswith(b'120000 ')
+        } if args.staged and outputs else set()
+
         def version(spec):
             revision, name = spec.split(':', 1)
             if not revision:
@@ -92,9 +100,20 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             return git('show', spec)
         for name, _, _ in outputs:
             before = version(('HEAD:' if args.staged else ':') + name)
-            after = version(':' + name) if args.staged else (root / name).read_bytes() if (root / name).exists() else b''
+            path = root / name
+            is_link = name in indexed_links if args.staged else path.is_symlink()
+            if args.staged:
+                after = version(':' + name)
+            elif is_link:
+                # Git stores the link payload, not the target's bytes.
+                after = os.fsencode(os.readlink(path))
+            else:
+                after = path.read_bytes() if path.exists() else b''
             summary_versions.append(hashlib.sha256(before + b'\0' + after).hexdigest())
-            units.extend(generated_summary(name, before, after, staged=args.staged))
+            if is_link:
+                units.append(f'Summary unavailable for {name}: symbolic link; expand its generated patch.\n')
+            else:
+                units.extend(generated_summary(name, before, after, staged=args.staged))
     expanded = authored + (outputs if args.generated else [])
     if expanded and not args.stat:
         units.extend(patch_units(git(*diff, "--", *(name for name, _, _ in expanded)).decode()))

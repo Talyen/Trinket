@@ -2,7 +2,7 @@
 
 # Single parser for Scripts/config/generated-paths.tsv — one home for the
 # row shape previously restated in assert-generated-output.sh (tracked-path
-# list) and change-classification.sh (generated-output routing).
+# list); Python routing reads the same registry.
 # Safe to source twice. Prints normalized non-comment rows as kind|path;
 # malformed rows (no `|`, empty kind/path) are skipped, and trailing slashes
 # are stripped so prefix matching cannot drift between consumers.

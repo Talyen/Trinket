@@ -87,6 +87,22 @@ class AgentDiffTests(unittest.TestCase):
             path.write_bytes(catalog([('one', 8)]))
             with contextlib.redirect_stderr(io.StringIO()):
                 self.assertEqual(DIFF.main(args, root=root), 2)
+            with tempfile.TemporaryDirectory() as external_directory:
+                external = Path(external_directory) / 'outside.swift'
+                external.write_bytes(catalog([('one', 99)]))
+                path.unlink()
+                path.symlink_to(external)
+                with contextlib.redirect_stdout(io.StringIO()) as output:
+                    self.assertEqual(DIFF.main(['--summary', '--paths', name], root=root), 0)
+                self.assertIn('Summary unavailable', output.getvalue())
+                self.assertNotIn('Trigger(value: 99)', output.getvalue())
+                git('add', name)
+                path.unlink()
+                path.write_bytes(catalog([('one', 5)]))
+                with contextlib.redirect_stdout(io.StringIO()) as output:
+                    self.assertEqual(DIFF.main(['--staged', '--summary', '--paths', name], root=root), 0)
+                self.assertIn('symbolic link', output.getvalue())
+                self.assertNotIn('Trigger(value: 5)', output.getvalue())
 
     def test_pages_preserve_hunks_and_reject_changed_continuations(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -190,6 +206,8 @@ class AgentDiffTests(unittest.TestCase):
             binary = read("--staged", "--paths", "Generated/binary.bin")
             self.assertIn("+- --", binary)
             self.assertNotIn("Binary files", binary)
+            (root / 'Dir link').symlink_to(root / 'Generated', target_is_directory=True)
+            self.assertIn('authored "Dir link"', read('--paths', 'Dir link'))
             for bad in ("../outside", "Generated", "/tmp/outside"):
                 with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
                     read("--paths", bad)

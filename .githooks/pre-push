@@ -36,13 +36,7 @@ while IFS= read -r path; do
 done <<< "$push_paths"
 
 echo "=== Pre-push: style (format / lint / UI / platform bans / exclusivity / agent invariants / accessibility IDs) ==="
-# Classify push range for path-scoped package selection.
-# shellcheck source=Scripts/change-classification.sh
-source Scripts/change-classification.sh
-if (( ${#pushed_paths[@]} > 0 )); then
-  trinket_collect_paths explicit "${pushed_paths[@]}"
-  trinket_classify_paths
-fi
+needs_assets="$(PYTHONPATH=Scripts python3 -m internal.change_routing --requires assets --paths "${pushed_paths[@]}")"
 if (( ${#style_swift[@]} > 0 )); then
   echo "Path-scoped style on ${#style_swift[@]} Swift file(s) in the push range."
   ./Scripts/test.sh style "${style_swift[@]}"
@@ -53,7 +47,7 @@ else
   python3 ./Scripts/check-accessibility-ids.py
 fi
 
-if [[ "${TRINKET_NEEDS_ASSET_GENERATION:-false}" == true ]]; then
+if [[ "$needs_assets" == true ]]; then
   echo "=== Pre-push: local asset source freshness ==="
   ./Scripts/prepare-assets.sh --check
 else

@@ -20,11 +20,13 @@ struct BattleClaimedVictoryTests {
             stageRewardsAlreadyClaimed: true,
         )
         var claimedVictories: [(configurationID: UUID, earnedGold: Int)] = []
-        BattleSessionTestSupport.configureProgression(session, presentation: presentation) { configuration, earnedGold, _ in
+        let progression = BattleProgressionProbe(session: session, presentation: presentation) { configuration, earnedGold, _ in
             claimedVictories.append((configuration.id, earnedGold.net))
             return fails ? .persistenceFailed : .completed
         }
-        _ = session.activate(configuration)
+        session.connectProgression(to: progression)
+        defer { withExtendedLifetime(progression) {} }
+        _ = session.activate(configuration, presentation: presentation)
         let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session)
         session.handleOutcomeIfNeeded(at: .now)
 
@@ -46,11 +48,13 @@ struct BattleClaimedVictoryTests {
             stageRewardsAlreadyClaimed: true,
         )
         var deliveredConfigurationIDs: [UUID] = []
-        BattleSessionTestSupport.configureProgression(session, presentation: first.presentation) { configuration, _, _ in
+        let progression = BattleProgressionProbe(session: session, presentation: first.presentation) { configuration, _, _ in
             deliveredConfigurationIDs.append(configuration.id)
             return .completed
         }
-        _ = session.activate(first.configuration)
+        session.connectProgression(to: progression)
+        defer { withExtendedLifetime(progression) {} }
+        _ = session.activate(first.configuration, presentation: first.presentation)
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         let second = BattleRunConfigurationTestSupport.make(

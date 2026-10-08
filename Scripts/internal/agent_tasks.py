@@ -7,7 +7,18 @@ import re
 import shlex
 from pathlib import Path
 
-from internal.agent_references import fingerprint
+from internal.markdown import headings
+from urllib.parse import unquote
+
+
+def validate_reference(root: Path, reference: str) -> None:
+    name, separator, anchor = reference.partition('#')
+    path = (root / name).resolve()
+    if not path.is_relative_to(root.resolve()):
+        raise ValueError(f'reference must stay within the repository: {reference}')
+    source = path.read_text()
+    if separator and not any(entry.slug == unquote(anchor) for entry in headings(source.splitlines())):
+        raise ValueError(f'missing heading #{anchor} in {name}')
 
 
 def within(name: str, scopes: list[str]) -> bool:
@@ -41,7 +52,7 @@ def load_tasks(root: Path) -> list[dict]:
             name = reference.partition("#")[0]
             if Path(name).is_absolute() or ".." in Path(name).parts:
                 raise ValueError(f"{task['id']}: index paths must be repository-relative")
-            fingerprint(root, reference)
+            validate_reference(root, reference)
             checked_references.add(reference)
     return tasks
 
@@ -89,43 +100,11 @@ def related_tests(root: Path, symbol: str, source_files: set[str], test_files: s
     return selected
 
 
-def guidance_command(root: Path, task: dict, guides: list[str], chat: str | None = None,
-                     receipt: str | None = None) -> str:
-    """Initial applicable guidance; behavior discovery and skill triggers stay visible."""
-    references = list(dict.fromkeys([*guides, *task['contracts']]))
-    command = ['python3', 'Scripts/agent-read.py'] if receipt else ['python3', 'Scripts/agent-session.py']
-    if receipt:
-        command += ['--receipt', receipt, '--chat', chat]
-    else:
-        if chat:
-            command += ['--chat', chat]
-        command.append('read')
-    for reference in references:
-        name, separator, _ = reference.partition('#')
-        fingerprint(root, reference)
-        flags = ['--full'] if not separator else []
+def guidance_command(root: Path, task: dict, guides: list[str]) -> str:
+    """Print a stateless batch read; only initial applicable guidance is expanded."""
+    command = ['python3', 'Scripts/agent-read.py']
+    for reference in dict.fromkeys([*guides, *task['contracts']]):
+        validate_reference(root, reference)
+        flags = ['--full'] if '#' not in reference else []
         command += ['--request', shlex.join([reference, *flags])]
     return shlex.join(command)
-
-
-if __name__ == "__main__":
-    import argparse
-    from internal.cli import ROOT
-
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("query")
-    parser.add_argument("--field", choices=("sources", "contracts", "label", "read-command"), required=True)
-    parser.add_argument("--guide", action="append", default=[])
-    parser.add_argument("--chat")
-    parser.add_argument("--receipt")
-    args = parser.parse_args()
-    try:
-        task = select_task(ROOT, args.query)
-        if args.field == 'read-command':
-            if args.receipt and not args.chat:
-                raise ValueError('--receipt requires --chat')
-            print(guidance_command(ROOT, task, args.guide, args.chat, args.receipt))
-        else:
-            print("\n".join(task[args.field]) if args.field != "label" else task["label"])
-    except (OSError, ValueError) as error:
-        parser.exit(2, f"Task routing failed: {error}\n")

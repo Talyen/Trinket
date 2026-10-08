@@ -1,7 +1,7 @@
 # AgentContext cards
 
 Path-routed domain guides. `./Scripts/agent-context.sh` attaches them from
-`Scripts/change-classification.sh` (there is no YAML catalog). Cards hold
+`Scripts/internal/change_routing.py`. Cards hold
 cross-package exceptions, not restated root policy. Platform docs own architecture
 and testing; nested `AGENTS.md` files own local hard stops.
 
@@ -48,8 +48,8 @@ Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/S
 
 ## Quickstart
 
-1. For an indexed concern, use `python3 Scripts/agent-session.py brief --task shop`.
-   This combines scoped status, safeguards, initial guidance, signatures and test pointers.
+1. For an indexed concern, use `python3 Scripts/agent-brief.py --status --task shop`.
+   This combines scoped status, safeguards, initial guidance and source/test pointers.
    List indexed concerns with `agent-search.py --task --overview`, or find one with
    `agent-search.py '<concern>' --task`; otherwise discover
    filenames with `--files <regex> --scope <owner>` or `--overview` for an unknown owner.
@@ -68,13 +68,8 @@ Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/S
    Local handoff proves lightweight checks; compilation and UI checks remain
    CI-owned under [Verification](../Platform/Verification.md).
 
-Session commands bind temporary guidance receipts to `CODEX_THREAD_ID` (or explicit
-`--chat`). For a repeated brief, opt into `--reuse-guidance` only while earlier
-guidance remains in context. Routing and warnings stay visible; changed guidance
-is reread. After context loss, run `agent-session.py forget` and reread contracts.
-See [receipt details](Retrieval.md#chat-local-read-receipts).
-
-The [retrieval reference](Retrieval.md) owns filtering, pagination, complete reads,
-fingerprints, receipts and diff semantics. The small [task index](../../Scripts/config/agent-tasks.json)
-contains navigation pointers only; update a confirmed recurring concern there,
-without copying behavior rules or claiming complete test coverage.
+Briefings are stateless. Reuse unchanged guidance still in context and reread
+contracts after context loss. [Retrieval](Retrieval.md) explains scoped discovery,
+complete reads, caller navigation, and diff pagination. The small
+[task index](../../Scripts/config/agent-tasks.json) supplies source, test, and
+contract pointers; these are navigation hints rather than coverage proof.

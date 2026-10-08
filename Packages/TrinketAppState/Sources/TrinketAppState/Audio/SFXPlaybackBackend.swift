@@ -14,6 +14,7 @@ protocol SFXPlaybackBackend {
     mutating func start() -> Bool
     mutating func play(_ voice: Voice, volume: Float)
     mutating func stop()
+    /// Stops playback and discards all voices and engine resources.
     mutating func releaseResources()
 }
 
@@ -128,12 +129,12 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
 }
 
 struct PreparedSFXVoice {
-    let node: AVAudioPlayerNode
-    let buffer: AVAudioPCMBuffer
+    fileprivate let node: AVAudioPlayerNode
+    fileprivate let buffer: AVAudioPCMBuffer
 }
 
 /// Concurrency-Safety: the decoder exclusively owns the buffer until transfer;
 /// afterward it is read only, and all engine access belongs to the audio actor.
 struct DecodedSFXBuffer: @unchecked Sendable {
-    let value: AVAudioPCMBuffer
+    fileprivate let value: AVAudioPCMBuffer
 }

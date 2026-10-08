@@ -58,7 +58,7 @@ public final class BattleSession: BattleRuntime {
 
     public internal(set) var spectacle = BattleSpectacleState()
     @ObservationIgnored
-    let dependencies: BattleRuntimeDependencies
+    let dependencies: BattlePresentationDependencies
     public var isAutoBattleEnabled: Bool {
         didSet {
             guard oldValue != isAutoBattleEnabled else { return }
@@ -91,17 +91,24 @@ public final class BattleSession: BattleRuntime {
         if activeBattle != nil {
             return .active
         }
-        return preparedRuns.isEmpty ? .idle : .prepared
+        return preparedPreview.configurations.isEmpty ? .idle : .prepared
     }
 
     @ObservationIgnored
     var engineState: BattleState?
-    var preparedRuns = PreparedBattleRuns()
+    var preparedPreview = BattlePreparedPreview.empty
+    public internal(set) var preparedBattlePresentationRevision = 0
+    @ObservationIgnored
+    var preparationGeneration = 0
 
     var presentation = BattlePresentationState()
 
     @ObservationIgnored
-    var progression: BattleProgression?
+    weak var progression: (any BattleProgressionDelegate)?
+    @ObservationIgnored
+    var hasConnectedProgression = false
+    @ObservationIgnored
+    var isInstallingBattle = false
     @ObservationIgnored
     var deliveredClaimedVictoryConfigurationID: UUID?
 
@@ -127,41 +134,22 @@ public final class BattleSession: BattleRuntime {
         commandState.isSuspended
     }
 
-    public var preparedBattlePresentationRevision: Int {
-        preparedRuns.revision
-    }
-
-    public var preferredPreparedRunKey: BattleRunKey? {
-        get { preparedRuns.preferredKey }
-        set {
-            guard preparedRuns.setPreferredKey(newValue) else { return }
-            if activeBattle == nil {
-                installSimulationPresentation()
-            }
-        }
-    }
-
     @ObservationIgnored
     var outcomePresentationDelayOverride: Duration?
 
     @ObservationIgnored
     var partyCelebrateDelayOverride: Duration?
 
-    @ObservationIgnored
-    var ultimateInFrameDurationOverride: Duration?
-
     public init(
         autoEndTurnDelay: TimeInterval = 0.4,
 
         outcomePresentationDelayOverride: TimeInterval? = nil,
         partyCelebrateDelayOverride: TimeInterval? = nil,
-        ultimateInFrameDurationOverride: TimeInterval? = nil,
-        presentationEnvironment: BattleRuntimeDependencies = .silent,
+        presentationEnvironment: BattlePresentationDependencies = .silent,
     ) {
         self.autoEndTurnDelay = .seconds(autoEndTurnDelay)
         self.outcomePresentationDelayOverride = outcomePresentationDelayOverride.map { .seconds($0) }
         self.partyCelebrateDelayOverride = partyCelebrateDelayOverride.map { .seconds($0) }
-        self.ultimateInFrameDurationOverride = ultimateInFrameDurationOverride.map { .seconds($0) }
         dependencies = presentationEnvironment
         isAutoBattleEnabled = Self.preferredAutoBattleEnabled(
             from: presentationEnvironment,
@@ -169,7 +157,7 @@ public final class BattleSession: BattleRuntime {
     }
 
     static func preferredAutoBattleEnabled(
-        from dependencies: BattleRuntimeDependencies,
+        from dependencies: BattlePresentationDependencies,
     ) -> Bool {
         dependencies.rememberAutoBattlePreference()
             && dependencies.autoBattleEnabled()
@@ -235,14 +223,6 @@ public final class BattleSession: BattleRuntime {
         dependencies.hapticsEnabled()
     }
 
-    var effectsVolume: Double {
-        dependencies.effectsVolume()
-    }
-
-    var areUltimateCinematicAnimationsEnabled: Bool {
-        dependencies.ultimateCinematicAnimationsEnabled()
-    }
-
     func playPresentationSFX(_ id: String) {
         dependencies.playSFX([id])
     }
@@ -256,7 +236,7 @@ public final class BattleSession: BattleRuntime {
         presentation: BattlePresentationContext,
     ) -> BattleVictorySummary? {
         guard let input = victoryInput else { return nil }
-        let settlement = progression?.settleRewards(configuration, input.goldFlow)
+        let settlement = progression?.settleBattleRewards(configuration, battleGold: input.goldFlow, materialRewards: nil, at: nil)
             ?? presentation.rewardPlan.settle(
                 battleGold: input.goldFlow,
                 inputs: presentation.rewardInputs ?? Self.fallbackRewardInputs(for: configuration),
@@ -325,8 +305,7 @@ public final class BattleSession: BattleRuntime {
         state: BattleState,
         presentation: BattlePresentationContext? = nil,
     ) -> Bool {
-        let resolvedPresentation = presentation ?? progression?.presentation(configuration)
-        guard progression == nil || resolvedPresentation != nil else { return false }
+        guard !hasConnectedProgression || presentation != nil else { return false }
         if activeBattle != nil {
             // Retry retires the outgoing display just like exit; preparation may suspend.
             clearRunState()
@@ -334,7 +313,9 @@ public final class BattleSession: BattleRuntime {
         clearCardCues()
         engineState = state
         activeBattle = configuration
-        presentationContext = resolvedPresentation
+        presentationContext = presentation
+        isInstallingBattle = true
+        defer { isInstallingBattle = false }
         resetRun(from: configuration)
         #if DEBUG
         if configuration.runKey != nil,
@@ -363,23 +344,6 @@ public final class BattleSession: BattleRuntime {
 
     func resetFeedbackRasterDiagnostics() {
         CombatFeedbackRasterPool.shared.resetDiagnostics()
-    }
-
-    public func prepareBattlePresentation(
-        heroActorID: String?,
-        heroUltimateID: String?,
-        companionActorID: String?,
-        companionUltimateID: String?,
-    ) {
-        dependencies.warmSFX(CombatSFXMapper.battlePrewarmIDs, 2)
-        spectacle.cinematics.isEnabled = areUltimateCinematicAnimationsEnabled
-        guard areUltimateCinematicAnimationsEnabled else { return }
-        spectacle.cinematics.warmLoadout(
-            heroActorID: heroActorID,
-            heroUltimateID: heroUltimateID,
-            companionActorID: companionActorID,
-            companionUltimateID: companionUltimateID,
-        )
     }
 
     func isCardPlayable(_ card: BattleCard) -> Bool {

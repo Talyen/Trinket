@@ -4,16 +4,28 @@ Load for the runtime boundary, BattleSession, app battle orchestration, or Battl
 
 ## Ownership
 
-`BattleSession` implements `BattleRuntime` and coordinates mutable `BattleState`, simulation, commands, and lifecycle. App orchestration receives it only through the runtime contract. `PlayBattleCoordinator` owns application run metadata, claims, Retry, and reward exits; `BattleSession` retains simulation resources and visual scheduling. The app composition root supplies `BattleRuntimeDependencies`, builds one concrete session, and connects progression capabilities through the AppState initializer’s `configureBattleRuntime` hook before bootstrap can launch a battle. `PlaySession.battle` receives that object through the runtime contract.
+`BattleSession` implements the `BattleRuntime` contract in FeatureContracts and
+owns simulation, commands, and visual scheduling. AppState constructs it through
+a required factory. PlaySession connects its typed progression delegate before
+bootstrap can launch a battle; the session holds that delegate weakly.
+App options and audio use `BattlePresentationDependencies` from FeatureContracts.
 
-`PreparedBattleRuns` owns prepared simulations, preferred preview selection, and
-their revision. `BattleSession` owns the effects of those changes: artwork pins,
-presentation projection, activation, and teardown. A prepared activation consumes
-only its matched run after installation succeeds; sibling preparations survive.
+`PlayBattleCoordinator` owns the sole prepared registry, launch metadata, claims,
+Retry, and reward exits. Each prepared registration holds an opaque simulation
+handle created by its runtime. Handles reject use after invalidation, consumption,
+or runtime teardown, and cannot activate on another runtime. BattleFeature receives
+only a `BattlePreparedPreview` projection for selected simulation display and all
+prepared artwork configurations. Repeated identical projections do not advance
+the presentation revision. Activation consumes only its matched handle after
+installation succeeds; siblings survive.
 
-Keep `PlaySession` focused on shell navigation and launch/completion orchestration. Do not add presentation-only methods to `BattleRuntime`.
+Keep PlaySession focused on application orchestration. BattleRuntime exposes the
+preparation projection boundary, never concrete views or save transactions.
 
-`BattlePresentationState` owns the combat projection, `BattleFeedbackLane` owns bounded feedback scheduling/raster publication, and `BattleSpectacleState` owns cinematics and outcome timing. Views observe the narrow lane they render. App-level options and audio enter through `BattleRuntimeDependencies`; BattleFeature never imports `TrinketAppState`.
+`BattlePresentationState` owns the combat projection, `BattleFeedbackLane` owns bounded feedback scheduling/raster publication, and `BattleSpectacleState` owns celebration and outcome timing. Views observe the narrow lane they render. App-level options and audio enter through `BattlePresentationDependencies`; BattleFeature never imports `TrinketAppState`.
+
+Feedback publishes through explicit chip, hit-reaction, and attack-reaction bridges;
+its scheduling lane has no observable properties.
 
 BattleFeature never imports Persistence; save transactions remain outside the runtime.
 

@@ -4,46 +4,27 @@ import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts
 
-@MainActor
-struct BattleProgression {
-    let presentation: (BattleRunConfiguration) -> BattlePresentationContext?
-    let settleRewards: (BattleRunConfiguration, BattleGoldFlow) -> BattleRewardSettlement?
-    let settleDefeat: (BattleRunConfiguration) -> BattleRewardSettlement?
-    let completeDefeat: (BattleRunConfiguration, BattleRewardSettlement, BattleDefeatAction) -> BattleCompletionResult
-    let finishPresentation: (UUID) -> Void
-    let completeVictory: (BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?, Bool) -> BattleCompletionResult
-}
-
 public extension BattleSession {
-    func configureProgression(
-        presentation: @escaping (BattleRunConfiguration) -> BattlePresentationContext?,
-        settleRewards: @escaping (BattleRunConfiguration, BattleGoldFlow) -> BattleRewardSettlement?,
-        completeVictory: @escaping (BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?, Bool) -> BattleCompletionResult,
-        settleDefeat: @escaping (BattleRunConfiguration) -> BattleRewardSettlement?,
-        completeDefeat: @escaping (BattleRunConfiguration, BattleRewardSettlement, BattleDefeatAction) -> BattleCompletionResult,
-        finishPresentation: @escaping (UUID) -> Void,
-    ) {
-        precondition(progression == nil)
-        progression = BattleProgression(
-            presentation: presentation,
-            settleRewards: settleRewards,
-            settleDefeat: settleDefeat,
-            completeDefeat: completeDefeat,
-            finishPresentation: finishPresentation,
-            completeVictory: completeVictory,
-        )
+    func connectProgression(to delegate: any BattleProgressionDelegate) {
+        precondition(!hasConnectedProgression, "Battle progression may be connected only once")
+        precondition(activeBattle == nil, "Connect battle progression before activation")
+        hasConnectedProgression = true
+        progression = delegate
     }
 
     func claimVictory(configurationID: UUID, summary: BattleVictorySummary, defersPresentationExit: Bool = false) -> Bool {
         guard let configuration = activeBattle, configuration.id == configurationID,
               let progression else { return false }
-        let result = progression.completeVictory(configuration, summary.goldFlow, summary.settlement, defersPresentationExit)
+        let result = progression.completeActiveBattle(
+            configuration, battleGold: summary.goldFlow, materialRewards: nil,
+            settlement: summary.settlement, defersPresentationExit: defersPresentationExit,
+        )
         applyCompletionResult(result, for: configuration)
         return result.didComplete
     }
 
     func finishVictoryPresentation(configurationID: UUID) {
-        progression?.finishPresentation(configurationID)
+        progression?.finishBattleRewardPresentation(configurationID: configurationID)
     }
 
     internal func deliverClaimedVictoryIfNeeded() {
@@ -56,7 +37,10 @@ public extension BattleSession {
         else { return }
 
         deliveredClaimedVictoryConfigurationID = configuration.id
-        let result = progression.completeVictory(configuration, engineState?.goldFlow ?? .init(), nil, false)
+        let result = progression.completeActiveBattle(
+            configuration, battleGold: engineState?.goldFlow ?? .init(), materialRewards: nil,
+            settlement: nil, defersPresentationExit: false,
+        )
         applyCompletionResult(result, for: configuration)
     }
 

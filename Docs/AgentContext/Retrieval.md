@@ -78,16 +78,15 @@ whole-card references.
 Pass multiple files or anchors to one reader invocation; the same flags apply to
 each target, exact duplicates read once, and a failure remains nonzero while later
 targets are still attempted. `--lines START:END` also supports shell and config
-text. `--fingerprint` includes the SHA-256 of the exact file bytes read.
+text.
 
 For mixed modes, repeat `--request` with a quoted target and its own flags:
 
 ```sh
-python3 Scripts/agent-session.py read --request 'Docs/AgentContext/audio.md' --request 'Scripts/agent-read.py --symbol main' --request 'Scripts/tool-versions.env --lines 1:3'
+python3 Scripts/agent-read.py --request 'Docs/AgentContext/audio.md' --request 'Scripts/agent-read.py --symbol main' --request 'Scripts/tool-versions.env --lines 1:3'
 ```
 
-Requests are parsed as arguments without shell execution. Only session/receipt and
-fingerprint options can be shared outside requests. Duplicate requests read once;
+Requests are parsed as arguments without shell execution. Each request supplies its own read flags. Duplicate requests read once;
 failed requests remain nonzero while later reads continue. Read errors print an
 executable recovery command or filename discovery command; navigation does not
 establish a complete read.
@@ -95,7 +94,6 @@ establish a complete read.
 `--full` explicitly reads any supported UTF-8 text file, including Swift, Python,
 shell and config files. In a mixed batch, an anchored Markdown target reads only
 that complete section; the flag never widens an anchor to the whole document.
-Source/config full reads never establish guidance receipts.
 Flags may appear between positional targets; per-target modes still use `--request`.
 
 For Swift or Python, `agent-read.py path.swift --outline` lists qualified types and
@@ -117,119 +115,31 @@ python3 Scripts/agent-search.py 'enum ArtCatalog' --mode generated --scope Packa
 
 ## Routing and guidance reuse
 
-Focused contracts replace the corresponding detail in package READMEs. Known
-paths suggest their concern; shared or unknown engine/persistence paths list all
-operation references for discovery. Select the relevant sections and follow calls
-across concerns. This reading choice does not narrow verification routing.
-Use the package README as an index to optional API and behavior references.
-Known Shop and Homestead leaves include relevant progression sections; shared or
-unknown persistence paths retain the full progression contract.
+Start indexed concerns with `python3 Scripts/agent-brief.py --task <concern>`.
+Use `--paths <files...>` for an unindexed task or to supply its actual scope.
+The concern index supplies navigation hints; explicit files always determine
+all applicable safeguards, ownership guidance, and verification requirements.
+`--status` prints scoped changes and global owner counts. Whole-tree work requires
+`--working-tree`; use `--allow-broad-scope` only when intentionally reviewing a
+large working tree. The shell `agent-context.sh` entry point uses this same briefing.
 
-The default router omits empty sections, repeated policy, and expanded check
-commands. `--full` includes authored paths, route metadata, and the sequential
-verification plan. Both forms retain ownership guidance, behavior references, and
-safety warnings.
-
-Use `--status` on the initial route to see global dirty counts and exact status
-for task files, including either endpoint of a rename. Counts are informational;
-inspect overlapping diffs and resolve unclear ownership before editing. Reroutes
-can omit status when the relevant workspace state is unchanged.
-
-Use router `--fingerprints` when guidance reuse needs a current identity. It lists
-whole-file SHA-256 hashes without hiding any guides, cards, skills, or warnings.
-Reuse a reference only when it was actually read in this chat and its hash still
-matches; matching identity alone is not a read receipt. Any file edit invalidates
-all its sections, conservatively covering changed surrounding rules and locations.
-Skills and knowledge still apply only by trigger. Fingerprints are optional to
-avoid adding identity output to tasks that do not need repeated routing.
-
-### Chat-local read receipts
-
-`python3 Scripts/agent-session.py read …` and `context …` derive the same temporary
-receipt from `CODEX_THREAD_ID` and the repository root. Outside that environment,
-pass `--chat <this-chat-id>` before `read` or `context`. The underlying commands
-also accept `--session <chat-id>` directly. Session reads record only complete
-Markdown content; source reads, ranges and outlines remain unrecorded. Explicit
-`--receipt` reads retain the stricter complete-Markdown-only validation.
-
-After compaction removes a contract, run `python3 Scripts/agent-session.py forget`
-and reread it. Parallel readers must use distinct explicit chat/reader IDs to avoid
-sharing a receipt. Sessions never suppress routing references. Reads repeat by
-default; explicit `--reuse-guidance` on `brief` or `read` skips only unchanged
-complete Markdown already delivered to this chat and still available in context.
-A whole-file receipt covers sections, but section receipts cannot cover a whole
-file. Source, ranges and navigation are still displayed. Changed files or new
-sections are read. The flag asserts retained context; it cannot detect compaction.
-Run `forget` after context loss before using it again.
-
-Use a unique temporary receipt file and explicit chat ID when repeated routing
-would otherwise cause rereads. Keep receipts outside the repository and do not
-share one file across parallel readers or chats. For example, substitute the
-current chat ID for `example-chat` in both commands:
-
-```sh
-python3 Scripts/agent-read.py 'Docs/AgentContext/battle-actions.md#shared-action-invariants' --receipt /tmp/trinket-example-chat.json --chat example-chat
-./Scripts/agent-context.sh --receipt /tmp/trinket-example-chat.json --chat example-chat --paths Packages/BattleEngine/Sources/BattleEngine/ManaEmpowermentBudget.swift
-```
-
-Only successfully displayed complete Markdown documents/sections become reads.
-Outlines, signatures, ranges, failed reads and automatically outlined large
-documents do not. A whole-document read covers its sections; reading one section
-does not cover another section or the whole document. Whole-file hashes invalidate
-all sections after any edit. The receipt also binds to the repository path and
-chat ID; mismatches fail explicitly. Receipts expire after 24 hours of inactivity;
-missing or expired receipts require rereading guidance. Delete one when the chat
-no longer needs it.
-
-Rerouting annotates every applicable reference as unchanged/read or requiring an
-applicable read, while retaining all references, skill triggers, boundary warnings
-and verification commands. Reuse still requires that the content is available in
-the current chat context; after compaction loses a contract, reread it even when
-the receipt matches. A receipt records delivery, not model comprehension.
+Read root/local safeguards and relevant ownership and behavior sections. Skills
+remain conditional on their descriptions. Reuse unchanged guidance still present
+in conversation context; reread relevant contracts after context loss. Briefings
+are stateless and never hide safeguards based on prior reads.
 
 ### Concern and test pointers
 
-For an indexed concern, `python3 Scripts/agent-session.py brief --task particles`
-combines scoped status, the complete safety route, initial applicable guidance,
-source signatures and test pointers. `--paths <files...>` preserves the actual
-task scope; `--limit N` bounds signatures per file (default 8) with explicit
-continuations. Signatures are navigation, not body inspection; skills and other
-behavior sections still apply by relevance. The command never compiles or operates
-a simulator. Outside Codex, put `--chat <chat-id>` before `brief`.
+Find concerns with `agent-search.py '<concern>' --task`, or list them with
+`agent-search.py --task --overview`. Unknown or ambiguous concern names fail with
+available choices; use file-scoped discovery for unindexed work. The index is
+navigation, not proof that tests cover the behavior.
 
-Exact duplicate routed references appear once under concern focus, including their
-ownership/behavior role where applicable. Broader whole-card references and
-different anchors remain visible; verification routing does not narrow.
-
-`agent-search.py '<concern>' --task` searches labels and aliases in
-[the authored index](../../Scripts/config/agent-tasks.json), using case-insensitive
-word matches. Use `--task --overview` without a query to list bounded brief commands.
-Scopes filter concerns by their source entry points; matching
-concerns show the complete cross-owner interaction and a routing command.
-Unindexed concerns fall back to normal discovery. Paths and contract anchors are
-validated; stale pointers fail explicitly rather than silently disappearing.
-
-The returned route uses `agent-context.sh --task <id>` to highlight those contract
-sections alongside all path-routed safeguards and behavior references. Without
-`--paths`, the indexed source paths establish the route; with explicit paths,
-those paths still determine all ownership warnings and verification. A concern
-focus is navigation, not proof that other behavior sections or callers are irrelevant.
-
-Concern routing also prints a suggested batched guidance-read command. It includes
-local safeguards, ownership cards and indexed contracts; root guidance is already
-injected. Skills and other behavior references remain visible for trigger/relevance
-selection. The compact `agent-session.py read --task <id>` command resolves the current route
-at execution, including explicit `--paths` when supplied. It uses the current chat
-identity; outside Codex add `--chat` before `read`. An explicit custom receipt
-produces a full reader command preserving that receipt.
-Unanchored guidance is explicitly read in full. The suggestion never executes reads
-or skips them based on a receipt.
-
-`--related` prints each file once, combining declaration/reference roles. For
-indexed symbols, it supplements textual results with curated test-file pointers,
-explicitly labeled without claiming symbol mentions or coverage. Related lookup
-retains its source/test scopes; a source-only file scope does not pull in tests
-outside that scope. Inspect assertions and dependencies before choosing coverage.
+For a concern, the briefing prints a runnable `agent-read.py --request ...` batch
+for initial ownership guidance. `agent-context.sh --task <concern> --read-command`
+prints just that command. Read source bodies and actual assertions independently;
+source signatures and file pointers are navigation only. Explicit scopes continue
+to control caller and test searches.
 
 ### Caller navigation
 
@@ -261,33 +171,6 @@ and reject any change to scoped inputs. Follow omitted bodies and relevant calle
 before concluding coverage or ownership; no type resolution or indirect-call
 analysis is performed.
 
-### Efficiency measurement
-
-Use `agent-efficiency.py probe --workflow concerns --suite extended --output <report.json>`
-for bounded retrieval measurements across combat, Shop, persistence, tooling,
-particles, feedback, Collection and simulator diagnostics. Reports measure output
-characters and command counts, not tokens. Compare before/after reports from the
-same immutable product inputs; a busy checkout may invalidate the comparison.
-
-`--workflow briefings` measures a cold briefing followed by a repeated briefing
-in an isolated probe chat. The candidate opts into explicit guidance reuse when
-supported; older sessions repeat the full brief. Setup/cleanup clears only that
-probe's receipt. This measures delivery savings when context is retained, not
-reasoning, correctness or actual model token use. The extended suite includes
-Voyage and Labyrinth progression to exercise their focused contracts.
-
-For complete-task trials, run `agent-efficiency.py prepare --suite extended
---repetitions 3 --output <trials.json>`. Run matching trials with the same model,
-reasoning and tools against identical starting inputs. Record final per-response
-provider usage, transcript-derived retries/repeated reads/stops, and an independent
-correctness/completion judgement. `collect <trials.json> --output <measured.json>`
-validates the usage export; `compare <before.json> <after.json>` rejects mismatched
-inputs/settings and fails incorrect or incomplete outcomes even when tokens fall.
-Keep comparison reports under the gitignored `.DerivedData/AgentEvaluationResults/`
-for automatic 24-hour expiry, or manage custom destinations explicitly. Without
-provider usage exports, leave token
-counts unmeasured; retrieval savings do not establish complete-task token savings.
-
 ## Diff review
 
 For review, `python3 Scripts/agent-diff.py --paths <files...>` shows authored
@@ -301,6 +184,7 @@ paged at complete hunks/records with repeated file headers. Follow the printed
 continuation command; its fingerprint rejects a changed diff. An oversized hunk
 is disclosed with an explicit larger-budget command, never silently cut. `--full`
 is an intentional unbounded read. Review every relevant page before editing
-overlapping work. Untracked files are listed for explicit reads. Whole-tree
+overlapping work. Symbolic links use their link payload, never the target's bytes.
+Untracked files are listed for explicit reads. Whole-tree
 review requires `--working-tree`. This view does not replace overlapping diff
 inspection, generated consistency review, or idempotence verification.

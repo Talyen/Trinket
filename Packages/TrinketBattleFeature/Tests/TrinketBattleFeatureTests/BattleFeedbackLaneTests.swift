@@ -3,6 +3,7 @@ import Testing
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 @testable import BattleEngine
 @testable import TrinketBattleFeature
@@ -133,9 +134,8 @@ struct BattleFeedbackLaneTests {
         defer { lane.release() }
         let start = Date(timeIntervalSince1970: 1000)
         var sounds = 0
-        let environment = BattleRuntimeDependencies(
+        let environment = BattlePresentationDependencies(
             playSFX: { _ in sounds += 1 }, warmSFX: { _, _ in }, hapticsEnabled: { false },
-            effectsVolume: { 1 }, shouldAutoSkipUltimateCinematic: { _, _ in false },
         )
         let event = makeEvent(id: 1, kind: .abilityDamage, amount: 4, keyword: .physical)
         lane.record([event], at: start, environment: environment)
@@ -159,9 +159,8 @@ struct BattleFeedbackLaneTests {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         var sounds: [[String]] = []
-        let environment = BattleRuntimeDependencies(
+        let environment = BattlePresentationDependencies(
             playSFX: { sounds.append($0) }, warmSFX: { _, _ in }, hapticsEnabled: { false },
-            effectsVolume: { 1 }, shouldAutoSkipUltimateCinematic: { _, _ in false },
         )
         let absorbed = makeEvent(id: 1, kind: .effect, effectKind: .shieldAbsorbed, amount: 5, keyword: .block)
         lane.record([absorbed], environment: environment, actionGroupID: 1, damage: [

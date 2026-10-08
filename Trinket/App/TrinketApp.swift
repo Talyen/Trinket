@@ -6,6 +6,7 @@ import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -26,7 +27,7 @@ struct TrinketApp: App {
 
     init() {
         let environment = AppEnvironment.shared
-        let makeBattleRuntime: (BattleRuntimeDependencies) -> any BattleRuntime = { dependencies in
+        let makeBattleRuntime: (BattlePresentationDependencies) -> any BattleRuntime = { dependencies in
             BattleSession(
                 autoEndTurnDelay: environment.battleTickInterval ?? 0.4,
                 presentationEnvironment: dependencies,
@@ -37,7 +38,6 @@ struct TrinketApp: App {
                 environment: environment,
                 playerSave: store,
                 makeBattleRuntime: makeBattleRuntime,
-                configureBattleRuntime: Self.configureBattleProgression,
             )
             if environment.launchScreen == .battleVictory {
                 (state.play.battle as? BattleSession)?.presentLaunchVictory()
@@ -120,36 +120,6 @@ struct TrinketApp: App {
                 return BootstrapResult(state: nil)
             }
         }
-    }
-
-    private static func configureBattleProgression(_ runtime: any BattleRuntime, play: PlaySession) {
-        guard let battle = runtime as? BattleSession else {
-            preconditionFailure(battleRuntimeTypeMessage)
-        }
-        battle.configureProgression(
-            presentation: { [weak play] configuration in
-                play?.battlePresentation(for: configuration)
-            },
-            settleRewards: { [weak play] configuration, gold in
-                play?.settleBattleRewards(configuration, battleGold: gold)
-            },
-            completeVictory: { [weak play] configuration, gold, settlement, defersExit in
-                play?.completeActiveBattle(
-                    configuration, battleGold: gold,
-                    settlement: settlement,
-                    defersPresentationExit: defersExit,
-                ) ?? .unavailable
-            },
-            settleDefeat: { [weak play] configuration in
-                play?.settleDefeatRewards(configuration)
-            },
-            completeDefeat: { [weak play] configuration, settlement, action in
-                play?.completeDefeat(configuration, settlement: settlement, action: action) ?? .unavailable
-            },
-            finishPresentation: { [weak play] id in
-                play?.finishBattleRewardPresentation(configurationID: id)
-            },
-        )
     }
 
     private func retryBootstrap() {

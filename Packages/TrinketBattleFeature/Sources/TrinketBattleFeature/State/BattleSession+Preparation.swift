@@ -7,23 +7,8 @@ public extension BattleSession {
         let phase = lifecyclePhase
         guard phase == .prepared || phase == .active else { return }
 
-        let preparedRuns = preparedBattleRuns
-        let activeConfiguration = activeBattle
-
-        await artworkPreparation.prepare(names: desiredPreparedArtworkNames, displayScale: displayScale) {
-            var configurations = preparedRuns.map(\.configuration)
-            if let activeConfiguration {
-                configurations.append(activeConfiguration)
-            }
-            for configuration in configurations {
-                prepareBattlePresentation(
-                    heroActorID: configuration.hero.combatant.id,
-                    heroUltimateID: configuration.hero.combatant.abilityLoadout.ultimate?.id,
-                    companionActorID: configuration.companion.combatant.id,
-                    companionUltimateID: configuration.companion.combatant.abilityLoadout.ultimate?.id,
-                )
-            }
-        }
+        dependencies.warmSFX(CombatSFXMapper.battlePrewarmIDs, 2)
+        await artworkPreparation.prepare(names: desiredPreparedArtworkNames, displayScale: displayScale)
     }
 
     func releasePreparedArtworkPins() {
@@ -35,7 +20,7 @@ public extension BattleSession {
     }
 
     private var desiredPreparedArtworkNames: Set<String> {
-        var configurations = preparedBattleRuns.map(\.configuration)
+        var configurations = preparedPreview.configurations
         if let activeBattle {
             configurations.append(activeBattle)
         }

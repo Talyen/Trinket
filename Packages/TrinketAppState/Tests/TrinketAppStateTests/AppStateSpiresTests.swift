@@ -18,7 +18,7 @@ struct AppStateSpiresTests {
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
         let selected = try #require(GameContent.spireModifier(for: floor, worldSeed: state.playerSave.worldSeed))
         state.spires.prepareBattle(for: floor)
-        #expect(state.battle.hasPreparedRun(PlayBattleOrigin.spire(spireID: .ironVein, floor: 1).runKey))
+        #expect(state.battleCoordinator.preparedRuns[PlayBattleOrigin.spire(spireID: .ironVein, floor: 1).runKey] != nil)
         let message = state.spires.startBattle(for: floor)
         #expect(message == nil)
         #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.spire(spireID: .ironVein, floor: 1).runKey)

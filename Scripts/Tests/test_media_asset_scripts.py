@@ -9,7 +9,6 @@ SCRIPT_INPUTS = (
     'Scripts/prepare-art-assets.sh',
     'Scripts/prepare-assets.sh',
     'Scripts/prepare-audio-assets.sh',
-    'Scripts/prepare-cinematic-assets.sh',
     'Scripts/report-art-memory.sh',
 )
 
@@ -160,15 +159,15 @@ trinket_asset_cleanup_tracked
             resources = root / "Media"
             resources.mkdir()
             active = root / "active.txt"
-            active.write_text("keep.mp4\n", encoding="utf-8")
-            for name in ("keep.mp4", "remove.mp4", "ignore.m4a"):
+            active.write_text("keep.m4a\n", encoding="utf-8")
+            for name in ("keep.m4a", "remove.m4a", "ignore.txt"):
                 (resources / name).write_text(name, encoding="utf-8")
 
             result = subprocess.run(
                 [
                     "bash",
                     "-c",
-                    'source "$1"; trinket_asset_prune_orphans "$2" "$3" cinematic mp4',
+                    'source "$1"; trinket_asset_prune_orphans "$2" "$3" sfx m4a',
                     "media-prune-test",
                     str(ROOT / "Scripts/lib/media-assets.sh"),
                     str(resources),
@@ -179,9 +178,9 @@ trinket_asset_cleanup_tracked
                 check=False,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertTrue((resources / "keep.mp4").exists())
-            self.assertFalse((resources / "remove.mp4").exists())
-            self.assertTrue((resources / "ignore.m4a").exists())
+            self.assertTrue((resources / "keep.m4a").exists())
+            self.assertFalse((resources / "remove.m4a").exists())
+            self.assertTrue((resources / "ignore.txt").exists())
 
     def test_project_yml_keeps_assets_outside_swift_sync_roots(self) -> None:
         text = (ROOT / "project.yml").read_text(encoding="utf-8")
@@ -364,51 +363,6 @@ trinket_asset_cleanup_tracked
             self.assertEqual(product.read_bytes(), previous)
             self.assertEqual(list(scratch.iterdir()), [])
             self.assertFalse(list((root / "Trinket/Assets.xcassets").glob("*.tmp.*")))
-
-    def test_cinematic_fixture_converts_once_and_stays_stable(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root, environment, log = self.make_cinematic_fixture(directory)
-
-            first = self.run_cinematic_fixture(root, environment)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            self.assertEqual(log.read_text().splitlines(), ["knight_avatar.mp4"])
-            catalog = (
-                root
-                / "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift"
-            ).read_text(encoding="utf-8")
-            self.assertIn('"knight|avatar-of-justice"', catalog)
-
-            second = self.run_cinematic_fixture(root, environment)
-            self.assertEqual(second.returncode, 0, second.stderr)
-            self.assertEqual(log.read_text().splitlines(), ["knight_avatar.mp4"])
-            self.assertEqual(
-                (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift").read_text(
-                    encoding="utf-8"
-                ),
-                catalog,
-            )
-
-    def test_cinematic_rejects_non_ultimate_ability(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root, environment, _ = self.make_cinematic_fixture(directory)
-            (root / "CinematicManifest/cinematics.tsv").write_text(
-                "knight\tbash\tknight_bash\tRaw Assets/Animations/slash.mp4\ttrue\n",
-                encoding="utf-8",
-            )
-            rejected = self.run_cinematic_fixture(root, environment)
-            self.assertNotEqual(rejected.returncode, 0)
-            self.assertIn("not an Ultimate", rejected.stderr)
-
-    def test_cinematic_rejects_invalid_has_audio(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root, environment, _ = self.make_cinematic_fixture(directory)
-            (root / "CinematicManifest/cinematics.tsv").write_text(
-                "knight\tavatar-of-justice\tknight_avatar\tRaw Assets/Animations/slash.mp4\tyes\n",
-                encoding="utf-8",
-            )
-            rejected = self.run_cinematic_fixture(root, environment)
-            self.assertNotEqual(rejected.returncode, 0)
-            self.assertIn("must be true or false", rejected.stderr)
 
     def test_sfx_volume_gain_accepts_leading_dot_decimal(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

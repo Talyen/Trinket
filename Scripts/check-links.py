@@ -33,7 +33,7 @@ def markdown_files() -> list[Path]:
     return sorted(
         path
         for path in ROOT.rglob("*.md")
-        if not SKIP_PARTS.intersection(path.relative_to(ROOT).parts)
+        if path.is_file() and not SKIP_PARTS.intersection(path.relative_to(ROOT).parts)
     )
 
 

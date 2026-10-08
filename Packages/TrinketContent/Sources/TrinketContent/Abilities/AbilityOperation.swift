@@ -4,7 +4,7 @@ public enum AbilityOperation: Hashable, Sendable {
     case damage(DamageComponent)
     case effect(TargetedEffect)
 
-    var damageComponent: DamageComponent? {
+    public var damageComponent: DamageComponent? {
         if case let .damage(component) = self {
             component
         } else {
@@ -12,7 +12,7 @@ public enum AbilityOperation: Hashable, Sendable {
         }
     }
 
-    var targetedEffect: TargetedEffect? {
+    public var targetedEffect: TargetedEffect? {
         if case let .effect(targeted) = self {
             targeted
         } else {

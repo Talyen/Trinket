@@ -8,7 +8,7 @@ import TrinketPersistence
 
 @MainActor
 @Observable
-public final class PlaySession {
+public final class PlaySession: BattleProgressionDelegate {
     public let playerSave: PlayerSaveStore
     public let shellSession: ShellSession
     public let battle: any BattleRuntime
@@ -23,6 +23,7 @@ public final class PlaySession {
     public let encounters: EncounterPlayMode
 
     let battleCoordinator: PlayBattleCoordinator
+    let battleRewardDate: @MainActor () -> Date
 
     public private(set) var pendingDestination: PlayLaunchDestination?
     private var postBattleTalentChoices = PostBattleTalentChoices()
@@ -50,6 +51,7 @@ public final class PlaySession {
         sfxPlayer: SFXPlayer,
         pendingDestination: PlayLaunchDestination?,
         battlePerformanceScenario: BattlePerformanceScenario? = nil,
+        battleRewardDate: @escaping @MainActor () -> Date = { Date() },
     ) {
         self.playerSave = playerSave
         self.shellSession = shellSession
@@ -57,6 +59,7 @@ public final class PlaySession {
         self.options = options
         self.sfxPlayer = sfxPlayer
         self.pendingDestination = pendingDestination
+        self.battleRewardDate = battleRewardDate
 
         let battleCoordinator = PlayBattleCoordinator(
             playerSave: playerSave,
@@ -95,6 +98,7 @@ public final class PlaySession {
         voyage = VoyagePlayMode(playerSave: playerSave, battle: battle, battleCoordinator: battleCoordinator, encounters: encounters)
         contracts = ContractsPlayMode(playerSave: playerSave, battle: battle, battleCoordinator: battleCoordinator, encounters: encounters)
         self.encounters = encounters
+        battle.connectProgression(to: self)
     }
 
     public func consumePendingDestination() -> PlayLaunchDestination? {
@@ -144,13 +148,13 @@ public final class PlaySession {
         _ configuration: BattleRunConfiguration,
         battleGold: BattleGoldFlow,
         materialRewards: [ResourceAmount]? = nil,
-        at date: Date = Date(),
+        at date: Date? = nil,
     ) -> BattleRewardSettlement? {
         guard battle.activeBattle?.id == configuration.id,
               configuration.runKey == nil || route(for: configuration.runKey) != nil else { return nil }
         return battleCoordinator.settleRewards(
             configuration, battleGold: battleGold, materialRewards: materialRewards,
-            at: date,
+            at: date ?? battleRewardDate(),
         )
     }
 

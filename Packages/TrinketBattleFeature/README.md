@@ -8,7 +8,7 @@ Battle lifecycle, presentation, and SwiftUI for Trinket.
   and presentation coordination for one battle
 - `BattlePresentationState`: observable combat projection
 - `BattleFeedbackLane`: feedback scheduling and bounded raster publication
-- `BattleSpectacleState`: cinematics and outcome timing
+- `BattleSpectacleState`: celebration and outcome timing
 - Battle views, layout, effects, and outcome presentation
 - Ability cards stay **3:4** full-bleed art with no face text. Party portraits stay **3:4**; enemy viewport is **4:3**. Health anchors to the bottom of each combatant’s art. Show mana only when live `maxMana > 0`. No pause control, global crystals, or other top chrome.
 
@@ -18,15 +18,14 @@ Battle lifecycle, presentation, and SwiftUI for Trinket.
   a different combat arrangement. Compact hand geometry stays unchanged.
 
 Battle simulation rules remain in `BattleEngine`. App options and audio enter through
-the closure-backed `BattleRuntimeDependencies`; this package must not import or
+the closure-backed `BattlePresentationDependencies`; this package must not import or
 depend on `TrinketAppState`. Progression capabilities are configured once by the app composition root; BattleSession
 owns reward retry presentation independently of overlay mounting.
 Cross-package ownership: [runtime contract](../../Docs/AgentContext/battle-runtime.md).
 Read [presentation](../../Docs/AgentContext/battle-presentation.md) for display/playback changes,
 and [launch/completion](../../Docs/AgentContext/battle-launch.md) for activation or award wiring.
 
-Cinematic playback lives in `State/BattleCinematicPlayer.swift` beside spectacle
-state. Victory summary models and views live together in `Features/Outcome/`.
+Victory summary models and views live together in `Features/Outcome/`.
 Feedback scheduling, recipes, presentation models, and sound mapping live in
 `State/Feedback/`; rendering stays in `Features/Feedback/`. Debug performance
 scenario drivers and harnesses live in `Support/Performance/` within this target.

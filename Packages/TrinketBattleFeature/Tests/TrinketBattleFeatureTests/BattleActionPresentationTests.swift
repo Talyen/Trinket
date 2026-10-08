@@ -3,6 +3,7 @@ import Testing
 import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
+import TrinketFeatureContracts
 @testable import BattleEngine
 @testable import TrinketBattleFeature
 
@@ -21,9 +22,8 @@ struct BattleActionPresentationTests {
     @Test(arguments: [false, true])
     func `tap and prepared drag deliver all results once while attack motion continues`(prepared: Bool) throws {
         var sounds: [[String]] = []
-        let environment = BattleRuntimeDependencies(
+        let environment = BattlePresentationDependencies(
             playSFX: { sounds.append($0) }, warmSFX: { _, _ in }, hapticsEnabled: { true },
-            effectsVolume: { 1 }, shouldAutoSkipUltimateCinematic: { _, _ in false },
         )
         let session = BattleSessionTestSupport.makeConfiguredSession(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
@@ -65,10 +65,9 @@ struct BattleActionPresentationTests {
 
     @Test(arguments: [false, true])
     func `play origin controls feedback even with auto battle enabled`(isAutomatic: Bool) throws {
-        let environment = BattleRuntimeDependencies(
-            playSFX: { _ in }, warmSFX: { _, _ in }, hapticsEnabled: { false }, effectsVolume: { 0 },
+        let environment = BattlePresentationDependencies(
+            playSFX: { _ in }, warmSFX: { _, _ in }, hapticsEnabled: { false },
             rememberAutoBattlePreference: { true }, autoBattleEnabled: { true },
-            shouldAutoSkipUltimateCinematic: { _, _ in false },
         )
         let session = BattleSessionTestSupport.makeConfiguredSession(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
@@ -381,9 +380,8 @@ struct BattleActionPresentationTests {
 extension BattleActionPresentationTests {
     @Test func `a damaging draw card has one immediate cue without a health cost sound`() throws {
         var sounds: [[String]] = []
-        let environment = BattleRuntimeDependencies(
+        let environment = BattlePresentationDependencies(
             playSFX: { sounds.append($0) }, warmSFX: { _, _ in }, hapticsEnabled: { false },
-            effectsVolume: { 1 }, shouldAutoSkipUltimateCinematic: { _, _ in false },
         )
         let session = BattleSessionTestSupport.makeConfiguredSession(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),

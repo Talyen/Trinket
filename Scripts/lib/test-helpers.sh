@@ -7,6 +7,9 @@ trinket_record_timing() {
   local timing_args=()
   if xcode_runner_result_bundle_complete "$RESULT_BUNDLE_PATH"; then
     timing_args+=(--xcresult "$RESULT_BUNDLE_PATH")
+    if [[ -n "${XCODE_RUNNER_MANIFEST_PATH:-}" ]]; then
+      timing_args+=(--manifest "$XCODE_RUNNER_MANIFEST_PATH")
+    fi
   else
     if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
       echo "Result bundle did not finalize; recording wall-only timing for $MODE." >&2

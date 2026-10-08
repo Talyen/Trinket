@@ -11,7 +11,6 @@ Trinket/                    Thin app target — entry, roots, non-Battle product
   Assets.xcassets           Processed art (HEIC) from ArtManifest
   Media/Music               AAC tracks from MusicManifest
   Media/SFX                 AAC clips from SoundManifest
-  Media/Cinematics          Ultimate cinematic MP4s from CinematicManifest
 
 Packages/
   TrinketCore/              Domain primitives (effects, stats, enums, progression)
@@ -21,7 +20,7 @@ Packages/
   TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals (TrinketCore only)
   TrinketFeatureSupport/    Package hosting shared UI and contract/adapter products
     Sources/TrinketFeatureSupport/    Shared game UI, presentation models, artwork/frame support, reward ExperienceBar
-    Sources/TrinketFeatureContracts/ Pure navigation/deep-link values, battle presentation/reward DTOs (SwiftUI-free)
+    Sources/TrinketFeatureContracts/ Navigation/deep-link values and battle boundary contracts (SwiftUI-free)
     Sources/TrinketFeatureAdapters/  Save-backed map/detail adapters
   TrinketBattleFeature/     Battle facade, read lanes, presentation, outcome, and Battle UI
   TrinketAppState/          App/Play/Purchases orchestration and audio
@@ -34,7 +33,6 @@ ContentManifest/            affixes.tsv, item_bases.tsv, stages.tsv, combatants.
 ArtManifest/                curated-assets.tsv, app-icon.tsv
 MusicManifest/              music.tsv
 SoundManifest/              sfx.tsv
-CinematicManifest/          cinematics.tsv
 Scripts/                    generate, build, test, CI commands; internal/ Python and lib/ shell helpers
 ```
 
@@ -76,7 +74,7 @@ Play → Collection → Homestead → Options
 
 ## Generate
 
-Single entry point: `./Scripts/generate.sh` (add `--assets` for art, music, SFX, and cinematics). Operational steps, authored vs generated inputs, and consistency checks: [content-and-manifests.md](../AgentContext/content-and-manifests.md).
+Single entry point: `./Scripts/generate.sh` (add `--assets` for art, music, and SFX). Operational steps, authored vs generated inputs, and consistency checks: [content-and-manifests.md](../AgentContext/content-and-manifests.md).
 
 ## Dependency rules
 
@@ -87,18 +85,19 @@ restrictions below, and reverse edges are forbidden. `TrinketFeatureSupport`,
 hosted by the single `Packages/TrinketFeatureSupport` package. The app target
 composes `TrinketAppState`, `TrinketBattleFeature`, `TrinketFeatureSupport`,
 and `TrinketFeatureAdapters`; lower-level layering is `BattleEngine` /
-`TrinketFeatureSupport` / `TrinketFeatureContracts` / `TrinketPersistence` →
-`TrinketContent` → `TrinketCore`, with `TrinketDesignSystem` → `TrinketCore`.
+`TrinketFeatureSupport` / `TrinketPersistence` → `TrinketContent` → `TrinketCore`;
+FeatureContracts also depends on BattleEngine for boundary values, with `TrinketDesignSystem` → `TrinketCore`.
 
 `BattleEngine` and `TrinketPersistence` remain siblings and never import one another.
 `TrinketFeatureSupport` is persistence- and battle-engine-free reusable presentation.
-`TrinketFeatureContracts` is the SwiftUI-free value layer for route and
-`BattlePresentationContext`; it must not grow save-backed behavior.
+`TrinketFeatureContracts` owns SwiftUI-free route, lifecycle, preparation-handle,
+progression-delegate, and presentation contracts. It references BattleEngine values
+but contains no save-backed behavior or concrete lifecycle implementation.
 `TrinketFeatureAdapters` owns save-backed map/detail adapters;
 it cannot be imported by `TrinketBattleFeature`. Neither support target may depend on
 `TrinketBattleFeature` or `TrinketAppState`.
 `TrinketBattleFeature` cannot depend on `TrinketAppState`. `TrinketAppState` depends on
-`BattleEngine` (for `BattleRuntime`) in production, never the presentation feature.
+`BattleEngine` values and FeatureContracts (`BattleRuntime`) in production, never the presentation feature.
 `TrinketAppStateTests` may use concrete BattleFeature and shared presentation
 support for integration tests; those test-only dependencies do not permit
 production imports. No package may import the `Trinket`

@@ -147,14 +147,14 @@ struct AppStatePlayFlowTests {
         )
 
         state.journey.prepareBattle(for: stage)
-        #expect(battle.hasPreparedRun(runKey))
+        #expect(state.battleCoordinator.preparedRuns[runKey] != nil)
 
         PlayBattleLaunchTestSupport.setActiveCompanion(otherCompanion, in: state)
 
         let message = state.journey.startBattle(for: stage)
         #expect(message?.title == PlayBattleCoordinator.activationFailureMessage.title)
         #expect(state.battle.activeBattle == nil)
-        #expect(battle.hasPreparedRun(runKey))
+        #expect(state.battleCoordinator.preparedRuns[runKey] != nil)
         #expect(state.battlePresentation(for: runKey) != nil)
     }
 
@@ -474,22 +474,22 @@ extension AppStatePlayFlowTests {
         })
         runtime.shouldRejectPreparation = true
         #expect(try !state.battleCoordinator.prepareCombat(original.launch.inputs.launch, route: #require(original.route)))
-        #expect(!runtime.hasPreparedRun(runKey))
+        #expect(!(state.battleCoordinator.preparedRuns[runKey] != nil))
         #expect(state.battleRegistration(for: runKey) == nil)
-        #expect(runtime.hasPreparedRun(siblingKey))
+        #expect(state.battleCoordinator.preparedRuns[siblingKey] != nil)
         #expect(state.battleRegistration(for: siblingKey)?.launch.configuration.id == sibling.launch.configuration.id)
 
         runtime.shouldRejectPreparation = false
         runtime.shouldRejectActivation = false
         #expect(state.journey.startBattle(for: stage) == nil)
         #expect(state.battle.activeBattle?.runKey == runKey)
-        #expect(runtime.hasPreparedRun(siblingKey))
+        #expect(state.battleCoordinator.preparedRuns[siblingKey] != nil)
         state.endBattleReturningToOrigin()
-        #expect(!runtime.hasPreparedRun(siblingKey))
+        #expect(!(state.battleCoordinator.preparedRuns[siblingKey] != nil))
         #expect(state.battleRegistration(for: siblingKey) == nil)
     }
 
-    @Test func `rejected restart restores original metadata after runtime lookup`() throws {
+    @Test func `rejected restart receives presentation without publishing candidate metadata`() throws {
         let runtime = PreparedThenRejectingBattleRuntime()
         let state = try context.makePlaySession(battleRuntime: runtime)
         let stage = try PlayBattleLaunchTestSupport.firstJourneyStage()
@@ -499,9 +499,10 @@ extension AppStatePlayFlowTests {
         let original = try #require(state.battlePresentation(for: active))
         defer { runtime.onRestart = nil }
         var lookedUpReplacement = false
-        runtime.onRestart = { configuration in
+        runtime.onRestart = { configuration, presentation in
             lookedUpReplacement = configuration.id != active.id
-                && state.battlePresentation(for: configuration) != nil
+                && state.battlePresentation(for: configuration) == nil
+                && presentation.rewardPlan == original.rewardPlan
         }
 
         #expect(state.restartActiveBattle()?.title == PlayBattleCoordinator.activationFailureMessage.title)
@@ -517,7 +518,7 @@ extension AppStatePlayFlowTests {
         let journeyKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
 
         state.journey.prepareBattle(for: stage)
-        #expect(state.battle.hasPreparedRun(journeyKey))
+        #expect(state.battleCoordinator.preparedRuns[journeyKey] != nil)
 
         let labyrinthNodeID = "test-node-1"
         let labyrinthKey = PlayBattleOrigin.labyrinth(nodeID: labyrinthNodeID).runKey
@@ -538,14 +539,14 @@ extension AppStatePlayFlowTests {
         )
         let labyrinthRoute = PlayBattleRoute.labyrinth(nodeID: labyrinthNodeID, access: .free)
         #expect(state.battleCoordinator.prepare(labyrinthLaunch, route: labyrinthRoute))
-        #expect(state.battle.hasPreparedRun(labyrinthKey))
-        #expect(state.battle.hasPreparedRun(journeyKey))
+        #expect(state.battleCoordinator.preparedRuns[labyrinthKey] != nil)
+        #expect(state.battleCoordinator.preparedRuns[journeyKey] != nil)
 
         // Pruning for .labyrinth with empty survivors drops labyrinth runs
         // while preserving sibling modes (journey).
         state.battleCoordinator.prunePreparedRuns(for: .labyrinth, keeping: [])
-        #expect(!state.battle.hasPreparedRun(labyrinthKey))
-        #expect(state.battle.hasPreparedRun(journeyKey))
+        #expect(!(state.battleCoordinator.preparedRuns[labyrinthKey] != nil))
+        #expect(state.battleCoordinator.preparedRuns[journeyKey] != nil)
     }
 }
 
@@ -571,37 +572,40 @@ private class RejectingBattleRuntime: BattleRuntime {
     }
 
     var activeBattle: BattleRunConfiguration?
-    var preferredPreparedRunKey: BattleRunKey?
     var lifecyclePhase: BattleLifecyclePhase = .idle
     var isSuspendedForScenePhase = false
     var finalPartyHealthByCombatantID: [String: Int]?
+    weak var progression: (any BattleProgressionDelegate)?
 
-    func prepareBattleRun(_: BattleRunConfiguration) -> Bool {
+    func connectProgression(to delegate: any BattleProgressionDelegate) {
+        progression = delegate
+    }
+
+    func createPreparedRun(_: BattleRunConfiguration) -> (any PreparedBattleRunHandle)? {
+        nil
+    }
+
+    func publishPreparedPreview(_ preview: BattlePreparedPreview) {
+        if activeBattle == nil {
+            lifecyclePhase = preview.configurations.isEmpty ? .idle : .prepared
+        }
+    }
+
+    func activatePreparedBattle(_: any PreparedBattleRunHandle, presentation _: BattlePresentationContext) -> Bool {
         false
     }
 
-    func keepPreparedRuns(_: Set<BattleRunKey>) {}
-
-    func hasPreparedRun(_: BattleRunKey) -> Bool {
+    func activate(_: BattleRunConfiguration, presentation _: BattlePresentationContext) -> Bool {
         false
     }
 
-    func activatePreparedBattle(
-        runKey _: BattleRunKey,
-        configurationID _: UUID,
-    ) -> Bool {
+    func restart(_: BattleRunConfiguration, presentation _: BattlePresentationContext) -> Bool {
         false
     }
 
-    func activate(_: BattleRunConfiguration) -> Bool {
-        false
+    func endBattle() {
+        activeBattle = nil; lifecyclePhase = .idle
     }
-
-    func restart(_: BattleRunConfiguration) -> Bool {
-        false
-    }
-
-    func endBattle() {}
 
     func setSuspendedForScenePhase(_ suspended: Bool) {
         isSuspendedForScenePhase = suspended
@@ -611,57 +615,45 @@ private class RejectingBattleRuntime: BattleRuntime {
 }
 
 @MainActor
+private final class FixturePreparedRun: PreparedBattleRunHandle {
+    let configuration: BattleRunConfiguration
+    var isValid = true
+    init(_ configuration: BattleRunConfiguration) {
+        self.configuration = configuration
+    }
+
+    func invalidate() {
+        isValid = false
+    }
+}
+
+@MainActor
 private final class PreparedThenRejectingBattleRuntime: RejectingBattleRuntime {
     private(set) var prepareCount = 0
     var shouldRejectActivation = true
     var shouldRejectPreparation = false
-    var onRestart: ((BattleRunConfiguration) -> Void)?
-    private var preparedConfigurations: [BattleRunKey: BattleRunConfiguration] = [:]
+    var onRestart: ((BattleRunConfiguration, BattlePresentationContext) -> Void)?
 
-    override func hasPreparedRun(_ runKey: BattleRunKey) -> Bool {
-        preparedConfigurations[runKey] != nil
-    }
-
-    override func prepareBattleRun(_ configuration: BattleRunConfiguration) -> Bool {
+    override func createPreparedRun(_ configuration: BattleRunConfiguration) -> (any PreparedBattleRunHandle)? {
         prepareCount += 1
-        guard !shouldRejectPreparation, let runKey = configuration.runKey else { return false }
-        preparedConfigurations[runKey] = configuration
-        lifecyclePhase = .prepared
-        return true
+        return shouldRejectPreparation ? nil : FixturePreparedRun(configuration)
     }
 
-    override func activatePreparedBattle(
-        runKey: BattleRunKey,
-        configurationID: UUID,
-    ) -> Bool {
-        guard !shouldRejectActivation, let preparedConfiguration = preparedConfigurations[runKey],
-              preparedConfiguration.id == configurationID else { return false }
-        preparedConfigurations[runKey] = nil
-        activeBattle = preparedConfiguration
+    override func activatePreparedBattle(_ handle: any PreparedBattleRunHandle, presentation _: BattlePresentationContext) -> Bool {
+        guard !shouldRejectActivation, let run = handle as? FixturePreparedRun, run.isValid else { return false }
+        run.invalidate()
+        activeBattle = run.configuration
         lifecyclePhase = .active
         return true
     }
 
-    override func keepPreparedRuns(_ keys: Set<BattleRunKey>) {
-        guard activeBattle == nil else { return }
-        preparedConfigurations = preparedConfigurations.filter { keys.contains($0.key) }
-        lifecyclePhase = preparedConfigurations.isEmpty ? .idle : .prepared
-    }
-
-    override func restart(_ configuration: BattleRunConfiguration) -> Bool {
-        onRestart?(configuration)
+    override func restart(_ configuration: BattleRunConfiguration, presentation: BattlePresentationContext) -> Bool {
+        onRestart?(configuration, presentation)
         return false
     }
 
-    override func endBattle() {
-        activeBattle = nil
-        preparedConfigurations.removeAll()
-        lifecyclePhase = .idle
-    }
-
-    override func activate(_ configuration: BattleRunConfiguration) -> Bool {
+    override func activate(_ configuration: BattleRunConfiguration, presentation _: BattlePresentationContext) -> Bool {
         guard !shouldRejectActivation else { return false }
-        preparedConfigurations.removeAll()
         activeBattle = configuration
         lifecyclePhase = .active
         return true

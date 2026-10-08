@@ -14,7 +14,6 @@ from internal.markdown import headings
 from internal.cli import ROOT
 from internal.agent_arguments import AgentArgumentParser
 from internal.source_declarations import source_declarations
-from internal.agent_references import can_reuse, content_digest, read_receipt, record_read, session_receipt
 
 DOCUMENT_CHAR_BUDGET = 12_000
 RANGE_SUFFIXES = {".sh", ".env", ".json", ".yml", ".yaml", ".toml", ".tsv", ".txt",
@@ -35,33 +34,12 @@ def argument_parser() -> argparse.ArgumentParser:
     parser.add_argument("--signatures", action="store_true", help="show declaration headers and attached comments, without bodies")
     parser.add_argument("--kind", choices=("methods", "properties", "types"), help="filter source outlines/signatures")
     parser.add_argument("--match", help="case-insensitive name substring for source outlines/signatures")
-    parser.add_argument("--fingerprint", action="store_true", help="include the whole-file SHA-256 of the bytes being read")
-    parser.add_argument("--receipt", type=Path, help="record complete Markdown reads in a temporary chat-local receipt")
-    parser.add_argument("--chat", help="explicit chat identity for --receipt; use a fresh receipt for each chat")
-    parser.add_argument("--session", help="derive a chat-local receipt; record only complete Markdown reads, allowing mixed modes")
-    parser.add_argument("--reuse-guidance", action="store_true", help="explicitly reuse unchanged complete guidance still present in this chat; forget after context loss")
     return parser
 
 
 def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser = argument_parser()
     args = parser.parse_intermixed_args(argv)
-    if args.session is not None:
-        if args.receipt is not None or args.chat is not None:
-            parser.error("--session cannot combine with --receipt or --chat")
-        try:
-            args.receipt, args.chat = session_receipt(args.session, root), args.session
-        except ValueError as error:
-            parser.error(str(error))
-    if (args.receipt is None) != (args.chat is None):
-        parser.error("--receipt and --chat must be supplied together")
-    if args.reuse_guidance and args.receipt is None:
-        parser.error("--reuse-guidance requires --session or --receipt/--chat")
-    if args.receipt is not None:
-        try:
-            read_receipt(args.receipt, args.chat, root)
-        except (OSError, ValueError) as error:
-            parser.error(str(error))
     if not args.targets and not args.request:
         parser.error("supply targets or --request 'path [read flags]'")
     if not args.request:
@@ -69,7 +47,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     read_options = ("outline", "full", "lines", "offset", "limit", "include_locals", "symbol", "signatures", "kind", "match")
     defaults = parser.parse_args([])
     if args.targets or any(getattr(args, key) != getattr(defaults, key) for key in read_options):
-        parser.error("--request supplies each target and its read flags; only receipt/session, reuse and --fingerprint may be shared")
+        parser.error("--request supplies each target and its read flags; use per-request read flags")
     statuses = []
     seen = set()
     request_parser = argument_parser()
@@ -81,15 +59,12 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     for request in args.request:
         try:
             options = request_parser.parse_args(shlex.split(request))
-            if len(options.targets) != 1 or options.request or options.receipt or options.chat or options.session or options.reuse_guidance:
-                raise ValueError("each --request needs one target and read flags; put receipt/session options outside requests")
-            identity = (options.targets[0], *(repr(getattr(options, key)) for key in (*read_options, "fingerprint")))
+            if len(options.targets) != 1 or options.request:
+                raise ValueError("each --request needs one target and read flags")
+            identity = (options.targets[0], *(repr(getattr(options, key)) for key in read_options))
             if identity in seen:
                 continue
             seen.add(identity)
-            options.receipt, options.chat, options.session = args.receipt, args.chat, args.session
-            options.reuse_guidance = args.reuse_guidance
-            options.fingerprint |= args.fingerprint
             statuses.append(read_target(options.targets[0], options, root))
         except (ValueError, SystemExit) as error:
             print(f"Read request failed: {request}: {error}\nTry: python3 Scripts/agent-read.py --help", file=sys.stderr)
@@ -106,7 +81,7 @@ def recovery_command(target: str, args: argparse.Namespace, root: Path) -> list[
         lines = path.read_text(encoding="utf-8").splitlines()
         if not lines:
             raise ValueError("empty file")
-        if args.lines and not separator and args.receipt is None:
+        if args.lines and not separator:
             command = command[:2] + [name, '--lines', f'1:{min(80, len(lines))}']
         elif path.suffix in {".md", ".mdc"}:
             if separator and not any(entry.slug == unquote(anchor) for entry in headings(lines)):
@@ -120,12 +95,6 @@ def recovery_command(target: str, args: argparse.Namespace, root: Path) -> list[
             command = command[:2] + [name, "--lines", f"1:{len(lines) if args.full else min(80, len(lines))}"]
         else:
             raise ValueError("unsupported text")
-        if args.fingerprint:
-            command.append("--fingerprint")
-        if args.session is not None:
-            command += ["--session", args.session]
-        elif args.receipt is not None and path.suffix in {".md", ".mdc"} and "--outline" not in command:
-            command += ["--receipt", str(args.receipt), "--chat", args.chat]
         return command
     except (OSError, ValueError, UnicodeError):
         mode = "docs" if path.suffix in {".md", ".mdc"} else "source" if path.suffix in {".swift", ".py"} else "assets"
@@ -146,12 +115,9 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
         if args.lines or args.full:
             supported |= RANGE_SUFFIXES
         if not name or path.suffix not in supported:
-            raise ValueError("target must be Markdown, Swift, or Python; shell/config text requires --lines within the repository")
+            raise ValueError("target must be Markdown, Swift, or Python; shell/config text requires --lines or --full within the repository")
         if separator and path.suffix not in {".md", ".mdc"}:
             raise ValueError("anchors require Markdown")
-        if args.receipt is not None and args.session is None and (path.suffix not in {".md", ".mdc"} or args.lines or args.outline
-                                       or args.symbol or args.signatures or args.include_locals or args.kind or args.match):
-            raise ValueError("receipts require complete Markdown reads; navigation and ranges do not establish a read")
         data = path.read_bytes()
         source = data.decode("utf-8")
         lines = source.splitlines()
@@ -161,8 +127,6 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
             raise ValueError("declaration filters require --outline or --signatures")
         if args.full and path.suffix not in {".md", ".mdc"}:
             print(f"{relative}:1-{len(lines)} (complete text file)")
-            if args.fingerprint:
-                print(f"sha256:{content_digest(data)} (whole file)")
             for number, line in enumerate(lines, 1):
                 print(f"{number}: {line}")
             return 0
@@ -173,8 +137,6 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
             if not 1 <= start <= end <= len(lines):
                 raise ValueError(f"line range must be within 1:{len(lines)}")
             print(f"{relative}:{start}-{end} (requested range; not a completeness claim)")
-            if args.fingerprint:
-                print(f"sha256:{content_digest(data)} (whole file)")
             for number in range(start, end + 1):
                 print(f"{number}: {lines[number - 1]}")
             return 0
@@ -183,8 +145,6 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
             if separator or navigation == bool(args.symbol):
                 raise ValueError("source files require --outline, --symbol, or --lines; outline bounds must be nonnegative/positive")
             entries = source_declarations(path, source, args.include_locals)
-            if args.fingerprint:
-                print(f"{relative} sha256:{content_digest(data)} (whole file)")
             if args.symbol:
                 selected = []
                 ambiguous = []
@@ -211,10 +171,6 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
                             command += ['--symbol', symbol]
                         if args.include_locals:
                             command.append('--include-locals')
-                        if args.fingerprint:
-                            command.append('--fingerprint')
-                        if args.session is not None:
-                            command += ['--session', args.session]
                         print('Continue: ' + shlex.join(command + ['--offset', str(stop), '--limit', str(args.limit)]))
                     return 2
                 for entry in selected:
@@ -251,10 +207,6 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
                     command += ["--match", args.match]
                 if args.include_locals:
                     command.append("--include-locals")
-                if args.fingerprint:
-                    command.append("--fingerprint")
-                if args.session is not None:
-                    command += ["--session", args.session]
                 print("Continue: " + shlex.join(command))
             return 0
         if args.symbol or args.include_locals:
@@ -266,23 +218,12 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
             if selected is None:
                 raise ValueError(f"missing heading #{anchor}; use --outline {name}")
         start, end = (selected.start, selected.end) if selected else (1, len(lines))
-        if args.reuse_guidance and not args.outline and not (not separator and not args.full and len(source) > DOCUMENT_CHAR_BUDGET):
-            receipt = read_receipt(args.receipt, args.chat, root)
-            if can_reuse(receipt, root, target):
-                print(f"{target} [reused unchanged guidance; explicit context reuse]")
-                return 0
-        if args.fingerprint:
-            print(f"{relative} sha256:{content_digest(data)} (whole file)")
         automatic_outline = not separator and not args.full and len(source) > DOCUMENT_CHAR_BUDGET
         if args.outline or automatic_outline:
             if automatic_outline:
                 print(f"Navigation only: {len(source)} characters exceeds the {DOCUMENT_CHAR_BUDGET}-character default; document text has NOT been read.")
                 print("Read a section: python3 Scripts/agent-read.py '" + relative + "#<anchor>'")
                 command = ["python3", "Scripts/agent-read.py", relative, "--full"]
-                if args.session is not None:
-                    command += ["--session", args.session]
-                elif args.receipt is not None:
-                    command += ["--receipt", str(args.receipt), "--chat", args.chat]
                 print("Read full document: " + shlex.join(command))
             visible = [entry for entry in entries if start <= entry.start <= end]
             if args.offset > len(visible):
@@ -296,10 +237,6 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
                 print(f"Omitted {len(visible) - stop} headings.")
                 command = ["python3", "Scripts/agent-read.py", target,
                            "--outline", "--offset", str(stop), "--limit", str(args.limit)]
-                if args.fingerprint:
-                    command.append("--fingerprint")
-                if args.session is not None:
-                    command += ["--session", args.session]
                 print("Continue: " + shlex.join(command))
         else:
             print(f"{relative}:{start}-{end} (complete {'section' if selected else 'document'})")
@@ -310,8 +247,6 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
                     print(f"{parent.start}: {lines[parent.start - 1]}")
             for number in range(start, end + 1):
                 print(f"{number}: {lines[number - 1]}")
-            if args.receipt is not None:
-                record_read(args.receipt, args.chat, root, target, data)
         return 0
     except (OSError, ValueError, RuntimeError, SyntaxError, UnicodeError) as error:
         print(f"Read failed: {target}: {error}", file=sys.stderr)

@@ -32,7 +32,7 @@ extension BattleSession {
 
     func makeDefeatSettlement(for configuration: BattleRunConfiguration) -> BattleRewardSettlement? {
         guard let progress = resolvedDefeatProgress, let context = presentationContext else { return nil }
-        return progression?.settleDefeat(configuration)
+        return progression?.settleDefeatRewards(configuration, at: nil)
             ?? context.rewardPlan.settleDefeat(
                 progress: progress,
                 inputs: context.rewardInputs ?? Self.fallbackRewardInputs(for: configuration),
@@ -75,7 +75,7 @@ extension BattleSession {
     func claimDefeat(configurationID: UUID, settlement: BattleRewardSettlement, action: BattleDefeatAction) -> Bool {
         guard let configuration = activeBattle, configuration.id == configurationID,
               resolvedDefeatProgress != nil, let progression else { return false }
-        let result = progression.completeDefeat(configuration, settlement, action)
+        let result = progression.completeDefeat(configuration, settlement: settlement, action: action)
         guard activeBattle?.id == configurationID else { return result.didComplete }
         switch result {
         case .completed:

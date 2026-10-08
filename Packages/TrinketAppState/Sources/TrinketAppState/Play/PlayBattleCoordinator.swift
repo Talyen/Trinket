@@ -3,6 +3,7 @@ import Foundation
 import SwiftUI
 import TrinketContent
 import TrinketCore
+import TrinketFeatureContracts
 import TrinketPersistence
 
 /// Owns application battle transitions and their authoritative launch/reward data.
@@ -26,7 +27,8 @@ final class PlayBattleCoordinator {
     let battle: any BattleRuntime
     let battlePerformanceScenario: BattlePerformanceScenario?
     var nextCombatSeed: () -> UInt64 = { UInt64.random(in: .min ... .max) }
-    var preparedRuns: [BattleRunKey: PlayBattleRunRegistration] = [:]
+    var preparedRuns: [BattleRunKey: PreparedRun] = [:]
+    var preferredPreparedRunKey: BattleRunKey?
     var activeRun: PlayBattleRunRegistration?
     var claimState: ClaimState = .unclaimed
     var talentProgressionsBefore: [String: CombatantProgression] = [:]

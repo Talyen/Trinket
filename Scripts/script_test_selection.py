@@ -25,7 +25,7 @@ INTENTIONALLY_UNMAPPED = {
 # explicitly through SCRIPT_INPUTS, which takes precedence over this exclusion.
 PRODUCT_ROOTS = frozenset({
     "Packages", "Trinket", "TrinketUITests", "ContentManifest", "ArtManifest",
-    "CinematicManifest", "MusicManifest", "SoundManifest", "Raw Assets",
+    "MusicManifest", "SoundManifest", "Raw Assets",
     "StoreKit", "Performance",
 })
 SHELL_FAMILIES = (({'Scripts/build-for-testing.sh',
@@ -59,7 +59,6 @@ SHELL_FAMILIES = (({'Scripts/build-for-testing.sh',
    'Scripts/prepare-art-assets.sh',
    'Scripts/prepare-assets.sh',
    'Scripts/prepare-audio-assets.sh',
-   'Scripts/prepare-cinematic-assets.sh',
    'Scripts/report-art-memory.sh'},
   {'test-asset-hash-sort-locale.sh'}),
  ({'Scripts/config/simulator-names.env',
@@ -96,7 +95,7 @@ def regression_families(root: Path = ROOT) -> list[tuple[set[str], set[str]]]:
             if not isinstance(inputs, (tuple, list)) or not all(isinstance(value, str) for value in inputs):
                 raise ValueError("SCRIPT_INPUTS must be a literal tuple/list of repository-relative paths or globs")
             for value in inputs:
-                if not value or Path(value).is_absolute() or ".." in Path(value).parts:
+                if not value or Path(value).is_absolute() or ".." in Path(value).parts or (root / value).is_dir():
                     raise ValueError(f"invalid SCRIPT_INPUTS path: {value!r}")
             families.append((set(inputs), {path.relative_to(root).as_posix()}))
         except (OSError, SyntaxError, ValueError, TypeError) as error:

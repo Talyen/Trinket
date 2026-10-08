@@ -17,8 +17,10 @@ struct BattleSessionSettlementFallbackTests {
         )
         let session = BattleSession(outcomePresentationDelayOverride: .zero)
         let alternative = Self.alternativePlan
-        Self.configure(session, context: context, plan: authoritative ? alternative : nil)
-        #expect(session.activate(configuration))
+        let progression = BattleProgressionProbe(session: session, presentation: context, plan: authoritative ? alternative : nil)
+        session.connectProgression(to: progression)
+        defer { withExtendedLifetime(progression) {} }
+        #expect(session.activate(configuration, presentation: context))
         defer { session.endBattle() }
 
         var state = try #require(session.engineState)
@@ -47,8 +49,10 @@ struct BattleSessionSettlementFallbackTests {
         )
         let session = BattleSession(outcomePresentationDelayOverride: .zero)
         let alternative = Self.alternativePlan
-        Self.configure(session, context: context, plan: authoritative ? alternative : nil)
-        #expect(session.activate(configuration))
+        let progression = BattleProgressionProbe(session: session, presentation: context, plan: authoritative ? alternative : nil)
+        session.connectProgression(to: progression)
+        defer { withExtendedLifetime(progression) {} }
+        #expect(session.activate(configuration, presentation: context))
         defer { session.endBattle() }
 
         var state = try #require(session.engineState)
@@ -83,30 +87,4 @@ struct BattleSessionSettlementFallbackTests {
         heroExperience: 200, companionExperience: 120,
         materials: [], items: [],
     )
-
-    private static func configure(
-        _ session: BattleSession,
-        context: BattlePresentationContext,
-        plan: BattleRewardPlan?,
-    ) {
-        session.configureProgression(
-            presentation: { _ in context },
-            settleRewards: { configuration, gold in
-                plan?.settle(
-                    battleGold: gold,
-                    inputs: context.rewardInputs ?? BattleSession.fallbackRewardInputs(for: configuration),
-                )
-            },
-            completeVictory: { _, _, _, _ in .unavailable },
-            settleDefeat: { [weak session] configuration in
-                guard let plan, let progress = session?.resolvedDefeatProgress else { return nil }
-                return plan.settleDefeat(
-                    progress: progress,
-                    inputs: context.rewardInputs ?? BattleSession.fallbackRewardInputs(for: configuration),
-                )
-            },
-            completeDefeat: { _, _, _ in .unavailable },
-            finishPresentation: { _ in },
-        )
-    }
 }

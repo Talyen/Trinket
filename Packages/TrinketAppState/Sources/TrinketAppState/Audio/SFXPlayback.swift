@@ -73,9 +73,11 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
             catalogWarmTask = Task { [weak self] in
                 _ = await self?.prepareAndStart(SFXCatalog.clips.map(\.id), voiceCount: voiceCount)
             }
-        case .stop: stop()
+        case .stop:
+            invalidatePendingLoads()
+            backend.stop()
         case .release:
-            stop()
+            invalidatePendingLoads()
             backend.releaseResources()
             resources.removeAll()
         }
@@ -121,7 +123,7 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
         return generation == startedGeneration && !Task.isCancelled && backend.start()
     }
 
-    private func stop() {
+    private func invalidatePendingLoads() {
         generation &+= 1
         catalogWarmTask?.cancel()
         catalogWarmTask = nil
@@ -130,6 +132,5 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
             task.cancel()
             return false
         }
-        backend.stop()
     }
 }

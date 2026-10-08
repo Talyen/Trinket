@@ -30,9 +30,8 @@ material decisions/risks/blockers, and distinguish verified behavior from infere
 
 ## Route and read
 
-For an indexed concern, start with `python3 Scripts/agent-session.py brief --task <concern>`
-(outside Codex, pass `--chat <conversation-id>` before `brief`);
-it routes status, safeguards, initial guidance and source/test pointers together.
+For an indexed concern, start with `python3 Scripts/agent-brief.py --status --task <concern>`
+to route status, safeguards, initial guidance and source/test pointers together.
 Otherwise discover with `python3 Scripts/agent-search.py --files <pattern> --scope <owner>`;
 use `'<concern>' --task` to find an index entry or `--overview` for an unknown owner.
 Asset filenames use `--mode assets --files`.

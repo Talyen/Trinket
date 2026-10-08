@@ -1,4 +1,3 @@
-import BattleEngine
 import SwiftUI
 import TrinketAppState
 import TrinketContent
@@ -54,15 +53,6 @@ struct OptionsView: View {
             }
 
             Section("Battle") {
-                if BattleFeatureFlags.ultimateCinematicAnimationsEnabled {
-                    Picker("Ultimate Animations", selection: $options.ultimateCinematicShowPolicy) {
-                        ForEach(UltimateCinematicShowPolicy.allCases) { policy in
-                            Text(policy.displayName).tag(policy)
-                        }
-                    }
-                    .accessibilityIdentifier(AccessibilityID.Options.showAnimationsPicker)
-                }
-
                 Toggle(isOn: $options.rememberAutoBattlePreference) {
                     Label {
                         Text("Remember Auto-Battle Preference")
@@ -166,10 +156,6 @@ struct OptionsView: View {
 
         #if DEBUG
         Section {
-            NavigationLink("Preview Lab") {
-                PreviewLabView()
-            }
-
             NavigationLink("Battle Transitions") {
                 BattleTransitionsPreviewView { stage in
                     BattleTransitionLabView(stage: stage) { enterBattle in

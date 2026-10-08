@@ -10,7 +10,8 @@ extension BattleState {
         if original.blockCost > 0 {
             resources.append(resourceUse(.block, amount: original.blockCost, actor: actor))
         }
-        let healthCost = BattleAbilityRules.healthCost(branch.damageComponents, actor: actor, in: self)
+        let damageComponents = branch.damageComponents
+        let healthCost = BattleAbilityRules.healthCost(damageComponents, actor: actor, in: self)
         if healthCost > 0 {
             resources.append(resourceUse(.health, amount: healthCost, actor: actor))
         }
@@ -27,7 +28,7 @@ extension BattleState {
             let target = action.target(targeted.target, in: self)
             let mana = mana(of: target)
             guard mana > 0 else { continue }
-            let isCertain = branch.damageComponents.isEmpty
+            let isCertain = damageComponents.isEmpty
             mergeResource(resourceUse(.mana, amount: isCertain ? mana : nil, actor: target), into: &resources)
         }
         return resources

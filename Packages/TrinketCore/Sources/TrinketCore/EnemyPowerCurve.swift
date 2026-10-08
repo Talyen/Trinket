@@ -3,8 +3,8 @@ import Foundation
 public enum EnemyPowerCurve {
     /// Bracket boundaries; the single source of truth read directly by
     /// `ExperienceScaling.baseBattleAward`.
-    public static let midLevel = 20
-    public static let lateLevel = 40
+    static let midLevel = 20
+    static let lateLevel = 40
 
     public static func health(level: Int, isBoss: Bool) -> Double {
         interpolate(
@@ -44,10 +44,8 @@ public enum EnemyPowerCurve {
         return low.value + (high.value - low.value) * eased
     }
 
-    /// Shared easing for curve interpolation and XP falloff. Public so the
-    /// cross-file caller (`ExperienceScaling`) does not depend on an
-    /// undocumented internal; behavior unchanged.
-    public static func progressionSmoothstep(_ value: Double) -> Double {
+    /// Shared easing for curve interpolation and XP falloff within Core.
+    static func progressionSmoothstep(_ value: Double) -> Double {
         let clamped = min(max(value, 0), 1)
         return clamped * clamped * (3 - (2 * clamped))
     }

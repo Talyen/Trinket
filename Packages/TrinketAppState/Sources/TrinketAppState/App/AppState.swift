@@ -5,6 +5,7 @@ import os
 import SwiftUI
 import TrinketContent
 import TrinketCore
+import TrinketFeatureContracts
 import TrinketPersistence
 import UIKit
 
@@ -36,8 +37,8 @@ public final class AppState {
         environment: AppEnvironment = .shared,
         playerSave: PlayerSaveStore? = nil,
         userDefaults: UserDefaults? = nil,
-        makeBattleRuntime: ((BattleRuntimeDependencies) -> any BattleRuntime)? = nil,
-        configureBattleRuntime: ((any BattleRuntime, PlaySession) -> Void)? = nil,
+        makeBattleRuntime: (BattlePresentationDependencies) -> any BattleRuntime,
+        battleRewardDate: @escaping @MainActor () -> Date = { Date() },
     ) throws {
         self.environment = environment
         let resolvedDefaults = userDefaults ?? .standard
@@ -67,17 +68,17 @@ public final class AppState {
             sfxPlayer: dependencies.sfxPlayer,
             pendingDestination: dependencies.pendingPlayDestination,
             battlePerformanceScenario: environment.battlePerformanceScenario,
+            battleRewardDate: battleRewardDate,
         )
-        configureBattleRuntime?(resolvedBattle, play)
         finishBootstrap(environment: environment)
         installCloudSynchronization()
     }
 
     private static func resolveBattleRuntime(
-        factory: ((BattleRuntimeDependencies) -> any BattleRuntime)?,
+        factory: (BattlePresentationDependencies) -> any BattleRuntime,
         dependencies: BootstrapDependencies,
     ) -> any BattleRuntime {
-        guard let resolved = factory?(BattleRuntimeDependencies(
+        factory(BattlePresentationDependencies(
             playSFX: { ids in
                 dependencies.sfxPlayer.playAll(
                     ids,
@@ -93,9 +94,6 @@ public final class AppState {
             hapticsEnabled: {
                 dependencies.options.hapticsEnabled
             },
-            effectsVolume: {
-                dependencies.options.effectsVolume
-            },
             rememberAutoBattlePreference: {
                 dependencies.options.rememberAutoBattlePreference
             },
@@ -105,18 +103,7 @@ public final class AppState {
             setAutoBattleEnabled: { enabled in
                 dependencies.options.autoBattleEnabled = enabled
             },
-            shouldAutoSkipUltimateCinematic: { actorID, presentedActors in
-                dependencies.options.shouldAutoSkipUltimateCinematic(
-                    actorID: actorID,
-                    actorsWhoPresentedThisBattle: presentedActors,
-                )
-            },
-        )) else {
-            preconditionFailure(
-                "AppState requires a battle runtime. Pass `makeBattleRuntime`.",
-            )
-        }
-        return resolved
+        ))
     }
 
     public func consumePendingCollectionPresentation() -> LaunchPresentation? {

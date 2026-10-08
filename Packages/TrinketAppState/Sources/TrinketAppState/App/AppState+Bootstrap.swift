@@ -49,9 +49,6 @@ extension AppState {
         let resolvedShellSession = ShellSession(selectedTab: selectedTab(environment: environment))
 
         let resolvedOptions = OptionsStore(defaults: userDefaults)
-        if environment.seedTestProgress {
-            resolvedOptions.ultimateCinematicShowPolicy = .never
-        }
 
         let launch = launchResolution(for: environment.launchScreen)
 

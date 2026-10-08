@@ -11,10 +11,6 @@ extension BattleSession {
         let companionName: String
     }
 
-    var preparedBattleRuns: [PreparedBattleRuns.Run] {
-        preparedRuns.runs
-    }
-
     var phase: BattlePhase? {
         engineState?.phase
     }
@@ -74,8 +70,9 @@ extension BattleSession {
                 configurationID: activeBattle.id,
             )
         }
-        guard let run = preparedRuns.selected else { return nil }
-        return run.state.battlePresentationSnapshot(
+        guard let run = preparedPreview.selected as? PreparedBattleSimulation,
+              let state = run.state(for: self) else { return nil }
+        return state.battlePresentationSnapshot(
             configurationID: run.configuration.id,
         )
     }
@@ -84,7 +81,7 @@ extension BattleSession {
         if let activeBattle {
             return activeBattle
         }
-        return preparedRuns.selected?.configuration
+        return preparedPreview.selected?.configuration
     }
 
     func mutateEngine<T>(_ work: (inout BattleState) -> T) -> T? {
@@ -171,74 +168,58 @@ extension BattleSession {
         mutateEngine { $0.releaseLogProjection() }
     }
 
-    func preparedBattleRun(for runKey: BattleRunKey) -> PreparedBattleRuns.Run? {
-        preparedRuns.run(for: runKey)
+    public func createPreparedRun(_ configuration: BattleRunConfiguration) -> (any PreparedBattleRunHandle)? {
+        guard activeBattle == nil, configuration.runKey != nil else { return nil }
+        return PreparedBattleSimulation(
+            configuration: configuration, state: makeBattleState(from: configuration),
+            owner: self, generation: preparationGeneration,
+        )
     }
 
-    @discardableResult
-    public func prepareBattleRun(_ configuration: BattleRunConfiguration) -> Bool {
-        guard activeBattle == nil, let runKey = configuration.runKey else { return false }
-        guard preparedRuns.prepare(configuration, for: runKey, makeState: {
-            makeBattleState(from: configuration)
-        }) else { return true }
+    public func publishPreparedPreview(_ preview: BattlePreparedPreview) {
+        guard preparedPreview.configurations.map(\.id) != preview.configurations.map(\.id)
+            || preparedPreview.selected !== preview.selected else { return }
+        preparedPreview = preview
+        // Activation itself replaces the display; sibling membership is a read projection.
+        if activeBattle == nil {
+            preparedBattlePresentationRevision += 1
+            installSimulationPresentation()
+        }
         retainPreparedArtworkPins()
-        installSimulationPresentation()
-        return true
-    }
-
-    public func keepPreparedRuns(_ keys: Set<BattleRunKey>) {
-        guard activeBattle == nil else { return }
-        guard preparedRuns.retain(keys) else { return }
-        retainPreparedArtworkPins()
-        installSimulationPresentation()
-    }
-
-    public func hasPreparedRun(_ runKey: BattleRunKey) -> Bool {
-        preparedRuns.run(for: runKey) != nil
     }
 
     public func activatePreparedBattle(
-        runKey: BattleRunKey,
-        configurationID: UUID,
+        _ handle: any PreparedBattleRunHandle,
+        presentation: BattlePresentationContext,
     ) -> Bool {
-        guard activeBattle == nil,
-              let preparedBattleRun = preparedRuns.matches(runKey, configurationID: configurationID)
-        else { return false }
-
-        guard installActiveBattle(preparedBattleRun.configuration, state: preparedBattleRun.state) else { return false }
-        preparedRuns.removeActivated(runKey)
+        guard activeBattle == nil, let prepared = handle as? PreparedBattleSimulation,
+              let state = prepared.state(for: self) else { return false }
+        guard installActiveBattle(prepared.configuration, state: state, presentation: presentation) else { return false }
+        prepared.invalidate()
         return true
-    }
-
-    @discardableResult
-    public func activate(_ configuration: BattleRunConfiguration) -> Bool {
-        activate(configuration, presentation: nil)
     }
 
     @discardableResult
     public func activate(
         _ configuration: BattleRunConfiguration,
-        presentation: BattlePresentationContext?,
+        presentation: BattlePresentationContext = .empty,
     ) -> Bool {
         install(configuration: configuration, presentation: presentation, mode: .fresh)
     }
 
     @discardableResult
-    public func restart(_ configuration: BattleRunConfiguration) -> Bool {
-        restart(configuration, presentation: nil)
-    }
-
-    @discardableResult
     public func restart(
         _ configuration: BattleRunConfiguration,
-        presentation: BattlePresentationContext?,
+        presentation: BattlePresentationContext = .empty,
     ) -> Bool {
         install(configuration: configuration, presentation: presentation, mode: .restart)
     }
 
     public func endBattle() {
         activeBattle = nil
-        preparedRuns.clearForEnd()
+        preparationGeneration &+= 1
+        preparedBattlePresentationRevision += preparedPreview.configurations.isEmpty && preparedPreview.selected == nil ? 0 : 1
+        preparedPreview = .empty
         releasePreparedArtworkPins()
         engineState = nil
         clearRunState()
@@ -287,7 +268,8 @@ extension BattleSession {
         guard installActiveBattle(
             configuration, state: makeBattleState(from: configuration), presentation: presentation,
         ) else { return false }
-        preparedRuns.discardForActiveBattle()
+        preparationGeneration &+= 1
+        preparedPreview = .empty
         retainPreparedArtworkPins()
         return true
     }

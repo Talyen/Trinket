@@ -81,6 +81,7 @@ xcode_runner_run() {
   local attempt=1
   local xcode_exit=0
   local result_failed=false
+  local summary_counts_known summary_executed summary_json
   local restore_errexit=false
   local prepare_results_dir
 
@@ -228,28 +229,26 @@ xcode_runner_run() {
       if [[ "$restore_errexit" == "true" ]]; then set -e; else set +e; fi
     fi
 
-    result_failed=false
-    if xcode_runner_result_failed "$result_bundle"; then
-      result_failed=true
-    fi
+    read -r result_failed summary_counts_known summary_executed summary_json <<< "$(xcode_runner_summary_evidence "$result_bundle")"
     if [[ "$xcode_exit" -eq 0 && "$result_failed" == "true" ]]; then
       xcode_exit=1
     fi
-    if xcode_runner_log_proves_test_execution "$log_file"; then
+    if [[ "$summary_executed" == true ]] \
+      || { [[ "$summary_counts_known" != true ]] && xcode_runner_log_proves_test_execution "$log_file"; }; then
       XCODE_RUNNER_TEST_EXECUTION_PROVEN="true"
       export XCODE_RUNNER_TEST_EXECUTION_PROVEN
     fi
-    if [[ "$xcode_exit" -eq 0 && "$XCODE_RUNNER_COMPLETION_SOURCE" == "watchdog-log-inference" ]]; then
+    if [[ "$xcode_exit" -eq 0 ]]; then
       local command_action="$XCODE_RUNNER_ACTION"
       [[ "$command_action" != unknown ]] || command_action="${command_args[1]:-}"
       if [[ "$command_action" == "test" || "$command_action" == "test-without-building" ]] \
         && [[ "$XCODE_RUNNER_TEST_EXECUTION_PROVEN" != "true" ]]; then
-        echo "xcode-runner: terminal suite marker did not prove that any tests executed." >&2
+        echo "xcode-runner: no result summary or completed-test log proved that any tests executed." >&2
         xcode_exit=1
       fi
     fi
     if [[ "$xcode_exit" -eq 0 ]]; then
-      xcode_runner_write_manifest "$result_bundle" "$report_prefix" 0 "$label"
+      xcode_runner_write_manifest "$result_bundle" "$report_prefix" 0 "$label" "$summary_json"
       return 0
     fi
 
@@ -292,7 +291,7 @@ xcode_runner_run() {
   xcode_runner_call_reporter \
     "$result_bundle" "$log_file" "$xcode_exit" "$label" "$report_prefix" "$defer_terminal_output" \
     || true
-  xcode_runner_write_manifest "$result_bundle" "$report_prefix" "$xcode_exit" "$label"
+  xcode_runner_write_manifest "$result_bundle" "$report_prefix" "$xcode_exit" "$label" "$summary_json"
 
   return "$xcode_exit"
 }

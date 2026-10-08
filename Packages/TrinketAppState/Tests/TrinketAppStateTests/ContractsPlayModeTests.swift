@@ -16,7 +16,7 @@ struct ContractsPlayModeTests {
         #expect(play.contracts.enter() == nil)
         let board = play.playerSave.contracts
         let standard = try #require(board.offer(for: .standard))
-        #expect(!play.battle.hasPreparedRun(PlayBattleOrigin.contract(offerID: standard.id).runKey))
+        #expect(!(play.battleCoordinator.preparedRuns[PlayBattleOrigin.contract(offerID: standard.id).runKey] != nil))
         var roster = play.playerSave.roster
         roster.unlockHero(id: "wizard")
         roster.unlockCompanion(id: "frost_whelp")
@@ -65,7 +65,7 @@ struct ContractsPlayModeTests {
         #expect(play.contracts.refresh() == nil)
         let board = play.playerSave.contracts
         for offer in board.offers {
-            #expect(!play.battle.hasPreparedRun(PlayBattleOrigin.contract(offerID: offer.id).runKey))
+            #expect(!(play.battleCoordinator.preparedRuns[PlayBattleOrigin.contract(offerID: offer.id).runKey] != nil))
         }
         let offer = try #require(board.offer(for: difficulty))
         var roster = play.playerSave.roster

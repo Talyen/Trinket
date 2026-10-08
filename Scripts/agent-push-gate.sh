@@ -7,8 +7,6 @@ cd "$(dirname "$0")/.."
 # shellcheck source=lib/tools.sh
 source Scripts/lib/tools.sh
 
-# shellcheck source=Scripts/change-classification.sh
-source Scripts/change-classification.sh
 
 PATH_MODE="working-tree"
 declare -a requested_paths=()
@@ -93,7 +91,13 @@ trinket_collect_committed_paths() {
   fi
 }
 
-trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
+if [[ "$PATH_MODE" == explicit ]]; then
+  normalized="$(PYTHONPATH=Scripts python3 -m internal.change_routing --paths "${requested_paths[@]}")"
+else
+  normalized="$(PYTHONPATH=Scripts python3 -m internal.change_routing --working-tree)"
+fi
+TRINKET_CHANGED_PATHS=()
+while IFS= read -r path; do [[ -z "$path" ]] || TRINKET_CHANGED_PATHS+=("$path"); done <<< "$normalized"
 if [[ "$PATH_MODE" == "working-tree" ]]; then
   working_paths=("${TRINKET_CHANGED_PATHS[@]-}")
   trinket_collect_committed_paths
@@ -101,7 +105,7 @@ if [[ "$PATH_MODE" == "working-tree" ]]; then
   TRINKET_CHANGED_PATHS=()
   for path in "${working_paths[@]}" "${committed_paths[@]}"; do
     [[ -n "$path" ]] || continue
-    trinket_add_unique TRINKET_CHANGED_PATHS "$path"
+    TRINKET_CHANGED_PATHS+=("$path")
   done
 fi
 
@@ -115,11 +119,6 @@ report_change_budget() {
 
 if [[ "$PATH_MODE" == "working-tree" ]]; then
   echo "Commit scope: ${#TRINKET_CHANGED_PATHS[@]} path(s) selected for generation routing."
-fi
-if [[ ${#TRINKET_CHANGED_PATHS[@]} -gt 0 ]]; then
-  trinket_classify_paths
-else
-  trinket_reset_classification
 fi
 
 echo "=== Agent push gate: committed generated outputs ==="

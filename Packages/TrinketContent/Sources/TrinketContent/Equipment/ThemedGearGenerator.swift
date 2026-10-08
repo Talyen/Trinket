@@ -1,4 +1,3 @@
-import Foundation
 import TrinketCore
 
 public struct ThemedGearBuild: Equatable, Hashable, Sendable {

@@ -37,11 +37,11 @@ encounter orchestration plus `Modes/`; `Purchases/` owns StoreKit access;
   a sibling's.
 - Encounter sessions, device-local options, app audio routing
 
-Production code uses `BattleEngine` (`BattleRuntime`) and feature contracts for its battle
+Production code uses `BattleEngine` values and FeatureContracts (`BattleRuntime`) for its battle
 boundary — never concrete BattleFeature. Persistence owns save-mutation semantics;
 AppState decides when and consumes committed domain results. Unrestricted mutation
-closures and receipt collection stay internal to Persistence. The app composition root connects battle progression once
-before bootstrap through `configureBattleRuntime`; view appearance is not part of
+closures and receipt collection stay internal to Persistence. The app composition root supplies the required runtime factory. PlaySession
+connects its typed progression delegate before bootstrap; view appearance is not part of
 the reward or completion lifecycle.
 
 `FullGameStore` owns StoreKit product loading, verified purchase ownership,
@@ -83,7 +83,7 @@ setup; deterministic transition tests use controlled loads and silent fake voice
 ## Sound effects
 
 SFX use a prestarted `AVAudioEngine`. Battle event mapping stays in
-`TrinketBattleFeature` via `BattleRuntimeDependencies`.
+`TrinketBattleFeature` via `BattlePresentationDependencies`.
 The audio actor owns buffer caching, shared in-flight loads, voice pools, and typed
 play/warm/stop/release commands. Its internal backend owns AVFoundation decoding,
 engine recovery, and native voice operations. Commands from

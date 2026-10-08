@@ -5,7 +5,6 @@ SCRIPT_INPUTS = (
     'Scripts/config/generated-paths.tsv',
     'Scripts/config/agent-tasks.json',
     'Scripts/internal/agent_tasks.py',
-    'Scripts/internal/agent_references.py',
     'Scripts/internal/agent_arguments.py',
 )
 

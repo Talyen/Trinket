@@ -23,7 +23,6 @@ runs:
           ArtManifest
           MusicManifest
           SoundManifest
-          CinematicManifest
           .github
     - name: Assert sparse checkout kept root build inputs
       shell: bash

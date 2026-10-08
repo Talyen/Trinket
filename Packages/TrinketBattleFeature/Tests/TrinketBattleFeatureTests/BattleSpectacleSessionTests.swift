@@ -11,13 +11,18 @@ import TrinketFeatureSupport
 @MainActor
 struct BattleSpectacleSessionTests {
     @Test(arguments: [false, true])
-    func `unmapped ultimate killing blow presents victory without blocking`(alreadyClaimed: Bool) {
+    func `ultimate killing blow presents victory without blocking`(alreadyClaimed: Bool) {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
             abilities: [.bloodthorn],
         )
         var deliveryCount = 0
+        let progression = BattleProgressionProbe(completeVictory: { _, _, _ in
+            deliveryCount += 1
+            return .completed
+        })
+        defer { withExtendedLifetime(progression) {} }
         let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
             companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
@@ -28,10 +33,7 @@ struct BattleSpectacleSessionTests {
                 abilities: [],
             ),
             stageRewardsAlreadyClaimed: alreadyClaimed,
-            completeVictory: { _, _, _ in
-                deliveryCount += 1
-                return .completed
-            },
+            progression: progression,
         )
         let now = Date()
         _ = BattleSessionTestSupport.playAbility(
@@ -50,10 +52,9 @@ struct BattleSpectacleSessionTests {
             #expect(session.spectacle.outcomePresentation.victorySummaryIfAvailable != nil)
             #expect(session.spectacle.outcomePresentation.isVictoryPresented)
         }
-        #expect(session.spectacle.ultimateHighlightsByActorID.isEmpty || session.spectacle.ultimateHighlightsByActorID["hero"] != nil)
     }
 
-    @Test func `unmapped ultimate aligns feedback with impact and starts highlight immediately`() throws {
+    @Test func `ultimate aligns feedback with impact without blocking combat`() throws {
         let session = BattleSessionTestSupport.makeUltimateSession(
             heroID: "hero",
             abilities: [.slash, .fireball, .bloodthorn],
@@ -73,11 +74,10 @@ struct BattleSpectacleSessionTests {
 
         presentPendingImpacts(in: session)
         #expect(!session.feedback.activeItems.isEmpty)
-        #expect(session.spectacle.ultimateHighlightsByActorID["hero"] != nil)
         #expect(session.canEndTurn == true)
     }
 
-    @Test func `mapped hero ultimate shows in-frame highlight without blocking combat`() throws {
+    @Test func `hero ultimate keeps combat ready while presenting impact feedback`() throws {
         let session = BattleSessionTestSupport.makeUltimateSession()
         let now = Date()
         let ultimate = try #require(
@@ -92,170 +92,12 @@ struct BattleSpectacleSessionTests {
             at: now,
         )
 
-        let highlight = try #require(session.spectacle.ultimateHighlightsByActorID["knight"])
-        #expect(highlight.abilityID == Ability.avatarOfJustice.id)
-        #expect(highlight.actorID == "knight")
         presentPendingImpacts(in: session)
         #expect(!session.feedback.activeItems.isEmpty)
         #expect(session.canEndTurn == true)
-
-        session.clearUltimateHighlight(for: "knight")
-        #expect(session.spectacle.ultimateHighlightsByActorID["knight"] == nil)
-        presentPendingImpacts(in: session)
-        #expect(!session.feedback.activeItems.isEmpty)
     }
 
-    @Test(arguments: [false, true])
-    func `in-frame highlight expires while active and remains in a retiring presentation`(endBattle: Bool) async throws {
-        let session = BattleSessionTestSupport.makeUltimateSession(
-            ultimateInFrameDurationOverride: 0.01,
-        )
-        let now = Date()
-        let ultimate = try #require(
-            BattleSessionTestSupport.drawUntilPlayable(
-                Ability.avatarOfJustice.id,
-                on: session,
-                at: now,
-            ),
-        )
-        _ = session.playCard(cardID: ultimate.id, at: now)
-        #expect(session.spectacle.ultimateHighlightsByActorID["knight"] != nil)
-        if endBattle {
-            let outgoing = session.spectacle
-            let highlight = outgoing.ultimateHighlightsByActorID["knight"]
-            let entry = try #require(outgoing.pendingUltimateHighlightTasksByActorID["knight"])
-            let expiration = try #require(entry.task)
-            session.endBattle()
-            await expiration.value
-            #expect(expiration.isCancelled)
-            #expect(outgoing.ultimateHighlightsByActorID["knight"] == highlight)
-            #expect(session.spectacle.ultimateHighlightsByActorID.isEmpty)
-            #expect(session.spectacle.cinematics !== outgoing.cinematics)
-        } else {
-            #expect(try await BattleSessionTestSupport.waitUntil(timeout: .seconds(2)) {
-                session.spectacle.ultimateHighlightsByActorID["knight"] == nil
-            })
-            #expect(session.canEndTurn)
-        }
-    }
-
-    @Test func `always policy skips in-frame highlight but keeps feedback`() throws {
-        let session = BattleSessionTestSupport.makeUltimateSession(
-            presentationEnvironment: BattleSessionTestSupport.presentationEnvironment(
-                shouldAutoSkipUltimateCinematic: { _, _ in true },
-            ),
-        )
-
-        let now = Date()
-        let ultimate = try #require(
-            BattleSessionTestSupport.drawUntilPlayable(
-                Ability.avatarOfJustice.id,
-                on: session,
-                at: now,
-            ),
-        )
-        _ = session.playCard(
-            cardID: ultimate.id,
-            at: now,
-        )
-
-        #expect(session.spectacle.ultimateHighlightsByActorID["knight"] == nil)
-        presentPendingImpacts(in: session)
-        #expect(!session.feedback.activeItems.isEmpty)
-    }
-
-    @Test func `disabled ultimate cinematic feature keeps feedback without a highlight`() throws {
-        let session = BattleSessionTestSupport.makeUltimateSession(
-            presentationEnvironment: BattleSessionTestSupport.presentationEnvironment(
-                shouldAutoSkipUltimateCinematic: { _, _ in false },
-                ultimateCinematicAnimationsEnabled: { false },
-            ),
-        )
-
-        let now = Date()
-        let ultimate = try #require(
-            BattleSessionTestSupport.drawUntilPlayable(
-                Ability.avatarOfJustice.id,
-                on: session,
-                at: now,
-            ),
-        )
-        _ = session.playCard(cardID: ultimate.id, at: now)
-
-        #expect(session.spectacle.ultimateHighlightsByActorID.isEmpty)
-        presentPendingImpacts(in: session)
-        #expect(!session.feedback.activeItems.isEmpty)
-    }
-
-    @Test func `once per battle shows highlight once then skips`() throws {
-        let session = BattleSessionTestSupport.makeUltimateSession(
-            enemyHealth: 2000,
-            presentationEnvironment: BattleSessionTestSupport.presentationEnvironment(
-                shouldAutoSkipUltimateCinematic: { actorID, presentedActors in
-                    presentedActors.contains(actorID)
-                },
-            ),
-        )
-
-        let firstUltimateAt = Date()
-        _ = BattleSessionTestSupport.playAbility(
-            Ability.avatarOfJustice.id,
-            on: session,
-            at: firstUltimateAt,
-        )
-        #expect(session.spectacle.ultimateHighlightsByActorID["knight"] != nil)
-        session.clearUltimateHighlight(for: "knight")
-
-        let secondUltimateAt = firstUltimateAt.addingTimeInterval(10)
-        let secondUltimate = try #require(
-            BattleSessionTestSupport.drawUntilPlayable(
-                Ability.avatarOfJustice.id,
-                on: session,
-                at: secondUltimateAt,
-            ),
-        )
-        let playAt = secondUltimateAt.addingTimeInterval(5)
-        session.feedback.pruneExpired(at: playAt)
-        _ = session.playCard(
-            cardID: secondUltimate.id,
-            at: playAt,
-        )
-        #expect(session.spectacle.ultimateHighlightsByActorID["knight"] == nil)
-        presentPendingImpacts(in: session)
-        #expect(!session.feedback.activeItems.isEmpty)
-    }
-
-    @Test func `enemy ultimate does not present highlight`() {
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 200,
-            abilities: [.slash, .fireball, .bloodthorn],
-        )
-        let session = BattleSessionTestSupport.makeConfiguredSession(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                maxHealth: 200,
-                abilities: [],
-            ),
-            companion: CombatantFixtures.combatant(
-                id: "companion",
-                role: .companion,
-                maxHealth: 200,
-                abilities: [],
-            ),
-            enemy: enemy,
-        )
-
-        for _ in 0 ..< 6 {
-            session.endTurn()
-        }
-
-        #expect(session.spectacle.ultimateHighlightsByActorID.isEmpty)
-    }
-
-    @Test func `clear all presentation cancels pending celebration and highlights`() {
+    @Test func `clear all presentation cancels pending celebration and outcome`() {
         let session = BattleSession(outcomePresentationDelayOverride: 60)
         session.partyCelebrateDelayOverride = .seconds(60)
 
@@ -268,25 +110,6 @@ struct BattleSpectacleSessionTests {
 
         #expect(session.spectacle.celebrateTask.task == nil)
         #expect(session.spectacle.outcomeTask.task == nil)
-        #expect(session.spectacle.pendingUltimateHighlightTasksByActorID.isEmpty)
-    }
-
-    @Test func `cancel ultimate highlight watchdogs invalidates all tasks and clears collection`() throws {
-        let session = BattleSessionTestSupport.makeUltimateSession()
-        let now = Date()
-        let ultimate = try #require(
-            BattleSessionTestSupport.drawUntilPlayable(
-                Ability.avatarOfJustice.id,
-                on: session,
-                at: now,
-            ),
-        )
-        _ = session.playCard(cardID: ultimate.id, at: now)
-        #expect(!session.spectacle.pendingUltimateHighlightTasksByActorID.isEmpty)
-
-        session.cancelUltimateHighlightWatchdogs()
-
-        #expect(session.spectacle.pendingUltimateHighlightTasksByActorID.isEmpty)
     }
 
     private func presentPendingImpacts(in session: BattleSession) {

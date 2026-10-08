@@ -30,6 +30,7 @@ let package = Package(
         .target(
             name: "TrinketFeatureContracts",
             dependencies: [
+                "BattleEngine",
                 "TrinketContent",
                 "TrinketCore",
             ],

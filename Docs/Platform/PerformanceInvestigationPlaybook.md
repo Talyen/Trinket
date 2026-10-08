@@ -115,11 +115,8 @@ production end-turn command; auto-battle controls are measured separately. Fixtu
 `-enable-frame-metrics`, which remains measurement-only. Audio and production
 artwork preparation remain enabled.
 
-Ultimate cinematics and their Options picker are currently inactive under
-`BattleFeatureFlags.ultimateCinematicAnimationsEnabled`; add an enabled cinematic
-scenario when that shipping flag changes. Labyrinth crafting identifiers have no
-reachable shipping view. Preview Lab, external web pages, real StoreKit/CloudKit
-services, thermal behavior, long-session memory, and production population trends
+Labyrinth crafting identifiers have no reachable shipping view. External web pages,
+real StoreKit/CloudKit services, thermal behavior, long-session memory, and production population trends
 are outside this Simulator matrix. Use separate device/service evidence for them.
 
 ## Battle scenario matrix

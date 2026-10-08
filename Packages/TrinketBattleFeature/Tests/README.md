@@ -14,7 +14,7 @@ rubric to directly related retirement candidates.
 | Session commands, turn/auto-end, overlays, finishing taps | `BattleSessionSimulationTests` (+`CardPlayback` extension owns visual-cast vs settled-combat parity) |
 | Card cues (begin/cancel/deny/clear) | `BattleSessionCardCueTests` |
 | Auto-battle driving and retry | `BattleSessionAutoBattleTests` |
-| Spectacle, ultimate highlights, cinematics | `BattleSpectacleSessionTests` |
+| Ultimate feedback and outcome spectacle | `BattleSpectacleSessionTests` |
 | Attack/impact sequencing and timing | `BattleActionPresentationTests` |
 | Presentation projection identity | `BattlePresentationProjectionTests` |
 | Feedback scheduling, absorption, and expiry | `BattleFeedbackLaneTests` |

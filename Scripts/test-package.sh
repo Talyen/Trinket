@@ -338,22 +338,12 @@ run_one_package() {
   if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]] \
     && [[ -f "$result_bundle/Info.plist" ]] \
     && [[ "${TRINKET_RECORD_TIMING:-1}" != "0" ]]; then
-    if [[ "$ACTION" == "test-without-building" ]]; then
-      python3 ./Scripts/test-timing.py record \
-        --mode "package:$package" \
-        --run "$invocation_id" \
-        --wall "$package_wall" \
-        --xcresult "$result_bundle" \
-        --no-build \
-        || echo "Warning: failed to record timing for package:$package" >&2
-    else
-      python3 ./Scripts/test-timing.py record \
-        --mode "package:$package" \
-        --run "$invocation_id" \
-        --wall "$package_wall" \
-        --xcresult "$result_bundle" \
-        || echo "Warning: failed to record timing for package:$package" >&2
-    fi
+    local timing_args=(--mode "package:$package" --run "$invocation_id" \
+      --wall "$package_wall" --xcresult "$result_bundle")
+    if [[ -n "${XCODE_RUNNER_MANIFEST_PATH:-}" ]]; then timing_args+=(--manifest "$XCODE_RUNNER_MANIFEST_PATH"); fi
+    if [[ "$ACTION" == "test-without-building" ]]; then timing_args+=(--no-build); fi
+    python3 ./Scripts/test-timing.py record "${timing_args[@]}" \
+      || echo "Warning: failed to record timing for package:$package" >&2
   fi
 
   if [[ "$package_status" -ne 0 ]]; then

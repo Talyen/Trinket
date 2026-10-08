@@ -1,6 +1,6 @@
 {
   "app-icon": {
-    "input_hash": "18c2791fc5ef01f07b68c8429a6d92fed2d8007e25247c83475705df235b5aa1",
+    "input_hash": "050bc94d4c9b2230a2bcda46079980f5f802fd4a35c666ebb8d4f89a95b08ba5",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv": "c7ec3e9f737e9570ef1dc76fe9ef6fbb2a3cdd6b80890665b8e085f2ad3103ad",
       "Trinket/AppIcon.icon/Assets/Trinket App Icon.jpg": "5d1746f8a848e773c2be9cef9f16933aadf6a7cdb913d937853892ad198be7c2",
@@ -12,7 +12,7 @@
     }
   },
   "art": {
-    "input_hash": "d33ed68fd645c5e36c6aeba6d0d0b639805475d638cdd155ffb0ceae49c1c955",
+    "input_hash": "95af512b6351b7693ac4ed5279edafb48a6601b6e0bccbb3013054121bc02e57",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift": "4ea94184c3c9da46e476e1c26c4f29dd45a968c4936e409eda62302f7868911c",
       "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv": "33269145fc82fd9539df826c88b677fe940122837f5cf2dc5d9561590bb0d82a",
@@ -1639,21 +1639,8 @@
       "2d Assets/Game Sources/Places/Spires/Stun Spire.jpeg": "39f16dac267eaae7ab0536b9a31b98dd91563e6320132264395323d2cdacba0e"
     }
   },
-  "cinematic": {
-    "input_hash": "79321656c2fff5aa13d8b1494482f44b53de942ac42ec59d1dfeb9866eb93f24",
-    "outputs": {
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift": "bcddc85ccbf5eb2b48f0780e17ddb4fe44d9b01f9bc930d5df827724e74f9a50",
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicSourceHashes.generated.tsv": "d92bb6da92bb4455893ec4dab40e738d0f65feefbf4d2edf12bebd721efb40e1",
-      "Trinket/Media/Cinematics/cinematic_avatar_of_justice.mp4": "acb484121ac8a8b81bd05f2a2d4fd82a149ebdc57772eb22140299923901a016",
-      "Trinket/Media/Cinematics/cinematic_rogue_shadowstep.mp4": "6e3fb8b385bbd9412df5e28c3fda80d61fdadc0b4be4fb6d25131189c0d974f2"
-    },
-    "sources": {
-      "Video/Knight Avatar Animation.mp4": "258407fb8f8c70e959a9bab76585caf06d3851907c0121255ec07e3afd58405d",
-      "Video/Rogue Shadowstep Animation.mp4": "d4fa587a6656fbbed09ccdd73d3362248c88a435ccb4a24786d17cd3056f662d"
-    }
-  },
   "music": {
-    "input_hash": "866f298c94e27f091ca89710c2ccbe1861d5f90c5491adf973ab364333777596",
+    "input_hash": "30e54e47db71a59de77dfc496eb99cca2ca9bf4866adabf49c5cfe73ab3c8db0",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift": "8ef9d00ad7fcfd86fcd9c668a5aa74634d123957ce91a86b40bacb3e90e8194f",
       "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv": "5b06ba1966c6fe92ec4cbeb882f14bb702136083bf842575f1c6e9fa9dfe2e49",
@@ -1686,7 +1673,7 @@
     }
   },
   "sfx": {
-    "input_hash": "e2dc3f240513c59f7c62ff58893b1005a4c9b432638b84e1c9c8da85f83558af",
+    "input_hash": "bb5110ccc0ecaf1ef32500f0dcba5a53c3748dbaa19a0ebda142e235ad0fa997",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift": "de4a0da35e6e53464aab018825c0b2afbfaf8027b6e1b2b88150cf7dad6335d6",
       "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXSourceHashes.generated.tsv": "3297de3a1dfc224bfedbfbcbd7045b417035137ed2d5e5f9c88bf7959f489c24",

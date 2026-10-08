@@ -30,7 +30,7 @@ struct VoyagePlayModeTests {
         let node = try #require(run.nextNode)
         play.voyage.prepareNextBattle()
         let key = PlayBattleOrigin.voyage(runID: run.id, nodeID: node.id).runKey
-        #expect(play.battle.hasPreparedRun(key))
+        #expect(play.battleCoordinator.preparedRuns[key] != nil)
         var roster = play.playerSave.roster
         let hero = try #require(roster.heroes.first { $0.id == "wizard" })
         roster.setActiveHero(hero)

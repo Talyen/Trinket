@@ -37,7 +37,6 @@ jobs:
             ArtManifest
             MusicManifest
             SoundManifest
-            CinematicManifest
             Docs
             Performance
             Website

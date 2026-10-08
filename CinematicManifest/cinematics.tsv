@@ -1,3 +1,0 @@
-# actor_id	ability_id	asset_name	source_path	has_audio
-knight	avatar-of-justice	cinematic_avatar_of_justice	Video/Knight Avatar Animation.mp4	true
-rogue	shadowstep	cinematic_rogue_shadowstep	Video/Rogue Shadowstep Animation.mp4	true

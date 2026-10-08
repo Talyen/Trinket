@@ -3,6 +3,7 @@ import Testing
 import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
+import TrinketFeatureContracts
 @testable import TrinketBattleFeature
 
 extension BattleSessionPreparationTests {
@@ -11,10 +12,10 @@ extension BattleSessionPreparationTests {
         let preparation = pins.makePreparation()
         pins.acquire(["shared"])
 
-        await preparation.prepare(names: ["shared", "old"], displayScale: 1) {}
-        await preparation.prepare(names: ["shared", "new"], displayScale: 1) {}
+        await preparation.prepare(names: ["shared", "old"], displayScale: 1)
+        await preparation.prepare(names: ["shared", "new"], displayScale: 1)
         let acquisitions = pins.acquisitions
-        await preparation.prepare(names: ["shared", "new"], displayScale: 1) {}
+        await preparation.prepare(names: ["shared", "new"], displayScale: 1)
         #expect(pins.acquisitions == acquisitions)
         #expect(pins.counts == ["shared": 2, "new": 1])
 
@@ -26,7 +27,7 @@ extension BattleSessionPreparationTests {
     @Test func `failed battle artwork acquisition cannot release another owners later pin`() async {
         let pins = ArtworkPinRecorder()
         let preparation = pins.makePreparation(unavailable: ["missing"])
-        await preparation.prepare(names: ["missing", "ready"], displayScale: 1) {}
+        await preparation.prepare(names: ["missing", "ready"], displayScale: 1)
         #expect(pins.counts == ["ready": 1])
         pins.acquire(["missing"])
 
@@ -63,23 +64,24 @@ extension BattleSessionPreparationTests {
         session.artworkPreparation = pins.makePreparation()
         let first = artworkConfiguration(key: "first", abilities: [.slash])
         let second = artworkConfiguration(key: "second", abilities: [.heal])
-        let firstKey = try #require(first.runKey)
         let firstNames = BattleArtworkPreparation.artworkNames(for: first)
         let secondNames = BattleArtworkPreparation.artworkNames(for: second)
         #expect(!firstNames.isSubset(of: secondNames))
         #expect(!secondNames.isSubset(of: firstNames))
-        #expect(session.prepareBattleRun(first))
+        let firstHandle = try #require(session.createPreparedRun(first))
+        session.publishPreparedPreview(.init(configurations: [first], selected: firstHandle))
         await session.prepareBattlePresentationAssets(displayScale: 1)
-        #expect(session.prepareBattleRun(second))
+        _ = try #require(session.createPreparedRun(second))
+        session.publishPreparedPreview(.init(configurations: [first, second], selected: nil))
         #expect(Set(pins.counts.keys) == firstNames)
         await session.prepareBattlePresentationAssets(displayScale: 1)
         #expect(Set(pins.counts.keys) == firstNames.union(secondNames))
         session.trimMemoryFootprint(releaseBattleLog: true)
         #expect(Set(pins.counts.keys) == firstNames.union(secondNames))
 
-        session.keepPreparedRuns([firstKey])
+        session.publishPreparedPreview(.init(configurations: [first], selected: firstHandle))
         #expect(Set(pins.counts.keys) == firstNames)
-        session.keepPreparedRuns([])
+        session.publishPreparedPreview(.empty)
         #expect(pins.counts.isEmpty)
         #expect(session.lifecyclePhase == .idle)
     }
@@ -98,10 +100,10 @@ extension BattleSessionPreparationTests {
         })
         let first = artworkConfiguration(key: "first", abilities: [.slash])
         let second = artworkConfiguration(key: "second", abilities: [.heal])
-        let firstKey = try #require(first.runKey)
-        let secondKey = try #require(second.runKey)
-        #expect(session.prepareBattleRun(first))
-        #expect(session.prepareBattleRun(second))
+        let firstHandle = try #require(session.createPreparedRun(first))
+        session.publishPreparedPreview(.init(configurations: [first], selected: firstHandle))
+        _ = try #require(session.createPreparedRun(second))
+        session.publishPreparedPreview(.init(configurations: [first, second], selected: nil))
         let pending = Task { await session.prepareBattlePresentationAssets(displayScale: 1) }
         if whilePreparing {
             await barrier.waitForArrival()
@@ -111,16 +113,15 @@ extension BattleSessionPreparationTests {
         let before = pins.counts
         #expect(!before.isEmpty)
 
-        #expect(session.activatePreparedBattle(
-            runKey: firstKey, configurationID: first.id,
-        ))
+        #expect(session.activatePreparedBattle(firstHandle, presentation: .empty))
+        session.publishPreparedPreview(.init(configurations: [second], selected: nil))
         #expect(pins.counts == before)
         barrier.resume()
         await pending.value
         await session.prepareBattlePresentationAssets(displayScale: 1)
         session.trimMemoryFootprint(releaseBattleLog: true)
         #expect(pins.counts == before)
-        #expect(session.hasPreparedRun(secondKey))
+        #expect(session.preparedPreview.configurations.map(\.id) == [second.id])
         session.endBattle()
         session.trimMemoryFootprint(releaseBattleLog: true)
         #expect(pins.counts.isEmpty)
@@ -131,7 +132,7 @@ extension BattleSessionPreparationTests {
     }
 
     @Test(arguments: [false, true], ArtworkLifecycleChange.allCases)
-    private func `obsolete artwork preparation cannot publish`(duringWarmup: Bool, change: ArtworkLifecycleChange) async {
+    private func `obsolete artwork preparation cannot publish`(duringWarmup: Bool, change: ArtworkLifecycleChange) async throws {
         let pins = ArtworkPinRecorder()
         let barrier = ArtworkPreparationBarrier()
         let session = BattleSession()
@@ -151,15 +152,18 @@ extension BattleSessionPreparationTests {
         if change == .restart {
             #expect(session.activate(original))
         } else {
-            #expect(session.prepareBattleRun(original))
+            let handle = try #require(session.createPreparedRun(original), "Preparation failed")
+            session.publishPreparedPreview(.init(configurations: [original], selected: handle))
         }
         let pending = Task { await session.prepareBattlePresentationAssets(displayScale: 1) }
         await barrier.waitForArrival()
         let replacement = artworkConfiguration(key: "old", abilities: [.heal])
         switch change {
         case .end: session.endBattle()
-        case .replace: #expect(session.prepareBattleRun(replacement))
-        case .prune: session.keepPreparedRuns([])
+        case .replace:
+            guard let handle = session.createPreparedRun(replacement) else { Issue.record("Preparation failed"); return }
+            session.publishPreparedPreview(.init(configurations: [replacement], selected: handle))
+        case .prune: session.publishPreparedPreview(.empty)
         case .activate: #expect(session.activate(replacement))
         case .restart: #expect(session.restart(replacement))
         }
@@ -183,15 +187,15 @@ extension BattleSessionPreparationTests {
                 await barrier.pause()
             }
         })
-        await preparation.prepare(names: ["shared"], displayScale: 1) {}
+        await preparation.prepare(names: ["shared"], displayScale: 1)
         let pending = Task {
-            await preparation.prepare(names: ["shared", "old"], displayScale: 1) {}
+            await preparation.prepare(names: ["shared", "old"], displayScale: 1)
         }
         await barrier.waitForArrival()
         if cancel {
             pending.cancel()
         } else {
-            await preparation.prepare(names: ["shared", "new"], displayScale: 1) {}
+            await preparation.prepare(names: ["shared", "new"], displayScale: 1)
         }
         barrier.resume()
         await pending.value

@@ -10,6 +10,8 @@ from pathlib import Path
 
 from internal.cli import ROOT, load_sibling
 from internal.doc_diagnostics import report_failures
+from internal.change_routing import guidance_references
+from internal.agent_tasks import load_tasks, validate_reference
 
 
 _check_links = load_sibling("check_links", "check-links.py")
@@ -137,30 +139,6 @@ def audit_inventory_failures() -> list[str]:
     return failures
 
 
-def script_index_failures() -> list[str]:
-    """Keep the exhaustive command inventory out of the everyday entry page."""
-    reference = ROOT / "Scripts" / "Reference.md"
-    if not reference.is_file():
-        return ["Scripts/Reference.md: command reference is missing"]
-    text = reference.read_text(encoding="utf-8")
-    failures: list[str] = []
-    for script in sorted((ROOT / "Scripts").glob("*.sh")):
-        if f"Scripts/{script.name}" not in text:
-            failures.append(
-                f"Scripts/Reference.md: command index is missing Scripts/{script.name} "
-                "(add it to the owning section)"
-            )
-    # Stale rows point at scripts that no longer exist; the missing-script
-    # loop above cannot catch them.
-    for mentioned in sorted(set(re.findall(r"Scripts/([A-Za-z0-9_.-]+\.sh)", text))):
-        if not (ROOT / "Scripts" / mentioned).is_file():
-            failures.append(
-                f"Scripts/Reference.md: command index references Scripts/{mentioned}, "
-                "which does not exist (remove the row)"
-            )
-    return failures
-
-
 def structural_checks(
     files: list[Path], *, final: bool = False, keep_plan: bool = False,
     paths: set[Path] | None = None,
@@ -174,7 +152,6 @@ def structural_checks(
             failures.append(f"{package}: package has neither README.md nor AGENTS.md")
 
     failures.extend(_check_testplan_sync.testplan_failures())
-    failures.extend(script_index_failures())
 
     suites = test_suite_names()
     for tests_readme in sorted((ROOT / "Packages").glob("*/Tests/README.md")):
@@ -186,33 +163,13 @@ def structural_checks(
                     "under any Packages/*/Tests directory"
                 )
 
-    classifier = ROOT / "Scripts" / "change-classification.sh"
-    routed_cards = set(re.findall(r"Docs/AgentContext/[A-Za-z0-9_-]+\.md", classifier.read_text(encoding="utf-8")))
-    for card in sorted((ROOT / "Docs" / "AgentContext").glob("*.md")):
-        if card.name == "README.md":
-            continue
-        relative_card = f"Docs/AgentContext/{card.name}"
-        if relative_card not in routed_cards:
-            failures.append(
-                f"{relative_card}: context card is not emitted by Scripts/change-classification.sh; "
-                "add a route or declare it in a 'lookup-only:' comment there"
-            )
-
-    readme_path = ROOT / "Docs" / "AgentContext" / "README.md"
-    table_cards: set[str] = set()
-    for line in readme_path.read_text(encoding="utf-8").splitlines():
-        if not line.lstrip().startswith("|"):
-            continue
-        for raw in _check_links.LINK.findall(line):
-            target = raw.strip().split(maxsplit=1)[0].strip("<>")
-            if re.fullmatch(r"[A-Za-z0-9_-]+\.md", target):
-                table_cards.add(f"Docs/AgentContext/{target}")
-    unrouted_rows = sorted(table_cards - routed_cards)
-    if unrouted_rows:
-        failures.append(
-            f"{readme_path.relative_to(ROOT)}: trigger-table rows reference cards with no route in "
-            f"Scripts/change-classification.sh: {', '.join(unrouted_rows)}"
-        )
+    references = guidance_references()
+    try:
+        references.update(reference for task in load_tasks(ROOT) for reference in task['contracts'])
+        for reference in sorted(references):
+            validate_reference(ROOT, reference)
+    except (OSError, ValueError) as error:
+        failures.append(f'Guidance routing: {error}')
 
     failures.extend(_check_plans.plan_failures(files, final=final, keep_plan=keep_plan, paths=paths))
     failures.extend(proposal_evidence_failures())

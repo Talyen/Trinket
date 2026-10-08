@@ -105,7 +105,7 @@ struct LabyrinthMapView: View {
             labyrinth.prepareReachableBattles()
         }
         .onDisappear {
-            labyrinth.battle.preferredPreparedRunKey = nil
+            labyrinth.selectPreparedBattle(nodeID: nil)
         }
         .trinketPlayActionResult($nodeMessage)
     }
@@ -204,10 +204,10 @@ struct LabyrinthMapView: View {
         )
         .onChange(of: selectedNodeID) { _, newID in
             if let newID, let node = state.node(id: newID), node.type.isCombat {
-                labyrinth.battle.preferredPreparedRunKey = PlayBattleOrigin.labyrinth(nodeID: newID).runKey
+                labyrinth.selectPreparedBattle(nodeID: newID)
                 nodeSelectionFeedbackTrigger &+= 1
             } else {
-                labyrinth.battle.preferredPreparedRunKey = nil
+                labyrinth.selectPreparedBattle(nodeID: nil)
                 if newID != nil {
                     nodeSelectionFeedbackTrigger &+= 1
                 }

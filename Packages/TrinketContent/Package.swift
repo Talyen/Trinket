@@ -41,7 +41,6 @@ let package = Package(
                 "Generated/ArtSourceHashes.generated.tsv",
                 "Generated/MusicSourceHashes.generated.tsv",
                 "Generated/SFXSourceHashes.generated.tsv",
-                "Generated/UltimateCinematicSourceHashes.generated.tsv",
             ],
         ),
         .target(

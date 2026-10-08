@@ -26,6 +26,10 @@ public final class LabyrinthPlayMode {
         self.encounters = encounters
     }
 
+    public func selectPreparedBattle(nodeID: String?) {
+        battleCoordinator.selectPreparedRun(nodeID.map { PlayBattleOrigin.labyrinth(nodeID: $0).runKey })
+    }
+
     @discardableResult
     func beginMysteryEncounter(
         nodeID: String,

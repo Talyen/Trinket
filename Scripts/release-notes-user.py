@@ -59,7 +59,6 @@ PRODUCT_PREFIXES = (
     "ArtManifest/",
     "MusicManifest/",
     "SoundManifest/",
-    "CinematicManifest/",
     "Raw Assets/",
 )
 TECHNICAL_TERMS = (

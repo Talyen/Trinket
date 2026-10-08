@@ -248,7 +248,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     if args.task:
         if args.overview:
             rows = [f"{task['label']} ({task['id']}): " + shlex.join(
-                ['python3', 'Scripts/agent-session.py', 'brief', '--task', task['id']])
+                ['python3', 'Scripts/agent-brief.py', '--task', task['id']])
                 for task in load_tasks(root) if any(within(name, scopes) for name in task['sources'])]
         else:
             rows = find_tasks(root, args.pattern, scopes)

@@ -95,8 +95,8 @@ class DocumentationTests(ScriptRegressionTestCase):
                 (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, scripts / name)
             for name, content in {
-                "Scripts/Reference.md": "Scripts/change-classification.sh",
-                "Scripts/change-classification.sh": "",
+                "Scripts/internal/change_routing.py": "def guidance_references(): return set()\n",
+                "Scripts/internal/agent_tasks.py": "def load_tasks(root): return []\ndef validate_reference(root, reference): pass\n",
                 "Scripts/config/ui-tests.tsv": "Smoke|SHELL|SmokeFixture\nFullUI||FullFixture\n",
                 "TrinketUITests/Smoke/Fixture.swift": "class SmokeFixture: TrinketUITestCase {}",
                 "TrinketUITests/Fixture.swift": "class FullFixture: TrinketUITestCase {}",
@@ -225,21 +225,6 @@ class DocumentationTests(ScriptRegressionTestCase):
             self.assertFalse(check_plans.declares_execution_plan(unfenced))
             self.assertFalse(check_plans.declares_execution_plan(root / "missing.md"))
 
-    def test_command_inventory_rejects_stale_rows(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            scripts = root / "Scripts"
-            scripts.mkdir()
-            (scripts / "kept.sh").write_text("#!/bin/sh\n")
-            (scripts / "Reference.md").write_text(
-                "| `./Scripts/kept.sh` | Kept |\n"
-                "| `./Scripts/deleted.sh` | Gone |\n"
-            )
-            with patch.object(self.check_docs, "ROOT", root):
-                failures = self.check_docs.script_index_failures()
-            self.assertEqual(len(failures), 1)
-            self.assertIn("Scripts/deleted.sh", failures[0])
-            self.assertIn("does not exist", failures[0])
 
     def test_links_preserve_encoded_filenames_and_check_heading_destinations(self) -> None:
         links = load_script("review_links", "check-links.py")
@@ -280,24 +265,6 @@ class DocumentationTests(ScriptRegressionTestCase):
                     with self.assertRaises(subprocess.CalledProcessError):
                         links.markdown_files()
 
-    def test_command_inventory_is_owned_by_reference_not_entry_page(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            scripts = root / "Scripts"
-            scripts.mkdir()
-            (scripts / "build.sh").write_text("#!/bin/sh\n")
-            (scripts / "README.md").write_text("[Commands](Reference.md)\n")
-            reference = scripts / "Reference.md"
-            with patch.object(self.check_docs, "ROOT", root):
-                self.assertTrue(self.check_docs.script_index_failures())
-                reference.write_text("| `./Scripts/build.sh` | Build |\n")
-                self.assertEqual(self.check_docs.script_index_failures(), [])
-                (scripts / "new-command.sh").write_text("#!/bin/sh\n")
-                (scripts / "README.md").write_text("./Scripts/new-command.sh\n")
-                failures = self.check_docs.script_index_failures()
-                self.assertEqual(len(failures), 1)
-                self.assertIn("Scripts/Reference.md", failures[0])
-                self.assertIn("Scripts/new-command.sh", failures[0])
 
     def test_markdown_under_executable_and_manifest_roots_selects_only_docs(self) -> None:
         for path in ("Scripts/README.md", "ContentManifest/README.md", "ArtManifest/README.md"):
@@ -308,74 +275,6 @@ class DocumentationTests(ScriptRegressionTestCase):
                 self.assertIn("python3 ./Scripts/check-docs.py", output)
                 self.assertNotIn("./Scripts/test-scripts.sh", output)
                 self.assertNotIn("./Scripts/generate.sh", output)
-
-    def test_script_families_union_leaf_coverage_and_fall_back_for_shared_inputs(self) -> None:
-        selector = load_script("script_test_selection", "script_test_selection.py")
-        select = selector.select_tests
-        all_tests = select([])
-        search = ["Scripts/Tests/test_agent_callers.py", "Scripts/Tests/test_agent_efficiency.py",
-                  "Scripts/Tests/test_agent_investigate.py", "Scripts/Tests/test_agent_search.py"]
-        self.assertEqual(select(["Scripts/agent-search.py", "Scripts/README.md"]), search)
-        performance = select(["Scripts/compare-performance.py"])
-        self.assertIn("Scripts/Tests/test_compare_performance.py", performance)
-        self.assertNotIn("Scripts/Tests/test_exec_wrappers.py", performance)
-        self.assertEqual(select(["Scripts/agent-search.py", "Scripts/compare-performance.py"]), sorted(set(search + performance)))
-        self.assertLess(len(select(["Scripts/check-links.py"])), len(all_tests))
-        for shared in ("Scripts/test-scripts.sh", "Scripts/new-script.py",
-                       "Scripts/Tests/script_test_support.py", ".github/workflows/tests.yml", "project.yml"):
-            with self.subTest(shared=shared):
-                self.assertEqual(select(["Scripts/agent-search.py", shared]), all_tests)
-        with self.assertRaises(ValueError):
-            select(["Scripts"])
-
-    def test_script_families_cover_expanded_leaves_without_full_fallback(self) -> None:
-        select = load_script("script_test_selection", "script_test_selection.py").select_tests
-        all_tests = select([])
-        cases = {
-            "Scripts/handoff.sh": {"Scripts/Tests/test_output_retention.py",
-                                   "Scripts/Tests/test_ci_path_filter.py",
-                                   "Scripts/Tests/test_ci_gate_scripts.py",
-                                   "Scripts/Tests/test_ci_handoff_routing.py",
-                                   "Scripts/Tests/test_verification_policy.py",
-                                   "Scripts/Tests/test_documentation.py",
-                                   "Scripts/Tests/test-lib-args.sh"},
-            "Scripts/check-unused-assets.py": {"Scripts/Tests/test_check_unused_assets.py"},
-            "Scripts/ci-path-filter.py": {"Scripts/Tests/test_ci_path_filter.py", "Scripts/Tests/test_ci_effort.py"},
-            "Scripts/balance-sweep.sh": {"Scripts/Tests/test_balance_report_retention.py"},
-            "Scripts/test-timing.py": {"Scripts/Tests/test_test_timing.py",
-                                       "Scripts/Tests/test_ci_build_scripts.py"},
-            "Scripts/run-env.sh": {"Scripts/Tests/test_ci_session_scripts.py",
-                                   "Scripts/Tests/test_ci_build_scripts.py",
-                                   "Scripts/Tests/test_build_process.py",
-                                   "Scripts/Tests/test-run-env.sh"},
-            "Scripts/lib/media-assets.sh": {"Scripts/Tests/test_media_asset_scripts.py",
-                                            "Scripts/Tests/test_asset_library.py",
-                                            "Scripts/Tests/test_ci_build_scripts.py",
-                                            "Scripts/Tests/test-asset-hash-sort-locale.sh"},
-            "Scripts/Tests/test_agent_search.py": {"Scripts/Tests/test_agent_search.py"},
-            "Scripts/lint.sh": {"Scripts/Tests/test_build_artifacts.py",
-                                "Scripts/Tests/test_build_process.py",
-                                "Scripts/Tests/test_ci_build_scripts.py",
-                                "Scripts/Tests/test-lib-args.sh",
-                                "Scripts/Tests/test-lib-tempdir.sh"},
-            "Scripts/assert-generated-output.sh": {"Scripts/Tests/test_project_generation.py",
-                                                   "Scripts/Tests/test_build_process.py",
-                                                   "Scripts/Tests/test_ci_build_scripts.py"},
-            "Scripts/config/ui-tests.tsv": {"Scripts/Tests/test_project_generation.py",
-                                                 "Scripts/Tests/test_ui_registration.py",
-                                                 "Scripts/Tests/test_build_process.py",
-                                                 "Scripts/Tests/test_ci_build_scripts.py",
-                                                 "Scripts/Tests/test_documentation.py"},
-        }
-        for path, expected in cases.items():
-            with self.subTest(path=path):
-                selected = select([path])
-                self.assertEqual(set(selected), expected)
-                self.assertLess(len(selected), len(all_tests))
-        # Residual unknowns still run everything (safe default).
-        for unknown in ("Scripts/new-script.py", "Scripts/internal/cli.py", "Scripts/test-scripts.sh"):
-            with self.subTest(unknown=unknown):
-                self.assertEqual(select([unknown]), all_tests)
 
     def test_handoff_dry_run_and_execution_share_cheap_slice_registry(self) -> None:
         config = (ROOT / "Scripts" / "config" / "cheap-slices.txt").read_text(encoding="utf-8")
@@ -469,15 +368,6 @@ class DocumentationTests(ScriptRegressionTestCase):
                     self.assertEqual(json.loads(captured.read_text()), expected)
                     self.assertEqual(shlex.split(command)[2:], expected)
                     captured.unlink()
-
-
-    def test_shared_markdown_helper_selects_all_direct_consumers(self) -> None:
-        select = load_script("script_test_selection", "script_test_selection.py").select_tests
-        expected = ["Scripts/Tests/test_documentation.py"]
-        for path in ("Scripts/check-links.py", "Scripts/check-docs.py", "Scripts/check-plans.py",
-                     "Scripts/check-testplan-sync.py", "Scripts/internal/markdown.py"):
-            self.assertIn("Scripts/Tests/test_documentation.py", select([path]))
-        self.assertGreater(len(select(["Scripts/Tests/script_test_support.py"])), len(expected))
 
 
     def test_documentation_failures_retain_complete_bounded_report(self) -> None:

@@ -68,8 +68,8 @@ Usage: ./Scripts/generate.sh [options]
 Runs manifest validation, content codegen, optional asset pipelines, and XcodeGen.
 
 Options:
-  --assets          Also run art, music, SFX, cinematic, and app-icon asset pipelines (slow; for manifest edits)
-  --kind <kind>     With --assets, prepare only one asset kind (art|cinematic|music|sfx|app-icon|all, default all)
+  --assets          Also run art, music, SFX, and app-icon asset pipelines (slow; for manifest edits)
+  --kind <kind>     With --assets, prepare only one asset kind (art|music|sfx|app-icon|all, default all)
   --skip-xcodegen   Skip XcodeGen (content/asset codegen only)
   -h, --help        Show this help
 
@@ -77,7 +77,7 @@ Prefer this script over calling prepare-* asset scripts or content_codegen.py di
 
 Env:
   TRINKET_REQUIRE_PINNED_TOOLS=1 Require .tools/xcodegen on PATH (agent push gate)
-  FORCE_ASSET_REENCODE=1         Force art/SFX/music/cinematic/app-icon re-encode even when up to date
+  FORCE_ASSET_REENCODE=1         Force art/SFX/music/app-icon re-encode even when up to date
   DEVELOPER_DIR / SDKROOT        Optional overrides; otherwise Xcode (not CLT) is selected
 EOF
 }
@@ -90,7 +90,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --kind)
       if [[ -z "${2:-}" ]]; then
-        echo "--kind requires an argument (art|cinematic|music|sfx|app-icon|all)" >&2
+        echo "--kind requires an argument (art|music|sfx|app-icon|all)" >&2
         exit 2
       fi
       ASSET_KIND="$2"
@@ -120,7 +120,7 @@ trinket_run_env_init
 trinket_dir_lock_acquire "$TRINKET_GENERATE_LOCK_DIR" "${TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS:-120}"
 
 case "$ASSET_KIND" in
-  art|cinematic|music|sfx|app-icon|all) ;;
+  art|music|sfx|app-icon|all) ;;
   *) echo "Unknown asset kind: $ASSET_KIND" >&2; exit 2 ;;
 esac
 if [[ "$KIND_EXPLICIT" == true && "$INCLUDE_ASSETS" != true ]]; then

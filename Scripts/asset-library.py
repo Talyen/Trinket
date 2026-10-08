@@ -19,7 +19,6 @@ KINDS = {
     'art': ('ArtManifest/curated-assets.tsv', 'ArtCatalog.generated.swift', 'ArtSourceHashes.generated.tsv', 'Trinket/Assets.xcassets', 'Scripts/prepare-art-assets.sh'),
     'music': ('MusicManifest/music.tsv', 'MusicCatalog.generated.swift', 'MusicSourceHashes.generated.tsv', 'Trinket/Media/Music', 'Scripts/prepare-audio-assets.sh'),
     'sfx': ('SoundManifest/sfx.tsv', 'SFXCatalog.generated.swift', 'SFXSourceHashes.generated.tsv', 'Trinket/Media/SFX', 'Scripts/prepare-audio-assets.sh'),
-    'cinematic': ('CinematicManifest/cinematics.tsv', 'UltimateCinematicCatalog.generated.swift', 'UltimateCinematicSourceHashes.generated.tsv', 'Trinket/Media/Cinematics', 'Scripts/prepare-cinematic-assets.sh'),
     'app-icon': ('ArtManifest/app-icon.tsv', None, 'AppIconSourceHashes.generated.tsv', 'Trinket/AppIcon.icon', 'Scripts/prepare-app-icon.sh'),
 }
 
@@ -50,7 +49,6 @@ def rows(kind: str) -> list[dict[str, str]]:
         'art': 'kind id asset_name source_path focal_x focal_y',
         'music': 'kind id asset_name source_path boss_enemy_id looping volume_gain',
         'sfx': 'id swift_symbol asset_name source_path volume_gain',
-        'cinematic': 'actor_id ability_id asset_name source_path has_audio',
         'app-icon': 'asset_name source_path',
     }
     header = headers[kind].split()
@@ -94,7 +92,7 @@ def input_hash(kind: str) -> str:
         for name, value in {'ART_HEIC_QUALITY': '80', 'ART_THUMB_DIMENSION': '480', 'ART_PORTRAIT_THUMB_DIMENSION': '960'}.items():
             settings[name] = os.environ.get(name) or value
     else:
-        defaults = {'music': {'MUSIC_AAC_BITRATE': '96000'}, 'sfx': {'SFX_AAC_BITRATE': '64000'}, 'cinematic': {'CINEMATIC_HEVC_PRESET': 'PresetHEVCHighestQuality'}, 'app-icon': {}}[kind]
+        defaults = {'music': {'MUSIC_AAC_BITRATE': '96000'}, 'sfx': {'SFX_AAC_BITRATE': '64000'}, 'app-icon': {}}[kind]
         settings = {name: os.environ.get(name) or value for name, value in defaults.items()}
     values = {path: digest(ROOT / path) for path in paths if (ROOT / path).is_file()}
     values['settings'] = settings
@@ -263,7 +261,7 @@ def record_kind(kind: str, expected_inputs: dict) -> None:
         outputs = output_hashes(kind)
         if input_snapshot(kind) != expected_inputs:
             raise ValueError(f'Prepared {kind} inputs changed during preparation. Rerun the pipeline; no new receipt was recorded.')
-        record = read_record()
+        record = {key: value for key, value in read_record().items() if key in KINDS}
         record[kind] = {**expected_inputs, 'outputs': outputs}
         content = json.dumps(record, indent=2, sort_keys=True) + '\n'
         if target.exists() and target.read_text() == content:
@@ -302,22 +300,6 @@ def validate_media_ids(kind: str) -> None:
             for row in bosses:
                 if not any(f'id: "{row["boss_enemy_id"]}"' in line and 'isBoss: true' in line for line in enemies):
                     raise ValueError(f'Music boss "{row["boss_enemy_id"]}" is no longer a boss enemy.')
-    elif kind == 'cinematic':
-        selections = rows(kind)
-        if not selections:
-            return
-        with (ROOT / 'ContentManifest/combatants.tsv').open() as stream:
-            actors = {row['id']: row for row in csv.DictReader(stream, delimiter='\t')}
-        with (ROOT / GENERATED / 'AbilityInventory.generated.tsv').open() as stream:
-            ultimates = {row['id'] for row in csv.DictReader(stream, delimiter='\t') if row['tier'] == 'ultimate'}
-        for row in selections:
-            actor = actors.get(row['actor_id'])
-            ability = row['ability_id']
-            parts = ability.split('-')
-            symbol = parts[0] + ''.join(part[:1].upper() + part[1:] for part in parts[1:])
-            if (not actor or actor['role'] not in ('hero', 'companion') or ability not in ultimates
-                    or symbol not in actor['ultimates'].split(',')):
-                raise ValueError(f'Cinematic "{row["actor_id"]}/{ability}" no longer matches an actor Ultimate.')
 
 
 def check_kind(kind: str, outputs_only: bool) -> None:

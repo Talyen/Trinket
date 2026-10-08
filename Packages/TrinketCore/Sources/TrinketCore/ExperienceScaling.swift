@@ -1,7 +1,7 @@
 import Foundation
 
 public enum ExperienceScaling {
-    public static let underlevelCutoff = 10
+    private static let underlevelCutoff = 10
     public static let maxGrantLevelsEquivalent = 3
     private static let catchUpDecayConstant = 2.0
 

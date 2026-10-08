@@ -93,7 +93,7 @@ Modes:
 
 Options:
   --regenerate     Run ./Scripts/generate.sh before the committed-mode check
-  --assets         Include art/music/SFX/cinematic outputs when regenerating or checking
+  --assets         Include art/music/SFX outputs when regenerating or checking
   --strict-assets  With --assets/--idempotent, fingerprint full media trees (CI assets gate).
                    Default asset idempotence checks generated catalogs and hash TSVs only.
   --idempotent     Consistency check (see Modes); implies a regenerate pass

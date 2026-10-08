@@ -25,13 +25,13 @@ def load_script(name: str, filename: str):
 
 class ScriptRegressionTestCase(unittest.TestCase):
 
-    def verification_environment(self, *, hosted: bool = False) -> dict[str, str]:
+    def verification_environment(self, *, hosted: bool = False, **changes: str) -> dict[str, str]:
         """Select a policy for dry runs or stubbed fixtures, independent of the test host."""
         environment = {key: value for key, value in os.environ.items()
                        if key not in {'CI', 'GITHUB_ACTIONS', 'TRINKET_ALLOW_HEAVY_LOCAL'}}
         if hosted:
             environment.update(CI='true', GITHUB_ACTIONS='true')
-        return environment
+        return {**environment, **changes}
 
     def make_repo_fixture(self, directory: str, files: Iterable[str]) -> Path:
         """Create an isolated repo root holding copies of repository files.
@@ -42,6 +42,13 @@ class ScriptRegressionTestCase(unittest.TestCase):
         """
         root = Path(directory)
         files = tuple(files)
+        if set(files) & {'Scripts/handoff.sh', 'Scripts/agent-context.sh', 'Scripts/agent-push-gate.sh', 'Scripts/change-budget.sh'}:
+            files = tuple(dict.fromkeys((*files, 'Scripts/verify.py', 'Scripts/agent-brief.py',
+                'Scripts/internal/change_routing.py', 'Scripts/internal/agent_status.py',
+                'Scripts/internal/agent_tasks.py', 'Scripts/internal/agent_arguments.py',
+                'Scripts/internal/markdown.py', 'Scripts/internal/cli.py',
+                'Scripts/internal/output_retention.py', 'Scripts/build-inputs.env',
+                'Scripts/config/ui-tests.tsv', 'Scripts/config/cheap-slices.txt')))
         for relative in files:
             target = root / relative
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -63,9 +70,10 @@ class ScriptRegressionTestCase(unittest.TestCase):
                 manifest.parent.mkdir(parents=True, exist_ok=True)
                 manifest.write_text("# asset_name\tsource_path\nAppIcon.icon\tRaw Assets/App Icon/Trinket App Icon.icon\n")
         # Copy the retention substrate when a fixture includes a direct consumer.
-        if any('output_retention' in p.read_text() or 'output-retention.sh' in p.read_text()
-               or 'cleanup-outputs.py' in p.read_text()
-               for p in (root / 'Scripts').rglob('*') if p.is_file() and p.suffix in {'.py', '.sh'}):
+        sources = (p.read_text() for p in (root / 'Scripts').rglob('*')
+                   if p.is_file() and p.suffix in {'.py', '.sh'})
+        if any(marker in source for source in sources
+               for marker in ('output_retention', 'output-retention.sh', 'cleanup-outputs.py')):
             for relative in ('Scripts/cleanup-outputs.py', 'Scripts/internal/output_retention.py',
                              'Scripts/internal/cli.py', 'Scripts/lib/output-retention.sh', 'Scripts/lib/lock.sh'):
                 target = root / relative
@@ -118,74 +126,6 @@ class ScriptRegressionTestCase(unittest.TestCase):
     ) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             ["bash", "Scripts/prepare-audio-assets.sh", kind],
-            cwd=root,
-            env=environment,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-
-    _CINEMATIC_MANIFEST_ROW = "knight\tavatar-of-justice\tknight_avatar\tRaw Assets/Animations/slash.mp4\ttrue\n"
-    _CINEMATIC_COMBATANTS_TSV = (
-        "id\tname\trole\tmax_health\tmax_mana\tbasics\tskills\tultimates\n"
-        "knight\tKnight\thero\t100\t0\tslash\tslash\tavatarOfJustice\n"
-    )
-    _CINEMATIC_INVENTORY_TSV = (
-        "id\tname\ttier\tsummary\n"
-        "avatar-of-justice\tAvatar\tultimate\tTest ultimate.\n"
-        "bash\tBash\tbasic\tTest basic.\n"
-    )
-
-    def make_cinematic_fixture(self, directory: str) -> tuple[Path, dict[str, str], Path]:
-        root = self.make_repo_fixture(directory, ("Scripts/prepare-cinematic-assets.sh", "Scripts/lib/media-assets.sh"))
-        for relative in (
-            "CinematicManifest",
-            "ContentManifest",
-            "Raw Assets/Animations",
-            "Trinket/Media/Cinematics",
-            "Packages/TrinketContent/Sources/TrinketContent/Generated",
-            "bin",
-        ):
-            (root / relative).mkdir(parents=True, exist_ok=True)
-        (root / "Raw Assets/Animations/slash.mp4").write_bytes(b"master")
-        (root / "CinematicManifest/cinematics.tsv").write_text(
-            self._CINEMATIC_MANIFEST_ROW, encoding="utf-8"
-        )
-        (root / "ContentManifest/combatants.tsv").write_text(
-            self._CINEMATIC_COMBATANTS_TSV, encoding="utf-8"
-        )
-        (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv").write_text(
-            self._CINEMATIC_INVENTORY_TSV, encoding="utf-8"
-        )
-        avconvert = root / "bin/avconvert"
-        avconvert.write_text(
-            "#!/usr/bin/env python3\n"
-            "import os, pathlib, re, sys\n"
-            "args = sys.argv[1:]\n"
-            "out = pathlib.Path(args[args.index('--output') + 1])\n"
-            "src = pathlib.Path(args[args.index('--source') + 1])\n"
-            "out.write_bytes(src.read_bytes() + b'hvc1')\n"
-            "name = out.name.lstrip('.')\n"
-            "name = re.sub(r'\\.tmp\\.\\d+', '', name)\n"
-            "with open(os.environ['AVCONVERT_LOG'], 'a') as log:\n"
-            "    log.write(name + '\\n')\n",
-            encoding="utf-8",
-        )
-        avconvert.chmod(0o755)
-        log = root / "conversions.log"
-        log.write_text("", encoding="utf-8")
-        environment = {
-            **os.environ,
-            "PATH": f"{root / 'bin'}:{os.environ['PATH']}",
-            "AVCONVERT_LOG": str(log),
-        }
-        return root, environment, log
-
-    def run_cinematic_fixture(
-        self, root: Path, environment: dict[str, str]
-    ) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(
-            ["bash", "Scripts/prepare-cinematic-assets.sh"],
             cwd=root,
             env=environment,
             capture_output=True,

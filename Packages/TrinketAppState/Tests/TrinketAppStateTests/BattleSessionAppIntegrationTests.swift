@@ -136,9 +136,9 @@ struct BattleSessionAppIntegrationTests {
         #expect((active.id != registration.launch.configuration.id) == changedEncounter)
         #expect(active.enemyEncounterLevel == input.enemyEncounterLevel)
         #expect(active.rngSeed == registration.launch.configuration.rngSeed)
-        #expect(state.battle.hasPreparedRun(sibling))
+        #expect(state.battleCoordinator.preparedRuns[sibling] != nil)
         let stale = PlayBattleCoordinator.assembleLaunch(registration.launch.inputs).configuration
-        #expect(!state.battle.restart(stale))
+        #expect(!state.battleCoordinator.restartActiveBattle(stale))
         #expect(!state.completeActiveBattle(stale, battleGold: .init(gained: 5)).didComplete)
         #expect(state.battle.activeBattle?.id == active.id)
     }
@@ -333,17 +333,17 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battle.activeBattle?.runKey == secondRunKey)
         #expect(appState.battlePresentation(for: firstRunKey) != nil)
         #expect(appState.battlePresentation(for: secondRunKey) != nil)
-        #expect(battle.hasPreparedRun(firstRunKey))
-        #expect(!battle.hasPreparedRun(secondRunKey))
+        #expect(appState.battleCoordinator.preparedRuns[firstRunKey] != nil)
+        #expect(!(appState.battleCoordinator.preparedRuns[secondRunKey] != nil))
         appState.battleCoordinator.keepPreparedRuns([])
         #expect(appState.battlePresentation(for: firstRunKey) != nil)
         #expect(appState.battlePresentation(for: secondRunKey) != nil)
-        #expect(battle.hasPreparedRun(firstRunKey))
+        #expect(appState.battleCoordinator.preparedRuns[firstRunKey] != nil)
 
         appState.endBattleReturningToOrigin()
         #expect(appState.battlePresentation(for: firstRunKey) == nil)
         #expect(appState.battlePresentation(for: secondRunKey) == nil)
-        #expect(!battle.hasPreparedRun(firstRunKey))
+        #expect(!(appState.battleCoordinator.preparedRuns[firstRunKey] != nil))
         #expect(battle.lifecyclePhase == .idle)
     }
 

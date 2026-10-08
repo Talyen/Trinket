@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -51,12 +50,12 @@ private enum HeuristicCardScoring {
         let hpFraction = Double(actorHP) / Double(maxHP)
 
         let damage = ability.directDamage
-        let selfDamage = ability.damageComponents.reduce(0) { total, component in
+        let selfDamage = ability.operations.lazy.compactMap(\.damageComponent).reduce(0) { total, component in
             component.target == .actor ? total + component.amount : total
         }
         let guaranteedDamage = if let branches = ability.outcomeBranches, !branches.isEmpty {
             branches.lazy.map { branch in
-                branch.damageComponents.reduce(0) { total, component in
+                branch.operations.lazy.compactMap(\.damageComponent).reduce(0) { total, component in
                     component.target == .abilityTarget ? total + component.amount : total
                 }
             }.min() ?? 0
@@ -93,11 +92,11 @@ private enum HeuristicCardScoring {
     ) -> Int {
         var total = 0
         for branch in branches {
-            let branchDamage = branch.damageComponents.reduce(0) { sum, comp in
+            let branchDamage = branch.operations.lazy.compactMap(\.damageComponent).reduce(0) { sum, comp in
                 comp.target == .actor ? sum : sum + comp.amount
             }
             var branchEffects = 0
-            for targeted in branch.targetedEffects {
+            for targeted in branch.operations.lazy.compactMap(\.targetedEffect) {
                 branchEffects += effectValue(targeted.effect, enemyEffects: enemyEffects, setupAware: setupAware)
             }
             total += branchDamage + branchEffects
@@ -111,7 +110,7 @@ private enum HeuristicCardScoring {
         setupAware: Bool,
     ) -> Int {
         var value = 0
-        for targeted in ability.targetedEffects {
+        for targeted in ability.operations.lazy.compactMap(\.targetedEffect) {
             value += effectValue(targeted.effect, enemyEffects: enemyEffects, setupAware: setupAware)
         }
         return value

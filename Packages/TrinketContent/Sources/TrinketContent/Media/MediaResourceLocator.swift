@@ -1,9 +1,8 @@
 import Foundation
 
-/// Shared bundle lookup for generated media catalogs (audio + cinematics).
+/// Shared bundle lookup for generated audio catalogs.
 ///
-/// Single home for the packaged-location fallback order so the audio and
-/// cinematic pipelines cannot drift: `<subdirectory>/` first, then
+/// Single home for the audio catalogs' packaged-location fallback order: `<subdirectory>/` first, then
 /// `Media/<subdirectory>/`, with a top-level lookup last so a stray
 /// top-level file can never shadow the packaged asset.
 public enum MediaResourceLocator {

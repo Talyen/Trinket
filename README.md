@@ -13,7 +13,7 @@ holds device preferences without gating play or progress behind an account.
 ## Start here
 
 - **Humans:** setup below → `./Scripts/generate.sh` → `./Scripts/build.sh` → `./Scripts/run-simulator.sh`. Command details: [Scripts/README.md](Scripts/README.md).
-- **Agents:** Read [AGENTS.md](AGENTS.md), then start indexed concerns with `python3 Scripts/agent-session.py brief --task <concern>`. For other work, discover the owning files and route their paths using the [AgentContext quickstart](Docs/AgentContext/README.md#quickstart). Test semantics: [Testing.md](Docs/Platform/Testing.md).
+- **Agents:** Read [AGENTS.md](AGENTS.md), then start indexed concerns with `python3 Scripts/agent-brief.py --status --task <concern>`. For other work, discover the owning files and route their paths using the [AgentContext quickstart](Docs/AgentContext/README.md#quickstart). Test semantics: [Testing.md](Docs/Platform/Testing.md).
 - **Designers:** player decisions in [Decisions.md](Docs/Product/Decisions.md), surfaces in [Overview.md](Docs/Product/Overview.md), visual direction in [ArtworkStyleGuide.md](Docs/Product/ArtworkStyleGuide.md).
 
 ## Requirements
@@ -49,8 +49,8 @@ git config core.hooksPath .githooks
 ./Scripts/run-simulator.sh
 ```
 
-For content edits, use `./Scripts/generate.sh`. For art, music, SFX, or
-cinematic edits, include the asset pipelines:
+For content edits, use `./Scripts/generate.sh`. For art, music, or
+SFX edits, include the asset pipelines:
 
 ```sh
 ./Scripts/generate.sh --assets
@@ -63,7 +63,7 @@ Map and source-of-truth table: [Docs/README.md](Docs/README.md).
 - Repo map and module DAG: [Architecture.md](Docs/Platform/Architecture.md)
 - Product decisions: [Decisions.md](Docs/Product/Decisions.md)
 - Verification and testing: [Verification.md](Docs/Platform/Verification.md) and [Testing.md](Docs/Platform/Testing.md)
-- Content and media: [content](ContentManifest/README.md), [art](ArtManifest/README.md), [music](MusicManifest/README.md), [sound](SoundManifest/README.md), and [cinematics](CinematicManifest/README.md)
+- Content and media: [content](ContentManifest/README.md), [art](ArtManifest/README.md), [music](MusicManifest/README.md), and [sound](SoundManifest/README.md)
 - Design system: [TrinketDesignSystem](Packages/TrinketDesignSystem/README.md)
 - Game surfaces: [Overview.md](Docs/Product/Overview.md) — Campaign, Explore, Collection, Homestead
 - Release: [Release.md](Docs/Platform/Release.md)

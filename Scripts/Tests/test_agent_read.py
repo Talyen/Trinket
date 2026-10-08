@@ -4,13 +4,12 @@ SCRIPT_INPUTS = (
     'Scripts/internal/output_retention.py',
     'Scripts/lib/output-retention.sh',
     'Scripts/agent-read.py',
-    'Scripts/agent-session.py',
+    'Scripts/agent-brief.py',
     'Scripts/agent-context.sh',
     'Scripts/internal/agent_tasks.py',
     'Scripts/check-links.py',
     'Scripts/internal/markdown.py',
     'Scripts/internal/source_declarations.py',
-    'Scripts/internal/agent_references.py',
     'Scripts/internal/agent_arguments.py',
     'Scripts/internal/swift_policy.py',
 )
@@ -29,40 +28,6 @@ from script_test_support import load_script
 
 
 class AgentReadTests(unittest.TestCase):
-    def test_explicit_guidance_reuse_skips_only_complete_unchanged_reads_and_forget_restores_them(self) -> None:
-        reader = load_script('incremental_reader', 'agent-read.py')
-        session = load_script('incremental_session', 'agent-session.py')
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            guide = root / 'Guide.md'
-            guide.write_text('# Guide\n## Rules\nKeep saves\n## Other\nKeep artwork\n')
-            (root / 'code.py').write_text('def work():\n    return 42\n')
-            receipt = root / 'receipt.json'
-            with patch.object(reader, 'session_receipt', return_value=receipt):
-                def read(*arguments):
-                    with contextlib.redirect_stdout(io.StringIO()) as output:
-                        self.assertEqual(reader.main(['--session', 'chat', *arguments], root=root), 0)
-                    return output.getvalue()
-                read('Guide.md#rules')
-                self.assertIn('Keep saves', read('Guide.md#rules'))  # default still rereads
-                reused = read('Guide.md#rules', '--reuse-guidance')
-                self.assertIn('reused unchanged guidance', reused)
-                self.assertNotIn('Keep saves', reused)
-                self.assertIn('Keep artwork', read('Guide.md#other', '--reuse-guidance'))
-                self.assertIn('Keep saves', read('Guide.md', '--reuse-guidance'))  # sections do not cover whole file
-                self.assertNotIn('Keep artwork', read('Guide.md#other', '--reuse-guidance'))
-                guide.write_text(guide.read_text().replace('Keep saves', 'Migrate saves'))
-                self.assertIn('Migrate saves', read('Guide.md#rules', '--reuse-guidance'))
-                mixed = read('--reuse-guidance', '--request', 'Guide.md#rules', '--request', 'code.py --symbol work')
-                self.assertNotIn('Migrate saves', mixed)
-                self.assertIn('return 42', mixed)
-                with patch.object(session, 'session_receipt', return_value=receipt), contextlib.redirect_stdout(io.StringIO()):
-                    self.assertEqual(session.main(['--chat', 'chat', 'forget'], root=root), 0)
-                self.assertIn('Migrate saves', read('Guide.md#rules', '--reuse-guidance'))
-                with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
-                    reader.main(['Guide.md', '--reuse-guidance'], root=root)
-                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
-                    reader.main(['Guide.md', '--session', 'another-chat', '--reuse-guidance'], root=root)
 
     def test_full_batches_keep_anchor_scope_and_continue_after_missing_anchors(self) -> None:
         reader = load_script('full_section_reader', 'agent-read.py')
@@ -98,28 +63,10 @@ class AgentReadTests(unittest.TestCase):
                 with contextlib.redirect_stdout(io.StringIO()) as output:
                     self.assertEqual(reader.main([name, '--full'], root=root), 0)
                 self.assertIn('complete text file', output.getvalue())
-                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-                    self.assertEqual(reader.main([name, '--full', '--receipt', str(root / 'receipt'), '--chat', 'test'], root=root), 2)
             with contextlib.redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(reader.main(['config.json', '--full', 'Probe.py'], root=root), 0)
             self.assertEqual(output.getvalue().count('complete text file'), 2)
 
-    def test_brief_preserves_scope_and_attempts_all_source_reads_after_failure(self) -> None:
-        session = load_script('brief_session', 'agent-session.py')
-        task = {'id': 'thing', 'sources': ['Sources/Thing.py'], 'tests': ['Tests/Thing.py']}
-        from types import SimpleNamespace
-        with patch.object(session, 'select_task', return_value=task), patch.object(session.subprocess, 'run') as run:
-            run.side_effect = [SimpleNamespace(returncode=0),
-                               SimpleNamespace(returncode=0, stdout='python3 Scripts/agent-read.py Guide.md --session chat'),
-                               SimpleNamespace(returncode=0), SimpleNamespace(returncode=2), SimpleNamespace(returncode=0)]
-            with contextlib.redirect_stdout(io.StringIO()) as output:
-                self.assertEqual(session.main(['--chat', 'chat', 'brief', '--task', 'thing', '--reuse-guidance', '--limit', '2', '--paths', 'One.py', 'Two.py']), 2)
-            self.assertIn('--status', run.call_args_list[0].args[0])
-            self.assertEqual(run.call_args_list[0].args[0][-3:], ['--paths', 'One.py', 'Two.py'])
-            self.assertIn('Two.py', run.call_args_list[-1].args[0])
-            self.assertIn('--reuse-guidance', run.call_args_list[2].args[0])
-            self.assertNotIn('--reuse-guidance', run.call_args_list[1].args[0])
-            self.assertIn('Tests/Thing.py', output.getvalue())
 
     def test_invalid_source_range_reports_bounds_and_returns_a_bounded_read(self) -> None:
         reader = load_script('range_recovery_reader', 'agent-read.py')
@@ -161,60 +108,8 @@ class AgentReadTests(unittest.TestCase):
                 with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                     self.assertEqual(reader.main(shlex.split(command)[2:], root=root), 0)
 
-    def test_mixed_session_reads_record_only_complete_guidance_and_continue_after_failure(self) -> None:
-        reader = load_script('mixed_session_reader', 'agent-read.py')
-        references = load_script('mixed_session_references', 'internal/agent_references.py')
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            (root / 'Guide.md').write_text('# Guide\n## Rules\nKeep saves\n## Other\nKeep artwork\n')
-            (root / 'Probe.py').write_text('def work():\n    return "$(literal)"\n')
-            (root / 'run.sh').write_text('#!/bin/bash\nvalue=1\n')
-            receipt = root / 'receipt.json'
-            with patch.object(reader, 'session_receipt', return_value=receipt):
-                arguments = ['--session', 'mixed-chat', '--request', 'Guide.md#rules',
-                             '--request', 'Guide.md --outline', '--request', 'Probe.py --symbol work',
-                             '--request', 'Missing.md', '--request', 'run.sh --lines 2:2',
-                             '--request', 'Guide.md#rules']
-                with contextlib.redirect_stdout(io.StringIO()) as output, contextlib.redirect_stderr(io.StringIO()):
-                    self.assertEqual(reader.main(arguments, root=root), 2)
-                self.assertEqual(output.getvalue().count('Keep saves'), 1)
-                self.assertIn('complete lexical declaration: work', output.getvalue())
-                self.assertIn('2: value=1', output.getvalue())
-                state = references.read_receipt(receipt, 'mixed-chat', root)
-                self.assertEqual(set(state['reads']), {'Guide.md#rules'})
-                self.assertFalse(references.can_reuse(state, root, 'Guide.md#other'))
-                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-                    self.assertEqual(reader.main(['--request', 'Guide.md --session another-chat', '--request', 'run.sh --lines 1:1'], root=root), 2)
-            self.assertNotEqual(references.session_receipt('one', root), references.session_receipt('two', root))
-            self.assertNotEqual(references.session_receipt('one', root), references.session_receipt('one', root / 'other'))
 
-    def test_session_wrapper_forwards_identity_and_forgets_only_its_own_receipt(self) -> None:
-        session = load_script('session_wrapper', 'agent-session.py')
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            receipt = root / 'receipt.json'
-            receipt.write_text('{}')
-            with patch.object(session.subprocess, 'run') as run:
-                run.return_value.returncode = 0
-                self.assertEqual(session.main(['--chat', 'this-chat', 'context', '--task', 'cloud'], root=root), 0)
-                self.assertEqual(run.call_args.args[0], ['bash', 'Scripts/agent-context.sh', '--session', 'this-chat', '--task', 'cloud'])
-            with patch.object(session, 'session_receipt', return_value=receipt), contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(session.main(['--chat', 'this-chat', 'forget'], root=root), 0)
-            self.assertFalse(receipt.exists())
 
-    def test_session_task_read_preserves_chat_and_scope_without_shell_execution(self) -> None:
-        session = load_script('session_task_wrapper', 'agent-session.py')
-        with patch.object(session.subprocess, 'run') as run:
-            from types import SimpleNamespace
-            run.side_effect = [SimpleNamespace(returncode=0, stdout="python3 Scripts/agent-read.py --session 'chat id' --request 'Guide.md#rules'\n"), SimpleNamespace(returncode=0)]
-            self.assertEqual(session.main(['--chat', 'chat id', 'read', '--task=shop', '--paths', 'Scripts/a b.py']), 0)
-            self.assertEqual(run.call_args_list[0].args[0], ['bash', 'Scripts/agent-context.sh', '--session', 'chat id', '--read-command', '--task', 'shop', '--paths', 'Scripts/a b.py'])
-            self.assertEqual(run.call_args_list[1].args[0][-1], 'Guide.md#rules')
-            self.assertNotIn('shell', run.call_args.kwargs)
-        with patch.object(session.subprocess, 'run') as run, contextlib.redirect_stderr(io.StringIO()):
-            run.return_value = SimpleNamespace(returncode=2, stderr='Task routing failed\n')
-            self.assertEqual(session.main(['--chat', 'chat', 'read', '--task', 'unknown']), 2)
-            run.assert_called_once()
 
     def test_mixed_read_modes_print_an_executable_section_retry(self) -> None:
         reader = load_script('recovery_reader', 'agent-read.py')
@@ -228,52 +123,7 @@ class AgentReadTests(unittest.TestCase):
                 self.assertEqual(reader.main(shlex.split(command)[2:], root=root), 0)
             self.assertIn('Keep saves', output.getvalue())
 
-    def test_receipts_cover_only_complete_read_content_and_invalidate_edits_and_other_chats(self) -> None:
-        reader = load_script('receipt_reader', 'agent-read.py')
-        references = load_script('receipt_references', 'internal/agent_references.py')
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            guide = root / 'Guide.md'
-            guide.write_text('# Guide\n## Rules\nKeep saves\n## Other\nKeep artwork\n')
-            receipt = root / 'receipt.json'
-            flags = ['--receipt', str(receipt), '--chat', 'this-chat']
-            with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(reader.main(['Guide.md#rules', *flags], root=root), 0)
-            state = references.read_receipt(receipt, 'this-chat', root)
-            self.assertTrue(references.can_reuse(state, root, 'Guide.md#rules'))
-            self.assertFalse(references.can_reuse(state, root, 'Guide.md'))
-            self.assertFalse(references.can_reuse(state, root, 'Guide.md#other'))
-            with self.assertRaises(ValueError):
-                references.read_receipt(receipt, 'other-chat', root)
-            guide.write_text(guide.read_text().replace('Keep artwork', 'Prepare artwork'))
-            self.assertFalse(references.can_reuse(state, root, 'Guide.md#rules'))
-            before = receipt.read_bytes()
-            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-                self.assertEqual(reader.main(['Guide.md', '--outline', *flags], root=root), 2)
-                self.assertEqual(reader.main(['Guide.md#missing', *flags], root=root), 2)
-            with patch.object(reader, 'DOCUMENT_CHAR_BUDGET', 1), contextlib.redirect_stdout(io.StringIO()) as output:
-                self.assertEqual(reader.main(['Guide.md', *flags], root=root), 0)
-                self.assertIn('NOT been read', output.getvalue())
-            self.assertEqual(receipt.read_bytes(), before)
-            with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(reader.main(['Guide.md', *flags], root=root), 0)
-            state = references.read_receipt(receipt, 'this-chat', root)
-            self.assertTrue(references.can_reuse(state, root, 'Guide.md#other'))
 
-    def test_reference_identity_invalidates_all_sections_and_rejects_missing_anchors(self) -> None:
-        references = load_script('reference_identity', 'internal/agent_references.py')
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            guide = root / 'Guide.md'
-            guide.write_text('# Guide\n## Rules\nKeep saves\n## Other\nOld\n')
-            before = references.fingerprint(root, 'Guide.md#rules')
-            guide.write_text(guide.read_text().replace('Old', 'New'))
-            self.assertNotEqual(references.fingerprint(root, 'Guide.md#rules'), before)
-            self.assertEqual(references.fingerprint(root, 'Guide.md#rules'), references.fingerprint(root, 'Guide.md'))
-            with self.assertRaises(ValueError):
-                references.fingerprint(root, 'Guide.md#absent')
-            with self.assertRaises(ValueError):
-                references.fingerprint(root, '../outside.md')
 
     def test_batch_reads_deduplicate_targets_and_attempt_later_reads_after_failure(self) -> None:
         reader = load_script('batch_reader', 'agent-read.py')
@@ -301,10 +151,9 @@ class AgentReadTests(unittest.TestCase):
             (root / 'script.sh').write_bytes(data)
             (root / 'config.yml').write_text('first: 1\nlast: 2\n')
             with contextlib.redirect_stdout(io.StringIO()) as output:
-                self.assertEqual(reader.main(['script.sh', 'config.yml', '--lines', '2:2', '--fingerprint'], root=root), 0)
+                self.assertEqual(reader.main(['script.sh', 'config.yml', '--lines', '2:2'], root=root), 0)
             self.assertIn('2: value="$(literal)"', output.getvalue())
             self.assertIn('2: last: 2', output.getvalue())
-            self.assertIn(hashlib.sha256(data).hexdigest(), output.getvalue())
             (Path(outside) / 'outside.sh').write_text('secret\n')
             (root / 'escape.sh').symlink_to(Path(outside) / 'outside.sh')
             (root / 'binary.json').write_bytes(b'\xff\x00')
@@ -535,13 +384,13 @@ struct Owner {
                 with contextlib.redirect_stdout(io.StringIO()) as output:
                     self.assertEqual(reader.main(['Guide.md', *args], root=root), 0)
                 return output.getvalue()
-            default = read('--limit', '2', '--fingerprint')
+            default = read('--limit', '2')
             self.assertIn('Navigation only', default)
             self.assertIn('NOT been read', default)
             self.assertNotIn('important rule', default)
             self.assertIn('--full', default)
             self.assertIn('Omitted 1 headings', default)
-            self.assertIn('--limit 2 --fingerprint', default)
+            self.assertIn('--limit 2', default)
             last_page = read('--outline', '--offset', '2')
             self.assertIn('Guide.md#end', last_page)
             self.assertNotIn('Continue:', last_page)

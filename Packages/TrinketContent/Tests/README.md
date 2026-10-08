@@ -8,7 +8,6 @@ Tests follow the content domains in `Abilities/`, `Equipment/`, `Encounters/`,
 |---------|-------|-------|
 | Ability catalog and descriptions | `AbilityCatalogTests` | IDs, authored operations, and player-facing card text |
 | Ability validation | `AbilityValidationTests` | Base, random, and conditional paths; target rules, tier damage, and description overrides |
-| Ultimate cinematic catalog | `UltimateCinematicCatalogTests` | Actor-scoped resolve + fallback |
 | Art catalog cross-references | `ArtCatalogIntegrationTests` | Ability/item/stage wiring and artwork for every player combatant and enemy |
 | Combatant catalog graph | `CombatantCatalogTests` | Hero/companion loadouts, health/mana |
 | Homestead node catalog | `HomesteadCatalogTests` | Node IDs, tiers, unlock graph, tier effects |

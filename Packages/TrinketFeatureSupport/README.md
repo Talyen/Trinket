@@ -7,12 +7,12 @@ features.
 
 | Product | Ownership | Allowed dependencies |
 |---|---|---|
-| `TrinketFeatureContracts` | SwiftUI-free navigation, deep-link, user-message, and battle presentation/reward values | Core, Content |
+| `TrinketFeatureContracts` | SwiftUI-free navigation, messages, battle lifecycle interfaces, and presentation/reward values | Core, Content, BattleEngine |
 | `TrinketFeatureSupport` | Reusable cards/detail panes, encounter and reward UI, presentation models, `AccessibilityID`, prepared artwork, frame analysis | Core, Content, DesignSystem |
 | `TrinketFeatureAdapters` | Save-backed map/detail adapters and equipment editing | Support/Contracts plus Core, Content, BattleEngine, Persistence, DesignSystem |
 
 None of these products may import `TrinketBattleFeature`, `TrinketAppState`, or the
-app module. Keep app routing, encounter orchestration, and combat lifecycle outside
+app module. Keep app routing, encounter orchestration, and combat lifecycle implementation outside
 this package. Adapters submit save commands to Persistence, which owns transactions
 and durable storage.
 

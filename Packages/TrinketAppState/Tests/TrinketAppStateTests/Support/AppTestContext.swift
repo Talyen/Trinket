@@ -3,6 +3,7 @@ import Foundation
 import TrinketBattleFeature
 import TrinketContent
 import TrinketContentTestSupport
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
 import TrinketPersistenceTestSupport
@@ -129,33 +130,7 @@ final class AppTestContext {
             playerSave: playerSave,
             userDefaults: userDefaults,
             makeBattleRuntime: { _ in battle },
-            configureBattleRuntime: { runtime, play in
-                guard let session = runtime as? BattleSession else { return }
-                session.configureProgression(
-                    presentation: { [weak play] configuration in
-                        play?.battlePresentation(for: configuration)
-                    },
-                    settleRewards: { [weak play] configuration, gold in
-                        play?.settleBattleRewards(configuration, battleGold: gold, at: progressionDate())
-                    },
-                    completeVictory: { [weak play] configuration, gold, settlement, defersExit in
-                        play?.completeActiveBattle(
-                            configuration, battleGold: gold,
-                            settlement: settlement,
-                            defersPresentationExit: defersExit,
-                        ) ?? .unavailable
-                    },
-                    settleDefeat: { [weak play] configuration in
-                        play?.settleDefeatRewards(configuration, at: progressionDate())
-                    },
-                    completeDefeat: { [weak play] configuration, settlement, action in
-                        play?.completeDefeat(configuration, settlement: settlement, action: action) ?? .unavailable
-                    },
-                    finishPresentation: { [weak play] id in
-                        play?.finishBattleRewardPresentation(configurationID: id)
-                    },
-                )
-            },
+            battleRewardDate: progressionDate,
         )
         lastBattle = battle as? BattleSession
         return state

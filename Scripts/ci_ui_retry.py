@@ -16,7 +16,10 @@ parse_xcresult = load_sibling("test_timing", "test-timing.py").parse_xcresult
 
 
 def read(path: str | Path) -> dict:
-    return json.loads(Path(path).read_text())
+    payload = json.loads(Path(path).read_text())
+    if not isinstance(payload, dict):
+        raise ValueError(f"{path}: expected a JSON object")
+    return payload
 
 
 def identifier(value: str) -> str:
@@ -158,7 +161,7 @@ def run(command: list[str]) -> int:
         report = read(original["diagnostics_json"])
         if report.get("classification") != "simulator-infrastructure" or not original.get("result_bundle_complete"):
             return status
-        evidence = parse_xcresult(Path(original["result_bundle"]))
+        evidence = parse_xcresult(Path(original["result_bundle"]), original)
         evidence["expected_tests"] = expected_cases(targets)
         cases = failed_cases(original, report, evidence, targets)
         if not cases:
@@ -177,7 +180,7 @@ def run(command: list[str]) -> int:
         original["infrastructure_recovery"] = {
             "retry_manifest": str(retry_path), "targets": targets,
             "original_evidence": evidence,
-            "retry_evidence": parse_xcresult(Path(retry["result_bundle"])),
+            "retry_evidence": parse_xcresult(Path(retry["result_bundle"]), retry),
         }
         if not recovery_valid(original, report):
             return status

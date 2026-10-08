@@ -9,7 +9,7 @@
 # trinket_gate_ensure_tools, trinket_run_env_init/touch_generate_stamp, and
 # trinket_run_gate_slices). This file intentionally has no set -e/-u so the
 # caller retains control of shell error handling. Path-scoped verification
-# keeps its own plan builder (lib/classification-plan.sh); this owns the
+# uses internal/change_routing.py for its plan; this owns the
 # full-tree order only.
 
 # Run the full local gate: pinned tools, generation, committed-output assert,

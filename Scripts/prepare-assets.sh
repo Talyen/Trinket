@@ -19,19 +19,19 @@ while [[ $# -gt 0 ]]; do
     --heal) heal=true; shift ;;
     --kind)
       if [[ -z "${2:-}" ]]; then
-        echo "--kind requires an argument (art|cinematic|music|sfx|app-icon|all)" >&2
+        echo "--kind requires an argument (art|music|sfx|app-icon|all)" >&2
         exit 2
       fi
       kind="$2"
       shift 2
       ;;
     --help|-h)
-      echo "Usage: $0 [--kind art|cinematic|music|sfx|app-icon|all] [--check [--outputs-only]]"
+      echo "Usage: $0 [--kind art|music|sfx|app-icon|all] [--check [--outputs-only]]"
       echo "       $0 --heal [--kind <kind>] (local relinking and preparation of relocated sources only)"
       exit 0
       ;;
     *)
-      echo "Unknown argument: $1 (expected --kind art|cinematic|music|sfx|app-icon|all)" >&2
+      echo "Unknown argument: $1 (expected --kind art|music|sfx|app-icon|all)" >&2
       exit 1
       ;;
   esac
@@ -41,7 +41,7 @@ if $heal && $check; then
   exit 2
 fi
 case "$kind" in
-  art|cinematic|music|sfx|app-icon|all) ;;
+  art|music|sfx|app-icon|all) ;;
   *) echo "Unknown asset kind: $kind" >&2; exit 2 ;;
 esac
 
@@ -59,7 +59,6 @@ run_kind() {
   trinket_log_section "Preparing $1"
   case "$1" in
     art) Scripts/prepare-art-assets.sh ;;
-    cinematic) Scripts/prepare-cinematic-assets.sh ;;
     music) Scripts/prepare-audio-assets.sh music ;;
     sfx) Scripts/prepare-audio-assets.sh sfx ;;
     app-icon) Scripts/prepare-app-icon.sh ;;
@@ -82,7 +81,7 @@ python3 Scripts/asset-library.py --preflight --kind "$kind"
 
 case "$kind" in
   all)
-    for _kind in art cinematic music sfx app-icon; do
+    for _kind in art music sfx app-icon; do
       run_kind "$_kind"
     done
     ;;

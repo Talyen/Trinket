@@ -1,6 +1,9 @@
+import BattleEngine
 import Foundation
 import Testing
 import TrinketContent
+import TrinketCore
+import TrinketFeatureContracts
 @testable import TrinketAppState
 @testable import TrinketBattleFeature
 @testable import TrinketPersistence
@@ -20,14 +23,9 @@ struct BattleSettlementFallbackIntegrationTests {
         let battle = try #require(state.battle as? BattleSession)
         let configuration = try #require(battle.activeBattle)
         let progression = try #require(battle.progression)
-        battle.progression = BattleProgression(
-            presentation: progression.presentation,
-            settleRewards: { _, _ in nil },
-            settleDefeat: progression.settleDefeat,
-            completeDefeat: progression.completeDefeat,
-            finishPresentation: progression.finishPresentation,
-            completeVictory: progression.completeVictory,
-        )
+        let unavailable = UnavailableVictorySettlement(progression)
+        battle.progression = unavailable
+        defer { withExtendedLifetime(unavailable) {} }
         battle.presentLaunchVictory()
         let displayed = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
         try state.playerSave.performBatchMutation { save in save.roster.gold = 999 }
@@ -38,5 +36,54 @@ struct BattleSettlementFallbackIntegrationTests {
         #expect(refreshed.settlement != displayed.settlement)
         #expect(battle.claimVictory(configurationID: configuration.id, summary: refreshed))
         #expect(state.playerSave.journey.hasClaimedRewards(for: stage))
+    }
+}
+
+@MainActor
+private final class UnavailableVictorySettlement: BattleProgressionDelegate {
+    let underlying: any BattleProgressionDelegate
+    init(_ underlying: any BattleProgressionDelegate) {
+        self.underlying = underlying
+    }
+
+    func settleBattleRewards(
+        _: BattleRunConfiguration,
+        battleGold _: BattleGoldFlow,
+        materialRewards _: [ResourceAmount]?,
+        at _: Date?,
+    ) -> BattleRewardSettlement? {
+        nil
+    }
+
+    func settleDefeatRewards(_ configuration: BattleRunConfiguration, at date: Date?) -> BattleRewardSettlement? {
+        underlying.settleDefeatRewards(configuration, at: date)
+    }
+
+    func completeActiveBattle(
+        _ configuration: BattleRunConfiguration,
+        battleGold: BattleGoldFlow,
+        materialRewards: [ResourceAmount]?,
+        settlement: BattleRewardSettlement?,
+        defersPresentationExit: Bool,
+    ) -> BattleCompletionResult {
+        underlying.completeActiveBattle(
+            configuration,
+            battleGold: battleGold,
+            materialRewards: materialRewards,
+            settlement: settlement,
+            defersPresentationExit: defersPresentationExit,
+        )
+    }
+
+    func completeDefeat(
+        _ configuration: BattleRunConfiguration,
+        settlement: BattleRewardSettlement,
+        action: BattleDefeatAction,
+    ) -> BattleCompletionResult {
+        underlying.completeDefeat(configuration, settlement: settlement, action: action)
+    }
+
+    func finishBattleRewardPresentation(configurationID: UUID) {
+        underlying.finishBattleRewardPresentation(configurationID: configurationID)
     }
 }

@@ -235,6 +235,7 @@ class TestTimingTests(unittest.TestCase):
             xcrun = tools / "xcrun"
             xcrun.write_text(
                 "#!/usr/bin/env bash\n"
+                'printf "%s\\n" "$*" >> "$QUERY_LOG"\n'
                 "if [[ \"$*\" == *\" summary \"* ]]; then\n"
                 "  echo '{\"passedTests\":1,\"failedTests\":0,\"skippedTests\":0,\"result\":\"Passed\",\"startTime\":10,\"finishTime\":12}'\n"
                 "else\n"
@@ -243,7 +244,8 @@ class TestTimingTests(unittest.TestCase):
                 encoding="utf-8",
             )
             xcrun.chmod(0o755)
-            environment = {"PATH": f"{tools}:{os.environ['PATH']}"}
+            queries = results_dir / 'queries.log'
+            environment = {"PATH": f"{tools}:{os.environ['PATH']}", "QUERY_LOG": str(queries)}
 
             record = self.run_script(
                 results_dir,
@@ -269,6 +271,27 @@ class TestTimingTests(unittest.TestCase):
             self.assertIn("Passed | 1 passed, 0 failed, 0 skipped", available.stdout)
             self.assertIn("xcresult (available)", available.stdout)
             self.assertIn("ExampleTests/testOne", available.stdout)
+
+            captured = {
+                'schema_version': 1, 'action': 'test', 'result_bundle_complete': True,
+                'result_bundle': str(bundle),
+                'test_summary': {'passedTests': 1, 'failedTests': 0, 'skippedTests': 0,
+                                 'result': 'Passed', 'startTime': 10, 'finishTime': 12},
+            }
+            manifest = results_dir / 'invocation.json'
+            for summary, expected_queries in (
+                (captured, 1),
+                (captured | {'result_bundle': str(results_dir / 'another.xcresult')}, 2),
+                (captured | {'test_summary': None}, 2),
+            ):
+                manifest.write_text(json.dumps(summary))
+                queries.write_text('')
+                reused = self.run_script(results_dir, 'record', '--mode', 'ui', '--run', 'captured',
+                                         '--xcresult', str(bundle), '--manifest', str(manifest),
+                                         extra_environment=environment)
+                self.assertEqual(reused.returncode, 0, reused.stderr)
+                self.assertEqual(len(queries.read_text().splitlines()), expected_queries)
+                self.assertIn('1 passed, 0 failed, 0 skipped in 2.0s', reused.stdout)
 
             for child in bundle.iterdir():
                 child.unlink()
@@ -313,6 +336,27 @@ class TestTimingTests(unittest.TestCase):
             self.assertIn("ui-legacy-token", show.stdout)
             self.assertIn("ui-current-token", show.stdout)
             self.assertIn("xcresult (not recorded/incomplete)", show.stdout)
+
+    def test_class_report_aggregates_test_durations_per_invocation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            entries = []
+            for run, durations in enumerate((
+                {'ExampleTests/one': 10, 'ExampleTests/two': 1, 'OtherTests/one': 4},
+                {'ExampleTests/one': 20, 'ExampleTests/two': 3},
+            )):
+                total = sum(durations.values())
+                entries.append({
+                    'mode': 'ui', 'run': str(run), 'wall_seconds': total,
+                    'summary': {'passed': len(durations), 'failed': 0, 'skipped': 0,
+                                'xcresult_seconds': total, 'measured_test_seconds': total},
+                    'tests': [{'id': name, 'name': name, 'seconds': seconds} for name, seconds in durations.items()],
+                })
+            (root / 'timing-log.jsonl').write_text(''.join(json.dumps(entry) + '\n' for entry in entries))
+            report = self.run_script(root, 'report', '--by-class', '--top', '0')
+            self.assertEqual(report.returncode, 0, report.stderr)
+            self.assertRegex(report.stdout, r'34\.0s\s+17\.0s\s+2\s+ExampleTests\n')
+            self.assertRegex(report.stdout, r'4\.0s\s+4\.0s\s+1\s+OtherTests\n')
 
 
 if __name__ == "__main__":

@@ -1,61 +1,51 @@
 import BattleEngine
 import Foundation
-import Observation
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 
 @MainActor
-@Observable
 final class BattleFeedbackLane {
-    @ObservationIgnored var evictedItemIDs: Set<Int> = []
+    var evictedItemIDs: Set<Int> = []
 
     var feedbackLifetime: TimeInterval {
         CombatFeedbackMotionSampler.lifetime
     }
 
-    @ObservationIgnored
     var activeItems: [CombatFeedbackItem] = []
-    @ObservationIgnored
     var hitReactionsByTargetID: [String: CombatantHitReaction] = [:]
-    @ObservationIgnored
     var attackReactionsByCombatantID: [String: CombatantAttackReaction] = [:]
-    @ObservationIgnored
     var celebrateReactionExpiresAt: [String: Date] = [:]
-    @ObservationIgnored
     var nextPruneAt: Date?
-    @ObservationIgnored
     var scheduler: FeedbackDeadlineTimer?
 
-    @ObservationIgnored private var soundEventIDs: Set<Int> = []
-    @ObservationIgnored private var soundGroupIDs: Set<Int> = []
+    private var soundEventIDs: Set<Int> = []
+    private var soundGroupIDs: Set<Int> = []
 
-    @ObservationIgnored var actionQueue = BattleActionQueue()
+    var actionQueue = BattleActionQueue()
 
     var scheduledActions: [BattleScheduledAction] {
         actionQueue.actions
     }
 
-    @ObservationIgnored var nextAttackReactionID = 0
-    @ObservationIgnored var nextRecordedHitID = Int.min
-    @ObservationIgnored var recordedHitExpirations: [String: (id: Int, date: Date)] = [:]
-    @ObservationIgnored var attackOwners: [String: Int] = [:]
-    @ObservationIgnored var previewActors: Set<String> = []
-    @ObservationIgnored var suspendedAt: Date?
-    @ObservationIgnored weak var automaticPlayback: BattleCardPlaybackState?
+    var nextAttackReactionID = 0
+    var nextRecordedHitID = Int.min
+    var recordedHitExpirations: [String: (id: Int, date: Date)] = [:]
+    var attackOwners: [String: Int] = [:]
+    var previewActors: Set<String> = []
+    var suspendedAt: Date?
+    weak var automaticPlayback: BattleCardPlaybackState?
 
-    @ObservationIgnored
     private var bridges: [(
         ownerID: UUID,
         onChange: (CombatFeedbackUpdate) -> Void,
     )] = []
-    @ObservationIgnored
     private var hitReactionBridges: [(
         ownerID: UUID,
         combatantID: String,
         onChange: (CombatantHitReaction?) -> Void,
     )] = []
-    @ObservationIgnored
     private var attackReactionBridges: [(
         ownerID: UUID,
         combatantID: String,
@@ -138,7 +128,7 @@ final class BattleFeedbackLane {
     func record(
         _ events: [ActionEvent],
         at date: Date = .now,
-        environment: BattleRuntimeDependencies = .silent,
+        environment: BattlePresentationDependencies = .silent,
         actionGroupID: Int? = nil,
         damage: [BattleResolvedDamage] = [],
         didDrawCards: Bool = false,
@@ -278,7 +268,7 @@ final class BattleFeedbackLane {
 
     private func presentSound(
         _ events: [ActionEvent], damage: [BattleResolvedDamage], actionGroupID: Int?, didDrawCards: Bool,
-        environment: BattleRuntimeDependencies,
+        environment: BattlePresentationDependencies,
     ) {
         if let actionGroupID, !soundGroupIDs.insert(actionGroupID).inserted {
             return

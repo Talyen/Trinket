@@ -1,6 +1,14 @@
 import TrinketFeatureSupport
 import XCTest
 
+func trinketWaitUntil(timeout: TimeInterval, condition: @escaping () -> Bool) -> Bool {
+    if condition() {
+        return true
+    }
+    let expectation = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in condition() }, object: nil)
+    return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed
+}
+
 private func trinketWaitForExistenceMainActorSafe(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
     if Thread.isMainThread {
         return MainActor.assumeIsolated { element.exists || element.waitForExistence(timeout: timeout) }
@@ -178,8 +186,7 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func waitUntil(_ message: String, timeout: TimeInterval = defaultTimeout, condition: @escaping () -> Bool) {
-        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in condition() }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: timeout), .completed, message)
+        XCTAssertTrue(trinketWaitUntil(timeout: timeout, condition: condition), message)
     }
 
     func integer(in element: XCUIElement) throws -> Int {
@@ -448,12 +455,7 @@ extension XCUIElement {
             else { return false }
             return element.isHittable
         }
-        let ready = XCTNSPredicateExpectation(
-            predicate: NSPredicate { [self] _, _ in isReady(self) },
-            object: self,
-        )
-        guard ready.predicate.evaluate(with: self)
-            || XCTWaiter.wait(for: [ready], timeout: TrinketUITestCase.defaultTimeout) == .completed else {
+        guard trinketWaitUntil(timeout: TrinketUITestCase.defaultTimeout, condition: { isReady(self) }) else {
             XCTFail(
                 "Control '\(identifier)' not ready: exists=\(exists), enabled=\(isEnabled), hittable=\(isHittable), frame=\(frame)",
                 file: file,
@@ -465,11 +467,7 @@ extension XCUIElement {
         // tap ("Activation point invalid"); re-validate once without growing
         // the happy-path budget, settling briefly only on a detected race.
         if !isReady(self) {
-            let settled = XCTNSPredicateExpectation(
-                predicate: NSPredicate { [self] _, _ in isReady(self) },
-                object: self,
-            )
-            guard XCTWaiter.wait(for: [settled], timeout: 2) == .completed else {
+            guard trinketWaitUntil(timeout: 2, condition: { isReady(self) }) else {
                 XCTFail(
                     "Control '\(identifier)' not stable: exists=\(exists), enabled=\(isEnabled), hittable=\(isHittable), frame=\(frame)",
                     file: file,

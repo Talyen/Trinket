@@ -49,7 +49,6 @@ public enum AccessibilityID {
         public static let resetProgressConfirmation = "Reset Game Progress"
         public static let resetProgressCancel = "Cancel Reset Progress"
         public static let resetProgressButton = "Reset Game Progress Button"
-        public static let showAnimationsPicker = "Show Ultimate Animations Picker"
         public static let unlockAllButton = "Unlock All Button"
     }
 

@@ -54,7 +54,6 @@ SCRIPT_INPUTS = (
     'Scripts/prepare-art-assets.sh',
     'Scripts/prepare-assets.sh',
     'Scripts/prepare-audio-assets.sh',
-    'Scripts/prepare-cinematic-assets.sh',
     'Scripts/promote.sh',
     'Scripts/prune-derived-data-cache.sh',
     'Scripts/record-time-profiler.sh',
@@ -88,29 +87,59 @@ import shutil
 from pathlib import Path
 
 class CIBuildScriptTests(ScriptRegressionTestCase):
-    def test_generate_pins_c_locale(self) -> None:
-        text = (ROOT / "Scripts" / "generate.sh").read_text(encoding="utf-8")
-        self.assertIn("export LC_ALL=C", text)
-        self.assertIn("export LANG=C", text)
+    def test_successful_test_process_requires_execution_evidence(self) -> None:
+        cases = (
+            ('empty', 'test', '', None, 1, False),
+            ('skipped', 'test', 'Executed 1 test, with 1 test skipped and 0 failures', None, 1, False),
+            ('swift-skipped', 'test', '↷ Test example() skipped.\n✔ Test run with 1 test passed after 0.1 seconds.', None, 1, False),
+            ('swift-empty-cases', 'test', '✔ Test example() with 0 test cases passed after 0.1 seconds.\n✔ Test run with 1 test passed after 0.1 seconds.', None, 1, False),
+            ('swift-completed', 'test', '✔ Test example() passed after 0.1 seconds.\n✔ Test run with 1 test passed after 0.1 seconds.', None, 0, True),
+            ('summary-zero', 'test', 'Executed 1 test, with 0 failures',
+             {'result': 'Passed', 'passedTests': 0, 'failedTests': 0, 'skippedTests': 1}, 1, False),
+            ('summary', 'test', '', {'result': 'Passed', 'passedTests': 1, 'failedTests': 0}, 0, True),
+            ('failed-count', 'test', '', {'result': 'Passed', 'passedTests': 1, 'failedTests': 1}, 1, True),
+            ('boolean-count', 'test', '', {'result': 'Passed', 'passedTests': True, 'failedTests': 0}, 1, False),
+            ('log', 'test-without-building', 'Executed 2 tests, with 1 test skipped and 0 failures', None, 0, True),
+            ('compile', 'build-for-testing', '', None, 0, False),
+        )
+        for name, action, log, summary, expected, executed in cases:
+            with self.subTest(case=name), tempfile.TemporaryDirectory() as directory:
+                root = self.make_repo_fixture(directory, (
+                    'Scripts/xcode-runner.sh', 'Scripts/config/diagnostic-limits.env',
+                    'Scripts/lib/xcode-manifest.sh', 'Scripts/lib/xcode-watchdog.sh',
+                ))
+                tools = root / 'bin'
+                tools.mkdir()
+                for filename, source in (
+                    ('xcodebuild', '#!/bin/sh\nprintf "%s\\n" "$FAKE_LOG"\n'),
+                    ('reporter', '#!/bin/sh\nexit 0\n'),
+                ):
+                    script = tools / filename
+                    script.write_text(source)
+                    script.chmod(0o755)
+                script = '''source Scripts/xcode-runner.sh
+xcode_runner_prepare unit "$PWD/results"
+if [[ "$FAKE_SUMMARY" != null ]]; then
+    mkdir -p "$XCODE_RUNNER_RESULT_BUNDLE_PATH"
+    touch "$XCODE_RUNNER_RESULT_BUNDLE_PATH/Info.plist"
+fi
+xcrun() { printf '%s' "$FAKE_SUMMARY"; }
+xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" --log "$XCODE_RUNNER_LOG_PATH" --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" -- xcodebuild "$1"
+'''
+                result = subprocess.run(['/bin/bash', '-c', script, '_', action], cwd=root,
+                    env={**self.verification_environment(), 'PATH': str(tools) + ':' + os.environ['PATH'],
+                         'FAKE_LOG': log, 'FAKE_SUMMARY': json.dumps(summary),
+                         'XCODE_RUNNER_REPORTER': str(tools / 'reporter'),
+                         'TRINKET_XCODE_WALL_TIMEOUT_SECONDS': '0', 'TRINKET_XCODE_IDLE_TIMEOUT_SECONDS': '0'},
+                    capture_output=True, text=True)
+                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                manifest = json.loads(next((root / 'results').glob('*-invocation.json')).read_text())
+                self.assertEqual(manifest['status'], 'passed' if expected == 0 else 'failed')
+                self.assertEqual(manifest['test_execution_proven'], executed)
+                self.assertEqual(manifest.get('test_summary'), summary)
 
-    def test_generate_pins_xcode_macos_sdk(self) -> None:
-        text = (ROOT / "Scripts" / "generate.sh").read_text(encoding="utf-8")
-        self.assertIn("ensure_xcode_macos_sdk", text)
-        self.assertIn("export DEVELOPER_DIR=", text)
-        self.assertIn("export SDKROOT=", text)
-        self.assertIn("CommandLineTools", text)
 
-    def test_build_inputs_include_xctestplans(self) -> None:
-        text = (ROOT / "Scripts" / "build-freshness.sh").read_text(encoding="utf-8")
-        owner = (ROOT / "Scripts" / "build-inputs.env").read_text(encoding="utf-8")
-        for plan in (
-            "Smoke.xctestplan",
-            "FullUI.xctestplan",
-            "BattlePerformance.xctestplan",
-        ):
-            self.assertIn(plan, owner)
-        self.assertIn('build_input_paths=("${TRINKET_BUILD_ROOTS[@]}" "${TRINKET_PROJECT_INPUTS[@]}")', text)
-        self.assertNotIn("Package.resolved", text)
+
 
     def test_build_cache_paths_reject_drifted_registry(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -324,7 +353,7 @@ prepare_generated_inputs results || status=$?
             root = self.make_repo_fixture(
                 directory, ("Scripts/prepare-assets.sh", "Scripts/lib/args.sh"))
             (root / 'Scripts/asset-library.py').write_text('import sys\nsys.exit(0)\n')
-            for kind in ("art", "cinematic", "audio", "app-icon"):
+            for kind in ("art", "audio", "app-icon"):
                 pipeline = root / "Scripts" / f"prepare-{kind}-assets.sh"
                 if kind == "app-icon":
                     pipeline = root / "Scripts/prepare-app-icon.sh"

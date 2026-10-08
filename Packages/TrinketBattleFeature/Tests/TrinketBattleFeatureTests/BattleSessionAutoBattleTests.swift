@@ -5,6 +5,7 @@ import Testing
 import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 @testable import TrinketBattleFeature
 
@@ -306,7 +307,7 @@ struct BattleSessionAutoBattleTests {
         )
     }
 
-    @Test func `auto battle continues during in-frame ultimate highlight`() async throws {
+    @Test func `auto battle continues after an ultimate`() async throws {
         let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: CombatantFixtures.combatant(
                 id: "knight",
@@ -330,10 +331,9 @@ struct BattleSessionAutoBattleTests {
             ),
         )
         _ = session.playCard(cardID: ultimate.id, at: now)
-        #expect(session.spectacle.ultimateHighlightsByActorID["knight"] != nil)
         #expect(session.canEndTurn)
 
-        var playedAfterHighlight = 0
+        var playedAfterUltimate = 0
         session.isAutoBattleEnabled = true
         let driver = Task { @MainActor in
             await session.driveAutoBattle(
@@ -342,7 +342,7 @@ struct BattleSessionAutoBattleTests {
                 playCard: { card in
                     let resolution = session.playCard(cardID: card.id)
                     guard resolution.didCommit else { return false }
-                    playedAfterHighlight += 1
+                    playedAfterUltimate += 1
                     session.isAutoBattleEnabled = false
                     return true
                 },
@@ -350,10 +350,9 @@ struct BattleSessionAutoBattleTests {
         }
 
         #expect(try await BattleSessionTestSupport.waitUntil(timeout: .milliseconds(300)) {
-            playedAfterHighlight > 0
+            playedAfterUltimate > 0
         })
         _ = await driver.result
-        #expect(session.spectacle.ultimateHighlightsByActorID["knight"] != nil || playedAfterHighlight > 0)
     }
 
     @Test func `auto battle resets off on new battle when remember is off`() throws {
@@ -420,18 +419,16 @@ private final class AutoBattleProbe {
 }
 
 @MainActor
-private func autoBattleEnvironment(probe: AutoBattleProbe) -> BattleRuntimeDependencies {
-    BattleRuntimeDependencies(
+private func autoBattleEnvironment(probe: AutoBattleProbe) -> BattlePresentationDependencies {
+    BattlePresentationDependencies(
         playSFX: { _ in },
         warmSFX: { _, _ in },
         hapticsEnabled: { false },
-        effectsVolume: { 0 },
         rememberAutoBattlePreference: { probe.remember },
         autoBattleEnabled: { probe.stored },
         setAutoBattleEnabled: { value in
             probe.stored = value
             probe.persistedValues.append(value)
         },
-        shouldAutoSkipUltimateCinematic: { _, _ in false },
     )
 }

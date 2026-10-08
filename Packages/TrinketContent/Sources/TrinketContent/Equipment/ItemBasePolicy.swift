@@ -1,4 +1,3 @@
-import Foundation
 import TrinketCore
 
 /// Single home for item base-type selection.
@@ -36,7 +35,7 @@ enum ItemBasePolicy {
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemBaseType? {
         let ranked = candidates.map { ($0, $0.keywordAffinities.count(where: keywordBias.contains)) }
-        guard let maximum = ranked.map(\.1).max() else { return nil }
+        guard let maximum = ranked.lazy.map(\.1).max() else { return nil }
         return ranked.filter { $0.1 == maximum }.map(\.0).randomElement(using: &randomNumberGenerator)
     }
 }

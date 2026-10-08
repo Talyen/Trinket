@@ -2,13 +2,13 @@
 """Bi-directional integrity check for Trinket game assets and manifests.
 
 Validates that:
-1. Every asset declared in ArtManifest, MusicManifest, SoundManifest, and CinematicManifest
+1. Every asset declared in ArtManifest, MusicManifest, SoundManifest
    exists on disk in Trinket/Assets.xcassets or Trinket/Media.
 2. Every asset file in Trinket/Assets.xcassets and Trinket/Media is registered in a manifest
    (detects orphaned / dead assets consuming bundle space).
 
 Carve-outs: AccentColor/AppIcon entries and dotfiles are ignored, as are files
-with extensions outside each pipeline's output (`.heic`, `.m4a`, `.mp4`).
+with extensions outside each pipeline's output (`.heic`, `.m4a`).
 """
 
 from __future__ import annotations
@@ -23,13 +23,11 @@ from internal.cli import ROOT
 ART_MANIFEST = ROOT / "ArtManifest" / "curated-assets.tsv"
 MUSIC_MANIFEST = ROOT / "MusicManifest" / "music.tsv"
 SFX_MANIFEST = ROOT / "SoundManifest" / "sfx.tsv"
-CINEMATICS_MANIFEST = ROOT / "CinematicManifest" / "cinematics.tsv"
 
 ASSETS_XCASSETS = ROOT / "Trinket" / "Assets.xcassets"
 MEDIA_DIR = ROOT / "Trinket" / "Media"
 MUSIC_DIR = MEDIA_DIR / "Music"
 SFX_DIR = MEDIA_DIR / "SFX"
-CINEMATICS_DIR = MEDIA_DIR / "Cinematics"
 
 FULL_ONLY_ART_KINDS_FILE = ROOT / "Scripts/config/full-only-art-kinds.txt"
 
@@ -87,13 +85,12 @@ def check_assets() -> tuple[list[str], list[str]]:
                 if item.is_dir() and item.name not in {"AccentColor.colorset", "AppIcon.appiconset"}:
                     orphans.append(f"Assets.xcassets: unmanaged asset folder '{item.name}'")
 
-    # 2-4. Manifest-driven media pipelines share one shape: manifest
+    # 2-3. Manifest-driven media pipelines share one shape: manifest
     # asset_name -> Trinket/Media/<dir>/<asset>.<ext>. Orphan pruning in the
     # prepare-*-assets.sh scripts must agree with this table.
     media_pipelines = (
         (SFX_MANIFEST, SFX_DIR, "m4a", "SoundManifest"),
         (MUSIC_MANIFEST, MUSIC_DIR, "m4a", "MusicManifest"),
-        (CINEMATICS_MANIFEST, CINEMATICS_DIR, "mp4", "CinematicManifest"),
     )
 
     for manifest_path, media_dir, extension, manifest_label in media_pipelines:

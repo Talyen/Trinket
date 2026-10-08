@@ -1,24 +1,6 @@
 import Foundation
 import Observation
 
-public enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable, Sendable {
-    case always
-    case never
-    case oncePerBattle
-
-    public var id: String {
-        rawValue
-    }
-
-    public var displayName: String {
-        switch self {
-        case .always: "Always"
-        case .never: "Never"
-        case .oncePerBattle: "Once Per Battle"
-        }
-    }
-}
-
 @MainActor
 @Observable
 public final class OptionsStore {
@@ -61,16 +43,11 @@ public final class OptionsStore {
         didSet { defaults.set(autoBattleEnabled, forKey: Self.autoBattleEnabledKey) }
     }
 
-    public var ultimateCinematicShowPolicy: UltimateCinematicShowPolicy {
-        didSet { defaults.set(ultimateCinematicShowPolicy.rawValue, forKey: Self.ultimateCinematicShowPolicyKey) }
-    }
-
     static let musicVolumeKey = "options.musicVolume"
     static let effectsVolumeKey = "options.effectsVolume"
     static let hapticsEnabledKey = "options.hapticsEnabled"
     static let rememberAutoBattlePreferenceKey = "options.rememberAutoBattlePreference"
     static let autoBattleEnabledKey = "options.autoBattleEnabled"
-    static let ultimateCinematicShowPolicyKey = "options.ultimateCinematicShowPolicy"
     private static let legacyAutoBattleEnabledKey = "battle.autoBattleEnabled"
 
     static func clearDefaults(from defaults: UserDefaults) {
@@ -80,7 +57,6 @@ public final class OptionsStore {
         defaults.removeObject(forKey: rememberAutoBattlePreferenceKey)
         defaults.removeObject(forKey: autoBattleEnabledKey)
         defaults.removeObject(forKey: legacyAutoBattleEnabledKey)
-        defaults.removeObject(forKey: ultimateCinematicShowPolicyKey)
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -96,32 +72,10 @@ public final class OptionsStore {
         hapticsEnabled = Self.readBool(from: defaults, key: Self.hapticsEnabledKey, default: Self.defaultHapticsEnabled)
         rememberAutoBattlePreference = rememberAutoValue
         autoBattleEnabled = autoBattleValue
-        ultimateCinematicShowPolicy = Self.resolveShowPolicy(from: defaults)
 
         // Persist the resolved preference before removing its legacy spelling.
         defaults.set(autoBattleValue, forKey: Self.autoBattleEnabledKey)
         defaults.removeObject(forKey: Self.legacyAutoBattleEnabledKey)
-    }
-
-    public func shouldAutoSkipUltimateCinematic(
-        actorID: String,
-        actorsWhoPresentedThisBattle: Set<String>,
-    ) -> Bool {
-        switch ultimateCinematicShowPolicy {
-        case .always:
-            false
-        case .oncePerBattle:
-            actorsWhoPresentedThisBattle.contains(actorID)
-        case .never:
-            true
-        }
-    }
-
-    private static func resolveShowPolicy(from defaults: UserDefaults) -> UltimateCinematicShowPolicy {
-        guard let raw = defaults.string(forKey: ultimateCinematicShowPolicyKey),
-              let policy = UltimateCinematicShowPolicy(rawValue: raw)
-        else { return .oncePerBattle }
-        return policy
     }
 
     private static func readVolume(from defaults: UserDefaults, key: String, default defaultValue: Double) -> Double {

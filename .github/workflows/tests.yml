@@ -111,7 +111,6 @@ jobs:
             ArtManifest
             MusicManifest
             SoundManifest
-            CinematicManifest
             .github
       - name: Assert sparse checkout kept root build inputs
         shell: bash
@@ -197,7 +196,6 @@ jobs:
             ArtManifest
             MusicManifest
             SoundManifest
-            CinematicManifest
             .github
       - name: Assert sparse checkout kept root build inputs
         shell: bash
@@ -257,7 +255,6 @@ jobs:
             ArtManifest
             MusicManifest
             SoundManifest
-            CinematicManifest
             .github
       - name: Assert sparse checkout kept root build inputs
         shell: bash
@@ -349,7 +346,6 @@ jobs:
             ArtManifest
             MusicManifest
             SoundManifest
-            CinematicManifest
             .github
       - name: Assert sparse checkout kept root build inputs
         if: needs.reuse.outputs.standard == 'true'

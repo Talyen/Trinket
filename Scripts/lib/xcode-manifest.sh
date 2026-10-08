@@ -56,21 +56,55 @@ xcode_runner_result_bundle_complete() {
   [[ -f "$result_path/Info.plist" ]]
 }
 
-xcode_runner_result_failed() {
+xcode_runner_summary_evidence() {
+  # Emit proof flags and the compact timing summary from one query.
   local result_path="${1:-}"
-  xcode_runner_result_bundle_complete "$result_path" || return 1
-  command -v xcrun >/dev/null 2>&1 || return 1
   local summary
-  summary="$(xcode_runner_run_bounded 60 xcrun xcresulttool get test-results summary --path "$result_path" 2>/dev/null)" || return 1
-  printf '%s' "$summary" | grep -Eq '"result"[[:space:]]*:[[:space:]]*"Failed"'
+  if ! xcode_runner_result_bundle_complete "$result_path" || ! command -v xcrun >/dev/null 2>&1 \
+    || ! summary="$(xcode_runner_run_bounded 60 xcrun xcresulttool get test-results summary --path "$result_path" 2>/dev/null)"; then
+    printf 'false false false\n'
+    return 0
+  fi
+  printf '%s' "$summary" | python3 -c '
+import json, sys
+try:
+    summary = json.load(sys.stdin)
+except ValueError:
+    summary = None
+failed = known = executed = False
+if isinstance(summary, dict):
+    failed_count = summary.get("failedTests")
+    failed = summary.get("result") == "Failed" or (type(failed_count) is int and failed_count > 0)
+    keys = ("passedTests", "failedTests")
+    counts = [summary.get(key, 0) for key in keys]
+    known = any(key in summary for key in keys) and all(type(count) is int and count >= 0 for count in counts)
+    executed = known and sum(counts) > 0
+timing = {key: summary[key] for key in (
+    "result", "passedTests", "failedTests", "skippedTests", "startTime", "finishTime",
+) if key in summary} if isinstance(summary, dict) else None
+print(*(str(value).lower() for value in (failed, known, executed)),
+      json.dumps(timing, separators=(",", ":")) if timing is not None else "")
+'
 }
 
 xcode_runner_log_proves_test_execution() {
   local log_file="${1:-}"
   [[ -f "$log_file" ]] || return 1
-  grep -Eq \
-    "Executed [1-9][0-9]* tests?|Test Case '.+' (passed|failed)|[✔✘] Test run with [1-9][0-9]* tests?" \
-    "$log_file"
+  python3 - "$log_file" <<'PY_EXECUTION'
+import re, sys
+
+with open(sys.argv[1]) as log:
+    for line in log:
+        # Swift Testing run totals include skips; only individual completion is proof.
+        completed = re.search(r"Test Case '.+' (passed|failed)|[✔✘] Test (?!run with ).+ (passed|failed) after ", line)
+        empty_parameters = re.search(r" with 0 test cases (passed|failed) after ", line)
+        if completed and not empty_parameters:
+            sys.exit(0)
+        summary = re.search(r"Executed (\d+) tests?(?:, with (\d+) tests? skipped)?", line)
+        if summary and int(summary[1]) > int(summary[2] or 0):
+            sys.exit(0)
+sys.exit(1)
+PY_EXECUTION
 }
 
 xcode_runner_write_manifest() {
@@ -78,6 +112,7 @@ xcode_runner_write_manifest() {
   local report_prefix="$2"
   local exit_code="$3"
   local label="$4"
+  local test_summary="${5:-}"
   local manifest_path diagnostics_json="" result_stem
 
   result_stem="$(basename "$result_bundle")"
@@ -88,14 +123,14 @@ xcode_runner_write_manifest() {
   fi
   mkdir -p "$(dirname "$manifest_path")"
 
-  python3 - "$manifest_path" "$label" "$exit_code" "$result_bundle" "$diagnostics_json" <<'PY' || true
+  python3 - "$manifest_path" "$label" "$exit_code" "$result_bundle" "$diagnostics_json" "$test_summary" <<'PY' || true
 import json
 import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-path, label, exit_code, result_bundle, diagnostics_json = sys.argv[1:]
+path, label, exit_code, result_bundle, diagnostics_json, test_summary = sys.argv[1:]
 payload = {
     "schema_version": 1,
     "label": label,
@@ -109,6 +144,13 @@ payload = {
     "test_execution_proven": os.environ.get("XCODE_RUNNER_TEST_EXECUTION_PROVEN", "false") == "true",
     "result_bundle_complete": Path(result_bundle, "Info.plist").is_file(),
 }
+if test_summary:
+    try:
+        summary = json.loads(test_summary)
+    except ValueError:
+        summary = None
+    if isinstance(summary, dict):
+        payload["test_summary"] = summary
 session_id = os.environ.get("TRINKET_DIAGNOSTICS_SESSION_ID", "").strip()
 if session_id:
     payload["session_id"] = session_id

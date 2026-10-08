@@ -6,19 +6,16 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 
 | Command | Purpose |
 |---|---|
-| `./Scripts/generate.sh [--assets [--kind art\|cinematic\|music\|sfx\|app-icon\|all]] [--skip-xcodegen]` | Generate the Xcode project without cache reuse and authored derived content (`--assets` also prepares art/music/SFX/cinematics; `--kind` prepares one asset kind; `--skip-xcodegen` runs content/asset codegen only) |
+| `./Scripts/generate.sh [--assets [--kind art\|music\|sfx\|app-icon\|all]] [--skip-xcodegen]` | Generate the Xcode project without cache reuse and authored derived content (`--assets` also prepares art/music/SFX; `--kind` prepares one asset kind; `--skip-xcodegen` runs content/asset codegen only) |
 | `./Scripts/build.sh` | Compile only the app; `--release-device` verifies unsigned iOS Release compilation |
-| `python3 Scripts/agent-session.py brief --task <concern> [--paths <files...>]` | Initial indexed-concern briefing: scoped status, safeguards, initial guidance, source signatures, and test pointers; explicit paths preserve actual task scope. `read`, `context`, and `forget` share chat-bound guidance receipts; [quickstart](../Docs/AgentContext/README.md#quickstart) and [receipt rules](../Docs/AgentContext/Retrieval.md#chat-local-read-receipts) own reuse and recovery after context loss. |
-| `./Scripts/agent-context.sh --agent --paths …` | Print concise guidance and verification routing; `--status` adds global dirty counts and exact scoped status; `--fingerprints` adds whole-file identities for reusing guidance actually read in this chat; `--smoke` previews the smoke route; `--full` adds path inventory, route metadata, and full commands; `--working-tree --allow-broad-scope` is intentional whole-tree work |
+| `python3 Scripts/agent-brief.py --task <concern> [--paths <files...>]` | Stateless concern or file-scoped briefing; `--status` adds scoped changes; prints safeguards, guidance, and read commands. [Quickstart](../Docs/AgentContext/README.md#quickstart) |
+| `./Scripts/agent-context.sh --agent --paths …` | Launcher for the same stateless briefing; `--status`, `--smoke`, and `--full` add status, smoke ownership, and plan detail; `--working-tree --allow-broad-scope` is intentional whole-tree work |
 | `python3 Scripts/agent-search.py <pattern> --scope <owner>` | Authored-first discovery: matching filenames/counts by default; plain identifiers rank exact stems, filename words/prefixes, then declarations before references outside docs; `--offset`/`--expect` continuations avoid repeats and reject changed results; `--overview` pages owner counts/entry points; `--files` searches filenames (`--mode assets --files` includes binary media names); `--excerpts` for bounded lines, `--mode tests`, `docs`, or `generated` for other surfaces; omissions are explicit |
 | `python3 Scripts/agent-diff.py --paths <files...>` | Paged authored diffs plus generated statistics; `--summary` adds generated talent/affix/Homestead record hints with explicit unsupported-format fallback; `--generated` expands generated patches; `--staged` reviews the index; `--full` intentionally reads all units |
-| `python3 Scripts/agent-read.py <file>[#anchor] …` | Batch complete Markdown sections with shared flags; `--outline` lists headings or Swift/Python declarations; `--signatures`, `--kind`, and `--match` filter source navigation; repeat `--symbol` for complete declarations; `--lines START:END` also reads shell/config text; `--fingerprint` identifies displayed file bytes; large unanchored docs require `--full` |
+| `python3 Scripts/agent-read.py <file>[#anchor] …` | Batch complete Markdown sections with shared flags; `--outline` lists headings or Swift/Python declarations; `--signatures`, `--kind`, and `--match` filter source navigation; repeat `--symbol` for complete declarations; `--lines START:END` also reads shell/config text; large unanchored docs require `--full` |
 | `python3 Scripts/agent-search.py --files --glob '<pattern>' --scope <owner>` | Explicit case-sensitive shell filename pattern; `*` crosses directories and patterns without `/` also match basenames; filters and fingerprinted pagination are unchanged; default filename patterns remain regexes |
 | `python3 Scripts/agent-search.py <identifier> --related --scope <owner>` | Interleaved declaration/reference/test-file hints within supplied scopes; textual mentions do not establish semantic ownership or coverage; authored source and tests only, with bounded pages |
 | `python3 Scripts/agent-search.py '<concern>' --task` | Player-facing concern lookup with source, contract and test pointers plus a routing command; [task index](config/agent-tasks.json) contains navigation only; related lookup supplements mentions with scoped curated test pointers |
-| `python3 Scripts/agent-read.py <guide>[#anchor] --receipt /tmp/<chat>.json --chat <id>` | Record successfully displayed complete Markdown reads; use the same options before router `--paths` to annotate unchanged reads; [receipt limits](../Docs/AgentContext/Retrieval.md#chat-local-read-receipts) |
-| `python3 Scripts/agent-efficiency.py probe --root <snapshot> --output <report.json>` | Read-only representative retrieval workflows; `compare <before.json> <after.json>` checks matching inputs and compares characters/commands, or measured complete-task reports; [comparison protocol](../.agents/evals/token-efficiency.md) |
-| `python3 Scripts/agent-efficiency.py prepare --root <snapshot> --output <trial.json>` | Create unmeasured complete-task scenarios; `collect <trial.json> --output <report.json>` validates independently judged results and imports actual exported per-response usage; missing usage remains unmeasured |
 | `python3 Scripts/content-inspect.py --id <id>` | Inspect authored content by exact ID, player-facing `--name <text>`, or canonical `--trigger <field>`; `--references` follows parsed fields to schemas, rule anchors, authored Swift and tests; record and reference pages disclose omissions; `--full` expands record fields |
 | `node Scripts/agent-worktree.mjs create --task <slug>` | Alternate checkout for an explicitly requested worktree or disposable evaluation, under `.worktrees/<slug>` on `agent/<slug>`; ordinary work stays in the primary checkout on `main` under [AGENTS.md](../AGENTS.md#protect-the-workspace) |
 | `node Scripts/agent-worktree.mjs legacy-detach create <slug>` | Legacy sibling `../Trinket-<slug>` checkout, detached at HEAD |
@@ -38,7 +35,7 @@ normal Simulator run remains available and uses two local build workers.
 
 | Command | Purpose |
 |---|---|
-| `./Scripts/assert-generated-output.sh [--regenerate] [--assets] [--strict-assets] --idempotent` | Confirm regeneration produces no diff (`--regenerate` runs `generate.sh` first; `--assets` includes art/music/SFX/cinematic outputs; `--strict-assets` fingerprints full media trees) |
+| `./Scripts/assert-generated-output.sh [--regenerate] [--assets] [--strict-assets] --idempotent` | Confirm regeneration produces no diff (`--regenerate` runs `generate.sh` first; `--assets` includes art/music/SFX outputs; `--strict-assets` fingerprints full media trees) |
 | `./Scripts/build-for-testing.sh` | CI-owned compilation of app/package test schemes for `test.sh … --no-build` runs against CI build artifacts |
 | `./Scripts/build-for-testing.sh --app-only` | Build the app and UI test bundles, skipping package test schemes (CI shared build) |
 | `./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination …] [--iterations …] [--run-tests-until-failure] [--include-balance-sweep-tests] [--quiet] [--verbose] <Package> [Package...]` | CI-owned package tests on iOS Simulator; `--destination` allows simulator name/UUID overrides, rejects other platforms, and cannot combine with generic `--build-for-testing`; `--iterations` and `--run-tests-until-failure` support bounded diagnostic repetition; multiple packages emit an aggregate failure summary with retained report paths, `--verbose` expands worker output |
@@ -87,7 +84,7 @@ reserve `report.json` plus worker evidence for targeted diagnostics.
 | Command | Purpose |
 |---|---|
 | `./Scripts/report-art-memory.sh [--enforce]` | Estimate full-catalog decoded artwork size; `--enforce` fails over budget; interpretation and optional enforcement follow the [art pipeline](../ArtManifest/README.md#decoded-memory-report) |
-| `./Scripts/generate.sh --assets` | Also prepare art, music, SFX, and cinematics (add `--kind <kind>` for one pipeline, `--skip-xcodegen` for codegen only) |
+| `./Scripts/generate.sh --assets` | Also prepare art, music, and SFX (add `--kind <kind>` for one pipeline, `--skip-xcodegen` for codegen only) |
 | `./Scripts/ci-assets-gate.sh` | Committed asset integrity without Asset Library |
 | `python3 Scripts/asset-library.py --relink --kind art` | Preview unique exact-content matches for missing artwork paths (`--kind app-icon` for packages, or omit `--kind` for all media) |
 | `python3 Scripts/asset-library.py --relink --apply --kind art` | Apply the previewed manifest path repairs; run normal media preparation afterward to refresh receipts. Preparation also relinks automatically. |
@@ -142,14 +139,14 @@ These helpers are sourced or invoked by commands, Git hooks, or CI workflows. Li
 | `python3 Scripts/report-exhaustive-ci.py <jobs.json>` | Report actual advisory shard conclusions from paginated GitHub job results; invoked by the exhaustive summary job |
 | `./Scripts/lint-analyze.sh [SwiftPath ...]` | On-demand clean app build and analysis; optional file/directory scope, fails on unused imports or zero analyzed files; never CI, handoff, or style |
 | `./Scripts/run-env.sh`, `./Scripts/xcode-runner.sh`, `./Scripts/build-freshness.sh` | Run environment, Xcode execution, generated-input freshness, and `--no-build` stamps for `build` / `test` / `generate` / `run-simulator` / `lint-analyze` / `install-device` / `ci-gate` stamp alignment / `assert-generated-output` idempotence |
-| `./Scripts/change-classification.sh` | Sourced by `handoff` / `agent-context` / `agent-push-gate` |
+| `python3 Scripts/verify.py --dry-run --paths …` | Structured routing/verification implementation behind handoff; preview and execution use the same argument lists |
 | `./Scripts/ensure-simulator.sh` | Invoked by `test` / `run-simulator` slot setup |
 | `./Scripts/check-module-boundaries.sh` | Invoked via `ci-gate --fast` cheap slices (package layering and imports) |
 | `./Scripts/check-agent-invariants.sh`, `./Scripts/check-exclusivity-footguns.sh` | Invoked via the style gate only (not `ci-gate --fast`) |
 | `./Scripts/check-artwork-budget.sh`, `./Scripts/release-notes.sh` | Invoked via `ci-gate` cheap slices |
 | `./Scripts/check-build-cache-paths.sh`, `./Scripts/check-testplan-sync.py`, `./Scripts/check-links.py`, `./Scripts/check-plans.py` | Invoked via `test-scripts.sh` / `check-docs.py` |
 | `./Scripts/check-unused-assets.py`, `./Scripts/check-accessibility-ids.py`, `./Scripts/check-ui-style.py` | Invoked via style / asset gates |
-| `./Scripts/prepare-assets.sh`, `./Scripts/prepare-art-assets.sh`, `./Scripts/prepare-cinematic-assets.sh`, `./Scripts/prepare-app-icon.sh` | Invoked via `generate.sh --assets` |
+| `./Scripts/prepare-assets.sh`, `./Scripts/prepare-art-assets.sh`, `./Scripts/prepare-app-icon.sh` | Invoked via `generate.sh --assets` |
 | `./Scripts/content_codegen.py` (helpers in `internal/content/`) | Invoked via `generate.sh` |
 | `./Scripts/lint.sh`, `./Scripts/format.sh` | Invoked via style gate |
 | `./Scripts/validate-commit-msg.sh` | Invoked via commit-msg hook |

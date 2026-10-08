@@ -22,24 +22,3 @@ Passing syntax or link checks does not establish that a workflow works in practi
 Add a scenario only for a recurring decision worth testing. Include a concrete
 request, relevant setup, and observable pass criteria; avoid scoring whether the
 agent followed an arbitrary sequence or reproduced a preferred phrase.
-
-For context-efficiency changes, compare the same starting source snapshot with
-only guidance/tooling changed. Record routing output, available reference size,
-and the constraints retained. Count actual follow-up reads when available; making
-a reference optional does not establish that a task consumes fewer tokens.
-Review the existing scenarios for lost instructions and label static comparisons
-as scenario review, not autonomous behavioral trials.
-
-For autonomous comparisons, hold the Astra model, reasoning settings, tools,
-request, and starting code constant. Judge correctness and completion first,
-then unnecessary stops, repeated reads, retries, and total effort/token use when
-available. A lower token count does not compensate for a missed requirement.
-There is no fixed percentage-savings target. Record configuration and limitations;
-scenario reasoning does not establish measured task-success rates.
-
-[Token-efficiency tooling](token-efficiency.md) describes reproducible retrieval
-probes and the complete-task report format. Keep trial output only for the active
-comparison; expire it after 24 hours unless explicitly kept. Fold useful conclusions
-into current guidance rather than retaining past measurements or run reports.
-Retrieval output counts remain separate from actual model usage and independently
-judged completion.

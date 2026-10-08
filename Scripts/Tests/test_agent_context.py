@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
-    'Scripts/internal/agent_references.py',
     'Scripts/internal/agent_tasks.py',
     'Scripts/config/agent-tasks.json',
     'Scripts/agent-context.sh',
-    'Scripts/change-classification.sh',
+    'Scripts/internal/change_routing.py',
     'Scripts/internal/agent_status.py',
-    'Scripts/lib/classification-plan.sh',
+    'Scripts/verify.py',
     'Scripts/lib/smoke-classes.sh',
 )
 
@@ -28,12 +27,9 @@ class AgentContextTests(ScriptRegressionTestCase):
     def test_voyage_and_labyrinth_focus_preserves_progression_rules_and_broad_discovery(self) -> None:
         for concern in ('voyage', 'labyrinth'):
             command = subprocess.check_output(['bash', 'Scripts/agent-context.sh', '--task', concern, '--read-command'], cwd=ROOT, text=True)
-            chat = f'progression-focus-{concern}-{os.getpid()}'
             arguments = shlex.split(command)
-            result = subprocess.run([*arguments[:2], '--chat', chat, *arguments[2:]], cwd=ROOT, capture_output=True, text=True)
+            result = subprocess.run(arguments, cwd=ROOT, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
-            from internal.agent_references import session_receipt
-            self.addCleanup(session_receipt(chat, ROOT).unlink, missing_ok=True)
             for invariant in ('Reward arithmetic saturates', 'Saved IDs stay stable',
                               'requires a current playable', 'Shop offers are pinned',
                               'Mystery opening pins', 'Defeat and retreat XP'):
@@ -71,46 +67,13 @@ class AgentContextTests(ScriptRegressionTestCase):
             self.assertIn('matches:', result.stderr)
 
     def test_concern_read_command_executes_and_preserves_shared_shop_constraints(self) -> None:
-        from internal.agent_references import read_receipt, session_receipt
-        chat = 'batch-guidance-' + str(os.getpid())
         output = subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), '--task', 'shop'], cwd=ROOT, text=True)
-        command = next(line.strip() for line in output.splitlines() if 'Scripts/agent-session.py' in line)
-        arguments = shlex.split(command)
-        self.assertNotIn('AGENTS.md', arguments)
-        result = subprocess.run([*arguments[:2], '--chat', chat, *arguments[2:]], cwd=ROOT, capture_output=True, text=True)
+        command = next(line.strip() for line in output.splitlines() if 'Scripts/agent-read.py --request' in line)
+        result = subprocess.run(shlex.split(command), cwd=ROOT, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('Shop offers are pinned', result.stdout)
-        self.assertIn('Empty Shops prepare stock', result.stdout)
-        self.assertIn('Voyage encounters use', result.stdout)
+        for invariant in ('Shop offers are pinned', 'Empty Shops prepare stock', 'Voyage encounters use'):
+            self.assertIn(invariant, result.stdout)
         self.assertNotIn('Corruption gives', result.stdout)
-        receipt = session_receipt(chat, ROOT)
-        self.addCleanup(receipt.unlink, missing_ok=True)
-        reads = read_receipt(receipt, chat, ROOT)['reads']
-        self.assertIn('Docs/AgentContext/persistence-progression.md#noncombat-completion', reads)
-        leaf = 'Packages/TrinketPersistence/Sources/TrinketPersistence/Encounters/ShopPurchaseApplier.swift'
-        hub = 'Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift'
-        for paths in ((leaf, hub), (hub, leaf)):
-            route = self.route(*paths)
-            self.assertIn('persistence-progression.md\n', route)
-            self.assertNotIn('persistence-progression.md#', route)
-
-    def test_receipt_rerouting_annotates_reads_without_hiding_safeguards_or_changing_verification(self) -> None:
-        path = 'Packages/BattleEngine/Sources/BattleEngine/ManaEmpowermentBudget.swift'
-        with tempfile.TemporaryDirectory() as directory:
-            receipt = str(Path(directory) / 'receipt.json')
-            flags = ['--receipt', receipt, '--chat', 'route-test']
-            subprocess.run(['python3', 'Scripts/agent-read.py', 'AGENTS.md', *flags],
-                           cwd=ROOT, capture_output=True, check=True)
-            output = subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), *flags, '--paths', path], cwd=ROOT, text=True)
-            plain = self.route(path)
-            self.assertIn('AGENTS.md [already read; unchanged]', output)
-            self.assertIn('battle-engine.md [read if applicable]', output)
-            stripped = output.replace(' [already read; unchanged]', '').replace(' [read if applicable]', '')
-            self.assertEqual(plain, stripped)
-            changed_chat = subprocess.run([str(ROOT / 'Scripts/agent-context.sh'), '--receipt', receipt,
-                                          '--chat', 'fresh-chat', '--paths', path], cwd=ROOT, capture_output=True, text=True)
-            self.assertNotEqual(changed_chat.returncode, 0)
-            self.assertIn('another chat', changed_chat.stderr)
 
     def test_focused_action_and_storage_sections_keep_shared_contracts_and_broad_hubs(self) -> None:
         engine = 'Packages/BattleEngine/Sources/BattleEngine/'
@@ -138,18 +101,6 @@ class AgentContextTests(ScriptRegressionTestCase):
                 self.assertIn(f'{card}.md\n', output)
                 self.assertNotIn(f'{card}.md#', output)
 
-    def test_optional_fingerprints_cover_guides_and_cards_without_changing_the_handoff(self) -> None:
-        import hashlib
-        path = 'Packages/BattleEngine/Sources/BattleEngine/ManaEmpowermentBudget.swift'
-        command = [str(ROOT / 'Scripts/agent-context.sh'), '--fingerprints', '--paths', path]
-        output = subprocess.check_output(command, cwd=ROOT, text=True)
-        plain = self.route(path)
-        for reference in ('AGENTS.md', 'Docs/AgentContext/battle-actions.md#shared-action-invariants'):
-            digest = hashlib.sha256((ROOT / reference.partition('#')[0]).read_bytes()).hexdigest()
-            self.assertIn(f'{reference} sha256:{digest}', output)
-        self.assertNotIn('Reference fingerprints', plain)
-        handoff = lambda text: next(line for line in text.splitlines() if './Scripts/handoff.sh' in line)
-        self.assertEqual(handoff(plain), handoff(output))
 
     def route(self, *paths):
         return subprocess.check_output(
@@ -158,7 +109,7 @@ class AgentContextTests(ScriptRegressionTestCase):
 
     def test_agent_context_guidance_by_owner(self) -> None:
         cases = (
-            ('Raw Assets/Art/example.png', ['Raw\\ Assets/Art/example.png'], []),
+            ('Raw Assets/Art/example.png', ["'Raw Assets/Art/example.png'"], []),
             ('Packages/TrinketAppState/Sources/TrinketAppState/Play/PlayBattleCoordinator+Launch.swift', ['Docs/AgentContext/battle-runtime.md'], ['Route metadata']),
             ('Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/Feedback/BattleFeedbackLane.swift', ['Docs/AgentContext/battle-runtime.md'], ['apple-design/SKILL.md']),
             ('Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift', ['Docs/AgentContext/battle-engine.md'], []),
@@ -230,23 +181,21 @@ class AgentContextTests(ScriptRegressionTestCase):
                 self.assertNotIn("/persistence.md", references)
 
     def test_directive_skill_does_not_route_ordinary_rationale_comments(self) -> None:
+        from internal.change_routing import classify
         with tempfile.TemporaryDirectory() as directory:
-            fixture = Path(directory) / "Probe.swift"
+            root = self.make_repo_fixture(directory, ('Scripts/build-inputs.env', 'Scripts/config/ui-tests.tsv'))
+            subprocess.run(['git', 'init', '-q', str(root)], check=True)
+            fixture = root / 'Probe.swift'
             for source, expected in (
-                ("// Preserve ordering across suspension.\nstruct Probe {}\n", False),
-                ("/* Platform workaround. */\nstruct Probe {}\n", False),
-                ("/// Documents the public invariant.\npublic struct Probe {}\n", False),
-                ("// swiftlint:disable type_body_length - cohesive owner\nstruct Probe {}\n", True),
-                ("// Concurrency-Safety: immutable storage\nstruct Probe {}\n", True),
-                ("// UIStyleCheck: allow - content art\nstruct Probe {}\n", True),
+                ('// Preserve ordering across suspension.\nstruct Probe {}\n', False),
+                ('/// Documents the public invariant.\npublic struct Probe {}\n', False),
+                ('// swiftlint:disable type_body_length - cohesive owner\nstruct Probe {}\n', True),
+                ('// Concurrency-Safety: immutable storage\nstruct Probe {}\n', True),
+                ('// UIStyleCheck: allow - content art\nstruct Probe {}\n', True),
             ):
                 with self.subTest(source=source):
                     fixture.write_text(source)
-                    result = subprocess.run(
-                        ["bash", "-c", 'source Scripts/change-classification.sh; trinket_path_needs_doc_budget "$1"',
-                         "bash", str(fixture)], cwd=ROOT, capture_output=True, text=True,
-                    )
-                    self.assertEqual(result.returncode, 0 if expected else 1, result.stderr)
+                    self.assertEqual('.agents/skills/doc-budget/SKILL.md' in classify(['Probe.swift'], root).skills, expected)
 
     def test_runtime_contracts_follow_concerns_and_keep_shared_paths_conservative(self) -> None:
         feature = "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/"
@@ -272,8 +221,8 @@ class AgentContextTests(ScriptRegressionTestCase):
             ([feature + "State/Unknown.swift"], both),
             (["Packages/TrinketAppState/Sources/TrinketAppState/App/AppState.swift"], both),
             (["Trinket/App/TrinketApp.swift"], both),
-            ([engine + "Runtime/BattleRuntime.swift"], both),
-            ([engine + "Runtime/BattleRuntimeDependencies.swift"], both),
+            (["Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/BattleRuntime.swift"], both),
+            (["Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/BattlePresentationDependencies.swift"], both),
             ([presentation, launch], both),
         )
         for paths, expected in cases:
@@ -401,7 +350,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         ):
             self.assertIn(expected, compact)
             self.assertIn(expected, full)
-        for expanded in ("Route metadata", "Plan detail", "Authored paths"):
+        for expanded in ("Plan detail", "Authored paths"):
             self.assertNotIn(expanded, compact)
             self.assertIn(expanded, full)
         self.assertNotIn("(none)", compact)
@@ -462,7 +411,6 @@ class AgentContextTests(ScriptRegressionTestCase):
                 for _, other_card in cases:
                     if other_card != expected_card:
                         self.assertNotIn(other_card, result.stdout)
-                self.assertNotIn("Route metadata", result.stdout)
 
 
     def test_status_briefing_preserves_scope_and_rename_endpoints(self) -> None:

@@ -98,24 +98,14 @@ struct DefeatCompletionTests {
     }
 
     @Test func `claimed defeat can leave after failed restart without another award`() throws {
-        let play = try context.makePlaySession(arguments: ["-reset-state"])
+        let battle = BattleSession(outcomePresentationDelayOverride: 0)
+        let runtime = RefusingRestartRuntime(battle)
+        let play = try context.makePlaySession(arguments: ["-reset-state"], battleRuntime: runtime)
         let stage = try #require(GameContent.chapters[0].stages.first)
         #expect(play.journey.startBattle(for: stage) == nil)
-        let battle = try #require(context.lastBattle)
         let configuration = try #require(battle.activeBattle)
         try resolveDefeat(battle)
         let settlement = try #require(play.settleDefeatRewards(configuration))
-        let progression = try #require(battle.progression)
-        battle.progression = BattleProgression(
-            presentation: { candidate in
-                candidate.id == configuration.id ? progression.presentation(candidate) : nil
-            },
-            settleRewards: progression.settleRewards,
-            settleDefeat: progression.settleDefeat,
-            completeDefeat: progression.completeDefeat,
-            finishPresentation: progression.finishPresentation,
-            completeVictory: progression.completeVictory,
-        )
         #expect(!battle.claimDefeat(configurationID: configuration.id, settlement: settlement, action: .retry))
         #expect(battle.activeBattle?.id == configuration.id)
         #expect(play.playerSave.roster.progression(for: configuration.hero.combatant) == settlement.heroProgressionAfter)
@@ -178,5 +168,79 @@ struct DefeatCompletionTests {
         battle.outcomePresentationDelayOverride = .zero
         battle.handleOutcomeIfNeeded(at: .now)
         #expect(battle.resolvedDefeatProgress != nil)
+    }
+}
+
+@MainActor
+private final class RefusingRestartRuntime: BattleRuntime {
+    let session: BattleSession
+    init(_ session: BattleSession) {
+        self.session = session
+    }
+
+    var activeBattle: BattleRunConfiguration? {
+        session.activeBattle
+    }
+
+    var lifecyclePhase: BattleLifecyclePhase {
+        session.lifecyclePhase
+    }
+
+    var isSuspendedForScenePhase: Bool {
+        session.isSuspendedForScenePhase
+    }
+
+    var resolvedDefeatProgress: BattleDefeatProgress? {
+        session.resolvedDefeatProgress
+    }
+
+    var finalPartyHealthByCombatantID: [String: Int]? {
+        session.finalPartyHealthByCombatantID
+    }
+
+    func connectProgression(to delegate: any BattleProgressionDelegate) {
+        session.connectProgression(to: delegate)
+    }
+
+    func createPreparedRun(_ configuration: BattleRunConfiguration) -> (any PreparedBattleRunHandle)? {
+        session
+            .createPreparedRun(configuration)
+    }
+
+    func publishPreparedPreview(_ preview: BattlePreparedPreview) {
+        session.publishPreparedPreview(preview)
+    }
+
+    func activatePreparedBattle(
+        _ handle: any PreparedBattleRunHandle,
+        presentation: BattlePresentationContext,
+    ) -> Bool {
+        session.activatePreparedBattle(
+            handle,
+            presentation: presentation,
+        )
+    }
+
+    func activate(_ configuration: BattleRunConfiguration, presentation: BattlePresentationContext) -> Bool {
+        session.activate(
+            configuration,
+            presentation: presentation,
+        )
+    }
+
+    func restart(_: BattleRunConfiguration, presentation _: BattlePresentationContext) -> Bool {
+        false
+    }
+
+    func endBattle() {
+        session.endBattle()
+    }
+
+    func setSuspendedForScenePhase(_ suspended: Bool) {
+        session.setSuspendedForScenePhase(suspended)
+    }
+
+    func trimMemoryFootprint(releaseBattleLog: Bool) {
+        session.trimMemoryFootprint(releaseBattleLog: releaseBattleLog)
     }
 }

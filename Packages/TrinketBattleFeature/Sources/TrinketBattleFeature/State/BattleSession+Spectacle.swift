@@ -39,18 +39,19 @@ extension BattleSession {
         }
     }
 
-    func clearUltimateHighlight(for actorID: String) {
-        var entry = spectacle.pendingUltimateHighlightTasksByActorID.removeValue(forKey: actorID)
-        entry?.invalidate()
-        if let highlight = spectacle.ultimateHighlightsByActorID.removeValue(forKey: actorID) {
-            spectacle.cinematics.pause(actorID: actorID, abilityID: highlight.abilityID)
-        }
-    }
-
     func handleOutcomeIfNeeded(at date: Date) {
         guard commandState.phase != .outcome, let configuration = activeBattle,
               let context = presentationContext
         else { return }
+        if isInstallingBattle, hasConnectedProgression, outcome != nil {
+            // Opening traits resolve synchronously; AppState publishes the active
+            // registration only after installation returns successfully.
+            Task { @MainActor [weak self] in
+                guard let self, activeBattle?.id == configuration.id else { return }
+                handleOutcomeIfNeeded(at: date)
+            }
+            return
+        }
         switch outcome {
         case .victory:
             commandState.transition(to: .outcome)
@@ -208,95 +209,12 @@ extension BattleSession {
         }
     }
 
-    func presentUltimateHighlight(_ nonMilestone: [ActionEvent], at date: Date) {
-        guard let heroID,
-              let companionID
-        else { return }
-        if let ultimate = nonMilestone.first(where: {
-            BattleSpectaclePolicy.shouldPresentUltimateHighlight(
-                for: $0,
-                heroID: heroID,
-                companionID: companionID,
-            )
-        }) {
-            triggerUltimateInFrameHighlight(from: ultimate, at: date)
-        }
-    }
-
-    func triggerUltimateInFrameHighlight(from event: ActionEvent, at date: Date) {
-        spectacle.cinematics.isEnabled = areUltimateCinematicAnimationsEnabled
-        guard areUltimateCinematicAnimationsEnabled else { return }
-        let autoSkip = dependencies.shouldAutoSkipUltimateCinematic(
-            event.actorID,
-            spectacle.actorsWhoPresentedUltimateThisBattle,
-        )
-        if autoSkip {
-            return
-        }
-        spectacle.actorsWhoPresentedUltimateThisBattle.insert(event.actorID)
-        spectacle.nextID += 1
-        let highlightID = spectacle.nextID
-        let highlight = BattleUltimateInFramePresentation(
-            id: highlightID,
-            actorID: event.actorID,
-            actorName: event.actorName,
-            abilityID: event.abilityID,
-            abilityName: event.abilityName,
-            keyword: event.keyword,
-            startedAt: date,
-        )
-        invalidateUltimateHighlightTask(for: event.actorID)
-        spectacle.ultimateHighlightsByActorID[event.actorID] = highlight
-        spectacle.cinematics.warm(actorID: event.actorID, abilityID: event.abilityID)
-        let hold = ultimateInFrameDurationOverride ?? .seconds(BattleMotion.ultimateInFrameDuration)
-        var entry = spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] ?? CancellableGeneration()
-        let generation = entry.claim()
-        entry.task = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: hold)
-            guard let self, !Task.isCancelled else { return }
-            guard spectacle.pendingUltimateHighlightTasksByActorID[event.actorID]?.isCurrent(generation) == true else { return }
-            if spectacle.ultimateHighlightsByActorID[event.actorID]?.id == highlightID {
-                spectacle.ultimateHighlightsByActorID[event.actorID] = nil
-            }
-            if var finished = spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] {
-                finished.finish(generation: generation)
-                spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] =
-                    finished.hasPendingTask ? finished : nil
-            }
-        }
-        spectacle.pendingUltimateHighlightTasksByActorID[event.actorID] = entry
-    }
-
-    func cancelUltimateHighlightWatchdogs() {
-        for var entry in spectacle.pendingUltimateHighlightTasksByActorID.values {
-            entry.invalidate()
-        }
-        spectacle.pendingUltimateHighlightTasksByActorID.removeAll()
-    }
-
-    private func invalidateUltimateHighlightTask(for actorID: String) {
-        if var entry = spectacle.pendingUltimateHighlightTasksByActorID[actorID] {
-            entry.invalidate()
-            spectacle.pendingUltimateHighlightTasksByActorID[actorID] = entry
-        }
-    }
-
     func clearAllPresentation() {
-        resetPresentation(releaseCinematicPlayers: true, resetSpectacleState: false)
+        resetPresentation(resetSpectacleState: false)
     }
 
-    func clearSpectacle(releaseCinematicPlayers: Bool = true) {
+    func clearSpectacle() {
         spectacle.celebrateTask.invalidate()
-        cancelUltimateHighlightWatchdogs()
-        if !spectacle.ultimateHighlightsByActorID.isEmpty {
-            spectacle.ultimateHighlightsByActorID = [:]
-        }
-        if !spectacle.actorsWhoPresentedUltimateThisBattle.isEmpty {
-            spectacle.actorsWhoPresentedUltimateThisBattle = []
-        }
-        if releaseCinematicPlayers {
-            spectacle.cinematics.releaseAll()
-        }
     }
 
     func resetRun(from configuration: BattleRunConfiguration) {
@@ -304,7 +222,7 @@ extension BattleSession {
         retreatProgress = nil
         deliveredClaimedVictoryConfigurationID = nil
         installSimulationPresentation()
-        clearSharedPresentation(releaseCinematicPlayers: false)
+        resetPresentation(resetSpectacleState: false)
         let preferred = Self.preferredAutoBattleEnabled(from: dependencies)
         if isAutoBattleEnabled != preferred {
             isAutoBattleEnabled = preferred
@@ -318,37 +236,25 @@ extension BattleSession {
         retreatProgress = nil
         deliveredClaimedVictoryConfigurationID = nil
         presentation = BattlePresentationState()
-        resetPresentation(releaseCinematicPlayers: true, resetSpectacleState: true)
+        resetPresentation(resetSpectacleState: true)
         feedback.release()
         presentationContext = nil
     }
 
-    private func clearSharedPresentation(releaseCinematicPlayers: Bool) {
-        resetPresentation(
-            releaseCinematicPlayers: releaseCinematicPlayers,
-            resetSpectacleState: false,
-        )
-    }
-
-    private func resetPresentation(releaseCinematicPlayers: Bool, resetSpectacleState: Bool) {
+    private func resetPresentation(resetSpectacleState: Bool) {
         feedback.clear()
         resetFeedbackRasterDiagnostics()
         if resetSpectacleState {
-            cancelUltimateHighlightWatchdogs()
             spectacle.outcomeTask.invalidate()
             spectacle.celebrateTask.invalidate()
             spectacle = BattleSpectacleState()
-            if releaseCinematicPlayers {
-                // Fresh spectacle owns fresh cinematic players; the retired
-                // instance releases its players in deinit.
-            }
             // NB: no unconditional chip-bridge reset here. The lane already
             // publishes `.reset` on clear when it published presentation, and
             // production owns one long-lived session, so a teardown-time
             // unconditional publish would only couple concurrent lanes
-            // (tests, DEBUG Preview Lab) through shared bridge statics.
+            // (tests, DEBUG transition lab) through shared bridge statics.
         } else {
-            clearSpectacle(releaseCinematicPlayers: releaseCinematicPlayers)
+            clearSpectacle()
         }
         clearOutcomePresentation()
         resetEphemeralOverlays()

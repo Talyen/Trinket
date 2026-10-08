@@ -10,7 +10,7 @@ helpers, `config/` owns shared configuration, and `Tests/` owns script regressio
 
 ## Everyday workflow
 
-Start indexed concerns with `python3 Scripts/agent-session.py brief --task <concern>`
+Start indexed concerns with `python3 Scripts/agent-brief.py --task <concern>`
 for scoped status, safeguards, initial guidance, and source/test pointers. Find a
 concern with `agent-search.py '<concern>' --task`; unindexed work starts with
 filename discovery. The [AgentContext quickstart](../Docs/AgentContext/README.md#quickstart)
@@ -62,7 +62,8 @@ branch alone does not justify coverage; protect credible, materially harmful
 failures with high marginal value or a rare, justified medium-value exception.
 
 Each Python test module declares a literal `SCRIPT_INPUTS = ("Scripts/owner.py", ...)`
-tuple of repository-relative files or globs. The selector reads it with AST literal
+tuple of repository-relative files or globs; literal directories are rejected.
+Use an explicit glob for a family of inputs. The selector reads it with AST literal
 parsing and never imports test modules. Keep ownership beside the tests when adding
 or moving coverage; shared consumers combine their selections. List direct inputs
 even when a shared source already takes the full-suite route. Shell-suite mappings

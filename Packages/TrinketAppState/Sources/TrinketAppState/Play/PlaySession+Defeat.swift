@@ -4,8 +4,8 @@ import TrinketContent
 import TrinketFeatureContracts
 
 public extension PlaySession {
-    func settleDefeatRewards(_ configuration: BattleRunConfiguration, at date: Date = Date()) -> BattleRewardSettlement? {
-        battleCoordinator.settleDefeat(configuration, at: date)
+    func settleDefeatRewards(_ configuration: BattleRunConfiguration, at date: Date? = nil) -> BattleRewardSettlement? {
+        battleCoordinator.settleDefeat(configuration, at: date ?? battleRewardDate())
     }
 
     func completeDefeat(

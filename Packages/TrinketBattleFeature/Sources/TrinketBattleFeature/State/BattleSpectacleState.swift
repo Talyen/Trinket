@@ -1,8 +1,5 @@
-import BattleEngine
-import Foundation
 import Observation
 import TrinketContent
-import TrinketFeatureSupport
 
 public enum BattleOutcomePresentation: Equatable {
     case battle
@@ -37,19 +34,11 @@ public enum BattleOutcomePresentation: Equatable {
 @MainActor
 @Observable
 public final class BattleSpectacleState {
-    let cinematics = BattleCinematicPlayer()
     public internal(set) var outcomePresentation: BattleOutcomePresentation = .battle
-    var ultimateHighlightsByActorID: [String: BattleUltimateInFramePresentation] = [:]
-    // Shared with celebrate IDs, which negate theirs so the two streams never
-    // collide. Wrapping arithmetic is unnecessary here; overflow is not a
-    // realistic battle-lifetime concern.
     var nextID = 0
-    var actorsWhoPresentedUltimateThisBattle: Set<String> = []
 
     @ObservationIgnored
     var outcomeTask = CancellableGeneration()
     @ObservationIgnored
     var celebrateTask = CancellableGeneration()
-    @ObservationIgnored
-    var pendingUltimateHighlightTasksByActorID: [String: CancellableGeneration] = [:]
 }

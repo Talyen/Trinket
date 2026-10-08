@@ -55,7 +55,6 @@ public struct BattleTransitionLabView<StagePicker: View>: View {
         .clipped()
         .environment(fixture.session)
         .environment(fixture.session.spectacle)
-        .environment(fixture.session.feedback)
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackgroundVisibility(.hidden, for: .navigationBar)

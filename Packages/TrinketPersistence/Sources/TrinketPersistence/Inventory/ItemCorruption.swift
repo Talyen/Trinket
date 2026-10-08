@@ -274,8 +274,8 @@ public enum ItemCorruption {
     }
 }
 
-public enum ItemCorruptionApplier {
-    public static func corrupt(
+enum ItemCorruptionApplier {
+    static func corrupt(
         itemID: String,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
@@ -292,11 +292,11 @@ public enum ItemCorruptionApplier {
         return .success(result)
     }
 
-    public static func recordCorruptionAltarEncounter(save: inout PlayerSave) {
+    static func recordCorruptionAltarEncounter(save: inout PlayerSave) {
         save.corruptionAltarCooldownRemaining = PlayerSave.corruptionAltarCooldownAfterEncounter
     }
 
-    public static func noteMysteryCompleted(save: inout PlayerSave) {
+    static func noteMysteryCompleted(save: inout PlayerSave) {
         if save.corruptionAltarCooldownRemaining > 0 {
             save.corruptionAltarCooldownRemaining -= 1
         }

@@ -29,13 +29,10 @@ final class BattleTransitionLabFixture {
             enemyEncounterLevel: nil,
             enemyModifiers: .zero,
         )
-        session = BattleSession(presentationEnvironment: BattleRuntimeDependencies(
+        session = BattleSession(presentationEnvironment: BattlePresentationDependencies(
             playSFX: { _ in },
             warmSFX: { _, _ in },
             hapticsEnabled: { false },
-            effectsVolume: { 0 },
-            shouldAutoSkipUltimateCinematic: { _, _ in true },
-            ultimateCinematicAnimationsEnabled: { false },
         ))
         _ = session.activate(configuration, presentation: .empty)
         // Freeze the opening projection. The lab never drives turns or gameplay input.

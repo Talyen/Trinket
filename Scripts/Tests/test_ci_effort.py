@@ -1,7 +1,7 @@
 """Prevent reuse or targeted retries from turning incomplete verification green."""
 SCRIPT_INPUTS = (
     'Scripts/ci-reuse.py', 'Scripts/ci_ui_retry.py', 'Scripts/ci-diagnostics.py',
-    'Scripts/test.sh', 'Scripts/diagnostic_maintenance.py',
+    'Scripts/test.sh', 'Scripts/test-timing.py', 'Scripts/diagnostic_maintenance.py',
     'Scripts/internal/cli.py',
     'Scripts/ci-path-filter.py', '.github/workflows/tests.yml',
 )

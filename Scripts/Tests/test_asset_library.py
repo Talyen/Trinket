@@ -10,7 +10,7 @@ import tempfile
 from script_test_support import ScriptRegressionTestCase
 
 SCRIPT_INPUTS = ('Scripts/asset-library.py', 'Scripts/lib/media-assets.sh',
-                 'Scripts/prepare-audio-assets.sh', 'Scripts/prepare-cinematic-assets.sh')
+                 'Scripts/prepare-audio-assets.sh')
 
 
 class AssetLibraryTests(ScriptRegressionTestCase):
@@ -173,6 +173,19 @@ class AssetLibraryTests(ScriptRegressionTestCase):
             self.assertEqual(repaired.returncode, 0, repaired.stderr)
             self.assertEqual(output.read_bytes(), b'fixture audio')
 
+    def test_receipt_refresh_retires_unknown_kinds_and_preserves_other_active_kinds(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, env, _ = self.make_audio_fixture(directory, 'sfx')
+            receipt = root / 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json'
+            other = {'input_hash': 'music-inputs', 'sources': {}, 'outputs': {}}
+            receipt.write_text(json.dumps({'music': other, 'retired': {'outputs': {}}}))
+            prepared = self.run_audio_fixture(root, env, 'sfx')
+            self.assertEqual(prepared.returncode, 0, prepared.stderr)
+            recorded = json.loads(receipt.read_text())
+            self.assertEqual(recorded['music'], other)
+            self.assertNotIn('retired', recorded)
+            self.assertEqual(self.run_check(root, env, '--check', '--outputs-only').returncode, 0)
+
     def test_missing_later_source_preserves_all_outputs_and_orphans(self):
         for unavailable in ('missing', 'directory'):
             with self.subTest(unavailable=unavailable), tempfile.TemporaryDirectory() as directory:
@@ -208,37 +221,23 @@ class AssetLibraryTests(ScriptRegressionTestCase):
             self.assertNotEqual(changed.returncode, 0)
             self.assertIn('selection/settings changed', changed.stderr)
 
-    def test_source_free_checks_reject_removed_media_content_references(self):
-        for changed in ('boss', 'actor', 'actor-ultimate', 'ability-tier'):
-            with self.subTest(changed=changed), tempfile.TemporaryDirectory() as directory:
-                kind = 'music' if changed == 'boss' else 'cinematic'
-                if kind == 'music':
-                    root, env, _ = self.make_audio_fixture(directory, kind)
-                    manifest = root / 'MusicManifest/music.tsv'
-                    manifest.write_text(manifest.read_text().replace('menu\t', 'boss\t').replace('\tnone\t', '\ttest_boss\t'))
-                    content = root / 'Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift'
-                    content.write_text('id: "test_boss", isBoss: true\n')
-                    prepared = self.run_audio_fixture(root, env, kind)
-                else:
-                    root, env, _ = self.make_cinematic_fixture(directory)
-                    prepared = self.run_cinematic_fixture(root, env)
-                self.assertEqual(prepared.returncode, 0, prepared.stderr)
-                unavailable = {**env, 'ASSET_LIBRARY_ROOT': str(root / 'unavailable')}
-                command = ['python3', 'Scripts/asset-library.py', '--check', '--outputs-only', '--kind', kind]
-                checked = subprocess.run(command, cwd=root, env=unavailable, capture_output=True, text=True)
-                self.assertEqual(checked.returncode, 0, checked.stderr)
-                if changed == 'boss':
-                    content.write_text('id: "test_boss", isBoss: false\n')
-                elif changed == 'ability-tier':
-                    content = root / 'Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv'
-                    content.write_text(content.read_text().replace('\tultimate\t', '\tskill\t'))
-                else:
-                    content = root / 'ContentManifest/combatants.tsv'
-                    before, after = ('\thero\t', '\tenemy\t') if changed == 'actor' else ('\tavatarOfJustice\n', '\tbash\n')
-                    content.write_text(content.read_text().replace(before, after))
-                checked = subprocess.run(command, cwd=root, env=unavailable, capture_output=True, text=True)
-                self.assertNotEqual(checked.returncode, 0)
-                self.assertIn('no longer', checked.stderr)
+    def test_source_free_checks_reject_removed_boss_music_references(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, env, _ = self.make_audio_fixture(directory, 'music')
+            manifest = root / 'MusicManifest/music.tsv'
+            manifest.write_text(manifest.read_text().replace('menu\t', 'boss\t').replace('\tnone\t', '\ttest_boss\t'))
+            content = root / 'Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift'
+            content.write_text('id: "test_boss", isBoss: true\n')
+            prepared = self.run_audio_fixture(root, env, 'music')
+            self.assertEqual(prepared.returncode, 0, prepared.stderr)
+            unavailable = {**env, 'ASSET_LIBRARY_ROOT': str(root / 'unavailable')}
+            command = ['python3', 'Scripts/asset-library.py', '--check', '--outputs-only', '--kind', 'music']
+            checked = subprocess.run(command, cwd=root, env=unavailable, capture_output=True, text=True)
+            self.assertEqual(checked.returncode, 0, checked.stderr)
+            content.write_text('id: "test_boss", isBoss: false\n')
+            checked = subprocess.run(command, cwd=root, env=unavailable, capture_output=True, text=True)
+            self.assertNotEqual(checked.returncode, 0)
+            self.assertIn('no longer', checked.stderr)
 
     def test_missing_receipt_rebuilds_damaged_cached_outputs(self):
         for missing in ('receipt', 'kind', 'output'):

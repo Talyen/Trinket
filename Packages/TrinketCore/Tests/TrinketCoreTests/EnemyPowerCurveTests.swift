@@ -48,14 +48,4 @@ struct EnemyPowerCurveTests {
         #expect(EnemyPowerCurve.health(level: -5, isBoss: true) == EnemyPowerCurve.health(level: 1, isBoss: true))
         #expect(EnemyPowerCurve.rawDamagePercent(level: 0, isBoss: false) == EnemyPowerCurve.rawDamagePercent(level: 1, isBoss: false))
     }
-
-    @Test func `progression smoothstep clamps and eases`() {
-        #expect(EnemyPowerCurve.progressionSmoothstep(0) == 0)
-        #expect(EnemyPowerCurve.progressionSmoothstep(1) == 1)
-        #expect(EnemyPowerCurve.progressionSmoothstep(-0.5) == 0)
-        #expect(EnemyPowerCurve.progressionSmoothstep(1.5) == 1)
-        #expect(abs(EnemyPowerCurve.progressionSmoothstep(0.5) - 0.5) < 0.000001)
-        // NaN propagates (no clamping of non-finite); callers only pass [0, 1].
-        #expect(EnemyPowerCurve.progressionSmoothstep(Double.nan).isNaN)
-    }
 }

@@ -56,12 +56,11 @@ final class BattleArtworkPreparation {
         return names
     }
 
-    func prepare(names desired: Set<String>, displayScale: CGFloat, warmLoadouts: () -> Void) async {
+    func prepare(names desired: Set<String>, displayScale: CGFloat) async {
         generation &+= 1
         let request = generation
         await warmup(displayScale)
         guard !Task.isCancelled, request == generation else { return }
-        warmLoadouts()
         let added = desired.subtracting(names)
         let acquired = added.isEmpty ? [] : await acquire(added)
         guard !Task.isCancelled, request == generation else {

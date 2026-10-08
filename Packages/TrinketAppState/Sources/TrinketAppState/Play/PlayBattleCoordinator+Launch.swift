@@ -54,7 +54,7 @@ extension PlayBattleCoordinator {
                   missingLog: "Missing route for prepared battle registration",
               ) else { return false }
         let launch: BattleLaunchAssembly
-        if let runKey = input.origin?.runKey, battle.hasPreparedRun(runKey),
+        if let runKey = input.origin?.runKey, preparedRuns[runKey] != nil,
            let registration = registration(for: runKey) {
             // The registered snapshot owns freshness and RNG for this run.
             // Refreshing inputs must not reroll combat or rebuild sibling runs.
@@ -84,7 +84,7 @@ extension PlayBattleCoordinator {
             missingLog: "Missing route for battle activation",
         ) else { return false }
         if let origin = input.origin {
-            if battle.hasPreparedRun(origin.runKey) {
+            if preparedRuns[origin.runKey] != nil {
                 guard let registration = registration(for: origin.runKey),
                       registration.launch.configuration.hero.combatant.id == input.hero.id,
                       registration.launch.configuration.companion.combatant.id == input.companion.id,

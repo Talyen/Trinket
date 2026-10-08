@@ -116,9 +116,9 @@ check_no_package_dependency TrinketBattleFeature TrinketFeatureAdapters \
 # AppState owns orchestration, not BattleFeature presentation. The runtime
 # contract is the only battle dependency allowed at this layer.
 check_no_import "Packages/TrinketAppState/Sources" '^import TrinketBattleFeature$' \
-  'TrinketAppState must depend on BattleEngine (BattleRuntime), not BattleFeature'
+  'TrinketAppState must depend on FeatureContracts (BattleRuntime), not BattleFeature'
 check_no_production_target_dependency TrinketAppState TrinketBattleFeature \
-  'TrinketAppState production target must depend on BattleEngine, not BattleFeature'
+  'TrinketAppState production target must depend on FeatureContracts, not BattleFeature'
 check_no_import "Packages/TrinketAppState/Sources" '^import TrinketFeatureAdapters$' \
   'TrinketAppState must depend on pure contracts, not save-backed FeatureAdapters'
 check_no_import "Packages/TrinketAppState/Sources" '^import TrinketFeatureSupport$' \
@@ -153,12 +153,23 @@ while IFS= read -r file; do
   esac
 done <<< "$TRINKET_RG_MATCHES"
 
-# Runtime contracts (now in BattleEngine) must stay portable and presentation-free.
-# BattleRuntime contract files must not import presentation layers.
-for forbidden in SwiftUI UIKit TrinketBattleFeature TrinketAppState; do
-  check_no_import "Packages/BattleEngine/Sources" "^import $forbidden$" \
-    "BattleEngine runtime contract must not import $forbidden"
+# Runtime boundary declarations may reference engine values, but never UI or stores.
+for forbidden in SwiftUI UIKit TrinketDesignSystem TrinketPersistence TrinketFeatureSupport TrinketFeatureAdapters TrinketBattleFeature TrinketAppState; do
+  check_no_import "Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts" "^import $forbidden$" \
+    "TrinketFeatureContracts must not import $forbidden"
+  if awk -v dependency="\"$forbidden\"" '
+    /\.target\(/ { contract = 0; in_target = 1 }
+    /\.testTarget\(/ { contract = 0; in_target = 0 }
+    in_target && /name: "TrinketFeatureContracts"/ { contract = 1 }
+    contract && index($0, dependency) { found = 1 }
+    END { exit found ? 0 : 1 }
+  ' Packages/TrinketFeatureSupport/Package.swift; then
+    trinket_rg_violation "FeatureContracts target must not depend on $forbidden"
+  fi
 done
-# Note: AVFoundation is allowed in BattleEngine for haptics wiring via BattleRuntimeDependencies; not checked here.
+for forbidden in SwiftUI UIKit TrinketFeatureContracts TrinketBattleFeature TrinketAppState; do
+  check_no_import "Packages/BattleEngine/Sources" "^import $forbidden$" \
+    "BattleEngine must not import $forbidden"
+done
 
 trinket_rg_report "Module boundary violations:" "Module boundaries OK." "Module Boundary Violation"

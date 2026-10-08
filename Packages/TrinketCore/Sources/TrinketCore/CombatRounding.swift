@@ -1,5 +1,3 @@
-import Foundation
-
 public enum CombatRounding {
     /// Scales a non-positive base to zero; saturates at `Int.max` instead of trapping.
     /// Implementation lives in `SaturatedArithmetic`; kept here for call-site continuity.

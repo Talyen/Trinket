@@ -27,10 +27,9 @@ enum BattleSessionTestSupport {
         companion: Combatant? = nil,
         enemy: Combatant? = nil,
         autoEndTurnDelay: TimeInterval = 0.01,
-        ultimateInFrameDurationOverride: TimeInterval? = nil,
-        presentationEnvironment: BattleRuntimeDependencies? = nil,
+        presentationEnvironment: BattlePresentationDependencies? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
-        completeVictory: ((BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?) -> BattleCompletionResult)? = nil,
+        progression: BattleProgressionProbe? = nil,
     ) -> BattleSession {
         // Session default: a durable parked enemy. This intentionally replaces
         // quickWinParty's 1 HP enemy with passiveEnemy()'s 100 HP default;
@@ -48,8 +47,7 @@ enum BattleSessionTestSupport {
             autoEndTurnDelay: autoEndTurnDelay,
 
             outcomePresentationDelayOverride: 0,
-            ultimateInFrameDurationOverride: ultimateInFrameDurationOverride,
-            presentationEnvironment: presentationEnvironment ?? Self.enabledPresentationEnvironment,
+            presentationEnvironment: presentationEnvironment ?? .silent,
         )
         session.partyCelebrateDelayOverride = .zero
         session.autoBattleRetryDelay = .zero
@@ -60,70 +58,13 @@ enum BattleSessionTestSupport {
             enemy: resolvedEnemy,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
         )
-        if let completeVictory {
-            configureProgression(session, presentation: presentation, completeVictory: completeVictory)
+        if let progression {
+            progression.session = session
+            session.connectProgression(to: progression)
         }
         _ = session.activate(configuration, presentation: presentation)
         return session
     }
-
-    static func configureProgression(
-        _ session: BattleSession,
-        presentation: BattlePresentationContext,
-        completeVictory: @escaping (BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?)
-            -> BattleCompletionResult = { _, _, _ in
-                .unavailable
-            },
-    ) {
-        session.configureProgression(
-            presentation: { _ in presentation },
-            settleRewards: { configuration, gold in
-                presentation.rewardPlan.settle(
-                    battleGold: gold,
-                    inputs: presentation.rewardInputs ?? RewardSettlementInputs(
-                        gold: 0, reservedGold: 0, goldLimit: Int.max,
-                        heroProgression: configuration.hero.progression,
-                        companionProgression: configuration.companion.progression,
-                        productionDate: .distantPast,
-                    ),
-                )
-            },
-            completeVictory: { configuration, gold, settlement, _ in
-                completeVictory(configuration, gold, settlement)
-            },
-            settleDefeat: { [weak session] configuration in
-                presentation.rewardPlan.settleDefeat(
-                    progress: session?.resolvedDefeatProgress ?? .init(remainingHealth: 1, maximumHealth: 1),
-                    inputs: RewardSettlementInputs(
-                        gold: 0, reservedGold: 0, goldLimit: Int.max,
-                        heroProgression: configuration.hero.progression,
-                        companionProgression: configuration.companion.progression,
-                        productionDate: .distantPast,
-                    ),
-                )
-            },
-            completeDefeat: { _, _, _ in .unavailable },
-            finishPresentation: { _ in },
-        )
-    }
-
-    static func presentationEnvironment(
-        shouldAutoSkipUltimateCinematic: @escaping (String, Set<String>) -> Bool,
-        ultimateCinematicAnimationsEnabled: @escaping () -> Bool = { true },
-    ) -> BattleRuntimeDependencies {
-        BattleRuntimeDependencies(
-            playSFX: { _ in },
-            warmSFX: { _, _ in },
-            hapticsEnabled: { false },
-            effectsVolume: { 0 },
-            shouldAutoSkipUltimateCinematic: shouldAutoSkipUltimateCinematic,
-            ultimateCinematicAnimationsEnabled: ultimateCinematicAnimationsEnabled,
-        )
-    }
-
-    private static let enabledPresentationEnvironment = presentationEnvironment(
-        shouldAutoSkipUltimateCinematic: { _, _ in false },
-    )
 
     static func waitUntil(
         timeout: Duration = .seconds(2),
@@ -295,8 +236,7 @@ enum BattleSessionTestSupport {
         heroID: String = "knight",
         abilities: [Ability] = [.slash, .fireball, .avatarOfJustice],
         enemyHealth: Int = 500,
-        ultimateInFrameDurationOverride: TimeInterval? = nil,
-        presentationEnvironment: BattleRuntimeDependencies? = nil,
+        presentationEnvironment: BattlePresentationDependencies? = nil,
     ) -> BattleSession {
         makeConfiguredSession(
             hero: CombatantFixtures.combatant(id: heroID, role: .hero, abilities: abilities),
@@ -307,7 +247,6 @@ enum BattleSessionTestSupport {
                 maxHealth: enemyHealth,
                 abilities: [],
             ),
-            ultimateInFrameDurationOverride: ultimateInFrameDurationOverride,
             presentationEnvironment: presentationEnvironment,
         )
     }
@@ -362,4 +301,68 @@ enum BattleSessionTestSupport {
             isCritical: isCritical,
         )
     }
+}
+
+@MainActor
+final class BattleProgressionProbe: BattleProgressionDelegate {
+    weak var session: BattleSession?
+    let presentation: BattlePresentationContext?
+    let plan: BattleRewardPlan?
+    let completeVictory: (BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?) -> BattleCompletionResult
+
+    init(
+        session: BattleSession? = nil,
+        presentation: BattlePresentationContext? = nil,
+        plan: BattleRewardPlan? = nil,
+        completeVictory: @escaping (BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?)
+            -> BattleCompletionResult = { _, _, _ in
+                .unavailable
+            },
+    ) {
+        self.session = session
+        self.presentation = presentation
+        self.plan = plan
+        self.completeVictory = completeVictory
+    }
+
+    func settleBattleRewards(
+        _ configuration: BattleRunConfiguration,
+        battleGold: BattleGoldFlow,
+        materialRewards _: [ResourceAmount]?,
+        at _: Date?,
+    ) -> BattleRewardSettlement? {
+        guard let plan else { return nil }
+        return plan.settle(
+            battleGold: battleGold,
+            inputs: presentation?.rewardInputs ?? BattleSession.fallbackRewardInputs(for: configuration),
+        )
+    }
+
+    func settleDefeatRewards(_ configuration: BattleRunConfiguration, at _: Date?) -> BattleRewardSettlement? {
+        guard let plan, let progress = session?.resolvedDefeatProgress else { return nil }
+        return plan.settleDefeat(
+            progress: progress,
+            inputs: presentation?.rewardInputs ?? BattleSession.fallbackRewardInputs(for: configuration),
+        )
+    }
+
+    func completeActiveBattle(
+        _ configuration: BattleRunConfiguration,
+        battleGold: BattleGoldFlow,
+        materialRewards _: [ResourceAmount]?,
+        settlement: BattleRewardSettlement?,
+        defersPresentationExit _: Bool,
+    ) -> BattleCompletionResult {
+        completeVictory(configuration, battleGold, settlement)
+    }
+
+    func completeDefeat(
+        _: BattleRunConfiguration,
+        settlement _: BattleRewardSettlement,
+        action _: BattleDefeatAction,
+    ) -> BattleCompletionResult {
+        .unavailable
+    }
+
+    func finishBattleRewardPresentation(configurationID _: UUID) {}
 }

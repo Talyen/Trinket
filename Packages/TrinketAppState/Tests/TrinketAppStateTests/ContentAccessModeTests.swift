@@ -13,11 +13,11 @@ struct ContentAccessModeTests {
         let stage = try #require(GameContent.stage(id: "chapter-4-stage-1"))
         #expect(state.play.journey.handleStagePrimaryAction(for: stage)?.fullGameOffer == .campaign(chapter: 4))
         state.play.journey.prepareBattle(for: stage)
-        #expect(!state.play.battle.hasPreparedRun(PlayBattleOrigin.journey(stageID: stage.id).runKey))
+        #expect(!(state.play.battleCoordinator.preparedRuns[PlayBattleOrigin.journey(stageID: stage.id).runKey] != nil))
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 11))
         #expect(state.play.spires.startBattle(for: floor)?.fullGameOffer == .spire(.ironVein, floor: 11))
         state.play.spires.prepareBattle(for: floor)
-        #expect(!state.play.battle.hasPreparedRun(PlayBattleOrigin.spire(spireID: .ironVein, floor: 11).runKey))
+        #expect(!(state.play.battleCoordinator.preparedRuns[PlayBattleOrigin.spire(spireID: .ironVein, floor: 11).runKey] != nil))
         #expect(store.accessRestriction(for: .journey(stageID: "chapter-3-stage-1")) == nil)
         #expect(store.accessRestriction(for: .spire(spireID: .ironVein, floor: 10)) == nil)
         store.contentAccess = .fullGame
@@ -48,7 +48,7 @@ struct ContentAccessModeTests {
         store.contentAccess = .free
         #expect(state.play.labyrinth.handleNodeAction(nodeID: node.id)?.fullGameOffer == .labyrinth(floor: 4))
         state.play.labyrinth.prepareReachableBattles()
-        #expect(!state.play.battle.hasPreparedRun(PlayBattleOrigin.labyrinth(nodeID: node.id).runKey))
+        #expect(!(state.play.battleCoordinator.preparedRuns[PlayBattleOrigin.labyrinth(nodeID: node.id).runKey] != nil))
         #expect(store.labyrinth == savedMap)
         store.contentAccess = .fullGame
         #expect(store.accessRestriction(for: .labyrinth(nodeID: node.id)) == nil)

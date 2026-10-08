@@ -34,7 +34,6 @@ extension BattleSession {
             presentation.install(snapshot)
         }
         let configurationID = playback.configurationID
-        presentUltimateHighlight(playback.events, at: date)
         feedback.scheduleActions(
             playback, preparedCardID: preparedCardID, playedCardID: isAutomatic ? nil : playedCardID,
             at: date, cardPlayback: cardPlayback,

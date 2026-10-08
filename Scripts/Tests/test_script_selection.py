@@ -102,7 +102,7 @@ class ScriptSelectionTests(unittest.TestCase):
             "Trinket/App/TrinketApp.swift",
             "TrinketUITests/Battle/BattleUITests.swift",
             "ContentManifest/abilities.tsv", "ArtManifest/art.tsv",
-            "CinematicManifest/cinematics.tsv", "MusicManifest/music.tsv",
+            "MusicManifest/music.tsv",
             "SoundManifest/sounds.tsv", "Raw Assets/Art/card.png",
             "StoreKit/Trinket.storekit", "Performance/scenarios.json",
         )
@@ -245,10 +245,11 @@ class ScriptSelectionTests(unittest.TestCase):
             (tests / "test_one.py").write_text(
                 "SCRIPT_INPUTS = ('Scripts/domain/*.json', 'Packages/Game/Sources/Owned.swift')\n"
                 "raise RuntimeError('must not execute')\n")
-            (tests / "test_two.py").write_text("SCRIPT_INPUTS = ['Scripts/domain/known.json']\n")
+            (tests / "test_two.py").write_text("SCRIPT_INPUTS = ['Scripts/domain/known.json', 'Scripts/other.py']\n")
             all_tests = select_tests([], root)
             self.assertEqual(select_tests(['Scripts/domain/known.json'], root), all_tests)
             self.assertEqual(select_tests(['Scripts/domain/new.json'], root), ['Scripts/Tests/test_one.py'])
+            self.assertEqual(select_tests(['Scripts/domain/new.json', 'Scripts/other.py'], root), all_tests)
             self.assertEqual(select_tests(['Packages/Game/Sources/Owned.swift'], root),
                              ['Scripts/Tests/test_one.py'])
             self.assertEqual(select_tests(['Scripts/domain/new.json', 'Packages/Game/Sources/Other.swift'], root),
@@ -256,7 +257,8 @@ class ScriptSelectionTests(unittest.TestCase):
             self.assertEqual(select_tests(['Scripts/unmapped.py'], root), all_tests)
             self.assertEqual(select_tests(['Scripts/Tests/test_two.py'], root), ['Scripts/Tests/test_two.py'])
             for source in ("SCRIPT_INPUTS = get_paths()", "SCRIPT_INPUTS = ('../outside.py',)",
-                           "SCRIPT_INPUTS = 'Scripts/one.py'", "SCRIPT_INPUTS = ()\nSCRIPT_INPUTS = ()"):
+                           "SCRIPT_INPUTS = 'Scripts/one.py'", "SCRIPT_INPUTS = ('Scripts/Tests',)",
+                           "SCRIPT_INPUTS = ()\nSCRIPT_INPUTS = ()"):
                 (tests / "test_one.py").write_text(source)
                 with self.assertRaisesRegex(ValueError, 'invalid test ownership'):
                     select_tests(['Scripts/domain/known.json'], root)

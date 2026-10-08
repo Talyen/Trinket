@@ -39,9 +39,16 @@ Every test or package invocation writes an atomically completed
 `TRINKET_ISOLATE=1` / `handoff --isolate`). It records the label,
 exit code, action, pass/fail status, result-bundle path, and optional diagnostics-report path.
 Build and build-for-testing actions accept a successful process exit without an
-xcresult; test actions still require result or watchdog execution evidence.
+xcresult; every test action requires positive execution evidence from its result
+summary or completed-test logs, including ordinary successful process exits.
+Swift Testing's aggregate count includes skips; log fallback requires a completed
+individual test with cases or a non-skipped XCTest total.
 The manifest also records `completion_source` (`process-exit` or
 `watchdog-log-inference`), `test_execution_proven`, and `result_bundle_complete`.
+When available, it retains the invocation's compact test summary. Timing and
+targeted UI recovery reuse that summary only for the matching finalized bundle
+and still export its case tree; missing, legacy, or mismatched manifests use a
+fresh summary export.
 Routine simulator test actions pass `-collect-test-diagnostics never`. A sampled
 post-test stall was Xcode waiting for `simctl diagnose --timeout=600`, even after
 all test cases passed; stopping that collector allowed the result bundle to finalize.

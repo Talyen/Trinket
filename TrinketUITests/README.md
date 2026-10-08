@@ -19,12 +19,12 @@ waits, flakiness, and maintenance; medium-value additions are rare, justified ex
 | Support | `Support/` | Shared launch and StoreKit fixtures; page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
 Author smoke and exhaustive membership once in `Scripts/config/ui-tests.tsv`.
-Each row supplies suite, smoke routing key (empty for FullUI), class, shard name,
-shard order, and within-shard test order. `./Scripts/generate.sh` updates only
+Each row supplies suite, smoke routing key (empty for FullUI), and class.
+Selections follow registry row order. `./Scripts/generate.sh` updates only
 `selectedTests` in the UI plans, preserving other plan settings. CI reads all FullUI classes through `check-testplan-sync.py --classes FullUI` and serial
 smoke filters through `--classes Smoke`; local smoke routing uses the same rows. Add, remove, or move registrations with the source
-class, then regenerate. The checker rejects missing/duplicate classes, conflicting
-shard orders, stale plan selections, and workflows bypassing registry selections.
+class, then regenerate. The checker rejects missing/duplicate classes, duplicate
+routing keys, stale plan selections, and workflows bypassing registry selections.
 Focused runs require every requested filter and at least one executed test in the
 result tree. When export stalls, terminal per-test log records provide that proof;
 a suite summary alone does not. Documented individual skips remain visible in results. CI requires a runtime that
@@ -83,6 +83,8 @@ Assert a journey’s return destination before using helpers that navigate elsew
 - Prefer one launch per test with explicit per-test args. For persistence, use
   `relaunchApp(arguments:)`: it reuses the test store and takes destination arguments
   without reset, seeding, starting resources, or onboarding bypass.
+- StoreKit's registration-only launch skips the artwork wait; its subsequent
+  test launch still waits for preparation before interacting with controls.
 - Prefer one launch + `TabBar` for round-trips that must exercise the tab bar itself.
 - Prefer `-completed-stages` over scrolling Stage Select lists when seeding progress.
 - Filter inventory/search with `replaceText` instead of grid scroll loops.
@@ -105,8 +107,10 @@ Assert a journey’s return destination before using helpers that navigate elsew
   not prove restoration; real App Store restore still needs service/device evidence.
 - Use the timeout and tick defaults from `TrinketUITestCase` and its helpers;
   do not copy their numeric values into this guide.
+- Wait for alternative successful outcomes together. Battle entry accepts the
+  hand or victory in one wait, so a fast victory does not exhaust a hand-only wait.
 - Accessibility-setting audits remain outside PD-014. Use stable selectors and meaningful outcomes; [Testing.md](../Docs/Platform/Testing.md#ui-keep-drop-rubric) owns when copy, layout, or gesture behavior merits regression coverage.
-- UI tests are CI-owned and run serially on each shard simulator. Local diagnostics require explicit opt-in under Verification.md. Hotspots: `python3 ./Scripts/test-timing.py report --top 30`.
+- UI tests are CI-owned and run serially on each job's managed simulator. Local diagnostics require explicit opt-in under Verification.md. Hotspots: `python3 ./Scripts/test-timing.py report --top 30`.
 - Success-path screenshots are opt-in (`TRINKET_UI_SUCCESS_SCREENSHOTS=1`); failure screenshots stay unconditional.
 
 ## Coverage consolidation

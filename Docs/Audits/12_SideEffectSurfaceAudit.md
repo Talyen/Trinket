@@ -17,8 +17,7 @@ Use the [shared audit contract](README.md) for scope, evidence, severity, and si
 - Save writes and synchronization follow the persistence owner; options storage
   remains distinct from player-save policy. A caller legitimately initiating an
   owned effect is not itself an ownership leak.
-- Audio playback remains under its audio owner; catalog-backed Ultimate cinematic
-  playback belongs to Battle presentation. Do not misclassify video as an audio leak.
+- Audio playback remains under its audio owner.
   Non-fatal audio failure handling may be intentional; follow its existing contract
   rather than converting a best-effort effect into a crash.
 - Decorative randomness must have stable identity over the intended presentation

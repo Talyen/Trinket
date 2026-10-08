@@ -49,12 +49,9 @@ USAGE
 done
 
 if (( ${#requested_paths[@]} > 0 )); then
-  # Use the same path validation and normalization as handoff so direct
-  # invocations handle in-repository absolute paths for both routing and syntax.
-  # shellcheck source=change-classification.sh
-  source Scripts/change-classification.sh
-  trinket_collect_paths explicit "${requested_paths[@]}"
-  requested_paths=("${TRINKET_CHANGED_PATHS[@]}")
+  normalized="$(PYTHONPATH=Scripts python3 -m internal.change_routing --paths "${requested_paths[@]}")"
+  requested_paths=()
+  while IFS= read -r path; do requested_paths+=("$path"); done <<< "$normalized"
 fi
 
 selection_args=()

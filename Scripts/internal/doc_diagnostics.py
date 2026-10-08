@@ -74,8 +74,16 @@ def main() -> None:
     args = parser.parse_args()
     if args.offset < 0 or args.limit < 1:
         parser.error("--offset must be nonnegative and --limit positive")
-    payload = json.loads(args.report.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(args.report.read_text(encoding="utf-8"))
+        if (not isinstance(payload, dict) or not isinstance(payload.get("failures"), list)
+                or not all(isinstance(failure, str) for failure in payload["failures"])):
+            raise ValueError("report must contain a failures array of strings")
+    except (OSError, ValueError) as error:
+        parser.error(f"could not read documentation report: {error}")
     groups = group_failures(payload["failures"])
+    if args.offset > len(groups):
+        parser.error("--offset is beyond the last failure group")
     stop = render(groups, offset=args.offset, limit=args.limit, full=args.full)
     if stop < len(groups):
         command = ["python3", "-m", "internal.doc_diagnostics", str(args.report), "--offset", str(stop), "--limit", str(args.limit)]

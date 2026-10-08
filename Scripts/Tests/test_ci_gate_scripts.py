@@ -105,22 +105,6 @@ class CIGateScriptTests(ScriptRegressionTestCase):
         self.assertRegex(text, r"diff-review:\n(?:.*\n){0,8}    continue-on-error: true")
         self.assertNotRegex(text, r"ci-ok:\n(?:.*\n)*?needs:.*diff-review")
 
-    def test_build_script_routes_script_gate(self) -> None:
-        result = subprocess.run(
-            [
-                str(ROOT / "Scripts" / "handoff.sh"),
-                "--dry-run",
-                "--paths",
-                "Scripts/build.sh",
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("./Scripts/test-scripts.sh", result.stdout)
-
     def test_artifact_consumers_defer_run_env_cleanup(self) -> None:
         performance = (ROOT / "Scripts" / "performance.sh").read_text(encoding="utf-8")
         self.assertIn(

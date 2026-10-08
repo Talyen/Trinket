@@ -97,11 +97,11 @@ Use `./Scripts/prepare-assets.sh` (or `generate.sh --assets`) locally for media 
 
 `./Scripts/prepare-assets.sh --check` verifies local source freshness. Asset-related pre-push checks require selected sources; download offloaded files in Finder before preparation. All selected sources are preflighted before conversion or pruning. Preparation records input fingerprints, source hashes and output/catalog hashes in `PreparedAssets.generated.json`.
 
-Each pipeline captures its input snapshot before preparation and rejects receipt updates if those inputs change while it runs. Missing receipt hashes force re-encoding rather than trusting cached outputs. Receipt updates are serialized across pipelines; a failed update retains the previous receipt and requires another preparation pass.
+Each pipeline captures its input snapshot before preparation and rejects receipt updates if those inputs change while it runs. Missing receipt hashes force re-encoding rather than trusting cached outputs. Receipt updates are serialized across pipelines and retain only active asset kinds; a failed update retains the previous receipt and requires another preparation pass.
 
 Local preparation automatically repairs missing library-relative paths using the last prepared source hashes. Normal local build preparation also relinks and prepares relocated sources when the library is available, without a separate repair request. It updates authored manifests only for a unique byte-identical match; Icon Composer packages must match the complete recorded package, including internal paths. Existing paths are left alone. Unrecorded, changed, or ambiguous sources require explicit selection and stop preparation before conversion. Relinking searches the library only when selected paths are missing; symlinks are not recovery candidates. Use the [relink commands](../../Scripts/Reference.md#assets) to preview or apply repairs separately. Read-only checks and source-free CI never relink.
 
-CI uses `./Scripts/prepare-assets.sh --check --outputs-only` plus manifest/resource integrity checks. It requires only committed outputs and never accesses the library or regenerates media. Ordinary local build preparation performs the same output check after automatic relocation recovery; without a local library it uses committed outputs alone. Checks revalidate artwork IDs, boss music enemies, and cinematic actor/Ultimate relationships against current content. Output checks do not prove raw-source freshness. Each project retains its own encoders, crops, gains and catalogs.
+CI uses `./Scripts/prepare-assets.sh --check --outputs-only` plus manifest/resource integrity checks. It requires only committed outputs and never accesses the library or regenerates media. Ordinary local build preparation performs the same output check after automatic relocation recovery; without a local library it uses committed outputs alone. Checks revalidate artwork IDs and boss music enemies against current content. Output checks do not prove raw-source freshness. Each project retains its own encoders, crops, gains and catalogs.
 
 ## Project generation
 
@@ -112,7 +112,7 @@ Use `./Scripts/generate.sh` for project inputs; XcodeGen always runs uncached.
 
 ## Generation tooling
 
-**Single entry:** `./Scripts/generate.sh` validates ContentManifest TSVs, regenerates content catalogs (trigger families are `public`; catalog blobs are `internal` and reached through `GameContent`), optionally prepares art/music/SFX/cinematics (`--assets`), then runs XcodeGen (always uncached). Pass `--skip-xcodegen` for content/asset codegen only; see [Verification.md](../Platform/Verification.md#generated-project-consistency).
+**Single entry:** `./Scripts/generate.sh` validates ContentManifest TSVs, regenerates content catalogs (trigger families are `public`; catalog blobs are `internal` and reached through `GameContent`), optionally prepares art/music/SFX (`--assets`), then runs XcodeGen (always uncached). Pass `--skip-xcodegen` for content/asset codegen only; see [Verification.md](../Platform/Verification.md#generated-project-consistency).
 
 | Input | Run | Review |
 |---|---|---|

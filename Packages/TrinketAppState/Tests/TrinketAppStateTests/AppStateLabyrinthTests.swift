@@ -93,13 +93,13 @@ struct AppStateLabyrinthTests {
         let battle = try #require(context.lastBattle)
         state.labyrinth.prepareReachableBattles()
         let clearedKey = PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey
-        #expect(battle.preparedBattleRun(for: clearedKey) != nil)
+        #expect(state.battleCoordinator.preparedRuns[clearedKey] != nil)
 
         #expect(LabyrinthTestSupport.completeNode(nodeID: combatNodeID, in: state))
         state.labyrinth.prepareReachableBattles()
 
-        #expect(battle.preparedBattleRun(for: clearedKey) == nil)
-        let remainingKeys = Set(battle.preparedBattleRuns.compactMap(\.configuration.runKey))
+        #expect(state.battleCoordinator.preparedRuns[clearedKey] == nil)
+        let remainingKeys = Set(state.battleCoordinator.preparedRuns.keys)
         let reachableCombatKeys = Set(
             state.playerSave.labyrinth.reachableNodeIDs().compactMap { nodeID -> BattleRunKey? in
                 guard let node = state.playerSave.labyrinth.node(id: nodeID), node.type.isCombat else {
@@ -118,12 +118,12 @@ struct AppStateLabyrinthTests {
         let battle = try #require(context.lastBattle)
 
         state.journey.prepareBattle(for: stage)
-        #expect(battle.hasPreparedRun(journeyKey))
+        #expect(state.battleCoordinator.preparedRuns[journeyKey] != nil)
         #expect(state.battlePresentation(for: journeyKey) != nil)
 
         _ = state.labyrinth.enter()
         state.labyrinth.prepareReachableBattles()
-        #expect(battle.hasPreparedRun(journeyKey))
+        #expect(state.battleCoordinator.preparedRuns[journeyKey] != nil)
         #expect(state.battlePresentation(for: journeyKey) != nil)
     }
 
