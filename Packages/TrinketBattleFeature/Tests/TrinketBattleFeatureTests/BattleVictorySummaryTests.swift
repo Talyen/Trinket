@@ -31,17 +31,23 @@ struct BattleVictorySummaryTests {
         #expect(summary.stageGold == 12)
     }
 
-    @Test func `restart without presentation clears prior context`() {
+    @Test func `restart without presentation clears prior rewards`() throws {
         let party = BattlePartyFixtures.quickWinParty()
         let first = BattleRunConfigurationTestSupport.make(
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,
-            stageRewardsAlreadyClaimed: true,
+            stageReward: StageReward(gold: 12, itemTemplateIDs: []),
+            heroExperienceAward: 17,
+            companionExperienceAward: 9,
         )
         let session = BattleSession()
         _ = session.activate(first.configuration, presentation: first.presentation)
-        #expect(session.presentationContext?.stageRewardsAlreadyClaimed == true)
+        session.presentLaunchVictory()
+        let original = try #require(session.spectacle.outcomePresentation.victorySummaryIfAvailable)
+        #expect(original.stageGold == 12)
+        #expect(original.experience == 17)
+        #expect(original.companionExperience == 9)
 
         let second = BattleRunConfigurationTestSupport.make(
             rngSeed: CombatantFixtures.deterministicBattleSeedVariant(1),
@@ -49,8 +55,12 @@ struct BattleVictorySummaryTests {
             companion: party.companion,
             enemy: party.enemy,
         )
-        _ = session.restart(second.configuration)
-        #expect(session.presentationContext == nil)
+        #expect(session.restart(second.configuration))
+        session.presentLaunchVictory()
+        let restarted = try #require(session.spectacle.outcomePresentation.victorySummaryIfAvailable)
+        #expect(restarted.stageGold == 0)
+        #expect(restarted.experience == 0)
+        #expect(restarted.companionExperience == 0)
     }
 
     enum BakedVictoryAwardCase: String, CaseIterable {

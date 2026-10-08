@@ -110,7 +110,8 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
             (scripts / 'cheap-fixture.sh').chmod(0o755)
             (scripts / 'config/cheap-slices.txt').write_text('./Scripts/cheap-fixture.sh\n')
             result = subprocess.run([str(scripts / 'handoff.sh'), '--quiet', '--paths', 'Scripts/test-scripts.sh'],
-                                    env=self.verification_environment(), capture_output=True, text=True)
+                                    env=self.verification_environment(RESULTS_DIR=str(root / '.DerivedData/HandoffResults')),
+                                    capture_output=True, text=True)
             self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
             self.assertFalse((root / 'later-check').exists())
             logs = list((root / '.DerivedData/HandoffResults').glob('handoff.*/phase-*.log'))
