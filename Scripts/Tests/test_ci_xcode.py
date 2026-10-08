@@ -47,7 +47,8 @@ class CIXcodeTests(unittest.TestCase):
                 SETUP.ensure_metal(environment)
                 self.assertEqual(probe.call_count, 2)
                 self.assertEqual(run.call_count, 2)
-                self.assertIn('DEVELOPER_DIR=' + environment['DEVELOPER_DIR'], run.call_args.args[0])
+                self.assertEqual(run.call_args.args[0], ['xcodebuild', '-downloadComponent', 'MetalToolchain'])
+                self.assertEqual(run.call_args.kwargs['env'], environment)
                 sleep.assert_called_once_with(10)
         with patch.object(SETUP, 'metal_probe', return_value=False), \
                 patch.object(SETUP.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0)) as run, \

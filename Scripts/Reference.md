@@ -191,7 +191,8 @@ changing global `xcode-select`.
 
 Jobs that need Metal first compile and link a small shader for the simulator SDK.
 If that fails, setup attempts Apple's component download up to three times with
-bounded waits, then repeats the shader check. Download success or an installed
+bounded waits under the same runner user and selected Xcode as the build, then
+repeats the shader check. Download success or an installed
 status alone cannot establish readiness. An unavailable catalog fails setup with
 its logs intact; it does not count as game/build verification. This avoids
 mistaking a runner image rollout or missing beta catalog for a game regression.

@@ -84,8 +84,7 @@ def ensure_metal(environment: dict[str, str]) -> None:
             print(f"Installing Metal toolchain (attempt {attempt + 1}/3).", flush=True)
             try:
                 result = subprocess.run(
-                    ["sudo", "env", f"DEVELOPER_DIR={environment['DEVELOPER_DIR']}",
-                     "xcodebuild", "-downloadComponent", "MetalToolchain"],
+                    ["xcodebuild", "-downloadComponent", "MetalToolchain"],
                     env=environment, timeout=120, check=False,
                 )
             except subprocess.TimeoutExpired:
