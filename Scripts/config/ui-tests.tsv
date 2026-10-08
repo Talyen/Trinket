@@ -6,7 +6,6 @@ Smoke|ONBOARDING|StarterOnboardingSmokeTests
 Smoke|MONETIZATION|FullGamePurchaseSmokeTests
 FullUI||BattleFlowUITests
 FullUI||PlayModeNavigationUITests
-FullUI||HomesteadNodeDetailUITests
 FullUI||FullGamePurchaseUITests
 FullUI||CollectionLoadoutUITests
 FullUI||OptionsUITests

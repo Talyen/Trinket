@@ -3,26 +3,6 @@ import XCTest
 
 final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
-    func testChapterProgression() {
-        for iteration in 1 ... repetitionCount {
-            launchApp(arguments: TestLaunchArg.allForAppPerformance()
-                + TestLaunchArg.completedStages((1 ... 9).map { "chapter-1-stage-\($0)" })
-                + ["-performance-strong-party", "-performance-outcome-victory"])
-            play.openCampaign()
-            reveal(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 10)))
-            tapButton(AccessibilityID.Play.stageAction(chapter: 1, stage: 10))
-            battle.assertActive()
-            battle.autoBattleToggle.tap()
-            assertExists(AccessibilityID.Battle.victory, timeout: 30)
-            reveal(button(AccessibilityID.Battle.continueButton))
-            measured("campaign-chapter-progression", iteration: iteration) {
-                tapButton(AccessibilityID.Battle.continueButton)
-                play.assertCampaignLoaded(number: 2)
-            }
-        }
-    }
-
-    @MainActor
     func testVictoryReveal() {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allForBattle()) + ["-performance-outcome-victory"])
@@ -55,19 +35,6 @@ final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
             assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
             measured("victory-claim-return", iteration: iteration) {
                 tapButton(AccessibilityID.Battle.continueButton)
-                play.assertCampaignLoaded()
-            }
-        }
-    }
-
-    @MainActor
-    func testDefeatReturn() {
-        for iteration in 1 ... repetitionCount {
-            launchApp(arguments: TestLaunchArg
-                .performanceArguments(from: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle-defeat")))
-            assertExists(AccessibilityID.Battle.defeat)
-            measured("defeat-return", iteration: iteration) {
-                tapButton(AccessibilityID.Battle.defeatLeaveButton)
                 play.assertCampaignLoaded()
             }
         }

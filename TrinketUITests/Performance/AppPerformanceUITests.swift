@@ -69,63 +69,6 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func test03HomesteadDetailTransition() {
-        for iteration in 1 ... repetitionCount {
-            launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "homestead"))
-            homestead.assertLoaded()
-            homestead.openFarmingCategoryAndRevealWheatFieldNode()
-            assertExists(AccessibilityID.Homestead.gallery)
-            let node = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
-            let nodeCoordinate = node.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-
-            measured("homestead-detail-transition", iteration: iteration) {
-                nodeCoordinate.tap()
-                homestead.assertNodeDetail(named: "Wheat Field")
-            }
-            homestead.assertNodeDetail(named: "Wheat Field")
-        }
-    }
-
-    @MainActor
-    func test04CampaignStageSelectTransition() {
-        for iteration in 1 ... repetitionCount {
-            launchApp(arguments: TestLaunchArg.allForAppPerformance())
-            play.assertModeHub()
-            let campaignButton = app.buttons[AccessibilityID.Play.campaignModeCard]
-            let campaignCoordinate = campaignButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-
-            measured("campaign-stage-select-transition", iteration: iteration) {
-                campaignCoordinate.tap()
-                play.assertCampaignLoaded(number: 1)
-            }
-            play.assertCampaignLoaded(number: 1)
-        }
-    }
-
-    @MainActor
-    func test05StageEnemyDetailTransition() {
-        for iteration in 1 ... repetitionCount {
-            launchApp(arguments: TestLaunchArg.allForAppPerformance())
-            play.openCampaign()
-            play.assertCampaignLoaded(number: 1)
-            let enemy = button(AccessibilityID.Play.enemyArt(chapter: 1, stage: 1))
-            XCTAssertTrue(enemy.trinketWaitForExistence(timeout: Self.defaultTimeout))
-            let enemyCoordinate = enemy.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-            let dismissStart = sheetDismissDragStart
-            let dismissEnd = sheetDismissDragEnd
-
-            measured("stage-enemy-detail-transition", iteration: iteration) {
-                enemyCoordinate.tap()
-                assertExists(AccessibilityID.CombatantDetail.vitalBarsSection)
-                dismissStart.press(forDuration: 0.1, thenDragTo: dismissEnd)
-                assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
-            }
-            assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
-            play.assertCampaignLoaded(number: 1)
-        }
-    }
-
-    @MainActor
     func test06StageSelectBattleStart() {
         for iteration in 1 ... repetitionCount {
             let arguments = TestLaunchArg.replacingBattleTickInterval(
@@ -146,38 +89,6 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
                 battle.assertActive(timeout: 8)
             }
             battle.assertActive(timeout: 8)
-        }
-    }
-
-    @MainActor
-    func testCampaignBrowsing() {
-        for iteration in 1 ... repetitionCount {
-            launchApp(arguments: TestLaunchArg.allForAppPerformance())
-            play.openCampaign()
-            let campaignScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            let didScroll = measured("campaign-scroll", iteration: iteration) { performScrollGestures(app.scrollViews.firstMatch) }
-            if didScroll {
-                verifyScrollProbes(campaignScrollProbes, app.scrollViews.firstMatch)
-            }
-            if selected("campaign-party-picker") || selected("campaign-party-shelf-scroll") || selected("campaign-party-selection") {
-                scrollUntilVisible(button(AccessibilityID.Play.stagePartyControl), swipingUp: false, maxAttempts: 8, requireHittable: true)
-                measured("campaign-party-picker", iteration: iteration) {
-                    tapButton(AccessibilityID.Play.stagePartyControl)
-                    assertExists(AccessibilityID.Play.battlePartyDone)
-                }
-                if selected("campaign-party-shelf-scroll") {
-                    let partyScrollProbes = captureScrollProbes(horizontalScrollView, horizontal: true)
-                    measured("campaign-party-shelf-scroll", iteration: iteration) {
-                        performScrollGestures(horizontalScrollView, horizontal: true)
-                    }
-                    verifyScrollProbes(partyScrollProbes, horizontalScrollView, horizontal: true)
-                }
-                measured("campaign-party-selection", iteration: iteration) {
-                    app.buttons[AccessibilityID.Play.battlePartyOption(for: "Hero", combatantID: "rogue")].tap()
-                    tapButton(AccessibilityID.Play.battlePartyDone)
-                    assertDoesNotExist(AccessibilityID.Play.battlePartyDone)
-                }
-            }
         }
     }
 

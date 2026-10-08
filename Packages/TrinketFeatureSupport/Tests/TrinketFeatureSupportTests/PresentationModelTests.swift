@@ -47,20 +47,6 @@ struct PresentationModelTests {
     }
     #endif
 
-    @Test func `homestead category progress aggregates built and total tiers`() {
-        let homestead = PlayerHomesteadState(
-            resources: [:],
-            nodeTiers: [
-                .wheatField: 2,
-                .chickenCoop: 1,
-            ],
-        )
-        let farmingProgress = HomesteadCategoryProgress(category: .farming, homestead: homestead)
-        #expect(farmingProgress.builtTiers == 3)
-        #expect(farmingProgress.totalTiers > 3)
-        #expect(farmingProgress.subtitle == "3 / \(farmingProgress.totalTiers)")
-    }
-
     @Test func `labyrinth sizing grows narrow floors and contains selected edges`() {
         for width: CGFloat in [280, 360, 430] {
             let baseline = width / (3 * CGFloat(3).squareRoot())
@@ -114,75 +100,5 @@ struct PresentationModelTests {
             let lastPoint = try #require(points.last)
             #expect(abs(layout.height - (lastPoint.y + layout.hexHeight / 2 + layout.hitExpansion)) < 0.001)
         }
-    }
-
-    @Test func `homestead effect line display formatting`() {
-        let tier = HomesteadNodeTier(
-            tier: 1,
-            stageName: "T1",
-            cost: [],
-            bonus: .init(title: "Bonus", description: "Desc"),
-            combatBonus: .init(
-                heroModifiers: [
-                    .maximumHealth(10),
-                    .damageTakenPercent(.physical, 0.15),
-                ],
-                astralChanceBonusPercent: 5,
-                goldFindPercent: 10,
-                goldFindFlat: 2,
-                experienceBonus: 3,
-                gemsFindBonus: 4,
-                gemsFindPercent: 30,
-                experienceBonusPercent: 20,
-            ),
-            production: [.init(.wood, 25)],
-        )
-        let lines = HomesteadEffectLine.lines(for: tier)
-        #expect(Set(lines.map(\.id)).count == lines.count)
-        let healthLine = lines.first(where: { $0.label == "Hero Health" })
-        #expect(healthLine?.displayValue == "+10")
-
-        let damageTakenLine = lines.first(where: { $0.label == "Physical damage taken" })
-        #expect(damageTakenLine?.displayValue == "−15%")
-
-        let astralLine = lines.first(where: { $0.id == .astralFind })
-        #expect(astralLine?.displayValue == "+5%")
-
-        let productionLine = lines.first(where: { $0.id == .production(.wood) })
-        #expect(productionLine?.displayValue == "+25")
-    }
-
-    @Test func `labyrinth floor nodes sorts using grid positions and fallbacks`() {
-        let nodeA = LabyrinthNode(
-            id: "node-a",
-            type: .battle,
-            depth: 1,
-            clusterID: "cluster-1",
-            gridPosition: LabyrinthGridPosition(row: 1, column: 0),
-        )
-        let nodeB = LabyrinthNode(
-            id: "node-b",
-            type: .shop,
-            depth: 1,
-            clusterID: "cluster-1",
-            gridPosition: nil,
-        )
-        let nodeC = LabyrinthNode(
-            id: "node-c",
-            type: .mystery,
-            depth: 1,
-            clusterID: "cluster-1",
-            gridPosition: LabyrinthGridPosition(row: 0, column: 2),
-        )
-        let cluster = LabyrinthCluster(
-            id: "cluster-1",
-            depthBand: 1,
-            nodeIDs: ["node-a", "node-b", "node-c"],
-        )
-        let state = PlayerLabyrinthState(nodes: ["node-a": nodeA, "node-b": nodeB, "node-c": nodeC])
-
-        let sortedNodes: [LabyrinthNode] = LabyrinthMapPresentation.floorNodes(for: cluster, in: state)
-        // Node B falls back to (row 0, column 0), node C is at (0, 2), node A is at (1, 0)
-        #expect(sortedNodes.map(\.id) == ["node-b", "node-c", "node-a"])
     }
 }

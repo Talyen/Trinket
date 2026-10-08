@@ -68,14 +68,24 @@ catalog entry.
 
 | Area | Measured interaction families |
 |---|---|
-| Launch / starter selection | Launch animation and cover dismissal; horizontal carousel; Hero and Companion confirmation |
-| Shell / Campaign | Tab round trip; Campaign scrolling, enemy detail, party shelf/selection, Battle activation, chapter advancement, representative Full Game offer presentation |
-| Explore | Hub, Spires browsing/climb, Contracts scroll/refresh/Battle return, Voyage board browsing, Labyrinth map/floor selection/inspector, Shop/Boss entry and return, floor advancement |
-| Collection | Vertical browse and horizontal shelves; representative Heroes and Astral Gear grids; combatant details; ability selection; equipment scroll/search/rarity/equip/unequip; talents and salvage |
-| Battle | Real card play/cancel; engine/feedback/turn diagnostic cases; inspection; auto-battle; populated log scrolling; retreat |
-| Outcomes / encounters | Victory/defeat reveal, reward claim, talent reward/choice; Shop scroll/purchase/return; Mystery item inspection/reward, recruit reveal/claim, corruption picker/reveal/return |
-| Homestead | Root/category/gallery browsing, build/upgrade, wallet presentation and detent resizing, material collection |
-| Options / Full Game | Form scroll and sliders/toggles; representative offer presentation/dismissal |
+| Launch / shell | Cold launch and launch animation; tab round trip; Collection navigation; Battle activation |
+| Collection | Vertical browse and combatant detail scroll; equipment scroll/search/rarity filter; talent-tree scroll |
+| Battle | Real card play/cancel; turn transition and combined production worst case; populated log scroll |
+| Maps / Homestead | Labyrinth map and Homestead gallery scroll |
+| Outcomes / encounters | Victory/defeat reveal, victory claim/return, talent reward/choice; Mystery reward and corruption reveal |
+| Diagnostic exceptions | Engine/hand and engine/feedback attribution controls; injected stall detector |
+
+Secondary browsing and control tours are retired: starter carousel/confirmation,
+Campaign browsing/party selection/chapter advancement, Spires/Contracts/Voyage,
+Labyrinth inspector/floor selection/Shop/Boss navigation, Collection shelves and
+category grids, ability/equipment/talent editing, salvage, battle inspection/auto/retreat,
+Shop purchase/return, recruit reveal/return, Mystery inspection/claim, corruption
+picker/scroll/return, Homestead root/build/upgrade/wallet/collection, Options controls,
+Full Game offer, and defeat return. Their frame-pacing regressions can escape the
+maintained matrix even when functional package or UI tests pass.
+
+Retained scenario IDs and thresholds remain stable. The physical-device baseline
+retains only its existing surviving workloads; it does not gain Simulator scenarios.
 
 Scroll scenarios perform a slow directional drag and a fast flick through newly
 exposed content, including deceleration. Verify movement outside the sampling

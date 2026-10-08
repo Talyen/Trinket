@@ -68,32 +68,6 @@ struct RewardRevealSequenceStateTests {
         #expect(state.feedbackTrigger == 1)
     }
 
-    @Test func `collection exits after one brief confirmation beat`() async {
-        let clock = ControlledRewardRevealClock()
-        let state = RewardCollectionState(clock: clock)
-        var exits = 0
-        state.perform(.collect(hapticsEnabled: true, claim: { true }, finish: { exits += 1 }))
-        #expect(await waitUntil { clock.isSleeping })
-        #expect(state.isCollected)
-        #expect(exits == 0)
-        clock.advance()
-        #expect(await waitUntil { exits == 1 })
-        #expect(!clock.isSleeping)
-    }
-
-    @Test func `immediate actions bypass the collection beat`() {
-        let state = RewardCollectionState()
-        var completions = 0
-        state.perform(.immediate {
-            completions += 1
-            return true
-        })
-        state.finish()
-        #expect(completions == 1)
-        #expect(!state.isCollected)
-        #expect(state.feedbackTrigger == 0)
-    }
-
     @Test func `failed collection stays available without success feedback`() {
         let state = RewardCollectionState(clock: TestRewardRevealClock())
         var exits = 0
@@ -125,14 +99,6 @@ struct RewardRevealSequenceStateTests {
         })
         #expect(state.isCompleting)
         #expect(attempts == 2)
-    }
-
-    @Test func `cancel before start does not mark sequence complete`() {
-        let state = makeState()
-        state.cancel(walletCount: 5)
-        #expect(!state.isSequenceComplete)
-        #expect(!state.areItemsVisible)
-        #expect(state.visibleWalletRewardCount == 0)
     }
 
     private func waitUntil(

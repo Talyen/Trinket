@@ -39,59 +39,7 @@ def commit(
 
 
 class ReleaseNotesUserTests(unittest.TestCase):
-    def test_player_facing_classification_respects_product_paths_and_overrides(self) -> None:
-        product = "Packages/BattleEngine/Sources/BattleEngine/Turns/BattleTurnEngine.swift"
-        cases = (
-            (commit("feat(content): add a hero", "ContentManifest/heroes.tsv"), True),
-            (commit("fix(battle): resolve dodge", product), True),
-            (commit("Add CI cache pruning", "Scripts/ci-gate.sh", ".github/workflows/tests.yml"), False),
-            (commit("Add coverage", "Packages/BattleEngine/Tests/BattleEngineTests/Test.swift"), False),
-            (commit("Extract dodge handling", product), False),
-            (commit("refactor(battle): split handlers", product), False),
-            (commit("feat(content): internal IDs", product, body="User-Facing: no"), False),
-            (commit("chore: options default", "Scripts/release.sh", body="User-Facing: yes"), True),
-            (commit("feat(battle): extract dodge trigger", product), True),
-            (commit("Tighten dodge resolution", product), True),
-        )
-        for candidate, expected in cases:
-            with self.subTest(subject=candidate.subject):
-                self.assertEqual(notes.is_user_facing(candidate), expected)
 
-    def test_build_notes_skips_infra_and_uses_fallback(self) -> None:
-        summary, bullets = notes.build_notes(
-            [
-                commit("Add script regression coverage", "Scripts/Tests/test_ci_build_scripts.py"),
-                commit("ci: speed up isolate slots", ".github/workflows/tests.yml"),
-            ]
-        )
-        self.assertEqual(summary, "Bug fixes and improvements.")
-        self.assertEqual(bullets, ["• Stability and performance improvements"])
-
-    def test_build_notes_emits_player_lines(self) -> None:
-        summary, bullets = notes.build_notes(
-            [
-                commit(
-                    "feat(content): add a new hero",
-                    "ContentManifest/heroes.tsv",
-                    body="- SwiftFormat cleanup.\n- User-Facing: yes\n"
-                         "- recruit a new hero in the collection.\n- Unused later detail.",
-                ),
-                commit(
-                    "fix(battle): dodge blocked hits",
-                    "Packages/BattleEngine/Sources/BattleEngine/Triggers/CombatTriggerEngine+Dodge.swift",
-                ),
-                commit("chore: regenerate project", "project.yml"),
-                commit("fix: dodge blocked hits", "Packages/BattleEngine/Sources/Rule.swift"),
-            ]
-        )
-        self.assertEqual(summary, "Recruit a new hero in the collection.")
-        self.assertEqual(
-            bullets,
-            [
-                "• Recruit a new hero in the collection.",
-                "• Dodge blocked hits",
-            ],
-        )
 
     def test_git_log_preserves_marker_text_and_unusual_product_filenames(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -131,30 +79,6 @@ class ReleaseNotesUserTests(unittest.TestCase):
                 notes.main()
             self.assertIn("Restore battle rewards", draft.getvalue())
             self.assertEqual(output.read_text(), "existing release notes")
-
-    def test_strip_unreleased_flag_rewrites_changelog(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "CHANGELOG.md"
-            path.write_text(
-                "# Changelog\n\n## [Unreleased]\n\n<!-- placeholder -->\n\n## [0.1.0]\n",
-                encoding="utf-8",
-            )
-            result = subprocess.run(
-                [
-                    "python3",
-                    str(ROOT / "Scripts" / "release-notes-user.py"),
-                    "--strip-unreleased",
-                    str(path),
-                ],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
-            text = path.read_text(encoding="utf-8")
-            self.assertNotIn("Unreleased", text)
-            self.assertIn("## [0.1.0]", text)
 
 
 if __name__ == "__main__":

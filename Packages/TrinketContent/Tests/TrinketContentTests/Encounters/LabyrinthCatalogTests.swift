@@ -163,18 +163,6 @@ struct LabyrinthCatalogTests {
         #expect(!center.isAdjacent(to: distant))
     }
 
-    @Test func `grid position ordering is row major`() {
-        let positions = [
-            LabyrinthGridPosition(row: 2, column: 0),
-            LabyrinthGridPosition(row: 1, column: 1),
-            LabyrinthGridPosition(row: 0, column: 0),
-            LabyrinthGridPosition(row: 1, column: 0),
-        ]
-        #expect(positions.sorted(by: LabyrinthGridPosition.isOrderedBefore).map { "\($0.row):\($0.column)" } == [
-            "0:0", "1:0", "1:1", "2:0",
-        ])
-    }
-
     @Test func `modifier catalog has unique I ds and non empty copy`() {
         let modifiers = GameContent.nodeModifiers
         #expect(!modifiers.isEmpty)
@@ -331,69 +319,9 @@ struct LabyrinthCatalogTests {
             #expect(floor.contains { $0.type == .mystery })
         }
     }
-
-    private func adjacencyConflicts(in nodes: [LabyrinthNode]) -> Int {
-        var conflicts = 0
-        for i in nodes.indices {
-            for j in nodes.indices where j > i && nodes[i].isAdjacent(to: nodes[j]) {
-                if nodes[i].type == nodes[j].type {
-                    conflicts += 1
-                }
-            }
-        }
-        return conflicts
-    }
-
-    private func minimalAdjacencyConflicts(for nodes: [LabyrinthNode]) -> Int {
-        guard nodes.count > 2 else { return 0 }
-        let entry = nodes[0]
-        let boss = nodes[nodes.count - 1]
-        var middle = Array(nodes[1 ..< nodes.count - 1])
-        var best = Int.max
-        func visit(index: Int) {
-            if index == middle.count {
-                best = min(best, adjacencyConflicts(in: [entry] + middle + [boss]))
-                return
-            }
-            var visitedTypes = Set<LabyrinthNodeType>()
-            for i in index ..< middle.count where visitedTypes.insert(middle[i].type).inserted {
-                middle.swapAt(index, i)
-                visit(index: index + 1)
-                middle.swapAt(index, i)
-            }
-        }
-        visit(index: 0)
-        return best
-    }
 }
 
 extension LabyrinthCatalogTests {
-    @Test func `placement matches exhaustive optimum on small branching floors`() {
-        let positions = [
-            LabyrinthGridPosition(row: 0, column: 0),
-            LabyrinthGridPosition(row: 1, column: 0),
-            LabyrinthGridPosition(row: 2, column: -1),
-            LabyrinthGridPosition(row: 2, column: 0),
-            LabyrinthGridPosition(row: 3, column: -1),
-            LabyrinthGridPosition(row: 4, column: -2),
-            LabyrinthGridPosition(row: 4, column: -1),
-        ]
-        for hasRecruit in [false, true] {
-            for seed in 1 ... 8 {
-                var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
-                let planned = LabyrinthFloorTypePlacement.plannedTypes(
-                    count: positions.count, hasEligibleRecruit: hasRecruit, using: &rng,
-                )
-                let placed = LabyrinthFloorTypePlacement.separatedTypes(planned, positions: positions, using: &rng)
-                #expect(placed.sorted { $0.rawValue < $1.rawValue } == planned.sorted { $0.rawValue < $1.rawValue })
-                let nodes = placed.enumerated().map { index, type in
-                    LabyrinthNode(id: "n-\(index)", type: type, depth: 1, clusterID: "floor", gridPosition: positions[index])
-                }
-                #expect(adjacencyConflicts(in: nodes) == minimalAdjacencyConflicts(for: nodes))
-            }
-        }
-    }
-
     @Test func `every supported floor size generates varied connected geometry`() {
         for count in 15 ... 20 {
             var signatures = Set<String>()

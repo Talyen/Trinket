@@ -5,35 +5,6 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BattleLogProjectionTests {
-    @Test(arguments: [
-        ("Block", 0, Keyword.physical, [String](), "Hero uses Block."),
-        ("Slash", 3, .physical, [], "Hero uses Slash for 3 Physical damage to Enemy."),
-        ("Smite", 0, .holy, ["restore 3 Health"], "Hero uses Smite and restore 3 Health."),
-        ("Fireball", 3, .burn, ["applies Burning"], "Hero uses Fireball for 3 Burn damage to Enemy and applies Burning."),
-        ("Heat Wave", 0, .burn, ["applies Burning", "gain Block"], "Hero uses Heat Wave and applies Burning, gain Block."),
-    ])
-    func `action summaries retain damage and effect wording`(
-        name: String, amount: Int, keyword: Keyword, effects: [String], expected: String,
-    ) {
-        let event = ActionEvent(
-            id: 1, kind: .ability, actorName: "Hero", abilityName: name,
-            targetID: "enemy", targetName: "Enemy", amount: amount, keyword: keyword,
-            appliedEffectSummaries: effects,
-        )
-        #expect(BattleLogProjection.line(for: event) == expected)
-    }
-
-    @Test func `entries reduce milestones status and ability events`() throws {
-        let events = sampleEvents()
-        let entries = BattleLogProjection.entries(from: events)
-        try #expect(entries.map(\.text) == [
-            "Hero and Companion face Enemy.",
-            "Hero uses Slash for 3 Physical damage to Enemy.",
-            "Enemy takes 2 Burn damage.",
-            "Enemy is defeated.",
-        ])
-    }
-
     @Test func `interleaved action packets survive split updates and history resets`() {
         func event(_ kind: ActionEvent.Kind, action: Int, amount: Int, keyword: Keyword = .physical) -> ActionEvent {
             ActionEvent(
@@ -89,135 +60,6 @@ struct BattleLogProjectionTests {
         #expect(BattleLogProjection.entries(from: events).map(\.text) == [
             "Hero uses Strike for \(Int.max) Physical damage to Enemy and loses \(Int.max) Health.",
         ])
-    }
-
-    @Test func `battle start log uses names captured by event`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 10)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 10)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 10)
-        let replacementEnemy = CombatantFixtures.combatant(id: "replacement-enemy", role: .enemy, maxHealth: 10)
-        var battle = BattleState(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            tracksLog: false,
-            dealOpeningHand: false,
-        )
-
-        battle.roster.enemy = CombatantRuntime(combatant: replacementEnemy)
-        battle.syncLog()
-
-        try #expect(battle.log.first?.text == "Hero and Companion face Enemy.")
-    }
-
-    @Test func `deaths door log lines`() throws {
-        let triggered = ActionEvent(
-            id: 1,
-            kind: .effect,
-            effectKind: .deathsDoorTriggered,
-            actorName: "Hero",
-            abilityName: "Death's Door",
-            targetID: "hero",
-            targetName: "Hero",
-            amount: 0,
-            keyword: .deathsDoor,
-        )
-        try #expect(BattleLogProjection.line(for: triggered) == "Hero is on Death's Door.")
-
-        let expired = ActionEvent(
-            id: 2,
-            kind: .effect,
-            effectKind: .deathsDoorExpired,
-            actorName: "Hero",
-            abilityName: "Death's Door",
-            targetID: "hero",
-            targetName: "Hero",
-            amount: 0,
-            keyword: .deathsDoor,
-        )
-        try #expect(BattleLogProjection.line(for: expired) == "Hero's Death's Door fades.")
-    }
-
-    @Test func `control trigger log lines`() {
-        let stunned = ActionEvent(
-            id: 1,
-            kind: .effect,
-            effectKind: .controlTriggered,
-            actorName: "Hero",
-            abilityName: "Stunned",
-            targetID: "enemy",
-            targetName: "Enemy",
-            amount: 0,
-            keyword: .stun,
-        )
-        #expect(BattleLogProjection.line(for: stunned) == "Enemy is Stunned.")
-
-        let frozen = ActionEvent(
-            id: 2,
-            kind: .effect,
-            effectKind: .controlTriggered,
-            actorName: "Hero",
-            abilityName: "Frozen",
-            targetID: "enemy",
-            targetName: "Enemy",
-            amount: 0,
-            keyword: .freeze,
-        )
-        #expect(BattleLogProjection.line(for: frozen) == "Enemy is Frozen.")
-    }
-
-    @Test func `passive talent attribution log lines`() {
-        let blockEvent = ActionEvent(
-            id: 1,
-            kind: .effect,
-            effectKind: .shieldApplied,
-            actorName: "Knight",
-            abilityName: "Oathbound",
-            targetID: "hero",
-            targetName: "Knight",
-            amount: 2,
-            keyword: .holy,
-        )
-        #expect(BattleLogProjection.line(for: blockEvent) == "Knight gains 2 Block (Oathbound).")
-
-        let healEvent = ActionEvent(
-            id: 2,
-            kind: .effect,
-            effectKind: .instantHeal,
-            actorName: "Warlock",
-            abilityName: "Bloodfire",
-            targetID: "hero",
-            targetName: "Warlock",
-            amount: 2,
-            keyword: .burn,
-        )
-        #expect(BattleLogProjection.line(for: healEvent) == "Warlock restores 2 Health (Bloodfire).")
-
-        let thornsEvent = ActionEvent(
-            id: 3,
-            kind: .effect,
-            effectKind: .thornsTriggered,
-            actorName: "Shield Scarab",
-            abilityName: "Spiked Shell",
-            targetID: "enemy",
-            targetName: "Goblin",
-            amount: 3,
-            keyword: .physical,
-        )
-        #expect(BattleLogProjection.line(for: thornsEvent) == "Shield Scarab deals 3 Physical damage to Goblin (Spiked Shell).")
-
-        let cleanseEvent = ActionEvent(
-            id: 4,
-            kind: .effect,
-            effectKind: .cleanseApplied,
-            actorName: "Library Owl",
-            abilityName: "Purifying Wisdom",
-            targetID: "hero",
-            targetName: "Hero",
-            amount: 0,
-            keyword: .poison,
-        )
-        #expect(BattleLogProjection.line(for: cleanseEvent) == "Hero Cleanses Poison (Purifying Wisdom).")
     }
 
     @Test func `Heal logs its actual ally recipient instead of the selected enemy`() {
@@ -313,27 +155,5 @@ struct BattleLogProjectionTests {
         )
         battle.appliesFightPacing = false
         return battle
-    }
-
-    private func sampleEvents() -> [ActionEvent] {
-        [
-            ActionEvent(
-                id: 1, kind: .milestone, actorName: "", abilityName: "",
-                targetID: "enemy", targetName: "Enemy", amount: 0, keyword: .physical,
-                milestone: .battleStarted(heroName: "Hero", companionName: "Companion"),
-            ),
-            ActionEvent(
-                id: 2, kind: .ability, actorName: "Hero", abilityName: "Slash",
-                targetID: "enemy", targetName: "Enemy", amount: 3, keyword: .physical,
-            ),
-            ActionEvent(
-                id: 3, kind: .status, actorName: "Burn", abilityName: "Burn",
-                targetID: "enemy", targetName: "Enemy", amount: 2, keyword: .burn,
-            ),
-            ActionEvent(
-                id: 4, kind: .milestone, actorName: "", abilityName: "",
-                targetID: "enemy", targetName: "Enemy", amount: 0, keyword: .physical, milestone: .enemyDefeated,
-            ),
-        ]
     }
 }

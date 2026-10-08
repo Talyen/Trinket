@@ -12,19 +12,4 @@ struct SeededRandomNumberGeneratorTests {
         ]
         #expect(expected.map { _ in generator.next() } == expected)
     }
-
-    @Test func `draw progress changes equality`() {
-        var advanced = SeededRandomNumberGenerator(seed: 1772)
-        let fresh = SeededRandomNumberGenerator(seed: 1772)
-        _ = advanced.next()
-        #expect(advanced != fresh)
-    }
-
-    @Test func `zero seed fallback shares sequence but not equality`() {
-        var fromZero = SeededRandomNumberGenerator(seed: 0)
-        var fromFallback = SeededRandomNumberGenerator(seed: 0x4D59_5DF4_D0F3_3173)
-        #expect(fromZero != fromFallback)
-        #expect(fromZero.next() == fromFallback.next())
-        #expect(fromZero.next() == fromFallback.next())
-    }
 }

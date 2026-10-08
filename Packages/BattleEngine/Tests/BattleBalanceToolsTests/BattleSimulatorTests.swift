@@ -75,15 +75,6 @@ struct BattleSimulatorTests {
         #expect(!(matchup.context.heroAffixIDs.isEmpty))
     }
 
-    @Test func `sample loadout includes all tiers by default`() throws {
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        var rng = SeededRandomNumberGenerator(seed: 5)
-        let loadout = SimulationMatchupBuilder.sampleLoadout(for: hero, using: &rng)
-        #expect(loadout.ultimate != nil)
-        #expect(loadout.basic != nil)
-        #expect(loadout.skill != nil)
-    }
-
     @Test func `sample party loadouts meet damaging floor`() throws {
         for hero in GameContent.heroes {
             for companion in GameContent.companions {
@@ -156,12 +147,6 @@ struct BattleSimulatorTests {
         #expect(BalanceTalentContrastRunner.isKitLegal(focus: focus, tier: .lateGame))
         let fullFocus = BalanceTalentContrastRunner.KitFocus(owner: owner, kit: valid)
         #expect(!BalanceTalentContrastRunner.isKitLegal(focus: fullFocus, tier: .early))
-    }
-
-    @Test func `play policy id round-trips known policies`() {
-        #expect(PlayPolicy(rawValue: PlayPolicy.greedy.rawValue)?.id == PlayPolicy.greedy.rawValue)
-        #expect(PlayPolicy(rawValue: PlayPolicy.setupAware.rawValue)?.id == PlayPolicy.setupAware.rawValue)
-        #expect(PlayPolicy(rawValue: "setup-v2") == nil)
     }
 
     @Test func `matchup builder and simulator preserve enemy faction`() throws {

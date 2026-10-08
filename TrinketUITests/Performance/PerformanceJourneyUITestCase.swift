@@ -85,19 +85,13 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
         XCTAssertTrue(element.exists && element.isHittable, "Control could not be revealed")
     }
 
-    var horizontalScrollView: XCUIElement {
-        app.scrollViews.allElementsBoundByIndex.first {
-            $0.frame.width > $0.frame.height && $0.frame.minY > 100 && $0.frame.maxY < app.frame.maxY - 90
-        } ?? app.scrollViews["Missing horizontal scroll view"]
-    }
-
     struct ScrollAnchor {
         let key: String
         let frame: CGRect
     }
 
     @MainActor
-    private func anchors(in snapshot: any XCUIElementSnapshot, horizontal: Bool) -> [ScrollAnchor] {
+    private func anchors(in snapshot: any XCUIElementSnapshot) -> [ScrollAnchor] {
         let viewport = snapshot.frame
         var pending = snapshot.children
         var result: [ScrollAnchor] = []
@@ -108,7 +102,7 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
                 continue
             }
             if !frame.isEmpty, frame.minX.isFinite, frame.minY.isFinite, frame.maxX.isFinite, frame.maxY.isFinite,
-               horizontal ? frame.width < viewport.width * 0.9 : frame.height < viewport.height * 0.9,
+               frame.height < viewport.height * 0.9,
                frame.intersects(viewport) {
                 result.append(ScrollAnchor(key: "\(child.elementType.rawValue):\(child.identifier):\(child.label)", frame: frame))
             }
@@ -117,13 +111,13 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
     }
 
     @MainActor
-    func captureScrollProbes(_ surface: XCUIElement, horizontal: Bool = false) -> [ScrollAnchor] {
+    func captureScrollProbes(_ surface: XCUIElement) -> [ScrollAnchor] {
         // Runs outside the measurement window: a full snapshot walks the
         // scrolled subtree on the app main thread, so capturing here keeps
         // that cost out of the reported intervals.
         XCTAssertTrue(surface.exists)
         do {
-            return try anchors(in: surface.snapshot(), horizontal: horizontal)
+            return try anchors(in: surface.snapshot())
         } catch {
             XCTFail("Could not snapshot scroll content: \(error)")
             return []
@@ -131,15 +125,11 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
     }
 
     @MainActor
-    func performScrollGestures(_ surface: XCUIElement, horizontal: Bool = false) {
-        let start = surface.coordinate(withNormalizedOffset: horizontal ? CGVector(dx: 0.8, dy: 0.5) : CGVector(dx: 0.5, dy: 0.75))
-        let end = surface.coordinate(withNormalizedOffset: horizontal ? CGVector(dx: 0.2, dy: 0.5) : CGVector(dx: 0.5, dy: 0.25))
+    func performScrollGestures(_ surface: XCUIElement) {
+        let start = surface.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+        let end = surface.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
         start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.1)
-        if horizontal {
-            surface.swipeLeft(velocity: .fast)
-        } else {
-            surface.swipeUp(velocity: .fast)
-        }
+        surface.swipeUp(velocity: .fast)
         RunLoop.current.run(until: Date().addingTimeInterval(1))
     }
 
@@ -147,7 +137,6 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
     func verifyScrollProbes(
         _ before: [ScrollAnchor],
         _ surface: XCUIElement,
-        horizontal: Bool = false,
         file: StaticString = #file,
         line: UInt = #line,
     ) {
@@ -155,7 +144,7 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
         // not pollute the reported intervals. A scroll that moved no content
         // still fails as loudly as before.
         let after: [ScrollAnchor]
-        do { after = try anchors(in: surface.snapshot(), horizontal: horizontal) }
+        do { after = try anchors(in: surface.snapshot()) }
         catch {
             XCTFail("Could not snapshot scrolled content: \(error)", file: file, line: line)
             return

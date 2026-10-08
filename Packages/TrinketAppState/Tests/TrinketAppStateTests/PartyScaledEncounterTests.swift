@@ -30,64 +30,38 @@ struct PartyScaledEncounterTests {
         return try #require(GameContent.spireFloor(spireID: .ironVein, floor: spire.floorCount))
     }
 
-    @Test func `journey encounter preserves content floor`() throws {
+    @Test func `journey encounter preserves the content floor across party changes`() throws {
         let state = try context.makePlaySession()
-        setPartyLevels(3, 2, in: state)
         let chapter = try #require(GameContent.chapters.last)
         let stage = try #require(chapter.stages.last { $0.encounter.isCombat })
-        let expectedLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter) - 3
-
-        #expect(state.journey.startBattle(for: stage) == nil)
-        let configuration = try #require(state.battle.activeBattle)
-        #expect(configuration.enemyEncounterLevel == expectedLevel)
-
+        let authoredLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
         let enemyID = try #require(stage.resolvedBattleEnemyID(worldSeed: state.playerSave.worldSeed))
         let catalogEnemy = try #require(GameContent.enemy(matching: enemyID))
-        let enemy = try #require(configuration.enemy)
-        let expectedStats = CombatantLevelScaler.scale(enemy: catalogEnemy, level: expectedLevel)
-        #expect(enemy.maxHealth == expectedStats.maxHealth)
-    }
-
-    @Test func `journey encounter keeps authored level when party is ahead`() throws {
-        let state = try context.makePlaySession()
-        setPartyLevels(60, 60, in: state)
-        let chapter = try #require(GameContent.chapters.last)
-        let stage = try #require(chapter.stages.last { $0.encounter.isCombat })
-
-        #expect(state.journey.startBattle(for: stage) == nil)
-        let configuration = try #require(state.battle.activeBattle)
-        #expect(
-            configuration.enemyEncounterLevel
-                == EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter),
-        )
+        for (heroLevel, companionLevel, expectedLevel) in [(3, 2, authoredLevel - 3), (60, 60, authoredLevel)] {
+            setPartyLevels(heroLevel, companionLevel, in: state)
+            #expect(state.journey.startBattle(for: stage) == nil)
+            let configuration = try #require(state.battle.activeBattle)
+            #expect(configuration.enemyEncounterLevel == expectedLevel)
+            let enemy = try #require(configuration.enemy)
+            #expect(enemy.maxHealth == CombatantLevelScaler.scale(enemy: catalogEnemy, level: expectedLevel).maxHealth)
+            state.battle.endBattle()
+        }
     }
 
     @Test func `spire encounter preserves fixed floor level`() throws {
         let state = try context.makePlaySession()
         let topFloor = try unlockSpireThroughPenultimateFloor(in: state)
-        setPartyLevels(3, 2, in: state)
         let expectedLevel = topFloor.floor * 2
-
-        #expect(state.spires.startBattle(for: topFloor) == nil)
-        let configuration = try #require(state.battle.activeBattle)
-        #expect(configuration.enemyEncounterLevel == expectedLevel)
-
         let catalogEnemy = try #require(GameContent.enemy(matching: topFloor.enemyID))
-        let enemy = try #require(configuration.enemy)
-        let expectedStats = CombatantLevelScaler.scale(enemy: catalogEnemy, level: expectedLevel)
-        #expect(enemy.maxHealth == expectedStats.maxHealth)
-    }
-
-    @Test func `spire encounter keeps authored level when party is ahead`() throws {
-        let state = try context.makePlaySession()
-        let topFloor = try unlockSpireThroughPenultimateFloor(in: state)
-        setPartyLevels(60, 60, in: state)
-
-        #expect(state.spires.startBattle(for: topFloor) == nil)
-        let configuration = try #require(state.battle.activeBattle)
-        #expect(
-            configuration.enemyEncounterLevel == EncounterLevelResolver.spireEnemyLevel(for: topFloor),
-        )
+        for (heroLevel, companionLevel) in [(3, 2), (60, 60)] {
+            setPartyLevels(heroLevel, companionLevel, in: state)
+            #expect(state.spires.startBattle(for: topFloor) == nil)
+            let configuration = try #require(state.battle.activeBattle)
+            #expect(configuration.enemyEncounterLevel == expectedLevel)
+            let enemy = try #require(configuration.enemy)
+            #expect(enemy.maxHealth == CombatantLevelScaler.scale(enemy: catalogEnemy, level: expectedLevel).maxHealth)
+            state.battle.endBattle()
+        }
     }
 
     private func forceDeepCombatNode(in state: PlaySession) throws -> String {
@@ -110,21 +84,13 @@ struct PartyScaledEncounterTests {
 
     @Test func `labyrinth encounter preserves depth band floor`() throws {
         let state = try context.makePlaySession()
-        setPartyLevels(3, 2, in: state)
         let nodeID = try forceDeepCombatNode(in: state)
-
-        #expect(state.labyrinth.startBattle(nodeID: nodeID) == nil)
-        let configuration = try #require(state.battle.activeBattle)
-        #expect(configuration.enemyEncounterLevel == 16)
-    }
-
-    @Test func `labyrinth encounter keeps authored level when party is ahead`() throws {
-        let state = try context.makePlaySession()
-        setPartyLevels(60, 60, in: state)
-        let nodeID = try forceDeepCombatNode(in: state)
-
-        #expect(state.labyrinth.startBattle(nodeID: nodeID) == nil)
-        let configuration = try #require(state.battle.activeBattle)
-        #expect(configuration.enemyEncounterLevel == 20)
+        for (heroLevel, companionLevel, expectedLevel) in [(3, 2, 16), (60, 60, 20)] {
+            setPartyLevels(heroLevel, companionLevel, in: state)
+            #expect(state.labyrinth.startBattle(nodeID: nodeID) == nil)
+            let configuration = try #require(state.battle.activeBattle)
+            #expect(configuration.enemyEncounterLevel == expectedLevel)
+            state.battle.endBattle()
+        }
     }
 }

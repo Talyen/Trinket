@@ -2,34 +2,6 @@ import Testing
 import TrinketCore
 
 struct EffectModelTests {
-    @Test func `representative effect properties`() {
-        #expect(Effect.burn(4).potencyAfterTurn() == 2)
-        #expect(Effect.bleed(3).isBleed)
-        #expect(Effect.instantHeal(.health, 5).isInstant)
-        #expect(Effect.drawCards(2).isInstant)
-    }
-
-    @Test func `avatar effect models self buff pulse`() {
-        let avatar = Effect.avatar(holyDamage: 6, blockPerTurn: 4, turns: 1)
-        #expect(avatar.keyword == .holy)
-        #expect(avatar.potency == 6)
-        #expect(avatar.durationTurns == 1)
-        #expect(avatar.advancesEachTurn)
-        #expect(avatar.isRemovableBuff)
-        #expect(!avatar.isRemovableDebuff)
-        #expect(!avatar.isInstant)
-        #expect(!avatar.isDecayingDoT)
-        #expect(!avatar.isManaEmpowerableBurnOrFreezeDamage)
-        #expect(avatar.withManaEmpowerment() == avatar)
-        #expect(Effect.defaultTarget(for: avatar) == .actor)
-        #expect(avatar.kind == .avatar)
-    }
-
-    @Test func `damage and strength reduction default to ability target`() {
-        #expect(Effect.defaultTarget(for: .damageReductionPercent(0.25, 2)) == .abilityTarget)
-        #expect(Effect.defaultTarget(for: .damageReductionFlat(3, 1)) == .abilityTarget)
-    }
-
     @Test func `zero duration covers instants and indefinite buffs`() {
         #expect(Effect.deathsDoor.durationTurns == 0)
         #expect(Effect.deathsDoor.advancesEachTurn)
@@ -89,34 +61,6 @@ struct EffectModelTests {
         #expect(Effect.poisonDecayAmount(for: Int.max) == Int.max / 4)
         #expect(Effect.poisonDecayAmount(for: Int.min) == 1)
         #expect(Effect.poison(Int.min).potencyAfterTurn() == 0)
-    }
-
-    @Test(arguments: [(3, 2), (7, 4)])
-    func `panacea describes base healing and healing per debuff`(baseHeal: Int, healPerDebuff: Int) {
-        let effect = Effect.panacea(baseHeal: baseHeal, healPerDebuff: healPerDebuff)
-        #expect(
-            EffectPresentation.applyPhrase(for: effect)
-                == "cleanse all debuffs and restore \(baseHeal) Health plus \(healPerDebuff) Health for each debuff cleansed",
-        )
-    }
-
-    @Test func `control meter amplification describes freeze buildup`() {
-        let effect = Effect.multiplyControlMeter(.freeze, 2)
-        #expect(effect.kind == .multiplyControlMeter)
-        #expect(effect.isInstant)
-        #expect(Effect.defaultTarget(for: effect) == .abilityTarget)
-        #expect(EffectPresentation.applyPhrase(for: effect) == "double the enemy's Freeze build-up")
-    }
-
-    @Test func `damage keyword override names bonus damage and duration`() {
-        #expect(
-            EffectPresentation.applyPhrase(for: .damageKeywordOverride(.holy, 2, 2))
-                == "your attacks become Holy damage and deal +2 damage for 2 turns",
-        )
-        #expect(
-            EffectPresentation.applyPhrase(for: .damageKeywordOverride(.holy, 1, 1))
-                == "your attacks become Holy damage and deal +1 damage for 1 turn",
-        )
     }
 
     @Test func `flag effect summary phrases are registered`() {

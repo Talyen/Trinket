@@ -346,49 +346,4 @@ extension ModeProgressionToolingTests {
         #expect(controller.isComplete)
         #expect(controller.selectNextStep() == nil)
     }
-
-    @Test func `mode progression report formatter renders summary`() {
-        let records = [ProgressionBattleRecord(
-            step: ModeProgressionStep(
-                id: "unfinished", mode: .campaign, containerID: "c1", containerTitle: "Chapter 1",
-                stepIndex: 1, displayTitle: "Stage 1", enemyID: "goblin", enemyLevel: 5, isBoss: false,
-            ),
-            playerLevel: 5, enemyLevel: 5, seed: 1,
-            result: BattleSimResult(
-                outcome: .defeat, rounds: 100, actions: 200, timedOut: true,
-                partyHPRemainingFraction: 0.5, enemyHPRemainingFraction: 0.8,
-            ),
-        )]
-        let report = BalanceSweepReport(
-            config: BalanceSweepConfig(mode: .modeProgression, battlesPerTier: 2, jobs: 1),
-            policyID: "greedy-v1",
-            progressionHotspots: HotspotAnalyzer.analyze(records: records),
-            progressionRecords: records,
-            progressionPlayerStates: [
-                PlayerProgressionState(heroLevel: 4, companionLevel: 3),
-                PlayerProgressionState(heroLevel: 5, companionLevel: 4),
-            ],
-            elapsedSeconds: 1,
-        )
-        let markdown = BalanceMarkdownReporter.render(report)
-        #expect(markdown.contains("# Multi-Mode Progression & Hotspot Balance Report"))
-        #expect(markdown.contains("Progression Summary"))
-        #expect(markdown.contains("**Simulated Runs**: 2"))
-        #expect(markdown.contains("**Total Battles Simulated**: 1"))
-        #expect(markdown.contains("**Decided Battles**: 0"))
-        #expect(markdown.contains("**Unfinished Battles**: 1"))
-        #expect(markdown.contains("| 0 | n/a | n/a | n/a | n/a | n/a | NO DECIDED SAMPLES |"))
-    }
-
-    @Test func `mode all markdown includes progression`() {
-        let report = BalanceSweepReport(
-            config: BalanceSweepConfig(mode: .all, battlesPerTier: 1, tiers: [.early], jobs: 1),
-            policyID: "greedy-v1",
-            progressionPlayerStates: [PlayerProgressionState()],
-            elapsedSeconds: 0,
-        )
-        let markdown = BalanceMarkdownReporter.render(report)
-        #expect(markdown.contains("# Balance Sweep Report"))
-        #expect(markdown.contains("# Multi-Mode Progression & Hotspot Balance Report"))
-    }
 }

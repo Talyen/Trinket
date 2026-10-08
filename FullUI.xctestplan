@@ -15,7 +15,6 @@
       "selectedTests": [
         "BattleFlowUITests",
         "PlayModeNavigationUITests",
-        "HomesteadNodeDetailUITests",
         "FullGamePurchaseUITests",
         "CollectionLoadoutUITests",
         "OptionsUITests"

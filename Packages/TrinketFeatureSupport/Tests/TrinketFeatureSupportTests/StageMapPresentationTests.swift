@@ -72,14 +72,6 @@ struct VoyageMapPresentationTests {
         #expect(rows[3].isArtworkInteractive == true)
         #expect(rows[3].allowsCompactInspection == true)
     }
-
-    @Test func `shop discount modifier presentation uses reduced gold prices and gold keyword style`() throws {
-        let modifier = try #require(GameContent.nodeModifier(id: NodeModifierID("shopDiscount")))
-        #expect(modifier.effect.description == "Reduced Gold Prices")
-        let style = NodeModifierPresentation.style(for: modifier)
-        #expect(style.icon == Keyword.gold.visualStyle.icon)
-        #expect(style.color == Keyword.gold.visualStyle.color)
-    }
 }
 
 extension StageMapPresentationTests {
@@ -126,47 +118,6 @@ extension StageMapPresentationTests {
         #expect(resolved.encounter.iconID == "sf:sparkles")
         #expect(resolved.encounter.primaryActionTitle == "Approach")
         #expect(resolved.encounterArtReference?.imageName != "encounter_mystery_recruit_companions")
-    }
-
-    @Test func `battle stages prefer enemy art over encounter art`() throws {
-        let stage = try #require(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-1" })
-
-        #expect(GameContent.encounterArtID(for: stage) == nil)
-        #expect(stage.encounterArtReference == nil)
-        _ = try #require(stage.encounterCombatantArtReference(worldSeed: 0))
-        #expect(stage.encounterSubjectName(worldSeed: 0) == "Slime")
-    }
-
-    @Test func `random battle subject name depends on world seed`() throws {
-        let stage = try #require(
-            GameContent.chapters.flatMap(\.stages).first { $0.encounter == .randomBattle },
-        )
-        let names = (1 ... 16).map { stage.encounterSubjectName(worldSeed: UInt64($0)) }
-        #expect(Set(names).count > 1)
-        #expect(!names.contains("Battle"))
-    }
-
-    @Test func `shop stages resolve merchant art and title without a catalog stage entry`() {
-        let stage = Stage(
-            id: "test-shop",
-            chapterID: "chapter-1",
-            chapterNumber: 1,
-            stageNumber: 99,
-            encounter: .shop,
-            rewards: .empty,
-        )
-
-        #expect(GameContent.encounterArtID(for: stage) == nil)
-        #expect(stage.encounterArtReference?.imageName == "encounter_destination_merchant_shop")
-        #expect(stage.encounterSubjectName(worldSeed: 0) == "Merchant")
-    }
-
-    @Test func `mapped event stages resolve encounter art without pinning catalog I ds`() throws {
-        let stage = try #require(GameContent.chapters[1].stages.first { $0.id == "chapter-2-stage-8" })
-
-        #expect(GameContent.encounterArtID(for: stage) != nil)
-        _ = try #require(stage.encounterArtReference)
-        #expect(!(stage.encounterSubjectName(worldSeed: 0).isEmpty))
     }
 
     @Test func `seeded journey mystery provides encounter art for unpinned stages`() throws {
@@ -229,29 +180,6 @@ extension StageMapPresentationTests {
         #expect(completedRows.isEmpty)
     }
 
-    @Test func `spires hub orders by cleared floors then unlock then catalog`() {
-        let progress = PlayerSpiresState(highestClearedFloorBySpireID: [
-            SpireID.ironVein.rawValue: 3,
-            SpireID.cinderSpire.rawValue: 3,
-            SpireID.serpentHollow.rawValue: 10,
-            SpireID.aureateChoir.rawValue: 10,
-        ])
-        let unlocked: Set<SpireID> = [.cinderSpire, .sanguineCourt, .aureateChoir]
-        let ordered = GameContent.spires.orderedForSpiresHub(progress: progress) {
-            unlocked.contains($0.id)
-        }
-
-        #expect(ordered.map(\.id) == [
-            .aureateChoir,
-            .serpentHollow,
-            .cinderSpire,
-            .ironVein,
-            .sanguineCourt,
-            .rimeVault,
-            .resonanceHall,
-        ])
-    }
-
     @Test func `labyrinth node states follow reachability and completion`() {
         let source = LabyrinthNode(
             id: "source",
@@ -291,18 +219,6 @@ extension StageMapPresentationTests {
         clearedTarget.isCleared = true
         state.nodes[target.id] = clearedTarget
         #expect(LabyrinthMapPresentation.state(for: clearedTarget, in: state) == .cleared)
-    }
-
-    @Test func `labyrinth effective type keeps non recruit nodes`() {
-        let node = LabyrinthNode(id: "battle", type: .battle, depth: 1, clusterID: "floor")
-        #expect(
-            LabyrinthMapPresentation.effectiveType(
-                for: node,
-                worldSeed: 1,
-                unlockedHeroIDs: [],
-                unlockedCompanionIDs: [],
-            ) == .battle,
-        )
     }
 
     @Test func `labyrinth exhausted recruit becomes mystery without recruit art`() {

@@ -16,15 +16,6 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
             if didScroll {
                 verifyScrollProbes(detailScrollProbes, app.scrollViews.firstMatch)
             }
-            reveal(button(AccessibilityID.Equipment.basicAbilitySlot))
-            measured("ability-picker", iteration: iteration) {
-                tapButton(AccessibilityID.Equipment.basicAbilitySlot)
-                assertExists(AccessibilityID.LoadoutPicker.abilityGrid("Basic"))
-                tapButton(AccessibilityID.LoadoutPicker.abilityCandidate("block"))
-                assertExists(AccessibilityID.LoadoutPicker.abilityDetail("block"))
-                tapButton(AccessibilityID.LoadoutPicker.selectAbility("block"))
-                assertDoesNotExist(AccessibilityID.LoadoutPicker.abilityGrid("Basic"))
-            }
         }
     }
 
@@ -55,21 +46,6 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
                 search.typeText("\n")
                 XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
             }
-            measured("equipment-inspect-equip", iteration: iteration) {
-                tapButton(AccessibilityID.LoadoutPicker.itemCandidate("longsword-astral"))
-                assertExists(AccessibilityID.LoadoutPicker.itemDetail("longsword-astral"))
-                goBack()
-                assertButtonExists(AccessibilityID.LoadoutPicker.itemCandidate("longsword-astral"))
-                tapButton(AccessibilityID.LoadoutPicker.itemCandidate("longsword-astral"))
-                tapButton(AccessibilityID.LoadoutPicker.equipItem("longsword-astral"))
-                assertDoesNotExist(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
-            }
-            measured("equipment-unequip", iteration: iteration) {
-                tapButton(slot)
-                tapButton(AccessibilityID.LoadoutPicker.itemCandidate("longsword-astral"))
-                tapButton(AccessibilityID.LoadoutPicker.unequipItem)
-                assertDoesNotExist(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
-            }
         }
     }
 
@@ -84,26 +60,6 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
             }
             if didBrowse {
                 verifyScrollProbes(browseScrollProbes, app.scrollViews.firstMatch)
-            }
-            let shelfScrollProbes = captureScrollProbes(horizontalScrollView, horizontal: true)
-            let didScrollShelf = measured("collection-shelf-scroll", iteration: iteration) {
-                performScrollGestures(horizontalScrollView, horizontal: true)
-            }
-            if didScrollShelf {
-                verifyScrollProbes(shelfScrollProbes, horizontalScrollView, horizontal: true)
-            }
-            let categories = ["Heroes", "Astral Gear"]
-            for category in categories {
-                if !selected("collection-category-\(category)") {
-                    continue
-                }
-                let identifier = "\(category) collection category"
-                reveal(button(identifier))
-                measured("collection-category-\(category)", iteration: iteration) {
-                    tapButton(identifier)
-                }
-                goBack()
-                collection.assertLoaded()
             }
         }
     }
@@ -129,22 +85,6 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
             }
             if didScroll {
                 verifyScrollProbes(talentScrollProbes, app.scrollViews.firstMatch)
-            }
-            let node = firstTree?.nodes.first { $0.row == 1 }
-            XCTAssertNotNil(node)
-            let control = button(AccessibilityID.CombatantDetail.talentsNode(id: node?.id ?? "missing-talent"))
-            reveal(control)
-            measured("talent-unlock", iteration: iteration) {
-                tapWhenReady(control)
-                reveal(button(AccessibilityID.CombatantDetail.talentsUnlockButton))
-                tapButton(AccessibilityID.CombatantDetail.talentsUnlockButton)
-                assertExists(AccessibilityID.CombatantDetail.talentsResetButton)
-            }
-            measured("talent-reset-return", iteration: iteration) {
-                tapButton(AccessibilityID.CombatantDetail.talentsResetButton)
-                assertDoesNotExist(AccessibilityID.CombatantDetail.talentsResetButton)
-                goBack()
-                assertExists(AccessibilityID.CombatantDetail.talentsSection)
             }
         }
     }

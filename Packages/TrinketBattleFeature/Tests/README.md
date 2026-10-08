@@ -10,7 +10,7 @@ rubric to directly related retirement candidates.
 
 | Concern | Suite |
 |---------|-------|
-| Session lifecycle, prepare/restart/activation | `BattleSessionPreparationTests` (+`Artwork` extension owns artwork-pin lifecycle; `SupportDefaults` pins construction defaults) |
+| Session lifecycle, prepare/restart/activation | `BattleSessionPreparationTests` (+`Artwork` extension owns artwork-pin lifecycle; consuming outcomes protect fixture defaults) |
 | Session commands, turn/auto-end, overlays, finishing taps | `BattleSessionSimulationTests` (+`CardPlayback` extension owns visual-cast vs settled-combat parity) |
 | Card cues (begin/cancel/deny/clear) | `BattleSessionCardCueTests` |
 | Auto-battle driving and retry | `BattleSessionAutoBattleTests` |
@@ -20,10 +20,9 @@ rubric to directly related retirement candidates.
 | Feedback scheduling, absorption, and expiry | `BattleFeedbackLaneTests` |
 | Feedback classification / consolidation | `CombatFeedbackPresenterTests` |
 | Chip host delivery and availability | `CombatFeedbackChipPresentationTests` |
-| Feedback motion and typography | `CombatFeedbackMotionTests` |
 | Card gesture policy | `BattleCardGesturePolicyTests` |
 | Wide portrait hand / battlefield clearance for visible party resource bars | `BattleHandLayoutTests` |
-| Effect descriptors and recipe fallbacks | `CombatFeedbackEffectPresentationTests` |
+| Effect descriptor visibility policy | `CombatFeedbackEffectPresentationTests` |
 | Raster warmup and invalidation | `CombatFeedbackRasterCatalogTests` |
 | Dissolve-mask transparency and shared storage | `CardDissolveTextureTests` |
 | SFX mapping | `CombatSFXMapperTests` |

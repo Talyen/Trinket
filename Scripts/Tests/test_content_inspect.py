@@ -84,14 +84,6 @@ class ContentInspectTests(ScriptRegressionTestCase):
                 self.assertEqual(run('--kind', 'talents', '--id', 'on')[0], 1)
                 self.assertEqual(run('--kind', 'talents', '--trigger', 'unknown')[0], 2)
 
-    def test_field_shortening_is_explicit_and_expandable(self) -> None:
-        rows = [('ContentManifest/talents.tsv:2', 'one', {'id': 'one', 'description': 'x' * 2000})]
-        with patch.object(INSPECT, 'records', return_value=rows):
-            for flags, expected in (([], False), (['--full'], True)):
-                with contextlib.redirect_stdout(io.StringIO()) as output:
-                    self.assertEqual(INSPECT.main(['--kind', 'talents', '--id', 'one', *flags]), 0)
-                self.assertEqual('x' * 2000 in output.getvalue(), expected)
-                self.assertEqual('[shortened; use --full]' in output.getvalue(), not expected)
 
     def test_ability_id_lookup_points_to_authored_tier_and_declaration(self) -> None:
         with contextlib.redirect_stdout(io.StringIO()) as output:

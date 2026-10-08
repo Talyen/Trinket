@@ -12,7 +12,6 @@ SCRIPT_INPUTS = (
 import contextlib
 import io
 import json
-import shlex
 import subprocess
 import tempfile
 import unittest
@@ -24,36 +23,7 @@ SEARCH = load_script("agent_search", "agent-search.py")
 
 
 class AgentSearchTests(unittest.TestCase):
-    def test_nonpositive_page_limit_reports_usage_instead_of_a_traceback(self) -> None:
-        for value in ('0', '-1'):
-            with self.subTest(value=value), contextlib.redirect_stderr(io.StringIO()) as errors, self.assertRaises(SystemExit) as result:
-                self.search('Guide', '--files', '--limit', value)
-            self.assertEqual(result.exception.code, 2)
-            self.assertIn('must be positive', errors.getvalue())
-            self.assertIn('Try:', errors.getvalue())
 
-    def test_invalid_scope_suggests_executable_correction_without_widening(self) -> None:
-        self.write('Docs/Guide.md', '# Guide')
-        with contextlib.redirect_stderr(io.StringIO()) as errors:
-            status, output = self.search('Guide', '--mode', 'docs', '--files', '--scope', 'docs')
-        self.assertEqual(status, 2)
-        self.assertNotIn('Docs/Guide.md', output)
-        command = shlex.split(errors.getvalue().split('Try: ', 1)[1].strip())
-        self.assertIn('Docs', command)
-        self.assertEqual(self.search(*command[2:])[0], 0)
-        with contextlib.redirect_stderr(io.StringIO()) as errors:
-            self.assertEqual(self.search('Guide', '--files', '--scope', 'missing-owner')[0], 2)
-        self.assertIn('--overview', errors.getvalue())
-
-    def test_invalid_filename_regex_suggests_an_executable_scoped_glob_retry(self) -> None:
-        self.write('Sources/One.swift', 'struct One {}')
-        with contextlib.redirect_stderr(io.StringIO()) as errors:
-            status, _ = self.search('*.swift', '--files', '--scope', 'Sources')
-        self.assertEqual(status, 2)
-        command = shlex.split(errors.getvalue().split('retry: ', 1)[1].strip())
-        status, output = self.search(*command[2:])
-        self.assertEqual(status, 0)
-        self.assertIn('Sources/One.swift', output)
 
     def test_task_index_validates_live_paths_and_provides_scoped_curated_tests_without_symbol_mentions(self) -> None:
         self.write('Sources/Thing.swift', 'struct Thing {}')

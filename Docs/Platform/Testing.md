@@ -52,8 +52,8 @@ Known intentional forks (do not "fix" toward a single default):
 
 - Enemy HP: `1` in `quickWinParty` (fast victories) vs `100` in
   `BattleSessionTestSupport.makeConfiguredSession` (durable sessions) vs
-  `100/1000` hero/enemy in `makePassiveSession` (durability probes, pinned in
-  `BattleSessionSupportDefaultsTests`).
+  `100/1000` hero/enemy in `makePassiveSession` (durability probes). Consuming
+  session outcomes protect these fixtures; do not add separate default snapshots.
 - Item IDs: `"<base>-test"` from `ItemFixtures.makeBareItem` (avoids catalog
   collision) vs `"<baseID>-<rarity>"` from `SaveTestSupport.makeGeneratedItem`
   (generator shapes). `SaveTestSupport.makeSave` defaults inventory to empty
@@ -93,7 +93,7 @@ UI/e2e tests, including extra assertions and parameterized cases in existing tes
 | Value | Definition | Default |
 |---|---|---|
 | High | Detects a credible, materially harmful failure that existing coverage would miss, with reliable assertions and proportionate cost. | Add or strengthen the smallest suitable owner. |
-| Medium | Protects useful but limited behavior, has modest additional detection value, or costs substantially more than the protection warrants. | Skip; allow only a rare, specifically justified exception. |
+| Medium | Protects useful but limited behavior, has modest additional detection value, or costs substantially more than the protection warrants. | Retire or skip; exceptions are limited to specifically justified readability or diagnostic evidence. |
 | Low | Duplicates protection, mirrors implementation, checks trivial plumbing, or asserts incidental details without a meaningful failure outcome. | Do not add. |
 
 Save loss, duplicated rewards, incorrect battle resolution, blocked progression,
@@ -114,8 +114,8 @@ that actually detects it. Add or expand coverage only when all are true:
    setup, brittleness, and maintenance, or merits a rare medium-value exception.
 
 When adding coverage, briefly explain the harmful outcome and existing coverage
-gap in the handoff. For a medium-value exception, also give a concrete reason it
-merits ongoing automated protection despite its limited value or cost. This is a
+gap in the handoff. For a medium-value exception, also give a concrete readability
+or diagnostic reason it merits ongoing automated protection despite its limited value or cost. This is a
 judgment to explain, not a separate approval checkpoint; no value labels or
 manifests are required. Strengthening existing assertions, adding no test, and
 retiring weak coverage are successful outcomes.

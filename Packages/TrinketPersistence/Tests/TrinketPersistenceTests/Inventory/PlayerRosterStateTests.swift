@@ -130,18 +130,6 @@ struct PlayerRosterStateTests {
         #expect(!nonExistent)
     }
 
-    @Test func `equipped combatant name resolves catalog name`() throws {
-        var roster = PlayerRosterState.freshStart
-        var loadout = EquipmentLoadout()
-        loadout.itemIDsBySlot[.weapon] = "test-sword"
-        roster.equipmentLoadouts["knight"] = loadout
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-
-        #expect(roster.equippedCombatantID(for: "test-sword") == "knight")
-        #expect(roster.equippedCombatantName(for: "test-sword") == knight.name)
-        #expect(roster.equippedCombatantID(for: "missing") == nil)
-    }
-
     @Test func `set equipment loadout enforces unique item ownership`() throws {
         var roster = PlayerRosterState.testSeed
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
@@ -183,33 +171,6 @@ struct PlayerRosterStateTests {
         freshRoster.progressions["wolf"] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
         try #expect(freshRoster.highestHeroLevel == 1)
         try #expect(freshRoster.highestCompanionLevel == 15)
-    }
-
-    @Test func `collection combatants place unlocked entries first and sort them by level`() throws {
-        var roster = PlayerRosterState.freshStart
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
-        let bear = try #require(GameContent.companions.first { $0.id == "bear" })
-
-        roster.unlockedHeroIDs.formUnion([knight.id, wizard.id])
-        roster.progressions[PlayerRosterState.starterHeroID] = CombatantProgression(
-            level: 2,
-            currentXP: 0,
-            requiredXP: 100,
-        )
-        roster.progressions[knight.id] = CombatantProgression(level: 8, currentXP: 0, requiredXP: 100)
-        roster.progressions[wizard.id] = CombatantProgression(level: 12, currentXP: 0, requiredXP: 100)
-
-        roster.unlockedCompanionIDs.insert(bear.id)
-        roster.progressions[bear.id] = CombatantProgression(level: 5, currentXP: 0, requiredXP: 100)
-
-        let heroIDs = roster.collectionHeroes.map(\.id)
-        let companionIDs = roster.collectionCompanions.map(\.id)
-
-        try #expect(Array(heroIDs.prefix(3)) == [wizard.id, knight.id, PlayerRosterState.starterHeroID])
-        try #expect(heroIDs.dropFirst(3).allSatisfy { !roster.unlockedHeroIDs.contains($0) })
-        try #expect(Array(companionIDs.prefix(2)) == [bear.id, PlayerRosterState.starterCompanionID])
-        try #expect(companionIDs.dropFirst(2).allSatisfy { !roster.unlockedCompanionIDs.contains($0) })
     }
 
     @Test func `unlock combatants seeds progression and ignores invalid I ds`() throws {

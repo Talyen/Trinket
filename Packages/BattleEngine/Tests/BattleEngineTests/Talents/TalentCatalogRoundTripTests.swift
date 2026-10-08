@@ -15,12 +15,6 @@ struct TalentCatalogRoundTripTests {
         }
     }
 
-    @Test func `catalog profile merges sorted talent I ds`() {
-        let profile = CombatantTalentCatalog.profile(for: ["knight_holy_t1_2", "knight_block_t3_2"])
-        #expect(profile.triggers.holyBlockBreakMultiplier == 1.5)
-        #expect(profile.triggers.blockRetainsThreeQuarters)
-    }
-
     @Test(arguments: [(Keyword.burn, 0.0, 8, 10, 4), (.physical, 0.5, 1, 5, 2), (.physical, 0.0, 0, 2, 4)])
     func `block bypass applies to intercede and the recipients block`(
         keyword: Keyword, physicalIgnore: Double, healthLost: Int, heroBlock: Int, companionBlock: Int,

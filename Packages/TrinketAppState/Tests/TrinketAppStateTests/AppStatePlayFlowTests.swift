@@ -282,7 +282,7 @@ struct AppStatePlayFlowTests {
             companion: state.playerSave.roster.activeCompanion,
             enemy: enemy,
         )
-        #expect(!state.battle.activate(configuration))
+        #expect(!state.battleCoordinator.activatePrepared(configuration))
         let initialGold = state.playerSave.roster.gold
 
         let didPersist = state.completeActiveBattle(configuration, battleGold: .init(gained: 10)).didComplete

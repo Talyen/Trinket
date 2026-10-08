@@ -102,7 +102,7 @@ Assert a journey’s return destination before using helpers that navigate elsew
   Establish a newly opened scroll surface before capturing its probes; measure
   its gestures separately when the scroll itself needs a frame report.
 - Required Full Game coverage includes purchase access to an already-recruited premium character
-  and a chapter offer-entry check. Ask to Buy, existing-entitlement cold launch, and recovery from simulated restore
+  and a chapter offer-entry check. Existing-entitlement cold launch and recovery from simulated restore
   failure are advisory FullUI journeys. Tapping Restore while already unlocked does
   not prove restoration; real App Store restore still needs service/device evidence.
 - Use the timeout and tick defaults from `TrinketUITestCase` and its helpers;
@@ -124,9 +124,8 @@ attunement, and modifier contracts remain in
 [`AppStateSpiresTests`](../Packages/TrinketAppState/Tests/TrinketAppStateTests/AppStateSpiresTests.swift),
 [`SpiresProgressTests`](../Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Encounters/SpiresProgressTests.swift),
 and [`StageMapPresentationTests`](../Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/StageMapPresentationTests.swift).
-`ExplorePerformanceUITests.testSpires` still opens the hub and available floor during
-manual measurements. Routine FullUI deliberately relinquishes Spire row enablement
-and enemy-detail wiring coverage; package tests cannot detect those UI regressions.
+Routine FullUI and maintained performance measurements deliberately relinquish Spire
+row enablement and enemy-detail wiring coverage; package tests cannot detect those UI regressions.
 
 Onboarding and recruitment finish by checking that the earned characters are
 present and unlocked in Collection. Shopping verifies the purchase control,
@@ -136,8 +135,8 @@ character-detail entry remains covered by `FullGamePurchaseSmokeTests`, and item
 detail entry by `CollectionLoadoutUITests`. Character lock labels express the
 unlock contract because locked character cards remain enabled for inspection.
 
-Full Game's smoke purchase journey owns Warlock detail entry. Ask to Buy,
-existing-entitlement cold launch, and restore-failure recovery stop at the accessible
+Full Game's smoke purchase journey owns Warlock detail entry.
+Existing-entitlement cold launch and restore-failure recovery stop at the accessible
 Collection card instead of repeating detail navigation. These fixtures seed recruitment
 independently of StoreKit ownership. The shared assertion checks the card's lock
 label, which combines recruitment and purchase access. Purchase preserves the earned
@@ -149,6 +148,20 @@ entry remains in `SmokeShellTests`; `OptionsUITests` retains destructive reset
 cancellation and durable confirmation. `OptionsStoreTests` protects clearing the
 Haptics defaults key, but does not prove its toggle binding or preference round trip.
 Those two Haptics checks are deliberately relinquished, with the risk that a broken
-toggle or preference reload can escape routine functional UI coverage. Manual
-`ShellPerformanceUITests.testOptions` still exercises the switch during measurements;
-it is not a persistence test.
+toggle or preference reload can escape automated coverage. Options control performance
+measurements are also retired; manual inspection is needed for the toggle binding.
+
+The functional portfolio retains campaign entry/victory/retreat, tab and starter
+entry, purchase access, card gestures, equipment controls, recruitment, Labyrinth
+boss/Continue, destructive reset, cold entitlement, and restore-failure recovery.
+The following interaction coverage is deliberately relinquished:
+
+| Retired journey | Surviving package protection | Remaining UI risk |
+|---|---|---|
+| Voyage embark/abandon | `VoyagePersistenceTests`, `VoyagePlayModeTests` | Embark/abandon controls and return navigation |
+| Labyrinth node inspector | `StageMapPresentationTests`, `AppStateLabyrinthTests`; boss/Continue remains UI-owned | Locked selection preservation and background dismissal |
+| Homestead building/relaunch | `PlayerHomesteadStoreTests`, `HomesteadStateTests` | Upgrade controls and wallet bindings |
+| Ask to Buy | `FullGameStoreTests`; ordinary purchase remains UI-owned | Native deferred approval and its UI transition |
+| Defeat leave with injected save failure | `DefeatCompletionTests`, `PendingSaveRecoveryTests`; retreat smoke owns normal Leave | Leave control under the injected write failure |
+
+These package owners protect state rules and durability, not the retired controls.

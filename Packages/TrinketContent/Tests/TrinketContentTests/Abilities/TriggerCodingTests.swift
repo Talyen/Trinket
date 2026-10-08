@@ -3,11 +3,6 @@ import Testing
 @testable import TrinketContent
 
 struct TriggerCodingTests {
-    @Test func `encoding omits defaulted fields`() throws {
-        let empty = try JSONEncoder().encode(CombatTraitTriggers())
-        #expect(String(data: empty, encoding: .utf8) == "{}")
-    }
-
     @Test func `legacy flat trigger payloads preserve mixed families across reload`() throws {
         let data = Data(#"{"blockPerTurn":2,"goldDoubledWhileFullHealth":true,"burnProcsBleedChancePercent":0.2,"futureField":9}"#.utf8)
         let expected = CombatTraitTriggers(

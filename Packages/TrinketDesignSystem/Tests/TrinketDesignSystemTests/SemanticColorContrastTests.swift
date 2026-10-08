@@ -18,18 +18,13 @@ struct SemanticColorContrastTests {
         "ThemeHealthRestore",
     ]
 
-    @Test(arguments: semanticForegroundNames)
-    func `semantic foreground meets contrast in dark environment`(colorName: String) throws {
-        let canvas = try resolvedSRGB("ThemeCanvas", style: .dark)
-        let color = try resolvedSRGB(colorName, style: .dark)
-        #expect(contrastRatio(color, canvas) >= 4.5)
-    }
-
-    @Test(arguments: semanticForegroundNames)
-    func `semantic foreground meets contrast in light environment`(colorName: String) throws {
-        let canvas = try resolvedSRGB("ThemeCanvas", style: .light)
-        let color = try resolvedSRGB(colorName, style: .light)
-        #expect(contrastRatio(color, canvas) >= 4.5)
+    @Test(arguments: [UIUserInterfaceStyle.dark, .light])
+    func `semantic foregrounds remain readable in both appearances`(style: UIUserInterfaceStyle) throws {
+        let canvas = try resolvedSRGB("ThemeCanvas", style: style)
+        for colorName in Self.semanticForegroundNames {
+            let color = try resolvedSRGB(colorName, style: style)
+            #expect(contrastRatio(color, canvas) >= 4.5, "\(colorName) in \(style)")
+        }
     }
 
     @Test(arguments: [UIUserInterfaceStyle.dark, .light], ["ThemeCanvas", "ThemeSurface", "ThemePanel"])

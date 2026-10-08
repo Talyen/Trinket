@@ -4,12 +4,6 @@ import UIKit
 @testable import TrinketDesignSystem
 
 struct DesignAssetCatalogTests {
-    @Test func `icon identifiers resolve to available system symbols`() throws {
-        #expect(GameIcon(id: "sf:leaf.fill") == GameIcon(id: "leaf.fill"))
-        #expect(GameIcon(id: "sf:leaf.fill").id == "sf:leaf.fill")
-        _ = try #require(UIImage(systemName: GameIcon(id: "sf:leaf.fill").symbolName))
-    }
-
     @Test func `catalog asset list matches colorsets on disk`() throws {
         let testsDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         let catalogDirectory = testsDirectory

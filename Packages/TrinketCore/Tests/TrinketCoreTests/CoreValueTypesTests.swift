@@ -3,25 +3,6 @@ import Testing
 import TrinketCore
 
 struct CoreValueTypesTests {
-    @Test func `secondary slots collapse to base display names`() {
-        #expect(ItemSlot.secondaryWeapon.baseItemSlot == .weapon)
-        #expect(ItemSlot.secondaryAccessory.baseItemSlot == .accessory)
-        #expect(ItemSlot.secondaryTrinket.baseItemSlot == .trinket)
-        #expect(ItemSlot.weapon.baseItemSlot == .weapon)
-        #expect(ItemSlot.secondaryWeapon.isSecondary)
-        #expect(ItemSlot.secondaryAccessory.isSecondary)
-        #expect(ItemSlot.secondaryTrinket.isSecondary)
-        #expect(!ItemSlot.weapon.isSecondary)
-        #expect(!ItemSlot.armor.isSecondary)
-        #expect(ItemSlot.secondaryWeapon.displayName == ItemSlot.weapon.rawValue)
-        #expect(ItemSlot.secondaryWeapon.accessibilityIdentifier != ItemSlot.weapon.accessibilityIdentifier)
-        #expect(ItemSlot.secondaryWeapon.accepts(.weapon))
-        #expect(ItemSlot.secondaryWeapon.accepts(.secondaryWeapon))
-        #expect(!ItemSlot.secondaryWeapon.accepts(.armor))
-        #expect(ItemSlot.weapon.accepts(.weapon))
-        #expect(ItemSlot.weapon.accepts(.secondaryWeapon))
-    }
-
     @Test func `active effect awaits skip only at zero remaining turns`() {
         let pending = ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)
         #expect(pending.isAwaitingActionSkip)

@@ -13,7 +13,6 @@ SCRIPT_INPUTS = (
 
 
 from pathlib import Path
-from unittest.mock import patch
 import tempfile
 
 from script_test_support import ScriptRegressionTestCase
@@ -57,12 +56,3 @@ class CodegenCommonTests(ScriptRegressionTestCase):
             common.swift_escape("Increase X by 1\\nProduces 1 Hide per day"),
             "Increase X by 1\\nProduces 1 Hide per day",
         )
-
-    def test_write_if_changed_skips_rewrite_when_identical(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "Sample.generated.swift"
-            common.write_if_changed(path, "content\n")
-            self.assertEqual(path.read_text(encoding="utf-8"), "content\n")
-            with patch.object(Path, "write_text") as writer:
-                common.write_if_changed(path, "content\n")
-        writer.assert_not_called()

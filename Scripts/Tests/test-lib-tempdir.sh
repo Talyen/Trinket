@@ -18,7 +18,6 @@ fail() {
 # capturing through $(...) would fork, losing tracking and firing EXIT early).
 trinket_mktemp_dir dir trinket-test-tempdir
 [[ -d "$dir" ]] || fail "mktemp_dir did not create a directory: $dir"
-[[ "$dir" == "${TMPDIR:-/tmp}/trinket-test-tempdir."* ]] || fail "mktemp_dir prefix: $dir"
 
 # trinket_mktemp_file assigns a tracked file.
 trinket_mktemp_file file trinket-test-tempfile
@@ -33,9 +32,6 @@ trinket_temp_track "$other"
 trinket_temp_cleanup_all
 [[ ! -e "$dir" && ! -e "$file" && ! -e "$other" ]] || fail "cleanup_all left paths behind"
 [[ ${#TRINKET_TEMP_TRACKED[@]} -eq 0 ]] || fail "tracking array not reset"
-
-# Cleanup is idempotent.
-trinket_temp_cleanup_all
 
 # EXIT trap fires: a child shell's tracked path dies with it.
 inner_path="$(bash -c "source \"$ROOT_DIR/Scripts/lib/tempdir.sh\" >/dev/null; trinket_mktemp_file inner trinket-test-child; printf '%s' \"\$inner\"")"

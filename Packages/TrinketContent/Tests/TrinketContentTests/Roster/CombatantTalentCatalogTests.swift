@@ -49,12 +49,4 @@ struct CombatantTalentCatalogTests {
         #expect(!nodeIDs.isEmpty)
         #expect(nodeIDs == Set(CombatantTalentCatalog.signatureTalents.keys))
     }
-
-    @Test func `bool talent flags survive merge into empty profile`() {
-        var merged = CombatTraitTriggers()
-        merged.merge(CombatTraitTriggers(gold: GoldTriggers(goldDoubledWhileFullHealth: true)))
-        merged.merge(CombatTraitTriggers(attack: AttackTriggers(criticalPurgeAll: true)))
-        #expect(merged.goldDoubledWhileFullHealth)
-        #expect(merged.criticalPurgeAll)
-    }
 }

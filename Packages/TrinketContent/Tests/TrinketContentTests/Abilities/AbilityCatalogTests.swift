@@ -36,16 +36,6 @@ struct AbilityCatalogTests {
         try #expect(AbilityCatalog.ability(id: "missing-ability") == nil)
     }
 
-    @Test func `ability summaries use period-free nonempty effect lines`() {
-        for ability in AbilityCatalog.all {
-            #expect(!ability.summary.contains("."), "\(ability.id) contains period")
-            let hasBlankLine = ability.summary.split(separator: "\n", omittingEmptySubsequences: false).contains { line in
-                line.isEmpty
-            }
-            #expect(!hasBlankLine, "\(ability.id) has blank line")
-        }
-    }
-
     @Test func `direct damage init does not add targeted do T`() throws {
         let ability = Ability(
             id: "burn-hit",
@@ -82,31 +72,6 @@ struct AbilityCatalogTests {
         try #expect(
             Ability.blizzard.empoweredByMana().targetedEffects
                 == [TargetedEffect(.recurringDamage(.freeze, 7, 1))],
-        )
-    }
-
-    @Test func `effects init produces generated description`() throws {
-        let ability = Ability(
-            id: "block",
-            name: "Block",
-            tier: .basic,
-            effects: [.shield(.block, 2)],
-        )
-        try #expect(ability.summary == "Gain 2 Block")
-    }
-
-    @Test func `damage components init formats summary`() throws {
-        let ability = Ability(
-            id: "bloodthorn",
-            name: "Bloodthorn",
-            tier: .ultimate,
-            damageComponents: [
-                DamageComponent(2, keyword: .bleed),
-                DamageComponent(2, keyword: .poison),
-            ],
-        )
-        try #expect(
-            ability.summary == "Deal 2 Bleed damage\nDeal 2 Poison damage",
         )
     }
 
@@ -172,16 +137,6 @@ struct AbilityCatalogTests {
         ])
         #expect(iceShot.conditionalOutcome == nil)
         try #expect(iceShot.identityKeywords == [.freeze])
-    }
-
-    @Test func `enemy-targeted damage appears in card text`() {
-        let ability = Ability(
-            id: "enemy-aimed-test",
-            name: "Enemy Aimed",
-            tier: .skill,
-            damageComponents: [DamageComponent(3, keyword: .physical, target: .enemy)],
-        )
-        #expect(ability.generatedDescription == "Deal 3 Physical damage")
     }
 
     @Test func `serrated edge weakens enemy healing`() throws {

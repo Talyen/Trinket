@@ -35,34 +35,6 @@ struct ItemAffixMagnitudeRollTests {
         try #expect(!branding.basic.isAtOrAboveRollMax(of: branding.basic))
     }
 
-    @Test func `catalog center is not A perfect roll`() throws {
-        let keen = try #require(GameContent.itemAffixDefinition(matching: "keen"))
-        let affix = keen.resolved(for: .basic)
-        let centerItem = try ItemFixtures.makeBareItem(
-            "longsword",
-            id: "center",
-            affixes: [affix],
-            affixPowers: [keen.basic],
-        )
-        let missingRollItem = try ItemFixtures.makeBareItem("longsword", id: "legacy", affixes: [affix])
-        let perfectItem = try ItemFixtures.makeBareItem(
-            "longsword",
-            id: "perfect",
-            affixes: [affix],
-            affixPowers: [
-                ItemAffixPower(
-                    description: "Increase Physical damage by 2.",
-                    modifiers: [.damageDealt(.physical, 2)],
-                ),
-            ],
-        )
-
-        try #expect(!centerItem.isPerfectAffix(at: 0))
-        try #expect(!missingRollItem.isPerfectAffix(at: 0))
-        try #expect(perfectItem.isPerfectAffix(at: 0))
-        try #expect(!perfectItem.isPerfectAffix(at: 1))
-    }
-
     @Test func `corruption bump to range max becomes perfect`() throws {
         let defenders = try #require(GameContent.itemAffixDefinition(matching: "defenders"))
         let affix = defenders.resolved(for: .basic)

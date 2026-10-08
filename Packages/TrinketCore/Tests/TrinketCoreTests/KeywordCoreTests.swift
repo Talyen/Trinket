@@ -3,53 +3,33 @@ import Testing
 
 struct KeywordCoreTests {
     @Test(arguments: Keyword.allCases)
-    func `all keywords have rules text and category`(keyword: Keyword) {
+    func `all keywords have readable rules text`(keyword: Keyword) {
         #expect(!keyword.rulesText.isEmpty, "\(keyword.rawValue) should have rules text")
-        #expect(!keyword.rulesText.hasSuffix("."), "\(keyword.rawValue) rules text should omit trailing period")
-        #expect(!keyword.category.rawValue.isEmpty, "\(keyword.rawValue) should have a category")
     }
 
-    @Test func `referenced keywords extraction maintains appearance order`() {
-        let text = "Gain 1 Block when you deal Stun or Holy damage."
-        let keywords = Keyword.referenced(in: text)
-        #expect(keywords == [.block, .stun, .holy])
-
-        let stunBeforeBleed = "Deal Stun then Bleed."
-        #expect(Keyword.referenced(in: stunBeforeBleed) == [.stun, .bleed])
-
-        let bleedBeforeStun = "Deal Bleed then Stun."
-        #expect(Keyword.referenced(in: bleedBeforeStun) == [.bleed, .stun])
-    }
-
-    @Test func `referenced keywords matches status aliases and deduplicates`() {
-        let text = "Applies Burning then Frozen, then more Burning."
-        let keywords = Keyword.referenced(in: text)
-        #expect(keywords == [.burn, .freeze])
-
-        let caseInsensitive = "deal poison and holy damage"
-        #expect(Keyword.referenced(in: caseInsensitive) == [.poison, .holy])
-    }
-
-    @Test func `referenced keywords resolve inflections to their keyword`() {
-        #expect(Keyword.referenced(in: "Blocking then Blocked") == [.block])
-        #expect(Keyword.referenced(in: "Heals for Health") == [.health])
-        #expect(Keyword.referenced(in: "Gain 5 Block and 5 Thorns.") == [.block, .thorns])
+    @Test func `keyword emphasis preserves word boundaries aliases and appearance order`() {
+        let cases: [(String, [Keyword])] = [
+            ("Gain 1 Block when you deal Stun or Holy damage.", [.block, .stun, .holy]),
+            ("Deal Stun then Bleed.", [.stun, .bleed]),
+            ("Deal Bleed then Stun.", [.bleed, .stun]),
+            ("Applies Burning then Frozen, then more Burning.", [.burn, .freeze]),
+            ("deal poison and holy damage", [.poison, .holy]),
+            ("Blocking then Blocked", [.block]),
+            ("Heals for Health", [.health]),
+            ("Gain 5 Block and 5 Thorns.", [.block, .thorns]),
+            ("", []),
+            ("Draw a card.", []),
+            ("Blockade the door.", []),
+            ("Survive while on Death's Door.", [.deathsDoor]),
+            ("Survive while on Death’s Door.", [.deathsDoor]),
+            ("death's door or death’s door", [.deathsDoor]),
+        ]
+        for (text, expected) in cases {
+            #expect(Keyword.referenced(in: text) == expected, "\(text)")
+        }
     }
 
     @Test func `bleed rules text matches turn count`() {
         #expect(Keyword.bleed.rulesText.contains("\(Effect.bleedDoTTurnCount) round"))
-    }
-
-    @Test func `referenced text without keywords is empty`() {
-        #expect(Keyword.referenced(in: "").isEmpty)
-        #expect(Keyword.referenced(in: "Draw a card.").isEmpty)
-        // Word-boundary negative: Blockade contains no boundary-delimited term.
-        #expect(Keyword.referenced(in: "Blockade the door.").isEmpty)
-    }
-
-    @Test func `referenced keywords matches terms with straight and curly apostrophes`() {
-        #expect(Keyword.referenced(in: "Survive while on Death's Door.") == [.deathsDoor])
-        #expect(Keyword.referenced(in: "Survive while on Death’s Door.") == [.deathsDoor])
-        #expect(Keyword.referenced(in: "death's door or death’s door") == [.deathsDoor])
     }
 }

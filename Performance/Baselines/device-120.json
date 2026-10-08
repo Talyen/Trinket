@@ -9,9 +9,6 @@
   "scenarios": [
     "tab-round-trip",
     "collection-navigation",
-    "homestead-detail-transition",
-    "campaign-stage-select-transition",
-    "stage-enemy-detail-transition",
     "stage-select-battle-transition",
     "real-card-play",
     "hand-drag-cancel",

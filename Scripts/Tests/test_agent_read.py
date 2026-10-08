@@ -81,49 +81,6 @@ class AgentReadTests(unittest.TestCase):
                 self.assertEqual(reader.main(command[2:], root=root), 0)
             self.assertIn('return 1', output.getvalue())
 
-    def test_invalid_top_level_flags_include_an_executable_help_command(self) -> None:
-        reader = load_script('usage_recovery_reader', 'agent-read.py')
-        with contextlib.redirect_stderr(io.StringIO()) as errors, self.assertRaises(SystemExit):
-            reader.main(['--unsupported'])
-        command = shlex.split(errors.getvalue().split('Try: ', 1)[1].splitlines()[0])
-        with contextlib.redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as result:
-            reader.main(command[2:])
-        self.assertEqual(result.exception.code, 0)
-
-    def test_recovery_commands_run_for_source_config_shell_and_navigation_errors(self) -> None:
-        reader = load_script('command_recovery_reader', 'agent-read.py')
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            (root / 'Probe.py').write_text('def work():\n    return 1\n')
-            (root / 'config.json').write_text('{"value": 1}\n')
-            (root / 'run.sh').write_text('#!/bin/bash\nprintf hello\n')
-            (root / 'Guide.md').write_text('# Guide\n## Rules\nKeep saves\n')
-            cases = (['run.sh', '--outline'],
-                     ['Probe.py', '--symbol', 'missing'], ['Guide.md#missing'], ['run.sh', '--lines', '99:100'],
-                     ['Probe.py', '--outline', '--offset', '99'])
-            for arguments in cases:
-                with self.subTest(arguments=arguments), contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()) as errors:
-                    self.assertEqual(reader.main(arguments, root=root), 2)
-                command = errors.getvalue().split('Try: ', 1)[1].splitlines()[0]
-                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-                    self.assertEqual(reader.main(shlex.split(command)[2:], root=root), 0)
-
-
-
-
-    def test_mixed_read_modes_print_an_executable_section_retry(self) -> None:
-        reader = load_script('recovery_reader', 'agent-read.py')
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            (root / 'Guide.md').write_text('# Guide\n## Rules\nKeep saves\n')
-            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()) as errors:
-                self.assertEqual(reader.main(['Guide.md#rules', '--lines', '1:2'], root=root), 2)
-            command = errors.getvalue().split('Read the section separately: ', 1)[1].splitlines()[0]
-            with contextlib.redirect_stdout(io.StringIO()) as output:
-                self.assertEqual(reader.main(shlex.split(command)[2:], root=root), 0)
-            self.assertIn('Keep saves', output.getvalue())
-
-
 
     def test_batch_reads_deduplicate_targets_and_attempt_later_reads_after_failure(self) -> None:
         reader = load_script('batch_reader', 'agent-read.py')

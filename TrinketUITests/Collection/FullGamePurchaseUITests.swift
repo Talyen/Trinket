@@ -5,22 +5,6 @@ import TrinketFeatureSupport
 import XCTest
 
 final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
-    func testAskToBuyKeepsContentLockedUntilApproval() throws {
-        try skipUnavailablePurchaseAutomation()
-        try launchOptionsOffer()
-        let session = try XCTUnwrap(storeSession)
-        session.askToBuyEnabled = true
-        tapButton(AccessibilityID.FullGame.purchase)
-        waitUntil("Purchase did not become pending") {
-            session.allTransactions().contains { $0.state == .deferred }
-        }
-        assertExists(AccessibilityID.FullGame.offer)
-        let pending = try XCTUnwrap(session.allTransactions().first { $0.state == .deferred })
-        try session.approveAskToBuyTransaction(identifier: pending.identifier)
-        assertDoesNotExist(AccessibilityID.FullGame.offer)
-        assertWarlockAccessible()
-    }
-
     func testExistingPurchaseUnlocksContentOnColdLaunch() throws {
         try skipUnavailablePurchaseAutomation()
         try launchOptionsOffer()

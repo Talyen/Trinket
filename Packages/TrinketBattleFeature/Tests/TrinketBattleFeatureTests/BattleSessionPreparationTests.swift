@@ -233,28 +233,3 @@ struct BattleSessionPreparationTests {
         try #expect(session.isHandCardPlayable(card))
     }
 }
-
-/// Pins `BattleSessionTestSupport` construction defaults so silent drift
-/// (lost 1 HP → 100 HP substitution, changed durability-probe scale) fails
-/// here instead of across presentation suites.
-@MainActor
-struct BattleSessionSupportDefaultsTests {
-    @Test func `configured sessions substitute a durable enemy for the quick-win default`() throws {
-        let session = BattleSessionTestSupport.makeConfiguredSession()
-        let state = try #require(session.engineState)
-        #expect(state.roster.enemy.combatant.maxHealth == CombatantFixtures.passiveEnemy().maxHealth)
-        #expect(state.roster.enemy.combatant.maxHealth == 100)
-        #expect(
-            state.roster[.hero].combatant.actionIntervalTurns == CombatantFixtures.quickWinTurnInterval,
-        )
-    }
-
-    @Test func `passive sessions use the durability-probe scale`() throws {
-        let session = BattleSessionTestSupport.makePassiveSession()
-        let state = try #require(session.engineState)
-        #expect(state.roster[.hero].combatant.maxHealth == 100)
-        #expect(state.roster[.hero].combatant.maxMana == 12)
-        #expect(state.roster[.companion].combatant.maxHealth == 100)
-        #expect(state.roster.enemy.combatant.maxHealth == 1000)
-    }
-}

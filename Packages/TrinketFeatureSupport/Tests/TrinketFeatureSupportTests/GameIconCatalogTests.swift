@@ -15,6 +15,7 @@ struct GameIconCatalogTests {
             + LabyrinthNodeType.allCases.map(\.iconID))
         var icons = Set(contentIDs.map(GameIcon.init(id:)))
         icons.formUnion(Keyword.allCases.map(\.visualStyle.icon))
+        icons.formUnion([Keyword.VisualStyle.beneficialStatus.icon, Keyword.VisualStyle.negativeStatus.icon])
         icons.formUnion(HomesteadResource.allCases.map(\.icon))
 
         for id in contentIDs {

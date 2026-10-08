@@ -208,28 +208,6 @@ struct MysteryEventCatalogTests {
             }
         }
     }
-
-    @Test func `narratives use articles for gear and preserve named relics`() throws {
-        let geode = try #require(GameContent.mysteryEvent(matching: "crystal-geode"))
-        let offers = try geode.choices.map { choice in
-            let pool = try #require(choice.itemPool)
-            return try MysteryOffer(
-                choiceID: choice.id,
-                item: ItemFixtures.makeBareItem(pool.baseTypeID, id: choice.id),
-                bonus: .experience(1),
-            )
-        }
-        let text = geode.narrative(for: Array(offers.reversed()))
-        #expect(text.contains("reveal a Sapphire Ring"))
-        #expect(text.contains("while thick stone grips a Topaz Amulet"))
-        let spring = try #require(GameContent.mysteryEvent(matching: "enchanted-spring"))
-        let locket = try #require(GameContent.unique(matching: "rimeheart_locket"))
-        let rare = MysteryOffer(choiceID: spring.choices[0].id, item: locket, bonus: .experience(1))
-        #expect(spring.narrative(for: [rare]).contains("traps Rimeheart Locket"))
-        #expect(spring.narrative(for: [rare]).contains("an Emerald Ring"))
-        let garden = try #require(GameContent.mysteryEvent(matching: "medicinal-herb-garden"))
-        #expect(garden.narrative(for: []).contains("a suit of Leather Armor"))
-    }
 }
 
 private enum PlayerRosterStarterIDs {

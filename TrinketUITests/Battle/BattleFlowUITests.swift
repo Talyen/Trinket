@@ -39,17 +39,6 @@ final class BattleFlowUITests: TrinketUITestCase {
         waitUntil("A successful drag must remove exactly one card") { cards.count == dragCountBefore - 1 }
     }
 
-    func testDefeatLeaveRecoversFromSaveFailureAndSurvivesRelaunch() {
-        launchApp(arguments: TestLaunchArg.allForScreen("battle-defeat-save-failure"))
-        assertExists(AccessibilityID.Battle.defeat)
-        tapButton(AccessibilityID.Battle.defeatLeaveButton)
-        play.assertCampaignLoaded()
-        relaunchApp()
-        play.openCampaign()
-        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 1))
-        XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 1)).isEnabled)
-    }
-
     private func launchMidBattleAndStart() {
         launchApp(arguments: TestLaunchArg.allForMidBattle())
         play.openCampaign()

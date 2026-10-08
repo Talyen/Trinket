@@ -295,18 +295,6 @@ struct BattleSessionAutoBattleTests {
         #expect(!playedCardIDs.isEmpty)
     }
 
-    @Test func `auto battle returns when battle is missing`() async {
-        let session = BattleSessionTestSupport.makeConfiguredSession()
-        session.endBattle()
-        session.isAutoBattleEnabled = true
-
-        await session.driveAutoBattle(
-            isCardCastPacingBlocked: { false },
-            isManualInteractionActive: { false },
-            playCard: { _ in false },
-        )
-    }
-
     @Test func `auto battle continues after an ultimate`() async throws {
         let session = BattleSessionTestSupport.makeConfiguredSession(
             hero: CombatantFixtures.combatant(

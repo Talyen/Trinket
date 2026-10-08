@@ -3,11 +3,6 @@ import TrinketContent
 import TrinketCore
 
 struct CombatantCatalogTests {
-    @Test func `starter hero ordering matches onboarding`() {
-        #expect(Array(ContentAccessPolicy.freeFirst(GameContent.heroes).prefix(4).map(\.id))
-            == ["ranger", "knight", "rogue", "wizard"])
-    }
-
     @Test func `player combatants have complete ability choices and loadouts`() throws {
         for combatant in GameContent.combatants {
             for tier in AbilityTier.allCases {
