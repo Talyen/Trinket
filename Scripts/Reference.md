@@ -188,6 +188,7 @@ distinguish two betas. Confirm that every relevant job reports the same product
 build; mixed runner-image results cannot qualify a pin. [setup-ci-xcode.py](setup-ci-xcode.py) reads the product
 version plist, logs the exact build, and exports job-local `DEVELOPER_DIR` without
 changing global `xcode-select`.
+Changes to the setup script or required pin select app/smoke and all package checks.
 
 Jobs that need Metal first compile and link a small shader for the simulator SDK.
 If that fails, setup attempts Apple's component download up to three times with

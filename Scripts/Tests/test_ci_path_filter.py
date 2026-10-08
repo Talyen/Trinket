@@ -78,7 +78,8 @@ class CIPathFilterTests(unittest.TestCase):
         ], graph), {'TrinketCore', 'TrinketPersistence', 'TrinketAppState'})
         self.assertEqual(select(['Packages/TrinketContent/Sources/TrinketContentTestSupport/Fixture.swift'], graph),
                          self.filter.all_packages() - {'TrinketCore', 'TrinketDesignSystem'})
-        for path in ('Scripts/test.sh', 'Packages/Unknown/Sources/Rule.swift', 'Packages/BattleEngine/Package.swift'):
+        for path in ('Scripts/test.sh', 'Scripts/setup-ci-xcode.py', 'Scripts/config/ci-xcode.json',
+                     'Packages/Unknown/Sources/Rule.swift', 'Packages/BattleEngine/Package.swift'):
             self.assertEqual(select([path], graph), self.filter.all_packages())
         self.assertEqual(select(['Packages/TrinketPersistence/Sources/Store.swift'], {}), self.filter.all_packages())
 
@@ -166,6 +167,8 @@ let package = Package(name: "TrinketCore",
             "project.yml": (True, False, False),
             "Smoke.xctestplan": (True, False, False),
             "Scripts/generate.sh": (True, False, True),
+            "Scripts/setup-ci-xcode.py": (True, False, True),
+            "Scripts/config/ci-xcode.json": (True, False, True),
             "Scripts/ensure-simulator.sh": (True, False, True),
             "Scripts/stage-ci-test-artifact.sh": (True, False, True),
             "Scripts/lib/smoke-classes.sh": (True, False, True),
@@ -210,6 +213,8 @@ let package = Package(name: "TrinketCore",
             "StoreKit/Trinket.storekit": True,
             "Smoke.xctestplan": True,
             "Scripts/test.sh": True,
+            "Scripts/setup-ci-xcode.py": True,
+            "Scripts/config/ci-xcode.json": True,
             "Packages/BattleEngine/Sources/BattleEngine/Combatant.swift": False,
             "Packages/TrinketCore/Sources/TrinketCore/Effect.swift": False,
             "Packages/TrinketPersistence/Sources/TrinketPersistence/Save.swift": False,
