@@ -44,7 +44,7 @@ struct PartyScaledEncounterTests {
             #expect(configuration.enemyEncounterLevel == expectedLevel)
             let enemy = try #require(configuration.enemy)
             #expect(enemy.maxHealth == CombatantLevelScaler.scale(enemy: catalogEnemy, level: expectedLevel).maxHealth)
-            state.battle.endBattle()
+            state.battleCoordinator.endBattle()
         }
     }
 
@@ -60,7 +60,7 @@ struct PartyScaledEncounterTests {
             #expect(configuration.enemyEncounterLevel == expectedLevel)
             let enemy = try #require(configuration.enemy)
             #expect(enemy.maxHealth == CombatantLevelScaler.scale(enemy: catalogEnemy, level: expectedLevel).maxHealth)
-            state.battle.endBattle()
+            state.battleCoordinator.endBattle()
         }
     }
 
@@ -90,7 +90,7 @@ struct PartyScaledEncounterTests {
             #expect(state.labyrinth.startBattle(nodeID: nodeID) == nil)
             let configuration = try #require(state.battle.activeBattle)
             #expect(configuration.enemyEncounterLevel == expectedLevel)
-            state.battle.endBattle()
+            state.battleCoordinator.endBattle()
         }
     }
 }
