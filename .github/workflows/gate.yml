@@ -2,6 +2,10 @@ name: Gate
 
 on:
   workflow_call:
+    inputs:
+      xcode-channel:
+        type: string
+        default: verified
 
 jobs:
   gate:
@@ -42,6 +46,8 @@ jobs:
             .githooks
             .github
       - uses: ./.github/actions/setup-trinket
+        with:
+          xcode-channel: ${{ inputs.xcode-channel }}
       # Same semantics as local ./Scripts/ci-gate.sh (single owner).
       - name: CI gate
         env:

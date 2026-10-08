@@ -1,4 +1,5 @@
 name: Trinket CI
+run-name: Trinket CI (${{ github.event_name == 'schedule' && 'latest' || inputs.toolchain || 'verified' }})
 
 on:
   push:
@@ -8,6 +9,14 @@ on:
     - cron: '0 7 * * *'
   workflow_dispatch:
     inputs:
+      toolchain:
+        description: Xcode verification channel
+        required: true
+        type: choice
+        default: verified
+        options:
+          - verified
+          - latest
       scope:
         description: Test scope
         required: true
@@ -29,48 +38,9 @@ permissions:
   actions: read
 
 jobs:
-  schedule-guard:
-    name: Check nightly commit activity
-    if: github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      should-run: ${{ steps.check.outputs.should-run }}
-    steps:
-      - name: Check previous scheduled verification
-        id: check
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-          previous="$(gh api "repos/${REPO}/actions/workflows/ci.yml/runs?event=schedule&status=completed&per_page=5" \
-            --jq '[.workflow_runs[] | select(.id != '${{ github.run_id }}')][0] | [.id, .run_attempt, .head_sha, .conclusion] | @tsv' 2>/dev/null || true)"
-          read -r last_id last_attempt last_sha last_conclusion <<< "$previous"
-          echo "Current SHA: $SHA"
-          echo "Last scheduled SHA: $last_sha ($last_conclusion)"
-          exhaustive_passed=false
-          if [[ "$last_sha" == "$SHA" && "$last_conclusion" == success ]]; then
-            # Advisory shards can fail while the workflow still reports success.
-            # A skipped reusable tests job carries the prior idle-skip proof for
-            # this same commit; absent/unreadable shard evidence otherwise retries.
-            exhaustive_passed="$(gh api --paginate --slurp \
-              "repos/${REPO}/actions/runs/${last_id}/attempts/${last_attempt}/jobs?per_page=100" \
-              --jq '[.[].jobs[] | select(.name | contains("Exhaustive UI ("))] as $shards | if ($shards | length) > 0 then all($shards[]; .conclusion == "success") else any(.[].jobs[]; .name == "tests" and .conclusion == "skipped") end' 2>/dev/null || echo false)"
-          fi
-          if [[ "$exhaustive_passed" == true ]]; then
-            echo "This commit already passed scheduled verification, including exhaustive UI. Skipping idle nightly run."
-            echo "should-run=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "New or unverified commit; proceeding with exhaustive nightly run."
-            echo "should-run=true" >> "$GITHUB_OUTPUT"
-          fi
-
   tests:
-    needs: [schedule-guard]
-    if: always() && (github.event_name != 'schedule' || needs.schedule-guard.outputs.should-run == 'true')
     uses: ./.github/workflows/tests.yml
     with:
+      xcode-channel: ${{ github.event_name == 'schedule' && 'latest' || inputs.toolchain || 'verified' }}
       force-full: ${{ inputs.scope == 'exhaustive-pilot' }}
       include-exhaustive: ${{ github.event_name == 'schedule' || inputs.scope == 'exhaustive' || inputs.scope == 'exhaustive-pilot' }}

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    '.github/actions/setup-trinket/action.yml',
     'Scripts/phase-timing.py',
     'Scripts/agent-push-gate.sh',
     'Scripts/apply-scheme-storekit.py',
@@ -174,8 +175,7 @@ class CIBuildScriptTests(ScriptRegressionTestCase):
     def test_ci_transfer_validation_and_job_local_xcode_selection(self):
         setup = (ROOT / ".github/actions/setup-trinket/action.yml").read_text()
         self.assertNotIn("sudo xcode-select", setup)
-        self.assertIn('export DEVELOPER_DIR="$best_path/Contents/Developer"', setup)
-        self.assertIn('echo "DEVELOPER_DIR=$DEVELOPER_DIR" >> "$GITHUB_ENV"', setup)
+        self.assertIn('python3 Scripts/setup-ci-xcode.py "${args[@]}"', setup)
         job = (ROOT / ".github/actions/test-job/action.yml").read_text()
         self.assertIn("./Scripts/restore-ci-test-products.sh", job)
         self.assertLess(job.index("./Scripts/restore-ci-test-products.sh"), job.index("- name: Run tests"))

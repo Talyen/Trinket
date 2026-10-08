@@ -44,63 +44,13 @@ class CIGateScriptTests(ScriptRegressionTestCase):
         self.assertIn("group: ci-${{ github.workflow }}-${{ github.ref }}\n", ci)
         self.assertIn("cancel-in-progress: ${{ github.event_name == 'push' }}", ci)
 
-    def test_idle_nightly_retries_until_actual_exhaustive_shards_pass(self) -> None:
+    def test_beta_validation_cannot_reuse_verified_builds_or_skip_on_commit_identity(self) -> None:
         workflow = (ROOT / '.github/workflows/ci.yml').read_text()
-        command = workflow.split('        run: |\n', 1)[1].split('\n\n  tests:', 1)[0]
-        command = '\n'.join(line[10:] for line in command.splitlines())
-        command = command.replace('${{ github.run_id }}', '99')
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            gh = root / 'gh'
-            gh.write_text('#!/bin/bash\n'
-                          'if [[ "$*" == *"/jobs?"* ]]; then\n'
-                          '  printf "%s\\n" "$SHARDS_PASSED"; exit "$JOBS_STATUS"\n'
-                          'else\n'
-                          '  printf "%s\\n" "$PREVIOUS"; exit "$RUNS_STATUS"\nfi\n')
-            gh.chmod(0o755)
-            cases = [
-                ('1\t1\tcurrent\tsuccess', 'true', '0', '0', False),
-                ('1\t1\tcurrent\tfailure', 'true', '0', '0', True),
-                ('1\t1\tcurrent\tcancelled', 'true', '0', '0', True),
-                ('1\t1\told\tsuccess', 'true', '0', '0', True),
-                ('1\t1\tcurrent\tsuccess', 'false', '0', '0', True),
-                ('1\t1\tcurrent\tsuccess', '', '0', '1', True),
-                ('', '', '1', '0', True),
-            ]
-            for previous, shards, runs_status, jobs_status, should_run in cases:
-                with self.subTest(previous=previous, shards=shards, jobs_status=jobs_status):
-                    output = root / 'output'
-                    output.write_text('')
-                    env = {**os.environ, 'PATH': f"{root}:{os.environ['PATH']}",
-                           'REPO': 'fixture/repo', 'SHA': 'current', 'GITHUB_OUTPUT': str(output),
-                           'PREVIOUS': previous, 'SHARDS_PASSED': shards,
-                           'RUNS_STATUS': runs_status, 'JOBS_STATUS': jobs_status}
-                    result = subprocess.run(['bash', '-c', command], cwd=root, env=env,
-                                            capture_output=True, text=True)
-                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-                    self.assertEqual(output.read_text(), f'should-run={str(should_run).lower()}\n')
-
-    @unittest.skipUnless(shutil.which('jq'), 'jq is needed to validate GitHub API queries')
-    def test_nightly_query_distinguishes_failure_missing_and_intentional_idle_skip(self) -> None:
-        import re
-        workflow = (ROOT / '.github/workflows/ci.yml').read_text()
-        query = re.findall(r"--jq '([^']+)'", workflow)[-1]
-        def shard(outcome):
-            return {'name': 'tests / Exhaustive UI (Battle)', 'conclusion': outcome}
-        cases = [
-            ([{'jobs': [shard('success')]}, {'jobs': [shard('success')]}], True),
-            ([{'jobs': [shard('success')]}, {'jobs': [shard('failure')]}], False),
-            ([{'jobs': [shard('skipped')]}], False),
-            ([{'jobs': [shard('cancelled')]}], False),
-            ([{'jobs': []}], False),
-            ([{'jobs': [{'name': 'tests', 'conclusion': 'skipped'}]}], True),
-        ]
-        for pages, passed in cases:
-            with self.subTest(pages=pages):
-                result = subprocess.run(['jq', '-r', query], input=json.dumps(pages),
-                                        capture_output=True, text=True)
-                self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertEqual(result.stdout.strip(), str(passed).lower())
+        self.assertIn("github.event_name == 'schedule' && 'latest'", workflow)
+        self.assertNotIn('schedule-guard:', workflow)
+        tests = (ROOT / '.github/workflows/tests.yml').read_text()
+        reuse = tests.split('  reuse:\n', 1)[1].split('  changes:\n', 1)[0]
+        self.assertEqual(reuse.count("inputs.xcode-channel == 'verified'"), 2)
 
     def test_gate_transcript_keeps_the_original_failure_exit(self) -> None:
         workflow = (ROOT / '.github/workflows/gate.yml').read_text()

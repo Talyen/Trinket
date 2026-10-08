@@ -177,10 +177,29 @@ Unknown inputs fall back to the full suite. The selector is consumed by
 
 ## Toolchain ladder
 
-CI selects the newest installed Xcode automatically (`setup-trinket` logs the
-exact version and build and exports job-local `DEVELOPER_DIR`; `TRINKET_XCODE_VERSION` pins an older one only for
-bisection). Local scripts honor `DEVELOPER_DIR`, otherwise inheriting the Mac's
-selected Xcode. [Platform support](../Docs/Platform/ApplePlatformReference.md#platform-support)
+Required push CI and default manual/performance runs select the exact Xcode
+version and product build in [ci-xcode.json](config/ci-xcode.json). A missing pin
+fails setup rather than silently changing the compiler. Nightly CI and manual
+`toolchain=latest` runs validate the newest installed Xcode independently; they
+cannot reuse the required toolchain's verification. Local scripts honor
+`DEVELOPER_DIR`, otherwise inheriting the Mac's selected Xcode.
+
+Promote a newer build in `ci-xcode.json` only after `toolchain=latest` CI proves
+that exact build's Metal readiness, app/smoke, package tests and device Release
+compilation. Commit the pin and verify its push; a marketing version alone cannot
+distinguish two betas. Confirm that every relevant job reports the same product
+build; mixed runner-image results cannot qualify a pin. [setup-ci-xcode.py](setup-ci-xcode.py) reads the product
+version plist, logs the exact build, and exports job-local `DEVELOPER_DIR` without
+changing global `xcode-select`.
+
+Jobs that need Metal first compile and link a small shader for the simulator SDK.
+If that fails, setup attempts Apple's component download up to three times with
+bounded waits, then repeats the shader check. Download success or an installed
+status alone cannot establish readiness. An unavailable catalog fails setup with
+its logs intact; it does not count as game/build verification. This avoids
+mistaking a runner image rollout or missing beta catalog for a game regression.
+
+[Platform support](../Docs/Platform/ApplePlatformReference.md#platform-support)
 owns the supported OS window and how beta validation is used.
 
 `testflight.sh` resolves that local selection once and uses it for verification,

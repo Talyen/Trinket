@@ -10,6 +10,10 @@ name: Build and test
 on:
   workflow_call:
     inputs:
+      xcode-channel:
+        description: Required verified toolchain or newest installed beta validation
+        type: string
+        default: verified
       force-full:
         description: Bypass prior standard proof for the host parity and inline UI pilot
         type: boolean
@@ -37,12 +41,12 @@ jobs:
       build-artifact: ${{ steps.proof.outputs.build-artifact }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-        if: github.event_name == 'workflow_dispatch' && !inputs.force-full
+        if: github.event_name == 'workflow_dispatch' && !inputs.force-full && inputs.xcode-channel == 'verified'
         with:
           sparse-checkout: Scripts
       - name: Find successful exact-commit checks
         id: proof
-        if: github.event_name == 'workflow_dispatch' && !inputs.force-full
+        if: github.event_name == 'workflow_dispatch' && !inputs.force-full && inputs.xcode-channel == 'verified'
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 Scripts/ci-reuse.py
@@ -54,6 +58,8 @@ jobs:
     needs: [changes, reuse]
     if: needs.reuse.outputs.standard != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true' || needs.changes.outputs.infra == 'true')
     uses: ./.github/workflows/gate.yml
+    with:
+      xcode-channel: ${{ inputs.xcode-channel }}
 
   assets-gate:
     name: Prepared asset integrity
@@ -64,6 +70,8 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-trinket
+        with:
+          xcode-channel: ${{ inputs.xcode-channel }}
       # Same semantics as local ./Scripts/ci-assets-gate.sh (single owner).
       - name: Prepared asset integrity gate
         run: ./Scripts/ci-assets-gate.sh
@@ -117,6 +125,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
         with:
           metal: 'true'
+          xcode-channel: ${{ inputs.xcode-channel }}
       - name: Read smoke test classes
         id: ui-matrices
         shell: bash
@@ -202,6 +211,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
         with:
           metal: 'true'
+          xcode-channel: ${{ inputs.xcode-channel }}
       - name: Compile unsigned device Release
         env:
           SKIP_GENERATE: 1
@@ -263,6 +273,7 @@ jobs:
           # Content builds DesignSystem shaders; State and Battle build
           # TrinketFeatureSupport, which compiles DesignSystem shaders.
           metal: ${{ matrix.name == 'Content' || matrix.name == 'State' || matrix.name == 'Battle' }}
+          xcode-channel: ${{ inputs.xcode-channel }}
       - uses: ./.github/actions/package-cache
         id: package-cache
         with:
@@ -354,6 +365,7 @@ jobs:
         if: needs.reuse.outputs.standard == 'true'
         with:
           metal: 'true'
+          xcode-channel: ${{ inputs.xcode-channel }}
       - name: Read exhaustive test classes
         if: needs.reuse.outputs.standard == 'true'
         id: ui-targets

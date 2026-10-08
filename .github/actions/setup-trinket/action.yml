@@ -1,7 +1,11 @@
 name: Setup Trinket CI
-description: Select the newest installed Xcode and pinned tooling for Trinket CI
+description: Select the verified or latest Xcode and validate its required components
 
 inputs:
+  xcode-channel:
+    description: verified uses the exact required build; latest validates the newest installed Xcode
+    required: false
+    default: 'verified'
   metal:
     description: Ensure Metal toolchain is downloaded and installed (needed only for jobs compiling shaders/app targets)
     required: false
@@ -10,79 +14,15 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Select Xcode Version
+    - name: Select and validate Xcode
       shell: bash
+      env:
+        TRINKET_CI_XCODE_CHANNEL: ${{ inputs.xcode-channel }}
+        TRINKET_CI_METAL: ${{ inputs.metal }}
       run: |
-        # Trinket always adopts the newest installed Xcode. Pin an older one
-        # only for bisection via TRINKET_XCODE_VERSION (exact marketing version).
-        best_path=""
-        best_version=""
-        best_build=""
-        for path in /Applications/Xcode*.app; do
-          [ -d "$path" ] || continue
-          plist="$path/Contents/Info.plist"
-          [ -f "$plist" ] || continue
-          version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist" 2>/dev/null || true)"
-          build="$(/usr/libexec/PlistBuddy -c 'Print :DTXcodeBuild' "$plist" 2>/dev/null || true)"
-          [ -n "$version" ] || continue
-          if [ -n "${TRINKET_XCODE_VERSION:-}" ]; then
-            if [ "$version" = "$TRINKET_XCODE_VERSION" ]; then
-              best_path="$path"
-              best_version="$version"
-              best_build="$build"
-              break
-            fi
-            continue
-          fi
-          if [ -z "$best_path" ]; then
-            best_path="$path"
-            best_version="$version"
-            best_build="$build"
-          elif [ "$version" != "$best_version" ] \
-            && [ "$(printf '%s\n%s\n' "$best_version" "$version" | sort -V | tail -n 1)" = "$version" ]; then
-            best_path="$path"
-            best_version="$version"
-            best_build="$build"
-          elif [ "$version" = "$best_version" ] && [[ "$build" > "$best_build" ]]; then
-            best_path="$path"
-            best_version="$version"
-            best_build="$build"
-          fi
-        done
-        if [ -z "$best_path" ]; then
-          if [ -n "${TRINKET_XCODE_VERSION:-}" ]; then
-            echo "TRINKET_XCODE_VERSION=${TRINKET_XCODE_VERSION} matches no installed Xcode." >&2
-          else
-            echo "No Xcode installation found on this runner." >&2
-          fi
-          echo "Installed Xcode apps:" >&2
-          ls -1d /Applications/Xcode*.app 2>/dev/null || true
-          exit 1
-        fi
-        echo "Selecting Xcode: $best_path ($best_version, build $best_build)"
-        export DEVELOPER_DIR="$best_path/Contents/Developer"
-        echo "DEVELOPER_DIR=$DEVELOPER_DIR" >> "$GITHUB_ENV"
-        xcodebuild -version
-        xcrun --sdk iphonesimulator --show-sdk-version >/dev/null 2>&1 || true
-        echo "XCODE_PATH=$best_path" >> "$GITHUB_ENV"
-        echo "XCODE_VERSION=$best_version" >> "$GITHUB_ENV"
-        echo "XCODE_BUILD=$best_build" >> "$GITHUB_ENV"
-
-    - name: Ensure Metal toolchain
-      if: inputs.metal == 'true'
-      shell: bash
-      run: |
-        # Slim preview images (e.g. xcode-27 beta) omit the Metal toolchain,
-        # which fails app/package test builds with "cannot execute tool
-        # 'metal'". Download on demand; no-op when already installed.
-        set -euo pipefail
-        if xcodebuild -showComponent MetalToolchain 2>/dev/null | grep -q '^Status: installed'; then
-          echo "Metal toolchain already installed."
-        else
-          echo "Downloading Metal toolchain..."
-          sudo env DEVELOPER_DIR="$DEVELOPER_DIR" xcodebuild -downloadComponent MetalToolchain
-          xcodebuild -showComponent MetalToolchain
-        fi
+        args=(--channel "$TRINKET_CI_XCODE_CHANNEL")
+        if [[ "$TRINKET_CI_METAL" == true ]]; then args+=(--metal); fi
+        python3 Scripts/setup-ci-xcode.py "${args[@]}"
 
     - name: Cache pinned CI tools
       uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # v4

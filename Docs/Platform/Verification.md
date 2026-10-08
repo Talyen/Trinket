@@ -169,10 +169,11 @@ available; the CI policy applies to automatic verification, not to playing the g
 | Nightly exhaustive | Scheduled or manually dispatched exhaustive UI with all registered classes on one runner; advisory, never blocks `CI OK` |
 | Performance diagnostics | Manual `performance.yml` dispatch with a validated group/repetition selection; never part of routine local or push verification |
 
-Idle nightlies skip a commit only after its previous scheduled run succeeded and
-all actual exhaustive UI shards passed. Failed, cancelled, missing, or unreadable
-results retry on the next schedule; advisory status cannot substitute for shard
-success.
+Nightlies validate the newest installed Xcode even when the commit is unchanged:
+runner images and Apple component catalogs can change independently of source.
+Required pushes use the pinned toolchain; promotion and Metal readiness follow the
+[toolchain ladder](../../Scripts/Reference.md#toolchain-ladder). Latest-toolchain
+manual runs cannot reuse pinned-toolchain checks; exhaustive UI remains advisory.
 
 `Smoke.xctestplan` and `FullUI.xctestplan` are disjoint. Default deploy verification
 runs FullUI; main CI supplies smoke coverage separately. The release workflow
