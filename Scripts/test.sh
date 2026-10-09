@@ -58,8 +58,8 @@ while [[ $# -gt 0 ]]; do
 Usage: ./Scripts/test.sh [unit | ui | style | smoke | performance] [--no-build] [--app-only] [--quiet] [--verbose] [TestClass[/testMethod] | SwiftPath ...]
 
 Runs quietly by default; pass --verbose for full xcodebuild output.
-Compiled/unit/UI/performance suites are CI-owned. Local execution requires an
-expressly requested diagnostic with TRINKET_ALLOW_HEAVY_LOCAL=1; style stays local. See Scripts/README.md for tiers and routing.
+Compiled/unit/UI/performance suites are CI-owned. Local execution requires a
+bounded diagnostic with TRINKET_ALLOW_HEAVY_LOCAL=1; style stays local. See Scripts/README.md for tiers and routing.
 --app-only is unit-mode only: a compile-only app build via build.sh.
 USAGE
       exit 0

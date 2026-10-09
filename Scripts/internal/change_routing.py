@@ -332,7 +332,7 @@ def verification_plan(route: Route, *, root: Path = ROOT, environment: dict[str,
     if not count: raise ValueError('Cheap-slice registry is empty.')
     if mirror and (route.needs & {'build', 'content', 'project'} or route.packages or 'feature' in route.features):
         if local:
-            raise ValueError('Simulator mirroring is CI-owned; an expressly requested local diagnostic requires TRINKET_ALLOW_HEAVY_LOCAL=1')
+            raise ValueError('Simulator mirroring is CI-owned; a bounded local diagnostic requires TRINKET_ALLOW_HEAVY_LOCAL=1')
         add('mirror', 'mirror', './Scripts/promote.sh', '--quiet', heavy=True)
     return checks
 

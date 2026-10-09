@@ -10,7 +10,7 @@ setup: [SimulatorOperations.md](SimulatorOperations.md).
 
 Choose the cheapest route that answers the question at hand. Gate composition
 is listed below; test authoring and tier ownership follow [Testing.md](Testing.md).
-Compiled routes run in CI or an expressly requested local diagnostic under the
+Compiled routes run in CI or a bounded local diagnostic under the
 [local execution limits](#execution-limits). Routine local handoff stays lightweight.
 
 | Task | Route | Use |
@@ -22,7 +22,7 @@ Compiled routes run in CI or an expressly requested local diagnostic under the
 | Focused interaction | `test.sh smoke <Class>` / `test.sh ui <Class>` | Existing journey, within the local limits below |
 | Gate-only check | `ci-gate.sh` / `ci-gate.sh --fast` | Full gate or cheap slices; neither runs unit/UI tests |
 | Local canary | `test-deploy.sh --mode smoke` | Optional human confidence run |
-| Release confidence | `release.sh` / `test-deploy.sh` | Requested release verification; local execution requires explicit opt-in |
+| Release confidence | `release.sh` / `test-deploy.sh` | Requested release verification; local execution uses the diagnostic limits below |
 | Performance investigation | `performance.sh` | Ad hoc measurement under the performance playbook |
 
 Path-scoped commands normalize in-repository absolute paths to repository-relative
@@ -38,8 +38,8 @@ adopted fix, not the task's initial path list.
 For shared enum or API reviews, include relevant committed changes in the
 comparison scope and follow downstream consumers beyond the dirty files. Include
 app compilation in the CI evidence when package checks do not compile those
-consumers; it catches exhaustive-switch failures in unchanged code. An expressly
-requested local compile diagnostic uses the same isolated app-only route under
+consumers; it catches exhaustive-switch failures in unchanged code. A bounded
+local compile diagnostic uses the same isolated app-only route under
 the execution limits below. Whole-tree dirty-path routing alone does not cover
 relevant committed changes.
 
@@ -137,13 +137,16 @@ passing compilation or interaction tests alone do not establish visual polish.
 - Agents do not set `CI`/`GITHUB_ACTIONS` or the heavy-local override to bypass
   this policy. Controlled script fixtures may simulate those environments with
   stubbed commands; they must not start real builds or simulators.
-- An expressly requested local test diagnostic may use
-  `TRINKET_ALLOW_HEAVY_LOCAL=1` with a focused test selector. The wrappers limit
-  package and UI concurrency; this is not routine verification.
+- Agents may choose bounded, task-relevant local compile, test, or simulator
+  diagnostics without separate user approval when needed to reproduce or resolve
+  a concrete failure. Use `TRINKET_ALLOW_HEAVY_LOCAL=1` with a focused selector
+  for compiled test wrappers, and state the scope and purpose before running.
+  Keep simulator work isolated and release owned leases when finished. The
+  wrappers limit package and UI concurrency; this is not routine verification.
 - Bare FullUI additionally requires `TRINKET_ALLOW_FULL_UI=1`; preserve the
-  deliberate full-suite distinction even for an authorized diagnostic.
+  deliberate full-suite distinction even during a diagnostic.
 - Full deployment test suites are CI-owned. Deliberate local pre-release tests
-  require the same explicit heavy-local diagnostic opt-in; do not bypass them
+  use the same deliberate heavy-local flag and execution limits; do not bypass them
   silently or claim release readiness without their required evidence.
 
 ### Local play
@@ -151,7 +154,7 @@ passing compilation or interaction tests alone do not establish visual polish.
 The normal `trinket-run` alias and `run-simulator.sh` continue to build and launch the
 game for the user. They do not run test suites. Local Debug simulator compilation
 uses the native architecture and two Xcode build workers to reduce pressure.
-Interactive play and explicitly requested device/simulator debugging remain
+Interactive play and bounded device/simulator debugging remain
 available; the CI policy applies to automatic verification, not to playing the game.
 
 ## Gate composition
@@ -162,7 +165,7 @@ available; the CI policy applies to automatic verification, not to playing the g
 | `ci-gate.sh` | Pinned-tool ensure, generate/stamp alignment, assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation, artwork budget |
 | `ci-gate.sh --fast` | Only the ordered commands in [the cheap-slice registry](../../Scripts/config/cheap-slices.txt) |
 | `ci-assets-gate.sh` | Check committed prepared assets and manifest/resource integrity without Asset Library |
-| `test-deploy.sh` | Full CI/release test sequence; local execution requires a deliberate heavy-local diagnostic opt-in. Keep release/TestFlight evidence requirements intact |
+| `test-deploy.sh` | Full CI/release test sequence; local execution uses the deliberate heavy-local flag and diagnostic limits. Keep release/TestFlight evidence requirements intact |
 | Main CI | Post-push on `main` (no pull-request workflow): path filter, generation/style/full script regressions, app build with smoke on the same runner, and package unit for product changes |
 | Clean analysis | Explicit local `lint-analyze.sh [SwiftPath ...]` cleanup using a clean app build; unused imports fail the command; never part of CI or handoff |
 | Device Release compilation | Nightly and manual CI run unsigned device Release compilation serialized behind build+unit with a 30-minute wall watchdog; failures block that run’s `CI OK`, ordinary pushes skip it. Signing/export/upload remain TestFlight responsibilities. |

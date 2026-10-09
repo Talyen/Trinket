@@ -29,8 +29,10 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 
 Routine local checks perform no Swift compilation or Simulator/GPU tests.
 Use focused static/script checks and handoff. Compiled test wrappers require
-CI or an expressly requested `TRINKET_ALLOW_HEAVY_LOCAL=1` diagnostic. Your
-normal Simulator run remains available and uses two local build workers.
+CI or a bounded `TRINKET_ALLOW_HEAVY_LOCAL=1` diagnostic under
+[execution limits](../Docs/Platform/Verification.md#execution-limits); separate user
+approval is not required. Your normal Simulator run remains available and uses
+two local build workers.
 
 | Command | Purpose |
 |---|---|
@@ -45,7 +47,7 @@ normal Simulator run remains available and uses two local build workers.
 | `./Scripts/test.sh smoke [--no-build]` | CI-owned checked-in smoke registry |
 | `./Scripts/test.sh smoke <Class...>` | CI-owned targeted smoke classes |
 | `./Scripts/test.sh ui <Target>` | CI-owned exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
-| `./Scripts/handoff.sh --isolate --quiet --paths …` | Lightweight local gate; compiled/simulator/generation checks are reported as CI-owned; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` reports targeted UI ownership, `--mirror` requires an expressly requested heavy-local opt-in before installing on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure, `--keep-plan` permits an unfinished plan with `--final`, `--working-tree` opts into whole-tree classification; `--quiet` captures child logs during execution and prints phase outcomes plus bounded failures; successful logs are removed on completion |
+| `./Scripts/handoff.sh --isolate --quiet --paths …` | Lightweight local gate; compiled/simulator/generation checks are reported as CI-owned; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` reports targeted UI ownership, `--mirror` requires the deliberate heavy-local flag before installing on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure, `--keep-plan` permits an unfinished plan with `--final`, `--working-tree` opts into whole-tree classification; `--quiet` captures child logs during execution and prints phase outcomes plus bounded failures; successful logs are removed on completion |
 | `./Scripts/ci-gate.sh` | CI-owned full gate; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition) |
 | `./Scripts/ci-gate.sh --fast` | Run only the ordered commands in [the cheap-slice registry](config/cheap-slices.txt); skips generation and style |
 | `./Scripts/test-scripts.sh [--skip-docs] [--fast] [--paths <file> …]` | Script syntax/regressions with leaf-family selection (`script_test_selection.py`); runs docs unless the caller already checked them |
@@ -55,7 +57,7 @@ normal Simulator run remains available and uses two local build workers.
 ### Headless playthroughs
 
 Manual only; [scope, evidence, and interpretation](../Docs/Platform/HeadlessPlaythroughs.md).
-These Simulator careers compile a test product and require an expressly requested
+These Simulator careers compile a test product and require a bounded
 local diagnostic under [execution limits](../Docs/Platform/Verification.md#execution-limits).
 Help remains a read-only query without the opt-in.
 
@@ -220,7 +222,7 @@ DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer xcodebuild -versio
 ```
 
 Version queries and lightweight handoff do not compile Swift or validate a runtime.
-Use CI evidence or an expressly requested local diagnostic under
+Use CI evidence or a bounded local diagnostic under
 [Verification](../Docs/Platform/Verification.md#execution-limits) for those claims.
 Beta compile/runtime results remain prerelease evidence, not release qualification.
 Confirm the simulator runtime separately; an existing managed device can use a different OS
