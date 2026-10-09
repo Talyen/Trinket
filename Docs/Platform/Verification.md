@@ -148,7 +148,7 @@ passing compilation or interaction tests alone do not establish visual polish.
 
 ### Local play
 
-The normal `run` alias and `run-simulator.sh` continue to build and launch the
+The normal `trinket-run` alias and `run-simulator.sh` continue to build and launch the
 game for the user. They do not run test suites. Local Debug simulator compilation
 uses the native architecture and two Xcode build workers to reduce pressure.
 Interactive play and explicitly requested device/simulator debugging remain

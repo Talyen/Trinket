@@ -23,24 +23,34 @@ function ensureLine(filePath) {
   console.log(`added shim to ${filePath}`);
 }
 
-const runAlias = `alias run='cd ${root} && ./Scripts/run-simulator.sh'  # Trinket run alias (build + foreground Simulator on Trinket Run)`;
+const runAlias = `alias trinket-run='cd ${root} && ./Scripts/run-simulator.sh'  # Trinket run alias (build + foreground Simulator on Trinket Run)`;
 
 function ensureRunAlias(filePath) {
   let content = "";
   try {
     content = fs.readFileSync(filePath, "utf8");
   } catch {}
-  if (content.includes("alias run=") && content.includes("run-simulator.sh")) {
-    console.log(`ok: ${filePath} already contains run alias`);
+  // Migrate only the former Trinket launcher, preserving unrelated run aliases.
+  const migrated = content.replace(
+    /^alias run='cd ([^'\r\n]+) && \.\/Scripts\/run-simulator\.sh'[^\S\r\n]*(#[^\r\n]*)?$/gm,
+    (entry, aliasRoot, comment) => aliasRoot === root || comment === "# Trinket run alias (build + foreground Simulator on Trinket Run)" ? "" : entry,
+  );
+  if (migrated !== content) {
+    fs.writeFileSync(filePath, migrated);
+    content = migrated;
+    console.log(`removed legacy Trinket run alias from ${filePath}`);
+  }
+  if (content.split(/\r?\n/).some((entry) => entry === runAlias || entry === runAlias.split("  #")[0])) {
+    console.log(`ok: ${filePath} already contains trinket-run alias`);
     return;
   }
-  if (content.includes("alias run=")) {
-    console.log(`skip: ${filePath} has custom alias run — not overwriting`);
+  if (content.includes("alias trinket-run=")) {
+    console.log(`skip: ${filePath} has custom alias trinket-run — not overwriting`);
     return;
   }
   const append = content.endsWith("\n") || content === "" ? "" : "\n";
   fs.appendFileSync(filePath, `${append}${runAlias}\n`);
-  console.log(`added run alias to ${filePath}`);
+  console.log(`added trinket-run alias to ${filePath}`);
 }
 
 const home = os.homedir();

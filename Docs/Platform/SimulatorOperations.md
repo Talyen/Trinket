@@ -5,7 +5,7 @@
 - Agents use `--isolate` and the managed `Trinket Agent N` pool (Simulator.app
   name **Trinket Agent 1**, **Trinket Agent 2**, …). Never run ad-hoc
   `simctl shutdown all` or erase shared devices.
-- Humans omit isolation. The `run` alias (`alias run='cd <repo> && ./Scripts/run-simulator.sh'` — installed by `node Scripts/setup-git-safety.mjs`) and local tests use **Trinket Run**.
+- Humans omit isolation. The `trinket-run` alias (`alias trinket-run='cd <repo> && ./Scripts/run-simulator.sh'` — installed by `node Scripts/setup-git-safety.mjs`) and local tests use **Trinket Run**.
 - Close SwiftUI Previews before long verification runs. Set
   `TRINKET_CLEANUP_PREVIEW_SIMS=0` only while intentionally keeping previews.
 - Erase is a recovery operation after a failed cold boot, not routine cleanup.
@@ -114,7 +114,7 @@ package tests, but CloudKit-enabled app launches require the Simulator's embedde
 iCloud entitlements.
 `ENTITLEMENTS_ALLOWED` alone does not preserve them in an unsigned app product.
 
-`./Scripts/run-simulator.sh` (the `run` alias) builds, installs, opens the selected
+`./Scripts/run-simulator.sh` (the `trinket-run` alias) builds, installs, opens the selected
 Xcode's device UI, and launches the app on the leased device. Opening Device Hub
 or Simulator does not guarantee that the target screen is visible; confirm the
 device selection through the [ios-simulator skill](../../.agents/skills/ios-simulator/SKILL.md). Legacy
