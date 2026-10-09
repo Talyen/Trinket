@@ -39,7 +39,9 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
 
     func assertWarlockAccessible() {
         tabBar.selectCollection()
-        tapButton(AccessibilityID.Collection.heroesCategory)
+        if button(AccessibilityID.Collection.heroesCategory).exists {
+            tapButton(AccessibilityID.Collection.heroesCategory)
+        }
         let card = AccessibilityID.CombatantDetail.collectionCard(name: "Warlock")
         assertExistsAfterScroll(card, requireHittable: true)
         waitUntil("Full Game must permit access to the recruited Warlock") {

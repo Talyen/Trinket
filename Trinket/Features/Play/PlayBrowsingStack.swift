@@ -33,6 +33,8 @@ struct PlayBrowsingStack: View {
                         .trinketPresentationVisibility(isBrowsingInteractive, opacity: 1)
                 }
         }
+        .toolbarVisibility(isBrowsingInteractive ? .automatic : .hidden, for: .navigationBar)
+        .accessibilityHidden(!isBrowsingInteractive)
         .trinketSensoryFeedback(.selection, trigger: modeSelectionTrigger, enabled: options.hapticsEnabled)
     }
 

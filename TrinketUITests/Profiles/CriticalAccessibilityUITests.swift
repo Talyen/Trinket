@@ -36,28 +36,40 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
     private func reduceMotionControl() -> XCUIElement {
         let control = settings.switches["Reduce Motion"].firstMatch
         if control.exists {
+            revealSettingsElement(control, scrolling: settings)
             return control
         }
         let accessibility = settings.staticTexts["Accessibility"].firstMatch
-        for _ in 0 ..< 4 {
-            if accessibility.exists {
-                break
-            }
-            let back = settings.navigationBars.buttons.element(boundBy: 0)
-            if back.exists {
-                back.tap()
+        let sidebar = settings.collectionViews["com.apple.settings.sidebar.collectionView"].firstMatch
+        if !sidebar.exists {
+            for _ in 0 ..< 4 {
+                if accessibility.exists {
+                    break
+                }
+                let back = settings.navigationBars.buttons.element(boundBy: 0)
+                if back.exists {
+                    back.tap()
+                }
             }
         }
-        for _ in 0 ..< 8 {
-            if accessibility.isHittable {
-                break
-            }
-            settings.swipeUp()
-        }
+        revealSettingsElement(accessibility, scrolling: sidebar.exists ? sidebar : settings)
         tapWhenReady(accessibility)
-        tapWhenReady(settings.staticTexts["Motion"].firstMatch)
+        let motion = settings.staticTexts["Motion"].firstMatch
+        revealSettingsElement(motion, scrolling: settings)
+        tapWhenReady(motion)
         assertExists(control)
+        revealSettingsElement(control, scrolling: settings)
         return control
+    }
+
+    private func revealSettingsElement(_ element: XCUIElement, scrolling container: XCUIElement) {
+        for _ in 0 ..< 10 {
+            if element.exists, element.isHittable {
+                return
+            }
+            container.swipeUp()
+        }
+        XCTAssertTrue(element.exists && element.isHittable, "Requested native setting is not reachable")
     }
 
     private func reduceMotionValue(_ control: XCUIElement) throws -> Bool {
@@ -117,7 +129,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         assertPurchaseProductLoaded()
         try auditProductAccessibility()
         retainScreenshot(named: "purchase-entry")
-        tapButton(AccessibilityID.FullGame.close)
+        dismissSheet(AccessibilityID.FullGame.offer)
     }
 
     func testRewardClaimRemainsReachableAndReturnsUnderRequestedSettings() throws {

@@ -69,9 +69,16 @@ victory rates, determine acceptance. UI soak accepts either outcome and verifies
 
 Retain result bundles, screenshots, actual settings/device/runtime/toolchain and
 commit identity, raw interrupted stores, journals, remote test state and replay
-reports for fourteen days. A failed profile retains its verdict while other
+reports with fourteen-day workflow retention requests. GitHub currently caps this
+repository's uploads at one day; download evidence needed beyond that cap until
+the repository setting is raised. A failed profile retains its verdict while other
 settings execute. Soak failure does not hide the subsequent career/recovery
 verdicts. Archive interrupted inputs before opening recovery copies.
+
+The owned-purchase Restore journey checks that the native control preserves
+populated local progress. StoreKit can recognize current entitlements before
+Restore; this case does not establish restoration after reinstall or a live
+service ownership loss.
 
 Audio observations prove real backend starts and buffer scheduling, and detect
 errors/duplicate same-track ownership. They cannot prove audible output. Process

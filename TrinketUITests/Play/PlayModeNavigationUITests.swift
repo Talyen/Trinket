@@ -47,6 +47,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
     func testVoyageEmbarkAndAbandonStayAbandonedAfterRelaunch() {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
         play.openExplore()
+        assertExistsAfterScroll(AccessibilityID.Voyage.modeCard, requireHittable: true)
         tapButton(AccessibilityID.Voyage.modeCard)
         assertExists(AccessibilityID.Voyage.screen)
         let embark = app.buttons.matching(NSPredicate(
@@ -62,6 +63,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Voyage.options)
         relaunchApp()
         play.openExplore()
+        assertExistsAfterScroll(AccessibilityID.Voyage.modeCard, requireHittable: true)
         tapButton(AccessibilityID.Voyage.modeCard)
         assertExists(AccessibilityID.Voyage.refresh)
         assertDoesNotExist(AccessibilityID.Voyage.options)
@@ -96,7 +98,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         if button(AccessibilityID.Play.labyrinthEnter).exists {
             tapButton(AccessibilityID.Play.labyrinthEnter)
         }
-        tapButton(AccessibilityID.Play.labyrinthFloor1EntryNode)
+        tapWhenReady(any(AccessibilityID.Play.labyrinthFloor1EntryNode))
         assertExists(AccessibilityID.Play.labyrinthNodeInspector)
         let action = app.buttons.matching(NSPredicate(
             format: "identifier BEGINSWITH %@", AccessibilityID.Play.labyrinthInspectorAction(""),
@@ -111,7 +113,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         tapWhenReady(button(AccessibilityID.Play.labyrinthDismissSelection).firstMatch)
         assertDoesNotExist(AccessibilityID.Play.labyrinthNodeInspector)
         assertExistsAfterScroll(AccessibilityID.Play.labyrinthFloor1EntryNode, requireHittable: true)
-        tapButton(AccessibilityID.Play.labyrinthFloor1EntryNode)
+        tapWhenReady(any(AccessibilityID.Play.labyrinthFloor1EntryNode))
         tapButton(selected)
         // The entry is a battle in the unmodified initial map.
         battle.assertActive()

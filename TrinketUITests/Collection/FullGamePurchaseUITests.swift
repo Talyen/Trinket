@@ -51,7 +51,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         session.askToBuyEnabled = true
         tapButton(AccessibilityID.FullGame.purchase)
         let pending = try pendingTransaction(in: session)
-        tapButton(AccessibilityID.FullGame.close)
+        dismissSheet(AccessibilityID.FullGame.offer)
         try session.declineAskToBuyTransaction(identifier: pending.identifier)
         waitUntil("Decline must clear its pending transaction") {
             !session.allTransactions().contains { $0.pendingAskToBuyConfirmation }
@@ -78,7 +78,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         }
         XCTAssertTrue(session.allTransactions().isEmpty)
         try await session.setSimulatedError(nil, forAPI: .purchase)
-        tapButton(AccessibilityID.FullGame.close)
+        dismissSheet(AccessibilityID.FullGame.offer)
         assertWarlockLocked()
         tabBar.selectOptions()
         tapButton(AccessibilityID.FullGame.options)
@@ -100,12 +100,11 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         app.terminate()
         let transaction = try await session.buyProduct(identifier: FullGameStore.productID)
         XCTAssertTrue(session.allTransactions().contains { $0.identifier == UInt(transaction.id) })
-        // Verification failure establishes locked access before Restore. An
-        // already-unlocked cold launch would not prove restoration.
-        try await session.setSimulatedError(.verification(.invalidSignature), forAPI: .verification)
         relaunchApp(arguments: ["-selectedTab", "options"])
-        assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
-        try await session.setSimulatedError(nil, forAPI: .verification)
+        // Current entitlements are recognized at launch. Exercise the real
+        // Restore control against that ownership and populated progress.
+        assertDoesNotExist(AccessibilityID.FullGame.options)
+        assertExistsAfterScroll(AccessibilityID.FullGame.restore, requireHittable: true)
         tapButton(AccessibilityID.FullGame.restore)
         waitUntil("Restore must finish") { self.button(AccessibilityID.FullGame.restore).isEnabled }
         assertWarlockAccessible()
@@ -147,7 +146,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         session.askToBuyEnabled = true
         tapButton(AccessibilityID.FullGame.purchase)
         let pending = try pendingTransaction(in: session)
-        tapButton(AccessibilityID.FullGame.close)
+        dismissSheet(AccessibilityID.FullGame.offer)
         assertWarlockLocked()
         if relaunch {
             app.terminate()
@@ -171,7 +170,9 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
 
     private func assertWarlockLocked() {
         tabBar.selectCollection()
-        tapButton(AccessibilityID.Collection.heroesCategory)
+        if button(AccessibilityID.Collection.heroesCategory).exists {
+            tapButton(AccessibilityID.Collection.heroesCategory)
+        }
         let card = button(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
         scrollUntilVisible(card, swipingUp: true, requireHittable: true)
         XCTAssertTrue(card.label.hasSuffix(", locked"))

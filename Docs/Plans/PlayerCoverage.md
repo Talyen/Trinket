@@ -29,18 +29,36 @@ missing combinations. Hosted Swift/package/UI execution remains pending the auth
 
 ## Validation and remaining work
 
-Initial authoring passed scoped orchestration/registry/replay regressions and
-lightweight handoff without compilation. Full review then fixed overlapping
-battle accesses, retained package visibility for moved helpers, and regenerated
-the project and Sniff Out description. The reviewed set was committed and pushed
-as `0ec5c28e`; hosted generation/style/idempotence passed in run `37966899431`.
-The app compile found a read-only Reduce Motion environment override; the native
-Settings fix awaits hosted rerun. Package/UI/profile/soak evidence remains pending.
+Full review preserved the outstanding work, repaired consolidation visibility and
+compiler/linker errors, regenerated canonical outputs, and hardened CI diagnostics
+and transient process inspection. Native Reduce Motion now uses Settings with
+restoration; profile/soak tests retain the build's validated stamp directory. CI
+provisions a missing requested runtime and validates its availability. The completed
+parallel `trinket-run` alias rename was reviewed and included.
 
-CI found that SwiftUI Reduce Motion is read-only; the profile now changes and
-restores the native Settings control on its owned simulator. Soak accepts either battle outcome and
-checks exact Contract claim identities rather than enforcing a bot victory rate.
-The named live device/service checks remain deferred in the canonical owner.
+Hosted evidence for pushed `5dc0e104`:
+
+- Required push run `37978887013` is green: seven smoke tests passed, zero failed or skipped.
+- Full package portfolio passed on `58027240` in run `37971919881`; later changes are tooling/UI test repairs.
+- Extended run `37979415382` passed the full package portfolio, native Engine parity,
+  assets, generation/style, device Release compilation and CI OK. FullUI reported
+  13 passed and 11 failed; the current batch repairs captured navigation, native
+  sheet dismissal, custom element queries, switch input, and restore-fixture assumptions.
+- Player run `37979418399` is active for profiles. Its twenty headless careers passed;
+  all injected interruption markers and seven recovery/replay workers succeeded.
+- UI soak failed before Contracts entry because it omitted Explore navigation.
+  Local commit `508a3b23` repairs that path and the matching audio/Spires paths;
+  scoped handoff passed. Push this correction with the current confirmed profile
+  and FullUI repair batch.
+
+Profile runtime preparation and build proof passed. The six profile configurations
+then exposed invisible navigation titles to contrast audits, plus offscreen native
+Settings rows under large text. The current repair removes zero-opacity detail
+titles, hides retained navigation chrome from accessibility, and scrolls the native
+Settings sidebar and content before activating rows; native rerun remains pending. Workflow artifacts request
+fourteen days, but GitHub reports a repository maximum of one day; collect needed
+evidence before that cap expires. Live device/service gates remain deferred in the
+canonical owner. No live sync or publication was enabled.
 
 After an authorized push/dispatch, inspect every requested job's actual conclusion
 and individual skipped tests. Fix attributable failures, record exact evidence in

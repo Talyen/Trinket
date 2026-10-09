@@ -25,7 +25,8 @@ final class OptionsUITests: TrinketUITestCase {
         assertExists(toggle)
         let before = toggle.value as? String
         XCTAssertNotNil(before)
-        tapWhenReady(toggle)
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        waitUntil("Haptics thumb must change its preference") { toggle.value as? String != before }
         let changed = toggle.value as? String
         XCTAssertNotEqual(changed, before)
         relaunchApp(arguments: ["-selectedTab", "options"])

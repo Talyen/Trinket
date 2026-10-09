@@ -72,7 +72,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                 .toolbar(.hidden, for: .navigationBar)
         } else {
             content()
-                .navigationTitle(title)
+                .navigationTitle(titleOpacity >= 0.5 ? title : "")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbarBackground(.clear, for: .navigationBar)
                 .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
@@ -99,9 +99,11 @@ private struct DetailScrollNavigationTitle: View {
     let opacity: CGFloat
 
     var body: some View {
-        Text(title)
-            .trinketTypography(.cardTitle)
-            .trinketPresentationVisibility(opacity >= 0.5, opacity: opacity)
+        if opacity > 0 {
+            Text(title)
+                .trinketTypography(.cardTitle)
+                .trinketPresentationVisibility(opacity >= 0.5, opacity: opacity)
+        }
     }
 }
 

@@ -129,7 +129,10 @@ While the retained battle overlay is active (Play-side view; Battle side:
 and destination content from touch and accessibility exposure with the shared
 visibility modifier. Apply the modifier to the hosted screen content, not just the
 outer `NavigationStack`: native navigation hosting can retain accessible children
-beneath an otherwise hidden container. Keep opacity at one for the immediate return
+beneath an otherwise hidden container. Also hide the outer stack's accessibility
+exposure and native navigation bar so navigation titles cannot remain exposed
+beneath battle.
+Keep opacity at one for the immediate return
 from battle; do not unmount the stack or add battle observation to its destinations.
 The retained battle overlay root owns stable navigation geometry. Battle visibility
 switches immediately without fading its hand. When Retry or Battle Again replaces
