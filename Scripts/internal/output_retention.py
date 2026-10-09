@@ -65,8 +65,16 @@ def managed_path(path: Path, root: Path) -> bool:
 
 
 def process_snapshot() -> dict[int, tuple[str, str]]:
-    result = subprocess.run(['ps', '-axo', 'pid=,lstart=,command='], capture_output=True,
-                            text=True, check=True, timeout=10)
+    # Simulator startup can temporarily stall process inspection on hosted Macs.
+    # Retry that transient timeout once; malformed or unavailable inventories still fail closed.
+    for timeout in (10, 30):
+        try:
+            result = subprocess.run(['ps', '-axo', 'pid=,lstart=,command='], capture_output=True,
+                                    text=True, check=True, timeout=timeout)
+            break
+        except subprocess.TimeoutExpired:
+            if timeout == 30:
+                raise
     processes = {}
     for line in result.stdout.splitlines():
         fields = line.split(None, 6)

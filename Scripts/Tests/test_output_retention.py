@@ -118,6 +118,23 @@ class OutputRetentionTests(ScriptRegressionTestCase):
                 retention.cleanup(self.root, apply=True)
         self.assertTrue(path.exists())
 
+    def test_transient_process_timeout_retries_without_losing_owner_protection(self):
+        path = self.output('.DerivedData/HandoffResults/run/log', age=90000)
+        owner = path.parent / retention.OWNER
+        owner.write_text(json.dumps({'pid': 123, 'started': self.processes[123][0]}))
+        timeout = subprocess.TimeoutExpired('ps', 10)
+        snapshot = subprocess.CompletedProcess('ps', 0, '123 Mon Oct 5 00:00:00 2026 fixture worker\n', '')
+        with patch.object(retention.subprocess, 'run', side_effect=[timeout, snapshot]) as command:
+            retention.cleanup(self.root, apply=True, now=self.now, receipts_dir=self.root / 'receipts', verbose=False)
+        self.assertEqual(command.call_count, 2)
+        self.assertTrue(path.exists())
+        for failure, expected in ((subprocess.TimeoutExpired('ps', 30), subprocess.TimeoutExpired),
+                                  (subprocess.CompletedProcess('ps', 0, '', ''), ValueError)):
+            with patch.object(retention.subprocess, 'run', side_effect=[timeout, failure]):
+                with self.assertRaises(expected):
+                    retention.cleanup(self.root, apply=True, now=self.now, receipts_dir=self.root / 'receipts', verbose=False)
+            self.assertTrue(path.exists())
+
     def test_expire_raw_failures_individually_and_only_opt_in_experiments(self):
         old = self.output('.DerivedData/TestResults/raw/old.log')
         new = self.output('.DerivedData/TestResults/raw/current.log', age=1)
