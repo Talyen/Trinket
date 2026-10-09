@@ -353,6 +353,25 @@ class ReporterTests(unittest.TestCase):
                 self.assertEqual(report.classification, expected, message)
                 self.assertEqual(report.issues[0].kind, expected, message)
 
+    def test_compiler_warning_context_cannot_mask_the_real_build_error(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            log = root / "build.log"
+            lines = []
+            for index in range(20):
+                lines.extend([
+                    f"Sources/Test.swift:{index + 1}: warning: nonisolated call to wait(timeout:)",
+                    f"{index + 1} | assertExists(element, timeout: 15)",
+                    "   | `- note: wait(timeout:) is actor isolated",
+                ])
+            lines += ["Sources/Test.swift:42: error: task or actor-isolated value cannot be sent",
+                      "** TEST BUILD FAILED **"]
+            log.write_text("\n".join(lines) + "\n")
+            report = REPORTER.build_report(namespace(root / "missing.xcresult", log, 65, root / "report"))
+            self.assertEqual(report.classification, "build-failure")
+            self.assertTrue(any(issue.file == "Sources/Test.swift" and issue.line == 42 for issue in report.issues))
+            self.assertFalse(any(issue.kind == "test-failure" for issue in report.issues))
+
     def test_github_annotations_and_step_summary_are_emitted(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

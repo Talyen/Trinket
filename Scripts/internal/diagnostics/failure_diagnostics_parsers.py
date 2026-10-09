@@ -346,6 +346,7 @@ def parse_build_results(build: dict[str, Any]) -> list[IssueObservation]:
 
 
 LOG_PATTERNS: tuple[tuple[str, str, str], ...] = (
+    (r"\*\*\s*(?:TEST )?BUILD FAILED\s*\*\*", "build-failure", "Build failure"),
     (r"(?:undefined symbols for architecture|symbol\(s\) not found|duplicate symbol|linker command failed|ld: .*error|framework .* not found|library .* not found)", "build-failure", "Linker failure"),
     # Canonical simulator vocabulary first so a crash/timeout line that also
     # names the simulator classifies as infrastructure, not test failure.
@@ -378,6 +379,10 @@ def parse_log(log_path: Path, exit_code: int) -> list[IssueObservation]:
             if raw_line is None:
                 break
             line_text = raw_line.strip()
+            # Compiler excerpts contain source arguments such as timeout: and
+            # failed assertions; they are not runtime failure observations.
+            if re.match(r"^(?:\d+\s*\||\||.*:\d+(?::\d+)?:\s*(?:warning|note):)", line_text):
+                continue
             match = diagnostic.search(line_text)
             if match:
                 message = match.group("message").strip()

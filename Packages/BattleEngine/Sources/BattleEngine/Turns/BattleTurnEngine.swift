@@ -87,7 +87,7 @@ package enum BattleTurnEngine {
 
     /// Synchronous action entry for consumers such as actor-isolated feedback
     /// tests. Construct the executor body here, outside the caller's actor.
-    static func performAction(
+    package static func performAction(
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
