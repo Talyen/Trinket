@@ -5,6 +5,7 @@ final class AudioLifecycleUITests: TrinketUITestCase {
     func testRealBackendsPlayAfterBattleAndForegroundRouting() throws {
         launchApp(arguments: TestLaunchArg.productionTiming(audio: true)
             + ["-performance-strong-party", "-coverage-diagnostics"])
+        play.openExplore()
         tapButton(AccessibilityID.Play.contractsModeCard)
         completeAudioContract()
         let before = try coverageReport()

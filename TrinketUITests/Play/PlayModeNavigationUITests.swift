@@ -69,6 +69,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
 
     func testSpireLockedFloorAndEnemyInspectionPreserveEligibleLaunch() throws {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
+        play.openExplore()
         tapButton(AccessibilityID.Play.spiresModeCard)
         assertExistsAfterScroll(AccessibilityID.Play.spireRow("ironVein"), requireHittable: true)
         tapButton(AccessibilityID.Play.spireRow("ironVein"))

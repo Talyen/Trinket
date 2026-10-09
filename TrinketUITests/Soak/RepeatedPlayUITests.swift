@@ -5,6 +5,7 @@ final class RepeatedPlayUITests: TrinketUITestCase {
     func testTwentyAudioEnabledContractsKeepOneUsableCareer() throws {
         launchApp(arguments: TestLaunchArg.productionTiming(audio: true)
             + ["-performance-strong-party", "-coverage-diagnostics"])
+        play.openExplore()
         tapButton(AccessibilityID.Play.contractsModeCard)
         var lastAudioPlays = 0
         var outcomes: [String] = []
@@ -43,19 +44,7 @@ final class RepeatedPlayUITests: TrinketUITestCase {
             XCTAssertEqual(report["duplicateMusicOwners"] as? Int, 0)
             lastAudioPlays = plays
             if cycle.isMultiple(of: 5) {
-                tabBar.selectCollection()
-                collection.assertLoaded()
-                tabBar.selectHomestead()
-                homestead.assertLoaded()
-                backgroundAndActivate()
-                tabBar.selectPlay()
-                assertExists(AccessibilityID.Play.contractsBoard)
-                let data = try JSONSerialization.data(withJSONObject: coverageReport())
-                let encoded = try XCTUnwrap(String(data: data, encoding: .utf8))
-                let attachment = XCTAttachment(string: encoded)
-                attachment.name = "cycle-\(cycle)-diagnostics"
-                attachment.lifetime = .keepAlways
-                add(attachment)
+                try visitTabsAndCaptureDiagnostics(cycle: cycle)
             }
         }
         let final = try XCTAttachment(string: "Outcomes: \(outcomes)\nFinal state: \(coverageReport())")
@@ -63,5 +52,21 @@ final class RepeatedPlayUITests: TrinketUITestCase {
         final.lifetime = .keepAlways
         add(final)
         retainScreenshot(named: "completed-twenty-contracts")
+    }
+
+    private func visitTabsAndCaptureDiagnostics(cycle: Int) throws {
+        tabBar.selectCollection()
+        collection.assertLoaded()
+        tabBar.selectHomestead()
+        homestead.assertLoaded()
+        backgroundAndActivate()
+        tabBar.selectPlay()
+        assertExists(AccessibilityID.Play.contractsBoard)
+        let data = try JSONSerialization.data(withJSONObject: coverageReport())
+        let encoded = try XCTUnwrap(String(data: data, encoding: .utf8))
+        let attachment = XCTAttachment(string: encoded)
+        attachment.name = "cycle-\(cycle)-diagnostics"
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 }
