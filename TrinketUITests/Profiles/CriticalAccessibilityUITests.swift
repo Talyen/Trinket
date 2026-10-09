@@ -2,6 +2,7 @@ import TrinketFeatureSupport
 import XCTest
 
 final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
+    private var originalReduceMotion: Bool?
     private var settings: XCUIApplication {
         XCUIApplication(bundleIdentifier: "com.apple.Preferences")
     }
@@ -10,14 +11,26 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         try super.setUpWithError()
         settings.launch()
         let control = reduceMotionControl()
-        let originalReduceMotion = try reduceMotionValue(control)
-        addTeardownBlock { [self] in
-            settings.activate()
-            defer { settings.terminate() }
-            try setReduceMotion(originalReduceMotion)
-        }
+        originalReduceMotion = try reduceMotionValue(control)
         try setReduceMotion(ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1")
         settings.terminate()
+    }
+
+    override func tearDownWithError() throws {
+        var restorationFailure: (any Error)?
+        do {
+            if let originalReduceMotion {
+                settings.activate()
+                defer { settings.terminate() }
+                try setReduceMotion(originalReduceMotion)
+            }
+        } catch {
+            restorationFailure = error
+        }
+        try super.tearDownWithError()
+        if let restorationFailure {
+            throw restorationFailure
+        }
     }
 
     private func reduceMotionControl() -> XCUIElement {
