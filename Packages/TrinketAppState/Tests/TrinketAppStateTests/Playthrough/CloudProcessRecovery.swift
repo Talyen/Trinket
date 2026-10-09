@@ -155,6 +155,9 @@ struct CloudPresentationBoundaryTests {
         let app = try context.makeAppState(playerSave: first)
         #expect(await first.cloudSync?.synchronize() == true)
         #expect(await second.cloudSync?.synchronize() == true)
+        // The second device's attachment advances the remote revision. Adopt it
+        // before opening the battle so its reward upload is an own acknowledgement.
+        #expect(await first.cloudSync?.synchronize() == true)
         let stage = try #require(GameContent.chapters[0].stages.first)
         #expect(app.play.journey.startBattle(for: stage) == nil)
         let battle = try #require(context.lastBattle)

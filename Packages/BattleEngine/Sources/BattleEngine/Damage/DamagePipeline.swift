@@ -8,8 +8,8 @@ package enum DamagePipeline {
     /// sibling `DamagePipeline*Steps` files by responsibility:
     /// attacker calculations (`OffenseSteps`), target mitigation (`DefenseSteps`,
     /// `ResolutionSteps+Shield`, `+TakeDamage`), Marked's bonus and consumption
-    /// (`MarkedSteps`), stochastic gates, then committed reactions
-    /// (`PostSteps`, `AttackerOnHitEngine`, `+Reactive`, `TalentReactions`) under one
+    /// (`OffenseSteps`, `+TakeDamage`), stochastic gates, then committed reactions
+    /// (`PostSteps`, `AttackerOnHitEngine`, `TalentReactions`) under one
     /// `CombatCheckpoint.committedDamage` guard.
     package static func run(
         state: inout DamageResolutionState,
@@ -65,7 +65,7 @@ package enum DamagePipeline {
     }
 
     /// Committed-damage reaction order (load-bearing, do not reorder):
-    /// card-hit (or non-card typed critical rewards) → enemy traits → DoT mirrors/ticks → leech → enemy Purge → attacker on-hit
+    /// card-hit (or non-card attack rewards) → enemy traits → DoT mirrors/ticks → leech → enemy Purge → attacker on-hit
     /// applications → attacker mirrors → control meter/fang → retaliation-gated
     /// reactive/keyword → ally Block → Threefold Grace → crit → uniques. DoT mirrors must precede leech so
     /// mirrored ticks count toward the same hit; keyword reactions stay last
