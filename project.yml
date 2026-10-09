@@ -138,6 +138,7 @@ targets:
     dependencies:
       - target: Trinket
       - package: TrinketFeatureSupport
+      - package: TrinketAppState
 
 schemes:
   Trinket:
