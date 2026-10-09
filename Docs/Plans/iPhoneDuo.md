@@ -3,8 +3,8 @@ type: execution-plan
 status: blocked
 reason: The installed Xcode 27.0 SDK lacks iOS 27.1 Duo APIs; fold implementation and verification require a suitable SDK and runtime.
 created: 2026-09-21
-updated: 2026-09-21
-expires: 2026-10-05
+updated: 2026-10-08
+expires: 2026-10-22
 ---
 
 # iPhone Duo support

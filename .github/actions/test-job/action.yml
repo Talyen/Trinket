@@ -149,7 +149,7 @@ runs:
           .DerivedData/TestResults-artifact/timing-log.jsonl
           .DerivedData/TestResults-artifact/phase-timing.jsonl
           .DerivedData/TestResults-artifact/ci-diagnostics.json
-        retention-days: 1
+        retention-days: 14
         if-no-files-found: ignore
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
@@ -159,5 +159,5 @@ runs:
       with:
         name: ${{ inputs.artifact-prefix }}${{ inputs.artifact-name }}-${{ github.run_id }}
         path: .DerivedData/TestResults-artifact/
-        retention-days: 1
+        retention-days: 14
         if-no-files-found: ignore

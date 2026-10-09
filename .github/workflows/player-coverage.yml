@@ -1,0 +1,103 @@
+name: Player coverage
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+    - cron: '0 9 * * 0'
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Coverage portfolio
+        type: choice
+        default: profiles
+        options: [profiles, soak, all]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: player-coverage-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  profiles:
+    name: Critical controls on compact phone and portrait iPad
+    if: github.event.schedule == '0 8 * * *' || inputs.scope == 'profiles' || inputs.scope == 'all'
+    runs-on: xcode-27
+    timeout-minutes: 90
+    env:
+      DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData/player-coverage
+      TRINKET_REQUIRED_PURCHASE: '1'
+      TEST_RUNNER_TRINKET_REQUIRED_PURCHASE: '1'
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: ./.github/actions/setup-trinket
+        with:
+          metal: 'true'
+          xcode-channel: verified
+      - name: Build shared simulator products once
+        run: ./Scripts/build-for-testing.sh --app-only
+      - name: Run both requested profiles serially
+        env:
+          TRINKET_COVERAGE_NO_BUILD: '1'
+        shell: bash
+        run: |
+          status=0
+          ./Scripts/player-coverage.sh compact || status=1
+          ./Scripts/player-coverage.sh tablet || status=1
+          exit "$status"
+      - name: Retain profile results and failures
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: player-profiles-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .DerivedData/player-coverage/PlayerCoverage
+            .DerivedData/player-coverage/TestResults
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: warn
+
+  soak:
+    name: Weekly repeated play and crash recovery
+    if: github.event.schedule == '0 9 * * 0' || inputs.scope == 'soak' || inputs.scope == 'all'
+    runs-on: xcode-27
+    timeout-minutes: 120
+    env:
+      DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData/player-coverage
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: ./.github/actions/setup-trinket
+        with:
+          metal: 'true'
+          xcode-channel: verified
+      - name: Serial soak, twenty careers, and interrupted settlement recovery
+        run: ./Scripts/player-coverage.sh soak
+      - name: Retain raw stores, journals, reports and result bundles
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: player-soak-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .DerivedData/player-coverage/PlayerCoverage
+            .DerivedData/player-coverage/TestResults
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: warn
+
+  coverage-status:
+    name: Player coverage status (advisory for pushes)
+    needs: [profiles, soak]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report actual requested-job conclusions
+        env:
+          PROFILES: ${{ needs.profiles.result }}
+          SOAK: ${{ needs.soak.result }}
+        shell: bash
+        run: |
+          printf 'Profiles: %s\nSoak: %s\n' "$PROFILES" "$SOAK" >> "$GITHUB_STEP_SUMMARY"
+          for result in "$PROFILES" "$SOAK"; do
+            [[ "$result" == success || "$result" == skipped ]] || exit 1
+          done

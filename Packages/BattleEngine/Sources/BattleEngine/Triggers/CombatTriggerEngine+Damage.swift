@@ -126,7 +126,7 @@ package extension CombatTriggerEngine {
             bonus += triggers.damageWhileTargetStunnedBonus
         }
 
-        if triggers.damageBelowHealthPercentBonus > 0,
+        if state.options.isAttackHit, triggers.damageBelowHealthPercentBonus > 0,
            triggers.damageBelowHealthPercentKeyword == nil || triggers.damageBelowHealthPercentKeyword == damageKeyword
            || triggers.damageBelowHealthPercentKeyword == sharedKeyword,
            triggers.damageBelowHealthPercentThreshold > 0,

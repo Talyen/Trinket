@@ -108,14 +108,14 @@ def stop_worker(process, owned_worker, *, immediate=False):
         process.wait()
 
 
-def worker(args, template, name, operation="run", source=None, crash_after=None, seed=None, crash_settlement=False, expected=None):
+def worker(args, template, name, operation="run", source=None, crash_after=None, seed=None, crash_settlement=False, expected=None, crash_before_settlement=False):
     folder = args.output / name
     request = args.output / f"{name}-request.json"
     request.write_text(json.dumps({"operation": operation, "output": str(folder), "seed": seed or args.seed,
                                    "horizon": args.horizon, "fullAccess": args.full_access,
                                    "source": str(source) if source else None, "crashAfter": crash_after,
                                    "mode": args.mode, "policy": args.policy, "hero": args.hero, "companion": args.companion,
-                                   "scenarioPath": str(args.scenario.resolve()) if args.scenario else None, "crashSettlement": crash_settlement, "expected": str(expected) if expected else None}))
+                                   "scenarioPath": str(args.scenario.resolve()) if args.scenario else None, "crashSettlement": crash_settlement, "crashBeforeSettlement": crash_before_settlement, "expected": str(expected) if expected else None}))
     runfile = args.output / f"{name}.xctestrun"
     configure_worker(template, request, runfile)
     command = ["xcodebuild", "test-without-building", "-xctestrun", str(runfile),
@@ -533,6 +533,16 @@ def run_sweep(args):
         shutil.copytree(source, archive)
         summaries.append(worker(args, template, "recovery", "recover", archive))
         summaries.append(worker(args, template, "replay", "replay", archive))
+        summaries.append(worker(args, template, "before-settlement-interrupted", crash_before_settlement=True))
+        before_archive = args.output / "before-settlement-archive"
+        shutil.copytree(args.output / "before-settlement-interrupted", before_archive)
+        summaries.append(worker(args, template, "before-settlement-recovery", "recover", before_archive,
+                                expected=before_archive / "pre-settlement-save.json"))
+        summaries.append(worker(args, template, "before-settlement-replay", "replay", before_archive))
+        summaries.append(worker(args, template, "cloud-interrupted", "cloud-crash"))
+        cloud_archive = args.output / "cloud-archive"
+        shutil.copytree(args.output / "cloud-interrupted", cloud_archive)
+        summaries.append(worker(args, template, "cloud-recovery", "cloud-recover", cloud_archive))
         summaries.append(worker(args, template, "settlement-interrupted", crash_settlement=True))
         settlement_archive = args.output / "settlement-archive"
         shutil.copytree(args.output / "settlement-interrupted", settlement_archive)
@@ -548,9 +558,9 @@ def run_sweep(args):
     print(f"Report: {args.output / 'report.html'}")
     print(f"Agent summary: {args.output / 'report-agent.md'}")
     if args.crash_proof:
-        success = all((args.output / name / "interrupted.json").exists() for name in ("interrupted", "settlement-interrupted")) and all(
-            s["exitCode"] == 0 and s["termination"] in {"recoveredCapturedStore", "replayedUnknownOutcome"}
-            for s in summaries if s["worker"] not in {"interrupted", "settlement-interrupted"})
+        success = all((args.output / name / "interrupted.json").exists() for name in ("interrupted", "before-settlement-interrupted", "cloud-interrupted", "settlement-interrupted")) and all(
+            s["exitCode"] == 0 and s["termination"] in {"recoveredCapturedStore", "replayedUnknownOutcome", "cloudProcessRecovered"}
+            for s in summaries if s["worker"] not in {"interrupted", "before-settlement-interrupted", "cloud-interrupted", "settlement-interrupted"})
     else:
         success = all(s["exitCode"] == 0 and s["termination"] in {"completedObjective", "replayedRecordedActions", "reproducedFailure"} for s in summaries)
     return 0 if success else 1

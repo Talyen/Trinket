@@ -20,6 +20,8 @@ named talent only:
 Golden Opportunity draws on the first qualifying Gold gain per round. Wildcard's
 Lucky Charm rolls once per Gold-gaining ability and Cleanses one negative status
 effect only when the roll succeeds and the owner has a removable effect.
+Coinmail converts its fraction of Gold using ordinary combat rounding, including
+odd gains such as Fickle Fortune's 3 or 7 Gold.
 
 ### Arcane Thorns, Living Conduit, and Grove Reserve
 
@@ -238,6 +240,9 @@ Typed Critical Hit rewards also recognize full Basic counterattacks. Frost Circu
 restores Mana for each Freeze Critical Hit; Noxious Reaction, Cutpurse Cut, Ashen
 Arsenal, and Companion Burn Critical Hit Mana retain their existing reward cadence.
 Critical healing, ongoing damage, and non-attack effects do not qualify.
+Companion attack rewards such as Bone Shield and Bloodrush also recognize full
+Basic counterattacks. Their ability allowances belong to that counterattack,
+independently of an interrupted card's allowance.
 
 Temper Cycle also readies its Bleed bonus after a Burn Basic counterattack.
 Toxic Transfusion requires the Companion to survive the Critical Hit's retaliation

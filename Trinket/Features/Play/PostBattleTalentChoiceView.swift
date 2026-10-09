@@ -20,6 +20,7 @@ struct PostBattleTalentChoiceView: View {
                     .transition(.opacity)
             }
         }
+        .coverageTalentCheckpoint(hasConfirmation: play.postBattleTalentConfirmationID != nil)
         .animation(TrinketMotion.Screen.crossfade, value: play.currentPostBattleTalentCombatantID)
         .onChange(of: play.currentPostBattleTalentCombatantID, initial: true) { _, id in
             if let id {
@@ -28,6 +29,13 @@ struct PostBattleTalentChoiceView: View {
         }
         .task(id: play.postBattleTalentConfirmationID) {
             guard let id = play.postBattleTalentConfirmationID else { return }
+            #if DEBUG
+            let arguments = ProcessInfo.processInfo.arguments
+            if arguments.contains("-hold-talent-confirmation"), arguments.contains("-store-name"),
+               arguments.contains("-disable-cloud-sync") {
+                return
+            }
+            #endif
             do {
                 try await Task.sleep(for: .seconds(TrinketMotion.Interaction.confirmationDuration))
                 try Task.checkCancellation()
@@ -275,5 +283,22 @@ private struct PostBattleTalentChoiceContent: View {
             repeating: GridItem(.flexible(), spacing: TrinketDesign.Spacing.small),
             count: 3,
         )
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func coverageTalentCheckpoint(hasConfirmation: Bool) -> some View {
+        #if DEBUG
+        overlay(alignment: .topLeading) {
+            if hasConfirmation, ProcessInfo.processInfo.arguments.contains("-hold-talent-confirmation") {
+                Text("Committed talent checkpoint")
+                    .accessibilityIdentifier(AccessibilityID.Debug.talentConfirmationCheckpoint)
+                    .allowsHitTesting(false)
+            }
+        }
+        #else
+        self
+        #endif
     }
 }

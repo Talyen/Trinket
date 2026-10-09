@@ -40,7 +40,7 @@ package extension BattleState {
 
     mutating func claimTalentAbility(_ claim: CombatActivationClaim, actorID: String) -> Bool {
         guard allowsHeroTalentReaction else { return false }
-        let cadence: CombatResolution.Cadence = if resolution.cardTalents?.actorID == actorID,
+        let cadence: CombatResolution.Cadence = if hasHeroCard(for: actorID),
                                                    let serial = resolution.cardTalents?.playSerial {
             .card(serial)
         } else if let actionID = resolution.actionID {
@@ -51,6 +51,19 @@ package extension BattleState {
             .standaloneAction(actionCount)
         }
         return resolution.claim(.heroTalent(claim), actorID: actorID, cadence: cadence)
+    }
+
+    mutating func claimActionGuard(_ kind: CombatActivationClaim, actorID: String) -> Bool {
+        let cadence = resolution.actionID.map(CombatResolution.Cadence.action) ?? .standaloneAction(actionCount)
+        return resolution.claim(.talent(kind), actorID: actorID, cadence: cadence)
+    }
+
+    mutating func claimBattleGuard(_ kind: CombatActivationClaim, actorID: String) -> Bool {
+        resolution.claim(.talent(kind), actorID: actorID, cadence: .battle)
+    }
+
+    mutating func claimTurnGuard(_ kind: CombatActivationClaim, actorID: String) -> Bool {
+        resolution.claim(.talent(kind), actorID: actorID, cadence: .turn(turnCount))
     }
 
     func hasTalentDebuff(on target: Combatant) -> Bool {

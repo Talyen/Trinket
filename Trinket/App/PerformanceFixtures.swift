@@ -16,7 +16,8 @@ enum PerformanceFixtures {
             ? AppEnvironment.shared.mysteryRecruitEventID : nil
         let wantsHomesteadBuild = arguments.contains("-performance-homestead-build")
         let wantsStrongParty = arguments.contains("-performance-strong-party")
-        let wantsTalentFixture = arguments.contains("-performance-talent-reward")
+        let wantsTalentPair = arguments.contains("-coverage-talent-pair")
+        let wantsTalentFixture = wantsTalentPair || arguments.contains("-performance-talent-reward")
             || arguments.contains("-performance-talent-point")
         let wantsTalentPoint = arguments.contains("-performance-talent-point")
         let wantsLabyrinthScroll = arguments.contains("-performance-labyrinth-scroll")
@@ -34,7 +35,7 @@ enum PerformanceFixtures {
             mysteryEvent: mysteryEvent, wantsHomesteadBuild: wantsHomesteadBuild,
             wantsStrongParty: wantsStrongParty, wantsTalentFixture: wantsTalentFixture,
             wantsTalentPoint: wantsTalentPoint, wantsLabyrinthScroll: wantsLabyrinthScroll,
-            labyrinthNodeType: labyrinthNodeType,
+            labyrinthNodeType: labyrinthNodeType, wantsTalentPair: wantsTalentPair,
         )
     }
 }

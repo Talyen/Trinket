@@ -3,8 +3,9 @@ from __future__ import annotations
 
 SCRIPT_INPUTS = (
     'Scripts/check-testplan-sync.py',
+    'Scripts/internal/ui_registration.py',
+    'Scripts/internal/change_routing.py',
     'Scripts/config/ui-tests.tsv',
-    'Scripts/lib/smoke-classes.sh',
 )
 
 
@@ -17,6 +18,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from script_test_support import ROOT, load_script
+from internal.change_routing import classify
 
 REGISTRY = load_script('ui_registration', 'check-testplan-sync.py')
 
@@ -24,7 +26,7 @@ REGISTRY = load_script('ui_registration', 'check-testplan-sync.py')
 class UIRegistrationTests(unittest.TestCase):
     def test_registered_classes_reach_plans_filters_and_local_routing(self):
         rows = REGISTRY.registrations()
-        for suite in ('Smoke', 'FullUI'):
+        for suite in REGISTRY.SUITES:
             expected = [row['name'] for row in rows if row['suite'] == suite]
             filters = subprocess.check_output(
                 ['python3', 'Scripts/check-testplan-sync.py', '--classes', suite], cwd=ROOT, text=True,
@@ -32,10 +34,13 @@ class UIRegistrationTests(unittest.TestCase):
             self.assertEqual(filters, expected)
             plan = json.loads((ROOT / f'{suite}.xctestplan').read_text())
             self.assertEqual(REGISTRY.plan_target(plan)['selectedTests'], expected)
-        output = subprocess.check_output(['bash', '-c', 'source Scripts/lib/smoke-classes.sh; env'], cwd=ROOT, text=True)
-        for row in rows:
-            if row['suite'] == 'Smoke':
-                self.assertIn(f"TRINKET_SMOKE_CLASS_{row['key']}={row['name']}", output)
+        smoke = {row['key']: row['name'] for row in rows if row['suite'] == 'Smoke'}
+        for path, key in (
+            ('Trinket/Features/Play/Shop/Probe.swift', 'SHOP'),
+            ('Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Probe.swift', 'BATTLE'),
+            ('Trinket/Features/Collection/Probe.swift', 'SHELL'),
+        ):
+            self.assertEqual(classify([path]).smoke_targets, [smoke[key]])
         self.assertEqual(REGISTRY.testplan_failures(), [])
 
     def test_generation_preserves_settings_and_rejects_missing_or_duplicate_classes(self):

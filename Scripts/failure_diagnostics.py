@@ -5,15 +5,13 @@ from __future__ import annotations
 
 import argparse
 import os
-import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
 
 from internal.diagnostics import xcresult_diagnostics as xcresult
 from internal.diagnostics.diagnostic_model import (
-    CLASSIFICATIONS, CLASSIFICATION_PRECEDENCE, GENERIC_MESSAGES, MAX_ISSUES, MAX_LINES,
+    CLASSIFICATION_PRECEDENCE, MAX_ISSUES, MAX_LINES,
     DiagnosticIssue, DiagnosticReport, IssueAccumulator, IssueObservation, SourceStatus,
     identifier_aliases,
 )

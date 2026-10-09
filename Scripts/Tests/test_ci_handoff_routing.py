@@ -8,6 +8,7 @@ SCRIPT_INPUTS = (
     'Scripts/handoff.sh',
     'Scripts/verify.py',
     'Scripts/internal/change_routing.py',
+    'Scripts/internal/ui_registration.py',
     'Scripts/lib/args.sh',
     'Scripts/lib/cheap-slices.sh',
     'Scripts/lib/gate.sh',

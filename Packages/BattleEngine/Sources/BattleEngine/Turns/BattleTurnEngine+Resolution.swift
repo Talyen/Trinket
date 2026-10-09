@@ -13,6 +13,40 @@ extension BattleTurnEngine {
         }
     }
 
+    struct NextStrikeConsumption: OptionSet {
+        let rawValue: UInt8
+
+        init(rawValue: UInt8) {
+            self.rawValue = rawValue
+        }
+
+        static let holyStrike = Self(rawValue: 1 << 0)
+        static let double = Self(rawValue: 1 << 1)
+        static let critical = Self(rawValue: 1 << 2)
+        static let leech = Self(rawValue: 1 << 3)
+        static let burnBonus = Self(rawValue: 1 << 4)
+
+        var consumedKinds: Set<EffectKind> {
+            var kinds = Set<EffectKind>()
+            if contains(.holyStrike) {
+                kinds.insert(.nextHolyStrike)
+            }
+            if contains(.double) {
+                kinds.insert(.nextStrikeDouble)
+            }
+            if contains(.critical) {
+                kinds.insert(.nextStrikeCritical)
+            }
+            if contains(.leech) {
+                kinds.insert(.nextStrikeLeech)
+            }
+            if contains(.burnBonus) {
+                kinds.insert(.nextBurnBonus)
+            }
+            return kinds
+        }
+    }
+
     private struct PreparedDamageComponent {
         let request: DamageRequest
         let target: Combatant

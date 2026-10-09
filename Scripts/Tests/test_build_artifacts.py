@@ -29,7 +29,7 @@ import subprocess
 import tempfile
 import unittest
 
-from test_build_metadata import fake_toolchain
+from script_test_support import fake_toolchain
 
 ROOT = Path(__file__).resolve().parents[2]
 

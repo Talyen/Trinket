@@ -51,7 +51,9 @@ Burn and Poison attached by damaging attacks or effect applications store the
 actual Health damage dealt by that damage instance, after offensive bonuses,
 critical damage, mitigation and Block. Fully blocked, dodged or otherwise
 zero-Health-damage applications attach no stacks. This rule is identical for
-party members and enemies. Subsequent Burn/Poison ticks, consumed-stack damage
+party members and enemies. Blazing Feathers, Toxic Incense, and Toxic Remedy leave
+stacks equal to their own hit's Health loss, without another immediate hit.
+Subsequent Burn/Poison ticks, consumed-stack damage
 and detonations use resolved potency: do not repeat outgoing flat/percent bonuses,
 critical multipliers or fight pacing. Current recipient defenses still apply.
 Reaction damage reports its own Health loss separately from nested control,

@@ -5,57 +5,49 @@ import TrinketCore
 @testable import BattleEngine
 
 struct ColdSnapControlProtectionTests {
+    private static let multiplyFreeze = Ability(
+        id: "multiply-freeze", name: "Multiply Freeze", tier: .skill, effects: [.multiplyControlMeter(.freeze, 2)],
+    )
+
     @Test func `Steadfast blocks control multiplication from doubling existing Freeze buildup`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, abilities: [.coldSnap])
         var heroModifiers = CombatModifierProfile.zero
         heroModifiers.triggers.blockedControlPrevention = true
         var battle = BattleStateTestFactory.makeBattle(
-            hero: hero, companion: companion, enemy: enemy,
+            hero: CombatantFixtures.passiveHero(maxHealth: 20),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, abilities: [.coldSnap]),
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 4), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .shield(.block, 3), remainingTurns: 0),
             ],
-            heroModifiers: heroModifiers, dealOpeningHand: false,
+            heroModifiers: heroModifiers,
+            dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
 
         _ = BattleTurnEngine.performAction(
-            ability: Ability(
-                id: "multiply-freeze",
-                name: "Multiply Freeze",
-                tier: .skill,
-                effects: [.multiplyControlMeter(.freeze, 2)],
-            ), actor: enemy, abilityTarget: hero, context: &battle,
+            ability: Self.multiplyFreeze, actor: battle.enemy, abilityTarget: battle.hero, context: &battle,
         )
 
-        let meter = try #require(battle.activeEffects(of: hero).first { $0.keyword == .freeze })
+        let meter = try #require(battle.activeEffects(of: battle.hero).first { $0.keyword == .freeze })
         #expect(meter.effect.controlMeterValues?.amount == 1)
-        #expect(!battle.roster.hasPendingActionSkip(for: hero, keyword: .freeze))
+        #expect(!battle.roster.hasPendingActionSkip(for: battle.hero, keyword: .freeze))
     }
 
     @Test func `Perfect Purity blocks control multiplication from doubling existing Freeze buildup`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, abilities: [.coldSnap])
         var battle = BattleStateTestFactory.makeBattle(
-            hero: hero, enemy: enemy,
+            hero: CombatantFixtures.passiveHero(maxHealth: 20),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, abilities: [.coldSnap]),
             activeHeroEffects: [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 4), remainingTurns: 0)],
             dealOpeningHand: false,
         )
-        battle.roster.mutateRuntime(for: hero) { $0.talents.turn.negativeStatusImmune = true }
+        battle.roster.mutateRuntime(for: battle.hero) { $0.talents.turn.negativeStatusImmune = true }
         battle.appliesFightPacing = false
 
         _ = BattleTurnEngine.performAction(
-            ability: Ability(
-                id: "multiply-freeze",
-                name: "Multiply Freeze",
-                tier: .skill,
-                effects: [.multiplyControlMeter(.freeze, 2)],
-            ), actor: enemy, abilityTarget: hero, context: &battle,
+            ability: Self.multiplyFreeze, actor: battle.enemy, abilityTarget: battle.hero, context: &battle,
         )
 
-        let meter = try #require(battle.activeEffects(of: hero).first { $0.keyword == .freeze })
+        let meter = try #require(battle.activeEffects(of: battle.hero).first { $0.keyword == .freeze })
         #expect(meter.effect.controlMeterValues?.amount == 1)
     }
 }

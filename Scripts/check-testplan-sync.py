@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import re
 import sys
@@ -10,42 +11,18 @@ from collections import Counter
 from pathlib import Path
 
 from internal.cli import ROOT, read_json
-
-REGISTRY = 'Scripts/config/ui-tests.tsv'
-
-
-def registrations(root: Path = ROOT) -> list[dict]:
-    rows, classes, keys = [], set(), set()
-    for number, line in enumerate((root / REGISTRY).read_text().splitlines(), 1):
-        if not line.strip() or line.startswith('#'):
-            continue
-        parts = line.split('|')
-        if len(parts) != 3:
-            raise ValueError(f'{REGISTRY}:{number}: expected suite|key|class')
-        suite, key, name = parts
-        if (suite not in {'Smoke', 'FullUI'} or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', name)
-                or (suite == 'Smoke' and not re.fullmatch(r'[A-Z][A-Z0-9_]*', key))
-                or (suite == 'FullUI' and key)):
-            raise ValueError(f'{REGISTRY}:{number}: invalid registration')
-        if name in classes or (key and key in keys):
-            raise ValueError(f'{REGISTRY}:{number}: duplicate class or routing key')
-        classes.add(name)
-        keys.add(key)
-        rows.append(dict(suite=suite, key=key, name=name))
-    if {row['suite'] for row in rows} != {'Smoke', 'FullUI'}:
-        raise ValueError(f'{REGISTRY}: both Smoke and FullUI must be nonempty')
-    return rows
+from internal.ui_registration import REGISTRY, SUITES, registrations
 
 
 def registration_failures(root: Path, rows: list[dict]) -> list[str]:
     failures = []
-    declarations = {'Smoke': [], 'FullUI': []}
+    declarations = {suite: [] for suite in SUITES if any(row['suite'] == suite for row in rows)}
     for path in sorted((root / 'TrinketUITests').rglob('*.swift')):
         parts = path.relative_to(root).parts
         if any(part in {'Performance', 'Support'} for part in parts):
             continue
-        suite = 'Smoke' if 'Smoke' in parts else 'FullUI'
-        declarations[suite].extend(re.findall(r'^[ \t]*(?:final\s+)?class\s+(\w+)\s*:\s*\w+UITestCase', path.read_text(), re.M))
+        suite = next((name for name in ('Smoke', 'Profiles', 'Soak') if name in parts), 'FullUI')
+        declarations.setdefault(suite, []).extend(re.findall(r'^[ \t]*(?:final\s+)?class\s+(\w+)\s*:\s*\w+UITestCase', path.read_text(), re.M))
     for suite, declared in declarations.items():
         registered = {row['name'] for row in rows if row['suite'] == suite}
         if set(declared) != registered:
@@ -76,9 +53,9 @@ def generate(root: Path, rows: list[dict]) -> None:
     if failures:
         raise ValueError('; '.join(failures))
     updates = []
-    for suite in ('Smoke', 'FullUI'):
+    for suite in dict.fromkeys(row['suite'] for row in rows):
         path = root / f'{suite}.xctestplan'
-        plan = read_json(path)
+        plan = read_json(path) if path.exists() else copy.deepcopy(read_json(root / 'FullUI.xctestplan'))
         selected = [row['name'] for row in rows if row['suite'] == suite]
         target = plan_target(plan)
         if target.get('selectedTests') == selected:
@@ -93,7 +70,7 @@ def testplan_failures() -> list[str]:
     try:
         rows = registrations(ROOT)
         failures = registration_failures(ROOT, rows)
-        for suite in ('Smoke', 'FullUI'):
+        for suite in dict.fromkeys(row['suite'] for row in rows):
             selections = plan_target(read_json(ROOT / f'{suite}.xctestplan')).get('selectedTests', [])
             expected = [row['name'] for row in rows if row['suite'] == suite]
             if selections != expected:
@@ -120,7 +97,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--generate', action='store_true', help='update only UI test-plan selections')
-    mode.add_argument('--classes', choices=('Smoke', 'FullUI'), help='emit class filters for a serial suite')
+    mode.add_argument('--classes', choices=SUITES, help='emit class filters for a serial suite')
     parser.add_argument('--root', type=Path, default=ROOT, help='project root for generation')
     args = parser.parse_args()
     try:

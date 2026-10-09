@@ -5,17 +5,32 @@ import TrinketCore
 @testable import BattleEngine
 
 struct AlchemyAffixPortTests {
-    @Test func `Spitebloom follows damaging Thorns with Poison`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.poisonOnThornsDamage = 2
+    private func makeAffixBattle(
+        heroHealth: Int? = nil,
+        heroEffects: [ActiveEffect] = [],
+        enemyEffects: [ActiveEffect] = [],
+        modifiers: CombatModifierProfile = .zero,
+    ) -> BattleState {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroEffects: [ActiveEffect(id: 1, effect: .thorns(3), remainingTurns: 0)],
-            heroModifiers: profile,
+            heroEffects: heroEffects,
+            enemyEffects: enemyEffects,
+            heroHealth: heroHealth,
+            heroModifiers: modifiers,
         )
         battle.appliesFightPacing = false
+        return battle
+    }
+
+    @Test func `Spitebloom follows damaging Thorns with Poison`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.poisonOnThornsDamage = 2
+        var battle = makeAffixBattle(
+            heroEffects: [ActiveEffect(id: 1, effect: .thorns(3), remainingTurns: 0)],
+            modifiers: profile,
+        )
 
         _ = battle.resolveDamage(DamageRequest(
             amount: 2, target: battle.hero, keyword: .physical,
@@ -29,26 +44,14 @@ struct AlchemyAffixPortTests {
     @Test func `Bloodroot needs actual Leech restoration and no existing Thorns`() {
         var profile = CombatModifierProfile.zero
         profile.triggers.leechThornsWithoutThorns = 2
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 40),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
-            heroHealth: 10,
-            heroModifiers: profile,
-        )
-        battle.appliesFightPacing = false
+        var battle = makeAffixBattle(heroHealth: 10, modifiers: profile)
 
         _ = CombatExecutor.run { await HealingEngine.leechFromDamage(8, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle) }
         #expect(thorns(on: battle.hero, in: battle) == 2)
         _ = CombatExecutor.run { await HealingEngine.leechFromDamage(8, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle) }
         #expect(thorns(on: battle.hero, in: battle) == 2)
 
-        var full = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 40),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
-            heroModifiers: profile,
-        )
+        var full = makeAffixBattle(modifiers: profile)
         _ = CombatExecutor.run { await HealingEngine.leechFromDamage(8, sourceActorID: full.hero.id, abilityHasLeech: true, in: &full) }
         #expect(thorns(on: full.hero, in: full) == 0)
     }
@@ -57,14 +60,7 @@ struct AlchemyAffixPortTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.physicalAttackLeechBelowHalfHealth = true
         func strike(at health: Int, keyword: Keyword) -> Int {
-            var battle = BattleStateTestFactory.makeMinimalBattle(
-                hero: CombatantFixtures.passiveHero(maxHealth: 40),
-                companion: CombatantFixtures.passiveCompanion(),
-                enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-                heroHealth: health,
-                heroModifiers: profile,
-            )
-            battle.appliesFightPacing = false
+            var battle = makeAffixBattle(heroHealth: health, modifiers: profile)
             _ = battle.resolveDamage(DamageRequest(
                 amount: 8, target: battle.enemy, keyword: keyword,
                 sourceActorID: battle.hero.id,
@@ -81,14 +77,7 @@ struct AlchemyAffixPortTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.leechStunBelowHalfHealth = 2
         profile.triggers.leechChancePercent = 1
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 40),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroHealth: 10,
-            heroModifiers: profile,
-        )
-        battle.appliesFightPacing = false
+        var battle = makeAffixBattle(heroHealth: 10, modifiers: profile)
 
         _ = CombatExecutor.run { await HealingEngine.leechFromDamage(
             8, sourceActorID: battle.hero.id, target: battle.enemy,
@@ -97,13 +86,7 @@ struct AlchemyAffixPortTests {
         #expect(battle.health(of: battle.hero) == 14)
         #expect(battle.health(of: battle.enemy) == 38)
 
-        var healthy = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 40),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroHealth: 20,
-            heroModifiers: profile,
-        )
+        var healthy = makeAffixBattle(heroHealth: 20, modifiers: profile)
         _ = CombatExecutor.run { await HealingEngine.leechFromDamage(
             8, sourceActorID: healthy.hero.id, target: healthy.enemy,
             abilityHasLeech: true, in: &healthy,
@@ -115,14 +98,10 @@ struct AlchemyAffixPortTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.poisonDamageVsBleedingFlat = 2
         func damage(bleeding: Bool, operation: DamageOperation) -> Int {
-            var battle = BattleStateTestFactory.makeMinimalBattle(
-                hero: CombatantFixtures.passiveHero(maxHealth: 40),
-                companion: CombatantFixtures.passiveCompanion(),
-                enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
+            var battle = makeAffixBattle(
                 enemyEffects: bleeding ? [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)] : [],
-                heroModifiers: profile,
+                modifiers: profile,
             )
-            battle.appliesFightPacing = false
             _ = battle.resolveDamage(DamageRequest(
                 amount: 4, target: battle.enemy, keyword: .poison,
                 sourceActorID: battle.hero.id, options: operation,
@@ -143,13 +122,7 @@ struct AlchemyAffixPortTests {
         func block(startingWith initialBlock: Int, operation: DamageOperation) -> Int {
             let effects = initialBlock > 0
                 ? [ActiveEffect(id: 1, effect: .shield(.block, initialBlock), remainingTurns: 2)] : []
-            var battle = BattleStateTestFactory.makeMinimalBattle(
-                hero: CombatantFixtures.passiveHero(maxHealth: 40),
-                companion: CombatantFixtures.passiveCompanion(),
-                enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-                heroEffects: effects, heroModifiers: profile,
-            )
-            battle.appliesFightPacing = false
+            var battle = makeAffixBattle(heroEffects: effects, modifiers: profile)
             _ = battle.resolveDamage(DamageRequest(
                 amount: 4, target: battle.enemy, keyword: .holy,
                 sourceActorID: battle.hero.id, options: operation,
@@ -168,13 +141,7 @@ struct AlchemyAffixPortTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.holyDamageVsStunnedPercent = 0.25
         func holyDamage(stunned: Bool) -> Int {
-            var battle = BattleStateTestFactory.makeMinimalBattle(
-                hero: CombatantFixtures.passiveHero(maxHealth: 40),
-                companion: CombatantFixtures.passiveCompanion(),
-                enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-                heroModifiers: profile,
-            )
-            battle.appliesFightPacing = false
+            var battle = makeAffixBattle(modifiers: profile)
             if stunned {
                 _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
                     20, keyword: .stun, to: battle.enemy,

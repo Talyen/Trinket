@@ -129,6 +129,25 @@ extension UniqueCollectionTests {
         #expect(blockAmount(owner, in: context) == 4)
     }
 
+    @Test func `Alpha Might strengthens attacks without amplifying Laughing Guard retaliation`() throws {
+        var profile = CombatantTalentCatalog.profile(for: ["wolf_physical_t2_2"])
+        profile.triggers.criticalChanceBonus = -1
+        var context = try battle(["laughing_guard"], owner: .companion, extra: profile)
+        context.roster.enemy.currentHealth = 900
+        block(10, owner: .companion, in: &context)
+
+        _ = CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(
+            by: context.companion, attackerID: context.enemy.id, in: &context,
+        ) }
+
+        #expect(context.health(of: context.enemy) == 895)
+        let hit = context.resolveDamage(DamageRequest(
+            amount: 4, target: context.enemy, keyword: .physical, sourceActorID: context.companion.id,
+            options: .attack(accuracy: .unavoidable),
+        ))
+        #expect(hit.healthLost == 6)
+    }
+
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `knights answer requires actual absorption and uses full basic`(owner: BattleParticipant) throws {
         let basic = Ability(id: "answer", name: "Answer", tier: .basic, effects: [.shield(.block, 3), .instantHeal(.health, 5)])
@@ -234,5 +253,29 @@ extension UniqueCollectionTests {
         #expect(context.health(of: context.hero) == (finallyDefeated ? 0 : 1))
         #expect(blockAmount(.hero, in: context) == (finallyDefeated ? 0 : 4))
         #expect(outcome.events.contains { $0.abilityName == "Rimeheart" && $0.amount == 4 } == !finallyDefeated)
+    }
+
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `Rimeheart copies Freeze Health damage without scaling Block or spending preparation`(owner: BattleParticipant) throws {
+        var extra = CombatModifierProfile(blockGainedBonus: 3)
+        extra.triggers.blockGainBelowHalfMultiplier = 1.5
+        var context = try battle(["rimeheart_locket"], owner: owner, extra: extra)
+        let actor = context.roster[owner].combatant
+        context.roster.mutateRuntime(for: actor) {
+            $0.currentHealth = 10
+            $0.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(value: 2)
+        }
+
+        let outcome = context.resolveDamage(DamageRequest(
+            amount: 8, target: context.enemy, keyword: .freeze, sourceActorID: actor.id,
+            options: .effect(scaling: .flat),
+        ))
+
+        #expect(outcome.healthLost == 8)
+        #expect(blockAmount(owner, in: context) == outcome.healthLost)
+        #expect(context.roster.runtime(for: actor)?.talents.pending.nextBlockGainMultiplier?.value == 2)
+        #expect(outcome.events.contains {
+            $0.effectKind == .shieldApplied && $0.abilityName == "Rimeheart" && $0.amount == outcome.healthLost
+        })
     }
 }

@@ -15,6 +15,8 @@ restoration events, battle-log totals, and healing triggers still use actual res
 `CombatGain` owns bounded applied gains; proportional effects use `CombatRounding`
 without an implicit minimum-one grant. Lingering Blessing stores its amount,
 source, and remaining duration together.
+Turn start consumes due Lingering Blessing repeats before restoration reactions
+can queue replacements; newly queued repeats wait for the next player turn.
 Block grants declare a base or resolved amount through `BlockAmountBasis`.
 Duplication, transfer, and already-scaled gains use `.resolved` to avoid applying
 outgoing bonuses and fight pacing again; consequences read `BlockGain.applied`.

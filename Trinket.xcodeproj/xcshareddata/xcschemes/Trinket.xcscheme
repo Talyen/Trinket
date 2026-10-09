@@ -40,6 +40,12 @@
          <TestPlanReference
             reference = "container:FullUI.xctestplan">
          </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Profiles.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Soak.xctestplan">
+         </TestPlanReference>
       </TestPlans>
       <MacroExpansion>
          <BuildableReference

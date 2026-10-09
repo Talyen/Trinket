@@ -43,6 +43,10 @@ StoreKit integration tests run in `FullGamePurchaseSmokeTests` against the app.
 The standalone SPM test process cannot act as the app's StoreKit purchase host;
 package tests cover purchase result states and game access policies.
 
+Automated pending/decline/cancellation, restore and revocation coverage is owned
+by [Player coverage](PlayerCoverage.md). Local StoreKit stimuli do not establish
+live service or family-ownership behavior.
+
 ## Before release
 
 - Enroll in the Apple Developer Program; complete the Paid Apps Agreement,

@@ -173,6 +173,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                 primaryActionEntranceOffset: 0,
             )
         }
+        .coverageRewardCheckpoint(isCollected: collection.isCollected)
         .scrollDisabled(collection.isCompleting)
         .trinketSensoryFeedback(.success, trigger: collection.feedbackTrigger, enabled: action.hapticsEnabled)
         .onChange(of: scenePhase) { _, phase in
@@ -283,5 +284,23 @@ public extension RewardRevealExperienceScreen where EmptyExperience == EmptyView
             contentStackSpacing: contentStackSpacing,
             emptyExperience: { EmptyView() },
         )
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func coverageRewardCheckpoint(isCollected: Bool) -> some View {
+        #if DEBUG
+        overlay(alignment: .topLeading) {
+            if isCollected, ProcessInfo.processInfo.arguments.contains("-hold-reward-collection") {
+                Text("Committed reward checkpoint")
+                    .trinketTypography(.footnote)
+                    .accessibilityIdentifier(AccessibilityID.Debug.rewardCollectionCheckpoint)
+                    .allowsHitTesting(false)
+            }
+        }
+        #else
+        self
+        #endif
     }
 }

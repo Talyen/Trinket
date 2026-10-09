@@ -8,7 +8,6 @@ public struct BattleTurnCadence: Equatable, Hashable, Sendable {
     public var burnManaRestored: [BattleParticipant: Int]
     public var spendManaDrawOwners: Set<BattleParticipant>
     public var healthLossDrawOwners: Set<BattleParticipant>
-    public var goldDrawOwners: Set<BattleParticipant>
 
     public init(
         cardsPlayed: [BattleParticipant: Int] = [:],
@@ -17,7 +16,6 @@ public struct BattleTurnCadence: Equatable, Hashable, Sendable {
         burnManaRestored: [BattleParticipant: Int] = [:],
         spendManaDrawOwners: Set<BattleParticipant> = [],
         healthLossDrawOwners: Set<BattleParticipant> = [],
-        goldDrawOwners: Set<BattleParticipant> = [],
     ) {
         self.cardsPlayed = cardsPlayed
         self.skillCardsPlayed = skillCardsPlayed
@@ -25,7 +23,6 @@ public struct BattleTurnCadence: Equatable, Hashable, Sendable {
         self.burnManaRestored = burnManaRestored
         self.spendManaDrawOwners = spendManaDrawOwners
         self.healthLossDrawOwners = healthLossDrawOwners
-        self.goldDrawOwners = goldDrawOwners
     }
 
     public mutating func reset() {

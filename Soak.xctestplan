@@ -1,0 +1,26 @@
+{
+  "configurations": [
+    {
+      "id": "C1D2E3F4-A5B6-7890-CDEF-1234567890AB",
+      "name": "Default Configuration",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {
+    "testExecutionOrdering": "alphabetical"
+  },
+  "testTargets": [
+    {
+      "automaticallyIncludesTests": false,
+      "selectedTests": [
+        "RepeatedPlayUITests"
+      ],
+      "target": {
+        "containerPath": "container:Trinket.xcodeproj",
+        "identifier": "2B112CD93B7BA74516E26AC2",
+        "name": "TrinketUITests"
+      }
+    }
+  ],
+  "version": 1
+}

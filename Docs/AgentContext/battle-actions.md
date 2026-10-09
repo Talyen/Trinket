@@ -91,7 +91,10 @@ can absorb that action, and end-turn healing and Cleanse finish before it begins
 Round effects and passive Block decay follow the enemy action.
 Turn cadences recheck battle completion and source survival between operations and
 party recipients, including End Turn, Purifying Aura, and Gold/Health regeneration.
-A victory during one of these reactions stops the remaining cadence rewards.
+A victory during one of these reactions stops the remaining cadence rewards,
+including the other party member's ordinary turn-start Mana restoration.
+A Dodge-triggered automatic card chain rechecks its owner before later Dodge
+rewards; defeat during the drawn card cannot grant Tailwind afterward.
 
 ## Mana payments and cadence
 
@@ -176,7 +179,9 @@ playback and command readiness live in [battle presentation](battle-presentation
 recipients, and resource-use quotes for the battle interaction cues. It shares
 affordability, possible outcomes, targeting, and the Mana empowerment budget with
 resolution. Assessment never advances RNG or consumes combat preparations.
-Automatic-play recipients remain unresolved until their drawn actions execute.
+Random damage elements retain a certain recipient with an unspecified damage
+keyword when every outcome damages that recipient. Automatic-play recipients
+remain unresolved until their drawn actions execute.
 Targets that depend on preceding effects remain unresolved; Panacea exposes
 its separate cleanse and healing recipients unless Fresh Batch can change the
 healing recipient after Cleanse. Branch-dependent costs and reactive repeated payments remain non-quantitative;

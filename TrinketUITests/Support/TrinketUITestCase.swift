@@ -69,6 +69,19 @@ enum TestLaunchArg {
         return args
     }
 
+    static func productionTiming(tab: String = "play", audio: Bool = false) -> [String] {
+        var args = allForTab(tab)
+        if let index = args.firstIndex(of: "-battle-tick-interval") {
+            args.removeSubrange(index ... index + 1)
+        }
+        if audio {
+            args.removeAll { $0 == "-disable-audio" }
+        }
+        return args
+    }
+
+    static let rewardCheckpoint = "-hold-reward-collection"
+
     static let enableFrameMetrics = "-enable-frame-metrics"
 
     static func allForAppPerformance(tab: String = "play") -> [String] {
@@ -178,6 +191,51 @@ class TrinketUITestCase: XCTestCase {
         if waitForPreparation {
             waitForLaunchPreparation()
         }
+    }
+
+    func backgroundAndActivate() {
+        XCUIDevice.shared.press(.home)
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: Self.defaultTimeout))
+        app.activate()
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: Self.defaultTimeout))
+    }
+
+    func dismissEarnedTalentChoicesIfPresented() {
+        let choices = any(AccessibilityID.TalentChoice.screen)
+        if choices.trinketWaitForExistence(timeout: 1) {
+            dismissSheet(AccessibilityID.TalentChoice.screen)
+        }
+    }
+
+    func coverageReport() throws -> [String: Any] {
+        let probe = any(AccessibilityID.Debug.coverageDiagnostics)
+        assertExists(probe)
+        let encoded = try XCTUnwrap(probe.value as? String)
+        return try XCTUnwrap(JSONSerialization.jsonObject(with: Data(encoded.utf8)) as? [String: Any])
+    }
+
+    func waitForAudioProgress(after plays: Int) {
+        waitUntil("Real backend must schedule another sound") {
+            do {
+                return try (self.coverageReport()["sfxPlays"] as? Int ?? 0) > plays
+            } catch {
+                return false
+            }
+        }
+    }
+
+    func auditProductAccessibility() throws {
+        try app.performAccessibilityAudit { issue in
+            // Exclude only the opt-in Debug observation label, never product controls.
+            issue.element?.identifier == AccessibilityID.Debug.coverageDiagnostics
+        }
+    }
+
+    func retainScreenshot(named name: String) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 
     func relaunchApp(arguments: [String] = []) {

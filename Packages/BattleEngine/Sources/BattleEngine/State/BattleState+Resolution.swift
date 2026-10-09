@@ -10,6 +10,12 @@ package extension BattleState {
         return try body(&self)
     }
 
+    mutating func withAutomaticPlay(_ body: (inout BattleState) async throws -> [ActionEvent]) async rethrows -> [ActionEvent] {
+        resolution.beginAutomaticPlay()
+        defer { resolution.endAutomaticPlay() }
+        return try await body(&self)
+    }
+
     mutating func grantGoldEvent(
         _ amount: Int,
         to combatant: Combatant,

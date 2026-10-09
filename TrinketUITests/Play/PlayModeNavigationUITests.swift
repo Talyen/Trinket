@@ -1,3 +1,4 @@
+import TrinketContent
 import TrinketFeatureSupport
 import XCTest
 
@@ -41,5 +42,77 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         tapButton(AccessibilityID.Play.labyrinthFloorMenu)
         tapButton(AccessibilityID.Play.labyrinthFloor(2))
         assertExists(AccessibilityID.Play.labyrinthMap)
+    }
+
+    func testVoyageEmbarkAndAbandonStayAbandonedAfterRelaunch() {
+        launchApp(arguments: TestLaunchArg.allForTab("play"))
+        play.openExplore()
+        tapButton(AccessibilityID.Voyage.modeCard)
+        assertExists(AccessibilityID.Voyage.screen)
+        let embark = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", AccessibilityID.Voyage.action(""),
+        )).firstMatch
+        assertExists(embark)
+        tapWhenReady(embark)
+        assertExists(AccessibilityID.Voyage.options)
+        tapButton(AccessibilityID.Voyage.options)
+        tapButton(AccessibilityID.Voyage.abandon)
+        tapButton(AccessibilityID.Voyage.confirmAbandon)
+        assertExists(AccessibilityID.Voyage.refresh)
+        assertDoesNotExist(AccessibilityID.Voyage.options)
+        relaunchApp()
+        play.openExplore()
+        tapButton(AccessibilityID.Voyage.modeCard)
+        assertExists(AccessibilityID.Voyage.refresh)
+        assertDoesNotExist(AccessibilityID.Voyage.options)
+    }
+
+    func testSpireLockedFloorAndEnemyInspectionPreserveEligibleLaunch() throws {
+        launchApp(arguments: TestLaunchArg.allForTab("play"))
+        tapButton(AccessibilityID.Play.spiresModeCard)
+        assertExistsAfterScroll(AccessibilityID.Play.spireRow("ironVein"), requireHittable: true)
+        tapButton(AccessibilityID.Play.spireRow("ironVein"))
+        assertExists(AccessibilityID.Play.spireClimb("ironVein"))
+        let locked = any(AccessibilityID.Play.spireFloor("ironVein", floor: 2))
+        scrollUntilVisible(locked, swipingUp: true, requireHittable: true)
+        locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        assertDoesNotExist(AccessibilityID.Battle.hand)
+        XCTAssertFalse(button(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 2)).exists)
+        let art = any(AccessibilityID.Play.spireFloorEnemyArt("ironVein", floor: 1))
+        scrollUntilVisible(art, swipingUp: false, requireHittable: true)
+        tapWhenReady(art)
+        let floor = try XCTUnwrap(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+        let enemy = try XCTUnwrap(GameContent.enemy(matching: floor.enemyID))
+        let detail = AccessibilityID.CombatantDetail.header(name: enemy.combatant.name)
+        assertExists(detail)
+        dismissSheet(detail)
+        tapButton(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 1))
+        battle.assertActive()
+    }
+
+    func testLabyrinthLockedTapPreservesSelectionAndBackgroundDismissesInspector() {
+        launchApp(arguments: TestLaunchArg.allForScreen("labyrinth-map"))
+        if button(AccessibilityID.Play.labyrinthEnter).exists {
+            tapButton(AccessibilityID.Play.labyrinthEnter)
+        }
+        tapButton(AccessibilityID.Play.labyrinthFloor1EntryNode)
+        assertExists(AccessibilityID.Play.labyrinthNodeInspector)
+        let action = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", AccessibilityID.Play.labyrinthInspectorAction(""),
+        )).firstMatch
+        assertExists(action)
+        let selected = action.identifier
+        let locked = any(AccessibilityID.Play.labyrinthFloor1LockedNode)
+        scrollUntilVisible(locked, swipingUp: true, requireHittable: true)
+        XCTAssertFalse(locked.isEnabled)
+        locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        assertExists(selected)
+        tapWhenReady(button(AccessibilityID.Play.labyrinthDismissSelection).firstMatch)
+        assertDoesNotExist(AccessibilityID.Play.labyrinthNodeInspector)
+        assertExistsAfterScroll(AccessibilityID.Play.labyrinthFloor1EntryNode, requireHittable: true)
+        tapButton(AccessibilityID.Play.labyrinthFloor1EntryNode)
+        tapButton(selected)
+        // The entry is a battle in the unmodified initial map.
+        battle.assertActive()
     }
 }

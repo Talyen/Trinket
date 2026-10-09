@@ -4,6 +4,37 @@ import TrinketCore
 @testable import BattleEngine
 
 struct ShadowstepRepeatTests {
+    @Test(arguments: [false, true])
+    func `repeat preserves prepared Criticals and consumes one shot bonuses`(enemyFullHealth: Bool) throws {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.criticalChanceBonus = -1
+        var battle = makeBattle(profile: profile)
+        let shadowstep = BattleCardCombatEngine.deal(.shadowstep, owner: .hero, context: &battle)
+        _ = try battle.playCard(cardID: shadowstep.id)
+        let ability: Ability
+        if enemyFullHealth {
+            ability = .stab
+        } else {
+            battle.roster.enemy.currentHealth = 99
+            battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+            ability = Ability(
+                id: "restoring-stab", name: "Restoring Stab", tier: .basic,
+                damageComponents: Ability.stab.damageComponents,
+                targetedEffects: [TargetedEffect(.instantHeal(.health, 5), target: .enemy)],
+                guaranteedCriticalCondition: .enemyFullHealth,
+            )
+        }
+        let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
+
+        let events = try battle.playCard(cardID: card.id)
+
+        let hits = events.filter { $0.kind == .abilityDamage && $0.targetID == battle.enemy.id }
+        #expect(hits.map(\.amount) == (enemyFullHealth ? [4, 4] : [4, 2]))
+        #expect(hits.map(\.isCritical) == (enemyFullHealth ? [true, true] : [true, false]))
+        #expect(battle.roster.enemy.currentHealth == (enemyFullHealth ? 92 : 100))
+        #expect(!battle.activeEffects(of: battle.hero).contains { $0.effect == .nextStrikeCritical })
+    }
+
     @Test(arguments: [Keyword.physical, .burn])
     func `repeat pays setup once and repeats effects without spending two cards`(keyword: Keyword) throws {
         var profile = CombatModifierProfile.zero

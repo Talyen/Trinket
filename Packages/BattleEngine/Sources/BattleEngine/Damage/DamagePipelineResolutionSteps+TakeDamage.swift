@@ -164,4 +164,58 @@ package extension DamagePipeline {
             keyword: .leech,
         )
     }
+
+    static func applyMarkedConsume(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard state.markedBonusApplied else { return }
+
+        var markedBonus: Int?
+        for active in context.roster.activeEffects(for: state.combatant) {
+            if case let .marked(bonus, _) = active.effect {
+                markedBonus = bonus
+                break
+            }
+        }
+        guard let bonus = markedBonus else { return }
+
+        ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
+            if case .marked = $0 {
+                return true
+            }
+            return false
+        }
+        state.damageEvents.append(context.nextEvent(
+            kind: .effect,
+            effectKind: .markedConsumed,
+            source: .init(state.combatant),
+            abilityName: "Marked",
+            target: state.combatant,
+            amount: bonus,
+            keyword: .physical,
+        ))
+    }
+
+    static func applyDeathsDoor(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) async {
+        let deferredPartyHealthLoss = state.healthLost > 0 && state.combatant.role != .enemy
+            && context.roster.health(for: state.combatant) == 0
+        await state.damageEvents.append(contentsOf: DeathsDoorEngine.resolveAfterDamage(
+            to: state.combatant,
+            in: &context,
+        ))
+        if deferredPartyHealthLoss, context.roster.health(for: state.combatant) > 0 {
+            if state.combatant.role == .hero {
+                await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentHealthLoss(
+                    target: state.combatant, sourceID: state.sourceActorID, keyword: state.damageKeyword, in: &context,
+                ))
+            }
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterSurvivingHealthLoss(
+                target: state.combatant, in: &context,
+            ))
+        }
+    }
 }

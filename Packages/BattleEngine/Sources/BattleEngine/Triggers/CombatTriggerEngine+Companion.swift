@@ -1,10 +1,10 @@
 import TrinketContent
 import TrinketCore
 
-// MARK: - Companion card hits
+// MARK: - Companion attack hits
 
 package extension CombatTriggerEngine {
-    static func afterCompanionCardHit(
+    static func afterCompanionAttackHit(
         keyword: Keyword?,
         actor: Combatant,
         critical: Bool,
@@ -12,7 +12,8 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) async -> [ActionEvent] {
-        guard actor.role == .companion else { return [] }
+        guard context.allowsHeroTalentReaction, actor.role == .companion,
+              context.roster.health(for: actor) > 0 else { return [] }
         var events: [ActionEvent] = []
         if critical, triggers.criticalGoldStealFlat > 0 {
             await events.append(contentsOf: context.grantGoldEvent(
@@ -168,7 +169,7 @@ package extension CombatTriggerEngine {
         return events
     }
 
-    // MARK: - Final-companion card hits
+    // MARK: - Final-companion attack hits
 
     static func afterFinalCompanionCardHit(
         keyword: Keyword?,

@@ -33,28 +33,6 @@ extension TalentCatalogRoundTripTests {
         return battle
     }
 
-    var heroTalentPhysicalCard: Ability {
-        Ability(id: "test-physical", name: "Physical", tier: .basic, damageComponents: [DamageComponent(1, keyword: .physical)])
-    }
-
-    var heroTalentHealingCard: Ability {
-        Ability(
-            id: "test-healing",
-            name: "Healing",
-            tier: .basic,
-            targetedEffects: [TargetedEffect(.instantHeal(.health, 1), target: .actor)],
-        )
-    }
-
-    var heroTalentGoldCard: Ability {
-        Ability(
-            id: "test-gold",
-            name: "Gold",
-            tier: .skill,
-            targetedEffects: [TargetedEffect(.resourceGain(.gold, 1), target: .actor)],
-        )
-    }
-
     @discardableResult
     func playHeroTalentCard(_ ability: Ability, owner: BattleParticipant = .hero, in battle: inout BattleState) throws -> [ActionEvent] {
         let card = BattleCard(id: battle.nextCardID, ability: ability, owner: owner)

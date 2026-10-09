@@ -191,11 +191,13 @@ case "$MODE" in
     trinket_ui_slot_acquire
     ;;
 esac
-if [[ "$MODE" == "smoke" ]]; then
-  # CI must execute purchase coverage on a supported runtime, not skip it.
+# All requested CI purchase journeys must execute; the runtime skip is local-only.
+if [[ "$MODE" == smoke || "$MODE" == ui ]]; then
   if [[ "${CI:-}" == true || "${GITHUB_ACTIONS:-}" == true ]]; then
     export TEST_RUNNER_TRINKET_REQUIRED_PURCHASE=1
   fi
+fi
+if [[ "$MODE" == "smoke" ]]; then
   TEST_TARGET_FLAG=(-testPlan Smoke)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Running targeted UI smoke tests via Smoke test plan..."
@@ -235,13 +237,15 @@ elif [[ "$MODE" == "performance" ]]; then
   fi
   prepare_serial_test_sim
 elif [[ "$MODE" == "ui" ]]; then
-  TEST_TARGET_FLAG=(-testPlan FullUI)
+  ui_plan="${TRINKET_UI_PLAN:-FullUI}"
+  case "$ui_plan" in FullUI|Profiles|Soak) ;; *) echo "Unsupported UI plan: $ui_plan" >&2; exit 2 ;; esac
+  TEST_TARGET_FLAG=(-testPlan "$ui_plan")
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Running targeted UI tests..."
     append_ui_target_filters
   else
     echo "Running only UI tests (TrinketUITests)..."
-    TEST_TARGET_FLAG=(-testPlan FullUI -only-testing:TrinketUITests)
+    TEST_TARGET_FLAG=(-testPlan "$ui_plan" -only-testing:TrinketUITests)
   fi
   prepare_serial_test_sim
 fi

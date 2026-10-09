@@ -24,30 +24,9 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from script_test_support import load_script
+from script_test_support import fake_toolchain, load_script
 
 ROOT = Path(__file__).resolve().parents[2]
-
-
-def fake_toolchain(root):
-    """Provide stable identities without requiring Xcode or a Git checkout."""
-    tools = root / 'fake-tools'
-    tools.mkdir()
-    for name, body in {
-        'xcodebuild': 'echo "${FAKE_XCODE:-Xcode fixture A}"',
-        'xcrun': 'echo "${FAKE_SDK:-SDK fixture A}"',
-        'git': 'if [ "$1" = rev-parse ]; then echo "${FAKE_COMMIT:-commit-a}"; fi',
-    }.items():
-        executable = tools / name
-        executable.write_text('#!/bin/sh\n' + body + '\n')
-        executable.chmod(0o755)
-    # Apple's /usr/bin/python3 shim consults DEVELOPER_DIR before executing;
-    # fixtures must launch the real interpreter even for a synthetic Xcode bundle.
-    (tools / 'python3').symlink_to(Path(sys.executable).resolve())
-    environment = {**os.environ, 'PATH': f'{tools}:{os.environ["PATH"]}',
-                   'CI': '', 'GITHUB_ACTIONS': ''}
-    environment.pop('DEVELOPER_DIR', None)
-    return environment
 
 
 class BuildMetadataTests(unittest.TestCase):

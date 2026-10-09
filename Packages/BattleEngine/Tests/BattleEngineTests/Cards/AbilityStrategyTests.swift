@@ -258,6 +258,9 @@ struct AbilityStrategyTests {
         )
         #expect(state.resolution.pendingPartyDamage(for: state.companion.id) == 1)
         state.companionDeck = CombatDeck(abilities: [attack])
+        #expect(state.effectSummaries(of: state.companion).contains {
+            $0.text.contains("Sniff Out") && $0.text.contains("next damaging card")
+        })
         let before = state.roster.enemy.currentHealth
         let automaticFollowup = Ability(
             id: "automatic-followup", name: "Automatic Followup", tier: .ultimate,
@@ -267,5 +270,6 @@ struct AbilityStrategyTests {
         _ = try play(automaticFollowup, in: &state)
         #expect(before - state.roster.enemy.currentHealth == 6)
         #expect(state.resolution.pendingPartyDamage(for: state.companion.id) == 0)
+        #expect(!state.effectSummaries(of: state.companion).contains { $0.text.contains("Sniff Out") })
     }
 }

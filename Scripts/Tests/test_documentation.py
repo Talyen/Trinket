@@ -7,6 +7,7 @@ SCRIPT_INPUTS = (
     'Scripts/check-links.py',
     'Scripts/check-plans.py',
     'Scripts/check-testplan-sync.py',
+    'Scripts/internal/ui_registration.py',
     'Scripts/ci-gate.sh',
     'Scripts/config/cheap-slices.txt',
     'Scripts/config/ui-tests.tsv',
@@ -91,7 +92,7 @@ class DocumentationTests(ScriptRegressionTestCase):
             root.mkdir()
             scripts = root / "Scripts"
             scripts.mkdir()
-            for name in ("check-docs.py", "check-plans.py", "check-links.py", "check-testplan-sync.py", "internal/markdown.py", "internal/cli.py", "internal/doc_diagnostics.py", "internal/output_retention.py"):
+            for name in ("check-docs.py", "check-plans.py", "check-links.py", "check-testplan-sync.py", "internal/ui_registration.py", "internal/markdown.py", "internal/cli.py", "internal/doc_diagnostics.py", "internal/output_retention.py"):
                 (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, scripts / name)
             for name, content in {

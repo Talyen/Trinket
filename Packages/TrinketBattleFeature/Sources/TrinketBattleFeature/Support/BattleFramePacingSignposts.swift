@@ -2,6 +2,7 @@ import Foundation
 import os
 import SwiftUI
 import TrinketFeatureContracts
+import TrinketFeatureSupport
 
 public enum BattleFramePacingSignposts {
     public static let subsystem = FramePacingSignpostSupport.subsystem
@@ -16,8 +17,6 @@ public enum BattleFramePacingSignposts {
         static let chipHostApply: StaticString = "ChipHostApply"
         static let feedbackRasterBuild: StaticString = "FeedbackRasterBuild"
         static let playCardEngine: StaticString = "PlayCardEngine"
-        static let playCardProjection: StaticString = "PlayCardProjection"
-        static let playCardFeedback: StaticString = "PlayCardFeedback"
         static let playCardRejected: StaticString = "PlayCardRejected"
         static let turnTransition: StaticString = "TurnTransition"
         static let performanceScenario: StaticString = "PerformanceScenario"
@@ -30,39 +29,6 @@ public enum BattleFramePacingSignposts {
 
 extension View {
     func battleFramePacingSignpost(_ name: StaticString, isActive: Bool) -> some View {
-        modifier(BattleFramePacingIntervalModifier(signposter: BattleFramePacingSignposts.signposter, name: name, isActive: isActive))
-    }
-}
-
-private struct BattleFramePacingIntervalModifier: ViewModifier {
-    let signposter: OSSignposter
-    let name: StaticString
-    let isActive: Bool
-
-    @State private var intervalState: OSSignpostIntervalState?
-
-    func body(content: Content) -> some View {
-        content
-            .onChange(of: isActive, initial: true) { _, active in
-                if active {
-                    beginIfNeeded()
-                } else {
-                    endIfNeeded()
-                }
-            }
-            .onDisappear {
-                endIfNeeded()
-            }
-    }
-
-    private func beginIfNeeded() {
-        guard intervalState == nil else { return }
-        intervalState = signposter.beginInterval(name)
-    }
-
-    private func endIfNeeded() {
-        guard let intervalState else { return }
-        signposter.endInterval(name, intervalState)
-        self.intervalState = nil
+        modifier(FramePacingIntervalModifier(signposter: BattleFramePacingSignposts.signposter, name: name, isActive: isActive))
     }
 }

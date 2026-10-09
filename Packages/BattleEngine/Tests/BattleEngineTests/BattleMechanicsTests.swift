@@ -29,6 +29,25 @@ struct BattleMechanicsTests {
         #expect(battle.gold == 0)
     }
 
+    @Test(arguments: [
+        (true, true, BattleSimulationOutcome.defeat),
+        (true, false, .defeat),
+        (false, true, .victory),
+        (false, false, nil),
+    ])
+    func `resolves party and enemy defeat combinations`(
+        isPartyDefeated: Bool,
+        isEnemyDefeated: Bool,
+        expected: BattleSimulationOutcome?,
+    ) {
+        #expect(
+            BattleSimulationOutcome.resolve(
+                isPartyDefeated: isPartyDefeated,
+                isEnemyDefeated: isEnemyDefeated,
+            ) == expected,
+        )
+    }
+
     @Test func `a defeated ally does not grant victory Gold`() {
         let gold = CombatModifierProfile(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldFlat: 4)))
         var battle = BattleStateTestFactory.makeMinimalBattle(

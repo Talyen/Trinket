@@ -85,6 +85,23 @@ package enum BattleTurnEngine {
         .events
     }
 
+    /// Synchronous action entry for consumers such as actor-isolated feedback
+    /// tests. Construct the executor body here, outside the caller's actor.
+    static func performAction(
+        ability: Ability,
+        actor: Combatant,
+        abilityTarget: Combatant,
+        origin: DamageOperation.AttackOrigin = .ability,
+        context: inout BattleState,
+    ) -> [ActionEvent] {
+        CombatExecutor.run {
+            await performAction(
+                ability: ability, actor: actor, abilityTarget: abilityTarget,
+                origin: origin, context: &context,
+            )
+        }
+    }
+
     static func performEnemyAction(
         ability: Ability, abilityTarget: Combatant, context: inout BattleState,
     ) async -> (events: [ActionEvent], performed: Bool) {

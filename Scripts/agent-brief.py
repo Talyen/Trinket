@@ -6,7 +6,6 @@ import argparse
 import os
 from pathlib import Path
 import shlex
-import sys
 
 from internal.agent_arguments import AgentArgumentParser
 from internal.agent_status import briefing

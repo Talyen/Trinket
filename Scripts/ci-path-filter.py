@@ -15,7 +15,6 @@ import re
 import functools
 import json
 import os
-import sys
 import urllib.error
 import urllib.parse
 import urllib.request

@@ -113,7 +113,7 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.holyDamagePoisonFlat > 0, context.roster.health(for: enemy) > 0 {
-            await events.append(contentsOf: context.resolveDamage(
+            let poison = await context.resolveDamage(
                 DamageRequest(
                     amount: profile.triggers.holyDamagePoisonFlat,
                     target: enemy,
@@ -121,7 +121,12 @@ package extension CombatTriggerEngine {
                     sourceActorID: source.id,
                     options: .reaction(),
                 ),
-            ).events)
+            )
+            events.append(contentsOf: poison.events)
+            await events.append(contentsOf: context.applyDecayingDoT(
+                keyword: .poison, potency: poison.healthLost, to: enemy,
+                sourceActorID: source.id, application: .attached,
+            ))
         }
 
         return events

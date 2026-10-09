@@ -180,6 +180,30 @@ extension BattleSessionSimulationTests {
         #expect(casts.requests.count == 6)
     }
 
+    @Test func `duplicate functional activation stays rejected across suspension`() throws {
+        let session = BattleSessionTestSupport.makePassiveSession()
+        defer { session.endBattle() }
+        var engine = try #require(session.engineState)
+        engine.hand = BattleHand()
+        let first = BattleCardCombatEngine.deal(.bash, owner: .hero, context: &engine)
+        let next = BattleCardCombatEngine.deal(.block, owner: .companion, context: &engine)
+        session.engineState = engine
+        session.installSimulationPresentation()
+        #expect(session.playCard(cardID: first.id) == .committed)
+        let committed = try #require(session.engineState)
+        session.setSuspendedForScenePhase(true)
+        #expect(session.playCard(cardID: next.id) == .rejected)
+        session.setSuspendedForScenePhase(false)
+        #expect(session.playCard(cardID: first.id) == .rejected)
+        #expect(session.engineState?.rng == committed.rng)
+        #expect(session.engineState?.events == committed.events)
+        #expect(session.engineState?.hand == committed.hand)
+        for owner in BattleParticipant.allCases {
+            #expect(session.engineState?.roster[owner] == committed.roster[owner])
+        }
+        #expect(session.playCard(cardID: next.id) == .committed)
+    }
+
     private func installAutomaticDraw(in session: BattleSession, nested: Bool = false) throws -> BattleCard {
         var state = try #require(session.engineState)
         state.hand = BattleHand()

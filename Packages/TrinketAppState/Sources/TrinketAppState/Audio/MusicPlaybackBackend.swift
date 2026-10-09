@@ -28,16 +28,22 @@ struct SystemMusicPlaybackBackend: MusicPlaybackBackend {
         guard let url = AudioSupport.mediaURL(
             resourceName: track.resourceName, fileExtension: track.fileExtension, subdirectory: "Music",
         ) else {
+            #if DEBUG
+            AudioCoverageDiagnostics.failed()
+            #endif
             logger.warning("Missing music resource: \(track.resourceName, privacy: .public).\(track.fileExtension, privacy: .public)")
             return nil
         }
         let loaded = await Self.decode(url: url)
         guard !Task.isCancelled else { return nil }
         guard let loaded else {
+            #if DEBUG
+            AudioCoverageDiagnostics.failed()
+            #endif
             logger.error("Unable to load music resource \(track.resourceName, privacy: .public).\(track.fileExtension, privacy: .public)")
             return nil
         }
-        return SystemMusicPlaybackVoice(player: loaded.player)
+        return SystemMusicPlaybackVoice(player: loaded.player, trackID: track.id)
     }
 
     @concurrent
@@ -67,8 +73,16 @@ struct SystemMusicPlaybackBackend: MusicPlaybackBackend {
 private final class SystemMusicPlaybackVoice: MusicPlaybackVoice {
     private let player: AVAudioPlayer
 
-    init(player: AVAudioPlayer) {
+    #if DEBUG
+    private let diagnosticID = UUID()
+    private let trackID: String
+    #endif
+
+    init(player: AVAudioPlayer, trackID: String) {
         self.player = player
+        #if DEBUG
+        self.trackID = trackID
+        #endif
     }
 
     var volume: Float {
@@ -95,11 +109,23 @@ private final class SystemMusicPlaybackVoice: MusicPlaybackVoice {
     }
 
     func start() {
+        #if DEBUG
+        let started = player.play()
+        if started {
+            AudioCoverageDiagnostics.musicStarted(id: diagnosticID, track: trackID)
+        } else {
+            AudioCoverageDiagnostics.failed()
+        }
+        #else
         player.play()
+        #endif
     }
 
     func stop() {
         player.stop()
+        #if DEBUG
+        AudioCoverageDiagnostics.musicStopped(id: diagnosticID)
+        #endif
     }
 }
 

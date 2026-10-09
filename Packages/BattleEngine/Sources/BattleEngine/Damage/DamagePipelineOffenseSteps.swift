@@ -418,4 +418,40 @@ package extension DamagePipeline {
         }
         return multiplier
     }
+
+    static func applyVenomtrail(to state: inout DamageResolutionState, in context: BattleState) {
+        guard state.amount > 0, state.damageKeyword == .poison, state.targetStatus.isBleeding,
+              state.combatant.role == .enemy, let sourceActorID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID), source.role != .enemy
+        else { return }
+        let bonus = context.modifiers(for: sourceActorID).triggers.poisonDamageVsBleedingFlat
+        state.remaining += bonus
+        state.itemBonus += bonus
+    }
+
+    static func applyHallowbreak(to state: inout DamageResolutionState, in context: BattleState) {
+        guard state.damageKeyword == .holy, state.targetStatus.isStunned,
+              let sourceActorID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID), source.role != .enemy
+        else { return }
+        let bonus = context.modifiers(for: sourceActorID).triggers.holyDamageVsStunnedPercent
+        if bonus > 0 {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + bonus)
+        }
+    }
+
+    static func applyMarkedBonus(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState,
+    ) {
+        guard state.options.isAttackHit, state.sourceActorID != nil else { return }
+        for active in context.roster.activeEffects(for: state.combatant) {
+            if case let .marked(bonus, _) = active.effect {
+                state.remaining += bonus
+                state.dealt += bonus
+                state.markedBonusApplied = true
+                break
+            }
+        }
+    }
 }

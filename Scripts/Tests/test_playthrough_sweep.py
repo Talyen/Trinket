@@ -218,5 +218,40 @@ class PlaythroughSweepTests(unittest.TestCase):
             self.assertEqual(json.dumps(analysis), before)
 
 
+
+class CrashBoundaryTests(unittest.TestCase):
+    def test_each_boundary_archives_inputs_before_recovery_and_missing_marker_fails(self):
+        for missing_cloud_marker in (False, True):
+            with tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                products = root / 'products'
+                products.mkdir()
+                (products / 'tests.xctestrun').write_bytes(b'fixture')
+                args = SimpleNamespace(products=products, destination='owned', scenario=None, replay_bundle=None,
+                    seed=101, scenarios=1, horizon=10, full_access=True, mode='campaign', policy='setupAware-v1',
+                    hero='knight', companion='wolf', output=root / 'result', crash_proof=True, baseline=None)
+                recovered = []
+                def worker(arguments, template, name, operation='run', source=None, **kwargs):
+                    folder = arguments.output / name
+                    folder.mkdir()
+                    if name in {'interrupted', 'before-settlement-interrupted', 'cloud-interrupted', 'settlement-interrupted'}:
+                        (folder / 'store').mkdir()
+                        (folder / 'store' / 'raw').write_bytes(b'unmodified interrupted input')
+                        if not (missing_cloud_marker and name == 'cloud-interrupted'):
+                            (folder / 'interrupted.json').write_text('{}')
+                        return dict(worker=name, exitCode=86, termination='injectedInterruption')
+                    self.assertTrue(source.name.endswith('archive'))
+                    self.assertEqual((source / 'store' / 'raw').read_bytes(), b'unmodified interrupted input')
+                    recovered.append(name)
+                    outcome = 'cloudProcessRecovered' if operation == 'cloud-recover' else \
+                        'recoveredCapturedStore' if operation == 'recover' else 'replayedUnknownOutcome'
+                    return dict(worker=name, exitCode=0, termination=outcome)
+                with patch.object(MODULE, 'identity', return_value={}), patch.object(MODULE, 'report'), \
+                        patch.object(MODULE, 'worker', side_effect=worker):
+                    self.assertEqual(MODULE.run_sweep(args), 1 if missing_cloud_marker else 0)
+                self.assertEqual(set(recovered), {'recovery', 'replay', 'before-settlement-recovery',
+                    'before-settlement-replay', 'cloud-recovery', 'settlement-replay', 'settlement-recovery'})
+
+
 if __name__ == "__main__":
     unittest.main()

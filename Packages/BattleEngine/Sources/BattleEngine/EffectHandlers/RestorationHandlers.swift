@@ -125,7 +125,9 @@ struct ReviveHandler: BattleEffectHandler {
         guard case let .revive(health) = effect, health > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let events = context.reviveEmitting(target, health: health, source: source, abilityName: ability.name)
+        let events = context.reviveEmitting(
+            target, health: health, source: source, abilityID: ability.id, abilityName: ability.name, origin: .direct,
+        )
         return EffectApplyOutcome(events: events, didApply: !events.isEmpty)
     }
 }
@@ -135,7 +137,9 @@ package extension BattleState {
         _ target: Combatant,
         health: Int,
         source: Combatant,
+        abilityID: String = "",
         abilityName: String,
+        origin: ActionEvent.Origin = .automatic,
     ) -> [ActionEvent] {
         guard health > 0, roster.health(for: target) <= 0 else { return [] }
         var revivedHealth = 0
@@ -147,10 +151,11 @@ package extension BattleState {
             kind: .effect,
             effectKind: .instantHeal,
             source: .init(source),
-            abilityName: abilityName,
+            abilityID: abilityID, abilityName: abilityName,
             target: target,
             amount: revivedHealth,
             keyword: .health,
+            origin: origin,
         )]
     }
 }

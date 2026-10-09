@@ -9,3 +9,8 @@ FullUI||PlayModeNavigationUITests
 FullUI||FullGamePurchaseUITests
 FullUI||CollectionLoadoutUITests
 FullUI||OptionsUITests
+FullUI||BattleLifecycleUITests
+FullUI||HomesteadControlsUITests
+Profiles||CriticalAccessibilityUITests
+Soak||RepeatedPlayUITests
+FullUI||AudioLifecycleUITests

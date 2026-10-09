@@ -17,6 +17,7 @@ struct PlaythroughWorkerRequest: Codable {
     var companion: String?
     var source: String?
     var crashAfter: Int?
+    var crashBeforeSettlement: Bool?
     var crashSettlement: Bool?
     var expected: String?
 }
@@ -85,6 +86,10 @@ struct PlaythroughSweepTests {
     }
 
     private func executeRequest(_ request: PlaythroughWorkerRequest, output: URL) async throws {
+        if request.operation == "cloud-crash" || request.operation == "cloud-recover" {
+            try await CloudProcessRecovery.run(request, output: output)
+            return
+        }
         if request.operation == "recover" {
             try recover(request, output: output)
             return
@@ -111,6 +116,7 @@ struct PlaythroughSweepTests {
         let career = try PlaythroughCareer(scenario: scenario, output: output)
         defer { career.close() }
         career.crashAfter = request.crashAfter
+        career.crashBeforeSettlement = request.crashBeforeSettlement ?? false
         career.crashOnSettlement = request.crashSettlement ?? false
         if let source = request.source {
             try await replay(career, source: URL(fileURLWithPath: source))

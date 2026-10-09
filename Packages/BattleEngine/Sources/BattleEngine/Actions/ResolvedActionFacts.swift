@@ -16,13 +16,14 @@ final class ResolvedActionFacts: Sendable {
         resolved: Ability,
         action: BattleActionContext,
         origin: DamageOperation.AttackOrigin,
+        guaranteedCritical: Bool? = nil,
         in context: borrowing BattleState,
     ) {
         self.action = action
         self.origin = origin
         originalAbility = original
         ability = resolved
-        guaranteedCritical = resolved.guaranteedCriticalCondition.map {
+        self.guaranteedCritical = guaranteedCritical ?? resolved.guaranteedCriticalCondition.map {
             BattleConditionEvaluator.isMet($0, action: action, in: context)
         } ?? false
         isRandom = original.outcomeBranches != nil

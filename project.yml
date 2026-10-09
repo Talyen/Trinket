@@ -9,6 +9,8 @@ fileGroups:
   - Smoke.xctestplan
   - BattlePerformance.xctestplan
   - FullUI.xctestplan
+  - Profiles.xctestplan
+  - Soak.xctestplan
 packages:
   TrinketCore:
     path: Packages/TrinketCore
@@ -148,6 +150,8 @@ schemes:
           defaultPlan: true
         - path: BattlePerformance.xctestplan
         - path: FullUI.xctestplan
+        - path: Profiles.xctestplan
+        - path: Soak.xctestplan
       targets:
         - TrinketUITests
     run:

@@ -19,6 +19,20 @@ final class OptionsUITests: TrinketUITestCase {
         XCTAssertEqual(app.tabBars.count, 0)
     }
 
+    func testHapticsPreferenceSurvivesSameStoreRelaunch() {
+        launchApp(arguments: TestLaunchArg.allForTab("options"))
+        let toggle = app.switches[AccessibilityID.Options.hapticsToggle]
+        assertExists(toggle)
+        let before = toggle.value as? String
+        XCTAssertNotNil(before)
+        tapWhenReady(toggle)
+        let changed = toggle.value as? String
+        XCTAssertNotEqual(changed, before)
+        relaunchApp(arguments: ["-selectedTab", "options"])
+        assertExists(app.switches[AccessibilityID.Options.hapticsToggle])
+        XCTAssertEqual(app.switches[AccessibilityID.Options.hapticsToggle].value as? String, changed)
+    }
+
     private func openReset() {
         assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
         tapButton(AccessibilityID.Options.resetProgressButton)

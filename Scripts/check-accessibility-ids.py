@@ -6,7 +6,6 @@ from __future__ import annotations
 import re
 import sys
 from collections import Counter
-from pathlib import Path
 
 from internal.cli import ROOT
 ID_FILE = ROOT / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Accessibility/AccessibilityID.swift"

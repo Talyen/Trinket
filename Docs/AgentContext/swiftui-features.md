@@ -42,7 +42,7 @@ player-facing semantics: preserve native labels and add a concise label/value wh
 custom control is ambiguous. Accessibility uses basic explicit semantics by policy (PD-014,
 [Decisions](../Product/Decisions.md)): keep what SwiftUI provides for free and do not
 add Reduce Motion, Dynamic Type re-layout, or contrast accommodation branches. `TrinketUITests/README.md` owns
-launch args, screen helpers, and speed rules.
+launch args, screen helpers, and speed rules. PD-014 allows bounded critical-control settings tests without changing the visual-first product scope.
 
 Use `trinketPresentationVisibility` for retained and reveal content: semantic
 visibility owns opacity, hit testing, and accessibility exposure together, without

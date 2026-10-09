@@ -22,6 +22,34 @@ private func cohesionBattleWithHand(
     return battle
 }
 
+private func makeCohesionBattle(
+    heroMaxHealth: Int = 20,
+    companionMaxHealth: Int = 20,
+    enemyMaxHealth: Int = 100,
+    heroHealth: Int? = nil,
+    companionHealth: Int? = nil,
+    enemyHealth: Int? = nil,
+    heroEffects: [ActiveEffect] = [],
+    heroModifiers: CombatModifierProfile = .zero,
+    companionModifiers: CombatModifierProfile = .zero,
+    enemyModifiers: CombatModifierProfile = .zero,
+) -> BattleState {
+    var battle = BattleStateTestFactory.makeMinimalBattle(
+        hero: CombatantFixtures.passiveHero(maxHealth: heroMaxHealth),
+        companion: CombatantFixtures.passiveCompanion(maxHealth: companionMaxHealth),
+        enemy: CombatantFixtures.passiveEnemy(maxHealth: enemyMaxHealth),
+        heroEffects: heroEffects,
+        heroHealth: heroHealth,
+        companionHealth: companionHealth,
+        enemyHealth: enemyHealth,
+        heroModifiers: heroModifiers,
+        companionModifiers: companionModifiers,
+        enemyModifiers: enemyModifiers,
+    )
+    battle.appliesFightPacing = false
+    return battle
+}
+
 struct KeywordCohesionMechanicsTests {
     @Test func `sniff out grants generic damage once and refreshes`() throws {
         var battle = cohesionBattleWithHand(.sniffOut)
@@ -102,11 +130,7 @@ struct KeywordCohesionMechanicsTests {
     }
 
     @Test func `avatar deals once and prepares holy attack`() throws {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-        )
-        battle.appliesFightPacing = false
+        var battle = makeCohesionBattle()
         _ = BattleTurnEngine.performAction(ability: .avatarOfJustice, actor: battle.hero, abilityTarget: battle.enemy, context: &battle)
         try #expect(battle.roster.enemy.currentHealth == 94)
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 6)
@@ -116,11 +140,7 @@ struct KeywordCohesionMechanicsTests {
     }
 
     @Test func `sunburst heals each living ally without reviving`() throws {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 20), companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-        )
-        battle.appliesFightPacing = false
+        var battle = makeCohesionBattle()
         // Damage Hero, defeat Companion directly (bypass Death's Door) to test no revive.
         _ = battle.resolveDamage(DamageRequest(
             amount: 10,
@@ -141,11 +161,7 @@ struct KeywordCohesionMechanicsTests {
 
 extension KeywordCohesionMechanicsTests {
     @Test func `enemy sunburst heals only the enemy`() throws {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 20), companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-        )
-        battle.appliesFightPacing = false
+        var battle = makeCohesionBattle()
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 10 }
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 10 }
         battle.roster.mutateRuntime(for: battle.enemy) { $0.currentHealth = 50 }
@@ -163,12 +179,7 @@ extension KeywordCohesionMechanicsTests {
 
     @Test func `thick hide reduces only physical`() throws {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(mitigation: MitigationTriggers(passivePhysicalMitigationFlat: 2)))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: .zero, companionModifiers: profile,
-        )
-        battle.appliesFightPacing = false
+        var battle = makeCohesionBattle(companionModifiers: profile)
         // Companion takes Physical (reduced) vs Burn (not reduced). Use companion as defender via enemy targeting companion.
         let companion = battle.companion
         let physical = battle.resolveDamage(DamageRequest(
@@ -193,12 +204,7 @@ extension KeywordCohesionMechanicsTests {
     @Test func `surprise strike crits first physical only`() throws {
         let profile =
             CombatModifierProfile(triggers: CombatTraitTriggers(damage: DamageTriggers(firstPhysicalAttackGuaranteedCritical: true)))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
-            companionModifiers: profile,
-        )
-        battle.appliesFightPacing = false
+        var battle = makeCohesionBattle(enemyMaxHealth: 200, companionModifiers: profile)
         // Non-Physical first does not consume or crit (Burn, no guaranteed crit).
         let first = battle.resolveDamage(DamageRequest(
             amount: 4,
@@ -230,12 +236,7 @@ extension KeywordCohesionMechanicsTests {
 
     @Test func `guardian grants block once per attack`() throws {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(guardianHeroBlockFlat: 2)))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: profile,
-        )
-        battle.appliesFightPacing = false
+        var battle = makeCohesionBattle(companionModifiers: profile)
         // Multi-hit attack (two components in one action) grants Block once, not per component.
         let multi = Ability(id: "multi", name: "Multi", tier: .basic, damageComponents: [
             DamageComponent(3, keyword: .physical), DamageComponent(3, keyword: .physical),
@@ -248,12 +249,7 @@ extension KeywordCohesionMechanicsTests {
 
     @Test func `dense bones doubles physical block`() throws {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(doublePhysicalBlockAbsorption: true)))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: profile,
-        )
-        battle.appliesFightPacing = false
+        var battle = makeCohesionBattle(companionModifiers: profile)
         DefensePoolEngine.set(2, on: battle.companion, in: &battle)
         // 3 Physical with 2 Block (doubled capacity 4) absorbs all 3, consumes 2 (rounded 1.5->2).
         let physical = battle.resolveDamage(DamageRequest(
@@ -283,14 +279,11 @@ extension KeywordCohesionMechanicsTests {
             blockAbsorbsCompanionDamage: !companionProtectsHero,
             companionBlockAbsorbsHeroDamage: companionProtectsHero,
         )))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+        var battle = makeCohesionBattle(
             heroModifiers: companionProtectsHero ? .zero : protection,
             companionModifiers: companionProtectsHero ? protection : .zero,
             enemyModifiers: CombatBuildResolver.build(enemy: ogre).modifiers,
         )
-        battle.appliesFightPacing = false
         let protector = companionProtectsHero ? battle.companion : battle.hero
         let protected = companionProtectsHero ? battle.hero : battle.companion
         DefensePoolEngine.set(10, on: protector, in: &battle)
@@ -314,13 +307,10 @@ extension KeywordCohesionMechanicsTests {
     @Test func `shieldbreaker doubles consumed block after dense bones absorption`() throws {
         let ogre = try #require(GameContent.enemies.first { $0.id == "ogre" })
         let denseBones = CombatantTalentCatalog.profile(for: ["risen_skeleton_physical_t2_2"])
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+        var battle = makeCohesionBattle(
             companionModifiers: denseBones,
             enemyModifiers: CombatBuildResolver.build(enemy: ogre).modifiers,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(10, on: battle.companion, in: &battle)
 
         let damage = battle.resolveDamage(DamageRequest(
@@ -339,12 +329,10 @@ extension KeywordCohesionMechanicsTests {
         let protection = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(
             blockAbsorbsCompanionDamage: true,
         )))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100), heroModifiers: protection,
+        var battle = makeCohesionBattle(
+            heroModifiers: protection,
             enemyModifiers: CombatBuildResolver.build(enemy: snake).modifiers,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(1, on: battle.hero, in: &battle)
         DefensePoolEngine.set(recipientBlock, on: battle.companion, in: &battle)
 
@@ -422,10 +410,10 @@ extension KeywordCohesionMechanicsTests {
             mana: ManaTriggers(forbiddenKnowledge: true),
             cleanse: CleanseTriggers(purifyingAura: true),
         ))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 10),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 10),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 10),
+        var battle = makeCohesionBattle(
+            heroMaxHealth: 10,
+            companionMaxHealth: 10,
+            enemyMaxHealth: 10,
             heroEffects: [ActiveEffect(id: 1, effect: .bleed(1), remainingTurns: 2)],
             companionHealth: 1,
             companionModifiers: profile,
@@ -468,14 +456,15 @@ extension KeywordCohesionMechanicsTests {
             healthRestoredPoisonPercent: 1, healthPerTurn: 2,
         )))
         let gold = CombatModifierProfile(triggers: CombatTraitTriggers(gold: GoldTriggers(goldPerTurn: 1)))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 10),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 10),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 10),
-            heroHealth: 9, enemyHealth: 1,
-            heroModifiers: healing, companionModifiers: gold,
+        var battle = makeCohesionBattle(
+            heroMaxHealth: 10,
+            companionMaxHealth: 10,
+            enemyMaxHealth: 10,
+            heroHealth: 9,
+            enemyHealth: 1,
+            heroModifiers: healing,
+            companionModifiers: gold,
         )
-        battle.appliesFightPacing = false
 
         _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
@@ -485,12 +474,9 @@ extension KeywordCohesionMechanicsTests {
 
     @Test func `verdant renewal restores health on alternate player turns`() {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(healing: HealingTriggers(healthPerTurn: 2)))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 20), companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+        var battle = makeCohesionBattle(
             heroHealth: 10, companionHealth: 5, heroModifiers: profile,
         )
-        battle.appliesFightPacing = false
         _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(battle.roster.health(for: battle.companion) == 7)
         #expect(battle.roster.health(for: battle.hero) == 10)
@@ -504,12 +490,9 @@ extension KeywordCohesionMechanicsTests {
 
     @Test func `campfire comfort heals the lowest ally on alternate player turns`() {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(healing: HealingTriggers(endOfTurnHealLowestAlly: 2)))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 20), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+        var battle = makeCohesionBattle(
             companionHealth: 10, companionModifiers: profile,
         )
-        battle.appliesFightPacing = false
         let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
         #expect(events.contains { $0.abilityName == "Campfire Comfort" && $0.effectKind == .instantHeal })
         #expect(battle.roster.health(for: battle.companion) == 12)
@@ -524,12 +507,7 @@ extension KeywordCohesionMechanicsTests {
 
     @Test func `mimic deals one opening bleed bonus`() throws {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(damage: DamageTriggers(firstAttackBleedBonus: 2)))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 50), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            enemyModifiers: profile,
-        )
-        battle.appliesFightPacing = false
+        var battle = makeCohesionBattle(heroMaxHealth: 50, enemyModifiers: profile)
         let before = battle.roster.health(for: battle.hero)
         _ = BattleTurnEngine.performAction(
             ability: Ability(id: "hit", name: "Hit", tier: .basic, directDamage: 4, damageKeyword: .physical),
@@ -547,14 +525,12 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `everkeen requires physical crit and does not spend on other`() throws {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
+        var battle = makeCohesionBattle(
+            enemyMaxHealth: 200,
             heroModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(attack: AttackTriggers(firstCriticalHitRepeatsPerTurn: true)),
             ),
         )
-        battle.appliesFightPacing = false
         // Non-Physical Crit does not spend allowance or repeat.
         battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         _ = BattleTurnEngine.performAction(
@@ -570,12 +546,7 @@ extension KeywordCohesionMechanicsTests {
 
     @Test func `patient edge block prepares crit and refreshes`() throws {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(blockPreparesCritical: true)))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: profile,
-        )
-        battle.appliesFightPacing = false
+        var battle = makeCohesionBattle(heroModifiers: profile)
         DefensePoolEngine.set(5, on: battle.hero, in: &battle)
         _ = battle.resolveDamage(DamageRequest(
             amount: 3,
@@ -592,11 +563,7 @@ extension KeywordCohesionMechanicsTests {
             drawEveryOtherTurn: 1,
             companionCardsPerTurn: 1,
         )))
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: heroProfile,
-        )
+        var battle = makeCohesionBattle(heroModifiers: heroProfile)
         battle.hand = BattleHand()
         battle.heroDeck = CombatDeck(abilities: [.slash, .smite, .block])
         battle.companionDeck = CombatDeck(abilities: [.slash, .smite, .block])

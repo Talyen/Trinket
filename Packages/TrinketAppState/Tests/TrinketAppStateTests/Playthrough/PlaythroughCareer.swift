@@ -24,6 +24,7 @@ final class PlaythroughCareer {
     var sequence = 0
     var crashAfter: Int?
     var crashOnSettlement = false
+    var crashBeforeSettlement = false
     var seenCards: Set<Int> = []
     var observedBattleID: UUID?
     var currentBattleEncounterID: String?
@@ -167,6 +168,15 @@ final class PlaythroughCareer {
         }
         do {
             let goldBefore = store.roster.gold
+            if crashBeforeSettlement, case .victory = action {
+                try JSONEncoder().encode(snapshot).write(
+                    to: journal.directory.appendingPathComponent("pre-settlement-save.json"), options: .atomic,
+                )
+                try Data("{\"boundary\":\"before-settlement\"}".utf8).write(
+                    to: journal.directory.appendingPathComponent("interrupted.json"), options: .atomic,
+                )
+                _exit(86)
+            }
             try await execute(action)
             summary.goldEarned += max(0, store.roster.gold - goldBefore)
             summary.goldSpent += max(0, goldBefore - store.roster.gold)

@@ -53,6 +53,10 @@ default or submitting with sync. A new TestFlight build follows the clean-checko
 and deployment prerequisites in [Release](Release.md#local-testflight-deployment).
 Until the evidence is obtained, ordinary builds retain their local-only default.
 
+The [real-player automation portfolio](PlayerCoverage.md) adds populated schema-two
+fixtures and hard process-exit recovery with a disk-backed test transport. These
+checks supplement, and do not replace, the live gates below.
+
 ## Required readiness gates
 
 Complete these stages in order. Source and isolated test checks are agent-checkable;

@@ -264,7 +264,7 @@ private struct PreparedAppRoot: View {
             appState.sfxPlayer.play(id, volume: volume)
         }
         #if DEBUG
-        .debugFPSOverlay()
+        .coverageTestEnvironment(playerSave: appState.playerSave)
         #endif
         .task {
             await runPurchaseSync()

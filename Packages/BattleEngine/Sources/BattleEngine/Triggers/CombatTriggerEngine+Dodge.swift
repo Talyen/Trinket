@@ -9,6 +9,7 @@ package extension CombatTriggerEngine {
         allowsCounterattacks: Bool = true,
         in context: inout BattleState,
     ) async -> [ActionEvent] {
+        guard context.health(of: combatant) > 0 else { return [] }
         let profile = context.modifiers(for: combatant.id)
         let triggers = profile.triggers
         var events: [ActionEvent] = []
@@ -100,6 +101,7 @@ package extension CombatTriggerEngine {
             await events.append(contentsOf: drawPlayCascade(for: combatant, in: &context))
         }
 
+        guard context.health(of: combatant) > 0 else { return events }
         await events.append(contentsOf: applySidestepHeal(for: combatant, profile: profile, in: &context))
         if allowsCounterattacks, context.roster.enemy.isAlive {
             for (keyword, chance, potency) in [

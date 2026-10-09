@@ -5,20 +5,24 @@ import TrinketCore
 @testable import BattleEngine
 
 struct TurnBoundaryRegressionTests {
-    @Test func `Mana reserves cannot indefinitely absorb attacks above the Shield talent budget`() {
+    private func makeManaShieldBattle(attackDamage: Int, heroMana: Int) -> BattleState {
         let attack = Ability(
-            id: "reserve-breaker", name: "Reserve Breaker", tier: .basic,
-            damageComponents: [DamageComponent(10, keyword: .physical, target: .hero)],
+            id: "enemy-attack", name: "Enemy Attack", tier: .basic,
+            damageComponents: [DamageComponent(attackDamage, keyword: .physical, target: .hero)],
         )
         var profile = CombatantTalentCatalog.profile(for: ["wizard_mana_t1_2"])
         profile.triggers.dodgeChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyAbilities: [attack], heroMaxMana: 29, heroMana: 29,
+            enemyAbilities: [attack], heroMaxMana: heroMana, heroMana: heroMana,
             heroModifiers: profile,
         )
         battle.appliesFightPacing = false
-        let health = battle.health(of: battle.hero)
+        return battle
+    }
 
+    @Test func `Mana reserves cannot indefinitely absorb attacks above the Shield talent budget`() {
+        var battle = makeManaShieldBattle(attackDamage: 10, heroMana: 29)
+        let health = battle.health(of: battle.hero)
         let events = battle.endTurn()
 
         #expect(events.first { $0.abilityName == "Mana Shield" }?.amount == 6)
@@ -27,15 +31,7 @@ struct TurnBoundaryRegressionTests {
     }
 
     @Test func `Mana Shield protects against the enemy attack following End Turn`() {
-        let attack = Ability(
-            id: "strike", name: "Strike", tier: .basic,
-            damageComponents: [DamageComponent(4, keyword: .physical, target: .hero)],
-        )
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyAbilities: [attack], heroMaxMana: 4, heroMana: 4,
-            heroModifiers: CombatantTalentCatalog.profile(for: ["wizard_mana_t1_2"]),
-        )
-        battle.appliesFightPacing = false
+        var battle = makeManaShieldBattle(attackDamage: 4, heroMana: 4)
         let health = battle.health(of: battle.hero)
         let events = battle.endTurn()
         #expect(battle.health(of: battle.hero) == health)
@@ -56,6 +52,25 @@ struct TurnBoundaryRegressionTests {
         )
         let summary = events.first { $0.kind == .ability && $0.abilityID == ability.id }?.appliedEffectSummaries
         #expect(summary?.contains(theft ? "steal 2 Gold" : "gain 5 Gold") == true)
+    }
+
+    @Test func `loyal companion draws for companion on alternating turns`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionAbilities: [.slash],
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                mana: ManaTriggers(companionCardsEveryOtherTurn: 1),
+            )),
+            dealOpeningHand: false,
+        )
+        for turn in 0 ... 3 {
+            battle.turnCount = turn
+            battle.hand = BattleHand()
+            battle.companionDeck.putOnBottom(.slash)
+            let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+            let drawn = events.filter { $0.effectKind == .cardsDrawn }.reduce(0) { $0 + $1.amount }
+            #expect(drawn == (turn.isMultiple(of: 2) ? 1 : 0))
+            #expect(battle.hand.cards.allSatisfy { $0.owner == .companion })
+        }
     }
 
     @Test func `End Turn stops Hibernation after Arcane Cleansing wins the battle`() throws {

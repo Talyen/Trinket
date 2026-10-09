@@ -121,6 +121,7 @@ package enum BattleCardCombatEngine {
     ) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
+            guard !context.isBattleOver else { break }
             let runtime = context.roster[owner]
             guard runtime.isAlive, runtime.maxMana > 0 else { continue }
             let combatant = runtime.combatant

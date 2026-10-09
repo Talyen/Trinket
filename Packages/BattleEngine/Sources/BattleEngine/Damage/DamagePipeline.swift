@@ -71,7 +71,7 @@ package enum DamagePipeline {
     /// mirrored ticks count toward the same hit; keyword reactions stay last
     /// among pipeline-owned steps so wards see final healthLost.
     private static func applyCommittedDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) async {
-        await applyTypedCriticalAttackRewards(to: &state, in: &context)
+        await applyAttackRewards(to: &state, in: &context)
         if state.options.isCardAttack, state.amount > 0, state.combatant.role == .enemy {
             await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroCardHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID, critical: state.isCritical,

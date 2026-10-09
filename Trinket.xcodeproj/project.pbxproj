@@ -56,6 +56,8 @@
 		D77B1B572840FE4B65134F04 /* Smoke.xctestplan */ = {isa = PBXFileReference; path = Smoke.xctestplan; sourceTree = "<group>"; };
 		E43AF427DA2725C7880E05D0 /* BattleEngine */ = {isa = PBXFileReference; lastKnownFileType = folder; name = BattleEngine; path = Packages/BattleEngine; sourceTree = SOURCE_ROOT; };
 		E89691B00998EAF137303F2E /* FullUI.xctestplan */ = {isa = PBXFileReference; path = FullUI.xctestplan; sourceTree = "<group>"; };
+		EA64BF8416A6ADFD12DDAD31 /* Profiles.xctestplan */ = {isa = PBXFileReference; path = Profiles.xctestplan; sourceTree = "<group>"; };
+		EC8FFECA2C30949FD7853EF5 /* Soak.xctestplan */ = {isa = PBXFileReference; path = Soak.xctestplan; sourceTree = "<group>"; };
 		FB2F3612614E891F44DD2597 /* TrinketContent */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketContent; path = Packages/TrinketContent; sourceTree = SOURCE_ROOT; };
 		FCEFEE1788152B3F8E259A13 /* BattlePerformance.xctestplan */ = {isa = PBXFileReference; path = BattlePerformance.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -171,7 +173,9 @@
 				E89691B00998EAF137303F2E /* FullUI.xctestplan */,
 				9BD8DF4B5FF1DBECD236E2A9 /* LaunchArtwork */,
 				ADA42E5A1490B3683FC93B52 /* Media */,
+				EA64BF8416A6ADFD12DDAD31 /* Profiles.xctestplan */,
 				D77B1B572840FE4B65134F04 /* Smoke.xctestplan */,
+				EC8FFECA2C30949FD7853EF5 /* Soak.xctestplan */,
 				2844A738FB32D14BF53C79FF /* Packages */,
 				42122845F4A458BED95405AB /* StoreKit */,
 				A4012463DD954CE8411DA9EE /* Trinket */,

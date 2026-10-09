@@ -50,14 +50,6 @@ public enum ExperienceScaling {
         return max(1, CombatRounding.scaled(award, multiplier: catchUp))
     }
 
-    public static func equalBattleAward(playerLevel: Int, highestLevel: Int) -> Int {
-        battleAwardWithCatchUp(
-            playerLevel: playerLevel,
-            enemyLevel: playerLevel,
-            highestLevel: highestLevel,
-        )
-    }
-
     public static func cappedAward(_ amount: Int, for progression: CombatantProgression) -> Int {
         cappedAward(amount, requiredXP: progression.requiredXP)
     }

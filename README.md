@@ -68,3 +68,4 @@ Map and source-of-truth table: [Docs/README.md](Docs/README.md).
 - Game surfaces: [Overview.md](Docs/Product/Overview.md) — Campaign, Explore, Collection, Homestead
 - Release: [Release.md](Docs/Platform/Release.md)
 - Audits: [Audits](Docs/Audits/README.md)
+- License: [LICENSE.md](LICENSE.md)

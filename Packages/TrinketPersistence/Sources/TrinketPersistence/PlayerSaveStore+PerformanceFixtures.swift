@@ -7,7 +7,7 @@ public extension PlayerSaveStore {
     func installPerformanceFixtures(
         mysteryEvent: String?, wantsHomesteadBuild: Bool, wantsStrongParty: Bool,
         wantsTalentFixture: Bool, wantsTalentPoint: Bool, wantsLabyrinthScroll: Bool,
-        labyrinthNodeType: LabyrinthNodeType?,
+        labyrinthNodeType: LabyrinthNodeType?, wantsTalentPair: Bool = false,
     ) {
         // "TRIN" in hex; retained fixture seed keeps map comparisons deterministic.
         let labyrinthFixtureSeed: UInt64 = 0x5452_494E
@@ -30,6 +30,11 @@ public extension PlayerSaveStore {
                     ? .at(level: 2)
                     : CombatantProgression(level: 1, currentXP: 9, requiredXP: 10)
                 save.roster.unlockedTalents[hero] = []
+            }
+            if wantsTalentPair {
+                let companion = save.roster.activeCompanionID
+                save.roster.progressions[companion] = CombatantProgression(level: 1, currentXP: 9, requiredXP: 10)
+                save.roster.unlockedTalents[companion] = []
             }
             if wantsLabyrinthScroll {
                 let map = LabyrinthGenerator.makeMap(seed: labyrinthFixtureSeed, floorCount: 3)

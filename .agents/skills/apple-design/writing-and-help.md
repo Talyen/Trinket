@@ -7,11 +7,16 @@ incidental copy work.
 
 - Name the action or destination concretely. Build and Upgrade describe distinct
   Homestead actions; vague labels such as Continue need an obvious next step.
+  Keep the action's terminology consistent in its confirmation and visible
+  result; do not describe a different operation after the player commits.
 - Keep fantasy character in narrative and rewards while making costs, eligibility,
   purchases, and recovery instructions precise. Remove filler and repetition before
   shrinking text to fit. Match existing capitalization for the kind of control.
 - Explain an unavailable action near the choice when its reason is unclear. Pair
   essential color differences with a label, symbol, shape, or native disabled state.
+- When an empty state leaves the next step unclear, explain what the player can
+  do using an actual available action. Do not invent an action or add a tutorial
+  just to fill the space.
 - Follow the [failure and destructive-action contract](../../../Docs/AgentContext/swiftui-features.md)
   for recovery: keep technical failures internal, expose Retry/Back when blocked,
   and use inline consequences with Cancel and a final action for destructive choices.
@@ -35,3 +40,6 @@ reference.
 Apple references: [Writing](https://developer.apple.com/design/human-interface-guidelines/writing),
 [Offering help](https://developer.apple.com/design/human-interface-guidelines/offering-help),
 [Onboarding](https://developer.apple.com/design/human-interface-guidelines/onboarding).
+
+Action/result terminology and empty-state guidance include modified adaptations
+of Anthropic's design principles; see [source and license](foundations-and-process.md#adapted-source).

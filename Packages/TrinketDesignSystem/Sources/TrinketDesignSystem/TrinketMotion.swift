@@ -33,7 +33,6 @@ public enum TrinketMotion: Sendable {
     }
 
     public enum Reward: Sendable {
-        public static let categoryEntranceScale: CGFloat = 0.97
         /// Single stagger shared by category entrances and resource rows.
         /// Deliberately tighter than `Content.entranceStagger`: reward rows
         /// reveal in quick succession, content entrances breathe more.

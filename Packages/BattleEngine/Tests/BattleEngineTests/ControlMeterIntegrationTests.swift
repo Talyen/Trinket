@@ -5,6 +5,49 @@ import TrinketCore
 @testable import BattleEngine
 
 struct ControlMeterIntegrationTests {
+    private func makeControlBattle(
+        heroAbilities: [Ability] = [.slash],
+        heroMaxHealth: Int = 20,
+        companionAbilities: [Ability] = [],
+        companionMaxHealth: Int = 20,
+        enemyAbilities: [Ability] = [.slash],
+        enemyMaxHealth: Int = 100,
+        actionIntervalTurns: Int? = nil,
+        activeHeroEffects: [ActiveEffect] = [],
+        activeEnemyEffects: [ActiveEffect] = [],
+        heroModifiers: CombatModifierProfile = .zero,
+        dealOpeningHand: Bool = true,
+    ) -> BattleState {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            maxHealth: heroMaxHealth,
+            actionIntervalTurns: actionIntervalTurns,
+            abilities: heroAbilities,
+        )
+        let companion = CombatantFixtures.combatant(
+            id: "companion",
+            role: .companion,
+            maxHealth: companionMaxHealth,
+            abilities: companionAbilities,
+        )
+        let enemy = CombatantFixtures.combatant(
+            id: "enemy",
+            role: .enemy,
+            maxHealth: enemyMaxHealth,
+            abilities: enemyAbilities,
+        )
+        return BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            activeEnemyEffects: activeEnemyEffects,
+            activeHeroEffects: activeHeroEffects,
+            heroModifiers: heroModifiers,
+            dealOpeningHand: dealOpeningHand,
+        )
+    }
+
     @Test(arguments: [Keyword.stun, Keyword.freeze])
     func `action skip prevents damage`(keyword: Keyword) throws {
         var battle = BattleTestFixtures.partyWithPendingActionSkip(keyword: keyword)
@@ -58,15 +101,12 @@ struct ControlMeterIntegrationTests {
     }
 
     @Test func `stun damage builds meter triggers and skips next action`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
+        let ability = Ability(id: "test-stun", name: "Test Stun", tier: .basic, directDamage: 1, damageKeyword: .stun)
+        var battle = makeControlBattle(
+            heroAbilities: [ability],
+            enemyMaxHealth: 5,
             actionIntervalTurns: CombatantFixtures.quickWinTurnInterval,
-            abilities: [Ability(id: "test-stun", name: "Test Stun", tier: .basic, directDamage: 1, damageKeyword: .stun)],
         )
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)
-        var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
         var events: [ActionEvent] = []
         for _ in 0 ..< 8 {
@@ -83,35 +123,26 @@ struct ControlMeterIntegrationTests {
 
         try #expect(events.contains(effectKind: .controlTriggered, keyword: .stun))
         #expect(events.contains {
-            $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == enemy.id
+            $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == battle.enemy.id
         })
-        try #expect(battle.health(of: battle.hero) == hero.maxHealth)
+        try #expect(battle.health(of: battle.hero) == battle.hero.maxHealth)
     }
 
     @Test func `shield bash applies stun skip and grants block`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [.shieldBash])
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)
-        var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
+        var battle = makeControlBattle(heroAbilities: [.shieldBash], enemyMaxHealth: 5)
 
         _ = try BattleTestFixtures.playCardNamed("Shield Bash", owner: .hero, on: &battle)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 1)
 
         let events = BattleTestFixtures.endTurn(on: &battle)
         #expect(events.contains {
-            $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == enemy.id
+            $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == battle.enemy.id
         })
-        try #expect(battle.health(of: battle.hero) == hero.maxHealth)
+        try #expect(battle.health(of: battle.hero) == battle.hero.maxHealth)
     }
 
     @Test func `party owner skip blocks card play then clears on end turn`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [.slash])
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.passiveEnemy(maxHealth: 100)
-        var battle = BattleTestFixtures.standardParty(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var battle = makeControlBattle(
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTurns: 0),
             ],
@@ -132,7 +163,7 @@ struct ControlMeterIntegrationTests {
 
         let events = BattleTestFixtures.endTurn(on: &battle)
         #expect(events.contains {
-            $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == hero.id
+            $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == battle.hero.id
         })
         try #expect(battle.ownersSkippingThisPlayerTurn.isEmpty)
         try #expect(!(battle.roster.hasControlStatus(for: battle.hero, keyword: .stun)))
@@ -141,14 +172,8 @@ struct ControlMeterIntegrationTests {
 
     @Test func `shatter and dazed apply during control status linger`() throws {
         let jab = Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1, damageKeyword: .physical)
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [jab])
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.passiveEnemy(maxHealth: 100)
-
-        var frozenBattle = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var frozenBattle = makeControlBattle(
+            heroAbilities: [jab],
             activeEnemyEffects: [
                 ActiveEffect(
                     id: 1,
@@ -167,10 +192,8 @@ struct ControlMeterIntegrationTests {
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &frozenBattle)
         try #expect(100 - frozenBattle.health(of: frozenBattle.enemy) == 3)
 
-        var stunnedBattle = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var stunnedBattle = makeControlBattle(
+            heroAbilities: [jab],
             activeEnemyEffects: [
                 ActiveEffect(
                     id: 1,
@@ -191,20 +214,16 @@ struct ControlMeterIntegrationTests {
     }
 
     @Test func `blocked stun damage does not charge control meter`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 20)
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var battle = makeControlBattle(
+            enemyMaxHealth: 20,
             activeHeroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 3)],
         )
+        let hero = battle.hero
         _ = battle.resolveDamage(DamageRequest(
             amount: 5,
             target: hero,
             keyword: .stun,
-            sourceActorID: enemy.id,
+            sourceActorID: battle.enemy.id,
             options: .reaction(),
         ))
         try #expect(battle.health(of: hero) == 20)
@@ -220,18 +239,9 @@ struct ControlMeterIntegrationTests {
 
     @Test(arguments: [Keyword.freeze, Keyword.stun])
     func `opening hand does not backfill pending control owner`(keyword: Keyword) throws {
-        let battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                abilities: [.slash, .heal, .smite],
-            ),
-            companion: CombatantFixtures.combatant(
-                id: "companion",
-                role: .companion,
-                abilities: [.bash, .fangs, .bloodthorn],
-            ),
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
+        let battle = makeControlBattle(
+            heroAbilities: [.slash, .heal, .smite],
+            companionAbilities: [.bash, .fangs, .bloodthorn],
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(keyword, 10, 10), remainingTurns: 0),
             ],
@@ -244,15 +254,7 @@ struct ControlMeterIntegrationTests {
 
     @Test(arguments: [Keyword.freeze, Keyword.stun])
     func `pending control blocks deck draws but linger does not`(keyword: Keyword) throws {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                abilities: [.slash, .heal, .smite],
-            ),
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
-        )
+        var battle = makeControlBattle(heroAbilities: [.slash, .heal, .smite])
         battle.hand = BattleHand()
         battle.heroDeck = CombatDeck(abilities: [.slash, .heal, .smite])
         battle.withEngineContext { context in
@@ -281,18 +283,9 @@ struct ControlMeterIntegrationTests {
 
     @Test(arguments: [Keyword.freeze, Keyword.stun])
     func `control trigger purges owner cards and promotes surviving buffer`(keyword: Keyword) throws {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                abilities: [.slash, .heal, .smite],
-            ),
-            companion: CombatantFixtures.combatant(
-                id: "companion",
-                role: .companion,
-                abilities: [.bash, .fangs],
-            ),
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
+        var battle = makeControlBattle(
+            heroAbilities: [.slash, .heal, .smite],
+            companionAbilities: [.bash, .fangs],
             dealOpeningHand: false,
         )
         battle.heroDeck = CombatDeck(abilities: [.darkPact])
@@ -327,10 +320,9 @@ struct ControlMeterIntegrationTests {
     }
 
     @Test func `promote next from buffer returns dead owner card to bottom of deck`() {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.slash]),
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: [.bash]),
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
+        var battle = makeControlBattle(
+            heroAbilities: [.slash],
+            companionAbilities: [.bash],
             dealOpeningHand: false,
         )
         battle.companionDeck = CombatDeck(abilities: [])

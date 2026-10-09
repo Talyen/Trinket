@@ -54,6 +54,9 @@ enum AudioSession {
                 try session.setActive(true)
                 configured = true
             } catch {
+                #if DEBUG
+                AudioCoverageDiagnostics.failed()
+                #endif
                 logger.error(
                     "Unable to configure audio session: \(error.localizedDescription, privacy: .public)",
                 )

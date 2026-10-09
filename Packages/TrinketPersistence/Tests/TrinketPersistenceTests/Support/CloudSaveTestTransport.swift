@@ -19,7 +19,7 @@ actor CloudSaveTestTransport: CloudSaveTransport {
     /// Runs on the MainActor because test actions mutate the @MainActor
     /// store between fetch and verify. Awaiting it from this actor serializes
     /// the fake the same way the real transport serializes on the store.
-    var nextFetchAction: (@MainActor @Sendable () -> Void)?
+    var nextFetchAction: (@MainActor @Sendable () async -> Void)?
 
     func configure(
         offline: Bool = false,
@@ -41,7 +41,7 @@ actor CloudSaveTestTransport: CloudSaveTransport {
         now = now.addingTimeInterval(seconds)
     }
 
-    func onNextFetch(_ action: @escaping @MainActor @Sendable () -> Void) {
+    func onNextFetch(_ action: @escaping @MainActor @Sendable () async -> Void) {
         nextFetchAction = action
     }
 

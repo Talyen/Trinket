@@ -180,23 +180,6 @@ enum BattleSessionTestSupport {
         )
     }
 
-    static func makeUltimateProbeParty(enemyHealth: Int) -> BattlePartyFixtures.BattleParty {
-        (
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                abilities: [.slash, .fireball, .bloodthorn],
-            ),
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
-            enemy: CombatantFixtures.combatant(
-                id: "enemy",
-                role: .enemy,
-                maxHealth: enemyHealth,
-                abilities: [],
-            ),
-        )
-    }
-
     static func makeDrivenVictorySummary(
         configuration: BattleRunConfiguration,
         presentation: BattlePresentationContext,

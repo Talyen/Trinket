@@ -21,7 +21,7 @@ Read only references relevant to the change:
 | Text hierarchy and fit | [Typography](typography.md) |
 | Labels, recovery copy, contextual teaching | [Writing and help](writing-and-help.md) |
 | Responsiveness, sound, haptics | [Performance and feedback](performance-and-feedback.md) |
-| Screen critique or a new flow | [Foundations and process](foundations-and-process.md) |
+| Screen critique, a new flow, or substantial redesign | [Foundations and process](foundations-and-process.md) |
 
 [SwiftUI feature context](../../../Docs/AgentContext/swiftui-features.md) owns
 feature integration rules. Use [swiftui-specialist](../swiftui-specialist/SKILL.md)

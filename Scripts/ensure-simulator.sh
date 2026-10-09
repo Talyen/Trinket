@@ -51,6 +51,25 @@ rename_legacy_shared_simulator_if_needed() {
 }
 
 resolve_or_create_simulator() {
+  if [[ -n "${TRINKET_SIM_DEVICE_TYPE:-}" || -n "${TRINKET_SIM_OS_MAJOR:-}" ]]; then
+    local profile_selection profile_type profile_runtime profile_existing owned_existing
+    # Validate availability before touching the simulator owned by this lease.
+    profile_selection="$(python3 Scripts/coverage_profiles.py resolve --name "$SIMULATOR_NAME")" || return 1
+    IFS=$'\t' read -r profile_type profile_runtime profile_existing <<< "$profile_selection"
+    if [[ -n "$profile_existing" ]]; then
+      SIMULATOR_UDID="$profile_existing"
+      return 0
+    fi
+    owned_existing="$(simulator_udid_for_name "$SIMULATOR_NAME")"
+    if [[ -n "$owned_existing" ]]; then
+      [[ -n "${TRINKET_SIM_SLOT_PATH:-}" && "${TRINKET_ISOLATE:-}" == "1" ]] || {
+        echo "Explicit profile replacement requires a managed isolated lease." >&2; return 1;
+      }
+      discard_simulator "$owned_existing"
+    fi
+    SIMULATOR_UDID="$(xcrun simctl create "$SIMULATOR_NAME" "$profile_type" "$profile_runtime")" || return 1
+    return 0
+  fi
   rename_legacy_shared_simulator_if_needed
   SIMULATOR_UDID="$(simulator_udid_for_name "$SIMULATOR_NAME")"
   if [[ -z "${SIMULATOR_UDID:-}" && "$SIMULATOR_NAME" == "Trinket Run" ]]; then
@@ -250,6 +269,10 @@ ensure_test_simulator() {
     SIMULATOR_UDID=""
   fi
   SIMULATOR_NAME="$owned_name"
+
+  if [[ -n "${TRINKET_SIM_DEVICE_TYPE:-}" || -n "${TRINKET_SIM_OS_MAJOR:-}" ]]; then
+    resolve_or_create_simulator || return 1
+  fi
 
   if [[ -z "$force" && -n "${SIMULATOR_UDID:-}" ]] && boot_simulator; then
     SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"

@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import asdict, dataclass, field, replace
-from pathlib import Path
 from typing import Any
 
 from .diagnostic_limits import MAX_DETAIL_CHARS, MAX_DETAIL_LINES, MAX_ISSUES, MAX_LINE_CHARS, MAX_LINES, MAX_MESSAGE_CHARS

@@ -236,13 +236,19 @@ package extension CombatTriggerEngine {
         guard damage > 0 else { return [] }
         context.resolution.enter(.talentReaction)
         defer { context.resolution.leave(.talentReaction) }
-        return await DamagePipeline.resolveNestedDamage(
+        let poison = await DamagePipeline.resolveNestedDamage(
             amount: damage,
             keyword: .poison,
             target: context.roster.enemy.combatant,
             sourceActorID: actor.id,
             in: &context,
-        ).events
+        )
+        var events = poison.events
+        await events.append(contentsOf: context.applyDecayingDoT(
+            keyword: .poison, potency: poison.healthLost, to: context.roster.enemy.combatant,
+            sourceActorID: actor.id, application: .attached,
+        ))
+        return events
     }
 
     static func drawCards(

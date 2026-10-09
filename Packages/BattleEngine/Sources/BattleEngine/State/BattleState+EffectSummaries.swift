@@ -110,6 +110,33 @@ package extension BattleState {
         )
         return summaries
     }
+
+    private func uniqueEffectSummaries(of combatant: Combatant) -> [EffectSummary] {
+        guard let owner = roster.participant(for: combatant),
+              let state = uniques.owners[owner] else { return [] }
+        var summaries: [EffectSummary] = []
+        summaries.append(
+            .dodge,
+            when: state.wrenflightDodge > 0,
+            text: "Wrenflight: +\(Int((state.wrenflightDodge * 100).rounded()))% Dodge chance until your next turn.",
+        )
+        summaries.append(
+            .poison,
+            when: state.viperReady,
+            text: "Viper’s Courtesy: Your next hit that removes Health deals additional Poison and Bleed damage, each equal to half its damage.",
+        )
+        summaries.append(
+            .poison,
+            when: state.wildheartReady,
+            text: "Wildheart’s Favor: Your next Poison card’s damage Critically Hits.",
+        )
+        summaries.append(
+            .holy,
+            when: state.goldDamage > 0,
+            text: "The Golden Crucible: Your next Holy hit from a manually played card deals \(state.goldDamage) additional damage.",
+        )
+        return summaries
+    }
 }
 
 private extension CombatantTalentState.Pending {
@@ -152,7 +179,7 @@ private extension CombatantTalentState.Pending {
         summaries.append(
             .physical,
             when: partyDamageBonus > 0,
-            text: "Sniff Out: Your next attack deals \(partyDamageBonus) additional damage.",
+            text: "Sniff Out: Your next damaging card deals \(partyDamageBonus) additional damage.",
         )
         summaries.append(
             .physical,

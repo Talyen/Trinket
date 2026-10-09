@@ -180,15 +180,9 @@ struct DoTMechanicsTests {
 
     @Test func `bleed instances track independently`() throws {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [bleedAbility(potency: 6)]),
-            companion: Combatant(
-                id: "companion",
-                name: "Companion",
-                role: .companion,
-                maxHealth: 20,
-                abilities: [bleedAbility(potency: 4)],
-            ),
-            enemy: CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [bleedAbility(potency: 6)]),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20, abilities: [bleedAbility(potency: 4)]),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100),
         )
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
@@ -198,19 +192,9 @@ struct DoTMechanicsTests {
     }
 
     @Test func `burn respects block`() throws {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: Combatant(
-                id: "hero",
-                name: "Hero",
-                role: .hero,
-                maxHealth: 20,
-                abilities: [burnAbility(potency: 4)],
-            ),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
-            activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 5),
-            ],
+        var battle = isolatedBattle(
+            heroAbilities: [burnAbility(potency: 4)],
+            enemyEffects: [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 5)],
         )
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
@@ -304,19 +288,23 @@ struct DoTMechanicsTests {
         #expect(battle.roster.hero.talents.pending.basicCriticalBonus == (blocked ? 0 : 0.35))
     }
 
-    @Test func `damage ramp grows each round up to cap`() throws {
-        var battle = BattleStateTestFactory.makeBattle(
+    private func makeRampBattle(cap: Int = 4) -> BattleState {
+        BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.slash]),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
             heroModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(dot: DotTriggers(
                     burnDamageRampPerRound: 1,
-                    burnDamageRampCap: 4,
+                    burnDamageRampCap: cap,
                 )),
             ),
             dealOpeningHand: false,
         )
+    }
+
+    @Test func `damage ramp grows each round up to cap`() throws {
+        var battle = makeRampBattle(cap: 4)
         for expected in [1, 2, 3, 4, 4] {
             _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
             let runtime = try #require(battle.roster.runtime(for: battle.roster.hero.combatant))
@@ -327,18 +315,7 @@ struct DoTMechanicsTests {
     }
 
     @Test func `damage ramp grows uncapped without a cap`() throws {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.slash]),
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
-            heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(dot: DotTriggers(
-                    burnDamageRampPerRound: 1,
-                    burnDamageRampCap: 0,
-                )),
-            ),
-            dealOpeningHand: false,
-        )
+        var battle = makeRampBattle(cap: 0)
         for expected in [1, 2, 3, 4, 5] {
             _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
             let runtime = try #require(battle.roster.runtime(for: battle.roster.hero.combatant))
@@ -347,18 +324,7 @@ struct DoTMechanicsTests {
     }
 
     @Test func `damage ramp applies to matching keyword only`() {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.slash]),
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
-            heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(dot: DotTriggers(
-                    burnDamageRampPerRound: 1,
-                    burnDamageRampCap: 4,
-                )),
-            ),
-            dealOpeningHand: false,
-        )
+        var battle = makeRampBattle(cap: 4)
         _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(DamagePipeline.outgoingDamageBonus(
             for: battle.roster.hero.id,
@@ -495,5 +461,19 @@ extension DoTMechanicsTests {
         _ = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
         #expect(battle.roster.hero.currentMana == 1)
         #expect(battle.turnCadence.burnManaRestored[.hero] == 1)
+    }
+
+    @Test(arguments: [Keyword.burn, .poison])
+    func `DoT details describe potency instead of promising damage from a fading stack`(keyword: Keyword) throws {
+        var battle = isolatedBattle()
+        let effect: Effect = keyword == .burn ? .burn(1) : .poison(1)
+        battle.appendEffect(effect, to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        let summary = try #require(EffectSummaryBuilder.build(for: battle.roster.enemy.activeEffects).first)
+        #expect(summary.text.contains("1 \(keyword.rawValue) potency"))
+        #expect(summary.text.contains("decays before"))
+
+        _ = CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle) }
+        #expect(battle.health(of: battle.enemy) == 100)
+        #expect(!battle.roster.hasAffliction(keyword, on: battle.enemy))
     }
 }

@@ -18,6 +18,8 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 .DS_Store
+._*
+.swiftpm/
 .tools/
 __pycache__/
 *.pyc

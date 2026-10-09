@@ -35,6 +35,19 @@ struct RogueRevisionTests {
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 1)
     }
 
+    @Test(arguments: [3, 7])
+    func `Coinmail rounds odd victory Gold gains with the combat rule`(gold: Int) {
+        var battle = battleWithHandCard(
+            .steal, heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_gold_t1_2"]),
+        )
+        battle.appliesFightPacing = false
+
+        _ = battle.grantGoldEvent(gold, to: battle.hero, abilityName: "Fickle Fortune")
+
+        #expect(battle.gold == gold)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == (gold == 3 ? 2 : 4))
+    }
+
     @Test func `mortal wound halves healing received by bleeding enemies`() {
         let profile = CombatantTalentCatalog.profile(for: ["rogue_bleed_t3_2"])
         #expect(profile.triggers.bleedingEnemyHealingMultiplier == 0.5)
@@ -46,5 +59,30 @@ struct RogueRevisionTests {
             _ = battle.healEmitting(amount: 8, target: battle.enemy, source: battle.enemy, abilityName: "Heal")
             #expect(battle.roster.enemy.currentHealth == (bleeding ? 14 : 18))
         }
+    }
+
+    @Test(arguments: [false, true])
+    func `Light Fingers rewards a Critical Hit only after its Rogue survives Thorns`(finallyDefeated: Bool) {
+        let thorns = ActiveEffect(id: 100, effect: .thorns(8), remainingTurns: 0, sourceActorID: "enemy")
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            enemyEffects: [thorns], heroHealth: 1,
+            heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_gold_t1_1"]),
+        )
+        battle.appliesFightPacing = false
+        battle.roster.hero.hasConsumedDeathsDoor = finallyDefeated
+
+        let hit = battle.resolveDamage(DamageRequest(
+            amount: 4, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true),
+        ))
+
+        #expect(hit.healthLost == 8)
+        #expect(battle.health(of: battle.enemy) == 92)
+        #expect(battle.health(of: battle.hero) == (finallyDefeated ? 0 : 1))
+        #expect(battle.gold == (finallyDefeated ? 0 : 2))
+        #expect(hit.events.contains { $0.keyword == .gold && $0.amount == 2 } == !finallyDefeated)
     }
 }

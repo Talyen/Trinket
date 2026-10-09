@@ -16,12 +16,14 @@ waits, flakiness, and maintenance; medium-value additions are rare, justified ex
 | Smoke | `Smoke/` sources; `Smoke.xctestplan` at repo root | CI `test.sh smoke` (registry-defined classes); runs on the build runner without a product transfer |
 | Exhaustive | `Play/`, `Collection/`, `Battle/` | Advisory nightly/dispatch CI, runs all registered classes on one runner; includes StoreKit recovery; deliberate local diagnostics follow [Verification.md](../Docs/Platform/Verification.md#local-simulator-budget) |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` (repo root) | Manual CI `performance.yml` / `performance.sh` investigations; outside routine smoke |
+| Profiles | `Profiles/`; generated `Profiles.xctestplan` | Nightly/manual compact iOS 26 phone and portrait iOS 27 iPad; three settings configurations per device |
+| Soak | `Soak/`; generated `Soak.xctestplan` | Weekly/manual audio-enabled twenty-Contract career; outside routine FullUI |
 | Support | `Support/` | Shared launch and StoreKit fixtures; page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
 Author smoke and exhaustive membership once in `Scripts/config/ui-tests.tsv`.
-Each row supplies suite, smoke routing key (empty for FullUI), and class.
+Each row supplies suite, smoke routing key (empty for other suites), and class.
 Selections follow registry row order. `./Scripts/generate.sh` updates only
-`selectedTests` in the UI plans, preserving other plan settings. CI reads all FullUI classes through `check-testplan-sync.py --classes FullUI` and serial
+`selectedTests` in the UI plans, preserving other plan settings. Profiles and Soak plans are generated from the FullUI plan settings when first created. CI reads all FullUI classes through `check-testplan-sync.py --classes FullUI` and serial
 smoke filters through `--classes Smoke`; local smoke routing uses the same rows. Add, remove, or move registrations with the source
 class, then regenerate. The checker rejects missing/duplicate classes, duplicate
 routing keys, stale plan selections, and workflows bypassing registry selections.
@@ -109,7 +111,7 @@ Assert a journey’s return destination before using helpers that navigate elsew
   do not copy their numeric values into this guide.
 - Wait for alternative successful outcomes together. Battle entry accepts the
   hand or victory in one wait, so a fast victory does not exhaust a hand-only wait.
-- Accessibility-setting audits remain outside PD-014. Use stable selectors and meaningful outcomes; [Testing.md](../Docs/Platform/Testing.md#ui-keep-drop-rubric) owns when copy, layout, or gesture behavior merits regression coverage.
+- PD-014 permits the bounded critical-control settings profiles described in [Player coverage](../Docs/Platform/PlayerCoverage.md). Use stable selectors and meaningful outcomes; [Testing.md](../Docs/Platform/Testing.md#ui-keep-drop-rubric) owns when copy, layout, or gesture behavior merits regression coverage.
 - UI tests are CI-owned and run serially on each job's managed simulator. Local diagnostics require explicit opt-in under Verification.md. Hotspots: `python3 ./Scripts/test-timing.py report --top 30`.
 - Success-path screenshots are opt-in (`TRINKET_UI_SUCCESS_SCREENSHOTS=1`); failure screenshots stay unconditional.
 
@@ -118,14 +120,6 @@ Assert a journey’s return destination before using helpers that navigate elsew
 The hand-card inspection, dismissal, cancelled-drag, and committed-drag checks share
 one battle launch in `BattleFlowUITests`. Each gesture retains its hand-count and
 detail-sheet assertions; the test ends after the committed play.
-
-The standalone Spires shell/detail journey is retired. Its available-floor,
-attunement, and modifier contracts remain in
-[`AppStateSpiresTests`](../Packages/TrinketAppState/Tests/TrinketAppStateTests/AppStateSpiresTests.swift),
-[`SpiresProgressTests`](../Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Encounters/SpiresProgressTests.swift),
-and [`StageMapPresentationTests`](../Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/StageMapPresentationTests.swift).
-Routine FullUI and maintained performance measurements deliberately relinquish Spire
-row enablement and enemy-detail wiring coverage; package tests cannot detect those UI regressions.
 
 Onboarding and recruitment finish by checking that the earned characters are
 present and unlocked in Collection. Shopping verifies the purchase control,
@@ -142,26 +136,23 @@ independently of StoreKit ownership. The shared assertion checks the card's lock
 label, which combines recruitment and purchase access. Purchase preserves the earned
 recruitment and progression rules in [Monetization](../Docs/Product/Monetization.md#access).
 
-The standalone Haptics preference journey is retired: it spent two app launches
-and a native-switch coordinate gesture on a low-impact Boolean preference. Options
-entry remains in `SmokeShellTests`; `OptionsUITests` retains destructive reset
-cancellation and durable confirmation. `OptionsStoreTests` protects clearing the
-Haptics defaults key, but does not prove its toggle binding or preference round trip.
-Those two Haptics checks are deliberately relinquished, with the risk that a broken
-toggle or preference reload can escape automated coverage. Options control performance
-measurements are also retired; manual inspection is needed for the toggle binding.
+## Real-player coverage
 
-The functional portfolio retains campaign entry/victory/retreat, tab and starter
-entry, purchase access, card gestures, equipment controls, recruitment, Labyrinth
-boss/Continue, destructive reset, cold entitlement, and restore-failure recovery.
-The following interaction coverage is deliberately relinquished:
+[Player coverage](../Docs/Platform/PlayerCoverage.md) owns the expanded portfolio,
+CI cadence, evidence boundaries, and deferred live checks. FullUI now restores
+Voyage embark/abandon, Spires locked-floor/detail wiring, Labyrinth inspector
+selection/dismissal, Homestead upgrade/debit/reload, Haptics toggle/reload,
+Ask to Buy, and failed-write Defeat Leave. Haptics is the explicitly approved
+narrow medium-value exception; it proves the native control binding that the
+Options defaults tests cannot establish.
 
-| Retired journey | Surviving package protection | Remaining UI risk |
-|---|---|---|
-| Voyage embark/abandon | `VoyagePersistenceTests`, `VoyagePlayModeTests` | Embark/abandon controls and return navigation |
-| Labyrinth node inspector | `StageMapPresentationTests`, `AppStateLabyrinthTests`; boss/Continue remains UI-owned | Locked selection preservation and background dismissal |
-| Homestead building/relaunch | `PlayerHomesteadStoreTests`, `HomesteadStateTests` | Upgrade controls and wallet bindings |
-| Ask to Buy | `FullGameStoreTests`; ordinary purchase remains UI-owned | Native deferred approval and its UI transition |
-| Defeat leave with injected save failure | `DefeatCompletionTests`, `PendingSaveRecoveryTests`; retreat smoke owns normal Leave | Leave control under the injected write failure |
+The Campaign smoke journey holds at the opt-in Debug reward checkpoint after the
+real claim commits, then backgrounds and returns to the map. Collection and
+Talent confirmation checkpoints never authorize rewards or writes: backgrounding
+and disappearance execute the ordinary finish paths. Only owned, cloud-disabled
+Debug stores may hold presentation completion. Release builds contain no holds.
 
-These package owners protect state rules and durability, not the retired controls.
+Production-timing journeys omit the tick override; audio journeys omit audio
+suppression. `Coverage Diagnostics` is an opt-in Debug label; the native audit
+excludes only this nonshipping observation element. All product controls remain
+audited. Captured backend counts establish scheduling/start results, not audibility.

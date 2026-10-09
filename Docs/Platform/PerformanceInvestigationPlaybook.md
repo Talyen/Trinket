@@ -333,6 +333,10 @@ loop above to establish attribution before choosing a fix. Closing the plans doe
 not establish a performance gain, justify visual reductions, or change artwork
 budgets; a CPU capture alone does not establish rendered-frame smoothness.
 
+The weekly [real-player soak](PlayerCoverage.md) retains diagnostic simulator
+footprint/audio observations. It supplies functional ownership and repeated-play
+coverage, not hardware budgets or authoritative audible/thermal evidence.
+
 ## Memory and energy
 
 Use measured device evidence for memory, battery, thermal, and lifecycle regressions.

@@ -10,6 +10,7 @@ SCRIPT_INPUTS = (
     'Scripts/change-budget.sh',
     'Scripts/check-staged-project.sh',
     'Scripts/check-testplan-sync.py',
+    'Scripts/internal/ui_registration.py',
     'Scripts/config/generated-paths.tsv',
     'Scripts/config/ui-tests.tsv',
     'Scripts/ensure-ci-tools.sh',
@@ -20,7 +21,6 @@ SCRIPT_INPUTS = (
     'Scripts/lib/ci-tools.d/xcodegen.sh',
     'Scripts/lib/generated-paths.sh',
     'Scripts/lib/project-generation.sh',
-    'Scripts/lib/smoke-classes.sh',
     'Scripts/lib/tool-install.sh',
     'Scripts/lib/tools.sh',
     'Scripts/tool-versions.env',
@@ -239,6 +239,7 @@ printf cached > "$cache"
         for relative in ('.githooks/pre-push', 'Scripts/pre-push-paths.py', 'Scripts/agent-push-gate.sh',
                          'Scripts/assert-generated-output.sh', 'Scripts/internal/change_routing.py',
                          'Scripts/internal/agent_status.py', 'Scripts/internal/cli.py',
+                         'Scripts/internal/ui_registration.py',
                          'Scripts/lib/generated-paths.sh',
                          'Scripts/config/ui-tests.tsv',
                           'Scripts/build-inputs.env', 'Scripts/format-dirs.env'):

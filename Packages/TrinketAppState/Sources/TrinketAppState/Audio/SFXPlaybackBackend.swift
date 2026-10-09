@@ -48,6 +48,9 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
         guard let url = AudioSupport.mediaURL(
             resourceName: clip.resourceName, fileExtension: clip.fileExtension, subdirectory: "SFX",
         ) else {
+            #if DEBUG
+            AudioCoverageDiagnostics.failed()
+            #endif
             logger.warning("Missing SFX resource: \(clip.resourceName, privacy: .public).\(clip.fileExtension, privacy: .public)")
             return nil
         }
@@ -61,6 +64,9 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
             try file.read(into: buffer)
             return DecodedSFXBuffer(value: buffer)
         } catch {
+            #if DEBUG
+            AudioCoverageDiagnostics.failed()
+            #endif
             logger.error(
                 "Unable to decode SFX resource \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)",
             )
@@ -84,6 +90,9 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
             do {
                 try engine.start()
             } catch {
+                #if DEBUG
+                AudioCoverageDiagnostics.failed()
+                #endif
                 logger.error("Unable to start SFX engine: \(error.localizedDescription, privacy: .public)")
                 return false
             }
@@ -94,6 +103,11 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
                 node.play()
             }
         }
+        #if DEBUG
+        if !engineWasRunning {
+            AudioCoverageDiagnostics.sfxStarted()
+        }
+        #endif
         voiceStartPolicy.didStart(nodeCount: nodes.count)
         return true
     }
@@ -106,6 +120,9 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
         }
         voice.node.volume = volume
         voice.node.scheduleBuffer(voice.buffer, at: nil, options: .interrupts, completionHandler: nil)
+        #if DEBUG
+        AudioCoverageDiagnostics.sfxPlayed()
+        #endif
     }
 
     mutating func stop() {

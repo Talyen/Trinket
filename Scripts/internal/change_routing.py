@@ -7,11 +7,11 @@ import os
 from pathlib import Path
 import re
 import shlex
-import shutil
 import subprocess
 
 from internal.agent_status import changes
 from internal.cli import ROOT, read_env_arrays
+from internal.ui_registration import registrations
 
 
 def matches(path: str, *patterns: str) -> bool:
@@ -167,19 +167,7 @@ def classify(paths: list[str], root: Path = ROOT) -> Route:
     route = Route(paths)
     arrays = read_env_arrays(root / 'Scripts/build-inputs.env', ['TRINKET_TEST_PACKAGES', 'TRINKET_CONTENT_GENERATION_INPUTS', 'TRINKET_ASSET_GENERATION_INPUTS', 'TRINKET_PROJECT_GENERATION_INPUTS'])
     packages = arrays['TRINKET_TEST_PACKAGES']
-    smoke = {}
-    for line in (root / 'Scripts/config/ui-tests.tsv').read_text().splitlines():
-        if not line.strip() or line.startswith('#'):
-            continue
-        fields = line.split('|')
-        if fields[0] == 'FullUI':
-            continue
-        if len(fields) != 3:
-            raise ValueError(f'Malformed UI-test registry row: {line}')
-        suite, key, name = fields
-        if suite != 'Smoke' or not re.fullmatch('[A-Z][A-Z0-9_]*', key) or not re.fullmatch('[A-Za-z_][A-Za-z0-9_]*', name):
-            raise ValueError(f'Malformed UI-test registry row: {line}')
-        smoke[key] = name
+    smoke = {row['key']: row['name'] for row in registrations(root) if row['suite'] == 'Smoke'}
     registry = root / 'Scripts/config/generated-paths.tsv'
     generated_roots, asset_roots = [], []
     if registry.exists():

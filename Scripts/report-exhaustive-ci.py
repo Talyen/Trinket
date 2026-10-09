@@ -31,9 +31,11 @@ def report(pages: list[dict]) -> tuple[str, list[str]]:
     return '\n'.join(lines), warnings
 
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('jobs', type=Path, help='Paginated GitHub jobs from gh api --paginate --slurp')
+    parser.add_argument('--require-execution', action='store_true',
+                        help='fail the advisory aggregate when requested UI is failed, skipped, or unavailable')
     args = parser.parse_args()
     try:
         summary, warnings = report(json.loads(args.jobs.read_text()))
@@ -47,7 +49,10 @@ def main() -> None:
     if path := os.environ.get('GITHUB_STEP_SUMMARY'):
         with Path(path).open('a') as stream:
             stream.write(summary)
+    if args.require_execution and (warnings or '| skipped |' in summary):
+        return 1
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

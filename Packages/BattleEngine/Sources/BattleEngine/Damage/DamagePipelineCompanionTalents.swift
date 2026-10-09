@@ -118,11 +118,15 @@ package extension DamagePipeline {
            BattleChance.succeeds(
                probability: triggers.onDamageBurnRetaliationChancePercent, using: &context.rng,
            ) {
-            await appendNestedDamage(
+            let healthLost = await appendNestedDamage(
                 amount: triggers.onDamageBurnRetaliationDamage,
                 keyword: .burn, abilityName: "Blazing Feathers",
                 target: attacker.combatant, defender: defender, to: &state, in: &context,
             )
+            await state.damageEvents.append(contentsOf: context.applyDecayingDoT(
+                keyword: .burn, potency: healthLost, to: attacker.combatant,
+                sourceActorID: defender.id, application: .attached,
+            ))
         }
     }
 

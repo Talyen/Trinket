@@ -51,6 +51,15 @@ final class RewardCollectionState {
             finishAction = finish
             phase = .collected
             feedbackTrigger &+= 1
+            #if DEBUG
+            // Owned UI fixtures stop after the real claim commits. Backgrounding
+            // or disappearance still executes the ordinary once-only finish.
+            let arguments = ProcessInfo.processInfo.arguments
+            if arguments.contains("-hold-reward-collection"), arguments.contains("-store-name"),
+               arguments.contains("-disable-cloud-sync") {
+                return
+            }
+            #endif
             task = Task { @MainActor [weak self, clock] in
                 do {
                     try await clock.sleep(for: .seconds(TrinketMotion.Screen.crossfadeDuration))

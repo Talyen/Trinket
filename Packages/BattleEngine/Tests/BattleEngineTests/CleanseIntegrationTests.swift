@@ -5,6 +5,31 @@ import TrinketCore
 @testable import BattleEngine
 
 struct CleanseIntegrationTests {
+    private func makeCleanseBattle(
+        heroAbility: Ability = .panaceaPotion,
+        heroMaxHealth: Int = 20,
+        enemyMaxHealth: Int = 100,
+        activeHeroEffects: [ActiveEffect] = [],
+        heroModifiers: CombatModifierProfile = .zero,
+        dealOpeningHand: Bool = true,
+    ) -> BattleState {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: heroMaxHealth,
+            abilities: [heroAbility],
+        )
+        return BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: enemyMaxHealth),
+            activeHeroEffects: activeHeroEffects,
+            heroModifiers: heroModifiers,
+            dealOpeningHand: dealOpeningHand,
+        )
+    }
+
     @Test(arguments: [Keyword.stun, .freeze])
     func `cleansing control lets an ally play newly drawn cards this turn`(keyword: Keyword) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(heroAbilities: [.slash], dealOpeningHand: false)
@@ -46,20 +71,29 @@ struct CleanseIntegrationTests {
         #expect(battle.roster.enemy.currentHealth == enemyHealth)
     }
 
-    @Test func `panacea cleanses most debuffed and heals lowest as one action`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            name: "Hero",
-            role: .hero,
-            maxHealth: 20,
-            abilities: [.panaceaPotion],
+    @Test func `reflected bleed preserves duration on a poisoned enemy`() throws {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.cleanseReflectDebuffToEnemy = true
+        profile.triggers.bleedDurationVsPoisonedBonus = 1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile, dealOpeningHand: false,
         )
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
-        var battle = BattleTestFixtures.standardParty(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        battle.appendEffect(.poison(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.appendEffect(.bleed(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
+        let health = battle.health(of: battle.enemy)
+
+        _ = EffectHandlersTestSupport.dispatch(
+            .cleanse(.bleed), source: battle.hero, target: battle.companion, battle: &battle,
+        )
+
+        let reflected = try #require(battle.activeEffects(of: battle.enemy).first { $0.effect.isBleed })
+        #expect(reflected.effect == .bleed(2))
+        #expect(reflected.remainingTurns == 1)
+        #expect(battle.health(of: battle.enemy) == health)
+    }
+
+    @Test func `panacea cleanses most debuffed and heals lowest as one action`() throws {
+        var battle = makeCleanseBattle(
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
@@ -68,8 +102,8 @@ struct CleanseIntegrationTests {
         )
         battle.withEngineContext { context in
             context.appliesFightPacing = false
-            context.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
-            context.roster.mutateRuntime(for: companion) { $0.currentHealth = 11 }
+            context.roster.mutateRuntime(for: context.hero) { $0.currentHealth = 10 }
+            context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 11 }
         }
 
         let events = try #require(try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle))
@@ -88,19 +122,7 @@ struct CleanseIntegrationTests {
     }
 
     @Test func `panacea cleanses most debuffed but heals lowest when split`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            name: "Hero",
-            role: .hero,
-            maxHealth: 20,
-            abilities: [.panaceaPotion],
-        )
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
-        var battle = BattleTestFixtures.standardParty(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var battle = makeCleanseBattle(
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
@@ -108,8 +130,8 @@ struct CleanseIntegrationTests {
         )
         battle.withEngineContext { context in
             context.appliesFightPacing = false
-            context.roster.mutateRuntime(for: hero) { $0.currentHealth = 14 }
-            context.roster.mutateRuntime(for: companion) { $0.currentHealth = 6 }
+            context.roster.mutateRuntime(for: context.hero) { $0.currentHealth = 14 }
+            context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 6 }
         }
 
         _ = try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle)
@@ -120,24 +142,11 @@ struct CleanseIntegrationTests {
     }
 
     @Test func `panacea heals base amount when no debuffs present`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            name: "Hero",
-            role: .hero,
-            maxHealth: 20,
-            abilities: [.panaceaPotion],
-        )
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
-        var battle = BattleTestFixtures.standardParty(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-        )
+        var battle = makeCleanseBattle()
         battle.withEngineContext { context in
             context.appliesFightPacing = false
-            context.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
-            context.roster.mutateRuntime(for: companion) { $0.currentHealth = 15 }
+            context.roster.mutateRuntime(for: context.hero) { $0.currentHealth = 10 }
+            context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 15 }
         }
 
         _ = try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle)
@@ -155,16 +164,8 @@ struct CleanseIntegrationTests {
             description: "Cleanse Poisoned.",
             effects: [.cleanse(.poison)],
         )
-        let hero = CombatantFixtures.combatant(
-            id: "hero", name: "Hero", role: .hero, maxHealth: 20,
-            abilities: [cleansePoison],
-        )
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
-        var battle = BattleTestFixtures.standardParty(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var battle = makeCleanseBattle(
+            heroAbility: cleansePoison,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
@@ -195,19 +196,10 @@ struct CleanseIntegrationTests {
             description: "Cleanse Stunned.",
             targetedEffects: [TargetedEffect(.cleanse(.stun))],
         )
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            name: "Hero",
-            role: .hero,
-            maxHealth: 50,
-            abilities: [cleanseAbility],
-        )
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10)
-        var battle = BattleTestFixtures.standardParty(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var battle = makeCleanseBattle(
+            heroAbility: cleanseAbility,
+            heroMaxHealth: 50,
+            enemyMaxHealth: 10,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTurns: 0),
             ],
@@ -227,18 +219,11 @@ struct CleanseIntegrationTests {
             description: "Cleanse all debuffs.",
             effects: [.cleanse(nil)],
         )
-        let hero = CombatantFixtures.combatant(
-            id: "hero", name: "Hero", role: .hero, maxHealth: 50,
-            abilities: [cleanseAll],
-        )
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var triggers = CombatTraitTriggers()
         triggers.onCleansePoisonDealDamagePerStack = 5
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var battle = makeCleanseBattle(
+            heroAbility: cleanseAll,
+            heroMaxHealth: 50,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .poison(4), remainingTurns: 0),
@@ -263,17 +248,10 @@ struct CleanseIntegrationTests {
             description: "Cleanse all debuffs.",
             effects: [.cleanse(nil)],
         )
-        let hero = CombatantFixtures.combatant(
-            id: "hero", name: "Hero", role: .hero, maxHealth: 50,
-            abilities: [cleanseAll],
-        )
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         let triggers = CombatTraitTriggers(cleanse: CleanseTriggers(cleansePartyBlock: 2))
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var battle = makeCleanseBattle(
+            heroAbility: cleanseAll,
+            heroMaxHealth: 50,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
@@ -298,18 +276,10 @@ struct CleanseIntegrationTests {
             description: "Cleanse all debuffs.",
             effects: [.cleanse(nil)],
         )
-        let hero = CombatantFixtures.combatant(
-            id: "hero", name: "Hero", role: .hero, maxHealth: 50,
-            abilities: [cleanseAll],
-        )
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         let triggers = CombatTraitTriggers(cleanse: CleanseTriggers(cleansePartyBlock: 2))
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            activeHeroEffects: [],
+        var battle = makeCleanseBattle(
+            heroAbility: cleanseAll,
+            heroMaxHealth: 50,
             heroModifiers: CombatModifierProfile(triggers: triggers),
         )
 

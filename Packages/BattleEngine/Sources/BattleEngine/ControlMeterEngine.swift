@@ -303,3 +303,149 @@ package enum ControlMeterEngine {
         context.roster.setActiveEffects(currentEffects, for: update.combatant)
     }
 }
+
+extension ControlMeterEngine {
+    private static func adjustedCharge(
+        _ amount: Int,
+        keyword: Keyword,
+        to combatant: Combatant,
+        sourceActorID: String?,
+        in context: BattleState,
+    ) -> Int {
+        var adjustedAmount = amount
+        if keyword == .freeze, combatant.role == .enemy, let sourceActorID {
+            let multiplier = context.modifiers(for: sourceActorID).triggers.freezeBuildupMultiplier
+            if multiplier > 1 {
+                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: multiplier)
+            }
+        }
+        if keyword == .stun, combatant.role == .enemy, let sourceActorID,
+           context.roster.hasAffliction(.poison, on: combatant) {
+            let sourceMultiplier = context.modifiers(for: sourceActorID).triggers.poisonedEnemyStunBuildupMultiplier
+            let heroMultiplier = context.roster.hero.isAlive
+                ? context.heroModifiers.triggers.poisonedEnemyStunBuildupMultiplier : 1
+            let multiplier = max(sourceMultiplier, heroMultiplier)
+            if multiplier > 1 {
+                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: multiplier)
+            }
+        }
+        if keyword == .stun, combatant.role == .enemy, let sourceActorID,
+           let source = context.roster.combatant(for: sourceActorID),
+           source.isBelowHalfHealth {
+            adjustedAmount = CombatRounding.scaled(
+                adjustedAmount,
+                multiplier: context.modifiers(for: sourceActorID).triggers.stunBuildupBelowHalfMultiplier,
+            )
+        }
+        if keyword == .stun, combatant.role == .enemy, let sourceActorID {
+            adjustedAmount = CombatRounding.scaled(
+                adjustedAmount, multiplier: context.modifiers(for: sourceActorID).triggers.stunBuildupMultiplier,
+            )
+        }
+        if keyword == .freeze, combatant.role == .enemy, let sourceActorID,
+           let source = context.roster.combatant(for: sourceActorID),
+           context.roster.runtime(for: source.combatant)?.talents.action.empoweredByMana == true {
+            adjustedAmount = CombatRounding.scaled(
+                adjustedAmount,
+                multiplier: context.modifiers(for: sourceActorID).triggers.manaEmpowerFreezeBuildupMultiplier,
+            )
+        }
+        if keyword == .stun || keyword == .freeze {
+            let targetTriggers = context.modifiers(for: combatant.id).triggers
+            let steadfastResistance = targetTriggers.blockedControlBurnResistance > 0
+                && DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: combatant)) > 0
+                ? targetTriggers.blockedControlBurnResistance
+                : 0
+            let lichboneResistance = keyword == .stun ? targetTriggers.afflictionResistance : 0
+            let partyResistance: Double = switch combatant.role {
+            case .hero, .companion: 0.25
+            case .enemy: 0
+            }
+            let controlResistance = 1 - (1 - partyResistance) * (1 - steadfastResistance) * (1 - lichboneResistance)
+            if controlResistance > 0 {
+                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: 1 - min(1, controlResistance))
+            }
+        }
+        return adjustedAmount
+    }
+
+    static func multiplyBuildup(
+        _ factor: Int,
+        keyword: Keyword,
+        to combatant: Combatant,
+        sourceActorID: String?,
+        abilityID: String = "",
+        abilityName: String,
+        in context: inout BattleState,
+    ) async -> [ActionEvent] {
+        guard factor > 1,
+              keyword == .freeze,
+              context.roster.health(for: combatant) > 0,
+              !context.roster.hasControlStatus(for: combatant, keyword: keyword)
+        else {
+            return []
+        }
+        var currentEffects = context.roster.activeEffects(for: combatant)
+        guard let existingIndex = currentEffects.firstIndex(where: { activeEffect in
+            guard case let .controlMeter(meterKeyword, _, _) = activeEffect.effect else { return false }
+            return meterKeyword == keyword
+        }),
+            case let .controlMeter(_, currentAmount, threshold) = currentEffects[existingIndex].effect,
+            currentAmount > 0,
+            threshold > currentAmount
+        else {
+            return []
+        }
+        guard !isProtected(currentEffects[existingIndex].effect, on: combatant, in: context) else { return [] }
+
+        let newAmount = min(currentAmount * factor, threshold)
+        guard newAmount > currentAmount else { return [] }
+
+        let amplificationEvent = context.nextEvent(
+            kind: .effect,
+            effectKind: .dotAmplified,
+            source: context.eventSource(actorID: sourceActorID, fallback: combatant),
+            abilityID: abilityID, abilityName: abilityName,
+            target: combatant,
+            amount: newAmount - currentAmount,
+            keyword: keyword,
+            origin: .direct,
+        )
+
+        if newAmount >= threshold {
+            let thresholdEvents = await applyThresholdReached(
+                ControlMeterThresholdContext(
+                    keyword: keyword,
+                    combatant: combatant,
+                    sourceActorID: sourceActorID,
+                    existingIndex: existingIndex,
+                    baseThreshold: threshold,
+                    triggeredAmount: newAmount,
+                ),
+                currentEffects: &currentEffects,
+                in: &context,
+            )
+            return [amplificationEvent] + thresholdEvents
+        }
+
+        updateBuildup(
+            ControlMeterUpdate(
+                keyword: keyword,
+                newAmount: newAmount,
+                threshold: threshold,
+                combatant: combatant,
+                sourceActorID: sourceActorID,
+                existingIndex: existingIndex,
+            ),
+            currentEffects: &currentEffects,
+            in: &context,
+        )
+        return [amplificationEvent]
+    }
+
+    private static func isProtected(_ effect: Effect, on combatant: Combatant, in context: BattleState) -> Bool {
+        let blocked = context.modifiers(for: combatant.id).triggers.blockedControlPrevention
+            && DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: combatant)) > 0
+        return blocked || CombatTriggerEngine.preventsDebuff(effect, on: combatant, in: context)
+    }
+}

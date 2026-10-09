@@ -79,7 +79,9 @@ struct PlaythroughLifecycleTests {
             #expect(career.store.pendingSaveRecovery?.hasPendingSave == true)
         } else {
             #expect(career.snapshot == before)
+            career.state.reconcileShellState(.scenePhaseChanged, scenePhase: .background)
             try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { career.store.isRetryingSaveAction }
+            career.state.reconcileShellState(.scenePhaseChanged, scenePhase: .active)
             #expect(!career.store.isRetryingSaveAction)
         }
         let awarded = career.snapshot

@@ -14,13 +14,14 @@ struct BattleStateTests {
     }
 
     @Test func `party not defeated when one member on deaths door`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 5)
-        let companion = CombatantFixtures.passiveCompanion(maxHealth: 1)
-        let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 100)
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 5),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 1),
+            enemy: BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 100),
+        )
 
         battle.withEngineContext { context in
-            context.roster.mutateRuntime(for: companion) { $0.currentHealth = 0 }
+            context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 0 }
         }
         try #expect(!(battle.isCompanionAlive))
 
@@ -34,10 +35,11 @@ struct BattleStateTests {
     }
 
     @Test func `party defeat when both deaths door consumed and expired`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 3)
-        let companion = CombatantFixtures.passiveCompanion(maxHealth: 3)
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 3),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 3),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+        )
         let heroID = battle.hero
         let companionID = battle.companion
 
@@ -111,10 +113,11 @@ struct BattleStateTests {
     }
 
     @Test func `card combat defeat when party obliterated`() throws {
-        let fragile = CombatantFixtures.combatant(id: "fragile", role: .hero, maxHealth: 1)
-        let observer = CombatantFixtures.combatant(id: "observer", role: .companion, maxHealth: 1)
-        let enemy = CombatantFixtures.combatant(id: "strong", role: .enemy, maxHealth: 100, abilities: [.slash])
-        var battle = BattleStateTestFactory.makeBattle(hero: fragile, companion: observer, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 1),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 1),
+            enemy: CombatantFixtures.combatant(id: "strong", role: .enemy, maxHealth: 100, abilities: [.slash]),
+        )
 
         while !battle.isBattleOver {
             _ = battle.endTurn()
@@ -149,10 +152,11 @@ struct BattleStateTests {
 
     @Test func `battle ends when hero kills enemy without further plays`() throws {
         let finisher = Ability(id: "finisher", name: "Finisher", tier: .basic, directDamage: 1, description: "Finisher")
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [finisher])
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20, abilities: [.bash])
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1)
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [finisher]),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20, abilities: [.bash]),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1),
+        )
 
         let events = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
 
@@ -165,23 +169,11 @@ struct BattleStateTests {
     }
 
     @Test func `faustian bargain self damage does not wipe party when companion survives`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "warlock",
-            role: .hero,
-            maxHealth: 3,
-            abilities: [.faustianBargain],
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.combatant(id: "warlock", role: .hero, maxHealth: 3, abilities: [.faustianBargain]),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 50),
         )
-        let companion = CombatantFixtures.combatant(
-            id: "companion",
-            role: .companion,
-            maxHealth: 20,
-        )
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 50,
-        )
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
 
         _ = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
 
@@ -189,5 +181,55 @@ struct BattleStateTests {
         try #expect(battle.health(of: battle.companion) == 20)
         try #expect(!(battle.isPartyDefeated))
         try #expect(!(battle.isEnemyDefeated))
+    }
+
+    @Test(arguments: [false, true])
+    func `peak enemy depletion survives healing without observation`(tracksEvents: Bool) {
+        var state = BattleState(
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            tracksLog: false, tracksEvents: tracksEvents, dealOpeningHand: false,
+        )
+        let initial = state
+        state.roster.mutateRuntime(for: state.enemy) { runtime in
+            _ = runtime.takeRawDamage(58)
+            _ = runtime.heal(58)
+        }
+        #expect(state.health(of: state.enemy) == 100)
+        #expect(state.defeatProgress.experienceAward(from: 100) == 29)
+        state.roster.mutateRuntime(for: state.enemy) { runtime in
+            _ = runtime.takeRawDamage(40)
+            _ = runtime.heal(40)
+        }
+        #expect(state.defeatProgress.experienceAward(from: 100) == 29)
+        #expect(initial.defeatProgress.experienceAward(from: 100) == 0)
+    }
+
+    @Test func `battle state seeds party starting health`() {
+        let state = BattleState(
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 30),
+            heroStartingHealth: 17,
+            companionStartingHealth: 9,
+            dealOpeningHand: false,
+        )
+
+        #expect(state.roster.hero.currentHealth == 17)
+        #expect(state.roster.companion.currentHealth == 9)
+        #expect(state.roster.enemy.currentHealth == 30)
+    }
+
+    @Test func `battle state defaults party to full health`() {
+        let state = BattleState(
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 30),
+            dealOpeningHand: false,
+        )
+
+        #expect(state.roster.hero.currentHealth == 50)
+        #expect(state.roster.companion.currentHealth == 40)
     }
 }

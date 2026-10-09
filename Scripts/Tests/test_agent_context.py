@@ -7,9 +7,9 @@ SCRIPT_INPUTS = (
     'Scripts/config/agent-tasks.json',
     'Scripts/agent-context.sh',
     'Scripts/internal/change_routing.py',
+    'Scripts/internal/ui_registration.py',
     'Scripts/internal/agent_status.py',
     'Scripts/verify.py',
-    'Scripts/lib/smoke-classes.sh',
 )
 
 

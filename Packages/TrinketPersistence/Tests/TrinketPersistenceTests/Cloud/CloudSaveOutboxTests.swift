@@ -1,12 +1,14 @@
 import Foundation
 import SwiftData
 import Testing
+import TrinketContent
+import TrinketCore
 @testable import TrinketPersistence
 
 struct CloudSaveOutboxTests {
     @Test @MainActor func `schema two and legacy pending prefixes migrate without losing later actions`() throws {
         let fixture = try PersistenceTestContext()
-        let base = PlayerSave.fresh
+        let base = try populatedLegacySave()
         var first = base
         first.roster.gold = 5
         var second = first
@@ -29,6 +31,8 @@ struct CloudSaveOutboxTests {
         var store: PlayerSaveStore? = try fixture.makeReloadedStore()
         #expect(store?.usesMemoryFallback == false)
         #expect(store?.roster.gold == 8)
+        let migrated = try #require(store?.currentSave)
+        expectPopulatedState(migrated, matching: second)
         #expect(try Array(#require(store?.cloudDeviceState.account.journal)) == mutations)
         #expect(store?.cloudDeviceState.account.pending?.id == "frozen-upload")
         #expect(try Array(#require(store?.cloudDeviceState.account.pending?.mutations)) == [mutations[0]])
@@ -55,6 +59,8 @@ struct CloudSaveOutboxTests {
         #expect(afterReceipt.cloudDeviceState.account.pending == nil)
         #expect(try Array(#require(afterReceipt.cloudDeviceState.account.journal)) == [mutations[1]])
         #expect(afterReceipt.roster.gold == 9)
+        expectPopulatedState(afterReceipt.currentSave, matching: migrated)
+        #expect(!afterReceipt.isCloudSyncEnabled)
         let archived = try #require(afterReceipt.cloudDeviceState.archives["other-account"]?.state.pending)
         #expect(try Array(#require(archived.mutations)) == [mutations[0]])
     }
@@ -130,6 +136,37 @@ struct CloudSaveOutboxTests {
         let local = try fixture.makeReloadedStore()
         #expect(local.roster.gold == 9)
         #expect(local.root.cloudStatePayload == metadata)
+    }
+
+    private func expectPopulatedState(_ actual: PlayerSave, matching expected: PlayerSave) {
+        #expect(actual.inventory == expected.inventory)
+        #expect(actual.roster.equipmentLoadouts == expected.roster.equipmentLoadouts)
+        #expect(actual.roster.unlockedTalents == expected.roster.unlockedTalents)
+        #expect(actual.homestead == expected.homestead)
+        #expect(actual.labyrinth == expected.labyrinth)
+        #expect(actual.voyage == expected.voyage)
+        #expect(actual.journey.shopPayloads == expected.journey.shopPayloads)
+    }
+
+    private func populatedLegacySave() throws -> PlayerSave {
+        var base = PlayerSave.testSeed
+        base.worldSeed = 99
+        let hero = base.roster.activeHero
+        let tree = try #require(CombatantTalentCatalog.allConfigs[hero.id]?.trees.first)
+        let talent = try #require(tree.nodes.first)
+        base.roster.progressions[hero.id] = .at(level: 6)
+        base.roster.unlockedTalents[hero.id] = [talent.id]
+        base.labyrinth.ensureMap(seed: 99)
+        base.labyrinth.hasEntered = true
+        base.voyage.ensureBoard(access: .fullGame)
+        let offer = try #require(base.voyage.offers.first)
+        #expect(base.voyage.embark(offerID: offer.id, eligibleRecruitEventIDs: [], access: .fullGame))
+        let encounter = EncounterIdentity(location: .journey(stageID: ShopOfferGenerator.starterShopStageID), save: base)
+        let item = try #require(base.inventory.items.first)
+        let stock = ShopStock(offers: [ShopOffer(id: "migrated-pinned-offer", item: item, price: 3)])
+        let payload = try ShopStockPersistence.encode(stock, encounter: encounter)
+        ShopStockPersistence.setPayload(payload, encounter: encounter, save: &base)
+        return base
     }
 
     private func mutation(_ id: String, from before: PlayerSave, to after: PlayerSave) -> CloudSaveMutation {

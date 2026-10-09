@@ -31,7 +31,8 @@ extension BattleTurnEngine {
         let actionID = context.resolution.beginAction(facts.action, origin: origin)
         defer { context.resolution.endAction() }
         let repeated = ResolvedActionFacts(
-            original: facts.originalAbility, resolved: ability, action: facts.action, origin: origin, in: context,
+            original: facts.originalAbility, resolved: ability, action: facts.action, origin: origin,
+            guaranteedCritical: facts.guaranteedCritical, in: context,
         )
         _ = context.resolution.prepareAction(repeated)
         context.resolution.prepareActionTalents(TalentActionFacts(actorID: actor.id))

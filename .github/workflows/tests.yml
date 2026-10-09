@@ -224,7 +224,7 @@ jobs:
           name: ${{ inputs.artifact-prefix }}release-device-failure-${{ github.run_id }}-${{ github.run_attempt }}
           path: .DerivedData/TestResults
           include-hidden-files: true
-          retention-days: 1
+          retention-days: 14
           if-no-files-found: ignore
 
   unit:
@@ -296,7 +296,7 @@ jobs:
             .DerivedData/TestResults/host-engine.json
             .DerivedData/TestResults/host-engine.log
             .DerivedData/TestResults/phase-timing.jsonl
-          retention-days: 1
+          retention-days: 14
 
       - name: Prune package build state
         if: success() && steps.package-cache.outputs.cache-hit != 'true'
@@ -480,8 +480,9 @@ jobs:
           jobs="$RUNNER_TEMP/exhaustive-jobs.json"
           if gh api --paginate --slurp \
             "repos/$REPO/actions/runs/$RUN_ID/attempts/$RUN_ATTEMPT/jobs?per_page=100" > "$jobs"; then
-            python3 Scripts/report-exhaustive-ci.py "$jobs"
+            python3 Scripts/report-exhaustive-ci.py "$jobs" --require-execution
           else
             echo "::warning::Could not retrieve exhaustive shard results; advisory status is unknown."
             echo "### Exhaustive UI: status unknown (job results unavailable)" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi

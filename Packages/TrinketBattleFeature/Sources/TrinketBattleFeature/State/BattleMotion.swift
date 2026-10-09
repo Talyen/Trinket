@@ -94,9 +94,4 @@ enum BattleMotion {
         let clamped = min(max(progress, 0), 1)
         return 1 - pow(1 - clamped, 3)
     }
-
-    static func lerp<T: BinaryFloatingPoint>(_ start: T, _ end: T, _ progress: Double) -> T {
-        let clamped = min(max(progress, 0), 1)
-        return start + (end - start) * T(clamped)
-    }
 }

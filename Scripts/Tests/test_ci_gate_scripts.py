@@ -100,6 +100,17 @@ class CIGateScriptTests(ScriptRegressionTestCase):
             self.assertIn('::warning::Advisory exhaustive shard', result.stdout)
             self.assertIn('attention required', summary_path.read_text())
 
+    def test_requested_ui_aggregate_fails_on_skipped_failed_or_unavailable_execution(self):
+        with tempfile.TemporaryDirectory() as directory:
+            jobs = Path(directory) / 'jobs.json'
+            for outcome, expected in [('success', 0), ('skipped', 1), ('failure', 1), ('cancelled', 1), (None, 1)]:
+                pages = [{'jobs': [] if outcome is None else [{'name': 'tests / Exhaustive UI (All)',
+                    'conclusion': outcome, 'status': 'completed', 'html_url': 'https://example.com/job'}]}]
+                jobs.write_text(json.dumps(pages))
+                result = subprocess.run(['python3', str(ROOT / 'Scripts/report-exhaustive-ci.py'), str(jobs),
+                                         '--require-execution'], capture_output=True, text=True)
+                self.assertEqual(result.returncode, expected, result.stderr)
+
     def test_ci_diff_review_is_advisory(self) -> None:
         text = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
         self.assertRegex(text, r"diff-review:\n(?:.*\n){0,8}    continue-on-error: true")

@@ -4,34 +4,51 @@ import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
-struct BattleTurnEngineTests {
-    private func makeContext(
-        actorEffects: [ActiveEffect] = [],
-        seed: UInt64 = CombatantFixtures.deterministicBattleSeed,
-    ) -> BattleState {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            abilities: [.slash],
-        )
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            abilities: [.slash],
-        )
-        return BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            activeEnemyEffects: actorEffects,
-            rngSeed: seed,
-            dealOpeningHand: false,
-        )
-    }
+private func makeTurnContext(
+    hero: Combatant? = nil,
+    heroAbilities: [Ability] = [.slash],
+    heroMaxHealth: Int = 20,
+    heroHealth: Int? = nil,
+    heroEffects: [ActiveEffect] = [],
+    heroModifiers: CombatModifierProfile = .zero,
+    companion: Combatant? = nil,
+    enemy: Combatant? = nil,
+    enemyAbilities: [Ability] = [.slash],
+    enemyMaxHealth: Int = 100,
+    enemyHealth: Int? = nil,
+    actorEffects: [ActiveEffect] = [],
+    seed: UInt64 = CombatantFixtures.deterministicBattleSeed,
+) -> BattleState {
+    let resolvedHero = hero ?? CombatantFixtures.combatant(
+        id: "hero",
+        role: .hero,
+        maxHealth: heroMaxHealth,
+        abilities: heroAbilities,
+    )
+    let resolvedCompanion = companion ?? CombatantFixtures.combatant(id: "companion", role: .companion)
+    let resolvedEnemy = enemy ?? CombatantFixtures.combatant(
+        id: "enemy",
+        role: .enemy,
+        maxHealth: enemyMaxHealth,
+        abilities: enemyAbilities,
+    )
+    return BattleStateTestFactory.makeMinimalBattle(
+        hero: resolvedHero,
+        companion: resolvedCompanion,
+        enemy: resolvedEnemy,
+        heroEffects: heroEffects,
+        enemyEffects: actorEffects,
+        heroHealth: heroHealth,
+        enemyHealth: enemyHealth,
+        heroModifiers: heroModifiers,
+        rngSeed: seed,
+        nextEventID: 0,
+    )
+}
 
+struct BattleTurnEngineTests {
     @Test func `consume action skip emits event lingers status and records action`() throws {
-        var context = makeContext(actorEffects: [
+        var context = makeTurnContext(actorEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
         ])
         let enemy = context.roster.enemy.combatant
@@ -50,7 +67,7 @@ struct BattleTurnEngineTests {
     }
 
     @Test func `perform action resolves when no skip pending`() throws {
-        var context = makeContext()
+        var context = makeTurnContext()
         let enemy = context.roster.enemy.combatant
         let ability = try #require(enemy.abilityLoadout.basic)
 
@@ -66,27 +83,17 @@ struct BattleTurnEngineTests {
     }
 
     @Test func `deathgrip grants block when entering deaths door`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            maxHealth: 50,
-            abilities: [.slash],
-        )
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var context = makeTurnContext(
+            heroMaxHealth: 50,
             heroHealth: 5,
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
                 healing: HealingTriggers(
                     blockOnDeathsDoor: 8,
                 ),
             )),
-            rngSeed: 0,
-            nextEventID: 0,
+            seed: 0,
         )
+        let hero = context.hero
 
         let (_, events) = context.applyTestDamage(
             40,
@@ -111,7 +118,7 @@ struct BattleTurnEngineTests {
     }
 
     @Test func `ability event includes actor ability and tier`() throws {
-        var context = makeContext()
+        var context = makeTurnContext()
         let enemy = context.roster.enemy.combatant
         let ability = try #require(enemy.abilityLoadout.basic)
 
@@ -136,19 +143,12 @@ struct BattleTurnEngineTests {
             tier: .basic,
             damageComponents: [DamageComponent(2, keyword: .physical)],
         )
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var context = makeTurnContext(
+            heroAbilities: [ability],
             heroEffects: [ActiveEffect(id: 1, effect: .nextStrikeDouble, remainingTurns: 0)],
-            rngSeed: CombatantFixtures.deterministicBattleSeed,
-            nextEffectID: 2,
-            nextEventID: 0,
         )
-        let healthBefore = context.roster.health(for: enemy)
+        let hero = context.hero
+        let healthBefore = context.roster.health(for: context.enemy)
 
         let events = BattleTurnEngine.performAction(
             ability: ability,
@@ -159,7 +159,7 @@ struct BattleTurnEngineTests {
 
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
         try #expect(damageEvent.amount == 4)
-        try #expect(context.roster.health(for: enemy) == healthBefore - 4)
+        try #expect(context.roster.health(for: context.enemy) == healthBefore - 4)
         try #expect(!(context.roster.activeEffects(for: hero).contains {
             if case .nextStrikeDouble = $0.effect {
                 return true
@@ -178,19 +178,10 @@ struct BattleTurnEngineTests {
                 DamageComponent(2, keyword: .burn),
             ],
         )
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            rngSeed: CombatantFixtures.deterministicBattleSeed,
-            nextEventID: 0,
-        )
+        var context = makeTurnContext(heroAbilities: [ability])
         let events = BattleTurnEngine.performAction(
             ability: ability,
-            actor: hero,
+            actor: context.hero,
             abilityTarget: context.enemy,
             context: &context,
         )
@@ -212,22 +203,15 @@ struct BattleTurnEngineTests {
             directDamage: 3,
             guaranteedCriticalIfEnemyBuffed: true,
         )
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            enemyEffects: [
+        var context = makeTurnContext(
+            heroAbilities: [ability],
+            actorEffects: [
                 ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 2),
             ],
-            rngSeed: CombatantFixtures.deterministicBattleSeed,
-            nextEventID: 0,
         )
         let events = BattleTurnEngine.performAction(
             ability: ability,
-            actor: hero,
+            actor: context.hero,
             abilityTarget: context.enemy,
             context: &context,
         )
@@ -247,28 +231,16 @@ struct BattleTurnEngineTests {
             damageKeyword: .physical,
             effects: grantGold ? [.resourceGain(.gold, 3)] : [.marked(2, 4)],
         )
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            abilities: [ability],
+        var context = makeTurnContext(
+            heroAbilities: [ability],
+            enemyMaxHealth: 5,
+            seed: 0,
         )
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 5,
-        )
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            rngSeed: 0,
-            nextEventID: 0,
-        )
+        let enemy = context.enemy
         let events = BattleTurnEngine.performAction(
             ability: ability,
-            actor: hero,
-            abilityTarget: context.enemy,
+            actor: context.hero,
+            abilityTarget: enemy,
             context: &context,
         )
 
@@ -319,31 +291,23 @@ struct BattleTurnEngineBurnBonusTests {
             tier: .basic,
             damageComponents: [DamageComponent(2, keyword: .burn)],
         )
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var context = makeTurnContext(
+            heroAbilities: [ability],
             heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
-            rngSeed: CombatantFixtures.deterministicBattleSeed,
-            nextEffectID: 2,
-            nextEventID: 0,
         )
-        let healthBefore = context.roster.health(for: enemy)
+        let healthBefore = context.roster.health(for: context.enemy)
 
         let events = BattleTurnEngine.performAction(
             ability: ability,
-            actor: hero,
+            actor: context.hero,
             abilityTarget: context.enemy,
             context: &context,
         )
 
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
         try #expect(damageEvent.amount == 3)
-        try #expect(context.roster.health(for: enemy) == healthBefore - 3)
-        try #expect(!(context.roster.activeEffects(for: hero).contains {
+        try #expect(context.roster.health(for: context.enemy) == healthBefore - 3)
+        try #expect(!(context.roster.activeEffects(for: context.hero).contains {
             if case .nextBurnBonus = $0.effect {
                 return true
             }
@@ -358,29 +322,21 @@ struct BattleTurnEngineBurnBonusTests {
             tier: .basic,
             damageComponents: [DamageComponent(2, keyword: .physical)],
         )
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var context = makeTurnContext(
+            heroAbilities: [ability],
             heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
-            rngSeed: CombatantFixtures.deterministicBattleSeed,
-            nextEffectID: 2,
-            nextEventID: 0,
         )
 
         let events = BattleTurnEngine.performAction(
             ability: ability,
-            actor: hero,
+            actor: context.hero,
             abilityTarget: context.enemy,
             context: &context,
         )
 
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
         try #expect(damageEvent.amount == 2)
-        try #expect(context.roster.activeEffects(for: hero).contains {
+        try #expect(context.roster.activeEffects(for: context.hero).contains {
             if case let .nextBurnBonus(amount) = $0.effect {
                 return amount == 1
             }
@@ -389,28 +345,18 @@ struct BattleTurnEngineBurnBonusTests {
     }
 
     @Test func `kindling doubles against an unburning enemy`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [Ability.kindling])
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            rngSeed: CombatantFixtures.deterministicBattleSeed,
-            nextEffectID: 1,
-            nextEventID: 0,
-        )
+        var context = makeTurnContext(heroAbilities: [Ability.kindling])
 
         let events = BattleTurnEngine.performAction(
             ability: Ability.kindling,
-            actor: hero,
+            actor: context.hero,
             abilityTarget: context.enemy,
             context: &context,
         )
 
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
         try #expect(damageEvent.amount == 2)
-        try #expect(!context.roster.activeEffects(for: hero).contains {
+        try #expect(!context.roster.activeEffects(for: context.hero).contains {
             if case .nextBurnBonus = $0.effect {
                 return true
             }
@@ -420,29 +366,21 @@ struct BattleTurnEngineBurnBonusTests {
     }
 
     @Test func `kindling consumes an existing next burn bonus`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [Ability.kindling])
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var context = makeTurnContext(
+            heroAbilities: [Ability.kindling],
             heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
-            rngSeed: CombatantFixtures.deterministicBattleSeed,
-            nextEffectID: 2,
-            nextEventID: 0,
         )
 
         let events = BattleTurnEngine.performAction(
             ability: Ability.kindling,
-            actor: hero,
+            actor: context.hero,
             abilityTarget: context.enemy,
             context: &context,
         )
 
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
         try #expect(damageEvent.amount == 3)
-        try #expect(!context.roster.activeEffects(for: hero).contains {
+        try #expect(!context.roster.activeEffects(for: context.hero).contains {
             if case .nextBurnBonus = $0.effect {
                 return true
             }
@@ -459,28 +397,21 @@ struct BattleTurnEngineComponentTests {
             tier: .basic,
             damageComponents: [DamageComponent(10, keyword: .holy)],
         )
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 200)
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+        var context = makeTurnContext(
+            heroAbilities: [ability],
+            enemyMaxHealth: 200,
             heroEffects: [ActiveEffect(id: 1, effect: .nextHolyStrike, remainingTurns: 0)],
-            rngSeed: CombatantFixtures.deterministicBattleSeed,
-            nextEffectID: 2,
-            nextEventID: 0,
         )
-        let healthBefore = context.roster.health(for: enemy)
+        let healthBefore = context.roster.health(for: context.enemy)
 
         let events = BattleTurnEngine.performAction(
             ability: ability,
-            actor: hero,
+            actor: context.hero,
             abilityTarget: context.enemy,
             context: &context,
         )
 
-        #expect(context.roster.health(for: enemy) == healthBefore - 30)
+        #expect(context.roster.health(for: context.enemy) == healthBefore - 30)
         let burnStatus = try #require(events.first { $0.kind == .status && $0.keyword == .burn })
         #expect(burnStatus.amount == 10)
         let burnStack = try #require(context.roster.enemy.activeEffects.first { $0.keyword == .burn })
@@ -497,20 +428,11 @@ struct BattleTurnEngineComponentTests {
                 DamageComponent(3, keyword: .physical, target: .enemy),
             ],
         )
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            rngSeed: CombatantFixtures.deterministicBattleSeed,
-            nextEventID: 0,
-        )
+        var context = makeTurnContext(heroAbilities: [ability])
 
         let events = BattleTurnEngine.performAction(
             ability: ability,
-            actor: hero,
+            actor: context.hero,
             abilityTarget: context.enemy,
             context: &context,
         )

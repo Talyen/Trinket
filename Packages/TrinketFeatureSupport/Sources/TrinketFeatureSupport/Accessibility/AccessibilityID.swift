@@ -53,6 +53,11 @@ public enum AccessibilityID {
     }
 
     public enum Debug {
+        #if DEBUG
+        public static let coverageDiagnostics = "Coverage Diagnostics"
+        public static let rewardCollectionCheckpoint = "Committed Reward Checkpoint"
+        public static let talentConfirmationCheckpoint = "Committed Talent Checkpoint"
+        #endif
         public static let frameMetrics = "Frame Metrics"
         public static let frameMetricsReset = "Frame Metrics Reset"
         public static let battlePerformanceStart = "Battle Performance Start"
@@ -188,7 +193,6 @@ public enum AccessibilityID {
         public static let unlockSubtitle = "Mystery Unlock Subtitle"
         public static let continueButton = "Mystery Continue Button"
         public static let confirmChoiceButton = "Mystery Confirm Choice Button"
-        public static let persistFailure = "Mystery Persist Failure"
         public static let corruptItemTitle = "Mystery Corrupt Item Title"
         public static let corruptCancelButton = "Mystery Corrupt Cancel Button"
         public static let corruptConfirmButton = "Mystery Corrupt Confirm Button"
@@ -222,7 +226,6 @@ public enum AccessibilityID {
         public static let goldBalance = "Shop Gold Balance"
         public static let leaveButton = "Shop Leave Button"
         public static let detailBuyButton = "Shop Detail Buy Button"
-        public static let purchaseError = "Shop Purchase Error"
         /// Suffix shared with the `ShopScreen` query so a copy change cannot silently empty it.
         public static let offerCardSuffix = " shop offer"
 
@@ -359,7 +362,6 @@ public enum AccessibilityID {
         public static let rewards = "Rewards"
         public static let continueButton = "Continue Button"
         public static let battleAgainButton = "Battle Again Button"
-        public static let defeatPrimaryButton = "Defeat Primary Button"
         public static let defeatLeaveButton = "Defeat Leave Button"
         public static let abilityDetail = "Battle Ability Detail"
         public static let abilityDetailEffect = "Battle Ability Detail Effect"
@@ -375,8 +377,6 @@ public enum AccessibilityID {
     }
 
     public enum Equipment {
-        public static let basicAbilitySlot = abilitySlot(for: .basic)
-
         public static func abilitySlot(for tier: AbilityTier) -> String {
             "\(tier.rawValue) ability slot"
         }

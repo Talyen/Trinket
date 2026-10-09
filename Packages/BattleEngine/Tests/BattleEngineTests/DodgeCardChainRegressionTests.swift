@@ -27,6 +27,31 @@ struct DodgeCardChainRegressionTests {
         #expect(battle.heroDeck.abilities.isEmpty)
     }
 
+    @Test func `a defeated dance of blades owner cannot grant Tailwind afterward`() {
+        var profile = CombatantTalentCatalog.profile(for: ["frost_whelp_dodge_t1_2"])
+        profile.triggers.onDodgeDrawAndPlayCardChainOnCrit = true
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            companionHealth: 1, companionModifiers: profile,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.companion.hasConsumedDeathsDoor = true
+        battle.companionDeck = CombatDeck(abilities: [.stab])
+        battle.heroDeck = CombatDeck(abilities: [.block])
+        battle.appendEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+            by: battle.companion, attackerID: battle.enemy.id, in: &battle,
+        ) }
+
+        #expect(battle.health(of: battle.companion) == 0)
+        #expect(battle.health(of: battle.enemy) < 100)
+        #expect(battle.heroDeck.abilities.map(\.id) == [Ability.block.id])
+        #expect(!events.contains { $0.abilityName == "Tailwind" })
+    }
+
     @Test func `dance of blades does not repeat for critical Leech on a noncritical attack`() throws {
         let item = try #require(GameContent.unique(matching: "dance_of_blades"))
         let power = try #require(item.resolvedPower(at: 0))

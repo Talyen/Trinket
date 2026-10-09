@@ -163,7 +163,7 @@ package extension CombatTriggerEngine {
         events.append(contentsOf: afterBlockedAttack(
             actor: actor, fullyBlocked: fullyBlocked, triggers: triggers, in: &context,
         ))
-        await events.append(contentsOf: afterCompanionCardHit(
+        await events.append(contentsOf: afterCompanionAttackHit(
             keyword: keyword, actor: actor, critical: critical,
             healthLost: healthLost, triggers: triggers, in: &context,
         ))

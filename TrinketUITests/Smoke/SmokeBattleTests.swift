@@ -6,7 +6,7 @@ final class SmokeBattleTests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.replacingBattleTickInterval(
             "0.01",
             in: TestLaunchArg.allForTab("play"),
-        ) + ["-performance-strong-party"])
+        ) + ["-performance-strong-party", TestLaunchArg.rewardCheckpoint])
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
         battle.assertActive()
@@ -23,11 +23,15 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertExists(AccessibilityID.Battle.victory, timeout: 30)
         let lootAll = button(AccessibilityID.Battle.continueButton)
         scrollUntilVisible(lootAll, swipingUp: true, requireHittable: true)
-        tapWhenReady(lootAll)
+        lootAll.doubleTap()
+        assertExists(AccessibilityID.Debug.rewardCollectionCheckpoint)
+        backgroundAndActivate()
 
         play.assertCampaignLoaded()
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
         XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled)
+        tapButton(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
+        assertExists(AccessibilityID.Mystery.continueButton)
     }
 
     func testCampaignBattleRetreatReturnsDirectlyToCampaign() {

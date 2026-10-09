@@ -61,7 +61,7 @@ public enum EffectPresentation {
         case let .nextStrikeDamageKeywordOverride(keyword):
             "your next attack deals \(keyword.rawValue) damage"
         case let .partyDamageBonus(amount):
-            "your partner's next attack deals \(amount) additional damage"
+            "your partner's next damaging card deals \(amount) additional damage"
         case .evadeNextHit:
             "dodge the next attack"
         case .convertManaToBlock:
@@ -153,7 +153,7 @@ public enum EffectPresentation {
                 ? "Avatar: Next attack deals Holy damage."
                 : "Next attack deals \(keyword.rawValue) damage."
         case .partyDamageBonus:
-            "Sniff Out: Partner's next attack deals additional damage."
+            "Sniff Out: Partner's next damaging card deals additional damage."
         case .freezeNextAttacker:
             "Glacial Ward: Freezes the next attacker."
         default:

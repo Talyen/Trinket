@@ -175,7 +175,7 @@ XCUITest (for example, the shared glass CTA modifier).
 
 UI tests selectively prove critical journeys and interaction wiring once; battle
 rules belong in package tests, and cross-module contracts use the cheapest tier that
-actually exercises the boundary. “Exhaustive” is a suite name, not a coverage obligation.
+actually exercises the boundary. “Exhaustive” is a suite name, not a coverage obligation. The bounded [real-player portfolio](PlayerCoverage.md) adds interruption, restored-control, settings-profile, and recovery protection.
 
 Apply the coverage decision to additions and the retirement rules to existing cases.
 UI tests must provide high-value protection for a **shipping product outcome** that

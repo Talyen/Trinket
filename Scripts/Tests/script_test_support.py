@@ -15,12 +15,28 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "Scripts"))
 
-from internal.cli import load_sibling
+from internal.cli import load_sibling as load_script
 
 
-def load_script(name: str, filename: str):
-    """Load a Scripts/ module by filename (shared with internal.cli.load_sibling)."""
-    return load_sibling(name, filename)
+def fake_toolchain(root):
+    """Provide stable identities without requiring Xcode or a Git checkout."""
+    tools = root / 'fake-tools'
+    tools.mkdir()
+    for name, body in {
+        'xcodebuild': 'echo "${FAKE_XCODE:-Xcode fixture A}"',
+        'xcrun': 'echo "${FAKE_SDK:-SDK fixture A}"',
+        'git': 'if [ "$1" = rev-parse ]; then echo "${FAKE_COMMIT:-commit-a}"; fi',
+    }.items():
+        executable = tools / name
+        executable.write_text('#!/bin/sh\n' + body + '\n')
+        executable.chmod(0o755)
+    # Apple's /usr/bin/python3 shim consults DEVELOPER_DIR before executing;
+    # fixtures must launch the real interpreter even for a synthetic Xcode bundle.
+    (tools / 'python3').symlink_to(Path(sys.executable).resolve())
+    environment = {**os.environ, 'PATH': f'{tools}:{os.environ["PATH"]}',
+                   'CI': '', 'GITHUB_ACTIONS': ''}
+    environment.pop('DEVELOPER_DIR', None)
+    return environment
 
 
 class ScriptRegressionTestCase(unittest.TestCase):
@@ -44,7 +60,8 @@ class ScriptRegressionTestCase(unittest.TestCase):
         files = tuple(files)
         if set(files) & {'Scripts/handoff.sh', 'Scripts/agent-context.sh', 'Scripts/agent-push-gate.sh', 'Scripts/change-budget.sh'}:
             files = tuple(dict.fromkeys((*files, 'Scripts/verify.py', 'Scripts/agent-brief.py',
-                'Scripts/internal/change_routing.py', 'Scripts/internal/agent_status.py',
+                'Scripts/internal/change_routing.py', 'Scripts/internal/ui_registration.py',
+                'Scripts/internal/agent_status.py',
                 'Scripts/internal/agent_tasks.py', 'Scripts/internal/agent_arguments.py',
                 'Scripts/internal/markdown.py', 'Scripts/internal/cli.py',
                 'Scripts/internal/output_retention.py', 'Scripts/build-inputs.env',

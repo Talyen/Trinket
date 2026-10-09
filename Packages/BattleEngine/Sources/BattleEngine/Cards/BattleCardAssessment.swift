@@ -43,9 +43,27 @@ public extension BattleState {
             assessmentTargets($0, action: action, abilityID: selected.id, keywordOverride: keywordOverride)
         }
         var targets: [BattleCardAssessment.Target] = []
-        for target in candidates.first ?? []
-            where !targets.contains(target) && candidates.dropFirst().allSatisfy({ $0.contains(target) }) {
-            targets.append(target)
+        for target in candidates.first ?? [] {
+            let common: BattleCardAssessment.Target
+            if candidates.dropFirst().allSatisfy({ $0.contains(target) }) {
+                common = target
+            } else if case .damage = target.intent,
+                      candidates.dropFirst().allSatisfy({ branch in
+                          branch.contains { other in
+                              guard other.combatantID == target.combatantID else { return false }
+                              if case .damage = other.intent {
+                                  return true
+                              }
+                              return false
+                          }
+                      }) {
+                common = .init(combatantID: target.combatantID, intent: .damage(nil))
+            } else {
+                continue
+            }
+            if !targets.contains(common) {
+                targets.append(common)
+            }
         }
         let payments = outcomes.map { assessmentResources($0, original: selected, action: action) }
         return BattleCardAssessment(

@@ -214,7 +214,7 @@ package extension CombatTriggerEngine {
                 let memberTriggers = context.modifiers(for: member.id).triggers
                 let percent = memberTriggers.goldGainBlockPercent
                 if percent > 0 {
-                    let block = Int((Double(granted) * percent).rounded(.down))
+                    let block = CombatRounding.scaled(granted, multiplier: percent)
                     if block > 0 {
                         events.append(contentsOf: emitBlock(
                             "goldGainBlockPercent", "Golden Guard",

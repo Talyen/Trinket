@@ -37,6 +37,7 @@ tool_paths=(
   Scripts/lib/project-generation.sh
   Scripts/check-testplan-sync.py
   Scripts/internal/cli.py
+  Scripts/internal/ui_registration.py
   Scripts/check-staged-project.sh
   .githooks/pre-commit
 )

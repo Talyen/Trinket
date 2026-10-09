@@ -20,26 +20,6 @@ public struct BattleState {
 
     public let tracksEvents: Bool
 
-    public enum BattleObservationMode: Sendable {
-        case none, eventsOnly, fullLog
-        var tracksLog: Bool {
-            self == .fullLog
-        }
-
-        var tracksEvents: Bool {
-            self != .none
-        }
-    }
-
-    public var observationMode: BattleObservationMode {
-        switch (tracksLog, tracksEvents) {
-        case (true, true): .fullLog
-        case (false, true): .eventsOnly
-        case (false, false): .none
-        case (true, false): .none
-        }
-    }
-
     public package(set) var appliesFightPacing: Bool
 
     public package(set) var roster: BattleRoster
@@ -400,6 +380,32 @@ public struct BattleState {
 
     public func isCardPlayable(_ card: BattleCard) -> Bool {
         BattleCardCombatEngine.isCardPlayable(card, in: self)
+    }
+
+    package var playerTurnNumber: Int {
+        turnCount + 1
+    }
+
+    package func isPlayerTurn(every interval: Int, startingAt first: Int? = nil) -> Bool {
+        let first = first ?? interval
+        return interval > 0 && playerTurnNumber >= first && (playerTurnNumber - first).isMultiple(of: interval)
+    }
+
+    package func paced(_ amount: Int, sourceActorID: String?) -> Int {
+        guard appliesFightPacing,
+              amount > 0,
+              let sourceActorID,
+              let side = FightPacing.side(for: sourceActorID, in: self)
+        else { return amount }
+        let metrics = FightPacing.poolMetrics(in: self)
+        let multiplier = FightPacing.multiplier(
+            side: side,
+            isBoss: FightPacing.isBossEnemy(in: self),
+            metrics: metrics,
+            in: self,
+        )
+        guard multiplier != 1 else { return amount }
+        return CombatRounding.scaled(amount, multiplier: multiplier)
     }
 
     public mutating func syncLog() {

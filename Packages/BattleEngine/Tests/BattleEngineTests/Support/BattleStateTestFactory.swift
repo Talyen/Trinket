@@ -40,10 +40,6 @@ enum BattleStateTestFactory {
         )
     }
 
-    static func drawOpeningHand(on battle: inout BattleState) {
-        battle.drawOpeningHand()
-    }
-
     static func seedActiveEffects(
         _ effects: [ActiveEffect],
         for combatant: Combatant,
