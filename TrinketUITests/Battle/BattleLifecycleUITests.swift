@@ -34,7 +34,7 @@ final class BattleLifecycleUITests: TrinketUITestCase {
         assertExists(next)
         XCTAssertTrue(next.isEnabled, "Accepted rewards must retain progression after termination")
         tapWhenReady(next)
-        assertExists(AccessibilityID.Mystery.continueButton)
+        assertExists(AccessibilityID.Mystery.encounterTitle)
     }
 
     func testDefeatLeaveRetriesFailedWriteAndReturnsToCampaign() {

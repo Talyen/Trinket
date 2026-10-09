@@ -67,6 +67,20 @@ def resolve(name):
     print('\t'.join((type_id, runtime['identifier'], existing)))
 
 
+def prepare_profile(name):
+    type_id, major = PROFILES[name]
+    types = json.loads(simctl('list', 'devicetypes', '-j'))['devicetypes']
+    if not any(item.get('identifier') == type_id for item in types):
+        raise ValueError(f'unavailable device type: {type_id}')
+    runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
+    if not any(item.get('isAvailable') is True and item.get('platform') == 'iOS'
+               and str(item.get('version', '')).split('.')[0] == str(major) for item in runtimes):
+        subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', f'{major}.0'],
+                       check=True, timeout=1800)
+        runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
+    select_profile(runtimes, types, type_id, major)
+
+
 def record_identity(udid, output):
     developer = Path(os.environ.get('DEVELOPER_DIR') or subprocess.check_output(['xcode-select', '-p'], text=True).strip())
     version_path = developer.parent / 'version.plist'
@@ -89,13 +103,13 @@ def run_profiles(udid, output):
                                  ('largest-reduced', TEXT_SIZES[1], True)]:
         environment = dict(os.environ, TRINKET_UI_PLAN='Profiles', TRINKET_UI_SUCCESS_SCREENSHOTS='1',
                            TEST_RUNNER_TRINKET_PROFILE_LARGE_TEXT=str(int(size != 'large')),
-                           TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION=str(int(reduced)),
-                           RESULTS_DIR=str(output / name))
+                           TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION=str(int(reduced)))
         with native_text_size(udid, size):
             with (output / f'{name}.log').open('w') as log:
                 result = subprocess.run(['./Scripts/test.sh', 'ui', '--no-build', 'CriticalAccessibilityUITests'],
                                         env=environment, stdout=log, stderr=subprocess.STDOUT)
-        results.append(dict(profile=name, textSize=size, reduceMotion=reduced,
+        results.append(dict(profile=name, log=f'{name}.log', resultsDirectory=os.environ.get('RESULTS_DIR'),
+                            textSize=size, reduceMotion=reduced,
                             reduceMotionSource='native Settings control with per-test restoration',
                             status='passed' if result.returncode == 0 else 'failed', exitCode=result.returncode))
         (output / 'profiles.json').write_text(json.dumps(results, indent=2))
@@ -104,7 +118,7 @@ def run_profiles(udid, output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('operation', choices=('definition', 'resolve', 'run'))
+    parser.add_argument('operation', choices=('definition', 'prepare', 'resolve', 'run'))
     parser.add_argument('--name')
     parser.add_argument('--udid')
     parser.add_argument('--output', type=Path)
@@ -114,13 +128,16 @@ def main():
             type_id, major = PROFILES[args.name]
             print(f'{type_id}\t{major}')
             return 0
+        if args.operation == 'prepare':
+            prepare_profile(args.name)
+            return 0
         if args.operation == 'resolve':
             resolve(args.name)
             return 0
         if not args.udid or not args.output:
             parser.error('run requires --udid and --output')
         return run_profiles(args.udid, args.output)
-    except (ValueError, KeyError, subprocess.CalledProcessError) as error:
+    except (ValueError, KeyError, subprocess.SubprocessError) as error:
         print(f'Coverage prerequisite/cleanup failure: {error}', file=sys.stderr)
         return 2
 

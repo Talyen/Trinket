@@ -35,6 +35,11 @@ jobs:
         with:
           metal: 'true'
           xcode-channel: verified
+      - name: Prepare the requested supported runtimes
+        timeout-minutes: 35
+        run: |
+          python3 Scripts/coverage_profiles.py prepare --name compact
+          python3 Scripts/coverage_profiles.py prepare --name tablet
       - name: Build shared simulator products once
         run: ./Scripts/build-for-testing.sh --app-only
       - name: Run both requested profiles serially

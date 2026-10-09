@@ -33,6 +33,23 @@ class PlayerCoverageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'incompatible'):
             MODULE.select_profile(runtimes, types, 'compact', 27)
 
+    def test_runtime_preparation_installs_missing_major_and_validates_the_result(self):
+        device, _ = MODULE.PROFILES['compact']
+        types = json.dumps({'devicetypes': [dict(identifier=device)]})
+        missing = json.dumps({'runtimes': []})
+        available = json.dumps({'runtimes': [dict(identifier='ios-26', version='26.0', platform='iOS', isAvailable=True)]})
+        with patch.object(MODULE, 'simctl', side_effect=[types, missing, available]), \
+                patch.object(MODULE.subprocess, 'run') as install:
+            MODULE.prepare_profile('compact')
+            install.assert_called_once()
+        with patch.object(MODULE, 'simctl', side_effect=[types, available]), \
+                patch.object(MODULE.subprocess, 'run') as install:
+            MODULE.prepare_profile('compact')
+            install.assert_not_called()
+        with patch.object(MODULE, 'simctl', side_effect=[types, missing, missing]), \
+                patch.object(MODULE.subprocess, 'run'), self.assertRaisesRegex(ValueError, 'unavailable iOS 26'):
+            MODULE.prepare_profile('compact')
+
     def test_native_text_size_restores_after_body_or_setting_failure(self):
         for fail in ('body', 'setting'):
             current, events = ['medium'], []
@@ -58,7 +75,8 @@ class PlayerCoverageTests(unittest.TestCase):
             if len(args) == 4:
                 current[0] = args[-1]
             return current[0]
-        with tempfile.TemporaryDirectory() as temporary, patch.object(MODULE, 'record_identity'), \
+        with tempfile.TemporaryDirectory() as temporary, patch.dict(os.environ, {'RESULTS_DIR': '/fixture/built-results'}), \
+                patch.object(MODULE, 'record_identity'), \
                 patch.object(MODULE, 'simctl', side_effect=run), \
                 patch.object(MODULE.subprocess, 'run', side_effect=[SimpleNamespace(returncode=1),
                     SimpleNamespace(returncode=0), SimpleNamespace(returncode=0)]) as command:
@@ -73,6 +91,7 @@ class PlayerCoverageTests(unittest.TestCase):
             self.assertEqual(command.call_count, 3)
             self.assertEqual(current[0], 'large')
             environment = command.call_args.kwargs['env']
+            self.assertEqual(environment['RESULTS_DIR'], '/fixture/built-results')
             self.assertEqual(environment['TRINKET_UI_PLAN'], 'Profiles')
             self.assertEqual(environment['TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION'], '1')
 
@@ -83,14 +102,14 @@ class PlayerCoverageTests(unittest.TestCase):
             (scripts / 'lib').mkdir(parents=True)
             (scripts / 'player-coverage.sh').write_text((ROOT / 'Scripts/player-coverage.sh').read_text())
             (scripts / 'lib/verification-policy.sh').write_text('trinket_require_heavy_verification() { return 0; }\n')
-            (scripts / 'run-env.sh').write_text('''trinket_run_env_init() { export DERIVED_DATA_PATH="$PWD/data" SIMULATOR_UDID=owned SIMULATOR_DESTINATION=fixture; }
+            (scripts / 'run-env.sh').write_text('''trinket_run_env_init() { export DERIVED_DATA_PATH="$PWD/data" RESULTS_DIR="$PWD/data/TestResults" SIMULATOR_UDID=owned SIMULATOR_DESTINATION=fixture; }
 trinket_sim_slot_ensure() { :; }
 trinket_run_env_install_self_clean() { :; }
 ''')
             (scripts / 'ensure-simulator.sh').write_text('ensure_test_simulator_logged() { :; }\n')
             for name, code in [('build-for-testing.sh', 0), ('test-package.sh', 0), ('test.sh', 1)]:
                 path = scripts / name
-                path.write_text(f'#!/bin/sh\nprintf "%s\\n" "{name} $*" >> "$PWD/calls"\nexit {code}\n')
+                path.write_text(f'#!/bin/sh\nprintf "%s\\n" "{name} $* results=$RESULTS_DIR" >> "$PWD/calls"\nexit {code}\n')
                 path.chmod(0o755)
             binaries = root / 'bin'
             binaries.mkdir()
@@ -104,6 +123,7 @@ trinket_run_env_install_self_clean() { :; }
             self.assertEqual(sum('--scenarios 1 --horizon 10' in line for line in calls), 20)
             self.assertEqual(sum('test-package.sh --build-for-testing' in line for line in calls), 1)
             self.assertEqual(sum('--crash-proof' in line for line in calls), 1)
+            self.assertIn(f'test.sh ui --no-build RepeatedPlayUITests results={root.resolve()}/data/TestResults', calls)
             self.assertIn('--policy random-v1', next(line for line in calls if '--seed 102' in line))
 
     def test_advisory_status_propagates_failed_or_cancelled_requested_jobs(self):

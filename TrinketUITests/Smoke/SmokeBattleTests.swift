@@ -31,7 +31,7 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
         XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled)
         tapButton(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
-        assertExists(AccessibilityID.Mystery.continueButton)
+        assertExists(AccessibilityID.Mystery.encounterTitle)
     }
 
     func testCampaignBattleRetreatReturnsDirectlyToCampaign() {

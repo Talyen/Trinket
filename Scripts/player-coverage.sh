@@ -35,7 +35,7 @@ if [[ "$mode" != soak ]]; then
   python3 Scripts/coverage_profiles.py run --udid "$SIMULATOR_UDID" --output "$coverage_output"
 else
   mkdir -p "$coverage_output"
-  export TRINKET_UI_PLAN=Soak RESULTS_DIR="$coverage_output/ui"
+  export TRINKET_UI_PLAN=Soak
   coverage_status=0
   ./Scripts/test.sh ui --no-build RepeatedPlayUITests || coverage_status=1
   ./Scripts/test-package.sh --build-for-testing TrinketAppState

@@ -44,9 +44,13 @@ Run wrappers only in CI or an expressly requested local diagnostic:
 
 Profiles request iPhone SE third generation on iOS 26 and iPad A16 (eleventh
 generation) on iOS 27. Missing types, incompatible/missing runtimes, and missing
-native text controls fail visibly without fallback. One architecture's products
-are reused across settings and device profiles. All executions are serial on
-their owned simulator lease.
+native text controls fail visibly without fallback. CI installs the requested
+major's `.0` runtime when that major is absent, then checks availability and device
+compatibility again. One architecture's products are reused across settings and
+device profiles. All executions are serial on
+their owned simulator lease. Test runs retain the build's shared results directory
+so its validated build stamps remain available; each settings log and verdict
+identifies its retained result directory.
 
 Each device runs native default text, native largest accessibility text, and
 largest text with Reduce Motion. Native text settings are verified and restored
