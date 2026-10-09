@@ -58,7 +58,6 @@ private struct AcquisitionMotionModifier: ViewModifier {
     }
 
     private func cancel() {
-        guard task != nil || scale != 1 else { return }
         task?.cancel()
         task = nil
         var transaction = Transaction()

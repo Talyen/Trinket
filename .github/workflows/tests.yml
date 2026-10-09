@@ -150,7 +150,6 @@ jobs:
           artifact-name: smoke
           artifact-prefix: ${{ inputs.artifact-prefix }}
           command: ./Scripts/test.sh smoke --no-build ${{ steps.ui-matrices.outputs.smoke-targets }}
-          preboot-simulator: 'true'
 
       - name: Run exhaustive UI on the build runner
         id: inline-ui
@@ -163,7 +162,6 @@ jobs:
           artifact-name: exhaustive-ui-inline
           artifact-prefix: ${{ inputs.artifact-prefix }}
           command: ./Scripts/test.sh ui --no-build ${{ steps.ui-matrices.outputs.full-targets }}
-          preboot-simulator: 'true'
 
   release-device:
     name: Device Release compilation
@@ -281,7 +279,6 @@ jobs:
           artifact-name: unit-${{ matrix.name }}
           artifact-prefix: ${{ inputs.artifact-prefix }}
           command: ./Scripts/test-package.sh ${{ matrix.packages }}
-          preboot-simulator: 'true'
       - name: Native Engine parity pilot
         if: matrix.name == 'Engine' && github.event_name != 'push'
         env:
@@ -376,7 +373,6 @@ jobs:
           artifact-prefix: ${{ inputs.artifact-prefix }}
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
           command: ./Scripts/test.sh ui --no-build ${{ steps.ui-targets.outputs.targets }}
-          preboot-simulator: 'true'
 
 
   diff-review:

@@ -133,6 +133,7 @@ class TrinketUITestCase: XCTestCase {
     // swiftlint:disable:next implicitly_unwrapped_optional - XCTest installs the app before each test
     private(set) var app: XCUIApplication!
     private let storeName = UUID().uuidString
+    private var hasCapturedFailureScreenshot = false
 
     var play: PlayScreen {
         PlayScreen(app: app)
@@ -164,7 +165,20 @@ class TrinketUITestCase: XCTestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
+        hasCapturedFailureScreenshot = false
         continueAfterFailure = false
+    }
+
+    override func record(_ issue: XCTIssue) {
+        var recordedIssue = issue
+        if issue.isFailure, !hasCapturedFailureScreenshot, let app {
+            hasCapturedFailureScreenshot = true
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = "Failure Screenshot"
+            attachment.lifetime = .keepAlways
+            recordedIssue.attachments.append(attachment)
+        }
+        super.record(recordedIssue)
     }
 
     override func tearDownWithError() throws {
@@ -479,12 +493,11 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func fail(_ message: String, file: StaticString = #file, line: UInt = #line) {
-        attachScreenshotOnFailure()
         XCTFail(message, file: file, line: line)
     }
 
     /// Success-path screenshots bloat result bundles; capture them only with
-    /// `TRINKET_UI_SUCCESS_SCREENSHOTS=1`. Failure screenshots via `fail()` are unaffected.
+    /// `TRINKET_UI_SUCCESS_SCREENSHOTS=1`. Failure screenshots are always retained.
     func attachSuccessScreenshot(named name: String) {
         guard ProcessInfo.processInfo.environment["TRINKET_UI_SUCCESS_SCREENSHOTS"] == "1",
               let app else { return }
@@ -492,13 +505,6 @@ class TrinketUITestCase: XCTestCase {
         preview.name = name
         preview.lifetime = .keepAlways
         add(preview)
-    }
-
-    private func attachScreenshotOnFailure() {
-        guard let app else { return }
-        let attachment = XCTAttachment(screenshot: app.screenshot())
-        attachment.lifetime = .keepAlways
-        add(attachment)
     }
 }
 

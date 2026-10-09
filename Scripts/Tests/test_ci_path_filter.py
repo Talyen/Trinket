@@ -254,13 +254,6 @@ let package = Package(name: "TrinketCore",
             self.assertNotIn("Raw Assets", block)
         self.assertNotIn("checkout-ci", workflow)
 
-    def test_test_job_reads_preboot_status(self) -> None:
-        text = (
-            ROOT / ".github" / "actions" / "test-job" / "action.yml"
-        ).read_text(encoding="utf-8")
-        self.assertIn('status="$(cat "$RUNNER_TEMP/trinket-sim-preboot.status")"', text)
-        self.assertIn("Simulator preboot failed", text)
-
     def test_minimal_ci_layout_uses_shared_parser_without_checkout(self) -> None:
         from internal.cli import read_env_arrays
 

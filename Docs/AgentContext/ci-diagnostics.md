@@ -23,6 +23,10 @@ outside `CI OK`; unavailable results are reported as unknown.
 
 ## Preparation timing
 
+Test wrappers own simulator preparation and recovery. CI actions must not run a
+background boot alongside that owner: competing recovery can erase a device
+while another process is booting or testing it.
+
 Test jobs retain `phase-timing.jsonl` alongside compact test timing. Records separate
 environment, simulator, shared input preparation, and compile/test phases by scope
 and diagnostics session. Compare these with XCTest case durations before attributing
@@ -81,6 +85,10 @@ Failed invocations also produce bounded sibling reports:
 - `*-diagnostics.md` with a human-readable summary.
 - `*-diagnostics.annotations` with GitHub Actions annotations.
 - `*-diagnostics.attachments/` when a bounded attachment is needed.
+
+The UI test base attaches one screenshot directly to the first recorded failure,
+including XCTest framework exceptions. Warnings do not consume that capture;
+attaching it to the issue keeps the image in failures-only exports.
 
 Narrative budgets are intentionally small and live in
 `Scripts/config/diagnostic-limits.env` — read that file (or the report header)

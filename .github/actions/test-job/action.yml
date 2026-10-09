@@ -20,10 +20,6 @@ inputs:
     description: Shell command to rebuild on artifact miss (default app-only build-for-testing)
     required: false
     default: './Scripts/build-for-testing.sh --app-only'
-  preboot-simulator:
-    description: Boot the managed simulator while the build artifact downloads (true/false)
-    required: false
-    default: 'false'
   artifact-prefix:
     description: Optional prefix for the within-run build artifact name
     required: false
@@ -37,25 +33,6 @@ runs:
       run: |
         ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
         rm -f .DerivedData/TestResults/timing-log.jsonl
-
-    - name: Preboot simulator
-      if: inputs.preboot-simulator == 'true'
-      shell: bash
-      run: |
-        set -euo pipefail
-        mkdir -p "$RUNNER_TEMP/trinket-sim-preboot"
-        nohup bash -c '
-          set -euo pipefail
-          source Scripts/run-env.sh
-          trinket_run_env_init
-          source Scripts/ensure-simulator.sh
-          export TRINKET_SIMULATOR_LOG_DIR="$RUNNER_TEMP/trinket-sim-preboot"
-          export RESULTS_DIR="$RUNNER_TEMP/trinket-sim-preboot"
-          status=0
-          ensure_test_simulator_logged || status=$?
-          echo "$status" > "$RUNNER_TEMP/trinket-sim-preboot.status"
-        ' >"$RUNNER_TEMP/trinket-sim-preboot/boot.log" 2>&1 &
-        echo $! > "$RUNNER_TEMP/trinket-sim-preboot.pid"
 
     - name: Restore cached test archive
       id: cached-products
@@ -89,31 +66,6 @@ runs:
         if [[ "$CACHE_HIT" == true || "$DOWNLOAD_OUTCOME" == success ]]; then restore_args+=(--downloaded); fi
         ./Scripts/restore-ci-test-products.sh "${restore_args[@]}" -- ${{ inputs.rebuild-command }}
 
-    - name: Wait for simulator preboot
-      if: inputs.preboot-simulator == 'true'
-      shell: bash
-      run: |
-        set -euo pipefail
-        deadline=$((SECONDS + 180))
-        while (( SECONDS < deadline )); do
-          if [[ -f "$RUNNER_TEMP/trinket-sim-preboot.status" ]]; then
-            cat "$RUNNER_TEMP/trinket-sim-preboot/boot.log" || true
-            status="$(cat "$RUNNER_TEMP/trinket-sim-preboot.status")"
-            if [[ "$status" != "0" ]]; then
-              echo "Simulator preboot failed (status=$status); test.sh will retry boot."
-            fi
-            # Persist preboot log for xcodebuild infra classifier
-            mkdir -p .DerivedData/TestResults
-            cp "$RUNNER_TEMP/trinket-sim-preboot/boot.log" .DerivedData/TestResults/simulator.log 2>/dev/null || true
-            exit 0
-          fi
-          sleep 2
-        done
-        echo "Simulator preboot still running; test.sh will finish booting."
-        cat "$RUNNER_TEMP/trinket-sim-preboot/boot.log" || true
-        mkdir -p .DerivedData/TestResults
-        cp "$RUNNER_TEMP/trinket-sim-preboot/boot.log" .DerivedData/TestResults/simulator.log 2>/dev/null || true
-
     - name: Run tests
       shell: bash
       env:
@@ -121,6 +73,7 @@ runs:
         CI: true
         TRINKET_CLEANUP_TEST_ARTIFACTS: 0
       run: |
+        # The test wrapper is the sole simulator preparation/recovery owner.
         # UI recovery keeps completed cases and retries only classified launch
         # failures. Other commands pass through unchanged.
         python3 Scripts/ci_ui_retry.py ${{ inputs.command }}
