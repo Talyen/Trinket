@@ -156,6 +156,14 @@ struct OptionsView: View {
 
         #if DEBUG
         Section {
+            NavigationLink("Game Feel") {
+                GameFeelPreviewView(
+                    stage: GameContent.chapters[0].stages.first { $0.encounter.isCombat } ?? GameContent.chapters[0].stages[0],
+                    playSound: { appState.sfxPlayer.play($0, volume: optionsStore.effectsVolume) },
+                )
+            }
+            .accessibilityIdentifier(AccessibilityID.GameFeel.entry)
+
             NavigationLink("Battle Transitions") {
                 BattleTransitionsPreviewView { stage in
                     BattleTransitionLabView(stage: stage) { enterBattle in

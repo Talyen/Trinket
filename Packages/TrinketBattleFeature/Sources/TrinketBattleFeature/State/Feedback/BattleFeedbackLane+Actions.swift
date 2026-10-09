@@ -34,14 +34,14 @@ extension BattleFeedbackLane {
             let isBurst = actorID.map { actorID in
                 attackOwners[actorID] != nil || actionQueue.hasPendingImpact(for: actorID)
             } == true
-            let recipe = CombatFeedbackAttackRecipes.lungeCardAttack
-            let windUp = actorID == nil || isPrepared ? 0 : (isBurst ? 0.08 : (isManual ? 0.10 : recipe.windUpDuration))
+            let timing = isManual ? CombatFeedbackAttackRecipes.manualTiming : CombatFeedbackAttackRecipes.automaticTiming
+            let windUp = actorID == nil || isPrepared ? 0 : (isBurst ? timing.preparationCap : timing.preparation)
             let revealAt = max(date, previousImpact ?? date)
             let startAt = card == nil ? revealAt : revealAt.addingTimeInterval(BattleMotion.cardDealDuration)
             let swingAt = startAt.addingTimeInterval(windUp)
             let impactAt = max(
-                swingAt.addingTimeInterval(actorID == nil ? 0 : recipe.swingDuration),
-                previousImpact?.addingTimeInterval(recipe.swingDuration) ?? date,
+                swingAt.addingTimeInterval(actorID == nil ? 0 : timing.swing),
+                previousImpact?.addingTimeInterval(timing.swing) ?? date,
             )
             let castID = card.map {
                 cardPlayback.append(
@@ -54,6 +54,7 @@ extension BattleFeedbackLane {
             let beatID = actionQueue.append { id in
                 BattleScheduledAction(
                     id: id, actorID: actorID, events: group.events, damage: action?.damage ?? [], castID: castID,
+                    swingDuration: timing.swing, recoveryDuration: timing.recovery, preparationCap: timing.preparationCap,
                     deliversResultsImmediately: isManual,
                     startAt: startAt, swingAt: swingAt,
                     impactAt: actorID == nil && card != nil
@@ -65,11 +66,15 @@ extension BattleFeedbackLane {
                 present(group.events, action?.damage ?? [], date, beatID)
             }
         }
-        for card in automaticCards {
+        appendRemainingAutomaticCards(automaticCards, at: date, cardPlayback: cardPlayback)
+        advance(to: date)
+    }
+
+    private func appendRemainingAutomaticCards(_ cards: [BattleCard], at date: Date, cardPlayback: BattleCardPlaybackState) {
+        for card in cards {
             let start = max(date, actionQueue.latestImpact ?? date)
             cardPlayback.append(card, at: start, activationAt: start.addingTimeInterval(BattleMotion.automaticCardRevealDuration))
         }
-        advance(to: date)
     }
 
     func advance(to date: Date) {
@@ -103,7 +108,7 @@ extension BattleFeedbackLane {
                     action.present(action.events, action.damage, action.impactAt, action.id)
                 }
                 if let actorID = action.actorID, attackOwners[actorID] == action.id {
-                    publishAttack(.recover, for: actorID, at: action.impactAt)
+                    publishAttack(.recover, for: actorID, at: action.impactAt, duration: action.recoveryDuration)
                     if previewActors.contains(actorID) {
                         publishAttack(.windUp, for: actorID, at: action.impactAt)
                     }

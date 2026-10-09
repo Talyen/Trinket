@@ -54,6 +54,67 @@ struct CombatSFXMapperTests {
         }
     }
 
+    @Test func `critical contributions upgrade only their winning damage keyword`() {
+        let mappings: [(Keyword, String)] = [
+            (.physical, SFXID.hitCritical), (.burn, SFXID.hitBurnCritical),
+            (.freeze, SFXID.hitFreezeCritical), (.stun, SFXID.hitStunCritical),
+            (.poison, SFXID.hitPiercingCritical), (.bleed, SFXID.hitPiercingCritical),
+            (.holy, SFXID.hitHolyCritical),
+        ]
+        for (keyword, clip) in mappings {
+            let ordinary = BattleResolvedDamage(
+                targetID: "enemy",
+                keyword: keyword,
+                impact: .landed(blocked: 0, healthLost: 4),
+                isCritical: false,
+            )
+            let critical = BattleResolvedDamage(
+                targetID: "other",
+                keyword: keyword,
+                impact: .landed(blocked: 0, healthLost: 2),
+                isCritical: true,
+            )
+            for damage in [[ordinary, critical], [critical, ordinary]] {
+                #expect(CombatSFXMapper.clipID(for: [], damage: damage) == clip)
+            }
+            #expect(CombatSFXMapper.clipID(for: [event(1, amount: 7, keyword: .leech)], damage: [critical]) == SFXID.hit)
+            #expect(CombatSFXMapper.battlePrewarmIDs.contains(clip))
+            #expect(SFXCatalog.clipsByID[clip] != nil)
+        }
+        #expect(CombatSFXMapper.clipID(for: [
+            event(1, amount: 2, keyword: .burn),
+            event(2, amount: 3, keyword: .burn).with(isCritical: true),
+        ]) == SFXID.hitBurnCritical)
+    }
+
+    @Test func `critical damage preserves stronger results and override arbitration`() {
+        let critical = BattleResolvedDamage(
+            targetID: "enemy",
+            keyword: .burn,
+            impact: .landed(blocked: 0, healthLost: 5),
+            isCritical: true,
+        )
+        #expect(CombatSFXMapper.clipID(for: [
+            event(1, effect: .instantHeal, amount: 6, keyword: .health),
+        ], damage: [critical]) == SFXID.heal)
+        #expect(CombatSFXMapper.clipID(for: [
+            event(1, effect: .shieldApplied, amount: 6, keyword: .block),
+        ], damage: [critical]) == SFXID.block)
+        #expect(CombatSFXMapper.clipID(for: [
+            event(1, effect: .controlTriggered, keyword: .freeze),
+        ], damage: [critical]) == SFXID.controlFreeze)
+        #expect(CombatSFXMapper.clipID(for: [
+            event(1, effect: .controlTriggered, keyword: .freeze),
+            event(2, effect: .deathsDoorTriggered, keyword: .deathsDoor),
+        ], damage: [critical]) == SFXID.deathsDoor)
+        #expect(CombatSFXMapper.clipID(for: [], damage: [
+            .init(targetID: "enemy", keyword: .burn, impact: .landed(blocked: 5, healthLost: 0), isCritical: true),
+        ]) == SFXID.blockAbsorb)
+        #expect(CombatSFXMapper.clipID(for: [], damage: [
+            .init(targetID: "enemy", keyword: .burn, impact: .dodged, isCritical: true),
+        ]) == SFXID.dodge)
+    }
+
     @Test func `largest actual result wins and ties favor damage then healing`() {
         let moltenBulwark = [
             event(1, amount: 3, keyword: .burn),

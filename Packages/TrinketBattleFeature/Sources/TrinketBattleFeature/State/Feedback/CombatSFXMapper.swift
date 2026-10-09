@@ -6,9 +6,10 @@ enum CombatSFXMapper {
     static let battlePrewarmIDs = [
         SFXID.abilityDraw, SFXID.hit, SFXID.hitBurn, SFXID.hitFreeze, SFXID.hitStun,
         SFXID.hitPiercing, SFXID.hitHoly, SFXID.heal, SFXID.buff, SFXID.block,
-        SFXID.blockAbsorb, SFXID.dodge, SFXID.restoreMana, SFXID.lootCollect,
+        SFXID.blockAbsorb, SFXID.dodge, SFXID.restoreMana, SFXID.lootCollect, SFXID.lootExceptional,
         SFXID.controlFreeze, SFXID.controlStun, SFXID.purge, SFXID.deathsDoor,
-        SFXID.victory, SFXID.defeat,
+        SFXID.victory, SFXID.defeat, SFXID.hitCritical, SFXID.hitBurnCritical,
+        SFXID.hitFreezeCritical, SFXID.hitStunCritical, SFXID.hitPiercingCritical, SFXID.hitHolyCritical,
     ]
 
     private enum NumericKind: Int, Hashable {
@@ -30,7 +31,7 @@ enum CombatSFXMapper {
     }
 
     private struct Candidate {
-        let clipID: String
+        var clipID: String
         let priority: Int
         let order: Int
         var strength = 0
@@ -45,11 +46,14 @@ enum CombatSFXMapper {
         var overrideCue: Candidate?
         var fallback: Candidate?
 
-        mutating func add(_ amount: Int, kind: NumericKind, keyword: Keyword, clip: String, order: Int) {
+        mutating func add(_ amount: Int, kind: NumericKind, keyword: Keyword, clip: String, order: Int, isCritical: Bool = false) {
             guard amount > 0 else { return }
             let key = NumericKey(kind: kind, keyword: keyword)
             if numeric[key] != nil {
                 numeric[key]?.strength += amount
+                if isCritical {
+                    numeric[key]?.clipID = clip
+                }
             } else {
                 numeric[key] = Candidate(clipID: clip, priority: kind.priority, order: order, strength: amount)
             }
@@ -93,7 +97,10 @@ enum CombatSFXMapper {
             case .dodged:
                 selection.offer(SFXID.dodge, priority: 0, order: order)
             case let .landed(blocked, healthLost):
-                selection.add(healthLost, kind: .damage, keyword: hit.keyword, clip: damageClipID(hit.keyword), order: order)
+                selection.add(
+                    healthLost, kind: .damage, keyword: hit.keyword, clip: damageClipID(hit.keyword, isCritical: hit.isCritical),
+                    order: order, isCritical: hit.isCritical,
+                )
                 let absorptionOrder = events.firstIndex { $0.effectKind == .shieldAbsorbed } ?? order
                 selection.add(blocked, kind: .blockAbsorption, keyword: .block, clip: SFXID.blockAbsorb, order: absorptionOrder)
             }
@@ -132,7 +139,10 @@ enum CombatSFXMapper {
             // Structured impacts omit Health costs and already include immediate retaliation/DoT damage.
             let isHealthCost = event.kind == .abilityDamage && !event.actorID.isEmpty && event.actorID == event.targetID
             if !isHealthCost, !recorded.contains(key) {
-                selection.add(event.amount, kind: .damage, keyword: event.keyword, clip: damageClipID(event.keyword), order: order)
+                selection.add(
+                    event.amount, kind: .damage, keyword: event.keyword, clip: damageClipID(event.keyword, isCritical: event.isCritical),
+                    order: order, isCritical: event.isCritical,
+                )
             }
             return
         }
@@ -205,14 +215,15 @@ enum CombatSFXMapper {
         }
     }
 
-    private static func damageClipID(_ keyword: Keyword) -> String {
+    private static func damageClipID(_ keyword: Keyword, isCritical: Bool = false) -> String {
         switch keyword {
-        case .burn: SFXID.hitBurn
-        case .freeze: SFXID.hitFreeze
-        case .stun: SFXID.hitStun
-        case .holy: SFXID.hitHoly
-        case .poison, .bleed: SFXID.hitPiercing
-        case .physical, .leech, .thorns, .health, .gold, .block, .dodge, .purge, .cleanse, .mana, .deathsDoor: SFXID.hit
+        case .burn: isCritical ? SFXID.hitBurnCritical : SFXID.hitBurn
+        case .freeze: isCritical ? SFXID.hitFreezeCritical : SFXID.hitFreeze
+        case .stun: isCritical ? SFXID.hitStunCritical : SFXID.hitStun
+        case .holy: isCritical ? SFXID.hitHolyCritical : SFXID.hitHoly
+        case .poison, .bleed: isCritical ? SFXID.hitPiercingCritical : SFXID.hitPiercing
+        case .physical, .leech, .thorns, .health, .gold, .block, .dodge, .purge, .cleanse, .mana, .deathsDoor:
+            isCritical ? SFXID.hitCritical : SFXID.hit
         }
     }
 }

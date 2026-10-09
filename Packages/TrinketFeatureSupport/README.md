@@ -23,7 +23,12 @@ reveal loot and the primary action together while XP animates, keeping layout
 positions stable. Collection becomes available after the reveal fade, independent
 of XP completion. A successful claim triggers a brief stationary pulse before
 exit; animation never determines the amount awarded. Interrupted collection
-finishes the already committed action once.
+finishes the already committed action once. Astral and Unique items receive a
+brief scale settle and a single exceptional-loot cue when first focused. The
+reward presentation owns item-ID deduplication across paging and inspection;
+collection cancels remaining decoration. Backgrounding and disappearance consume
+only the focused item’s pending cue, allowing later unseen pages to flourish. Playback is supplied by the consuming feature so live Effects volume remains
+with the existing audio owner. Basic items and wallet reveal timing are unchanged.
 
 `Artwork/` owns prepared-artwork caching and leases, `Performance/` owns frame
 measurement, and `Accessibility/` owns stable accessibility identifiers. These

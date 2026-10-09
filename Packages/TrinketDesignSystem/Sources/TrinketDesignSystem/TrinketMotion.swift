@@ -14,6 +14,9 @@ public enum TrinketMotion: Sendable {
         public static let manaRestoreDuration: TimeInterval = 0.22
         public static let pendingIndicatorDelay: TimeInterval = 0.15
         public static let confirmationDuration: TimeInterval = 0.28
+        public static let purchasePeakScale: CGFloat = 1.025
+        public static let purchaseRiseDuration: TimeInterval = 0.08
+        public static let purchaseSettleDuration: TimeInterval = 0.14
 
         public static let press: Animation = .spring(response: 0.18, dampingFraction: 1)
 
@@ -41,6 +44,10 @@ public enum TrinketMotion: Sendable {
 
         public static let entranceDelay: TimeInterval = 0.08
         public static let revealDuration: TimeInterval = 0.18
+        public static let exceptionalInitialScale: CGFloat = 0.97
+        public static let exceptionalPeakScale: CGFloat = 1.025
+        public static let exceptionalRiseDuration: TimeInterval = 0.09
+        public static let exceptionalSettleDuration: TimeInterval = 0.19
 
         /// Spring tuned for reward collection. Distinct from
         /// `Interaction.stateChange` (an easeOut for generic transitions).

@@ -68,8 +68,10 @@ damage, healing, and status effects may still be animating.
 Health, Mana, status, and availability always show the current resolved state.
 
 Combatant attacks retain a visible wind-up, swing, and recovery for taps,
-drags, automatic cards, and enemy actions. Manual tap attacks prepare for 0.10
-seconds; automatic and enemy attacks retain their 0.40-second preparation.
+drags, automatic cards, and enemy actions. Manual tap attacks prepare for 0.025
+seconds, swing for 0.075 seconds, and recover for 0.300 seconds. Prepared drags
+skip preparation and share that swing and recovery. Automatic and enemy attacks
+retain their 0.40-second preparation, 0.15-second swing, and 0.45-second recovery.
 Rapid attacks shorten preparation and overlap recovery to keep pace. Dragging
 holds preparation until release and settles back on cancellation.
 

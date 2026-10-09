@@ -32,3 +32,10 @@ hit_stun	hitStun	sfx_hit_stun	Sounds/Game Sources/Projects/Trinket/Sound Effects
 hit_piercing	hitPiercing	sfx_hit_piercing	Sounds/Game Sources/Sound Effects/combat/attacks/sword_impact_01.ogg	1.0
 hit_holy	hitHoly	sfx_hit_holy	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_holy_01.ogg	1.0
 restore_mana	restoreMana	sfx_restore_mana	Sounds/Game Sources/Projects/Trinket/Sound Effects/magic/support/restore_mana_01.wav	1.0
+hit_critical	hitCritical	sfx_hit_critical	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_critical_01.wav	1.0
+hit_burn_critical	hitBurnCritical	sfx_hit_burn_critical	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_burn_critical_01.wav	1.0
+hit_freeze_critical	hitFreezeCritical	sfx_hit_freeze_critical	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_freeze_critical_01.wav	1.0
+hit_stun_critical	hitStunCritical	sfx_hit_stun_critical	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_stun_critical_01.wav	1.0
+hit_piercing_critical	hitPiercingCritical	sfx_hit_piercing_critical	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_piercing_critical_01.wav	1.0
+hit_holy_critical	hitHolyCritical	sfx_hit_holy_critical	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_holy_critical_01.wav	1.0
+loot_exceptional	lootExceptional	sfx_loot_exceptional	Sounds/Game Sources/Projects/Trinket/Sound Effects/progression/loot_exceptional_harpsichord_01.wav	1.0

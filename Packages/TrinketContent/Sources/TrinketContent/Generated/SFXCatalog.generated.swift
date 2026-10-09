@@ -36,6 +36,13 @@ public enum SFXID {
     public static let hitPiercing = "hit_piercing"
     public static let hitHoly = "hit_holy"
     public static let restoreMana = "restore_mana"
+    public static let hitCritical = "hit_critical"
+    public static let hitBurnCritical = "hit_burn_critical"
+    public static let hitFreezeCritical = "hit_freeze_critical"
+    public static let hitStunCritical = "hit_stun_critical"
+    public static let hitPiercingCritical = "hit_piercing_critical"
+    public static let hitHolyCritical = "hit_holy_critical"
+    public static let lootExceptional = "loot_exceptional"
 }
 
 public struct SFXClip: Identifiable, Hashable, Sendable {
@@ -242,6 +249,48 @@ public enum SFXCatalog {
         SFXClip(
             id: "restore_mana",
             resourceName: "sfx_restore_mana",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "hit_critical",
+            resourceName: "sfx_hit_critical",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "hit_burn_critical",
+            resourceName: "sfx_hit_burn_critical",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "hit_freeze_critical",
+            resourceName: "sfx_hit_freeze_critical",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "hit_stun_critical",
+            resourceName: "sfx_hit_stun_critical",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "hit_piercing_critical",
+            resourceName: "sfx_hit_piercing_critical",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "hit_holy_critical",
+            resourceName: "sfx_hit_holy_critical",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "loot_exceptional",
+            resourceName: "sfx_loot_exceptional",
             fileExtension: "m4a",
             volumeGain: 1.0
         ),

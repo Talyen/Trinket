@@ -21,6 +21,8 @@ public final class RewardRevealSequenceState {
     public private(set) var areItemsVisible = false
     public private(set) var isSequenceComplete = false
     private var hasStarted = false
+    private var revealedItemIDs: Set<String> = []
+    private var suppressesExceptionalReveals = false
     private var revealTask: Task<Void, Never>?
     private let clock: any RewardRevealClock
 
@@ -30,6 +32,21 @@ public final class RewardRevealSequenceState {
 
     init(clock: any RewardRevealClock) {
         self.clock = clock
+    }
+
+    func claimExceptionalReveal(itemID: String, isExceptional: Bool) -> Bool {
+        guard areItemsVisible, isExceptional, !suppressesExceptionalReveals else { return false }
+        return revealedItemIDs.insert(itemID).inserted
+    }
+
+    func skipExceptionalReveal(itemID: String?) {
+        if let itemID {
+            revealedItemIDs.insert(itemID)
+        }
+    }
+
+    func suppressExceptionalReveals() {
+        suppressesExceptionalReveals = true
     }
 
     public func start(walletCount: Int) {

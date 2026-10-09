@@ -8,6 +8,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct ShopEncounterView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(EncounterPlayMode.self) private var encounters
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
@@ -19,6 +20,7 @@ struct ShopEncounterView: View {
     @State private var contentAppeared = false
     @State private var offersAppeared = false
     @State private var purchaseFeedbackTrigger = 0
+    @State private var offerPurchaseTriggers: [String: Int] = [:]
     @State private var purchaseErrorFeedbackTrigger = 0
 
     private let columns = TrinketDesign.Layout.collectionGridItems
@@ -94,10 +96,17 @@ struct ShopEncounterView: View {
                 trailingAppeared: $offersAppeared,
             )
         }
+        .onChange(of: session.purchasePresentation) { _, presentation in
+            guard let presentation else { return }
+            selectedOffer = nil
+            guard scenePhase == .active else { return }
+            purchaseFeedbackTrigger = presentation.sequence
+            offerPurchaseTriggers[presentation.offerID] = presentation.sequence
+        }
         .trinketSensoryFeedback(
             .success,
             trigger: purchaseFeedbackTrigger,
-            enabled: options.hapticsEnabled,
+            enabled: options.hapticsEnabled && scenePhase == .active,
         )
         .trinketSensoryFeedback(
             .error,
@@ -148,6 +157,9 @@ struct ShopEncounterView: View {
                     .disabled(!canBuy || session.isPurchasing)
                     .accessibilityIdentifier(AccessibilityID.Shop.buyButton(offerID: offer.id))
                 }
+                .trinketPurchaseMotion(
+                    trigger: offerPurchaseTriggers[offer.id] ?? 0, isActive: scenePhase == .active,
+                )
                 .opacity(soldOut ? 0.55 : (canAfford ? 1 : 0.72))
                 .saturation(soldOut ? 0.55 : 1)
                 .animation(TrinketMotion.Interaction.stateChange, value: soldOut)
@@ -191,7 +203,6 @@ struct ShopEncounterView: View {
     private func attemptPurchase(offerID: String, dismissDetail: Bool) {
         switch encounters.purchaseActiveShopOffer(offerID: offerID) {
         case .committed:
-            purchaseFeedbackTrigger += 1
             if dismissDetail {
                 selectedOffer = nil
             }

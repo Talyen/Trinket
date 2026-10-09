@@ -38,6 +38,10 @@ struct AppStateShopEncounterTests {
         }
 
         #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id) == .committed)
+        #expect(firstSession.purchasePresentation?.offerID == offer.id)
+        #expect(firstSession.purchasePresentation?.sequence == 1)
+        #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id) == .rejected)
+        #expect(firstSession.purchasePresentation?.sequence == 1)
         let goldAfterFirst = state.playerSave.roster.gold
         let itemsAfterFirst = state.playerSave.inventory.items.count
 
@@ -232,6 +236,7 @@ struct AppStateShopEncounterTests {
 
         playerSave.forcesNextSaveFailure = true
         #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id) == .retrying)
+        #expect(session.purchasePresentation == nil)
         // The accepted attempt's rolled-back write left the save intact.
         #expect(playerSave.roster.gold == offer.price * 3)
         #expect(playerSave.inventory.items.count == itemsBefore)
@@ -239,6 +244,8 @@ struct AppStateShopEncounterTests {
         try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
         #expect(playerSave.roster.gold == offer.price * 2)
         #expect(playerSave.inventory.items.count == itemsBefore + 1)
+        #expect(session.purchasePresentation?.offerID == offer.id)
+        #expect(session.purchasePresentation?.sequence == 1)
     }
 
     @Test func `finish shop encounter retries silently when persist fails`() async throws {

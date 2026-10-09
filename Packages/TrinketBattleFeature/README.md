@@ -120,6 +120,19 @@ reward views reuse shipping components. Artwork prepares before playback.
 The lab saves no progress or rewards, plays no audio or haptics, and changes no
 production transitions. Motion experiments live under `Features/TransitionLab/`.
 
+## Debug game feel preview
+
+In debug builds, **Options → Developer → Game Feel** offers manual tap/drag
+motion with baseline timing comparison, ordinary/critical sound auditions,
+Astral/Unique loot paging and replay, and purchase motion. Audio uses the existing
+SFX player and live Effects volume; Mute Preview affects only this lab.
+
+Busy Combat provides five fixed overlap samples. Controls collapse while samples
+run; the real feedback clock then pauses so device captures can inspect chips.
+Reset Sample releases the held presentation. These are scripted presentation
+fixtures using shipping views, not combat-rule or performance tests. Replays
+never submit production gameplay commands, claim rewards, or change saves.
+
 ## Testing
 
 Package execution and local diagnostic opt-in follow

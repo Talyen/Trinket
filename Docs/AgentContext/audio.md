@@ -36,13 +36,17 @@ remain separate beats. Repeated delivery cannot replay a resolved action's sound
 
 Poison and Bleed share Sword Impact for hits and actual ticks. Stun damage uses
 Gut Punch separately from becoming Stunned; Holy uses Spell Impact. Block absorption
-and dodge have dedicated cues. No general card-play or critical-hit layer is added.
+and dodge have dedicated cues. A winning damage keyword with actual critical Health loss selects its critical variant,
+including mixed ordinary/critical contributions. Fully blocked and dodged hits do
+not qualify. Critical variants preserve numeric arbitration and override priority;
+no separate critical layer or general card-play cue is added.
 Separate actions and screen transitions may overlap; the player applies no global
 suppression or tail-cutting policy.
 
 Progression cues belong to confirmed outcomes: Forge reveal, Salvage dissolve
 (or confirmation fallback), Homestead improvement celebration, first collection
-deposit, talent unlock, and Corruption reveal. Battle/Mystery collection uses the
+deposit, talent unlock, and Corruption reveal. First visible Astral/Unique loot also uses
+its short exceptional reveal cue, deduplicated by the reward presentation owner. Battle/Mystery collection uses the
 same Coins Handling cue as Homestead; shops retain buy/sell. Corruption replaces
 victory on Continue. Retry/remount guards belong to the existing action/session
 owner, and all playback respects Effects volume independently of haptics.

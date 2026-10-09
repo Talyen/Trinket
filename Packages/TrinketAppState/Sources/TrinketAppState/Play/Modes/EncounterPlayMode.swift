@@ -99,6 +99,7 @@ public final class EncounterPlayMode {
         switch playerSave.purchaseShopOffer(offerID: offerID, encounter: shopSession.encounter) {
         case .committed:
             shopSession.markPurchaseFinished()
+            shopSession.publishPurchase(offerID: offerID)
             sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
             return .committed
         case .rejected:

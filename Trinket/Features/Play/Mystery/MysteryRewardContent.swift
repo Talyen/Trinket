@@ -8,6 +8,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryRewardContent: View {
+    @Environment(\.playSFX) private var playSFX
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
 
@@ -34,6 +35,7 @@ struct MysteryRewardContent: View {
             primaryActionTitle: "Loot All",
             primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
             action: .collect(hapticsEnabled: options.hapticsEnabled, claim: onClaim, finish: onFinish),
+            onExceptionalReveal: { playSFX(SFXID.lootExceptional, options.effectsVolume) },
             contentTopPadding: TrinketDesign.Layout.contentTopPadding + TrinketDesign.Spacing.medium,
             contentStackSpacing: TrinketDesign.Layout.sectionSpacing,
         )

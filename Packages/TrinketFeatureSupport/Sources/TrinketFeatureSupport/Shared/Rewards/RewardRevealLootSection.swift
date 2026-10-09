@@ -14,6 +14,10 @@ public struct RewardRevealLootSection: View {
     let visibleWalletRewardCount: Int
     let isCollected: Bool
     var spacing: CGFloat = TrinketDesign.Spacing.large
+    let revealSequence: RewardRevealSequenceState?
+    let onExceptionalReveal: () -> Void
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var revealTriggers: [String: Int] = [:]
     let onSelectItem: (InventoryItem) -> Void
     @Binding var focusedItemID: String?
 
@@ -33,6 +37,8 @@ public struct RewardRevealLootSection: View {
         spacing: CGFloat = TrinketDesign.Spacing.large,
         isCollected: Bool = false,
         focusedItemID: Binding<String?>,
+        revealSequence: RewardRevealSequenceState? = nil,
+        onExceptionalReveal: @escaping () -> Void = {},
         onSelectItem: @escaping (InventoryItem) -> Void,
     ) {
         self.items = items
@@ -46,6 +52,8 @@ public struct RewardRevealLootSection: View {
         self.spacing = spacing
         self.isCollected = isCollected
         _focusedItemID = focusedItemID
+        self.revealSequence = revealSequence
+        self.onExceptionalReveal = onExceptionalReveal
         self.onSelectItem = onSelectItem
     }
 
@@ -59,6 +67,29 @@ public struct RewardRevealLootSection: View {
 
             rewardWallet
         }
+        .task(id: RevealFocus(itemID: focusedItemID, isVisible: areItemsVisible)) {
+            // Mount the focused card before publishing its one-shot motion trigger.
+            await Task.yield()
+            guard !Task.isCancelled else { return }
+            revealFocusedItem()
+        }
+    }
+
+    private struct RevealFocus: Equatable {
+        let itemID: String?
+        let isVisible: Bool
+    }
+
+    private func revealFocusedItem() {
+        guard !isCollected, scenePhase == .active, areItemsVisible,
+              let item = items.first(where: { $0.id == (focusedItemID ?? items.first?.id) }),
+              let revealSequence,
+              revealSequence.claimExceptionalReveal(
+                  itemID: item.id, isExceptional: item.rarity == .astral || item.rarity == .unique,
+              )
+        else { return }
+        revealTriggers[item.id, default: 0] += 1
+        onExceptionalReveal()
     }
 
     private var rewardItemPager: some View {
@@ -69,6 +100,10 @@ public struct RewardRevealLootSection: View {
                         onSelectItem(item)
                     } label: {
                         RewardItemRevealCard(item: item)
+                            .trinketExceptionalLootMotion(
+                                trigger: revealTriggers[item.id] ?? 0,
+                                isActive: !isCollected && scenePhase == .active && item.id == focusedItemID,
+                            )
                     }
                     .buttonStyle(.plain)
                     .containerRelativeFrame(.horizontal)

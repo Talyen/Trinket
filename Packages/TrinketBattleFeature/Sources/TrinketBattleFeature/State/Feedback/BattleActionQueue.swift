@@ -14,6 +14,9 @@ struct BattleScheduledAction {
     let events: [ActionEvent]
     let damage: [BattleResolvedDamage]
     let castID: UUID?
+    let swingDuration: TimeInterval
+    let recoveryDuration: TimeInterval
+    let preparationCap: TimeInterval
     let deliversResultsImmediately: Bool
     var startAt: Date
     var swingAt: Date
@@ -26,7 +29,7 @@ struct BattleScheduledAction {
         case .windUp: startAt
         case .swing: swingAt
         case .impact: impactAt
-        case .recovery: impactAt.addingTimeInterval(CombatFeedbackAttackRecipes.lungeCardAttack.recoverDuration)
+        case .recovery: impactAt.addingTimeInterval(recoveryDuration)
         }
     }
 
@@ -117,8 +120,8 @@ struct BattleActionQueue {
                 continue
             }
             let start = max(date, previousImpact ?? date, action.castID == nil ? date : action.startAt)
-            let swing = min(action.swingAt, start.addingTimeInterval(0.08))
-            let impact = swing.addingTimeInterval(CombatFeedbackAttackRecipes.lungeCardAttack.swingDuration)
+            let swing = min(action.swingAt, start.addingTimeInterval(action.preparationCap))
+            let impact = swing.addingTimeInterval(action.swingDuration)
             actions[index].startAt = min(action.startAt, start)
             actions[index].swingAt = swing
             actions[index].impactAt = impact

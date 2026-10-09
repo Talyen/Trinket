@@ -9,6 +9,7 @@ struct VictoryView: View {
     let primaryActionTitle: String
     let primaryActionAccessibilityIdentifier: String
     let action: RewardRevealAction
+    var onExceptionalReveal: () -> Void = {}
 
     var body: some View {
         RewardRevealExperienceScreen(
@@ -30,6 +31,7 @@ struct VictoryView: View {
             primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
             action: action,
             allowsImmediatePrimaryAction: true,
+            onExceptionalReveal: onExceptionalReveal,
             contentTopPadding: TrinketDesign.Spacing.extraSmall,
             contentStackSpacing: TrinketDesign.Spacing.large,
             emptyExperience: {

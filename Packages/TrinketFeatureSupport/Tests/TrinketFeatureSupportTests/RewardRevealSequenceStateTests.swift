@@ -101,6 +101,41 @@ struct RewardRevealSequenceStateTests {
         #expect(attempts == 2)
     }
 
+    @Test func `exceptional reveals require visibility and deduplicate across paging and remounts`() async {
+        let state = makeState()
+        #expect(!state.claimExceptionalReveal(itemID: "astral", isExceptional: true))
+        state.start(walletCount: 0)
+        #expect(await waitUntil { state.isSequenceComplete })
+        #expect(!state.claimExceptionalReveal(itemID: "basic", isExceptional: false))
+        #expect(state.claimExceptionalReveal(itemID: "astral", isExceptional: true))
+        #expect(state.claimExceptionalReveal(itemID: "unique", isExceptional: true))
+        #expect(!state.claimExceptionalReveal(itemID: "astral", isExceptional: true))
+        state.suppressExceptionalReveals()
+        #expect(!state.claimExceptionalReveal(itemID: "unseen", isExceptional: true))
+        state.start(walletCount: 0)
+        #expect(!state.claimExceptionalReveal(itemID: "unseen", isExceptional: true))
+    }
+
+    @Test func `collection before reveal prevents missed flourish replay`() async {
+        let state = makeState()
+        state.suppressExceptionalReveals()
+        state.start(walletCount: 0)
+        #expect(await waitUntil { state.isSequenceComplete })
+        #expect(!state.claimExceptionalReveal(itemID: "astral", isExceptional: true))
+    }
+
+    @Test func `background skips the focused reveal but later unseen pages still flourish`() async {
+        let state = makeState()
+        state.skipExceptionalReveal(itemID: "pending-astral")
+        state.start(walletCount: 0)
+        #expect(await waitUntil { state.isSequenceComplete })
+        #expect(!state.claimExceptionalReveal(itemID: "pending-astral", isExceptional: true))
+        #expect(state.claimExceptionalReveal(itemID: "later-unique", isExceptional: true))
+        state.skipExceptionalReveal(itemID: "later-unique")
+        #expect(!state.claimExceptionalReveal(itemID: "later-unique", isExceptional: true))
+        #expect(state.claimExceptionalReveal(itemID: "another-astral", isExceptional: true))
+    }
+
     private func waitUntil(
         timeout: Duration = .seconds(5),
         condition: @MainActor () -> Bool,

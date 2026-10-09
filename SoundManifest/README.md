@@ -51,3 +51,23 @@ FLAC inputs as lossless PCM WAV; retain original WAV/OGG inputs. The Homestead
 hammer source `hammer_multiple_exterior_fienup_013` uses 0.82–1.65 seconds with
 10 ms entry and 60 ms exit fades. Selected source clips default to gain `1.0`; `block_absorb` uses `0.97` for
 AAC decoding headroom. Attacks and ticks share their clip and gain.
+
+## Game-feel variants
+
+The six `hit_*critical` selections are separate lossless PCM WAV revisions derived
+from their manifest-selected ordinary recordings. They preserve the original
+attack timing and channels, apply a linearly declining transient emphasis of up
+to 2 dB over the opening 60 ms, truncate duration to 85%, and fade the final 30 ms.
+RMS over the retained source window is matched where peak headroom allows;
+source peaks are capped at -2 dBFS before AAC preparation. The Physical and Stun
+variants require approximately 0.42 and 0.19 dB lower RMS respectively to retain
+that headroom. Perceptual balance still requires listening on hardware.
+
+`loot_exceptional` uses the full 1.07-second harpsichord quick chime, preserving
+its natural decay with only 5 ms of end smoothing. Its level matches the approved
+harpsichord audition. The source revision is `loot_exceptional_harpsichord_01.wav`,
+derived from `harpsichord_chime_quick__existing_library_unattributed__d4797e91fa2b61fd.flac`.
+The original talent-unlock cue and earlier loot revision are preserved. All seven
+selected sources live under the external library's
+`Sounds/Game Sources/Projects/Trinket/Sound Effects/` folders; their paths are
+recorded in the manifest.

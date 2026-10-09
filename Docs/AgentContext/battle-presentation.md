@@ -71,8 +71,12 @@ simulation suites; gesture inspection/drag safety uses `BattleFlowUITests`.
 `BattleFeedbackLane` schedules attack phases and impact delivery from resolved
 actions. Combatant motion uses the same clock and native SwiftUI spring recipes,
 retargeting from its current pose. A prepared drag commits its swing; a tap starts
-0.10-second preparation for manual plays (automatic and enemy attacks retain
-0.40 seconds). Later attacks by the same actor can shorten pending preparation
+0.025-second preparation for manual plays, with a 0.075-second swing and
+0.300-second recovery. Prepared drags skip preparation. Automatic and enemy
+attacks retain 0.40-second preparation, 0.15-second swing, and 0.45-second recovery.
+Each scheduled action retains its swing, recovery, and acceleration preparation
+cap so rapid play cannot substitute another action type's timing. Later attacks
+by the same actor can shorten pending preparation
 and interrupt recovery, while distinct impacts remain ordered. Automatic card
 reveal and dissolve use the same scheduled swing time. Manual results and recoil publish at commitment
 while attacker motion continues. Skipped and support actions
@@ -172,12 +176,13 @@ suspension freezes every region and resume shifts its original clocks.
 
 ### Verification gap
 
-Floating-feedback visual feel remains unverified. Device Hub Computer Use has
-timed out; the [native device-interaction skill](../../.agents/skills/device-interaction/SKILL.md)
-provides an alternative for requested inspection under the same managed lease.
-Package and UI checks cannot establish visual feel. During inspection, check
-central readability and smaller lower-corner status feedback under rapid card
-play, including consolidation, overlap, and portrait clipping.
+Package and UI checks cannot establish visual feel. Use managed interactive
+inspection, including the [native device-interaction skill](../../.agents/skills/device-interaction/SKILL.md)
+when Computer Use cannot inspect Device Hub. The debug Game Feel preview offers
+fixed busy samples with a held feedback clock for layout inspection; held samples
+do not establish live pacing, physical audio balance, or haptic quality.
+Check central readability and smaller lower-corner status feedback under rapid
+card play, including consolidation, overlap, and portrait clipping.
 
 ## Display work lifecycle
 

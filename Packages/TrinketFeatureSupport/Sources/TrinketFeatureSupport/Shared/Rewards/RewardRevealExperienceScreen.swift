@@ -75,6 +75,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
     let loot: Loot
     let primaryActionTitle: String
     let primaryActionAccessibilityIdentifier: String
+    let onExceptionalReveal: () -> Void
     let action: RewardRevealAction
     let allowsImmediatePrimaryAction: Bool
     var contentTopPadding: CGFloat
@@ -100,6 +101,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         primaryActionAccessibilityIdentifier: String,
         action: RewardRevealAction,
         allowsImmediatePrimaryAction: Bool = false,
+        onExceptionalReveal: @escaping () -> Void = {},
         contentTopPadding: CGFloat = TrinketDesign.Spacing.small,
         contentStackSpacing: CGFloat = TrinketDesign.Spacing.large,
         @ViewBuilder emptyExperience: @escaping () -> EmptyExperience,
@@ -114,6 +116,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         self.loot = loot
         self.primaryActionTitle = primaryActionTitle
         self.primaryActionAccessibilityIdentifier = primaryActionAccessibilityIdentifier
+        self.onExceptionalReveal = onExceptionalReveal
         self.action = action
         self.allowsImmediatePrimaryAction = allowsImmediatePrimaryAction
         self.contentTopPadding = contentTopPadding
@@ -151,6 +154,8 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                                 spacing: loot.lootSpacing,
                                 isCollected: collection.isCollected,
                                 focusedItemID: $focusedItemID,
+                                revealSequence: revealSequence,
+                                onExceptionalReveal: onExceptionalReveal,
                                 onSelectItem: { selectedRewardItem = $0 },
                             )
                             .accessibilityIdentifier(loot.lootAccessibilityIdentifier ?? titleAccessibilityIdentifier)
@@ -178,6 +183,8 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         .trinketSensoryFeedback(.success, trigger: collection.feedbackTrigger, enabled: action.hapticsEnabled)
         .onChange(of: scenePhase) { _, phase in
             if phase != .active {
+                revealSequence.skipExceptionalReveal(itemID: focusedItemID ?? loot.items.first?.id)
+                revealSequence.cancel(walletCount: walletRewardCount)
                 collection.finish()
             }
         }
@@ -201,6 +208,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
             }
         }
         .onDisappear {
+            revealSequence.skipExceptionalReveal(itemID: focusedItemID ?? loot.items.first?.id)
             collection.finish()
             revealSequence.cancel(walletCount: walletRewardCount)
             preparedRewardArtworkNames = nil
@@ -235,6 +243,9 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
     private func complete() {
         guard isPrimaryActionReady else { return }
         collection.perform(action)
+        if collection.isCompleting {
+            revealSequence.suppressExceptionalReveals()
+        }
     }
 
     private var isPrimaryActionReady: Bool {
@@ -265,6 +276,7 @@ public extension RewardRevealExperienceScreen where EmptyExperience == EmptyView
         primaryActionAccessibilityIdentifier: String,
         action: RewardRevealAction,
         allowsImmediatePrimaryAction: Bool = false,
+        onExceptionalReveal: @escaping () -> Void = {},
         contentTopPadding: CGFloat = TrinketDesign.Spacing.small,
         contentStackSpacing: CGFloat = TrinketDesign.Spacing.large,
     ) {
@@ -280,6 +292,7 @@ public extension RewardRevealExperienceScreen where EmptyExperience == EmptyView
             primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
             action: action,
             allowsImmediatePrimaryAction: allowsImmediatePrimaryAction,
+            onExceptionalReveal: onExceptionalReveal,
             contentTopPadding: contentTopPadding,
             contentStackSpacing: contentStackSpacing,
             emptyExperience: { EmptyView() },

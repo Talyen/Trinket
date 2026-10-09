@@ -131,6 +131,7 @@ public struct BattleView: View {
                         claim: { completeVictoryPrimaryAction(summary: victorySummary) },
                         finish: { battleSession.finishVictoryPresentation(configurationID: configuration.id) },
                     ) : .immediate { completeVictoryPrimaryAction(summary: victorySummary) },
+                    onExceptionalReveal: { battleSession.playPresentationSFX(SFXID.lootExceptional) },
                 )
                 .transition(.opacity)
             case let .defeat(settlement):
