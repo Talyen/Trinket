@@ -414,8 +414,8 @@ extension KeywordCohesionMechanicsTests {
             heroMaxHealth: 10,
             companionMaxHealth: 10,
             enemyMaxHealth: 10,
-            heroEffects: [ActiveEffect(id: 1, effect: .bleed(1), remainingTurns: 2)],
             companionHealth: 1,
+            heroEffects: [ActiveEffect(id: 1, effect: .bleed(1), remainingTurns: 2)],
             companionModifiers: profile,
         )
         battle.roster.mutateRuntime(for: battle.companion) { $0.hasConsumedDeathsDoor = true }

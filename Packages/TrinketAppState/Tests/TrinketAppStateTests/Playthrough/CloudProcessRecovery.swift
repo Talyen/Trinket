@@ -166,7 +166,7 @@ struct CloudPresentationBoundaryTests {
         #expect(await first.cloudSync?.synchronize() == true)
         #expect(battle.activeBattle?.id == configuration.id)
         #expect(first.journey.hasClaimedRewards(for: stage))
-        second.grantGold(9)
+        #expect(second.persistBatch(logging: "Remote earnings") { $0.roster.gold += 9 })
         #expect(await second.cloudSync?.synchronize() == true)
         #expect(await first.cloudSync?.synchronize() == true)
         #expect(battle.activeBattle == nil)

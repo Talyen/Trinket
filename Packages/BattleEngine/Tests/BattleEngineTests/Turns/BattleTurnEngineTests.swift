@@ -399,8 +399,8 @@ struct BattleTurnEngineComponentTests {
         )
         var context = makeTurnContext(
             heroAbilities: [ability],
-            enemyMaxHealth: 200,
             heroEffects: [ActiveEffect(id: 1, effect: .nextHolyStrike, remainingTurns: 0)],
+            enemyMaxHealth: 200,
         )
         let healthBefore = context.roster.health(for: context.enemy)
 

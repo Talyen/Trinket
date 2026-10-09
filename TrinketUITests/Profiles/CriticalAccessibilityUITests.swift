@@ -2,7 +2,9 @@ import TrinketFeatureSupport
 import XCTest
 
 final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
-    private let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+    private var settings: XCUIApplication {
+        XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+    }
 
     override func setUpWithError() throws {
         try super.setUpWithError()

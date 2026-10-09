@@ -160,7 +160,8 @@ struct CloudSaveOutboxTests {
         base.labyrinth.hasEntered = true
         base.voyage.ensureBoard(access: .fullGame)
         let offer = try #require(base.voyage.offers.first)
-        #expect(base.voyage.embark(offerID: offer.id, eligibleRecruitEventIDs: [], access: .fullGame))
+        let embarked = base.voyage.embark(offerID: offer.id, eligibleRecruitEventIDs: [], access: .fullGame)
+        #expect(embarked)
         let encounter = EncounterIdentity(location: .journey(stageID: ShopOfferGenerator.starterShopStageID), save: base)
         let item = try #require(base.inventory.items.first)
         let stock = ShopStock(offers: [ShopOffer(id: "migrated-pinned-offer", item: item, price: 3)])
