@@ -2,15 +2,71 @@ import TrinketFeatureSupport
 import XCTest
 
 final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
+    private let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        settings.launch()
+        let control = reduceMotionControl()
+        let originalReduceMotion = try reduceMotionValue(control)
+        addTeardownBlock { [self] in
+            settings.activate()
+            defer { settings.terminate() }
+            try setReduceMotion(originalReduceMotion)
+        }
+        try setReduceMotion(ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1")
+        settings.terminate()
+    }
+
+    private func reduceMotionControl() -> XCUIElement {
+        let control = settings.switches["Reduce Motion"].firstMatch
+        if control.exists {
+            return control
+        }
+        let accessibility = settings.staticTexts["Accessibility"].firstMatch
+        for _ in 0 ..< 4 {
+            if accessibility.exists {
+                break
+            }
+            let back = settings.navigationBars.buttons.element(boundBy: 0)
+            if back.exists {
+                back.tap()
+            }
+        }
+        for _ in 0 ..< 8 {
+            if accessibility.isHittable {
+                break
+            }
+            settings.swipeUp()
+        }
+        tapWhenReady(accessibility)
+        tapWhenReady(settings.staticTexts["Motion"].firstMatch)
+        assertExists(control)
+        return control
+    }
+
+    private func reduceMotionValue(_ control: XCUIElement) throws -> Bool {
+        let value = try XCTUnwrap(control.value as? String)
+        XCTAssertTrue(value == "0" || value == "1", "Native Reduce Motion value unavailable: \(value)")
+        return value == "1"
+    }
+
+    private func setReduceMotion(_ enabled: Bool) throws {
+        let control = reduceMotionControl()
+        if try reduceMotionValue(control) != enabled {
+            tapWhenReady(control)
+        }
+        waitUntil("Native Reduce Motion must match the requested setting") {
+            control.value as? String == (enabled ? "1" : "0")
+        }
+    }
+
     func testCriticalControlsWithRequestedAccessibilityEnvironment() throws {
         try skipUnavailablePurchaseAutomation()
         try startStoreSession()
-        var args = TestLaunchArg.productionTiming() + ["-coverage-diagnostics"]
+        let args = TestLaunchArg.productionTiming() + ["-coverage-diagnostics"]
         let large = ProcessInfo.processInfo.environment["TRINKET_PROFILE_LARGE_TEXT"] == "1"
         let reduced = ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1"
-        if reduced {
-            args.append("-coverage-reduce-motion")
-        }
         launchApp(arguments: args)
         let probe = any(AccessibilityID.Debug.coverageDiagnostics)
         assertExists(probe)
@@ -50,10 +106,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
     }
 
     func testRewardClaimRemainsReachableAndReturnsUnderRequestedSettings() throws {
-        var args = TestLaunchArg.productionTiming() + ["-performance-strong-party"]
-        if ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1" {
-            args.append("-coverage-reduce-motion")
-        }
+        let args = TestLaunchArg.productionTiming() + ["-performance-strong-party"]
         launchApp(arguments: args)
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)

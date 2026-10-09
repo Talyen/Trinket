@@ -50,10 +50,9 @@ their owned simulator lease.
 
 Each device runs native default text, native largest accessibility text, and
 largest text with Reduce Motion. Native text settings are verified and restored
-even on failed journeys. Since simctl has no Reduce Motion setter, its coverage
-uses an explicitly labeled Debug SwiftUI environment override; it is not native
-Settings or hardware evidence. The app probe verifies largest text and the
-received motion environment. Native audits exclude only the opt-in diagnostic
+even on failed journeys. Reduce Motion is selected through the native Settings app in the owned simulator
+and restored after each test. The app probe verifies largest text and the real
+motion environment. Simulator checks do not establish hardware evidence. Native audits exclude only the opt-in diagnostic
 label; no product failures are blanket-suppressed.
 
 Weekly UI soak uses one audio-enabled store for twenty Contracts, visiting

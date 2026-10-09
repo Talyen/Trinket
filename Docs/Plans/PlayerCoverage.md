@@ -29,14 +29,16 @@ missing combinations. Hosted Swift/package/UI execution remains pending the auth
 
 ## Validation and remaining work
 
-Focused orchestration/registry/replay regressions and the scoped lightweight
-handoff passed. Final scoped validation passed after the advisory FullUI aggregate change and
-correction of the two misplaced edits found during diff review. No Swift compilation, UI execution, broad generation,
-hosted dispatch, commit or push has occurred. The implementation remains pending
-hosted package/UI/profile/soak results and generation/idempotence evidence.
+Initial authoring passed scoped orchestration/registry/replay regressions and
+lightweight handoff without compilation. Full review then fixed overlapping
+battle accesses, retained package visibility for moved helpers, and regenerated
+the project and Sniff Out description. The reviewed set was committed and pushed
+as `0ec5c28e`; hosted generation/style/idempotence passed in run `37966899431`.
+The app compile found a read-only Reduce Motion environment override; the native
+Settings fix awaits hosted rerun. Package/UI/profile/soak evidence remains pending.
 
-Bounded accommodations: Reduce Motion uses a labeled Debug environment override
-because simctl offers no native setter. Soak accepts either battle outcome and
+CI found that SwiftUI Reduce Motion is read-only; the profile now changes and
+restores the native Settings control on its owned simulator. Soak accepts either battle outcome and
 checks exact Contract claim identities rather than enforcing a bot victory rate.
 The named live device/service checks remain deferred in the canonical owner.
 

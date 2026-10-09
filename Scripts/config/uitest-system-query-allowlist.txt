@@ -7,3 +7,7 @@ close
 Clear text
 # Native submenu options can omit their assigned accessibility identifiers.
 Astral
+
+# Native Settings controls used only by the managed critical-settings profile.
+Accessibility
+Motion

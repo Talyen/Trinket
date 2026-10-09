@@ -45,11 +45,6 @@ extension View {
                 CoverageDiagnosticsView(playerSave: playerSave)
             }
         }
-        .transformEnvironment(\.accessibilityReduceMotion) { value in
-            if isOwned, arguments.contains("-coverage-reduce-motion") {
-                value = true
-            }
-        }
         .debugFPSOverlay()
     }
 }
