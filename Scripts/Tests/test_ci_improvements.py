@@ -123,7 +123,16 @@ class CIImprovementsTests(unittest.TestCase):
             self.assertFalse(NATIVE.valid({**proof, 'executed_tests': []}))
             manifest = dict(action='native-test', status='passed', exit_code=0,
                             completion_source='process-exit', test_execution_proven=True, native_test=proof)
-            self.assertFalse(AGGREGATE.normalise_report(None, None, manifest=manifest)['failed'])
+            report = AGGREGATE.normalise_report(None, None, manifest=manifest)
+            self.assertFalse(report['failed'])
+            aggregate_path = Path(directory) / 'aggregate.json'
+            with patch.object(AGGREGATE, 'load_reports', return_value=([report], [], True, 0, '', 1)):
+                AGGREGATE.main([directory, str(aggregate_path)], environ={})
+            aggregate = json.loads(aggregate_path.read_text())
+            self.assertEqual(aggregate['category'], 'passed')
+            self.assertEqual(aggregate['missing_result_invocations'], 0)
+            self.assertEqual(aggregate['incomplete_result_invocations'], 0)
+            self.assertNotIn('watchdog log proof', aggregate['detail'])
             self.assertTrue(AGGREGATE.normalise_report(None, None, manifest={**manifest, 'native_test': {}})['failed'])
 
     def test_ios_duplicate_argument_names_count_each_execution_and_preserve_leaf_failures(self):

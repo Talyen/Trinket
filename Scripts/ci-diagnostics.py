@@ -364,9 +364,9 @@ def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -
     reports, parse_errors, manifests_present, missing_diagnostics_invocations, selected_session, distinct_session_count = load_reports(results_dir, output_path, args.session_id, full)
     recorded_invocations = len(reports)
     failed_reports = [report for report in reports if report["failed"]]
-    missing_result_invocations = sum(1 for report in reports if not report["result_bundle_exists"] and report["action"] not in {"build", "build-for-testing"})
+    missing_result_invocations = sum(1 for report in reports if not report["result_bundle_exists"] and report["action"] not in {"build", "build-for-testing", "native-test"})
     incomplete_result_invocations = sum(
-        1 for report in reports if not report["result_bundle_complete"] and report["action"] not in {"build", "build-for-testing"}
+        1 for report in reports if not report["result_bundle_complete"] and report["action"] not in {"build", "build-for-testing", "native-test"}
     )
 
     by_classification = {classification: 0 for classification in CLASSIFICATION_PRECEDENCE}
