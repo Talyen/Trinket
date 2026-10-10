@@ -348,6 +348,10 @@ Read structured invocation reports before raw build logs. Use
 [CI diagnostics](../AgentContext/ci-diagnostics.md) for classification and
 escalation. Process safety follows [AGENTS.md](../../AGENTS.md#protect-the-workspace).
 
+Compact timing-artifact upload is best-effort telemetry; transport failures do not
+change completed test outcomes. Test execution, diagnostic classification, native
+qualification proof, and required build-product uploads remain blocking checks.
+
 The push gate may print an advisory change-budget report. Counts can prompt
 investigation but do not require a justification for every threshold crossing.
 Distinguish the task's changes from pre-existing edits against HEAD. Explain
