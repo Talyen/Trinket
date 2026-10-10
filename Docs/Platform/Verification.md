@@ -159,9 +159,8 @@ available; the CI policy applies to automatic verification, not to playing the g
 
 ## Native pure-logic qualification
 
-Native push lanes are activated only after hosted iOS/native qualification agrees.
-During qualification, push CI retains its iOS unit suites and also runs the native
-comparators. Once activated, `BattleEngine` and `TrinketCore` run natively on pushes. State keeps iOS verification
+Hosted iOS/native qualification gates native push activation. Push CI runs
+`BattleEngine` and `TrinketCore` natively after that qualification agrees. State keeps iOS verification
 for Persistence and AppState, and smoke keeps the real simulator/app path. Native
 execution must complete every independently discovered function and parameterized
 case without skips or issues; a positive aggregate count is insufficient.

@@ -27,6 +27,7 @@ NATIVE = load_script('native_proof_test', 'native-test-results.py')
 BUDGET = load_script('ci_budget_test', 'ci-run-budget.py')
 DIAGNOSTIC = load_script('ui_diagnostic_test', 'ci-diagnostic-ui.py')
 AGGREGATE = load_script('native_aggregate_test', 'ci-diagnostics.py')
+TIMING = load_script('expanded_timing_test', 'test-timing.py')
 
 
 class CIImprovementsTests(unittest.TestCase):
@@ -124,6 +125,14 @@ class CIImprovementsTests(unittest.TestCase):
                             completion_source='process-exit', test_execution_proven=True, native_test=proof)
             self.assertFalse(AGGREGATE.normalise_report(None, None, manifest=manifest)['failed'])
             self.assertTrue(AGGREGATE.normalise_report(None, None, manifest={**manifest, 'native_test': {}})['failed'])
+
+    def test_ios_duplicate_argument_names_count_each_execution_and_preserve_leaf_failures(self):
+        node = {'children': [{'nodeType': 'Arguments', 'name': 'Ability(storage: AbilityStorage)',
+                              'result': 'Passed', 'children': [
+                                  {'nodeType': 'Repetition', 'result': 'Passed'},
+                                  {'nodeType': 'Repetition', 'result': 'Failed'},
+                              ]}, {'nodeType': 'Arguments', 'result': 'Passed'}]}
+        self.assertEqual(TIMING.argument_results(node), ['Passed', 'Failed', 'Passed'])
 
     def test_native_ios_parity_requires_matching_ids_not_merely_counts(self):
         with tempfile.TemporaryDirectory() as directory:

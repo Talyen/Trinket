@@ -70,3 +70,24 @@ Engine/Core in those same jobs, including expanded argument cases. Native push
 routing and native-only caches remain inactive until that hosted proof agrees.
 Then activate the dispatcher/native cache, restore parity to manual/nightly runs,
 and verify the standard, focused qualification, and diagnostic dispatch paths.
+
+## Prepared promotion
+
+The local tree restores the intended native dispatcher/cache activation and
+manual/nightly-only comparator conditions. Do not push this promotion until run
+38011734982 establishes same-revision hosted iOS/native agreement.
+
+## Hosted evidence and corrections
+
+Run 38011734982 passed all iOS package tests and smoke. Core qualified at 57
+functions/43 expanded cases. Engine passed all 850 functions on both platforms;
+Xcode grouped five duplicate-description cases under Repetition children, causing
+a reporter mismatch. Reprocessing its retained completed iOS/native results with
+the generic leaf-count correction matches 850 functions/660 expanded cases.
+The old failed conclusion remains unchanged. A new hosted qualification run will
+validate the corrected collector before closing this task.
+
+The hosted gate also revealed an ambient-budget leak into a simulated performance
+fixture's default-budget assertion. The fixture now clears the enclosing deadline
+and Xcode cap; production supervision remains unchanged and the original >=1200s
+manual-default assertion is retained.

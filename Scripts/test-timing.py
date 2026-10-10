@@ -70,6 +70,19 @@ def valid_entry(entry: object) -> bool:
     return True
 
 
+def argument_results(node: dict) -> list[str]:
+    results = []
+    for argument in walk_test_nodes(node.get('children')):
+        if argument.get('nodeType') != 'Arguments':
+            continue
+        # Xcode groups identical argument descriptions; each repetition is a
+        # distinct execution with its own argument URL, not another group.
+        repetitions = [child for child in walk_test_nodes(argument.get('children'))
+                       if child.get('nodeType') == 'Repetition']
+        results.extend(child.get('result', 'Unknown') for child in repetitions or [argument])
+    return results
+
+
 def parse_xcresult(path: Path, manifest: dict | None = None) -> dict:
     def read(kind: str) -> dict:
         payload, error = run_xcresulttool(path, ["get", "test-results", kind])
@@ -96,8 +109,7 @@ def parse_xcresult(path: Path, manifest: dict | None = None) -> dict:
          "name": node.get("name", ""),
          "seconds": finite_nonnegative(node.get("durationInSeconds", 0.0), "xcresult test duration"),
          "result": node.get("result", "Unknown"),
-         "arguments": [child.get("result", "Unknown") for child in walk_test_nodes(node.get("children"))
-                       if child.get("nodeType") == "Arguments"]}
+         "arguments": argument_results(node)}
         for node in walk_test_nodes(payload.get("testNodes")) if node.get("nodeType") == "Test Case"
     ]
     start = summary.get("startTime")

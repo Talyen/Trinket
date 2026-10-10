@@ -296,29 +296,29 @@ jobs:
         id: package-cache
         with:
           shard: ${{ matrix.name }}
-          native-only: 'false'
+          native-only: ${{ matrix.name == 'Engine' && github.event_name == 'push' }}
       - name: Test packages (${{ matrix.packages }})
         uses: ./.github/actions/test-job
         with:
           artifact-name: unit-${{ matrix.name }}
-          defer-cleanup: ${{ (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') }}
+          defer-cleanup: ${{ (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push' }}
           artifact-prefix: ${{ inputs.artifact-prefix }}
-          command: ./Scripts/test-package.sh ${{ matrix.packages }}
+          command: ./Scripts/test-ci-packages.sh ${{ matrix.packages }}
       - name: Native and iOS pure-logic parity
-        if: (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core')
+        if: (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
         env:
           CI: true
           NATIVE_PACKAGE: ${{ matrix.name == 'Engine' && 'BattleEngine' || 'TrinketCore' }}
         run: python3 Scripts/ci-run-budget.py -- ./Scripts/test-package-host.sh --compare-ios "$NATIVE_PACKAGE"
       - name: Summarize native qualification diagnostics
-        if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core')
+        if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
         run: |
           ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
           if [[ "${{ job.status }}" != success ]]; then
             ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/NativeQualification-artifact
           fi
       - name: Retain native qualification evidence
-        if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core')
+        if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: native-proof-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -331,7 +331,7 @@ jobs:
             .DerivedData/NativeQualification-artifact
           retention-days: 14
       - name: Clean retained comparator diagnostics
-        if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core')
+        if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
         run: ./Scripts/ci-diagnostics.sh --cleanup .DerivedData/TestResults
 
       - name: Prune package build state

@@ -176,6 +176,8 @@ class PerformanceScenarioTests(unittest.TestCase):
                 )
                 stub.chmod(0o755)
                 environment = {key: value for key, value in os.environ.items() if not key.startswith("TRINKET_PERFORMANCE_")}
+                environment.pop("TRINKET_XCODE_WALL_TIMEOUT_SECONDS", None)
+                environment.pop("TRINKET_CI_DEADLINE_EPOCH", None)
                 environment["GITHUB_ACTIONS"] = "true"
                 result = subprocess.run([str(scripts / "performance.sh")], env=environment, capture_output=True, text=True)
                 self.assertEqual(result.returncode, test_status, result.stdout + result.stderr)
