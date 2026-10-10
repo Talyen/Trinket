@@ -5,6 +5,22 @@ import TrinketCore
 @testable import BattleEngine
 
 struct LeechAttackQualificationTests {
+    @Test(arguments: [false, true])
+    func `Symbiotic Venom grants Leech to Poison attacks but not ticks`(attack: Bool) throws {
+        let affix = try #require(GameContent.itemAffixDefinition(matching: "parasitic_bloom"))
+        var profile = CombatModifierProfile.zero
+        affix.basic.triggers.apply(to: &profile, abilityName: affix.title)
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
+        battle.appliesFightPacing = false
+        battle.roster.hero.currentHealth = 1
+        let operation: DamageOperation = attack
+            ? .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1) : .periodic
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 8, target: battle.enemy, keyword: .poison, sourceActorID: battle.hero.id, options: operation,
+        ))
+        #expect((battle.health(of: battle.hero) > 1) == attack)
+    }
+
     @Test func `Taste for Blood recognizes Scarfeast before rolling Critical chance`() {
         var profile = CombatantTalentCatalog.profile(for: ["rogue_bleed_t2_1"])
         profile.triggers.physicalAttackLeechBelowHalfHealth = true

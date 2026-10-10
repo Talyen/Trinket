@@ -33,7 +33,7 @@ extension PlayBattleCoordinator {
             additionalModifiers: homesteadEffects.companionModifiers,
         )
         let enemyLevel = input.enemyEncounterLevel ?? heroMember.progression.level
-        let enemyBuild = resolvedEnemyBuild(enemy: input.enemy, level: enemyLevel)
+        let enemyBuild = resolvedEnemyBuild(enemy: input.enemy, level: enemyLevel, profile: input.enemyPowerProfile)
         var enemyModifiers = enemyBuild.modifiers
         enemyModifiers.merge(input.universalModifiers)
         let configuration = BattleRunConfiguration(
@@ -86,15 +86,16 @@ extension PlayBattleCoordinator {
     private static func resolvedEnemyBuild(
         enemy: Combatant?,
         level: Int,
+        profile: EnemyPowerCurve.Profile,
     ) -> CombatBuild {
         guard let enemy else {
             return CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
         }
         if let catalogEnemy = GameContent.enemy(matching: enemy.id) {
-            return CombatBuildResolver.build(enemy: catalogEnemy, level: level)
+            return CombatBuildResolver.build(enemy: catalogEnemy, level: level, profile: profile)
         }
         var fallbackModifiers = CombatModifierProfile.zero
-        fallbackModifiers.outgoingDamagePercent = EnemyPowerCurve.rawDamagePercent(level: level, isBoss: false)
+        fallbackModifiers.outgoingDamagePercent = EnemyPowerCurve.rawDamagePercent(level: level, isBoss: false, profile: profile)
         return CombatBuild(combatant: enemy, modifiers: fallbackModifiers)
     }
 }

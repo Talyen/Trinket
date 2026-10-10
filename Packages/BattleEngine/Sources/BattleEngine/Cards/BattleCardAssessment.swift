@@ -35,7 +35,7 @@ public extension BattleState {
             return BattleCardAssessment(actorID: actor.id, denial: denial, targets: [], resources: [])
         }
         let selected = BattleAbilityRules.resolveConditionalOutcome(card.ability, actor: actor, in: self)
-        let outcomes = BattleAbilityRules.assessmentOutcomes(selected)
+        let outcomes = BattleAbilityRules.eligibleOutcomes(selected, actor: actor, in: self)
         // Assessment never mutates combat, so every branch shares the same participants and override.
         let action = BattleActionContext(actor: actor, in: self)
         let keywordOverride = BattleTurnEngine.activeDamageKeywordOverride(for: actor, in: self)?.keyword
@@ -70,15 +70,6 @@ public extension BattleState {
             actorID: actor.id, denial: nil, targets: targets,
             resources: BattleCardAssessment.commonResources(payments),
         )
-    }
-}
-
-extension BattleAbilityRules {
-    static func assessmentOutcomes(_ ability: Ability) -> [AbilityOutcomeBranch] {
-        if let branches = ability.outcomeBranches {
-            return branches
-        }
-        return [AbilityOutcomeBranch(operations: ability.operations)]
     }
 }
 

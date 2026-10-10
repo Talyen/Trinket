@@ -55,7 +55,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var seismicReversal: Bool = false
     public var unbrokenVow: Bool = false
     public var storedImpact: Bool = false
-    public var glacialReprieve: Bool = false
+    public var firstBlockFreezeDamagePerTurn: Int = 0
     public var retainedBlockGainThornsPercent: Double = 0
     public var onStunEnemyGainBlock: Int = 0
     public var blockRetainsHalf: Bool = false
@@ -152,7 +152,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         seismicReversal: Bool = false,
         unbrokenVow: Bool = false,
         storedImpact: Bool = false,
-        glacialReprieve: Bool = false,
+        firstBlockFreezeDamagePerTurn: Int = 0,
         retainedBlockGainThornsPercent: Double = 0,
         onStunEnemyGainBlock: Int = 0,
         blockRetainsHalf: Bool = false,
@@ -248,7 +248,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         self.seismicReversal = seismicReversal
         self.unbrokenVow = unbrokenVow
         self.storedImpact = storedImpact
-        self.glacialReprieve = glacialReprieve
+        self.firstBlockFreezeDamagePerTurn = firstBlockFreezeDamagePerTurn
         self.retainedBlockGainThornsPercent = retainedBlockGainThornsPercent
         self.onStunEnemyGainBlock = onStunEnemyGainBlock
         self.blockRetainsHalf = blockRetainsHalf
@@ -295,7 +295,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["sealedSarcophagus", "retainAllBlockBetweenTurns", "blockedAttackBasicOncePerTurn", "blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "companionBlockAbsorbsHeroDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "guardianHeroBlockFlat", "doublePhysicalBlockAbsorption", "blockPreparesCritical", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "onEnemyFrozenGainBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock", "seismicReversal", "unbrokenVow", "storedImpact", "glacialReprieve", "retainedBlockGainThornsPercent", "onStunEnemyGainBlock", "blockRetainsHalf", "blockWhileGoldThreshold", "blockWhileGoldAmount", "burnIgnoresBlock", "thornsDamageDoubleWhileBlocked", "blockAbsorptionMultiplierBelowHalfHealth", "holyBlockIgnorePercent", "sunwallChancePercent", "bleedAttackBlockIgnorePercent", "burnAttackBlockBreakMultiplier", "burningEnemyBlockGainMultiplier", "poisonAttackExtraBlockRemoval", "bleedIgnoresEnemyBlock", "leechAttackBlockIgnorePercent", "poisonDamageVsBlockMultiplier", "physicalMitigationWhileBlockedFlat", "allyFirstBelowHalfBlock", "bleedDamageMultiplierWhileBlocked", "blockGainBelowHalfMultiplier", "stunNextBlockGainMultiplier", "stunBlockIgnorePercent", "bleedAttackBlockBreakMultiplier", "burnAttackBlockChancePercent", "burnAttackBlockAmount", "blockedControlPrevention", "blockBreakAllyBlockFlat", "blockAbsorptionMultiplierWhileMana", "blockAbsorptionVsBurningMultiplier", "blockBreakNextHolyHitDouble", "blockHolyReflectChancePercent", "damageTakenMultiplierWhileBlocked", "doubleAllBlockAbsorption", "firstBlockBreakNextStunDouble", "retainAllBlockDuringDeathsDoor", "thornsDamageMultiplierWhileBlocked", "startBattleThorns", "blockBrokenThornsFlat", "retainedBlockThornsFlat", "holyAttackBlockIfNone", "attackBlockRemoval", "blockBreakDrawBelowHalf"]
+    public static let fieldNames: [String] = ["sealedSarcophagus", "retainAllBlockBetweenTurns", "blockedAttackBasicOncePerTurn", "blockBrokenBlockFlat", "blockBrokenSaintfallPower", "holyDamageBlockFlat", "stunDamageBlockFlat", "blockPerTurn", "blockGainThornsPercent", "sunderingBlockMultiplier", "blockRetainsThreeQuarters", "blockAbsorbsCompanionDamage", "companionBlockAbsorbsHeroDamage", "onEnemyBlockBrokenDealPhysical", "postBlockOverflowDamageMultiplier", "maxDamagePerHitCap", "guardianHeroBlockFlat", "doublePhysicalBlockAbsorption", "blockPreparesCritical", "shieldDamageBonusWhileBlocked", "physicalBlockBreakMultiplier", "holyBlockBreakMultiplier", "physicalBlockIgnorePercent", "physicalIgnoresBlockVsStunnedOrFrozen", "stunnedEnemyLoseAllBlock", "holyIgnoresBlock", "holyIgnoresBlockAndDodge", "burnIgnoresBlockAndMitigation", "poisonStripsBlockBeforeHealth", "bleedStripsBlockPerTurn", "spellDamageTakenReductionWhileBlocked", "companionBlockSharesToHeroPercent", "onBlockHitDealHoly", "onBlockReduceAttackerAccuracyPercent", "onBlockReduceAttackerAccuracyTurns", "companionBlockProtectsHeroPercent", "onAnyHealthLossGainBlock", "onSelfHealthLossGainBlock", "onEnemyFrozenGainBlock", "startBattleBlock", "blockPerGoldEarnedEvery", "goldGainBlockPercent", "blockPerGoldCollectedEvery", "onBurnDamageGainBlock", "onAllyBurnDamageGainBlock", "onHolyDamagePartyBlock", "physicalDamageBlockPercent", "freezeDamageGrantsBlock", "seismicReversal", "unbrokenVow", "storedImpact", "firstBlockFreezeDamagePerTurn", "retainedBlockGainThornsPercent", "onStunEnemyGainBlock", "blockRetainsHalf", "blockWhileGoldThreshold", "blockWhileGoldAmount", "burnIgnoresBlock", "thornsDamageDoubleWhileBlocked", "blockAbsorptionMultiplierBelowHalfHealth", "holyBlockIgnorePercent", "sunwallChancePercent", "bleedAttackBlockIgnorePercent", "burnAttackBlockBreakMultiplier", "burningEnemyBlockGainMultiplier", "poisonAttackExtraBlockRemoval", "bleedIgnoresEnemyBlock", "leechAttackBlockIgnorePercent", "poisonDamageVsBlockMultiplier", "physicalMitigationWhileBlockedFlat", "allyFirstBelowHalfBlock", "bleedDamageMultiplierWhileBlocked", "blockGainBelowHalfMultiplier", "stunNextBlockGainMultiplier", "stunBlockIgnorePercent", "bleedAttackBlockBreakMultiplier", "burnAttackBlockChancePercent", "burnAttackBlockAmount", "blockedControlPrevention", "blockBreakAllyBlockFlat", "blockAbsorptionMultiplierWhileMana", "blockAbsorptionVsBurningMultiplier", "blockBreakNextHolyHitDouble", "blockHolyReflectChancePercent", "damageTakenMultiplierWhileBlocked", "doubleAllBlockAbsorption", "firstBlockBreakNextStunDouble", "retainAllBlockDuringDeathsDoor", "thornsDamageMultiplierWhileBlocked", "startBattleThorns", "blockBrokenThornsFlat", "retainedBlockThornsFlat", "holyAttackBlockIfNone", "attackBlockRemoval", "blockBreakDrawBelowHalf"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -351,7 +351,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         if self.seismicReversal != other.seismicReversal { names.append("seismicReversal") }
         if self.unbrokenVow != other.unbrokenVow { names.append("unbrokenVow") }
         if self.storedImpact != other.storedImpact { names.append("storedImpact") }
-        if self.glacialReprieve != other.glacialReprieve { names.append("glacialReprieve") }
+        if self.firstBlockFreezeDamagePerTurn != other.firstBlockFreezeDamagePerTurn { names.append("firstBlockFreezeDamagePerTurn") }
         if self.retainedBlockGainThornsPercent != other.retainedBlockGainThornsPercent { names.append("retainedBlockGainThornsPercent") }
         if self.onStunEnemyGainBlock != other.onStunEnemyGainBlock { names.append("onStunEnemyGainBlock") }
         if self.blockRetainsHalf != other.blockRetainsHalf { names.append("blockRetainsHalf") }
@@ -452,7 +452,7 @@ extension BlockTriggers {
         seismicReversal = seismicReversal || other.seismicReversal
         unbrokenVow = unbrokenVow || other.unbrokenVow
         storedImpact = storedImpact || other.storedImpact
-        glacialReprieve = glacialReprieve || other.glacialReprieve
+        firstBlockFreezeDamagePerTurn = max(firstBlockFreezeDamagePerTurn, other.firstBlockFreezeDamagePerTurn)
         retainedBlockGainThornsPercent += other.retainedBlockGainThornsPercent
         onStunEnemyGainBlock += other.onStunEnemyGainBlock
         blockRetainsHalf = blockRetainsHalf || other.blockRetainsHalf
@@ -554,7 +554,7 @@ extension BlockTriggers {
             seismicReversal: values.decode(Bool.self, "seismicReversal", default: false),
             unbrokenVow: values.decode(Bool.self, "unbrokenVow", default: false),
             storedImpact: values.decode(Bool.self, "storedImpact", default: false),
-            glacialReprieve: values.decode(Bool.self, "glacialReprieve", default: false),
+            firstBlockFreezeDamagePerTurn: values.decode(Int.self, "firstBlockFreezeDamagePerTurn", default: 0),
             retainedBlockGainThornsPercent: values.decode(Double.self, "retainedBlockGainThornsPercent", default: 0),
             onStunEnemyGainBlock: values.decode(Int.self, "onStunEnemyGainBlock", default: 0),
             blockRetainsHalf: values.decode(Bool.self, "blockRetainsHalf", default: false),
@@ -653,7 +653,7 @@ extension BlockTriggers {
         try container.encodeNonDefault(seismicReversal, "seismicReversal", default: false)
         try container.encodeNonDefault(unbrokenVow, "unbrokenVow", default: false)
         try container.encodeNonDefault(storedImpact, "storedImpact", default: false)
-        try container.encodeNonDefault(glacialReprieve, "glacialReprieve", default: false)
+        try container.encodeNonDefault(firstBlockFreezeDamagePerTurn, "firstBlockFreezeDamagePerTurn", default: 0)
         try container.encodeNonDefault(retainedBlockGainThornsPercent, "retainedBlockGainThornsPercent", default: 0)
         try container.encodeNonDefault(onStunEnemyGainBlock, "onStunEnemyGainBlock", default: 0)
         try container.encodeNonDefault(blockRetainsHalf, "blockRetainsHalf", default: false)

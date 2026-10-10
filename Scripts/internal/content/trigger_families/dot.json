@@ -227,7 +227,7 @@
       "merge": "or"
     },
     {
-      "name": "poisonDamageLeech",
+      "name": "poisonAttackLeech",
       "type": "Bool",
       "default": "false",
       "merge": "or",
@@ -295,6 +295,12 @@
     },
     {
       "name": "burnDamageLeech",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "firstBurnAttackLeech",
       "type": "Bool",
       "default": "false",
       "merge": "or"
@@ -384,10 +390,10 @@
       "merge": "or"
     },
     {
-      "name": "thornShedding",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "name": "firstThornsPoisonDamagePerTurn",
+      "type": "Int",
+      "default": "0",
+      "merge": "max"
     },
     {
       "name": "bleedTickDrawChancePercent",
@@ -466,6 +472,15 @@
       "type": "Double",
       "default": "0",
       "merge": "add"
+    },
+    {
+      "name": "bleedPoisonOncePerTurn",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or",
+      "affix_roll": {
+        "reason": "Fixed per-turn activation limit."
+      }
     }
   ]
 }

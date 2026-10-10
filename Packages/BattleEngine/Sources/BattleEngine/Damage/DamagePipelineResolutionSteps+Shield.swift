@@ -195,9 +195,10 @@ package extension DamagePipeline {
                 in: &context,
             ).events)
         }
-        if context.modifiers(for: defender.id).triggers.glacialReprieve {
+        let freeze = context.modifiers(for: defender.id).triggers.firstBlockFreezeDamagePerTurn
+        if freeze > 0, context.claimTurnGuard(.glacialReprieve, actorID: defender.id) {
             await events.append(contentsOf: resolveNestedDamage(
-                amount: absorbed,
+                amount: freeze,
                 keyword: .freeze,
                 target: attacker.combatant,
                 sourceActorID: defender.id,

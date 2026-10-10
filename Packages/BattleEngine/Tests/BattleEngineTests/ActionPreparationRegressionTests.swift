@@ -36,12 +36,12 @@ struct ActionPreparationRegressionTests {
         _ = BattleTurnEngine.performAction(
             ability: .fireArrow, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
         )
-        #expect(battle.health(of: battle.enemy) == 93)
+        #expect(battle.health(of: battle.enemy) == 92)
         #expect(battle.roster.hero.talents.pending.nextBurnDamageBonus == nil)
         _ = BattleTurnEngine.performAction(
             ability: .fireArrow, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
         )
-        #expect(battle.health(of: battle.enemy) == 91)
+        #expect(battle.health(of: battle.enemy) == 89)
     }
 
     @Test func `Sanctified Scroll saves its Critical chance for a later action`() {

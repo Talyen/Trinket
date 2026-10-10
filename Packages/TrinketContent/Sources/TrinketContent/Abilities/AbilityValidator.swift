@@ -34,7 +34,6 @@ enum AbilityValidator {
         "predators-focus",
         "ray-of-frost",
         "serrated-edge",
-        "shadowstep",
         "slash",
         "smite",
         "stab",
@@ -126,12 +125,12 @@ enum AbilityValidator {
 
     private static func allowsAuthoredDamageTotal(abilityID: String, total: Int) -> Bool {
         switch abilityID {
-        case "bash", "maul", "slash":
+        case "bash", "fire-arrow", "maul", "slash":
             total == 3
         case "blood-offering", "cold-snap", "dark-pact", "predators-focus":
             total == 1
         case "fireball":
-            (1 ... 5).contains(total)
+            (2 ... 6).contains(total)
         case "ice-shot", "shield-bash":
             total == 5
         default:

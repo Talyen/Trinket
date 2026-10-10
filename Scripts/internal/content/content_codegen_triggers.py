@@ -135,7 +135,7 @@ _FLAG_TRIGGERS: dict[str, str] = {
     "first_hit_double_damage": "firstHitDoubleDamage",
     "repeat_mana_empowerment": "repeatManaEmpowerment",
     "freeze_damage_leech": "freezeDamageLeech",
-    "poison_damage_leech": "poisonDamageLeech",
+    "poison_attack_leech": "poisonAttackLeech",
     "victory_gold_coin": "victoryGoldCoin",
 }
 

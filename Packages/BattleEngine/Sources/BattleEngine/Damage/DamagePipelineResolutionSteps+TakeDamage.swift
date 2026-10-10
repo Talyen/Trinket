@@ -30,6 +30,14 @@ package extension DamagePipeline {
                 }
             }
         }
+        if lost > 0, !state.options.isHealthCost {
+            let reduction = context.modifiers(for: state.combatant.id).triggers.onHealthLossNextDamageReduction
+            if reduction > 0 {
+                context.roster.mutateRuntime(for: state.combatant) {
+                    $0.talents.pending.nextDamageReduction = max($0.talents.pending.nextDamageReduction, reduction)
+                }
+            }
+        }
         if lost > 0 {
             if state.combatant.role != .hero || context.roster.health(for: state.combatant) > 0 {
                 await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentHealthLoss(

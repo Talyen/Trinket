@@ -4,29 +4,34 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
-    @Test(arguments: [("warlock_leech_t4_1", Keyword.burn)])
-    func `elemental leech works on ticks without doubling existing leech`(talent: String, keyword: Keyword) {
-        var battle = capstoneBattle(companion: [talent])
+    @Test func `emberdrinker grants the first Burn action Leech without granting ticks or later attacks Leech`() {
+        var battle = capstoneBattle(companion: ["warlock_leech_t4_1"])
         battle.roster.companion.currentHealth = 1
-        var alreadyLeeches = battle
-        var options = DamageOperation.periodic
-        options.abilityHasLeech = true
-        let normal = battle.resolveDamage(.doTTick(
-            amount: 8, target: battle.enemy, keyword: keyword, sourceActorID: battle.companion.id,
-        ))
-        _ = alreadyLeeches.resolveDamage(DamageRequest(
-            amount: 8, target: alreadyLeeches.enemy, keyword: keyword,
-            sourceActorID: alreadyLeeches.companion.id, options: options,
-        ))
-        #expect(normal.healthLost == 8)
-        #expect(battle.roster.companion.currentHealth > 1)
-        #expect(battle.roster.companion.currentHealth == alreadyLeeches.roster.companion.currentHealth)
-        let health = battle.roster.companion.currentHealth
+        let attack = Ability(
+            id: "double-burn", name: "Double Burn", tier: .basic,
+            damageComponents: [DamageComponent(4, keyword: .burn), DamageComponent(4, keyword: .burn)],
+            criticalChanceBonus: -1,
+        )
+        func strike(_ battle: inout BattleState) -> [ActionEvent] {
+            BattleTurnEngine.performAction(ability: attack, actor: battle.companion, abilityTarget: battle.enemy, context: &battle)
+        }
+        let first = strike(&battle)
+        #expect(first.count { $0.effectKind == .leechHeal } == 2)
+        let restored = battle.health(of: battle.companion)
+        #expect(restored > 1)
+        _ = strike(&battle)
+        #expect(battle.health(of: battle.companion) == restored)
+        _ = battle.resolveDamage(.doTTick(amount: 8, target: battle.enemy, keyword: .burn, sourceActorID: battle.companion.id))
+        #expect(battle.health(of: battle.companion) == restored)
+        var explicit = DamageOperation.periodic
+        explicit.abilityHasLeech = true
         _ = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.enemy, keyword: .holy,
-            sourceActorID: battle.companion.id, options: .reaction(),
+            amount: 8, target: battle.enemy, keyword: .burn, sourceActorID: battle.companion.id, options: explicit,
         ))
-        #expect(battle.roster.companion.currentHealth == health)
+        #expect(battle.health(of: battle.companion) > restored)
+        battle.turnCount += 1
+        let nextTurn = strike(&battle)
+        #expect(nextTurn.count { $0.effectKind == .leechHeal } == 2)
     }
 
     @Test func `killing grace uses current dodge chance and respects critical cap`() {

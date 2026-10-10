@@ -9,8 +9,7 @@ struct ShadowstepRepeatTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.criticalChanceBonus = -1
         var battle = makeBattle(profile: profile)
-        let shadowstep = BattleCardCombatEngine.deal(.shadowstep, owner: .hero, context: &battle)
-        _ = try battle.playCard(cardID: shadowstep.id)
+        readyRepeat(on: battle.hero, in: &battle)
         let ability: Ability
         if enemyFullHealth {
             ability = .stab
@@ -106,15 +105,16 @@ struct ShadowstepRepeatTests {
         #expect(!hasRepeat(on: battle.hero, in: battle))
     }
 
-    @Test func `refreshes do not stack and repeated Shadowstep readies a later card`() throws {
+    @Test func `refreshes do not stack and repeated card readies a later card`() throws {
         var battle = makeBattle()
+        let refresher = repeatAbility()
         for _ in 0 ..< 2 {
             _ = EffectHandlersTestSupport.dispatch(
-                .playNextCardTwice, ability: .shadowstep, source: battle.hero, target: battle.hero, battle: &battle,
+                .playNextCardTwice, ability: refresher, source: battle.hero, target: battle.hero, battle: &battle,
             )
         }
-        let shadowstep = BattleCardCombatEngine.deal(.shadowstep, owner: .hero, context: &battle)
-        let preparation = try battle.playCard(cardID: shadowstep.id)
+        let cardToPlay = BattleCardCombatEngine.deal(refresher, owner: .hero, context: &battle)
+        let preparation = try battle.playCard(cardID: cardToPlay.id)
         #expect(preparation.count(where: { $0.effectKind == .playNextCardTwiceApplied }) == 2)
         #expect(battle.activeEffects(of: battle.hero).count(where: { $0.effect == .playNextCardTwice }) == 1)
         for expectedCount in [2, 1] {
@@ -168,10 +168,10 @@ struct ShadowstepRepeatTests {
         #expect(battle.heroDeck.discarded.map(\.copyID) == [card.deckCopyID])
     }
 
-    @Test func `Bandit Shadowstep repeats its next ability once without advancing cadence twice`() {
+    @Test func `enemy card repeat repeats its next ability once without advancing cadence twice`() {
         var battle = makeBattle()
         _ = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
-            ability: .shadowstep,
+            ability: repeatAbility(),
             abilityTarget: battle.hero,
             context: &battle,
         ) }
@@ -240,6 +240,16 @@ struct ShadowstepRepeatTests {
 
     private func attack() -> Ability {
         Ability(id: "repeat-attack", name: "Repeat Attack", tier: .basic, directDamage: 2, criticalChanceBonus: -1)
+    }
+
+    private func repeatAbility() -> Ability {
+        Ability(
+            id: "repeat-ability", name: "Repeat Ability", tier: .ultimate,
+            targetedEffects: [
+                TargetedEffect(.evadeNextHit, target: .actor),
+                TargetedEffect(.playNextCardTwice, target: .actor),
+            ],
+        )
     }
 
     private func readyRepeat(on actor: Combatant, in battle: inout BattleState) {

@@ -155,6 +155,12 @@
       "type": "Double",
       "default": "1",
       "merge": "mul"
+    },
+    {
+      "name": "onHealthLossNextDamageReduction",
+      "type": "Int",
+      "default": "0",
+      "merge": "max"
     }
   ]
 }

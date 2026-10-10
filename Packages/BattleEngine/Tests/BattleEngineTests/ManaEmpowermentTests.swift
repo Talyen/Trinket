@@ -212,10 +212,10 @@ struct ManaEmpowermentTests {
         let expectedManaAfter: Int
         let expectedDamage: Int
 
-        static let fullPool = Self(heroMaxMana: 5, heroMana: 5, expectedManaAfter: 2, expectedDamage: 4)
-        static let largePool = Self(heroMaxMana: 20, heroMana: 20, expectedManaAfter: 17, expectedDamage: 4)
-        static let partialPool = Self(heroMaxMana: 5, heroMana: 2, expectedManaAfter: 2, expectedDamage: 3)
-        static let emptyPool = Self(heroMaxMana: 5, heroMana: 0, expectedManaAfter: 0, expectedDamage: 3)
+        static let fullPool = Self(heroMaxMana: 5, heroMana: 5, expectedManaAfter: 2, expectedDamage: 5)
+        static let largePool = Self(heroMaxMana: 20, heroMana: 20, expectedManaAfter: 17, expectedDamage: 5)
+        static let partialPool = Self(heroMaxMana: 5, heroMana: 2, expectedManaAfter: 2, expectedDamage: 4)
+        static let emptyPool = Self(heroMaxMana: 5, heroMana: 0, expectedManaAfter: 0, expectedDamage: 4)
     }
 
     @Test(arguments: [Self.FireballCase.fullPool, .largePool, .partialPool, .emptyPool])
@@ -299,8 +299,8 @@ struct ManaEmpowermentTests {
 
         try #expect(battle.mana(of: battle.hero) == 1)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireArrow.id })
-        try #expect(abilityEvent.amount == 3)
-        try #expect(BattleTestFixtures.burnPotency(on: battle) == 3)
+        try #expect(abilityEvent.amount == 4)
+        try #expect(BattleTestFixtures.burnPotency(on: battle) == 4)
     }
 
     @Test func `mana regenerates at start of player turn for mana users`() throws {

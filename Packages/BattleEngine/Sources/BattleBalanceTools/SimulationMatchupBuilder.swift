@@ -27,6 +27,7 @@ public enum SimulationMatchupBuilder {
         heroLevel: Int? = nil,
         companionLevel: Int? = nil,
         enemyLevel: Int? = nil,
+        enemyPowerProfile: EnemyPowerCurve.Profile = .standard,
         heroLoadout: AbilityLoadout,
         companionLoadout: AbilityLoadout,
         seed: UInt64,
@@ -73,7 +74,7 @@ public enum SimulationMatchupBuilder {
             using: &rng,
         )
 
-        let enemyBuild = CombatBuildResolver.build(enemy: enemy, level: resolvedEnemyLevel)
+        let enemyBuild = CombatBuildResolver.build(enemy: enemy, level: resolvedEnemyLevel, profile: enemyPowerProfile)
         var enemyModifiers = enemyBuild.modifiers
         enemyModifiers.merge(enemyAdditionalModifiers)
 

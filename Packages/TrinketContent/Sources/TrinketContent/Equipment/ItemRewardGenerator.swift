@@ -104,10 +104,30 @@ public enum ItemRewardGenerator {
                         $0.weight > 0 && $0.keywords.contains(keyword) && $0.isEligible(for: base)
                     }
             }
-            guard let selected = candidates.randomElement(using: &randomNumberGenerator) else {
-                preconditionFailure("Required keyword must have a matching equipment pool")
+            if let selected = candidates.randomElement(using: &randomNumberGenerator) {
+                return selected
             }
-            return selected
+            if let fallback = fallbackBaseType,
+               fallback.slot != .trinket,
+               fallback.keywordAffinities.contains(keyword),
+               itemGenerator.affixDefinitions.contains(where: {
+                   $0.weight > 0 && $0.keywords.contains(keyword) && $0.isEligible(for: fallback)
+               }) {
+                return fallback
+            }
+            let globalCandidates = GameContent.itemBaseTypes.filter { base in
+                base.slot != .trinket && base.keywordAffinities.contains(keyword)
+                    && itemGenerator.affixDefinitions.contains {
+                        $0.weight > 0 && $0.keywords.contains(keyword) && $0.isEligible(for: base)
+                    }
+            }
+            if let selected = globalCandidates.randomElement(using: &randomNumberGenerator) {
+                return selected
+            }
+            return ItemBasePolicy.uniformFallbackBase(
+                from: baseTypes, keywordBias: keywordBias, fallback: fallbackBaseType,
+                using: &randomNumberGenerator,
+            )
         }
         return ItemBasePolicy.uniformFallbackBase(
             from: baseTypes, keywordBias: keywordBias, fallback: fallbackBaseType,

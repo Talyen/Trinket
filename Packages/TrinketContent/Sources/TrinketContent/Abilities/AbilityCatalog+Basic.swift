@@ -42,7 +42,7 @@ public extension AbilityCatalog {
 
     static let fireArrow = Ability(
         id: "fire-arrow", name: "Fire Arrow", tier: .basic,
-        directDamage: 2, damageKeyword: .burn,
+        directDamage: 3, damageKeyword: .burn,
     )
 
     static let iceShot = Ability(
@@ -55,9 +55,9 @@ public extension AbilityCatalog {
 
     static let kindling = Ability(
         id: "kindling", name: "Kindling", tier: .basic,
-        description: "Deal 1 Burn damage\nDoubled if enemy was not Burning",
+        description: "Deal 2 Burn damage\nDoubled if enemy was not Burning",
         damageComponents: [
-            DamageComponent(1, keyword: .burn, bonusAmount: 1, condition: .enemyNotBurning),
+            DamageComponent(2, keyword: .burn, bonusAmount: 2, condition: .enemyNotBurning),
         ],
     )
 

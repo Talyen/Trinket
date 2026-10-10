@@ -44,11 +44,12 @@ public enum CombatBuildResolver {
     public static func build(
         enemy: Enemy,
         level: Int,
+        profile powerProfile: EnemyPowerCurve.Profile = .standard,
     ) -> CombatBuild {
         var profile = traitProfile(for: enemy)
-        profile.outgoingDamagePercent += EnemyPowerCurve.rawDamagePercent(level: level, isBoss: enemy.isBoss)
+        profile.outgoingDamagePercent += EnemyPowerCurve.rawDamagePercent(level: level, isBoss: enemy.isBoss, profile: powerProfile)
 
-        let scaledCombatant = CombatantLevelScaler.scale(enemy: enemy, level: level)
+        let scaledCombatant = CombatantLevelScaler.scale(enemy: enemy, level: level, profile: powerProfile)
 
         return CombatBuild(combatant: scaledCombatant, modifiers: profile)
     }

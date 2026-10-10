@@ -19,9 +19,9 @@ package extension HealingEngine {
         case .freeze:
             return triggers.freezeDamageLeech
         case .poison:
-            return triggers.poisonDamageLeech || criticalAttack && triggers.poisonCriticalHasLeech
+            return attackHit && triggers.poisonAttackLeech || criticalAttack && triggers.poisonCriticalHasLeech
         case .burn:
-            return triggers.burnDamageLeech
+            return triggers.burnDamageLeech || attackHit && context.resolution.grantsBurnAttackLeech(to: actor.id)
                 || triggers.undyingEmber && context.roster.isDeathsDoorActive(for: actor.combatant)
         case .bleed:
             return triggers.bleedDamageLeech || criticalAttack && triggers.bleedCriticalHasLeech

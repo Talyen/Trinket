@@ -18,8 +18,8 @@ Venom stripping its owner's Block before absorption. Its fixed strip amount is
 shared by the borrowed and recipient Block pools within one damage packet.
 Block-breaking multipliers scale the Block points consumed after the owner's
 absorption efficiency, capped at the remaining pool; absorbed damage stays unchanged.
-Glacial Reprieve returns damage absorbed by its owner's Block, including that
-owner's borrowed Block. Ironhide reduces overflow only from an attack that breaks
+Glacial Reprieve deals three Freeze damage on its owner's first Block absorption
+each turn, including borrowed Block. Ironhide reduces overflow only from an attack that breaks
 the recipient's Block; ongoing damage and bypass damage leaving Block intact do not qualify.
 Shieldbreaker, Shield Breaker, and Brittle Strike apply their Physical Block-breaking
 multiplier only to attacks. Physical retaliation retains ordinary Block consumption;
@@ -33,12 +33,19 @@ subtracting it and clamping damage. Burn detonation preserves the original
 source's decay rate and ticks per turn. Blackfletch's Poison detonation likewise
 preserves the original source's slower decay. Resolution depth limits recursion, never changes
 the meaning of a request.
+Loose Rubble readies a non-stacking one-point reduction on positive Health damage,
+including periodic and retaliation damage, excluding Health costs. The next positive
+outgoing packet consumes it after outgoing calculations and before flat mitigation
+and Block; dodges and non-damaging actions preserve it. A redirected packet does
+not consume a second reduction. Seismic Pulse can consume it.
 Watchful Guard grants Block in the opening round as well as later rounds.
 Blood Scent, Bulwark Force, Dread Exploitation, and Fan the Flames amplify enemy
 attacks, not ongoing damage. Stormbreak's damage multiplier also applies to Bleed
 ticks against Stunned enemies; resolved Burn and Poison keep their stored potency.
 Infected, Cauterize, and Ashen Wake react to positive Health damage, including
-ticks, rather than stack attachment. Silent stack grants do not trigger them.
+ticks, rather than stack attachment. Infected can successfully trigger only once
+per wearer per turn; failed rolls do not spend its allowance. Silent stack grants
+do not trigger them.
 Later damage components skip a target already defeated by the same action, so
 post-defeat hits cannot trigger another on-hit reward; later support effects still resolve.
 `DecayingDoTProgression` captures the original stack owner’s decay and tick rules

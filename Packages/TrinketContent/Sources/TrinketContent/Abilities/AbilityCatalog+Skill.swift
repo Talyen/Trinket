@@ -78,13 +78,13 @@ public extension AbilityCatalog {
 
     static let fireball = Ability(
         id: "fireball", name: "Fireball", tier: .skill,
-        description: "Deal 1 to 5 Burn damage",
+        description: "Deal 2 to 6 Burn damage",
         outcomeBranches: [
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(1, keyword: .burn)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .burn)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .burn)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(4, keyword: .burn)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(5, keyword: .burn)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .burn)]),
         ],
     )
 
@@ -108,7 +108,10 @@ public extension AbilityCatalog {
 
     static let manaPotion = Ability(
         id: "mana-potion", name: "Mana Potion", tier: .skill,
-        targetedEffects: [TargetedEffect(.resourceGain(.mana, 3))],
+        targetedEffects: [
+            TargetedEffect(.resourceGain(.mana, 3)),
+            TargetedEffect(.drawCards(1), target: .actor),
+        ],
     )
 
     static let manaShield = Ability(

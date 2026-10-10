@@ -358,7 +358,7 @@ panther_bleed_t4_2	Redline	sf:gauge.with.needle.fill	Dropping below half Health 
 knight_block_t4_1	Stalwart Oath	sf:checkmark.shield.fill	Below half Health, Block absorbs 50% more damage		blockAbsorptionMultiplierBelowHalfHealth:1.5
 bear_block_t4_1	Aftershock Guard	sf:mountain.2.fill	Stunning an enemy doubles your next Block gain		stunNextBlockGainMultiplier:2
 golden_retriever_block_t4_1	Shield Relay	sf:arrow.left.arrow.right	When your Block breaks, your ally gains 2 Block		blockBreakAllyBlockFlat:2
-wizard_freeze_t4_1	Glacial Reprieve	sf:snowflake	Damage you Block is returned as Freeze		glacialReprieve:true
+wizard_freeze_t4_1	Glacial Reprieve	sf:snowflake	Blocking deals 3 Freeze damage once per turn		firstBlockFreezeDamagePerTurn:3
 mana_moth_burn_t4_1	Steam Explosion	sf:burst.fill	Freezing a Burning enemy deals 5 Burn damage		onFreezeBurningEnemyBurnDamage:5
 mana_moth_burn_t4_2	Frostfire	sf:sun.snow.fill	Frozen enemies take 25% increased Burn damage		burnDamageVsFrozenMultiplier:1.25
 frost_whelp_freeze_t4_1	Winter’s Dominion	sf:sun.snow.fill	Freezing an enemy draws a card		onFreezeEnemyDrawCard:true
@@ -397,7 +397,7 @@ druid_poison_t2_1	Cool Moss	sf:leaf.fill	Poisoned enemies take 1 additional Free
 druid_poison_t2_2	Returning Bloom	sf:camera.macro	Poison fading completely restores 3 Health to the lowest-Health living ally		returningBloomHeal:3
 druid_poison_t3_1	Root Passage	sf:point.topleft.down.to.point.bottomright.curvepath	Poison attacks ignore enemy Block		rootPassage:true
 druid_poison_t3_2	Entangling Growth	sf:leaf.fill	Poisoned enemies take 25% more Stun build-up		poisonedEnemyStunBuildupMultiplier:1.25
-druid_poison_t4_1	Thorn Shedding	sf:leaf.fill	Allied Thorns deal Poison instead of Physical damage		thornShedding:true
+druid_poison_t4_1	Thorn Shedding	sf:leaf.fill	Thorns deal 2 bonus Poison damage once per turn		firstThornsPoisonDamagePerTurn:2
 druid_mana_t1_1	Arcane Thorns	sf:asterisk	Restoring Mana grants 2 Thorns		arcaneThornsOnManaRestore:2
 druid_mana_t1_2	Barkweave	sf:leaf.fill	Mana empowerment grants 2 Block		barkweaveOnEmpowerBlock:2
 druid_mana_t2_1	Grove Reserve	sf:tree.fill	With unspent Mana, your Companion gains +10% Dodge		groveReserveCompanionDodgeBonus:0.10
@@ -426,7 +426,7 @@ wildcard_physical_t2_2	Cracked Guard	sf:shield.slash.fill	Breaking enemy Block w
 wildcard_physical_t3_1	Cold Read	sf:eye.fill	Physical attacks against Frozen enemies gain +15% Critical Hit chance		physicalVsFrozenCritBonus:0.15
 wildcard_physical_t3_2	Feigned Miss	sf:theatermasks.fill	An enemy fully Blocking your attack doubles your next Physical attack		blockedAttackNextPhysicalDouble:true
 wildcard_physical_t4_1	Paid in Full	sf:circle.circle.fill	Stealing Gold adds 2 damage to your next Physical attack		goldStealNextPhysicalBonus:2
-warlock_leech_t4_1	Emberdrinker	sf:flame.fill	Burn damage gains Leech		burnDamageLeech:true
+warlock_leech_t4_1	Emberdrinker	sf:flame.fill	Your first Burn attack each turn gains Leech		firstBurnAttackLeech:true
 frost_whelp_mana_t4_1	Dragon’s Patronage	sf:person.2.fill	Mana empowerment grants your ally 2 Block		manaEmpowerAllyBlock:2
 frost_whelp_dodge_t4_1	Winter’s Wake	sf:cloud.snow.fill	Dodging makes your next Freeze attack ignore enemy Block		dodgeNextFreezeIgnoreBlock:true
 lizard_scout_gold_t4_1	Shared Spoils	sf:hand.pinch.fill	Stealing Gold restores 2 Health to your ally		goldTheftHealAllyFlat:2

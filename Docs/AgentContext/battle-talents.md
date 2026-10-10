@@ -121,8 +121,7 @@ normal Freeze damage and control resolution for both Frost Elemental and Winter 
 ### Poison riders and damage conversions
 
 Venomous Skin resolves its immediate 1 Poison damage before attaching stacks.
-Prismatic Edge's Burn and allied Thorn Shedding's Poison attach only the Health
-damage their respective hits actually dealt; fully blocked hits attach none.
+Prismatic Edge's Burn attaches only the Health damage its hit actually dealt; fully blocked hits attach none.
 Sunwall rolls once per Holy ability and, on success, grants the Companion Block
 equal to actual Holy Health damage without applying Block bonuses or pacing
 again. Holy follow-up damage shares that ability's roll allowance. Committed Holy
@@ -363,9 +362,15 @@ the intercept is marked as spent before that resolution starts.
 
 ### Elemental Leech
 
-Elemental Leech uses the standard Leech rate, including damage-over-time
-ticks; it does not add a second base Leech contribution to an already-Leeching
-hit. Overhealing keeps its emitted reactions even when no Health is restored.
+Typed damage Leech uses the standard Leech rate and never adds a second base
+contribution to an already-Leeching hit. Symbiotic Venom grants Leech only to
+Poison attacks, excluding ticks and reaction damage. Overhealing keeps its emitted
+reactions even when no Health is restored.
+
+Emberdrinker reserves Leech for its owner's first Burn attack action each turn,
+including all Burn components and attack checkpoint qualification. Later actions,
+card repeats, ticks, and detonations do not reuse the allowance. The separate
+`burnDamageLeech` rule still includes ongoing Burn damage.
 
 ### Shared Leech
 
@@ -388,9 +393,10 @@ Shelter Seed checks Health before healing and grants three Block only after
 actual restoration. Shared Prescription offers excess healing to the other
 living ally up to their missing Health without applying healing bonuses again,
 then Reclaimed Reagents can convert
-half the remainder to Block. Thorn Shedding converts either ally's Thorns to
-Poison damage with normal Poison application; a Companion's own Resonant Shell
-conversion takes precedence.
+half the remainder to Block. Thorn Shedding adds two Poison damage after its
+owner's first positive Thorns Health damage each turn, with normal Poison
+application. It leaves Physical and other Thorns conversions intact; other
+allies cannot use the owner's allowance.
 
 ### Library Owl restoration and Cleanse
 

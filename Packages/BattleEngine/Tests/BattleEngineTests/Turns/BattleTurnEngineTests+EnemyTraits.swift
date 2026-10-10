@@ -22,10 +22,11 @@ extension BattleTurnEngineTests {
     }
 
     @Test(arguments: [Keyword.burn, .physical])
-    func `pyromancer bypasses flat and percentage defenses only with burn`(keyword: Keyword) throws {
+    func `unquenchable flame bypasses flat and percentage defenses only with burn`(keyword: Keyword) throws {
         var defenses = CombatModifierProfile(damageTakenReduction: [.burn: 0.5, .physical: 0.5], damageTakenFlat: [.burn: 2, .physical: 2])
         defenses.triggers.passiveMitigationFlat = 2
-        var context = try enemyTraitContext("pyromancer", heroModifiers: defenses)
+        let enemyProfile = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(burnIgnoresBlockAndMitigation: true)))
+        var context = try enemyTraitContext("pyromancer", heroModifiers: defenses, enemyModifiers: enemyProfile)
 
         let outcome = context.resolveDamage(DamageRequest(
             amount: 10, target: context.hero, keyword: keyword, sourceActorID: context.enemy.id,
@@ -280,7 +281,11 @@ extension BattleTurnEngineTests {
         #expect(context.roster.hasAffliction(.poison, on: target))
     }
 
-    private func enemyTraitContext(_ enemyID: String, heroModifiers: CombatModifierProfile = .zero) throws -> BattleState {
+    private func enemyTraitContext(
+        _ enemyID: String,
+        heroModifiers: CombatModifierProfile = .zero,
+        enemyModifiers: CombatModifierProfile? = nil,
+    ) throws -> BattleState {
         let definition = try #require(GameContent.enemy(matching: enemyID))
         let build = CombatBuildResolver.build(enemy: definition)
         var context = BattleStateTestFactory.makeMinimalBattle(
@@ -290,7 +295,7 @@ extension BattleTurnEngineTests {
             heroHealth: 40,
             companionHealth: 30,
             heroModifiers: heroModifiers,
-            enemyModifiers: build.modifiers,
+            enemyModifiers: enemyModifiers ?? build.modifiers,
         )
         context.appliesFightPacing = false
         return context

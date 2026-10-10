@@ -5,7 +5,7 @@ import TrinketCore
 enum GameContentTraitsGenerated {
     static let definitions: [CombatantTraitDefinition] = {
         var list = [CombatantTraitDefinition]()
-        list.reserveCapacity(44)
+        list.reserveCapacity(47)
         list.append(CombatantTraitDefinition(
             id: "watchful_guard",
             name: "Watchful Guard",
@@ -142,9 +142,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "concussion",
             name: "Concussion",
-            description: "Stunned enemies deal half damage on their next turn.",
+            description: "Stunned enemies deal 25% less damage next turn.",
             modifiers: [],
-            triggers: CombatTraitTriggers(mitigation: MitigationTriggers(stunnedEnemyNextTurnDamageMultiplier: 0.5))
+            triggers: CombatTraitTriggers(mitigation: MitigationTriggers(stunnedEnemyNextTurnDamageMultiplier: 0.75))
         ))
         list.append(CombatantTraitDefinition(
             id: "bulwark_force",
@@ -313,6 +313,27 @@ enum GameContentTraitsGenerated {
             description: "Bleed damage taken increased by 30%.",
             modifiers: [.damageTakenVulnerability(.bleed, 0.30)],
             triggers: CombatTraitTriggers()
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "stonehide",
+            name: "Stonehide",
+            description: "Physical damage taken reduced by 20%.",
+            modifiers: [.damageTakenPercent(.physical, 0.20)],
+            triggers: CombatTraitTriggers()
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "fault_lines",
+            name: "Fault Lines",
+            description: "Stun damage taken increased by 30%.",
+            modifiers: [.damageTakenVulnerability(.stun, 0.30)],
+            triggers: CombatTraitTriggers()
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "loose_rubble",
+            name: "Loose Rubble",
+            description: "Taking Health damage reduces the next damage dealt by 1.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(mitigation: MitigationTriggers(onHealthLossNextDamageReduction: 1))
         ))
         return list
     }()

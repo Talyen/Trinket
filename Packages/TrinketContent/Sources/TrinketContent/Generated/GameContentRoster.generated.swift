@@ -201,7 +201,7 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 15,
             abilityChoices: AbilityChoices(
-                basics: [.slash, .block, .fangs, .rendingSlash],
+                basics: [.slash, .shieldBash, .fangs, .rendingSlash],
                 skills: [.darkPact, .sunder, .bloodOffering, .venomFangs],
                 ultimates: [.faustianBargain, .hemorrhage, .bloodthorn, .shadowstep]
             )

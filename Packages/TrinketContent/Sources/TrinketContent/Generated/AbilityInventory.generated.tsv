@@ -5,9 +5,9 @@ blackjack	Blackjack	basic	Deal 2 Stun damage\nSteal 2 Gold if the enemy is Stunn
 block	Block	basic	Gain 3 Block
 caustic-jab	Caustic Jab	basic	Deal 1 Poison damage\nHalve the enemy's Block
 fangs	Fangs	basic	Deal 1 Bleed damage\nLeech
-fire-arrow	Fire Arrow	basic	Deal 2 Burn damage
+fire-arrow	Fire Arrow	basic	Deal 3 Burn damage
 ice-shot	Ice Shot	basic	Deal 2 Freeze damage\nDoubled against Frozen enemies
-kindling	Kindling	basic	Deal 1 Burn damage\nDoubled if enemy was not Burning
+kindling	Kindling	basic	Deal 2 Burn damage\nDoubled if enemy was not Burning
 mana-berries	Mana Berries	basic	Restore 2 Health\nRestore 2 Mana
 maul	Maul	basic	Deal 3 Bleed damage\nDeal Stun instead against enemies with Block
 pixie-dust	Pixie Dust	basic	Deal 1 Burn damage\nRestore 1 Mana
@@ -28,11 +28,11 @@ cleanse	Cleanse	skill	Cleanse a debuff\nRestore 3 Health
 cold-snap	Cold Snap	skill	Deal 1 Freeze damage\nDraw a card if the enemy is Frozen
 dark-pact	Dark Pact	skill	Deal 1 Burn damage\nLose 1 Health\nDraw 2 cards
 feint	Feint	skill	Dodge the next attack\nDraw 1 card
-fireball	Fireball	skill	Deal 1 to 5 Burn damage
+fireball	Fireball	skill	Deal 2 to 6 Burn damage
 frostbolt	Frostbolt	skill	Deal 4 Freeze damage
 glacial-ward	Glacial Ward	skill	Gain 2 Block\nDeal 2 Freeze damage next time you're hit
 heal	Heal	skill	Restore 6 Health
-mana-potion	Mana Potion	skill	Restore 3 Mana
+mana-potion	Mana Potion	skill	Restore 3 Mana\nDraw 1 card
 mana-shield	Mana Shield	skill	Gain 1 Block\nConvert all Mana into Block
 poison-dagger	Poison Dagger	skill	Deal 1 Poison damage, twice
 pounce	Pounce	skill	Deal 3 Stun damage, doubled on the first combat turn
@@ -49,18 +49,18 @@ astral-arrow	Astral Arrow	ultimate	Deal 7 Burn, Freeze, or Bleed damage
 avatar-of-justice	Avatar	ultimate	Deal 6 Holy damage\nYour next attack deals Holy damage\nGain 6 Block
 blessed-aegis	Blessed Aegis	ultimate	Gain 5 Block\nRestore 5 Health to the lowest-Health ally\nDeal 5 Holy damage
 blizzard	Blizzard	ultimate	Deal 6 Freeze damage this turn and next
-bloodthorn	Bloodthorn	ultimate	Deal 2 Bleed damage\nDeal 2 Poison damage\nLeech
+bloodthorn	Bloodthorn	ultimate	Deal 2 Bleed damage\nDeal 1 Poison damage\nLeech
 combustion	Combustion	ultimate	Deal 6 Burn damage\nDetonate all enemy Burn
 earthquake	Earthquake	ultimate	Deal 6 Stun damage this turn and next
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health\nDeal 4 Burn damage\nDraw 1 card
 golden-plate	Golden Plate	ultimate	Gain 8 Block\nGain 5 Gold
 hemorrhage	Hemorrhage	ultimate	Deal 6 Bleed damage\nDetonate all Bleed
-luck-potion	Luck Potion	ultimate	Roll a 12-sided die\nGain that much Block, Thorns, or Health
+luck-potion	Luck Potion	ultimate	Roll a 6-sided die\nGain that much Block, Thorns, or Health\nAt full party Health, roll Block or Thorns\nDraw 1 card
 meteor	Meteor	ultimate	Deal 6 Burn damage\nConvert all your Mana into bonus Burn damage
 molten-bulwark	Molten Bulwark	ultimate	Deal 3 Burn damage\nGain 4 Block and Thorns
-pack-tactics	Pack Tactics	ultimate	Deal 3 Physical damage\nDraw a card from your ally's deck
-panacea-potion	Panacea Potion	ultimate	Cleanse the ally with the most debuffs\nRestore 6 Health
+pack-tactics	Pack Tactics	ultimate	Deal 5 Physical damage\nDraw a card from your ally's deck
+panacea-potion	Panacea Potion	ultimate	Cleanse the ally with the most debuffs\nRestore 6 Health\nDraw 1 card
 phoenix-feather	Phoenix Feather	ultimate	Deal 3 Burn damage\nRevive an Ally to 1 Health
-shadowstep	Shadowstep	ultimate	Dodge the next attack against you\nYour next card is played twice
+shadowstep	Shadowstep	ultimate	Deal 4 Physical damage\nDraw 1 card
 sunburst	Sunburst	ultimate	Deal 6 Holy or Burn damage\nRestore 3 Health to each ally
 thorn-mail	Thorn Mail	ultimate	Gain 6 Block\nGain Thorns equal to half your Block

@@ -115,43 +115,43 @@ final class InterleavingPlayerController {
         return modes[unblocked[lastEligibleModeIndex]].nextStep
     }
 
-    func recordOutcome(step: ModeProgressionStep, won: Bool) {
+    func recordOutcome(step: ModeProgressionStep, won: Bool, defeatProgress: BattleDefeatProgress? = nil) {
         let modeIndex = modes.firstIndex(where: { $0.mode == step.mode })
         precondition(modeIndex != nil || step.mode == .contract, "Every advancing mode must have progression state")
         state.totalBattles += 1
-
         if won {
             state.battlesWon += 1
-            let resolvedEnemyLevel = encounterLevel(for: step)
-
-            let heroAward = ExperienceScaling.battleAwardWithCatchUp(
-                playerLevel: state.heroLevel,
-                enemyLevel: resolvedEnemyLevel,
-                highestLevel: state.heroLevel,
-            )
-            let companionAward = ExperienceScaling.battleAwardWithCatchUp(
-                playerLevel: state.companionLevel,
-                enemyLevel: resolvedEnemyLevel,
-                highestLevel: state.companionLevel,
-            )
-
-            let heroProg = CombatantProgression(
-                level: state.heroLevel,
-                currentXP: state.heroXP,
-                requiredXP: CombatantProgression.requiredXP(forLevel: state.heroLevel),
-            ).addingExperience(heroAward)
-
-            let companionProg = CombatantProgression(
-                level: state.companionLevel,
-                currentXP: state.companionXP,
-                requiredXP: CombatantProgression.requiredXP(forLevel: state.companionLevel),
-            ).addingExperience(companionAward)
-
-            state.heroLevel = heroProg.level
-            state.heroXP = heroProg.currentXP
-            state.companionLevel = companionProg.level
-            state.companionXP = companionProg.currentXP
-
+        }
+        let enemyLevel = encounterLevel(for: step)
+        let heroNormal = ExperienceScaling.battleAwardWithCatchUp(
+            playerLevel: state.heroLevel,
+            enemyLevel: enemyLevel,
+            highestLevel: state.heroLevel,
+        )
+        let companionNormal = ExperienceScaling.battleAwardWithCatchUp(
+            playerLevel: state.companionLevel,
+            enemyLevel: enemyLevel,
+            highestLevel: state.companionLevel,
+        )
+        let heroAward = won ? heroNormal : defeatProgress?.experienceAward(from: heroNormal) ?? 0
+        let companionAward = won ? companionNormal : defeatProgress?.experienceAward(from: companionNormal) ?? 0
+        let heroProg = CombatantProgression(
+            level: state.heroLevel,
+            currentXP: state.heroXP,
+            requiredXP: CombatantProgression.requiredXP(forLevel: state.heroLevel),
+        )
+        .addingExperience(heroAward)
+        let companionProg = CombatantProgression(
+            level: state.companionLevel,
+            currentXP: state.companionXP,
+            requiredXP: CombatantProgression.requiredXP(forLevel: state.companionLevel),
+        )
+        .addingExperience(companionAward)
+        state.heroLevel = heroProg.level
+        state.heroXP = heroProg.currentXP
+        state.companionLevel = companionProg.level
+        state.companionXP = companionProg.currentXP
+        if won {
             if let modeIndex {
                 modes[modeIndex].consecutiveLosses = 0
                 modes[modeIndex].nextIndex += 1
@@ -191,6 +191,7 @@ final class InterleavingPlayerController {
             heroLevel: state.heroLevel,
             companionLevel: state.companionLevel,
             enemyLevel: encounterLevel(for: step),
+            enemyPowerProfile: step.mode.enemyPowerProfile,
             heroLoadout: loadouts.hero,
             companionLoadout: loadouts.companion,
             seed: seed,

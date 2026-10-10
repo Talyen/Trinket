@@ -36,6 +36,7 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
     var suppressLeech = false
     var partnerFirstAttackBonus = 0
     var capturesCardRepeat = false
+    var isRedirected = false
 
     var isResolvedCardRepeat: Bool {
         capturesCardRepeat && usesResolvedOutgoingDamage
@@ -83,7 +84,11 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         Self(kind: .reaction(cause), scaling: scaling, accuracy: accuracy)
     }
 
-    static let redirected = Self(kind: .reaction(.talent), scaling: .resolved, accuracy: .unavoidable)
+    static let redirected: Self = {
+        var operation = Self(kind: .reaction(.talent), scaling: .resolved, accuracy: .unavoidable)
+        operation.isRedirected = true
+        return operation
+    }()
 
     public static let periodic = Self(kind: .periodic, scaling: .statsAndItems, accuracy: .unavoidable)
     static let resolvedPeriodic = Self(kind: .periodic, scaling: .resolved, accuracy: .unavoidable)

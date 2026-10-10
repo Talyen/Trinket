@@ -24,8 +24,15 @@ package extension CombatTriggerEngine {
                 profile.triggers.onBleedDealPoisonChancePercent,
                 guaranteed: profile.triggers.onBleedApplyPoison > 0,
             )
-            if profile.triggers.onBleedApplyPoison > 0, bleedPoisonChance > 0,
+            let limited = profile.triggers.bleedPoisonOncePerTurn
+            let available = !limited || !context.resolution.isClaimed(
+                .affix(.infected), actorID: sourceActorID, cadence: .turn(context.turnCount),
+            )
+            if profile.triggers.onBleedApplyPoison > 0, bleedPoisonChance > 0, available,
                BattleChance.succeeds(probability: min(1, bleedPoisonChance), using: &context.rng) {
+                if limited {
+                    _ = context.resolution.claim(.affix(.infected), actorID: sourceActorID, cadence: .turn(context.turnCount))
+                }
                 await events.append(contentsOf: context.applyDecayingDoT(
                     keyword: .poison,
                     potency: profile.triggers.onBleedApplyPoison,

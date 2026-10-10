@@ -8,6 +8,14 @@ public enum SimulationGameMode: String, CaseIterable, Codable, Sendable {
     case labyrinth
     case contract
 
+    var enemyPowerProfile: EnemyPowerCurve.Profile {
+        switch self {
+        case .spire: .spire
+        case .contract: .recovery
+        case .campaign, .labyrinth: .standard
+        }
+    }
+
     public var displayName: String {
         switch self {
         case .campaign: "Campaign"

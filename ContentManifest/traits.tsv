@@ -18,7 +18,7 @@ righteous_guard	Righteous Guard	Gain 1 Block when dealing Stun or Holy damage.		
 numbing_presence	Numbing Presence	Frozen enemies deal 1 less damage.		frozenEnemyDamageReductionFlat:1
 rimeguard	Rimeguard	Gain 1 Block whenever an enemy becomes Frozen.		onEnemyFrozenGainBlock:1
 dread_exploitation	Dread Exploitation	Attacks against Stunned enemies deal 1 additional damage.		damageWhileTargetStunnedBonus:1
-concussion	Concussion	Stunned enemies deal half damage on their next turn.		stunnedEnemyNextTurnDamageMultiplier:0.5
+concussion	Concussion	Stunned enemies deal 25% less damage next turn.		stunnedEnemyNextTurnDamageMultiplier:0.75
 bulwark_force	Bulwark Force	While holding Block, attacks deal 1 additional damage.		shieldDamageBonusWhileBlocked:1
 shattering_impact	Shattering Impact	Breaking an enemy's Block deals 1 Physical damage to them.		onEnemyBlockBrokenDealPhysical:1
 blighted_pulse	Blighted Pulse	Deals 1 Poison or Bleed damage every other turn to all enemies.		turn_random_damage_all_enemies:poison:bleed:1|turn_random_damage_all_enemies_interval:2
@@ -43,3 +43,6 @@ kindling	Kindling	Burn damage taken increased by 30%.	damage_taken_vulnerability
 cold_shocked	Cold-Shocked	Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	
 profane	Profane	Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	
 thin_blooded	Thin-Blooded	Bleed damage taken increased by 30%.	damage_taken_vulnerability:bleed:0.30	
+stonehide	Stonehide	Physical damage taken reduced by 20%.	damage_taken_percent:physical:0.20	
+fault_lines	Fault Lines	Stun damage taken increased by 30%.	damage_taken_vulnerability:stun:0.30	
+loose_rubble	Loose Rubble	Taking Health damage reduces the next damage dealt by 1.		onHealthLossNextDamageReduction:1

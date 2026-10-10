@@ -250,7 +250,7 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test(arguments: [false, true])
-    func `fire arrow always deals two burn`(enemyAlreadyBurning: Bool) {
+    func `fire arrow always deals three burn`(enemyAlreadyBurning: Bool) {
         var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         if enemyAlreadyBurning {
             context.appendEffect(.burn(3), to: context.enemy, sourceID: context.hero.id, remainingTurns: 0)
@@ -261,7 +261,7 @@ extension AbilityEffectIntegrationTests {
             abilityTarget: context.enemy,
             context: &context,
         )
-        #expect(events.first { $0.kind == .abilityDamage }?.amount == 2)
+        #expect(events.first { $0.kind == .abilityDamage }?.amount == 3)
     }
 
     @Test func `damage component applies do T stack without immediate tick`() throws {

@@ -328,10 +328,10 @@
       "merge": "or"
     },
     {
-      "name": "glacialReprieve",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "name": "firstBlockFreezeDamagePerTurn",
+      "type": "Int",
+      "default": "0",
+      "merge": "max"
     },
     {
       "name": "retainedBlockGainThornsPercent",

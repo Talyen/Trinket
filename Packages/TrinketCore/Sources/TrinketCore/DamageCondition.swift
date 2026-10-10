@@ -11,6 +11,7 @@ public enum DamageCondition: CaseIterable, Hashable, Sendable {
     case enemyMarked
     case enemyLowerHealthThanActor
     case allyBelowHalfHealth
+    case allyMissingHealth
     case enemyHasBuff
     case enemyHasBlock
     case enemyFullHealth
@@ -32,6 +33,7 @@ public enum DamageCondition: CaseIterable, Hashable, Sendable {
         case .enemyMarked: "the enemy is Marked"
         case .enemyLowerHealthThanActor: "the enemy has less Health than you"
         case .allyBelowHalfHealth: "your Hero or Companion is below half Health"
+        case .allyMissingHealth: "a living ally is missing Health"
         case .enemyHasBuff: "the enemy has a buff"
         case .enemyHasBlock: "the enemy has Block"
         case .enemyFullHealth: "the enemy is at full Health"

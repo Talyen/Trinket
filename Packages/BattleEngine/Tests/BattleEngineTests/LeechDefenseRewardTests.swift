@@ -13,11 +13,16 @@ struct LeechDefenseRewardTests {
             heroModifiers: profile,
         )
         battle.appliesFightPacing = false
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.enemy, keyword: .burn, sourceActorID: battle.hero.id,
-            options: .attack(accuracy: .unavoidable),
-        ))
-        #expect(result.healthLost == 4)
+        let ability = Ability(
+            id: "burn-strike", name: "Burn Strike", tier: .basic,
+            damageComponents: [DamageComponent(8, keyword: .burn)],
+            criticalChanceBonus: -1,
+        )
+        let events = BattleTurnEngine.performAction(
+            ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+        )
+        let hit = events.first { $0.kind == .abilityDamage && $0.targetID == battle.enemy.id }
+        #expect(hit?.amount == 4)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 4)
     }
 

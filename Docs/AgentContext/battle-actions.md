@@ -53,7 +53,11 @@ snapshots do not copy the complete definition through each stack frame.
 empowerment, descriptions, and execution. Deterministic conditional outcomes resolve
 once at action preparation, without RNG, and card assessment uses the same selection
 before quoting costs.
-Random outcomes remain separate. Conditional guaranteed criticals snapshot their
+Random outcomes remain separate. Branch eligibility is checked before sampling,
+and assessment and Health-cost quotes use the same eligible branches without RNG.
+Luck Potion rolls 1–6 and draws one caster card after its gain. Health outcomes
+are excluded when no living ally is injured; healing chooses the lowest current
+Health among injured living allies. Conditional guaranteed criticals snapshot their
 eligibility at preparation. `BattleActionContext`
 binds the selected target for an action and resolves allies/opponents relative to
 its actor. A defeated actor cannot continue; a winning card may still resolve its

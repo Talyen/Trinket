@@ -39,6 +39,7 @@ struct CombatantTalentState: Hashable, Sendable {
     }
 
     struct Pending: Hashable, Sendable {
+        var nextDamageReduction = 0
         var healingEchoes: [HealingEcho] = []
         var damageAfterDodge = 0
         var doubleDamageAfterDodge = false

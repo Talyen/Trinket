@@ -40,6 +40,23 @@ struct SlicesReloadTests {
         #expect(reloaded.roster.abilityLoadouts["wolf"]?.skill == .venomFangs)
     }
 
+    @Test @MainActor func `Risen Skeleton Block migrates to Shield Bash through cloud and disk reload`() throws {
+        let context = try PersistenceTestContext()
+        var save = PlayerSave.testSeed
+        save.roster.abilityLoadouts["risen_skeleton"] = AbilityLoadout(basic: .block, skill: .darkPact, ultimate: .shadowstep)
+        save.roster.abilityLoadouts["knight"] = AbilityLoadout(basic: .block, skill: .sunder, ultimate: .earthquake)
+        let cloud = CloudRosterSnapshot(save.roster).restored()
+        #expect(cloud.abilityLoadouts["risen_skeleton"]?.basic == .shieldBash)
+        #expect(cloud.abilityLoadouts["knight"]?.basic == .block)
+        let store = try context.seedAndReload(save)
+        #expect(store.roster.abilityLoadouts["risen_skeleton"]?.basic == .shieldBash)
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.abilityLoadouts["risen_skeleton"] == AbilityLoadout(
+            basic: .shieldBash, skill: .darkPact, ultimate: .shadowstep,
+        ))
+        #expect(reloaded.roster.abilityLoadouts["knight"]?.basic == .block)
+    }
+
     @Test @MainActor func `sanitize clamps survive reload`() throws {
         let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()

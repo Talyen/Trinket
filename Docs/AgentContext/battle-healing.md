@@ -59,7 +59,8 @@ Damage operations and caps use [damage contracts](battle-damage.md). For a named
 `HealingOrigin` owns healing rules and Critical Hit
 eligibility independently of logging. Single-recipient Health restoration from
 current abilities, talents, and equipment selects the living ally with the
-lowest current Health on the source's side. Leech and its shares, party-wide
+lowest current Health on the source's side, preferring injured allies whenever
+one exists. Leech and its shares, party-wide
 heals, revivals and self-preservation at a Health threshold, attached repeats,
 and explicit overflow or partner transfers keep their intended recipients.
 Returning Bloom selects the lowest-Health living ally when Poison naturally expires.

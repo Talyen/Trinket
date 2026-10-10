@@ -52,6 +52,10 @@ public enum BattleConditionEvaluator {
             return action.allies(in: context).contains {
                 context.health(of: $0) > 0 && context.roster.isBelowHalfHealth(for: $0)
             }
+        case .allyMissingHealth:
+            return action.allies(in: context).contains {
+                context.health(of: $0) > 0 && context.health(of: $0) < context.maxHealth(of: $0)
+            }
         case .enemyHasBuff:
             return context.roster.activeEffects(for: enemy).contains(where: \.effect.isRemovableBuff)
         case .enemyHasBlock:

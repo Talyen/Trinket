@@ -184,7 +184,7 @@ struct BattleLogProjectionTests {
         let summary = try #require(events.last { $0.kind == .ability })
         let line = try #require(BattleLogProjection.entries(from: events).first { $0.id == events.firstIndex(of: summary) })
         #expect(line.text.contains("2 Bleed damage to Enemy"))
-        #expect(line.text.contains("2 Poison damage to Enemy"))
+        #expect(line.text.contains("1 Poison damage to Enemy"))
         #expect(!line.text.contains("4 Bleed damage"))
     }
 

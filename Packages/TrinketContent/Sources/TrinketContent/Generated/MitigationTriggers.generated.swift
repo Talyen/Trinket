@@ -29,6 +29,7 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
     public var blockHalvesDoTDamage: Bool = false
     public var bleedingEnemyOutgoingDamageMultiplier: Double = 1
     public var verdantShelterDamageMultiplier: Double = 1
+    public var onHealthLossNextDamageReduction: Int = 0
 
     public init(
         passiveMitigationFlat: Int = 0,
@@ -55,7 +56,8 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         burningEnemyDamageReductionFlat: Int = 0,
         blockHalvesDoTDamage: Bool = false,
         bleedingEnemyOutgoingDamageMultiplier: Double = 1,
-        verdantShelterDamageMultiplier: Double = 1
+        verdantShelterDamageMultiplier: Double = 1,
+        onHealthLossNextDamageReduction: Int = 0
     ) {
         self.passiveMitigationFlat = passiveMitigationFlat
         self.passivePhysicalMitigationFlat = passivePhysicalMitigationFlat
@@ -82,10 +84,11 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         self.blockHalvesDoTDamage = blockHalvesDoTDamage
         self.bleedingEnemyOutgoingDamageMultiplier = bleedingEnemyOutgoingDamageMultiplier
         self.verdantShelterDamageMultiplier = verdantShelterDamageMultiplier
+        self.onHealthLossNextDamageReduction = onHealthLossNextDamageReduction
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["passiveMitigationFlat", "passivePhysicalMitigationFlat", "thornsPercent", "bleedResistance", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "subzeroMist", "blindingLight", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance", "burningEnemyDamageReductionFlat", "blockHalvesDoTDamage", "bleedingEnemyOutgoingDamageMultiplier", "verdantShelterDamageMultiplier"]
+    public static let fieldNames: [String] = ["passiveMitigationFlat", "passivePhysicalMitigationFlat", "thornsPercent", "bleedResistance", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "subzeroMist", "blindingLight", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance", "burningEnemyDamageReductionFlat", "blockHalvesDoTDamage", "bleedingEnemyOutgoingDamageMultiplier", "verdantShelterDamageMultiplier", "onHealthLossNextDamageReduction"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -115,6 +118,7 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         if self.blockHalvesDoTDamage != other.blockHalvesDoTDamage { names.append("blockHalvesDoTDamage") }
         if self.bleedingEnemyOutgoingDamageMultiplier != other.bleedingEnemyOutgoingDamageMultiplier { names.append("bleedingEnemyOutgoingDamageMultiplier") }
         if self.verdantShelterDamageMultiplier != other.verdantShelterDamageMultiplier { names.append("verdantShelterDamageMultiplier") }
+        if self.onHealthLossNextDamageReduction != other.onHealthLossNextDamageReduction { names.append("onHealthLossNextDamageReduction") }
         return names
     }
 }
@@ -146,6 +150,7 @@ extension MitigationTriggers {
         blockHalvesDoTDamage = blockHalvesDoTDamage || other.blockHalvesDoTDamage
         bleedingEnemyOutgoingDamageMultiplier *= other.bleedingEnemyOutgoingDamageMultiplier
         verdantShelterDamageMultiplier *= other.verdantShelterDamageMultiplier
+        onHealthLossNextDamageReduction = max(onHealthLossNextDamageReduction, other.onHealthLossNextDamageReduction)
     }
 }
 
@@ -177,7 +182,8 @@ extension MitigationTriggers {
             burningEnemyDamageReductionFlat: values.decode(Int.self, "burningEnemyDamageReductionFlat", default: 0),
             blockHalvesDoTDamage: values.decode(Bool.self, "blockHalvesDoTDamage", default: false),
             bleedingEnemyOutgoingDamageMultiplier: values.decode(Double.self, "bleedingEnemyOutgoingDamageMultiplier", default: 1),
-            verdantShelterDamageMultiplier: values.decode(Double.self, "verdantShelterDamageMultiplier", default: 1)
+            verdantShelterDamageMultiplier: values.decode(Double.self, "verdantShelterDamageMultiplier", default: 1),
+            onHealthLossNextDamageReduction: values.decode(Int.self, "onHealthLossNextDamageReduction", default: 0)
         )
     }
 
@@ -207,5 +213,6 @@ extension MitigationTriggers {
         try container.encodeNonDefault(blockHalvesDoTDamage, "blockHalvesDoTDamage", default: false)
         try container.encodeNonDefault(bleedingEnemyOutgoingDamageMultiplier, "bleedingEnemyOutgoingDamageMultiplier", default: 1)
         try container.encodeNonDefault(verdantShelterDamageMultiplier, "verdantShelterDamageMultiplier", default: 1)
+        try container.encodeNonDefault(onHealthLossNextDamageReduction, "onHealthLossNextDamageReduction", default: 0)
     }
 }

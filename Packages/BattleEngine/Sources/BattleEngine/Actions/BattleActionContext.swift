@@ -56,7 +56,7 @@ public struct BattleActionContext: Equatable, Sendable {
             return Self.lowestHealth(in: allies(in: state), state: state)
         case .defeatedAlly:
             let members = allies(in: state)
-            return members.reversed().first { state.health(of: $0) <= 0 } ?? members[0]
+            return members.reversed().first { state.health(of: $0) <= 0 } ?? members.first ?? actor
         case .eachAlly:
             return targets(target, in: state).first ?? actor
         }
@@ -78,15 +78,16 @@ public struct BattleActionContext: Equatable, Sendable {
     static func lowestHealth(in members: [Combatant], state: BattleState) -> Combatant {
         var selected: Combatant?
         var lowestHealth = Int.max
+        let hasInjuredAlly = members.contains { state.health(of: $0) > 0 && state.health(of: $0) < state.maxHealth(of: $0) }
         for member in members {
             let health = state.health(of: member)
-            guard health > 0 else { continue }
+            guard health > 0, !hasInjuredAlly || health < state.maxHealth(of: member) else { continue }
             if selected == nil || health < lowestHealth {
                 selected = member
                 lowestHealth = health
             }
         }
-        return selected ?? members[0]
+        return selected ?? members.first ?? state.hero
     }
 
     static func mostDebuffed(in members: [Combatant], state: BattleState) -> Combatant {
@@ -104,6 +105,6 @@ public struct BattleActionContext: Equatable, Sendable {
                 lowestHealth = health
             }
         }
-        return selected ?? members[0]
+        return selected ?? members.first ?? state.hero
     }
 }

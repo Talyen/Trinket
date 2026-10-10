@@ -5,7 +5,8 @@ import TrinketCore
 public enum CombatantLevelScaler {
     public static func scale(combatant: Combatant, level: Int) -> Combatant {
         let levelsAbove = max(1, level) - 1
-        let scaledHealth = SaturatedArithmetic.saturatingAdd(combatant.maxHealth, levelsAbove)
+        let healthBonus = SaturatedArithmetic.saturatingMul(levelsAbove, 2)
+        let scaledHealth = SaturatedArithmetic.saturatingAdd(combatant.maxHealth, healthBonus)
         let scaledMana = if combatant.hasMana {
             SaturatedArithmetic.saturatingAdd(combatant.maxMana, levelsAbove / 2)
         } else {
@@ -22,9 +23,9 @@ public enum CombatantLevelScaler {
         )
     }
 
-    public static func scale(enemy: Enemy, level: Int) -> Combatant {
+    public static func scale(enemy: Enemy, level: Int, profile: EnemyPowerCurve.Profile = .standard) -> Combatant {
         let base = enemy.combatant
-        let healthMultiplier = EnemyPowerCurve.health(level: level, isBoss: enemy.isBoss)
+        let healthMultiplier = EnemyPowerCurve.health(level: level, isBoss: enemy.isBoss, profile: profile)
         let scaledHealth = max(1, CombatRounding.scaled(base.maxHealth, multiplier: healthMultiplier))
         return Combatant(
             id: base.id,
@@ -37,9 +38,13 @@ public enum CombatantLevelScaler {
         )
     }
 
-    public static func powerRating(for enemy: Enemy, level: Int) -> (level: Int, maxHealth: Int, rawDamagePercent: Double) {
-        let scaled = scale(enemy: enemy, level: level)
-        let rawDamage = EnemyPowerCurve.rawDamagePercent(level: level, isBoss: enemy.isBoss)
+    public static func powerRating(
+        for enemy: Enemy,
+        level: Int,
+        profile: EnemyPowerCurve.Profile = .standard,
+    ) -> (level: Int, maxHealth: Int, rawDamagePercent: Double) {
+        let scaled = scale(enemy: enemy, level: level, profile: profile)
+        let rawDamage = EnemyPowerCurve.rawDamagePercent(level: level, isBoss: enemy.isBoss, profile: profile)
         return (
             level: level,
             maxHealth: scaled.maxHealth,

@@ -11,6 +11,7 @@ struct TalentActionFacts {
     var actorID: String
     var goldDamage = 0
     var blindingReduction = 0
+    var burnAttackLeech = false
 }
 
 package struct HeroTalentCardFacts {

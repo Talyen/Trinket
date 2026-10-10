@@ -536,7 +536,7 @@ extension BattleCardCombatTests {
         let card = BattleCardCombatEngine.deal(.packTactics, owner: owner, context: &battle)
         let events = try battle.playCard(cardID: card.id)
         let hit = try #require(events.firstIndex { $0.kind == .abilityDamage && $0.abilityID == Ability.packTactics.id })
-        #expect(events[hit].amount == 3)
+        #expect(events[hit].amount == 5)
         let draw = try #require(events.firstIndex { $0.effectKind == .cardsDrawn })
         #expect(hit < draw)
         #expect(!events.contains { $0.kind == .ability && $0.abilityID == Ability.block.id })

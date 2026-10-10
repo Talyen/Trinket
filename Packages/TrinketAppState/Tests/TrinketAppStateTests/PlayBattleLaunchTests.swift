@@ -23,6 +23,31 @@ struct PlayBattleLaunchTests {
         )
     }
 
+    @Test(arguments: [PlayBattleMode.journey, .spire, .contract])
+    func `enemy preview and launch use the same mode power curve`(mode: PlayBattleMode) throws {
+        let enemy = try #require(GameContent.enemy(matching: "the_iron_bear"))
+        let party = try knightAndWolf()
+        let profile: EnemyPowerCurve.Profile = switch mode {
+        case .spire: .spire
+        case .contract: .recovery
+        default: .standard
+        }
+        let origin: PlayBattleOrigin = switch mode {
+        case .spire: .spire(spireID: SpireID("ironVein"), floor: 20)
+        case .contract: .contract(offerID: "easy")
+        default: .journey(stageID: "test")
+        }
+        let preview = try #require(PlayBattlePreparation.scaledEncounter(enemyID: enemy.id, level: 40, profile: profile))
+        let launch = makeLaunch(BattleLaunchInput(
+            origin: origin, hero: party.knight, companion: party.wolf, enemy: preview.combatant,
+            enemyEncounterLevel: 40, enemyPowerProfile: mode == .contract ? .recovery : nil,
+        ))
+        let launchedEnemy = try #require(launch.configuration.enemy)
+        #expect(launchedEnemy.maxHealth == preview.combatant.maxHealth)
+        #expect(launch.configuration.enemyModifiers.outgoingDamagePercent
+            == EnemyPowerCurve.rawDamagePercent(level: 40, isBoss: true, profile: profile))
+    }
+
     @Test func `random battle resolves deterministic non boss encounter`() throws {
         let stage = try #require(
             GameContent.chapters

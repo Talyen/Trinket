@@ -597,9 +597,9 @@ public extension CombatantTalentCatalog {
             "wizard_freeze_t4_1": CombatantTalentEffect(
                 name: "Glacial Reprieve",
                 iconID: "sf:snowflake",
-                description: "Damage you Block is returned as Freeze",
+                description: "Blocking deals 3 Freeze damage once per turn",
                 modifiers: [],
-                triggers: CombatTraitTriggers(block: BlockTriggers(glacialReprieve: true))
+                triggers: CombatTraitTriggers(block: BlockTriggers(firstBlockFreezeDamagePerTurn: 3))
             )
     ]
 
@@ -698,9 +698,9 @@ public extension CombatantTalentCatalog {
             "druid_poison_t4_1": CombatantTalentEffect(
                 name: "Thorn Shedding",
                 iconID: "sf:leaf.fill",
-                description: "Allied Thorns deal Poison instead of Physical damage",
+                description: "Thorns deal 2 bonus Poison damage once per turn",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(thornShedding: true))
+                triggers: CombatTraitTriggers(dot: DotTriggers(firstThornsPoisonDamagePerTurn: 2))
             ),
             "druid_mana_t1_1": CombatantTalentEffect(
                 name: "Arcane Thorns",
@@ -904,9 +904,9 @@ public extension CombatantTalentCatalog {
             "warlock_leech_t4_1": CombatantTalentEffect(
                 name: "Emberdrinker",
                 iconID: "sf:flame.fill",
-                description: "Burn damage gains Leech",
+                description: "Your first Burn attack each turn gains Leech",
                 modifiers: [],
-                triggers: CombatTraitTriggers(dot: DotTriggers(burnDamageLeech: true))
+                triggers: CombatTraitTriggers(dot: DotTriggers(firstBurnAttackLeech: true))
             )
     ]
 

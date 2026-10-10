@@ -84,6 +84,7 @@ enum ModeBattleSpec {
         modifiers: ModeBattleModifiers = .none,
         completionBonus: VoyageCompletionBonus? = nil,
         additionalRewardItems: [InventoryItem] = [],
+        enemyPowerProfile: EnemyPowerCurve.Profile? = nil,
     ) -> BattleLaunchInput {
         BattleLaunchInput(
             origin: origin,
@@ -100,6 +101,7 @@ enum ModeBattleSpec {
             universalModifiers: modifiers.universalModifiers,
             nodeModifiers: modifiers.definitions,
             completionBonus: completionBonus,
+            enemyPowerProfile: enemyPowerProfile,
         )
     }
 }
@@ -108,11 +110,12 @@ enum PlayBattlePreparation {
     static func scaledEncounter(
         enemyID: String?,
         level: Int,
+        profile: EnemyPowerCurve.Profile = .standard,
     ) -> ScaledEncounter? {
         guard let enemyID,
               let catalogEnemy = GameContent.enemy(matching: enemyID)
         else { return nil }
-        return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level), level)
+        return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level, profile: profile), level)
     }
 
     /// One home for per-mode encounter math. The level curves stay distinct by
@@ -126,6 +129,7 @@ enum PlayBattlePreparation {
                 difficulty: offer.difficulty,
                 partyAverageLevel: partyAverageLevel,
             ),
+            profile: offer.difficulty == .easy ? .recovery : .standard,
         )
     }
 
@@ -155,6 +159,7 @@ enum PlayBattlePreparation {
         scaledEncounter(
             enemyID: floor.enemyID,
             level: EncounterLevelResolver.spireEnemyLevel(for: floor),
+            profile: .spire,
         )
     }
 }

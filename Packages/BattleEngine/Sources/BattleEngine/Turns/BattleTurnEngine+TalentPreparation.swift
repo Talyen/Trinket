@@ -9,6 +9,10 @@ extension BattleTurnEngine {
     ) -> Ability {
         captureTalentPreparations(for: actor, in: &context)
         var action = TalentActionFacts(actorID: actor.id)
+        if context.modifiers(for: actor.id).triggers.firstBurnAttackLeech,
+           context.resolution.actionOutcome?.damageKeywords.contains(.burn) == true {
+            action.burnAttackLeech = context.claimTurnGuard(.emberdrinker, actorID: actor.id)
+        }
         var components = ability.damageComponents
         var effects = ability.targetedEffects
         if actor.role == .enemy, ability.dealsCombatDamage {

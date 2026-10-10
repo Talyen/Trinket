@@ -53,12 +53,9 @@ public enum BalanceProgressionRunner {
             let battleSeed = runSeed &+ UInt64(stepCounter) &* 97
             let matchup = controller.makeMatchup(for: step, seed: battleSeed)
 
+            var battle = BattleSimulator.makeBattle(matchup: matchup, appliesFightPacing: config.appliesFightPacing)
             let result = BattleSimulator.run(
-                matchup: matchup,
-                policy: policy,
-                maxRounds: config.maxRounds,
-                maxActions: config.maxActions,
-                appliesFightPacing: config.appliesFightPacing,
+                battle: &battle, policy: policy, maxRounds: config.maxRounds, maxActions: config.maxActions,
             )
 
             let recordedPlayerLevel = Int(controller.state.averageLevel.rounded())
@@ -71,7 +68,10 @@ public enum BalanceProgressionRunner {
             )
             records.append(record)
 
-            controller.recordOutcome(step: step, won: result.isVictory)
+            controller.recordOutcome(
+                step: step, won: result.isVictory,
+                defeatProgress: result.timedOut ? nil : battle.defeatProgress,
+            )
         }
 
         return (records, controller.state, !controller.isComplete)

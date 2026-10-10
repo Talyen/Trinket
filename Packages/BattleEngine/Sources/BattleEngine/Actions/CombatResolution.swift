@@ -109,6 +109,14 @@ struct CombatResolution {
         currentAction?.outcome
     }
 
+    func grantsBurnAttackLeech(to actorID: String) -> Bool {
+        currentAction?.context.actor.id == actorID && currentAction?.talents?.burnAttackLeech == true
+    }
+
+    func isClaimed(_ claim: Claim, actorID: String, cadence: Cadence) -> Bool {
+        claims.contains(ClaimKey(claim: claim, actorID: actorID, cadence: cadence))
+    }
+
     mutating func recordCriticalAttack(by actorID: String) {
         guard let index = frames.lastIndex(where: {
             if case .action = $0 {

@@ -5,7 +5,7 @@ import TrinketCore
 struct AbilityCatalogTests {
     @Test func `luck potion covers every die face and combat outcome`() throws {
         let branches = try #require(Ability.luckPotion.outcomeBranches)
-        #expect(branches.count == 36)
+        #expect(branches.count == 18)
         var thornsAmounts: [Int] = []
         var blockAmounts: [Int] = []
         var healthAmounts: [Int] = []
@@ -18,13 +18,15 @@ struct AbilityCatalogTests {
             case let .instantHeal(.health, amount):
                 #expect(targeted.target == .lowestHealthAlly)
                 healthAmounts.append(amount)
+            case .drawCards(1):
+                #expect(targeted.target == .actor)
             default:
-                Issue.record("Luck Potion branch did not grant Block, Thorns, or Health")
+                Issue.record("Luck Potion branch did not grant a combat gain or draw")
             }
         }
-        #expect(thornsAmounts.sorted() == Array(1 ... 12))
-        #expect(blockAmounts.sorted() == Array(1 ... 12))
-        #expect(healthAmounts.sorted() == Array(1 ... 12))
+        #expect(thornsAmounts.sorted() == Array(1 ... 6))
+        #expect(blockAmounts.sorted() == Array(1 ... 6))
+        #expect(healthAmounts.sorted() == Array(1 ... 6))
     }
 
     @Test func `catalog I ds are unique and unknown lookup returns nil`() throws {
@@ -64,7 +66,7 @@ struct AbilityCatalogTests {
         let empowered = Ability.fireArrow.empoweredByMana()
         try #expect(Ability.fireArrow.hasManaEmpowerableBurnOrFreezeDamage)
         try #expect(empowered.damageComponents == [
-            DamageComponent(3, keyword: .burn),
+            DamageComponent(4, keyword: .burn),
         ])
         try #expect(empowered.targetedEffects.isEmpty)
         try #expect(!Ability.slash.hasManaEmpowerableBurnOrFreezeDamage)
@@ -157,18 +159,18 @@ struct AbilityCatalogTests {
     }
 
     @Test func `locked revisions keep summaries and mechanics`() throws {
-        try #expect(Ability.kindling.summary == "Deal 1 Burn damage\nDoubled if enemy was not Burning")
+        try #expect(Ability.kindling.summary == "Deal 2 Burn damage\nDoubled if enemy was not Burning")
         try #expect(Ability.kindling.damageComponents == [
-            DamageComponent(1, keyword: .burn, bonusAmount: 1, condition: .enemyNotBurning),
+            DamageComponent(2, keyword: .burn, bonusAmount: 2, condition: .enemyNotBurning),
         ])
         try #expect(Ability.kindling.targetedEffects.isEmpty)
-        try #expect(Ability.fireball.summary == "Deal 1 to 5 Burn damage")
+        try #expect(Ability.fireball.summary == "Deal 2 to 6 Burn damage")
         try #expect(Ability.fireball.outcomeBranches?.map(\.damageComponents) == [
-            [DamageComponent(1, keyword: .burn)],
             [DamageComponent(2, keyword: .burn)],
             [DamageComponent(3, keyword: .burn)],
             [DamageComponent(4, keyword: .burn)],
             [DamageComponent(5, keyword: .burn)],
+            [DamageComponent(6, keyword: .burn)],
         ])
         try #expect(Ability.frostbolt.summary == "Deal 4 Freeze damage")
         try #expect(Ability.slash.summary == "Deal 3 Physical damage")
@@ -191,14 +193,14 @@ struct AbilityCatalogTests {
         try #expect(bloodthorn.outcomeBranches == nil)
         try #expect(bloodthorn.damageComponents == [
             DamageComponent(2, keyword: .bleed),
-            DamageComponent(2, keyword: .poison),
+            DamageComponent(1, keyword: .poison),
         ])
         try #expect(bloodthorn.hasLeech)
     }
 
     @Test func `branched abilities show shared riders`() throws {
         let bloodthorn = try #require(AbilityCatalog.ability(id: "bloodthorn"))
-        try #expect(bloodthorn.summary == "Deal 2 Bleed damage\nDeal 2 Poison damage\nLeech")
+        try #expect(bloodthorn.summary == "Deal 2 Bleed damage\nDeal 1 Poison damage\nLeech")
         for ability in AbilityCatalog.all where ability.descriptionOverride == nil {
             if ability.hasLeech {
                 try #expect(ability.summary.contains("Leech"), "\(ability.id) hides Leech")

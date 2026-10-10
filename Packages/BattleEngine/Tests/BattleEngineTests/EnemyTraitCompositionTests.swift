@@ -4,13 +4,13 @@ import TrinketCore
 @testable import BattleEngine
 
 struct EnemyTraitCompositionTests {
-    @Test func `split traits preserve every enemy combat profile`() throws {
-        #expect(Set(Self.originalTraits.keys) == Set(GameContent.enemies.map(\.id)))
+    @Test func `enemy traits retain expected combat profiles`() throws {
+        #expect(Set(Self.expectedTraits.keys) == Set(GameContent.enemies.map(\.id)))
         for enemy in GameContent.enemies {
-            let expected = try #require(Self.originalTraits[enemy.id])
+            let expected = try #require(Self.expectedTraits[enemy.id])
             var actual = CombatBuildResolver.build(enemy: enemy).modifiers
             actual.triggerAbilityNames = [:]
-            #expect(actual == expected, "\(enemy.name) must retain all combat values")
+            #expect(actual == expected, "\(enemy.name) must retain its approved combat values")
         }
     }
 
@@ -20,8 +20,8 @@ struct EnemyTraitCompositionTests {
         return profile
     }
 
-    /// Captured before splitting the enemy bundles; independent of the new catalog assignments.
-    private static let originalTraits: [String: CombatModifierProfile] = [
+    /// Explicit combat expectations independent of the catalog assignments.
+    private static let expectedTraits: [String: CombatModifierProfile] = [
         "living_armor": baseline(
             modifiers: [.damageTakenPercent(.bleed, 0.30)],
             triggers: CombatTraitTriggers(block: BlockTriggers(blockPerTurn: 1)),
@@ -114,8 +114,8 @@ struct EnemyTraitCompositionTests {
             triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBurningMultiplier: 1.25)),
         ),
         "pyromancer": baseline(
-            modifiers: [.damageTakenVulnerability(.freeze, 0.30)],
-            triggers: CombatTraitTriggers(block: BlockTriggers(burnIgnoresBlockAndMitigation: true)),
+            modifiers: [.damageTakenPercent(.burn, 0.20), .damageTakenVulnerability(.freeze, 0.30)],
+            triggers: CombatTraitTriggers(),
         ),
         "giant_spider": baseline(
             modifiers: [.damageTakenVulnerability(.burn, 0.30)],
@@ -196,24 +196,27 @@ struct EnemyTraitCompositionTests {
         ),
         "brawler": baseline(
             modifiers: [.damageTakenVulnerability(.bleed, 0.30)],
-            triggers: CombatTraitTriggers(mitigation: MitigationTriggers(stunnedEnemyNextTurnDamageMultiplier: 0.5)),
+            triggers: CombatTraitTriggers(mitigation: MitigationTriggers(stunnedEnemyNextTurnDamageMultiplier: 0.75)),
         ),
         "stone_golem": baseline(
             modifiers: [],
             triggers: CombatTraitTriggers(block: BlockTriggers(blockPerTurn: 1, shieldDamageBonusWhileBlocked: 1)),
         ),
         "earth_elemental": baseline(
-            modifiers: [.damageTakenPercent(.freeze, 0.20), .damageTakenPercent(.burn, 0.20)],
-            triggers: CombatTraitTriggers(block: BlockTriggers(onEnemyBlockBrokenDealPhysical: 1)),
+            modifiers: [.damageTakenPercent(.physical, 0.20), .damageTakenVulnerability(.stun, 0.30)],
+            triggers: CombatTraitTriggers(),
         ),
         "the_stone_titan": baseline(
             modifiers: [],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(
-                turnRandomDamageAllEnemiesKeywordA: .physical,
-                turnRandomDamageAllEnemiesKeywordB: .physical,
-                turnRandomDamageAllEnemiesAmount: 1,
-                turnRandomDamageAllEnemiesInterval: 2,
-            )),
+            triggers: CombatTraitTriggers(
+                damage: DamageTriggers(
+                    turnRandomDamageAllEnemiesKeywordA: .physical,
+                    turnRandomDamageAllEnemiesKeywordB: .physical,
+                    turnRandomDamageAllEnemiesAmount: 1,
+                    turnRandomDamageAllEnemiesInterval: 2,
+                ),
+                mitigation: MitigationTriggers(onHealthLossNextDamageReduction: 1),
+            ),
         ),
     ]
 }

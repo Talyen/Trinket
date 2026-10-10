@@ -8,14 +8,14 @@ struct CounterattackRewardRegressionTests {
         var battle = makeBattle(talents: ["warlock_burn_t4_2"])
 
         _ = counter(.fireArrow, in: &battle)
-        #expect(battle.health(of: battle.enemy) == 98)
+        #expect(battle.health(of: battle.enemy) == 97)
         #expect(battle.roster.hero.talents.pending.nextBleedDamageBonus == 1)
 
         _ = counter(.rendingSlash, in: &battle)
-        #expect(battle.health(of: battle.enemy) == 95)
+        #expect(battle.health(of: battle.enemy) == 94)
         #expect(battle.roster.hero.talents.pending.nextBleedDamageBonus == 0)
         _ = counter(.rendingSlash, in: &battle)
-        #expect(battle.health(of: battle.enemy) == 93)
+        #expect(battle.health(of: battle.enemy) == 92)
     }
 
     @Test func `Consolation Prize grants one card for a fully blocked Basic counterattack`() {

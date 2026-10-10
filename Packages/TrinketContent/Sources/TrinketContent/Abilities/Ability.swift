@@ -2,6 +2,7 @@ import Foundation
 import TrinketCore
 
 public struct AbilityOutcomeBranch: Hashable, Sendable {
+    public let condition: DamageCondition?
     public let operations: [AbilityOperation]
     public var damageComponents: [DamageComponent] {
         operations.compactMap(\.damageComponent)
@@ -19,7 +20,9 @@ public struct AbilityOutcomeBranch: Hashable, Sendable {
         effects: [Effect] = [],
         randomizeDamageKeywords: Bool = false,
         operations: [AbilityOperation]? = nil,
+        condition: DamageCondition? = nil,
     ) {
+        self.condition = condition
         self.operations = operations ?? (damageComponents.map(AbilityOperation.damage)
             + (targetedEffects ?? effects.map { TargetedEffect($0) }).map(AbilityOperation.effect))
         self.randomizeDamageKeywords = randomizeDamageKeywords
@@ -214,7 +217,16 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     private func appendNonDamageKeywords(to result: inout [Keyword], identityOnly: Bool = false) {
+        func qualifies(_ effect: Effect) -> Bool {
+            switch effect {
+            case .drawCards, .drawAndPlayCards:
+                false
+            default:
+                true
+            }
+        }
         for targetedEffect in operations.lazy.compactMap(\.targetedEffect) {
+            guard qualifies(targetedEffect.effect) else { continue }
             result.append(targetedEffect.effect.keyword)
             if case .blessedAegis = targetedEffect.effect {
                 result.append(.block)
@@ -223,11 +235,19 @@ public struct Ability: Identifiable, Hashable, Sendable {
         if let branches = outcomeBranches {
             for branch in branches {
                 result.append(contentsOf: branch.operations.lazy.compactMap(\.damageComponent).map(\.keyword))
-                result.append(contentsOf: branch.operations.lazy.compactMap(\.targetedEffect).map(\.effect.keyword))
+                result.append(contentsOf: branch.operations.lazy.compactMap(\.targetedEffect)
+                    .map(\.effect)
+                    .filter(qualifies)
+                    .map(\.keyword))
             }
         }
         if let conditionalOutcome, !identityOnly || conditionalOutcome.contributesToIdentity {
-            result.append(contentsOf: conditionalOutcome.operations.lazy.map(\.keyword))
+            result.append(contentsOf: conditionalOutcome.operations.lazy.compactMap { op in
+                if let effect = op.targetedEffect, !qualifies(effect.effect) {
+                    return nil
+                }
+                return op.keyword
+            })
         }
         if hasLeech {
             result.append(.leech)

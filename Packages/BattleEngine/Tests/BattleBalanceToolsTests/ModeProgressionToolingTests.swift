@@ -71,15 +71,36 @@ struct ModeProgressionToolingTests {
         let actual = controller.makeMatchup(for: step, seed: 43)
         let enemy = try #require(GameContent.enemy(matching: step.enemyID))
         let expected = SimulationMatchupBuilder.build(
-            hero: hero, companion: companion, enemy: enemy, tier: .middle, enemyLevel: step.enemyLevel,
+            hero: hero, companion: companion, enemy: enemy, tier: .middle, enemyLevel: step.enemyLevel, enemyPowerProfile: .spire,
             heroLoadout: actual.context.heroLoadout, companionLoadout: actual.context.companionLoadout,
             seed: 43, heroTalents: Set(actual.context.heroTalentIDs), companionTalents: Set(actual.context.companionTalentIDs),
         )
+        #expect(actual.enemy.maxHealth == expected.enemy.maxHealth)
+        #expect(actual.enemyModifiers.outgoingDamagePercent == expected.enemyModifiers.outgoingDamagePercent)
         #expect(actual.context.heroAffixIDs == expected.context.heroAffixIDs)
         #expect(actual.context.companionAffixIDs == expected.context.companionAffixIDs)
         #expect(actual.context.heroItemBaseIDs == expected.context.heroItemBaseIDs)
         #expect(actual.enemyModifiers.damageDealtBonus[.physical, default: 0]
             == expected.enemyModifiers.damageDealtBonus[.physical, default: 0] + 1)
+    }
+
+    @Test func `defeats award existing peak depletion XP without clearing the encounter`() {
+        let step = ModeProgressionStep(
+            id: "wall", mode: .campaign, containerID: "test", containerTitle: "Test", stepIndex: 5,
+            displayTitle: "Wall", enemyID: "goblin", enemyLevel: 10, isBoss: false,
+        )
+        let controller = InterleavingPlayerController(
+            campaignTracker: .init(steps: [step]), spireTracker: .init(steps: []), labyrinthTracker: .init(steps: []),
+            initialState: PlayerProgressionState(heroLevel: 10, companionLevel: 10),
+        )
+        let progress = BattleDefeatProgress(remainingHealth: 25, maximumHealth: 100)
+        let normal = ExperienceScaling.battleAward(playerLevel: 10, enemyLevel: 10)
+        controller.recordOutcome(step: step, won: false, defeatProgress: progress)
+        #expect(controller.state.heroXP == progress.experienceAward(from: normal))
+        #expect(controller.state.companionXP == progress.experienceAward(from: normal))
+        #expect(controller.state.battlesWon == 0)
+        #expect(controller.selectNextStep() == step)
+        #expect(!controller.isComplete)
     }
 
     @Test func `Easy Contracts earn recovery XP without clearing or prolonging advancing content`() throws {
@@ -281,8 +302,12 @@ extension ModeProgressionToolingTests {
         let enemy = try #require(GameContent.enemy(matching: "slime"))
 
         let playerAt45 = CombatantLevelScaler.scale(combatant: wizard, level: 45)
-        #expect(playerAt45.maxHealth == wizard.maxHealth + 44)
+        #expect(playerAt45.maxHealth == wizard.maxHealth + 88)
         #expect(playerAt45.maxMana == wizard.maxMana + 22)
+        let wolf = try #require(GameContent.companion(matching: "wolf"))
+        let companionAt45 = CombatantLevelScaler.scale(combatant: wolf, level: 45)
+        #expect(companionAt45.maxHealth == wolf.maxHealth + 88)
+        #expect(companionAt45.maxMana == 0)
 
         let enemyAt44 = CombatantLevelScaler.scale(enemy: enemy, level: 44)
         let enemyAt45 = CombatantLevelScaler.scale(enemy: enemy, level: 45)

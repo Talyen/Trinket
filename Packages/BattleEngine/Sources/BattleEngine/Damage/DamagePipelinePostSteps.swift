@@ -423,9 +423,6 @@ package extension DamagePipeline {
             .stun
         } else if defenderTriggers.thornsDealHoly {
             .holy
-        } else if state.combatant.role != .enemy, context.roster.hero.isAlive,
-                  context.heroModifiers.triggers.thornShedding {
-            .poison
         } else {
             .physical
         }
@@ -439,12 +436,6 @@ package extension DamagePipeline {
             to: &state,
             in: &context,
         )
-        if keyword == .poison {
-            await state.damageEvents.append(contentsOf: context.applyDecayingDoT(
-                keyword: .poison, potency: healthLost, to: attacker.combatant,
-                sourceActorID: state.combatant.id, application: .attached,
-            ))
-        }
         await state.damageEvents.append(contentsOf: thornsRewards(
             healthLost: healthLost, attacker: attacker.combatant, defender: state.combatant, in: &context,
         ))
@@ -457,6 +448,14 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) async -> [ActionEvent] {
         var events = await spitebloomDamage(healthLost: healthLost, attacker: attacker, defender: defender, in: &context)
+        let poison = context.modifiers(for: defender.id).triggers.firstThornsPoisonDamagePerTurn
+        if healthLost > 0, poison > 0, context.roster.health(for: attacker) > 0,
+           context.claimTurnGuard(.thornShedding, actorID: defender.id) {
+            await events.append(contentsOf: context.applyDecayingDoT(
+                keyword: .poison, potency: poison, to: attacker,
+                sourceActorID: defender.id, application: .reaction,
+            ))
+        }
         await events.append(contentsOf: spitefulHeal(healthLost: healthLost, defender: defender, in: &context))
         return events
     }

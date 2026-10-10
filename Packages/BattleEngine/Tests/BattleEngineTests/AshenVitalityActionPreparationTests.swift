@@ -71,7 +71,7 @@ struct AshenVitalityActionPreparationTests {
         let events = BattleTurnEngine.performAction(
             ability: .fireArrow, actor: actor, abilityTarget: target, context: &battle,
         )
-        #expect(events.filter { $0.kind == .abilityDamage && $0.keyword == .burn }.map(\.amount) == [4])
+        #expect(events.filter { $0.kind == .abilityDamage && $0.keyword == .burn }.map(\.amount) == [5])
         #expect(battle.roster.companion.talents.pending.nextBurnDamageBonus == nil)
     }
 }

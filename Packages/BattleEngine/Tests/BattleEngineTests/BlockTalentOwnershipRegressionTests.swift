@@ -6,7 +6,7 @@ import TrinketCore
 
 struct BlockTalentOwnershipRegressionTests {
     @Test(arguments: [false, true])
-    func `Glacial Reprieve returns only damage absorbed by its owners Block`(heroBlocks: Bool) {
+    func `Glacial Reprieve deals bounded Freeze only once per turn from its owners Block`(heroBlocks: Bool) {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
@@ -23,13 +23,26 @@ struct BlockTalentOwnershipRegressionTests {
         ))
 
         #expect(damage.healthLost == 0)
-        #expect(battle.health(of: battle.enemy) == (heroBlocks ? 95 : 100))
+        #expect(battle.health(of: battle.enemy) == (heroBlocks ? 97 : 100))
         #expect(battle.activeEffects(of: battle.enemy).contains {
             if case let .controlMeter(.freeze, amount, _) = $0.effect {
-                return amount == 5
+                return amount == 3
             }
             return false
         } == heroBlocks)
+        DefensePoolEngine.set(5, on: defender, in: &battle)
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 5, target: defender, keyword: .physical, sourceActorID: battle.enemy.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ))
+        #expect(battle.health(of: battle.enemy) == (heroBlocks ? 97 : 100))
+        battle.turnCount += 1
+        DefensePoolEngine.set(5, on: defender, in: &battle)
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 5, target: defender, keyword: .physical, sourceActorID: battle.enemy.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ))
+        #expect(battle.health(of: battle.enemy) == (heroBlocks ? 94 : 100))
     }
 
     @Test func `Glacial Reprieve returns borrowed Hero Block without returning Companion Block`() {
@@ -49,10 +62,10 @@ struct BlockTalentOwnershipRegressionTests {
         ))
 
         #expect(damage.healthLost == 0)
-        #expect(battle.health(of: battle.enemy) == 98)
+        #expect(battle.health(of: battle.enemy) == 97)
         #expect(battle.activeEffects(of: battle.enemy).contains {
             if case let .controlMeter(.freeze, amount, _) = $0.effect {
-                return amount == 2
+                return amount == 3
             }
             return false
         })

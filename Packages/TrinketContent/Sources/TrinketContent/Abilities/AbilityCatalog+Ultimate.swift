@@ -30,7 +30,7 @@ public extension AbilityCatalog {
         id: "bloodthorn", name: "Bloodthorn", tier: .ultimate,
         damageComponents: [
             DamageComponent(2, keyword: .bleed),
-            DamageComponent(2, keyword: .poison),
+            DamageComponent(1, keyword: .poison),
         ],
         hasLeech: true,
     )
@@ -92,13 +92,14 @@ public extension AbilityCatalog {
 
     static let luckPotion = Ability(
         id: "luck-potion", name: "Luck Potion", tier: .ultimate,
-        description: "Roll a 12-sided die\nGain that much Block, Thorns, or Health",
-        outcomeBranches: (1 ... 12).flatMap { amount in
-            [
-                AbilityOutcomeBranch(targetedEffects: [TargetedEffect(.shield(.block, amount))]),
-                AbilityOutcomeBranch(targetedEffects: [TargetedEffect(.thorns(amount))]),
-                AbilityOutcomeBranch(targetedEffects: [TargetedEffect(.instantHeal(.health, amount))]),
-            ]
+        description: "Roll a 6-sided die\nGain that much Block, Thorns, or Health\nAt full party Health, roll Block or Thorns\nDraw 1 card",
+        outcomeBranches: (1 ... 6).flatMap { amount in
+            [Effect.shield(.block, amount), .thorns(amount), .instantHeal(.health, amount)].map { effect in
+                AbilityOutcomeBranch(
+                    targetedEffects: [TargetedEffect(effect), TargetedEffect(.drawCards(1), target: .actor)],
+                    condition: effect.keyword == .health ? .allyMissingHealth : nil,
+                )
+            }
         },
     )
 
@@ -120,8 +121,8 @@ public extension AbilityCatalog {
 
     static let packTactics = Ability(
         id: "pack-tactics", name: "Pack Tactics", tier: .ultimate,
-        description: "Deal 3 Physical damage\nDraw a card from your ally's deck",
-        damageComponents: [DamageComponent(3, keyword: .physical)],
+        description: "Deal 5 Physical damage\nDraw a card from your ally's deck",
+        damageComponents: [DamageComponent(5, keyword: .physical)],
         targetedEffects: [
             TargetedEffect(.drawCards(1)),
         ],
@@ -129,9 +130,10 @@ public extension AbilityCatalog {
 
     static let panaceaPotion = Ability(
         id: "panacea-potion", name: "Panacea Potion", tier: .ultimate,
-        description: "Cleanse the ally with the most debuffs\nRestore 6 Health",
+        description: "Cleanse the ally with the most debuffs\nRestore 6 Health\nDraw 1 card",
         targetedEffects: [
             TargetedEffect(.panacea(baseHeal: 6, healPerDebuff: 0)),
+            TargetedEffect(.drawCards(1), target: .actor),
         ],
     )
 
@@ -145,11 +147,8 @@ public extension AbilityCatalog {
 
     static let shadowstep = Ability(
         id: "shadowstep", name: "Shadowstep", tier: .ultimate,
-        description: "Dodge the next attack against you\nYour next card is played twice",
-        targetedEffects: [
-            TargetedEffect(.evadeNextHit, target: .actor),
-            TargetedEffect(.playNextCardTwice, target: .actor),
-        ],
+        damageComponents: [DamageComponent(4, keyword: .physical)],
+        targetedEffects: [TargetedEffect(.drawCards(1), target: .actor)],
     )
 
     static let sunburst = Ability(

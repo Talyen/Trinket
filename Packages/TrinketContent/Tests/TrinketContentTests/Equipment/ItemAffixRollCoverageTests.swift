@@ -114,8 +114,8 @@ struct ItemAffixRollCoverageTests {
         let infected = try #require(GameContent.itemAffixDefinition(matching: "infected"))
         let max = infected.basic.rolledMax()
         #expect(max.triggers.onBleedApplyPoison == 2)
-        #expect(abs(max.triggers.onBleedDealPoisonChancePercent - 0.40) < 1e-9)
-        #expect(max.description == "Dealing Bleed damage has a 40% chance to deal 2 Poison damage.")
+        #expect(abs(max.triggers.onBleedDealPoisonChancePercent - 0.25) < 1e-9)
+        #expect(max.description == "Bleed damage: 25% chance to deal 2 Poison damage once per turn.")
     }
 
     @Test func `mixed modifier and trigger magnitudes share the transformation order`() {

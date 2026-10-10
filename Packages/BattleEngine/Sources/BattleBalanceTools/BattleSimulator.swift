@@ -46,7 +46,16 @@ public enum BattleSimulator {
         appliesFightPacing: Bool = true,
         tracksEvents: Bool = false,
     ) -> BattleSimResult {
-        var battle = BattleState(
+        var battle = makeBattle(matchup: matchup, appliesFightPacing: appliesFightPacing, tracksEvents: tracksEvents)
+        return run(battle: &battle, policy: policy, maxRounds: maxRounds, maxActions: maxActions)
+    }
+
+    static func makeBattle(
+        matchup: ConfiguredSimulationMatchup,
+        appliesFightPacing: Bool = true,
+        tracksEvents: Bool = false,
+    ) -> BattleState {
+        BattleState(
             hero: matchup.hero,
             companion: matchup.companion,
             enemy: matchup.enemy,
@@ -59,7 +68,6 @@ public enum BattleSimulator {
             tracksEvents: tracksEvents,
             appliesFightPacing: appliesFightPacing,
         )
-        return run(battle: &battle, policy: policy, maxRounds: maxRounds, maxActions: maxActions)
     }
 
     public static func run(

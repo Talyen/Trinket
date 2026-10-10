@@ -62,6 +62,26 @@ struct DamageCadenceRegressionTests {
         #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 2)
     }
 
+    @Test func `Infected shares one successful conversion per wearer per turn across Bleed packets`() throws {
+        let affix = try #require(GameContent.itemAffixDefinition(matching: "infected"))
+        var profile = CombatModifierProfile.zero
+        affix.basic.triggers.apply(to: &profile, abilityName: affix.title)
+        profile.triggers.onBleedDealPoisonChancePercent = 1
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, companionModifiers: profile)
+        battle.appliesFightPacing = false
+        func tick(from actor: Combatant, in battle: inout BattleState) {
+            _ = battle.resolveDamage(.doTTick(amount: 2, target: battle.enemy, keyword: .bleed, sourceActorID: actor.id))
+        }
+        tick(from: battle.hero, in: &battle)
+        tick(from: battle.hero, in: &battle)
+        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 1)
+        tick(from: battle.companion, in: &battle)
+        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 2)
+        battle.turnCount += 1
+        tick(from: battle.hero, in: &battle)
+        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 3)
+    }
+
     @Test func `Cauterize reacts to ongoing Bleed damage`() {
         var profile = CombatModifierProfile.zero
         profile.triggers.criticalChanceBonus = -1

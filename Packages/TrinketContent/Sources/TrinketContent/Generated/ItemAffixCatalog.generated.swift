@@ -309,8 +309,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.bleed, .poison],
             weight: 8,
-            basic: ItemAffixPower(description: "Dealing Bleed damage has a 35% chance to deal 1 Poison damage.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBleedApplyPoison: 1, onBleedDealPoisonChancePercent: 0.35))),
-            astral: ItemAffixPower(description: "Dealing Bleed damage has a 35% chance to deal 2 Poison damage.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBleedApplyPoison: 2, onBleedDealPoisonChancePercent: 0.35)))
+            basic: ItemAffixPower(description: "Bleed damage: 20% chance to deal 1 Poison damage once per turn.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBleedApplyPoison: 1, onBleedDealPoisonChancePercent: 0.20, bleedPoisonOncePerTurn: true))),
+            astral: ItemAffixPower(description: "Bleed damage: 20% chance to deal 2 Poison damage once per turn.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(onBleedApplyPoison: 2, onBleedDealPoisonChancePercent: 0.20, bleedPoisonOncePerTurn: true)))
         )
         ]
     }
@@ -788,8 +788,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.poison, .leech],
             weight: 1,
-            basic: ItemAffixPower(description: "Poison damage gains Leech.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(poisonDamageLeech: true))),
-            astral: ItemAffixPower(description: "Poison damage gains Leech.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(poisonDamageLeech: true)))
+            basic: ItemAffixPower(description: "Poison attacks gain Leech.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(poisonAttackLeech: true))),
+            astral: ItemAffixPower(description: "Poison attacks gain Leech.", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers(poisonAttackLeech: true)))
         ),
         ItemAffixCatalog.affix(
             id: "plague_doctors_mask",

@@ -18,7 +18,7 @@ bandit	Bandit	13	false	stab,serratedEdge,hemorrhage	ambush,profane	mortal
 ogre	Ogre	15	false	slash,sunder,thornMail	shieldbreaker,profane	mortal
 fire_imp	Fire Imp	13	false	kindling,fireball,combustion	cold_shocked	corrupted
 hellhound	Hellhound	14	false	kindling,fireball,moltenBulwark	fan_the_flames,cold_shocked	beast
-pyromancer	Pyromancer	13	false	kindling,fireball,meteor	unquenchable_flame,cold_shocked	mortal
+pyromancer	Pyromancer	13	false	kindling,fireball,meteor	heat_tempered,cold_shocked	mortal
 giant_spider	Giant Spider	14	false	causticJab,venomFangs,bloodthorn	venomous_strikes,kindling	beast
 giant_snake	Giant Snake	14	false	causticJab,venomFangs,bloodthorn	corrosive_venom,cold_shocked	beast
 blood_cultist	Blood Cultist	13	false	rendingSlash,serratedEdge,hemorrhage	profane	mortal
@@ -34,7 +34,7 @@ winter_wolf	Winter Wolf	14	false	fangs,frostbolt,blizzard	chilling_strikes,kindl
 ice_wraith	Ice Wraith	13	false	rayOfFrost,frostbolt,blizzard	numbing_presence,incorporeal,kindling,profane	undead
 yeti	Yeti	15	false	bash,glacialWard,blizzard	rimeguard,winterborn,kindling	beast
 banshee	Banshee	13	false	bash,sunder,earthquake	dread_exploitation,profane	undead
-brawler	Brawler	14	false	bash,sunder,earthquake	concussion,thin_blooded	mortal
+brawler	Brawler	12	false	bash,sunder,earthquake	concussion,thin_blooded	mortal
 stone_golem	Stone Golem	15	false	shieldBash,stoneskinPotion,earthquake	watchful_guard,bulwark_force	construct
-earth_elemental	Earth Elemental	15	false	bash,sunder,earthquake	shattering_impact,cold_tempered,heat_tempered	elemental
-the_stone_titan	The Stone Titan	15	true	bash,stoneskinPotion,earthquake	seismic_pulse	construct
+earth_elemental	Earth Elemental	15	false	bash,sunder,earthquake	stonehide,fault_lines	elemental
+the_stone_titan	The Stone Titan	15	true	block,stoneskinPotion,earthquake	seismic_pulse,loose_rubble	construct

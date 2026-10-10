@@ -37,11 +37,10 @@ struct ThornsResistanceRegressionTests {
         #expect(ordinary.healthLost == 20)
     }
 
-    @Test(arguments: [Keyword.physical, .holy, .poison])
+    @Test(arguments: [Keyword.physical, .holy])
     func `Briar Ward resists actual Thorns including converted retaliation`(keyword: Keyword) {
         var hero = CombatModifierProfile.zero
         hero.triggers.thornsDealHoly = keyword == .holy
-        hero.triggers.thornShedding = keyword == .poison
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
             companion: CombatantFixtures.passiveCompanion(),

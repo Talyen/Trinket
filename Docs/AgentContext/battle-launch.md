@@ -30,7 +30,10 @@ Eligibility stays visible before the action under the
 [SwiftUI interaction contract](swiftui-features.md).
 
 `BattleLaunchAssembly` retains the exact `BattlePreparationInputs` used to build
-its configuration, authoritative reward plan, and display projection. These include the launch request,
+its configuration, authoritative reward plan, and display projection. Enemy
+power profile is part of the launch snapshot: Spires use the fixed-floor profile,
+Easy Contracts use recovery, and other launches use standard. Encounter previews
+and assembly resolve that same profile without changing encounter levels or XP. These include the launch request,
 party/save inputs, world seed, and combat seed. The run key and progression-reward
 policy derive from the launch origin instead of separate stored inputs.
 Prepared activation compares that complete value with current inputs and requires

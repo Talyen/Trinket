@@ -25,7 +25,7 @@ enum GameContentEnemiesGenerated {
         list.append(Enemy(combatant: Combatant(id: "ogre", name: "Ogre", role: .enemy, maxHealth: 15, abilities: [.slash, .sunder, .thornMail]), traitIDs: ["shieldbreaker", "profane"], faction: .mortal))
         list.append(Enemy(combatant: Combatant(id: "fire_imp", name: "Fire Imp", role: .enemy, maxHealth: 13, abilities: [.kindling, .fireball, .combustion]), traitIDs: ["cold_shocked"], faction: .corrupted))
         list.append(Enemy(combatant: Combatant(id: "hellhound", name: "Hellhound", role: .enemy, maxHealth: 14, abilities: [.kindling, .fireball, .moltenBulwark]), traitIDs: ["fan_the_flames", "cold_shocked"], faction: .beast))
-        list.append(Enemy(combatant: Combatant(id: "pyromancer", name: "Pyromancer", role: .enemy, maxHealth: 13, abilities: [.kindling, .fireball, .meteor]), traitIDs: ["unquenchable_flame", "cold_shocked"], faction: .mortal))
+        list.append(Enemy(combatant: Combatant(id: "pyromancer", name: "Pyromancer", role: .enemy, maxHealth: 13, abilities: [.kindling, .fireball, .meteor]), traitIDs: ["heat_tempered", "cold_shocked"], faction: .mortal))
         list.append(Enemy(combatant: Combatant(id: "giant_spider", name: "Giant Spider", role: .enemy, maxHealth: 14, abilities: [.causticJab, .venomFangs, .bloodthorn]), traitIDs: ["venomous_strikes", "kindling"], faction: .beast))
         list.append(Enemy(combatant: Combatant(id: "giant_snake", name: "Giant Snake", role: .enemy, maxHealth: 14, abilities: [.causticJab, .venomFangs, .bloodthorn]), traitIDs: ["corrosive_venom", "cold_shocked"], faction: .beast))
         list.append(Enemy(combatant: Combatant(id: "blood_cultist", name: "Blood Cultist", role: .enemy, maxHealth: 13, abilities: [.rendingSlash, .serratedEdge, .hemorrhage]), traitIDs: ["profane"], faction: .mortal))
@@ -41,10 +41,10 @@ enum GameContentEnemiesGenerated {
         list.append(Enemy(combatant: Combatant(id: "ice_wraith", name: "Ice Wraith", role: .enemy, maxHealth: 13, abilities: [.rayOfFrost, .frostbolt, .blizzard]), traitIDs: ["numbing_presence", "incorporeal", "kindling", "profane"], faction: .undead))
         list.append(Enemy(combatant: Combatant(id: "yeti", name: "Yeti", role: .enemy, maxHealth: 15, abilities: [.bash, .glacialWard, .blizzard]), traitIDs: ["rimeguard", "winterborn", "kindling"], faction: .beast))
         list.append(Enemy(combatant: Combatant(id: "banshee", name: "Banshee", role: .enemy, maxHealth: 13, abilities: [.bash, .sunder, .earthquake]), traitIDs: ["dread_exploitation", "profane"], faction: .undead))
-        list.append(Enemy(combatant: Combatant(id: "brawler", name: "Brawler", role: .enemy, maxHealth: 14, abilities: [.bash, .sunder, .earthquake]), traitIDs: ["concussion", "thin_blooded"], faction: .mortal))
+        list.append(Enemy(combatant: Combatant(id: "brawler", name: "Brawler", role: .enemy, maxHealth: 12, abilities: [.bash, .sunder, .earthquake]), traitIDs: ["concussion", "thin_blooded"], faction: .mortal))
         list.append(Enemy(combatant: Combatant(id: "stone_golem", name: "Stone Golem", role: .enemy, maxHealth: 15, abilities: [.shieldBash, .stoneskinPotion, .earthquake]), traitIDs: ["watchful_guard", "bulwark_force"], faction: .construct))
-        list.append(Enemy(combatant: Combatant(id: "earth_elemental", name: "Earth Elemental", role: .enemy, maxHealth: 15, abilities: [.bash, .sunder, .earthquake]), traitIDs: ["shattering_impact", "cold_tempered", "heat_tempered"], faction: .elemental))
-        list.append(Enemy(combatant: Combatant(id: "the_stone_titan", name: "The Stone Titan", role: .enemy, maxHealth: 15, abilities: [.bash, .stoneskinPotion, .earthquake]), traitIDs: ["seismic_pulse"], isBoss: true, faction: .construct))
+        list.append(Enemy(combatant: Combatant(id: "earth_elemental", name: "Earth Elemental", role: .enemy, maxHealth: 15, abilities: [.bash, .sunder, .earthquake]), traitIDs: ["stonehide", "fault_lines"], faction: .elemental))
+        list.append(Enemy(combatant: Combatant(id: "the_stone_titan", name: "The Stone Titan", role: .enemy, maxHealth: 15, abilities: [.block, .stoneskinPotion, .earthquake]), traitIDs: ["seismic_pulse", "loose_rubble"], isBoss: true, faction: .construct))
         return list
     }()
 }

@@ -36,7 +36,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var criticalDetonateBleedAndPoison: Bool = false
     public var onBurnDamageDetonateBleed: Bool = false
     public var freezeDamageLeech: Bool = false
-    public var poisonDamageLeech: Bool = false
+    public var poisonAttackLeech: Bool = false
     public var bleedDamageGoldFlat: Int = 0
     public var burnDamageRampPerRound: Int = 0
     public var burnDamageRampCap: Int = 0
@@ -47,6 +47,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var burnProcsBleedChancePercent: Double = 0
     public var bleedProcsBurnChancePercent: Double = 0
     public var burnDamageLeech: Bool = false
+    public var firstBurnAttackLeech: Bool = false
     public var bleedDamageLeech: Bool = false
     public var shatterpoint: Bool = false
     public var cryostasis: Bool = false
@@ -61,7 +62,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var barbedSpores: Bool = false
     public var livingBark: Bool = false
     public var rootPassage: Bool = false
-    public var thornShedding: Bool = false
+    public var firstThornsPoisonDamagePerTurn: Int = 0
     public var bleedTickDrawChancePercent: Double = 0
     public var burnAttackDoubleChancePercent: Double = 0
     public var burnDecaySlowVsBleedingPercent: Double = 0
@@ -75,6 +76,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var onDamageBurnRetaliationChancePercent: Double = 0
     public var onDamageBurnRetaliationDamage: Int = 0
     public var burnPreventDecayChancePercent: Double = 0
+    public var bleedPoisonOncePerTurn: Bool = false
 
     public init(
         redline: Bool = false,
@@ -109,7 +111,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         criticalDetonateBleedAndPoison: Bool = false,
         onBurnDamageDetonateBleed: Bool = false,
         freezeDamageLeech: Bool = false,
-        poisonDamageLeech: Bool = false,
+        poisonAttackLeech: Bool = false,
         bleedDamageGoldFlat: Int = 0,
         burnDamageRampPerRound: Int = 0,
         burnDamageRampCap: Int = 0,
@@ -120,6 +122,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         burnProcsBleedChancePercent: Double = 0,
         bleedProcsBurnChancePercent: Double = 0,
         burnDamageLeech: Bool = false,
+        firstBurnAttackLeech: Bool = false,
         bleedDamageLeech: Bool = false,
         shatterpoint: Bool = false,
         cryostasis: Bool = false,
@@ -134,7 +137,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         barbedSpores: Bool = false,
         livingBark: Bool = false,
         rootPassage: Bool = false,
-        thornShedding: Bool = false,
+        firstThornsPoisonDamagePerTurn: Int = 0,
         bleedTickDrawChancePercent: Double = 0,
         burnAttackDoubleChancePercent: Double = 0,
         burnDecaySlowVsBleedingPercent: Double = 0,
@@ -147,7 +150,8 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         bleedDamageBelowHalfMultiplier: Double = 1,
         onDamageBurnRetaliationChancePercent: Double = 0,
         onDamageBurnRetaliationDamage: Int = 0,
-        burnPreventDecayChancePercent: Double = 0
+        burnPreventDecayChancePercent: Double = 0,
+        bleedPoisonOncePerTurn: Bool = false
     ) {
         self.redline = redline
         self.bleedHalvesAfterExpiration = bleedHalvesAfterExpiration
@@ -181,7 +185,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.criticalDetonateBleedAndPoison = criticalDetonateBleedAndPoison
         self.onBurnDamageDetonateBleed = onBurnDamageDetonateBleed
         self.freezeDamageLeech = freezeDamageLeech
-        self.poisonDamageLeech = poisonDamageLeech
+        self.poisonAttackLeech = poisonAttackLeech
         self.bleedDamageGoldFlat = bleedDamageGoldFlat
         self.burnDamageRampPerRound = burnDamageRampPerRound
         self.burnDamageRampCap = burnDamageRampCap
@@ -192,6 +196,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.burnProcsBleedChancePercent = burnProcsBleedChancePercent
         self.bleedProcsBurnChancePercent = bleedProcsBurnChancePercent
         self.burnDamageLeech = burnDamageLeech
+        self.firstBurnAttackLeech = firstBurnAttackLeech
         self.bleedDamageLeech = bleedDamageLeech
         self.shatterpoint = shatterpoint
         self.cryostasis = cryostasis
@@ -206,7 +211,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.barbedSpores = barbedSpores
         self.livingBark = livingBark
         self.rootPassage = rootPassage
-        self.thornShedding = thornShedding
+        self.firstThornsPoisonDamagePerTurn = firstThornsPoisonDamagePerTurn
         self.bleedTickDrawChancePercent = bleedTickDrawChancePercent
         self.burnAttackDoubleChancePercent = burnAttackDoubleChancePercent
         self.burnDecaySlowVsBleedingPercent = burnDecaySlowVsBleedingPercent
@@ -220,10 +225,11 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.onDamageBurnRetaliationChancePercent = onDamageBurnRetaliationChancePercent
         self.onDamageBurnRetaliationDamage = onDamageBurnRetaliationDamage
         self.burnPreventDecayChancePercent = burnPreventDecayChancePercent
+        self.bleedPoisonOncePerTurn = bleedPoisonOncePerTurn
     }
 
     /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["redline", "bleedHalvesAfterExpiration", "burnAndBleedShareDamageBonuses", "burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "bleedConsumesPoison", "bleedApplicationTicksExisting", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechChancePercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalOnBleedingDetonateBleedChance", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonDamageLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "steamExplosion", "safeHandling", "unstableCulture", "sealedVial", "barbedSpores", "livingBark", "rootPassage", "thornShedding", "bleedTickDrawChancePercent", "burnAttackDoubleChancePercent", "burnDecaySlowVsBleedingPercent", "bleedDurationFromCriticalBonus", "bleedDurationVsPoisonedBonus", "burnAttackBleedChancePercent", "burnAttackBleedDamage", "poisonPreventDecayChancePercent", "poisonDamageVsStunnedMultiplier", "bleedDamageBelowHalfMultiplier", "onDamageBurnRetaliationChancePercent", "onDamageBurnRetaliationDamage", "burnPreventDecayChancePercent"]
+    public static let fieldNames: [String] = ["redline", "bleedHalvesAfterExpiration", "burnAndBleedShareDamageBonuses", "burnDecaySlowPercent", "poisonDecaySlowPercent", "poisonDecayIncreaseChance", "onBleedApplyPoison", "onBurnApplyPoison", "onBleedDealBurnDamage", "onBleedDealPoisonChancePercent", "onBurnDealPoisonChancePercent", "onBleedDealBurnChancePercent", "onBurnDamageDetonateBleedChancePercent", "poisonStunChancePercent", "freezeDamageWhileBurningBonus", "bleedConsumesPoison", "bleedApplicationTicksExisting", "onBleedAppliedToBleedingDealDamage", "bleedsIgnoreMitigation", "onBleedDamageHealSelf", "onBurnTickHolyDamage", "burnTicksTwicePerTurn", "damagePerBurnPotencyPercent", "burnIncreaseChancePercent", "poisonThresholdStunAmount", "poisonDamageLeechChancePercent", "onCritDoubleBleedDuration", "criticalOnBleedingDetonateBleed", "criticalOnBleedingDetonateBleedChance", "criticalDetonateBleedAndPoison", "onBurnDamageDetonateBleed", "freezeDamageLeech", "poisonAttackLeech", "bleedDamageGoldFlat", "burnDamageRampPerRound", "burnDamageRampCap", "bleedDamageRampPerRound", "bleedDamageRampCap", "burnDamageManaRestoreThreshold", "onBurnDamageRestoreManaPerTurnCap", "burnProcsBleedChancePercent", "bleedProcsBurnChancePercent", "burnDamageLeech", "firstBurnAttackLeech", "bleedDamageLeech", "shatterpoint", "cryostasis", "crossContamination", "backdraft", "ashenArsenal", "arterialCascade", "steamExplosion", "safeHandling", "unstableCulture", "sealedVial", "barbedSpores", "livingBark", "rootPassage", "firstThornsPoisonDamagePerTurn", "bleedTickDrawChancePercent", "burnAttackDoubleChancePercent", "burnDecaySlowVsBleedingPercent", "bleedDurationFromCriticalBonus", "bleedDurationVsPoisonedBonus", "burnAttackBleedChancePercent", "burnAttackBleedDamage", "poisonPreventDecayChancePercent", "poisonDamageVsStunnedMultiplier", "bleedDamageBelowHalfMultiplier", "onDamageBurnRetaliationChancePercent", "onDamageBurnRetaliationDamage", "burnPreventDecayChancePercent", "bleedPoisonOncePerTurn"]
 
     /// Field names where `self` differs from `other`.
     func populatedFieldNames(comparedTo other: Self) -> [String] {
@@ -260,7 +266,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         if self.criticalDetonateBleedAndPoison != other.criticalDetonateBleedAndPoison { names.append("criticalDetonateBleedAndPoison") }
         if self.onBurnDamageDetonateBleed != other.onBurnDamageDetonateBleed { names.append("onBurnDamageDetonateBleed") }
         if self.freezeDamageLeech != other.freezeDamageLeech { names.append("freezeDamageLeech") }
-        if self.poisonDamageLeech != other.poisonDamageLeech { names.append("poisonDamageLeech") }
+        if self.poisonAttackLeech != other.poisonAttackLeech { names.append("poisonAttackLeech") }
         if self.bleedDamageGoldFlat != other.bleedDamageGoldFlat { names.append("bleedDamageGoldFlat") }
         if self.burnDamageRampPerRound != other.burnDamageRampPerRound { names.append("burnDamageRampPerRound") }
         if self.burnDamageRampCap != other.burnDamageRampCap { names.append("burnDamageRampCap") }
@@ -271,6 +277,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         if self.burnProcsBleedChancePercent != other.burnProcsBleedChancePercent { names.append("burnProcsBleedChancePercent") }
         if self.bleedProcsBurnChancePercent != other.bleedProcsBurnChancePercent { names.append("bleedProcsBurnChancePercent") }
         if self.burnDamageLeech != other.burnDamageLeech { names.append("burnDamageLeech") }
+        if self.firstBurnAttackLeech != other.firstBurnAttackLeech { names.append("firstBurnAttackLeech") }
         if self.bleedDamageLeech != other.bleedDamageLeech { names.append("bleedDamageLeech") }
         if self.shatterpoint != other.shatterpoint { names.append("shatterpoint") }
         if self.cryostasis != other.cryostasis { names.append("cryostasis") }
@@ -285,7 +292,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         if self.barbedSpores != other.barbedSpores { names.append("barbedSpores") }
         if self.livingBark != other.livingBark { names.append("livingBark") }
         if self.rootPassage != other.rootPassage { names.append("rootPassage") }
-        if self.thornShedding != other.thornShedding { names.append("thornShedding") }
+        if self.firstThornsPoisonDamagePerTurn != other.firstThornsPoisonDamagePerTurn { names.append("firstThornsPoisonDamagePerTurn") }
         if self.bleedTickDrawChancePercent != other.bleedTickDrawChancePercent { names.append("bleedTickDrawChancePercent") }
         if self.burnAttackDoubleChancePercent != other.burnAttackDoubleChancePercent { names.append("burnAttackDoubleChancePercent") }
         if self.burnDecaySlowVsBleedingPercent != other.burnDecaySlowVsBleedingPercent { names.append("burnDecaySlowVsBleedingPercent") }
@@ -299,6 +306,7 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         if self.onDamageBurnRetaliationChancePercent != other.onDamageBurnRetaliationChancePercent { names.append("onDamageBurnRetaliationChancePercent") }
         if self.onDamageBurnRetaliationDamage != other.onDamageBurnRetaliationDamage { names.append("onDamageBurnRetaliationDamage") }
         if self.burnPreventDecayChancePercent != other.burnPreventDecayChancePercent { names.append("burnPreventDecayChancePercent") }
+        if self.bleedPoisonOncePerTurn != other.bleedPoisonOncePerTurn { names.append("bleedPoisonOncePerTurn") }
         return names
     }
 }
@@ -337,7 +345,7 @@ extension DotTriggers {
         criticalDetonateBleedAndPoison = criticalDetonateBleedAndPoison || other.criticalDetonateBleedAndPoison
         onBurnDamageDetonateBleed = onBurnDamageDetonateBleed || other.onBurnDamageDetonateBleed
         freezeDamageLeech = freezeDamageLeech || other.freezeDamageLeech
-        poisonDamageLeech = poisonDamageLeech || other.poisonDamageLeech
+        poisonAttackLeech = poisonAttackLeech || other.poisonAttackLeech
         bleedDamageGoldFlat += other.bleedDamageGoldFlat
         burnDamageRampPerRound += other.burnDamageRampPerRound
         burnDamageRampCap = max(burnDamageRampCap, other.burnDamageRampCap)
@@ -348,6 +356,7 @@ extension DotTriggers {
         burnProcsBleedChancePercent += other.burnProcsBleedChancePercent
         bleedProcsBurnChancePercent += other.bleedProcsBurnChancePercent
         burnDamageLeech = burnDamageLeech || other.burnDamageLeech
+        firstBurnAttackLeech = firstBurnAttackLeech || other.firstBurnAttackLeech
         bleedDamageLeech = bleedDamageLeech || other.bleedDamageLeech
         shatterpoint = shatterpoint || other.shatterpoint
         cryostasis = cryostasis || other.cryostasis
@@ -362,7 +371,7 @@ extension DotTriggers {
         barbedSpores = barbedSpores || other.barbedSpores
         livingBark = livingBark || other.livingBark
         rootPassage = rootPassage || other.rootPassage
-        thornShedding = thornShedding || other.thornShedding
+        firstThornsPoisonDamagePerTurn = max(firstThornsPoisonDamagePerTurn, other.firstThornsPoisonDamagePerTurn)
         bleedTickDrawChancePercent += other.bleedTickDrawChancePercent
         burnAttackDoubleChancePercent += other.burnAttackDoubleChancePercent
         burnDecaySlowVsBleedingPercent += other.burnDecaySlowVsBleedingPercent
@@ -376,6 +385,7 @@ extension DotTriggers {
         onDamageBurnRetaliationChancePercent += other.onDamageBurnRetaliationChancePercent
         onDamageBurnRetaliationDamage += other.onDamageBurnRetaliationDamage
         burnPreventDecayChancePercent += other.burnPreventDecayChancePercent
+        bleedPoisonOncePerTurn = bleedPoisonOncePerTurn || other.bleedPoisonOncePerTurn
     }
 }
 
@@ -415,7 +425,7 @@ extension DotTriggers {
             criticalDetonateBleedAndPoison: values.decode(Bool.self, "criticalDetonateBleedAndPoison", default: false),
             onBurnDamageDetonateBleed: values.decode(Bool.self, "onBurnDamageDetonateBleed", default: false),
             freezeDamageLeech: values.decode(Bool.self, "freezeDamageLeech", default: false),
-            poisonDamageLeech: values.decode(Bool.self, "poisonDamageLeech", default: false),
+            poisonAttackLeech: values.decode(Bool.self, "poisonAttackLeech", default: false),
             bleedDamageGoldFlat: values.decode(Int.self, "bleedDamageGoldFlat", default: 0),
             burnDamageRampPerRound: values.decode(Int.self, "burnDamageRampPerRound", default: 0),
             burnDamageRampCap: values.decode(Int.self, "burnDamageRampCap", default: 0),
@@ -426,6 +436,7 @@ extension DotTriggers {
             burnProcsBleedChancePercent: values.decode(Double.self, "burnProcsBleedChancePercent", default: 0),
             bleedProcsBurnChancePercent: values.decode(Double.self, "bleedProcsBurnChancePercent", default: 0),
             burnDamageLeech: values.decode(Bool.self, "burnDamageLeech", default: false),
+            firstBurnAttackLeech: values.decode(Bool.self, "firstBurnAttackLeech", default: false),
             bleedDamageLeech: values.decode(Bool.self, "bleedDamageLeech", default: false),
             shatterpoint: values.decode(Bool.self, "shatterpoint", default: false),
             cryostasis: values.decode(Bool.self, "cryostasis", default: false),
@@ -440,7 +451,7 @@ extension DotTriggers {
             barbedSpores: values.decode(Bool.self, "barbedSpores", default: false),
             livingBark: values.decode(Bool.self, "livingBark", default: false),
             rootPassage: values.decode(Bool.self, "rootPassage", default: false),
-            thornShedding: values.decode(Bool.self, "thornShedding", default: false),
+            firstThornsPoisonDamagePerTurn: values.decode(Int.self, "firstThornsPoisonDamagePerTurn", default: 0),
             bleedTickDrawChancePercent: values.decode(Double.self, "bleedTickDrawChancePercent", default: 0),
             burnAttackDoubleChancePercent: values.decode(Double.self, "burnAttackDoubleChancePercent", default: 0),
             burnDecaySlowVsBleedingPercent: values.decode(Double.self, "burnDecaySlowVsBleedingPercent", default: 0),
@@ -453,7 +464,8 @@ extension DotTriggers {
             bleedDamageBelowHalfMultiplier: values.decode(Double.self, "bleedDamageBelowHalfMultiplier", default: 1),
             onDamageBurnRetaliationChancePercent: values.decode(Double.self, "onDamageBurnRetaliationChancePercent", default: 0),
             onDamageBurnRetaliationDamage: values.decode(Int.self, "onDamageBurnRetaliationDamage", default: 0),
-            burnPreventDecayChancePercent: values.decode(Double.self, "burnPreventDecayChancePercent", default: 0)
+            burnPreventDecayChancePercent: values.decode(Double.self, "burnPreventDecayChancePercent", default: 0),
+            bleedPoisonOncePerTurn: values.decode(Bool.self, "bleedPoisonOncePerTurn", default: false)
         )
     }
 
@@ -490,7 +502,7 @@ extension DotTriggers {
         try container.encodeNonDefault(criticalDetonateBleedAndPoison, "criticalDetonateBleedAndPoison", default: false)
         try container.encodeNonDefault(onBurnDamageDetonateBleed, "onBurnDamageDetonateBleed", default: false)
         try container.encodeNonDefault(freezeDamageLeech, "freezeDamageLeech", default: false)
-        try container.encodeNonDefault(poisonDamageLeech, "poisonDamageLeech", default: false)
+        try container.encodeNonDefault(poisonAttackLeech, "poisonAttackLeech", default: false)
         try container.encodeNonDefault(bleedDamageGoldFlat, "bleedDamageGoldFlat", default: 0)
         try container.encodeNonDefault(burnDamageRampPerRound, "burnDamageRampPerRound", default: 0)
         try container.encodeNonDefault(burnDamageRampCap, "burnDamageRampCap", default: 0)
@@ -501,6 +513,7 @@ extension DotTriggers {
         try container.encodeNonDefault(burnProcsBleedChancePercent, "burnProcsBleedChancePercent", default: 0)
         try container.encodeNonDefault(bleedProcsBurnChancePercent, "bleedProcsBurnChancePercent", default: 0)
         try container.encodeNonDefault(burnDamageLeech, "burnDamageLeech", default: false)
+        try container.encodeNonDefault(firstBurnAttackLeech, "firstBurnAttackLeech", default: false)
         try container.encodeNonDefault(bleedDamageLeech, "bleedDamageLeech", default: false)
         try container.encodeNonDefault(shatterpoint, "shatterpoint", default: false)
         try container.encodeNonDefault(cryostasis, "cryostasis", default: false)
@@ -515,7 +528,7 @@ extension DotTriggers {
         try container.encodeNonDefault(barbedSpores, "barbedSpores", default: false)
         try container.encodeNonDefault(livingBark, "livingBark", default: false)
         try container.encodeNonDefault(rootPassage, "rootPassage", default: false)
-        try container.encodeNonDefault(thornShedding, "thornShedding", default: false)
+        try container.encodeNonDefault(firstThornsPoisonDamagePerTurn, "firstThornsPoisonDamagePerTurn", default: 0)
         try container.encodeNonDefault(bleedTickDrawChancePercent, "bleedTickDrawChancePercent", default: 0)
         try container.encodeNonDefault(burnAttackDoubleChancePercent, "burnAttackDoubleChancePercent", default: 0)
         try container.encodeNonDefault(burnDecaySlowVsBleedingPercent, "burnDecaySlowVsBleedingPercent", default: 0)
@@ -529,5 +542,6 @@ extension DotTriggers {
         try container.encodeNonDefault(onDamageBurnRetaliationChancePercent, "onDamageBurnRetaliationChancePercent", default: 0)
         try container.encodeNonDefault(onDamageBurnRetaliationDamage, "onDamageBurnRetaliationDamage", default: 0)
         try container.encodeNonDefault(burnPreventDecayChancePercent, "burnPreventDecayChancePercent", default: 0)
+        try container.encodeNonDefault(bleedPoisonOncePerTurn, "bleedPoisonOncePerTurn", default: false)
     }
 }

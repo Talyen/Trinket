@@ -32,6 +32,7 @@ package enum CombatActivationClaim: Hashable, Sendable {
     case divineBlessing
     case dragonSpark
     case endlessLegion
+    case emberdrinker
     case evasivePack
     case faeWard
     case feintStrike
@@ -46,6 +47,7 @@ package enum CombatActivationClaim: Hashable, Sendable {
     case goldGainPartyHeal
     case goldGainThresholdDraw
     case goldTheftChanceDraw
+    case glacialReprieve
     case grizzlyGuard
     case groundSlam
     case groveAccord
@@ -54,6 +56,7 @@ package enum CombatActivationClaim: Hashable, Sendable {
     case healthRestorationRolls
     case hoardArmor
     case jackpot
+    case infected
     case lightFingered
     case lingeringBlessing
     case livingArchive
@@ -89,7 +92,9 @@ package enum CombatActivationClaim: Hashable, Sendable {
     case sunlightSpark
     case sunwall
     case surpriseStrike
+    case surpriseStrikePhysical
     case tailwind
+    case thornShedding
     case unstableCulture
     case vitalInfusion
     case wildcardGoldGain

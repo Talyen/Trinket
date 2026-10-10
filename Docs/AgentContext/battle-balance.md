@@ -6,10 +6,13 @@ Before retuning combat or persistence behavior, check `Docs/Product/Decisions.md
 
 Headless balance sweeps: `./Scripts/balance-sweep.sh`; operating details and evidence interpretation are below. Default stdout and `.md` are a findings brief; read that, not the JSON dump. `--full-markdown` writes the old table report. `--samples` is n per identity enemy and pairs per contrast focus.
 
-Combatants have only HP and optional Mana; player leveling is +1 HP per level and +1 Mana every two levels if they have Mana. Heroes and companions have 10% base Crit and Dodge (additive, capped at 75%); enemies have 0% Crit/Dodge and cannot gain guaranteed crit, evade, or trait-based Crit/Dodge effects. Stun/Freeze thresholds are 20% of max HP rounded via `CombatRounding` (min 1) with 25% party incoming control resistance. Enemy scaling uses `EnemyPowerCurve` with four smoothstep curves (normal HP, boss HP, normal raw damage %, boss raw damage % at L1/20/40, then uncapped logarithmic HP growth and linear raw damage growth). Universal outgoing/incoming damage percents (e.g., Chicken Coop/Pasture and enemy raw damage) stack additively and round via `CombatRounding`. Tune encounter level first, then the four curve anchors, then per-enemy HP only for outliers across ≥2 tiers.
+Combatants have only HP and optional Mana; player leveling is +2 HP per level and +1 Mana every two levels if they have Mana. Heroes and companions have 10% base Crit and Dodge (additive, capped at 75%); enemies have 0% Crit/Dodge and cannot gain guaranteed crit, evade, or trait-based Crit/Dodge effects. Stun/Freeze thresholds are 20% of max HP rounded via `CombatRounding` (min 1) with 25% party incoming control resistance. Enemy scaling uses `EnemyPowerCurve` with static mode profiles and four smoothstep curves (normal HP, boss HP, normal raw damage %, boss raw damage % at L1/20/40, then uncapped logarithmic HP growth and linear raw damage growth). Universal outgoing/incoming damage percents (e.g., Chicken Coop/Pasture and enemy raw damage) stack additively and round via `CombatRounding`. Tune encounter level first, then the four curve anchors, then per-enemy HP only for outliers across ≥2 tiers.
 
 Beyond level 40, let `t = (level - 40) / 20` and `delta = value40 - value20`.
-HP is `value40 + delta * log1p(t)`; raw damage is `value40 + delta * t`.
+HP is `value40 + delta * log1p(t)`. Standard raw damage uses an explicit linear
+post-kit step owned by `EnemyPowerCurve`; Spire/recovery raw damage uses
+`value40 + delta * t`. Do not reuse the level-20-to-40 gear jump as standard
+post-40 damage growth.
 The health tail slows fight-length growth after equipment and talent kits mature;
 raw damage continues to rise against the party's growing HP. These curves have
 no designed upper plateau; numeric representation remains finite.
@@ -24,6 +27,13 @@ mode rules. Contracts uses party-average offsets through the same resolver;
 [Contracts.md](../Product/Contracts.md) owns its board and reward rules. Keep
 role-specific roster catch-up XP unchanged. Product direction:
 [Decisions.md](../Product/Decisions.md), PD-016 through PD-021.
+
+The standard profile serves Journey, Labyrinth, Voyage, and non-Easy Contracts.
+Spires use their own fixed-floor power profile; Easy Contracts use the recovery
+profile. Profile selection stays static for the mode, never follows party gear or
+current Health. Previews, launch assembly, progression matchups, and hotspot power
+ratings use the same profile. Spire levels remain twice the floor and XP rates
+and catch-up rules remain unchanged.
 
 Hidden fight pacing (`FightPacing`) band-scales authored combat magnitudes via comeback and a progress-based clock. Passive turn-start mana drip is excluded. Percentage multipliers on combat integers round via `CombatRounding` (nearest integer, ties away from zero); integer division semantics remain truncating division.
 
@@ -123,6 +133,11 @@ floor modifiers, and keeps Spire affinity as reward metadata rather than forcing
 When all remaining advancing modes have stalled, Easy Contracts provide recovery
 XP through the shared level and XP rules. These jobs do not clear advancing steps
 or extend the completion criterion, and are not classified as progression hotspots.
+Decided defeats earn the existing partial XP from peak enemy Health depletion,
+using `BattleDefeatProgress.experienceAward`; unfinished capped simulations earn
+no defeat XP. Defeats do not clear advancing content or count as victories.
+Reports from the earlier victory-only career model overstate recovery grind and
+must not be compared as if they included live defeat rewards.
 Losses retain the same recovery offer until victory. Random-stage enemy variants
 have separate hotspot rows so one enemy cannot inherit another's losses.
 The battle-count limit still bounds the run. Gear remains an idealized tier profile;

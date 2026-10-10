@@ -246,7 +246,7 @@ package extension DamagePipeline {
         if state.options.isAttackHit,
            state.damageKeyword == .physical,
            context.modifiers(for: sourceActorID).triggers.firstPhysicalAttackGuaranteedCritical,
-           context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
+           context.claimBattleGuard(.surpriseStrikePhysical, actorID: actor.combatant.id) {
             guaranteed = true
         }
         if state.options.isAttackHit {

@@ -45,7 +45,7 @@ struct CombatRuleAuditRegressionTests {
 
     @Test func `Volatile Remedy waits for the next attack after Poison Dagger Leech`() throws {
         var profile = CombatantTalentCatalog.profile(for: ["alchemist_health_t3_2"])
-        profile.triggers.poisonDamageLeech = true
+        profile.triggers.poisonAttackLeech = true
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroModifiers: profile, dealOpeningHand: false,

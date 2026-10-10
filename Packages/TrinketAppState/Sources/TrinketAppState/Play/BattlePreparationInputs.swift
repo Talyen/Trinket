@@ -37,6 +37,7 @@ struct BattleLaunchInput: Equatable {
     let companion: Combatant
     let enemy: Combatant?
     let enemyEncounterLevel: Int?
+    let enemyPowerProfile: EnemyPowerCurve.Profile
     let stageReward: StageReward?
     let experienceBonusPercent: Int
     let victoryOnlyExperienceBonusPercent: Int
@@ -61,12 +62,14 @@ struct BattleLaunchInput: Equatable {
         universalModifiers: [AffixModifier] = [],
         nodeModifiers: [NodeModifierDefinition] = [],
         completionBonus: VoyageCompletionBonus? = nil,
+        enemyPowerProfile: EnemyPowerCurve.Profile? = nil,
     ) {
         self.completionBonus = completionBonus
         self.origin = origin
         self.hero = hero
         self.companion = companion
         self.enemy = enemy
+        self.enemyPowerProfile = enemyPowerProfile ?? (origin?.mode == .spire ? .spire : .standard)
         self.enemyEncounterLevel = enemyEncounterLevel
         self.stageReward = stageReward
         self.experienceBonusPercent = experienceBonusPercent
