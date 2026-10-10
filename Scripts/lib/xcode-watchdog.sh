@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
 xcode_runner_wall_timeout_seconds() {
-  printf '%s' "${TRINKET_XCODE_WALL_TIMEOUT_SECONDS:-1200}"
+  local wall="${TRINKET_XCODE_WALL_TIMEOUT_SECONDS:-1200}"
+  if [[ "${TRINKET_CI_DEADLINE_EPOCH:-}" =~ ^[0-9]+$ ]]; then
+    local available=$((TRINKET_CI_DEADLINE_EPOCH - $(date +%s) - 30))
+    (( available > 0 )) || available=1
+    if [[ ! "$wall" =~ ^[0-9]+$ ]] || (( wall == 0 || wall > available )); then wall=$available; fi
+  fi
+  printf '%s' "$wall"
 }
 
 xcode_runner_idle_timeout_seconds() {

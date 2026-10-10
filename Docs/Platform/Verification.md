@@ -157,6 +157,35 @@ uses the native architecture and two Xcode build workers to reduce pressure.
 Interactive play and bounded device/simulator debugging remain
 available; the CI policy applies to automatic verification, not to playing the game.
 
+## Native pure-logic qualification
+
+Native push lanes are activated only after hosted iOS/native qualification agrees.
+During qualification, push CI retains its iOS unit suites and also runs the native
+comparators. Once activated, `BattleEngine` and `TrinketCore` run natively on pushes. State keeps iOS verification
+for Persistence and AppState, and smoke keeps the real simulator/app path. Native
+execution must complete every independently discovered function and parameterized
+case without skips or issues; a positive aggregate count is insufficient.
+
+Manual/nightly standard runs keep the full iOS package scopes and compare native
+Engine/Core executed identities, expanded parameterized case counts, and results
+on the same revision. The manual
+`qualification` scope runs only those two native/iOS comparator lanes; it does not
+establish app, UI, Release, or other-package proof. Qualification mismatches fail
+the run. Structured proof uses the versioned
+[Swift Testing event stream](https://github.com/swiftlang/swift-testing/blob/main/Documentation/ABI/JSON.md),
+not console glyphs or an incidental terminal-summary format.
+
+## Execution deadlines
+
+Standard build, package, UI, asset, and unsigned Release jobs record an absolute
+execution deadline in their first step, reserving three minutes before the GitHub
+job timeout for diagnostic classification and upload. The shorter generation/style
+gate reserves two minutes. The command supervisor includes simulator
+preparation and serial package work; per-command Xcode watchdogs also cap themselves
+against the remaining deadline, preserving a short manifest-finalization allowance.
+Timeouts remain failures and emit structured receipts. Supervisors terminate only
+their own process groups; existing simulator guest/lease cleanup remains in force.
+
 ## Gate composition
 
 | Gate | Composition |
@@ -168,7 +197,7 @@ available; the CI policy applies to automatic verification, not to playing the g
 | `test-deploy.sh` | Full CI/release test sequence; local execution uses the deliberate heavy-local flag and diagnostic limits. Keep release/TestFlight evidence requirements intact |
 | Main CI | Post-push on `main` (no pull-request workflow): path filter, generation/style/full script regressions, app build with smoke on the same runner, and package unit for product changes |
 | Clean analysis | Explicit local `lint-analyze.sh [SwiftPath ...]` cleanup using a clean app build; unused imports fail the command; never part of CI or handoff |
-| Device Release compilation | Nightly and manual CI run unsigned device Release compilation serialized behind build+unit with a 30-minute wall watchdog; failures block that run’s `CI OK`, ordinary pushes skip it. Signing/export/upload remain TestFlight responsibilities. |
+| Device Release compilation | Nightly and standard manual CI run unsigned device Release compilation serialized behind build+unit with a 30-minute job budget and reserved diagnostic time; failures block that run’s `CI OK`, ordinary pushes skip it. Signing/export/upload remain TestFlight responsibilities. |
 | Nightly exhaustive | Scheduled or manually dispatched exhaustive UI with all registered classes on one runner; advisory, never blocks `CI OK` |
 | Performance diagnostics | Manual `performance.yml` dispatch with a validated group/repetition selection; never part of routine local or push verification |
 
@@ -200,12 +229,12 @@ select the full portfolio. Narrow selection requires all manifests to match the
 reviewed layout fingerprints in `ci-path-filter.py`; any changed manifest retains
 full coverage until its target/input ownership is reviewed and its fingerprint
 deliberately updated. Tests and handoff never refresh these fingerprints.
-Manual and scheduled runs retain full package coverage; partial
-push verification does not substitute for it. The Engine host path is a parity pilot
-on full runs alongside its iOS suite; do not promote it before hosted count/identity
-and behavior evidence agrees. Dispatch `scope=exhaustive-pilot` to bypass prior
-standard proof and exercise the retained iOS comparator, host pilot, and inline UI.
-Normal exhaustive dispatches keep standard reuse enabled. See [test-package-host.sh](../../Scripts/test-package-host.sh).
+Standard manual and scheduled runs retain full package coverage; partial push
+verification does not substitute for it. Native qualification follows the
+[executed-scope contract](#native-pure-logic-qualification). Dispatch
+`scope=qualification` for the focused same-revision comparators, or
+`scope=exhaustive-pilot` to bypass standard reuse and exercise the complete
+portfolio plus inline UI. Normal exhaustive dispatches retain standard reuse.
 
 Upfront full runs execute FullUI on the build/smoke runner and report its outcome
 through a separate advisory status job, eliminating product transfer. Follow-up
@@ -213,7 +242,10 @@ full dispatches with prior standard proof retain the transfer/reuse path.
 
 Package unit jobs restore separately keyed incremental state in their per-package
 DerivedData tenants, then always invoke compilation/testing so changed inputs rebuild.
-They do not download the app product archive.
+They do not download the app product archive. Native-only Engine pushes restore
+only native compiler state in a separate namespace, retaining simulator state for
+the iOS comparator lanes. Cache identity uses setup-trinket’s selected Xcode
+version/build without launching another version-query process.
 
 Manual runs queue behind current branch verification without allocating a waiting
 runner. They reuse successful standard checks only for the exact commit and branch,
@@ -221,7 +253,7 @@ with actual successful build/smoke, gate, and all unit jobs proving the full pac
 portfolio in their successful test steps, plus an available product
 artifact. Skipped jobs, expired products, and unreadable evidence fall back to ordinary
 verification. Asset verification is reused only with its own successful job evidence;
-manual device Release compilation still runs. New pushes supersede obsolete branch runs.
+standard manual device Release compilation still runs. New pushes supersede obsolete branch runs.
 See [ci-reuse.py](../../Scripts/ci-reuse.py) for the proof contract. Exact shards, artifact contracts, cache inputs, and remaining advisory
 job behavior belong to the checked-in workflows ([tests.yml](../../.github/workflows/tests.yml) and
 related workflow files); update this guide only when the verification policy

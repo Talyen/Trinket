@@ -1,5 +1,5 @@
 name: Trinket CI
-run-name: Trinket CI (${{ github.event_name == 'schedule' && 'latest' || inputs.toolchain || 'verified' }})
+run-name: ${{ inputs.scope == 'qualification' && 'Native qualification' || 'Trinket CI' }} (${{ github.event_name == 'schedule' && 'latest' || inputs.toolchain || 'verified' }})
 
 on:
   push:
@@ -26,6 +26,7 @@ on:
           - standard
           - exhaustive
           - exhaustive-pilot
+          - qualification
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -43,4 +44,5 @@ jobs:
     with:
       xcode-channel: ${{ github.event_name == 'schedule' && 'latest' || inputs.toolchain || 'verified' }}
       force-full: ${{ inputs.scope == 'exhaustive-pilot' }}
+      qualify-native: ${{ inputs.scope == 'qualification' }}
       include-exhaustive: ${{ github.event_name == 'schedule' || inputs.scope == 'exhaustive' || inputs.scope == 'exhaustive-pilot' }}

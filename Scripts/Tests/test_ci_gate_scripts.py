@@ -6,7 +6,7 @@ SCRIPT_INPUTS = (
     '.github/workflows/ci.yml',
     '.githooks/pre-push',
     'Scripts/pre-push-paths.py',
-    'Scripts/ci-gate.sh',
+    'Scripts/ci-gate.sh', 'Scripts/ci-run-budget.py',
     'Scripts/config/cheap-slices.txt',
     'Scripts/handoff.sh',
     'Scripts/lib/args.sh',
@@ -60,6 +60,7 @@ class CIGateScriptTests(ScriptRegressionTestCase):
             root = Path(directory)
             scripts = root / 'Scripts'
             scripts.mkdir()
+            (scripts / 'ci-run-budget.py').write_text((ROOT / 'Scripts/ci-run-budget.py').read_text())
             gate = scripts / 'ci-gate.sh'
             gate.write_text('#!/bin/bash\necho original failure >&2\nexit 65\n')
             gate.chmod(0o755)

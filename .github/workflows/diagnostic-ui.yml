@@ -1,0 +1,94 @@
+name: Exact-build UI diagnostic
+run-name: UI diagnostic for run ${{ inputs.source-run }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      source-run:
+        description: Completed Trinket CI run containing the exact test products
+        required: true
+        type: string
+      tests:
+        description: Existing Class/testMethod selectors, separated by spaces
+        required: true
+        type: string
+      mode:
+        description: Source test plan
+        type: choice
+        default: smoke
+        options: [smoke, ui]
+      toolchain:
+        description: Must match the source build; incompatibility fails without rebuilding
+        type: choice
+        default: verified
+        options: [verified, latest]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.source.outputs.sha }}
+      artifact: ${{ steps.source.outputs.artifact }}
+      run: ${{ steps.source.outputs.run }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          sparse-checkout: Scripts
+      - id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ inputs.source-run }}
+        run: python3 Scripts/ci-diagnostic-ui.py resolve "$SOURCE_RUN"
+
+  diagnostic:
+    needs: source
+    runs-on: xcode-27
+    timeout-minutes: 20
+    steps:
+      - name: Reserve diagnostic time
+        shell: bash
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 20 * 60 - 180 ))" >> "$GITHUB_ENV"
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          sparse-checkout: Scripts
+      - name: Retain diagnostic driver independently of the source revision
+        run: |
+          mkdir -p "$RUNNER_TEMP/ui-diagnostic-driver"
+          cp Scripts/ci-diagnostic-ui.py Scripts/ci-run-budget.py "$RUNNER_TEMP/ui-diagnostic-driver/"
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          ref: ${{ needs.source.outputs.sha }}
+      - uses: ./.github/actions/setup-trinket
+        with:
+          metal: 'true'
+          xcode-channel: ${{ inputs.toolchain }}
+      - uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317 # v5
+        with:
+          name: ${{ needs.source.outputs.artifact }}
+          run-id: ${{ needs.source.outputs.run }}
+          github-token: ${{ github.token }}
+          path: .DerivedData
+      - name: Run exact-build selected cases
+        env:
+          CI: true
+          DIAGNOSTIC_TESTS: ${{ inputs.tests }}
+          SOURCE_RUN: ${{ needs.source.outputs.run }}
+          SOURCE_SHA: ${{ needs.source.outputs.sha }}
+          TRINKET_CLEANUP_TEST_ARTIFACTS: 0
+        run: python3 "$RUNNER_TEMP/ui-diagnostic-driver/ci-run-budget.py" -- python3 "$RUNNER_TEMP/ui-diagnostic-driver/ci-diagnostic-ui.py" run "${{ inputs.mode }}"
+      - name: Retain bounded diagnostic evidence
+        if: always()
+        run: |
+          ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+          ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/TestResults-artifact
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        if: always()
+        with:
+          name: ui-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/TestResults-artifact
+          retention-days: 14

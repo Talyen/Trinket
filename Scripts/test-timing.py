@@ -7,6 +7,8 @@ import argparse
 import json
 import math
 import os
+import re
+import subprocess
 import sys
 from statistics import median
 from datetime import datetime, timezone
@@ -93,7 +95,9 @@ def parse_xcresult(path: Path, manifest: dict | None = None) -> dict:
         {"id": node.get("nodeIdentifier", node.get("name", "unknown")),
          "name": node.get("name", ""),
          "seconds": finite_nonnegative(node.get("durationInSeconds", 0.0), "xcresult test duration"),
-         "result": node.get("result", "Unknown")}
+         "result": node.get("result", "Unknown"),
+         "arguments": [child.get("result", "Unknown") for child in walk_test_nodes(node.get("children"))
+                       if child.get("nodeType") == "Arguments"]}
         for node in walk_test_nodes(payload.get("testNodes")) if node.get("nodeType") == "Test Case"
     ]
     start = summary.get("startTime")
@@ -161,6 +165,14 @@ def parse_options(args: list[str]) -> dict:
     return values
 
 
+def current_commit() -> str | None:
+    try:
+        value = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True, stderr=subprocess.DEVNULL, timeout=5).strip()
+        return value if re.fullmatch('[0-9a-f]{40}', value) else None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
 def record(results_dir: Path, log_path: Path, args: list[str]) -> None:
     values = parse_options(args)
     mode = values.get("mode", "")
@@ -194,7 +206,7 @@ def record(results_dir: Path, log_path: Path, args: list[str]) -> None:
                 pass
         parsed = parse_xcresult(path, manifest)
         recorded_xcresult = str(path)
-    append_entry(results_dir, log_path, {"recorded_at": datetime.now(timezone.utc).isoformat(), "run": run, "mode": mode, "targets": values["targets"], "no_build": bool(values.get("no_build")), "wall_seconds": wall_seconds, "xcresult": recorded_xcresult, **parsed})
+    append_entry(results_dir, log_path, {"recorded_at": datetime.now(timezone.utc).isoformat(), "commit": current_commit(), "run": run, "mode": mode, "targets": values["targets"], "no_build": bool(values.get("no_build")), "wall_seconds": wall_seconds, "xcresult": recorded_xcresult, **parsed})
     # Quiet test runs print nothing on success; this single line is the
     # terminal-visible proof that tests executed and their outcome.
     summary = parsed["summary"]

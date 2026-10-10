@@ -14,6 +14,10 @@ on:
         description: Required verified toolchain or newest installed beta validation
         type: string
         default: verified
+      qualify-native:
+        description: Run only same-revision iOS/native Engine and Core comparators
+        type: boolean
+        default: false
       force-full:
         description: Bypass prior standard proof for the host parity and inline UI pilot
         type: boolean
@@ -41,12 +45,12 @@ jobs:
       build-artifact: ${{ steps.proof.outputs.build-artifact }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-        if: github.event_name == 'workflow_dispatch' && !inputs.force-full && inputs.xcode-channel == 'verified'
+        if: github.event_name == 'workflow_dispatch' && !inputs.force-full && !inputs.qualify-native && inputs.xcode-channel == 'verified'
         with:
           sparse-checkout: Scripts
       - name: Find successful exact-commit checks
         id: proof
-        if: github.event_name == 'workflow_dispatch' && !inputs.force-full && inputs.xcode-channel == 'verified'
+        if: github.event_name == 'workflow_dispatch' && !inputs.force-full && !inputs.qualify-native && inputs.xcode-channel == 'verified'
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 Scripts/ci-reuse.py
@@ -56,7 +60,7 @@ jobs:
 
   gate:
     needs: [changes, reuse]
-    if: needs.reuse.outputs.standard != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true' || needs.changes.outputs.infra == 'true')
+    if: ${{ !inputs.qualify-native && needs.reuse.outputs.standard != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true' || needs.changes.outputs.infra == 'true') }}
     uses: ./.github/workflows/gate.yml
     with:
       xcode-channel: ${{ inputs.xcode-channel }}
@@ -64,23 +68,34 @@ jobs:
   assets-gate:
     name: Prepared asset integrity
     needs: [changes, reuse]
-    if: needs.reuse.outputs.assets != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.assets == 'true')
+    if: ${{ !inputs.qualify-native && needs.reuse.outputs.assets != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.assets == 'true') }}
     runs-on: xcode-27
     timeout-minutes: 20
     steps:
+      - name: Reserve diagnostic time
+        shell: bash
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 20 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-trinket
         with:
           xcode-channel: ${{ inputs.xcode-channel }}
       # Same semantics as local ./Scripts/ci-assets-gate.sh (single owner).
       - name: Prepared asset integrity gate
-        run: ./Scripts/ci-assets-gate.sh
+        run: python3 Scripts/ci-run-budget.py -- ./Scripts/ci-assets-gate.sh
+      - name: Retain asset watchdog diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: asset-budget-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/TestResults/verification-budget-*
+          retention-days: 14
+          if-no-files-found: ignore
 
   build:
     name: Build and smoke UI
     needs: [changes, reuse]
     if: >-
-      needs.reuse.outputs.standard != 'true' && (
+      !inputs.qualify-native && needs.reuse.outputs.standard != 'true' && (
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'schedule' ||
       inputs.include-exhaustive ||
@@ -92,8 +107,11 @@ jobs:
       smoke-targets: ${{ steps.ui-matrices.outputs.smoke-targets }}
       inline-ui-outcome: ${{ steps.inline-ui.outcome }}
     steps:
+      - name: Reserve diagnostic time
+        shell: bash
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 40 * 60 - 180 ))" >> "$GITHUB_ENV"
       # Local composite actions cannot run before the repo exists, so the
-      # first step inlines actions/checkout (same sparse set as
+      # checkout step inlines actions/checkout (same sparse set as
       # .github/actions/checkout-trinket, which documents the shared list).
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
@@ -138,7 +156,7 @@ jobs:
         uses: ./.github/actions/restore-and-build
         with:
           artifact-prefix: ${{ inputs.artifact-prefix }}
-          build-command: ./Scripts/build-for-testing.sh --app-only
+          build-command: python3 Scripts/ci-run-budget.py -- ./Scripts/build-for-testing.sh --app-only
           prune: 'true'
           save-cache: 'true'
           # Preserve products for exhaustive UI and later exact-commit dispatch.
@@ -167,17 +185,19 @@ jobs:
     name: Device Release compilation
     # Cold optimized compilation needs headroom after the concurrent product builds.
     # Serializing behind build+unit cuts peak macOS fan-out; the wall
-    # timeout below matches the 30-minute job timeout so a slow Release
-    # compile fails fast instead of wedging at the 20-minute default.
+    # execution deadline reserves the final three minutes for diagnostics.
     needs: [changes, reuse, build, unit]
     if: >-
-      always() && needs.reuse.result == 'success' &&
+      always() && !inputs.qualify-native && needs.reuse.result == 'success' &&
       (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
       (needs.build.result == 'success' || needs.reuse.outputs.standard == 'true') &&
       (needs.unit.result == 'success' || needs.reuse.outputs.standard == 'true')
     runs-on: xcode-27
     timeout-minutes: 30
     steps:
+      - name: Reserve diagnostic time
+        shell: bash
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 30 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 1
@@ -212,9 +232,9 @@ jobs:
         env:
           SKIP_GENERATE: 1
           # Cold Release exceeds the 1200s xcode-runner default on slow
-          # runners; align the wall watchdog with the 30-minute job timeout.
+          # runners; cap execution before the job timeout so diagnostics can finish.
           TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
-        run: ./Scripts/build.sh --release-device --quiet
+        run: python3 Scripts/ci-run-budget.py -- ./Scripts/build.sh --release-device --quiet
       - name: Upload Release build failure diagnostics
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
@@ -228,16 +248,19 @@ jobs:
   unit:
     name: Unit tests (${{ matrix.name }})
     needs: [changes, reuse]
-    if: needs.reuse.outputs.standard != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.units == 'true' || github.event_name == 'schedule')
+    if: inputs.qualify-native || (needs.reuse.outputs.standard != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.units == 'true' || github.event_name == 'schedule'))
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.changes.outputs.unit-matrix) }}
+      matrix: ${{ inputs.qualify-native && fromJSON('{"include":[{"name":"Engine","packages":"BattleEngine"},{"name":"Core","packages":"TrinketCore"}]}') || fromJSON(needs.changes.outputs.unit-matrix) }}
     runs-on: xcode-27
     # Package schemes are compiled in this job; the shared build is app-only
     # so smoke/UI can start without waiting on package test products.
     # Sharded 4-way (Engine/State/Content/Battle) for faster push feedback.
     timeout-minutes: 25
     steps:
+      - name: Reserve diagnostic time
+        shell: bash
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 25 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 1
@@ -273,27 +296,43 @@ jobs:
         id: package-cache
         with:
           shard: ${{ matrix.name }}
+          native-only: 'false'
       - name: Test packages (${{ matrix.packages }})
         uses: ./.github/actions/test-job
         with:
           artifact-name: unit-${{ matrix.name }}
+          defer-cleanup: ${{ (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') }}
           artifact-prefix: ${{ inputs.artifact-prefix }}
           command: ./Scripts/test-package.sh ${{ matrix.packages }}
-      - name: Native Engine parity pilot
-        if: matrix.name == 'Engine' && github.event_name != 'push'
+      - name: Native and iOS pure-logic parity
+        if: (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core')
         env:
           CI: true
-        run: ./Scripts/test-package-host.sh
-      - name: Retain Engine parity evidence
-        if: always() && matrix.name == 'Engine' && github.event_name != 'push'
+          NATIVE_PACKAGE: ${{ matrix.name == 'Engine' && 'BattleEngine' || 'TrinketCore' }}
+        run: python3 Scripts/ci-run-budget.py -- ./Scripts/test-package-host.sh --compare-ios "$NATIVE_PACKAGE"
+      - name: Summarize native qualification diagnostics
+        if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core')
+        run: |
+          ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+          if [[ "${{ job.status }}" != success ]]; then
+            ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/NativeQualification-artifact
+          fi
+      - name: Retain native qualification evidence
+        if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
-          name: host-engine-parity-${{ github.run_id }}-${{ github.run_attempt }}
+          name: native-proof-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            .DerivedData/TestResults/host-engine.json
-            .DerivedData/TestResults/host-engine.log
-            .DerivedData/TestResults/phase-timing.jsonl
+            .DerivedData/TestResults/native-*
+            .DerivedData/TestResults/verification-budget-*
+            .DerivedData/TestResults/ci-diagnostics.json
+            .DerivedData/TestResults/timing-log.jsonl
+            .DerivedData/TestResults/raw/native-*
+            .DerivedData/NativeQualification-artifact
           retention-days: 14
+      - name: Clean retained comparator diagnostics
+        if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core')
+        run: ./Scripts/ci-diagnostics.sh --cleanup .DerivedData/TestResults
 
       - name: Prune package build state
         if: success() && steps.package-cache.outputs.cache-hit != 'true'
@@ -302,9 +341,7 @@ jobs:
         if: success() && steps.package-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@3edfce9056124e459a23f683a21433670d47daca # v4
         with:
-          path: |
-            .DerivedData/packages
-            .DerivedData/host
+          path: ${{ steps.package-cache.outputs.cache-path }}
           key: ${{ steps.package-cache.outputs.cache-key }}
 
   exhaustive-ui:
@@ -320,6 +357,9 @@ jobs:
     env:
       TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
     steps:
+      - name: Reserve diagnostic time
+        shell: bash
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 40 * 60 - 180 ))" >> "$GITHUB_ENV"
       - name: Verify inline exhaustive outcome
         if: needs.reuse.outputs.standard != 'true'
         env:

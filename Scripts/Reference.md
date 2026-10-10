@@ -40,7 +40,9 @@ two local build workers.
 | `./Scripts/build-for-testing.sh` | CI-owned compilation of app/package test schemes for `test.sh … --no-build` runs against CI build artifacts |
 | `./Scripts/build-for-testing.sh --app-only` | Build the app and UI test bundles, skipping package test schemes (CI shared build) |
 | `./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination …] [--iterations …] [--run-tests-until-failure] [--include-balance-sweep-tests] [--quiet] [--verbose] <Package> [Package...]` | CI-owned package tests on iOS Simulator; `--destination` allows simulator name/UUID overrides, rejects other platforms, and cannot combine with generic `--build-for-testing`; `--iterations` and `--run-tests-until-failure` support bounded diagnostic repetition; multiple packages emit an aggregate failure summary with retained report paths, `--verbose` expands worker output |
-| `./Scripts/test-package-host.sh` | Native Engine parity pilot for full CI runs; retains the iOS comparator |
+| `./Scripts/test-package-host.sh [--compare-ios] [BattleEngine\|TrinketCore ...]` | Native executed-scope proof; `--compare-ios` checks same-revision iOS timing evidence. Push CI uses qualified native pure logic; manual/nightly retain iOS comparators |
+| `./Scripts/test-ci-packages.sh <Package...>` | CI dispatcher: native Engine/Core on pushes, iOS package scopes on manual/nightly runs |
+| `gh workflow run diagnostic-ui.yml -f source-run=RUN_ID -f tests='Class/testMethod'` | Focused exact-build UI diagnosis; original conclusions remain unchanged, and absent/incompatible products fail without rebuilding |
 | `./Scripts/test.sh unit [--no-build] [--app-only] [--quiet] [--verbose]` | CI-owned package unit suites via the parallel `test-package.sh` owner (`--app-only` is a compile-only app build) |
 | `./Scripts/test.sh style [--no-build]` | Run the style gate (format/lint/UI style/API bans/exclusivity/invariants/accessibility IDs) |
 | `./Scripts/test.sh performance [--scenario …] [--group …]` | List/run the performance matrix via `performance.sh` selection |

@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from ci_ui_retry import recovery_valid
+from internal.cli import load_sibling
 
 from internal.diagnostics.diagnostic_limits import MAX_AGGREGATE_ISSUES, MAX_LABELS_IN_DETAIL, MAX_MESSAGE_CHARS
 from internal.diagnostics.diagnostic_model import CLASSIFICATION_PRECEDENCE, bounded_text
@@ -82,6 +83,17 @@ def watchdog_log_proves_pass(manifest: dict, status: str, exit_code: int) -> boo
         and manifest.get("completion_source") == "watchdog-log-inference"
         and manifest.get("test_execution_proven") is True
     )
+
+
+def successful_native(manifest: dict) -> bool:
+    if manifest.get('action') != 'native-test':
+        return False
+    checker = load_sibling('native_execution_proof', 'native-test-results.py')
+    return (manifest.get('status') == 'passed'
+            and type(manifest.get('exit_code')) is int and manifest['exit_code'] == 0
+            and manifest.get('completion_source') == 'process-exit'
+            and manifest.get('test_execution_proven') is True
+            and checker.valid(manifest.get('native_test')))
 
 
 def successful_build(manifest: dict) -> bool:
@@ -192,7 +204,7 @@ def normalise_report(
     has_result_bundle = result_bundle_exists(result_bundle, results_dir)
     has_complete_result_bundle = result_bundle_complete(result_bundle, results_dir)
     has_watchdog_proof = watchdog_log_proves_pass(manifest, status, exit_code)
-    has_build_proof = successful_build(manifest)
+    has_build_proof = successful_build(manifest) or successful_native(manifest)
     report_exists = path is not None and path.is_file()
     manifest_passed = (
         status == "passed"
@@ -304,7 +316,7 @@ def load_reports(results_dir: Path, output_path: Path, session_id: str, full: bo
                 and (
                     result_bundle_complete(manifest.get("result_bundle", ""), results_dir)
                     or watchdog_log_proves_pass(manifest, "passed", 0)
-                    or successful_build(manifest)
+                    or successful_build(manifest) or successful_native(manifest)
                 )
             )
             if diagnostics_path and diagnostics_path.is_file():

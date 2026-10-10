@@ -158,6 +158,11 @@ def cleanup(root: Path, keep: bool) -> None:
         if not passed and manifest_path not in recovered:
             continue
         artifacts = set()
+        if manifest.get('action') == 'native-test':
+            for value in manifest.get('native_artifacts', []):
+                native = artifact_path(value, root)
+                if native is not None:
+                    artifacts.add(native)
         result = artifact_path(manifest.get("result_bundle"), root)
         if result is not None:
             stem = result.name.removesuffix(".xcresult")

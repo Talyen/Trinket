@@ -23,6 +23,18 @@ outside `CI OK`; unavailable results are reported as unknown.
 
 ## Preparation timing
 
+The manual **Exact-build UI diagnostic** workflow accepts a completed CI run and
+explicit source-revision UI selectors. It validates the producing build step and
+attempt, repository/branch, artifact availability, then checks the restored commit,
+SDK, toolchain, architecture, and source stamps. Missing or incompatible products
+fail instead of rebuilding. It runs only selected cases without automatic retries;
+its result never changes the original run or establishes standard CI proof.
+
+Command execution uses the job's absolute deadline under
+[verification deadlines](../Platform/Verification.md#execution-deadlines). A timed-out
+supervisor writes a failed budget receipt in the same diagnostic session, even if
+the child never reached Xcode or completed an invocation manifest.
+
 Test wrappers own simulator preparation and recovery. CI actions must not run a
 background boot alongside that owner: competing recovery can erase a device
 while another process is booting or testing it.

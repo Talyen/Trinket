@@ -4,7 +4,13 @@ inputs:
   shard:
     description: Unit shard owning the per-package DerivedData directories
     required: true
+  native-only:
+    description: Restore only native compiler state for a native-only lane
+    default: 'false'
 outputs:
+  cache-path:
+    description: Paths owned by this lane, also used when saving the cache
+    value: ${{ steps.key.outputs.cache-path }}
   cache-key:
     description: Exact package build key
     value: ${{ steps.key.outputs.cache-key }}
@@ -20,17 +26,24 @@ runs:
       id: key
       shell: bash
       env:
+        NATIVE_ONLY: ${{ inputs.native-only }}
         SHARD: ${{ inputs.shard }}
         BUILD_KEY: ${{ steps.inputs.outputs.cache-key }}
         BUILD_PREFIX: ${{ steps.inputs.outputs.cache-restore-prefix }}
       run: |
-        echo "cache-key=package-v1-${SHARD}-${BUILD_KEY}" >> "$GITHUB_OUTPUT"
-        echo "restore-prefix=package-v1-${SHARD}-${BUILD_PREFIX}" >> "$GITHUB_OUTPUT"
+        namespace=package-v1
+        if [[ "$NATIVE_ONLY" == true ]]; then namespace=package-native-v1; fi
+        echo "cache-key=${namespace}-${SHARD}-${BUILD_KEY}" >> "$GITHUB_OUTPUT"
+        echo "restore-prefix=${namespace}-${SHARD}-${BUILD_PREFIX}" >> "$GITHUB_OUTPUT"
+        {
+          echo 'cache-path<<CACHE_PATHS'
+          if [[ "$NATIVE_ONLY" != true ]]; then echo '.DerivedData/packages'; fi
+          echo '.DerivedData/host'
+          echo CACHE_PATHS
+        } >> "$GITHUB_OUTPUT"
     - uses: actions/cache/restore@3edfce9056124e459a23f683a21433670d47daca # v4
       id: restore
       with:
-        path: |
-          .DerivedData/packages
-          .DerivedData/host
+        path: ${{ steps.key.outputs.cache-path }}
         key: ${{ steps.key.outputs.cache-key }}
         restore-keys: ${{ steps.key.outputs.restore-prefix }}

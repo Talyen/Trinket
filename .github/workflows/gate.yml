@@ -13,6 +13,9 @@ jobs:
     runs-on: xcode-27
     timeout-minutes: 10
     steps:
+      - name: Reserve diagnostic time
+        shell: bash
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 10 * 60 - 120 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           # Depth-1 history suffices for changelog validation. blob:limit=1g
@@ -55,7 +58,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RESULTS_DIR"
-          ./Scripts/ci-gate.sh 2>&1 | tee "$RESULTS_DIR/gate.log"
+          python3 Scripts/ci-run-budget.py -- ./Scripts/ci-gate.sh 2>&1 | tee "$RESULTS_DIR/gate.log"
       - name: Stage bounded gate failure diagnostics
         if: failure()
         run: ./Scripts/ci-diagnostics.sh --stage-gate-artifacts .DerivedData/TestResults .DerivedData/GateResults-artifact

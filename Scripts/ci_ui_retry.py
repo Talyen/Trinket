@@ -146,7 +146,7 @@ def run(command: list[str]) -> int:
     if "--no-build" not in command or not targets:
         return subprocess.call(command)
     results = Path(os.environ.get("RESULTS_DIR", ".DerivedData/TestResults")).resolve()
-    session = "ui-retry-" + uuid.uuid4().hex
+    session = os.environ.get("TRINKET_DIAGNOSTICS_SESSION_ID") or "ui-retry-" + uuid.uuid4().hex
     env = {**os.environ, "TRINKET_DIAGNOSTICS_SESSION_ID": session,
            "TRINKET_TARGETED_UI_RETRY": "1", "TRINKET_CLEANUP_TEST_ARTIFACTS": "0"}
     before = set(results.glob("*-invocation.json"))

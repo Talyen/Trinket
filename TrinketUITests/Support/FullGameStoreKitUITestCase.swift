@@ -31,6 +31,10 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
         try startStoreSession()
         // Recruitment is earned separately; the seed isolates paid content access.
         launchApp(arguments: TestLaunchArg.allForTab("options") + arguments)
+        openOptionsOffer()
+    }
+
+    func openOptionsOffer() {
         assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
         tapButton(AccessibilityID.FullGame.options)
         assertExists(AccessibilityID.FullGame.offer)

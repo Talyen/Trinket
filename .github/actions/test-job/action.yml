@@ -20,6 +20,9 @@ inputs:
     description: Shell command to rebuild on artifact miss (default app-only build-for-testing)
     required: false
     default: './Scripts/build-for-testing.sh --app-only'
+  defer-cleanup:
+    description: Retain comparator results until a following same-runner parity check finishes
+    default: 'false'
   artifact-prefix:
     description: Optional prefix for the within-run build artifact name
     required: false
@@ -76,7 +79,7 @@ runs:
         # The test wrapper is the sole simulator preparation/recovery owner.
         # UI recovery keeps completed cases and retries only classified launch
         # failures. Other commands pass through unchanged.
-        python3 Scripts/ci_ui_retry.py ${{ inputs.command }}
+        python3 Scripts/ci-run-budget.py -- python3 Scripts/ci_ui_retry.py ${{ inputs.command }}
 
     - name: Classify CI outcome and report timing
       if: always()
@@ -89,7 +92,7 @@ runs:
       run: ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/TestResults-artifact
 
     - name: Clean ephemeral test diagnostics
-      if: always()
+      if: always() && inputs.defer-cleanup != 'true'
       shell: bash
       run: ./Scripts/ci-diagnostics.sh --cleanup .DerivedData/TestResults
 

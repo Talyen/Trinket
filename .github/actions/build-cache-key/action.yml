@@ -36,7 +36,7 @@ runs:
         # the one script that must cold-rebuild. full adds sources + Scripts/**.
         # The committed receipt binds prepared asset bytes and selection/settings.
         # Raw sources remain outside CI and never participate in build-cache keys.
-        toolchain="$(xcodebuild -version | shasum -a 256 | awk '{print $1}')"
+        toolchain="$(printf 'Xcode %s\nBuild version %s\n' "${XCODE_VERSION:?setup-trinket must select Xcode}" "${XCODE_BUILD:?setup-trinket must select Xcode}" | shasum -a 256 | awk '{print $1}')"
         nonsource="${{ runner.os }}-${{ runner.arch }}-${toolchain}-${{ hashFiles('StoreKit/**', 'ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json', 'Scripts/tool-versions.env', 'project.yml', '*.xctestplan') }}"
         full="${{ hashFiles('StoreKit/**', 'Trinket/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json', 'Scripts/**', 'project.yml', '*.xctestplan') }}"
         echo "cache-key=build-v2-${nonsource}-${full}" >> "$GITHUB_OUTPUT"
