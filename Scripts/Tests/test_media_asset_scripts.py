@@ -413,5 +413,19 @@ trinket_asset_cleanup_tracked
             self.assertEqual(second.returncode, 0, second.stderr)
             self.assertNotIn("Installed", second.stdout)
 
+            # The focused pipeline must consume the manifest after preflight
+            # repairs a relocated master, just like the unified asset command.
+            library = root / "library"
+            library.mkdir()
+            (root / "Raw Assets/App Icon/Trinket App Icon.icon").rename(library / "Moved.icon")
+            environment = {**os.environ, 'ASSET_LIBRARY_ROOT': str(library)}
+            relocated = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True)
+            self.assertEqual(relocated.returncode, 0, relocated.stderr)
+            self.assertIn("Moved.icon", (root / "ArtManifest/app-icon.tsv").read_text())
+            self.assertEqual((root / "Trinket/AppIcon.icon/contents.dat").read_bytes(), b"icon")
+            checked = subprocess.run([sys.executable, 'Scripts/asset-library.py', '--check', '--kind', 'app-icon'],
+                                     cwd=root, env=environment, capture_output=True, text=True)
+            self.assertEqual(checked.returncode, 0, checked.stderr)
+
 if __name__ == "__main__":
     unittest.main()

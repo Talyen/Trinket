@@ -87,6 +87,36 @@ import shutil
 from pathlib import Path
 
 class CIBuildScriptTests(ScriptRegressionTestCase):
+    def test_each_requested_ui_filter_requires_executed_cases(self) -> None:
+        command = '''source Scripts/lib/test-helpers.sh
+RESULT_BUNDLE_PATH=unused
+XCODEBUILD_LOG_PATH="$1"
+TARGETS=(SmokeA SmokeB)
+xcrun() { :; }
+xcode_runner_result_bundle_complete() { [[ "$RESULT_EVIDENCE" == bundle ]]; }
+xcode_runner_run_bounded() { printf '%s\\n' "$TEST_RESULTS"; }
+trinket_assert_targeted_tests_executed
+'''
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'tests.log'
+            for evidence in ('bundle', 'log'):
+                for outcome in ('Skipped', 'Passed'):
+                    with self.subTest(evidence=evidence, outcome=outcome):
+                        tests = [{'nodeType': 'Test Case', 'nodeIdentifier': f'{suite}/testJourney()', 'result': result}
+                                 for suite, result in (('SmokeA', 'Passed'), ('SmokeB', outcome))]
+                        log.write_text("Test Case '-[SmokeA testJourney]' passed (0.1 seconds).\n"
+                                       f"Test Case '-[SmokeB testJourney]' {outcome.lower()} (0.1 seconds).\n")
+                        result = subprocess.run(
+                            ['bash', '-eu', '-c', command, '_', str(log)], cwd=ROOT,
+                            env={**os.environ, 'RESULT_EVIDENCE': evidence,
+                                 'TEST_RESULTS': json.dumps({'testNodes': tests})},
+                            capture_output=True, text=True,
+                        )
+                        self.assertEqual(result.returncode, 0 if outcome == 'Passed' else 1,
+                                         result.stdout + result.stderr)
+                        if outcome == 'Skipped':
+                            self.assertIn('zero tests (empty or all skipped): SmokeB', result.stderr)
+
     def test_successful_test_process_requires_execution_evidence(self) -> None:
         cases = (
             ('empty', 'test', '', None, 1, False),
@@ -146,7 +176,8 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
             root = self.make_repo_fixture(
                 directory,
                 ("Scripts/check-build-cache-paths.sh", "Scripts/build-freshness.sh",
-                 "Scripts/build-inputs.env", ".github/actions/build-cache-key/action.yml"),
+                 "Scripts/build-inputs.env", "Scripts/lib/generated-paths.sh",
+                 "Scripts/config/generated-paths.tsv", ".github/actions/build-cache-key/action.yml"),
             )
             action = root / ".github/actions/build-cache-key/action.yml"
             live = action.read_text(encoding="utf-8")
@@ -270,7 +301,8 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
     def test_generation_reuses_dirty_inputs_and_detects_edits_and_deletions(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_repo_fixture(
-                directory, ("Scripts/build-freshness.sh", "Scripts/build-inputs.env"))
+                directory, ("Scripts/build-freshness.sh", "Scripts/build-inputs.env",
+                            "Scripts/lib/generated-paths.sh", "Scripts/config/generated-paths.tsv"))
             prepare = root / 'Scripts/prepare-assets.sh'
             prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n[[ ! -f invalid-assets ]] || exit 7\nprintf checked >> asset-checks\n')
             prepare.chmod(0o755)
@@ -323,7 +355,8 @@ prepare_generated_inputs results || status=$?
         ):
             with self.subTest(path=relative), tempfile.TemporaryDirectory() as directory:
                 root = self.make_repo_fixture(
-                    directory, ("Scripts/build-freshness.sh", "Scripts/build-inputs.env"))
+                    directory, ("Scripts/build-freshness.sh", "Scripts/build-inputs.env",
+                                "Scripts/lib/generated-paths.sh", "Scripts/config/generated-paths.tsv"))
                 prepare = root / 'Scripts/prepare-assets.sh'
                 prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\nprintf checked >> asset-checks\n')
                 prepare.chmod(0o755)
@@ -347,6 +380,50 @@ prepare_generated_inputs results || status=$?
                 )
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 self.assertEqual((root / "calls").read_text(), expected)
+
+    def test_preparation_repairs_changed_or_missing_generated_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_repo_fixture(directory, (
+                "Scripts/build-freshness.sh", "Scripts/build-inputs.env", "Scripts/lib/generated-paths.sh",
+            ))
+            (root / "Scripts/config").mkdir()
+            (root / "Scripts/config/generated-paths.tsv").write_text(
+                "content|Generated/Catalog.swift\nproject|Trinket/Info.plist\n"
+            )
+            prepare = root / "Scripts/prepare-assets.sh"
+            prepare.write_text('#!/bin/bash\nexit 0\n')
+            prepare.chmod(0o755)
+            generate = root / "Scripts/generate.sh"
+            generate.write_text('#!/bin/bash\nset -eu\nprintf "%s\\n" "$*" >> calls\n'
+                                'mkdir -p Generated Trinket Trinket.xcodeproj/xcshareddata/xcschemes\n'
+                                'printf catalog > Generated/Catalog.swift\n'
+                                'if [[ "$*" != --skip-xcodegen ]]; then\n'
+                                '  printf plist > Trinket/Info.plist\n'
+                                '  printf scheme > Trinket.xcodeproj/xcshareddata/xcschemes/Trinket.xcscheme\nfi\n')
+            generate.chmod(0o755)
+            result = subprocess.run(["bash", "-eu", "-c", '''
+unset TRINKET_SHARED_DERIVED_DATA SKIP_GENERATE
+source Scripts/build-freshness.sh
+prepare_generated_inputs results
+prepare_generated_inputs results
+[[ $(wc -l < calls) -eq 1 ]]
+printf damaged > Generated/Catalog.swift
+prepare_generated_inputs results
+[[ $(cat Generated/Catalog.swift) == catalog ]]
+rm Generated/Catalog.swift
+prepare_generated_inputs results
+[[ $(cat Generated/Catalog.swift) == catalog ]]
+rm Trinket/Info.plist
+prepare_generated_inputs results
+[[ $(cat Trinket/Info.plist) == plist ]]
+rm -r Trinket.xcodeproj/xcshareddata
+prepare_generated_inputs results
+[[ -f Trinket.xcodeproj/xcshareddata/xcschemes/Trinket.xcscheme ]]
+prepare_generated_inputs results
+'''], cwd=root, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual((root / "calls").read_text().splitlines(),
+                             ["", "--skip-xcodegen", "--skip-xcodegen", "", ""])
 
     def test_asset_dispatch_validates_before_conversion(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -388,6 +465,7 @@ prepare_generated_inputs results || status=$?
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_repo_fixture(directory, (
                 "Scripts/test.sh", "Scripts/build-freshness.sh", "Scripts/build-inputs.env",
+                "Scripts/lib/generated-paths.sh", "Scripts/config/generated-paths.tsv",
                 "Scripts/lib/args.sh", "Scripts/xcode-runner.sh", "Scripts/config/diagnostic-limits.env",
                 "Scripts/lib/xcode-manifest.sh", "Scripts/lib/xcode-watchdog.sh",
             ))

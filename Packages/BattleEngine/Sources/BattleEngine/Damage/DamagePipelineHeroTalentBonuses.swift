@@ -41,7 +41,7 @@ package extension DamagePipeline {
         applyPreparedElementalBonuses(
             to: &state, keyword: keyword, sourceActorID: sourceActorID, triggers: triggers, in: &context,
         )
-        applyBlockAndHolyBonuses(
+        applyBlockAndAttackBonuses(
             to: &state, keyword: keyword, sourceActorID: sourceActorID, triggers: triggers, in: &context,
         )
         applyLegacyAndWizardBonuses(
@@ -107,11 +107,13 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard let source = context.roster.combatant(for: sourceActorID)?.combatant else { return }
+        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
+        if keyword == .burn || sharedKeyword == .burn,
+           context.roster.isBelowHalfHealth(for: source),
+           triggers.burnBelowHalfHealthMultiplier > 1 {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.burnBelowHalfHealthMultiplier)
+        }
         if keyword == .burn {
-            if context.roster.isBelowHalfHealth(for: source),
-               triggers.burnBelowHalfHealthMultiplier > 1 {
-                state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.burnBelowHalfHealthMultiplier)
-            }
             if context.roster.runtime(for: source)?.currentMana == 0, triggers.zeroManaBurnMultiplier > 1 {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.zeroManaBurnMultiplier)
             }
@@ -154,7 +156,7 @@ package extension DamagePipeline {
         state.itemBonus += bonus
     }
 
-    private static func applyBlockAndHolyBonuses(
+    private static func applyBlockAndAttackBonuses(
         to state: inout DamageResolutionState,
         keyword: Keyword,
         sourceActorID: String,
@@ -163,7 +165,9 @@ package extension DamagePipeline {
     ) {
         guard let source = context.roster.combatant(for: sourceActorID)?.combatant else { return }
         let sourceBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source))
-        if keyword == .physical, triggers.physicalDamageFromBlockPercent > 0, sourceBlock > 0 {
+        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
+        if keyword == .physical || sharedKeyword == .physical,
+           triggers.physicalDamageFromBlockPercent > 0, sourceBlock > 0 {
             let bonus = CombatRounding.scaled(sourceBlock, multiplier: triggers.physicalDamageFromBlockPercent)
             state.remaining += bonus
             state.itemBonus += bonus
@@ -174,6 +178,13 @@ package extension DamagePipeline {
             state.remaining += bonus
             state.itemBonus += bonus
             context.roster.mutateRuntime(for: source) { $0.talents.pending.nextPhysicalDamageBonus = 0 }
+        }
+        if state.options.isAttackHit,
+           let bonus = context.roster.runtime(for: source)?.talents.pending.nextAttackDamageBonus,
+           bonus > 0 {
+            state.remaining += bonus
+            state.itemBonus += bonus
+            context.roster.mutateRuntime(for: source) { $0.talents.pending.nextAttackDamageBonus = 0 }
         }
         if keyword == .physical, state.options.isAttackHit,
            context.consumeTalentPreparation(\.doubleNextPhysicalAttack, for: source) == true {
@@ -215,7 +226,8 @@ package extension DamagePipeline {
         if keyword == .freeze, state.targetStatus.isBurning, triggers.elementalParadox {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
         }
-        if keyword == .burn, state.targetStatus.isFrozen, triggers.burnDamageVsFrozenMultiplier > 1 {
+        if keyword == .burn || sharedKeyword == .burn,
+           state.targetStatus.isFrozen, triggers.burnDamageVsFrozenMultiplier > 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.burnDamageVsFrozenMultiplier)
         }
         if state.isCritical, state.targetStatus.isBurning, triggers.criticalDamageVsBurningMultiplier > 1 {

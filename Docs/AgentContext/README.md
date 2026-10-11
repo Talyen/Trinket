@@ -50,16 +50,23 @@ Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/S
 
 1. For an indexed concern, use `python3 Scripts/agent-brief.py --status --task shop`.
    This combines scoped status, safeguards, initial guidance and source/test pointers.
+   Add `--read` to include initial guidance when it is not already in context.
    List indexed concerns with `agent-search.py --task --overview`, or find one with
    `agent-search.py '<concern>' --task`; otherwise discover
    filenames with `--files <regex> --scope <owner>` or `--overview` for an unknown owner.
+   To locate guidance, use `agent-search.py '<topic>' --mode docs --sections
+   --scope <owner>` for section targets that can be read directly without an outline call.
 2. Preserve actual task scope with `brief --task <concern> --paths <files...>` or
    `./Scripts/agent-context.sh --agent --status --paths <files...>`.
    Read additional relevant contracts and load skills by trigger.
 3. Batch relevant sections with `python3 Scripts/agent-read.py 'file.md#anchor' …`.
-   Use source `--outline` to locate declarations, then `--symbol <name>` to read
-   them. `--full` reads whole files and only the selected section for anchors in
-   the same batch. For other mixed modes, repeat `--request 'path [read flags]'`.
+   For a known Swift/Python declaration, use `agent-investigate.py --path <file>
+   --symbol <name> --scope <owner>` to read its body, scoped callers and test bodies
+   together; repeat `--scope` across owners. Use source `--outline` when locating a
+   declaration, or reader `--symbol <name>` for its body alone. Overlapping text
+   prints once per batch. `--full` reads whole files and only
+   the selected section for anchors in the same batch. For other mixed modes,
+   repeat `--request 'path [read flags]'`.
    `--related <identifier> --scope <owner>` finds source/test hints. Inspect
    assertions and follow callers; hints do not prove coverage.
 4. Review every relevant page of `python3 Scripts/agent-diff.py --paths <files...>`

@@ -9,6 +9,8 @@ SCRIPT_INPUTS = (
     'Scripts/internal/change_routing.py',
     'Scripts/internal/ui_registration.py',
     'Scripts/internal/agent_status.py',
+    'Scripts/agent-brief.py',
+    'Scripts/agent-read.py',
     'Scripts/verify.py',
 )
 
@@ -43,6 +45,7 @@ class AgentContextTests(ScriptRegressionTestCase):
 
     def test_task_focus_preserves_safeguards_and_full_explicit_verification_scope(self) -> None:
         from internal.agent_tasks import select_task
+        self.assertEqual(select_task(ROOT, 'tooling')['id'], 'tooling')
         task = select_task(ROOT, 'cloud')
         paths = [*task['sources'], 'Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift']
         plain = self.route(*paths)
@@ -68,12 +71,27 @@ class AgentContextTests(ScriptRegressionTestCase):
 
     def test_concern_read_command_executes_and_preserves_shared_shop_constraints(self) -> None:
         output = subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), '--task', 'shop'], cwd=ROOT, text=True)
-        command = next(line.strip() for line in output.splitlines() if 'Scripts/agent-read.py --request' in line)
+        command = next(line.strip() for line in output.splitlines() if 'python3 Scripts/agent-read.py' in line)
         result = subprocess.run(shlex.split(command), cwd=ROOT, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         for invariant in ('Shop offers are pinned', 'Empty Shops prepare stock', 'Voyage encounters use'):
             self.assertIn(invariant, result.stdout)
         self.assertNotIn('Corruption gives', result.stdout)
+
+    def test_inline_guidance_preserves_cross_owner_safeguards_and_explicit_scope(self) -> None:
+        path = 'Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift'
+        for flags in (['--read', '--task', 'shop', '--paths', path],
+                      ['--task', 'shop', '--paths', path, '--read']):
+            output = subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), *flags], cwd=ROOT, text=True)
+            for invariant in ('Shop offers are pinned', 'generator rather than advance', 'Packages/BattleEngine/AGENTS.md:'):
+                self.assertIn(invariant, output)
+            self.assertIn('--paths ' + path, output)
+            self.assertNotIn('--paths --read', output)
+            self.assertNotIn('Suggested initial reads', output)
+        # File-scoped work also reads local safeguards without an indexed concern.
+        output = subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), '--read', '--paths', path], cwd=ROOT, text=True)
+        self.assertIn('Packages/BattleEngine/AGENTS.md:', output)
+        self.assertNotIn('Shop offers are pinned', output)
 
     def test_focused_action_and_storage_sections_keep_shared_contracts_and_broad_hubs(self) -> None:
         engine = 'Packages/BattleEngine/Sources/BattleEngine/'

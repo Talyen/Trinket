@@ -158,7 +158,14 @@ class CISessionScriptTests(ScriptRegressionTestCase):
             evidence.write_text("failure evidence\n")
             alias = root / "alias"
             alias.symlink_to(results.parent, target_is_directory=True)
-            for destination in (results.parent, alias, results / "raw" / "artifact"):
+            foreign = root / "foreign"
+            foreign.mkdir()
+            retained = foreign / "keep.txt"
+            retained.write_text("unrelated evidence")
+            foreign_alias = root / "foreign-alias"
+            foreign_alias.symlink_to(foreign, target_is_directory=True)
+            for destination in (results.parent, alias, results / "raw" / "artifact",
+                                foreign_alias, foreign_alias / "nested", foreign_alias / '..' / 'foreign'):
                 with self.subTest(destination=destination):
                     evidence.parent.mkdir(parents=True, exist_ok=True)
                     evidence.write_text("failure evidence\n")
@@ -168,6 +175,8 @@ class CISessionScriptTests(ScriptRegressionTestCase):
                     )
                     self.assertNotEqual(result.returncode, 0)
                     self.assertEqual(evidence.read_text(), "failure evidence\n")
+                    self.assertEqual(retained.read_text(), "unrelated evidence")
+                    self.assertFalse((foreign / "nested").exists())
 
     def test_ci_diagnostics_selects_session_and_cleans_passed_history(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -293,11 +302,17 @@ class CISessionScriptTests(ScriptRegressionTestCase):
             external = root / 'external'
             external.mkdir()
             (external / 'keep.txt').write_text('foreign evidence')
+            (results / 'foreign-diagnostics.json').symlink_to(external / 'keep.txt')
+            (results / 'foreign.xcresult').symlink_to(external, target_is_directory=True)
+            (results / 'raw/foreign.log').symlink_to(external / 'keep.txt')
+            (results / 'raw/foreign-directory').symlink_to(external, target_is_directory=True)
             with contextlib.redirect_stdout(io.StringIO()):
                 maintenance.stage(results, root / 'artifact')
                 (results / 'run-diagnostics.attachments').symlink_to(external)
                 maintenance.reset(results)
             self.assertEqual((root / 'artifact/raw/failure.log').read_text(), 'failure evidence')
+            for name in ('foreign-diagnostics.json', 'foreign.xcresult', 'raw/foreign.log', 'raw/foreign-directory'):
+                self.assertFalse((root / 'artifact' / name).exists())
             self.assertFalse((results / 'run-diagnostics.attachments').is_symlink())
             self.assertEqual((external / 'keep.txt').read_text(), 'foreign evidence')
 

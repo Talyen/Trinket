@@ -33,7 +33,7 @@ def argument_parser() -> argparse.ArgumentParser:
     parser.add_argument("--symbol", action="append", default=[], help="read a complete declaration; repeat for multiple symbols")
     parser.add_argument("--signatures", action="store_true", help="show declaration headers and attached comments, without bodies")
     parser.add_argument("--kind", choices=("methods", "properties", "types"), help="filter source outlines/signatures")
-    parser.add_argument("--match", help="case-insensitive name substring for source outlines/signatures")
+    parser.add_argument("--match", help="case-insensitive heading/name substring for outlines/signatures")
     return parser
 
 
@@ -42,8 +42,9 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     args = parser.parse_intermixed_args(argv)
     if not args.targets and not args.request:
         parser.error("supply targets or --request 'path [read flags]'")
+    shown = {}
     if not args.request:
-        return max(read_target(target, args, root) for target in dict.fromkeys(args.targets))
+        return max(read_target(target, args, root, shown) for target in dict.fromkeys(args.targets))
     read_options = ("outline", "full", "lines", "offset", "limit", "include_locals", "symbol", "signatures", "kind", "match")
     defaults = parser.parse_args([])
     if args.targets or any(getattr(args, key) != getattr(defaults, key) for key in read_options):
@@ -65,7 +66,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             if identity in seen:
                 continue
             seen.add(identity)
-            statuses.append(read_target(options.targets[0], options, root))
+            statuses.append(read_target(options.targets[0], options, root, shown))
         except (ValueError, SystemExit) as error:
             print(f"Read request failed: {request}: {error}\nTry: python3 Scripts/agent-read.py --help", file=sys.stderr)
             statuses.append(2)
@@ -101,7 +102,8 @@ def recovery_command(target: str, args: argparse.Namespace, root: Path) -> list[
         return ["python3", "Scripts/agent-search.py", "--mode", mode, "--files", "--", re.escape(Path(name).name)]
 
 
-def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
+def read_target(target: str, args: argparse.Namespace, root: Path,
+                shown: dict[str, tuple[str, set[int]]] | None = None) -> int:
     name, separator, anchor = target.partition("#")
     path = (root / name).resolve()
     try:
@@ -121,14 +123,28 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
         data = path.read_bytes()
         source = data.decode("utf-8")
         lines = source.splitlines()
-        if (args.signatures or args.kind or args.match) and path.suffix not in {".swift", ".py"}:
+        if shown is None:
+            shown = {}
+        previous, printed = shown.get(relative, (source, set()))
+        if previous != source:
+            printed = set()
+        shown[relative] = (source, printed)
+
+        def print_lines(start: int, end: int) -> None:
+            reused = sum(number in printed for number in range(start, end + 1))
+            if reused:
+                print(f"Reusing {reused} lines already printed for {relative} in this batch.")
+            for number in range(start, end + 1):
+                if number not in printed:
+                    print(f"{number}: {lines[number - 1]}")
+                    printed.add(number)
+        if (args.signatures or args.kind) and path.suffix not in {".swift", ".py"}:
             raise ValueError("signatures and declaration filters require Swift or Python")
         if (args.kind or args.match) and not (args.outline or args.signatures):
             raise ValueError("declaration filters require --outline or --signatures")
         if args.full and path.suffix not in {".md", ".mdc"}:
             print(f"{relative}:1-{len(lines)} (complete text file)")
-            for number, line in enumerate(lines, 1):
-                print(f"{number}: {line}")
+            print_lines(1, len(lines))
             return 0
         if args.lines:
             if separator or args.outline or args.symbol or args.signatures:
@@ -137,8 +153,7 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
             if not 1 <= start <= end <= len(lines):
                 raise ValueError(f"line range must be within 1:{len(lines)}")
             print(f"{relative}:{start}-{end} (requested range; not a completeness claim)")
-            for number in range(start, end + 1):
-                print(f"{number}: {lines[number - 1]}")
+            print_lines(start, end)
             return 0
         if path.suffix in {".swift", ".py"}:
             navigation = args.outline or args.signatures
@@ -175,8 +190,7 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
                     return 2
                 for entry in selected:
                     print(f"{relative}:{entry.start}-{entry.end} (complete lexical declaration: {entry.name})")
-                    for number in range(entry.start, entry.end + 1):
-                        print(f"{number}: {lines[number - 1]}")
+                    print_lines(entry.start, entry.end)
                 return 0
             kinds = {"methods": {"func", "def", "init", "deinit", "subscript"},
                      "properties": {"var", "let"},
@@ -189,8 +203,13 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
                 raise ValueError("--offset is beyond the last outline entry")
             stop = min(len(entries), args.offset + args.limit)
             print(f"{relative} — lexical declaration ranges; {'includes locals' if args.include_locals else 'types and members only'}")
+            previous_owner = None
             for entry in entries[args.offset:stop]:
-                print(f"  {entry.start}:{entry.end} {entry.kind} {entry.name}")
+                owner, _, member = entry.name.rpartition('.')
+                if owner and owner != previous_owner:
+                    print(f"  {owner}:")
+                print(f"{'    ' if owner else '  '}{entry.start}:{entry.end} {entry.kind} {member}")
+                previous_owner = owner
                 if args.signatures:
                     if entry.documentation:
                         for line in entry.documentation.splitlines():
@@ -216,9 +235,18 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
         if separator:
             selected = next((entry for entry in entries if entry.slug == unquote(anchor)), None)
             if selected is None:
+                words = set(re.findall(r'\w+', unquote(anchor).replace('_', ' ').casefold()))
+                ranked = sorted(entries, key=lambda entry: -len(words & set(re.findall(
+                    r'\w+', (entry.title + ' ' + entry.slug).replace('_', ' ').casefold()))))
+                choices = ranked[:min(args.limit, 12)]
+                print("Available headings (navigation only):", file=sys.stderr)
+                for entry in choices:
+                    print(f"  {relative}#{entry.slug}", file=sys.stderr)
+                if len(entries) > len(choices):
+                    print(f"Omitted {len(entries) - len(choices)} headings; use --outline for all choices.", file=sys.stderr)
                 raise ValueError(f"missing heading #{anchor}; use --outline {name}")
         start, end = (selected.start, selected.end) if selected else (1, len(lines))
-        automatic_outline = not separator and not args.full and len(source) > DOCUMENT_CHAR_BUDGET
+        automatic_outline = not separator and not args.full and not args.outline and len(source) > DOCUMENT_CHAR_BUDGET
         if args.outline or automatic_outline:
             if automatic_outline:
                 print(f"Navigation only: {len(source)} characters exceeds the {DOCUMENT_CHAR_BUDGET}-character default; document text has NOT been read.")
@@ -226,17 +254,22 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
                 command = ["python3", "Scripts/agent-read.py", relative, "--full"]
                 print("Read full document: " + shlex.join(command))
             visible = [entry for entry in entries if start <= entry.start <= end]
+            if args.match:
+                visible = [entry for entry in visible if args.match.casefold() in (entry.title + ' ' + entry.slug).casefold()]
             if args.offset > len(visible):
                 raise ValueError("--offset is beyond the last outline entry")
             stop = min(len(visible), args.offset + args.limit)
+            print(f"{relative} — headings (navigation only; append #anchor to this path)")
             for entry in visible[args.offset:stop]:
-                print(f"{relative}#{entry.slug} [{entry.start}-{entry.end}] {'#' * entry.level} {entry.title}")
+                print(f"#{entry.slug} [{entry.start}-{entry.end}] {'#' * entry.level} {entry.title}")
             if not visible:
-                print("No headings; use --full or --lines START:END to read the document.")
+                print("No matching headings; omit --match or use --full/--lines START:END to read the document.")
             if stop < len(visible):
                 print(f"Omitted {len(visible) - stop} headings.")
                 command = ["python3", "Scripts/agent-read.py", target,
                            "--outline", "--offset", str(stop), "--limit", str(args.limit)]
+                if args.match:
+                    command += ["--match", args.match]
                 print("Continue: " + shlex.join(command))
         else:
             print(f"{relative}:{start}-{end} (complete {'section' if selected else 'document'})")
@@ -245,8 +278,7 @@ def read_target(target: str, args: argparse.Namespace, root: Path) -> int:
                 for index in selected.parents:
                     parent = entries[index]
                     print(f"{parent.start}: {lines[parent.start - 1]}")
-            for number in range(start, end + 1):
-                print(f"{number}: {lines[number - 1]}")
+            print_lines(start, end)
         return 0
     except (OSError, ValueError, RuntimeError, SyntaxError, UnicodeError) as error:
         print(f"Read failed: {target}: {error}", file=sys.stderr)

@@ -136,13 +136,14 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) async {
         guard state.isCritical,
-              state.healthLost > 0,
+              state.amount > 0,
               let source = state.partySource(in: context),
               state.combatant.role == .enemy
         else { return }
         await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterCriticalHit(
             to: state.combatant,
             source: source.combatant,
+            targetWasStunnedAtHit: state.targetStatus.isStunned,
             in: &context,
         ))
     }

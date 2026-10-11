@@ -57,7 +57,7 @@ public enum MysteryOfferPersistence {
                 bonuses: bonuses,
                 using: &randomNumberGenerator,
             ) else { return nil }
-            if saved != nil, offer.homesteadReward == nil {
+            if saved != nil, MysteryEffectApplier.hasCurrentHomesteadReward(offer, save: save) {
                 return offer
             }
             var remainders = save.homestead.rewardRemainders ?? .zero

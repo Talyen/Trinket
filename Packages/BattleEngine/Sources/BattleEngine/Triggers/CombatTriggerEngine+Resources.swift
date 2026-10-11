@@ -30,14 +30,7 @@ package extension CombatTriggerEngine {
                 $0.talents.grantDodgeUntilNextTurn(triggers.goldTheftDodgeBonus)
             }
         }
-        if triggers.goldStealNextPhysicalBonus > 0 {
-            context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.nextPhysicalDamageBonus = max(
-                    $0.talents.pending.nextPhysicalDamageBonus,
-                    triggers.goldStealNextPhysicalBonus,
-                )
-            }
-        }
+        prepareGoldTheftDamageBonuses(for: actor, triggers: triggers, in: &context)
         if triggers.criticalGoldStealDrawCard,
            context.resolution.hasCriticalHit(by: actor.id),
            context.claimTalentAbility(.criticalGoldTheftDraw, actorID: actor.id),
@@ -63,6 +56,22 @@ package extension CombatTriggerEngine {
             ))
         }
         return events
+    }
+
+    private static func prepareGoldTheftDamageBonuses(
+        for actor: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) {
+        guard triggers.goldStealNextPhysicalBonus > 0 || triggers.goldStealNextAttackBonus > 0 else { return }
+        context.roster.mutateRuntime(for: actor) {
+            $0.talents.pending.nextPhysicalDamageBonus = max(
+                $0.talents.pending.nextPhysicalDamageBonus, triggers.goldStealNextPhysicalBonus,
+            )
+            $0.talents.pending.nextAttackDamageBonus = max(
+                $0.talents.pending.nextAttackDamageBonus, triggers.goldStealNextAttackBonus,
+            )
+        }
     }
 
     static func afterEnemyDefeated(in context: inout BattleState) async -> [ActionEvent] {
@@ -213,7 +222,7 @@ package extension CombatTriggerEngine {
             for (_, member) in livingPartyMembers(in: context) {
                 let memberTriggers = context.modifiers(for: member.id).triggers
                 let percent = memberTriggers.goldGainBlockPercent
-                if percent > 0 {
+                if member.id == combatant.id, percent > 0 {
                     let block = CombatRounding.scaled(granted, multiplier: percent)
                     if block > 0 {
                         events.append(contentsOf: emitBlock(

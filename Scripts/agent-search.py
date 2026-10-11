@@ -12,13 +12,15 @@ import json
 import re
 import subprocess
 import sys
+from bisect import bisect_right
 from collections import Counter
 from itertools import zip_longest
 from pathlib import Path
 
 from internal.cli import ROOT
 from internal.agent_arguments import AgentArgumentParser
-from internal.agent_tasks import find_tasks, load_tasks, related_tests, within
+from internal.agent_tasks import find_tasks, load_tasks, related_tests, task_row, within
+from internal.markdown import headings
 TEXT_SUFFIXES = {
     ".swift", ".metal", ".sh", ".py", ".mjs", ".js", ".ts", ".tsx",
     ".env", ".json", ".yml", ".yaml", ".tsv", ".toml", ".pbxproj",
@@ -75,6 +77,25 @@ def documentation_order(name: str) -> tuple[int, str]:
     return (0, name)
 
 
+def section_rows(root: Path, matches: dict[str, list[int]]) -> list[str]:
+    rows = []
+    for name in sorted(matches, key=documentation_order):
+        lines = (root / name).read_text(encoding="utf-8").splitlines()
+        entries = headings(lines)
+        starts = [entry.start for entry in entries]
+        counts = Counter(bisect_right(starts, number) - 1 for number in matches[name])
+        for index, count in sorted(counts.items()):
+            if index < 0:
+                end = entries[0].start - 1 if entries else len(lines)
+                location = f'{name} [1-{end}] (unheaded text; --lines 1:{end})'
+            else:
+                entry = entries[index]
+                location = f'{name}#{entry.slug} [{entry.start}-{entry.end}]'
+            row = f'{location}: {count} matching lines'
+            rows.append(json.dumps(row) if any(c in row for c in '\n\r\t') else row)
+    return rows
+
+
 def positive(value: str) -> int:
     number = int(value)
     if number < 1:
@@ -107,12 +128,13 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser.add_argument("--overview", action="store_true", help="page owner counts and entry points; with --task, list indexed concerns")
     parser.add_argument("--scope", action="append", default=[], help="repository-relative file or directory; repeatable")
     parser.add_argument("--excerpts", action="store_true", help="show matching lines and context instead of file counts")
+    parser.add_argument("--sections", action="store_true", help="with --mode docs, group content matches into reader-compatible heading/range pointers")
     parser.add_argument("--files", action="store_true", help="match relative filenames instead of file contents")
     parser.add_argument("--glob", action="store_true", help="with --files, use a case-sensitive shell pattern instead of regex; * crosses directories")
     parser.add_argument("--related", action="store_true", help="bounded declaration, reference, and test-file hints for one identifier within the scopes")
     parser.add_argument("--callers", action="store_true", help="lexical invocation locations and enclosing declarations for one Swift/Python identifier")
     parser.add_argument("--task", action="store_true", help="look up a player-facing concern in the small authored task index")
-    parser.add_argument("--limit", type=positive, default=20, help="maximum files or excerpt lines displayed (default: 20)")
+    parser.add_argument("--limit", type=positive, default=20, help="maximum files, sections or excerpt lines displayed (default: 20)")
     parser.add_argument("--context", type=int, choices=range(0, 6), default=2, help="excerpt context lines (0–5; default: 2)")
     parser.add_argument("-i", "--ignore-case", action="store_true")
     parser.add_argument("-F", "--fixed-strings", action="store_true")
@@ -130,6 +152,8 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         parser.error("--offset must be nonnegative")
     if args.files and args.excerpts:
         parser.error("--files and --excerpts are mutually exclusive")
+    if args.sections and (args.mode != 'docs' or args.files or args.excerpts or args.overview):
+        parser.error('--sections requires a documentation content search (--mode docs), without --files, --excerpts, or --overview')
     if args.glob and (not args.files or args.fixed_strings):
         parser.error("--glob requires --files and cannot combine with -F")
     if args.related and (args.mode != "source" or args.files or args.excerpts or args.glob
@@ -205,9 +229,10 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         return (0 if identifier and exact else 1 if identifier and relevant else
                 2 if name in declarations else 3, name)
 
-    def render(rows: list[str], summary: str, unit: str) -> int:
+    def render(rows: list[str], summary: str, unit: str,
+               locations: list[tuple[str, int, str]] | None = None) -> int:
         identity = [args.pattern, surface, scopes, args.files, args.excerpts, args.ignore_case,
-                    args.fixed_strings, args.glob, args.related, args.callers, args.task, args.context, rows]
+                    args.fixed_strings, args.glob, args.related, args.callers, args.task, args.sections, args.context, rows]
         digest = hashlib.sha256(json.dumps(identity).encode()).hexdigest()
         if args.expect and args.expect != digest:
             print("Search results changed; restart at --offset 0.", file=sys.stderr)
@@ -217,7 +242,15 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             return 2
         stop = min(len(rows), args.offset + args.limit)
         shortened = 0
-        for row in rows[args.offset:stop]:
+        previous = None
+        for index in range(args.offset, stop):
+            row = rows[index]
+            if locations is not None:
+                name, number, line = locations[index]
+                if name != previous:
+                    print(name + ':')
+                    previous = name
+                row = f'{number}: {line}'
             if args.excerpts and len(row) > 300:
                 row = row[:299] + "…"
                 shortened += 1
@@ -231,6 +264,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             for scope in scopes:
                 continuation += ["--scope", scope]
             for flag, enabled in [("--files", args.files), ("--excerpts", args.excerpts),
+                                  ("--sections", args.sections),
                                   ("--glob", args.glob), ("--related", args.related), ("--task", args.task),
                                   ("--callers", args.callers),
                                   ("-i", args.ignore_case), ("-F", args.fixed_strings)]:
@@ -247,12 +281,11 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
 
     if args.task:
         if args.overview:
-            rows = [f"{task['label']} ({task['id']}): " + shlex.join(
-                ['python3', 'Scripts/agent-brief.py', '--task', task['id']])
+            rows = [task_row(task)
                 for task in load_tasks(root) if any(within(name, scopes) for name in task['sources'])]
         else:
             rows = find_tasks(root, args.pattern, scopes)
-        print("Concern pointers can cross owners; route the source paths. Test pointers are not coverage proof.")
+        print("Run a briefing for safeguards, source/test pointers and contracts; use --paths for the actual scope.")
         if not rows:
             print("No indexed concern matched. Try: python3 Scripts/agent-search.py --overview")
         return render(rows, f"Matched {len(rows)} indexed concerns", "concerns")
@@ -337,6 +370,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     excerpts = []
     references: dict[str, int] = {}
     tests: dict[str, int] = {}
+    section_matches: dict[str, list[int]] = {}
     for raw in result.stdout.splitlines():
         event = json.loads(raw)
         if event["type"] not in ("match", "context"):
@@ -345,6 +379,8 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         name = data["path"]["text"]
         if event["type"] == "match":
             counts[name] += 1
+            if args.sections:
+                section_matches.setdefault(name, []).append(data["line_number"])
             if args.related and name in test_files:
                 tests.setdefault(name, data["line_number"])
             elif declaration and declaration.search(data["lines"].get("text", "")):
@@ -356,6 +392,10 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             if line is None:
                 line = "[non-UTF-8 line; inspect the file directly]"
             excerpts.append((name, data["line_number"], line.rstrip()))
+    if args.sections:
+        print("Section pointers (navigation only): read 'path#anchor' with agent-read.py; unheaded text uses the displayed --lines range.")
+        rows = section_rows(root, section_matches)
+        return render(rows, f'Matched {sum(counts.values())} lines in {len(counts)} files; {len(rows)} sections/ranges', 'sections/ranges')
     if args.callers:
         from internal.agent_callers import caller_rows
         print('Lexical invocation hints: excludes comments/literals; no type resolution, indirect calls, or Swift interpolation/trailing-closure/generic-only calls.')
@@ -389,7 +429,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
                    if name in declarations else f"{name}: {counts[name]} matching lines")
                   for name in names])
     return render(rows, f"Matched {sum(counts.values())} lines in {len(counts)} files",
-                  "excerpt lines" if args.excerpts else "files")
+                  "excerpt lines" if args.excerpts else "files", excerpts if args.excerpts else None)
 
 
 if __name__ == "__main__":

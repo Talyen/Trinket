@@ -111,19 +111,26 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         print('Scope: ' + ', '.join(args.scope))
         print(f'sha256:{identity} (scoped inputs)')
         budget = args.max_lines
+        shown = {}
 
         def display(name, entry, start, end, role):
             nonlocal budget
             label = entry.name if entry else 'file-scope invocation'
             print(f'{role}: {name}:{start}-{end} {label}')
-            if end - start + 1 > budget:
+            printed = shown.setdefault(name, set())
+            unread = [number for number in range(start, end + 1) if number not in printed]
+            if len(unread) > budget:
                 command = ['python3', 'Scripts/agent-read.py', name, '--lines', f'{start}:{end}']
                 print('  Body omitted (line budget); read: ' + shlex.join(command))
                 return
-            budget -= end - start + 1
+            budget -= len(unread)
+            reused = end - start + 1 - len(unread)
+            if reused:
+                print(f'  Reusing {reused} body lines already printed for {name} on this page.')
             print('  Complete lexical declaration:' if entry else '  Invocation line only:')
-            for number in range(start, end + 1):
+            for number in unread:
                 print(f'{number}: {lines[name][number - 1]}')
+            printed.update(unread)
 
         if args.offset == 0:
             display(args.path, target, target.start, target.end, 'Selected declaration')

@@ -99,9 +99,9 @@ public enum LabyrinthGenerator {
         eligibleRewards: [RewardModifier] = RewardModifier.allCases,
     ) {
         guard var boss = nodes[bossNodeID], boss.type == .boss, boss.isCleared else { return }
-        guard boss.outgoingIDs.isEmpty else { return }
+        guard boss.outgoingIDs.isEmpty, boss.depth < Int.max else { return }
 
-        let nextFloor = boss.depth + 1
+        let nextFloor = max(0, boss.depth) + 1
         let previousBossEnemyID = boss.enemyID
         let resolvedSeed = seed == 0 ? fallbackWorldSeed : seed
         var rng = SeededRandomNumberGenerator(

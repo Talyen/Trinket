@@ -63,7 +63,7 @@ struct FoxRecoveryVictoryTests {
         } == 1)
     }
 
-    @Test func `Confounding Loot steals Gold and activates Fox theft talents`() {
+    @Test func `Confounding Loot steals Gold only against an already Stunned enemy`() {
         let profile = CombatantTalentCatalog.profile(for: [
             "fox_stun_t3_2", "fox_gold_t2_1", "fox_gold_t3_1",
         ])
@@ -71,7 +71,14 @@ struct FoxRecoveryVictoryTests {
             companionModifiers: profile, dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
-        battle.appendEffect(.controlMeter(.stun, 20, 20), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
+        let firstHit = battle.resolveDamage(DamageRequest(
+            amount: 10, target: battle.enemy, keyword: .stun, sourceActorID: battle.companion.id,
+            options: .attack(tier: .basic, guaranteedCritical: true),
+        ))
+        #expect(firstHit.isCritical)
+        #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
+        #expect(battle.gold == 0)
+        #expect(battle.roster.companion.talents.pending.nextAttackCriticalBonus == nil)
         for expectedGold in [6, 9] {
             let outcome = battle.resolveDamage(DamageRequest(
                 amount: 2, target: battle.enemy, keyword: .stun, sourceActorID: battle.companion.id,

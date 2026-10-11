@@ -1,4 +1,5 @@
 import Foundation
+import TrinketCore
 
 public extension ItemAffixPower {
     /// Modifiers precede trigger fields in catalog order, preserving seeded rolls
@@ -16,8 +17,15 @@ public extension ItemAffixPower {
     }
 
     private static func magnitude(of modifier: AffixModifier) -> AffixMagnitude {
-        modifier.isPercent
-            ? .percent(modifier.numericValue) : .int(Int(modifier.numericValue.rounded()))
+        if modifier.isPercent {
+            return .percent(modifier.numericValue)
+        }
+        var amount = 0
+        _ = modifier.mapInt {
+            amount = $0
+            return $0
+        }
+        return .int(amount)
     }
 
     private func magnitude(for target: BumpTarget) -> AffixMagnitude? {
@@ -58,7 +66,7 @@ public extension ItemAffixPower {
     func scaled(by multiplier: Int) -> Self {
         guard multiplier != 1 else { return self }
         return transformingMagnitudes { _, value in
-            value.map(percent: { $0 * Double(multiplier) }, int: { $0 * multiplier })
+            value.map(percent: { $0 * Double(multiplier) }, int: { SaturatedArithmetic.saturatingMul($0, multiplier) })
         }
     }
 
@@ -143,7 +151,8 @@ public enum ItemAffixPowerBumpDirection: Equatable, Sendable {
 public enum ItemAffixMagnitudeRoll: Sendable {
     public static func integerRange(around value: Int) -> ClosedRange<Int> {
         let delta = max(1, value / 4)
-        return max(1, value - delta) ... (value + delta)
+        let lower = max(1, SaturatedArithmetic.saturatingSub(value, delta))
+        return lower ... max(lower, SaturatedArithmetic.saturatingAdd(value, delta))
     }
 
     public static func percentValues(around value: Double) -> [Double] {
@@ -213,9 +222,11 @@ private enum AffixMagnitude: Equatable {
     func bumped(direction: ItemAffixPowerBumpDirection) -> Self? {
         switch self {
         case let .int(value):
-            direction == .up || value > 1 ? .int(value + direction.intDelta) : nil
+            guard direction == .up || value > 1 else { return nil }
+            let bumped = SaturatedArithmetic.saturatingAdd(value, direction.intDelta)
+            return bumped != value ? .int(bumped) : nil
         case let .percent(value):
-            direction == .up || value > 0.01 + 1e-9 ? .percent(value + direction.percentDelta) : nil
+            return direction == .up || value > 0.01 + 1e-9 ? .percent(value + direction.percentDelta) : nil
         }
     }
 }

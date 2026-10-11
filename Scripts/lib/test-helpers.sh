@@ -79,18 +79,19 @@ except (OSError, ValueError, KeyError, TypeError, AttributeError):
     sys.exit("Targeted test results could not be decoded.")
 
 missing = []
-matched = []
+unexecuted = []
 for target in sys.argv[3:]:
     target = normalized(target)
     selected = [(identifier, result) for identifier, result in tests
                 if target == "TrinketUITests" or identifier == target or identifier.startswith(target + "/")]
     if not selected:
         missing.append(target)
-    matched.extend(selected)
+    elif not any(result in {"Passed", "Failed"} for _, result in selected):
+        unexecuted.append(target)
 if missing:
     sys.exit("Requested test filters absent from results: " + ", ".join(missing))
-if not any(result in {"Passed", "Failed"} for _, result in matched):
-    sys.exit("Targeted test filters executed zero tests (empty or all skipped).")
+if unexecuted:
+    sys.exit("Requested test filters executed zero tests (empty or all skipped): " + ", ".join(unexecuted))
 for identifier, result in tests:
     if result == "Skipped":
         print("Skipped: " + identifier + " (see test diagnostics for the reason)")

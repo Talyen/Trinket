@@ -5,7 +5,7 @@ import TrinketCore
 enum GameContentTraitsGenerated {
     static let definitions: [CombatantTraitDefinition] = {
         var list = [CombatantTraitDefinition]()
-        list.reserveCapacity(47)
+        list.reserveCapacity(48)
         list.append(CombatantTraitDefinition(
             id: "watchful_guard",
             name: "Watchful Guard",
@@ -317,8 +317,8 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "stonehide",
             name: "Stonehide",
-            description: "Physical damage taken reduced by 20%.",
-            modifiers: [.damageTakenPercent(.physical, 0.20)],
+            description: "Physical damage taken reduced by 10%.",
+            modifiers: [.damageTakenPercent(.physical, 0.10)],
             triggers: CombatTraitTriggers()
         ))
         list.append(CombatantTraitDefinition(
@@ -334,6 +334,13 @@ enum GameContentTraitsGenerated {
             description: "Taking Health damage reduces the next damage dealt by 1.",
             modifiers: [],
             triggers: CombatTraitTriggers(mitigation: MitigationTriggers(onHealthLossNextDamageReduction: 1))
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "off_balance",
+            name: "Off Balance",
+            description: "Physical and Stun damage taken increased by 20%.",
+            modifiers: [.damageTakenVulnerability(.physical, 0.20), .damageTakenVulnerability(.stun, 0.20)],
+            triggers: CombatTraitTriggers()
         ))
         return list
     }()

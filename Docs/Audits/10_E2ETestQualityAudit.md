@@ -44,7 +44,9 @@ alone does not explain a flaky failure or establish its cause is fixed.
 - Local UI runs are serial on one managed simulator within
   [Verification](../Platform/Verification.md)'s limits. Do not invent suite budgets
   or run full UI merely because this audit reviews its portfolio.
-- Accessibility-setting UI tests remain outside [PD-014](../Product/Decisions.md).
-  Stable identifiers required by an owned journey are in scope. Broader shipping
+- Bounded native settings and critical-control accessibility checks follow
+  [PD-014](../Product/Decisions.md) and [Player coverage](../Platform/PlayerCoverage.md);
+  they do not establish complete VoiceOver gameplay. Stable identifiers required
+  by an owned journey are in scope. Broader shipping
   interaction defects, unit/package test quality, and other overlaps route through
   the shared confusable-pairs table.

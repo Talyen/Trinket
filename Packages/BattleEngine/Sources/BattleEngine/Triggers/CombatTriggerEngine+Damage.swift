@@ -362,6 +362,7 @@ package extension CombatTriggerEngine {
     static func afterCriticalHit(
         to enemy: Combatant,
         source: Combatant,
+        targetWasStunnedAtHit: Bool,
         in context: inout BattleState,
     ) async -> [ActionEvent] {
         guard source.role != .enemy else { return [] }
@@ -435,7 +436,7 @@ package extension CombatTriggerEngine {
         }
         if profile.triggers.criticalVsStunnedEnemyGold > 0,
            context.roster.health(for: source) > 0,
-           context.roster.hasControlStatus(for: enemy, keyword: .stun) {
+           targetWasStunnedAtHit {
             await events.append(contentsOf: context.grantGoldEvent(
                 profile.triggers.criticalVsStunnedEnemyGold,
                 to: source,

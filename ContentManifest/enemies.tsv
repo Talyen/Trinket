@@ -32,9 +32,9 @@ paladin	Paladin	15	false	shieldBash,smite,blessedAegis	righteous_guard,hallowed	
 the_seraph	The Seraph	15	true	slash,smite,sunburst	radiant_judgment,thin_blooded	mortal
 winter_wolf	Winter Wolf	14	false	fangs,frostbolt,blizzard	chilling_strikes,kindling	beast
 ice_wraith	Ice Wraith	13	false	rayOfFrost,frostbolt,blizzard	numbing_presence,incorporeal,kindling,profane	undead
-yeti	Yeti	15	false	bash,glacialWard,blizzard	rimeguard,winterborn,kindling	beast
+yeti	Yeti	15	false	bash,glacialWard,blizzard	rimeguard,winterborn,kindling,off_balance	beast
 banshee	Banshee	13	false	bash,sunder,earthquake	dread_exploitation,profane	undead
 brawler	Brawler	12	false	bash,sunder,earthquake	concussion,thin_blooded	mortal
 stone_golem	Stone Golem	15	false	shieldBash,stoneskinPotion,earthquake	watchful_guard,bulwark_force	construct
-earth_elemental	Earth Elemental	15	false	bash,sunder,earthquake	stonehide,fault_lines	elemental
-the_stone_titan	The Stone Titan	15	true	block,stoneskinPotion,earthquake	seismic_pulse,loose_rubble	construct
+earth_elemental	Earth Elemental	15	false	bash,stoneskinPotion,earthquake	stonehide,fault_lines	elemental
+the_stone_titan	The Stone Titan	15	true	bash,stoneskinPotion,earthquake	seismic_pulse,loose_rubble	construct

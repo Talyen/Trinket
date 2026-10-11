@@ -209,6 +209,11 @@ private extension CombatantTalentState.Pending {
             text: "Your next Physical attack deals \(nextPhysicalDamageBonus) additional damage.",
         )
         summaries.append(
+            .gold,
+            when: nextAttackDamageBonus > 0,
+            text: "Paid in Full: Your next attack deals \(nextAttackDamageBonus) additional damage.",
+        )
+        summaries.append(
             .mana,
             when: nextManaEmpowerDiscount > 0,
             text: "Your next Mana empowerment costs \(nextManaEmpowerDiscount) less Mana.",

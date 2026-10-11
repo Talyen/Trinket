@@ -8,10 +8,10 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 |---|---|
 | `./Scripts/generate.sh [--assets [--kind art\|music\|sfx\|app-icon\|all]] [--skip-xcodegen]` | Generate the Xcode project without cache reuse and authored derived content (`--assets` also prepares art/music/SFX; `--kind` prepares one asset kind; `--skip-xcodegen` runs content/asset codegen only) |
 | `./Scripts/build.sh` | Compile only the app; `--release-device` verifies unsigned iOS Release compilation |
-| `python3 Scripts/agent-brief.py --task <concern> [--paths <files...>]` | Stateless concern or file-scoped briefing; `--status` adds scoped changes; prints safeguards, guidance, and read commands. [Quickstart](../Docs/AgentContext/README.md#quickstart) |
+| `python3 Scripts/agent-brief.py --task <concern> [--paths <files...>]` | Stateless concern or file-scoped briefing; `--status` adds scoped changes; `--read` includes initial guidance in the same call when absent from context. [Quickstart](../Docs/AgentContext/README.md#quickstart) |
 | `./Scripts/agent-context.sh --agent --paths …` | Launcher for the same stateless briefing; `--status`, `--smoke`, and `--full` add status, smoke ownership, and plan detail; `--working-tree --allow-broad-scope` is intentional whole-tree work |
 | `python3 Scripts/agent-search.py <pattern> --scope <owner>` | Authored-first discovery: matching filenames/counts by default; plain identifiers rank exact stems, filename words/prefixes, then declarations before references outside docs; `--offset`/`--expect` continuations avoid repeats and reject changed results; `--overview` pages owner counts/entry points; `--files` searches filenames (`--mode assets --files` includes binary media names); `--excerpts` for bounded lines, `--mode tests`, `docs`, or `generated` for other surfaces; omissions are explicit |
-| `python3 Scripts/agent-diff.py --paths <files...>` | Paged authored diffs plus generated statistics; `--summary` adds generated talent/affix/Homestead record hints with explicit unsupported-format fallback; `--generated` expands generated patches; `--staged` reviews the index; `--full` intentionally reads all units |
+| `python3 Scripts/agent-diff.py --paths <files...>` | Paged authored diffs plus generated statistics; file headers print once per file per page; `--summary` adds generated talent/affix/Homestead record hints with explicit unsupported-format fallback; `--generated` expands generated patches; `--staged` reviews the index; `--full` intentionally reads all units |
 | `python3 Scripts/agent-read.py <file>[#anchor] …` | Batch complete Markdown sections with shared flags; `--outline` lists headings or Swift/Python declarations; `--signatures`, `--kind`, and `--match` filter source navigation; repeat `--symbol` for complete declarations; `--lines START:END` also reads shell/config text; large unanchored docs require `--full` |
 | `python3 Scripts/agent-search.py --files --glob '<pattern>' --scope <owner>` | Explicit case-sensitive shell filename pattern; `*` crosses directories and patterns without `/` also match basenames; filters and fingerprinted pagination are unchanged; default filename patterns remain regexes |
 | `python3 Scripts/agent-search.py <identifier> --related --scope <owner>` | Interleaved declaration/reference/test-file hints within supplied scopes; textual mentions do not establish semantic ownership or coverage; authored source and tests only, with bounded pages |
@@ -125,8 +125,8 @@ for their required deploy suites; doctor and dry-run need no opt-in. See
 
 ### Internal helpers
 
-These helpers are sourced or invoked by commands, Git hooks, or CI workflows. Listed here so the index stays honest
-(`check-docs.py` enforces this list against `Scripts/*.sh`).
+These helpers are sourced or invoked by commands, Git hooks, or CI workflows.
+This is a navigation index; script ownership and interfaces remain authoritative.
 
 | Command | Owner / entry point |
 |---|---|

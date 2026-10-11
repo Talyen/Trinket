@@ -3,7 +3,8 @@
 Authored talents and their short descriptions live in
 [the talent manifest](../../ContentManifest/talents.tsv). Talent rule changes
 reuse the ordinary damage, healing, control, and resource pipelines. Look up the
-named talent only:
+named talent only. Resolve its current trigger from the manifest; an engine
+helper's fallback display name may describe an older, distinct trigger.
 
 - [Balance cadence](#balance-cadence)
 - [Damage and control](#damage-and-control)
@@ -11,17 +12,18 @@ named talent only:
 - [Mana and empowerment](#mana-and-empowerment)
 - [Healing and overflow](#healing-and-overflow)
 - [Removal, protection, and Block](#removal-protection-and-block)
+- [Distinct engine triggers](#distinct-engine-triggers)
 - [Storage ownership](#storage-ownership)
 
 ## Balance cadence
 
 ### Golden Opportunity and Lucky Charm
 
-Golden Opportunity draws on the first qualifying Gold gain per round. Wildcard's
+Fox's Golden Opportunity doubles its first positive Gold steal each combat. Wildcard's
 Lucky Charm rolls once per Gold-gaining ability and Cleanses one negative status
 effect only when the roll succeeds and the owner has a removable effect.
-Coinmail converts its fraction of Gold using ordinary combat rounding, including
-odd gains such as Fickle Fortune's 3 or 7 Gold.
+Coinmail converts only its owner's Gold gains using ordinary combat rounding,
+including odd gains such as Fickle Fortune's 3 or 7 Gold.
 
 ### Arcane Thorns, Living Conduit, and Grove Reserve
 
@@ -70,7 +72,8 @@ Decoy Swap rolls once per Hero-targeted enemy ability. On success Fox Dodges
 the entire ability and reacts once. Piercing Starlight lets Pixie's Holy
 attacks ignore half enemy Block; enemies do not currently Dodge.
 
-Paralysis rolls on a Poison attack even when Block absorbs all Health damage.
+Paralysis rolls once per Poison attack ability, even when Block absorbs all Health
+damage. Existing Poison is not required, and ongoing ticks do not activate it.
 
 ### Companion Gold and Leech
 
@@ -106,9 +109,10 @@ allies must be living (no revive).
 
 ### Toxiphage and Cold Hunger
 
-Toxiphage and Cold Hunger roll typed Leech chances through the shared Leech
-pipeline, including ongoing damage. Generic and matching typed chances add up
-to 100%; damage already granting Leech skips the roll and never Leeches twice.
+Toxiphage grants Leech to Poison Critical attack hits through the shared Leech
+pipeline. Cold Hunger rolls its typed Leech chance on Freeze damage, including
+ongoing damage. Generic and matching typed chances add up to 100%; damage already
+granting Leech skips the roll and never Leeches twice.
 
 ### Enemy Basic Freeze bonuses
 
@@ -121,7 +125,9 @@ normal Freeze damage and control resolution for both Frost Elemental and Winter 
 ### Poison riders and damage conversions
 
 Venomous Skin resolves its immediate 1 Poison damage before attaching stacks.
-Prismatic Edge's Burn attaches only the Health damage its hit actually dealt; fully blocked hits attach none.
+Prismatic Edge rolls once per Physical card for a separate Burn or Freeze hit,
+using its authored chance and damage. The selected hit uses the ordinary typed
+pipeline; its Burn attaches only the Health damage it actually dealt.
 Sunwall rolls once per Holy ability and, on success, grants the Companion Block
 equal to actual Holy Health damage without applying Block bonuses or pacing
 again. Holy follow-up damage shares that ability's roll allowance. Committed Holy
@@ -133,8 +139,8 @@ Concussive Force and Martial Guard include Physical reaction and periodic damage
 not only attacks. Their proportional rewards use actual Health damage; converted
 Block is already resolved and does not receive outgoing Block bonuses again.
 Healing Flames and Flame Shield roll once per Burn ability after positive Health
-damage. Ember Shield still observes damaging Burn ticks. Fully absorbed ticks
-grant no damage rewards.
+damage. Ember Shield instead improves its owner's Block absorption against a
+Burning attacker. Fully absorbed ticks grant no damage rewards.
 
 ### Thick Hide
 
@@ -149,16 +155,17 @@ counterattacks as well as played cards, including hits fully absorbed by Block.
 
 ### Dazing Swipe
 
-Dazing Swipe rolls 25% per qualifying attack to deal 3 Stun damage through
-normal control buildup (ordinary Stun damage and application). The reaction
-triggers only on attack hits (not retaliation/periodic) and never recursively
-triggers itself.
+Dazing Swipe rolls once per Physical attack ability, using its authored chance
+and Stun damage through normal control buildup. Retaliation and periodic damage
+do not qualify, and the Stun reaction cannot recursively trigger itself.
 
-### Surprise Strike
+### First Physical attack Critical Hit preparation
 
-Surprise Strike guarantees the wearer's first qualifying Physical attack each
-combat Critically Hits; preceding non-Physical attacks neither Crit nor spend
-the combat allowance.
+The `firstPhysicalAttackGuaranteedCritical` trigger guarantees the wearer's first
+qualifying Physical attack each combat Critically Hits; preceding non-Physical
+attacks neither Crit nor spend the combat allowance. This is distinct from
+Panther's [Surprise Strike](#panther-dodge-preparations), which prepares doubled
+damage after its first Dodge.
 
 ### Mimic
 
@@ -193,22 +200,22 @@ ongoing Burn damage does not roll again.
 
 ### Paralysis, Bloodrush, and Arcane Focus
 
-Paralysis checks existing Poison on each damaging Poison hit, including
-applications and turn ticks. Bloodrush draws a Physical card from its owner's
-deck and leaves other cards in place. Arcane Focus adds one damage to Mana
+Paralysis uses the Poison-attack cadence described above. Bloodrush rolls once
+per Bleed ability that Critically Hits and draws an ordinary card from its owner's
+deck. Arcane Focus adds one damage to Mana
 empowerment without creating another elemental hit.
 
 ### Steam Explosion and Backdraft
 
-Steam Explosion consumes Burn during Freeze-card preparation and adds its
-potency to the card's Freeze damage; secondary Freeze reactions do not
-activate it. Backdraft increases Critical Hit damage against Burning enemies
-within the existing hit.
+Steam Explosion deals its authored Burn damage when its owner Freezes an already
+Burning enemy, through the ordinary Burn pipeline. Existing Burn is retained.
+Backdraft increases Critical Hit damage against Burning enemies within the
+existing hit.
 
 ### Phoenix rebirth
 
-From the Ashes now lets Phoenix enter Death's Door on its first fatal hit,
-then restores Health. Blazing Rebirth deals its Burn on entry. Afterglow and
+From the Ashes restores Health when Phoenix enters Death's Door through the
+shared party protection rule. Blazing Rebirth deals its Burn on entry. Afterglow and
 Phoenix Vigor fire only if Phoenix survives until Death's Door expires;
 Lingering Spirit extends that protection and delays those survival rewards.
 Fortified Rebirth and Ashen Ward protect Phoenix only during Death's Door.
@@ -249,8 +256,9 @@ before preparing the Hero's doubled Poison attack.
 
 Cracked Guard prepares the source's next attack after Physical damage breaks enemy
 Block, including reactive damage. The creating card or action cannot spend that
-preparation. Confounding Loot's Gold is theft, so Golden Opportunity, Master Thief,
-and other theft reactions apply.
+preparation. Confounding Loot requires the enemy to be Stunned when the hit lands;
+the hit that first Stuns it does not qualify. Its Gold is theft, so Golden Opportunity,
+Master Thief, and other theft reactions apply.
 
 ### Next-card preparations
 
@@ -325,14 +333,14 @@ Mana-empowered counterattack without a card frame.
 ### Dark Recovery and Arcane Burst
 
 Dark Recovery increases Leech healing while the owner has no Mana. Arcane
-Burst carries Mana-spend progress across cards and turns, preserving excess
-toward its next trigger; its automatic plays do not recursively trigger it.
-Draw-and-play effects and Phantom Counter retain automatic ancestry throughout
-nested payments and card reactions.
+Burst rolls once per Mana-empowered ability and applies its damage multiplier
+within that action. Wolf's Phantom Counter prepares a multiplier for its next
+Physical attack after Dodging; repeated Dodges refresh rather than stack it.
 
 ### Mana Cocoon, Arcane Cleansing, and Chaos Rift
 
-Mana Cocoon uses each actual Mana payment. Arcane Cleansing performs an ordinary
+Mana Cocoon improves its owner's Block absorption while it has unspent Mana.
+Arcane Cleansing performs an ordinary
 Cleanse when its owner ends a turn at zero Mana. Chaos Rift increases damage
 from Mana-empowered Critical Hits within the existing hit.
 
@@ -449,13 +457,15 @@ Death's Door, including its ongoing Burn damage.
 ### Block theft and protection
 
 Block theft transfers only available Block without multiplying the amount.
-Light-Fingered uses combat Gold gains, matching the engine’s existing Gold
-theft representation. Sealed Sarcophagus protects Block from theft and Purge,
-while damage, decay, and voluntary spending remain available.
+Fox's Light-Fingered rolls once per stealing ability to steal all available enemy
+Block. Sealed Sarcophagus doubles its owner's Block absorption for all damage
+types through the ordinary absorption calculation.
 
 ### Stolen Thunder
 
-Stolen Thunder spends Block once per attack.
+Stolen Thunder prepares the owner's next attack to Critically Hit after it Stuns
+the enemy. The creating action cannot consume that preparation; refreshes do not
+stack.
 
 ### Resonant Shell
 
@@ -468,10 +478,31 @@ Interdict prevents reapplication of the buff kinds actually Purged until the
 next party turn, including Block but excluding instant healing and resources.
 Steadfast and Perfect Purity also stop control-multiplication effects from
 increasing existing Freeze build-up while their protection applies.
-Blinding Light retains the strongest half-Holy-hit reduction, counting Health
-damage and absorbed Block, and spends it across the next enemy attack's hits;
-ongoing damage does not consume it. Subzero Mist grants Dodge when the enemy
-recovers from Freeze and expires at the next party turn.
+Blinding Light prepares the authored miss chance for the enemy's next attack
+after a Holy attack hit. Consume it once for that enemy ability. Subzero Mist
+rolls its authored extension chance when its owner triggers Freeze, extending
+control through the ordinary action-skip lifecycle.
+
+## Distinct engine triggers
+
+These supported fields are separate from the current talents above. Keep their
+contracts when handling stored profiles or explicit engine fixtures; fallback
+event names do not establish which trigger an authored talent grants.
+
+| Trigger | Contract |
+|---|---|
+| `gainGoldDrawThreshold` | Draw on the first Gold grant meeting the threshold each player-turn cycle. |
+| `poisonThresholdStunAmount` / `poisonStunChancePercent` | After Poison Health damage, including ticks, check existing Poison potency and roll for Stun. |
+| `steamExplosion` | Consume Burn during Freeze-card preparation and add its potency to that card's Freeze damage. |
+| `spendManaGrantsEqualBlock` | Grant Block from each actual Mana payment. |
+| `spendManaThresholdAutoPlayCard` | Retain excess Mana-spend progress across cards and turns; automatic plays cannot recursively advance it. |
+| `phantomCounter` | Dodge draws and automatically plays a Physical card; retain automatic ancestry through nested payments and card reactions. |
+| `onAllyBurnDamageGainBlock` | Grant Companion Block after its ally's damaging Burn, including ticks. |
+| `lightFingered` | Combat Gold gains steal up to that amount of enemy Block. |
+| `sealedSarcophagus` | Protect Block from theft and Purge; damage, decay, and voluntary spending remain available. |
+| `stolenThunder` | Spend the attacker's Block once per Stun attack and add it to damage. |
+| `blindingLight` | Retain the strongest reduction equal to half the sum of Holy Health damage and absorbed Block for the next enemy attack, including its multiple hits; ongoing damage does not consume it. |
+| `subzeroMist` | Grant Dodge after enemy Freeze recovery until the next party turn. |
 
 ## Storage ownership
 

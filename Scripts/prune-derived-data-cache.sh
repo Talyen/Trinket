@@ -59,6 +59,10 @@ fi
 # This script removes cache contents. Resolve and constrain the target before
 # any destructive operation so a mistyped argument cannot point at the repo,
 # home directory, or an unrelated DerivedData tree.
+if [[ -L "$SHARED_ROOT" ]]; then
+  echo "Refusing to prune through a symlinked DerivedData root: $SHARED_ROOT" >&2
+  exit 2
+fi
 DERIVED_DATA_PATH="$(cd "$DERIVED_DATA_PATH" && pwd -P)"
 SHARED_ROOT="$(cd "$SHARED_ROOT" && pwd -P)"
 case "$DERIVED_DATA_PATH" in

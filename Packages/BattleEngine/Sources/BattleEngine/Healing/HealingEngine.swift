@@ -368,7 +368,7 @@ package enum HealingEngine {
         )
         else { return nil }
 
-        amount *= 2
+        amount = SaturatedArithmetic.saturatingMul(amount, 2)
         return .critical
     }
 }

@@ -6,6 +6,8 @@
 
 # shellcheck source=build-inputs.env
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/build-inputs.env"
+# shellcheck source=lib/generated-paths.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/generated-paths.sh"
 
 generation_paths_newer_than() {
   local stamp="$1"
@@ -21,9 +23,18 @@ generation_paths_newer_than() {
   find "${paths[@]}" -type f -newer "$stamp" 2>/dev/null
 }
 
-content_generation_inputs=("${TRINKET_CONTENT_GENERATION_INPUTS[@]}")
+content_generation_inputs=("${TRINKET_CONTENT_GENERATION_INPUTS[@]}" Scripts/config/generated-paths.tsv)
 asset_generation_inputs=("${TRINKET_ASSET_GENERATION_INPUTS[@]}")
-project_generation_inputs=("${TRINKET_PROJECT_GENERATION_INPUTS[@]}" Trinket.xcodeproj/project.pbxproj)
+project_generation_inputs=("${TRINKET_PROJECT_GENERATION_INPUTS[@]}" Scripts/config/generated-paths.tsv Trinket.xcodeproj/xcshareddata)
+# A fresh input stamp cannot vouch for missing or changed generated outputs.
+# Media outputs have their own receipt check on every preparation.
+while IFS='|' read -r _trinket_generated_kind _trinket_generated_path; do
+  case "$_trinket_generated_kind" in
+    content) content_generation_inputs+=("$_trinket_generated_path") ;;
+    project) project_generation_inputs+=("$_trinket_generated_path") ;;
+  esac
+done < <(trinket_generated_registry_rows "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/config/generated-paths.tsv")
+unset _trinket_generated_kind _trinket_generated_path
 build_input_paths=("${TRINKET_BUILD_ROOTS[@]}" "${TRINKET_PROJECT_INPUTS[@]}")
 
 generation_input_snapshot() {
@@ -81,15 +92,6 @@ for patterns in groups:
 PY_SNAPSHOT
 }
 
-build_input_git_snapshot() {
-  git status --porcelain -- "${build_input_paths[@]}" 2>/dev/null || true
-}
-
-record_build_input_git_snapshot() {
-  local stamp="$1"
-  printf '%s\n' "$(build_input_git_snapshot)" >"${stamp}.gitstatus"
-}
-
 touch_generate_stamp() {
   local results_dir="${1:-${RESULTS_DIR:-$PWD/.DerivedData/TestResults}}"
   local stamp="$results_dir/.last-generate.stamp"
@@ -105,25 +107,6 @@ touch_generate_stamp() {
   printf '%s\n' "$project_digest" > "$stamp.project" || return $?
   printf '%s\n' "$assets_digest" > "$stamp.assets" || return $?
   touch "$stamp"
-}
-
-assert_build_input_git_snapshot_unchanged() {
-  local stamp="$1"
-  local fingerprint="$2"
-  local snapshot="${stamp}.gitstatus"
-  local previous=""
-  local current
-
-  [[ -f "$snapshot" ]] || return 0
-
-  previous="$(cat "$snapshot")"
-  current="$(build_input_git_snapshot)"
-  if [[ "$current" != "$previous" ]]; then
-    echo "--no-build refused because build-input git status changed after '$fingerprint':" >&2
-    echo "  (working tree edits under build inputs since the last matching build)" >&2
-    echo "Run without --no-build to rebuild app and test bundles." >&2
-    return 1
-  fi
 }
 
 prepare_generated_inputs() (
@@ -209,34 +192,21 @@ prepare_generated_inputs() (
 assert_no_build_inputs_are_fresh() {
   local stamp="$1"
   local fingerprint="$2"
-  local newer_files=()
-  local file
 
   if [[ ! -f "$stamp" ]]; then
     echo "No prior built test stamp found for '$fingerprint'. Run without --no-build first." >&2
     return 1
   fi
 
-  python3 Scripts/build-metadata.py check "$(dirname "$stamp")" "$fingerprint" || return $?
-  if [[ "${CI:-}" == "true" || "${GITHUB_ACTIONS:-}" == "true" ]]; then
-    # CI checkouts have fresh mtimes; the transferred metadata proves commit
-    # and toolchain identity instead of relying on checkout timestamps.
-    return 0
+  local metadata_args=(check "$(dirname "$stamp")" "$fingerprint")
+  # CI checkouts have fresh mtimes; transferred metadata proves commit and
+  # toolchain identity. Local reuse also checks the original source snapshot.
+  if [[ "${CI:-}" != "true" && "${GITHUB_ACTIONS:-}" != "true" ]]; then
+    local input_snapshot
+    input_snapshot="$(generation_input_snapshot --build-inputs "${build_input_paths[@]}")" || return $?
+    metadata_args+=(--input-snapshot "$input_snapshot")
   fi
-
-  while IFS= read -r file; do
-    newer_files+=("$file")
-    [[ ${#newer_files[@]} -ge 10 ]] && break
-  done < <(generation_paths_newer_than "$stamp" "${build_input_paths[@]}")
-
-  if [[ ${#newer_files[@]} -gt 0 ]]; then
-    echo "--no-build refused because build inputs changed after '$fingerprint':" >&2
-    printf '  %s\n' "${newer_files[@]}" >&2
-    echo "Run without --no-build to rebuild app and test bundles." >&2
-    return 1
-  fi
-
-  assert_build_input_git_snapshot_unchanged "$stamp" "$fingerprint"
+  python3 Scripts/build-metadata.py "${metadata_args[@]}"
 }
 
 build_stamp_key() {
@@ -264,8 +234,8 @@ touch_build_stamp() {
   fi
   mkdir -p "$results_dir"
   python3 Scripts/build-metadata.py write "$results_dir" "$fingerprint" \
-    --started "${TRINKET_BUILD_STARTED_IDENTITY:-}" || return $?
-  record_build_input_git_snapshot "$stamp" || return $?
+    --started "${TRINKET_BUILD_STARTED_IDENTITY:-}" \
+    --input-snapshot "${TRINKET_BUILD_STARTED_INPUT_SNAPSHOT:-}" || return $?
   touch "$stamp"
 }
 

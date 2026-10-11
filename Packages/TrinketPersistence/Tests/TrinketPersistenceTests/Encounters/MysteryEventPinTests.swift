@@ -333,6 +333,49 @@ struct MysteryEventPinTests {
         #expect(result.hasGrantedExperience)
         #expect(save.journey.completedStageIDs.contains(stage.id))
     }
+}
+
+extension MysteryEventPinTests {
+    @Test @MainActor func `Homestead Gold offer survives wallet changes and reload without another choice`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore(resetState: true)
+        let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        try store.performBatchMutation {
+            $0.roster.gold = 0
+            $0.homestead.nodeTiers[.wishingWell] = 1
+            $0.homestead.pendingProduction = [:]
+            $0.homestead.lastProductionAt = .now
+        }
+        let encounter = EncounterIdentity(location: .journey(stageID: stage.id), save: store.currentSave)
+        var rng = SeededRandomNumberGenerator(seed: 3)
+        let prepared = store.prepareMysteryEncounter(
+            event: event, encounter: encounter, using: &rng,
+        )
+        guard case let .committed(offers) = prepared else {
+            Issue.record("Expected a saved Mystery offer")
+            return
+        }
+        let offer = try #require(offers.first)
+        #expect(offer.homesteadReward != nil)
+        try store.performBatchMutation { $0.roster.gold = PlayerRosterState.maxGoldBalance }
+
+        let reloaded = try context.makeReloadedStore()
+        let result = reloaded.resolveMysteryEncounter(
+            MysteryEncounterRequest(encounter: encounter, event: event, displayedOffers: offers),
+            action: .choice(offer.choiceID), using: &rng,
+        )
+        guard case let .committed(.reward(reward)) = result else {
+            Issue.record("The shown choice must grant its reward without refreshing offers")
+            return
+        }
+        #expect(reward.grantedItems == [offer.item])
+        #expect(reward.grantedGold == 0)
+        #expect(reward.hasGrantedExperience)
+        let claimed = try context.makeReloadedStore()
+        #expect(claimed.inventory.items.contains(offer.item))
+        #expect(claimed.journey.completedStageIDs.contains(stage.id))
+    }
 
     @Test func `legacy raw XP snapshot is capped without rerolling its item`() throws {
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))

@@ -54,6 +54,15 @@
     "contracts": ["Scripts/README.md#script-regression-ownership", "Docs/README.md#editing-guidance"]
   },
   {
+    "id": "agent-tooling",
+    "label": "Coding agent context",
+    "aliases": ["coding agent token efficiency", "token efficiency", "agent context", "context routing", "agent retrieval"],
+    "symbols": ["guidance_command", "read_target"],
+    "sources": ["Scripts/agent-brief.py", "Scripts/agent-read.py", "Scripts/agent-search.py", "Scripts/internal/agent_tasks.py"],
+    "tests": ["Scripts/Tests/test_agent_context.py", "Scripts/Tests/test_agent_read.py", "Scripts/Tests/test_agent_search.py"],
+    "contracts": ["Docs/AgentContext/Retrieval.md#routing-and-guidance-reuse", "Scripts/README.md#script-regression-ownership", "Docs/README.md#editing-guidance"]
+  },
+  {
     "id": "voyage",
     "label": "Voyage progress",
     "aliases": [

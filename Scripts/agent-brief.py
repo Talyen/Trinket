@@ -2,7 +2,6 @@
 """Stateless scoped status, safeguards, ownership guidance, and check selection."""
 from __future__ import annotations
 
-import argparse
 import os
 from pathlib import Path
 import shlex
@@ -11,17 +10,18 @@ from internal.agent_arguments import AgentArgumentParser
 from internal.agent_status import briefing
 from internal.agent_tasks import guidance_command, select_task
 from internal.change_routing import BEHAVIOR_CARDS, classify, collect_paths, verification_plan
-from internal.cli import ROOT
+from internal.cli import ROOT, load_sibling
 
 
 def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser = AgentArgumentParser('agent-brief.py', description=__doc__)
     scope = parser.add_mutually_exclusive_group()
-    scope.add_argument('--paths', nargs=argparse.REMAINDER)
+    scope.add_argument('--paths', nargs='+')
     scope.add_argument('--working-tree', action='store_true')
     parser.add_argument('--task')
     for flag in ('agent', 'full', 'status', 'smoke', 'allow-broad-scope', 'read-command'):
         parser.add_argument('--' + flag, action='store_true')
+    parser.add_argument('--read', action='store_true', help='include initial guidance in this call; root AGENTS.md is already injected, skills/behavior remain conditional')
     args = parser.parse_args(argv)
     try:
         task = select_task(root, args.task) if args.task else None
@@ -36,10 +36,10 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         route = classify(paths, root)
         focus = task['contracts'] if task else []
         initial = [*route.guides, *(card for card in route.cards if card.partition('#')[0] not in BEHAVIOR_CARDS)]
-        read = guidance_command(root, task, initial) if task else None
+        read = guidance_command(root, task, initial) if task or initial else None
         if args.read_command:
-            if not task or args.status: parser.error('--read-command requires --task and cannot combine with --status')
-            print(read)
+            if args.status or args.read: parser.error('--read-command cannot combine with --status or --read')
+            if read: print(read)
             return 0
         if args.status: print(briefing(root, paths))
         print(f'Agent context ({"working tree" if args.working_tree else "explicit paths"}, {len(paths)}):')
@@ -55,16 +55,15 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         triggers = {'apple-design': 'visual or interaction changes', 'architect': 'public type, protocol, schema, or package boundary changes', 'doc-budget': 'checker directives or suppression failures'}
         emit('Skills (load only when the trigger applies)', [skill + ' — ' + triggers.get(Path(skill).parent.name, 'see skill description') for skill in route.skills])
         emit('Memory (only for its concern)', route.knowledge)
-        if read: emit('Suggested initial reads (root already injected; follow other relevant behavior and skill references)', [read])
+        if read and task and not args.read: emit('Suggested initial reads (root already injected; follow other relevant behavior and skill references)', [read])
         if task:
             emit('Source entry points (navigation only)', task['sources'])
             emit('Test pointers (inspect assertions; not coverage proof)', task['tests'])
         roots = sorted({('/'.join(path.split('/')[:2]) if path.startswith('Packages/') else 'Scripts' if path.startswith('Scripts/') else 'Trinket' if path.startswith(('Trinket/', 'TrinketUITests/')) else '') for path in paths} - {''})
+        if 'Trinket' in roots:
+            roots.append('TrinketUITests')
         if roots:
-            print('Discovery: filename regex (--glob for shell patterns); --related for source/test symbol hints; --excerpts for lines:')
-            for owner in roots:
-                print('  python3 Scripts/agent-search.py --files "<pattern>" --scope ' + shlex.quote(owner))
-                print('  ' + (f'source/tests: {owner} (test mode includes support targets)' if owner.startswith('Packages/') else 'source: Scripts; tests: Scripts/Tests' if owner == 'Scripts' else 'source: Trinket; tests: TrinketUITests'))
+            emit('Discovery: python3 Scripts/agent-search.py <pattern> --scope <owner> (repeat across owners; --mode tests includes support targets)', roots)
         if args.full: emit(f'Authored paths ({len(route.authored)})', route.authored)
         emit(f'Generated/processed paths (do not hand-edit) ({len(route.generated)})', route.generated)
         emit('Boundary warnings', route.warnings)
@@ -73,6 +72,9 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         emit('Verification (agents: always --isolate)', [shlex.join(handoff)])
         if args.full: emit('Plan detail (sequential under that tenant)', [check.command + (' (deferred to CI locally)' if check.deferred else '') for check in verification_plan(route, root=root, smoke=args.smoke)])
         if route.smoke_unresolved: print('UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke.')
+        if args.read and read:
+            print('Initial guidance (complete reads; skills and other relevant behavior references still apply):')
+            return load_sibling('brief_reader', 'agent-read.py').main(shlex.split(read)[2:], root=root)
         return 0
     except (OSError, ValueError) as error:
         parser.error(str(error))

@@ -139,7 +139,7 @@ wait_for_run_id() {
   local run_id=""
   while (( attempts < 36 )); do
     run_id="$(
-      gh run list --workflow "$WORKFLOW_NAME" --commit "$sha" --limit 5 --json databaseId,status,event,createdAt,headSha \
+      gh run list --branch "$REF" --workflow "$WORKFLOW_NAME" --commit "$sha" --limit 5 --json databaseId,status,event,createdAt,headSha \
         --jq 'sort_by(.createdAt) | reverse | .[0].databaseId // empty'
     )"
     if [[ -n "$run_id" ]]; then
@@ -155,7 +155,11 @@ wait_for_run_id() {
 run_is_path_filtered_only() {
   local run_id="$1"
   local run_data
-  run_data="$(gh run view "$run_id" --json jobs 2>/dev/null || echo '{}')"
+  run_data="$(gh run view "$run_id" --json jobs 2>/dev/null)" || return 2
+  # An unavailable or incomplete inventory cannot justify dispatching more CI.
+  jq -e '(.jobs | type == "array" and length > 0) and all(.jobs[];
+    (.name | type == "string") and (.conclusion | type == "string" and length > 0))' \
+    <<<"$run_data" >/dev/null 2>&1 || return 2
   # The path-filter job appears as "changes / Path filter" (or nested under the
   # reusable tests.yml as "tests / changes / Path filter"); exclude it by suffix.
   local non_skipped
@@ -341,7 +345,16 @@ if ! watch_with_infra_retry "$RUN_ID"; then
   exit 1
 fi
 
-if [[ "$DISPATCH_IF_FILTERED" == true ]] && run_is_path_filtered_only "$RUN_ID"; then
+filter_status=1
+if [[ "$DISPATCH_IF_FILTERED" == true ]]; then
+  filter_status=0
+  run_is_path_filtered_only "$RUN_ID" || filter_status=$?
+  if (( filter_status > 1 )); then
+    echo "Could not inspect CI job evidence for run $RUN_ID; no workflow dispatched." >&2
+    exit 1
+  fi
+fi
+if (( filter_status == 0 )); then
   echo "CI run $RUN_ID was path-filtered (substantive jobs skipped)."
   echo "Dispatching full $WORKFLOW_NAME (scope=$SCOPE) on $REF ..."
   BEFORE="$(

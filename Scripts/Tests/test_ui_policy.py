@@ -89,7 +89,7 @@ class UiPolicyTests(ScriptRegressionTestCase):
                 self.assertEqual(checker.main(["check-ui-style.py", directory]), 1)
 
 
-    def test_artwork_budget_enforces_constants_and_rejects_96_floor(self) -> None:
+    def test_artwork_budget_enforces_process_constants_and_actual_cache_clamp(self) -> None:
         live = (ROOT / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift").read_text(encoding="utf-8")
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -105,10 +105,11 @@ class UiPolicyTests(ScriptRegressionTestCase):
                  live.replace("320 * 1024 * 1024", "321 * 1024 * 1024"), "residentArtworkByteCount must be 320"),
                 ("steady drift",
                  live.replace("550 * 1024 * 1024", "551 * 1024 * 1024"), "steadyStateProcessByteCount must be 550"),
-                ("floor lowered to 96",
-                 live.replace("160 * 1024 * 1024", "96 * 1024 * 1024"), "96 MiB floor"),
+                ("floor lowered while assertion and prose still name 160",
+                 live.replace("max(adaptiveBudget, 160 * 1024 * 1024)", "max(adaptiveBudget, 80 * 1024 * 1024)"),
+                 "NSCache adaptive budget must stay clamped to 160-260"),
                 ("cap lowered",
-                 live.replace("260 * 1024 * 1024", "160 * 1024 * 1024"), "NSCache cap must be 260"),
+                 live.replace("260 * 1024 * 1024", "160 * 1024 * 1024"), "NSCache adaptive budget must stay clamped to 160-260"),
             )
             for label, source, failure in cases:
                 with self.subTest(label=label):

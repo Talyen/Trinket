@@ -18,7 +18,7 @@ Module map: `Keyword.swift` (cases, rules) with `KeywordHighlighting.swift`
 `HomesteadTypes.swift` (retired-identifier aliases share one decode helper),
 `ItemSlot.swift` with `ProgressionEnums.swift`,
 `SeededRandomNumberGenerator.swift`,
-`BattleGoldFlow.swift`, `ActiveEffect.swift` (plus display-only `EffectSummary`),
+`BattleGoldFlow.swift`, `Effect.swift` (also owns `ActiveEffect` and display-only `EffectSummary`),
 `Collection+Safe.swift`, `DamageCondition.swift`
 (evaluation lives in `BattleEngine.BattleConditionEvaluator`; adding a case
 must update its exhaustive switch).

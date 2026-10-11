@@ -1,6 +1,6 @@
 {
   "app-icon": {
-    "input_hash": "050bc94d4c9b2230a2bcda46079980f5f802fd4a35c666ebb8d4f89a95b08ba5",
+    "input_hash": "8323f9d3a1dabbc7c43542cb1c6d08e08e316b2c196bfe0e37671b7d9f73fba1",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv": "c7ec3e9f737e9570ef1dc76fe9ef6fbb2a3cdd6b80890665b8e085f2ad3103ad",
       "Trinket/AppIcon.icon/Assets/Trinket App Icon.jpg": "5d1746f8a848e773c2be9cef9f16933aadf6a7cdb913d937853892ad198be7c2",

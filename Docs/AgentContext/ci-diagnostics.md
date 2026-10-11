@@ -18,8 +18,10 @@ their beginning and end within the artifact budget owned by
 `Scripts/diagnostic_maintenance.py`; local originals remain complete.
 
 The exhaustive advisory summary reads actual shard conclusions for the current
-run attempt. Failed or cancelled shards produce warnings and links while remaining
-outside `CI OK`; unavailable results are reported as unknown.
+run attempt. Requested FullUI that fails, is cancelled, is skipped, or lacks
+readable execution evidence fails its own advisory aggregate; warnings and links
+preserve the individual conclusions. That aggregate remains outside `CI OK`.
+An unrequested portfolio is reported as not run.
 
 ## Preparation timing
 

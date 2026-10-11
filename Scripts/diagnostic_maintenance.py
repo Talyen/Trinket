@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -48,11 +49,18 @@ def reset(root: Path) -> None:
 
 
 def prepare_artifact_dir(root: Path, artifact_dir: Path) -> None:
+    if '..' in artifact_dir.parts:
+        raise SystemExit("artifact directory must not use parent traversal")
+    # Check the supplied paths before resolving away aliases to other output trees.
+    boundary = Path(os.path.commonpath((root.absolute(), artifact_dir.absolute())))
+    if not safe_path(artifact_dir, boundary):
+        raise SystemExit("artifact directory must not be symlinked")
     root = root.resolve()
     destination = artifact_dir.resolve()
     if destination == root or destination in root.parents or root in destination.parents:
         raise SystemExit("artifact directory must not overlap TestResults")
-    shutil.rmtree(artifact_dir, ignore_errors=True)
+    if artifact_dir.exists():
+        shutil.rmtree(artifact_dir)
     artifact_dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -95,23 +103,23 @@ def stage(root: Path, artifact_dir: Path) -> None:
     prepare_artifact_dir(root, artifact_dir)
     category_path = root / "ci-diagnostics.json"
     try:
+        if category_path.is_symlink():
+            raise ValueError("symlinked diagnostic category")
         payload = json.loads(category_path.read_text(encoding="utf-8"))
         category = payload.get("category", "unknown") if isinstance(payload, dict) else "unknown"
-    except (OSError, json.JSONDecodeError):
+    except (OSError, ValueError):
         category = "unknown"
     names = {"ci-diagnostics.json", "timing-log.jsonl", "simulator.log", "phase-timing.jsonl"}
     for path in root.iterdir():
-        if path.is_file() and (path.name in names or path.name.endswith(("-invocation.json", "-diagnostics.json", "-diagnostics.md", "-diagnostics.annotations"))):
+        if not path.is_symlink() and path.is_file() and (path.name in names or path.name.endswith(("-invocation.json", "-diagnostics.json", "-diagnostics.md", "-diagnostics.annotations"))):
             shutil.copy2(path, artifact_dir / path.name)
     if category != "passed":
-        source = root / "raw"
-        if source.is_dir():
-            shutil.copytree(source, artifact_dir / "raw")
-        for path in root.glob("*.xcresult"):
-            shutil.copytree(path, artifact_dir / path.name)
-        for path in root.glob("*-diagnostics.attachments"):
-            shutil.copytree(path, artifact_dir / path.name)
-        (artifact_dir / "artifact-policy.txt").write_text(f"full forensic artifacts retained because category={category}\n")
+        for source in [root / "raw", *root.glob("*.xcresult"), *root.glob("*-diagnostics.attachments")]:
+            if source.is_dir() and not source.is_symlink():
+                shutil.copytree(source, artifact_dir / source.name, ignore=lambda directory, names: [
+                    name for name in names if (Path(directory) / name).is_symlink()
+                ])
+        (artifact_dir / "artifact-policy.txt").write_text(f"forensic artifacts retained because category={category}; symlink entries omitted\n")
     else:
         (artifact_dir / "artifact-policy.txt").write_text("structured artifacts only; raw logs and xcresults omitted for passing invocations\n")
     print(f"Staged CI artifacts in {artifact_dir} (category={category})")
@@ -193,7 +201,7 @@ def main(argv: list[str]) -> int:
         if len(argv) < 3 or not argv[2]:
             raise SystemExit("stage requires an artifact directory")
         stager = stage_gate if mode == "stage-gate" else stage
-        stager(root, Path(argv[2]).resolve())
+        stager(Path(argv[1]).absolute(), Path(argv[2]))
     elif mode == "cleanup":
         cleanup(root, "--keep" in argv[2:])
     else:

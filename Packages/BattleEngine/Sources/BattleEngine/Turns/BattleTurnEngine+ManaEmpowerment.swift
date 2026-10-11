@@ -132,6 +132,7 @@ private extension BattleTurnEngine {
         let operations = ability.operations.map { operation -> AbilityOperation in
             switch operation {
             case let .damage(component):
+                guard component.target != .actor else { return operation }
                 return .damage(DamageComponent(
                     component.amount * 2,
                     keyword: component.keyword,

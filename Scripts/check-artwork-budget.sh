@@ -35,15 +35,8 @@ fi
 if ! search "steadyStateProcessByteCount = 550 \* 1024 \* 1024" "$file"; then
   trinket_rg_violation "$file: steadyStateProcessByteCount must be 550 MiB (6 GB typical)."
 fi
-if ! search "totalCostLimit\(forPhysicalMemory|.*160 \* 1024 \* 1024" "$file"; then
-  trinket_rg_violation "$file: NSCache floor must be 160 MiB (not 96)."
-fi
-if ! search "260 \* 1024 \* 1024" "$file"; then
-  trinket_rg_violation "$file: NSCache cap must be 260 MiB (not 160)."
-fi
-# Forbid the old 4 GB-targeted 96 MiB floor assignment (ignore prose like "Do not lower floor to 96").
-if search "^\s*[^/]*96 \* 1024 \* 1024" "$file"; then
-  trinket_rg_violation "$file: 96 MiB floor is the old 4 GB target — do not reintroduce without product approval."
+if ! search '^\s*return min\(max\(adaptiveBudget, 160 \* 1024 \* 1024\), 260 \* 1024 \* 1024\)' "$file"; then
+  trinket_rg_violation "$file: NSCache adaptive budget must stay clamped to 160-260 MiB."
 fi
 
 trinket_rg_report "Artwork budget violations:" "Artwork budgets OK (6 GB typical: 320/550, cache 160-260)."

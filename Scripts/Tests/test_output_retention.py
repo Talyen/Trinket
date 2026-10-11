@@ -5,6 +5,7 @@ SCRIPT_INPUTS = (
     'Scripts/diagnostic_maintenance.py',
     'Scripts/internal/output_retention.py',
     'Scripts/lib/output-retention.sh',
+    'Scripts/lib/lock.sh',
     'Scripts/lib/derived-data.sh',
     'Scripts/phase-timing.py',
     'Scripts/testflight.sh',
@@ -223,8 +224,12 @@ class OutputRetentionTests(ScriptRegressionTestCase):
         for status in (0, 7):
             path = root / f'.DerivedData/HandoffResults/case-{status}'
             command = '''source Scripts/lib/output-retention.sh
+trap 'printf "%s\\n" "$?" > "$1.original-status"' EXIT
 mkdir -p "$1"
 trinket_output_retention_begin "$1"
+trinket_dir_lock_acquire "$1.lock" 1
+trinket_dir_lock_chain_trap 'printf "%s\\n" "$?" >> "$1.consumer-status"; test -d "$1"'
+trinket_dir_lock_chain_trap 'printf "%s\\n" "$?" >> "$1.consumer-status"; test -d "$1"'
 echo complete > "$1/output.log"
 test -f "$1/output.log"
 exit "$2"
@@ -234,6 +239,9 @@ exit "$2"
                                     capture_output=True, text=True)
             self.assertEqual(result.returncode, status, result.stdout + result.stderr)
             self.assertEqual(path.exists(), status != 0, result.stdout + result.stderr)
+            self.assertFalse(path.with_name(path.name + '.lock').exists())
+            self.assertEqual(path.with_name(path.name + '.consumer-status').read_text().splitlines(), [str(status)])
+            self.assertEqual(path.with_name(path.name + '.original-status').read_text().strip(), str(status))
 
 
 if __name__ == '__main__':

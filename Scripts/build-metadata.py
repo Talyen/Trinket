@@ -114,6 +114,7 @@ def main():
     parser.add_argument("results", type=Path)
     parser.add_argument("fingerprint")
     parser.add_argument("--started", help="Identity captured before building")
+    parser.add_argument("--input-snapshot", help="Cache-pruned source snapshot for local reuse")
     parser.add_argument("--sdk", default="iphonesimulator")
     parser.add_argument("--configuration", default="Debug")
     args = parser.parse_args()
@@ -129,12 +130,19 @@ def main():
     elif args.action == "write":
         if not args.started or differences(json.loads(args.started), current):
             raise ValueError("Build environment changed during compilation; rebuild before reuse.")
+        if not args.input_snapshot:
+            raise ValueError("Missing build input snapshot; rebuild before reuse.")
+        current["input_snapshot"] = args.input_snapshot
         current["fingerprint"] = args.fingerprint
         args.results.mkdir(parents=True, exist_ok=True)
         write_json_atomic(metadata, current)
     else:
         if not stamp.is_file():
             raise ValueError(f"Missing build stamp for {args.fingerprint}; rebuild before reuse.")
+        if not is_ci():
+            if not args.input_snapshot:
+                raise ValueError("Missing build input snapshot; rebuild before reuse.")
+            current["input_snapshot"] = args.input_snapshot
         validate_metadata(read_metadata(metadata), current, args.fingerprint)
 
 

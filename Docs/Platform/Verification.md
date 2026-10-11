@@ -209,6 +209,8 @@ manual runs cannot reuse pinned-toolchain checks; exhaustive UI remains advisory
 `Smoke.xctestplan` and `FullUI.xctestplan` are disjoint. Default deploy verification
 runs FullUI; main CI supplies smoke coverage separately. The release workflow
 requires green main CI. Use `--mode smoke` for the optional local smoke canary.
+Targeted UI runs require at least one non-skipped execution for every requested
+class or method filter; an absent or entirely skipped filter fails the run.
 
 Generation in full gates is intentionally uncached: CI and an explicitly enabled
 heavy handoff invoke `generate.sh` directly, including repeated generation for
@@ -262,7 +264,10 @@ Ordinary `build.sh` compiles only the app; it does not produce reusable test
 bundles. CI keeps app incremental build state in its warm cache and transfers only
 runtime products, build stamps, and versioned environment metadata in a tar archive to preserve executable permissions. Compiler-only Swift module metadata is omitted from transfers; runtime shaders and artwork remain intact.
 Local reuse requires matching Xcode, SDK, architecture policy, configuration, and
-test fingerprint as well as unchanged sources. The selected Xcode product version
+test fingerprint as well as the build's source snapshot. The snapshot detects
+edits and deletions, includes all authored test plans plus generated project/shared
+scheme configuration, and excludes compiler caches, Xcode user state, and Markdown
+so those changes do not force a rebuild. The selected Xcode product version
 is read directly from its installed version plist when available, avoiding a
 potentially stalled `xcodebuild -version` process; SDK and source checks still run. Missing or legacy metadata requires
 a rebuild. CI additionally requires the same commit; incompatible or missing

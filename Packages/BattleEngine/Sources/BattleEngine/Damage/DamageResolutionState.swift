@@ -10,9 +10,9 @@ package struct DamageTargetStatus {
 
     init() {}
 
-    /// Pre-damage snapshot for defense gates (dodge, Block, mitigation).
-    /// Post-commit reactions must live-query the roster instead: reactions
-    /// running inside `applyCommittedDamageReactions` can change effects.
+    /// Hit-time status for damage gates and rewards such as Confounding Loot.
+    /// Reaction continuation must live-query Health and effects because earlier
+    /// committed reactions can change them.
     init(for combatant: Combatant, in context: BattleState) {
         isBurning = context.roster.hasAffliction(.burn, on: combatant)
         isPoisoned = context.roster.hasAffliction(.poison, on: combatant)

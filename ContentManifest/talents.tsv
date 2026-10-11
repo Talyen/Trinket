@@ -425,7 +425,7 @@ wildcard_physical_t2_1	Clean Cut	sf:burst.fill	Physical Critical Hits ignore ene
 wildcard_physical_t2_2	Cracked Guard	sf:shield.slash.fill	Breaking enemy Block with Physical damage makes your next attack Critically Hit		crackedGuard:true
 wildcard_physical_t3_1	Cold Read	sf:eye.fill	Physical attacks against Frozen enemies gain +15% Critical Hit chance		physicalVsFrozenCritBonus:0.15
 wildcard_physical_t3_2	Feigned Miss	sf:theatermasks.fill	An enemy fully Blocking your attack doubles your next Physical attack		blockedAttackNextPhysicalDouble:true
-wildcard_physical_t4_1	Paid in Full	sf:circle.circle.fill	Stealing Gold adds 2 damage to your next Physical attack		goldStealNextPhysicalBonus:2
+wildcard_physical_t4_1	Paid in Full	sf:circle.circle.fill	Stealing Gold adds 2 damage to your next attack		goldStealNextAttackBonus:2
 warlock_leech_t4_1	Emberdrinker	sf:flame.fill	Your first Burn attack each turn gains Leech		firstBurnAttackLeech:true
 frost_whelp_mana_t4_1	Dragon’s Patronage	sf:person.2.fill	Mana empowerment grants your ally 2 Block		manaEmpowerAllyBlock:2
 frost_whelp_dodge_t4_1	Winter’s Wake	sf:cloud.snow.fill	Dodging makes your next Freeze attack ignore enemy Block		dodgeNextFreezeIgnoreBlock:true

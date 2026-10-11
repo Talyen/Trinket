@@ -58,6 +58,7 @@ struct CombatantTalentState: Hashable, Sendable {
         var guaranteedBleedCritical = false
         var doubleNextGoldSteal = false
         var nextPhysicalDamageBonus = 0
+        var nextAttackDamageBonus = 0
         var nextHolyHitDouble: PreparedTalentBonus<Bool>?
         var nextStunAttackDouble: PreparedTalentBonus<Bool>?
         var nextBleedAttackMultiplier: PreparedTalentBonus<Double>?

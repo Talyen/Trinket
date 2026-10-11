@@ -46,7 +46,7 @@ fi
 mkdir -p "$TOOLS_DIR"
 
 url="https://github.com/orhun/git-cliff/releases/download/v${VERSION}/${archive}"
-echo "Installing git-cliff ${VERSION} from ${url}..."
+echo "Installing git-cliff ${VERSION} from ${url}..." >&2
 tmpdir="$(trinket_tool_fetch_tarball "$url" "$checksum" "git-cliff")"
 trap 'rm -rf "$tmpdir"' EXIT
 
@@ -60,4 +60,7 @@ install -m 755 "$candidate" "$BIN.tmp"
 mv -f "$BIN.tmp" "$BIN"
 trinket_tool_write_marker git-cliff "$BIN" "$checksum"
 
+# A successful exec replaces this shell without running its EXIT trap.
+rm -rf "$tmpdir"
+trap - EXIT
 exec "$BIN" "$@"

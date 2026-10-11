@@ -57,15 +57,13 @@ def load_tasks(root: Path) -> list[dict]:
     return tasks
 
 
+def task_row(task: dict) -> str:
+    return f"{task['label']} ({task['id']}): " + shlex.join(
+        ["python3", "Scripts/agent-brief.py", "--task", task["id"]])
+
+
 def find_tasks(root: Path, query: str, scopes: list[str]) -> list[str]:
-    rows = []
-    for task in matching_tasks(root, query, scopes):
-        lines = [f"{task['label']} ({task['id']}):"]
-        for label, field in (("Source", "sources"), ("Test pointer", "tests"), ("Contract", "contracts")):
-            lines.extend(f"  {label}: {name}" for name in task[field])
-        lines.append("  Route: " + shlex.join(["./Scripts/agent-context.sh", "--agent", "--status", "--task", task["id"]]))
-        rows.append("\n".join(lines))
-    return rows
+    return [task_row(task) for task in matching_tasks(root, query, scopes)]
 
 
 def matching_tasks(root: Path, query: str, scopes: list[str]) -> list[dict]:
@@ -85,9 +83,22 @@ def matching_tasks(root: Path, query: str, scopes: list[str]) -> list[dict]:
 
 def select_task(root: Path, query: str) -> dict:
     matches = matching_tasks(root, query, [])
+    matches = [task for task in matches if task['id'].casefold() == query.strip().casefold()] or matches
     if len(matches) != 1:
         choices = ", ".join(task["id"] for task in matches) or "none"
-        raise ValueError(f"--task requires one indexed concern; matches: {choices}. List concerns: python3 Scripts/agent-search.py --task --overview")
+        message = f"--task requires one indexed concern; matches: {choices}."
+        if not matches:
+            words = set(re.findall(r"\w+", query.casefold()))
+            ranked = []
+            for task in load_tasks(root):
+                score = max(len(words & set(re.findall(r"\w+", name.casefold())))
+                            for name in (task['id'], task['label'], *task['aliases']))
+                if score:
+                    ranked.append((-score, task['id'], task))
+            if ranked:
+                message += "\nPossible concerns (navigation only; no scope selected):\n" + "\n".join(
+                    "  " + task_row(task) for _, _, task in sorted(ranked)[:5])
+        raise ValueError(message + "\nList concerns: python3 Scripts/agent-search.py --task --overview")
     return matches[0]
 
 
@@ -100,11 +111,10 @@ def related_tests(root: Path, symbol: str, source_files: set[str], test_files: s
     return selected
 
 
-def guidance_command(root: Path, task: dict, guides: list[str]) -> str:
+def guidance_command(root: Path, task: dict | None, guides: list[str]) -> str:
     """Print a stateless batch read; only initial applicable guidance is expanded."""
-    command = ['python3', 'Scripts/agent-read.py']
-    for reference in dict.fromkeys([*guides, *task['contracts']]):
+    command = ['python3', 'Scripts/agent-read.py', '--full']
+    for reference in dict.fromkeys([*guides, *(task['contracts'] if task else [])]):
         validate_reference(root, reference)
-        flags = ['--full'] if '#' not in reference else []
-        command += ['--request', shlex.join([reference, *flags])]
+        command.append(reference)
     return shlex.join(command)

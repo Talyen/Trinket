@@ -58,7 +58,9 @@ investigation needs a longer window, then release its evidence when finished. Th
 sampling, pacing, policy, and report schemas. Workers receive the canonical
 `BalanceSweepConfig` as JSON, with only mode, concurrency, and work slice changed;
 do not forward settings through a second CLI flag list. Documentation should not mirror those
-defaults. Requires the current pinned Xcode (see [toolchain ladder](../../Scripts/Reference.md#toolchain-ladder)).
+defaults. Requires a compatible Swift toolchain with macOS package support. Local
+sweeps use the shell's selected toolchain; the required CI pin does not select it
+for this command (see [toolchain ladder](../../Scripts/Reference.md#toolchain-ladder)).
 
 Within each process, `SweepWorkerPool.map` bounds concurrent simulations and
 returns non-nil results in input order. Shared claims and result storage use

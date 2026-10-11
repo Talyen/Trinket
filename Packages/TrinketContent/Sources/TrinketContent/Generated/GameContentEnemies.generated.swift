@@ -39,12 +39,12 @@ enum GameContentEnemiesGenerated {
         list.append(Enemy(combatant: Combatant(id: "the_seraph", name: "The Seraph", role: .enemy, maxHealth: 15, abilities: [.slash, .smite, .sunburst]), traitIDs: ["radiant_judgment", "thin_blooded"], isBoss: true, faction: .mortal))
         list.append(Enemy(combatant: Combatant(id: "winter_wolf", name: "Winter Wolf", role: .enemy, maxHealth: 14, abilities: [.fangs, .frostbolt, .blizzard]), traitIDs: ["chilling_strikes", "kindling"], faction: .beast))
         list.append(Enemy(combatant: Combatant(id: "ice_wraith", name: "Ice Wraith", role: .enemy, maxHealth: 13, abilities: [.rayOfFrost, .frostbolt, .blizzard]), traitIDs: ["numbing_presence", "incorporeal", "kindling", "profane"], faction: .undead))
-        list.append(Enemy(combatant: Combatant(id: "yeti", name: "Yeti", role: .enemy, maxHealth: 15, abilities: [.bash, .glacialWard, .blizzard]), traitIDs: ["rimeguard", "winterborn", "kindling"], faction: .beast))
+        list.append(Enemy(combatant: Combatant(id: "yeti", name: "Yeti", role: .enemy, maxHealth: 15, abilities: [.bash, .glacialWard, .blizzard]), traitIDs: ["rimeguard", "winterborn", "kindling", "off_balance"], faction: .beast))
         list.append(Enemy(combatant: Combatant(id: "banshee", name: "Banshee", role: .enemy, maxHealth: 13, abilities: [.bash, .sunder, .earthquake]), traitIDs: ["dread_exploitation", "profane"], faction: .undead))
         list.append(Enemy(combatant: Combatant(id: "brawler", name: "Brawler", role: .enemy, maxHealth: 12, abilities: [.bash, .sunder, .earthquake]), traitIDs: ["concussion", "thin_blooded"], faction: .mortal))
         list.append(Enemy(combatant: Combatant(id: "stone_golem", name: "Stone Golem", role: .enemy, maxHealth: 15, abilities: [.shieldBash, .stoneskinPotion, .earthquake]), traitIDs: ["watchful_guard", "bulwark_force"], faction: .construct))
-        list.append(Enemy(combatant: Combatant(id: "earth_elemental", name: "Earth Elemental", role: .enemy, maxHealth: 15, abilities: [.bash, .sunder, .earthquake]), traitIDs: ["stonehide", "fault_lines"], faction: .elemental))
-        list.append(Enemy(combatant: Combatant(id: "the_stone_titan", name: "The Stone Titan", role: .enemy, maxHealth: 15, abilities: [.block, .stoneskinPotion, .earthquake]), traitIDs: ["seismic_pulse", "loose_rubble"], isBoss: true, faction: .construct))
+        list.append(Enemy(combatant: Combatant(id: "earth_elemental", name: "Earth Elemental", role: .enemy, maxHealth: 15, abilities: [.bash, .stoneskinPotion, .earthquake]), traitIDs: ["stonehide", "fault_lines"], faction: .elemental))
+        list.append(Enemy(combatant: Combatant(id: "the_stone_titan", name: "The Stone Titan", role: .enemy, maxHealth: 15, abilities: [.bash, .stoneskinPotion, .earthquake]), traitIDs: ["seismic_pulse", "loose_rubble"], isBoss: true, faction: .construct))
         return list
     }()
 }

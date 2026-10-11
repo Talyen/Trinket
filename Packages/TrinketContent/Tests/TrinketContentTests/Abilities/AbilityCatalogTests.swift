@@ -5,7 +5,7 @@ import TrinketCore
 struct AbilityCatalogTests {
     @Test func `luck potion covers every die face and combat outcome`() throws {
         let branches = try #require(Ability.luckPotion.outcomeBranches)
-        #expect(branches.count == 18)
+        #expect(branches.count == 36)
         var thornsAmounts: [Int] = []
         var blockAmounts: [Int] = []
         var healthAmounts: [Int] = []
@@ -24,9 +24,9 @@ struct AbilityCatalogTests {
                 Issue.record("Luck Potion branch did not grant a combat gain or draw")
             }
         }
-        #expect(thornsAmounts.sorted() == Array(1 ... 6))
-        #expect(blockAmounts.sorted() == Array(1 ... 6))
-        #expect(healthAmounts.sorted() == Array(1 ... 6))
+        #expect(thornsAmounts.sorted() == Array(1 ... 12))
+        #expect(blockAmounts.sorted() == Array(1 ... 12))
+        #expect(healthAmounts.sorted() == Array(1 ... 12))
     }
 
     @Test func `catalog I ds are unique and unknown lookup returns nil`() throws {

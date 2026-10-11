@@ -5,9 +5,10 @@ import TrinketCore
 @testable import BattleEngine
 
 struct HealingGainBoundaryTests {
-    @Test func `healing with a saturated flat bonus fills available Health without overflowing`() {
+    @Test(arguments: [false, true])
+    func `healing with a saturated flat bonus fills available Health without overflowing`(critical: Bool) throws {
         var profile = CombatModifierProfile(healthRestoredBonus: Int.max)
-        profile.triggers.criticalChanceBonus = -1
+        profile.triggers.criticalChanceBonus = critical ? 1 : -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: Int.max),
             companion: CombatantFixtures.passiveCompanion(),
@@ -15,9 +16,19 @@ struct HealingGainBoundaryTests {
             heroHealth: 1, heroModifiers: profile,
         )
         battle.appliesFightPacing = false
-        let result = battle.resolveHeal(HealRequest(amount: 1, target: battle.hero, sourceActorID: battle.hero.id))
+        if critical {
+            let seed = try #require((UInt64(0) ..< 32).first { seed in
+                var rng = SeededRandomNumberGenerator(seed: seed)
+                return BattleChance.succeeds(probability: 0.75, using: &rng)
+            })
+            battle.rng = SeededRandomNumberGenerator(seed: seed)
+        }
+        let result = battle.resolveHeal(HealRequest(
+            amount: 1, target: battle.hero, sourceActorID: battle.hero.id, origin: .restoration(.health),
+        ))
         #expect(battle.health(of: battle.hero) == Int.max)
         #expect(result.healthRestored == Int.max - 1)
+        #expect(result.isCritical == critical)
     }
 
     @Test func `Flawless Bounty grants Gold and Block without Windfall or nested restoration`() {

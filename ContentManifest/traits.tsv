@@ -43,6 +43,7 @@ kindling	Kindling	Burn damage taken increased by 30%.	damage_taken_vulnerability
 cold_shocked	Cold-Shocked	Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	
 profane	Profane	Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	
 thin_blooded	Thin-Blooded	Bleed damage taken increased by 30%.	damage_taken_vulnerability:bleed:0.30	
-stonehide	Stonehide	Physical damage taken reduced by 20%.	damage_taken_percent:physical:0.20	
+stonehide	Stonehide	Physical damage taken reduced by 10%.	damage_taken_percent:physical:0.10	
 fault_lines	Fault Lines	Stun damage taken increased by 30%.	damage_taken_vulnerability:stun:0.30	
 loose_rubble	Loose Rubble	Taking Health damage reduces the next damage dealt by 1.		onHealthLossNextDamageReduction:1
+off_balance	Off Balance	Physical and Stun damage taken increased by 20%.	damage_taken_vulnerability:physical:0.20|damage_taken_vulnerability:stun:0.20	

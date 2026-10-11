@@ -380,6 +380,26 @@ struct ManaEmpowermentTests {
 }
 
 extension ManaEmpowermentTests {
+    @Test func `Spell Echo doubles Dark Pact damage without increasing its Health cost`() throws {
+        var profile = CombatantTalentCatalog.profile(for: ["wizard_mana_t3_2"])
+        profile.triggers.manaEmpoweredAttackDoubleChancePercent = 1
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [.darkPact], heroMaxHealth: 2,
+            heroMaxMana: 6, heroMana: 6, heroModifiers: profile,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.hero.hasConsumedDeathsDoor = true
+        let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.darkPact.id })
+
+        _ = try battle.playCard(cardID: card.id)
+
+        #expect(battle.health(of: battle.hero) == 1)
+        #expect(battle.health(of: battle.enemy) == 96)
+        #expect(BattleTestFixtures.burnPotency(on: battle) == 4)
+        #expect(battle.mana(of: battle.hero) == 3)
+    }
+
     @Test(arguments: [Keyword.burn, .freeze])
     func `Arcane Breath strengthens Astral Arrow Freeze without adding Freeze to Burn`(keyword: Keyword) throws {
         var profile = CombatantTalentCatalog.profile(for: ["frost_whelp_mana_t1_2"])

@@ -9,8 +9,17 @@ import tempfile
 
 from script_test_support import ScriptRegressionTestCase
 
-SCRIPT_INPUTS = ('Scripts/asset-library.py', 'Scripts/lib/media-assets.sh',
-                 'Scripts/prepare-audio-assets.sh')
+SCRIPT_INPUTS = (
+    'Scripts/asset-library.py',
+    'Scripts/build-freshness.sh',
+    'Scripts/build-inputs.env',
+    'Scripts/config/generated-paths.tsv',
+    'Scripts/lib/args.sh',
+    'Scripts/lib/generated-paths.sh',
+    'Scripts/lib/media-assets.sh',
+    'Scripts/prepare-assets.sh',
+    'Scripts/prepare-audio-assets.sh',
+)
 
 
 class AssetLibraryTests(ScriptRegressionTestCase):
@@ -20,7 +29,8 @@ class AssetLibraryTests(ScriptRegressionTestCase):
             for name in ('CI', 'GITHUB_ACTIONS'):
                 env.pop(name, None)
             self.make_repo_fixture(directory, ('Scripts/prepare-assets.sh', 'Scripts/lib/args.sh',
-                                               'Scripts/build-freshness.sh', 'Scripts/build-inputs.env'))
+                                               'Scripts/build-freshness.sh', 'Scripts/build-inputs.env',
+                                               'Scripts/lib/generated-paths.sh', 'Scripts/config/generated-paths.tsv'))
             prepare = root / 'Scripts/prepare-assets.sh'
             prepare.rename(root / 'Scripts/prepare-selected-assets.sh')
             prepare.write_text('#!/bin/bash\nexec bash Scripts/prepare-selected-assets.sh "$@" --kind sfx\n')

@@ -86,6 +86,34 @@ struct LabyrinthSaveRecoveryTests {
         #expect(!save.labyrinth.nodes.isEmpty)
     }
 
+    @Test(arguments: [LabyrinthNodeType.boss, .shop]) @MainActor
+    func `maximum saved depth preserves readable progress without overflowing`(type: LabyrinthNodeType) throws {
+        var save = PlayerSave.testSeed
+        save.labyrinth.ensureMap(seed: 55)
+        let original = try #require(save.labyrinth.nodes.values.first { $0.type == type })
+        save.labyrinth.nodes[original.id] = LabyrinthNode(
+            id: original.id, type: type, enemyID: original.enemyID,
+            depth: Int.max, clusterID: original.clusterID, gridPosition: original.gridPosition,
+            modifierIDs: original.modifierIDs, isCleared: type == .boss, isRevealed: true,
+        )
+        let context = try PersistenceTestContext()
+        let loaded = try context.seedAndReload(save)
+        let restored = try #require(loaded.labyrinth.node(id: original.id))
+        #expect(restored.depth == Int.max)
+        #expect(restored.isCleared == (type == .boss))
+        #expect(!loaded.labyrinth.isMapPayloadUnreadable)
+        if type == .shop {
+            #expect(LabyrinthCompletion.nonCombatGoldStipend(for: restored) == Int.max)
+        } else {
+            var labyrinth = loaded.labyrinth
+            LabyrinthGenerator.expandBeyondBoss(
+                bossNodeID: original.id, clusters: &labyrinth.clusters, nodes: &labyrinth.nodes, seed: 55,
+            )
+            #expect(labyrinth == loaded.labyrinth)
+        }
+        #expect(try context.makeReloadedStore().labyrinth == loaded.labyrinth)
+    }
+
     @Test @MainActor func `store reload heals corrupt map blob`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()

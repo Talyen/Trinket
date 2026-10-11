@@ -131,7 +131,7 @@ id	name	role	max_health	max_mana	basics	skills	ultimates
 - `role`: `hero` or `companion`.
 - `max_mana`: `0` when unused; combatants with `max_mana > 0` gain +1 Mana every two levels.
 - `basics` / `skills` / `ultimates`: comma-separated ability symbols (four choices per tier).
-- Player leveling is +1 HP per level above 1; authored `max_health`/`max_mana` are level-1 values.
+- Player leveling is +2 HP per level above 1 through `CombatantLevelScaler`; authored `max_health`/`max_mana` are level-1 values.
 
 ### Enemies (`ContentManifest/enemies.tsv`)
 
@@ -159,7 +159,7 @@ node_id	title	summary	icon_id	category	tier	stage_name	cost	bonus_title	bonus_de
 - `node_id`: `HomesteadNodeID` case name (e.g. `wheatField`).
 - `category`: `farming`, `crafting`, `alchemy`, `training`, or `arcana`.
 - Nodes have no building prerequisites; each tier requires only its authored material cost.
-- `stage_name`: concise, player-facing name for the node's construction stage; use no more than three words.
+- `stage_name`: authored construction-stage metadata; use no more than three words. Current [Build/Upgrade offers](../Docs/Product/Homestead.md#next-stage-offers) do not display these names.
 - `cost`: pipe-separated `resource:amount` tokens (e.g. `wood:10|stone:4`); quantities must be non-negative ASCII integers. Negative costs would grant resources on upgrade.
 - `production`: pipe-separated `resource:quantity` positive ASCII integer daily rates (e.g. `gems:1|stone:1`), or empty for no passive production. Each tier supplies its complete rate, not an increment over the previous tier.
 - `modifiers`: affix-token combat bonuses for that tier. Default scope is hero and companion; prefix `hero.` / `companion.` to target one side. Combat tokens include `outgoing_damage_percent:0.02`, `incoming_damage_reduction_percent:0.02`, `dodge_chance_bonus:0.02` (all additive, rounded via `CombatRounding`). Homestead-only percentage tokens use integer percentages: `astral_chance:N`, `gold_find:N`, `experience_percent:N`, and `gems_find_percent:N`. Combat percentage tokens use fractions, including `maximum_health_percent`, `damage_dealt_percent:keyword`, `critical_damage_percent`, `health_restored_percent`, `mana_restored_percent`, `leech_healing_percent`, `block_gained_percent`, `companion_damage_dealt_percent`, and `ranged_damage_dealt_percent`. Existing flat tokens and Homestead metadata `gold_find_flat:N`, `experience:N`, and `gems_find:N` remain supported for current consumers. Descriptions use player-directed wording without trailing periods; production uses `Produce N {resource} per Day`.

@@ -16,7 +16,7 @@ public extension AbilityCatalog {
         id: "blackjack", name: "Blackjack", tier: .basic,
         damageComponents: [DamageComponent(2, keyword: .stun)],
         targetedEffects: [
-            TargetedEffect(.resourceGain(.gold, 2), condition: .enemyStunned),
+            TargetedEffect(.resourceGain(.gold, 3), condition: .enemyStunned),
         ],
         stealsGold: true,
     )

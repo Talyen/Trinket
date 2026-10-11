@@ -46,7 +46,9 @@ after capture freezes, not during the measured interaction.
 The runner retains session-scoped results under `.DerivedData/PerformanceResults/`,
 including successful calibration runs. Set `TRINKET_PERFORMANCE_OUTPUT_DIR=<path>`
 to choose a fresh directory; existing directories are rejected to prevent mixing
-runs. Remove old sessions explicitly when no longer needed. If UI execution fails,
+runs. Reports follow the shared [output-retention controls](../../Scripts/Reference.md#output-retention);
+keep evidence explicitly when an active investigation needs it beyond 24 hours.
+If UI execution fails,
 the runner still collects available reports and returns failure. Raw logs and
 result bundles remain beside the reports for investigation.
 
@@ -101,19 +103,12 @@ with populated combatant/equipment content.
 Functional UI and headless/package journeys own payment/ownership, onboarding,
 loadout persistence, reset safety, save recovery, and StoreKit entitlement behavior.
 The performance catalog retains rendering workloads, not duplicate functional
-checks: shared companion/category grids, Contracts party-picker, redundant offer
-entries and transaction measurements, synthetic recruit return, and reset/save
-recovery measurements were retired in favor of their semantic owners. Hero and
-Companion starter confirmations, recruit reveal/return through Campaign, and
-Homestead build versus improvement remain distinct workloads.
+checks. Current measurement membership is owned by the baseline; distinct
+functional flows do not imply a retained performance scenario.
 
 Accessibility snapshots that establish and verify scroll motion run before and
-after frame sampling. Navigation into a new scroll surface is measured
-separately when useful: Campaign party picker opening, shelf scrolling, and
-selection; Battle log opening and scrolling; and Mystery corruption picker
-opening and scrolling have distinct reports. Other combined journeys still
-check their scroll motion and return destination, with those checks outside the
-navigation measurement. Older reports for these changed windows include
+after frame sampling. Retained combined journeys check scroll motion and return
+destinations outside the measured interaction. Older reports for changed windows include
 accessibility snapshot cost and are not directly comparable to new reports.
 
 Fixtures only establish disposable prerequisites before measurement: isolated

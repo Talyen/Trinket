@@ -25,6 +25,53 @@ from script_test_support import ScriptRegressionTestCase, ROOT
 
 
 class PolicyScriptsTests(ScriptRegressionTestCase):
+    def test_ci_watch_dispatch_requires_readable_job_evidence_for_the_requested_branch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fake_gh = root / 'gh'
+            fake_gh.write_text('''#!/usr/bin/env python3
+import json, os, sys
+args = sys.argv[1:]
+if args[:2] == ['repo', 'view']:
+    print('fixture/repo')
+elif args[:2] == ['run', 'list']:
+    if '--branch' not in args or args[args.index('--branch') + 1] != 'fixture-branch':
+        sys.exit(91)
+    print('10')
+elif args[:2] == ['run', 'view']:
+    if args[args.index('--json') + 1] == 'status,conclusion,jobs':
+        print(json.dumps(dict(status='completed', conclusion='success', jobs=[])))
+    elif os.environ['FIXTURE_JOBS'] == 'unavailable':
+        sys.exit(1)
+    else:
+        print(os.environ['FIXTURE_JOBS'])
+elif args[:2] == ['workflow', 'run']:
+    open(os.environ['FIXTURE_DISPATCH'], 'w').write('dispatched')
+    sys.exit(77)
+else:
+    sys.exit(92)
+''')
+            fake_gh.chmod(0o755)
+            cases = (
+                ('unavailable', False, 1), ('{}', False, 1), ('{"jobs":[]}', False, 1),
+                ('{"jobs":[{}]}', False, 1),
+                (json.dumps({'jobs': [{'name': 'changes / Path filter', 'conclusion': 'success'}]}), True, 77),
+                (json.dumps({'jobs': [{'name': 'tests / gate', 'conclusion': 'success'}]}), False, 0),
+            )
+            for jobs, dispatch, status in cases:
+                with self.subTest(jobs=jobs):
+                    dispatched = root / 'dispatched'
+                    dispatched.unlink(missing_ok=True)
+                    result = subprocess.run(
+                        [str(ROOT / 'Scripts/agent-watch-ci.sh'), '--ref', 'fixture-branch',
+                         '--no-infra-rerun', '--poll-seconds', '1'], cwd=ROOT,
+                        env={**os.environ, 'PATH': f"{root}:{os.environ['PATH']}",
+                             'FIXTURE_JOBS': jobs, 'FIXTURE_DISPATCH': str(dispatched)},
+                        capture_output=True, text=True, timeout=10,
+                    )
+                    self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+                    self.assertEqual(dispatched.exists(), dispatch)
+
     def test_ci_infrastructure_retry_requires_evidence_for_every_failed_job(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -3,6 +3,9 @@
 SCRIPT_INPUTS = (
     'Scripts/build-metadata.py',
     'Scripts/build-freshness.sh',
+    'Scripts/build-inputs.env',
+    'Scripts/config/generated-paths.tsv',
+    'Scripts/lib/generated-paths.sh',
     'Scripts/build-for-testing.sh',
     'Scripts/build.sh',
     'Scripts/run-simulator.sh',
@@ -37,6 +40,7 @@ class BuildMetadataTests(unittest.TestCase):
         scripts = self.root / 'Scripts'
         scripts.mkdir()
         for name in ('build-metadata.py', 'internal/cli.py', 'build-freshness.sh', 'build-inputs.env',
+                     'lib/generated-paths.sh', 'config/generated-paths.tsv',
                      'restore-ci-test-products.sh', 'stage-ci-test-artifact.sh'):
             target = scripts / name
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -71,7 +75,43 @@ class BuildMetadataTests(unittest.TestCase):
         source.write_text('changed')
         stamp = next((self.root / 'results').glob('*.stamp'))
         os.utime(source, (stamp.stat().st_mtime + 2,) * 2)
-        self.assertIn('Trinket/App.swift', self.check(expected=1).stderr)
+        self.assertIn('input_snapshot', self.check(expected=1).stderr)
+
+    def test_local_reuse_rejects_deleted_sources_and_edits_with_preserved_mtime(self):
+        sources = self.root / 'Trinket/NewFeature'
+        sources.mkdir(parents=True)
+        (sources / 'Kept.swift').write_text('kept')
+        source = sources / 'Changed.swift'
+        # Normal git status summarizes this whole untracked directory, so it
+        # cannot distinguish either mutation from the already-built dirty tree.
+        with (self.root / 'fake-tools/git').open('a') as stream:
+            stream.write('if [ "$1" = status ]; then echo "?? Trinket/NewFeature/"; fi\n')
+        for mutation in ('delete', 'edit'):
+            with self.subTest(mutation=mutation):
+                source.write_text('before')
+                before = source.stat()
+                self.build()
+                if mutation == 'delete':
+                    source.unlink()
+                else:
+                    source.write_text('after!')
+                    os.utime(source, ns=(before.st_atime_ns, before.st_mtime_ns))
+                self.check(expected=1)
+
+    def test_test_plans_and_generated_project_changes_invalidate_local_reuse(self):
+        for relative in ('Profiles.xctestplan', 'Soak.xctestplan', 'Future.xctestplan',
+                         'Trinket.xcodeproj/project.pbxproj',
+                         'Trinket.xcodeproj/xcshareddata/xcschemes/Trinket.xcscheme'):
+            with self.subTest(path=relative):
+                source = self.root / relative
+                source.parent.mkdir(parents=True, exist_ok=True)
+                source.write_text('before')
+                self.build()
+                source.write_text('after')
+                self.check(expected=1)
+                self.build()
+                source.unlink()
+                self.check(expected=1)
 
     def test_selected_bundle_avoids_version_process_and_still_rejects_changed_toolchain(self):
         contents = self.root / 'Xcode.app/Contents'
@@ -161,10 +201,14 @@ touch_build_stamp results package_TrinketCore
         self.check('ui', expected=1)
 
     def test_build_outputs_do_not_invalidate_the_source_snapshot(self):
-        self.shell('build_input_paths=(Trinket)\nmkdir -p Trinket/.swiftpm Trinket/.build Trinket/__pycache__\n'
+        self.shell('mkdir -p Trinket/.swiftpm Trinket/.build Trinket/__pycache__ Trinket.xcodeproj/xcuserdata\n'
                    'begin_build_stamps results ui\nprintf output > Trinket/.swiftpm/cache\n'
                    'printf output > Trinket/.build/cache\nprintf output > Trinket/__pycache__/cache\n'
-                   'touch_build_stamp results ui')
+                   'printf output > Trinket.xcodeproj/xcuserdata/state\n'
+                   'touch_build_stamp results ui\n'
+                   'printf updated > Trinket/.build/cache\n'
+                   'printf updated > Trinket.xcodeproj/xcuserdata/state\n'
+                   'assert_no_build_inputs_are_fresh "$(build_stamp_path results ui)" ui')
 
     def make_products(self, env):
         products = self.root / '.DerivedData/Build/Products'

@@ -55,7 +55,12 @@ once at action preparation, without RNG, and card assessment uses the same selec
 before quoting costs.
 Random outcomes remain separate. Branch eligibility is checked before sampling,
 and assessment and Health-cost quotes use the same eligible branches without RNG.
-Luck Potion rolls 1–6 and draws one caster card after its gain. Health outcomes
+Blackjack evaluates its Stun-conditioned theft after damage: existing Stun and
+Stun newly caused by that hit both qualify.
+Paid in Full banks one bonus after theft for the next attack of any damage type;
+Bounty Blade retains its separate Physical-only bonus. Repeated theft refreshes
+these pending bonuses without stacking them; ongoing damage does not consume them.
+Luck Potion rolls 1–12 and draws one caster card after its gain. Health outcomes
 are excluded when no living ally is injured; healing chooses the lowest current
 Health among injured living allies. Conditional guaranteed criticals snapshot their
 eligibility at preparation. `BattleActionContext`
@@ -108,8 +113,10 @@ read receipts even after refunds or nested actions. A prepared empowerment disco
 applies to one purchase; Meteor and Falling Star can then buy their normal paid
 repeats. A reaction that ends combat stops further empowerment purchases.
 Permanently free empowerment remains bounded to one purchase.
-Arcane Burst keeps excess
-progress across cards and turns separately from cadence claims. Periodic rewards
+The `spendManaThresholdAutoPlayCard` trigger keeps excess Mana-spend progress
+across cards and turns separately from cadence claims. Mana Moth's current
+[Arcane Burst](battle-talents.md#dark-recovery-and-arcane-burst) instead rolls a
+damage multiplier for an empowered action. Periodic rewards
 use `playerTurnNumber` and `isPlayerTurn(every:startingAt:)`; stored `turnCount`
 remains zero-based.
 
@@ -128,21 +135,27 @@ play order, before resolving effects. After the enemy turn and round effects,
 discards append behind undrawn cards before new-turn draws. Empty draw piles never
 refill mid-turn; decks do not reshuffle after battle start.
 
-Pack Tactics deals 3 Physical damage, then draws a manual card from the caster's
+Pack Tactics deals Physical damage, then draws a manual card from the caster's
 ally's deck. It falls back to the caster's deck when the ally is defeated, blocked
 from drawing, unable to pay the drawn card's Health cost, or has no card to draw.
 Feint prepares Dodge and draws a manual card from the caster's deck; a missing
-card does not borrow the partner's. Shadowstep prepares Dodge and repeats the
-caster's next manually played card, or an enemy's next normally executed ability.
+card does not borrow the partner's. Shadowstep deals Physical damage, then draws
+from the caster's deck, without Dodge or repeat preparation. Current card text
+is owned by the [authored ability catalogs](content-and-manifests.md#abilities).
+
+The engine's `playNextCardTwice` effect remains supported but is not granted by
+current authored abilities. It repeats the caster's next manually played card,
+or an enemy's next normally executed ability.
 Partner cards, automatic plays, counterattacks, and echoes preserve that preparation;
 skipped or intercepted enemy actions preserve it too. Refreshes do not stack.
 Reserve the repeat before effects begin. Resolve the prepared card's effects twice,
 including support effects and affordable self-damage, with Block costs and Mana
 empowerment paid once. Physical card movement, action cadence, and card-completion
 rewards occur once. One-shot hit bonuses retain their ordinary consumption rules.
-Repeats cannot consume a freshly readied repeat; repeated Shadowstep readies one
-later card. Stop repeating after combat ends, caster defeat, or an unaffordable
-Health cost. Other draw-and-play effects retain automatic play and their existing
+Repeats cannot consume a freshly readied repeat; an action granting
+`playNextCardTwice` leaves that preparation for a later card. Stop repeating after
+combat ends, caster defeat, or an unaffordable Health cost. Other draw-and-play
+effects retain automatic play and their existing
 alternating-deck rules.
 
 Unique returns move the exact physical copy from discard or draw pile into hand,

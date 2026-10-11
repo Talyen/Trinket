@@ -5,6 +5,34 @@ import TrinketCore
 @testable import BattleEngine
 
 extension AbilityEffectIntegrationTests {
+    @Test(arguments: [0, 2, 4], [false, true])
+    func `Blackjack steals once for existing or newly applied Stun`(initialStun: Int, finishingHit: Bool) {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyMaxHealth: 20, heroModifiers: profile, dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        if initialStun > 0 {
+            battle.appendEffect(
+                .controlMeter(.stun, initialStun, 4), to: battle.enemy,
+                sourceID: battle.hero.id, remainingTurns: 0,
+            )
+        }
+        if finishingHit {
+            battle.roster.enemy.currentHealth = 2
+        }
+
+        let events = BattleTurnEngine.performAction(
+            ability: .blackjack, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+        )
+
+        let qualifies = initialStun == 4 || (initialStun == 2 && !finishingHit)
+        let theft = events.filter { $0.effectKind == .resourceGain && $0.abilityID == "blackjack" && $0.keyword == .gold }
+        #expect(battle.gold == (qualifies ? 3 : 0))
+        #expect(theft.count == (qualifies ? 1 : 0))
+    }
+
     @Test(arguments: [Ability.fangs])
     func `enemy basic freeze bonus does not repeat on later ticks`(ability: Ability) throws {
         var enemyProfile = CombatModifierProfile.zero

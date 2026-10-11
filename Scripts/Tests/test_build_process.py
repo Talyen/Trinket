@@ -271,7 +271,8 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "Scripts").mkdir()
-            for name in ("build-freshness.sh", "build-inputs.env"):
+            for name in ("build-freshness.sh", "build-inputs.env", "lib/generated-paths.sh", "config/generated-paths.tsv"):
+                (root / "Scripts" / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
             prepare = root / 'Scripts/prepare-assets.sh'
             prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
@@ -304,7 +305,8 @@ prepare_generated_inputs results
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "Scripts/lib").mkdir(parents=True)
-            for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh"):
+            for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh", "lib/generated-paths.sh", "config/generated-paths.tsv"):
+                (root / "Scripts" / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
             prepare = root / 'Scripts/prepare-assets.sh'
             prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\nprintf checked >> asset-checks\n')
@@ -340,7 +342,8 @@ prepare_generated_inputs agent
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "Scripts/lib").mkdir(parents=True)
-            for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh"):
+            for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh", "lib/generated-paths.sh", "config/generated-paths.tsv"):
+                (root / "Scripts" / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
             prepare = root / 'Scripts/prepare-assets.sh'
             prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
@@ -372,7 +375,8 @@ wait "$holder"
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "Scripts/lib").mkdir(parents=True)
-            for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh"):
+            for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh", "lib/generated-paths.sh", "config/generated-paths.tsv"):
+                (root / "Scripts" / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
             prepare = root / 'Scripts/prepare-assets.sh'
             prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')

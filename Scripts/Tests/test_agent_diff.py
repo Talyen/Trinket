@@ -130,6 +130,8 @@ class AgentDiffTests(unittest.TestCase):
                 status, output = run(args)
                 self.assertEqual(status, 0)
                 pages.append(output)
+                if '+changed' in output:
+                    self.assertIn('diff --git a/Authored space.swift b/Authored space.swift', output)
                 next_line = next((line for line in output.splitlines() if line.startswith("Continue: ")), None)
                 if next_line is None:
                     break
@@ -146,7 +148,11 @@ class AgentDiffTests(unittest.TestCase):
             status, output = run(["--max-chars", "1", "--paths", path.name])
             self.assertIn("was not truncated", output)
             self.assertNotIn("+changed", output)
-            self.assertIn("+changed 10", run(["--full", "--paths", path.name])[1])
+            full = run(["--full", "--paths", path.name])[1]
+            self.assertIn("+changed 10", full)
+            self.assertEqual(full.count('diff --git '), 1)
+            for i in (10, 40, 70):
+                self.assertEqual(full.count(f"+changed {i}\n"), 1)
 
     def test_generated_disclosure_expansion_and_index_boundaries(self) -> None:
         with tempfile.TemporaryDirectory(prefix="agent diff ") as directory:

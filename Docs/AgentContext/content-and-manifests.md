@@ -114,6 +114,10 @@ Use `./Scripts/generate.sh` for project inputs; XcodeGen always runs uncached.
 
 **Single entry:** `./Scripts/generate.sh` validates ContentManifest TSVs, regenerates content catalogs (trigger families are `public`; catalog blobs are `internal` and reached through `GameContent`), optionally prepares art/music/SFX (`--assets`), then runs XcodeGen (always uncached). Pass `--skip-xcodegen` for content/asset codegen only; see [Verification.md](../Platform/Verification.md#generated-project-consistency).
 
+Local build preparation tracks both generation inputs and registered content/project
+outputs, including shared Xcode schemes, so missing or changed outputs trigger repair.
+Prepared media is checked against its receipt on every preparation.
+
 | Input | Run | Review |
 |---|---|---|
 | Content manifests or authored catalog Swift | `./Scripts/generate.sh` | Expected catalog diff and content tests when semantics change |

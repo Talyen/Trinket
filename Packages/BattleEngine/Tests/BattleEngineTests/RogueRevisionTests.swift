@@ -24,7 +24,7 @@ struct RogueRevisionTests {
         return battle
     }
 
-    @Test func `coinmail converts combat gold into block`() throws {
+    @Test func `Coinmail converts only its owner's combat Gold into Block`() throws {
         let coinmail = try #require(CombatantTalentCatalog.effect(for: "rogue_gold_t1_2"))
         try #expect(coinmail.name == "Coinmail")
         let profile = CombatantTalentCatalog.profile(for: ["rogue_gold_t1_2"])
@@ -33,6 +33,10 @@ struct RogueRevisionTests {
         _ = try BattleTestFixtures.playCardNamed("Steal", owner: .hero, on: &battle)
         try #expect(battle.gold == 2)
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 1)
+
+        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Steal", isTheft: true)
+        #expect(battle.gold == 4)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 1)
     }
 
     @Test(arguments: [3, 7])

@@ -130,10 +130,17 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     if args.start > len(units):
         parser.error("--start is beyond the last unit")
     print(f"Diff: {'staged' if args.staged else 'unstaged'}; {len(authored)} authored, {len(outputs)} generated files")
-    stop, used = args.start, 0
-    while stop < len(units) and (args.full or used + len(units[stop]) <= args.max_chars):
-        print(units[stop], end="")
-        used += len(units[stop])
+    stop, used, previous_header = args.start, 0, None
+    while stop < len(units):
+        unit = units[stop]
+        marker = unit.find("\n@@ ")
+        header = unit[:marker + 1] if unit.startswith("diff --git ") and marker >= 0 else None
+        content = unit[len(header):] if header and header == previous_header else unit
+        if not args.full and used + len(content) > args.max_chars:
+            break
+        print(content, end="")
+        used += len(content)
+        previous_header = header
         stop += 1
     print(f"Review units {args.start}:{stop} of {len(units)}; omitted {len(units) - stop} units after this page.")
     if stop < len(units):

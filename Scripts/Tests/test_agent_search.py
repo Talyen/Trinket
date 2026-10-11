@@ -6,6 +6,7 @@ SCRIPT_INPUTS = (
     'Scripts/config/agent-tasks.json',
     'Scripts/internal/agent_tasks.py',
     'Scripts/internal/agent_arguments.py',
+    'Scripts/internal/markdown.py',
 )
 
 
@@ -34,8 +35,7 @@ class AgentSearchTests(unittest.TestCase):
         self.write('Scripts/config/agent-tasks.json', json.dumps([task]))
         status, output = self.search('buy item', '--task')
         self.assertEqual(status, 0)
-        self.assertIn('Guide.md#rules', output)
-        self.assertIn('Route: ./Scripts/agent-context.sh', output)
+        self.assertIn('Shop purchase (thing): python3 Scripts/agent-brief.py --task thing', output)
         status, output = self.search('Thing', '--related')
         self.assertEqual(status, 0)
         self.assertIn('Tests/BehaviorTests.swift:1: curated concern link', output)
@@ -67,6 +67,32 @@ class AgentSearchTests(unittest.TestCase):
         with contextlib.redirect_stdout(output):
             status = SEARCH.main(list(args), root=self.root)
         return status, output.getvalue()
+
+    def test_section_search_keeps_scoped_constraints_discoverable_across_pages_and_heading_edits(self) -> None:
+        import shlex
+        guide = 'needle preamble\n# Guide\n## Purchase\nneedle first\n### Limits\nneedle nested\n## Purchase\n```md\n## Fake needle\n```\nneedle last\n'
+        self.write('Docs/Guide.md', guide)
+        self.write('Other/Guide.md', '# Outside\nneedle\n')
+        self.write('Docs/Generated/Guide.generated.md', '# Generated\nneedle\n')
+        status, first = self.search('needle', '--mode', 'docs', '--sections', '--scope', 'Docs', '--limit', '2')
+        self.assertEqual(status, 0)
+        self.assertIn('navigation only', first)
+        self.assertIn('Docs/Guide.md [1-1] (unheaded text; --lines 1:1): 1 matching lines', first)
+        self.assertIn('Docs/Guide.md#purchase [3-6]: 1 matching lines', first)
+        self.assertIn('4 sections/ranges; omitted 2 sections/ranges', first)
+        continuation = shlex.split(next(line.removeprefix('Continue: ') for line in first.splitlines() if line.startswith('Continue: ')))[2:]
+        status, second = self.search(*continuation)
+        self.assertEqual(status, 0)
+        self.assertIn('Docs/Guide.md#limits [5-6]: 1 matching lines', second)
+        self.assertIn('Docs/Guide.md#purchase-1 [7-11]: 2 matching lines', second)
+        self.assertNotIn('#purchase [', second)
+        for output in (first, second):
+            for excluded in ('#fake', 'Other/Guide.md', 'Guide.generated.md'):
+                self.assertNotIn(excluded, output)
+        self.write('Docs/Guide.md', guide.replace('## Purchase\n```', '## Revised\n```'))
+        with contextlib.redirect_stderr(io.StringIO()) as error:
+            self.assertEqual(self.search(*continuation)[0], 2)
+        self.assertIn('results changed', error.getvalue())
 
     def test_explicit_globs_use_filtered_filenames_and_preserve_pagination(self) -> None:
         self.write('Packages/Game/Sources/One.swift', 'no match needed')
@@ -197,10 +223,11 @@ class AgentSearchTests(unittest.TestCase):
                 for name in expected[3:]:
                     self.assertNotIn(name + ":", output)
         _, output = self.search("needle", "--mode", "docs", "--limit", "30", "--excerpts", "--context", "0")
-        positions = [output.index(name + ":1: needle first") for name in expected]
+        positions = [output.index(name + ":\n1: needle first") for name in expected]
         self.assertEqual(positions, sorted(positions))
         for name in expected:
-            self.assertLess(output.index(name + ":1:"), output.index(name + ":2:"))
+            self.assertEqual(output.count(name + ":"), 1)
+            self.assertIn(name + ":\n1: needle first\n2: needle second", output)
         status, output = self.search("needle", "--mode", "docs", "--scope", "Docs/Plans")
         self.assertEqual(status, 0)
         self.assertIn("Matched 2 lines in 1 files; omitted 0 files", output)
@@ -295,13 +322,20 @@ class AgentSearchTests(unittest.TestCase):
         for name in ['One.swift', 'Two.swift', 'Three.swift']:
             self.write(name, 'a.b\na.b\n')
         for initial in [['swift', '--files', '--limit', '1'],
-                        ['a.b', '-F', '--excerpts', '--context', '0', '--limit', '2']]:
+                         ['a.b', '-F', '--excerpts', '--context', '0', '--limit', '1']]:
             status, first = self.search(*initial)
             command = shlex.split(next(l.removeprefix('Continue: ') for l in first.splitlines() if l.startswith('Continue: ')))[2:]
             status, second = self.search(*command)
             self.assertEqual(status, 0)
             self.assertNotEqual(first, second)
-            self.assertNotIn('One.swift:', second) if '--excerpts' in initial else self.assertNotIn('\nOne.swift\n', second)
+            if '--excerpts' in initial:
+                self.assertIn('One.swift:\n1: a.b', first)
+                self.assertIn('One.swift:\n2: a.b', second)
+                self.write('One.swift', 'changed\n')
+                with contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(self.search(*command)[0], 2)
+            else:
+                self.assertNotIn('\nOne.swift\n', second)
 
     def test_asset_filenames_include_binary_inputs_and_outputs_without_reading_contents(self) -> None:
         self.write('Raw Assets/Sounds/Needle.WAV', 'not text search content')

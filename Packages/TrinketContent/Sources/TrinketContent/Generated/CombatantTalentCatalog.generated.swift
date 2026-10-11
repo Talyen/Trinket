@@ -1204,9 +1204,9 @@ public extension CombatantTalentCatalog {
             "wildcard_physical_t4_1": CombatantTalentEffect(
                 name: "Paid in Full",
                 iconID: "sf:circle.circle.fill",
-                description: "Stealing Gold adds 2 damage to your next Physical attack",
+                description: "Stealing Gold adds 2 damage to your next attack",
                 modifiers: [],
-                triggers: CombatTraitTriggers(gold: GoldTriggers(goldStealNextPhysicalBonus: 2))
+                triggers: CombatTraitTriggers(gold: GoldTriggers(goldStealNextAttackBonus: 2))
             )
     ]
 

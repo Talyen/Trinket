@@ -62,7 +62,7 @@ struct QuickFingersCounterattackTests {
         }
 
         #expect(events.contains { $0.kind == .abilityDamage && $0.isCritical })
-        #expect(battle.gold == 7)
+        #expect(battle.gold == 8)
         #expect(events.count { $0.effectKind == .cardsDrawn && $0.abilityName == "Quick Fingers" } == (jackpot ? 0 : 1))
         #expect(battle.hand.cards.map(\.ability.id) == (jackpot ? [] : [Ability.slash.id]))
     }
@@ -88,7 +88,7 @@ struct QuickFingersCounterattackTests {
         )
 
         #expect(!events.contains { $0.kind == .abilityDamage && $0.isCritical })
-        #expect(battle.gold == 2)
+        #expect(battle.gold == 3)
         #expect(!events.contains { $0.effectKind == .cardsDrawn && $0.abilityName == "Quick Fingers" })
         #expect(battle.hand.cards.isEmpty)
     }

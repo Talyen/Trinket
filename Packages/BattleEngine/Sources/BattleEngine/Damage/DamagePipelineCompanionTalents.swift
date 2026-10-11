@@ -140,7 +140,8 @@ package extension DamagePipeline {
               let source = context.roster.combatant(for: sourceActorID), source.role == .companion
         else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
-        if keyword == .bleed, triggers.bleedAttackDamageBonus > 0 {
+        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
+        if keyword == .bleed || sharedKeyword == .bleed, triggers.bleedAttackDamageBonus > 0 {
             state.remaining += triggers.bleedAttackDamageBonus
             state.itemBonus += triggers.bleedAttackDamageBonus
         }

@@ -35,6 +35,25 @@ struct ItemAffixMagnitudeRollTests {
         try #expect(!branding.basic.isAtOrAboveRollMax(of: branding.basic))
     }
 
+    @Test func `oversized saved integer powers remain inspectable and can be weakened`() throws {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: "keen"))
+        let stored = ItemAffixPower(
+            description: "Increase Physical damage by \(Int.max).",
+            modifiers: [.damageDealt(.physical, Int.max)],
+        )
+        let powers = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([stored]))
+        let item = try ItemFixtures.makeBareItem(
+            "double_axe", affixes: [definition.resolved(for: .basic)], affixPowers: powers,
+        )
+        #expect(item.displayedAffixes.first?.description == stored.description)
+        #expect(item.resolvedPower(at: 0)?.modifiers == stored.modifiers)
+        #expect(item.isPerfectAffix(at: 0))
+        #expect(stored.bumpCandidates(direction: .up).isEmpty)
+        let target = try #require(stored.bumpCandidates(direction: .down).first)
+        #expect(stored.bumped(target: target, direction: .down).modifiers == [.damageDealt(.physical, Int.max - 1)])
+        #expect(stored.rolledMax().modifiers == stored.modifiers)
+    }
+
     @Test func `corruption bump to range max becomes perfect`() throws {
         let defenders = try #require(GameContent.itemAffixDefinition(matching: "defenders"))
         let affix = defenders.resolved(for: .basic)

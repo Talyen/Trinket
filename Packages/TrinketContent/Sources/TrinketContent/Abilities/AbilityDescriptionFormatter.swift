@@ -3,7 +3,7 @@ import TrinketCore
 enum AbilityDescriptionFormatter {
     /// Shared rider wording; the branched and fixed paths join riders
     /// differently, but the words must not drift apart.
-    private static let manaEmpowermentRider = "convert all your Mana into bonus Burn damage"
+    private static let manaEmpowermentRider = "spend additional Mana to increase Burn damage"
 
     static func format(_ ability: Ability) -> String {
         if let branches = ability.outcomeBranches, !branches.isEmpty {

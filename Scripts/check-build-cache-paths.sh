@@ -5,10 +5,10 @@
 #
 # Intentional differences (do not "fix" by forcing identical lists):
 # - Cache uses Packages/** (broader); build-inputs enumerates TRINKET_TEST_PACKAGES.
-# - Cache uses *.xctestplan; build-inputs lists each known plan by name.
-# - changes.yml also watches .github/**, Trinket.xcodeproj/**, lint/format config —
-#   those trigger CI jobs but are deliberately omitted from the cache key so
-#   workflow-only edits can reuse warm DerivedData.
+# - Local freshness includes the generated project and shared schemes. CI's
+#   warm cache omits them but always recompiles against the checked-out project.
+# - changes.yml also watches .github/** and lint/format config; those trigger
+#   CI jobs but stay out of cache keys so workflow-only edits reuse warm DerivedData.
 # - Cache nonsource hashes Scripts/tool-versions.env, not Scripts/**, so
 #   script-only CI edits prefix-restore; Scripts/** remains on the full key.
 set -euo pipefail

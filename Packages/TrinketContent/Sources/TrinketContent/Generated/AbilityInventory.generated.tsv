@@ -1,7 +1,7 @@
 id	name	tier	summary
 apple	Apple	basic	Restore 3 Health
 bash	Bash	basic	Deal 3 Stun damage
-blackjack	Blackjack	basic	Deal 2 Stun damage\nSteal 2 Gold if the enemy is Stunned
+blackjack	Blackjack	basic	Deal 2 Stun damage\nSteal 3 Gold if the enemy is Stunned
 block	Block	basic	Gain 3 Block
 caustic-jab	Caustic Jab	basic	Deal 1 Poison damage\nHalve the enemy's Block
 fangs	Fangs	basic	Deal 1 Bleed damage\nLeech
@@ -55,10 +55,10 @@ earthquake	Earthquake	ultimate	Deal 6 Stun damage this turn and next
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health\nDeal 4 Burn damage\nDraw 1 card
 golden-plate	Golden Plate	ultimate	Gain 8 Block\nGain 5 Gold
 hemorrhage	Hemorrhage	ultimate	Deal 6 Bleed damage\nDetonate all Bleed
-luck-potion	Luck Potion	ultimate	Roll a 6-sided die\nGain that much Block, Thorns, or Health\nAt full party Health, roll Block or Thorns\nDraw 1 card
-meteor	Meteor	ultimate	Deal 6 Burn damage\nConvert all your Mana into bonus Burn damage
+luck-potion	Luck Potion	ultimate	Roll a 12-sided die\nGain that much Block, Thorns, or Health\nAt full party Health, roll Block or Thorns\nDraw 1 card
+meteor	Meteor	ultimate	Deal 6 Burn damage\nSpend additional Mana to increase Burn damage
 molten-bulwark	Molten Bulwark	ultimate	Deal 3 Burn damage\nGain 4 Block and Thorns
-pack-tactics	Pack Tactics	ultimate	Deal 5 Physical damage\nDraw a card from your ally's deck
+pack-tactics	Pack Tactics	ultimate	Deal 5 Physical damage\nDraw a card from your ally's deck\nIf unavailable, draw from your deck
 panacea-potion	Panacea Potion	ultimate	Cleanse the ally with the most debuffs\nRestore 6 Health\nDraw 1 card
 phoenix-feather	Phoenix Feather	ultimate	Deal 3 Burn damage\nRevive an Ally to 1 Health
 shadowstep	Shadowstep	ultimate	Deal 4 Physical damage\nDraw 1 card

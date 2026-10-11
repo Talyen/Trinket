@@ -14,7 +14,7 @@ public enum LabyrinthCompletion {
     public static func nonCombatGoldStipend(for node: LabyrinthNode) -> Int {
         switch node.type {
         case .shop, .mystery, .recruit:
-            2 + node.depth
+            SaturatedArithmetic.saturatingAdd(2, max(0, node.depth))
         case .battle, .boss, .entrance:
             0
         }

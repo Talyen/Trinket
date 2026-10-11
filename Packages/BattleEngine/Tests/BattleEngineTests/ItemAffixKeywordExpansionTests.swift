@@ -69,6 +69,35 @@ struct ItemAffixKeywordExpansionTests {
         #expect(battle.health(of: enemy) == 38)
     }
 
+    @Test func `Unmaking and Fortunate Strike reward a fully Blocked Critical Hit`() throws {
+        var profile = CombatModifierProfile.zero
+        for id in ["unmaking", "lucky_clover"] {
+            let affix = try #require(GameContent.itemAffixDefinition(matching: id))
+            affix.basic.triggers.apply(to: &profile, abilityName: affix.title)
+        }
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 40),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
+            enemyEffects: [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 2)],
+            heroModifiers: profile,
+        )
+        battle.appliesFightPacing = false
+
+        let outcome = battle.resolveDamage(DamageRequest(
+            amount: 1, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true),
+        ))
+
+        #expect(outcome.isCritical)
+        #expect(outcome.healthLost == 0)
+        #expect(battle.health(of: battle.enemy) == 40)
+        #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.isRemovableBuff })
+        #expect(outcome.events.count { $0.effectKind == .purgeApplied && $0.abilityName == "Unmaking" } == 1)
+        #expect(battle.gold == 1)
+        #expect(outcome.events.count { $0.keyword == .gold && $0.abilityName == "Fortunate Strike" && $0.amount == 1 } == 1)
+    }
+
     @Test func `death door entry burns and surviving its expiry heals`() {
         var profile = CombatModifierProfile.zero
         profile.triggers.enterDeathsDoorBurnDamage = 3

@@ -96,9 +96,32 @@ class AgentReadTests(unittest.TestCase):
             self.assertIn('Missing.md', errors.getvalue())
             with contextlib.redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(reader.main(['First.md', 'Last.md', '--outline'], root=root), 0)
-            self.assertIn('First.md#rules', output.getvalue())
-            self.assertIn('Last.md#last', output.getvalue())
+            self.assertIn('First.md — headings', output.getvalue())
+            self.assertIn('#rules', output.getvalue())
+            self.assertIn('Last.md — headings', output.getvalue())
+            self.assertIn('#last', output.getvalue())
             self.assertNotIn('Continue:', output.getvalue())
+
+    def test_overlapping_reads_reuse_only_complete_text_from_the_current_batch(self) -> None:
+        reader = load_script('overlap_reader', 'agent-read.py')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'Guide.md').write_text('# Guide\n## Rules\nKeep saves\n### Recovery\nKeep failures visible\n## Other\nKeep artwork\n')
+            (root / 'code.py').write_text('class Owner:\n    def work(self):\n        return 42\n    value = 7\n')
+            requests = ['--request', 'Guide.md#rules', '--request', 'Guide.md#recovery',
+                        '--request', 'Guide.md --full', '--request', 'code.py --symbol Owner.work',
+                        '--request', 'code.py --symbol Owner']
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(reader.main(requests, root=root), 0)
+            for invariant in ('Keep saves', 'Keep failures visible', 'Keep artwork', 'return 42', 'value = 7'):
+                self.assertEqual(output.getvalue().count(invariant), 1)
+            self.assertIn('Reusing', output.getvalue())
+            # Navigation is not a read, and a later invocation has no stale receipt.
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(reader.main(['--request', 'Guide.md --outline', '--request', 'Guide.md#recovery'], root=root), 0)
+            self.assertIn('Keep failures visible', output.getvalue())
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(reader.main(['--request', 'Guide.md --full', '--request', 'Guide.md#missing'], root=root), 2)
 
     def test_shell_and_config_ranges_preserve_bytes_identity_and_reject_escape_or_binary(self) -> None:
         reader = load_script('range_reader', 'agent-read.py')
@@ -189,8 +212,9 @@ class AgentReadTests(unittest.TestCase):
             self.assertNotIn("4: Policy", child)
             outline = read("Guide.md", "--outline")
             self.assertNotIn("#hidden", outline)
-            self.assertIn("Guide.md#repeat-1 [14-15]", outline)
-            self.assertIn("Guide.md#repeat-1-1 [16-17]", outline)
+            self.assertEqual(outline.count('Guide.md'), 1)
+            self.assertIn("#repeat-1 [14-15]", outline)
+            self.assertIn("#repeat-1-1 [16-17]", outline)
             self.assertIn("15: Second", read("Guide.md#repeat-1"))
             self.assertIn("17: Third", read("Guide.md"))
             source = root / "Links.md"
@@ -214,6 +238,11 @@ class AgentReadTests(unittest.TestCase):
             self.assertIn("2:4 class Owner", output.getvalue())
             self.assertNotIn("fake", output.getvalue())
             self.assertIn("omitted 1", output.getvalue())
+            continuation = shlex.split(next(line.removeprefix('Continue: ') for line in output.getvalue().splitlines()
+                                           if line.startswith('Continue: ')))
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(reader.main(continuation[2:], root=root), 0)
+            self.assertIn('  Owner:\n    3:4 def real', output.getvalue())
             with contextlib.redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(reader.main(["code.py", "--lines", "3:4"], root=root), 0)
             self.assertIn("4:         return 2", output.getvalue())
@@ -349,11 +378,28 @@ struct Owner {
             self.assertIn('Omitted 1 headings', default)
             self.assertIn('--limit 2', default)
             last_page = read('--outline', '--offset', '2')
-            self.assertIn('Guide.md#end', last_page)
+            self.assertIn('#end', last_page)
             self.assertNotIn('Continue:', last_page)
             self.assertIn('Last rule', read('--full'))
             with contextlib.redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(reader.main(['Guide.md#rules'], root=root), 0)
             self.assertEqual(output.getvalue().count('important rule'), 1000)
             (root / 'Guide.md').write_text('no headings\n' * 2000)
-            self.assertIn('No headings', read())
+            self.assertIn('No matching headings', read())
+            (root / 'Guide.md').write_text('# Guide\n' + ''.join(f'## Routine {i}\n' for i in range(15))
+                                         + '## Simulator leases\nKeep ownership\n## Simulator cleanup\nKeep evidence\n')
+            filtered = read('--outline', '--match', 'SIMULATOR', '--limit', '1')
+            self.assertIn('#simulator-leases', filtered)
+            self.assertNotIn('#routine', filtered)
+            retry = shlex.split(next(line.removeprefix('Continue: ') for line in filtered.splitlines()
+                                     if line.startswith('Continue: ')))
+            self.assertIn('--match', retry)
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(reader.main(retry[2:], root=root), 0)
+            self.assertIn('#simulator-cleanup', output.getvalue())
+            self.assertNotIn('#simulator-leases', output.getvalue())
+            with contextlib.redirect_stdout(io.StringIO()) as output, contextlib.redirect_stderr(io.StringIO()) as errors:
+                self.assertEqual(reader.main(['Guide.md#simulator-budget'], root=root), 2)
+            self.assertEqual(output.getvalue(), '')
+            self.assertIn('Guide.md#simulator-leases', errors.getvalue())
+            self.assertIn('Guide.md#simulator-cleanup', errors.getvalue())

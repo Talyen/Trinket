@@ -5,6 +5,40 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
+    @Test(arguments: ["wildcard_physical_t4_1", "rogue_gold_t4_1"], [Keyword.physical, .stun, .burn])
+    func `theft prepares one attack bonus while Bounty Blade remains Physical only`(talentID: String, keyword: Keyword) {
+        var profile = CombatantTalentCatalog.profile(for: [talentID])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyMaxHealth: 200, heroModifiers: profile, dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        for _ in 0 ..< 2 {
+            _ = BattleTurnEngine.performAction(
+                ability: .steal, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+            )
+        }
+        _ = battle.resolveDamage(.doTTick(amount: 1, target: battle.enemy, keyword: .burn, sourceActorID: battle.hero.id))
+        let attack = Ability(
+            id: "two-hit-theft-payoff", name: "Two Hit", tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: keyword), DamageComponent(2, keyword: keyword)],
+        )
+        let before = battle.health(of: battle.enemy)
+        _ = BattleTurnEngine.performAction(
+            ability: attack, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+        )
+
+        let paidInFull = talentID == "wildcard_physical_t4_1"
+        let expectedBonus = paidInFull ? 2 : (keyword == .physical ? 3 : 0)
+        #expect(before - battle.health(of: battle.enemy) == 4 + expectedBonus)
+        let after = battle.health(of: battle.enemy)
+        _ = BattleTurnEngine.performAction(
+            ability: .slash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+        )
+        let remainingBonus = !paidInFull && keyword != .physical ? 3 : 0
+        #expect(after - battle.health(of: battle.enemy) == 3 + remainingBonus)
+    }
+
     @Test func `grove accord rewards the pair once per turn`() throws {
         var battle = heroTalentBattle("druid_mana_t4_1")
         for _ in 0 ..< 2 {

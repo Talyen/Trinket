@@ -65,13 +65,15 @@ enum LabyrinthSanitizer {
     ) {
         for boss in labyrinth.nodes.values.filter({ $0.type == .boss && $0.isCleared })
             .sorted(by: { $0.depth < $1.depth }) {
+            guard boss.depth < Int.max else { continue }
+            let nextDepth = max(0, boss.depth) + 1
             let clusterIDs = Set(labyrinth.clusters.map(\.id))
             let hasExit = boss.outgoingIDs.contains {
                 guard let target = labyrinth.nodes[$0] else { return false }
-                return target.depth == boss.depth + 1 && clusterIDs.contains(target.clusterID)
+                return target.depth == nextDepth && clusterIDs.contains(target.clusterID)
             }
             guard !hasExit else { continue }
-            if let entryID = labyrinth.clusters.first(where: { $0.depthBand == boss.depth + 1 })?.nodeIDs.first,
+            if let entryID = labyrinth.clusters.first(where: { $0.depthBand == nextDepth })?.nodeIDs.first,
                labyrinth.nodes[entryID] != nil {
                 labyrinth.nodes[boss.id]?.outgoingIDs = [entryID]
             } else {

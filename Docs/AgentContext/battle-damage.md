@@ -95,6 +95,8 @@ Its Physical reflection also observes Thorns resistance.
 Committed Thorns and lingering Bleed still deal damage after their source falls.
 Their personal rewards require a living owner: Martial Guard's Block, both
 Blood Money rewards, and Critical Hit Gold stop after final defeat.
+Fully Blocked Critical Hits still qualify for ordinary Critical Hit Gold and Purge
+reactions; effects that explicitly require Health damage keep that requirement.
 Spitebloom follows Thorns Health damage with a separate Poison hit and attaches
 Poison only from Health actually lost to that hit.
 Venomtrail checks Bleed at each Poison damage event, including resolved ticks;

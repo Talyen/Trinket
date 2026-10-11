@@ -5,11 +5,13 @@ SCRIPT_INPUTS = (
     'Scripts/build-freshness.sh',
     'Scripts/build-metadata.py',
     'Scripts/build.sh',
+    'Scripts/config/generated-paths.tsv',
     'Scripts/check-build-cache-paths.sh',
     'Scripts/format.sh',
     'Scripts/lib/app-build.sh',
     'Scripts/lib/args.sh',
     'Scripts/lib/derived-data.sh',
+    'Scripts/lib/generated-paths.sh',
     'Scripts/lib/tempdir.sh',
     'Scripts/lib/test-helpers.sh',
     'Scripts/lib/test-style.sh',
@@ -45,7 +47,7 @@ class BuildArtifactTests(unittest.TestCase):
             executable.chmod(0o755)
             (products / "current-app").symlink_to("Debug-iphonesimulator/Trinket.app")
             (products / "Trinket.xctestrun").write_text("test configuration")
-            for path in ("TestResults/.last-build-test.stamp", "TestResults/.last-build-test.stamp.gitstatus", "TestResults/.last-build-test.stamp.json",
+            for path in ("TestResults/.last-build-test.stamp", "TestResults/.last-build-test.stamp.json",
                          "TestResults/raw/build.log", "ModuleCache.noindex/cache", "SourcePackages/cache",
                          "Build/Intermediates.noindex/build.db"):
                 target = root / path
@@ -73,7 +75,6 @@ class BuildArtifactTests(unittest.TestCase):
             self.assertTrue((restored / "Build/Products/Trinket.xctestrun").is_file())
             self.assertTrue((restored / "TestResults/.last-build-test.stamp").is_file())
             self.assertTrue((restored / "TestResults/.last-build-test.stamp.json").is_file())
-            self.assertTrue((restored / "TestResults/.last-build-test.stamp.gitstatus").is_file())
             for path in ("TestResults/raw", "ModuleCache.noindex", "SourcePackages", "Build/Intermediates.noindex",
                          "Build/Products/removed", "ci-test-artifact.tar"):
                 self.assertFalse((restored / path).exists(), path)
@@ -110,11 +111,31 @@ class BuildArtifactTests(unittest.TestCase):
             self.assertEqual(result.returncode, 2)
             self.assertEqual(sentinel.read_text(), "untouched")
 
+            # Both the cache root and intermediate Build directory can redirect
+            # destructive cleanup through a symlink into unrelated output.
+            for relative in ('.DerivedData', '.DerivedData/Build'):
+                with self.subTest(symlink=relative):
+                    escaped = foreign / ('Index.noindex/index' if relative == '.DerivedData' else 'ProfileData/profile')
+                    escaped.parent.mkdir(parents=True, exist_ok=True)
+                    escaped.write_text('unrelated evidence')
+                    target = root / relative
+                    saved = target.with_name(target.name + '-saved')
+                    target.rename(saved)
+                    target.symlink_to(foreign, target_is_directory=True)
+                    try:
+                        result = subprocess.run([str(scripts / 'prune-derived-data-cache.sh'), '--ci'], capture_output=True)
+                        self.assertEqual(result.returncode, 2, result.stderr)
+                        self.assertEqual(escaped.read_text(), 'unrelated evidence')
+                    finally:
+                        target.unlink()
+                        saved.rename(target)
+
     def test_storekit_change_invalidates_test_reuse(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "Scripts").mkdir()
-            for name in ("build-freshness.sh", "build-inputs.env", "build-metadata.py", "internal/cli.py"):
+            for name in ("build-freshness.sh", "build-inputs.env", "build-metadata.py", "internal/cli.py",
+                         "lib/generated-paths.sh", "config/generated-paths.tsv"):
                 target = root / "Scripts" / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, target)
@@ -130,7 +151,7 @@ class BuildArtifactTests(unittest.TestCase):
             result = subprocess.run(["bash", "-ec", prefix + 'assert_no_build_inputs_are_fresh "$(build_stamp_path results smoke)" smoke'],
                                     cwd=root, env=environment, capture_output=True, text=True)
             self.assertEqual(result.returncode, 1)
-            self.assertIn("StoreKit/Trinket.storekit", result.stderr)
+            self.assertIn("input_snapshot", result.stderr)
 
 
 if __name__ == "__main__":

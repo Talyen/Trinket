@@ -2,6 +2,10 @@
 
 trinket_prune_rebuildable_derived_data() {
   local target="$1"
+  if [[ -L "$target/Build" ]]; then
+    echo "Refusing to prune through a symlinked Build directory: $target/Build" >&2
+    return 2
+  fi
   rm -rf \
     "$target/Build/ProfileData" \
     "$target/Index.noindex" \

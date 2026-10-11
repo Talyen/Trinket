@@ -55,9 +55,10 @@ Automatic chains finish in the engine before the next manual card, without waiti
 for their visuals.
 
 Pack Tactics and Shadowstep instead draw playable cards into the hand. Pack Tactics
-reads: **Deal 3 Physical damage. Draw a card from your ally's deck.** Its opening
+reads: **Deal 5 Physical damage. Draw a card from your ally's deck.** Its opening
 hit happens first; normal ally-deck fallback rules apply. Shadowstep reads:
-**Draw a card. Dodge the next attack against you.** Neither casts its drawn card.
+**Deal 4 Physical damage. Draw 1 card.** Its hit precedes the caster-deck draw;
+it grants neither Dodge nor a card repeat. Neither ability casts its drawn card.
 New and returned cards preserve arrival order and immediate interaction while
 joining the hand, with the ordinary three-card fan and FIFO overflow promotion.
 

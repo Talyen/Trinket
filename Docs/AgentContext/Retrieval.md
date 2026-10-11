@@ -41,11 +41,19 @@ Documentation results put current guides and references first, procedures/knowle
 next, and task records last, alphabetically within each group. This ordering
 applies before either file or excerpt limits; explicit scopes can still retrieve
 plans, evals, and open friction records directly.
+For a documentation content search, add `--mode docs --sections` to group matches
+by their nearest real heading and return `path#anchor` plus complete section ranges.
+Read those targets with `agent-read.py`; text before the first heading or in an
+unheaded file gets an explicit `--lines` range. These are navigation pointers,
+not section reads. Duplicate headings use the reader's numbered anchors; fenced
+examples do not become headings. Scope, ordering and pagination still apply.
 Search continuation commands use `--offset` and a result fingerprint (`--expect`);
 changed results require restarting instead of silently skipping or repeating matches.
 Bounds always report omitted
 files/lines and shortened excerpts; no matches means no
 matches within the displayed surface, not within the whole repository.
+`--excerpts` prints each filename once per page followed by numbered lines;
+continuations repeat the filename even when a page starts inside the same file.
 
 The router prints source/test roots. Example discovery and reads:
 
@@ -53,6 +61,7 @@ The router prints source/test roots. Example discovery and reads:
 python3 Scripts/agent-search.py '(^|/)DamagePipeline\.swift$' --files --scope Packages/BattleEngine
 python3 Scripts/agent-search.py DamagePipeline --scope Packages/BattleEngine
 python3 Scripts/agent-search.py DamagePipeline --mode tests --scope Packages/BattleEngine
+python3 Scripts/agent-search.py 'simulator budget' --mode docs --sections --scope Docs/Platform
 python3 Scripts/agent-search.py DamagePipeline --scope Packages/BattleEngine/Sources/BattleEngine/Damage/DamagePipelineOffenseSteps.swift --excerpts
 sed -n '40,100p' Packages/BattleEngine/Sources/BattleEngine/Damage/DamagePipelineOffenseSteps.swift
 ```
@@ -71,7 +80,12 @@ The reader prints source lines and parent headings. Unanchored Markdown over
 read the relevant anchors or explicitly use `--full` for the entire document.
 Smaller documents still read completely by default. Read applicable constraints and relevant behavior sections,
 including their exceptions; unrelated sections are not mandatory prereads.
-Missing anchors fail explicitly. Sections are never silently truncated. Known Battle presentation leaves route directly
+Markdown outlines print the filename once per page, followed by `#anchor`, ranges
+and heading titles. Add `--outline --match <text>` to filter heading titles/anchors;
+continuations preserve the filter. Filtering is navigation, not a section read.
+Missing anchors fail explicitly with bounded valid-heading choices, prioritizing
+shared words with the requested anchor to avoid an extra outline call.
+Sections are never silently truncated. Known Battle presentation leaves route directly
 to relevant anchors plus shared display-lifetime constraints; shared owners retain
 whole-card references.
 
@@ -90,6 +104,9 @@ Requests are parsed as arguments without shell execution. Each request supplies 
 failed requests remain nonzero while later reads continue. Read errors print an
 executable recovery command or filename discovery command; navigation does not
 establish a complete read.
+Overlapping sections, declarations and ranges reuse text already printed in the
+same batch, with an explicit reuse count. Only complete text reads count;
+outlines/signatures do not. Reuse never persists across invocations or file changes.
 
 `--full` explicitly reads any supported UTF-8 text file, including Swift, Python,
 shell and config files. In a mixed batch, an anchored Markdown target reads only
@@ -97,7 +114,9 @@ that complete section; the flag never widens an anchor to the whole document.
 Flags may appear between positional targets; per-target modes still use `--request`.
 
 For Swift or Python, `agent-read.py path.swift --outline` lists qualified types and
-members with complete lexical source ranges and the file path once. Swift uses the
+members with complete lexical source ranges and the file path once. Members appear
+under a qualified owner header (`Owner:` followed by `method` means `Owner.method`);
+each page repeats the owner when needed, including filtered outlines and signatures. Swift uses the
 pinned SwiftFormat tokenizer; this is not a semantic ownership map. Add
 `--include-locals` for declarations inside functions. `--symbol Qualified.name`
 reads an attached comment/attribute block and complete declaration; repeat `--symbol`
@@ -119,9 +138,13 @@ Start indexed concerns with `python3 Scripts/agent-brief.py --task <concern>`.
 Use `--paths <files...>` for an unindexed task or to supply its actual scope.
 The concern index supplies navigation hints; explicit files always determine
 all applicable safeguards, ownership guidance, and verification requirements.
-`--status` prints scoped changes and global owner counts. Whole-tree work requires
-`--working-tree`; use `--allow-broad-scope` only when intentionally reviewing a
+`--status` prints scoped changes and global owner counts. Briefing flags can appear
+before or after the `--paths` file list; unknown flags fail instead of becoming paths.
+Whole-tree work requires `--working-tree`; use `--allow-broad-scope` only when intentionally reviewing a
 large working tree. The shell `agent-context.sh` entry point uses this same briefing.
+
+Briefings list each discovery owner once under `Discovery`; pass it to
+`agent-search.py --scope <owner>` with the search mode needed for the task.
 
 Read root/local safeguards and relevant ownership and behavior sections. Skills
 remain conditional on their descriptions. Reuse unchanged guidance still present
@@ -131,13 +154,23 @@ are stateless and never hide safeguards based on prior reads.
 ### Concern and test pointers
 
 Find concerns with `agent-search.py '<concern>' --task`, or list them with
-`agent-search.py --task --overview`. Unknown or ambiguous concern names fail with
-available choices; use file-scoped discovery for unindexed work. The index is
-navigation, not proof that tests cover the behavior.
+`agent-search.py --task --overview`. Each result prints a label, ID and runnable
+briefing; the briefing owns source/test pointers and contracts, avoiding duplicate
+path lists during discovery. Unknown or ambiguous briefing concern names fail;
+unmatched names include up to five suggestions ranked by shared words when available.
+Suggestions never select a scope. Use file-scoped discovery for unindexed work.
+The index is navigation, not proof that tests cover the behavior.
+An exact concern ID takes precedence over partial name/alias matches in briefings.
 
-For a concern, the briefing prints a runnable `agent-read.py --request ...` batch
-for initial ownership guidance. `agent-context.sh --task <concern> --read-command`
-prints just that command. Read source bodies and actual assertions independently;
+For a concern, the briefing prints a runnable `agent-read.py --full ...` batch
+for initial ownership guidance. Add `--read` to read that guidance in the briefing
+itself, saving a separate tool call. It includes nested safeguards, ownership cards
+and indexed contracts; root `AGENTS.md` is already injected. Other behavior
+references and skills remain conditional. Use this when guidance is absent from
+context; omit it when reusing unchanged guidance. Both `--read` and `--read-command`
+also accept explicit `--paths` without a concern. `--read-command` prints only the
+command, or nothing when there is no additional initial guidance.
+Read source bodies and actual assertions independently;
 source signatures and file pointers are navigation only. Explicit scopes continue
 to control caller and test searches.
 
@@ -165,7 +198,9 @@ caller bodies and test bodies containing matching invocations. Add explicit
 without a direct invocation; add scopes for cross-owner callers. Indexed tests
 remain pointers, not automatic evidence. Ambiguous declarations fail with candidates.
 Generated output and unscoped calls are excluded. `--limit` bounds bodies per page;
-`--max-lines` bounds displayed body lines. Oversized bodies are omitted completely
+`--max-lines` bounds newly displayed body lines. Overlapping bodies reuse complete
+text already printed on the current page; continuation pages read independently.
+Oversized bodies are omitted completely
 with explicit read commands, never truncated. Continuations preserve scope/tests
 and reject any change to scoped inputs. Follow omitted bodies and relevant callers
 before concluding coverage or ownership; no type resolution or indirect-call
@@ -180,7 +215,8 @@ catalogs. Unsupported formats and changes outside recognized records are disclos
 these hints do not replace idempotence or full patch review where needed.
 Use `--staged` for the index, `--stat` for statistics only, or `--generated` to
 expand generated patches. Output defaults to a 12,000-character content budget,
-paged at complete hunks/records with repeated file headers. Follow the printed
+paged at complete hunks/records. File headers print once per file on each page,
+including when a continuation starts inside that file. Follow the printed
 continuation command; its fingerprint rejects a changed diff. An oversized hunk
 is disclosed with an explicit larger-budget command, never silently cut. `--full`
 is an intentional unbounded read. Review every relevant page before editing

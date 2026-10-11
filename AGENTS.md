@@ -32,7 +32,8 @@ material decisions/risks/blockers, and distinguish verified behavior from infere
 
 For an indexed concern, start with `python3 Scripts/agent-brief.py --status --task <concern>`
 to route status, safeguards, initial guidance and source/test pointers together.
-Otherwise discover with `python3 Scripts/agent-search.py --files <pattern> --scope <owner>`;
+Add `--read` when initial guidance is not already in context to read it in the same call.
+For unindexed work, discover with `python3 Scripts/agent-search.py --files <pattern> --scope <owner>`;
 use `'<concern>' --task` to find an index entry or `--overview` for an unknown owner.
 Asset filenames use `--mode assets --files`.
 Documentation filenames use `--mode docs --files`; the default source mode excludes Markdown.
@@ -45,9 +46,14 @@ skills by trigger. Reuse unchanged guidance already in context. Reroute across o
 Use `--working-tree --allow-broad-scope` only for intentional whole-tree work.
 
 Read sections with `python3 Scripts/agent-read.py 'path.md#heading'`; `--outline`
-lists headings or Swift/Python declarations, `--symbol` reads a declaration, and
-`--full` intentionally expands a large document. An outline is navigation, not a read.
-Review all relevant pages of `python3 Scripts/agent-diff.py --paths <file...>` before
+lists headings or Swift/Python declarations (`--match <name>` filters either),
+`--symbol` reads a declaration, and
+`--full` intentionally expands a large document. Batch related reads in one call;
+overlapping text prints once. An outline is navigation, not a read.
+For a known Swift/Python symbol and its callers/tests, use
+`python3 Scripts/agent-investigate.py --path <file> --symbol <name> --scope <owner>`;
+repeat scopes across owners and follow omitted bodies. Review all relevant pages of
+`python3 Scripts/agent-diff.py --paths <file...>` before
 editing overlapping work. Follow relevant callers, tests, and configuration;
 use targeted generated-catalog/log lookups. [Context examples](Docs/AgentContext/README.md)
 own retrieval details. Create an [execution plan](Docs/Plans/README.md) only for

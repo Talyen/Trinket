@@ -216,6 +216,12 @@
       "merge": "add"
     },
     {
+      "name": "goldStealNextAttackBonus",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
       "name": "goldGainHealChancePercent",
       "type": "Double",
       "default": "0",

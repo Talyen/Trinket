@@ -92,8 +92,8 @@ public extension AbilityCatalog {
 
     static let luckPotion = Ability(
         id: "luck-potion", name: "Luck Potion", tier: .ultimate,
-        description: "Roll a 6-sided die\nGain that much Block, Thorns, or Health\nAt full party Health, roll Block or Thorns\nDraw 1 card",
-        outcomeBranches: (1 ... 6).flatMap { amount in
+        description: "Roll a 12-sided die\nGain that much Block, Thorns, or Health\nAt full party Health, roll Block or Thorns\nDraw 1 card",
+        outcomeBranches: (1 ... 12).flatMap { amount in
             [Effect.shield(.block, amount), .thorns(amount), .instantHeal(.health, amount)].map { effect in
                 AbilityOutcomeBranch(
                     targetedEffects: [TargetedEffect(effect), TargetedEffect(.drawCards(1), target: .actor)],
@@ -121,7 +121,7 @@ public extension AbilityCatalog {
 
     static let packTactics = Ability(
         id: "pack-tactics", name: "Pack Tactics", tier: .ultimate,
-        description: "Deal 5 Physical damage\nDraw a card from your ally's deck",
+        description: "Deal 5 Physical damage\nDraw a card from your ally's deck\nIf unavailable, draw from your deck",
         damageComponents: [DamageComponent(5, keyword: .physical)],
         targetedEffects: [
             TargetedEffect(.drawCards(1)),

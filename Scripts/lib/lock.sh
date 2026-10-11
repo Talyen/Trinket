@@ -29,22 +29,43 @@ trinket_lock_exit_on_signal() {
 }
 
 # Resource cleanup belongs to EXIT, after cancellation stops owned children.
+trinket_dir_lock_run_exit_steps() {
+  local _trinket_exit_status="$1" _trinket_step
+  # Restore the shell's positional arguments for existing trap expressions.
+  shift
+  for _trinket_step in "${TRINKET_EXIT_STEPS[@]}"; do
+    # Each trap must see the original exit status, even after a successful
+    # cleanup. The conditional also preserves nonzero status under errexit.
+    if (exit "$_trinket_exit_status"); then
+      eval "$_trinket_step"
+    else
+      eval "$_trinket_step"
+    fi
+  done
+}
+
 trinket_dir_lock_chain_trap() {
   local new_step="$1"
   local existing=""
+  local dispatcher='trinket_dir_lock_run_exit_steps "$?" "$@"'
   existing="$(trap -p EXIT)"
   if [[ -n "$existing" ]]; then
     existing="${existing#trap -- }"
     existing="${existing% EXIT}"
     eval "existing=$existing"
   fi
-  if [[ -n "$existing" && "$existing" != *"$new_step"* ]]; then
-    # shellcheck disable=SC2064
-    trap "$new_step; $existing" EXIT
-  elif [[ -z "$existing" ]]; then
-    # shellcheck disable=SC2064
-    trap "$new_step" EXIT
+  if [[ "$existing" != "$dispatcher" ]]; then
+    TRINKET_EXIT_STEPS=()
+    [[ -z "$existing" ]] || TRINKET_EXIT_STEPS+=("$existing")
   fi
+  local step found=false
+  for step in "${TRINKET_EXIT_STEPS[@]+"${TRINKET_EXIT_STEPS[@]}"}"; do
+    [[ "$step" != "$new_step" ]] || found=true
+  done
+  if [[ "$found" == false ]]; then
+    TRINKET_EXIT_STEPS=("$new_step" "${TRINKET_EXIT_STEPS[@]+"${TRINKET_EXIT_STEPS[@]}"}")
+  fi
+  trap 'trinket_dir_lock_run_exit_steps "$?" "$@"' EXIT
   trap 'trinket_lock_exit_on_signal 130' INT
   trap 'trinket_lock_exit_on_signal 143' TERM
 }
