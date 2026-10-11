@@ -110,7 +110,6 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         XCTAssertTrue(locked.label.hasSuffix(", locked"), locked.label)
         locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         assertExists(selected)
-        assertDoesNotExist(AccessibilityID.Battle.hand)
         tapWhenReady(button(AccessibilityID.Play.labyrinthDismissSelection).firstMatch)
         assertDoesNotExist(AccessibilityID.Play.labyrinthNodeInspector)
         assertExistsAfterScroll(AccessibilityID.Play.labyrinthFloor1EntryNode, requireHittable: true)

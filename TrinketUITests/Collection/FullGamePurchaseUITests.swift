@@ -59,7 +59,9 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         }
         let declined = try XCTUnwrap(session.allTransactions().first { $0.identifier == pending.identifier })
         XCTAssertEqual(declined.state, .failed, "Declined Ask to Buy must not produce a purchased transaction")
-        assertWarlockLocked()
+        tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
+        assertExists(AccessibilityID.FullGame.offer)
+        dismissSheet(AccessibilityID.FullGame.offer)
         session.askToBuyEnabled = false
         tabBar.selectOptions()
         tapButton(AccessibilityID.FullGame.options)
