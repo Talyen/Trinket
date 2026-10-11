@@ -680,6 +680,20 @@ bash -c '
   trinket_shared_sim_lease_release
 ' _ "$REPO"
 
+# Process inspection runs in Python, so intercept the executable rather than a shell function.
+cat > "$FAKE_BIN/ps" <<'FAKE_PS'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" != -axo ]]; then exec /bin/ps "$@"; fi
+case "${FAKE_GUEST_SNAPSHOT_MODE:-real}" in
+  table) cat "$FAKE_GUEST_PROCESS_TABLE" ;;
+  fail) exit 1 ;;
+  empty) : ;;
+  *) exec /bin/ps "$@" ;;
+esac
+FAKE_PS
+chmod +x "$FAKE_BIN/ps"
+
 # --- guest cleanup is scoped to the lease, start identity, and owning shell ---
 bash -eu -c '
   source "$1/Scripts/run-env.sh"
@@ -693,7 +707,7 @@ bash -eu -c '
 10001 100 Wed Sep 30 12:01:00 2026 /Xcode/Agents/xctest
 10002 200 Wed Sep 30 12:01:00 2026 /Xcode/Agents/xctest
 TABLE
-  ps() { if [[ "${1:-}" == -p ]]; then command ps "$@"; else cat "$table"; fi; }
+  export PATH="$2/bin:$PATH" FAKE_GUEST_PROCESS_TABLE="$table" FAKE_GUEST_SNAPSHOT_MODE=table
   kill() {
     if [[ "$1" == -0 ]]; then builtin kill "$@"; return; fi
     [[ "$1" == -KILL ]]
@@ -739,14 +753,14 @@ bash -eu -c '
   TRINKET_SIM_SLOT_PATH="$2/snapshot.slot"
   SIMULATOR_UDID=owned-device
   printf "%s fixture\n" "$$" > "$TRINKET_SIM_SLOT_PATH"
-  ps() { return 1; }
+  export PATH="$2/bin:$PATH" FAKE_GUEST_SNAPSHOT_MODE=fail
   if trinket_track_test_guests; then
     echo "failed snapshot was accepted" >&2
     exit 1
   fi
   [[ ! -e "$TRINKET_SIM_SLOT_PATH.guest-tests" ]]
   [[ ! -e "$TRINKET_SIM_SLOT_PATH.guest-tests.lock" ]]
-  ps() { :; }
+  FAKE_GUEST_SNAPSHOT_MODE=empty
   trinket_track_test_guests
   [[ -f "$TRINKET_SIM_SLOT_PATH.guest-tests" ]]
   trinket_cleanup_test_guests
