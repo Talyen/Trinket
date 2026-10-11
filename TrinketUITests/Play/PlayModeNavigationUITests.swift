@@ -76,12 +76,12 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertExistsAfterScroll(AccessibilityID.Play.spireRow("ironVein"), requireHittable: true)
         tapButton(AccessibilityID.Play.spireRow("ironVein"))
         assertExists(AccessibilityID.Play.spireClimb("ironVein"))
-        let locked = any(AccessibilityID.Play.spireFloor("ironVein", floor: 2))
+        let locked = any(AccessibilityID.Play.spireFloor("ironVein", floor: 2)).firstMatch
         scrollUntilVisible(locked, swipingUp: true, requireHittable: true)
         locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         assertDoesNotExist(AccessibilityID.Battle.hand)
         XCTAssertFalse(button(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 2)).exists)
-        let art = any(AccessibilityID.Play.spireFloorEnemyArt("ironVein", floor: 1))
+        let art = button(AccessibilityID.Play.spireFloorEnemyArt("ironVein", floor: 1))
         scrollUntilVisible(art, swipingUp: false, requireHittable: true)
         tapWhenReady(art)
         let floor = try XCTUnwrap(GameContent.spireFloor(spireID: .ironVein, floor: 1))
@@ -105,9 +105,9 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         )).firstMatch
         assertExists(action)
         let selected = action.identifier
-        let locked = any(AccessibilityID.Play.labyrinthFloor1LockedNode)
+        let locked = button(AccessibilityID.Play.labyrinthFloor1LockedNode)
         scrollUntilVisible(locked, swipingUp: true, requireHittable: true)
-        XCTAssertFalse(locked.isEnabled)
+        XCTAssertFalse(locked.isEnabled, locked.debugDescription)
         locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         assertExists(selected)
         tapWhenReady(button(AccessibilityID.Play.labyrinthDismissSelection).firstMatch)

@@ -175,6 +175,6 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         }
         let card = button(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
         scrollUntilVisible(card, swipingUp: true, requireHittable: true)
-        XCTAssertTrue(card.label.hasSuffix(", locked"))
+        XCTAssertTrue(card.label.hasSuffix(", locked"), "Expected locked Warlock, found: \(card.label)")
     }
 }
