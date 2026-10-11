@@ -320,12 +320,26 @@ progress, or completion broadcasts or repeatedly poll peers. After completion,
 stop. Do not message, poll, or wake completed chats unless explicitly asked by the
 user to resume them; unsolicited routine messages do not reopen a task.
 
-Report the local main commit and verification boundary to the user. Hosted checks
-remain pending until a separately authorized push. Retain the task worktree and
-branch for recovery by default. When cleanup is requested, preserve needed ignored
-assets/outputs first, leave the task directory, then from primary run
-`node Scripts/agent-worktree.mjs remove --task <slug>`. It refuses dirty, unmerged,
-or unexpected worktrees, retains the branch, and offers no force deletion.
+Successful integration automatically archives and unregisters only the invoking
+task worktree under the same integration lock. Cleanup rechecks its registration,
+branch, commit, clean state and Git operation state; locked worktrees and submodules
+are preserved. A failed handoff never cleans up. Cleanup failure reports after the
+completed integration; it does not roll main back.
+
+The entire checkout moves atomically to `~/.codex/worktree-archives/Trinket/`,
+including ignored assets, outputs and release state. The task branch is retained;
+`recovery.json` records its original path, branch and commit. Restore with
+`git worktree add <original-path> <branch>`, then copy needed archived files.
+Archives do not expire automatically. `CODEX_WORKTREE_ARCHIVE_ROOT` may select an
+external directory; a cross-filesystem move fails without deleting the source.
+
+Pass `node Scripts/agent-worktree.mjs integrate --keep-worktree` for intermediate
+integration when requested work, a preview or an experiment still needs the checkout.
+Report the local main commit, verification boundary and cleanup result. Hosted checks
+remain pending until a separately authorized push. Explicit removal from primary
+remains available with `node Scripts/agent-worktree.mjs remove --task <slug>` after
+preserving ignored files; it refuses dirty, unmerged or unexpected worktrees and
+retains the branch.
 
 ## Local hooks and push discipline
 

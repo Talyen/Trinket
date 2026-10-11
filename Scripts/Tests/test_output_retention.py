@@ -247,6 +247,44 @@ exit "$2"
             self.assertEqual(path.with_name(path.name + '.consumer-status').read_text().splitlines(), [str(status)])
             self.assertEqual(path.with_name(path.name + '.original-status').read_text().strip(), str(status))
 
+    def test_expired_run_cache_preserves_active_recent_kept_and_shared_state(self):
+        old = self.output('.DerivedData/runs/old/Build/product', age=4 * 86400)
+        recent = self.output('.DerivedData/runs/recent/Build/product', age=2 * 86400)
+        kept = self.output('.DerivedData/runs/kept/Build/product', age=4 * 86400)
+        (kept.parents[1] / retention.KEEP).touch()
+        for path in (old, recent, kept):
+            for parent in path.parents:
+                if parent == self.root / '.DerivedData/runs':
+                    break
+                os.utime(parent, (0, 0))
+        with patch.object(retention.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 1, '', '')):
+            eligible = self.clean(apply=False)
+            self.assertEqual(eligible[0], 1)
+            self.assertTrue(old.exists())
+            self.clean()
+        self.assertFalse(old.exists())
+        self.assertTrue(recent.exists())
+        self.assertTrue(kept.exists())
+
+    def test_old_run_cache_rejects_live_lease_and_unknown_open_file_inventory(self):
+        old = self.output('.DerivedData/runs/old/Build/product', age=4 * 86400)
+        for parent in (old.parent, old.parents[1]):
+            os.utime(parent, (0, 0))
+        slot = self.root / '.DerivedData/.active-sim/agent-1.slot'
+        slot.parent.mkdir()
+        slot.write_text('123 fixture lease')
+        self.clean()
+        self.assertTrue(old.exists())
+        slot.unlink()
+        lock = slot.parent / '.sim-lifecycle.lock'
+        lock.mkdir()
+        self.clean()
+        self.assertTrue(old.exists())
+        lock.rmdir()
+        with patch.object(retention.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 2, '', 'unavailable')):
+            self.clean()
+        self.assertTrue(old.exists())
+
 
 if __name__ == '__main__':
     unittest.main()

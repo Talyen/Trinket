@@ -18,7 +18,7 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `python3 Scripts/agent-search.py '<concern>' --task` | Player-facing concern lookup with source, contract and test pointers plus a routing command; [task index](config/agent-tasks.json) contains navigation only; related lookup supplements mentions with scoped curated test pointers |
 | `python3 Scripts/content-inspect.py --id <id>` | Inspect authored content by exact ID, player-facing `--name <text>`, or canonical `--trigger <field>`; `--references` follows parsed fields to schemas, rule anchors, authored Swift and tests; record and reference pages disclose omissions; `--full` expands record fields |
 | `node Scripts/agent-worktree.mjs create --task <slug> [--base <ref>]` | Independent implementation checkout under primary `.worktrees/<slug>` on `codex/<slug>`, starting from committed local `main` by default; reuse the chat's existing suitable worktree |
-| `node Scripts/agent-worktree.mjs integrate` | From the task worktree: shared integration lock, rebase onto local `main`, scoped handoff, then fast-forward primary `main`; no push. [Policy and recovery](../Docs/Platform/Release.md#isolated-chat-workflow) |
+| `node Scripts/agent-worktree.mjs integrate [--keep-worktree]` | From the task worktree: shared integration lock, rebase onto local `main`, scoped handoff, then fast-forward primary `main`; no push. [Policy and recovery](../Docs/Platform/Release.md#isolated-chat-workflow) |
 | `node Scripts/agent-worktree.mjs remove --task <slug>` | From primary: remove only a clean, registered task worktree already merged into `main`; retain its branch for recovery and preserve ignored files first |
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an active execution plan with an advisory review date under `Docs/Plans/`; completed plans are deleted after updating canonical owners |
 | `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |
@@ -249,8 +249,14 @@ removes those candidates. Add `--experiments` for the three abandoned build
 experiments (CPU optimization, BalanceSweep refactor, Labyrinth host tests). This
 explicit option checks for open files and active owners rather than relying on
 directory timestamps, which can change when a checkout moves.
-Current app, package, device, and reusable agent caches, pinned tools, generated
-freshness state, release receipts, signed archives, and symbols are preserved.
+Shared app/package/device caches, pinned tools, generated freshness state, release
+receipts, signed archives and symbols are preserved. Idle tenants directly under
+`.DerivedData/runs/` expire after three days without writes, including their build
+products and intermediates; `TRINKET_RUN_MAX_AGE_DAYS` overrides this window.
+Recent writes, live owners, leases, keep markers and open files protect a tenant.
+Unavailable process/open-file inventories fail closed. Expiry shares the simulator
+slot allocation lock so it cannot remove a newly claimed agent cache. Arbitrary
+legacy build directories outside `runs/` remain untouched.
 
 Successful logs disappear after consumers finish. Failure and comparison evidence (including agent evaluations under
 `.DerivedData/AgentEvaluationResults/`)

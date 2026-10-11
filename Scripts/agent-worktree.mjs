@@ -13,7 +13,7 @@ function git(args, cwd = source) {
 function usage() {
   console.log(`Usage:
   node Scripts/agent-worktree.mjs create --task <slug> [--base <ref>]
-  node Scripts/agent-worktree.mjs integrate
+  node Scripts/agent-worktree.mjs integrate [--keep-worktree]
   node Scripts/agent-worktree.mjs remove --task <slug>
   node Scripts/agent-worktree.mjs list
 
@@ -28,8 +28,8 @@ try {
   if (!command || ["--help", "-h"].includes(command)) {
     usage();
   } else if (command === "integrate") {
-    if (args.length) throw new Error("integrate takes no arguments");
-    const result = spawnSync("python3", [path.join(source, "Scripts/agent-integrate.py")], { cwd: source, stdio: "inherit" });
+    if (args.length && (args.length !== 1 || args[0] !== "--keep-worktree")) throw new Error("integrate accepts only --keep-worktree");
+    const result = spawnSync("python3", [path.join(source, "Scripts/agent-integrate.py"), ...args], { cwd: source, stdio: "inherit" });
     process.exitCode = result.status ?? 1;
   } else {
     if (!["create", "remove", "list"].includes(command)) throw new Error(`Unknown command: ${command}`);

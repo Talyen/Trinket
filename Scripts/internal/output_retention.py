@@ -1,4 +1,4 @@
-"""One-day retention for known disposable outputs; build/release state is excluded."""
+"""Expire disposable outputs and idle run caches; preserve shared and release state."""
 
 from __future__ import annotations
 
@@ -43,6 +43,20 @@ def safe_path(path: Path, boundary: Path) -> bool:
                    if parent.resolve().is_relative_to(resolved_boundary))
 
 
+def run_cache_roots(root: Path) -> list[Path]:
+    parent = root / '.DerivedData/runs'
+    if not safe_path(parent, root) or not parent.is_dir():
+        return []
+    return [p for p in parent.iterdir() if p.is_dir() and not p.is_symlink()]
+
+
+def run_cache_seconds() -> float:
+    days = float(os.environ.get('TRINKET_RUN_MAX_AGE_DAYS', '3'))
+    if not 0 < days < float('inf'):
+        raise ValueError('TRINKET_RUN_MAX_AGE_DAYS must be finite and positive')
+    return days * 86400
+
+
 def output_roots(root: Path) -> list[Path]:
     derived = root / '.DerivedData'
     tenants = [derived, derived / 'Device']
@@ -60,6 +74,8 @@ def managed_path(path: Path, root: Path) -> bool:
     if not safe_path(path, root):
         return False
     path, root = path.resolve(), root.resolve()
+    if any(path == base for base in run_cache_roots(root)):
+        return True
     release_log = path.suffix == '.log' and path.parent.parent == root / '.DerivedData/testflight'
     return release_log or any(path == base or path.is_relative_to(base) for base in output_roots(root))
 
@@ -270,11 +286,46 @@ def finish(path: Path, root: Path, pid: int, status: int, *, comparison: bool = 
         remove(path)
 
 
+def expire_run_caches(root: Path, *, apply: bool, now: float, processes: dict,
+                      verbose: bool, max_age: float) -> tuple[int, int]:
+    paths = run_cache_roots(root)
+    if not paths:
+        return 0, 0
+    def expire():
+        return expire_paths(paths, root, apply=apply, now=now, processes=processes,
+                            verbose=verbose, max_age=max_age, check_open=True)
+    if not apply:
+        return expire()
+    # Slot allocation uses this same directory lock. A newly allocated agent
+    # cannot start writing a run cache between the last protection check and removal.
+    lock = root / '.DerivedData/.active-sim/.sim-lifecycle.lock'
+    if not safe_path(lock, root):
+        return 0, 0
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        lock.mkdir()
+    except FileExistsError:
+        if verbose:
+            print('SKIP run cache expiry: simulator slot allocation is busy')
+        return 0, 0
+    try:
+        (lock / 'pid').write_text(str(os.getpid()) + '\n')
+        return expire()
+    finally:
+        (lock / 'pid').unlink(missing_ok=True)
+        lock.rmdir()
+
+
 def cleanup(root: Path, *, apply: bool, experiments: bool = False,
             now: float | None = None, receipts_dir: Path | None = None, verbose: bool = True) -> tuple[int, int]:
     now = time.time() if now is None else now
     emit = print if verbose else lambda *args: None
     processes = process_snapshot()
+    cache_age = run_cache_seconds()
+    # Expire whole idle run tenants, including products/intermediates. Shared and
+    # per-package caches, arbitrary legacy folders, and TestFlight are excluded.
+    e, f = expire_run_caches(root, apply=apply, now=now, processes=processes,
+                             verbose=verbose, max_age=cache_age)
     paths = []
     for base in output_roots(root):
         if safe_path(base, root) and base.is_dir():
@@ -305,17 +356,19 @@ def cleanup(root: Path, *, apply: bool, experiments: bool = False,
     immediate = {root / '.DerivedData' / name for name in EXPERIMENTS} if experiments else set()
     a, b = expire_paths(inside, root, apply=apply, now=now, processes=processes, verbose=verbose, immediate=immediate)
     c, d = expire_paths(outside, temporary, apply=apply, now=now, processes=processes, verbose=verbose)
-    emit(f'{"Removed" if apply else "Eligible"}: {a + c} outputs, {b + d} allocated bytes ({(b + d) / 1024**3:.2f} GiB).')
-    return a + c, b + d
+    emit(f'{"Removed" if apply else "Eligible"}: {a + c + e} outputs, {b + d + f} allocated bytes ({(b + d + f) / 1024**3:.2f} GiB).')
+    return a + c + e, b + d + f
 
 
 def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float | None = None,
                  processes: dict[int, tuple[str, str]] | None = None, verbose: bool = True,
-                 immediate: set[Path] | None = None) -> tuple[int, int]:
+                 immediate: set[Path] | None = None, max_age: float | None = None,
+                 check_open: bool = False) -> tuple[int, int]:
     now = time.time() if now is None else now
     processes = process_snapshot() if processes is None else processes
     emit = print if verbose else lambda *args: None
     immediate = immediate or set()
+    max_age = retention_seconds() if max_age is None else max_age
     count = total = 0
     for path in sorted(set(paths)):
         if not path.exists() and not path.is_symlink():
@@ -333,7 +386,7 @@ def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float |
             modified, size = metadata(path)
         except FileNotFoundError:
             continue
-        if path not in immediate and modified > now - retention_seconds():
+        if path not in immediate and modified > now - max_age:
             continue
         # Recheck before mutation: new keep controls or owners invalidate a candidate.
         if apply:
@@ -341,14 +394,14 @@ def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float |
             if reason:
                 emit(f'SKIP {path}: {reason}')
                 continue
-        if path in immediate:
+        if path in immediate or check_open:
             opened = subprocess.run(['lsof', '-n', '-P', '+D', str(path)],
                                     capture_output=True, text=True, timeout=30)
             if opened.returncode != 1 or opened.stdout.strip() or opened.stderr.strip():
                 emit(f'SKIP {path}: open files or unavailable open-file inventory')
                 continue
         if apply:
-            if not path.exists() or (path not in immediate and metadata(path)[0] > now - retention_seconds()):
+            if not path.exists() or (path not in immediate and metadata(path)[0] > now - max_age):
                 continue
             remove(path)
         count += 1

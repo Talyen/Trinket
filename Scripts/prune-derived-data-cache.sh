@@ -25,8 +25,8 @@ while [[ $# -gt 0 ]]; do
 Usage: ./Scripts/prune-derived-data-cache.sh [--ci] [DERIVED_DATA_PATH]
 
 Without --ci (and when CI is unset): age-prune one-off isolated runs, bulky
-TestResults/PerformanceResults/Logs, and reap dead UI/sim slots. Does not
-delete Build/Intermediates or compilation caches.
+TestResults/PerformanceResults/Logs, and reap dead UI/sim slots. Idle run tenants expire in full after three days (TRINKET_RUN_MAX_AGE_DAYS).
+Shared Build/Intermediates and compilation caches remain warm.
 
 With --ci or CI=true: also remove indexes, logs, and result bundles before
 saving the cache. Products, intermediates, and compilation caches remain warm.

@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import json
+import tempfile
 
 
 def git(root: Path, *args: str) -> str:
@@ -31,7 +33,41 @@ def preserve_ignored(root: Path, incoming: str) -> None:
             raise RuntimeError(f"Ignored file would be overwritten in {root}: {name}. Preserve it before integrating.")
 
 
-def integrate(source: Path) -> None:
+
+def archive_worktree(source: Path, target: Path, branch: str, head: str) -> None:
+    records = git(target, "worktree", "list", "--porcelain", "-z").split("\0\0")
+    record = next((r.split("\0") for r in records if "worktree " + str(source) in r.split("\0")), [])
+    if (source == target or source.is_symlink() or "branch refs/heads/" + branch not in record
+            or any(field.startswith(("locked", "prunable")) for field in record)):
+        raise RuntimeError("Task worktree registration changed or is locked")
+    clean(source)
+    if (git(source, "branch", "--show-current") != branch
+            or git(source, "rev-parse", "HEAD") != head or git(target, "rev-parse", "main") != head):
+        raise RuntimeError("Task or main changed after integration")
+    if any(line.startswith("160000 ") for line in git(source, "ls-files", "--stage").splitlines()):
+        raise RuntimeError("Submodule worktree preserved")
+    archive_root = Path(os.environ.get("CODEX_WORKTREE_ARCHIVE_ROOT", Path.home() / ".codex/worktree-archives/Trinket")).resolve()
+    common = Path(git(target, "rev-parse", "--path-format=absolute", "--git-common-dir")).resolve()
+    if any(archive_root == p or archive_root.is_relative_to(p) for p in (source, target, common)):
+        raise RuntimeError("Recovery directory must be outside the repository and task checkout")
+    archive_root.mkdir(parents=True, exist_ok=True, mode=0o700)
+    recovery = Path(tempfile.mkdtemp(prefix=branch.replace('/', '-') + '-', dir=archive_root))
+    (recovery / 'recovery.json').write_text(json.dumps(dict(main=str(target), task=str(source), branch=branch, head=head), indent=2))
+    checkout = recovery / 'checkout'
+    # Rename retains ignored evidence and late writes without copying/deleting the
+    # source. Unregister only this missing path; never prune peers or use --force.
+    os.chdir(target)
+    source.rename(checkout)
+    try:
+        subprocess.run(['git', '-C', str(target), 'worktree', 'remove', str(source)], check=True)
+    except subprocess.CalledProcessError:
+        if not source.exists():
+            checkout.rename(source)
+        raise
+    (checkout / '.git').unlink()
+    print(f'Archived completed worktree to {recovery}; retained branch {branch}.')
+
+def integrate(source: Path, *, keep_worktree: bool = False) -> None:
     common = Path(git(source, "rev-parse", "--path-format=absolute", "--git-common-dir"))
     # Git lists the primary checkout first; bare repositories are not landing targets.
     records = git(source, "worktree", "list", "--porcelain", "-z").split("\0\0")
@@ -64,6 +100,8 @@ def integrate(source: Path) -> None:
         head = git(source, "rev-parse", "HEAD")
         if head == base:
             print("Task already integrated; main unchanged.")
+            if not keep_worktree:
+                archive_worktree(source, target, branch, head)
             return
         paths = subprocess.check_output(
             ["git", "-C", str(source), "diff", "--name-only", "--no-renames", "-z", base, head]
@@ -86,12 +124,14 @@ def integrate(source: Path) -> None:
         preserve_ignored(target, head)
         subprocess.run(["git", "-C", str(target), "merge", "--ff-only", "--no-overwrite-ignore", head], check=True)
         print(f"Integrated {branch} into local main at {head}. Nothing pushed; hosted checks remain pending.")
+        if not keep_worktree:
+            archive_worktree(source, target, branch, head)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 1:
-        sys.exit("Usage: python3 Scripts/agent-integrate.py (from the task worktree)")
+    if sys.argv[1:] not in ([], ["--keep-worktree"]):
+        sys.exit("Usage: python3 Scripts/agent-integrate.py [--keep-worktree] (from the task worktree)")
     try:
-        integrate(Path(__file__).resolve().parents[1])
+        integrate(Path(__file__).resolve().parents[1], keep_worktree="--keep-worktree" in sys.argv)
     except (RuntimeError, subprocess.CalledProcessError, OSError) as error:
-        sys.exit(f"Integration stopped: {error}\nTask worktree retained. Resolve conflicts there, review, and retry; do not reset main.")
+        sys.exit(f"Integration or cleanup stopped: {error}\nInspect main and the task/recovery checkout; completed integration is not rolled back. Resolve conflicts there, review, and retry; do not reset main.")

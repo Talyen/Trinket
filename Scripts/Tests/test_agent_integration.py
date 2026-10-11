@@ -20,6 +20,9 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         self.addCleanup(self.directory.cleanup)
         self.root = Path(self.directory.name).resolve()
         self.env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+        self.archive = self.root.parent / (self.root.name + '-archives')
+        self.addCleanup(lambda: shutil.rmtree(self.archive, ignore_errors=True))
+        self.env['CODEX_WORKTREE_ARCHIVE_ROOT'] = str(self.archive)
         self.env.update(GIT_AUTHOR_NAME='Fixture', GIT_AUTHOR_EMAIL='fixture@example.invalid',
                         GIT_COMMITTER_NAME='Fixture', GIT_COMMITTER_EMAIL='fixture@example.invalid')
         self.git(self.root, 'init', '-q', '-b', 'main')
@@ -73,7 +76,8 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         for task in (first, second):
             result = self.helper(task, 'integrate')
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), self.git(task, 'rev-parse', 'HEAD'))
+            self.assertFalse(task.exists())
+            self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), self.git(self.root, 'rev-parse', 'codex/' + task.name))
         self.assertEqual((self.root / 'first').read_text(), 'task work\n')
         self.assertEqual((self.root / 'second').read_text(), 'second task\n')
         self.assertEqual(self.git(self.root, 'status', '--porcelain'), '')
@@ -122,7 +126,7 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
     def test_cleanup_preserves_unmerged_dirty_and_ignored_work(self) -> None:
         task = self.task('task')
         self.assertNotEqual(self.helper(self.root, 'remove', '--task', 'task').returncode, 0)
-        result = self.helper(task, 'integrate')
+        result = self.helper(task, 'integrate', '--keep-worktree')
         self.assertEqual(result.returncode, 0, result.stderr)
         for name in ('unfinished', 'ignored'):
             evidence = task / name
@@ -156,3 +160,25 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         (self.root / 'local-only').write_text('main evidence')
         self.assert_stopped(other, main)
         self.assertEqual((self.root / 'local-only').read_text(), 'main evidence')
+
+    def test_automatic_cleanup_archives_ignored_evidence_and_preserves_peer(self) -> None:
+        task = self.task('task')
+        peer = self.task('peer')
+        (task / 'ignored').write_text('local evidence')
+        (peer / 'unfinished').write_text('peer work')
+        result = self.helper(task, 'integrate')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertFalse(task.exists())
+        snapshots = list(self.archive.glob('*/checkout/ignored'))
+        self.assertEqual(len(snapshots), 1)
+        self.assertEqual(snapshots[0].read_text(), 'local evidence')
+        self.assertEqual((peer / 'unfinished').read_text(), 'peer work')
+        self.git(self.root, 'show-ref', '--verify', 'refs/heads/codex/task')
+
+    def test_locked_worktree_cleanup_is_blocked_after_landing(self) -> None:
+        task = self.task('task')
+        self.git(self.root, 'worktree', 'lock', str(task))
+        result = self.helper(task, 'integrate')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertTrue(task.exists())
+        self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), self.git(task, 'rev-parse', 'HEAD'))

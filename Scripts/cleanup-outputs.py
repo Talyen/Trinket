@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Expire disposable Trinket output after 24 hours; preserve caches and release state."""
+"""Expire disposable output after 24 hours and idle run caches after three days; preserve active and release state."""
 
 import argparse
 import os
