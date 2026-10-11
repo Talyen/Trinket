@@ -3,7 +3,8 @@ import XCTest
 
 final class BattleInteractionPerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
-    func testBattleLog() {
+    func testBattleLog() throws {
+        try XCTSkipUnless(selected("battle-log-scroll"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.replacingBattleTickInterval(
                 "60",

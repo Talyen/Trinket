@@ -3,7 +3,8 @@ import XCTest
 
 final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
-    func testVictoryReveal() {
+    func testVictoryReveal() throws {
+        try XCTSkipUnless(selected("victory-reveal"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allForBattle()) + ["-performance-outcome-victory"])
             battle.assertActive()
@@ -15,7 +16,8 @@ final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func testDefeatReveal() {
+    func testDefeatReveal() throws {
+        try XCTSkipUnless(selected("defeat-reveal"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle"))
                 + ["-performance-outcome-defeat", "-battle-performance-scenario", "turn-transition"])
@@ -29,7 +31,8 @@ final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func testVictoryReturn() {
+    func testVictoryReturn() throws {
+        try XCTSkipUnless(selected("victory-claim-return"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allForScreen("battle-victory")))
             assertExists(AccessibilityID.Battle.victory)
@@ -42,7 +45,8 @@ final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func testTalentReward() {
+    func testTalentReward() throws {
+        try XCTSkipUnless(selected("postbattle-talent-reveal") || selected("postbattle-talent-choice"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance() + ["-performance-talent-reward", "-performance-outcome-victory"])
             play.openCampaign()

@@ -7,6 +7,7 @@ from contextlib import contextmanager
 import json
 import os
 import plistlib
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -45,15 +46,16 @@ def native_text_size(udid, size, run=simctl):
                         'extra-extra-extra-large', 'accessibility-medium', 'accessibility-large',
                         'accessibility-extra-large', 'accessibility-extra-extra-large'):
         raise ValueError(f'native content size unavailable: {previous}')
-    try:
-        run('ui', udid, 'content_size', size)
-        if run('ui', udid, 'content_size') != size:
+    def apply(requested):
+        if run('ui', udid, 'content_size') != requested:
+            run('ui', udid, 'content_size', requested)
+        if run('ui', udid, 'content_size') != requested:
             raise ValueError('native content-size setting was not applied')
-        yield
+    try:
+        apply(size)
+        yield apply
     finally:
-        run('ui', udid, 'content_size', previous)
-        if run('ui', udid, 'content_size') != previous:
-            raise ValueError('native content-size cleanup failed')
+        apply(previous)
 
 
 def resolve(name):
@@ -99,31 +101,58 @@ def run_profiles(udid, output):
     output.mkdir(parents=True, exist_ok=False)
     record_identity(udid, output)
     results = []
-    for name, size, reduced in [('default', TEXT_SIZES[0], False), ('largest', TEXT_SIZES[1], False),
-                                 ('largest-reduced', TEXT_SIZES[1], True)]:
-        environment = dict(os.environ, TRINKET_UI_PLAN='Profiles', TRINKET_UI_SUCCESS_SCREENSHOTS='1',
-                           TEST_RUNNER_TRINKET_PROFILE_LARGE_TEXT=str(int(size != 'large')),
-                           TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION=str(int(reduced)))
-        with native_text_size(udid, size):
+    with native_text_size(udid, TEXT_SIZES[0]) as apply_size:
+        for name, size, reduced in [('default', TEXT_SIZES[0], False), ('largest', TEXT_SIZES[1], False),
+                                     ('largest-reduced', TEXT_SIZES[1], True)]:
+            environment = dict(os.environ, TRINKET_UI_PLAN='Profiles', TRINKET_UI_SUCCESS_SCREENSHOTS='1',
+                               TEST_RUNNER_TRINKET_PROFILE_LARGE_TEXT=str(int(size != 'large')),
+                               TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION=str(int(reduced)))
+            apply_size(size)
             with (output / f'{name}.log').open('w') as log:
                 result = subprocess.run(['./Scripts/test.sh', 'ui', '--no-build', 'CriticalAccessibilityUITests'],
                                         env=environment, stdout=log, stderr=subprocess.STDOUT)
-        results.append(dict(profile=name, log=f'{name}.log', resultsDirectory=os.environ.get('RESULTS_DIR'),
-                            textSize=size, reduceMotion=reduced,
-                            reduceMotionSource='native Settings control with class restoration',
-                            status='passed' if result.returncode == 0 else 'failed', exitCode=result.returncode))
-        (output / 'profiles.json').write_text(json.dumps(results, indent=2))
+            results.append(dict(profile=name, log=f'{name}.log', resultsDirectory=os.environ.get('RESULTS_DIR'),
+                                textSize=size, reduceMotion=reduced,
+                                reduceMotionSource='native Settings control with class restoration',
+                                status='passed' if result.returncode == 0 else 'failed', exitCode=result.returncode))
+            (output / 'profiles.json').write_text(json.dumps(results, indent=2))
     return 0 if all(item['exitCode'] == 0 for item in results) else 1
+
+
+def stage_results(results, output):
+    # Use the same fail-closed artifact classification as the main CI lanes.
+    subprocess.run(['./Scripts/ci-diagnostics.sh', str(results)], check=True)
+    subprocess.run(['./Scripts/ci-diagnostics.sh', '--stage-artifacts', str(results), str(output)], check=True)
+    category = json.loads((results / 'ci-diagnostics.json').read_text()).get('category')
+    if category != 'passed':
+        return  # Full failure bundles already retain audit screenshots.
+    for bundle in results.glob('*.xcresult'):
+        screenshots = output / f'{bundle.stem}-screenshots'
+        try:
+            subprocess.run(['xcrun', 'xcresulttool', 'export', 'attachments', '--path', str(bundle),
+                            '--output-path', str(screenshots), '--filter', '*.png'], check=True, timeout=60)
+            if not any(screenshots.glob('*.png')):
+                raise ValueError('no profile screenshots exported')
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            # Missing screenshot evidence falls back to its original bundle.
+            print(f'Screenshot export unavailable; retaining {bundle.name}: {error}', file=sys.stderr)
+            shutil.copytree(bundle, output / bundle.name)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('operation', choices=('definition', 'prepare', 'resolve', 'run'))
+    parser.add_argument('operation', choices=('definition', 'prepare', 'resolve', 'run', 'stage'))
     parser.add_argument('--name')
     parser.add_argument('--udid')
+    parser.add_argument('--results', type=Path)
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     try:
+        if args.operation == 'stage':
+            if not args.results or not args.output:
+                parser.error('stage requires --results and --output')
+            stage_results(args.results, args.output)
+            return 0
         if args.operation == 'definition':
             type_id, major = PROFILES[args.name]
             print(f'{type_id}\t{major}')

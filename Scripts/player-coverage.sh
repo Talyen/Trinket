@@ -40,20 +40,9 @@ else
   ./Scripts/test.sh ui --no-build RepeatedPlayUITests || coverage_status=1
   ./Scripts/test-package.sh --build-for-testing TrinketAppState
   career_products="$DERIVED_DATA_PATH/packages/TrinketAppState/Build/Products"
-  for career_mode in campaign contracts labyrinth spires; do
-    # Odd/even cohorts retain the five original seeds and their policies.
-    # Each cohort pays XCTest startup once; crash/recovery workers stay separate.
-    for seed in 101 102; do
-      policy=setupAware-v1
-      scenarios=3
-      if (( seed == 102 )); then policy=random-v1; scenarios=2; fi
-      career_status=0
-      python3 Scripts/playthrough_sweep.py --products "$career_products" --destination "$SIMULATOR_DESTINATION" --seed "$seed" --scenarios "$scenarios" --seed-stride 2 --batch --horizon 10 --full-access \
-        --mode "$career_mode" --policy "$policy" --output "$coverage_output/$career_mode-$seed" || career_status=$?
-      printf '%s\t%s\t%s\n' "$career_mode" "$seed" "$career_status" >> "$coverage_output/careers.tsv"
-      (( career_status == 0 )) || coverage_status=1
-    done
-  done
+  # Ordinary careers share one worker; crash/recovery still crosses real processes.
+  python3 Scripts/playthrough_sweep.py --products "$career_products" --destination "$SIMULATOR_DESTINATION" \
+    --batch --coverage-portfolio --horizon 10 --full-access --output "$coverage_output/careers" || coverage_status=1
   python3 Scripts/playthrough_sweep.py --products "$career_products" --destination "$SIMULATOR_DESTINATION"     --seed 101 --crash-proof --full-access --output "$coverage_output/crash-recovery" || coverage_status=1
   exit "$coverage_status"
 fi

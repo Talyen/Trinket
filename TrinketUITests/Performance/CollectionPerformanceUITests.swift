@@ -5,7 +5,8 @@ import XCTest
 
 final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
-    func testDetailAndAbility() {
+    func testDetailAndAbility() throws {
+        try XCTSkipUnless(selected("combatant-detail-scroll"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allForScreen("hero:knight")))
             combatantDetail.assertLoaded(for: "Knight")
@@ -20,7 +21,8 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func testEquipment() {
+    func testEquipment() throws {
+        try XCTSkipUnless(selected("equipment-picker-scroll") || selected("equipment-search-filter"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allForScreen("hero:knight")))
             combatantDetail.assertLoaded(for: "Knight")
@@ -50,7 +52,8 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func testCollectionBrowsing() {
+    func testCollectionBrowsing() throws {
+        try XCTSkipUnless(selected("collection-browse-scroll"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
             collection.assertLoaded()
@@ -65,7 +68,8 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func testTalents() {
+    func testTalents() throws {
+        try XCTSkipUnless(selected("talent-tree-scroll"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg
                 .performanceArguments(from: TestLaunchArg.allForScreen("hero:knight")) + ["-performance-talent-point"])

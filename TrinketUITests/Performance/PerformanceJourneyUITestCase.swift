@@ -4,17 +4,17 @@ import XCTest
 class PerformanceJourneyUITestCase: TrinketUITestCase {
     private var completedSteps: [Int: Set<String>] = [:]
 
-    private var currentTestSelection: Set<String>? {
+    private lazy var currentTestSelection: Set<String>? = {
         guard let raw = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_TEST_SCENARIOS"],
               let data = raw.data(using: .utf8),
               let selections = try? JSONDecoder().decode([String: [String]].self, from: data)
         else { return nil }
         let entry = selections.first { key, _ in
             let parts = key.split(separator: "/")
-            return parts.count == 2 && name.contains("[\(parts[0]) ") && name.hasSuffix(" \(parts[1])]")
+            return parts.count == 2 && self.name.contains("[\(parts[0]) ") && self.name.hasSuffix(" \(parts[1])]")
         }
         return entry.map { Set($0.value) }
-    }
+    }()
 
     var repetitionCount: Int {
         max(1, Int(ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_REPETITIONS"] ?? "1") ?? 1)

@@ -7,8 +7,9 @@ final class FullGamePurchaseSmokeTests: FullGameStoreKitUITestCase {
         try skipUnavailablePurchaseAutomation()
         try startStoreSession()
         let freeStages = GameContent.chapters.filter { $0.number <= 3 }.flatMap { $0.stages.map(\.id) }
-        launchApp(arguments: TestLaunchArg.allForTab("play") + TestLaunchArg.completedStages(freeStages))
-        tapButton(AccessibilityID.Play.campaignModeCard)
+        launchApp(arguments: TestLaunchArg.allForTab("play") + TestLaunchArg.completedStages(freeStages)
+            + ["-purchase-chapter-fixture"])
+        play.assertCampaignLoaded(number: 4)
         let unlock = AccessibilityID.Play.stageAction(chapter: 4, stage: 1)
         assertExistsAfterScroll(unlock, requireHittable: true)
         tapButton(unlock)

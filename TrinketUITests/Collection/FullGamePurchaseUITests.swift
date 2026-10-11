@@ -63,7 +63,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
     @MainActor
     func testCancelledPurchaseAllowsRetryWithoutUnlocking() async throws {
         try skipUnavailablePurchaseAutomation()
-        try launchOptionsOffer()
+        try launchOptionsOffer(arguments: ["-coverage-diagnostics"])
         let session = try XCTUnwrap(storeSession)
         try await session.setSimulatedError(.generic(.userCancelled), forAPI: .purchase)
         tapButton(AccessibilityID.FullGame.purchase)
@@ -73,8 +73,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         XCTAssertTrue(session.allTransactions().isEmpty)
         try await session.setSimulatedError(nil, forAPI: .purchase)
         dismissSheet(AccessibilityID.FullGame.offer)
-        assertWarlockLocked()
-        tabBar.selectOptions()
+        assertFullGameAccess(false)
         tapButton(AccessibilityID.FullGame.options)
         assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
@@ -88,13 +87,13 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         try startStoreSession()
         let session = try XCTUnwrap(storeSession)
         launchApp(arguments: TestLaunchArg.allForTab("play")
-            + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
+            + TestLaunchArg.completedStages(["chapter-1-stage-1"]) + ["-coverage-diagnostics"])
         play.openCampaign()
         XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled)
         app.terminate()
         let transaction = try await session.buyProduct(identifier: FullGameStore.productID)
         XCTAssertTrue(session.allTransactions().contains { $0.identifier == UInt(transaction.id) })
-        relaunchApp(arguments: ["-selectedTab", "options"])
+        relaunchApp(arguments: ["-selectedTab", "options", "-coverage-diagnostics"])
         // Current entitlements are recognized at launch. Exercise the real
         // Restore control against that ownership and populated progress.
         assertDoesNotExist(AccessibilityID.FullGame.options)
@@ -103,7 +102,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         assertExistsAfterScroll(AccessibilityID.FullGame.restore, requireHittable: true)
         tapButton(AccessibilityID.FullGame.restore)
         waitUntil("Restore must finish") { self.button(AccessibilityID.FullGame.restore).isEnabled }
-        assertWarlockAccessible()
+        assertFullGameAccess(true)
         tabBar.selectPlay()
         play.openCampaign()
         XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled)

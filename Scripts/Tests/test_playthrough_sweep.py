@@ -87,6 +87,50 @@ class PlaythroughSweepTests(unittest.TestCase):
             self.assertEqual(result['termination'], 'watchdogTimeout')
             stop.assert_called_once_with(process, (321, 'owned-start-time'))
 
+    def test_coverage_portfolio_keeps_all_modes_seeds_policies_and_rejects_missing_evidence(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            args = SimpleNamespace(output=Path(temporary), scenarios=1, seed=42, seed_stride=1,
+                                   horizon=10, full_access=True, mode='campaign', policy='greedy-v1',
+                                   hero='knight', companion='wolf', coverage_portfolio=True)
+            def invoke(*unused, **kwargs):
+                requests = kwargs['careers']
+                self.assertEqual(len(requests), 20)
+                self.assertEqual(len({row['output'] for row in requests}), 20)
+                self.assertEqual({(row['mode'], row['seed'], row['policy']) for row in requests},
+                                 {(mode, seed, 'random-v1' if seed % 2 == 0 else 'setupAware-v1')
+                                  for mode in ('campaign', 'contracts', 'labyrinth', 'spires')
+                                  for seed in (101, 102, 103, 104, 105)})
+                for request in requests[:-1]:
+                    folder = Path(request['output'])
+                    folder.mkdir()
+                    (folder / 'summary.json').write_text(json.dumps(dict(termination='completedObjective')))
+                    (folder / 'worker-wall-seconds.txt').write_text('1')
+                    manifest = dict(worldSeed=request['seed'], attempts=10, fullAccess=True,
+                                    mode=request['mode'], policy=request['policy'], heroID='knight', companionID='wolf')
+                    (folder / 'scenario.json').write_text(json.dumps(manifest))
+                return dict(exitCode=0, processWallSeconds=30)
+            with patch.object(MODULE, 'worker', side_effect=invoke) as worker:
+                rows = MODULE.batch_workers(args, Path('unused'))
+            worker.assert_called_once()
+            self.assertEqual(sum(row['exitCode'] == 0 for row in rows), 19)
+            self.assertEqual(rows[-1]['termination'], 'missingWorkerResult')
+            self.assertEqual(rows[-1]['worker'], 'spires-105')
+            args.products, args.destination = Path(temporary), 'fixture'
+            (args.products / 'template.xctestrun').touch()
+            args.output = Path(temporary) / 'portfolio'
+            args.batch, args.scenario, args.crash_proof = True, None, False
+            args.replay_bundle, args.baseline = None, None
+            with patch.object(MODULE, 'worker', side_effect=invoke), patch.object(MODULE, 'identity', return_value={}):
+                self.assertEqual(MODULE.run_sweep(args), 1)
+            reports = list(args.output.glob('*/report.json'))
+            self.assertEqual(len(reports), 8)
+            for report_path in reports:
+                report = json.loads(report_path.read_text())
+                self.assertEqual(report['planned'], 2 if report['policy'] == 'random-v1' else 3)
+                for row in report['workers']:
+                    self.assertTrue(row['worker'].startswith(report['mode'] + '-'))
+                    self.assertEqual(row['seed'] % 2 == 0, report['policy'] == 'random-v1')
+
     def test_worker_configuration_relocates_products_and_passes_request(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

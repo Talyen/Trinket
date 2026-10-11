@@ -3,7 +3,8 @@ import XCTest
 
 final class AppPerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
-    func testLaunchAnimation() {
+    func testLaunchAnimation() throws {
+        try XCTSkipUnless(selected("launch-animation"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance() + ["-frame-metrics-launch"], waitForPreparation: false)
             waitForLaunchPreparation()
@@ -13,7 +14,11 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func test00ColdLaunchToPlay() {
+    func test00ColdLaunchToPlay() throws {
+        try XCTSkipIf(
+            ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_SCENARIOS"] != nil,
+            "Cold launch metrics are outside the selected frame scenarios",
+        )
         let options = XCTMeasureOptions()
         options.iterationCount = repetitionCount
         measure(metrics: [XCTApplicationLaunchMetric()], options: options) {
@@ -23,7 +28,8 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func test01TabRoundTrip() {
+    func test01TabRoundTrip() throws {
+        try XCTSkipUnless(selected("tab-round-trip"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance())
             play.assertLoaded()
@@ -47,7 +53,8 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func test02CollectionNavigation() {
+    func test02CollectionNavigation() throws {
+        try XCTSkipUnless(selected("collection-navigation"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
             collection.assertLoaded()
@@ -69,7 +76,8 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func test06StageSelectBattleStart() {
+    func test06StageSelectBattleStart() throws {
+        try XCTSkipUnless(selected("stage-select-battle-transition"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             let arguments = TestLaunchArg.replacingBattleTickInterval(
                 "60",

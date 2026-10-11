@@ -3,7 +3,8 @@ import XCTest
 
 final class MysteryPerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
-    func testReward() {
+    func testReward() throws {
+        try XCTSkipUnless(selected("mystery-reward-reveal"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allUnseeded()
                     + TestLaunchArg.screen("mystery")
@@ -19,7 +20,8 @@ final class MysteryPerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     @MainActor
-    func testCorruption() {
+    func testCorruption() throws {
+        try XCTSkipUnless(selected("corruption-reveal"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allForScreen("mystery")
                     + TestLaunchArg.completedStages(["chapter-1-stage-1"])

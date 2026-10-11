@@ -50,7 +50,13 @@ extension AppState {
 
         let resolvedOptions = OptionsStore(defaults: userDefaults)
 
-        let launch = launchResolution(for: environment.launchScreen)
+        var launch = launchResolution(for: environment.launchScreen)
+        #if DEBUG
+        if environment.storeName != nil, environment.disableCloudSync,
+           ProcessInfo.processInfo.arguments.contains("-purchase-chapter-fixture") {
+            launch = LaunchResolution(tab: .play, collection: nil, play: .campaign)
+        }
+        #endif
 
         return BootstrapDependencies(
             playerSave: resolvedPlayerSave,

@@ -216,7 +216,11 @@ class TrinketUITestCase: XCTestCase {
 
     func dismissEarnedTalentChoicesIfPresented() {
         let choices = any(AccessibilityID.TalentChoice.screen)
-        if choices.trinketWaitForExistence(timeout: 1) {
+        let board = any(AccessibilityID.Play.contractsBoard)
+        waitUntil("Contract must return to its board or earned talent choice") {
+            choices.exists || (board.exists && self.app.tabBars.buttons[AccessibilityID.Tab.play].isHittable)
+        }
+        if choices.exists {
             dismissSheet(AccessibilityID.TalentChoice.screen)
         }
     }

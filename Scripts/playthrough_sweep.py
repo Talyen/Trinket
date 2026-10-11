@@ -36,6 +36,7 @@ def parse_args():
     parser.add_argument("--scenarios", type=positive, default=1)
     parser.add_argument("--seed-stride", type=positive, default=1, help="spacing between ordinary career seeds")
     parser.add_argument("--batch", action="store_true", help="run ordinary careers serially in one XCTest process; each keeps its own store")
+    parser.add_argument("--coverage-portfolio", action="store_true", help="batch the twenty player-coverage careers, preserving each mode and policy report")
     parser.add_argument("--full-access", action="store_true")
     parser.add_argument("--mode", choices=["campaign", "spires", "labyrinth", "contracts"], default="campaign")
     parser.add_argument("--policy", choices=["greedy-v1", "setupAware-v1", "random-v1", "rotation-v1"], default="greedy-v1")
@@ -180,6 +181,13 @@ def batch_workers(args, template):
                     fullAccess=args.full_access, mode=args.mode, policy=args.policy,
                     hero=args.hero, companion=args.companion)
                for index in range(args.scenarios)]
+    if getattr(args, "coverage_portfolio", False):
+        careers = [dict(operation="run", output=str(args.output / f"{mode}-{seed}"),
+                        seed=seed, horizon=args.horizon, fullAccess=args.full_access, mode=mode,
+                        policy="random-v1" if seed % 2 == 0 else "setupAware-v1",
+                        hero=args.hero, companion=args.companion)
+                   for mode in ("campaign", "contracts", "labyrinth", "spires")
+                   for seed in (101, 102, 103, 104, 105)]
     invocation = worker(args, template, "batch", operation="batch", careers=careers)
     summaries = []
     for request in careers:
@@ -558,6 +566,8 @@ def run_sweep(args):
         raise SystemExit("seed must fit UInt64; horizon and scenarios must be <= 1000")
     if getattr(args, "batch", False) and (args.crash_proof or args.replay_bundle or args.scenario):
         raise SystemExit("--batch supports only ordinary fresh careers")
+    if getattr(args, "coverage_portfolio", False) and (not args.batch or args.baseline):
+        raise SystemExit("--coverage-portfolio requires --batch and does not support baseline comparison")
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=False)
     if getattr(args, 'retention_root', None) is not None:
@@ -599,6 +609,20 @@ def run_sweep(args):
     else:
         for index in range(args.scenarios):
             summaries.append(worker(args, template, f"career-{index:04}", seed=args.seed + index * stride))
+    if getattr(args, "coverage_portfolio", False):
+        for mode in ("campaign", "contracts", "labyrinth", "spires"):
+            for policy in ("setupAware-v1", "random-v1"):
+                members = [row for row in summaries if row["worker"].startswith(f"{mode}-")
+                           and (int(row["seed"]) % 2 == 0) == (policy == "random-v1")]
+                cohort = argparse.Namespace(**vars(args))
+                cohort.mode, cohort.policy, cohort.scenarios = mode, policy, len(members)
+                cohort.output = args.output / f"{mode}-{policy}"
+                cohort.output.mkdir()
+                report(cohort, members, host)
+        (args.output / "portfolio.json").write_text(json.dumps(summaries, indent=2))
+        return 0 if len(summaries) == 20 and all(
+            row["exitCode"] == 0 and row["termination"] == "completedObjective" for row in summaries
+        ) else 1
     report(args, summaries, host)
     print(f"Report: {args.output / 'report.html'}")
     print(f"Agent summary: {args.output / 'report-agent.md'}")

@@ -17,7 +17,8 @@ final class SmokeShopTests: TrinketUITestCase {
         let price = try integer(in: button(buyID))
         scrollUntilVisible(offer, swipingUp: true, requireHittable: true)
         tapWhenReady(offer)
-        assertExistsAfterScroll(AccessibilityID.Shop.detailBuyButton, requireHittable: true)
+        // Artwork preparation presents the sheet asynchronously; its purchase footer is fixed.
+        assertExists(shop.detailBuy)
         XCTAssertEqual(try integer(in: shop.detailBuy), price)
         tapWhenReady(shop.detailBuy)
         assertDoesNotExist(AccessibilityID.Shop.detailBuyButton)

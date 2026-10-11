@@ -44,6 +44,13 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
         assertPurchaseProductLoaded()
     }
 
+    func assertFullGameAccess(_ expected: Bool) {
+        waitUntil("Full Game access must become \(expected)") {
+            do { return try self.coverageReport()["fullGameAccess"] as? Bool == expected }
+            catch { return false }
+        }
+    }
+
     func assertWarlockAccessible() {
         revealWarlock()
         let card = AccessibilityID.CombatantDetail.collectionCard(name: "Warlock")

@@ -46,15 +46,17 @@ Profiles request iPhone SE third generation on iOS 26 and iPad A16 (eleventh
 generation) on iOS 27. Missing types, incompatible/missing runtimes, and missing
 native text controls fail visibly without fallback. CI installs the requested
 major's `.0` runtime when that major is absent, then checks availability and device
-compatibility again. One architecture's products are reused across settings and
-device profiles. All executions are serial on
+compatibility again. Compatible products from successful exact-commit CI are reused;
+missing or incompatible products rebuild, using the shared warm cache when no transfer
+is available. One architecture's products are reused across settings and device profiles. All executions are serial on
 their owned simulator lease. Test runs retain the build's shared results directory
 so its validated build stamps remain available; each settings log and verdict
 identifies its retained result directory.
 
 Each device runs native default text, native largest accessibility text, and
-largest text with Reduce Motion. Native text settings are verified and restored
-even on failed journeys. Reduce Motion is selected through the native Settings app in the owned simulator
+largest text with Reduce Motion. Native text settings are verified for every profile,
+unchanged sizes are not reapplied, and the original size is restored once after the
+device's profiles, even on failed journeys. Reduce Motion is selected through the native Settings app in the owned simulator
 and restored after each class execution, including failed journeys. Both profile
 methods verify the actual text-size and motion environment reached SwiftUI.
 Simulator checks do not establish hardware evidence. Native audits exclude only
@@ -69,7 +71,7 @@ Weekly UI soak uses one audio-enabled store for twenty Contracts, visiting
 Collection/Homestead and backgrounding every fifth cycle. Headless careers cover
 Campaign, Contracts, Labyrinth and Spires at seeds 101–105 with ten attempts;
 odd seeds use setup-aware policy and even seeds random policy. Ordinary careers run
-in eight serial XCTest cohorts (one odd and one even cohort per mode), retaining all
+in one serial XCTest worker with separate mode/policy reports, retaining all
 twenty careers and their independent stores, contexts, seeds, and journals. Each career
 closes its transient state before the next starts. Batch reports label per-career
 body time separately from the shared process wall time. The external watchdog retains
@@ -79,9 +81,11 @@ victory rates, determine acceptance. UI soak accepts either outcome and verifies
 
 ## Evidence and remaining gates
 
-Retain result bundles, screenshots, actual settings/device/runtime/toolchain and
-commit identity, raw interrupted stores, journals, remote test state and replay
-reports with fourteen-day workflow retention requests. GitHub currently caps this
+Retain screenshots, compact diagnostics, actual settings/device/runtime/toolchain and
+commit identity for passing profiles. Failed or unclassified runs retain full result
+bundles; screenshot export failures also retain the original bundle. Soak retains raw
+interrupted stores, journals, remote test state and replay reports. Workflow retention
+requests fourteen days. GitHub currently caps this
 repository's uploads at one day; download evidence needed beyond that cap until
 the repository setting is raised. A failed profile retains its verdict while other
 settings execute. Soak failure does not hide the subsequent career/recovery

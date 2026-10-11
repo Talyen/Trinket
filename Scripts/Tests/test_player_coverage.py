@@ -3,7 +3,7 @@ from __future__ import annotations
 
 SCRIPT_INPUTS = (
     'Scripts/coverage_profiles.py', 'Scripts/player-coverage.sh', 'Scripts/ensure-simulator.sh',
-    'Scripts/test.sh', '.github/workflows/player-coverage.yml',
+    'Scripts/test.sh', '.github/workflows/player-coverage.yml', '.github/actions/coverage-products/action.yml',
 )
 
 import json
@@ -70,10 +70,11 @@ class PlayerCoverageTests(unittest.TestCase):
                 self.fail('must not start unsupported profile')
 
     def test_failed_profile_is_recorded_and_other_settings_still_execute(self):
-        current = ['large']
+        current, writes = ['large'], []
         def run(*args):
             if len(args) == 4:
                 current[0] = args[-1]
+                writes.append(args[-1])
             return current[0]
         with tempfile.TemporaryDirectory() as temporary, patch.dict(os.environ, {'RESULTS_DIR': '/fixture/built-results'}), \
                 patch.object(MODULE, 'record_identity'), \
@@ -90,10 +91,38 @@ class PlayerCoverageTests(unittest.TestCase):
             self.assertEqual([row['status'] for row in rows], ['failed', 'passed', 'passed'])
             self.assertEqual(command.call_count, 3)
             self.assertEqual(current[0], 'large')
+            self.assertEqual(writes, [MODULE.TEXT_SIZES[1], 'large'])
             environment = command.call_args.kwargs['env']
             self.assertEqual(environment['RESULTS_DIR'], '/fixture/built-results')
             self.assertEqual(environment['TRINKET_UI_PLAN'], 'Profiles')
             self.assertEqual(environment['TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION'], '1')
+
+    def test_profile_artifacts_keep_screenshots_and_fall_back_to_full_bundle(self):
+        for category, export_fails in [('passed', False), ('passed', True), ('passed', 'empty'), ('test-failure', False)]:
+            with self.subTest(category=category, export_fails=export_fails), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                results, output = root / 'TestResults', root / 'artifact'
+                results.mkdir()
+                output.mkdir()
+                (results / 'ci-diagnostics.json').write_text(json.dumps(dict(category=category)))
+                bundle = results / 'profile.xcresult'
+                bundle.mkdir()
+                (bundle / 'Info.plist').write_text('audit evidence')
+                def run(command, **kwargs):
+                    if command[0] == 'xcrun':
+                        if export_fails is True:
+                            raise subprocess.TimeoutExpired(command, 60)
+                        if not export_fails:
+                            screenshots = Path(command[command.index('--output-path') + 1])
+                            screenshots.mkdir()
+                            (screenshots / 'audit.png').write_bytes(b'fixture pixels')
+                with patch.object(MODULE.subprocess, 'run', side_effect=run) as command:
+                    MODULE.stage_results(results, output)
+                exports = [call.args[0] for call in command.call_args_list if call.args[0][0] == 'xcrun']
+                self.assertEqual(len(exports), int(category == 'passed'))
+                if exports:
+                    self.assertIn('*.png', exports[0])
+                self.assertEqual((output / bundle.name / 'Info.plist').exists(), bool(export_fails))
 
     def test_soak_failure_does_not_hide_career_or_recovery_results(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -121,19 +150,12 @@ trinket_run_env_install_self_clean() { :; }
             self.assertEqual(result.returncode, 1, result.stderr)
             calls = (root / 'calls').read_text().splitlines()
             cohorts = [line.split() for line in calls if '--batch' in line]
-            self.assertEqual(len(cohorts), 8)
-            careers = set()
-            for command in cohorts:
-                value = lambda flag: command[command.index(flag) + 1]
-                for offset in range(int(value('--scenarios'))):
-                    careers.add((value('--mode'), int(value('--seed')) + offset * int(value('--seed-stride')), value('--policy')))
-            self.assertEqual(careers, {(mode, seed, 'random-v1' if seed % 2 == 0 else 'setupAware-v1')
-                                      for mode in ('campaign', 'contracts', 'labyrinth', 'spires')
-                                      for seed in (101, 102, 103, 104, 105)})
+            self.assertEqual(len(cohorts), 1)
+            self.assertIn('--coverage-portfolio', cohorts[0])
+            self.assertIn('--horizon 10', ' '.join(cohorts[0]))
             self.assertEqual(sum('test-package.sh --build-for-testing' in line for line in calls), 1)
             self.assertEqual(sum('--crash-proof' in line for line in calls), 1)
             self.assertIn(f'test.sh ui --no-build RepeatedPlayUITests results={root.resolve()}/data/TestResults', calls)
-            self.assertIn('--policy random-v1', next(line for line in calls if '--seed 102' in line))
 
     def test_advisory_status_propagates_failed_or_cancelled_requested_jobs(self):
         workflow = (ROOT / '.github/workflows/player-coverage.yml').read_text()

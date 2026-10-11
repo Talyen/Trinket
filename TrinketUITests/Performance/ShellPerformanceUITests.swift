@@ -4,7 +4,8 @@ import XCTest
 
 final class ShellPerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
-    func testSamplerDetectsStall() {
+    func testSamplerDetectsStall() throws {
+        try XCTSkipUnless(selected("diagnostic-stall"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance() + ["-frame-metrics-validation-stall"])
             measured("diagnostic-stall", iteration: iteration) { play.assertLoaded() }

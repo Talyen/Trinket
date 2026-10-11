@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: player-coverage-${{ github.ref }}
@@ -26,7 +27,9 @@ jobs:
     runs-on: xcode-27
     timeout-minutes: 90
     env:
-      DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData/player-coverage
+      DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
+      TRINKET_DIAGNOSTICS_SESSION_ID: player-profiles-${{ github.run_id }}-${{ github.run_attempt }}
+      TRINKET_CLEANUP_TEST_ARTIFACTS: '0'
       TRINKET_REQUIRED_PURCHASE: '1'
       TEST_RUNNER_TRINKET_REQUIRED_PURCHASE: '1'
     steps:
@@ -40,8 +43,7 @@ jobs:
         run: |
           python3 Scripts/coverage_profiles.py prepare --name compact
           python3 Scripts/coverage_profiles.py prepare --name tablet
-      - name: Build shared simulator products once
-        run: ./Scripts/build-for-testing.sh --app-only
+      - uses: ./.github/actions/coverage-products
       - name: Run both requested profiles serially
         env:
           TRINKET_COVERAGE_NO_BUILD: '1'
@@ -51,14 +53,17 @@ jobs:
           ./Scripts/player-coverage.sh compact || status=1
           ./Scripts/player-coverage.sh tablet || status=1
           exit "$status"
+      - name: Stage bounded profile evidence
+        if: always()
+        run: python3 Scripts/coverage_profiles.py stage --results .DerivedData/TestResults --output .DerivedData/ProfileDiagnostics
       - name: Retain profile results and failures
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: player-profiles-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            .DerivedData/player-coverage/PlayerCoverage
-            .DerivedData/player-coverage/TestResults
+            .DerivedData/PlayerCoverage
+            .DerivedData/ProfileDiagnostics
           include-hidden-files: true
           retention-days: 14
           if-no-files-found: warn
@@ -69,14 +74,17 @@ jobs:
     runs-on: xcode-27
     timeout-minutes: 120
     env:
-      DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData/player-coverage
+      DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
       - uses: ./.github/actions/setup-trinket
         with:
           metal: 'true'
           xcode-channel: verified
+      - uses: ./.github/actions/coverage-products
       - name: Serial soak, twenty careers, and interrupted settlement recovery
+        env:
+          TRINKET_COVERAGE_NO_BUILD: '1'
         run: ./Scripts/player-coverage.sh soak
       - name: Retain raw stores, journals, reports and result bundles
         if: always()
@@ -84,8 +92,8 @@ jobs:
         with:
           name: player-soak-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            .DerivedData/player-coverage/PlayerCoverage
-            .DerivedData/player-coverage/TestResults
+            .DerivedData/PlayerCoverage
+            .DerivedData/TestResults
           include-hidden-files: true
           retention-days: 14
           if-no-files-found: warn

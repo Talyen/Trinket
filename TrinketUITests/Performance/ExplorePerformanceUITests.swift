@@ -3,7 +3,8 @@ import XCTest
 
 final class ExplorePerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
-    func testLabyrinth() {
+    func testLabyrinth() throws {
+        try XCTSkipUnless(selected("labyrinth-scroll"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg
                 .performanceArguments(from: TestLaunchArg.allForScreen("labyrinth-map")) + ["-performance-labyrinth-scroll"])

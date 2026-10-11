@@ -179,3 +179,15 @@ Production-timing journeys omit the tick override; audio journeys omit audio
 suppression. `Coverage Diagnostics` is an opt-in Debug label; the native audit
 excludes only this nonshipping observation element. All product controls remain
 audited. Captured backend counts establish scheduling/start results, not audibility.
+
+
+The Full Game smoke fixture enters the active Campaign chapter directly through
+`-purchase-chapter-fixture` in an owned, cloud-disabled Debug store. It still taps
+the real locked chapter action. Cancellation and populated Restore use the Debug
+entitlement observation only to avoid repeated Collection traversal; purchase,
+cold-launch access, and Warlock unlock wiring remain exercised. Merchant detail
+waits for its fixed purchase footer before reading price or buying, without scrolling
+a sheet that is still preparing artwork. Contract return waits for either an earned
+talent sheet or the board with a hittable Play tab, avoiding an unconditional optional
+sheet delay while respecting pending talent presentation. Class-filtered performance
+runs exit unselected methods before app launch or scroll-probe setup.

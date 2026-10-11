@@ -1,0 +1,34 @@
+name: Player coverage products
+description: Reuse compatible exact-commit app products or rebuild from the warm cache.
+runs:
+  using: composite
+  steps:
+    - name: Find verified exact-commit products
+      id: reuse
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 Scripts/ci-reuse.py
+    - name: Download verified products
+      id: download
+      if: steps.reuse.outputs.standard == 'true'
+      continue-on-error: true
+      uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317
+      with:
+        name: ${{ steps.reuse.outputs.build-artifact }}
+        run-id: ${{ steps.reuse.outputs.run-id }}
+        github-token: ${{ github.token }}
+        path: .DerivedData
+    - name: Validate transferred products or rebuild
+      if: steps.download.outcome == 'success'
+      shell: bash
+      env:
+        CI: true
+      run: ./Scripts/restore-ci-test-products.sh --downloaded -- ./Scripts/build-for-testing.sh --app-only
+    - name: Build with the shared warm cache
+      if: steps.download.outcome != 'success'
+      uses: ./.github/actions/restore-and-build
+      with:
+        build-command: ./Scripts/build-for-testing.sh --app-only
+        prune: 'true'
+        save-cache: 'true'

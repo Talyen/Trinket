@@ -13,9 +13,10 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         settings.launch()
         defer { settings.terminate() }
         do {
-            let original = try reduceMotionValue(reduceMotionControl())
+            let control = reduceMotionControl()
+            let original = try reduceMotionValue(control)
             originalReduceMotion.withLock { $0 = original }
-            try setReduceMotion(ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1")
+            try setReduceMotion(ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1", control: control)
         } catch {
             XCTFail("Could not apply native Reduce Motion: \(error)")
         }
@@ -30,7 +31,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         settings.activate()
         defer { settings.terminate() }
         do {
-            try setReduceMotion(original)
+            try setReduceMotion(original, control: reduceMotionControl())
         } catch {
             XCTFail("Could not restore native Reduce Motion: \(error)")
         }
@@ -81,8 +82,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         return value == "1"
     }
 
-    private static func setReduceMotion(_ enabled: Bool) throws {
-        let control = reduceMotionControl()
+    private static func setReduceMotion(_ enabled: Bool, control: XCUIElement) throws {
         if try reduceMotionValue(control) != enabled {
             control.trinketTapWhenReady()
         }

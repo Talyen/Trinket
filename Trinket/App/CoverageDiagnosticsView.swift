@@ -25,6 +25,7 @@ struct CoverageDiagnosticsView: View {
         values["largeText"] = textSize.isAccessibilitySize
         values["largestText"] = textSize == .accessibility5
         values["reduceMotion"] = reduceMotion
+        values["fullGameAccess"] = playerSave.contentAccess.allowsChapter(4)
         values["gold"] = playerSave.roster.gold
         values["completedStages"] = playerSave.journey.completedStageIDs.sorted()
         do {
