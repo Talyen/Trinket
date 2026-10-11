@@ -110,7 +110,7 @@ def run_profiles(udid, output):
                                         env=environment, stdout=log, stderr=subprocess.STDOUT)
         results.append(dict(profile=name, log=f'{name}.log', resultsDirectory=os.environ.get('RESULTS_DIR'),
                             textSize=size, reduceMotion=reduced,
-                            reduceMotionSource='native Settings control with per-test restoration',
+                            reduceMotionSource='native Settings control with class restoration',
                             status='passed' if result.returncode == 0 else 'failed', exitCode=result.returncode))
         (output / 'profiles.json').write_text(json.dumps(results, indent=2))
     return 0 if all(item['exitCode'] == 0 for item in results) else 1

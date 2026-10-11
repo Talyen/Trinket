@@ -1,8 +1,11 @@
 import StoreKitTest
+import Synchronization
 import TrinketFeatureSupport
 import XCTest
 
 class FullGameStoreKitUITestCase: TrinketUITestCase {
+    private static let registered = Mutex(false)
+
     private(set) var storeSession: SKTestSession?
 
     override func tearDownWithError() throws {
@@ -58,10 +61,14 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
     }
 
     func startStoreSession() throws {
-        // Register the app on a fresh simulator before StoreKit configures its bundle.
-        launchApp(arguments: TestLaunchArg.allForTab("options"), waitForPreparation: false)
-        app.terminate()
+        // Registration belongs to this runner process; sessions and transactions remain per-test.
+        let needsRegistration = Self.registered.withLock { !$0 }
+        if needsRegistration {
+            launchApp(arguments: TestLaunchArg.allForTab("options"), waitForPreparation: false)
+            app.terminate()
+        }
         let session = try SKTestSession(configurationFileNamed: "Trinket")
+        Self.registered.withLock { $0 = true }
         session.resetToDefaultState()
         session.disableDialogs = true
         session.askToBuyEnabled = false

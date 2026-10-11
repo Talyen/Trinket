@@ -43,7 +43,7 @@ trinket_assert_targeted_tests_executed() {
   local tests_json="" tests_log=""
   if xcode_runner_result_bundle_complete "$RESULT_BUNDLE_PATH"; then
     command -v xcrun >/dev/null 2>&1 || return 1
-    tests_json="$(xcode_runner_run_bounded 60 xcrun xcresulttool get test-results tests --path "$RESULT_BUNDLE_PATH" --compact 2>/dev/null || true)"
+    tests_json="$(xcode_runner_run_bounded 60 python3 Scripts/xcresult-report.py "$RESULT_BUNDLE_PATH" tests 2>/dev/null || true)"
     if [[ -z "$tests_json" ]]; then
       echo "Targeted test result bundle could not be read; refusing a false-green result." >&2
       return 1

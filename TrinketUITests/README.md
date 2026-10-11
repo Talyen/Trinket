@@ -85,8 +85,9 @@ Assert a journey’s return destination before using helpers that navigate elsew
 - Prefer one launch per test with explicit per-test args. For persistence, use
   `relaunchApp(arguments:)`: it reuses the test store and takes destination arguments
   without reset, seeding, starting resources, or onboarding bypass.
-- StoreKit's registration-only launch skips the artwork wait; its subsequent
-  test launch still waits for preparation before interacting with controls.
+- StoreKit registers the app once per XCTest runner process, skipping the artwork
+  wait for that registration-only launch. Each test still creates a fresh StoreKit
+  session and isolated save, and its actual launch waits for artwork preparation.
 - Prefer one launch + `TabBar` for round-trips that must exercise the tab bar itself.
 - Prefer `-completed-stages` over scrolling Stage Select lists when seeding progress.
 - Filter inventory/search with `replaceText` instead of grid scroll loops.
@@ -104,14 +105,18 @@ Assert a journey’s return destination before using helpers that navigate elsew
   Establish a newly opened scroll surface before capturing its probes; measure
   its gestures separately when the scroll itself needs a frame report.
 - Required Full Game coverage includes purchase access to an already-recruited premium character
-  and a chapter offer-entry check. Existing-entitlement cold launch and recovery from simulated restore
-  failure are advisory FullUI journeys. Tapping Restore while already unlocked does
-  not prove restoration; real App Store restore still needs service/device evidence.
+  and a chapter offer-entry check. Existing-entitlement cold launch is asserted
+  before Restore in the populated-save journey; restore-failure recovery remains
+  a separate FullUI journey. Tapping Restore while already unlocked does not prove
+  restoration; real App Store restore still needs service/device evidence.
 - Use the timeout and tick defaults from `TrinketUITestCase` and its helpers;
   do not copy their numeric values into this guide.
 - Wait for alternative successful outcomes together. Battle entry accepts the
   hand or victory in one wait, so a fast victory does not exhaust a hand-only wait.
 - PD-014 permits the bounded critical-control settings profiles described in [Player coverage](../Docs/Platform/PlayerCoverage.md). Use stable selectors and meaningful outcomes; [Testing.md](../Docs/Platform/Testing.md#ui-keep-drop-rubric) owns when copy, layout, or gesture behavior merits regression coverage.
+- Completed xcresult test exports are reused by filter validation, timing,
+  diagnostics, and infrastructure retry only while bundle identity matches.
+  Missing, damaged, or replaced evidence triggers a fresh bounded export.
 - UI tests are CI-owned and run serially on each job's managed simulator. Local diagnostics require explicit opt-in under Verification.md. Hotspots: `python3 ./Scripts/test-timing.py report --top 30`.
 - Success-path screenshots are opt-in (`TRINKET_UI_SUCCESS_SCREENSHOTS=1`); failure screenshots stay unconditional.
 
@@ -130,7 +135,8 @@ detail entry by `CollectionLoadoutUITests`. Character lock labels express the
 unlock contract because locked character cards remain enabled for inspection.
 
 Full Game's smoke purchase journey owns Warlock detail entry.
-Existing-entitlement cold launch and restore-failure recovery stop at the accessible
+Existing-entitlement cold launch shares the populated-restore journey, asserting
+Warlock access before Restore. Restore-failure recovery stops at the accessible
 Collection card instead of repeating detail navigation. These fixtures seed recruitment
 independently of StoreKit ownership. The shared assertion checks the card's lock
 label, which combines recruitment and purchase access. Purchase preserves the earned

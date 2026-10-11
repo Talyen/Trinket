@@ -1,6 +1,7 @@
 """Executable product transfer and incremental cache retention contracts."""
 
 SCRIPT_INPUTS = (
+    'Scripts/xcresult-report.py',
     'Scripts/build-for-testing.sh',
     'Scripts/build-freshness.sh',
     'Scripts/build-metadata.py',

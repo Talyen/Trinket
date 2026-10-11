@@ -31,7 +31,11 @@ extension TrinketUITestCase {
         if audit {
             try auditProductAccessibility()
         }
-        retainScreenshot(named: "reachable-upgrade-controls")
+        if audit {
+            retainScreenshot(named: "reachable-upgrade-controls")
+        } else {
+            attachSuccessScreenshot(named: "reachable-upgrade-controls")
+        }
         tapButton(AccessibilityID.Homestead.upgradeButton)
         assertDoesNotExist(AccessibilityID.Homestead.upgradeSheet)
         assertExists(AccessibilityID.Homestead.progress(tier: 2))

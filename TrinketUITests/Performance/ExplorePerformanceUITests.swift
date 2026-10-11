@@ -7,7 +7,11 @@ final class ExplorePerformanceUITests: PerformanceJourneyUITestCase {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg
                 .performanceArguments(from: TestLaunchArg.allForScreen("labyrinth-map")) + ["-performance-labyrinth-scroll"])
-            if button(AccessibilityID.Play.labyrinthEnter).trinketWaitForExistence(timeout: 3) {
+            waitUntil("Labyrinth must expose entry or its prepared map", timeout: 20) {
+                self.button(AccessibilityID.Play.labyrinthEnter).exists
+                    || self.any(AccessibilityID.Play.labyrinthMap).exists
+            }
+            if button(AccessibilityID.Play.labyrinthEnter).exists {
                 tapButton(AccessibilityID.Play.labyrinthEnter)
             }
             assertExists(AccessibilityID.Play.labyrinthMap, timeout: 20)

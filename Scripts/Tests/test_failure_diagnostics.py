@@ -9,6 +9,7 @@ the tool calls are patched at the process boundary.
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/xcresult-report.py',
     'Scripts/internal/output_retention.py',
     'Scripts/lib/output-retention.sh',
     'Scripts/ci-diagnostics.py',

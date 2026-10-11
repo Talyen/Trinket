@@ -1,39 +1,42 @@
+import Synchronization
 import TrinketFeatureSupport
 import XCTest
 
 final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
-    private var originalReduceMotion: Bool?
-    private var settings: XCUIApplication {
+    private static let originalReduceMotion = Mutex<Bool?>(nil)
+    private static var settings: XCUIApplication {
         XCUIApplication(bundleIdentifier: "com.apple.Preferences")
     }
 
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    override static func setUp() {
+        super.setUp()
         settings.launch()
-        let control = reduceMotionControl()
-        originalReduceMotion = try reduceMotionValue(control)
-        try setReduceMotion(ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1")
-        settings.terminate()
-    }
-
-    override func tearDownWithError() throws {
-        var restorationFailure: (any Error)?
+        defer { settings.terminate() }
         do {
-            if let originalReduceMotion {
-                settings.activate()
-                defer { settings.terminate() }
-                try setReduceMotion(originalReduceMotion)
-            }
+            let original = try reduceMotionValue(reduceMotionControl())
+            originalReduceMotion.withLock { $0 = original }
+            try setReduceMotion(ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1")
         } catch {
-            restorationFailure = error
-        }
-        try super.tearDownWithError()
-        if let restorationFailure {
-            throw restorationFailure
+            XCTFail("Could not apply native Reduce Motion: \(error)")
         }
     }
 
-    private func reduceMotionControl() -> XCUIElement {
+    override static func tearDown() {
+        defer { super.tearDown() }
+        guard let original = originalReduceMotion.withLock({ value in
+            defer { value = nil }
+            return value
+        }) else { return }
+        settings.activate()
+        defer { settings.terminate() }
+        do {
+            try setReduceMotion(original)
+        } catch {
+            XCTFail("Could not restore native Reduce Motion: \(error)")
+        }
+    }
+
+    private static func reduceMotionControl() -> XCUIElement {
         let control = settings.switches["Reduce Motion"].firstMatch
         if control.exists {
             revealSettingsElement(control, scrolling: settings)
@@ -53,16 +56,16 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
             }
         }
         revealSettingsElement(accessibility, scrolling: sidebar.exists ? sidebar : settings)
-        tapWhenReady(accessibility)
+        accessibility.trinketTapWhenReady()
         let motion = settings.staticTexts["Motion"].firstMatch
         revealSettingsElement(motion, scrolling: settings)
-        tapWhenReady(motion)
-        assertExists(control)
+        motion.trinketTapWhenReady()
+        XCTAssertTrue(control.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout))
         revealSettingsElement(control, scrolling: settings)
         return control
     }
 
-    private func revealSettingsElement(_ element: XCUIElement, scrolling container: XCUIElement) {
+    private static func revealSettingsElement(_ element: XCUIElement, scrolling container: XCUIElement) {
         for _ in 0 ..< 10 {
             if element.exists, element.isHittable {
                 return
@@ -72,35 +75,28 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         XCTAssertTrue(element.exists && element.isHittable, "Requested native setting is not reachable")
     }
 
-    private func reduceMotionValue(_ control: XCUIElement) throws -> Bool {
+    private static func reduceMotionValue(_ control: XCUIElement) throws -> Bool {
         let value = try XCTUnwrap(control.value as? String)
         XCTAssertTrue(value == "0" || value == "1", "Native Reduce Motion value unavailable: \(value)")
         return value == "1"
     }
 
-    private func setReduceMotion(_ enabled: Bool) throws {
+    private static func setReduceMotion(_ enabled: Bool) throws {
         let control = reduceMotionControl()
         if try reduceMotionValue(control) != enabled {
-            tapWhenReady(control)
+            control.trinketTapWhenReady()
         }
-        waitUntil("Native Reduce Motion must match the requested setting") {
+        XCTAssertTrue(trinketWaitUntil(timeout: TrinketUITestCase.defaultTimeout) {
             control.value as? String == (enabled ? "1" : "0")
-        }
+        }, "Native Reduce Motion must match the requested setting")
     }
 
     func testCriticalControlsWithRequestedAccessibilityEnvironment() throws {
         try skipUnavailablePurchaseAutomation()
         try startStoreSession()
         let args = TestLaunchArg.productionTiming() + ["-coverage-diagnostics"]
-        let large = ProcessInfo.processInfo.environment["TRINKET_PROFILE_LARGE_TEXT"] == "1"
-        let reduced = ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1"
         launchApp(arguments: args)
-        let probe = any(AccessibilityID.Debug.coverageDiagnostics)
-        assertExists(probe)
-        let environment = try coverageReport()
-        XCTAssertEqual(environment["largeText"] as? Bool, large, "Native text-size setting did not reach SwiftUI")
-        XCTAssertEqual(environment["largestText"] as? Bool, large)
-        XCTAssertEqual(environment["reduceMotion"] as? Bool, reduced)
+        try assertRequestedEnvironment()
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
         let card = battle.handCards.firstMatch
@@ -133,8 +129,9 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
     }
 
     func testRewardClaimRemainsReachableAndReturnsUnderRequestedSettings() throws {
-        let args = TestLaunchArg.productionTiming() + ["-performance-strong-party"]
+        let args = TestLaunchArg.productionTiming() + ["-performance-strong-party", "-coverage-diagnostics"]
         launchApp(arguments: args)
+        try assertRequestedEnvironment()
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
         tapWhenReady(battle.autoBattleToggle)
@@ -145,5 +142,14 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         tapButton(AccessibilityID.Battle.continueButton)
         play.assertCampaignLoaded()
         XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled)
+    }
+
+    private func assertRequestedEnvironment() throws {
+        let large = ProcessInfo.processInfo.environment["TRINKET_PROFILE_LARGE_TEXT"] == "1"
+        let reduced = ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1"
+        let environment = try coverageReport()
+        XCTAssertEqual(environment["largeText"] as? Bool, large, "Native text-size setting did not reach SwiftUI")
+        XCTAssertEqual(environment["largestText"] as? Bool, large)
+        XCTAssertEqual(environment["reduceMotion"] as? Bool, reduced)
     }
 }

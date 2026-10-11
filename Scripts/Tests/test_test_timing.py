@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/xcresult-report.py',
     'Scripts/internal/output_retention.py',
     'Scripts/lib/output-retention.sh',
     'Scripts/ci-diagnostics.py',
@@ -23,6 +24,7 @@ SCRIPT_INPUTS = (
 from datetime import datetime, timezone
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -59,10 +61,18 @@ class TestTimingTests(unittest.TestCase):
             root = Path(directory) / "TestResults"
             recorded = self.run_script(root, "record", "--mode", "unit", "--run", "retained", "--wall", "1", "--no-xcresult")
             self.assertEqual(recorded.returncode, 0, recorded.stderr)
-            (root / "passed-invocation.json").write_text(json.dumps({"status": "passed", "exit_code": 0}))
+            bundle = root / "passed.xcresult"
+            bundle.mkdir()
+            exports = root / "passed-xcresult-reports"
+            exports.mkdir()
+            (exports / "tests.json").write_text("{}")
+            (root / "passed-invocation.json").write_text(json.dumps(
+                {"status": "passed", "exit_code": 0, "result_bundle": str(bundle)}))
             maintenance = load_script("review_maintenance", "diagnostic_maintenance.py")
             maintenance.cleanup(root, False)
             self.assertFalse((root / "passed-invocation.json").exists())
+            self.assertFalse(exports.exists())
+            self.assertFalse(bundle.exists())
             report = self.run_script(root, "show")
             self.assertEqual(report.returncode, 0, report.stderr)
             self.assertIn("retained", report.stdout)
@@ -74,6 +84,46 @@ class TestTimingTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "timed out"):
                 timing.parse_xcresult(Path("partial.xcresult"))
             self.assertEqual(query.call_args.kwargs["timeout"], 120)
+
+    def test_exports_reuse_only_the_same_completed_bundle_and_recover_from_bad_cache(self) -> None:
+        reports = load_script("internal.diagnostics.xcresult_diagnostics", "internal/diagnostics/xcresult_diagnostics.py")
+        passed = {"testNodes": [{"nodeType": "Test Case", "nodeIdentifier": "Smoke/testJourney",
+                                 "result": "Passed"}]}
+        failed = {"testNodes": [{"nodeType": "Test Case", "nodeIdentifier": "Smoke/testJourney",
+                                 "result": "Failed"}]}
+        with tempfile.TemporaryDirectory() as directory:
+            bundle = Path(directory) / "invocation.xcresult"
+            bundle.mkdir()
+            info = bundle / "Info.plist"
+            info.write_text("complete")
+            cache = bundle.with_name(bundle.stem + "-xcresult-reports") / "tests.json"
+            response = subprocess.CompletedProcess([], 0, json.dumps(passed), "")
+            with patch.object(reports.subprocess, "run", return_value=response) as query:
+                def read():
+                    return reports.run_xcresulttool(bundle, ["get", "test-results", "tests"])
+                self.assertEqual(read(), (passed, None))
+                self.assertEqual(read(), (passed, None))
+                self.assertEqual(query.call_count, 1)
+                # A corrupted export and a replacement bundle must each be queried again.
+                cache.write_text("not json")
+                self.assertEqual(read(), (passed, None))
+                saved = json.loads(cache.read_text())
+                saved["identity"]["path"] = str(Path(directory) / "another.xcresult")
+                cache.write_text(json.dumps(saved))
+                self.assertEqual(read(), (passed, None))
+                info.unlink()
+                self.assertEqual(read(), (passed, None))
+                info.write_text("replacement complete")
+                query.return_value = subprocess.CompletedProcess([], 0, json.dumps(failed), "")
+                self.assertEqual(read(), (failed, None))
+                self.assertEqual(read(), (failed, None))
+                self.assertEqual(query.call_count, 5)
+                # Missing finalized evidence must not revive a cached passing or failing report.
+                info.unlink()
+                query.return_value = subprocess.CompletedProcess([], 1, "", "bundle incomplete")
+                payload, error = read()
+                self.assertIsNone(payload)
+                self.assertIn("bundle incomplete", error)
 
     def test_malformed_history_is_skipped_and_numeric_inputs_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -265,6 +315,14 @@ class TestTimingTests(unittest.TestCase):
             self.assertIn("1 passed, 0 failed, 0 skipped", record.stdout)
             self.assertIn(f"(run {bundle.stem})", record.stdout)
 
+            # Filter validation runs in another process and shares timing's exact export.
+            exported = subprocess.run([sys.executable, str(SCRIPT.parent / "xcresult-report.py"),
+                                       str(bundle), "tests"], env={**os.environ, **environment},
+                                      capture_output=True, text=True)
+            self.assertEqual(exported.returncode, 0, exported.stderr)
+            self.assertEqual(json.loads(exported.stdout)["testNodes"][0]["result"], "Passed")
+            self.assertEqual(len(queries.read_text().splitlines()), 2)
+
             available = self.run_script(results_dir, "show", "--last", "1", "--mode", "ui")
             self.assertEqual(available.returncode, 0, available.stderr)
             self.assertIn(bundle.stem, available.stdout)
@@ -284,6 +342,7 @@ class TestTimingTests(unittest.TestCase):
                 (captured | {'result_bundle': str(results_dir / 'another.xcresult')}, 2),
                 (captured | {'test_summary': None}, 2),
             ):
+                shutil.rmtree(bundle.with_name(bundle.stem + '-xcresult-reports'), ignore_errors=True)
                 manifest.write_text(json.dumps(summary))
                 queries.write_text('')
                 reused = self.run_script(results_dir, 'record', '--mode', 'ui', '--run', 'captured',

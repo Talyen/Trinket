@@ -6,17 +6,6 @@ import TrinketFeatureSupport
 import XCTest
 
 final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
-    func testExistingPurchaseUnlocksContentOnColdLaunch() throws {
-        try skipUnavailablePurchaseAutomation()
-        try launchOptionsOffer()
-        tapButton(AccessibilityID.FullGame.purchase)
-        assertDoesNotExist(AccessibilityID.FullGame.offer)
-        app.terminate()
-        launchApp(arguments: TestLaunchArg.allForTab("options"))
-        assertDoesNotExist(AccessibilityID.FullGame.options)
-        assertWarlockAccessible()
-    }
-
     @MainActor
     func testFailedRestoreKeepsContentLockedAndAllowsPurchase() async throws {
         try skipUnavailablePurchaseAutomation()
@@ -109,6 +98,8 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         // Current entitlements are recognized at launch. Exercise the real
         // Restore control against that ownership and populated progress.
         assertDoesNotExist(AccessibilityID.FullGame.options)
+        assertWarlockAccessible()
+        tabBar.selectOptions()
         assertExistsAfterScroll(AccessibilityID.FullGame.restore, requireHittable: true)
         tapButton(AccessibilityID.FullGame.restore)
         waitUntil("Restore must finish") { self.button(AccessibilityID.FullGame.restore).isEnabled }

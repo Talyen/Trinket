@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Any
 from collections.abc import Iterator
 
+from internal.cli import write_json_atomic
+
 
 def walk_test_nodes(node: Any) -> Iterator[dict[str, Any]]:
     """Walk current children and legacy subtests in source order without recursion."""
@@ -40,12 +42,43 @@ QUERY_TIMEOUT_SECONDS = 120
 ATTACHMENT_EXPORT_TIMEOUT_SECONDS = 300
 
 
+def bundle_identity(bundle: Path) -> dict | None:
+    """Completed invocation paths and filesystem generations must both match."""
+    try:
+        root, info = bundle.stat(), (bundle / "Info.plist").stat()
+        return {"path": str(bundle.resolve()), "bundle": [root.st_dev, root.st_ino, root.st_mtime_ns, root.st_ctime_ns],
+                "info": [info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns]}
+    except OSError:
+        return None
+
+
+def report_shape(kind: str, payload: Any) -> bool:
+    return isinstance(payload, dict) and (
+        isinstance(payload.get("testNodes"), list) if kind == "tests"
+        else isinstance(payload.get("result"), str)
+    )
+
+
 def run_xcresulttool(
     result_bundle: Path,
     arguments: list[str],
     timeout_seconds: int = QUERY_TIMEOUT_SECONDS,
 ) -> tuple[Any | None, str | None]:
     """Run a supported xcresulttool report API and decode its JSON output."""
+
+    kind = arguments[2] if arguments in (["get", "test-results", "tests"],
+                                         ["get", "test-results", "summary"]) else None
+    identity = bundle_identity(result_bundle) if kind else None
+    cache = result_bundle.with_name(result_bundle.stem + "-xcresult-reports") / f"{kind}.json"
+    if identity is not None:
+        try:
+            saved = json.loads(cache.read_text())
+            if (isinstance(saved, dict) and type(saved.get("schema_version")) is int and saved["schema_version"] == 1
+                    and saved.get("identity") == identity and report_shape(kind, saved.get("payload"))
+                    and bundle_identity(result_bundle) == identity):
+                return saved["payload"], None
+        except (OSError, ValueError):
+            pass
 
     command = ["xcrun", "xcresulttool", *arguments, "--path", str(result_bundle), "--compact"]
     try:
@@ -60,9 +93,16 @@ def run_xcresulttool(
         detail = (completed.stderr or completed.stdout or "command failed").strip()
         return None, f"{' '.join(command)} exited {completed.returncode}: {detail[:500]}"
     try:
-        return json.loads(completed.stdout), None
+        payload = json.loads(completed.stdout)
     except json.JSONDecodeError as error:
         return None, f"{' '.join(command)} returned invalid JSON: {error}"
+    if identity is not None and bundle_identity(result_bundle) == identity and report_shape(kind, payload):
+        try:
+            cache.parent.mkdir(exist_ok=True)
+            write_json_atomic(cache, {"schema_version": 1, "identity": identity, "payload": payload})
+        except OSError:
+            pass  # Optional reuse must not change the exported result or verdict.
+    return payload, None
 
 
 def export_failure_attachments(

@@ -2,6 +2,7 @@
 """Build contracts exercised without invoking Xcode or reserving simulators."""
 
 SCRIPT_INPUTS = (
+    'Scripts/xcresult-report.py',
     'Scripts/agent-push-gate.sh',
     'Scripts/apply-scheme-storekit.py',
     'Scripts/assert-generated-output.sh',
@@ -209,12 +210,17 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                 'trinket_assert_no_build_is_fresh() { :; }\n'
                 'trinket_assert_targeted_tests_executed() { :; }\ntrinket_record_timing() { :; }\n'
             )
-            env = {**os.environ, "TRINKET_ALLOW_HEAVY_LOCAL": "1", "TRINKET_ISOLATE": "1", "PATH": f"{root}:{os.environ['PATH']}"}
+            runner = scripts / "xcode-runner.sh"
+            runner.write_text(runner.read_text().replace('xcode_runner_run() {',
+                'xcode_runner_run() { printf "%s" "${TEST_RUNNER_TRINKET_UI_SUCCESS_SCREENSHOTS:-}" > "$PWD/screenshots";'))
+            env = {**os.environ, "TRINKET_ALLOW_HEAVY_LOCAL": "1", "TRINKET_ISOLATE": "1",
+                   "TRINKET_UI_SUCCESS_SCREENSHOTS": "1", "PATH": f"{root}:{os.environ['PATH']}"}
             result = subprocess.run([str(scripts / "test.sh"), "smoke", "--no-build", "SmokeShellTests"],
                                     env=env, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             args = (root / "arguments").read_text().splitlines()
             self.assertEqual(args[:2], ["xcodebuild", "test-without-building"])
+            self.assertEqual((root / "screenshots").read_text(), "1")
             self.assertEqual(args.count("-destination"), 1)
             self.assertIn("id=fixture", args)
             self.assertIn(f"SYMROOT={root}/dd/Build/Products", args)

@@ -55,9 +55,10 @@ identifies its retained result directory.
 Each device runs native default text, native largest accessibility text, and
 largest text with Reduce Motion. Native text settings are verified and restored
 even on failed journeys. Reduce Motion is selected through the native Settings app in the owned simulator
-and restored after each test. The app probe verifies largest text and the real
-motion environment. Simulator checks do not establish hardware evidence. Native audits exclude only the opt-in diagnostic
-label; no product failures are blanket-suppressed.
+and restored after each class execution, including failed journeys. Both profile
+methods verify the actual text-size and motion environment reached SwiftUI.
+Simulator checks do not establish hardware evidence. Native audits exclude only
+the opt-in diagnostic label; no product failures are blanket-suppressed.
 
 Weekly UI soak uses one audio-enabled store for twenty Contracts, visiting
 Collection/Homestead and backgrounding every fifth cycle. Headless careers cover

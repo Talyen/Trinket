@@ -1,6 +1,7 @@
 """Build identity and CI transfer contracts, using fake toolchains and products."""
 
 SCRIPT_INPUTS = (
+    'Scripts/xcresult-report.py',
     'Scripts/build-metadata.py',
     'Scripts/build-freshness.sh',
     'Scripts/build-inputs.env',

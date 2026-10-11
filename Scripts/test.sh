@@ -197,6 +197,10 @@ if [[ "$MODE" == smoke || "$MODE" == ui ]]; then
     export TEST_RUNNER_TRINKET_REQUIRED_PURCHASE=1
   fi
 fi
+# Xcode forwards TEST_RUNNER_* into the XCTest process with the prefix stripped.
+if [[ "${TRINKET_UI_SUCCESS_SCREENSHOTS:-}" == "1" ]]; then
+  export TEST_RUNNER_TRINKET_UI_SUCCESS_SCREENSHOTS=1
+fi
 if [[ "$MODE" == "smoke" ]]; then
   TEST_TARGET_FLAG=(-testPlan Smoke)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    'Scripts/xcresult-report.py',
     '.github/actions/setup-trinket/action.yml',
     'Scripts/phase-timing.py',
     'Scripts/agent-push-gate.sh',

@@ -28,11 +28,11 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
             reveal(button(slot))
             tapButton(slot)
             assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
-            let pickerScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            let didScroll = measured("equipment-picker-scroll", iteration: iteration) {
-                performScrollGestures(app.scrollViews.firstMatch)
-            }
-            if didScroll {
+            if selected("equipment-picker-scroll") {
+                let pickerScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
+                measured("equipment-picker-scroll", iteration: iteration) {
+                    performScrollGestures(app.scrollViews.firstMatch)
+                }
                 verifyScrollProbes(pickerScrollProbes, app.scrollViews.firstMatch)
             }
             measured("equipment-search-filter", iteration: iteration) {

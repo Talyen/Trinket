@@ -43,7 +43,7 @@ def reset(root: Path) -> None:
             or path.name in {"ci-diagnostics.json", "phase-timing.jsonl"}
         ):
             remove(path)
-        elif path.is_dir() and path.name.endswith("-diagnostics.attachments"):
+        elif path.is_dir() and path.name.endswith(("-diagnostics.attachments", "-xcresult-reports")):
             remove(path)
     print(f"Cleared prior CI diagnostic/status artifacts in {root}")
 
@@ -174,7 +174,8 @@ def cleanup(root: Path, keep: bool) -> None:
         result = artifact_path(manifest.get("result_bundle"), root)
         if result is not None:
             stem = result.name.removesuffix(".xcresult")
-            artifacts.update((result, root / "raw" / f"{stem}.log", root / f"{stem}-diagnostics.attachments"))
+            artifacts.update((result, root / "raw" / f"{stem}.log", root / f"{stem}-diagnostics.attachments",
+                              root / f"{stem}-xcresult-reports"))
         report = artifact_path(manifest.get("diagnostics_json"), root)
         if report is not None:
             artifacts.update((report, report.with_suffix(".md"), report.with_suffix(".annotations"),
