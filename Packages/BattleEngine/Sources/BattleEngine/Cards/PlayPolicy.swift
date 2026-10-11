@@ -17,15 +17,16 @@ public enum PlayPolicy: String, Sendable, CaseIterable {
 private enum HeuristicCardScoring {
     static func preferredPlayableCard(in battle: BattleState, setupAware: Bool) -> BattleCard? {
         guard !battle.hand.cards.isEmpty else { return nil }
-        let enemyHP = battle.health(of: battle.enemy)
         let enemyEffects = battle.roster.activeEffects(for: battle.enemy)
-        let enemyBlock = DefensePoolEngine.blockPoints(in: enemyEffects)
         var bestCard: BattleCard?
         var bestScore = Int.min
         for card in battle.hand.cards where battle.isCardPlayable(card) {
+            if finishesBattle(card, in: battle) {
+                return card
+            }
             let cardScore = score(
                 card, in: battle, setupAware: setupAware,
-                enemyHP: enemyHP, enemyEffects: enemyEffects, enemyBlock: enemyBlock,
+                enemyEffects: enemyEffects,
             )
             if cardScore > bestScore {
                 bestScore = cardScore
@@ -35,13 +36,21 @@ private enum HeuristicCardScoring {
         return bestCard
     }
 
+    private static func finishesBattle(_ card: BattleCard, in battle: BattleState) -> Bool {
+        // Resolve only on a value copy: selection must preserve the live RNG,
+        // hand, preparations and recording callback. Reuse combat rules rather
+        // than treating printed damage as damage that will reach the enemy.
+        var forecast = battle
+        forecast.events = []
+        guard (try? forecast.playCard(cardID: card.id, rebuildLog: false)) != nil else { return false }
+        return forecast.isEnemyDefeated && forecast.roster[card.owner].isAlive
+    }
+
     private static func score(
         _ card: BattleCard,
         in battle: BattleState,
         setupAware: Bool,
-        enemyHP: Int,
         enemyEffects: [ActiveEffect],
-        enemyBlock: Int,
     ) -> Int {
         let ability = card.ability
         let ownerCombatant = card.owner == .hero ? battle.hero : battle.companion
@@ -52,20 +61,6 @@ private enum HeuristicCardScoring {
         let damage = ability.directDamage
         let selfDamage = ability.operations.lazy.compactMap(\.damageComponent).reduce(0) { total, component in
             component.target == .actor ? total + component.amount : total
-        }
-        let guaranteedDamage = if let branches = ability.outcomeBranches, !branches.isEmpty {
-            branches.lazy.map { branch in
-                branch.operations.lazy.compactMap(\.damageComponent).reduce(0) { total, component in
-                    component.target == .abilityTarget ? total + component.amount : total
-                }
-            }.min() ?? 0
-        } else {
-            damage
-        }
-
-        let unblockedDamage = max(0, guaranteedDamage - enemyBlock)
-        if unblockedDamage > 0, unblockedDamage >= enemyHP {
-            return 10000 + unblockedDamage
         }
         if selfDamage > 0, selfDamage >= actorHP {
             return -10000

@@ -216,6 +216,12 @@ only resolved combat events establish the result. The legacy
 
 ## Automatic play
 
+Auto Battle prioritizes a finishing card by resolving one play on a copy of the
+current battle, including its RNG. Conditions, scaling, defenses and interrupted
+multi-hit actions follow the ordinary engine; the live battle stays unchanged.
+A forecast win must leave its card owner alive. Non-finishing choices retain the
+policy's heuristic scoring. Forecasts skip log rebuilding and presentation recording.
+
 For a named talent change, look up its rule in [talent interactions](battle-talents.md).
 
 Use `withAutomaticPlay` for automatic chains; counterattack ancestry follows its
