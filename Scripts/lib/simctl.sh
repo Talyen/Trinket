@@ -53,7 +53,20 @@ trinket_simulator_is_leased_name() {
 # Record the pre-run guests so lease cleanup never stops a pre-existing test.
 trinket_test_guest_processes() {
   local processes
-  processes="$(ps -axo pid=,ppid=,lstart=,command=)" || return 1
+  # CoreSimulator can leave process inspection stalled after boot. A failed
+  # baseline must stop the run, never authorize cleanup of unknown guests.
+  processes="$(python3 - <<'PY_PROCESSES'
+import subprocess
+import sys
+try:
+    result = subprocess.run(["ps", "-axo", "pid=,ppid=,lstart=,command="],
+                            stdout=subprocess.PIPE, text=True, check=True, timeout=10)
+    print(result.stdout, end="")
+except (OSError, subprocess.SubprocessError) as error:
+    print(f"Simulator guest process inspection failed: {error}", file=sys.stderr)
+    sys.exit(1)
+PY_PROCESSES
+)" || return 1
   printf '%s\n' "$processes" | awk -v udid="$1" '
     $8 == "launchd_sim" && index($0, "/Devices/" udid "/data/var/run/launchd_bootstrap.plist") { guests[$1] = 1 }
     $8 ~ /\/Agents\/xctest$|\/TrinketUITests-Runner\.app\/TrinketUITests-Runner$/ {

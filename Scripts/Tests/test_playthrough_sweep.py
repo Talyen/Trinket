@@ -33,6 +33,60 @@ class PlaythroughSweepTests(unittest.TestCase):
         kill.assert_not_called()
         self.assertEqual(process.wait.call_count, 2)
 
+    def test_batch_keeps_independent_evidence_and_rejects_partial_or_failed_invocations(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            args = SimpleNamespace(output=Path(temporary), scenarios=3, seed=101, seed_stride=2,
+                                   horizon=10, full_access=True, mode="contracts", policy="setupAware-v1",
+                                   hero="knight", companion="wolf")
+            def invoke(*unused, **kwargs):
+                requests = kwargs['careers']
+                self.assertEqual([request['seed'] for request in requests], [101, 103, 105])
+                self.assertEqual(len({request['output'] for request in requests}), 3)
+                for request in requests[:2]:
+                    folder = Path(request['output'])
+                    folder.mkdir(exist_ok=True)
+                    (folder / 'summary.json').write_text(json.dumps(dict(termination='completedObjective')))
+                    (folder / 'worker-wall-seconds.txt').write_text('2.5')
+                    (folder / 'scenario.json').write_text(json.dumps(dict(worldSeed=request['seed'], attempts=10, fullAccess=True, mode='contracts',
+                                                                                 policy='setupAware-v1', heroID='knight', companionID='wolf')))
+                return dict(exitCode=0, processWallSeconds=12)
+            with patch.object(MODULE, 'worker', side_effect=invoke):
+                results = MODULE.batch_workers(args, Path('unused'))
+            self.assertEqual([row['exitCode'] for row in results], [0, 0, 1])
+            self.assertEqual(results[-1]['termination'], 'missingWorkerResult')
+            self.assertEqual(results[0]['scenarioManifest']['worldSeed'], 101)
+            self.assertEqual(results[0]['careerBodySeconds'], 2.5)
+            self.assertNotIn('processWallSeconds', results[0])
+            (args.output / 'career-0000/scenario.json').write_text(json.dumps(dict(worldSeed=999)))
+            with patch.object(MODULE, 'worker', return_value=dict(exitCode=0, processWallSeconds=12)):
+                mismatched = MODULE.batch_workers(args, Path('unused'))
+            self.assertEqual(mismatched[0]['exitCode'], 1)
+            self.assertEqual(mismatched[0]['termination'], 'workerFailure')
+            with patch.object(MODULE, 'worker', return_value=dict(exitCode=124, processWallSeconds=180)):
+                failed = MODULE.batch_workers(args, Path('unused'))
+            self.assertTrue(all(row['exitCode'] == 124 for row in failed))
+
+    def test_stalled_batch_stops_owned_worker_at_the_current_career_deadline(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            folder = root / 'batch'
+            folder.mkdir()
+            (folder / 'active-career.txt').write_text('0')
+            (folder / 'worker-pid.txt').write_text('321')
+            args = SimpleNamespace(output=root, seed=101, horizon=10, full_access=True,
+                                   mode='contracts', policy='setupAware-v1', hero='knight', companion='wolf',
+                                   scenario=None, timeout=180, crash_proof=False, destination='fixture')
+            process = Mock()
+            process.poll.return_value = None
+            with patch.object(MODULE, 'configure_worker'), patch.object(MODULE.subprocess, 'Popen', return_value=process), \
+                    patch.object(MODULE, 'process_identity', return_value='owned-start-time'), \
+                    patch.object(MODULE.time, 'monotonic', side_effect=[0, 1, 181, 182]), \
+                    patch.object(MODULE, 'stop_worker') as stop:
+                result = MODULE.worker(args, root / 'unused', 'batch', operation='batch', careers=[{}, {}])
+            self.assertEqual(result['exitCode'], 124)
+            self.assertEqual(result['termination'], 'watchdogTimeout')
+            stop.assert_called_once_with(process, (321, 'owned-start-time'))
+
     def test_worker_configuration_relocates_products_and_passes_request(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

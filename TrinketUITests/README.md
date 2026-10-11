@@ -120,6 +120,23 @@ Assert a journey’s return destination before using helpers that navigate elsew
 - UI tests are CI-owned and run serially on each job's managed simulator. Local diagnostics require explicit opt-in under Verification.md. Hotspots: `python3 ./Scripts/test-timing.py report --top 30`.
 - Success-path screenshots are opt-in (`TRINKET_UI_SUCCESS_SCREENSHOTS=1`); failure screenshots stay unconditional.
 
+Shared tap helpers use one caller-bounded readiness wait and a final geometry/hittability
+check. Scrolling resolves its container once per reveal operation. Numeric reads use
+one element snapshot; successful reads do not request a diagnostic hierarchy. Merchant
+smoke pins one offer, compares its board and detail prices, then retains the purchase,
+gold-debit, and return assertions. Entitlement assertions reuse an already selected
+Collection tab and visible Warlock card.
+
+Simulator timing separates boot from guest-process discovery. Process discovery is
+bounded and fails closed: an unavailable baseline never permits guest cleanup.
+Specialized Performance, Profiles, and Soak source-only changes use their existing
+manual/nightly/weekly cadence; shared support and unknown UI paths still trigger smoke.
+Transferred products use the retained build artifact; the duplicate per-run archive
+cache is removed. Same-runner smoke and FullUI continue to use local products.
+
+Performance captures resolve reusable sampler coordinates before measuring. Audio,
+animation tails, completion checks, and measured gestures retain their existing budgets.
+
 ## Coverage consolidation
 
 The hand-card inspection, dismissal, cancelled-drag, and committed-drag checks share

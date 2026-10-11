@@ -20,10 +20,11 @@ final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allUnseeded() + TestLaunchArg.screen("battle"))
                 + ["-performance-outcome-defeat", "-battle-performance-scenario", "turn-transition"])
             battle.assertActive()
+            let stop = measurementControl
             tapButton(AccessibilityID.Debug.battlePerformanceStart)
             waitForMeasurementState("measuring")
             assertExists(AccessibilityID.Battle.defeat, timeout: 30)
-            finishMeasurement("defeat-reveal", iteration: iteration, settle: 3)
+            finishMeasurement("defeat-reveal", iteration: iteration, settle: 3, control: stop)
         }
     }
 

@@ -167,7 +167,7 @@ SMOKE_INCLUDES = (
     ".github/workflows/tests.yml",
     ".github/workflows/ci.yml",
 )
-SMOKE_EXCLUDES = ("**/*.md",)
+SMOKE_EXCLUDES = ("**/*.md", "TrinketUITests/Performance/**", "TrinketUITests/Profiles/**", "TrinketUITests/Soak/**")
 
 
 def is_infra_path(path: str) -> bool:

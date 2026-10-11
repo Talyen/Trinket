@@ -181,8 +181,12 @@ prepare_serial_test_sim() {
   else
     ensure_test_simulator_logged
   fi
-  trinket_track_test_guests
-  python3 Scripts/phase-timing.py end simulator "$phase_started" "$MODE"
+  python3 Scripts/phase-timing.py end simulator-boot "$phase_started" "$MODE"
+  phase_started="$(python3 Scripts/phase-timing.py begin)"
+  local guest_status=0
+  trinket_track_test_guests || guest_status=$?
+  python3 Scripts/phase-timing.py end simulator-guests "$phase_started" "$MODE"
+  (( guest_status == 0 )) || return "$guest_status"
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 }
 

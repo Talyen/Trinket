@@ -34,6 +34,8 @@ def parse_args():
     parser.add_argument("--seed", type=positive, default=42)
     parser.add_argument("--horizon", type=positive, default=2, help="settled battle attempts per career")
     parser.add_argument("--scenarios", type=positive, default=1)
+    parser.add_argument("--seed-stride", type=positive, default=1, help="spacing between ordinary career seeds")
+    parser.add_argument("--batch", action="store_true", help="run ordinary careers serially in one XCTest process; each keeps its own store")
     parser.add_argument("--full-access", action="store_true")
     parser.add_argument("--mode", choices=["campaign", "spires", "labyrinth", "contracts"], default="campaign")
     parser.add_argument("--policy", choices=["greedy-v1", "setupAware-v1", "random-v1", "rotation-v1"], default="greedy-v1")
@@ -108,14 +110,14 @@ def stop_worker(process, owned_worker, *, immediate=False):
         process.wait()
 
 
-def worker(args, template, name, operation="run", source=None, crash_after=None, seed=None, crash_settlement=False, expected=None, crash_before_settlement=False):
+def worker(args, template, name, operation="run", source=None, crash_after=None, seed=None, crash_settlement=False, expected=None, crash_before_settlement=False, careers=None):
     folder = args.output / name
     request = args.output / f"{name}-request.json"
     request.write_text(json.dumps({"operation": operation, "output": str(folder), "seed": seed or args.seed,
                                    "horizon": args.horizon, "fullAccess": args.full_access,
                                    "source": str(source) if source else None, "crashAfter": crash_after,
                                    "mode": args.mode, "policy": args.policy, "hero": args.hero, "companion": args.companion,
-                                   "scenarioPath": str(args.scenario.resolve()) if args.scenario else None, "crashSettlement": crash_settlement, "crashBeforeSettlement": crash_before_settlement, "expected": str(expected) if expected else None}))
+                                   "scenarioPath": str(args.scenario.resolve()) if args.scenario else None, "crashSettlement": crash_settlement, "crashBeforeSettlement": crash_before_settlement, "expected": str(expected) if expected else None, "careers": careers}))
     runfile = args.output / f"{name}.xctestrun"
     configure_worker(template, request, runfile)
     command = ["xcodebuild", "test-without-building", "-xctestrun", str(runfile),
@@ -129,7 +131,17 @@ def worker(args, template, name, operation="run", source=None, crash_after=None,
         try:
             deadline = started + args.timeout
             interruption_seen = None
+            active_career = None
+            batch_deadline = started + args.timeout * (len(careers) + 1) if careers else deadline
             while process.poll() is None:
+                active_path = folder / "active-career.txt"
+                if careers and active_path.exists():
+                    active = active_path.read_text()
+                    if active != active_career:
+                        if not active.isdecimal() or not (0 <= int(active) < len(careers)) or (active_career is not None and int(active) <= int(active_career)):
+                            raise ValueError("Invalid batch career sequence")
+                        active_career = active
+                        deadline = time.monotonic() + args.timeout
                 pid_file = folder / "worker-pid.txt"
                 if owned_worker is None and pid_file.exists():
                     pid = int(pid_file.read_text())
@@ -138,15 +150,15 @@ def worker(args, template, name, operation="run", source=None, crash_after=None,
                         owned_worker = (pid, observed)
                 if (folder / "interrupted.json").exists():
                     interruption_seen = interruption_seen or time.monotonic()
-                if time.monotonic() >= deadline or (interruption_seen and time.monotonic() - interruption_seen > 10):
+                if time.monotonic() >= min(deadline, batch_deadline) or (interruption_seen and time.monotonic() - interruption_seen > 10):
                     raise subprocess.TimeoutExpired(command, args.timeout)
                 time.sleep(0.1)
             code = process.returncode
-            termination = "crash" if code else "missingWorkerResult"
+            termination = "crash" if code else "completedBatch" if careers else "missingWorkerResult"
         except subprocess.TimeoutExpired:
             stop_worker(process, owned_worker)
             code, termination = (86, "injectedInterruption") if (folder / "interrupted.json").exists() else (124, "watchdogTimeout")
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, ValueError):
             stop_worker(process, owned_worker, immediate=True)
             raise
     summary_path = folder / "summary.json"
@@ -160,6 +172,34 @@ def worker(args, template, name, operation="run", source=None, crash_after=None,
     summary.update(worker=name, exitCode=code, processWallSeconds=time.monotonic() - started, seed=seed or args.seed)
     print(f"{name}: {summary['termination']} ({summary['processWallSeconds']:.2f}s)", flush=True)
     return summary
+
+
+def batch_workers(args, template):
+    careers = [dict(operation="run", output=str(args.output / f"career-{index:04}"),
+                    seed=args.seed + index * args.seed_stride, horizon=args.horizon,
+                    fullAccess=args.full_access, mode=args.mode, policy=args.policy,
+                    hero=args.hero, companion=args.companion)
+               for index in range(args.scenarios)]
+    invocation = worker(args, template, "batch", operation="batch", careers=careers)
+    summaries = []
+    for request in careers:
+        folder = Path(request["output"])
+        summary_path, elapsed_path = folder / "summary.json", folder / "worker-wall-seconds.txt"
+        summary = json.loads(summary_path.read_text()) if summary_path.is_file() else {"termination": "missingWorkerResult"}
+        manifest = folder / "scenario.json"
+        actual = json.loads(manifest.read_text()) if manifest.is_file() else {}
+        expected = dict(worldSeed=request["seed"], attempts=request["horizon"], fullAccess=request["fullAccess"],
+                        mode=request["mode"], policy=request["policy"], heroID=request["hero"], companionID=request["companion"])
+        completed = summary_path.is_file() and elapsed_path.is_file() and all(actual.get(key) == value for key, value in expected.items())
+        summary["scenarioManifest"] = actual
+        summary.update(worker=folder.name, seed=request["seed"], population="fresh-save",
+                       exitCode=invocation["exitCode"] or (0 if completed else 1),
+                       careerBodySeconds=float(elapsed_path.read_text()) if elapsed_path.is_file() else 0,
+                       timingScope="career-body", batchProcessWallSeconds=invocation["processWallSeconds"])
+        if summary["exitCode"] and summary.get("termination") == "completedObjective":
+            summary["termination"] = "workerFailure"
+        summaries.append(summary)
+    return summaries
 
 
 def wilson(successes, total):
@@ -244,7 +284,7 @@ def build_agent_report(args, result):
 
     metric_keys = ("actions", "turns", "cardsDrawn", "cardsObserved", "playableObservations", "cardsChosen",
                    "goldEarned", "goldSpent", "talents", "equipmentChanges", "upgrades", "reloads",
-                   "simulatedSeconds", "wallSeconds", "processWallSeconds", "peakResidentBytes")
+                   "simulatedSeconds", "wallSeconds", "processWallSeconds", "careerBodySeconds", "peakResidentBytes")
     metrics = {key: metric_stats(workers, key) for key in metric_keys}
     total_gold_earned = sum(summary.get("goldEarned", 0) for summary in workers)
     total_gold_spent = sum(summary.get("goldSpent", 0) for summary in workers)
@@ -486,7 +526,7 @@ def report(args, summaries, host):
     (args.output / "report-agent.json").write_text(json.dumps(agent_report, indent=2))
     (args.output / "report-agent.md").write_text(render_agent_preview(agent_report))
     rows = "".join(f"<tr><td>{html.escape(s['worker'])}</td><td>{s['seed']}</td><td>{html.escape(s['termination'])}</td>"
-                   f"<td>{html.escape(', '.join(s.get('outcomes', [])))}</td><td>{s.get('talents', 0)} / {s.get('equipmentChanges', 0)} / {s.get('upgrades', 0)}</td><td>{s['processWallSeconds']:.2f}</td></tr>" for s in summaries)
+                   f"<td>{html.escape(', '.join(s.get('outcomes', [])))}</td><td>{s.get('talents', 0)} / {s.get('equipmentChanges', 0)} / {s.get('upgrades', 0)}</td><td>{s.get('processWallSeconds', s.get('careerBodySeconds', 0)):.2f} ({html.escape(s.get('timingScope', 'process'))})</td></tr>" for s in summaries)
     insights = "".join(f"<li><strong>{html.escape(item['title'])}:</strong> {html.escape(item['observation'])} {html.escape(item['recommendation'])}</li>"
                        for item in agent_report["insights"])
     next_experiments = "".join(f"<li>{html.escape(experiment)}</li>" for experiment in agent_report["nextExperiments"])
@@ -513,8 +553,11 @@ def run_sweep(args):
         args.seed, args.horizon = manifest["worldSeed"], manifest["attempts"]
         args.full_access, args.mode, args.policy = manifest["fullAccess"], manifest["mode"], manifest["policy"]
         args.hero, args.companion = manifest["heroID"], manifest["companionID"]
-    if args.seed + args.scenarios >= 2**64 or args.horizon > 1000 or args.scenarios > 1000:
+    stride = getattr(args, "seed_stride", 1)
+    if args.seed + (args.scenarios - 1) * stride >= 2**64 or args.horizon > 1000 or args.scenarios > 1000:
         raise SystemExit("seed must fit UInt64; horizon and scenarios must be <= 1000")
+    if getattr(args, "batch", False) and (args.crash_proof or args.replay_bundle or args.scenario):
+        raise SystemExit("--batch supports only ordinary fresh careers")
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=False)
     if getattr(args, 'retention_root', None) is not None:
@@ -551,9 +594,11 @@ def run_sweep(args):
                                 expected=args.output / "settlement-replay" / "final-save.json"))
     elif args.replay_bundle:
         summaries.append(worker(args, template, "replay", "replay", args.replay_bundle.resolve()))
+    elif getattr(args, "batch", False):
+        summaries = batch_workers(args, template)
     else:
         for index in range(args.scenarios):
-            summaries.append(worker(args, template, f"career-{index:04}", seed=args.seed + index))
+            summaries.append(worker(args, template, f"career-{index:04}", seed=args.seed + index * stride))
     report(args, summaries, host)
     print(f"Report: {args.output / 'report.html'}")
     print(f"Agent summary: {args.output / 'report-agent.md'}")

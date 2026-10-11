@@ -60,10 +60,21 @@ methods verify the actual text-size and motion environment reached SwiftUI.
 Simulator checks do not establish hardware evidence. Native audits exclude only
 the opt-in diagnostic label; no product failures are blanket-suppressed.
 
+Settings-profile Homestead checks audit and exercise the upgrade controls through the
+visible tier change. Detailed resource debits and reload persistence remain owned by
+`HomesteadControlsUITests`, avoiding repeated accounting across all six settings/device
+combinations while retaining each combination's native accessibility evidence.
+
 Weekly UI soak uses one audio-enabled store for twenty Contracts, visiting
 Collection/Homestead and backgrounding every fifth cycle. Headless careers cover
 Campaign, Contracts, Labyrinth and Spires at seeds 101–105 with ten attempts;
-odd seeds use setup-aware policy and even seeds random policy. Invariants, not
+odd seeds use setup-aware policy and even seeds random policy. Ordinary careers run
+in eight serial XCTest cohorts (one odd and one even cohort per mode), retaining all
+twenty careers and their independent stores, contexts, seeds, and journals. Each career
+closes its transient state before the next starts. Batch reports label per-career
+body time separately from the shared process wall time. The external watchdog retains
+a per-career deadline plus a bounded overall deadline. Interruption, recovery, and
+replay checks retain separate processes. Invariants, not
 victory rates, determine acceptance. UI soak accepts either outcome and verifies that only victories add their displayed Contract claim. Raw scenario manifests permit replay.
 
 ## Evidence and remaining gates

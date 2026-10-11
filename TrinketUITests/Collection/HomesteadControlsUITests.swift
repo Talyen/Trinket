@@ -15,19 +15,24 @@ extension TrinketUITestCase {
         homestead.openFarmingCategoryAndRevealWheatFieldNode()
         tapWhenReady(any(AccessibilityID.Homestead.node(title: "Wheat Field")))
         homestead.assertNodeDetail(named: "Wheat Field")
-        tapButton(AccessibilityID.Homestead.walletButton)
-        let before = try homesteadBalances()
-        tapButton(AccessibilityID.Homestead.closeSheetButton)
+        var before: [HomesteadResource: Int] = [:]
+        if !audit {
+            tapButton(AccessibilityID.Homestead.walletButton)
+            before = try homesteadBalances()
+            tapButton(AccessibilityID.Homestead.closeSheetButton)
+        }
         tapButton(AccessibilityID.Homestead.improveButton)
         assertExists(AccessibilityID.Homestead.upgradeSheet)
         var costs: [HomesteadResource: Int] = [:]
-        for resource in HomesteadResource.allCases {
-            let value = any(AccessibilityID.Homestead.resourceCost(resource))
-            if value.exists {
-                costs[resource] = try integer(in: value)
+        if !audit {
+            for resource in HomesteadResource.allCases {
+                let value = any(AccessibilityID.Homestead.resourceCost(resource))
+                if value.exists {
+                    costs[resource] = try integer(in: value)
+                }
             }
+            XCTAssertFalse(costs.isEmpty, "Upgrade must display its actual cost")
         }
-        XCTAssertFalse(costs.isEmpty, "Upgrade must display its actual cost")
         if audit {
             try auditProductAccessibility()
         }
@@ -39,6 +44,9 @@ extension TrinketUITestCase {
         tapButton(AccessibilityID.Homestead.upgradeButton)
         assertDoesNotExist(AccessibilityID.Homestead.upgradeSheet)
         assertExists(AccessibilityID.Homestead.progress(tier: 2))
+        if audit {
+            return
+        }
         tapButton(AccessibilityID.Homestead.walletButton)
         let after = try homesteadBalances()
         for (resource, amount) in before {

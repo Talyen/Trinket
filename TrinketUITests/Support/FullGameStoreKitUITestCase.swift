@@ -45,15 +45,23 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
     }
 
     func assertWarlockAccessible() {
-        tabBar.selectCollection()
-        if button(AccessibilityID.Collection.heroesCategory).exists {
-            tapButton(AccessibilityID.Collection.heroesCategory)
-        }
+        revealWarlock()
         let card = AccessibilityID.CombatantDetail.collectionCard(name: "Warlock")
-        assertExistsAfterScroll(card, requireHittable: true)
         waitUntil("Full Game must permit access to the recruited Warlock") {
             !self.button(card).label.hasSuffix(", locked")
         }
+    }
+
+    func revealWarlock() {
+        let tab = app.tabBars.buttons[AccessibilityID.Tab.collection]
+        if !tab.isSelected {
+            tapWhenReady(tab)
+        }
+        let card = AccessibilityID.CombatantDetail.collectionCard(name: "Warlock")
+        if !button(card).exists {
+            tapButton(AccessibilityID.Collection.heroesCategory)
+        }
+        assertExistsAfterScroll(card, requireHittable: true)
     }
 
     func assertPurchaseProductLoaded() {
@@ -81,11 +89,11 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
         let retry = button(AccessibilityID.FullGame.retry)
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
-            if waitForExistence(purchase, timeout: min(2, deadline.timeIntervalSinceNow)) {
+            guard trinketWaitUntil(timeout: max(0, deadline.timeIntervalSinceNow), condition: {
+                purchase.exists || retry.exists
+            }) else { return false }
+            if purchase.exists {
                 return true
-            }
-            guard waitForExistence(retry, timeout: min(1, max(0, deadline.timeIntervalSinceNow))) else {
-                continue
             }
             tapWhenReady(retry)
         }

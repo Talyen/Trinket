@@ -35,11 +35,13 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
             }
             return neededForLaterSelection
         }
-        prepareMeasurement()
-        measurementControl.tap()
+        let control = measurementControl
+        control.tap()
+        waitForMeasurementState("ready")
+        control.tap()
         waitForMeasurementState("measuring")
         action()
-        finishMeasurement(scenario, iteration: iteration, settle: settle)
+        finishMeasurement(scenario, iteration: iteration, settle: settle, control: control)
         completedSteps[iteration, default: []].insert(scenario)
         return true
     }
@@ -50,11 +52,6 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
         return control.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
     }
 
-    func prepareMeasurement() {
-        measurementControl.tap()
-        waitForMeasurementState("ready")
-    }
-
     func waitForMeasurementState(_ state: String) {
         let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
         let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", state), object: metrics)
@@ -62,12 +59,18 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
     }
 
     @MainActor
-    func finishMeasurement(_ scenario: String, iteration: Int, settle: TimeInterval = 1.5, suite: String = "app") {
+    func finishMeasurement(
+        _ scenario: String,
+        iteration: Int,
+        settle: TimeInterval = 1.5,
+        suite: String = "app",
+        control: XCUICoordinate? = nil,
+    ) {
         RunLoop.current.run(until: Date().addingTimeInterval(settle))
         // A watchdog result is a failure, never a new capture or an accepted late action.
         let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
         XCTAssertEqual(metrics.value as? String, "measuring", "Capture ended before interaction: \(scenario)")
-        measurementControl.tap()
+        (control ?? measurementControl).tap()
         PerformanceReportRecorder.capture(from: app, scenario: scenario, suite: suite, iteration: iteration, in: self)
     }
 

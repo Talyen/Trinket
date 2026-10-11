@@ -20,6 +20,7 @@ struct PlaythroughWorkerRequest: Codable {
     var crashBeforeSettlement: Bool?
     var crashSettlement: Bool?
     var expected: String?
+    var careers: [Self]?
 }
 
 @Suite(.serialized)
@@ -35,6 +36,29 @@ struct PlaythroughSweepTests {
             to: output.appendingPathComponent("worker-pid.txt"),
             options: .atomic,
         )
+        if let careers = request.careers {
+            try #require(request.operation == "batch" && !careers.isEmpty)
+            for (index, career) in careers.enumerated() {
+                try #require(career.operation == "run" && career.careers == nil && career.source == nil)
+                try Data(String(index).utf8).write(to: output.appendingPathComponent("active-career.txt"), options: .atomic)
+                let careerOutput = URL(fileURLWithPath: career.output)
+                try FileManager.default.createDirectory(at: careerOutput, withIntermediateDirectories: true)
+                let started = Date()
+                do {
+                    try await runRequest(career, output: careerOutput)
+                } catch {
+                    Issue.record(error)
+                }
+                try Data(String(Date().timeIntervalSince(started)).utf8).write(
+                    to: careerOutput.appendingPathComponent("worker-wall-seconds.txt"), options: .atomic,
+                )
+            }
+        } else {
+            try await runRequest(request, output: output)
+        }
+    }
+
+    private func runRequest(_ request: PlaythroughWorkerRequest, output: URL) async throws {
         do {
             try await executeRequest(request, output: output)
         } catch {

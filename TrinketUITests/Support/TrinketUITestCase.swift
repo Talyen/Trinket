@@ -262,9 +262,10 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func integer(in element: XCUIElement) throws -> Int {
-        let text = (element.value as? String).flatMap { $0.isEmpty ? nil : $0 } ?? element.label
+        let snapshot = try element.snapshot()
+        let text = (snapshot.value as? String).flatMap { $0.isEmpty ? nil : $0 } ?? snapshot.label
         let digits = text.replacingOccurrences(of: ",", with: "").split(whereSeparator: { !$0.isNumber }).first
-        return try XCTUnwrap(digits.flatMap { Int($0) }, "Missing numeric amount: \(text)\n\(element.debugDescription)")
+        return try XCTUnwrap(digits.flatMap { Int($0) }, "Missing numeric amount: \(text)")
     }
 
     func waitForLaunchPreparation() {
@@ -292,11 +293,7 @@ class TrinketUITestCase: XCTestCase {
         line: UInt = #line,
     ) {
         let element = button(identifier)
-        guard waitForExistence(element, timeout: timeout) else {
-            fail("Button '\(identifier)' not found", file: file, line: line)
-            return
-        }
-        tapWhenReady(element, file: file, line: line)
+        element.trinketTapWhenReady(timeout: timeout, file: file, line: line)
     }
 
     @discardableResult
@@ -509,17 +506,21 @@ class TrinketUITestCase: XCTestCase {
 }
 
 extension XCUIElement {
-    func trinketTapWhenReady(file: StaticString = #file, line: UInt = #line) {
+    func trinketTapWhenReady(
+        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line,
+    ) {
         func isReady(_ element: XCUIElement) -> Bool {
-            guard element.exists, element.isEnabled else { return false }
-            let bounds = element.frame
+            guard element.exists, let snapshot = try? element.snapshot(), snapshot.isEnabled else { return false }
+            let bounds = snapshot.frame
             guard !bounds.isEmpty,
                   bounds.minX.isFinite, bounds.minY.isFinite,
                   bounds.maxX.isFinite, bounds.maxY.isFinite
             else { return false }
             return element.isHittable
         }
-        guard trinketWaitUntil(timeout: TrinketUITestCase.defaultTimeout, condition: { isReady(self) }) else {
+        guard trinketWaitUntil(timeout: timeout, condition: { isReady(self) }) else {
             XCTFail(
                 "Control '\(identifier)' not ready: exists=\(exists), enabled=\(isEnabled), hittable=\(isHittable), frame=\(frame)",
                 file: file,
@@ -530,7 +531,9 @@ extension XCUIElement {
         // Animations can flip hittability between predicate fulfillment and
         // tap ("Activation point invalid"); re-validate once without growing
         // the happy-path budget, settling briefly only on a detected race.
-        if !isReady(self) {
+        let bounds = frame
+        if bounds.isEmpty || !bounds.minX.isFinite || !bounds.minY.isFinite
+            || !bounds.maxX.isFinite || !bounds.maxY.isFinite || !isHittable {
             guard trinketWaitUntil(timeout: 2, condition: { isReady(self) }) else {
                 XCTFail(
                     "Control '\(identifier)' not stable: exists=\(exists), enabled=\(isEnabled), hittable=\(isHittable), frame=\(frame)",
@@ -555,14 +558,18 @@ extension XCUIApplication {
         maxAttempts: Int = 8,
         requireHittable: Bool = false,
     ) {
+        if element.exists, !requireHittable || element.isHittable {
+            return
+        }
+        let container = scrollContainer()
         for _ in 0 ..< maxAttempts {
             if element.exists, !requireHittable || element.isHittable {
                 return
             }
             if swipingUp {
-                dragScroll(fromY: 0.90, toY: 0.35)
+                container.dragScroll(fromY: 0.90, toY: 0.35)
             } else {
-                dragScroll(fromY: 0.35, toY: 0.90)
+                container.dragScroll(fromY: 0.35, toY: 0.90)
             }
             let wait: TimeInterval = 0.35
             _ = trinketWaitForExistenceMainActorSafe(element, timeout: wait)
@@ -575,11 +582,12 @@ extension XCUIApplication {
             ?? tables.allElementsBoundByIndex.last { $0.isHittable }
             ?? self
     }
+}
 
-    private func dragScroll(fromY: CGFloat, toY: CGFloat) {
-        let container = scrollContainer()
-        let start = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: fromY))
-        let end = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: toY))
+private extension XCUIElement {
+    func dragScroll(fromY: CGFloat, toY: CGFloat) {
+        let start = coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: fromY))
+        let end = coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: toY))
         start.press(forDuration: 0.05, thenDragTo: end)
     }
 }

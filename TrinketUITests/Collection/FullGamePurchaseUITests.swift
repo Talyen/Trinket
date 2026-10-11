@@ -165,12 +165,8 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
     }
 
     private func assertWarlockLocked() {
-        tabBar.selectCollection()
-        if button(AccessibilityID.Collection.heroesCategory).exists {
-            tapButton(AccessibilityID.Collection.heroesCategory)
-        }
+        revealWarlock()
         let card = button(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
-        scrollUntilVisible(card, swipingUp: true, requireHittable: true)
         XCTAssertTrue(card.label.hasSuffix(", locked"), "Expected locked Warlock, found: \(card.label)")
     }
 }

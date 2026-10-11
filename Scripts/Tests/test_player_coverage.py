@@ -120,7 +120,16 @@ trinket_run_env_install_self_clean() { :; }
                                     env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}'}, capture_output=True, text=True)
             self.assertEqual(result.returncode, 1, result.stderr)
             calls = (root / 'calls').read_text().splitlines()
-            self.assertEqual(sum('--scenarios 1 --horizon 10' in line for line in calls), 20)
+            cohorts = [line.split() for line in calls if '--batch' in line]
+            self.assertEqual(len(cohorts), 8)
+            careers = set()
+            for command in cohorts:
+                value = lambda flag: command[command.index(flag) + 1]
+                for offset in range(int(value('--scenarios'))):
+                    careers.add((value('--mode'), int(value('--seed')) + offset * int(value('--seed-stride')), value('--policy')))
+            self.assertEqual(careers, {(mode, seed, 'random-v1' if seed % 2 == 0 else 'setupAware-v1')
+                                      for mode in ('campaign', 'contracts', 'labyrinth', 'spires')
+                                      for seed in (101, 102, 103, 104, 105)})
             self.assertEqual(sum('test-package.sh --build-for-testing' in line for line in calls), 1)
             self.assertEqual(sum('--crash-proof' in line for line in calls), 1)
             self.assertIn(f'test.sh ui --no-build RepeatedPlayUITests results={root.resolve()}/data/TestResults', calls)

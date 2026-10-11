@@ -54,6 +54,7 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
         let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
         XCTAssertTrue(metrics.trinketWaitForExistence(timeout: Self.defaultTimeout))
 
+        let stop = measurementControl
         tapWhenReady(start)
         XCTAssertTrue(
             waitForStatus(status, prefix: "measuring:\(scenario)"),
@@ -61,7 +62,7 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
         )
         perform(gesture)
         validate(gesture)
-        finishMeasurement(scenario, iteration: iteration, settle: 3, suite: "battle")
+        finishMeasurement(scenario, iteration: iteration, settle: 3, suite: "battle", control: stop)
     }
 
     private enum Gesture {

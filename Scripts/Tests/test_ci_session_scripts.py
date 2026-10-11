@@ -685,6 +685,22 @@ trinket_dir_lock_acquire "$2" 0
             self.assertFalse(second.exists())
 
 
+    def test_failed_guest_process_query_never_publishes_an_empty_baseline(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            binaries = root / 'bin'
+            binaries.mkdir()
+            query = binaries / 'ps'
+            query.write_text('#!/bin/sh\nexit 7\n')
+            query.chmod(0o755)
+            script = 'source Scripts/run-env.sh; SIMULATOR_UDID=fixture; trinket_track_test_guests_locked "$1/guest-tests" "$$"'
+            result = subprocess.run(['bash', '-eu', '-c', script, '_', str(root)], cwd=ROOT,
+                                    env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}'},
+                                    capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('Simulator guest process inspection failed', result.stderr)
+            self.assertFalse((root / 'guest-tests').exists())
+
     def test_cancellation_stops_workers_before_releasing_resources(self) -> None:
         def check(case: tuple[str, signal.Signals]) -> None:
             owner, sig = case
@@ -704,15 +720,19 @@ fi
 if [[ "$1" == run-env ]]; then
   SIMULATOR_UDID=fixture
   guest_pid="$3"
-  # ps is called without the fixture arguments, so retain the detached PID.
-  ps() {
-    echo "100 1 Wed Sep 30 12:00:00 2026 launchd_sim /Devices/fixture/data/var/run/launchd_bootstrap.plist"
-    if [[ "${guest_started:-0}" == 1 ]]; then
-      echo "$guest_pid 100 Wed Sep 30 12:01:00 2026 /Xcode/Agents/xctest"
-    fi
-  }
+  # The bounded process reader launches ps in a child process.
+  mkdir -p "$2/bin"
+  cat > "$2/bin/ps" <<PS
+#!/bin/bash
+echo "100 1 Wed Sep 30 12:00:00 2026 launchd_sim /Devices/fixture/data/var/run/launchd_bootstrap.plist"
+if [[ -e "$2/guest-started" ]]; then
+  echo "$guest_pid 100 Wed Sep 30 12:01:00 2026 /Xcode/Agents/xctest"
+fi
+PS
+  chmod +x "$2/bin/ps"
+  export PATH="$2/bin:$PATH"
   trinket_track_test_guests
-  guest_started=1
+  touch "$2/guest-started"
 fi
 bash -c 'trap "" INT TERM; printf ready > "$1/worker-ready"; while :; do sleep 1; done' _ "$2" &
 worker=$!
