@@ -4,12 +4,8 @@ import XCTest
 
 final class BattleLifecycleUITests: TrinketUITestCase {
     func testCommittedRewardSurvivesTerminationWithoutReseeding() {
-        launchApp(arguments: TestLaunchArg.allForTab("play")
-            + ["-performance-strong-party", TestLaunchArg.rewardCheckpoint])
-        play.openCampaign()
-        play.startBattle(chapter: 1, stage: 1)
-        tapWhenReady(battle.autoBattleToggle)
-        assertExists(AccessibilityID.Battle.victory, timeout: 30)
+        launchApp(arguments: TestLaunchArg.allForScreen("battle-victory") + [TestLaunchArg.rewardCheckpoint])
+        assertExists(AccessibilityID.Battle.victory)
         assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
         tapButton(AccessibilityID.Battle.continueButton)
         assertExists(AccessibilityID.Debug.rewardCollectionCheckpoint)

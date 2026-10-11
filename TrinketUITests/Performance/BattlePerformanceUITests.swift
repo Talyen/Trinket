@@ -72,20 +72,15 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
     }
 
     private func prepareGesture(for scenario: String) -> Gesture {
-        switch scenario {
-        case "real-card-play":
-            let cards = handCards()
-            let card = cards.firstMatch
-            XCTAssertTrue(card.trinketWaitForExistence(timeout: Self.defaultTimeout))
-            return .play(origin: screenCoordinate(for: card), initialCardCount: cards.count)
-        case "hand-drag-cancel":
-            let cards = handCards()
-            let card = cards.firstMatch
-            XCTAssertTrue(card.trinketWaitForExistence(timeout: Self.defaultTimeout))
-            return .cancel(origin: screenCoordinate(for: card), initialCardCount: cards.count)
-        default:
-            return .none
-        }
+        guard scenario == "real-card-play" || scenario == "hand-drag-cancel" else { return .none }
+        let cards = battle.handCards
+        let card = cards.firstMatch
+        XCTAssertTrue(card.trinketWaitForExistence(timeout: Self.defaultTimeout))
+        let origin = screenCoordinate(for: card)
+        let count = cards.count
+        return scenario == "real-card-play"
+            ? .play(origin: origin, initialCardCount: count)
+            : .cancel(origin: origin, initialCardCount: count)
     }
 
     private func perform(_ gesture: Gesture) {
@@ -105,20 +100,16 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
             return
         case let .play(_, initialCardCount):
             XCTAssertTrue(
-                waitUntil { self.handCards().count == initialCardCount - 1 },
+                waitUntil { self.battle.handCards.count == initialCardCount - 1 },
                 "A successful release did not remove exactly one card",
             )
         case let .cancel(_, initialCardCount):
             XCTAssertEqual(
-                handCards().count,
+                battle.handCards.count,
                 initialCardCount,
                 "Cancel gestures changed hand membership",
             )
         }
-    }
-
-    private func handCards() -> XCUIElementQuery {
-        BattleScreen(app: app).handCards
     }
 
     private func screenCoordinate(for element: XCUIElement) -> XCUICoordinate {

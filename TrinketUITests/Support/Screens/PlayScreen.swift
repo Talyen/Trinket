@@ -13,14 +13,6 @@ struct PlayScreen {
         XCTAssertTrue(element.trinketWaitForExistence(timeout: timeout), "Play mode screen not found", file: file, line: line)
     }
 
-    func assertModeHub(
-        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
-        file: StaticString = #file,
-        line: UInt = #line,
-    ) {
-        assertLoaded(timeout: timeout, file: file, line: line)
-    }
-
     func assertCampaignLoaded(
         number: Int = 1,
         timeout: TimeInterval = TrinketUITestCase.deepLinkTimeout,
@@ -34,10 +26,6 @@ struct PlayScreen {
     func openCampaign(number: Int = 1) {
         assertLoaded()
         let campaign = app.buttons[AccessibilityID.Play.campaignModeCard]
-        XCTAssertTrue(
-            campaign.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout),
-            "Campaign control not found",
-        )
         campaign.trinketTapWhenReady()
         assertCampaignLoaded(number: number)
     }
@@ -45,7 +33,6 @@ struct PlayScreen {
     func openExplore() {
         assertLoaded()
         let element = app.buttons[AccessibilityID.Play.exploreModeCard]
-        XCTAssertTrue(element.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Explore control not found")
         element.trinketTapWhenReady()
         assertElementExists(AccessibilityID.Play.exploreHub)
     }
@@ -65,7 +52,6 @@ struct PlayScreen {
         XCTAssertTrue(party.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle party control not found")
 
         let start = app.buttons[AccessibilityID.Play.stageAction(chapter: chapter, stage: stage)]
-        XCTAssertTrue(start.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle CTA not found")
         start.trinketTapWhenReady()
 
         let hand = app.descendants(matching: .any)[AccessibilityID.Battle.hand]

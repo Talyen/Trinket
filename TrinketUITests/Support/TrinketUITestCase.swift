@@ -299,18 +299,7 @@ class TrinketUITestCase: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line,
     ) {
-        let element = button(identifier)
-        element.trinketTapWhenReady(timeout: timeout, file: file, line: line)
-    }
-
-    @discardableResult
-    func waitForExistence(
-        _ element: XCUIElement,
-        timeout: TimeInterval,
-        file _: StaticString = #file,
-        line _: UInt = #line,
-    ) -> Bool {
-        trinketWaitForExistenceMainActorSafe(element, timeout: timeout)
+        button(identifier).trinketTapWhenReady(timeout: timeout, file: file, line: line)
     }
 
     func tapWhenReady(_ element: XCUIElement, file: StaticString = #file, line: UInt = #line) {
@@ -323,11 +312,7 @@ class TrinketUITestCase: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line,
     ) {
-        let element = button(identifier)
-        guard waitForExistence(element, timeout: timeout) else {
-            fail("Button '\(identifier)' not found", file: file, line: line)
-            return
-        }
+        assertExists(button(identifier), timeout: timeout, message: "Button '\(identifier)' not found", file: file, line: line)
     }
 
     func assertExists(
@@ -336,21 +321,18 @@ class TrinketUITestCase: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line,
     ) {
-        let element = app.descendants(matching: .any)[identifier]
-        guard waitForExistence(element, timeout: timeout) else {
-            fail(missingElementMessage("Element '\(identifier)' not found"), file: file, line: line)
-            return
-        }
+        assertExists(any(identifier), timeout: timeout, message: "Element '\(identifier)' not found", file: file, line: line)
     }
 
     func assertExists(
         _ element: XCUIElement,
         timeout: TimeInterval = defaultTimeout,
+        message: String = "Element not found",
         file: StaticString = #file,
         line: UInt = #line,
     ) {
-        guard waitForExistence(element, timeout: timeout) else {
-            fail(missingElementMessage("Element not found"), file: file, line: line)
+        guard element.trinketWaitForExistence(timeout: timeout) else {
+            fail(missingElementMessage(message), file: file, line: line)
             return
         }
     }

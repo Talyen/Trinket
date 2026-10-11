@@ -22,7 +22,7 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
         let options = XCTMeasureOptions()
         options.iterationCount = repetitionCount
         measure(metrics: [XCTApplicationLaunchMetric()], options: options) {
-            launchApp(arguments: TestLaunchArg.allForAppPerformance())
+            launchApp(arguments: TestLaunchArg.productionTiming(audio: true))
             play.assertLoaded(timeout: 8)
         }
     }

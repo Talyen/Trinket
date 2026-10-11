@@ -70,7 +70,7 @@ used where the screen intentionally has no Close control; Back selects the nativ
 
 Launch waits for the loading cover to disappear and for app controls to appear;
 cover absence alone does not prove an interactive surface is ready.
-Normal control taps use the shared default timeout and require existence,
+Normal control taps share one readiness predicate and require existence,
 enablement, a finite nonempty frame, and hittability. Check geometry before
 hittability because sheet transitions can temporarily expose invalid frames.
 Use explicit
@@ -113,6 +113,9 @@ Assert a journey’s return destination before using helpers that navigate elsew
   before Restore in the populated-save journey; restore-failure recovery remains
   a separate FullUI journey. Tapping Restore while already unlocked does not prove
   restoration; real App Store restore still needs service/device evidence.
+- The cold-launch metric uses production timing and audio without the Debug frame sampler.
+  Launch-animation and interaction scenarios retain full frame instrumentation.
+  Compare cold-launch timings only with runs using the same launch arguments.
 - Use the timeout and tick defaults from `TrinketUITestCase` and its helpers;
   do not copy their numeric values into this guide.
 - Wait for alternative successful outcomes together. Battle entry accepts the
@@ -142,6 +145,11 @@ Performance captures resolve reusable sampler coordinates before measuring. Audi
 animation tails, completion checks, and measured gestures retain their existing budgets.
 
 ## Coverage consolidation
+
+The committed-reward termination journey starts at the existing Chapter 1 victory
+fixture, then taps the real claim, terminates at the committed checkpoint, and checks
+persisted progression and next-stage entry after relaunch. `SmokeBattleTests` retains
+the earned-victory combat path; FullUI avoids repeating that setup battle.
 
 The hand-card inspection, dismissal, cancelled-drag, and committed-drag checks share
 one battle launch in `BattleFlowUITests`. Each gesture retains its hand-count and
