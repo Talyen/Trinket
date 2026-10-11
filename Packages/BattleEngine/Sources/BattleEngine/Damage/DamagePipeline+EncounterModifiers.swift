@@ -18,7 +18,7 @@ package extension DamagePipeline {
         guard removed > 0 else { return }
         DefensePoolEngine.set(current - removed, on: state.combatant, in: &context)
         state.damageEvents.append(context.nextEvent(
-            kind: .effect, effectKind: .blockStripped,
+            kind: .effect(.blockStripped),
             source: .init(source.combatant), abilityName: "Sundered Guard",
             target: state.combatant, amount: removed, keyword: .block,
         ))

@@ -41,8 +41,7 @@ struct ResourceGainHandler: BattleEffectHandler {
                 to: target,
             )
             let event = context.nextEvent(
-                kind: .effect,
-                effectKind: .resourceGain,
+                kind: .effect(.resourceGain),
                 source: .init(source),
                 abilityID: ability.id, abilityName: ability.name,
                 target: target,
@@ -97,8 +96,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             to: target,
         )
         let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .resourceGain,
+            kind: .effect(.resourceGain),
             source: .init(source),
             abilityID: ability.id, abilityName: ability.name,
             target: target,
@@ -148,8 +146,7 @@ package extension BattleState {
             revivedHealth = runtime.currentHealth
         }
         return [nextEvent(
-            kind: .effect,
-            effectKind: .instantHeal,
+            kind: .effect(.instantHeal),
             source: .init(source),
             abilityID: abilityID, abilityName: abilityName,
             target: target,

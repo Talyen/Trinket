@@ -23,13 +23,13 @@ enum GameFeelCombatEvents {
         var events: [ActionEvent] = []
         let actionID = nextID + 1
         func append(
-            _ kind: ActionEvent.Kind, effect: ActionEvent.EffectOutcome? = nil,
+            _ kind: ActionEvent.Kind,
             amount: Int = 3, keyword: Keyword, target: Combatant,
             critical: Bool = false, origin: ActionEvent.Origin = .direct,
         ) {
             nextID += 1
             events.append(ActionEvent(
-                id: nextID, actionID: actionID, kind: kind, effectKind: effect,
+                id: nextID, actionID: actionID, kind: kind,
                 actorID: hero.id, actorName: hero.name, abilityID: "game-feel-fixture",
                 abilityName: "Preview", targetID: target.id, targetName: target.name,
                 amount: amount, keyword: keyword, isCritical: critical, origin: origin,
@@ -46,20 +46,20 @@ enum GameFeelCombatEvents {
             )
         case .retaliation:
             append(.abilityDamage, amount: 7, keyword: .physical, target: enemy)
-            append(.effect, effect: .thornsTriggered, amount: 2, keyword: .thorns, target: hero)
-            append(.effect, effect: .instantHeal, amount: 4, keyword: .health, target: hero)
-            append(.effect, effect: .shieldAbsorbed, amount: 3, keyword: .block, target: hero)
+            append(.effect(.thornsTriggered), amount: 2, keyword: .thorns, target: hero)
+            append(.effect(.instantHeal), amount: 4, keyword: .health, target: hero)
+            append(.effect(.shieldAbsorbed), amount: 3, keyword: .block, target: hero)
         case .automatic:
             append(.ability, amount: 0, keyword: .burn, target: enemy, origin: .automatic)
             append(.abilityDamage, amount: 5, keyword: .burn, target: enemy, origin: .automatic)
-            append(.effect, effect: .shieldApplied, amount: 3, keyword: .block, target: hero, origin: .automatic)
+            append(.effect(.shieldApplied), amount: 3, keyword: .block, target: hero, origin: .automatic)
         case .statuses:
-            append(.effect, effect: .shieldApplied, keyword: .block, target: hero)
-            append(.effect, effect: .thornsApplied, keyword: .thorns, target: hero)
-            append(.effect, effect: .leechApplied, keyword: .leech, target: hero)
-            append(.effect, effect: .recurringDamageApplied, keyword: .poison, target: enemy)
-            append(.effect, effect: .recurringDamageApplied, keyword: .bleed, target: enemy)
-            append(.effect, effect: .deathsDoorTriggered, amount: 0, keyword: .deathsDoor, target: enemy)
+            append(.effect(.shieldApplied), keyword: .block, target: hero)
+            append(.effect(.thornsApplied), keyword: .thorns, target: hero)
+            append(.effect(.leechApplied), keyword: .leech, target: hero)
+            append(.effect(.recurringDamageApplied), keyword: .poison, target: enemy)
+            append(.effect(.recurringDamageApplied), keyword: .bleed, target: enemy)
+            append(.effect(.deathsDoorTriggered), amount: 0, keyword: .deathsDoor, target: enemy)
         }
         return events
     }

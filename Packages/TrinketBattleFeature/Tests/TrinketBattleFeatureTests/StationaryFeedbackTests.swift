@@ -249,12 +249,12 @@ struct StationaryFeedbackTests {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let events = [
-            BattleSessionTestSupport.makeActionEvent(id: 1, kind: .effect, effectKind: .cleanseApplied, amount: 1, keyword: .poison),
-            BattleSessionTestSupport.makeActionEvent(id: 2, kind: .effect, effectKind: .purgeApplied, amount: 1, keyword: .block),
-            BattleSessionTestSupport.makeActionEvent(id: 3, kind: .effect, effectKind: .markedApplied, amount: 1, keyword: .physical),
-            BattleSessionTestSupport.makeActionEvent(id: 4, kind: .effect, effectKind: .wardApplied, amount: 1, keyword: .holy),
+            BattleSessionTestSupport.makeActionEvent(id: 1, kind: .effect(.cleanseApplied), amount: 1, keyword: .poison),
+            BattleSessionTestSupport.makeActionEvent(id: 2, kind: .effect(.purgeApplied), amount: 1, keyword: .block),
+            BattleSessionTestSupport.makeActionEvent(id: 3, kind: .effect(.markedApplied), amount: 1, keyword: .physical),
+            BattleSessionTestSupport.makeActionEvent(id: 4, kind: .effect(.wardApplied), amount: 1, keyword: .holy),
             BattleSessionTestSupport.makeActionEvent(id: 5, kind: .status, amount: 3, keyword: .poison),
-            BattleSessionTestSupport.makeActionEvent(id: 6, kind: .effect, effectKind: .instantHeal, amount: 4, keyword: .health),
+            BattleSessionTestSupport.makeActionEvent(id: 6, kind: .effect(.instantHeal), amount: 4, keyword: .health),
         ]
         lane.record(events)
         for (id, region) in [(1, CombatFeedbackRegion.benefit), (2, .setback), (3, .setback), (4, .benefit), (5, .impact), (6, .impact)] {
@@ -267,10 +267,10 @@ struct StationaryFeedbackTests {
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
         let first = BattleSessionTestSupport.makeActionEvent(
-            id: 1, kind: .effect, effectKind: .cleanseApplied, amount: 1, keyword: .poison,
+            id: 1, kind: .effect(.cleanseApplied), amount: 1, keyword: .poison,
         )
         let second = BattleSessionTestSupport.makeActionEvent(
-            id: 2, kind: .effect, effectKind: .cleanseApplied, amount: 1, keyword: .poison,
+            id: 2, kind: .effect(.cleanseApplied), amount: 1, keyword: .poison,
         )
         lane.record([first], at: start)
         let original = try #require(lane.activeItems.first)

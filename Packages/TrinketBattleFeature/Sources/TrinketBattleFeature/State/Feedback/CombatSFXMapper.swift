@@ -146,7 +146,7 @@ enum CombatSFXMapper {
             }
             return
         }
-        guard event.kind == .effect, let effect = event.effectKind else { return }
+        guard case let .effect(effect) = event.kind else { return }
         switch effect {
         case .deathsDoorTriggered, .deathsDoorExpired:
             selection.offer(SFXID.deathsDoor, priority: 0, order: order, isOverride: true)

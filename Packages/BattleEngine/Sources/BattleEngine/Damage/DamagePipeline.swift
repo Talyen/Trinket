@@ -321,8 +321,7 @@ package enum DamagePipeline {
         var retaliationEvents = outcome.events
         if outcome.healthLost > 0 {
             retaliationEvents.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .thornsTriggered,
+                kind: .effect(.thornsTriggered),
                 source: .init(defender),
                 abilityName: abilityName,
                 target: target,
@@ -345,8 +344,7 @@ package enum DamagePipeline {
     ) {
         state.remaining -= amount
         state.damageEvents.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldAbsorbed,
+            kind: .effect(.shieldAbsorbed),
             source: source,
             abilityName: abilityName,
             target: target,

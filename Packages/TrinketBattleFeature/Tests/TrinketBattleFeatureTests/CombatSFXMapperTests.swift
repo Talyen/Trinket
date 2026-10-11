@@ -27,11 +27,11 @@ struct CombatSFXMapperTests {
 
     @Test func `automatic card feedback follows identities instead of display names`() {
         let summary = event(1, kind: .ability, keyword: .physical, origin: .automatic)
-        let gain = event(2, effect: .shieldApplied, amount: 3, keyword: .block, origin: .automatic)
+        let gain = event(2, kind: .effect(.shieldApplied), amount: 3, keyword: .block, origin: .automatic)
         let renamed = gain.with(actorName: "Renamed Hero", abilityName: "Renamed Card")
         let foreignActor = gain.with(actorID: "companion")
         let passive = ActionEvent(
-            id: 3, actionID: 1, kind: .effect, effectKind: .shieldApplied,
+            id: 3, actionID: 1, kind: .effect(.shieldApplied),
             actorID: "hero", actorName: "Hero", abilityName: "Test",
             targetID: "hero", targetName: "Hero", amount: 3, keyword: .block, origin: .automatic,
         )
@@ -95,17 +95,17 @@ struct CombatSFXMapperTests {
             isCritical: true,
         )
         #expect(CombatSFXMapper.clipID(for: [
-            event(1, effect: .instantHeal, amount: 6, keyword: .health),
+            event(1, kind: .effect(.instantHeal), amount: 6, keyword: .health),
         ], damage: [critical]) == SFXID.heal)
         #expect(CombatSFXMapper.clipID(for: [
-            event(1, effect: .shieldApplied, amount: 6, keyword: .block),
+            event(1, kind: .effect(.shieldApplied), amount: 6, keyword: .block),
         ], damage: [critical]) == SFXID.block)
         #expect(CombatSFXMapper.clipID(for: [
-            event(1, effect: .controlTriggered, keyword: .freeze),
+            event(1, kind: .effect(.controlTriggered), keyword: .freeze),
         ], damage: [critical]) == SFXID.controlFreeze)
         #expect(CombatSFXMapper.clipID(for: [
-            event(1, effect: .controlTriggered, keyword: .freeze),
-            event(2, effect: .deathsDoorTriggered, keyword: .deathsDoor),
+            event(1, kind: .effect(.controlTriggered), keyword: .freeze),
+            event(2, kind: .effect(.deathsDoorTriggered), keyword: .deathsDoor),
         ], damage: [critical]) == SFXID.deathsDoor)
         #expect(CombatSFXMapper.clipID(for: [], damage: [
             .init(targetID: "enemy", keyword: .burn, impact: .landed(blocked: 5, healthLost: 0), isCritical: true),
@@ -118,13 +118,13 @@ struct CombatSFXMapperTests {
     @Test func `largest actual result wins and ties favor damage then healing`() {
         let moltenBulwark = [
             event(1, amount: 3, keyword: .burn),
-            event(2, effect: .shieldApplied, amount: 4, keyword: .block),
-            event(3, effect: .thornsApplied, amount: 4, keyword: .thorns),
+            event(2, kind: .effect(.shieldApplied), amount: 4, keyword: .block),
+            event(3, kind: .effect(.thornsApplied), amount: 4, keyword: .thorns),
         ]
         #expect(CombatSFXMapper.clipID(for: moltenBulwark) == SFXID.block)
         let blessedAegis = [
-            event(1, effect: .shieldApplied, amount: 5, keyword: .block),
-            event(2, effect: .instantHeal, amount: 5, keyword: .health, target: "hero"),
+            event(1, kind: .effect(.shieldApplied), amount: 5, keyword: .block),
+            event(2, kind: .effect(.instantHeal), amount: 5, keyword: .health, target: "hero"),
             event(3, amount: 5, keyword: .holy),
         ]
         #expect(CombatSFXMapper.clipID(for: blessedAegis) == SFXID.hitHoly)
@@ -134,12 +134,12 @@ struct CombatSFXMapperTests {
     @Test func `aggregation crosses targets but never merges effects sharing a clip`() {
         #expect(CombatSFXMapper.clipID(for: [
             event(1, amount: 4, keyword: .burn),
-            event(2, effect: .instantHeal, amount: 2, keyword: .health, target: "hero"),
-            event(3, effect: .instantHeal, amount: 3, keyword: .health, target: "companion"),
+            event(2, kind: .effect(.instantHeal), amount: 2, keyword: .health, target: "hero"),
+            event(3, kind: .effect(.instantHeal), amount: 3, keyword: .health, target: "companion"),
         ]) == SFXID.heal)
         #expect(CombatSFXMapper.clipID(for: [
             event(1, amount: 2, keyword: .bleed), event(2, amount: 2, keyword: .poison),
-            event(3, effect: .instantHeal, amount: 3, keyword: .health),
+            event(3, kind: .effect(.instantHeal), amount: 3, keyword: .health),
         ]) == SFXID.heal)
         #expect(CombatSFXMapper.clipID(for: [
             event(1, amount: 2, keyword: .freeze), event(2, amount: 2, keyword: .freeze),
@@ -151,12 +151,12 @@ struct CombatSFXMapperTests {
         let damage = BattleResolvedDamage(targetID: "enemy", keyword: .burn, impact: .landed(blocked: 5, healthLost: 3), isCritical: false)
         #expect(CombatSFXMapper.clipID(for: [
             event(1, amount: 3, keyword: .burn),
-            event(2, effect: .shieldAbsorbed, amount: 5, keyword: .block, target: "hero"),
-            event(3, effect: .instantHeal, amount: 8, keyword: .health),
+            event(2, kind: .effect(.shieldAbsorbed), amount: 5, keyword: .block, target: "hero"),
+            event(3, kind: .effect(.instantHeal), amount: 8, keyword: .health),
         ], damage: [damage]) == SFXID.heal)
         #expect(CombatSFXMapper.clipID(for: [
             event(1, amount: 3, keyword: .burn),
-            event(2, effect: .instantHeal, amount: 4, keyword: .health),
+            event(2, kind: .effect(.instantHeal), amount: 4, keyword: .health),
         ], damage: [.init(targetID: "enemy", keyword: .burn, impact: .landed(blocked: 0, healthLost: 3), isCritical: false)]) == SFXID.heal)
     }
 
@@ -178,11 +178,11 @@ struct CombatSFXMapperTests {
 
     @Test func `actual control and deaths door override numbers with stable source ties`() {
         let hit = event(1, amount: 99, keyword: .burn)
-        let frozen = event(2, effect: .controlTriggered, keyword: .freeze)
-        let stunned = event(3, effect: .controlTriggered, keyword: .stun)
+        let frozen = event(2, kind: .effect(.controlTriggered), keyword: .freeze)
+        let stunned = event(3, kind: .effect(.controlTriggered), keyword: .stun)
         #expect(CombatSFXMapper.clipID(for: [hit, frozen, stunned]) == SFXID.controlFreeze)
         #expect(CombatSFXMapper.clipID(for: [hit, stunned, frozen]) == SFXID.controlStun)
-        #expect(CombatSFXMapper.clipID(for: [hit, frozen, event(4, effect: .deathsDoorTriggered, keyword: .deathsDoor)]) == SFXID
+        #expect(CombatSFXMapper.clipID(for: [hit, frozen, event(4, kind: .effect(.deathsDoorTriggered), keyword: .deathsDoor)]) == SFXID
             .deathsDoor)
         #expect(CombatSFXMapper.clipID(for: [event(1, amount: 3, keyword: .holy), event(2, amount: 3, keyword: .burn)]) == SFXID.hitHoly)
     }
@@ -191,23 +191,23 @@ struct CombatSFXMapperTests {
         #expect(CombatSFXMapper.clipID(for: [
             event(1, amount: 20, keyword: .physical, target: "hero"),
             event(2, amount: 3, keyword: .poison),
-            event(3, effect: .instantHeal, amount: 1, keyword: .health),
-            event(4, effect: .overheal, amount: 50, keyword: .health),
-            event(5, effect: .criticalChanceApplied, amount: 100, keyword: .physical),
-            event(6, effect: .thornsApplied, amount: 100, keyword: .thorns),
+            event(3, kind: .effect(.instantHeal), amount: 1, keyword: .health),
+            event(4, kind: .effect(.overheal), amount: 50, keyword: .health),
+            event(5, kind: .effect(.criticalChanceApplied), amount: 100, keyword: .physical),
+            event(6, kind: .effect(.thornsApplied), amount: 100, keyword: .thorns),
         ]) == SFXID.hitPiercing)
-        #expect(CombatSFXMapper.clipID(for: [event(1, effect: .overheal, amount: 3, keyword: .health)]) == SFXID.heal)
+        #expect(CombatSFXMapper.clipID(for: [event(1, kind: .effect(.overheal), amount: 3, keyword: .health)]) == SFXID.heal)
     }
 
     @Test func `mana and draw are fallbacks instead of extra attack sounds`() {
-        let mana = event(1, effect: .resourceGain, amount: 3, keyword: .mana)
-        let draw = event(2, effect: .cardsDrawn, amount: 1, keyword: .mana)
+        let mana = event(1, kind: .effect(.resourceGain), amount: 3, keyword: .mana)
+        let draw = event(2, kind: .effect(.cardsDrawn), amount: 1, keyword: .mana)
         #expect(CombatSFXMapper.clipID(for: [mana, draw]) == SFXID.restoreMana)
         #expect(CombatSFXMapper.clipID(for: [mana, draw, event(3, amount: 1, keyword: .freeze)]) == SFXID.hitFreeze)
         #expect(CombatSFXMapper.clipID(for: [draw]) == SFXID.abilityDraw)
         #expect(CombatSFXMapper.clipID(for: [], didDrawCards: true) == SFXID.abilityDraw)
-        #expect(CombatSFXMapper.clipID(for: [event(1, effect: .resourceGain, keyword: .mana)]) == nil)
-        #expect(CombatSFXMapper.clipID(for: [event(1, effect: .resourceGain, amount: 3, keyword: .mana, origin: .automatic)]) == nil)
+        #expect(CombatSFXMapper.clipID(for: [event(1, kind: .effect(.resourceGain), keyword: .mana)]) == nil)
+        #expect(CombatSFXMapper.clipID(for: [event(1, kind: .effect(.resourceGain), amount: 3, keyword: .mana, origin: .automatic)]) == nil)
     }
 
     @Test func `stack application secondary debuffs and block costs remain silent`() {
@@ -221,7 +221,7 @@ struct CombatSFXMapperTests {
             .dotAmplified,
             .hemorrhageApplied,
         ] {
-            #expect(CombatSFXMapper.clipID(for: [event(1, effect: effect, amount: 9, keyword: .poison)]) == nil)
+            #expect(CombatSFXMapper.clipID(for: [event(1, kind: .effect(effect), amount: 9, keyword: .poison)]) == nil)
         }
     }
 
@@ -229,7 +229,8 @@ struct CombatSFXMapperTests {
         let prewarmed = Set(CombatSFXMapper.battlePrewarmIDs)
         for keyword in Keyword.allCases {
             for effect in ActionEvent.EffectOutcome.allCases {
-                guard let clip = CombatSFXMapper.clipID(for: [event(1, effect: effect, amount: 1, keyword: keyword)]) else { continue }
+                guard let clip = CombatSFXMapper.clipID(for: [event(1, kind: .effect(effect), amount: 1, keyword: keyword)])
+                else { continue }
                 #expect(SFXCatalog.clipsByID[clip] != nil)
                 #expect(prewarmed.contains(clip))
             }
@@ -242,11 +243,11 @@ struct CombatSFXMapperTests {
     }
 
     private func event(
-        _ id: Int, kind: ActionEvent.Kind = .abilityDamage, effect: ActionEvent.EffectOutcome? = nil,
+        _ id: Int, kind: ActionEvent.Kind = .abilityDamage,
         amount: Int = 0, keyword: Keyword, target: String = "enemy", origin: ActionEvent.Origin = .direct,
     ) -> ActionEvent {
         ActionEvent(
-            id: id, actionID: 1, kind: effect == nil ? kind : .effect, effectKind: effect,
+            id: id, actionID: 1, kind: kind,
             actorID: "hero", actorName: "Hero", abilityID: "test", abilityName: "Test",
             targetID: target, targetName: target, amount: amount, keyword: keyword, origin: origin,
         )

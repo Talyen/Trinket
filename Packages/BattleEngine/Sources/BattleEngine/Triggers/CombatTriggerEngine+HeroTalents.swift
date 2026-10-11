@@ -184,7 +184,7 @@ package extension CombatTriggerEngine {
            let ability = AbilityCatalog.all.randomElement(using: &context.rng) {
             _ = BattleCardCombatEngine.deal(ability, owner: owner, context: &context)
             events.append(context.nextEvent(
-                kind: .effect, effectKind: .cardsDrawn, source: .init(actor),
+                kind: .effect(.cardsDrawn), source: .init(actor),
                 abilityName: "Consolation Prize", target: actor, amount: 1, keyword: .physical,
             ))
         }
@@ -428,8 +428,7 @@ package extension CombatTriggerEngine {
             ActiveEffectMutation.removeMatching(from: target, in: &context) { $0.kind == .thorns }
             context.appendEffect(.thorns(total), to: target, sourceID: source.id, remainingTurns: 0)
             return [context.nextEvent(
-                kind: .effect,
-                effectKind: .thornsApplied,
+                kind: .effect(.thornsApplied),
                 source: .init(source),
                 abilityName: name,
                 target: target,
@@ -453,7 +452,7 @@ package extension CombatTriggerEngine {
             )
             guard outcome.healthRestored > 0 else { return outcome.events }
             return outcome.events + [context.nextEvent(
-                kind: .effect, effectKind: .instantHeal, source: .init(source),
+                kind: .effect(.instantHeal), source: .init(source),
                 abilityName: name, target: target, amount: outcome.healthRestored, keyword: .health,
             )]
         }

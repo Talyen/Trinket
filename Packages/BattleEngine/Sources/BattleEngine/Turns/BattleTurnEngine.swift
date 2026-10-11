@@ -31,8 +31,7 @@ package enum BattleTurnEngine {
         }
 
         let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .controlActionSkipped,
+            kind: .effect(.controlActionSkipped),
             source: .init(actorID: nil, name: keyword.statusAlias ?? keyword.rawValue),
             abilityName: keyword.statusAlias ?? keyword.rawValue,
             target: actor,
@@ -174,7 +173,7 @@ package enum BattleTurnEngine {
         )
         if blockCost > 0 {
             events.append(context.nextEvent(
-                kind: .effect, effectKind: .blockSpent, source: .init(actor),
+                kind: .effect(.blockSpent), source: .init(actor),
                 abilityID: ability.id, abilityName: ability.name, target: actor, amount: blockCost, keyword: .block, origin: .direct,
             ))
         }

@@ -55,15 +55,13 @@ package extension DamagePipeline {
             }
         }
         state.damageEvents.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .dodgeApplied,
+            kind: .effect(.dodgeApplied),
             source: .init(state.combatant),
             abilityName: "Dodge",
             target: state.combatant,
             amount: 0,
             keyword: .dodge,
             appliedEffectSummaries: [],
-            milestone: nil,
         ))
         state.isDodged = true
         await applyWinterWake(to: &state, in: &context)

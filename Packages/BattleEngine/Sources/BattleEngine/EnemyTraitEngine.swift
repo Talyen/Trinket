@@ -212,8 +212,7 @@ package enum EnemyTraitEngine {
         var events = outcome.events
         if outcome.healthLost > 0 {
             events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .thornsTriggered,
+                kind: .effect(.thornsTriggered),
                 source: .init(defender),
                 abilityName: profile.triggerAbilityName(.thornsPercent, fallback: "Trait"),
                 target: attacker,

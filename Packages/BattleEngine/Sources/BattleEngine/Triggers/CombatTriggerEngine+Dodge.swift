@@ -86,8 +86,7 @@ package extension CombatTriggerEngine {
             )
             if drawn > 0 {
                 events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .cardsDrawn,
+                    kind: .effect(.cardsDrawn),
                     source: .init(context.roster.hero),
                     abilityName: triggerAbilityName(.onDodgeDrawCardForHero, for: combatant, fallback: "Tailwind", in: context),
                     target: context.roster.hero.combatant,

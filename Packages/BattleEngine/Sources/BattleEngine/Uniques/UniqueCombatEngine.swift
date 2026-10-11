@@ -115,8 +115,7 @@ package enum UniqueCombatEngine {
     ) -> ActionEvent {
         let actor = context.roster[owner].combatant
         return context.nextEvent(
-            kind: .effect,
-            effectKind: .cardsDrawn,
+            kind: .effect(.cardsDrawn),
             source: .init(actor),
             abilityName: name,
             target: actor,

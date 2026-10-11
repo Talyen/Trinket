@@ -39,8 +39,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
                 $0.deathsDoorExpiredAtTurn = context.turnCount
             }
             let event = context.nextEvent(
-                kind: .effect,
-                effectKind: .deathsDoorExpired,
+                kind: .effect(.deathsDoorExpired),
                 source: .init(target),
                 abilityName: Keyword.deathsDoor.rawValue,
                 target: target,

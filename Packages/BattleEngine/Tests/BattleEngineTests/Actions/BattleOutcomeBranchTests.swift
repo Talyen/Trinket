@@ -19,7 +19,7 @@ struct BattleOutcomeBranchTests {
             )
             #expect(!events.contains { $0.kind == .abilityDamage })
             #expect(battle.hand.cards.count == 1)
-            let gain = try #require(events.first { $0.kind == .effect })
+            let gain = try #require(events.first { $0.effectKind != nil })
             #expect((1 ... 12).contains(gain.amount))
             seenKeywords.insert(gain.keyword)
             switch gain.keyword {

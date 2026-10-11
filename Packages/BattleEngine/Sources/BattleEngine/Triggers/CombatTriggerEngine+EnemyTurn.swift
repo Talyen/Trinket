@@ -12,8 +12,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> ActionEvent {
         context.nextEvent(
-            kind: .effect,
-            effectKind: effectKind,
+            kind: .effect(effectKind),
             source: .init(context.roster.enemy),
             abilityName: abilityName,
             target: target,
@@ -128,8 +127,7 @@ package extension CombatTriggerEngine {
     ) async -> (events: [ActionEvent], cancelled: Bool) {
         var events: [ActionEvent] = [
             context.nextEvent(
-                kind: .effect,
-                effectKind: .dodgeApplied,
+                kind: .effect(.dodgeApplied),
                 source: .init(protected),
                 abilityName: abilityName,
                 target: protected,

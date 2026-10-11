@@ -48,8 +48,7 @@ package extension BattleState {
         UniqueCombatEngine.gainedGold(granted, by: combatant, in: &self)
         let currentEarned = goldFlow.gained
         var events = [nextEvent(
-            kind: .effect,
-            effectKind: .resourceGain,
+            kind: .effect(.resourceGain),
             source: .init(combatant),
             abilityID: abilityID, abilityName: abilityName,
             target: combatant,
@@ -161,8 +160,7 @@ package extension BattleState {
         guard restored > 0 else { return overflowEvents }
         var events: [ActionEvent] = []
         events.append(nextEvent(
-            kind: .effect,
-            effectKind: .resourceGain,
+            kind: .effect(.resourceGain),
             source: .init(source ?? combatant),
             abilityID: abilityID, abilityName: abilityName,
             target: combatant,

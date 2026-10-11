@@ -21,7 +21,7 @@ struct BattleFeedbackLaneTests {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let blocked = ActionEvent(
-            id: 1, actionID: 1, kind: .effect, effectKind: .shieldAbsorbed,
+            id: 1, actionID: 1, kind: .effect(.shieldAbsorbed),
             actorName: "Hero", abilityName: "Slash", targetID: "enemy", targetName: "Enemy",
             amount: 5, keyword: .block, isFullyBlocked: true,
         )
@@ -29,11 +29,11 @@ struct BattleFeedbackLaneTests {
         #expect(lane.hitReactionsByTargetID["enemy"]?.kind == .block)
         lane.clear()
         lane.record([
-            makeEvent(id: 2, kind: .effect, effectKind: .instantHeal, amount: 3, keyword: .health),
-            makeEvent(id: 3, kind: .effect, effectKind: .dodgeApplied, amount: 0, keyword: .dodge),
+            makeEvent(id: 2, kind: .effect(.instantHeal), amount: 3, keyword: .health),
+            makeEvent(id: 3, kind: .effect(.dodgeApplied), amount: 0, keyword: .dodge),
             makeEvent(id: 4, kind: .abilityDamage, amount: 3, keyword: .burn),
             makeEvent(id: 5, kind: .abilityDamage, amount: 9, keyword: .holy, isCritical: true),
-            makeEvent(id: 6, kind: .effect, effectKind: .thornsTriggered, amount: 2, keyword: .thorns, targetID: "hero"),
+            makeEvent(id: 6, kind: .effect(.thornsTriggered), amount: 2, keyword: .thorns, targetID: "hero"),
         ])
         #expect(lane.hitReactionsByTargetID["enemy"]?.kind == .critical)
         #expect(lane.hitReactionsByTargetID["hero"]?.kind == .damage)
@@ -73,7 +73,6 @@ struct BattleFeedbackLaneTests {
     private func makeEvent(
         id: Int,
         kind: ActionEvent.Kind,
-        effectKind: ActionEvent.EffectOutcome? = nil,
         amount: Int,
         keyword: Keyword,
         targetID: String = "enemy",
@@ -85,7 +84,6 @@ struct BattleFeedbackLaneTests {
         BattleSessionTestSupport.makeActionEvent(
             id: id,
             kind: kind,
-            effectKind: effectKind,
             amount: amount,
             keyword: keyword,
             targetID: targetID,
@@ -156,7 +154,7 @@ struct BattleFeedbackLaneTests {
         let environment = BattlePresentationDependencies(
             playSFX: { sounds.append($0) }, warmSFX: { _, _ in }, hapticsEnabled: { false },
         )
-        let absorbed = makeEvent(id: 1, kind: .effect, effectKind: .shieldAbsorbed, amount: 5, keyword: .block)
+        let absorbed = makeEvent(id: 1, kind: .effect(.shieldAbsorbed), amount: 5, keyword: .block)
         lane.record([absorbed], environment: environment, actionGroupID: 1, damage: [
             .init(targetID: "enemy", keyword: .burn, impact: .landed(blocked: 5, healthLost: 2), isCritical: false),
         ])
@@ -166,10 +164,10 @@ struct BattleFeedbackLaneTests {
         ])
         lane.record([
             makeEvent(id: 2, kind: .abilityDamage, amount: 3, keyword: .poison),
-            makeEvent(id: 3, kind: .effect, effectKind: .cardsDrawn, amount: 1, keyword: .mana),
+            makeEvent(id: 3, kind: .effect(.cardsDrawn), amount: 1, keyword: .mana),
         ], environment: environment, actionGroupID: 2)
         lane.record([
-            makeEvent(id: 4, kind: .effect, effectKind: .cardsDrawn, amount: 2, keyword: .mana),
+            makeEvent(id: 4, kind: .effect(.cardsDrawn), amount: 2, keyword: .mana),
         ], environment: environment, actionGroupID: 3)
         #expect(sounds == [[SFXID.blockAbsorb], [SFXID.hitPiercing], [SFXID.abilityDraw]])
     }

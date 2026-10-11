@@ -5,6 +5,35 @@ import TrinketCore
 @testable import BattleEngine
 
 struct AbilityEffectIntegrationTests {
+    @Test(arguments: [0, 2, 8])
+    func `hemorrhage preserves Block and lethal protection events in feedback and history`(block: Int) throws {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+            heroHealth: 3,
+        )
+        battle.appliesFightPacing = false
+        battle.appendEffect(.hemorrhage(4), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        DefensePoolEngine.set(block, on: battle.hero, in: &battle)
+
+        let events = CombatExecutor.run {
+            await BattleTurnEngine.consumeHemorrhageIfActive(for: battle.hero, in: &battle)
+        }
+        #expect(events == battle.events)
+        let healthLost = min(3, max(0, 4 - block))
+        let hemorrhage = events.filter { $0.effectKind == .hemorrhageTriggered }
+        #expect(hemorrhage.map(\.amount) == (healthLost > 0 ? [healthLost] : []))
+        if block > 0 {
+            let absorbed = try #require(events.first { $0.effectKind == .shieldAbsorbed })
+            #expect(absorbed.amount == min(block, 4))
+            #expect(absorbed.keyword == .block)
+        } else {
+            #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
+            #expect(battle.roster.hero.currentHealth == 1)
+        }
+    }
+
     @Test func `a finishing hit cannot steal Gold again from the defeated enemy`() throws {
         var triggers = CombatTraitTriggers()
         triggers.criticalGoldStealFlat = 2

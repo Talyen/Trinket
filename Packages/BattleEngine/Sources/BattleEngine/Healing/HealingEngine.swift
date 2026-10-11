@@ -50,8 +50,7 @@ package enum HealingEngine {
         appendHealLog(request: request, restored: restored, flags: flags, events: &events, in: &context)
         if overflow > 0, !request.suppressTalentReactions {
             events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .overheal,
+                kind: .effect(.overheal),
                 source: context.eventSource(actorID: request.sourceActorID, fallback: request.target),
                 abilityName: "",
                 target: request.target,
@@ -227,8 +226,7 @@ package enum HealingEngine {
         case let .instantHeal(source, abilityID, abilityName, keyword):
             events.append(
                 context.nextEvent(
-                    kind: .effect,
-                    effectKind: .instantHeal,
+                    kind: .effect(.instantHeal),
                     source: source,
                     abilityID: abilityID,
                     abilityName: abilityName,

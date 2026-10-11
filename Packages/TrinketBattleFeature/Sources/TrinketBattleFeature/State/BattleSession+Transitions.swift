@@ -40,7 +40,7 @@ extension BattleSession {
         ) { [weak self] events, damage, impactAt, groupID in
             guard let self, activeBattle?.id == configurationID else { return }
             feedback.record(
-                events.filter { $0.kind != .milestone },
+                events.filter { $0.milestone == nil },
                 at: impactAt,
                 environment: dependencies,
                 actionGroupID: groupID,

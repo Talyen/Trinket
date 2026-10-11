@@ -37,8 +37,7 @@ struct MultiplyDoTHandler: BattleEffectHandler {
         }
         context.roster.setActiveEffects(effects, for: target)
         let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .dotAmplified,
+            kind: .effect(.dotAmplified),
             source: .init(source),
             abilityID: ability.id, abilityName: ability.name,
             target: target,

@@ -211,8 +211,7 @@ package extension DamagePipeline {
         guard BattleCardCombatEngine.drawFirstCard(matching: keyword, for: owner, context: &context) != nil else { return [] }
         guard context.hand.totalCount > before else { return [] }
         return [context.nextEvent(
-            kind: .effect,
-            effectKind: .cardsDrawn,
+            kind: .effect(.cardsDrawn),
             source: .init(actor),
             abilityName: "Talent Draw",
             target: actor,

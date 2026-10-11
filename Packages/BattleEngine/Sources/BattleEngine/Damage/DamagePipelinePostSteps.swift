@@ -273,8 +273,7 @@ package extension DamagePipeline {
             let restored = context.restoreMana(pacedAmount, to: state.combatant)
             if restored > 0 {
                 state.damageEvents.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .manaShieldTriggered,
+                    kind: .effect(.manaShieldTriggered),
                     source: .init(state.combatant),
                     abilityName: "Mana Shield",
                     target: state.combatant,

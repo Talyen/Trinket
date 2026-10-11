@@ -205,7 +205,7 @@ extension BattleFeedbackLane {
         var groups = playback.actions.map { action in
             (action: Optional(action), events: action.eventIDs.compactMap { eventsByID[$0] })
         }
-        let remaining = playback.events.filter { !assignedIDs.contains($0.id) && $0.kind != .milestone }
+        let remaining = playback.events.filter { !assignedIDs.contains($0.id) && $0.milestone == nil }
         for group in Dictionary(grouping: remaining, by: \.feedbackGroupID).values {
             groups.append((nil, group))
         }

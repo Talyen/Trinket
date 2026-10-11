@@ -161,8 +161,7 @@ enum ActiveEffectMutation {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let appliedEvent = context.nextEvent(
-            kind: .effect,
-            effectKind: event.kind,
+            kind: .effect(event.kind),
             source: .init(source),
             abilityID: ability.id, abilityName: ability.name,
             target: target,

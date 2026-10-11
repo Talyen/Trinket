@@ -328,18 +328,9 @@ extension BattleTurnEngine {
             ),
         )
         var hemorrhageEvents = hemorrhageOutcome.events
-        if let lastIndex = hemorrhageEvents.indices.last {
-            let event = hemorrhageEvents[lastIndex]
-            hemorrhageEvents[lastIndex] = event.with(
-                effectKind: .hemorrhageTriggered,
-                actorID: actor.id,
-                actorName: actor.name,
-                abilityName: "Hemorrhage",
-            )
-        } else if hemorrhageOutcome.healthLost > 0 {
+        if hemorrhageOutcome.healthLost > 0 {
             hemorrhageEvents.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .hemorrhageTriggered,
+                kind: .effect(.hemorrhageTriggered),
                 source: .init(actor),
                 abilityName: "Hemorrhage",
                 target: actor,

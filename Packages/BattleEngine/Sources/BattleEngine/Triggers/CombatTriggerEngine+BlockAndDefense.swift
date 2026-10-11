@@ -46,8 +46,7 @@ package extension CombatTriggerEngine {
             replacing: { $0.kind == .thorns },
         ) else { return [] }
         return [context.nextEvent(
-            kind: .effect,
-            effectKind: .thornsApplied,
+            kind: .effect(.thornsApplied),
             source: .init(actor),
             abilityName: triggerAbilityName(
                 abilityKey,
@@ -507,8 +506,7 @@ package extension CombatTriggerEngine {
         )
         context.roster.setActiveEffects(effects, for: target)
         return [context.nextEvent(
-            kind: .effect,
-            effectKind: .markedApplied,
+            kind: .effect(.markedApplied),
             source: .init(source),
             abilityName: abilityName,
             target: target,

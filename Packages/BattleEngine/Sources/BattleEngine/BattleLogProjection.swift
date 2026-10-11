@@ -82,8 +82,8 @@ public struct BattleLogProjection {
 
     static func line(for event: ActionEvent, damage: [ActionEvent] = []) -> String? {
         switch event.kind {
-        case .milestone:
-            return milestoneLine(for: event)
+        case let .milestone(milestone):
+            return milestoneLine(for: event, milestone: milestone)
         case .ability:
             return actionLine(for: event, damage: damage)
         case .abilityDamage:
@@ -91,13 +91,13 @@ public struct BattleLogProjection {
         case .status:
             guard event.amount > 0 else { return nil }
             return "\(event.targetName) takes \(event.amount) \(event.keyword.rawValue) damage."
-        case .effect:
-            return effectLine(for: event)
+        case let .effect(outcome):
+            return effectLine(for: event, outcome: outcome)
         }
     }
 
-    private static func effectLine(for event: ActionEvent) -> String? {
-        switch event.effectKind {
+    private static func effectLine(for event: ActionEvent, outcome: ActionEvent.EffectOutcome) -> String? {
+        switch outcome {
         case .deathsDoorTriggered:
             "\(event.targetName) is on Death's Door."
         case .deathsDoorExpired:
@@ -125,16 +125,14 @@ public struct BattleLogProjection {
         }
     }
 
-    private static func milestoneLine(for event: ActionEvent) -> String? {
-        switch event.milestone {
+    private static func milestoneLine(for event: ActionEvent, milestone: ActionEvent.Milestone) -> String {
+        switch milestone {
         case let .battleStarted(heroName, companionName):
             "\(heroName) and \(companionName) face \(event.targetName)."
         case .enemyDefeated:
             "\(event.targetName) is defeated."
         case .partyDefeated:
             "Your party has been defeated by \(event.targetName)."
-        case nil:
-            nil
         }
     }
 }

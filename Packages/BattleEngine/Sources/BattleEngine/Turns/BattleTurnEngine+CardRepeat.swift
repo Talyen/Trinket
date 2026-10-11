@@ -80,7 +80,6 @@ extension BattleTurnEngine {
             context.nextEvent(
                 kind: .ability,
                 actionID: context.resolution.actionID,
-                effectKind: nil,
                 source: .init(actor),
                 abilityID: resolvedAbility.id,
                 abilityName: resolvedAbility.name,

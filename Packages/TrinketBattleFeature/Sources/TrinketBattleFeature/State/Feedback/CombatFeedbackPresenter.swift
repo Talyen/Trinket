@@ -20,12 +20,11 @@ enum CombatFeedbackPresenter {
     private static func classify(_ event: ActionEvent) -> CombatFeedbackClass {
         switch event.kind {
         case .abilityDamage, .status:
-            return .directDamage
+            .directDamage
         case .ability, .milestone:
-            return .buff
-        case .effect:
-            guard let effectKind = event.effectKind else { return .buff }
-            return CombatFeedbackEffectPresentation.descriptor(for: effectKind).feedbackClass
+            .buff
+        case let .effect(effectKind):
+            CombatFeedbackEffectPresentation.descriptor(for: effectKind).feedbackClass
         }
     }
 
@@ -136,8 +135,7 @@ enum CombatFeedbackPresenter {
                 return event.amount != 0
             case .status:
                 return true
-            case .effect:
-                guard let effectKind = event.effectKind else { return true }
+            case let .effect(effectKind):
                 if effectKind == .controlActionSkipped || effectKind == .controlTriggered,
                    event.keyword == .freeze || event.keyword == .stun {
                     return false
@@ -184,9 +182,8 @@ enum CombatFeedbackPresenter {
         switch event.kind {
         case .abilityDamage, .status:
             family = .abilityDamage
-        case .effect:
-            guard let effectKind = event.effectKind,
-                  CombatFeedbackEffectPresentation.descriptor(for: effectKind).isAdditive
+        case let .effect(effectKind):
+            guard CombatFeedbackEffectPresentation.descriptor(for: effectKind).isAdditive
             else { return nil }
             switch classify(event) {
             case .directDamage: family = .abilityDamage

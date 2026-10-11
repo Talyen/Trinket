@@ -208,7 +208,7 @@ extension HealingEngine {
             if outcome.healthRestored > 0 {
                 allocation.allocate(outcome.healthRestored, to: .transfer)
                 events.append(context.nextEvent(
-                    kind: .effect, effectKind: .leechHeal, source: .init(context.hero),
+                    kind: .effect(.leechHeal), source: .init(context.hero),
                     abilityName: "Blood Link", target: context.companion,
                     amount: outcome.healthRestored, keyword: .leech,
                 ))

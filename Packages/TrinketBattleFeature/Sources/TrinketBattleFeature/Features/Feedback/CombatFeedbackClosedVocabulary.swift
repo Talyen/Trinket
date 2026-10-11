@@ -101,8 +101,7 @@ enum CombatFeedbackClosedVocabulary {
         ActionEvent(
             id: 1,
             actionID: 1,
-            kind: .effect,
-            effectKind: outcome,
+            kind: .effect(outcome),
             actorName: "Hero",
             abilityName: "Catalog",
             targetID: "catalog",

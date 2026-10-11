@@ -201,8 +201,7 @@ extension UniqueCombatEngine {
             context.uniques.owners[owner, default: .init()].wildheartReady = true
             if BattleCardCombatEngine.drawFirstCard(matching: .poison, for: owner, context: &context) != nil {
                 events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .cardsDrawn,
+                    kind: .effect(.cardsDrawn),
                     source: .init(actor),
                     abilityName: "Wildheart’s Favor",
                     target: actor,
@@ -217,8 +216,7 @@ extension UniqueCombatEngine {
         guard spent > 0 else { return events }
         DefensePoolEngine.set(block - spent, on: actor, in: &context)
         events.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldHalved,
+            kind: .effect(.shieldHalved),
             source: .init(actor),
             abilityName: "Laughing Guard",
             target: actor,
@@ -257,8 +255,7 @@ extension UniqueCombatEngine {
         guard BattleCardCombatEngine.recoverCard(copyID: copyID, owner: owner, context: &context) != nil else { return [] }
         context.uniques.owners[owner, default: .init()].returnedGaleThisTurn = true
         return [context.nextEvent(
-            kind: .effect,
-            effectKind: .cardsDrawn,
+            kind: .effect(.cardsDrawn),
             source: .init(actor),
             abilityName: "The Returning Gale",
             target: actor,

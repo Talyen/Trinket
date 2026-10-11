@@ -118,7 +118,7 @@ struct CombatFeedbackBurstTests {
         keyword: Keyword, targetID: String = "enemy",
     ) -> ActionEvent {
         ActionEvent(
-            id: id, actionID: id, kind: .effect, effectKind: outcome,
+            id: id, actionID: id, kind: .effect(outcome),
             actorName: "Hero", abilityName: "Feedback", targetID: targetID, targetName: targetID,
             amount: amount, keyword: keyword, isFullyBlocked: outcome == .shieldAbsorbed,
         )

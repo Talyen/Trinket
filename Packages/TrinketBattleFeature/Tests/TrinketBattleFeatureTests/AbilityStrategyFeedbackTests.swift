@@ -9,7 +9,7 @@ struct AbilityStrategyFeedbackTests {
         for outcome in ActionEvent.EffectOutcome.allCases {
             for keyword in Keyword.allCases {
                 let event = BattleSessionTestSupport.makeActionEvent(
-                    id: 1, kind: .effect, effectKind: outcome, amount: 3, keyword: keyword,
+                    id: 1, kind: .effect(outcome), amount: 3, keyword: keyword,
                 )
                 for item in CombatFeedbackPresenter.makeItems(from: [event], at: .now) {
                     #expect(item.chipPresentation.text?.allSatisfy(\.isNumber) ?? true)
@@ -20,7 +20,7 @@ struct AbilityStrategyFeedbackTests {
 
     @Test func `sniff out shows preparation and amount on recipient`() throws {
         let event = BattleSessionTestSupport.makeActionEvent(
-            id: 1, kind: .effect, effectKind: .partyDamagePreparationApplied, amount: 3, keyword: .physical,
+            id: 1, kind: .effect(.partyDamagePreparationApplied), amount: 3, keyword: .physical,
         )
         let item = try #require(CombatFeedbackPresenter.makeItems(from: [event], at: .now).first)
         #expect(item.targetID == event.targetID)
@@ -39,7 +39,7 @@ struct AbilityStrategyFeedbackTests {
         let silent = CombatFeedbackPresenter.makeItems(from: [summary], at: .now)
         #expect(silent.isEmpty)
         let gain = BattleSessionTestSupport.makeActionEvent(
-            id: 1, kind: .effect, effectKind: .resourceGain, amount: 3, keyword: .mana, actionID: 1,
+            id: 1, kind: .effect(.resourceGain), amount: 3, keyword: .mana, actionID: 1,
         )
         let visible = CombatFeedbackPresenter.makeItems(from: [gain, summary], at: .now)
         #expect(visible.count == 1)

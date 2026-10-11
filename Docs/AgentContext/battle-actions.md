@@ -70,6 +70,12 @@ remaining support rewards. New actions cannot start after battle ends.
 
 ## Combat log projection
 
+`ActionEvent.Kind` carries its effect outcome or milestone as an associated value;
+there are no independent optional tags to reconcile. Emit each committed result
+through `BattleState.nextEvent` with its final meaning. Returned command events,
+recording checkpoints, and retained history must agree for the same event ID;
+never retag a returned copy of an already emitted reaction.
+
 Engine event emitters require `CombatEventSource`, pairing actor identity with its
 display text. Healing and Mana helpers retain that source across redirected gains;
 periodic/environmental captions explicitly carry their owner ID or no owner.

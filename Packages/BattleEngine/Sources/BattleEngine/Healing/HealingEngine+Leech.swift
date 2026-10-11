@@ -190,7 +190,7 @@ package extension HealingEngine {
                replacing: { $0.kind == .thorns },
            ) {
             events.append(context.nextEvent(
-                kind: .effect, effectKind: .thornsApplied,
+                kind: .effect(.thornsApplied),
                 source: .init(actorCombatant),
                 abilityName: CombatTriggerEngine.triggerAbilityName(
                     .leechThornsWithoutThorns, for: actorCombatant, fallback: "Bloodroot", in: context,
@@ -241,15 +241,13 @@ package extension HealingEngine {
         }
         if actualRestored > 0 {
             events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .leechHeal,
+                kind: .effect(.leechHeal),
                 source: .init(actorCombatant),
                 abilityName: "Leech",
                 target: actorCombatant,
                 amount: actualRestored,
                 keyword: .leech,
                 appliedEffectSummaries: [],
-                milestone: nil,
                 isCritical: healing.isCritical,
             ))
         }

@@ -84,8 +84,7 @@ package extension BattleState {
             }
         }
         var events = [nextEvent(
-            kind: .effect,
-            effectKind: .shieldApplied,
+            kind: .effect(.shieldApplied),
             source: .init(source),
             abilityID: abilityID, abilityName: abilityName,
             target: target,

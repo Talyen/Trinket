@@ -161,15 +161,13 @@ package enum ControlMeterEngine {
         let abilityName = keyword.statusAlias ?? keyword.rawValue
         var events = [
             context.nextEvent(
-                kind: .effect,
-                effectKind: .controlTriggered,
+                kind: .effect(.controlTriggered),
                 source: context.eventSource(actorID: sourceActorID, fallback: combatant),
                 abilityName: abilityName,
                 target: combatant,
                 amount: 0,
                 keyword: keyword,
                 appliedEffectSummaries: [],
-                milestone: nil,
             ),
         ]
         if keyword == .stun, combatant.id == context.roster.enemy.id {
@@ -402,8 +400,7 @@ extension ControlMeterEngine {
         guard newAmount > currentAmount else { return [] }
 
         let amplificationEvent = context.nextEvent(
-            kind: .effect,
-            effectKind: .dotAmplified,
+            kind: .effect(.dotAmplified),
             source: context.eventSource(actorID: sourceActorID, fallback: combatant),
             abilityID: abilityID, abilityName: abilityName,
             target: combatant,

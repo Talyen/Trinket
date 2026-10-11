@@ -28,10 +28,10 @@ struct CombatFeedbackPresenterTests {
     func `healing feedback includes overflow in one health number`(restored: Int) throws {
         let events = [
             BattleSessionTestSupport.makeActionEvent(
-                id: 1, kind: .effect, effectKind: .instantHeal, amount: restored, keyword: .health, actionID: 1,
+                id: 1, kind: .effect(.instantHeal), amount: restored, keyword: .health, actionID: 1,
             ),
             BattleSessionTestSupport.makeActionEvent(
-                id: 2, kind: .effect, effectKind: .overheal, amount: 10 - restored, keyword: .health,
+                id: 2, kind: .effect(.overheal), amount: 10 - restored, keyword: .health,
                 isCritical: true, actionID: 1,
             ),
         ]
@@ -132,16 +132,14 @@ struct CombatFeedbackPresenterTests {
             from: [
                 BattleSessionTestSupport.makeActionEvent(
                     id: 7,
-                    kind: .effect,
-                    effectKind: .shieldApplied,
+                    kind: .effect(.shieldApplied),
                     amount: 2,
                     keyword: .block,
                     actionID: 7,
                 ),
                 BattleSessionTestSupport.makeActionEvent(
                     id: 8,
-                    kind: .effect,
-                    effectKind: .shieldApplied,
+                    kind: .effect(.shieldApplied),
                     amount: 3,
                     keyword: .block,
                     actionID: 7,
@@ -190,15 +188,13 @@ struct CombatFeedbackPresenterTests {
         let events = [
             BattleSessionTestSupport.makeActionEvent(
                 id: 4,
-                kind: .effect,
-                effectKind: .instantHeal,
+                kind: .effect(.instantHeal),
                 amount: 8,
                 keyword: .health,
             ),
             BattleSessionTestSupport.makeActionEvent(
                 id: 5,
-                kind: .effect,
-                effectKind: .dodgeApplied,
+                kind: .effect(.dodgeApplied),
                 amount: 0,
                 keyword: .dodge,
             ),
@@ -262,15 +258,13 @@ struct CombatFeedbackPresenterTests {
             from: [
                 BattleSessionTestSupport.makeActionEvent(
                     id: 1,
-                    kind: .effect,
-                    effectKind: .instantHeal,
+                    kind: .effect(.instantHeal),
                     amount: 2,
                     keyword: .health,
                 ),
                 BattleSessionTestSupport.makeActionEvent(
                     id: 2,
-                    kind: .effect,
-                    effectKind: .leechHeal,
+                    kind: .effect(.leechHeal),
                     amount: 3,
                     keyword: .health,
                 ),
@@ -295,23 +289,23 @@ struct CombatFeedbackPresenterTests {
             from: [
                 BattleSessionTestSupport.makeActionEvent(id: 1, kind: .status, amount: 1, keyword: .bleed, actionID: 1),
                 BattleSessionTestSupport.makeActionEvent(
-                    id: 2, kind: .effect, effectKind: .resourceGain, amount: 1, keyword: .gold, actionID: 1,
+                    id: 2, kind: .effect(.resourceGain), amount: 1, keyword: .gold, actionID: 1,
                 ),
                 BattleSessionTestSupport.makeActionEvent(
-                    id: 3, kind: .effect, effectKind: .instantHeal, amount: 2, keyword: .health, actionID: 1,
+                    id: 3, kind: .effect(.instantHeal), amount: 2, keyword: .health, actionID: 1,
                 ),
                 BattleSessionTestSupport.makeActionEvent(
-                    id: 4, kind: .effect, effectKind: .controlApplied, amount: 1, keyword: .stun, actionID: 1,
+                    id: 4, kind: .effect(.controlApplied), amount: 1, keyword: .stun, actionID: 1,
                 ),
                 BattleSessionTestSupport.makeActionEvent(id: 5, kind: .abilityDamage, amount: 8, keyword: .physical, actionID: 1),
                 BattleSessionTestSupport.makeActionEvent(
-                    id: 6, kind: .effect, effectKind: .shieldApplied, amount: 3, keyword: .block, actionID: 1,
+                    id: 6, kind: .effect(.shieldApplied), amount: 3, keyword: .block, actionID: 1,
                 ),
                 BattleSessionTestSupport.makeActionEvent(
-                    id: 7, kind: .effect, effectKind: .dodgeApplied, amount: 0, keyword: .dodge, actionID: 1,
+                    id: 7, kind: .effect(.dodgeApplied), amount: 0, keyword: .dodge, actionID: 1,
                 ),
                 BattleSessionTestSupport.makeActionEvent(
-                    id: 8, kind: .effect, effectKind: .resourceGain, amount: 2, keyword: .mana, actionID: 1,
+                    id: 8, kind: .effect(.resourceGain), amount: 2, keyword: .mana, actionID: 1,
                 ),
             ],
             at: .now,
@@ -382,8 +376,7 @@ extension CombatFeedbackPresenterTests {
                 BattleSessionTestSupport.makeActionEvent(id: 1, kind: .abilityDamage, amount: 7, keyword: .physical),
                 BattleSessionTestSupport.makeActionEvent(
                     id: 2,
-                    kind: .effect,
-                    effectKind: .shieldApplied,
+                    kind: .effect(.shieldApplied),
                     amount: 4,
                     keyword: .block,
                 ),
@@ -401,38 +394,19 @@ extension CombatFeedbackPresenterTests {
         #expect(mixedChips.allSatisfy { !$0.label.displayString.contains("Effect") })
     }
 
-    @Test func `keeps ability damage visible when effect kind would hide an effect chip`() {
-        let items = CombatFeedbackPresenter.makeItems(
-            from: [
-                BattleSessionTestSupport.makeActionEvent(
-                    id: 1,
-                    kind: .abilityDamage,
-                    effectKind: .cardsDrawn,
-                    amount: 6,
-                    keyword: .physical,
-                ),
-            ],
-            at: .now,
-        )
-        #expect(items.count == 1)
-        #expect(items[0].feedbackClass == .directDamage)
-        #expect(items[0].label == .amount(-6))
-    }
-
     @Test func `suppresses cards control buildup and numeric zeroes but shows preparations`() {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
-                BattleSessionTestSupport.makeActionEvent(id: 1, kind: .effect, effectKind: .cardsDrawn, amount: 2, keyword: .physical),
-                BattleSessionTestSupport.makeActionEvent(id: 2, kind: .effect, effectKind: .controlApplied, amount: 4, keyword: .stun),
-                BattleSessionTestSupport.makeActionEvent(id: 3, kind: .effect, effectKind: .shieldApplied, amount: 0, keyword: .block),
+                BattleSessionTestSupport.makeActionEvent(id: 1, kind: .effect(.cardsDrawn), amount: 2, keyword: .physical),
+                BattleSessionTestSupport.makeActionEvent(id: 2, kind: .effect(.controlApplied), amount: 4, keyword: .stun),
+                BattleSessionTestSupport.makeActionEvent(id: 3, kind: .effect(.shieldApplied), amount: 0, keyword: .block),
                 BattleSessionTestSupport.makeActionEvent(
                     id: 4,
-                    kind: .effect,
-                    effectKind: .nextHolyStrikeApplied,
+                    kind: .effect(.nextHolyStrikeApplied),
                     amount: 0,
                     keyword: .holy,
                 ),
-                BattleSessionTestSupport.makeActionEvent(id: 5, kind: .effect, effectKind: .leechApplied, amount: 10, keyword: .physical),
+                BattleSessionTestSupport.makeActionEvent(id: 5, kind: .effect(.leechApplied), amount: 10, keyword: .physical),
             ],
             at: .now,
         )
@@ -446,19 +420,18 @@ extension CombatFeedbackPresenterTests {
     @Test @MainActor func `routes resource and named status visuals`() throws {
         let now = Date.now
         let items = [
-            BattleSessionTestSupport.makeActionEvent(id: 1, kind: .effect, effectKind: .resourceGain, amount: 3, keyword: .gold),
-            BattleSessionTestSupport.makeActionEvent(id: 2, kind: .effect, effectKind: .resourceGain, amount: 2, keyword: .mana),
-            BattleSessionTestSupport.makeActionEvent(id: 3, kind: .effect, effectKind: .manaShieldTriggered, amount: 1, keyword: .mana),
-            BattleSessionTestSupport.makeActionEvent(id: 4, kind: .effect, effectKind: .thornsApplied, amount: 2, keyword: .thorns),
+            BattleSessionTestSupport.makeActionEvent(id: 1, kind: .effect(.resourceGain), amount: 3, keyword: .gold),
+            BattleSessionTestSupport.makeActionEvent(id: 2, kind: .effect(.resourceGain), amount: 2, keyword: .mana),
+            BattleSessionTestSupport.makeActionEvent(id: 3, kind: .effect(.manaShieldTriggered), amount: 1, keyword: .mana),
+            BattleSessionTestSupport.makeActionEvent(id: 4, kind: .effect(.thornsApplied), amount: 2, keyword: .thorns),
             BattleSessionTestSupport.makeActionEvent(
                 id: 6,
-                kind: .effect,
-                effectKind: .criticalChanceApplied,
+                kind: .effect(.criticalChanceApplied),
                 amount: 15,
                 keyword: .physical,
             ),
-            BattleSessionTestSupport.makeActionEvent(id: 7, kind: .effect, effectKind: .markedApplied, amount: 3, keyword: .physical),
-            BattleSessionTestSupport.makeActionEvent(id: 8, kind: .effect, effectKind: .shieldHalved, amount: 0, keyword: .block),
+            BattleSessionTestSupport.makeActionEvent(id: 7, kind: .effect(.markedApplied), amount: 3, keyword: .physical),
+            BattleSessionTestSupport.makeActionEvent(id: 8, kind: .effect(.shieldHalved), amount: 0, keyword: .block),
         ].flatMap { CombatFeedbackPresenter.makeItems(from: [$0], at: now) }
 
         let byID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
@@ -502,8 +475,7 @@ extension CombatFeedbackPresenterTests {
         ActionEvent(
             id: id,
             actionID: id,
-            kind: .effect,
-            effectKind: effect,
+            kind: .effect(effect),
             actorName: "Hero",
             abilityName: "Same display name",
             targetID: "hero",
@@ -521,24 +493,21 @@ extension CombatFeedbackPresenterTests {
             from: [
                 BattleSessionTestSupport.makeActionEvent(
                     id: 1,
-                    kind: .effect,
-                    effectKind: .resourceGain,
+                    kind: .effect(.resourceGain),
                     amount: 4,
                     keyword: .gold,
                     actionID: 1,
                 ),
                 BattleSessionTestSupport.makeActionEvent(
                     id: 2,
-                    kind: .effect,
-                    effectKind: .resourceGain,
+                    kind: .effect(.resourceGain),
                     amount: 3,
                     keyword: .gold,
                     actionID: 1,
                 ),
                 BattleSessionTestSupport.makeActionEvent(
                     id: 3,
-                    kind: .effect,
-                    effectKind: .resourceGain,
+                    kind: .effect(.resourceGain),
                     amount: -3,
                     keyword: .gold,
                     actionID: 1,

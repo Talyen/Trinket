@@ -33,7 +33,6 @@ package extension BattleState {
     mutating func nextEvent(
         kind: ActionEvent.Kind,
         actionID: Int? = nil,
-        effectKind: ActionEvent.EffectOutcome? = nil,
         source: CombatEventSource,
         abilityID: String = "",
         abilityName: String,
@@ -42,7 +41,6 @@ package extension BattleState {
         amount: Int,
         keyword: Keyword,
         appliedEffectSummaries: [String] = [],
-        milestone: ActionEvent.Milestone? = nil,
         isCritical: Bool = false,
         origin: ActionEvent.Origin = .automatic,
         isFullyBlocked: Bool = false,
@@ -52,7 +50,6 @@ package extension BattleState {
             id: nextEventID,
             actionID: actionID ?? (actionCount + 1),
             kind: kind,
-            effectKind: effectKind,
             actorID: source.actorID,
             actorName: source.actorName,
             abilityID: abilityID,
@@ -63,7 +60,6 @@ package extension BattleState {
             amount: amount,
             keyword: keyword,
             appliedEffectSummaries: appliedEffectSummaries,
-            milestone: milestone,
             isCritical: isCritical,
             feedbackGroupID: resolution.feedbackGroupID ?? nextEventID,
             origin: origin == .direct && !resolution.isAutomaticPlay
@@ -80,13 +76,12 @@ package extension BattleState {
 
     mutating func appendMilestone(_ milestone: ActionEvent.Milestone) -> ActionEvent {
         nextEvent(
-            kind: .milestone,
+            kind: .milestone(milestone),
             source: .none,
             abilityName: "",
             target: enemy,
             amount: 0,
             keyword: .physical,
-            milestone: milestone,
         )
     }
 

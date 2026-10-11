@@ -29,7 +29,6 @@ package enum DoTDamage {
 
         let statusEvent = context.nextEvent(
             kind: .status,
-            effectKind: nil,
             source: .init(actorID: sourceActorID, name: keyword.rawValue),
             abilityName: keyword.rawValue,
             target: target,

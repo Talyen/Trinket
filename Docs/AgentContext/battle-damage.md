@@ -64,7 +64,9 @@ Subsequent Burn/Poison ticks, consumed-stack damage
 and detonations use resolved potency: do not repeat outgoing flat/percent bonuses,
 critical multipliers or fight pacing. Current recipient defenses still apply.
 Reaction damage reports its own Health loss separately from nested control,
-Block, or healing events; those events retain their original meaning. Hidden Fangs
+Block, or healing events; those events retain their original meaning. Hemorrhage
+emits its own trigger event only for actual Health loss, preserving Block and
+Death's Door reactions in feedback and history. Hidden Fangs
 likewise reports its immediate Bleed loss before attaching its opening stack.
 Explicit non-damaging stack grants and reflection retain their specified potency;
 neither gains outgoing bonuses. Ticks never attach new stacks. Bleed and authored

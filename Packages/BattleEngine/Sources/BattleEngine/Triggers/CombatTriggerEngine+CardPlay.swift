@@ -261,8 +261,7 @@ package extension CombatTriggerEngine {
         let drawn = BattleCardCombatEngine.drawCards(count: count, for: owner, context: &context)
         guard drawn > 0 else { return [] }
         return [context.nextEvent(
-            kind: .effect,
-            effectKind: .cardsDrawn,
+            kind: .effect(.cardsDrawn),
             source: .init(actor),
             abilityName: abilityName,
             target: actor,

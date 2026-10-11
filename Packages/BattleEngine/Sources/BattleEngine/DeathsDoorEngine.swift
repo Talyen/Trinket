@@ -121,8 +121,7 @@ package enum DeathsDoorEngine {
         let abilityName = reviveHealth >= 10 ? "Rebirth" : "Deathrattle"
         var events = [
             context.nextEvent(
-                kind: .effect,
-                effectKind: .instantHeal,
+                kind: .effect(.instantHeal),
                 source: .init(combatant),
                 abilityName: abilityName,
                 target: combatant,
@@ -168,8 +167,7 @@ package enum DeathsDoorEngine {
         )
 
         let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .deathsDoorTriggered,
+            kind: .effect(.deathsDoorTriggered),
             source: .init(combatant),
             abilityName: Keyword.deathsDoor.rawValue,
             target: combatant,

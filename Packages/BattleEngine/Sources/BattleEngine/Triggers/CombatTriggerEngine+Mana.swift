@@ -18,8 +18,7 @@ package extension CombatTriggerEngine {
             context: &context,
         ) != nil else { return [] }
         return [context.nextEvent(
-            kind: .effect,
-            effectKind: .cardsDrawn,
+            kind: .effect(.cardsDrawn),
             source: .init(actor),
             abilityName: triggerAbilityName(
                 .empoweredElementDrawOpposite,

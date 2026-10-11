@@ -252,14 +252,13 @@ enum BattleSessionTestSupport {
         sourceLocation: SourceLocation = #_sourceLocation,
     ) {
         let recordedIDs = Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))
-        let milestoneIDs = Set((session.engineState?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
+        let milestoneIDs = Set((session.engineState?.events ?? []).filter { $0.milestone != nil }.map(\.id))
         #expect(recordedIDs.isDisjoint(with: milestoneIDs), sourceLocation: sourceLocation)
     }
 
     nonisolated static func makeActionEvent(
         id: Int,
         kind: ActionEvent.Kind,
-        effectKind: ActionEvent.EffectOutcome? = nil,
         amount: Int,
         keyword: Keyword,
         targetID: String = "enemy",
@@ -272,7 +271,6 @@ enum BattleSessionTestSupport {
             id: id,
             actionID: actionID ?? id,
             kind: kind,
-            effectKind: effectKind,
             actorID: "hero",
             actorName: "Hero",
             abilityID: abilityID,

@@ -7,12 +7,14 @@ public struct ActionEvent: Identifiable, Equatable {
         case direct, automatic, periodic
     }
 
+    /// Effect and milestone payloads belong to their kind, so every consumer
+    /// sees the same meaning and emitted events cannot be partially retagged.
     public enum Kind: Equatable {
         case ability
         case abilityDamage
         case status
-        case effect
-        case milestone
+        case effect(EffectOutcome)
+        case milestone(Milestone)
     }
 
     public enum Milestone: Equatable {
@@ -69,7 +71,11 @@ public struct ActionEvent: Identifiable, Equatable {
     public let origin: Origin
     public let isFullyBlocked: Bool
     public let kind: Kind
-    public let effectKind: EffectOutcome?
+    public var effectKind: EffectOutcome? {
+        guard case let .effect(outcome) = kind else { return nil }
+        return outcome
+    }
+
     public let actorID: String
     public let actorName: String
     public let abilityID: String
@@ -80,14 +86,17 @@ public struct ActionEvent: Identifiable, Equatable {
     public let amount: Int
     public let keyword: Keyword
     public let appliedEffectSummaries: [String]
-    public let milestone: Milestone?
+    public var milestone: Milestone? {
+        guard case let .milestone(milestone) = kind else { return nil }
+        return milestone
+    }
+
     public let isCritical: Bool
 
     public init(
         id: Int,
         actionID: Int = 0,
         kind: Kind,
-        effectKind: EffectOutcome? = nil,
         actorID: String = "",
         actorName: String,
         abilityID: String = "",
@@ -98,7 +107,6 @@ public struct ActionEvent: Identifiable, Equatable {
         amount: Int,
         keyword: Keyword,
         appliedEffectSummaries: [String] = [],
-        milestone: Milestone? = nil,
         isCritical: Bool = false,
         feedbackGroupID: Int? = nil,
         origin: Origin = .direct,
@@ -110,7 +118,6 @@ public struct ActionEvent: Identifiable, Equatable {
         self.origin = origin
         self.isFullyBlocked = isFullyBlocked
         self.kind = kind
-        self.effectKind = effectKind
         self.actorID = actorID
         self.actorName = actorName
         self.abilityID = abilityID
@@ -121,7 +128,6 @@ public struct ActionEvent: Identifiable, Equatable {
         self.amount = amount
         self.keyword = keyword
         self.appliedEffectSummaries = appliedEffectSummaries
-        self.milestone = milestone
         self.isCritical = isCritical
     }
 
@@ -134,7 +140,6 @@ public struct ActionEvent: Identifiable, Equatable {
     }
 
     public func with(
-        effectKind: EffectOutcome? = nil,
         actorID: String? = nil,
         actorName: String? = nil,
         abilityName: String? = nil,
@@ -145,7 +150,6 @@ public struct ActionEvent: Identifiable, Equatable {
             id: id,
             actionID: actionID,
             kind: kind,
-            effectKind: effectKind ?? self.effectKind,
             actorID: actorID ?? self.actorID,
             actorName: actorName ?? self.actorName,
             abilityID: abilityID,
@@ -156,7 +160,6 @@ public struct ActionEvent: Identifiable, Equatable {
             amount: amount ?? self.amount,
             keyword: keyword,
             appliedEffectSummaries: appliedEffectSummaries,
-            milestone: milestone,
             isCritical: isCritical ?? self.isCritical,
             feedbackGroupID: feedbackGroupID,
             origin: origin,

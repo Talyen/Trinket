@@ -47,8 +47,7 @@ enum EffectRemovalOperation {
             : removed.map(\.keyword).sorted { $0.rawValue < $1.rawValue }
         return keywords.map { keyword in
             context.nextEvent(
-                kind: .effect,
-                effectKind: effectKind,
+                kind: .effect(effectKind),
                 source: .init(source),
                 abilityID: abilityID, abilityName: abilityName,
                 target: target,

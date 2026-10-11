@@ -15,8 +15,7 @@ struct HalveShieldHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldHalved,
+            kind: .effect(.shieldHalved),
             source: .init(source),
             abilityID: ability.id, abilityName: ability.name,
             target: target,

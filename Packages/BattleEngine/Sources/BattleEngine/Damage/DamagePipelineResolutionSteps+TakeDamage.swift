@@ -195,8 +195,7 @@ package extension DamagePipeline {
             return false
         }
         state.damageEvents.append(context.nextEvent(
-            kind: .effect,
-            effectKind: .markedConsumed,
+            kind: .effect(.markedConsumed),
             source: .init(state.combatant),
             abilityName: "Marked",
             target: state.combatant,

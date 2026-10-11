@@ -187,8 +187,7 @@ struct BleedHandler: BattleEffectHandler {
         else { return [] }
         guard BattleCardCombatEngine.drawFirstCard(matching: .physical, for: owner, context: &context) != nil else { return [] }
         return [context.nextEvent(
-            kind: .effect,
-            effectKind: .cardsDrawn,
+            kind: .effect(.cardsDrawn),
             source: .init(source.combatant),
             abilityName: CombatTriggerEngine.triggerAbilityName(
                 .bleedTickDrawChancePercent,

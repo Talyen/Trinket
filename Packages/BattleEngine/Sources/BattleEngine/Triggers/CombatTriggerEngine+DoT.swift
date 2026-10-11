@@ -153,8 +153,7 @@ package extension CombatTriggerEngine {
         guard restored > 0 else { return overflowEvents }
         context.turnCadence.burnManaRestored[participant, default: 0] += restored
         var events = [context.nextEvent(
-            kind: .effect,
-            effectKind: .resourceGain,
+            kind: .effect(.resourceGain),
             source: .init(caster),
             abilityName: triggerAbilityName(
                 .onBurnDamageRestoreManaFlat,
