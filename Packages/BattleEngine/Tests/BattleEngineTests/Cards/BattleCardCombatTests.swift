@@ -290,7 +290,7 @@ struct BattleCardCombatTests {
             )
         }
         let before = battle.health(of: battle.enemy)
-        let events = battle.endTurn()
+        let events = battle.endTurn().events
 
         try #expect(battle.turnCount == 1)
         try #expect(events.count(where: { $0.kind == .status && $0.keyword == .burn }) == 1)
@@ -336,7 +336,7 @@ struct BattleCardCombatTests {
         battle.hand.append(BattleCard(id: battle.nextCardID, ability: .packTactics, owner: .hero))
 
         let packTacticsID = try #require(battle.hand.cards.first?.id)
-        let events = try battle.playCard(cardID: packTacticsID)
+        let events = try battle.playCard(cardID: packTacticsID).events
 
         try #expect(battle.heroDeck.discarded.last?.ability.id == Ability.packTactics.id)
         try #expect(!events.contains { $0.kind == .abilityDamage && $0.abilityName == Ability.slash.name })
@@ -414,67 +414,21 @@ extension BattleCardCombatTests {
 
 extension BattleCardCombatTests {
     @Test(arguments: [false, true])
-    func `turn and opening recordings never retain a command recorder`(opening: Bool) {
-        var state = BattleStateTestFactory.makeBattle(dealOpeningHand: !opening)
-        var checkpoints: [BattleState] = []
-        let recording: (BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void = { _, snapshot, _ in
-            checkpoints.append(snapshot)
-        }
-        if opening {
-            state.drawOpeningHand(recording: recording)
-        } else {
-            state.endTurn(recording: recording)
-        }
-        #expect(!checkpoints.isEmpty)
-        #expect(checkpoints.allSatisfy { $0.cardPlayRecording == nil })
-        #expect(state.cardPlayRecording == nil)
-    }
-
-    @Test(arguments: [false, true])
     func `recorded automatic draws preserve nested play and overflow rules`(nested: Bool) throws {
         let fixture = automaticDrawFixture(nested: nested)
         var recorded = fixture.state
         let initiating = fixture.card
         var immediate = recorded
         let startingEventID = recorded.nextEventID
-        var checkpoints: [BattleTransitionCheckpoint] = []
-        var capturedEvents: [ActionEvent] = []
-        var drawnIDs: Set<Int> = []
-        var playedIDs: [Int] = []
-        var resolvedActions: [BattleResolvedAction] = []
-        var sawBufferedDraw = false
-        let recordedEvents = try recorded.playCard(cardID: initiating.id) { checkpoint, state, events in
-            #expect(state.cardPlayRecording == nil)
-            checkpoints.append(checkpoint)
-            capturedEvents.append(contentsOf: events)
-            switch checkpoint {
-            case let .actionResolved(action):
-                resolvedActions.append(action)
-                #expect(events.isEmpty)
-            case let .cardsDrawn(cards):
-                #expect(cards.count == 1)
-                drawnIDs.formUnion(cards.map(\.id))
-                sawBufferedDraw = sawBufferedDraw || cards.contains { card in
-                    state.hand.buffer.contains(where: { $0.id == card.id })
-                }
-            case let .cardWillPlay(card):
-                #expect(state.hand.cards.contains(card) || state.hand.buffer.contains(card))
-                #expect(card.id == initiating.id || drawnIDs.contains(card.id))
-            case let .cardPlayed(card):
-                #expect(!state.hand.cards.contains(card) && !state.hand.buffer.contains(card))
-                playedIDs.append(card.id)
-            default:
-                break
-            }
-        }
-        let immediateEvents = try immediate.playCard(cardID: initiating.id)
-        #expect(recordedEvents == immediateEvents)
-        #expect(capturedEvents == recorded.events.filter { $0.id > startingEventID })
+        let result = try recorded.playCard(cardID: initiating.id, recordActions: true)
+        let immediateEvents = try immediate.playCard(cardID: initiating.id).events
+        let playedIDs = result.playedCards.map(\.id)
+        #expect(result.events == immediateEvents)
+        #expect(result.events == recorded.events.filter { $0.id > startingEventID })
         #expect(playedIDs.count == (nested ? 3 : 2))
-        assertResolvedAttacks(resolvedActions, playedIDs: playedIDs, events: capturedEvents)
-        #expect(checkpoints.last == .ready)
-        #expect(sawBufferedDraw == nested)
-        #expect(recorded.cardPlayRecording == nil)
+        #expect(playedIDs.first == initiating.id)
+        assertResolvedAttacks(result.actions, playedIDs: playedIDs, events: result.events)
+        #expect(recorded.commandRecording == nil)
         #expect(recorded.hand == immediate.hand)
         #expect(recorded.heroDeck == immediate.heroDeck)
         #expect(recorded.companionDeck == immediate.companionDeck)
@@ -536,7 +490,7 @@ extension BattleCardCombatTests {
         battle.heroDeck = CombatDeck(abilities: [.block])
         battle.companionDeck = CombatDeck(abilities: [.block])
         let card = BattleCardCombatEngine.deal(.packTactics, owner: owner, context: &battle)
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
         let hit = try #require(events.firstIndex { $0.kind == .abilityDamage && $0.abilityID == Ability.packTactics.id })
         #expect(events[hit].amount == 5)
         let draw = try #require(events.firstIndex { $0.effectKind == .cardsDrawn })

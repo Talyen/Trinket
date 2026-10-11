@@ -108,7 +108,7 @@ struct HealthRestorationTargetingTests {
         let card = BattleCard(id: battle.nextCardID, ability: .panaceaPotion, owner: .hero)
         battle.hand.append(card)
 
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         #expect(battle.health(of: battle.hero) == 7)
         #expect(battle.health(of: battle.companion) == 12)

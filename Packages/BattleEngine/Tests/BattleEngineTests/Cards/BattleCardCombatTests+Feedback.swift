@@ -16,7 +16,7 @@ extension BattleCardCombatTests {
         )
         battle.appliesFightPacing = false
         let card = try #require(battle.hand.cards.first)
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
         let block = try #require(events.first { $0.effectKind == .shieldApplied })
         let thorns = try #require(events.first { $0.effectKind == .thornsApplied })
         #expect(block.origin == .direct)

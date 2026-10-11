@@ -79,7 +79,7 @@ extension CombatTriggerTalentDamageTests {
         )
         battle.heroDeck = CombatDeck(abilities: [.kindling])
         let card = BattleCardCombatEngine.deal(.kindling, owner: .hero, context: &battle)
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
         #expect(events.count { $0.kind == .ability && $0.abilityID == Ability.kindling.id } == 2)
         #expect(battle.mana(of: battle.hero) == 0)
         #expect(battle.roster.hero.talents.battle.manaSpentTowardAutoPlay == 0)

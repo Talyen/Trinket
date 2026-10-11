@@ -68,7 +68,7 @@ struct FrostCircuitRegressionTests {
             )
             battle.appliesFightPacing = false
             let card = try #require(battle.hand.cards.first { $0.owner == .hero })
-            let events = try battle.playCard(cardID: card.id)
+            let events = try battle.playCard(cardID: card.id).events
             let criticalHits = events.count {
                 $0.kind == .abilityDamage && $0.abilityID == Ability.rayOfFrost.id && $0.isCritical
             }

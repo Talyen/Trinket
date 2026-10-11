@@ -17,23 +17,18 @@ extension BattleCardCombatTests {
             _ = try plain.playCard(cardID: card.id)
         }
         var recorded = plain
-        var checkpoints: [BattleTransitionCheckpoint] = []
-        var hands: [BattleHand] = []
-        let record: (BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void = { checkpoint, state, _ in
-            checkpoints.append(checkpoint)
-            hands.append(state.hand)
-        }
-        let plainEvents = opening ? plain.drawOpeningHand() : plain.endTurn()
-        let recordedEvents = opening ? recorded.drawOpeningHand(recording: record) : recorded.endTurn(recording: record)
-        #expect(checkpoints.last == .ready)
-        #expect(hands.last == recorded.hand)
+        let plainResult = opening ? plain.drawOpeningHand() : plain.endTurn()
+        let recordedResult = opening
+            ? recorded.drawOpeningHand(recordActions: true)
+            : recorded.endTurn(recordActions: true)
+        #expect(recorded.commandRecording == nil)
         #expect(plain.hand == recorded.hand)
         for owner in [BattleParticipant.hero, .companion, .enemy] {
             #expect(plain.roster[owner] == recorded.roster[owner])
         }
         #expect(plain.goldFlow == recorded.goldFlow)
         #expect(plain.phase == recorded.phase)
-        #expect(plainEvents == recordedEvents)
+        #expect(plainResult.events == recordedResult.events)
         #expect(plain.rng.next() == recorded.rng.next())
     }
 

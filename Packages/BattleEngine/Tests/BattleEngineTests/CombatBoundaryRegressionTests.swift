@@ -20,7 +20,7 @@ struct CombatBoundaryRegressionTests {
             } }
         } else {
             let card = BattleCardCombatEngine.deal(.phoenixFeather, owner: .hero, context: &battle)
-            events = try battle.playCard(cardID: card.id)
+            events = try battle.playCard(cardID: card.id).events
         }
 
         let revival = try #require(events.first {

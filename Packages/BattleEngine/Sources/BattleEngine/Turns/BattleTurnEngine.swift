@@ -167,7 +167,7 @@ package enum BattleTurnEngine {
         }
         committed = true
         let repeats = reserveCardRepeat(for: actor, origin: origin, enemyTurn: entry == .enemyTurn, in: &context)
-        context.cardPlayRecording?.beginAction(
+        context.commandRecording?.beginAction(
             id: actionID, actorID: actor.id,
             abilityID: resolvedAbility.id, isAttack: resolvedAbility.dealsCombatDamage, afterEventID: context.nextEventID,
         )
@@ -205,7 +205,7 @@ package enum BattleTurnEngine {
 
         await events.append(contentsOf: executePreparedOperations(facts, ability: resolvedAbility, context: &context))
         recordAction(for: actor, context: &context)
-        context.cardPlayRecording?.endAction(state: context)
+        context.commandRecording?.endAction()
         if repeats {
             await events.append(contentsOf: repeatPreparedCard(facts, ability: resolvedAbility, context: &context))
         }

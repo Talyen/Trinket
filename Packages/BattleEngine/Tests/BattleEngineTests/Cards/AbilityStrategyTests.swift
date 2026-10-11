@@ -27,7 +27,7 @@ struct AbilityStrategyTests {
     @discardableResult
     private func play(_ ability: Ability, owner: BattleParticipant = .hero, in state: inout BattleState) throws -> [ActionEvent] {
         let card = deal(ability, owner: owner, in: &state)
-        return try state.playCard(cardID: card.id)
+        return try state.playCard(cardID: card.id).events
     }
 
     @Test(arguments: [0, 1, 2, 6])
@@ -40,7 +40,7 @@ struct AbilityStrategyTests {
         #expect(state.rng == rng)
         #expect(assessment.resources.isEmpty)
         #expect(DefensePoolEngine.blockPoints(in: state.roster.hero.activeEffects) == block)
-        let events = try state.playCard(cardID: card.id)
+        let events = try state.playCard(cardID: card.id).events
         #expect(events.first { $0.kind == .abilityDamage }?.amount == max(1, (block + 1) / 2))
         #expect(DefensePoolEngine.blockPoints(in: state.roster.hero.activeEffects) == block + 1)
         #expect(!events.contains { $0.effectKind == .blockSpent })
@@ -99,7 +99,7 @@ struct AbilityStrategyTests {
         let selected = BattleAbilityRules.resolveOutcome(.iceShot, actor: state.hero, in: &state)
         #expect(state.rng == rng)
         #expect(selected.directDamage == 2)
-        let events = try state.playCard(cardID: card.id)
+        let events = try state.playCard(cardID: card.id).events
         #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.freeze])
         #expect(state.roster.hero.currentMana < 6)
         if frozen {
@@ -119,7 +119,7 @@ struct AbilityStrategyTests {
         #expect(selected.directDamage == 3)
         #expect(selected.damageKeyword == expected)
         #expect(state.rng == rng)
-        let events = try state.playCard(cardID: card.id)
+        let events = try state.playCard(cardID: card.id).events
         #expect(events.first { $0.kind == .abilityDamage }?.keyword == expected)
     }
 
@@ -244,7 +244,7 @@ struct AbilityStrategyTests {
         state.roster.companion.currentHealth = 0
         let card = deal(.sniffOut, in: &state)
         #expect(state.assessCard(card).targets.contains { $0.combatantID == state.hero.id })
-        let events = try state.playCard(cardID: card.id)
+        let events = try state.playCard(cardID: card.id).events
         #expect(events.first { $0.effectKind == .partyDamagePreparationApplied }?.targetID == state.hero.id)
         #expect(state.resolution.pendingPartyDamage(for: state.hero.id) == 1)
     }

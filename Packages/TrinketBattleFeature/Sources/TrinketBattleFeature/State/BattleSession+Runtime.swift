@@ -94,69 +94,35 @@ extension BattleSession {
     @discardableResult
     func playEngineCard(cardID: Int) throws -> (events: [ActionEvent], playback: BattleTransitionPlayback) {
         guard var engineState, let configurationID = activeBattle?.id else { throw BattlePlayError.battleOver }
-        var automaticCards: [BattleCard] = []
-        var actions: [BattleResolvedAction] = []
-        let events = try engineState.playCard(cardID: cardID, rebuildLog: false) { checkpoint, _, _ in
-            Self.collectCheckpoint(checkpoint, excludingCardID: cardID, automaticCards: &automaticCards, actions: &actions)
-        }
+        let result = try engineState.playCard(cardID: cardID, rebuildLog: false, recordActions: true)
         self.engineState = engineState
-        return (events, Self.makePlayback(
-            configurationID: configurationID,
-            state: engineState,
-            events: events,
-            automaticCards: automaticCards,
-            actions: actions,
+        return (result.events, Self.makePlayback(
+            configurationID: configurationID, state: engineState, result: result, excludingCardID: cardID,
         ))
     }
 
     func resolveTransition(_ kind: BattleTransitionPlayback.Kind) -> BattleTransitionPlayback? {
         guard var state = engineState, let configurationID = activeBattle?.id else { return nil }
-        var automaticCards: [BattleCard] = []
-        var actions: [BattleResolvedAction] = []
-        let record: (BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void = { checkpoint, _, _ in
-            Self.collectCheckpoint(checkpoint, excludingCardID: nil, automaticCards: &automaticCards, actions: &actions)
-        }
-        let events: [ActionEvent] = switch kind {
-        case .opening: state.drawOpeningHand(rebuildLog: false, recording: record)
-        case .turn: state.endTurn(rebuildLog: false, recording: record)
+        let result: BattleCommandResult = switch kind {
+        case .opening: state.drawOpeningHand(rebuildLog: false, recordActions: true)
+        case .turn: state.endTurn(rebuildLog: false, recordActions: true)
         }
         engineState = state
-        return Self.makePlayback(
-            configurationID: configurationID,
-            state: state,
-            events: events,
-            automaticCards: automaticCards,
-            actions: actions,
-        )
-    }
-
-    private static func collectCheckpoint(
-        _ checkpoint: BattleTransitionCheckpoint,
-        excludingCardID: Int?,
-        automaticCards: inout [BattleCard],
-        actions: inout [BattleResolvedAction],
-    ) {
-        if case let .actionResolved(action) = checkpoint {
-            actions.append(action)
-        }
-        if case let .cardPlayed(card) = checkpoint, card.id != excludingCardID {
-            automaticCards.append(card)
-        }
+        return Self.makePlayback(configurationID: configurationID, state: state, result: result)
     }
 
     private static func makePlayback(
         configurationID: UUID,
         state: BattleState,
-        events: [ActionEvent],
-        automaticCards: [BattleCard],
-        actions: [BattleResolvedAction],
+        result: BattleCommandResult,
+        excludingCardID: Int? = nil,
     ) -> BattleTransitionPlayback {
         BattleTransitionPlayback(
             configurationID: configurationID,
             snapshot: BattlePresentationSnapshot(configurationID: configurationID, state: state),
-            events: events,
-            automaticCards: automaticCards,
-            actions: actions,
+            events: result.events,
+            automaticCards: result.playedCards.filter { $0.id != excludingCardID },
+            actions: result.actions,
         )
     }
 

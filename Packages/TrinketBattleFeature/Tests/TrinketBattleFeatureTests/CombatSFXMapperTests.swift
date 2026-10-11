@@ -13,7 +13,7 @@ struct CombatSFXMapperTests {
         state.hand = BattleHand()
         let card = BattleCardCombatEngine.deal(.block, owner: .hero, context: &state)
         let events = try state.withAutomaticPlay { state in
-            try state.playCard(cardID: card.id)
+            try state.playCard(cardID: card.id).events
         }
         let gain = try #require(events.first { $0.effectKind == .shieldApplied })
         #expect(gain.origin == .automatic)

@@ -30,16 +30,15 @@ extension BattleCardCombatEngine {
         if !allowBufferedRemoval {
             context.turnState = .playerTurn
         }
-        context.recordCardPlay(.cardWillPlay(card))
         if allowBufferedRemoval {
             _ = context.hand.removeFromAnyLocation(id: card.id)
         } else {
             _ = context.hand.remove(id: card.id)
         }
         discardPlayedCard(card, context: &context)
-        context.recordCardPlay(.cardPlayed(card))
+        context.commandRecording?.beginCard(card)
         let events = await resolvePlayedCard(card, actor: actor, context: &context)
-        context.recordCardPlay(.cardActions(card))
+        context.commandRecording?.endCard()
         return events
     }
 

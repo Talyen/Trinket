@@ -72,8 +72,8 @@ remaining support rewards. New actions cannot start after battle ends.
 
 `ActionEvent.Kind` carries its effect outcome or milestone as an associated value;
 there are no independent optional tags to reconcile. Emit each committed result
-through `BattleState.nextEvent` with its final meaning. Returned command events,
-recording checkpoints, and retained history must agree for the same event ID;
+through `BattleState.nextEvent` with its final meaning. Returned command events
+and retained history must agree for the same event ID;
 never retag a returned copy of an already emitted reaction.
 
 Engine event emitters require `CombatEventSource`, pairing actor identity with its
@@ -199,8 +199,8 @@ End Turn until settlement; automatic reaction cards retain their ordered resolut
 A deferred opening may be replaced by a caller-supplied hand: the first manual
 card or End Turn consumes that optional opening without granting its effects later.
 
-Turn and opening-hand drivers can record immutable presentation checkpoints while
-finishing all engine work synchronously. Incremental draw helpers are package-only.
+Card, turn, and opening commands finish all engine work synchronously before
+returning events and optional action records. Incremental draw helpers are package-only.
 Operation and mutation contracts live in [battle-engine context](battle-engine.md);
 playback and command readiness live in [battle presentation](battle-presentation.md).
 

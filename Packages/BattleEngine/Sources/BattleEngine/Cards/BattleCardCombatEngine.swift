@@ -26,14 +26,9 @@ package enum BattleCardCombatEngine {
     @discardableResult
     package static func drawOpeningHand(
         context: inout BattleState,
-        recording: ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)? = nil,
     ) async -> [ActionEvent] {
-        while drawNextOpeningHandCard(context: &context) {
-            recording?(.cardDrawn, context, [])
-        }
-        let events = await finalizeOpeningHand(context: &context)
-        recording?(.ready, context, events)
-        return events
+        while drawNextOpeningHandCard(context: &context) {}
+        return await finalizeOpeningHand(context: &context)
     }
 
     @discardableResult
@@ -78,33 +73,24 @@ package enum BattleCardCombatEngine {
     @discardableResult
     package static func endTurn(
         context: inout BattleState,
-        recording: ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)? = nil,
     ) async -> [ActionEvent] {
         guard !context.isBattleOver, context.phase == .playerTurn else {
             return []
         }
 
         var events = await endTurnWithoutDraw(context: &context)
-        recording?(.turnActions, context, events)
         if context.phase == .ended {
-            recording?(.ready, context, [])
             return events
         }
 
         while drawNextTurnStartCard(context: &context) {
-            recording?(.cardDrawn, context, [])
-            while promoteNextFromBuffer(context: &context) != nil {
-                recording?(.bufferPromoted, context, [])
-            }
+            promoteFromBuffer(context: &context)
         }
         // Not redundant with the inner loop: draws can exhaust (empty deck,
         // blocked owner) while buffered cards remain, so drain the buffer.
-        while promoteNextFromBuffer(context: &context) != nil {
-            recording?(.bufferPromoted, context, [])
-        }
+        promoteFromBuffer(context: &context)
         let finalEvents = await finalizeTurnStart(context: &context)
         events.append(contentsOf: finalEvents)
-        recording?(.ready, context, finalEvents)
         return events
     }
 

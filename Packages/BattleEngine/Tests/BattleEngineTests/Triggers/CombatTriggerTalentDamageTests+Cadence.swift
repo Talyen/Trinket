@@ -209,7 +209,7 @@ extension CombatTriggerTalentDamageTests {
         )
         battle.appliesFightPacing = false
         let card = try #require(battle.hand.cards.first)
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
         let immediateDamage = bloodfireIsLethal ? 2 : 4
         #expect(events.count { $0.kind == .abilityDamage && $0.keyword == .bleed && $0.amount == immediateDamage } == 1)
         let bleeds = battle.activeEffects(of: battle.enemy).filter(\.effect.isBleed)
@@ -263,14 +263,14 @@ extension CombatTriggerTalentDamageTests {
         battle.appendEffect(.nextStrikeDouble, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         let card = BattleCardCombatEngine.deal(.smite, owner: .hero, context: &battle)
 
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         #expect(battle.health(of: battle.enemy) == 92)
         #expect(events.filter { $0.effectKind == .shieldApplied && $0.abilityName == "Sunwall" }.map(\.amount) == [4])
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.companion)) == 4)
 
         let next = BattleCardCombatEngine.deal(.smite, owner: .hero, context: &battle)
-        let nextEvents = try battle.playCard(cardID: next.id)
+        let nextEvents = try battle.playCard(cardID: next.id).events
         #expect(nextEvents.filter { $0.effectKind == .shieldApplied && $0.abilityName == "Sunwall" }.map(\.amount) == [4])
     }
 }

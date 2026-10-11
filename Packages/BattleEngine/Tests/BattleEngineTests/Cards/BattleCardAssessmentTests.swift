@@ -122,7 +122,7 @@ struct BattleCardAssessmentTests {
         }
         #expect(healingTargets.map(\.combatantID) == (hasDebuff ? [] : [battle.hero.id]))
 
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
         let heal = try #require(events.first {
             $0.abilityName == Ability.panaceaPotion.name && $0.effectKind == .instantHeal
         })

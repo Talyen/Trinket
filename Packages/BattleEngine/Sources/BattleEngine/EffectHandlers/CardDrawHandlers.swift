@@ -94,7 +94,6 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
                 keyword: .physical,
             ),
         ]
-        context.recordCardPlay(.cardsDrawn(drawnCards))
         await events.append(contentsOf: context.withAutomaticPlay { context in
             await autoPlayDrawnCards(drawnCards, in: &context)
         })

@@ -226,7 +226,7 @@ struct ManaEmpowermentTests {
             heroMana: testCase.heroMana,
         )
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.fireball.id })
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         try #expect(battle.mana(of: battle.hero) == testCase.expectedManaAfter)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireball.id })
@@ -241,7 +241,7 @@ struct ManaEmpowermentTests {
             heroMana: 4,
         )
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.frostbolt.id })
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         try #expect(battle.mana(of: battle.hero) == 1)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.frostbolt.id })
@@ -295,7 +295,7 @@ struct ManaEmpowermentTests {
             heroMana: 4,
         )
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.fireArrow.id })
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         try #expect(battle.mana(of: battle.hero) == 1)
         let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireArrow.id })
@@ -313,7 +313,7 @@ struct ManaEmpowermentTests {
             companionMaxMana: 4,
             companionMana: 1,
         )
-        let events = battle.endTurn()
+        let events = battle.endTurn().events
 
         try #expect(battle.mana(of: battle.hero) == 3)
         try #expect(battle.mana(of: battle.companion) == 2)
@@ -327,7 +327,7 @@ struct ManaEmpowermentTests {
             heroMaxMana: 0,
             companionMaxMana: 0,
         )
-        let events = battle.endTurn()
+        let events = battle.endTurn().events
 
         try #expect(battle.mana(of: battle.hero) == 0)
         try #expect(battle.mana(of: battle.companion) == 0)
@@ -346,7 +346,7 @@ struct ManaEmpowermentTests {
             )),
         )
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.frostbolt.id })
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         try #expect(events.contains { $0.abilityName == "Aetherward" && $0.amount == 2 })
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 2)
@@ -369,7 +369,7 @@ struct ManaEmpowermentTests {
             battle.hand.cards.first { $0.ability.id == Ability.manaShield.id && $0.owner == .hero },
         )
         let manaBeforeShield = battle.mana(of: battle.hero)
-        let events = try battle.playCard(cardID: shieldCard.id)
+        let events = try battle.playCard(cardID: shieldCard.id).events
 
         try #expect(battle.mana(of: battle.hero) == 0)
         try #expect(events.contains {

@@ -25,7 +25,7 @@ struct PassiveTalentCadenceTests {
         )
         let card = BattleCardCombatEngine.deal(attack, owner: .companion, context: &battle)
 
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         #expect(events.count { $0.kind == .abilityDamage && $0.isCritical } == 4)
         #expect(battle.mana(of: battle.companion) == 2)

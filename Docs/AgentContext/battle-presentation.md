@@ -40,17 +40,15 @@ restore animation locks or reject finishing taps as a correctness fix.
 
 Card, opening-hand, and turn commands finish synchronously in BattleEngine.
 BattleFeature publishes their final hand, resources, statuses, and eligibility
-once per command. Recording is observation only: retained state never retains
-its recorder, and callbacks cannot advance rules. Ordinary card recording emits
-ordered effect batches; opening/turn recording additionally reports nested
-`cardPlayed` and `actionResolved` checkpoints with empty event batches so aggregate
-turn events remain single-delivery. Resolved actions carry stable action and card
-identity and the action-start event boundary, the selected attack classification,
-exclusive event membership, and
-actual action-damage receipts. Receipts include redirected recipients even when
+once per command. Commands return a `BattleCommandResult` after all rules settle;
+no consumer callbacks run inside combat. `recordActions: true` includes played
+cards and resolved actions for presentation; simulations skip that recording by
+default. Resolved actions retain completion order (nested actions before their
+parent), stable action and card identity, the action-start event boundary, the
+selected attack classification, exclusive event membership, and actual
+action-damage receipts. Receipts include redirected recipients even when
 combat logging has no corresponding damage event; they never change the log.
-Nested actions own their own events. BattleFeature extracts these records and
-automatic card identities, not a replay of historical hand snapshots. Late visual completion only removes its own cast.
+Nested actions own their own events. BattleFeature consumes these completed records and automatic card identities. Late visual completion only removes its own cast.
 
 The engine rejects gameplay commands after outcome. The session's finishing-tap
 branch consumes only presentation hand cards and must never enter BattleEngine,

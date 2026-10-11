@@ -16,7 +16,7 @@ struct RimewindRegressionTests {
         let card = BattleCard(id: battle.nextCardID, ability: .rayOfFrost, owner: .companion)
         battle.hand.append(card)
 
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         #expect(events.count { $0.effectKind == .cardsDrawn && $0.abilityName == "Rimewind" } == 2)
         #expect(battle.hand.cards.count == 2)

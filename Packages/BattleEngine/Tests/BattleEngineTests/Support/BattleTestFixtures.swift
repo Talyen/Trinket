@@ -92,7 +92,7 @@ enum BattleTestFixtures {
         }) else {
             return nil
         }
-        return try battle.playCard(cardID: card.id)
+        return try battle.playCard(cardID: card.id).events
     }
 
     @discardableResult
@@ -107,12 +107,12 @@ enum BattleTestFixtures {
             Issue.record("Expected card named \(name) in hand")
             return []
         }
-        return try battle.playCard(cardID: card.id)
+        return try battle.playCard(cardID: card.id).events
     }
 
     @discardableResult
     static func endTurn(on battle: inout BattleState) -> [ActionEvent] {
-        battle.endTurn()
+        battle.endTurn().events
     }
 
     static func playUntilAbility(
@@ -125,7 +125,7 @@ enum BattleTestFixtures {
             if let card = battle.hand.cards.first(where: {
                 $0.ability.name == abilityName && $0.owner == owner && battle.isCardPlayable($0)
             }) {
-                return try battle.playCard(cardID: card.id)
+                return try battle.playCard(cardID: card.id).events
             }
             if try playFirstPlayableCard(owner: owner, on: &battle) == nil {
                 _ = endTurn(on: &battle)

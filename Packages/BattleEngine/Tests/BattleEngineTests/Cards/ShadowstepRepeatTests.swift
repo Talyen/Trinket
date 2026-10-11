@@ -25,7 +25,7 @@ struct ShadowstepRepeatTests {
         }
         let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
 
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         let hits = events.filter { $0.kind == .abilityDamage && $0.targetID == battle.enemy.id }
         #expect(hits.map(\.amount) == (enemyFullHealth ? [4, 4] : [4, 2]))
@@ -53,15 +53,9 @@ struct ShadowstepRepeatTests {
         )
         let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
         let actionsBefore = battle.actionCount
-        var resolvedCards: [Int?] = []
-        var recordedEnemyHealth: [Int] = []
-
-        let events = try battle.playCard(cardID: card.id) { checkpoint, state, _ in
-            if case let .actionResolved(action) = checkpoint, action.abilityID == ability.id {
-                resolvedCards.append(action.cardID)
-                recordedEnemyHealth.append(state.roster.enemy.currentHealth)
-            }
-        }
+        let result = try battle.playCard(cardID: card.id, recordActions: true)
+        let events = result.events
+        let resolvedCards = result.actions.filter { $0.abilityID == ability.id }.map(\.cardID)
 
         #expect(events.count(where: { $0.kind == .ability && $0.abilityID == ability.id }) == 2)
         #expect(events.filter { $0.kind == .abilityDamage && $0.targetID == battle.enemy.id }.map(\.amount)
@@ -76,14 +70,13 @@ struct ShadowstepRepeatTests {
         #expect(battle.actionCount == actionsBefore + 1)
         #expect(!events.contains { $0.effectKind == .instantHeal })
         #expect(resolvedCards == [card.id, nil])
-        #expect(recordedEnemyHealth == (keyword == .burn ? [94, 91] : [96, 94]))
     }
 
     @Test func `partner cards automatic plays and echoes preserve the caster's repeat`() throws {
         var battle = makeBattle()
         readyRepeat(on: battle.hero, in: &battle)
         let partner = BattleCardCombatEngine.deal(attack(), owner: .companion, context: &battle)
-        let partnerEvents = try battle.playCard(cardID: partner.id)
+        let partnerEvents = try battle.playCard(cardID: partner.id).events
         #expect(partnerEvents.count(where: { $0.kind == .ability && $0.abilityID == attack().id }) == 1)
         battle.heroDeck = CombatDeck(abilities: [attack()])
         let automatic = EffectHandlersTestSupport.dispatch(
@@ -98,7 +91,7 @@ struct ShadowstepRepeatTests {
         battle.heroDeck = CombatDeck(abilities: [.block, .apple])
         let feint = BattleCardCombatEngine.deal(AbilityCatalog.feint, owner: .hero, context: &battle)
 
-        let events = try battle.playCard(cardID: feint.id)
+        let events = try battle.playCard(cardID: feint.id).events
 
         #expect(events.filter { $0.effectKind == .cardsDrawn }.map(\.amount) == [1, 1])
         #expect(battle.hand.cards.map(\.ability.id) == [Ability.block.id, Ability.apple.id])
@@ -114,12 +107,12 @@ struct ShadowstepRepeatTests {
             )
         }
         let cardToPlay = BattleCardCombatEngine.deal(refresher, owner: .hero, context: &battle)
-        let preparation = try battle.playCard(cardID: cardToPlay.id)
+        let preparation = try battle.playCard(cardID: cardToPlay.id).events
         #expect(preparation.count(where: { $0.effectKind == .playNextCardTwiceApplied }) == 2)
         #expect(battle.activeEffects(of: battle.hero).count(where: { $0.effect == .playNextCardTwice }) == 1)
         for expectedCount in [2, 1] {
             let card = BattleCardCombatEngine.deal(attack(), owner: .hero, context: &battle)
-            let events = try battle.playCard(cardID: card.id)
+            let events = try battle.playCard(cardID: card.id).events
             #expect(events.count(where: { $0.kind == .ability && $0.abilityID == attack().id }) == expectedCount)
             #expect(!hasRepeat(on: battle.hero, in: battle))
         }
@@ -137,7 +130,7 @@ struct ShadowstepRepeatTests {
         )
         let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
 
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         #expect(events.count(where: { $0.kind == .ability && $0.abilityID == ability.id }) == 2)
         #expect(battle.activeEffects(of: battle.hero).count(where: { $0.effect == .playNextCardTwice }) == 1)
@@ -160,7 +153,7 @@ struct ShadowstepRepeatTests {
         )
         let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
 
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         #expect(events.count(where: { $0.kind == .ability && $0.abilityID == ability.id }) == 1)
         #expect(battle.roster.hero.currentHealth == (victory ? 18 : 1))
@@ -204,7 +197,7 @@ struct ShadowstepRepeatTests {
         readyRepeat(on: battle.hero, in: &battle)
         let card = BattleCardCombatEngine.deal(attack(), owner: .hero, context: &battle)
 
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         #expect(battle.roster.hero.currentHealth == 0)
         #expect(battle.roster.enemy.currentHealth == 98)

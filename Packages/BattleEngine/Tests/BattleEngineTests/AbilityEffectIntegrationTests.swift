@@ -50,7 +50,7 @@ struct AbilityEffectIntegrationTests {
         )
 
         let card = BattleCardCombatEngine.deal(attack, owner: .companion, context: &battle)
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         #expect(battle.isEnemyDefeated)
         #expect(events.count { $0.kind == .abilityDamage && $0.abilityID == attack.id } == 1)

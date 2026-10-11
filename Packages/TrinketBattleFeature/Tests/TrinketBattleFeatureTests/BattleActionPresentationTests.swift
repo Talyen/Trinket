@@ -329,7 +329,7 @@ struct BattleActionPresentationTests {
         session.installSimulationPresentation()
         session.feedback.clear()
         var immediate = state
-        let expectedEvents = immediate.endTurn()
+        let expectedEvents = immediate.endTurn().events
         session.endTurn()
         let beat = try #require(session.feedback.scheduledActions.first { $0.actorID == enemy.id })
         #expect(session.engineState?.events == immediate.events)

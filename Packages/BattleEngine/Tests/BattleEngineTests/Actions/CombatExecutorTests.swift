@@ -24,22 +24,9 @@ struct CombatExecutorTests {
         let expected = try Self.recordedBattle(seed: 77)
         let actual = try await Self.onSmallStack { try Self.recordedBattle(seed: 77) }
         #expect(actual == expected)
-        #expect(actual.stayedOnCaller)
-        #expect(actual.recordings.count {
-            if case .cardPlayed = $0.checkpoint {
-                true
-            } else {
-                false
-            }
-        } >= 3)
+        #expect(actual.recordings.flatMap(\.playedCards).count >= 3)
         #expect(actual.events.contains { $0.effectKind == .thornsTriggered })
         #expect(actual.depths.allSatisfy { $0 == 0 })
-    }
-
-    @MainActor
-    @Test func `synchronous battle recording retains main actor access`() throws {
-        let trace = try Self.recordedBattle(seed: 77, checkingIsolation: { MainActor.assertIsolated() })
-        #expect(!trace.recordings.isEmpty)
     }
 
     private static func retainFrames(
@@ -74,14 +61,6 @@ struct CombatExecutorTests {
         }
     }
 
-    private struct Recording: Equatable {
-        let checkpoint: BattleTransitionCheckpoint
-        let roster: [CombatantRuntime]
-        let hand: BattleHand
-        let events: [ActionEvent]
-        let rng: SeededRandomNumberGenerator
-    }
-
     // Concurrency-Safety: immutable value/CoW snapshots transfer only after the producer's command completes; no recorder is retained.
     private struct BattleTrace: Equatable, @unchecked Sendable {
         let roster: [CombatantRuntime]
@@ -92,11 +71,10 @@ struct CombatExecutorTests {
         let rng: SeededRandomNumberGenerator
         let counters: [Int]
         let depths: [Int]
-        let recordings: [Recording]
-        let stayedOnCaller: Bool
+        let recordings: [BattleCommandResult]
     }
 
-    private static func recordedBattle(seed: UInt64, checkingIsolation: @escaping () -> Void = {}) throws -> BattleTrace {
+    private static func recordedBattle(seed: UInt64) throws -> BattleTrace {
         let chain = Ability(
             id: "executor-chain", name: "Chain", tier: .basic,
             targetedEffects: [TargetedEffect(.drawAndPlayCards(2), target: .actor)],
@@ -115,19 +93,8 @@ struct CombatExecutorTests {
         battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         battle.appendEffect(.thorns(2), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         let card = BattleCardCombatEngine.deal(chain, owner: .hero, context: &battle)
-        let caller = Thread.current
-        var recordings: [Recording] = []
-        var stayedOnCaller = true
-        let record: (BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void = { checkpoint, state, events in
-            checkingIsolation()
-            stayedOnCaller = stayedOnCaller && matchesCaller(caller)
-            recordings.append(Recording(
-                checkpoint: checkpoint, roster: [state.roster.hero, state.roster.companion, state.roster.enemy],
-                hand: state.hand, events: events, rng: state.rng,
-            ))
-        }
-        _ = try battle.playCard(cardID: card.id, recording: record)
-        _ = battle.endTurn(recording: record)
+        let play = try battle.playCard(cardID: card.id, recordActions: true)
+        let turn = battle.endTurn(recordActions: true)
         return BattleTrace(
             roster: [battle.roster.hero, battle.roster.companion, battle.roster.enemy],
             hand: battle.hand, decks: [battle.heroDeck, battle.companionDeck],
@@ -135,7 +102,7 @@ struct CombatExecutorTests {
             counters: [battle.turnCount, battle.actionCount, battle.gold, battle.nextEventID, battle.nextEffectID, battle.nextCardID],
             depths: [CombatResolution.Scope.damage, .dot, .draw, .heroReaction, .uniqueReaction, .talentReaction]
                 .map { battle.resolution.depth($0) },
-            recordings: recordings, stayedOnCaller: stayedOnCaller,
+            recordings: [play, turn],
         )
     }
 }

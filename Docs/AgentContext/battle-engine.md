@@ -16,6 +16,9 @@ rules in their existing order. These continuations must not await I/O, actors,
 timers, or independent tasks. Use synchronous facade commands only at command
 entry; internal reactions await their async overloads to retain one executor.
 Keep existing chain limits and post-damage counterattack/Block-answer timing.
+Public card, turn, and opening commands return `BattleCommandResult` only after
+resolution completes. Optional action recording collects values internally and
+never invokes consumer code or exposes intermediate engine snapshots.
 Default effect-handler witnesses keep async signatures so direct calls cannot
 bypass a specialized turn handler.
 `CombatExecutorTests` owns small-stack, ordered-unwind and recorded-battle parity

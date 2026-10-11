@@ -164,7 +164,7 @@ struct BattleStateTests {
         try #expect(battle.isBattleOver)
         try #expect(!(events.contains { $0.actorName == "Companion" && $0.kind == .ability }))
 
-        let after = battle.endTurn()
+        let after = battle.endTurn().events
         try #expect(after.isEmpty)
     }
 

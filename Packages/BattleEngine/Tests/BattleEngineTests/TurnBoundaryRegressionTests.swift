@@ -23,7 +23,7 @@ struct TurnBoundaryRegressionTests {
     @Test func `Mana reserves cannot indefinitely absorb attacks above the Shield talent budget`() {
         var battle = makeManaShieldBattle(attackDamage: 10, heroMana: 29)
         let health = battle.health(of: battle.hero)
-        let events = battle.endTurn()
+        let events = battle.endTurn().events
 
         #expect(events.first { $0.abilityName == "Mana Shield" }?.amount == 6)
         #expect(battle.health(of: battle.hero) == health - 4)
@@ -33,7 +33,7 @@ struct TurnBoundaryRegressionTests {
     @Test func `Mana Shield protects against the enemy attack following End Turn`() {
         var battle = makeManaShieldBattle(attackDamage: 4, heroMana: 4)
         let health = battle.health(of: battle.hero)
-        let events = battle.endTurn()
+        let events = battle.endTurn().events
         #expect(battle.health(of: battle.hero) == health)
         let shieldIndex = events.firstIndex { $0.abilityName == "Mana Shield" }
         let attackIndex = events.firstIndex { $0.kind == .ability && $0.actorID == battle.enemy.id }

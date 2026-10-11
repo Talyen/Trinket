@@ -36,7 +36,7 @@ struct OpeningTraitBlockTests {
         #expect(hit.healthLost == 0)
         #expect(BattleTestFixtures.shieldPoints(for: battle.enemy, in: battle) == 0)
 
-        let events = battle.endTurn(rebuildLog: false)
+        let events = battle.endTurn(rebuildLog: false).events
         #expect(battle.turnCount == 1)
         #expect(events.count(where: { $0.abilityName == "Watchful Guard" }) == 1)
     }

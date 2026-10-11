@@ -15,7 +15,7 @@ struct FoxRecoveryVictoryTests {
         battle.roster.companion.currentHealth = 4
         let card = BattleCardCombatEngine.deal(.steal, owner: .companion, context: &battle)
 
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         #expect(battle.isEnemyDefeated == (enemyHealth == 1))
         #expect(battle.gold == 2)

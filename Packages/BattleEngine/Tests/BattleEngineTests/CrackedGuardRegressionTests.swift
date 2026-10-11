@@ -21,7 +21,7 @@ struct CrackedGuardRegressionTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.enemy.activeEffects) == 0)
         #expect(battle.roster.hero.talents.pending.nextAttackGuaranteedCritical != nil)
         let card = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &battle)
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
         #expect(events.contains { $0.kind == .abilityDamage && $0.abilityID == Ability.slash.id && $0.isCritical })
         #expect(battle.roster.hero.talents.pending.nextAttackGuaranteedCritical == nil)
     }
@@ -39,11 +39,11 @@ struct CrackedGuardRegressionTests {
             damageComponents: [DamageComponent(2, keyword: .physical), DamageComponent(2, keyword: .physical)],
         )
         let card = BattleCardCombatEngine.deal(twoHits, owner: .hero, context: &battle)
-        let creating = try battle.playCard(cardID: card.id)
+        let creating = try battle.playCard(cardID: card.id).events
         #expect(creating.filter { $0.kind == .abilityDamage }.allSatisfy { !$0.isCritical })
         #expect(battle.roster.hero.talents.pending.nextAttackGuaranteedCritical != nil)
         let next = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &battle)
-        let consuming = try battle.playCard(cardID: next.id)
+        let consuming = try battle.playCard(cardID: next.id).events
         #expect(consuming.contains { $0.kind == .abilityDamage && $0.isCritical })
         #expect(battle.roster.hero.talents.pending.nextAttackGuaranteedCritical == nil)
     }

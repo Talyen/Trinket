@@ -242,20 +242,12 @@ struct EffectHandlersApplyTests {
         battle.heroDeck = CombatDeck(abilities: [packTactics, packTactics, packTactics])
         battle.companionDeck = CombatDeck(abilities: [packTactics, packTactics, packTactics])
 
-        var recordedPlays = 0
-        let recording: ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)? = recordsPlayback
-            ? { checkpoint, _, _ in
-                if case .cardPlayed = checkpoint {
-                    recordedPlays += 1
-                }
-            }
-            : nil
         let card = try #require(battle.hand.cards.first)
-        let events = try battle.playCard(cardID: card.id, recording: recording)
+        let result = try battle.playCard(cardID: card.id, recordActions: recordsPlayback)
 
-        #expect(!events.isEmpty)
-        #expect(!recordsPlayback || recordedPlays > 2)
-        #expect(battle.cardPlayRecording == nil)
+        #expect(!result.events.isEmpty)
+        #expect(!recordsPlayback || result.playedCards.count > 2)
+        #expect(battle.commandRecording == nil)
         try #expect(battle.resolution.depth(.draw) == 0)
     }
 

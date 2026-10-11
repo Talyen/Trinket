@@ -356,7 +356,7 @@ extension CleanseIntegrationTests {
         #expect(battle.roster.hasPendingActionSkip(for: hero, keyword: keyword))
         let card = BattleCardCombatEngine.deal(.panaceaPotion, owner: .companion, context: &battle)
 
-        let events = try battle.playCard(cardID: card.id)
+        let events = try battle.playCard(cardID: card.id).events
 
         #expect(!battle.roster.hasPendingActionSkip(for: hero, keyword: keyword))
         #expect(battle.roster.hasPendingActionSkip(for: enemy, keyword: keyword))

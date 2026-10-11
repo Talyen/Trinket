@@ -58,7 +58,7 @@ struct QuickFingersCounterattackTests {
             )
         } else {
             let card = BattleCardCombatEngine.deal(.blackjack, owner: .hero, context: &battle)
-            events = try battle.playCard(cardID: card.id)
+            events = try battle.playCard(cardID: card.id).events
         }
 
         #expect(events.contains { $0.kind == .abilityDamage && $0.isCritical })

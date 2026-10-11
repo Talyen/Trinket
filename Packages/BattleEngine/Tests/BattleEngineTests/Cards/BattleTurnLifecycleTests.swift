@@ -13,7 +13,7 @@ struct BattleTurnLifecycleTests {
         let settled = battle.roster.hero
         let eventCount = battle.events.count
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 3)
-        #expect(battle.drawOpeningHand().isEmpty)
+        #expect(battle.drawOpeningHand().events.isEmpty)
         #expect(battle.finalizeOpeningHand().isEmpty)
         #expect(battle.roster.hero == settled)
         #expect(battle.events.count == eventCount)
@@ -21,7 +21,7 @@ struct BattleTurnLifecycleTests {
         var custom = BattleStateTestFactory.makeBattle(heroModifiers: profile, dealOpeningHand: false)
         let card = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &custom)
         try custom.playCard(cardID: card.id)
-        #expect(custom.drawOpeningHand().isEmpty)
+        #expect(custom.drawOpeningHand().events.isEmpty)
         #expect(BattleTestFixtures.shieldPoints(for: custom.hero, in: custom) == 0)
     }
 
@@ -34,7 +34,7 @@ struct BattleTurnLifecycleTests {
         let round = battle.turnCount
         #expect(!battle.isCardPlayable(card))
         #expect(throws: BattlePlayError.notPlayerTurn) { try battle.playCard(cardID: card.id) }
-        #expect(battle.endTurn().isEmpty)
+        #expect(battle.endTurn().events.isEmpty)
         #expect(battle.turnCount == round)
         while battle.drawNextTurnStartCard() {}
         // Exhausting the queue must not lose its unsettled Mana grant.
@@ -44,6 +44,6 @@ struct BattleTurnLifecycleTests {
         #expect(battle.isCardPlayable(card))
         #expect(battle.finalizeTurnStart().isEmpty)
         #expect(battle.roster.hero.currentMana == 1)
-        #expect(battle.drawOpeningHand().isEmpty)
+        #expect(battle.drawOpeningHand().events.isEmpty)
     }
 }

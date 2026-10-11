@@ -70,7 +70,7 @@ package extension BattleState {
         if tracksEvents {
             events.append(event)
         }
-        cardPlayRecording?.append(event)
+        commandRecording?.append(event)
         return event
     }
 

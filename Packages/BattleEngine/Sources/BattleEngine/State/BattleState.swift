@@ -8,7 +8,7 @@ public struct BattleState {
         roster.enemy.defeatProgress
     }
 
-    var cardPlayRecording: BattleCardPlayRecording?
+    var commandRecording: BattleCommandRecording?
 
     public let rngSeed: UInt64
 
@@ -262,65 +262,50 @@ public struct BattleState {
     public mutating func playCard(
         cardID: Int,
         rebuildLog: Bool = true,
-        recording: ((BattleTransitionCheckpoint, Self, [ActionEvent]) -> Void)? = nil,
-    ) throws -> [ActionEvent] {
+        recordActions: Bool = false,
+    ) throws -> BattleCommandResult {
         guard !isBattleOver else { throw BattlePlayError.battleOver }
-        cardPlayRecording = recording.map(BattleCardPlayRecording.init)
-        defer { cardPlayRecording = nil }
+        commandRecording = recordActions ? BattleCommandRecording() : nil
+        defer { commandRecording = nil }
         let events = try CombatExecutor.run { try await BattleCardCombatEngine.playCard(
             cardID: cardID,
             context: &self,
         ) }
         finishMutation(rebuildLog: rebuildLog)
-        recordCardPlay(.ready)
-        return events
+        return commandResult(events: events)
     }
 
     @discardableResult
     public mutating func endTurn(
         rebuildLog: Bool = true,
-        recording: ((BattleTransitionCheckpoint, Self, [ActionEvent]) -> Void)? = nil,
-    ) -> [ActionEvent] {
-        guard !isBattleOver else { return [] }
-        cardPlayRecording = recording.map { callback in
-            BattleCardPlayRecording { checkpoint, state, _ in
-                switch checkpoint {
-                case .cardPlayed, .actionResolved:
-                    callback(checkpoint, state, [])
-                default: break
-                }
-            }
-        }
-        defer { cardPlayRecording = nil }
-        let events = CombatExecutor.run { await BattleCardCombatEngine.endTurn(
-            context: &self,
-            recording: BattleCardPlayRecording.detached(recording),
-        ) }
+        recordActions: Bool = false,
+    ) -> BattleCommandResult {
+        guard !isBattleOver else { return .empty }
+        commandRecording = recordActions ? BattleCommandRecording() : nil
+        defer { commandRecording = nil }
+        let events = CombatExecutor.run { await BattleCardCombatEngine.endTurn(context: &self) }
         finishMutation(rebuildLog: rebuildLog)
-        return events
+        return commandResult(events: events)
     }
 
     @discardableResult
     public mutating func drawOpeningHand(
         rebuildLog: Bool = true,
-        recording: ((BattleTransitionCheckpoint, Self, [ActionEvent]) -> Void)? = nil,
-    ) -> [ActionEvent] {
-        cardPlayRecording = recording.map { callback in
-            BattleCardPlayRecording { checkpoint, state, _ in
-                switch checkpoint {
-                case .cardPlayed, .actionResolved:
-                    callback(checkpoint, state, [])
-                default: break
-                }
-            }
-        }
-        defer { cardPlayRecording = nil }
-        let events = CombatExecutor.run { await BattleCardCombatEngine.drawOpeningHand(
-            context: &self,
-            recording: BattleCardPlayRecording.detached(recording),
-        ) }
+        recordActions: Bool = false,
+    ) -> BattleCommandResult {
+        commandRecording = recordActions ? BattleCommandRecording() : nil
+        defer { commandRecording = nil }
+        let events = CombatExecutor.run { await BattleCardCombatEngine.drawOpeningHand(context: &self) }
         finishMutation(rebuildLog: rebuildLog)
-        return events
+        return commandResult(events: events)
+    }
+
+    private func commandResult(events: [ActionEvent]) -> BattleCommandResult {
+        BattleCommandResult(
+            events: events,
+            playedCards: commandRecording?.playedCards ?? [],
+            actions: commandRecording?.resolvedActions ?? [],
+        )
     }
 
     @discardableResult

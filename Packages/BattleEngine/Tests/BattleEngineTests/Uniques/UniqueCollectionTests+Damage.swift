@@ -219,7 +219,7 @@ extension UniqueCollectionTests {
         #expect(context.uniques.owners[.hero]?.wildheartReady == true)
         let before = context.roster.enemy.currentHealth
         let card = try #require(context.hand.cards.first { $0.ability.id == "venom" })
-        let events = try context.playCard(cardID: card.id)
+        let events = try context.playCard(cardID: card.id).events
         // Wildheart guarantees Crit for Poison (all damage Crit, 4*2+3*2=14). Everkeen now requires
         // Physical Critical Hits, so Poison+Bleed Crit does not repeat (no Everkeen).
         #expect(before - context.roster.enemy.currentHealth == 14)

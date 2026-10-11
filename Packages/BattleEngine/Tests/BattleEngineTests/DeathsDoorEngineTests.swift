@@ -226,7 +226,7 @@ struct DeathsDoorEngineTests {
 
         var expiryEvents: [ActionEvent] = []
         for _ in 0 ..< BattleTiming.deathsDoorDurationTurns {
-            expiryEvents.append(contentsOf: battle.endTurn())
+            expiryEvents.append(contentsOf: battle.endTurn().events)
         }
 
         #expect(!battle.roster.isDeathsDoorActive(for: companion))
