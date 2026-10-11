@@ -3,6 +3,7 @@ import TrinketContent
 import UIKit
 @testable import TrinketFeatureSupport
 
+@Suite(.timeLimit(.minutes(1)))
 @MainActor
 struct PreparedArtworkCacheTests {
     @Test func `warmup plan puts priority names first and preserves catalog order`() {
@@ -428,13 +429,11 @@ extension PreparedArtworkCacheTests {
     }
 
     private func waitUntil(_ description: String, condition: @MainActor () async -> Bool) async throws {
-        let deadline = ContinuousClock.now + .seconds(2)
         while true {
-            try Task.checkCancellation()
+            try #require(!Task.isCancelled, "Cancelled waiting for \(description)")
             if await condition() {
                 return
             }
-            try #require(ContinuousClock.now < deadline, "Timed out waiting for \(description)")
             try await Task.sleep(for: .milliseconds(5))
         }
     }

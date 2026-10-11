@@ -3,7 +3,7 @@ import StoreKit
 import Testing
 @testable import TrinketAppState
 
-@Suite("Full Game StoreKit")
+@Suite("Full Game StoreKit", .timeLimit(.minutes(1)))
 struct FullGameStoreTests {
     @Test @MainActor
     func `an older entitlement refresh cannot revoke a newer restored purchase`() async throws {
@@ -16,10 +16,7 @@ struct FullGameStoreTests {
             first.cancel()
             response.continuation.finish()
         }
-        let deadline = ContinuousClock.now + .seconds(5)
-        while backend.readCount == 0, ContinuousClock.now < deadline {
-            await Task.yield()
-        }
+        try await backend.waitForRead(count: 1)
         try #require(backend.readCount == 1, "Entitlement refresh did not start")
 
         backend.ownership = .purchased
@@ -93,10 +90,7 @@ struct FullGameStoreTests {
             pending.cancel()
             response.continuation.finish()
         }
-        let deadline = ContinuousClock.now + .seconds(5)
-        while backend.readCount < 2, ContinuousClock.now < deadline {
-            await Task.yield()
-        }
+        try await backend.waitForRead(count: 2)
         try #require(backend.readCount == 2, "Delivery refresh did not start")
 
         backend.ownership = .free
@@ -157,11 +151,16 @@ private final class ControlledFullGameStorefront {
     }
 
     func waitForUpdateReceiver() async throws -> FullGameStorefront.Receive {
-        let deadline = ContinuousClock.now + .seconds(5)
-        while receiveUpdate == nil, ContinuousClock.now < deadline {
-            await Task.yield()
+        while receiveUpdate == nil {
+            try await Task.sleep(for: .milliseconds(5))
         }
         return try #require(receiveUpdate, "Transaction listener did not start")
+    }
+
+    func waitForRead(count: Int) async throws {
+        while readCount < count {
+            try await Task.sleep(for: .milliseconds(5))
+        }
     }
 
     private func resolve() async -> FullGameStore.Ownership {
