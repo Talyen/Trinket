@@ -3,7 +3,6 @@ import TrinketAppState
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
-import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -55,7 +54,7 @@ struct HomesteadView: View {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
                 HomesteadResourceWallet(
                     homestead: homestead,
-                    roster: roster,
+                    gold: roster.gold,
                     displayedBalances: displayedBalances,
                     increaseAnimationDelays: Self.immediateWalletDelays,
                     keepsArtworkStationary: true,
@@ -124,8 +123,8 @@ struct HomesteadView: View {
     }
 
     private var collectionSection: some View {
-        TimelineView(HomesteadProductionSchedule(homestead: homestead, roster: roster)) { context in
-            let pending = homestead.pendingProductionAmounts(at: context.date, roster: roster)
+        TimelineView(HomesteadProductionSchedule(homestead: homestead, gold: roster.gold)) { context in
+            let pending = homestead.pendingProductionAmounts(at: context.date, gold: roster.gold)
             let amounts = depositEvent?.amounts ?? pending
             Group {
                 if !amounts.isEmpty {
@@ -173,7 +172,7 @@ struct HomesteadView: View {
         guard let depositEvent else { return [:] }
         return Dictionary(uniqueKeysWithValues: depositEvent.amounts.map { amount in
             let held = depositEvent.landed.contains(amount.resource) ? 0 : amount.quantity
-            return (amount.resource, max(0, homestead.balance(for: amount.resource, roster: roster) - held))
+            return (amount.resource, max(0, homestead.balance(for: amount.resource, gold: roster.gold) - held))
         })
     }
 
@@ -307,15 +306,15 @@ struct HomesteadView: View {
 
 private struct HomesteadProductionSchedule: TimelineSchedule {
     let homestead: PlayerHomesteadState
-    let roster: PlayerRosterState
+    let gold: Int
 
     func entries(from startDate: Date, mode: TimelineScheduleMode) -> Entries {
-        Entries(homestead: homestead, roster: roster, date: startDate, remaining: mode == .lowFrequency ? 2 : 32)
+        Entries(homestead: homestead, gold: gold, date: startDate, remaining: mode == .lowFrequency ? 2 : 32)
     }
 
     struct Entries: Sequence, IteratorProtocol {
         let homestead: PlayerHomesteadState
-        let roster: PlayerRosterState
+        let gold: Int
         var date: Date
         var remaining: Int
 
@@ -323,7 +322,7 @@ private struct HomesteadProductionSchedule: TimelineSchedule {
             guard remaining > 0 else { return nil }
             remaining -= 1
             let emitted = date
-            let upcoming = homestead.nextCollectibleDate(after: emitted, roster: roster)
+            let upcoming = homestead.nextCollectibleDate(after: emitted, gold: gold)
                 ?? emitted.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
             date = upcoming > emitted ? upcoming : emitted.addingTimeInterval(1)
             return emitted

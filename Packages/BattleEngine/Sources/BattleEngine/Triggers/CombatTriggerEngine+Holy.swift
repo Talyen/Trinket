@@ -16,13 +16,13 @@ package extension CombatTriggerEngine {
 
         if profile.triggers.holyDamageBlockFlat > 0, context.health(of: source) > 0 {
             events.append(contentsOf: emitBlock(
-                "holyDamageBlockFlat", "Sanctum",
+                .holyDamageBlockFlat, "Sanctum",
                 amount: profile.triggers.holyDamageBlockFlat, to: source, source: source, in: &context,
             ))
         }
         if attackHit, sourceHadNoBlock, profile.triggers.holyAttackBlockIfNone > 0, context.health(of: source) > 0 {
             events.append(contentsOf: emitBlock(
-                "holyAttackBlockIfNone", "Hallowguard",
+                .holyAttackBlockIfNone, "Hallowguard",
                 amount: profile.triggers.holyAttackBlockIfNone, to: source, source: source, in: &context,
             ))
         }
@@ -32,7 +32,7 @@ package extension CombatTriggerEngine {
                 source: source,
                 target: source,
                 count: profile.triggers.holyDamageCleanseCount,
-                abilityName: triggerAbilityName("holyDamageCleanseCount", for: source, fallback: "Absolving", in: context),
+                abilityName: triggerAbilityName(.holyDamageCleanseCount, for: source, fallback: "Absolving", in: context),
                 in: &context,
             ))
         }
@@ -40,7 +40,7 @@ package extension CombatTriggerEngine {
         if profile.triggers.holyDamageHealFlat > 0, context.health(of: source) > 0 {
             let target = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
             await events.append(contentsOf: emitHeal(
-                "holyDamageHealFlat", "Beacon",
+                .holyDamageHealFlat, "Beacon",
                 amount: profile.triggers.holyDamageHealFlat, to: target, source: source, in: &context,
             ))
         }
@@ -48,13 +48,13 @@ package extension CombatTriggerEngine {
         if profile.triggers.holyDamageHealLowestAllyFlat > 0, context.health(of: source) > 0 {
             let lowest = BattleActionContext(actor: source, selectedTarget: enemy).target(.lowestHealthAlly, in: context)
             await events.append(contentsOf: emitHeal(
-                "holyDamageHealLowestAllyFlat", "Divine Blessing",
+                .holyDamageHealLowestAllyFlat, "Divine Blessing",
                 amount: profile.triggers.holyDamageHealLowestAllyFlat, to: lowest, source: source, in: &context,
             ))
         }
         if profile.triggers.holyDamageHealHeroFlat > 0, context.health(of: source) > 0, context.roster.hero.isAlive {
             await events.append(contentsOf: emitHeal(
-                "holyDamageHealHeroFlat", "Sun Glyph",
+                .holyDamageHealHeroFlat, "Sun Glyph",
                 amount: profile.triggers.holyDamageHealHeroFlat,
                 to: context.roster.hero.combatant, source: source, in: &context,
             ))
@@ -62,7 +62,7 @@ package extension CombatTriggerEngine {
 
         if profile.triggers.onHolyDamageRestoreMana > 0, context.health(of: source) > 0 {
             await events.append(contentsOf: emitMana(
-                "onHolyDamageRestoreMana", "Radiant Wisdom",
+                .onHolyDamageRestoreMana, "Radiant Wisdom",
                 amount: profile.triggers.onHolyDamageRestoreMana, to: source, in: &context,
             ))
         }
@@ -85,7 +85,7 @@ package extension CombatTriggerEngine {
             await events.append(contentsOf: applyPurge(
                 to: enemy,
                 source: source,
-                abilityName: triggerAbilityName("holyDamagePurgeAll", for: source, fallback: "Purifying Light", in: context),
+                abilityName: triggerAbilityName(.holyDamagePurgeAll, for: source, fallback: "Purifying Light", in: context),
                 count: 0,
                 purgeAll: true,
                 in: &context,
@@ -94,7 +94,7 @@ package extension CombatTriggerEngine {
         if profile.triggers.onHolyDamagePartyBlock > 0, context.health(of: source) > 0 {
             for (_, member) in livingPartyMembers(in: context) {
                 events.append(contentsOf: emitBlock(
-                    "onHolyDamagePartyBlock", "Radiant Barrier",
+                    .onHolyDamagePartyBlock, "Radiant Barrier",
                     amount: profile.triggers.onHolyDamagePartyBlock,
                     to: member.combatant, source: source, in: &context,
                 ))
@@ -105,7 +105,7 @@ package extension CombatTriggerEngine {
             await events.append(contentsOf: applyPurge(
                 to: enemy,
                 source: source,
-                abilityName: triggerAbilityName("holyDamagePurgeCount", for: source, fallback: "Nullifying", in: context),
+                abilityName: triggerAbilityName(.holyDamagePurgeCount, for: source, fallback: "Nullifying", in: context),
                 count: profile.triggers.holyDamagePurgeCount,
                 purgeAll: false,
                 in: &context,

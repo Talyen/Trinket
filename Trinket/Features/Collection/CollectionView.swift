@@ -14,7 +14,7 @@ struct CollectionView: View {
     @Environment(OptionsStore.self) private var options
     @State private var salvageDetail = SalvageDetailState()
     @State private var selectedCombatant: CombatantDetailContext?
-    @State private var pinnedDetailArtwork: [String] = []
+    @State private var artworkPins = PreparedArtworkPinSet()
     @Namespace private var zoomNamespace
 
     let consumePendingPresentation: () -> LaunchPresentation?
@@ -38,8 +38,7 @@ struct CollectionView: View {
                 await refreshImminentDetailArtworkPins()
             }
             .onDisappear {
-                PreparedArtworkCache.shared.releasePins(names: pinnedDetailArtwork)
-                pinnedDetailArtwork = []
+                artworkPins.release()
             }
             .salvageInventoryPresentation(
                 salvageDetail: $salvageDetail,
@@ -181,12 +180,7 @@ struct CollectionView: View {
     }
 
     private func refreshImminentDetailArtworkPins() async {
-        let refreshed = await ArtworkPinSet.refresh(
-            next: Self.imminentDetailArtworkNames(roster: playerSave.roster),
-            current: pinnedDetailArtwork,
-        )
-        guard !Task.isCancelled else { return }
-        pinnedDetailArtwork = refreshed
+        await artworkPins.prepare(names: Self.imminentDetailArtworkNames(roster: playerSave.roster))
     }
 
     private func presentCombatant(_ context: CombatantDetailContext) {

@@ -62,9 +62,7 @@ struct CloudProductionClaims: Codable, Equatable, Sendable {
         var credit = PlayerHomesteadState(
             resources: [:], nodeTiers: collection.nodeTiers, pendingProduction: collection.pending, lastProductionAt: collection.date,
         )
-        var roster = save.roster
-        roster.gold = collection.gold
-        credit.settleProduction(at: save.homestead.lastProductionAt, roster: roster)
+        credit.settleProduction(at: save.homestead.lastProductionAt, gold: collection.gold)
         for (resource, amount) in receipt.collectionAmounts {
             guard let start = positions[resource] else { throw CloudSaveError.unsupportedSave }
             let alreadyCollected = covered(resource, after: start)

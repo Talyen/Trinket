@@ -11,14 +11,14 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if profile.triggers.blockPerTurn > 0 {
             events.append(contentsOf: emitBlock(
-                "blockPerTurn", "Trait",
+                .blockPerTurn, "Trait",
                 amount: profile.triggers.blockPerTurn, to: combatant, source: combatant, in: &context,
             ))
         }
         if profile.triggers.blockWhileGoldAmount > 0, profile.triggers.blockWhileGoldThreshold > 0,
            context.gold >= profile.triggers.blockWhileGoldThreshold {
             events.append(contentsOf: emitBlock(
-                "blockWhileGoldAmount", "Golden Guard",
+                .blockWhileGoldAmount, "Golden Guard",
                 amount: profile.triggers.blockWhileGoldAmount, to: combatant, source: combatant, in: &context,
             ))
         }
@@ -65,7 +65,7 @@ package extension CombatTriggerEngine {
             let count = context.modifiers(for: sourceRuntime.id).triggers.autoCleanseTeamPerTurn
             guard count > 0 else { continue }
             let abilityName = triggerAbilityName(
-                "autoCleanseTeamPerTurn",
+                .autoCleanseTeamPerTurn,
                 for: sourceRuntime.combatant,
                 fallback: "Trait",
                 in: context,
@@ -136,7 +136,7 @@ package extension CombatTriggerEngine {
             1,
             for: owner,
             actor: actor,
-            abilityName: triggerAbilityName("forbiddenKnowledge", for: actor, fallback: "Forbidden Knowledge", in: context),
+            abilityName: triggerAbilityName(.forbiddenKnowledge, for: actor, fallback: "Forbidden Knowledge", in: context),
             in: &context,
         ))
         return events
@@ -154,7 +154,7 @@ package extension CombatTriggerEngine {
                 triggers.drawEveryOtherTurn,
                 for: owner,
                 actor: actor,
-                abilityName: triggerAbilityName("drawEveryOtherTurn", for: actor, fallback: "Tattered Pages", in: context),
+                abilityName: triggerAbilityName(.drawEveryOtherTurn, for: actor, fallback: "Tattered Pages", in: context),
                 in: &context,
             ))
         }
@@ -167,7 +167,7 @@ package extension CombatTriggerEngine {
             actor: actor,
             abilityName: triggerAbilityName(
                 triggers.companionCardsEveryOtherTurn > 0
-                    ? "companionCardsEveryOtherTurn" : "companionCardsPerTurn",
+                    ? .companionCardsEveryOtherTurn : .companionCardsPerTurn,
                 for: actor,
                 fallback: "Companion's Collar",
                 in: context,
@@ -184,7 +184,7 @@ package extension CombatTriggerEngine {
     ) async -> [ActionEvent] {
         guard context.isPlayerTurn(every: 2, startingAt: 1), triggers.purifyingAura else { return [] }
         let abilityName = triggerAbilityName(
-            "purifyingAura",
+            .purifyingAura,
             for: actor,
             fallback: "Purifying Aura",
             in: context,
@@ -264,7 +264,7 @@ package extension CombatTriggerEngine {
         if firedStunDamage, triggers.everyNTurnsTeamBlockAmount > 0 {
             for (_, member) in livingPartyMembers(in: context) {
                 events.append(contentsOf: emitBlock(
-                    "everyNTurnsTeamBlockAmount", "Quaking Carapace",
+                    .everyNTurnsTeamBlockAmount, "Quaking Carapace",
                     amount: triggers.everyNTurnsTeamBlockAmount,
                     to: member.combatant, source: actor, in: &context,
                 ))
@@ -283,26 +283,26 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if triggers.startBattleBonusMana > 0 {
             await events.append(contentsOf: emitMana(
-                "startBattleBonusMana", "Dragon Spark",
+                .startBattleBonusMana, "Dragon Spark",
                 amount: triggers.startBattleBonusMana, to: actor, in: &context,
             ))
         }
         if triggers.startBattleBlock > 0 {
             events.append(contentsOf: emitBlock(
-                "startBattleBlock", "Watchful Eye",
+                .startBattleBlock, "Watchful Eye",
                 amount: triggers.startBattleBlock, to: actor, source: actor, in: &context,
             ))
         }
         if triggers.startBattleThorns > 0 {
             await events.append(contentsOf: heroTalentThorns(
                 to: actor, source: actor, amount: triggers.startBattleThorns,
-                name: triggerAbilityName("startBattleThorns", for: actor, fallback: "Thornwrought", in: context),
+                name: triggerAbilityName(.startBattleThorns, for: actor, fallback: "Thornwrought", in: context),
                 in: &context,
             ))
         }
         if triggers.startBattleBonusGold > 0 {
             await events.append(contentsOf: emitGold(
-                "startBattleBonusGold", "Deep Pockets",
+                .startBattleBonusGold, "Deep Pockets",
                 amount: triggers.startBattleBonusGold, to: actor, in: &context,
             ))
         }
@@ -322,14 +322,14 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if triggers.goldPerTurn > 0 {
             await events.append(contentsOf: emitGold(
-                "goldPerTurn", "Merchant's Favor", amount: triggers.goldPerTurn, to: actor, in: &context,
+                .goldPerTurn, "Merchant's Favor", amount: triggers.goldPerTurn, to: actor, in: &context,
             ))
         }
         guard !context.isBattleOver, context.health(of: actor) > 0 else { return events }
         if triggers.healthPerTurn > 0, context.isPlayerTurn(every: 2, startingAt: 1) {
             let target = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
             await events.append(contentsOf: emitHeal(
-                "healthPerTurn", "Grove's Favor",
+                .healthPerTurn, "Grove's Favor",
                 amount: triggers.healthPerTurn, to: target, source: actor, in: &context,
             ))
         }
@@ -364,14 +364,14 @@ package extension CombatTriggerEngine {
            context.turnCount > 0,
            context.isPlayerTurn(every: triggers.goldEveryNTurnsInterval) {
             await events.append(contentsOf: emitGold(
-                "goldEveryNTurnsAmount", "Dig for Treasure",
+                .goldEveryNTurnsAmount, "Dig for Treasure",
                 amount: triggers.goldEveryNTurnsAmount, to: actor, in: &context,
             ))
         }
         if triggers.healthRegenFirstTurnsDuration > 0,
            context.turnCount < triggers.healthRegenFirstTurnsDuration {
             await events.append(contentsOf: emitHeal(
-                "healthRegenFirstTurnsAmount", "Sprite Touch",
+                .healthRegenFirstTurnsAmount, "Sprite Touch",
                 amount: triggers.healthRegenFirstTurnsAmount, to: actor, source: actor, in: &context,
             ))
         }
@@ -379,7 +379,7 @@ package extension CombatTriggerEngine {
            context.roster.maxHealth(for: actor) > 0,
            context.roster.isAboveHalfHealth(for: actor) {
             await events.append(contentsOf: emitHeal(
-                "healthRegenAboveHalfHealth", "Safe Perch",
+                .healthRegenAboveHalfHealth, "Safe Perch",
                 amount: triggers.healthRegenAboveHalfHealth, to: actor, source: actor, in: &context,
             ))
         }
@@ -402,7 +402,7 @@ package extension CombatTriggerEngine {
                 for: owner,
                 actor: actor,
                 abilityName: triggerAbilityName(
-                    "startTurnFullManaDrawCards",
+                    .startTurnFullManaDrawCards,
                     for: actor,
                     fallback: "Arcane Surge",
                     in: context,
@@ -412,7 +412,7 @@ package extension CombatTriggerEngine {
         }
         if triggers.bonusManaOnTurns.contains(context.playerTurnNumber) {
             await events.append(contentsOf: emitMana(
-                "bonusManaOnTurns", "Aetherial Surge", amount: 1, to: actor, in: &context,
+                .bonusManaOnTurns, "Aetherial Surge", amount: 1, to: actor, in: &context,
             ))
         }
         return events
@@ -432,7 +432,7 @@ package extension CombatTriggerEngine {
                 for: owner,
                 actor: actor,
                 abilityName: triggerAbilityName(
-                    "extraCardDrawWhileEnemyBleeding",
+                    .extraCardDrawWhileEnemyBleeding,
                     for: actor,
                     fallback: "Frenzied Tail",
                     in: context,
@@ -450,7 +450,7 @@ package extension CombatTriggerEngine {
                 for: owner,
                 actor: actor,
                 abilityName: triggerAbilityName(
-                    "extraCardDrawBelowEnemyHealthPercent",
+                    .extraCardDrawBelowEnemyHealthPercent,
                     for: actor,
                     fallback: "Feral Frenzy",
                     in: context,

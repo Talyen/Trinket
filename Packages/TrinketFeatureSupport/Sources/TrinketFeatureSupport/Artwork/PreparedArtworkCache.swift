@@ -126,21 +126,17 @@ public final class PreparedArtworkCache {
         await decode(unique, priority: .viewport, countsTowardLaunch: false)
     }
 
-    /// Release only the returned names; unavailable artwork has no acquired pin.
-    public func prepareAndPin(names: [String]) async -> [String] {
-        await acquirePinnedArtwork(names: names)
-    }
-
     /// Stage a cloud save's first-paint artwork without releasing the visible
     /// save's pins. The caller finishes the handoff after its durable save write.
     public func prepareLaunchPinReplacement(names: [String]) async -> @MainActor (Bool) -> Void {
-        let acquired = await acquirePinnedArtwork(names: names)
+        let lease = await PreparedArtworkLease(names: names, cache: self)
         return { [self] wasPublished in
             if wasPublished {
+                guard let acquired = lease.takeNames() else { return }
                 releasePins(names: launchPinnedNames)
                 launchPinnedNames = acquired
             } else {
-                releasePins(names: acquired)
+                lease.release()
             }
         }
     }
@@ -158,7 +154,7 @@ public final class PreparedArtworkCache {
         return unique.filter { pinnedImages[$0] != nil }
     }
 
-    public func releasePins(names: [String]) {
+    func releasePins(names: [String]) {
         for name in Set(names) {
             decrementPinDemand(named: name, dropResident: true)
         }

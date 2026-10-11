@@ -4,54 +4,54 @@ import TrinketContent
 import TrinketCore
 
 @Model
-public final class InventoryModel {
-    public var root: PlayerSaveRoot?
+final class InventoryModel {
+    var root: PlayerSaveRoot?
 
     @Relationship(deleteRule: .cascade, inverse: \InventoryItemModel.inventory)
-    public var items: [InventoryItemModel]?
+    var items: [InventoryItemModel]?
 
-    public init() {}
+    init() {}
 }
 
 @Model
-public final class InventoryItemModel {
-    public var id: String = ""
-    public var templateID: String = ""
-    public var baseTypeID: String = ""
-    public var rarityID: String = Rarity.basic.rawValue
-    public var displayName: String = ""
-    public var sortIndex: Int = 0
-    public var isCorrupted: Bool = false
-    public var affixPowersJSON: Data?
-    public var inventory: InventoryModel?
+final class InventoryItemModel {
+    var id: String = ""
+    var templateID: String = ""
+    var baseTypeID: String = ""
+    var rarityID: String = Rarity.basic.rawValue
+    var displayName: String = ""
+    var sortIndex: Int = 0
+    var isCorrupted: Bool = false
+    var affixPowersJSON: Data?
+    var inventory: InventoryModel?
 
     @Relationship(deleteRule: .cascade, inverse: \ItemAffixModel.item)
-    public var affixes: [ItemAffixModel]?
+    var affixes: [ItemAffixModel]?
 
-    public init() {}
+    init() {}
 
     /// Detached convenience init for encoding outside a `ModelContext`.
     /// Passes `context: nil` because a fresh model has no orphans to delete;
     /// `reconcileModels` with `existing: []` only appends.
-    public convenience init(item: InventoryItem) {
+    convenience init(item: InventoryItem) {
         self.init()
         update(from: item, context: nil)
     }
 }
 
 @Model
-public final class ItemAffixModel {
-    public var id: String = ""
-    public var title: String = ""
-    public var affixDescription: String = ""
-    public var keywordRawValues: [String] = []
-    public var isCorrupted: Bool = false
-    public var sortIndex: Int = 0
-    public var item: InventoryItemModel?
+final class ItemAffixModel {
+    var id: String = ""
+    var title: String = ""
+    var affixDescription: String = ""
+    var keywordRawValues: [String] = []
+    var isCorrupted: Bool = false
+    var sortIndex: Int = 0
+    var item: InventoryItemModel?
 
-    public init() {}
+    init() {}
 
-    public convenience init(affix: ItemAffix) {
+    convenience init(affix: ItemAffix) {
         self.init()
         update(from: affix)
     }

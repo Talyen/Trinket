@@ -27,7 +27,7 @@ public struct CombatantDetailPane: View {
     var nodeModifiers: [NodeModifierDefinition] = []
     var hidesNavigationBar = false
     var onEdit: ((CombatantLoadoutEdit) -> Bool)?
-    var onUnlockTalent: ((TalentNode, TalentTree) -> TalentUnlockResult)?
+    var onUnlockTalent: ((TalentNode, TalentTree) -> RosterEditResult)?
 
     @State private var selectedItemSlot: ItemSlot?
     @State private var requestedItemSlot: ItemSlot?
@@ -42,7 +42,7 @@ public struct CombatantDetailPane: View {
     @State private var selectedTalentTree: TalentTree?
     @State private var requestedTalentTree: TalentTree?
     @State private var selectionFeedbackTrigger = 0
-    @State private var pinnedDetailArtwork: [String] = []
+    @State private var detailArtworkPins = PreparedArtworkPinSet()
 
     private static let pinnedInventoryArtworkLimit = 12
 
@@ -191,8 +191,7 @@ public struct CombatantDetailPane: View {
             if selectedItemSlot == nil {
                 requestedItemSlot = nil
             }
-            PreparedArtworkCache.shared.releasePins(names: pinnedDetailArtwork)
-            pinnedDetailArtwork = []
+            detailArtworkPins.release()
         }
     }
 
@@ -253,19 +252,7 @@ public struct CombatantDetailPane: View {
     }
 
     private func refreshDetailArtworkPins() async {
-        let next = Set(detailArtworkNames()).sorted()
-        let previous = Set(pinnedDetailArtwork)
-        let added = Set(next).subtracting(previous)
-        let removed = previous.subtracting(next)
-        let acquired = await PreparedArtworkCache.shared.prepareAndPin(names: Array(added))
-        guard !Task.isCancelled else {
-            PreparedArtworkCache.shared.releasePins(names: acquired)
-            return
-        }
-        if !removed.isEmpty {
-            PreparedArtworkCache.shared.releasePins(names: Array(removed))
-        }
-        pinnedDetailArtwork = Array(previous.intersection(next).union(acquired)).sorted()
+        await detailArtworkPins.prepare(names: detailArtworkNames())
     }
 
     @ViewBuilder
@@ -349,7 +336,7 @@ public struct CombatantDetailPane: View {
     }
 
     private func select(_ ability: Ability) -> Bool {
-        guard onEdit?(.selectAbility(ability)) == true else { return false }
+        guard onEdit?(.selectAbility(abilityID: ability.id)) == true else { return false }
         selectionFeedbackTrigger += 1
         selectedAbilityTier = nil
         return true
@@ -357,7 +344,7 @@ public struct CombatantDetailPane: View {
 
     private func equip(_ item: InventoryItem, in slot: ItemSlot) {
         let saved = withAnimation(TrinketMotion.Interaction.selection) {
-            onEdit?(.equipItem(item, slot)) == true
+            onEdit?(.equipItem(itemID: item.id, slot: slot)) == true
         }
         guard saved else { return }
         playSFX(SFXID.uiEquip, effectsVolume)

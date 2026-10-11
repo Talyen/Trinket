@@ -277,7 +277,7 @@ package extension CombatTriggerEngine {
         let amount = context.modifiers(for: source.id).triggers.stunDamageBlockFlat
         guard amount > 0 else { return [] }
         return emitBlock(
-            "stunDamageBlockFlat", "Oathbound", amount: amount, to: source, source: source, in: &context,
+            .stunDamageBlockFlat, "Oathbound", amount: amount, to: source, source: source, in: &context,
         )
     }
 
@@ -291,7 +291,7 @@ package extension CombatTriggerEngine {
         var events = await burnDamageHeals(triggers: triggers, source: source, in: &context)
         if triggers.onBurnDamageGainBlock > 0 {
             events.append(contentsOf: emitBlock(
-                "onBurnDamageGainBlock", "Flame Shield",
+                .onBurnDamageGainBlock, "Flame Shield",
                 amount: triggers.onBurnDamageGainBlock, to: source, source: source, in: &context,
             ))
         }
@@ -319,7 +319,7 @@ package extension CombatTriggerEngine {
             amount,
             to: source,
             source: source,
-            abilityName: triggerAbilityName("freezeDamageGrantsBlock", for: source, fallback: "Rimeheart", in: context),
+            abilityName: triggerAbilityName(.freezeDamageGrantsBlock, for: source, fallback: "Rimeheart", in: context),
             amountBasis: .resolved,
         )
     }
@@ -333,7 +333,7 @@ package extension CombatTriggerEngine {
         if triggers.onBurnDamageHealLowestAllyFlat > 0 {
             let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
             await events.append(contentsOf: emitHeal(
-                "onBurnDamageHealLowestAllyFlat", "Healing Flames",
+                .onBurnDamageHealLowestAllyFlat, "Healing Flames",
                 amount: triggers.onBurnDamageHealLowestAllyFlat, to: lowest, source: source, in: &context,
             ))
         }
@@ -350,7 +350,7 @@ package extension CombatTriggerEngine {
               context.companionModifiers.triggers.onAllyBurnDamageGainBlock > 0
         else { return [] }
         return emitBlock(
-            "onAllyBurnDamageGainBlock", "Ember Shield",
+            .onAllyBurnDamageGainBlock, "Ember Shield",
             amount: context.companionModifiers.triggers.onAllyBurnDamageGainBlock,
             to: context.roster.companion.combatant,
             source: context.roster.companion.combatant,
@@ -371,7 +371,7 @@ package extension CombatTriggerEngine {
             to: enemy,
             source: source,
             abilityName: triggerAbilityName(
-                profile.triggers.criticalPurgeAll ? "criticalPurgeAll" : "criticalPurgeCount",
+                profile.triggers.criticalPurgeAll ? .criticalPurgeAll : .criticalPurgeCount,
                 for: source,
                 fallback: "Unmaking",
                 in: context,
@@ -389,7 +389,7 @@ package extension CombatTriggerEngine {
 
         if profile.triggers.criticalGoldFlat > 0, context.roster.health(for: source) > 0 {
             await events.append(contentsOf: emitGold(
-                "criticalGoldFlat", "Cutpurse", amount: profile.triggers.criticalGoldFlat, to: source, in: &context,
+                .criticalGoldFlat, "Cutpurse", amount: profile.triggers.criticalGoldFlat, to: source, in: &context,
             ))
         }
 
@@ -397,7 +397,7 @@ package extension CombatTriggerEngine {
            context.roster.health(for: source) > 0,
            context.claimActionGuard(.criticalActionGold, actorID: source.id) {
             await events.append(contentsOf: emitGold(
-                "criticalActionGoldFlat", "Lucky Clover",
+                .criticalActionGoldFlat, "Lucky Clover",
                 amount: profile.triggers.criticalActionGoldFlat, to: source, in: &context,
             ))
         }
@@ -441,7 +441,7 @@ package extension CombatTriggerEngine {
                 profile.triggers.criticalVsStunnedEnemyGold,
                 to: source,
                 abilityName: triggerAbilityName(
-                    "criticalVsStunnedEnemyGold", for: source, fallback: "Confounding Loot", in: context,
+                    .criticalVsStunnedEnemyGold, for: source, fallback: "Confounding Loot", in: context,
                 ),
                 isTheft: true,
             ))

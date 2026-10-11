@@ -6,20 +6,16 @@ import TrinketFeatureSupport
 
 @MainActor
 final class BattleArtworkPreparation {
-    private var names: Set<String> = []
+    private let pins: PreparedArtworkPinSet
     private var generation = 0
     private let warmup: (CGFloat) async -> Void
-    private let acquire: (Set<String>) async -> Set<String>
-    private let releasePins: (Set<String>) -> Void
 
     init(
         warmup: @escaping (CGFloat) async -> Void = { await BattlePresentationWarmup.prepareAndWait(displayScale: $0) },
-        acquire: @escaping (Set<String>) async -> Set<String> = { await Set(PreparedArtworkCache.shared.prepareAndPin(names: Array($0))) },
-        release: @escaping (Set<String>) -> Void = { PreparedArtworkCache.shared.releasePins(names: Array($0)) },
+        pins: PreparedArtworkPinSet = PreparedArtworkPinSet(),
     ) {
         self.warmup = warmup
-        self.acquire = acquire
-        releasePins = release
+        self.pins = pins
     }
 
     static func artworkNames(for configuration: BattleRunConfiguration) -> Set<String> {
@@ -61,14 +57,7 @@ final class BattleArtworkPreparation {
         let request = generation
         await warmup(displayScale)
         guard !Task.isCancelled, request == generation else { return }
-        let added = desired.subtracting(names)
-        let acquired = added.isEmpty ? [] : await acquire(added)
-        guard !Task.isCancelled, request == generation else {
-            releasePins(acquired)
-            return
-        }
-        releasePins(names.subtracting(desired))
-        names = names.intersection(desired).union(acquired)
+        await pins.prepare(names: Array(desired), isCurrent: { request == self.generation })
     }
 
     /// Synchronous pruning only. Acquisition happens in async `prepare`, so
@@ -76,8 +65,7 @@ final class BattleArtworkPreparation {
     /// that are no longer desired without pinning anything new.
     func releaseExtraneousPins(names desired: Set<String>) {
         generation &+= 1
-        releasePins(names.subtracting(desired))
-        names.formIntersection(desired)
+        pins.retain(names: desired)
     }
 
     func release() {

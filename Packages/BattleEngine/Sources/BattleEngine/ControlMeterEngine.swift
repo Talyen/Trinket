@@ -207,7 +207,7 @@ package enum ControlMeterEngine {
                 to: source.combatant,
                 source: source.combatant,
                 abilityName: CombatTriggerEngine.triggerAbilityName(
-                    "onStunEnemyGainBlock",
+                    .onStunEnemyGainBlock,
                     for: source.combatant,
                     fallback: "Stalwart Oath",
                     in: context,
@@ -242,7 +242,7 @@ package enum ControlMeterEngine {
             events.append(contentsOf: context.applyBlock(
                 amount, to: actor, source: actor,
                 abilityName: context.modifiers(for: actor.id).triggerAbilityName(
-                    "onEnemyFrozenGainBlock", fallback: "Glacial Barrier",
+                    .onEnemyFrozenGainBlock, fallback: "Glacial Barrier",
                 ),
             ))
         }

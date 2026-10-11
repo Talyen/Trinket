@@ -1,8 +1,8 @@
 import SwiftData
 import TrinketCore
 
-public extension PlayerSaveRoot {
-    convenience init(save: PlayerSave, id: String = "primary") {
+extension PlayerSaveRoot {
+    package convenience init(save: PlayerSave, id: String = "primary") {
         self.init(id: id)
         update(from: save)
     }

@@ -32,8 +32,7 @@ extension PlayBattleCoordinator {
             inventoryState: inventoryState,
             additionalModifiers: homesteadEffects.companionModifiers,
         )
-        let enemyLevel = input.enemyEncounterLevel ?? heroMember.progression.level
-        let enemyBuild = resolvedEnemyBuild(enemy: input.enemy, level: enemyLevel, profile: input.enemyPowerProfile)
+        let enemyBuild = input.encounter?.build ?? CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
         var enemyModifiers = enemyBuild.modifiers
         enemyModifiers.merge(input.universalModifiers)
         let configuration = BattleRunConfiguration(
@@ -42,9 +41,9 @@ extension PlayBattleCoordinator {
             hero: heroMember,
             companion: companionMember,
             enemy: enemyBuild.combatant,
-            enemyEncounterLevel: input.enemyEncounterLevel,
+            enemyEncounterLevel: input.encounter?.level,
             enemyModifiers: enemyModifiers,
-            enemyFaction: GameContent.enemy(matching: input.enemy?.id ?? "")?.faction ?? .mortal,
+            enemyFaction: input.encounter?.faction ?? .mortal,
         )
         let rewardPlan = BattleRewardAssembly.makePlan(inputs: inputs, configuration: configuration)
         return BattleLaunchAssembly(
@@ -81,21 +80,5 @@ extension PlayBattleCoordinator {
             modifiers: build.modifiers,
             unlockedTalents: unlockedTalents,
         )
-    }
-
-    private static func resolvedEnemyBuild(
-        enemy: Combatant?,
-        level: Int,
-        profile: EnemyPowerCurve.Profile,
-    ) -> CombatBuild {
-        guard let enemy else {
-            return CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
-        }
-        if let catalogEnemy = GameContent.enemy(matching: enemy.id) {
-            return CombatBuildResolver.build(enemy: catalogEnemy, level: level, profile: profile)
-        }
-        var fallbackModifiers = CombatModifierProfile.zero
-        fallbackModifiers.outgoingDamagePercent = EnemyPowerCurve.rawDamagePercent(level: level, isBoss: false, profile: profile)
-        return CombatBuild(combatant: enemy, modifiers: fallbackModifiers)
     }
 }

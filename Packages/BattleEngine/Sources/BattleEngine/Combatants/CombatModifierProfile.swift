@@ -36,7 +36,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var rangedDamageDealtBonus: Int
     public var maximumManaPercentBonus: Double
     public var triggers: CombatTraitTriggers
-    public var triggerAbilityNames: [String: String]
+    public var triggerAbilityNames: [CombatTriggerField: String]
 
     public static let zero = Self()
 
@@ -74,7 +74,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         rangedDamageDealtBonus: Int = 0,
         maximumManaPercentBonus: Double = 0,
         triggers: CombatTraitTriggers = CombatTraitTriggers(),
-        triggerAbilityNames: [String: String] = [:],
+        triggerAbilityNames: [CombatTriggerField: String] = [:],
     ) {
         self.damageDealtPercents = damageDealtPercents
         self.maximumHealthPercentBonus = maximumHealthPercentBonus
@@ -160,11 +160,11 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         triggerAbilityNames.merge(other.triggerAbilityNames) { existing, _ in existing }
     }
 
-    public func triggerAbilityName(_ key: String, fallback: String) -> String {
+    public func triggerAbilityName(_ key: CombatTriggerField, fallback: String) -> String {
         triggerAbilityNames[key] ?? fallback
     }
 
-    public mutating func setTriggerAbilityName(_ key: String, _ name: String) {
+    public mutating func setTriggerAbilityName(_ key: CombatTriggerField, _ name: String) {
         if triggerAbilityNames[key] == nil {
             triggerAbilityNames[key] = name
         }

@@ -40,7 +40,7 @@ struct MysteryEffectApplierTests {
         )
         try #expect(save.roster.gold == 20)
         try #expect(
-            save.homestead.balance(for: .herbs, roster: save.roster)
+            save.homestead.balance(for: .herbs, gold: save.roster.gold)
                 >= MysteryEffectApplier.materialQuantity(forLevel: 1),
         )
         try #expect(result.heroProgressionBefore == heroProgressionBefore)

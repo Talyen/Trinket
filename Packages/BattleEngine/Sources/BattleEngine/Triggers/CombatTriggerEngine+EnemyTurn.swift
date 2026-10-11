@@ -52,7 +52,7 @@ package extension CombatTriggerEngine {
             events.append(avoidanceEvent(
                 effectKind: .controlActionSkipped,
                 abilityName: triggerAbilityName(
-                    "bleedingEnemyActionSkipChancePercent",
+                    .bleedingEnemyActionSkipChancePercent,
                     for: source,
                     fallback: "Hamstring Shot",
                     in: context,
@@ -112,7 +112,7 @@ package extension CombatTriggerEngine {
         return await dodgeEntireEnemyAbility(
             by: protected,
             abilityName: triggerAbilityName(
-                "negateFirstEnemyAttack",
+                .negateFirstEnemyAttack,
                 for: companion.combatant,
                 fallback: "Warning Bark",
                 in: context,
@@ -241,7 +241,7 @@ package extension CombatTriggerEngine {
         return ([avoidanceEvent(
             effectKind: .dodgeApplied,
             abilityName: triggerAbilityName(
-                "poisonedEnemyMissChancePercent",
+                .poisonedEnemyMissChancePercent,
                 for: source,
                 fallback: "Paralytic Poison",
                 in: context,
@@ -258,7 +258,7 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if retrieverTriggers.onEnemyAbilityGold > 0 {
             await events.append(contentsOf: emitGold(
-                "onEnemyAbilityGold", "Fetch!",
+                .onEnemyAbilityGold, "Fetch!",
                 amount: retrieverTriggers.onEnemyAbilityGold,
                 to: context.roster.companion.combatant,
                 in: &context,
@@ -278,7 +278,7 @@ package extension CombatTriggerEngine {
                     for: owner,
                     actor: member.combatant,
                     abilityName: triggerAbilityName(
-                        "onEnemyStunRecoverDrawCard",
+                        .onEnemyStunRecoverDrawCard,
                         for: member.combatant,
                         fallback: "Second Wind",
                         in: context,

@@ -16,7 +16,8 @@ struct CloudSaveMergeProgressRegressionTests {
         var random = SeededRandomNumberGenerator(seed: 1)
         let offers = try MysteryOfferPersistence.prepare(event: event, encounter: encounter, save: &base, using: &random)
         #expect(offers.count == 2)
-        let request = MysteryEncounterRequest(encounter: encounter, event: event, displayedOffers: offers)
+        encounter.pinMysteryEvent(event.id, save: &base)
+        let request = MysteryEncounterRequest(encounter: encounter, eventID: event.id, displayedOffers: offers)
         var first = base
         var second = base
         _ = try MysteryEncounterResolution.resolve(
@@ -47,11 +48,11 @@ struct CloudSaveMergeProgressRegressionTests {
         let otherStage = try #require(mysteryStages.dropFirst().first)
         let event = try #require(GameContent.mysteryEvent(matching: GameContent.corruptionAltarEventID))
         let leave = try #require(event.choices.first { $0.effects.contains(.leave) })
-        #expect(MysteryEventPinApplier.pinJourneyEvent(stageID: altarStage.id, eventID: event.id, save: &base))
+        EncounterIdentity(location: .journey(stageID: altarStage.id), save: base).pinMysteryEvent(event.id, save: &base)
         var reset = base
         let request = MysteryEncounterRequest(
             encounter: EncounterIdentity(location: .journey(stageID: altarStage.id), save: reset),
-            event: event, displayedOffers: [],
+            eventID: event.id, displayedOffers: [],
         )
         var random = SeededRandomNumberGenerator(seed: 1)
         #expect(try MysteryEncounterResolution.resolve(
@@ -77,9 +78,9 @@ struct CloudSaveMergeProgressRegressionTests {
         var reset = base
         reset.labyrinth.ensureMap(seed: base.worldSeed)
         let node = try #require(reset.labyrinth.nodes.values.first { $0.type == .mystery })
-        #expect(MysteryEventPinApplier.pinLabyrinthEvent(
-            nodeID: node.id, eventID: GameContent.corruptionAltarEventID, save: &reset,
-        ))
+        EncounterIdentity(location: .labyrinth(nodeID: node.id), save: reset).pinMysteryEvent(
+            GameContent.corruptionAltarEventID, save: &reset,
+        )
         reset.labyrinth.markCleared(nodeID: node.id)
         ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &reset)
         reset.modifiedAt = base.modifiedAt.addingTimeInterval(2)
@@ -201,7 +202,8 @@ struct CloudSaveMergeProgressRegressionTests {
             event: event, encounter: encounter, save: &save, using: &random,
         )
         let offer = try #require(offers.first)
-        let request = MysteryEncounterRequest(encounter: encounter, event: event, displayedOffers: offers)
+        encounter.pinMysteryEvent(event.id, save: &save)
+        let request = MysteryEncounterRequest(encounter: encounter, eventID: event.id, displayedOffers: offers)
         let outcome = try MysteryEncounterResolution.resolve(choiceID: offer.choiceID, request: request, save: &save, using: &random).get()
         guard case .reward = outcome else {
             Issue.record("The pinned Mystery offer must be claimable")
@@ -210,9 +212,10 @@ struct CloudSaveMergeProgressRegressionTests {
     }
 
     private func recruitCombatant(event: MysteryEvent, stage: Stage, save: inout PlayerSave) throws {
+        save.journey.pinnedMysteryEventIDs[stage.id] = event.id
         let request = MysteryEncounterRequest(
             encounter: EncounterIdentity(location: .journey(stageID: stage.id), save: save),
-            event: event, displayedOffers: [],
+            eventID: event.id, displayedOffers: [],
         )
         var random = SeededRandomNumberGenerator(seed: 1)
         let outcome = try MysteryEncounterResolution.resolve(choiceID: nil, request: request, save: &save, using: &random).get()

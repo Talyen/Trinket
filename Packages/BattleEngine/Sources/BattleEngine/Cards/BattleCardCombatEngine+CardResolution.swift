@@ -17,13 +17,18 @@ extension BattleCardCombatEngine {
         allowBufferedRemoval: Bool = true,
     ) async throws -> [ActionEvent] {
         await CombatExecutor.suspend()
-        if let error = playError(for: card, in: context) {
+        if let error = playError(for: card, in: context, allowsTurnPreparation: allowBufferedRemoval) {
             throw error
         }
         let actor = context.roster[card.owner].combatant
         guard context.hand.card(id: card.id) != nil
             || (allowBufferedRemoval && context.hand.buffer.contains(where: { $0.id == card.id })) else {
             throw BattlePlayError.cardNotInHand
+        }
+        // A caller supplying its own hand may skip the optional opening deal.
+        // Only a manual command consumes it; automatic turn-start cards do not.
+        if !allowBufferedRemoval {
+            context.turnState = .playerTurn
         }
         context.recordCardPlay(.cardWillPlay(card))
         if allowBufferedRemoval {
@@ -86,7 +91,7 @@ extension BattleCardCombatEngine {
         promoteFromBuffer(context: &context)
         await events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
         if context.isBattleOver {
-            context.phase = .ended
+            context.turnState = .ended
         }
     }
 }

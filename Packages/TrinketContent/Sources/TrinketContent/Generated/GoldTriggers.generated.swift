@@ -186,72 +186,69 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.blockedAttackFirstRandomCard = blockedAttackFirstRandomCard
     }
 
-    /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["carrionClaim", "lightFingered", "goldGainedNextHolyDamage", "gainGoldBonusHealSelf", "defeatBleedingEnemyGold", "defeatEnemyGoldFlat", "leechGoldFlat", "goldPerTurn", "victoryGoldFlat", "victoryGoldCoin", "criticalGoldFlat", "criticalActionGoldFlat", "startBattleBonusGold", "onGainGoldHealParty", "goldEveryNTurnsInterval", "goldEveryNTurnsAmount", "onEnemyAbilityGold", "criticalVsStunnedEnemyGold", "critOnDefeatGold", "partyGoldGainedPercent", "firstGoldTheftHeal", "goldDoubledWhileFullHealth", "firstGoldTheftDraw", "bountyBlade", "blockedAttackFirstGold", "stealGoldBonusVsPoisoned", "gainGoldDrawThreshold", "stunCriticalStealGold", "dodgePreparesDoubleGoldSteal", "criticalGoldStealDrawCard", "goldStealNextPhysicalBonus", "goldStealNextAttackBonus", "goldGainHealChancePercent", "goldGainHealAmount", "criticalGoldTheftBonus", "goldGainCleanseChancePercent", "goldGainBelowHalfDrawCard", "goldTheftDodgeBonus", "goldGainDrawChancePercent", "goldTheftBlockChancePercent", "goldTheftBlockAmount", "goldTheftDrawChancePercent", "goldStealFlatBonus", "goldTheftNextBlockMultiplier", "firstGoldTheftDrawBattle", "allyCriticalChancePerCombatGold", "blockBreakStealGoldFlat", "goldTheftHealAllyFlat", "attackGoldStealAmount", "attackGoldStealChancePercent", "belowHalfFirstGoldGainHealPerTurn", "criticalGoldStealAmount", "criticalGoldStealChancePercent", "dodgeGoldAmount", "dodgeGoldChancePercent", "firstGoldTheftDoubleBattle", "goldTheftNextAttackCriticalBonus", "goldTheftStealEnemyBlockChancePercent", "blockedAttackFirstRandomCard"]
-
-    /// Field names where `self` differs from `other`.
-    func populatedFieldNames(comparedTo other: Self) -> [String] {
-        var names: [String] = []
-        if self.carrionClaim != other.carrionClaim { names.append("carrionClaim") }
-        if self.lightFingered != other.lightFingered { names.append("lightFingered") }
-        if self.goldGainedNextHolyDamage != other.goldGainedNextHolyDamage { names.append("goldGainedNextHolyDamage") }
-        if self.gainGoldBonusHealSelf != other.gainGoldBonusHealSelf { names.append("gainGoldBonusHealSelf") }
-        if self.defeatBleedingEnemyGold != other.defeatBleedingEnemyGold { names.append("defeatBleedingEnemyGold") }
-        if self.defeatEnemyGoldFlat != other.defeatEnemyGoldFlat { names.append("defeatEnemyGoldFlat") }
-        if self.leechGoldFlat != other.leechGoldFlat { names.append("leechGoldFlat") }
-        if self.goldPerTurn != other.goldPerTurn { names.append("goldPerTurn") }
-        if self.victoryGoldFlat != other.victoryGoldFlat { names.append("victoryGoldFlat") }
-        if self.victoryGoldCoin != other.victoryGoldCoin { names.append("victoryGoldCoin") }
-        if self.criticalGoldFlat != other.criticalGoldFlat { names.append("criticalGoldFlat") }
-        if self.criticalActionGoldFlat != other.criticalActionGoldFlat { names.append("criticalActionGoldFlat") }
-        if self.startBattleBonusGold != other.startBattleBonusGold { names.append("startBattleBonusGold") }
-        if self.onGainGoldHealParty != other.onGainGoldHealParty { names.append("onGainGoldHealParty") }
-        if self.goldEveryNTurnsInterval != other.goldEveryNTurnsInterval { names.append("goldEveryNTurnsInterval") }
-        if self.goldEveryNTurnsAmount != other.goldEveryNTurnsAmount { names.append("goldEveryNTurnsAmount") }
-        if self.onEnemyAbilityGold != other.onEnemyAbilityGold { names.append("onEnemyAbilityGold") }
-        if self.criticalVsStunnedEnemyGold != other.criticalVsStunnedEnemyGold { names.append("criticalVsStunnedEnemyGold") }
-        if self.critOnDefeatGold != other.critOnDefeatGold { names.append("critOnDefeatGold") }
-        if self.partyGoldGainedPercent != other.partyGoldGainedPercent { names.append("partyGoldGainedPercent") }
-        if self.firstGoldTheftHeal != other.firstGoldTheftHeal { names.append("firstGoldTheftHeal") }
-        if self.goldDoubledWhileFullHealth != other.goldDoubledWhileFullHealth { names.append("goldDoubledWhileFullHealth") }
-        if self.firstGoldTheftDraw != other.firstGoldTheftDraw { names.append("firstGoldTheftDraw") }
-        if self.bountyBlade != other.bountyBlade { names.append("bountyBlade") }
-        if self.blockedAttackFirstGold != other.blockedAttackFirstGold { names.append("blockedAttackFirstGold") }
-        if self.stealGoldBonusVsPoisoned != other.stealGoldBonusVsPoisoned { names.append("stealGoldBonusVsPoisoned") }
-        if self.gainGoldDrawThreshold != other.gainGoldDrawThreshold { names.append("gainGoldDrawThreshold") }
-        if self.stunCriticalStealGold != other.stunCriticalStealGold { names.append("stunCriticalStealGold") }
-        if self.dodgePreparesDoubleGoldSteal != other.dodgePreparesDoubleGoldSteal { names.append("dodgePreparesDoubleGoldSteal") }
-        if self.criticalGoldStealDrawCard != other.criticalGoldStealDrawCard { names.append("criticalGoldStealDrawCard") }
-        if self.goldStealNextPhysicalBonus != other.goldStealNextPhysicalBonus { names.append("goldStealNextPhysicalBonus") }
-        if self.goldStealNextAttackBonus != other.goldStealNextAttackBonus { names.append("goldStealNextAttackBonus") }
-        if self.goldGainHealChancePercent != other.goldGainHealChancePercent { names.append("goldGainHealChancePercent") }
-        if self.goldGainHealAmount != other.goldGainHealAmount { names.append("goldGainHealAmount") }
-        if self.criticalGoldTheftBonus != other.criticalGoldTheftBonus { names.append("criticalGoldTheftBonus") }
-        if self.goldGainCleanseChancePercent != other.goldGainCleanseChancePercent { names.append("goldGainCleanseChancePercent") }
-        if self.goldGainBelowHalfDrawCard != other.goldGainBelowHalfDrawCard { names.append("goldGainBelowHalfDrawCard") }
-        if self.goldTheftDodgeBonus != other.goldTheftDodgeBonus { names.append("goldTheftDodgeBonus") }
-        if self.goldGainDrawChancePercent != other.goldGainDrawChancePercent { names.append("goldGainDrawChancePercent") }
-        if self.goldTheftBlockChancePercent != other.goldTheftBlockChancePercent { names.append("goldTheftBlockChancePercent") }
-        if self.goldTheftBlockAmount != other.goldTheftBlockAmount { names.append("goldTheftBlockAmount") }
-        if self.goldTheftDrawChancePercent != other.goldTheftDrawChancePercent { names.append("goldTheftDrawChancePercent") }
-        if self.goldStealFlatBonus != other.goldStealFlatBonus { names.append("goldStealFlatBonus") }
-        if self.goldTheftNextBlockMultiplier != other.goldTheftNextBlockMultiplier { names.append("goldTheftNextBlockMultiplier") }
-        if self.firstGoldTheftDrawBattle != other.firstGoldTheftDrawBattle { names.append("firstGoldTheftDrawBattle") }
-        if self.allyCriticalChancePerCombatGold != other.allyCriticalChancePerCombatGold { names.append("allyCriticalChancePerCombatGold") }
-        if self.blockBreakStealGoldFlat != other.blockBreakStealGoldFlat { names.append("blockBreakStealGoldFlat") }
-        if self.goldTheftHealAllyFlat != other.goldTheftHealAllyFlat { names.append("goldTheftHealAllyFlat") }
-        if self.attackGoldStealAmount != other.attackGoldStealAmount { names.append("attackGoldStealAmount") }
-        if self.attackGoldStealChancePercent != other.attackGoldStealChancePercent { names.append("attackGoldStealChancePercent") }
-        if self.belowHalfFirstGoldGainHealPerTurn != other.belowHalfFirstGoldGainHealPerTurn { names.append("belowHalfFirstGoldGainHealPerTurn") }
-        if self.criticalGoldStealAmount != other.criticalGoldStealAmount { names.append("criticalGoldStealAmount") }
-        if self.criticalGoldStealChancePercent != other.criticalGoldStealChancePercent { names.append("criticalGoldStealChancePercent") }
-        if self.dodgeGoldAmount != other.dodgeGoldAmount { names.append("dodgeGoldAmount") }
-        if self.dodgeGoldChancePercent != other.dodgeGoldChancePercent { names.append("dodgeGoldChancePercent") }
-        if self.firstGoldTheftDoubleBattle != other.firstGoldTheftDoubleBattle { names.append("firstGoldTheftDoubleBattle") }
-        if self.goldTheftNextAttackCriticalBonus != other.goldTheftNextAttackCriticalBonus { names.append("goldTheftNextAttackCriticalBonus") }
-        if self.goldTheftStealEnemyBlockChancePercent != other.goldTheftStealEnemyBlockChancePercent { names.append("goldTheftStealEnemyBlockChancePercent") }
-        if self.blockedAttackFirstRandomCard != other.blockedAttackFirstRandomCard { names.append("blockedAttackFirstRandomCard") }
-        return names
+    /// Fields where `self` differs from `other`.
+    func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
+        var fields: [CombatTriggerField] = []
+        if self.carrionClaim != other.carrionClaim { fields.append(.carrionClaim) }
+        if self.lightFingered != other.lightFingered { fields.append(.lightFingered) }
+        if self.goldGainedNextHolyDamage != other.goldGainedNextHolyDamage { fields.append(.goldGainedNextHolyDamage) }
+        if self.gainGoldBonusHealSelf != other.gainGoldBonusHealSelf { fields.append(.gainGoldBonusHealSelf) }
+        if self.defeatBleedingEnemyGold != other.defeatBleedingEnemyGold { fields.append(.defeatBleedingEnemyGold) }
+        if self.defeatEnemyGoldFlat != other.defeatEnemyGoldFlat { fields.append(.defeatEnemyGoldFlat) }
+        if self.leechGoldFlat != other.leechGoldFlat { fields.append(.leechGoldFlat) }
+        if self.goldPerTurn != other.goldPerTurn { fields.append(.goldPerTurn) }
+        if self.victoryGoldFlat != other.victoryGoldFlat { fields.append(.victoryGoldFlat) }
+        if self.victoryGoldCoin != other.victoryGoldCoin { fields.append(.victoryGoldCoin) }
+        if self.criticalGoldFlat != other.criticalGoldFlat { fields.append(.criticalGoldFlat) }
+        if self.criticalActionGoldFlat != other.criticalActionGoldFlat { fields.append(.criticalActionGoldFlat) }
+        if self.startBattleBonusGold != other.startBattleBonusGold { fields.append(.startBattleBonusGold) }
+        if self.onGainGoldHealParty != other.onGainGoldHealParty { fields.append(.onGainGoldHealParty) }
+        if self.goldEveryNTurnsInterval != other.goldEveryNTurnsInterval { fields.append(.goldEveryNTurnsInterval) }
+        if self.goldEveryNTurnsAmount != other.goldEveryNTurnsAmount { fields.append(.goldEveryNTurnsAmount) }
+        if self.onEnemyAbilityGold != other.onEnemyAbilityGold { fields.append(.onEnemyAbilityGold) }
+        if self.criticalVsStunnedEnemyGold != other.criticalVsStunnedEnemyGold { fields.append(.criticalVsStunnedEnemyGold) }
+        if self.critOnDefeatGold != other.critOnDefeatGold { fields.append(.critOnDefeatGold) }
+        if self.partyGoldGainedPercent != other.partyGoldGainedPercent { fields.append(.partyGoldGainedPercent) }
+        if self.firstGoldTheftHeal != other.firstGoldTheftHeal { fields.append(.firstGoldTheftHeal) }
+        if self.goldDoubledWhileFullHealth != other.goldDoubledWhileFullHealth { fields.append(.goldDoubledWhileFullHealth) }
+        if self.firstGoldTheftDraw != other.firstGoldTheftDraw { fields.append(.firstGoldTheftDraw) }
+        if self.bountyBlade != other.bountyBlade { fields.append(.bountyBlade) }
+        if self.blockedAttackFirstGold != other.blockedAttackFirstGold { fields.append(.blockedAttackFirstGold) }
+        if self.stealGoldBonusVsPoisoned != other.stealGoldBonusVsPoisoned { fields.append(.stealGoldBonusVsPoisoned) }
+        if self.gainGoldDrawThreshold != other.gainGoldDrawThreshold { fields.append(.gainGoldDrawThreshold) }
+        if self.stunCriticalStealGold != other.stunCriticalStealGold { fields.append(.stunCriticalStealGold) }
+        if self.dodgePreparesDoubleGoldSteal != other.dodgePreparesDoubleGoldSteal { fields.append(.dodgePreparesDoubleGoldSteal) }
+        if self.criticalGoldStealDrawCard != other.criticalGoldStealDrawCard { fields.append(.criticalGoldStealDrawCard) }
+        if self.goldStealNextPhysicalBonus != other.goldStealNextPhysicalBonus { fields.append(.goldStealNextPhysicalBonus) }
+        if self.goldStealNextAttackBonus != other.goldStealNextAttackBonus { fields.append(.goldStealNextAttackBonus) }
+        if self.goldGainHealChancePercent != other.goldGainHealChancePercent { fields.append(.goldGainHealChancePercent) }
+        if self.goldGainHealAmount != other.goldGainHealAmount { fields.append(.goldGainHealAmount) }
+        if self.criticalGoldTheftBonus != other.criticalGoldTheftBonus { fields.append(.criticalGoldTheftBonus) }
+        if self.goldGainCleanseChancePercent != other.goldGainCleanseChancePercent { fields.append(.goldGainCleanseChancePercent) }
+        if self.goldGainBelowHalfDrawCard != other.goldGainBelowHalfDrawCard { fields.append(.goldGainBelowHalfDrawCard) }
+        if self.goldTheftDodgeBonus != other.goldTheftDodgeBonus { fields.append(.goldTheftDodgeBonus) }
+        if self.goldGainDrawChancePercent != other.goldGainDrawChancePercent { fields.append(.goldGainDrawChancePercent) }
+        if self.goldTheftBlockChancePercent != other.goldTheftBlockChancePercent { fields.append(.goldTheftBlockChancePercent) }
+        if self.goldTheftBlockAmount != other.goldTheftBlockAmount { fields.append(.goldTheftBlockAmount) }
+        if self.goldTheftDrawChancePercent != other.goldTheftDrawChancePercent { fields.append(.goldTheftDrawChancePercent) }
+        if self.goldStealFlatBonus != other.goldStealFlatBonus { fields.append(.goldStealFlatBonus) }
+        if self.goldTheftNextBlockMultiplier != other.goldTheftNextBlockMultiplier { fields.append(.goldTheftNextBlockMultiplier) }
+        if self.firstGoldTheftDrawBattle != other.firstGoldTheftDrawBattle { fields.append(.firstGoldTheftDrawBattle) }
+        if self.allyCriticalChancePerCombatGold != other.allyCriticalChancePerCombatGold { fields.append(.allyCriticalChancePerCombatGold) }
+        if self.blockBreakStealGoldFlat != other.blockBreakStealGoldFlat { fields.append(.blockBreakStealGoldFlat) }
+        if self.goldTheftHealAllyFlat != other.goldTheftHealAllyFlat { fields.append(.goldTheftHealAllyFlat) }
+        if self.attackGoldStealAmount != other.attackGoldStealAmount { fields.append(.attackGoldStealAmount) }
+        if self.attackGoldStealChancePercent != other.attackGoldStealChancePercent { fields.append(.attackGoldStealChancePercent) }
+        if self.belowHalfFirstGoldGainHealPerTurn != other.belowHalfFirstGoldGainHealPerTurn { fields.append(.belowHalfFirstGoldGainHealPerTurn) }
+        if self.criticalGoldStealAmount != other.criticalGoldStealAmount { fields.append(.criticalGoldStealAmount) }
+        if self.criticalGoldStealChancePercent != other.criticalGoldStealChancePercent { fields.append(.criticalGoldStealChancePercent) }
+        if self.dodgeGoldAmount != other.dodgeGoldAmount { fields.append(.dodgeGoldAmount) }
+        if self.dodgeGoldChancePercent != other.dodgeGoldChancePercent { fields.append(.dodgeGoldChancePercent) }
+        if self.firstGoldTheftDoubleBattle != other.firstGoldTheftDoubleBattle { fields.append(.firstGoldTheftDoubleBattle) }
+        if self.goldTheftNextAttackCriticalBonus != other.goldTheftNextAttackCriticalBonus { fields.append(.goldTheftNextAttackCriticalBonus) }
+        if self.goldTheftStealEnemyBlockChancePercent != other.goldTheftStealEnemyBlockChancePercent { fields.append(.goldTheftStealEnemyBlockChancePercent) }
+        if self.blockedAttackFirstRandomCard != other.blockedAttackFirstRandomCard { fields.append(.blockedAttackFirstRandomCard) }
+        return fields
     }
 }
 

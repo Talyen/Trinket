@@ -31,7 +31,7 @@ package enum EnemyTraitEngine {
             events.append(context.nextEvent(
                 kind: .status, source: .init(source),
                 abilityName: context.modifiers(for: sourceActorID).triggerAbilityName(
-                    "firstAttackBleedBonus", fallback: "Hidden Fangs",
+                    .firstAttackBleedBonus, fallback: "Hidden Fangs",
                 ),
                 target: state.combatant, amount: outcome.healthLost, keyword: .bleed,
             ))
@@ -215,7 +215,7 @@ package enum EnemyTraitEngine {
                 kind: .effect,
                 effectKind: .thornsTriggered,
                 source: .init(defender),
-                abilityName: profile.triggerAbilityName("thornsPercent", fallback: "Trait"),
+                abilityName: profile.triggerAbilityName(.thornsPercent, fallback: "Trait"),
                 target: attacker,
                 amount: outcome.healthLost,
                 keyword: .physical,

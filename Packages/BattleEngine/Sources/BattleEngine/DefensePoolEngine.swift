@@ -168,7 +168,7 @@ package enum DefensePoolEngine {
             await events.append(contentsOf: CombatTriggerEngine.heroTalentThorns(
                 to: target, source: target, amount: triggers.retainedBlockThornsFlat,
                 name: context.modifiers(for: target.id).triggerAbilityName(
-                    "retainedBlockThornsFlat", fallback: "Ironbriar",
+                    .retainedBlockThornsFlat, fallback: "Ironbriar",
                 ),
                 in: &context,
             ))
@@ -178,7 +178,7 @@ package enum DefensePoolEngine {
                 amount: retained,
                 triggers: triggers,
                 actor: target,
-                abilityKey: "retainedBlockGainThornsPercent",
+                abilityKey: .retainedBlockGainThornsPercent,
                 in: &context,
             ))
         }

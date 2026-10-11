@@ -68,12 +68,6 @@ struct CombatFeedbackBurstTests {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
-        var publications: [[Int]] = []
-        lane.installBridge(ownerID: UUID()) { update in
-            if case let .replace(items) = update {
-                publications.append(items.map(\.id))
-            }
-        }
         lane.record([
             event(1, .controlTriggered, keyword: .freeze),
             event(2, .deathsDoorTriggered, keyword: .deathsDoor),
@@ -88,9 +82,9 @@ struct CombatFeedbackBurstTests {
         ], at: start)
         let visibleIDs = Set(visible(lane).map(\.id))
         #expect(visibleIDs == [2, 4, 6, 7, 8, 9, 10])
-        #expect(publications.count == 1 && Set(publications[0]) == visibleIDs)
+        #expect(lane.chipBridge.debugItemIDs == visibleIDs)
         lane.noteItemsChanged()
-        #expect(Set(publications.last ?? []) == visibleIDs)
+        #expect(lane.chipBridge.debugItemIDs == visibleIDs)
         lane.setSuspended(true, at: start.addingTimeInterval(0.1))
         lane.setSuspended(false, at: start.addingTimeInterval(10.1))
         #expect(Set(visible(lane).map(\.id)) == visibleIDs)

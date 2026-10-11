@@ -39,8 +39,8 @@ struct CloudSaveMergeEconomyRegressionTests {
             let costs = [well, field, coop, garden].flatMap { $0.tier(1)?.cost ?? [] }
             for resource in HomesteadResource.allCases {
                 let spent = costs.filter { $0.resource == resource }.reduce(0) { $0 + $1.quantity }
-                #expect(reloaded.homestead.balance(for: resource, roster: reloaded.roster)
-                    == base.homestead.balance(for: resource, roster: base.roster) - spent)
+                #expect(reloaded.homestead.balance(for: resource, gold: reloaded.roster.gold)
+                    == base.homestead.balance(for: resource, gold: base.roster.gold) - spent)
             }
             for definition in [well, field, coop, garden] {
                 #expect(reloaded.homestead.tier(for: definition.id) == 1)
@@ -57,8 +57,8 @@ struct CloudSaveMergeEconomyRegressionTests {
         base.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wishingWell: 1], lastProductionAt: start)
         var first = base
         var second = base
-        #expect(first.homestead.collectProduction(at: firstDay, roster: &first.roster) == [ResourceAmount(.gold, 1)])
-        #expect(second.homestead.collectProduction(at: secondDay, roster: &second.roster) == [ResourceAmount(.gold, 2)])
+        #expect(first.homestead.collectProduction(at: firstDay, gold: &first.roster.gold) == [ResourceAmount(.gold, 1)])
+        #expect(second.homestead.collectProduction(at: secondDay, gold: &second.roster.gold) == [ResourceAmount(.gold, 2)])
         let firstSpent = first.roster.spendGold(20)
         let secondSpent = second.roster.spendGold(10)
         #expect(firstSpent && secondSpent)
@@ -68,7 +68,7 @@ struct CloudSaveMergeEconomyRegressionTests {
             var reloaded = try context.seedAndReload(merged).currentSave
             #expect(reloaded.roster.gold == 72)
             #expect(reloaded.homestead.lastProductionAt == secondDay)
-            #expect(reloaded.homestead.collectProduction(at: secondDay, roster: &reloaded.roster).isEmpty)
+            #expect(reloaded.homestead.collectProduction(at: secondDay, gold: &reloaded.roster.gold).isEmpty)
             #expect(reloaded.roster.gold == 72)
         }
     }
@@ -88,8 +88,8 @@ struct CloudSaveMergeEconomyRegressionTests {
         #expect(second.grantMaterials([ResourceAmount(.herbs, 7)], at: date) == [ResourceAmount(.herbs, 7)])
         #expect(first.grantGold(11, at: date) == 11)
         #expect(second.grantGold(13, at: date) == 13)
-        #expect(first.homestead.collectProduction(at: date, roster: &first.roster) == [ResourceAmount(.food, 1)])
-        #expect(second.homestead.collectProduction(at: date, roster: &second.roster) == [ResourceAmount(.food, 1)])
+        #expect(first.homestead.collectProduction(at: date, gold: &first.roster.gold) == [ResourceAmount(.food, 1)])
+        #expect(second.homestead.collectProduction(at: date, gold: &second.roster.gold) == [ResourceAmount(.food, 1)])
 
         let merged = CloudSaveMerge.merge(
             incoming: reverseBranches ? second : first, existing: reverseBranches ? first : second,
@@ -101,7 +101,7 @@ struct CloudSaveMergeEconomyRegressionTests {
         #expect(reloaded.homestead.resources[.herbs] == 12)
         #expect(reloaded.roster.gold == 24)
         #expect(reloaded.homestead.resources[.food] == 1)
-        #expect(reloaded.homestead.collectProduction(at: date, roster: &reloaded.roster).isEmpty)
+        #expect(reloaded.homestead.collectProduction(at: date, gold: &reloaded.roster.gold).isEmpty)
     }
 
     @Test(arguments: [false, true]) @MainActor
@@ -114,9 +114,9 @@ struct CloudSaveMergeEconomyRegressionTests {
             resources: [:], nodeTiers: [.wheatField: 1], lastProductionAt: start,
         )
         var collected = base
-        #expect(collected.homestead.collectProduction(at: firstDay, roster: &collected.roster) == [ResourceAmount(.food, 1)])
+        #expect(collected.homestead.collectProduction(at: firstDay, gold: &collected.roster.gold) == [ResourceAmount(.food, 1)])
         var stillPending = base
-        stillPending.homestead.settleProduction(at: secondDay, roster: stillPending.roster)
+        stillPending.homestead.settleProduction(at: secondDay, gold: stillPending.roster.gold)
         #expect(stillPending.homestead.pendingProduction[.food] == 2)
 
         let merged = CloudSaveMerge.merge(
@@ -129,9 +129,9 @@ struct CloudSaveMergeEconomyRegressionTests {
         #expect(reloaded.homestead.lastProductionAt == secondDay)
         #expect(reloaded.homestead.resources[.food] == 1)
         #expect(reloaded.homestead.pendingProduction[.food] == 1)
-        #expect(reloaded.homestead.collectProduction(at: secondDay, roster: &reloaded.roster) == [ResourceAmount(.food, 1)])
+        #expect(reloaded.homestead.collectProduction(at: secondDay, gold: &reloaded.roster.gold) == [ResourceAmount(.food, 1)])
         #expect(reloaded.homestead.resources[.food] == 2)
-        #expect(reloaded.homestead.collectProduction(at: secondDay, roster: &reloaded.roster).isEmpty)
+        #expect(reloaded.homestead.collectProduction(at: secondDay, gold: &reloaded.roster.gold).isEmpty)
     }
 
     @Test(arguments: [false, true])
@@ -212,12 +212,12 @@ struct CloudSaveMergeEconomyRegressionTests {
         )
 
         var collectedAndSpent = base
-        let collected = collectedAndSpent.homestead.collectProduction(at: date, roster: &collectedAndSpent.roster)
+        let collected = collectedAndSpent.homestead.collectProduction(at: date, gold: &collectedAndSpent.roster.gold)
         #expect(collected == [ResourceAmount(.gold, 1)])
         let spent = collectedAndSpent.roster.spendGold(20)
         #expect(spent)
         var stillPending = base
-        stillPending.homestead.settleProduction(at: date, roster: stillPending.roster)
+        stillPending.homestead.settleProduction(at: date, gold: stillPending.roster.gold)
         #expect(stillPending.homestead.pendingProduction[.gold, default: 0] == 1)
 
         let merged = CloudSaveMerge.merge(
@@ -226,7 +226,7 @@ struct CloudSaveMergeEconomyRegressionTests {
         #expect(merged.roster.gold == 81)
         #expect(merged.homestead.pendingProduction[.gold, default: 0] == 0)
         var reopened = merged
-        #expect(reopened.homestead.collectProduction(at: date, roster: &reopened.roster).isEmpty)
+        #expect(reopened.homestead.collectProduction(at: date, gold: &reopened.roster.gold).isEmpty)
     }
 
     @Test func `collecting and spending on one device cannot restore pending production`() {
@@ -239,7 +239,7 @@ struct CloudSaveMergeEconomyRegressionTests {
         base.homestead.lastProductionAt = date
 
         var collectedAndSpent = base
-        let collected = collectedAndSpent.homestead.collectProduction(at: date, roster: &collectedAndSpent.roster)
+        let collected = collectedAndSpent.homestead.collectProduction(at: date, gold: &collectedAndSpent.roster.gold)
         #expect(collected == [ResourceAmount(.wood, 10)])
         let field = GameContent.homesteadNode(matching: .wheatField)
         guard let field, case .success = HomesteadBuildMutation.apply(
@@ -261,6 +261,6 @@ struct CloudSaveMergeEconomyRegressionTests {
         #expect(merged.homestead.resources[.wood] == 26)
         #expect(merged.homestead.pendingProduction[.wood, default: 0] == 0)
         var reopened = merged
-        #expect(reopened.homestead.collectProduction(at: date, roster: &reopened.roster).isEmpty)
+        #expect(reopened.homestead.collectProduction(at: date, gold: &reopened.roster.gold).isEmpty)
     }
 }

@@ -33,7 +33,7 @@ struct ContentView: View {
                     confirmHero: appState.confirmStarterHero,
                     confirmCompanion: appState.completeStarterSelection,
                 )
-                .id(playerSave.currentSave.sessionGeneration)
+                .id(playerSave.sessionGeneration)
                 .onFirstNonzeroLayout {
                     onFirstLayout()
                 }

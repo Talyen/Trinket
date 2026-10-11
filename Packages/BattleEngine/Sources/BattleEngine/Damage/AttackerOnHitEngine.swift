@@ -152,7 +152,7 @@ enum AttackerOnHitEngine {
             triggers.holyTriggeredStunGoldFlat,
             to: hit.source,
             abilityName: CombatTriggerEngine.triggerAbilityName(
-                "holyTriggeredStunGoldFlat",
+                .holyTriggeredStunGoldFlat,
                 for: hit.source,
                 fallback: "Golden Verdict",
                 in: context,
@@ -171,7 +171,7 @@ enum AttackerOnHitEngine {
             target: source,
             source: source,
             abilityName: CombatTriggerEngine.triggerAbilityName(
-                "onAttackBleedingEnemyHeal",
+                .onAttackBleedingEnemyHeal,
                 for: source,
                 fallback: "Bloodprice",
                 in: context,

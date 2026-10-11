@@ -60,12 +60,12 @@ package extension CombatTriggerEngine {
                 events.append(contentsOf: context.applyBlock(
                     triggers.cleanseSelfBlockFlat * removedCount,
                     to: source, source: source,
-                    abilityName: triggerAbilityName("cleanseSelfBlockFlat", for: source, fallback: "Clearheaded", in: context),
+                    abilityName: triggerAbilityName(.cleanseSelfBlockFlat, for: source, fallback: "Clearheaded", in: context),
                 ))
             }
             if triggers.onCleanseRestoreMana > 0 {
                 await events.append(contentsOf: emitMana(
-                    "onCleanseRestoreMana", "Solace",
+                    .onCleanseRestoreMana, "Solace",
                     amount: triggers.onCleanseRestoreMana * removedCount, to: source, in: &context,
                 ))
             }
@@ -129,7 +129,7 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if triggers.cleanseBlockPerStack > 0 {
             events.append(contentsOf: emitBlock(
-                "cleanseBlockPerStack", "Spellbreak Shield",
+                .cleanseBlockPerStack, "Spellbreak Shield",
                 amount: triggers.cleanseBlockPerStack * removedCount, to: target, source: source, in: &context,
             ))
         }
@@ -142,7 +142,7 @@ package extension CombatTriggerEngine {
         guard allowPartyBlock, triggers.cleansePartyBlock > 0 else { return events }
         for (_, member) in livingPartyMembers(in: context) {
             events.append(contentsOf: emitBlock(
-                "cleansePartyBlock", "Cleansing Ward",
+                .cleansePartyBlock, "Cleansing Ward",
                 amount: triggers.cleansePartyBlock, to: member.combatant, source: source, in: &context,
             ))
         }
@@ -166,7 +166,7 @@ package extension CombatTriggerEngine {
         return await applyPurge(
             to: context.roster.enemy.combatant,
             source: source,
-            abilityName: triggerAbilityName("cleanseAlsoPurgesEnemyBuffs", for: source, fallback: "Dispel Magic", in: context),
+            abilityName: triggerAbilityName(.cleanseAlsoPurgesEnemyBuffs, for: source, fallback: "Dispel Magic", in: context),
             count: count,
             purgeAll: false,
             in: &context,
@@ -237,7 +237,7 @@ package extension CombatTriggerEngine {
         }) else { return [] }
         guard context.roster.activeEffects(for: other).contains(where: \.effect.isRemovableDebuff) else { return [] }
         let abilityName = triggerAbilityName(
-            "cleanseAffectsBothHeroAndCompanion",
+            .cleanseAffectsBothHeroAndCompanion,
             for: source,
             fallback: "Mass Cleanse",
             in: context,
@@ -284,7 +284,7 @@ package extension CombatTriggerEngine {
             count,
             for: owner,
             actor: source,
-            abilityName: triggerAbilityName("cleanseBonusDraw", for: source, fallback: "Purifying Wisdom", in: context),
+            abilityName: triggerAbilityName(.cleanseBonusDraw, for: source, fallback: "Purifying Wisdom", in: context),
             in: &context,
         )
     }

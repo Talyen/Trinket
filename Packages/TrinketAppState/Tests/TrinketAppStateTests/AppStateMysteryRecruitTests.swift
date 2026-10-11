@@ -43,6 +43,7 @@ struct AppStateMysteryRecruitTests {
         let preview = try #require(state.journey.previewMysteryEvent(for: stage))
         var incomingSave = state.playerSave.currentSave
         incomingSave.roster.unlockedCompanionIDs.insert("bear")
+        incomingSave.journey.pinnedMysteryEventIDs[stage.id] = preview.id
         #expect(state.journey.previewMysteryEvent(for: stage, save: incomingSave)?.id != preview.id)
         #expect(state.journey.previewMysteryEvent(for: stage)?.id == preview.id)
         #expect(preview.isRecruit)
@@ -195,26 +196,6 @@ struct AppStateMysteryRecruitTests {
         #expect(state.playerSave.roster.gold == goldBefore)
     }
 
-    @Test func `duplicate unlock choice fails without completing progress`() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
-        let ownedID = state.playerSave.roster.activeHeroID
-        let event = MysteryEvent(
-            id: "audit-duplicate-unlock",
-            title: "Audit",
-            narrative: "Audit",
-            artID: nil,
-            choices: [MysteryChoice(id: "welcome", label: "Welcome", effects: [.gainGold(20), .unlockCombatant(ownedID)])],
-        )
-        let session = attachMysterySession(event: event, to: state)
-
-        let goldBefore = state.playerSave.roster.gold
-        #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: "welcome"))
-        #expect(state.playerSave.roster.gold == goldBefore)
-
-        #expect(session.canResolveChoice)
-        #expect(!state.playerSave.journey.completedStageIDs.contains(session.stage.id))
-    }
-
     @Test func `mystery experience offer matches both recipients`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         var roster = state.playerSave.roster
@@ -322,7 +303,7 @@ struct AppStateMysteryRecruitTests {
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
         #expect(!state.playerSave.roster.isCompanionUnlocked("bear"))
         #expect(!state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
-        #expect(state.encounters.activeMysteryEncounter != nil)
+        #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(playerSave.isRetryingSaveAction)
 
         try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
@@ -364,12 +345,13 @@ struct AppStateMysteryRecruitTests {
             event: event,
             combatant: nil,
         )
-        var prepared: [MysteryOffer]?
-        #expect(state.playerSave.persistBatch(logging: "Prepare test mystery offers") { save in
-            var rng = SeededRandomNumberGenerator(seed: 7)
-            prepared = try? MysteryOfferPersistence.prepare(event: event, encounter: session.encounter, save: &save, using: &rng)
-        })
-        try session.installOffers(#require(prepared))
+        var rng = SeededRandomNumberGenerator(seed: 7)
+        guard case let .committed(prepared) = state.playerSave.prepareMysteryEncounter(
+            encounter: session.encounter, forcedEventID: event.id, using: &rng,
+        ) else {
+            throw MysteryChoiceFailure.unavailable
+        }
+        session.installOffers(prepared.offers)
         state.encounters.activeMysteryEncounter = session
         return session
     }
@@ -386,6 +368,9 @@ struct AppStateMysteryRecruitTests {
             event: event,
             combatant: nil,
         )
+        #expect(state.playerSave.persistBatch(logging: "Pin test Mystery identity") { save in
+            save.journey.pinnedMysteryEventIDs[stage.id] = event.id
+        })
         state.encounters.activeMysteryEncounter = session
         return session
     }

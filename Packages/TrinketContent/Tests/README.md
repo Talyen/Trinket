@@ -10,6 +10,7 @@ Tests follow the content domains in `Abilities/`, `Equipment/`, `Encounters/`,
 | Ability validation | `AbilityValidationTests` | Base, random, and conditional paths; target rules, tier damage, and description overrides |
 | Art catalog cross-references | `ArtCatalogIntegrationTests` | Ability/item/stage wiring and artwork for every player combatant and enemy |
 | Combatant catalog graph | `CombatantCatalogTests` | Hero/companion loadouts, health/mana |
+| Homestead rules | `HomesteadStateTests` | Production timing and fractional credit, wallet/material overflow, collection, and build costs without save fixtures |
 | Homestead node catalog | `HomesteadCatalogTests` | Node IDs, tiers, unlock graph, tier effects |
 | Contracts | `ContractGeneratorTests` | Exclusions, exhausted-pool fallback, saved offers, and independent identities for repeated targets |
 | Voyage | `VoyageTests` | Regional route generation, chapter keyword affinity, and completion-bonus rounding/saturation |
@@ -22,6 +23,7 @@ Tests follow the content domains in `Abilities/`, `Equipment/`, `Encounters/`,
 | Enemy traits | `GameContentTraitCatalogTests` | Enemy→trait ID refs and boss resistance rules; `KeywordCohesionTests` checks mechanic descriptions |
 | Enemy kits and Health | `EnemyCatalogTests` | Normal HP band, complete kits, canonical ability references; Journey/Spire tests own boss placement |
 | Loadout selection | `AbilityLoadoutTests` | Tier ordering, canonical selection/fallback, preserved empty tiers |
+| Battle loot | `BattleLootTests` | Quantity bands and saturation, distinct materials, modifier isolation, and seed stability without save fixtures |
 | Item generation | `ItemGeneratorTests`, `ThemedGearGeneratorTests` | Seeded RNG, affix counts |
 | Item affix magnitude rolls | `ItemAffixMagnitudeRollTests` | Seeded magnitude ranges |
 | Shop offers | `ShopOfferGeneratorTests` | Offer count, price/rarity rules, seed stability |

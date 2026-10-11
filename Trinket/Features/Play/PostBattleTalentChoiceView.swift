@@ -260,11 +260,11 @@ private struct PostBattleTalentChoiceContent: View {
         }
     }
 
-    private func choose(node: TalentNode, tree: TalentTree) -> TalentUnlockResult {
+    private func choose(node: TalentNode, tree: TalentTree) -> RosterEditResult {
         guard play.currentPostBattleTalentCombatantID == combatantID else { return .unavailable }
         let result = play.choosePostBattleTalent(nodeID: node.id, treeID: tree.id)
         switch result {
-        case .unlocked:
+        case .committed:
             if scenePhase == .active {
                 playSFX(SFXID.talentUnlock, options.effectsVolume)
             }

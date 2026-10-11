@@ -47,7 +47,7 @@ struct CloudReceiptReplay {
             merged.roster.progressions[id] = existing.roster.progressions[id] ?? .initial
         }
         var existingProduction = existing.homestead
-        existingProduction.settleProduction(at: merged.homestead.lastProductionAt, roster: existing.roster)
+        existingProduction.settleProduction(at: merged.homestead.lastProductionAt, gold: existing.roster.gold)
         merged.homestead.pendingProduction = existingProduction.pendingProduction
         try applyEffects(receipts, before: before, existing: existing, merged: &merged)
         reconcileProduction(receipts, mutation: mutation, after: after, merged: &merged)
@@ -95,7 +95,7 @@ struct CloudReceiptReplay {
             }
         }
         var localProduction = after.homestead
-        localProduction.settleProduction(at: merged.homestead.lastProductionAt, roster: after.roster)
+        localProduction.settleProduction(at: merged.homestead.lastProductionAt, gold: after.roster.gold)
         for (resource, credit) in localProduction.pendingProduction {
             let consumed = productionClaims.covered(resource, after: localPositions[resource, default: 0])
             let retained = max(0, credit - Double(consumed))

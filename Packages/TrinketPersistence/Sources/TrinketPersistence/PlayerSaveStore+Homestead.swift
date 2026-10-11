@@ -43,12 +43,12 @@ public extension PlayerSaveStore {
         guard prepareLocalProduction() else { return .persistFailed }
         var collected: [ResourceAmount] = []
         guard persistBatch(logging: "Failed to collect homestead production", { save, recordReceipt in
-            save.homestead.settleProduction(at: date, roster: save.roster)
+            save.homestead.settleProduction(at: date, gold: save.roster.gold)
             let collection = SaveEconomicReceipt.Collection(
                 pending: save.homestead.pendingProduction, nodeTiers: save.homestead.nodeTiers,
                 date: save.homestead.lastProductionAt, gold: save.roster.gold,
             )
-            collected = save.homestead.collectProduction(at: date, roster: &save.roster)
+            collected = save.homestead.collectProduction(at: date, gold: &save.roster.gold)
             let amounts = Dictionary(uniqueKeysWithValues: collected.map { ($0.resource, $0.quantity) })
             if !collected.isEmpty {
                 recordReceipt(SaveEconomicReceipt(kind: .collection(collection), effects: .committed(
@@ -76,9 +76,9 @@ enum HomesteadBuildMutation {
         recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> Result<Void, HomesteadBuildFailure> {
         guard let tier = save.homestead.nextTier(for: definition), tier.tier == targetTier else { return .failure(.notAvailable) }
-        save.homestead.settleProduction(at: date, roster: save.roster)
-        guard save.homestead.canAfford(tier, roster: save.roster) else { return .failure(.insufficientResources) }
-        guard save.homestead.buildOrUpgrade(definition, roster: &save.roster) else { return .failure(.notAvailable) }
+        save.homestead.settleProduction(at: date, gold: save.roster.gold)
+        guard save.homestead.canAfford(tier, gold: save.roster.gold) else { return .failure(.insufficientResources) }
+        guard save.homestead.buildOrUpgrade(definition, gold: &save.roster.gold) else { return .failure(.notAvailable) }
         var costs: [HomesteadResource: Int] = [:]
         for amount in tier.cost {
             costs[amount.resource, default: 0] -= amount.quantity

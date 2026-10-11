@@ -3,28 +3,28 @@ import SwiftData
 import TrinketCore
 
 @Model
-public final class JourneyProgressModel {
-    public var activeChapterID: String = JourneyProgressState.initial.activeChapterID
-    public var activeStageID: String?
-    public var root: PlayerSaveRoot?
+final class JourneyProgressModel {
+    var activeChapterID: String = JourneyProgressState.initial.activeChapterID
+    var activeStageID: String?
+    var root: PlayerSaveRoot?
 
     @Relationship(deleteRule: .cascade, inverse: \JourneyStageProgressModel.journey)
-    public var stages: [JourneyStageProgressModel]?
+    var stages: [JourneyStageProgressModel]?
 
-    public init() {}
+    init() {}
 }
 
 @Model
-public final class JourneyStageProgressModel {
-    public var stageID: String = ""
-    public var isCompleted: Bool = false
-    public var rewardsClaimed: Bool = false
-    public var mysteryEventID: String?
-    public var mysteryOffersPayload: Data?
-    public var shopPayload: Data?
-    public var journey: JourneyProgressModel?
+final class JourneyStageProgressModel {
+    var stageID: String = ""
+    var isCompleted: Bool = false
+    var rewardsClaimed: Bool = false
+    var mysteryEventID: String?
+    var mysteryOffersPayload: Data?
+    var shopPayload: Data?
+    var journey: JourneyProgressModel?
 
-    public init(
+    init(
         stageID: String = "",
         isCompleted: Bool = false,
         rewardsClaimed: Bool = false,

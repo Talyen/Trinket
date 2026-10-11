@@ -3,14 +3,14 @@ import SwiftData
 import TrinketContent
 
 @Model
-public final class LabyrinthProgressModel {
-    public var root: PlayerSaveRoot?
-    public var worldSeed: UInt64 = 0
-    public var mapVersion: Int = LabyrinthGenerator.currentMapVersion
-    public var hasEntered: Bool = false
-    public var mapPayload: Data?
+final class LabyrinthProgressModel {
+    var root: PlayerSaveRoot?
+    var worldSeed: UInt64 = 0
+    var mapVersion: Int = LabyrinthGenerator.currentMapVersion
+    var hasEntered: Bool = false
+    var mapPayload: Data?
 
-    public init() {}
+    init() {}
 }
 
 struct LabyrinthMapPayload: Codable, Equatable {

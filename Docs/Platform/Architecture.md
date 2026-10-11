@@ -46,6 +46,9 @@ source selection and preparation.
 |---------|-------|-------|
 | Effects, keywords, stats, progression | [TrinketCore](../../Packages/TrinketCore/README.md) | Domain primitives; no UI or app dependencies |
 | Battle Gold flow and reward values | TrinketCore / TrinketContent | Core carries gross gains/spending fields for compatibility; current combat content is gain-only |
+| Seeded battle loot and request identities | TrinketContent | Gold/material/item rolls use content values; Persistence adapts saved ownership and commits claims |
+| Item generation, Corruption, and Salvage rules | TrinketContent | Item values and inventory arrays; Persistence owns save commands, receipts, and cooldowns |
+| Homestead production and upgrade rules | TrinketContent | Value state and Gold inputs; Persistence owns saved wallet writes, graph mapping, and receipts |
 | Catalogs and authored content | [TrinketContent](../../Packages/TrinketContent/README.md) | Manifest/codegen boundary and runtime catalog |
 | Combat rules and card combat | [BattleEngine](../../Packages/BattleEngine/README.md) | Simulation owner |
 | Player save, stores, and sync wiring | [TrinketPersistence](../../Packages/TrinketPersistence/README.md) | Canonical save graph and write policy |

@@ -167,7 +167,7 @@ package enum HealingEngine {
         var events: [ActionEvent] = []
         if sourceTriggers.onHealGrantBlock > 0,
            let sourceID = request.sourceActorID, let source = context.roster.combatant(for: sourceID) {
-            let abilityName = context.modifiers(for: sourceID).triggerAbilityName("onHealGrantBlock", fallback: "Warded Roost")
+            let abilityName = context.modifiers(for: sourceID).triggerAbilityName(.onHealGrantBlock, fallback: "Warded Roost")
             events.append(contentsOf: context.applyBlock(
                 sourceTriggers.onHealGrantBlock,
                 to: request.target,
@@ -179,7 +179,7 @@ package enum HealingEngine {
            let sourceID = request.sourceActorID, let source = context.roster.combatant(for: sourceID),
            BattleChance.succeeds(probability: sourceTriggers.onHealCleanseTargetChance, using: &context.rng) {
             let abilityName = context.modifiers(for: sourceID).triggerAbilityName(
-                "onHealCleanseTargetChance",
+                .onHealCleanseTargetChance,
                 fallback: "Sanctified Scroll",
             )
             await events.append(contentsOf: CombatTriggerEngine.performRandomCleanses(
@@ -280,7 +280,7 @@ package enum HealingEngine {
                 for: .companion,
                 actor: source.combatant,
                 abilityName: CombatTriggerEngine.triggerAbilityName(
-                    "healCompanionDrawsCompanionCard",
+                    .healCompanionDrawsCompanionCard,
                     for: source.combatant,
                     fallback: "Loyal Companion",
                     in: context,

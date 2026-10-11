@@ -157,7 +157,7 @@ package extension CombatTriggerEngine {
             effectKind: .resourceGain,
             source: .init(caster),
             abilityName: triggerAbilityName(
-                "onBurnDamageRestoreManaFlat",
+                .onBurnDamageRestoreManaFlat,
                 for: caster.combatant,
                 fallback: "Pyromancer's Spark",
                 in: context,

@@ -203,7 +203,7 @@ package extension DamagePipeline {
                     amount: freeze,
                     keyword: .freeze,
                     abilityName: CombatTriggerEngine.triggerAbilityName(
-                        "onHitAttackerFreezeBuildup", for: state.combatant, fallback: "Chilling Scales", in: context,
+                        .onHitAttackerFreezeBuildup, for: state.combatant, fallback: "Chilling Scales", in: context,
                     ),
                     target: attacker.combatant,
                     defender: state.combatant,
@@ -340,7 +340,7 @@ package extension DamagePipeline {
                 to: state.combatant,
                 source: state.combatant,
                 abilityName: CombatTriggerEngine.triggerAbilityName(
-                    "onHitGainBlock",
+                    .onHitGainBlock,
                     for: state.combatant,
                     fallback: "Plated Hide",
                     in: context,
@@ -496,7 +496,7 @@ package extension DamagePipeline {
         return await context.healEmitting(
             amount: heal, target: target, source: defender,
             abilityName: context.modifiers(for: defender.id).triggerAbilityName(
-                "firstThornsDamageHealPerTurn", fallback: "Spiteful",
+                .firstThornsDamageHealPerTurn, fallback: "Spiteful",
             ),
         )
     }

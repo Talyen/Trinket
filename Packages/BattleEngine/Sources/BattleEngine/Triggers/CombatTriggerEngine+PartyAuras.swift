@@ -90,7 +90,7 @@ package extension CombatTriggerEngine {
             if targetIsPoisoned {
                 accumulateAfflictedAura(
                     multiplier: profile.triggers.damageVsPoisonedMultiplier,
-                    key: "damageVsPoisonedMultiplier",
+                    key: .damageVsPoisonedMultiplier,
                     profile: profile,
                     excess: &excess,
                     names: &names,
@@ -99,7 +99,7 @@ package extension CombatTriggerEngine {
             if targetIsBurning {
                 accumulateAfflictedAura(
                     multiplier: profile.triggers.damageVsBurningMultiplier,
-                    key: "damageVsBurningMultiplier",
+                    key: .damageVsBurningMultiplier,
                     profile: profile,
                     excess: &excess,
                     names: &names,
@@ -111,7 +111,7 @@ package extension CombatTriggerEngine {
 
     private static func accumulateAfflictedAura(
         multiplier: Double,
-        key: String,
+        key: CombatTriggerField,
         profile: CombatModifierProfile,
         excess: inout Double,
         names: inout [String],

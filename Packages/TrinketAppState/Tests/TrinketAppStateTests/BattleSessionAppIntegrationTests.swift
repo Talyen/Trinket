@@ -124,9 +124,11 @@ struct BattleSessionAppIntegrationTests {
         let sibling = PlayBattleOrigin.journey(stageID: second.id).runKey
         let registration = try #require(state.battleRegistration(for: runKey))
         let original = registration.launch.inputs.launch
+        let encounter = try #require(original.encounter)
         let input = BattleLaunchInput(
-            origin: original.origin, hero: original.hero, companion: original.companion, enemy: original.enemy,
-            enemyEncounterLevel: (original.enemyEncounterLevel ?? 1) + (changedEncounter ? 1 : 0),
+            origin: original.origin, hero: original.hero, companion: original.companion,
+            encounter: changedEncounter
+                ? ScaledEncounter(combatant: encounter.combatant, level: encounter.level + 1) : encounter,
             stageReward: original.stageReward, experienceBonusPercent: original.experienceBonusPercent,
             pendingRewardItem: original.pendingRewardItem, stageRewardsAlreadyClaimed: original.stageRewardsAlreadyClaimed,
             universalModifiers: original.universalModifiers, nodeModifiers: original.nodeModifiers,
@@ -134,7 +136,7 @@ struct BattleSessionAppIntegrationTests {
         #expect(state.battleCoordinator.activateBattle(input, route: registration.route))
         let active = try #require(state.battle.activeBattle)
         #expect((active.id != registration.launch.configuration.id) == changedEncounter)
-        #expect(active.enemyEncounterLevel == input.enemyEncounterLevel)
+        #expect(active.enemyEncounterLevel == input.encounter?.level)
         #expect(active.rngSeed == registration.launch.configuration.rngSeed)
         #expect(state.battleCoordinator.preparedRuns[sibling] != nil)
         let stale = PlayBattleCoordinator.assembleLaunch(registration.launch.inputs).configuration
@@ -416,7 +418,7 @@ extension BattleSessionAppIntegrationTests {
         let request = BattleLaunchInput(
             origin: initial.launch.inputs.launch.origin,
             hero: initial.launch.inputs.launch.hero, companion: initial.launch.inputs.launch.companion,
-            enemy: initial.launch.inputs.launch.enemy, enemyEncounterLevel: initial.launch.inputs.launch.enemyEncounterLevel,
+            encounter: initial.launch.inputs.launch.encounter,
             stageReward: initial.launch.inputs.launch.stageReward, experienceBonusPercent: 25,
             pendingRewardItem: initial.launch.inputs.launch.pendingRewardItem,
             universalModifiers: [.damageDealt(.burn, 7)],

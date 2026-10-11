@@ -165,65 +165,62 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         self.stunBuildupMultiplier = stunBuildupMultiplier
     }
 
-    /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["stunDamageAddsEnemyBlock", "stunRetainedBuildupPercent", "freezeExtraActionSkips", "freezeExtendChancePercent", "stunExtendChancePercent", "physicalStunBuildupPercent", "holyStunBuildupPercent", "holyTriggeredStunGoldFlat", "frozenEnemyCannotBlockOrHeal", "enemyStunExtraActionSkips", "onEnemyStunRecoverDrawCard", "onEnemyStunRecoverApplyAfflictions", "enemyStunThresholdReductionPercent", "onStunEnemyApplyBurn", "onceBelowHealthPercentStunAllEnemies", "freezeCardsPlayedThisTurnFreezeAll", "flashFreeze", "everyNTurnsFreezeAllEnemiesInterval", "everyNTurnsFreezeAllEnemiesAmount", "everyNTurnsStunBuildupInterval", "everyNTurnsStunBuildupAmount", "everyNTurnsTeamBlockAmount", "enemyStunnedApplyMarked", "enemyStunnedPurgeCount", "enemyStunnedPurgeAll", "stunDealPhysicalFlat", "dodgeDealStunFlat", "onDodgeAttackerStunBuildup", "onceBelowHealthPercentThreshold", "turnFreezeDamageAllEnemies", "turnFreezeDamageAllEnemiesInterval", "stunPurgeDealHolyPerEffect", "lightningRod", "stunExtendVsBurning", "dodgeDealFreezeFlat", "freezeBuildupMultiplier", "poisonedEnemyStunBuildupMultiplier", "firstStunAttackBonusPerTurn", "stunBuildupBelowHalfMultiplier", "freezeAttackDrawChancePercent", "onDamageFreezeRetaliationChancePercent", "onDamageFreezeRetaliationDamage", "onFreezeEnemyRestoreMana", "freezeCriticalBuildupMultiplier", "onFreezeEnemyDrawCard", "freezeCritEnemyNextAttackMissChance", "holyCritEnemyNextAttackMissChance", "onFreezeBurningEnemyBurnDamage", "onFreezeEnemyGainBlock", "onStunExpirePoisonDamage", "onStunNextAttackGuaranteedCritical", "stunBuildupMultiplier"]
-
-    /// Field names where `self` differs from `other`.
-    func populatedFieldNames(comparedTo other: Self) -> [String] {
-        var names: [String] = []
-        if self.stunDamageAddsEnemyBlock != other.stunDamageAddsEnemyBlock { names.append("stunDamageAddsEnemyBlock") }
-        if self.stunRetainedBuildupPercent != other.stunRetainedBuildupPercent { names.append("stunRetainedBuildupPercent") }
-        if self.freezeExtraActionSkips != other.freezeExtraActionSkips { names.append("freezeExtraActionSkips") }
-        if self.freezeExtendChancePercent != other.freezeExtendChancePercent { names.append("freezeExtendChancePercent") }
-        if self.stunExtendChancePercent != other.stunExtendChancePercent { names.append("stunExtendChancePercent") }
-        if self.physicalStunBuildupPercent != other.physicalStunBuildupPercent { names.append("physicalStunBuildupPercent") }
-        if self.holyStunBuildupPercent != other.holyStunBuildupPercent { names.append("holyStunBuildupPercent") }
-        if self.holyTriggeredStunGoldFlat != other.holyTriggeredStunGoldFlat { names.append("holyTriggeredStunGoldFlat") }
-        if self.frozenEnemyCannotBlockOrHeal != other.frozenEnemyCannotBlockOrHeal { names.append("frozenEnemyCannotBlockOrHeal") }
-        if self.enemyStunExtraActionSkips != other.enemyStunExtraActionSkips { names.append("enemyStunExtraActionSkips") }
-        if self.onEnemyStunRecoverDrawCard != other.onEnemyStunRecoverDrawCard { names.append("onEnemyStunRecoverDrawCard") }
-        if self.onEnemyStunRecoverApplyAfflictions != other.onEnemyStunRecoverApplyAfflictions { names.append("onEnemyStunRecoverApplyAfflictions") }
-        if self.enemyStunThresholdReductionPercent != other.enemyStunThresholdReductionPercent { names.append("enemyStunThresholdReductionPercent") }
-        if self.onStunEnemyApplyBurn != other.onStunEnemyApplyBurn { names.append("onStunEnemyApplyBurn") }
-        if self.onceBelowHealthPercentStunAllEnemies != other.onceBelowHealthPercentStunAllEnemies { names.append("onceBelowHealthPercentStunAllEnemies") }
-        if self.freezeCardsPlayedThisTurnFreezeAll != other.freezeCardsPlayedThisTurnFreezeAll { names.append("freezeCardsPlayedThisTurnFreezeAll") }
-        if self.flashFreeze != other.flashFreeze { names.append("flashFreeze") }
-        if self.everyNTurnsFreezeAllEnemiesInterval != other.everyNTurnsFreezeAllEnemiesInterval { names.append("everyNTurnsFreezeAllEnemiesInterval") }
-        if self.everyNTurnsFreezeAllEnemiesAmount != other.everyNTurnsFreezeAllEnemiesAmount { names.append("everyNTurnsFreezeAllEnemiesAmount") }
-        if self.everyNTurnsStunBuildupInterval != other.everyNTurnsStunBuildupInterval { names.append("everyNTurnsStunBuildupInterval") }
-        if self.everyNTurnsStunBuildupAmount != other.everyNTurnsStunBuildupAmount { names.append("everyNTurnsStunBuildupAmount") }
-        if self.everyNTurnsTeamBlockAmount != other.everyNTurnsTeamBlockAmount { names.append("everyNTurnsTeamBlockAmount") }
-        if self.enemyStunnedApplyMarked != other.enemyStunnedApplyMarked { names.append("enemyStunnedApplyMarked") }
-        if self.enemyStunnedPurgeCount != other.enemyStunnedPurgeCount { names.append("enemyStunnedPurgeCount") }
-        if self.enemyStunnedPurgeAll != other.enemyStunnedPurgeAll { names.append("enemyStunnedPurgeAll") }
-        if self.stunDealPhysicalFlat != other.stunDealPhysicalFlat { names.append("stunDealPhysicalFlat") }
-        if self.dodgeDealStunFlat != other.dodgeDealStunFlat { names.append("dodgeDealStunFlat") }
-        if self.onDodgeAttackerStunBuildup != other.onDodgeAttackerStunBuildup { names.append("onDodgeAttackerStunBuildup") }
-        if self.onceBelowHealthPercentThreshold != other.onceBelowHealthPercentThreshold { names.append("onceBelowHealthPercentThreshold") }
-        if self.turnFreezeDamageAllEnemies != other.turnFreezeDamageAllEnemies { names.append("turnFreezeDamageAllEnemies") }
-        if self.turnFreezeDamageAllEnemiesInterval != other.turnFreezeDamageAllEnemiesInterval { names.append("turnFreezeDamageAllEnemiesInterval") }
-        if self.stunPurgeDealHolyPerEffect != other.stunPurgeDealHolyPerEffect { names.append("stunPurgeDealHolyPerEffect") }
-        if self.lightningRod != other.lightningRod { names.append("lightningRod") }
-        if self.stunExtendVsBurning != other.stunExtendVsBurning { names.append("stunExtendVsBurning") }
-        if self.dodgeDealFreezeFlat != other.dodgeDealFreezeFlat { names.append("dodgeDealFreezeFlat") }
-        if self.freezeBuildupMultiplier != other.freezeBuildupMultiplier { names.append("freezeBuildupMultiplier") }
-        if self.poisonedEnemyStunBuildupMultiplier != other.poisonedEnemyStunBuildupMultiplier { names.append("poisonedEnemyStunBuildupMultiplier") }
-        if self.firstStunAttackBonusPerTurn != other.firstStunAttackBonusPerTurn { names.append("firstStunAttackBonusPerTurn") }
-        if self.stunBuildupBelowHalfMultiplier != other.stunBuildupBelowHalfMultiplier { names.append("stunBuildupBelowHalfMultiplier") }
-        if self.freezeAttackDrawChancePercent != other.freezeAttackDrawChancePercent { names.append("freezeAttackDrawChancePercent") }
-        if self.onDamageFreezeRetaliationChancePercent != other.onDamageFreezeRetaliationChancePercent { names.append("onDamageFreezeRetaliationChancePercent") }
-        if self.onDamageFreezeRetaliationDamage != other.onDamageFreezeRetaliationDamage { names.append("onDamageFreezeRetaliationDamage") }
-        if self.onFreezeEnemyRestoreMana != other.onFreezeEnemyRestoreMana { names.append("onFreezeEnemyRestoreMana") }
-        if self.freezeCriticalBuildupMultiplier != other.freezeCriticalBuildupMultiplier { names.append("freezeCriticalBuildupMultiplier") }
-        if self.onFreezeEnemyDrawCard != other.onFreezeEnemyDrawCard { names.append("onFreezeEnemyDrawCard") }
-        if self.freezeCritEnemyNextAttackMissChance != other.freezeCritEnemyNextAttackMissChance { names.append("freezeCritEnemyNextAttackMissChance") }
-        if self.holyCritEnemyNextAttackMissChance != other.holyCritEnemyNextAttackMissChance { names.append("holyCritEnemyNextAttackMissChance") }
-        if self.onFreezeBurningEnemyBurnDamage != other.onFreezeBurningEnemyBurnDamage { names.append("onFreezeBurningEnemyBurnDamage") }
-        if self.onFreezeEnemyGainBlock != other.onFreezeEnemyGainBlock { names.append("onFreezeEnemyGainBlock") }
-        if self.onStunExpirePoisonDamage != other.onStunExpirePoisonDamage { names.append("onStunExpirePoisonDamage") }
-        if self.onStunNextAttackGuaranteedCritical != other.onStunNextAttackGuaranteedCritical { names.append("onStunNextAttackGuaranteedCritical") }
-        if self.stunBuildupMultiplier != other.stunBuildupMultiplier { names.append("stunBuildupMultiplier") }
-        return names
+    /// Fields where `self` differs from `other`.
+    func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
+        var fields: [CombatTriggerField] = []
+        if self.stunDamageAddsEnemyBlock != other.stunDamageAddsEnemyBlock { fields.append(.stunDamageAddsEnemyBlock) }
+        if self.stunRetainedBuildupPercent != other.stunRetainedBuildupPercent { fields.append(.stunRetainedBuildupPercent) }
+        if self.freezeExtraActionSkips != other.freezeExtraActionSkips { fields.append(.freezeExtraActionSkips) }
+        if self.freezeExtendChancePercent != other.freezeExtendChancePercent { fields.append(.freezeExtendChancePercent) }
+        if self.stunExtendChancePercent != other.stunExtendChancePercent { fields.append(.stunExtendChancePercent) }
+        if self.physicalStunBuildupPercent != other.physicalStunBuildupPercent { fields.append(.physicalStunBuildupPercent) }
+        if self.holyStunBuildupPercent != other.holyStunBuildupPercent { fields.append(.holyStunBuildupPercent) }
+        if self.holyTriggeredStunGoldFlat != other.holyTriggeredStunGoldFlat { fields.append(.holyTriggeredStunGoldFlat) }
+        if self.frozenEnemyCannotBlockOrHeal != other.frozenEnemyCannotBlockOrHeal { fields.append(.frozenEnemyCannotBlockOrHeal) }
+        if self.enemyStunExtraActionSkips != other.enemyStunExtraActionSkips { fields.append(.enemyStunExtraActionSkips) }
+        if self.onEnemyStunRecoverDrawCard != other.onEnemyStunRecoverDrawCard { fields.append(.onEnemyStunRecoverDrawCard) }
+        if self.onEnemyStunRecoverApplyAfflictions != other.onEnemyStunRecoverApplyAfflictions { fields.append(.onEnemyStunRecoverApplyAfflictions) }
+        if self.enemyStunThresholdReductionPercent != other.enemyStunThresholdReductionPercent { fields.append(.enemyStunThresholdReductionPercent) }
+        if self.onStunEnemyApplyBurn != other.onStunEnemyApplyBurn { fields.append(.onStunEnemyApplyBurn) }
+        if self.onceBelowHealthPercentStunAllEnemies != other.onceBelowHealthPercentStunAllEnemies { fields.append(.onceBelowHealthPercentStunAllEnemies) }
+        if self.freezeCardsPlayedThisTurnFreezeAll != other.freezeCardsPlayedThisTurnFreezeAll { fields.append(.freezeCardsPlayedThisTurnFreezeAll) }
+        if self.flashFreeze != other.flashFreeze { fields.append(.flashFreeze) }
+        if self.everyNTurnsFreezeAllEnemiesInterval != other.everyNTurnsFreezeAllEnemiesInterval { fields.append(.everyNTurnsFreezeAllEnemiesInterval) }
+        if self.everyNTurnsFreezeAllEnemiesAmount != other.everyNTurnsFreezeAllEnemiesAmount { fields.append(.everyNTurnsFreezeAllEnemiesAmount) }
+        if self.everyNTurnsStunBuildupInterval != other.everyNTurnsStunBuildupInterval { fields.append(.everyNTurnsStunBuildupInterval) }
+        if self.everyNTurnsStunBuildupAmount != other.everyNTurnsStunBuildupAmount { fields.append(.everyNTurnsStunBuildupAmount) }
+        if self.everyNTurnsTeamBlockAmount != other.everyNTurnsTeamBlockAmount { fields.append(.everyNTurnsTeamBlockAmount) }
+        if self.enemyStunnedApplyMarked != other.enemyStunnedApplyMarked { fields.append(.enemyStunnedApplyMarked) }
+        if self.enemyStunnedPurgeCount != other.enemyStunnedPurgeCount { fields.append(.enemyStunnedPurgeCount) }
+        if self.enemyStunnedPurgeAll != other.enemyStunnedPurgeAll { fields.append(.enemyStunnedPurgeAll) }
+        if self.stunDealPhysicalFlat != other.stunDealPhysicalFlat { fields.append(.stunDealPhysicalFlat) }
+        if self.dodgeDealStunFlat != other.dodgeDealStunFlat { fields.append(.dodgeDealStunFlat) }
+        if self.onDodgeAttackerStunBuildup != other.onDodgeAttackerStunBuildup { fields.append(.onDodgeAttackerStunBuildup) }
+        if self.onceBelowHealthPercentThreshold != other.onceBelowHealthPercentThreshold { fields.append(.onceBelowHealthPercentThreshold) }
+        if self.turnFreezeDamageAllEnemies != other.turnFreezeDamageAllEnemies { fields.append(.turnFreezeDamageAllEnemies) }
+        if self.turnFreezeDamageAllEnemiesInterval != other.turnFreezeDamageAllEnemiesInterval { fields.append(.turnFreezeDamageAllEnemiesInterval) }
+        if self.stunPurgeDealHolyPerEffect != other.stunPurgeDealHolyPerEffect { fields.append(.stunPurgeDealHolyPerEffect) }
+        if self.lightningRod != other.lightningRod { fields.append(.lightningRod) }
+        if self.stunExtendVsBurning != other.stunExtendVsBurning { fields.append(.stunExtendVsBurning) }
+        if self.dodgeDealFreezeFlat != other.dodgeDealFreezeFlat { fields.append(.dodgeDealFreezeFlat) }
+        if self.freezeBuildupMultiplier != other.freezeBuildupMultiplier { fields.append(.freezeBuildupMultiplier) }
+        if self.poisonedEnemyStunBuildupMultiplier != other.poisonedEnemyStunBuildupMultiplier { fields.append(.poisonedEnemyStunBuildupMultiplier) }
+        if self.firstStunAttackBonusPerTurn != other.firstStunAttackBonusPerTurn { fields.append(.firstStunAttackBonusPerTurn) }
+        if self.stunBuildupBelowHalfMultiplier != other.stunBuildupBelowHalfMultiplier { fields.append(.stunBuildupBelowHalfMultiplier) }
+        if self.freezeAttackDrawChancePercent != other.freezeAttackDrawChancePercent { fields.append(.freezeAttackDrawChancePercent) }
+        if self.onDamageFreezeRetaliationChancePercent != other.onDamageFreezeRetaliationChancePercent { fields.append(.onDamageFreezeRetaliationChancePercent) }
+        if self.onDamageFreezeRetaliationDamage != other.onDamageFreezeRetaliationDamage { fields.append(.onDamageFreezeRetaliationDamage) }
+        if self.onFreezeEnemyRestoreMana != other.onFreezeEnemyRestoreMana { fields.append(.onFreezeEnemyRestoreMana) }
+        if self.freezeCriticalBuildupMultiplier != other.freezeCriticalBuildupMultiplier { fields.append(.freezeCriticalBuildupMultiplier) }
+        if self.onFreezeEnemyDrawCard != other.onFreezeEnemyDrawCard { fields.append(.onFreezeEnemyDrawCard) }
+        if self.freezeCritEnemyNextAttackMissChance != other.freezeCritEnemyNextAttackMissChance { fields.append(.freezeCritEnemyNextAttackMissChance) }
+        if self.holyCritEnemyNextAttackMissChance != other.holyCritEnemyNextAttackMissChance { fields.append(.holyCritEnemyNextAttackMissChance) }
+        if self.onFreezeBurningEnemyBurnDamage != other.onFreezeBurningEnemyBurnDamage { fields.append(.onFreezeBurningEnemyBurnDamage) }
+        if self.onFreezeEnemyGainBlock != other.onFreezeEnemyGainBlock { fields.append(.onFreezeEnemyGainBlock) }
+        if self.onStunExpirePoisonDamage != other.onStunExpirePoisonDamage { fields.append(.onStunExpirePoisonDamage) }
+        if self.onStunNextAttackGuaranteedCritical != other.onStunNextAttackGuaranteedCritical { fields.append(.onStunNextAttackGuaranteedCritical) }
+        if self.stunBuildupMultiplier != other.stunBuildupMultiplier { fields.append(.stunBuildupMultiplier) }
+        return fields
     }
 }
 

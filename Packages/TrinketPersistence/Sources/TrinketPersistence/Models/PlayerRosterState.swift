@@ -28,7 +28,7 @@ public struct PlayerRosterState: Equatable, Sendable {
         return heroLevel / 2 + companionLevel / 2 + (heroLevel % 2 + companionLevel % 2) / 2
     }
 
-    public static let maxGoldBalance = 999
+    public static let maxGoldBalance = GoldBalance.maximum
 
     public var gold: Int = 0 {
         didSet {
@@ -262,7 +262,7 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public static func clampedGoldBalance(_ amount: Int) -> Int {
-        min(max(amount, 0), maxGoldBalance)
+        GoldBalance.clamped(amount)
     }
 
     public static func reservedGold(from pendingProduction: [HomesteadResource: Double]) -> Int {

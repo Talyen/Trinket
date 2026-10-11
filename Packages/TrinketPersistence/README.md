@@ -18,8 +18,12 @@ transaction outcomes, observation and reload evidence. Detailed contracts live i
 [storage](../../Docs/AgentContext/persistence-storage.md) and
 [progression](../../Docs/AgentContext/persistence-progression.md).
 
-Store methods are `@MainActor`; pure reward/sanitize math (`BattleLoot`,
-`StageCompletion`, `VictoryRewardApplier`, appliers) stays non-isolated
+Seeded loot generation and mode request identities live in Content's
+`BattleLoot` / `LootRequest`; `RewardOwnership+Save` adapts saved Inventory.
+Homestead value state and production/build rules live in Content; store commands
+apply them to saved Gold and retain transaction and receipt ownership.
+Store methods are `@MainActor`; pure reward/sanitize math (`StageCompletion`,
+`VictoryRewardApplier`, appliers) stays non-isolated
 `save: inout` inside the package. App sessions decide when to invoke domain commands;
 Persistence owns candidate mutation and required receipt collection. Mutations reconcile changed
 slices while preserving retained child-row identities.

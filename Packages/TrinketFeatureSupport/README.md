@@ -30,6 +30,10 @@ collection cancels remaining decoration. Backgrounding and disappearance consume
 only the focused item’s pending cue, allowing later unseen pages to flourish. Playback is supplied by the consuming feature so live Effects volume remains
 with the existing audio owner. Basic items and wallet reveal timing are unchanged.
 
+`HomesteadProjectStatus` and `HomesteadCategoryProgress` are save-free presentation
+models using Content state and Gold values. `HomesteadResourceWallet` also takes
+these values directly, keeping shared Homestead UI independent of Persistence.
+
 `Artwork/` owns prepared-artwork caching and leases, `Performance/` owns frame
 measurement, and `Accessibility/` owns stable accessibility identifiers. These
 folders remain in the `TrinketFeatureSupport` target.
@@ -42,7 +46,14 @@ all callers and at most one deferred decode, prioritizing imminent pins over
 viewport requests over deferred catalog work. Queued shared jobs inherit their
 most urgent caller. Overlapping requests share cache-owned work: cancellation
 stops a caller's queued work, while started decodes finish for all consumers.
-Pins live outside the evictable `NSCache` cost limit. `PreparedArtworkLease` balances a preparation acquisition over its owner's lifetime;
+Pins live outside the evictable `NSCache` cost limit. `PreparedArtworkPinSet` owns
+replaceable surface working sets: only the latest preparation can publish pins,
+release invalidates pending acquisitions, and transition completion tokens prevent
+obsolete fades from releasing newer artwork. Screens retain outgoing pins through
+their own transition timing, then finish the matching update. `PreparedArtworkLease`
+balances a fixed acquisition over its owner's lifetime or explicit idempotent release.
+Raw acquisition/release-by-name operations stay internal to this target. Launch
+replacement transfers a lease once and releases abandoned preparation automatically;
 category navigation acquires it before pushing. Shared artwork-prepared sheet and
 navigation modifiers also acquire a lease before exposing item/ability/combatant
 details, retaining the source during preparation and the pins through the visit. `ArtworkViewportPrewarm`

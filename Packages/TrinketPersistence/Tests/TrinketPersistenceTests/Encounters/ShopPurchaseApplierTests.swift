@@ -32,7 +32,7 @@ struct ShopPurchaseApplierTests {
         #expect(purchased == offer.item)
         #expect(save.roster.gold == PlayerRosterState.maxGoldBalance - offer.price)
         #expect(save.homestead.lastProductionAt > start)
-        let collected = save.homestead.collectProduction(at: save.homestead.lastProductionAt, roster: &save.roster)
+        let collected = save.homestead.collectProduction(at: save.homestead.lastProductionAt, gold: &save.roster.gold)
         #expect(collected.isEmpty)
     }
 

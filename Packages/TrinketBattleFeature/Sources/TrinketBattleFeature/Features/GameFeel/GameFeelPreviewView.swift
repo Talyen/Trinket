@@ -23,7 +23,6 @@ public struct GameFeelPreviewView: View {
     @State private var replayID = UUID()
     @State private var purchaseToken = 0
     @State private var replayTask: Task<Void, Never>?
-    @State private var bridgeID = UUID()
     @State private var eventID = 0
     @State private var artworkLease: PreparedArtworkLease?
     @Environment(\.scenePhase) private var scenePhase
@@ -72,11 +71,6 @@ public struct GameFeelPreviewView: View {
             })
             guard !Task.isCancelled else { return }
             artworkLease = lease
-            fixture.session.feedback.installBridge(ownerID: bridgeID) { [weak feedback = fixture.session.feedback] update in
-                CombatFeedbackChipBridge.publish(update, onEvict: { [weak feedback] ids in
-                    feedback?.evictedItemIDs.formUnion(ids)
-                })
-            }
         }
         .onChange(of: surface) { _, _ in reset() }
         .onChange(of: baseline) { _, _ in reset() }
@@ -87,7 +81,6 @@ public struct GameFeelPreviewView: View {
         }
         .onDisappear {
             reset()
-            fixture.session.feedback.uninstallBridge(ownerID: bridgeID)
             fixture.session.endBattle()
             artworkLease = nil
         }

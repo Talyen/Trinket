@@ -16,9 +16,12 @@ unfinished deliveries, and finish verified transactions after delivering access.
 Explicit Restore Purchases invokes `AppStore.sync()`. Product lookup failure must
 not erase a verified entitlement. Restore/family ownership is independent of
 Trinket's private CloudKit save synchronization.
-Only the newest started entitlement refresh may publish its result; verified
-transaction updates also invalidate older pending reads. A delayed foreground
-check cannot overwrite ownership resolved by a later restoration.
+Current entitlements are the sole authority for ownership. Purchase callbacks,
+live updates (including unverified notifications), and unfinished deliveries
+trigger the same refresh; delivery history cannot independently grant access.
+Only the newest started refresh may publish. Verified deliveries are finished
+after that refresh publishes; cancellation or supersession leaves them available
+for redelivery. A delayed foreground check cannot overwrite later restoration.
 
 ## Local development
 
@@ -41,7 +44,8 @@ purchases are sandbox-only and do not become production purchases.
 
 StoreKit integration tests run in `FullGamePurchaseSmokeTests` against the app.
 The standalone SPM test process cannot act as the app's StoreKit purchase host;
-package tests cover purchase result states and game access policies.
+package tests use controlled storefront I/O to cover entitlement ordering,
+unfinished/live delivery, acknowledgement, and purchase result states.
 
 Automated pending/decline/cancellation, restore and revocation coverage is owned
 by [Player coverage](PlayerCoverage.md). Local StoreKit stimuli do not establish

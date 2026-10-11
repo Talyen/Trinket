@@ -1,5 +1,4 @@
 import Foundation
-import TrinketContent
 import TrinketCore
 
 public struct BattleLootResult: Hashable, Sendable {
@@ -23,7 +22,7 @@ public enum BattleLoot {
         .wood, .stone, .iron, .food, .herbs, .hide, .gems,
     ]
 
-    static func quantityRange(forLevel level: Int) -> ClosedRange<Int> {
+    public static func quantityRange(forLevel level: Int) -> ClosedRange<Int> {
         let clamped = max(1, level)
         // Divide first to retain the exact quantity without overflowing at high saved levels.
         let quotient = clamped / 49

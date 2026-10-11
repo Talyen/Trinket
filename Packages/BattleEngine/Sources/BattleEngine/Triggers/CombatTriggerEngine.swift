@@ -3,7 +3,7 @@ import TrinketCore
 
 package enum CombatTriggerEngine {
     static func triggerAbilityName(
-        _ key: String,
+        _ key: CombatTriggerField,
         for combatant: Combatant,
         fallback: String,
         in context: BattleState,
@@ -109,7 +109,7 @@ package enum CombatTriggerEngine {
     /// trigger sites stay one statement. `source` names the trigger that fired;
     /// for mana the naming actor can differ from the recipient via `nameFrom`.
     static func emitBlock(
-        _ key: String,
+        _ key: CombatTriggerField,
         _ fallback: String,
         amount: Int,
         to target: Combatant,
@@ -125,7 +125,7 @@ package enum CombatTriggerEngine {
     }
 
     static func emitHeal(
-        _ key: String,
+        _ key: CombatTriggerField,
         _ fallback: String,
         amount: Int,
         to target: Combatant,
@@ -141,7 +141,7 @@ package enum CombatTriggerEngine {
     }
 
     static func emitMana(
-        _ key: String,
+        _ key: CombatTriggerField,
         _ fallback: String,
         amount: Int,
         to target: Combatant,
@@ -157,7 +157,7 @@ package enum CombatTriggerEngine {
     }
 
     static func emitGold(
-        _ key: String,
+        _ key: CombatTriggerField,
         _ fallback: String,
         amount: Int,
         to target: Combatant,

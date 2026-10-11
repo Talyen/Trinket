@@ -468,7 +468,7 @@ struct CloudSaveMergeItemsAndRoutesTests {
         base.labyrinth.ensureMap(seed: base.worldSeed)
         let mystery = try #require(base.labyrinth.nodes.values.first { $0.type == .mystery })
         var opened = base
-        #expect(MysteryEventPinApplier.pinLabyrinthEvent(nodeID: mystery.id, eventID: "mana-berries", save: &opened))
+        EncounterIdentity(location: .labyrinth(nodeID: mystery.id), save: opened).pinMysteryEvent("mana-berries", save: &opened)
         opened.modifiedAt = Date(timeIntervalSince1970: 100)
         var later = base
         later.roster.gold += 5

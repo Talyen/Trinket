@@ -4,7 +4,7 @@ import TrinketCore
 import TrinketDesignSystem
 @testable import TrinketBattleFeature
 
-/// Pure resolution tests: no shared bridge/pool/atlas singletons, so they
+/// Pure resolution tests: no shared raster pool/atlas caches, so they
 /// run in parallel with the rest of the package.
 struct CombatFeedbackChipPresentationTests {
     @Test @MainActor func `icon prewarming preserves shared keyword identity and cache reuse`() async throws {
@@ -55,15 +55,15 @@ struct CombatFeedbackChipPresentationTests {
     }
 }
 
-/// Tests touching shared bridge/pool/atlas singletons stay serialized;
+/// Tests touching shared raster pool/atlas caches stay serialized;
 /// the pure resolution tests above run in parallel.
 @Suite(.serialized)
 struct CombatFeedbackBridgeSerializedTests {
     @Test @MainActor func `evicted stationary results cannot reappear after a publication or host remount`() {
-        CombatFeedbackChipBridge.debugReset()
-        defer { CombatFeedbackChipBridge.debugReset() }
+        var evicted: Set<Int> = []
+        let bridge = CombatFeedbackChipBridge { evicted.formUnion($0) }
         let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
-        CombatFeedbackChipBridge.register(view, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
+        bridge.register(view, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
         let now = Date.now
         let items = (1 ... 3).map { id in
             var item = makeTestItem(id: id, targetID: "hero", amount: 10, availableAt: now)
@@ -71,30 +71,28 @@ struct CombatFeedbackBridgeSerializedTests {
             item.expiresAt = now.addingTimeInterval(CombatFeedbackMotionSampler.lifetime)
             return item
         }
-        var evicted: Set<Int> = []
-        CombatFeedbackChipBridge.publish(.replace(items), onEvict: { evicted.formUnion($0) })
+        bridge.publish(.replace(items))
         #expect(evicted.isEmpty)
         view.debugTickMotion(at: now.addingTimeInterval(0.65))
         #expect(!evicted.isEmpty)
         let survivingIDs = Set(items.map(\.id)).subtracting(evicted)
         #expect(survivingIDs.contains(3))
         #expect(view.debugVisibleChipIDs == survivingIDs)
-        CombatFeedbackChipBridge.publish(.replace(items))
+        bridge.publish(.replace(items))
         #expect(view.debugVisibleChipIDs == survivingIDs)
-        CombatFeedbackChipBridge.unregister(view)
+        bridge.unregister(view)
         let replacement = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
-        CombatFeedbackChipBridge.register(replacement, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
+        bridge.register(replacement, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
         #expect(replacement.debugVisibleChipIDs == survivingIDs)
-        CombatFeedbackChipBridge.publish(.reset)
+        bridge.publish(.reset)
         #expect(replacement.debugVisibleChipIDs.isEmpty)
     }
 
     @Test @MainActor func `bridge preserves chip display order when cache misses occur`() {
-        CombatFeedbackChipBridge.debugReset()
-        defer { CombatFeedbackChipBridge.debugReset() }
+        let bridge = CombatFeedbackChipBridge()
 
         let view = CombatFeedbackRasterUIView()
-        CombatFeedbackChipBridge.register(
+        bridge.register(
             view,
             combatantID: "hero",
             layoutDirection: .leftToRight,
@@ -109,24 +107,23 @@ struct CombatFeedbackBridgeSerializedTests {
         _ = CombatFeedbackRasterPool.shared.prepare(for: item1, displayScale: 3.0)
         _ = CombatFeedbackRasterPool.shared.prepare(for: item3, displayScale: 3.0)
 
-        CombatFeedbackChipBridge.publish(.replace([item1, item2, item3]))
+        bridge.publish(.replace([item1, item2, item3]))
 
         #expect(view.debugLastAppliedChips.map(\.id) == [1, 2, 3])
     }
 
     @Test @MainActor func `multi target availability timer reschedules when earlier target expires`() {
-        CombatFeedbackChipBridge.debugReset()
-        defer { CombatFeedbackChipBridge.debugReset() }
+        let bridge = CombatFeedbackChipBridge()
 
         let heroView = CombatFeedbackRasterUIView()
         let enemyView = CombatFeedbackRasterUIView()
-        CombatFeedbackChipBridge.register(
+        bridge.register(
             heroView,
             combatantID: "hero",
             layoutDirection: .leftToRight,
             displayScale: 3.0,
         )
-        CombatFeedbackChipBridge.register(
+        bridge.register(
             enemyView,
             combatantID: "enemy",
             layoutDirection: .leftToRight,
@@ -137,19 +134,18 @@ struct CombatFeedbackBridgeSerializedTests {
         let heroItem = makeTestItem(id: 10, targetID: "hero", amount: 5, availableAt: now.addingTimeInterval(0.5))
         let enemyItem = makeTestItem(id: 20, targetID: "enemy", amount: 8, availableAt: now.addingTimeInterval(0.65))
 
-        CombatFeedbackChipBridge.publish(.replace([heroItem, enemyItem]))
-        #expect(CombatFeedbackChipBridge.debugNextAvailabilityTargetID == "hero")
+        bridge.publish(.replace([heroItem, enemyItem]))
+        #expect(bridge.debugNextAvailabilityTargetID == "hero")
 
-        CombatFeedbackChipBridge.publish(.remove([heroItem.id]))
-        #expect(CombatFeedbackChipBridge.debugNextAvailabilityTargetID == "enemy")
-        #expect(CombatFeedbackChipBridge.debugNextAvailabilityDate == enemyItem.availableAt)
+        bridge.publish(.remove([heroItem.id]))
+        #expect(bridge.debugNextAvailabilityTargetID == "enemy")
+        #expect(bridge.debugNextAvailabilityDate == enemyItem.availableAt)
     }
 
     @Test @MainActor func `queued chips appear across consecutive deadlines and reset`() async throws {
-        CombatFeedbackChipBridge.debugReset()
-        defer { CombatFeedbackChipBridge.debugReset() }
+        let bridge = CombatFeedbackChipBridge()
         let view = CombatFeedbackRasterUIView()
-        CombatFeedbackChipBridge.register(
+        bridge.register(
             view,
             combatantID: "hero",
             layoutDirection: .leftToRight,
@@ -167,13 +163,13 @@ struct CombatFeedbackBridgeSerializedTests {
                     availableAt: now.addingTimeInterval(Double(index) * 0.1),
                 )
             }
-            CombatFeedbackChipBridge.publish(.replace(items))
+            bridge.publish(.replace(items))
             // 2 s budget: the last chip needs 0.2 s of timer latency and this
             // suite runs parallel with raster-prewarm CPU work.
             #expect(try await BattleSessionTestSupport.waitUntil(timeout: .seconds(2)) {
                 view.debugLastAppliedChips.map(\.id) == items.map(\.id)
             })
-            CombatFeedbackChipBridge.publish(.reset)
+            bridge.publish(.reset)
             #expect(view.debugLastAppliedChips.isEmpty)
         }
     }
@@ -190,17 +186,62 @@ struct CombatFeedbackBridgeSerializedTests {
         #expect(CardDissolveTexture.thresholdMaskImage(progress: 0.2) !== mask)
     }
 
-    @Test @MainActor func `session teardown clears published chips from the shared bridge`() {
-        CombatFeedbackChipBridge.debugReset()
-        defer { CombatFeedbackChipBridge.debugReset() }
+    @Test @MainActor func `independent sessions isolate colliding chips eviction deadlines and teardown`() {
+        let battle = BattleSession()
+        let preview = BattleSession()
+        let battleView = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
+        let previewView = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 500))
+        battle.feedback.chipBridge.register(battleView, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
+        preview.feedback.chipBridge.register(previewView, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
+        let now = Date.now
+        battle.feedback.activeItems = (1 ... 3).map {
+            var item = makeTestItem(id: $0, targetID: "hero", amount: $0, availableAt: now)
+            item.reservedDigitCount = 3
+            item.expiresAt = now.addingTimeInterval(CombatFeedbackMotionSampler.lifetime)
+            return item
+        }
+        preview.feedback.activeItems = (1 ... 3).map {
+            makeTestItem(id: $0, targetID: "hero", amount: $0 * 10, availableAt: now)
+        }
+        battle.feedback.noteItemsChanged()
+        preview.feedback.noteItemsChanged()
+        #expect(battleView.debugLastAppliedChips.map(\.label) == battle.feedback.activeItems.map(\.label))
+        #expect(previewView.debugLastAppliedChips.map(\.label) == preview.feedback.activeItems.map(\.label))
+
+        battleView.debugTickMotion(at: now.addingTimeInterval(0.65))
+        #expect(!battle.feedback.evictedItemIDs.isEmpty)
+        #expect(preview.feedback.evictedItemIDs.isEmpty)
+        preview.feedback.noteItemsChanged()
+        #expect(previewView.debugVisibleChipIDs == [1, 2, 3])
+
+        let battleQueued = makeTestItem(id: 4, targetID: "hero", amount: 4, availableAt: now.addingTimeInterval(10))
+        let previewQueued = makeTestItem(id: 4, targetID: "hero", amount: 40, availableAt: now.addingTimeInterval(20))
+        battle.feedback.activeItems.append(battleQueued)
+        preview.feedback.activeItems.append(previewQueued)
+        battle.feedback.noteItemsChanged()
+        preview.feedback.noteItemsChanged()
+        #expect(battle.feedback.chipBridge.debugNextAvailabilityDate == battleQueued.availableAt)
+        #expect(preview.feedback.chipBridge.debugNextAvailabilityDate == previewQueued.availableAt)
+
+        battle.clearRunState()
+        #expect(battleView.debugVisibleChipIDs.isEmpty)
+        #expect(previewView.debugVisibleChipIDs == [1, 2, 3])
+        #expect(preview.feedback.chipBridge.debugNextAvailabilityDate == previewQueued.availableAt)
+        let remountedPreview = CombatFeedbackRasterUIView()
+        preview.feedback.chipBridge.register(remountedPreview, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
+        #expect(remountedPreview.debugLastAppliedChips.map(\.label) == preview.feedback.activeItems.prefix(3).map(\.label))
+        preview.clearRunState()
+    }
+
+    @Test @MainActor func `session teardown clears its published chips`() {
         let session = BattleSession()
-        session.feedback.installBridge(ownerID: UUID(), onChange: CombatFeedbackChipBridge.publish)
+        let bridge = session.feedback.chipBridge
         session.feedback.record(
             [BattleSessionTestSupport.makeActionEvent(id: 1, kind: .abilityDamage, amount: 3, keyword: .physical)],
             at: .now,
         )
         let view = CombatFeedbackRasterUIView()
-        CombatFeedbackChipBridge.register(
+        bridge.register(
             view,
             combatantID: "enemy",
             layoutDirection: .leftToRight,

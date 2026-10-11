@@ -13,7 +13,7 @@ public extension CombatTraitTriggers {
 
     func apply(to profile: inout CombatModifierProfile, abilityName: String) {
         apply(to: &profile)
-        for key in populatedFieldNames {
+        for key in populatedFields {
             profile.setTriggerAbilityName(key, abilityName)
         }
     }

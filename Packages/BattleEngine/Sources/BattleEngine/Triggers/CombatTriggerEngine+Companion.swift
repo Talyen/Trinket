@@ -130,7 +130,7 @@ package extension CombatTriggerEngine {
 
     static func afterCompanionBurnCritical(actor: Combatant, in context: inout BattleState) async -> [ActionEvent] {
         let triggers = context.modifiers(for: actor.id).triggers
-        let name = triggerAbilityName("burnCriticalRestoreMana", for: actor, fallback: "Furnace Rhythm", in: context)
+        let name = triggerAbilityName(.burnCriticalRestoreMana, for: actor, fallback: "Furnace Rhythm", in: context)
         guard context.allowsHeroTalentReaction, actor.role == .companion,
               context.roster.health(for: actor) > 0, triggers.burnCriticalRestoreMana > 0,
               context.claimTalentAbility(.burnCriticalMana, actorID: actor.id) else { return [] }
@@ -156,7 +156,7 @@ package extension CombatTriggerEngine {
             ))
         }
         let drawName = triggerAbilityName(
-            "bleedCriticalDrawChancePercent", for: actor, fallback: "Frenzied Tail", in: context,
+            .bleedCriticalDrawChancePercent, for: actor, fallback: "Frenzied Tail", in: context,
         )
         if triggers.bleedCriticalDrawChancePercent > 0,
            context.claimTalentAbility(.bleedCriticalDraw, actorID: actor.id),

@@ -9,7 +9,7 @@ struct TalentCatalogRoundTripTests {
         for (talentID, authored) in CombatantTalentCatalog.signatureTalents {
             let profile = CombatantTalentCatalog.profile(for: [talentID])
             #expect(profile.triggers == authored.triggers, "Triggers on \(talentID)")
-            for field in authored.triggers.populatedFieldNames {
+            for field in authored.triggers.populatedFields {
                 #expect(profile.triggerAbilityName(field, fallback: "") == authored.name, "Name on \(talentID) \(field)")
             }
         }

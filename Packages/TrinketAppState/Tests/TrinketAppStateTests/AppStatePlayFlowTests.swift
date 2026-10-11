@@ -238,7 +238,7 @@ struct AppStatePlayFlowTests {
         #expect(state.battleCoordinator.activateBattle(BattleLaunchInput(
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,
-            enemy: enemy,
+            encounter: ScaledEncounter(combatant: enemy, level: state.playerSave.roster.activePartyAverageLevel),
         )))
         let configuration = try #require(state.battle.activeBattle)
         let journeyBefore = state.playerSave.journey
@@ -262,7 +262,7 @@ struct AppStatePlayFlowTests {
         #expect(state.battleCoordinator.activateBattle(BattleLaunchInput(
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion,
-            enemy: enemy,
+            encounter: ScaledEncounter(combatant: enemy, level: state.playerSave.roster.activePartyAverageLevel),
         )))
         let configuration = try #require(state.battle.activeBattle)
 
@@ -531,7 +531,7 @@ extension AppStatePlayFlowTests {
                 origin: .labyrinth(nodeID: labyrinthNodeID),
                 hero: hero,
                 companion: companion,
-                enemy: enemy,
+                encounter: ScaledEncounter(combatant: enemy, level: state.playerSave.roster.activePartyAverageLevel),
             ),
             rngSeed: 1,
             rosterState: state.playerSave.roster,

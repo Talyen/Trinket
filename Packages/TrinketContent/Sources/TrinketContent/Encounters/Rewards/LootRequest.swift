@@ -1,4 +1,3 @@
-import TrinketContent
 import TrinketCore
 
 /// Mode-specific loot identity and bonuses. The resolver receives the captured
@@ -31,32 +30,6 @@ public struct LootRequest: Equatable, Sendable {
     }
 }
 
-public struct RewardOwnership: Equatable, Sendable {
-    public var eligibleModifiers: [RewardModifier] {
-        RewardModifier.eligible(ownedTrinketIDs: ownedTrinketIDs, ownedUniqueIDs: ownedUniqueIDs)
-    }
-
-    public func modifiers(ids: [NodeModifierID]) -> [NodeModifierDefinition] {
-        NodeModifierCatalog.modifiers(ids: ids, eligibleRewards: eligibleModifiers)
-    }
-
-    public var ownedTrinketIDs: Set<String>
-    public var ownedUniqueIDs: Set<String>
-
-    public init(ownedTrinketIDs: Set<String> = [], ownedUniqueIDs: Set<String> = []) {
-        self.ownedTrinketIDs = ownedTrinketIDs
-        self.ownedUniqueIDs = ownedUniqueIDs
-    }
-
-    public init(_ inventory: PlayerInventoryState) {
-        self.init(ownedTrinketIDs: inventory.ownedTrinketIDs, ownedUniqueIDs: inventory.ownedUniqueIDs)
-    }
-
-    public init(_ save: PlayerSave) {
-        self.init(save.inventory)
-    }
-}
-
 public extension LootRequest {
     static func journey(stage: Stage) -> LootRequest {
         LootRequest(
@@ -81,7 +54,7 @@ public extension LootRequest {
     static func labyrinth(node: LabyrinthNode, effects: NodeModifierEffects) -> LootRequest {
         LootRequest(
             seedSalt: "battle-loot-labyrinth-\(node.id)",
-            itemID: LabyrinthCompletion.rewardItemID(forNodeID: node.id),
+            itemID: "labyrinth-\(node.id)",
             goldFoundPercent: effects.goldFoundPercent - (effects.rewardModifier?.goldBonusPercent ?? 0),
             materialsFoundPercent: effects.materialsFoundPercent - (effects.rewardModifier?.materialsBonusPercent ?? 0),
             rewardModifier: effects.rewardModifier,

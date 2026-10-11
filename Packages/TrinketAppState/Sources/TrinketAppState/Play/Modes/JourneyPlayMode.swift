@@ -82,13 +82,8 @@ public final class JourneyPlayMode {
         switch resolvedStage.encounter {
         case .battle, .randomBattle:
             return startBattle(for: resolvedStage)
-        case .mysteryEvent:
+        case .mysteryEvent, .recruit:
             return beginMysteryEncounter(for: resolvedStage)
-        case .recruit:
-            return beginMysteryEncounter(
-                for: resolvedStage,
-                forcedEventID: resolvedStage.encounter.recruitEventID,
-            )
         case .shop:
             return encounters.beginShopOrAutoComplete(
                 origin: .journey(stage: resolvedStage),
@@ -103,22 +98,13 @@ public final class JourneyPlayMode {
     /// Preview against an incoming save before CloudKit publishes it. This
     /// uses the same deterministic event inputs as the live encounter path.
     public func previewMysteryEvent(for stage: Stage, save: PlayerSave) -> MysteryEvent? {
-        let resolved = resolvedCampaignStage(stage, save: save)
-        switch resolved.encounter {
+        switch stage.encounter {
         case .mysteryEvent, .recruit:
-            return MysteryEncounterSession.resolveEvent(
-                origin: .journey(stage: resolved),
-                forcedEventID: resolved.encounter.recruitEventID,
-                worldSeed: save.worldSeed,
-                pickContext: .journey(
-                    chapterNumber: resolved.chapterNumber,
-                    inventory: save.inventory,
-                    corruptionAltarCooldownRemaining: save.corruptionAltarCooldownRemaining,
-                ),
-                pinnedJourneyEventID: save.journey.pinnedMysteryEventIDs[resolved.id],
+            EncounterIdentity(location: .journey(stageID: stage.id), save: save).mysteryEvent(
+                in: save, access: playerSave.contentAccess,
             )
         default:
-            return nil
+            nil
         }
     }
 

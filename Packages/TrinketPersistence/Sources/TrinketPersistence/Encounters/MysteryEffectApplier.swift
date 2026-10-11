@@ -51,32 +51,6 @@ public struct MysteryEffectResult: Equatable, Sendable {
     }
 }
 
-public enum MysteryEventPinApplier {
-    @discardableResult
-    public static func pinLabyrinthEvent(
-        nodeID: String,
-        eventID: String,
-        save: inout PlayerSave,
-    ) -> Bool {
-        guard var node = save.labyrinth.nodes[nodeID] else { return false }
-        guard node.mysteryEventID == nil else { return true }
-        node.mysteryEventID = eventID
-        save.labyrinth.nodes[nodeID] = node
-        return true
-    }
-
-    @discardableResult
-    public static func pinJourneyEvent(
-        stageID: String,
-        eventID: String,
-        save: inout PlayerSave,
-    ) -> Bool {
-        guard save.journey.pinnedMysteryEventIDs[stageID] == nil else { return true }
-        save.journey.pinnedMysteryEventIDs[stageID] = eventID
-        return true
-    }
-}
-
 public enum MysteryEffectApplier {
     public static func materialQuantity(forLevel level: Int) -> Int {
         let level = max(1, level)
@@ -197,7 +171,7 @@ public enum MysteryEffectApplier {
         materialsFoundPercent: Int = 0,
         at grantDate: Date = Date(),
     ) -> MysteryEffectResult {
-        save.homestead.settleProduction(at: grantDate, roster: save.roster)
+        save.homestead.settleProduction(at: grantDate, gold: save.roster.gold)
         var result = MysteryEffectResult()
         for effect in effects {
             switch effect {

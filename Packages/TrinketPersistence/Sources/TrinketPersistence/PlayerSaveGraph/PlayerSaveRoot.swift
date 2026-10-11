@@ -3,33 +3,33 @@ import SwiftData
 import TrinketCore
 
 @Model
-public final class PlayerSaveRoot {
-    public var id: String = "primary"
-    public var schemaVersion: Int = PlayerSave.currentSchemaVersion
-    public var modifiedAt: Date = Date()
-    public var sessionGeneration: UInt64 = 0
-    public var worldSeed: UInt64 = 0
-    public var starterSelectionPhaseRawValue: String = StarterSelectionPhase.complete.rawValue
-    public var starterHeroID: String?
-    public var corruptionAltarCooldownRemaining: Int = 0
-    public var contractsPayload: Data?
-    public var voyagePayload: Data?
-    public var cloudStatePayload: Data?
+package final class PlayerSaveRoot {
+    var id: String = "primary"
+    var schemaVersion: Int = PlayerSave.currentSchemaVersion
+    var modifiedAt: Date = Date()
+    var sessionGeneration: UInt64 = 0
+    var worldSeed: UInt64 = 0
+    var starterSelectionPhaseRawValue: String = StarterSelectionPhase.complete.rawValue
+    var starterHeroID: String?
+    var corruptionAltarCooldownRemaining: Int = 0
+    var contractsPayload: Data?
+    var voyagePayload: Data?
+    var cloudStatePayload: Data?
 
     @Relationship(deleteRule: .cascade, inverse: \JourneyProgressModel.root)
-    public var journey: JourneyProgressModel?
+    var journey: JourneyProgressModel?
     @Relationship(deleteRule: .cascade, inverse: \RosterModel.root)
-    public var roster: RosterModel?
+    var roster: RosterModel?
     @Relationship(deleteRule: .cascade, inverse: \InventoryModel.root)
-    public var inventory: InventoryModel?
+    var inventory: InventoryModel?
     @Relationship(deleteRule: .cascade, inverse: \HomesteadModel.root)
-    public var homestead: HomesteadModel?
+    var homestead: HomesteadModel?
     @Relationship(deleteRule: .cascade, inverse: \SpiresProgressModel.root)
-    public var spires: SpiresProgressModel?
+    var spires: SpiresProgressModel?
     @Relationship(deleteRule: .cascade, inverse: \LabyrinthProgressModel.root)
-    public var labyrinth: LabyrinthProgressModel?
+    var labyrinth: LabyrinthProgressModel?
 
-    public init(id: String = "primary") {
+    init(id: String = "primary") {
         self.id = id
     }
 }
@@ -72,6 +72,6 @@ enum PlayerSaveMigrationPlan: SchemaMigrationPlan {
     static let stages = [MigrationStage.lightweight(fromVersion: PlayerSaveSchemaV2.self, toVersion: PlayerSaveSchema.self)]
 }
 
-public enum PlayerSaveGraph {
-    public static let schema = Schema(versionedSchema: PlayerSaveSchema.self)
+package enum PlayerSaveGraph {
+    package static let schema = Schema(versionedSchema: PlayerSaveSchema.self)
 }

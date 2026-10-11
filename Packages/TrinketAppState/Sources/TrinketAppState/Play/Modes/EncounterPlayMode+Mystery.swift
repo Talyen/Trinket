@@ -9,15 +9,9 @@ public extension EncounterPlayMode {
     func previewMysteryEvent(
         origin: PlayEncounterOrigin,
         forcedEventID: String? = nil,
-    ) -> MysteryEvent {
-        let inputs = mysteryPickInputs(origin: origin)
-        return MysteryEncounterSession.resolveEvent(
-            origin: origin,
-            forcedEventID: forcedEventID,
-            worldSeed: playerSave.worldSeed,
-            pickContext: inputs.pickContext,
-            pinnedLabyrinthEventID: inputs.pinnedLabyrinthEventID,
-            pinnedJourneyEventID: inputs.pinnedJourneyEventID,
+    ) -> MysteryEvent? {
+        origin.identity(in: playerSave.currentSave).mysteryEvent(
+            in: playerSave.currentSave, forcedEventID: forcedEventID, access: playerSave.contentAccess,
         )
     }
 
@@ -31,42 +25,28 @@ public extension EncounterPlayMode {
         }
         guard canBeginTransientEncounter else { return nil }
 
-        let inputs = mysteryPickInputs(origin: origin)
-        let session = MysteryEncounterSession.open(
-            origin: origin,
-            encounter: origin.identity(in: playerSave.currentSave),
-            forcedEventID: forcedEventID,
-            worldSeed: playerSave.worldSeed,
-            pickContext: inputs.pickContext,
-            pinnedLabyrinthEventID: inputs.pinnedLabyrinthEventID,
-            pinnedJourneyEventID: inputs.pinnedJourneyEventID,
-        )
-
-        if let paywall = mysteryPaywallMessage(for: session.event) {
+        guard let event = previewMysteryEvent(origin: origin, forcedEventID: forcedEventID) else {
+            return Self.mysteryPinFailureMessage
+        }
+        if let paywall = mysteryPaywallMessage(for: event) {
             return paywall
         }
-        return finishOpeningMystery(session, forcedEventID: forcedEventID)
-    }
-
-    /// Publishes only after the event pin and offers commit together. Recruit
-    /// auto-resolution has its own transaction and retry path.
-    private func finishOpeningMystery(
-        _ session: MysteryEncounterSession,
-        forcedEventID: String?,
-    ) -> StageMapMessage? {
-        if !session.event.isRecruit {
-            switch playerSave.prepareMysteryEncounter(
-                event: session.event, encounter: session.encounter, using: &mysteryRandom, at: currentDate(),
-            ) {
-            case let .committed(offers):
-                session.installOffers(offers)
-            case .rejected:
-                return Self.mysteryPinFailureMessage
-            case .persistFailed:
-                retryOpeningMystery(origin: session.origin, forcedEventID: forcedEventID)
-                return nil
-            }
+        let encounter = origin.identity(in: playerSave.currentSave)
+        let prepared: PreparedMysteryEncounter
+        switch playerSave.prepareMysteryEncounter(
+            encounter: encounter, forcedEventID: forcedEventID, using: &mysteryRandom, at: currentDate(),
+        ) {
+        case let .committed(value): prepared = value
+        case .rejected: return Self.mysteryPinFailureMessage
+        case .persistFailed:
+            retryOpeningMystery(origin: origin, forcedEventID: forcedEventID)
+            return nil
         }
+        let session = MysteryEncounterSession(
+            origin: origin, encounter: encounter, event: prepared.event,
+            combatant: GameContent.combatant(forMysteryEvent: prepared.event),
+        )
+        session.installOffers(prepared.offers)
         activeMysteryEncounter = session
         sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
         if session.event.isRecruit {
@@ -74,13 +54,9 @@ public extension EncounterPlayMode {
                 if playerSave.lastPersistenceError == .writeFailed {
                     return nil
                 }
-                let detail = session.persistFailureMessage
-                    ?? Self.mysteryPinFailureMessage.message
+                let detail = session.persistFailureMessage ?? Self.mysteryPinFailureMessage.message
                 activeMysteryEncounter = nil
-                return StageMapMessage(
-                    title: Self.mysteryPinFailureMessage.title,
-                    message: detail,
-                )
+                return StageMapMessage(title: Self.mysteryPinFailureMessage.title, message: detail)
             }
         }
         return nil
@@ -99,36 +75,6 @@ public extension EncounterPlayMode {
         playerSave.retrySaveAction(key: SaveRetryKey.mysteryOpen) { [weak self] in
             guard let self, activeMysteryEncounter == nil, canBeginTransientEncounter else { return }
             _ = beginMysteryEncounter(origin: origin, forcedEventID: forcedEventID)
-        }
-    }
-
-    private func mysteryPickInputs(
-        origin: PlayEncounterOrigin,
-    ) -> (pickContext: MysteryEventPickContext, pinnedLabyrinthEventID: String?, pinnedJourneyEventID: String?) {
-        let cooldown = playerSave.currentSave.corruptionAltarCooldownRemaining
-        switch origin {
-        case let .journey(stage):
-            return (
-                .journey(
-                    chapterNumber: stage.chapterNumber,
-                    inventory: playerSave.inventory,
-                    corruptionAltarCooldownRemaining: cooldown,
-                ),
-                nil,
-                playerSave.journey.pinnedMysteryEventIDs[stage.id],
-            )
-        case let .labyrinth(nodeID):
-            return (
-                .labyrinth(inventory: playerSave.inventory, corruptionAltarCooldownRemaining: cooldown),
-                playerSave.labyrinth.nodes[nodeID]?.mysteryEventID,
-                nil,
-            )
-        case let .voyage(runID, nodeID):
-            return (
-                .labyrinth(inventory: playerSave.inventory, corruptionAltarCooldownRemaining: cooldown),
-                playerSave.voyage.node(runID: runID, nodeID: nodeID)?.mysteryEventID,
-                nil,
-            )
         }
     }
 

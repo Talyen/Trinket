@@ -86,15 +86,15 @@ extension CloudSaveMerge {
         var starting = base.homestead
         var first = branches.incoming.homestead
         var second = branches.existing.homestead
-        starting.settleProduction(at: cursor, roster: base.roster)
+        starting.settleProduction(at: cursor, gold: base.roster.gold)
         let goldCredit = starting.pendingProduction[.gold, default: 0]
         // A capped wallet can change production after spending; the shared
         // snapshot no longer proves how much Gold either branch generated.
         if goldCredit > 0, goldCredit >= Double(PlayerRosterState.maxGoldBalance - base.roster.gold) {
             return nil
         }
-        first.settleProduction(at: cursor, roster: branches.incoming.roster)
-        second.settleProduction(at: cursor, roster: branches.existing.roster)
+        first.settleProduction(at: cursor, gold: branches.incoming.roster.gold)
+        second.settleProduction(at: cursor, gold: branches.existing.roster.gold)
         var shared: [HomesteadResource: Int] = [:]
         var collected: Set<HomesteadResource> = []
         for resource in HomesteadResource.allCases {
@@ -173,8 +173,8 @@ extension CloudSaveMerge {
         if overlappingProduction {
             // Compare uncollected credit at one cursor; an earlier collection must
             // not erase production earned after it on the later branch.
-            incomingProduction.settleProduction(at: merged.homestead.lastProductionAt, roster: incoming.roster)
-            existingProduction.settleProduction(at: merged.homestead.lastProductionAt, roster: existing.roster)
+            incomingProduction.settleProduction(at: merged.homestead.lastProductionAt, gold: incoming.roster.gold)
+            existingProduction.settleProduction(at: merged.homestead.lastProductionAt, gold: existing.roster.gold)
         }
         let sameProductionInterval = overlappingProduction && base.map {
             incoming.homestead.lastProductionAt == existing.homestead.lastProductionAt

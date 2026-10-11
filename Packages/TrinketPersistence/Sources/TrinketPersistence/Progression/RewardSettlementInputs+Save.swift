@@ -5,7 +5,7 @@ import TrinketCore
 public extension RewardSettlementInputs {
     init(save: PlayerSave, hero: Combatant, companion: Combatant, at date: Date = Date()) {
         var homestead = save.homestead
-        homestead.settleProduction(at: date, roster: save.roster)
+        homestead.settleProduction(at: date, gold: save.roster.gold)
         self.init(
             gold: save.roster.gold,
             reservedGold: PlayerRosterState.reservedGold(from: homestead.pendingProduction),

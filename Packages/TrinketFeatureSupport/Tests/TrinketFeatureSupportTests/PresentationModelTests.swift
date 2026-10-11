@@ -2,51 +2,10 @@ import CoreGraphics
 import Testing
 import TrinketContent
 import TrinketCore
-import TrinketPersistenceTestSupport
 @testable import TrinketFeatureAdapters
 @testable import TrinketFeatureSupport
-@testable import TrinketPersistence
 
 struct PresentationModelTests {
-    #if DEBUG
-    @Test @MainActor func `failed combatant edits preserve the roster and retry persists`() throws {
-        let directory = try SaveTestSupport.makeTempDirectory(prefix: "CombatantEdits")
-        defer { SaveTestSupport.removeTempDirectory(directory) }
-        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: directory)
-        let hero = try #require(GameContent.hero(matching: "knight"))
-        let item = try SaveTestSupport.makeGeneratedItem(baseID: "longsword", rarity: .basic)
-        let node = try #require(CombatantTalentCatalog.configIfAvailable(for: hero.id)?.trees.first?.nodes.first)
-        try playerSave.performBatchMutation { save in
-            save.roster = .testSeed
-            save.roster.progressions[hero.id] = .at(level: 2)
-            save.roster.setEquipmentLoadout(.init(), for: hero)
-            save.roster.setLoadout(save.roster.loadout(for: hero).selecting(.bash), for: hero)
-            save.roster.setUnlockedTalents([node.id], for: hero)
-            save.inventory.items = [item]
-        }
-        let commands: [CombatantLoadoutEdit] = [.selectAbility(.slash), .equipItem(item, .weapon), .unequipItem(.weapon), .resetTalents]
-        for command in commands {
-            let before = playerSave.roster
-            playerSave.forcesNextSaveFailure = true
-            #expect(!playerSave.editCombatant(command, for: hero))
-            #expect(playerSave.roster == before)
-            #expect(playerSave.editCombatant(command, for: hero))
-            let reloaded = try SaveTestSupport.makeSaveStore(directoryURL: directory)
-            #expect(reloaded.roster == playerSave.roster)
-            switch command {
-            case .selectAbility:
-                #expect(reloaded.roster.loadout(for: hero).basic?.id == Ability.slash.id)
-            case .equipItem:
-                #expect(reloaded.roster.equipmentLoadout(for: hero).itemID(for: .weapon) == item.id)
-            case .unequipItem:
-                #expect(reloaded.roster.equipmentLoadout(for: hero).itemID(for: .weapon) == nil)
-            case .resetTalents:
-                #expect(reloaded.roster.unlockedTalents(for: hero).isEmpty)
-            }
-        }
-    }
-    #endif
-
     @Test func `labyrinth sizing grows narrow floors and contains selected edges`() {
         for width: CGFloat in [280, 360, 430] {
             let baseline = width / (3 * CGFloat(3).squareRoot())

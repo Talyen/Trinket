@@ -8,10 +8,10 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 ## Structure
 
 - **Abilities/** — Ability models, validation, and authored `AbilityCatalog+Basic/Skill/Ultimate.swift` tier catalogs with ordered tier lists.
-- **Equipment/** — Item and affix models, Unique catalogs, and loot generation.
+- **Equipment/** — Item and affix models, Unique catalogs, loot generation, Corruption, and Salvage rules.
 - **Encounters/** — Journey, Spire, Contracts, Voyage, and shops; `Labyrinth/`, `Mystery/`, and `Rewards/` group their larger families.
 - **Roster/** — Combatant models, equipment/keyword projections, and talent/trait lookup.
-- **Homestead/** — Upgrade models, effects, and content lookup.
+- **Homestead/** — Player value state, production/collection and upgrade rules, effects, and content lookup.
 - **Media/** — Authored art, music, and sound lookup support.
 - **Generated/** — Auto-generated catalogs from manifests, ability shorthand, talent dictionaries, and trigger-family structs (do not edit directly)
 
@@ -116,6 +116,32 @@ The 2,000-row report covers levels 1–40, both profiles, all Sanctum bonuses, c
 exhaustion, shops, and guaranteed Astral rewards. Its cumulative chances assume
 unchanged inputs and pool availability across the displayed reward count.
 
+## Homestead rules
+
+`PlayerHomesteadState` owns production timing, fractional credit, collection,
+affordability, and upgrades. It accepts Gold values rather than saved rosters;
+`TrinketCore.GoldBalance` supplies the shared wallet bound. Persistence owns
+sanitization, graph mapping, transaction admission, and economic receipts.
+The value's Codable fields are preserved for existing cloud snapshots.
+
+## Item transformations
+
+`ItemCorruption` accepts item values and inventory arrays; `ItemSalvage` computes
+material yields from an item. These rules and Corruption result values have no
+save-store dependency. Persistence applies their results within its transaction
+boundary and owns receipts and encounter cooldowns.
+
+Corruption gives each successfully added or replaced affix one numeric bump at the
+item's final rarity: increase/decrease odds use the existing 40:20 weights (two to
+one), changing one eligible value by 1 or one percentage point. A decrease that
+cannot respect the 1 / 1% minimum becomes an increase. On/off affixes stay eligible
+without a numeric bump. The independent item-wide 40% increase and 20% decrease
+rolls target only surviving original affixes, preventing extra bumps on new affixes.
+Existing corrupted items are unchanged; structural selection and corruption-mark
+priority retain their existing rules. Items with affixes absent from the current
+catalog remain saved intact and are ineligible for corruption; the altar must not
+partially rebuild their affixes or powers.
+
 ## Shared reward modifiers
 
 `RewardModifier` owns 13 quantity/material/item-tier bonuses, seven item-family
@@ -158,7 +184,9 @@ resolve to Bonus Gold without changing the saved ID.
 
 Generation excludes exhausted Trinket/Unique rewards. A saved exhausted reward
 resolves to Bonus Gold for presentation and payout without rewriting its ID.
-Persistence's shared loot request resolves ownership once before rolling rewards;
+Content's `BattleLoot`, `LootRequest`, and `RewardOwnership` own seeded Gold,
+material, and item generation for every battle mode, using content values only.
+Persistence adapts saved Inventory into ownership and commits awards and claims;
 battle launch captures the result for settlement. All modes reuse the same concise
 reward descriptions and keyword/resource icons and colors.
 

@@ -1,11 +1,10 @@
 import TrinketContent
 import TrinketCore
-import TrinketPersistence
 
 public struct HomesteadProjectStatus {
     public let definition: HomesteadNodeDefinition
     public let homestead: PlayerHomesteadState
-    public let roster: PlayerRosterState
+    public let gold: Int
 
     public var currentTier: Int {
         homestead.tier(for: definition.id)
@@ -31,7 +30,7 @@ public struct HomesteadProjectStatus {
     }
 
     public var isAffordable: Bool {
-        nextTier.map { homestead.canAfford($0, roster: roster) } ?? false
+        nextTier.map { homestead.canAfford($0, gold: gold) } ?? false
     }
 
     public var canBuildOrUpgrade: Bool {
@@ -39,7 +38,7 @@ public struct HomesteadProjectStatus {
     }
 
     public func balance(for amount: ResourceAmount) -> Int {
-        homestead.balance(for: amount.resource, roster: roster)
+        homestead.balance(for: amount.resource, gold: gold)
     }
 
     public func hasEnough(_ amount: ResourceAmount) -> Bool {
@@ -49,11 +48,11 @@ public struct HomesteadProjectStatus {
     public init(
         definition: HomesteadNodeDefinition,
         homestead: PlayerHomesteadState,
-        roster: PlayerRosterState,
+        gold: Int,
     ) {
         self.definition = definition
         self.homestead = homestead
-        self.roster = roster
+        self.gold = gold
     }
 }
 

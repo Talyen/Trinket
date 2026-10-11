@@ -1,3 +1,4 @@
+import BattleEngine
 import Testing
 import TrinketContent
 @testable import TrinketAppState
@@ -56,6 +57,41 @@ struct ContractsPlayModeTests {
         #expect(play.contracts.startBattle(offerID: standard.id) == nil)
         #expect(play.battle.activeBattle?.enemyEncounterLevel == 7)
         #expect(play.battle.activeBattle?.id != configuration.id)
+    }
+
+    @Test func `easy contract retry retains the previewed recovery enemy`() throws {
+        let play = try context.makePlaySession()
+        #expect(play.contracts.enter() == nil)
+        let offer = try #require(play.playerSave.contracts.offer(for: .easy))
+        #expect(play.playerSave.persistBatch(logging: "High level recovery contract") { save in
+            save.roster.progressions[save.roster.activeHeroID] = .at(level: 40)
+            save.roster.progressions[save.roster.activeCompanionID] = .at(level: 40)
+        })
+        let preview = try #require(play.contracts.resolvedEncounter(for: offer))
+        play.battleCoordinator.nextCombatSeed = { 41 }
+        #expect(play.contracts.startBattle(offerID: offer.id) == nil)
+        let original = try #require(play.battle.activeBattle)
+        let launch = try #require(play.battleCoordinator.activeRun?.launch)
+        let enemy = try #require(GameContent.enemy(matching: offer.enemyID))
+        let recovery = CombatBuildResolver.build(enemy: enemy, level: preview.level, profile: .recovery)
+        let standard = CombatBuildResolver.build(enemy: enemy, level: preview.level)
+        #expect(original.enemy == preview.combatant)
+        #expect(original.enemyModifiers == recovery.modifiers)
+        #expect(original.enemyModifiers.outgoingDamagePercent != standard.modifiers.outgoingDamagePercent)
+
+        #expect(play.playerSave.persistBatch(logging: "Progression before Retry") { save in
+            save.roster.grantExperience(1, to: launch.inputs.launch.hero)
+        })
+        play.battleCoordinator.nextCombatSeed = { 42 }
+        #expect(play.restartActiveBattle() == nil)
+        let retried = try #require(play.battleCoordinator.activeRun?.launch)
+        #expect(retried.configuration.enemy == original.enemy)
+        #expect(retried.configuration.enemyModifiers == original.enemyModifiers)
+        #expect(retried.configuration.rngSeed == 42)
+        #expect(retried.configuration.id != original.id)
+        #expect(retried.configuration.hero.progression == play.playerSave.roster.progression(for: launch.inputs.launch.hero))
+        #expect(retried.inputs.launch == launch.inputs.launch)
+        #expect(retried.rewardPlan.items == launch.rewardPlan.items)
     }
 
     @Test(arguments: [ContractDifficulty.easy, .standard, .hard])

@@ -3,14 +3,6 @@ import TrinketContent
 import TrinketCore
 
 extension BattleCardCombatEngine {
-    static func dealCard(
-        matching tier: AbilityTier,
-        owner: BattleParticipant,
-        context: inout BattleState,
-    ) -> BattleCard? {
-        drawSelecting(for: owner, context: &context) { $0.drawFirstEntry(where: { $0.tier == tier }) }
-    }
-
     static func deal(
         _ ability: Ability,
         owner: BattleParticipant,
@@ -35,10 +27,6 @@ extension BattleCardCombatEngine {
         )
         context.hand.append(card)
         return card
-    }
-
-    static func makeOpeningHandDealPlan(in context: inout BattleState) -> [OpeningHandDraw] {
-        scheduledDraws(in: &context).map { OpeningHandDraw(owner: $0) }
     }
 
     static func scheduledDraws(in context: inout BattleState) -> [BattleParticipant] {

@@ -296,7 +296,7 @@ package enum DeathsDoorEngine {
                 amount: triggers.affixDeathsDoorSurviveHealFlat,
                 target: combatant, source: combatant,
                 abilityName: context.modifiers(for: combatant.id).triggerAbilityName(
-                    "affixDeathsDoorSurviveHealFlat", fallback: "Rekindled",
+                    .affixDeathsDoorSurviveHealFlat, fallback: "Rekindled",
                 ),
             ))
         }

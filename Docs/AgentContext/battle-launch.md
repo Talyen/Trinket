@@ -30,11 +30,12 @@ Eligibility stays visible before the action under the
 [SwiftUI interaction contract](swiftui-features.md).
 
 `BattleLaunchAssembly` retains the exact `BattlePreparationInputs` used to build
-its configuration, authoritative reward plan, and display projection. Enemy
-power profile is part of the launch snapshot: Spires use the fixed-floor profile,
-Easy Contracts use recovery, and other launches use standard. Encounter previews
-and assembly resolve that same profile without changing encounter levels or XP. These include the launch request,
-party/save inputs, world seed, and combat seed. The run key and progression-reward
+its configuration, authoritative reward plan, and display projection. `ScaledEncounter`
+resolves enemy stats, combat modifiers, faction, and encounter level together;
+inspection and launch consume that same value. Modes select the power profile once:
+Spires use the fixed-floor profile, Easy Contracts use recovery, and other launches
+use standard. The snapshot also includes the launch request, party/save inputs,
+world seed, and combat seed. The run key and progression-reward
 policy derive from the launch origin instead of separate stored inputs.
 Prepared activation compares that complete value with current inputs and requires
 the registered configuration ID as well as matching party/enemy identities.
@@ -92,7 +93,8 @@ retain the chosen action for an automatic retry without an error alert. A commit
 until exit/replacement so a failed restart followed by either action cannot pay
 again. Retry rebuilds from the retained launch request with updated saved party inputs
 and a fresh combat seed. It preserves encounter identity, rolled loot, bonuses,
-and modifiers; it never reconstructs gameplay inputs from presentation fields. Leave restores
+and modifiers by copying the complete request, replacing only the party members;
+it never enumerates encounter/reward fields or reconstructs them from presentation. Leave restores
 the origin and exposes newly earned talent choices, including points deferred
 across Retry attempts. Neither completes the mode's
 encounter. Active battle claims are transient; no battle-resume schema is added.

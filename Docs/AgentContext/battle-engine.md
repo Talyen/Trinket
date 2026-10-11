@@ -36,6 +36,9 @@ decision at compile time; `AffixModifier.apply(to:)` delegates to it.
 totals, using shared saturating arithmetic and combat rounding for extreme inputs.
 `CombatBuild` exposes the maximum values; content-to-profile adapters live in
 `CombatModifierProfile+Content.swift`.
+`CombatModifierProfile.triggerAbilityNames` keys are schema-generated
+`CombatTriggerField` values shared with Content's populated-field and affix-roll
+metadata. Provenance retains first-writer precedence when profiles merge.
 Half-Health checks use `HealthThreshold` to preserve strict odd-number boundaries
 without doubling saturated Health or rounding through `Double`.
 Status-summary duration formatting uses `Effect.durationTurns` by default; handlers

@@ -5,6 +5,7 @@ import TrinketFeatureSupport
 import UIKit
 
 struct CombatFeedbackRasterSlot: View {
+    @Environment(BattleSession.self) private var battleSession
     @Environment(\.layoutDirection) private var layoutDirection
 
     let combatantID: String
@@ -13,6 +14,7 @@ struct CombatFeedbackRasterSlot: View {
 
     var body: some View {
         CombatFeedbackRasterHost(
+            bridge: battleSession.feedback.chipBridge,
             combatantID: combatantID,
             layoutDirection: layoutDirection,
             displayScale: displayScale,
@@ -23,15 +25,29 @@ struct CombatFeedbackRasterSlot: View {
 }
 
 private struct CombatFeedbackRasterHost: UIViewRepresentable {
+    let bridge: CombatFeedbackChipBridge
     let combatantID: String
     let layoutDirection: LayoutDirection
     let displayScale: CGFloat
     let bottomInset: CGFloat
 
+    func makeCoordinator() -> Coordinator {
+        Coordinator(bridge: bridge)
+    }
+
+    @MainActor
+    final class Coordinator {
+        var bridge: CombatFeedbackChipBridge
+
+        init(bridge: CombatFeedbackChipBridge) {
+            self.bridge = bridge
+        }
+    }
+
     func makeUIView(context _: Context) -> CombatFeedbackRasterUIView {
         let view = CombatFeedbackRasterUIView()
         view.bottomInset = bottomInset
-        CombatFeedbackChipBridge.register(
+        bridge.register(
             view,
             combatantID: combatantID,
             layoutDirection: layoutDirection,
@@ -40,9 +56,13 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
         return view
     }
 
-    func updateUIView(_ uiView: CombatFeedbackRasterUIView, context _: Context) {
+    func updateUIView(_ uiView: CombatFeedbackRasterUIView, context: Context) {
+        if context.coordinator.bridge !== bridge {
+            context.coordinator.bridge.unregister(uiView)
+            context.coordinator.bridge = bridge
+        }
         uiView.bottomInset = bottomInset
-        CombatFeedbackChipBridge.register(
+        bridge.register(
             uiView,
             combatantID: combatantID,
             layoutDirection: layoutDirection,
@@ -50,8 +70,8 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
         )
     }
 
-    static func dismantleUIView(_ uiView: CombatFeedbackRasterUIView, coordinator _: ()) {
-        CombatFeedbackChipBridge.unregister(uiView)
+    static func dismantleUIView(_ uiView: CombatFeedbackRasterUIView, coordinator: Coordinator) {
+        coordinator.bridge.unregister(uiView)
     }
 }
 

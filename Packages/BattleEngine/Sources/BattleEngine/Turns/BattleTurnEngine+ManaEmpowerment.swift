@@ -63,7 +63,7 @@ package extension BattleTurnEngine {
                 triggers.onEmpowerBurnRestoreMana,
                 to: actor,
                 abilityName: CombatTriggerEngine.triggerAbilityName(
-                    "onEmpowerBurnRestoreMana",
+                    .onEmpowerBurnRestoreMana,
                     for: actor,
                     fallback: "Pyromancer's Spark",
                     in: context,

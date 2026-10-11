@@ -14,7 +14,7 @@ extension View {
 private struct FullGameOfferHost: ViewModifier {
     @State private var offer: PreparedFullGameOffer?
     @State private var preparation: Task<Void, Never>?
-    @State private var pinnedNames: [String] = []
+    @State private var artworkLease: PreparedArtworkLease?
 
     func body(content: Content) -> some View {
         content
@@ -40,13 +40,13 @@ private struct FullGameOfferHost: ViewModifier {
         preparation = Task { @MainActor in
             let artwork = artwork(for: requested)
             let names = artwork.map { [$0.imageName] } ?? []
-            let acquired = await PreparedArtworkCache.shared.prepareAndPin(names: names)
+            let lease = await PreparedArtworkLease(names: names)
             guard !Task.isCancelled else {
-                PreparedArtworkCache.shared.releasePins(names: acquired)
+                lease.release()
                 preparation = nil
                 return
             }
-            pinnedNames = acquired
+            artworkLease = lease
             offer = PreparedFullGameOffer(id: requested, artwork: artwork)
             preparation = nil
         }
@@ -77,8 +77,8 @@ private struct FullGameOfferHost: ViewModifier {
     }
 
     private func releaseArtwork() {
-        PreparedArtworkCache.shared.releasePins(names: pinnedNames)
-        pinnedNames = []
+        artworkLease?.release()
+        artworkLease = nil
     }
 }
 

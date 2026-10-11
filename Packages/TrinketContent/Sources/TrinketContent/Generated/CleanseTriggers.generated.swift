@@ -120,50 +120,47 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         self.purgeDrawBelowHalf = purgeDrawBelowHalf
     }
 
-    /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["interdict", "lessonLearned", "cleanseBonusDraw", "holyDamageCleanseCount", "holyDamagePurgeCount", "holyDamagePurgeAll", "cleanseBlockPerStack", "cleanseAffectsBothHeroAndCompanion", "cleanseReflectDebuffToEnemy", "autoCleanseTeamPerTurn", "cleanseAlsoPurgesEnemyBuffs", "cleanseDodgeChanceBonus", "cleanseDodgeChanceBonusTurns", "cleansePartyBlock", "blockFirstDebuffPerTurn", "partyDebuffDurationHalved", "purifyingAura", "onCleansePoisonDealDamagePerStack", "crownfall", "clearSolution", "freshBatch", "heatRecovery", "antitoxinCoating", "clearMind", "cleanBreak", "perfectPurity", "purgePreparesDoubleHolyAttack", "cleanseNextAttackCriticalBonus", "cleansePurgeChancePercent", "cleanseRemovesFreezeBuildup", "cleanseTargetBlockFlat", "firstCleanseExtraRemovalPerTurn", "cleanseSelfBlockFlat", "onCleanseRestoreMana", "onPurgeGainBlock", "onPurgeDealHolyDamage", "purgeDrawBelowHalf"]
-
-    /// Field names where `self` differs from `other`.
-    func populatedFieldNames(comparedTo other: Self) -> [String] {
-        var names: [String] = []
-        if self.interdict != other.interdict { names.append("interdict") }
-        if self.lessonLearned != other.lessonLearned { names.append("lessonLearned") }
-        if self.cleanseBonusDraw != other.cleanseBonusDraw { names.append("cleanseBonusDraw") }
-        if self.holyDamageCleanseCount != other.holyDamageCleanseCount { names.append("holyDamageCleanseCount") }
-        if self.holyDamagePurgeCount != other.holyDamagePurgeCount { names.append("holyDamagePurgeCount") }
-        if self.holyDamagePurgeAll != other.holyDamagePurgeAll { names.append("holyDamagePurgeAll") }
-        if self.cleanseBlockPerStack != other.cleanseBlockPerStack { names.append("cleanseBlockPerStack") }
-        if self.cleanseAffectsBothHeroAndCompanion != other.cleanseAffectsBothHeroAndCompanion { names.append("cleanseAffectsBothHeroAndCompanion") }
-        if self.cleanseReflectDebuffToEnemy != other.cleanseReflectDebuffToEnemy { names.append("cleanseReflectDebuffToEnemy") }
-        if self.autoCleanseTeamPerTurn != other.autoCleanseTeamPerTurn { names.append("autoCleanseTeamPerTurn") }
-        if self.cleanseAlsoPurgesEnemyBuffs != other.cleanseAlsoPurgesEnemyBuffs { names.append("cleanseAlsoPurgesEnemyBuffs") }
-        if self.cleanseDodgeChanceBonus != other.cleanseDodgeChanceBonus { names.append("cleanseDodgeChanceBonus") }
-        if self.cleanseDodgeChanceBonusTurns != other.cleanseDodgeChanceBonusTurns { names.append("cleanseDodgeChanceBonusTurns") }
-        if self.cleansePartyBlock != other.cleansePartyBlock { names.append("cleansePartyBlock") }
-        if self.blockFirstDebuffPerTurn != other.blockFirstDebuffPerTurn { names.append("blockFirstDebuffPerTurn") }
-        if self.partyDebuffDurationHalved != other.partyDebuffDurationHalved { names.append("partyDebuffDurationHalved") }
-        if self.purifyingAura != other.purifyingAura { names.append("purifyingAura") }
-        if self.onCleansePoisonDealDamagePerStack != other.onCleansePoisonDealDamagePerStack { names.append("onCleansePoisonDealDamagePerStack") }
-        if self.crownfall != other.crownfall { names.append("crownfall") }
-        if self.clearSolution != other.clearSolution { names.append("clearSolution") }
-        if self.freshBatch != other.freshBatch { names.append("freshBatch") }
-        if self.heatRecovery != other.heatRecovery { names.append("heatRecovery") }
-        if self.antitoxinCoating != other.antitoxinCoating { names.append("antitoxinCoating") }
-        if self.clearMind != other.clearMind { names.append("clearMind") }
-        if self.cleanBreak != other.cleanBreak { names.append("cleanBreak") }
-        if self.perfectPurity != other.perfectPurity { names.append("perfectPurity") }
-        if self.purgePreparesDoubleHolyAttack != other.purgePreparesDoubleHolyAttack { names.append("purgePreparesDoubleHolyAttack") }
-        if self.cleanseNextAttackCriticalBonus != other.cleanseNextAttackCriticalBonus { names.append("cleanseNextAttackCriticalBonus") }
-        if self.cleansePurgeChancePercent != other.cleansePurgeChancePercent { names.append("cleansePurgeChancePercent") }
-        if self.cleanseRemovesFreezeBuildup != other.cleanseRemovesFreezeBuildup { names.append("cleanseRemovesFreezeBuildup") }
-        if self.cleanseTargetBlockFlat != other.cleanseTargetBlockFlat { names.append("cleanseTargetBlockFlat") }
-        if self.firstCleanseExtraRemovalPerTurn != other.firstCleanseExtraRemovalPerTurn { names.append("firstCleanseExtraRemovalPerTurn") }
-        if self.cleanseSelfBlockFlat != other.cleanseSelfBlockFlat { names.append("cleanseSelfBlockFlat") }
-        if self.onCleanseRestoreMana != other.onCleanseRestoreMana { names.append("onCleanseRestoreMana") }
-        if self.onPurgeGainBlock != other.onPurgeGainBlock { names.append("onPurgeGainBlock") }
-        if self.onPurgeDealHolyDamage != other.onPurgeDealHolyDamage { names.append("onPurgeDealHolyDamage") }
-        if self.purgeDrawBelowHalf != other.purgeDrawBelowHalf { names.append("purgeDrawBelowHalf") }
-        return names
+    /// Fields where `self` differs from `other`.
+    func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
+        var fields: [CombatTriggerField] = []
+        if self.interdict != other.interdict { fields.append(.interdict) }
+        if self.lessonLearned != other.lessonLearned { fields.append(.lessonLearned) }
+        if self.cleanseBonusDraw != other.cleanseBonusDraw { fields.append(.cleanseBonusDraw) }
+        if self.holyDamageCleanseCount != other.holyDamageCleanseCount { fields.append(.holyDamageCleanseCount) }
+        if self.holyDamagePurgeCount != other.holyDamagePurgeCount { fields.append(.holyDamagePurgeCount) }
+        if self.holyDamagePurgeAll != other.holyDamagePurgeAll { fields.append(.holyDamagePurgeAll) }
+        if self.cleanseBlockPerStack != other.cleanseBlockPerStack { fields.append(.cleanseBlockPerStack) }
+        if self.cleanseAffectsBothHeroAndCompanion != other.cleanseAffectsBothHeroAndCompanion { fields.append(.cleanseAffectsBothHeroAndCompanion) }
+        if self.cleanseReflectDebuffToEnemy != other.cleanseReflectDebuffToEnemy { fields.append(.cleanseReflectDebuffToEnemy) }
+        if self.autoCleanseTeamPerTurn != other.autoCleanseTeamPerTurn { fields.append(.autoCleanseTeamPerTurn) }
+        if self.cleanseAlsoPurgesEnemyBuffs != other.cleanseAlsoPurgesEnemyBuffs { fields.append(.cleanseAlsoPurgesEnemyBuffs) }
+        if self.cleanseDodgeChanceBonus != other.cleanseDodgeChanceBonus { fields.append(.cleanseDodgeChanceBonus) }
+        if self.cleanseDodgeChanceBonusTurns != other.cleanseDodgeChanceBonusTurns { fields.append(.cleanseDodgeChanceBonusTurns) }
+        if self.cleansePartyBlock != other.cleansePartyBlock { fields.append(.cleansePartyBlock) }
+        if self.blockFirstDebuffPerTurn != other.blockFirstDebuffPerTurn { fields.append(.blockFirstDebuffPerTurn) }
+        if self.partyDebuffDurationHalved != other.partyDebuffDurationHalved { fields.append(.partyDebuffDurationHalved) }
+        if self.purifyingAura != other.purifyingAura { fields.append(.purifyingAura) }
+        if self.onCleansePoisonDealDamagePerStack != other.onCleansePoisonDealDamagePerStack { fields.append(.onCleansePoisonDealDamagePerStack) }
+        if self.crownfall != other.crownfall { fields.append(.crownfall) }
+        if self.clearSolution != other.clearSolution { fields.append(.clearSolution) }
+        if self.freshBatch != other.freshBatch { fields.append(.freshBatch) }
+        if self.heatRecovery != other.heatRecovery { fields.append(.heatRecovery) }
+        if self.antitoxinCoating != other.antitoxinCoating { fields.append(.antitoxinCoating) }
+        if self.clearMind != other.clearMind { fields.append(.clearMind) }
+        if self.cleanBreak != other.cleanBreak { fields.append(.cleanBreak) }
+        if self.perfectPurity != other.perfectPurity { fields.append(.perfectPurity) }
+        if self.purgePreparesDoubleHolyAttack != other.purgePreparesDoubleHolyAttack { fields.append(.purgePreparesDoubleHolyAttack) }
+        if self.cleanseNextAttackCriticalBonus != other.cleanseNextAttackCriticalBonus { fields.append(.cleanseNextAttackCriticalBonus) }
+        if self.cleansePurgeChancePercent != other.cleansePurgeChancePercent { fields.append(.cleansePurgeChancePercent) }
+        if self.cleanseRemovesFreezeBuildup != other.cleanseRemovesFreezeBuildup { fields.append(.cleanseRemovesFreezeBuildup) }
+        if self.cleanseTargetBlockFlat != other.cleanseTargetBlockFlat { fields.append(.cleanseTargetBlockFlat) }
+        if self.firstCleanseExtraRemovalPerTurn != other.firstCleanseExtraRemovalPerTurn { fields.append(.firstCleanseExtraRemovalPerTurn) }
+        if self.cleanseSelfBlockFlat != other.cleanseSelfBlockFlat { fields.append(.cleanseSelfBlockFlat) }
+        if self.onCleanseRestoreMana != other.onCleanseRestoreMana { fields.append(.onCleanseRestoreMana) }
+        if self.onPurgeGainBlock != other.onPurgeGainBlock { fields.append(.onPurgeGainBlock) }
+        if self.onPurgeDealHolyDamage != other.onPurgeDealHolyDamage { fields.append(.onPurgeDealHolyDamage) }
+        if self.purgeDrawBelowHalf != other.purgeDrawBelowHalf { fields.append(.purgeDrawBelowHalf) }
+        return fields
     }
 }
 

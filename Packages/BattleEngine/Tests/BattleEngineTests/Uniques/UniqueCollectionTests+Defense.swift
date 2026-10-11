@@ -208,8 +208,8 @@ extension UniqueCollectionTests {
         #expect(blockAmount(.enemy, in: context) == 8)
     }
 
-    @Test(arguments: ["blockGainThornsPercent", "retainedBlockGainThornsPercent"])
-    func `interdict prevents thorns returning from block rewards`(abilityKey: String) throws {
+    @Test(arguments: [CombatTriggerField.blockGainThornsPercent, .retainedBlockGainThornsPercent])
+    func `interdict prevents thorns returning from block rewards`(abilityKey: CombatTriggerField) throws {
         var extra = CombatModifierProfile.zero
         extra.triggers.interdict = true
         var context = try battle([], extra: extra)

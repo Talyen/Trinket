@@ -383,6 +383,7 @@ extension BattleCardCombatTests {
             heroModifiers: profile,
         )
         battle.turnCount = 1
+        battle.turnState = opening ? .opening([]) : .drawing([])
         _ = opening
             ? CombatExecutor.run { await BattleCardCombatEngine.finalizeOpeningHand(context: &battle) }
             : CombatExecutor.run { await BattleCardCombatEngine.finalizeTurnStart(context: &battle) }
@@ -401,6 +402,7 @@ extension BattleCardCombatTests {
             heroEffects: [ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)],
             companionModifiers: profile,
         )
+        battle.turnState = opening ? .opening([]) : .drawing([])
         _ = opening
             ? CombatExecutor.run { await BattleCardCombatEngine.finalizeOpeningHand(context: &battle) }
             : CombatExecutor.run { await BattleCardCombatEngine.finalizeTurnStart(context: &battle) }

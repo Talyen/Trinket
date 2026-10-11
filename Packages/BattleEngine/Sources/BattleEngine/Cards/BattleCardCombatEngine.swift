@@ -14,8 +14,7 @@ package enum BattleCardCombatEngine {
         )
         context.hand = BattleHand()
         context.nextScheduledDrawOwner = .hero
-        context.openingHandDealPlan = makeOpeningHandDealPlan(in: &context)
-        context.phase = .playerTurn
+        context.turnState = .opening(scheduledDraws(in: &context))
         context.ownersSkippingThisPlayerTurn = []
     }
 
@@ -39,15 +38,8 @@ package enum BattleCardCombatEngine {
 
     @discardableResult
     package static func drawNextOpeningHandCard(context: inout BattleState) -> Bool {
-        while !context.openingHandDealPlan.isEmpty {
-            let slot = context.openingHandDealPlan.removeFirst()
-            let card = if let tier = slot.tier {
-                dealCard(matching: tier, owner: slot.owner, context: &context)
-                    ?? drawOne(for: slot.owner, context: &context)
-            } else {
-                drawOne(for: slot.owner, context: &context)
-            }
-            if card != nil {
+        while let owner = context.turnState.nextDraw(opening: true) {
+            if drawOne(for: owner, context: &context) != nil {
                 return true
             }
         }
@@ -57,6 +49,7 @@ package enum BattleCardCombatEngine {
 
     @discardableResult
     package static func finalizeOpeningHand(context: inout BattleState) async -> [ActionEvent] {
+        guard context.turnState.beginTurnStart(opening: true) else { return [] }
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         // Later rounds receive this grant during effect advancement; opening
         // has no preceding round to advance.
@@ -78,7 +71,7 @@ package enum BattleCardCombatEngine {
         promoteFromBuffer(context: &context)
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         let events = await context.appendDefeatMilestonesIfNeeded()
-        context.phase = context.isBattleOver ? .ended : .playerTurn
+        context.turnState = context.isBattleOver ? .ended : .playerTurn
         return events
     }
 
@@ -88,7 +81,6 @@ package enum BattleCardCombatEngine {
         recording: ((BattleTransitionCheckpoint, BattleState, [ActionEvent]) -> Void)? = nil,
     ) async -> [ActionEvent] {
         guard !context.isBattleOver, context.phase == .playerTurn else {
-            assertionFailure("BattleCardCombatEngine.endTurn called outside playerTurn or after battle ended")
             return []
         }
 
@@ -138,9 +130,11 @@ package enum BattleCardCombatEngine {
         playError(for: card, in: context) == nil
     }
 
-    static func playError(for card: BattleCard, in context: BattleState) -> BattlePlayError? {
+    static func playError(
+        for card: BattleCard, in context: BattleState, allowsTurnPreparation: Bool = false,
+    ) -> BattlePlayError? {
         guard !context.isBattleOver else { return .battleOver }
-        guard context.phase == .playerTurn else { return .notPlayerTurn }
+        guard allowsTurnPreparation || context.phase == .playerTurn else { return .notPlayerTurn }
         let runtime = context.roster[card.owner]
         guard runtime.isAlive else { return .ownerDefeated }
         guard !context.ownersSkippingThisPlayerTurn.contains(card.owner) else { return .ownerSkipping }
@@ -275,7 +269,7 @@ package enum BattleCardCombatEngine {
         // Milestones can trigger victory rewards; finish them before checking the final roster.
         await events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
         guard context.isBattleOver else { return false }
-        context.phase = .ended
+        context.turnState = .ended
         return true
     }
 

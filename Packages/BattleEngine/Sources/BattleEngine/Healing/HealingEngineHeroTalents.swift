@@ -279,7 +279,7 @@ extension HealingEngine {
                 events.append(contentsOf: CombatTriggerEngine.drawCards(
                     1, for: owner, actor: source,
                     abilityName: CombatTriggerEngine.triggerAbilityName(
-                        "healthRestoreDrawChancePercent", for: source, fallback: "Lifeline", in: context,
+                        .healthRestoreDrawChancePercent, for: source, fallback: "Lifeline", in: context,
                     ), in: &context,
                 ))
             }

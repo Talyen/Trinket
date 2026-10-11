@@ -50,20 +50,20 @@ package extension CombatTriggerEngine {
 
         if triggers.dodgeGoldFlat > 0 {
             await events.append(contentsOf: emitGold(
-                "dodgeGoldFlat", "Payday", amount: triggers.dodgeGoldFlat, to: combatant, in: &context,
+                .dodgeGoldFlat, "Payday", amount: triggers.dodgeGoldFlat, to: combatant, in: &context,
             ))
         }
 
         if triggers.dodgeBlockFlat > 0 {
             events.append(contentsOf: emitBlock(
-                "dodgeBlockFlat", "Untouchable",
+                .dodgeBlockFlat, "Untouchable",
                 amount: triggers.dodgeBlockFlat, to: combatant, source: combatant, in: &context,
             ))
         }
 
         if triggers.onDodgeGrantHeroBlock > 0, context.roster.hero.isAlive {
             events.append(contentsOf: emitBlock(
-                "onDodgeGrantHeroBlock", "Aerial Cover",
+                .onDodgeGrantHeroBlock, "Aerial Cover",
                 amount: triggers.onDodgeGrantHeroBlock,
                 to: context.roster.hero.combatant, source: combatant, in: &context,
             ))
@@ -72,7 +72,7 @@ package extension CombatTriggerEngine {
         if triggers.onDodgePartyMana > 0 {
             for (_, member) in livingPartyMembers(in: context) {
                 await events.append(contentsOf: emitMana(
-                    "onDodgePartyMana", "Dodge",
+                    .onDodgePartyMana, "Dodge",
                     amount: triggers.onDodgePartyMana, to: member.combatant, nameFrom: combatant, in: &context,
                 ))
             }
@@ -89,7 +89,7 @@ package extension CombatTriggerEngine {
                     kind: .effect,
                     effectKind: .cardsDrawn,
                     source: .init(context.roster.hero),
-                    abilityName: triggerAbilityName("onDodgeDrawCardForHero", for: combatant, fallback: "Tailwind", in: context),
+                    abilityName: triggerAbilityName(.onDodgeDrawCardForHero, for: combatant, fallback: "Tailwind", in: context),
                     target: context.roster.hero.combatant,
                     amount: drawn,
                     keyword: .physical,
@@ -121,7 +121,7 @@ package extension CombatTriggerEngine {
             await events.append(contentsOf: applyDodgeCounterDamage(
                 keyword: .stun,
                 amount: profile.triggers.dodgeDealStunFlat,
-                key: "dodgeDealStunFlat",
+                key: .dodgeDealStunFlat,
                 fallback: "Whiplash",
                 for: combatant,
                 in: &context,
@@ -129,7 +129,7 @@ package extension CombatTriggerEngine {
             await events.append(contentsOf: applyDodgeCounterDamage(
                 keyword: .freeze,
                 amount: profile.triggers.dodgeDealFreezeFlat,
-                key: "dodgeDealFreezeFlat",
+                key: .dodgeDealFreezeFlat,
                 fallback: "Wing Buffet",
                 for: combatant,
                 in: &context,
@@ -290,7 +290,7 @@ package extension CombatTriggerEngine {
         guard profile.triggers.dodgeHealFlat > 0 else { return [] }
         let target = BattleActionContext(actor: combatant, in: context).target(.lowestHealthAlly, in: context)
         return await emitHeal(
-            "dodgeHealFlat", "Sidestep",
+            .dodgeHealFlat, "Sidestep",
             amount: profile.triggers.dodgeHealFlat, to: target, source: combatant, in: &context,
         )
     }
@@ -298,7 +298,7 @@ package extension CombatTriggerEngine {
     private static func applyDodgeCounterDamage(
         keyword: Keyword,
         amount: Int,
-        key: String,
+        key: CombatTriggerField,
         fallback: String,
         for combatant: Combatant,
         in context: inout BattleState,

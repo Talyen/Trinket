@@ -3,6 +3,7 @@ import TrinketCore
 
 public enum BattlePhase: Equatable, Sendable {
     case playerTurn
+    case preparingTurn
     case ended
 }
 
@@ -24,16 +25,6 @@ public struct BattleCard: Identifiable, Hashable, Sendable {
         self.ability = ability
         self.owner = owner
         self.deckCopyID = deckCopyID
-    }
-}
-
-public struct OpeningHandDraw: Hashable, Sendable {
-    public let owner: BattleParticipant
-    public let tier: AbilityTier?
-
-    public init(owner: BattleParticipant, tier: AbilityTier? = nil) {
-        self.owner = owner
-        self.tier = tier
     }
 }
 

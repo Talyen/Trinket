@@ -89,7 +89,7 @@ extension PlaythroughCareer {
         }
         for definition in GameContent.homesteadNodes {
             guard let tier = store.homestead.nextTier(for: definition),
-                  store.homestead.canAfford(tier, roster: store.roster) else { continue }
+                  store.homestead.canAfford(tier, gold: store.roster.gold) else { continue }
             try await perform(.upgrade(definition.id.rawValue, tier.tier))
             return
         }

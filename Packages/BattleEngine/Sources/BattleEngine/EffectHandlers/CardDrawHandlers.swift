@@ -144,7 +144,7 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
 
         var events: [ActionEvent] = []
         for card in drawnCards {
-            guard BattleCardCombatEngine.isCardPlayable(card, in: context) else { continue }
+            guard BattleCardCombatEngine.playError(for: card, in: context, allowsTurnPreparation: true) == nil else { continue }
             do {
                 let played = try await BattleCardCombatEngine.playDrawnCard(card, context: &context)
                 events.append(contentsOf: played)

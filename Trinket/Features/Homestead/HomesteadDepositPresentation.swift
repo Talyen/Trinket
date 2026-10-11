@@ -1,6 +1,5 @@
 import SwiftUI
 import TrinketCore
-import TrinketFeatureAdapters
 import TrinketFeatureSupport
 
 struct HomesteadDepositEvent: Identifiable {

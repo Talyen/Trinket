@@ -96,9 +96,9 @@ struct PreparedArtworkCacheTests {
         let first = Task { await cache.prepare(names: ["a", "b"]) }
         defer { first.cancel() }
         try await waitUntil("both initial decode slots") { await probe.started.count >= 2 }
-        let canceled = Task { _ = await cache.prepareAndPin(names: ["c"]) }
+        let canceled = Task { _ = await cache.acquirePinnedArtwork(names: ["c"]) }
         defer { canceled.cancel() }
-        let pinned = Task { _ = await cache.prepareAndPin(names: ["d", "e"]) }
+        let pinned = Task { _ = await cache.acquirePinnedArtwork(names: ["d", "e"]) }
         defer { pinned.cancel() }
         try await waitUntil("queued pin demand for c and e") {
             cache.pinDemandCount(for: "c") > 0 && cache.pinDemandCount(for: "e") > 0
@@ -136,7 +136,7 @@ struct PreparedArtworkCacheTests {
         let viewport = Task { await cache.prepare(names: ["b", "c"]) }
         defer { viewport.cancel() }
         try await waitUntil("the viewport b decode") { await probe.started.count >= 2 }
-        let imminent = Task { _ = await cache.prepareAndPin(names: ["z"]) }
+        let imminent = Task { _ = await cache.acquirePinnedArtwork(names: ["z"]) }
         defer { imminent.cancel() }
         try await waitUntil("imminent pin demand for z") { cache.pinDemandCount(for: "z") > 0 }
         await probe.release("b")
@@ -167,7 +167,7 @@ struct PreparedArtworkCacheTests {
         }
         await cache.prepareAll(priorityImageNames: [])
         await cache.waitForDeferredWarmup()
-        _ = await cache.prepareAndPin(names: ["portrait"])
+        _ = await cache.acquirePinnedArtwork(names: ["portrait"])
         #expect(cache.snapshot().residentCount == 1)
         #expect(cache.snapshot().pinnedCount == 1)
         #expect(cache.snapshot().residentByteCount > 0)
@@ -207,7 +207,7 @@ struct PreparedArtworkCacheTests {
         }
 
         await cache.prepareAll(priorityImageNames: ["art"])
-        _ = await cache.prepareAndPin(names: ["art"])
+        _ = await cache.acquirePinnedArtwork(names: ["art"])
 
         let attemptCount = await source.attemptCount
         #expect(attemptCount == 2)
@@ -230,8 +230,8 @@ struct PreparedArtworkCacheTests {
         }
 
         await cache.prepareAll(priorityImageNames: ["art"])
-        _ = await cache.prepareAndPin(names: ["art"])
-        _ = await cache.prepareAndPin(names: ["art"])
+        _ = await cache.acquirePinnedArtwork(names: ["art"])
+        _ = await cache.acquirePinnedArtwork(names: ["art"])
         cache.releasePins(names: ["art"])
 
         #expect(cache.snapshot().pinnedCount == 1)
@@ -256,12 +256,24 @@ struct PreparedArtworkCacheTests {
         #expect(cache.pinDemandCount(for: "shared") == 2)
         #expect(cache.pinDemandCount(for: "new") == 1)
         discard(false)
+        discard(false)
+        discard(true)
         #expect(cache.pinDemandCount(for: "old") == 1)
         #expect(cache.pinDemandCount(for: "shared") == 1)
         #expect(cache.pinDemandCount(for: "new") == 0)
 
         let publish = await cache.prepareLaunchPinReplacement(names: ["shared", "new"])
         publish(true)
+        publish(true)
+        publish(false)
+        #expect(cache.pinDemandCount(for: "old") == 0)
+        #expect(cache.pinDemandCount(for: "shared") == 1)
+        #expect(cache.pinDemandCount(for: "new") == 1)
+
+        var abandoned: (@MainActor (Bool) -> Void)? = await cache.prepareLaunchPinReplacement(names: ["old", "shared"])
+        #expect(abandoned != nil)
+        #expect(cache.pinDemandCount(for: "shared") == 2)
+        abandoned = nil
         #expect(cache.pinDemandCount(for: "old") == 0)
         #expect(cache.pinDemandCount(for: "shared") == 1)
         #expect(cache.pinDemandCount(for: "new") == 1)
@@ -280,7 +292,7 @@ extension PreparedArtworkCacheTests {
             return PreparedArtwork(name: name, image: image)
         }
 
-        let prepareTask = Task { _ = await cache.prepareAndPin(names: ["art"]) }
+        let prepareTask = Task { _ = await cache.acquirePinnedArtwork(names: ["art"]) }
         defer { prepareTask.cancel() }
         try await waitUntil("the pinned artwork decode") { await started.count >= 1 }
         cache.releasePins(names: ["art"])
@@ -333,7 +345,7 @@ extension PreparedArtworkCacheTests {
         let viewport = Task { await cache.prepare(names: ["art"]) }
         defer { viewport.cancel() }
         try await waitUntil("the shared artwork decode") { await counter.count >= 1 }
-        let pin = Task { _ = await cache.prepareAndPin(names: ["art"]) }
+        let pin = Task { _ = await cache.acquirePinnedArtwork(names: ["art"]) }
         defer { pin.cancel() }
         try await waitUntil("the shared artwork pin") { cache.pinDemandCount(for: "art") == 1 }
 
@@ -385,9 +397,9 @@ extension PreparedArtworkCacheTests {
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
             PreparedArtwork(name: name, image: image)
         }
-        _ = await cache.prepareAndPin(names: ["art"])
+        _ = await cache.acquirePinnedArtwork(names: ["art"])
         let canceled = Task {
-            let acquired = await cache.prepareAndPin(names: ["art"])
+            let acquired = await cache.acquirePinnedArtwork(names: ["art"])
             cache.releasePins(names: acquired)
         }
         canceled.cancel()
@@ -405,7 +417,7 @@ extension PreparedArtworkCacheTests {
         }
 
         let batch = Task {
-            _ = await cache.prepareAndPin(names: ["art"])
+            _ = await cache.acquirePinnedArtwork(names: ["art"])
         }
         batch.cancel()
         await batch.value
@@ -441,10 +453,10 @@ extension PreparedArtworkCacheTests {
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
             await source.decode(name: name)
         }
-        let failed = await cache.prepareAndPin(names: ["art"])
+        let failed = await cache.acquirePinnedArtwork(names: ["art"])
         #expect(failed.isEmpty)
         #expect(cache.pinDemandCount(for: "art") == 0)
-        let acquired = await cache.prepareAndPin(names: ["art"])
+        let acquired = await cache.acquirePinnedArtwork(names: ["art"])
         #expect(acquired == ["art"])
 
         cache.releasePins(names: failed)

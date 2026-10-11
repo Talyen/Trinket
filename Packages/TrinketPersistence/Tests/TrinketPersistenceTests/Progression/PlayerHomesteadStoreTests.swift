@@ -17,8 +17,8 @@ struct PlayerHomesteadStoreTests {
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.homestead.tier(for: .runesmithWorkshop) == 1)
         #expect(HomesteadNodeID.allCases.filter { $0 != .runesmithWorkshop }.allSatisfy { reloaded.homestead.tier(for: $0) == 0 })
-        #expect(reloaded.homestead.balance(for: .iron, roster: reloaded.roster) == 0)
-        #expect(reloaded.homestead.balance(for: .gems, roster: reloaded.roster) == 0)
+        #expect(reloaded.homestead.balance(for: .iron, gold: reloaded.roster.gold) == 0)
+        #expect(reloaded.homestead.balance(for: .gems, gold: reloaded.roster.gold) == 0)
     }
 
     @Test @MainActor func `cloud homestead actions preserve wallet tiers and production across reload`() async throws {

@@ -178,7 +178,7 @@ class AgentContextTests(ScriptRegressionTestCase):
             ([engine + "State/BattleState.swift"], {"battle-damage", "battle-actions", "battle-healing"}),
             ([engine + "Damage/Steps.swift", engine + "BattleHand.swift"], {"battle-damage", "battle-actions"}),
             ([persistence + "Progression/StageCompletion.swift"], {"persistence-progression"}),
-            ([persistence + "Progression/BattleLoot.swift"], {"persistence-progression"}),
+            ([persistence + "Progression/RewardOwnership+Save.swift"], {"persistence-progression"}),
             ([persistence + "Encounters/MysteryOfferPersistence.swift"], {"persistence-progression"}),
             ([persistence + "Inventory/StoredInventoryItem.swift"], {"persistence-storage", "persistence-progression"}),
             ([persistence + "PlayerSaveGraph/PlayerSaveRoot.swift"], {"persistence-storage"}),

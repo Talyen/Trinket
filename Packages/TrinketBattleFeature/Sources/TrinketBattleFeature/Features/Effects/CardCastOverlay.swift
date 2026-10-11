@@ -256,7 +256,7 @@ public struct CardCastEffectsPrewarmView: View {
 
     @State private var startDate: Date?
     @State private var preparedArtworkName: String?
-    @State private var pinnedArtworkNames: [String] = []
+    @State private var artworkPins = PreparedArtworkPinSet()
     @State private var areResourcesPrepared = false
 
     public init(
@@ -296,12 +296,7 @@ public struct CardCastEffectsPrewarmView: View {
             releaseArtwork()
             async let textures: Void = CardDissolveTexture.prepare()
             if let artworkName {
-                let acquired = await PreparedArtworkCache.shared.prepareAndPin(names: [artworkName])
-                guard !Task.isCancelled else {
-                    PreparedArtworkCache.shared.releasePins(names: acquired)
-                    return
-                }
-                pinnedArtworkNames = acquired
+                guard await artworkPins.prepare(names: [artworkName]) != nil else { return }
                 preparedArtworkName = artworkName
             }
             await textures
@@ -334,8 +329,7 @@ public struct CardCastEffectsPrewarmView: View {
     }
 
     private func releaseArtwork() {
-        PreparedArtworkCache.shared.releasePins(names: pinnedArtworkNames)
-        pinnedArtworkNames = []
+        artworkPins.release()
         preparedArtworkName = nil
     }
 }

@@ -14,7 +14,7 @@ struct VoyageView: View {
     @Environment(\.isBattleActive) private var isBattleActive
     @Environment(\.presentPlayCombatantDetail) private var presentPlayCombatantDetail
     @State private var displayed: PlayerVoyageState?
-    @State private var pinnedArtwork: [String] = []
+    @State private var artworkPins = PreparedArtworkPinSet()
     @State private var message: StageMapMessage?
     @State private var abandonRunID: String?
     @State private var embarkedOfferID: String?
@@ -105,8 +105,7 @@ struct VoyageView: View {
             voyage.prepareNextBattle()
         }
         .onDisappear {
-            PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
-            pinnedArtwork = []
+            artworkPins.release()
             displayed = nil
             embarkedOfferID = nil
             isCrossfading = false
@@ -131,7 +130,7 @@ struct VoyageView: View {
             titleAccessibilityIdentifier: nil,
             subtitleAccessibilityIdentifier: AccessibilityID.Voyage.destinationReward,
         ) {
-            if let art = ArtCatalog.backgroundArtByID[heroID], pinnedArtwork.contains(art.imageName) {
+            if let art = ArtCatalog.backgroundArtByID[heroID], artworkPins.names.contains(art.imageName) {
                 FocalBackgroundArtwork(art: art)
             } else {
                 TrinketDesign.Colors.canvas
@@ -233,17 +232,14 @@ struct VoyageView: View {
                 names.insert(node.id == run.nextNode?.id ? art.imageName : art.preparedThumbnailImageName ?? art.imageName)
             }
         }
-        let added = names.subtracting(pinnedArtwork)
-        let acquired = await PreparedArtworkCache.shared.prepareAndPin(names: Array(added))
-        guard !Task.isCancelled, state == playerSave.voyage, !hasEncounter else {
-            PreparedArtworkCache.shared.releasePins(names: acquired)
-            return
-        }
+        guard let update = await artworkPins.prepare(
+            names: Array(names), retainingOutgoing: true,
+            isCurrent: { state == playerSave.voyage && !hasEncounter },
+        ) else { return }
         let shouldCrossfade = embarkedOfferID != nil
             && state.activeRun?.offer.id == embarkedOfferID
             && displayed?.activeRun?.id != state.activeRun?.id
             && displayed != nil
-        pinnedArtwork = Array(Set(pinnedArtwork).union(acquired)).sorted()
         if shouldCrossfade {
             embarkedOfferID = nil
             isCrossfading = true
@@ -259,9 +255,7 @@ struct VoyageView: View {
             transaction.disablesAnimations = true
             withTransaction(transaction) { displayed = state }
         }
-        let outgoing = Set(pinnedArtwork).subtracting(names)
-        PreparedArtworkCache.shared.releasePins(names: Array(outgoing))
-        pinnedArtwork.removeAll { outgoing.contains($0) }
+        artworkPins.finish(update)
     }
 
     private struct RefreshInput: Equatable {

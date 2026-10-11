@@ -122,15 +122,9 @@ struct BattleSessionSimulationTests {
         session.feedback.clear()
         session.feedback.record([feedbackEvent(id: 9000, amount: 2)])
         let expired = try #require(session.feedback.activeItems.first)
-        var removedIDs: Set<Int> = []
-        session.feedback.installBridge(ownerID: UUID()) { update in
-            if case let .remove(ids) = update {
-                removedIDs.formUnion(ids)
-            }
-        }
         _ = session.playCard(cardID: card.id, at: expired.expiresAt.addingTimeInterval(0.01))
 
-        #expect(removedIDs == [expired.id])
+        #expect(!session.feedback.chipBridge.debugItemIDs.contains(expired.id))
         let impact = try #require(session.feedback.scheduledActions.first?.impactAt)
         session.feedback.advance(to: impact)
         #expect(!(session.feedback.activeItems.isEmpty))
@@ -261,30 +255,6 @@ struct BattleSessionSimulationTests {
         let resetState = try #require(session.engineState)
         #expect(resetState.health(of: resetState.enemy) == 100)
         #expect(resetState.health(of: resetState.hero) == party.hero.maxHealth)
-    }
-
-    @Test func `feedback bridge uninstall is owner scoped`() {
-        let session = BattleSession()
-        let survivingOwnerID = UUID()
-        let departingOwnerID = UUID()
-        let staleOwnerID = UUID()
-        var receivedUpdates: [CombatFeedbackUpdate] = []
-
-        session.feedback.installBridge(ownerID: survivingOwnerID) { update in
-            receivedUpdates.append(update)
-        }
-        session.feedback.installBridge(ownerID: departingOwnerID) { _ in }
-        session.feedback.uninstallBridge(ownerID: staleOwnerID)
-        session.feedback.record([feedbackEvent(id: 1, amount: 2)])
-        #expect(receivedUpdates.count == 1)
-
-        session.feedback.uninstallBridge(ownerID: departingOwnerID)
-        session.feedback.record([feedbackEvent(id: 2, amount: 3)])
-        #expect(receivedUpdates.count == 2)
-
-        session.feedback.uninstallBridge(ownerID: survivingOwnerID)
-        session.feedback.record([feedbackEvent(id: 3, amount: 4)])
-        #expect(receivedUpdates.count == 2)
     }
 
     @Test func `reset preserves enemy modifiers when battle reset`() throws {

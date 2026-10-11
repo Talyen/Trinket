@@ -2,10 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct TurnDrawState: Hashable, Sendable {
-    var plannedDraws: [BattleParticipant]
-}
-
 // swiftlint:disable:next type_body_length - BattleState is intentional battle facade
 public struct BattleState {
     public var defeatProgress: BattleDefeatProgress {
@@ -73,11 +69,15 @@ public struct BattleState {
     public package(set) var lastEnemyDefeatWasCritical: Bool
     package var lastEnemyDefeatSourceActorID: String?
 
-    public package(set) var phase: BattlePhase
+    var turnState: BattleTurnState = .playerTurn
+
+    public var phase: BattlePhase {
+        turnState.phase
+    }
+
     public package(set) var hand: BattleHand
     public package(set) var heroDeck: CombatDeck
     public package(set) var companionDeck: CombatDeck
-    public package(set) var openingHandDealPlan: [OpeningHandDraw]
     var nextScheduledDrawOwner: BattleParticipant = .hero
     public package(set) var nextCardID: Int
     public package(set) var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
@@ -97,7 +97,6 @@ public struct BattleState {
     var resolution = CombatResolution()
     var heroTalents = HeroTalentState()
     var uniques = UniqueBattleState()
-    var pendingTurnDrawState: TurnDrawState?
 
     private var logProjection: BattleLogProjection?
 
@@ -119,11 +118,9 @@ public struct BattleState {
         hasLoggedDefeat: Bool = false,
         hasLoggedPartyDefeat: Bool = false,
         lastEnemyDefeatWasCritical: Bool = false,
-        phase: BattlePhase = .playerTurn,
         hand: BattleHand = BattleHand(),
         heroDeck: CombatDeck = CombatDeck(),
         companionDeck: CombatDeck = CombatDeck(),
-        openingHandDealPlan: [OpeningHandDraw] = [],
         nextCardID: Int = 0,
         ownersSkippingThisPlayerTurn: Set<BattleParticipant> = [],
         turnCadence: BattleTurnCadence = BattleTurnCadence(),
@@ -133,7 +130,6 @@ public struct BattleState {
         tracksLog: Bool = false,
         tracksEvents: Bool = true,
         appliesFightPacing: Bool = true,
-        pendingTurnDrawState: TurnDrawState? = nil,
     ) {
         precondition(!(tracksLog && !tracksEvents), "tracksLog requires tracksEvents")
         rngSeed = rng.seed
@@ -153,17 +149,14 @@ public struct BattleState {
         self.hasLoggedDefeat = hasLoggedDefeat
         self.hasLoggedPartyDefeat = hasLoggedPartyDefeat
         self.lastEnemyDefeatWasCritical = lastEnemyDefeatWasCritical
-        self.phase = phase
         self.hand = hand
         self.heroDeck = heroDeck
         self.companionDeck = companionDeck
-        self.openingHandDealPlan = openingHandDealPlan
         self.nextCardID = nextCardID
         self.ownersSkippingThisPlayerTurn = ownersSkippingThisPlayerTurn
         self.turnCadence = turnCadence
         self.additionalControlSkipsByCombatantID = additionalControlSkipsByCombatantID
         self.isEchoingSkill = isEchoingSkill
-        self.pendingTurnDrawState = pendingTurnDrawState
 
         self.enemyFaction = enemyFaction
     }

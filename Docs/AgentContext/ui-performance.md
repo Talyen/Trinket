@@ -147,8 +147,13 @@ with at most one deferred catalog decode. Launch/imminent pins precede viewport
 requests, which precede deferred work; queued requests promote when demand changes.
 Cancellation removes abandoned queued demand without cancelling shared started work.
 Preparation and pin publication remain distinct from presentation readiness.
-Explicit pin owners retain and release only the names returned by `prepareAndPin`;
-failed or cancelled decodes must not release a later owner's successful acquisition.
+Raw pin counts are internal to `TrinketFeatureSupport`. Fixed acquisitions use
+`PreparedArtworkLease`; explicit release and teardown release that acquisition at
+most once. Launch replacement transfers its lease only once and releases abandoned
+preparation. Failed or cancelled decodes cannot release another owner's acquisition.
+Replaceable surface working sets use `PreparedArtworkPinSet` for acquisition,
+supersession, and teardown. Crossfading surfaces retain outgoing pins and finish
+the returned update after the transition; stale updates cannot release newer pins.
 Collection category navigation and combatant sheets, plus Homestead category
 navigation, prepare their imminent artwork before publishing the destination and
 retain that acquisition for the visit. Nested item/ability navigation and battle

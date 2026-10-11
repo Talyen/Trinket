@@ -52,7 +52,7 @@ struct CloudEconomicAction: Codable, Equatable, Sendable {
         // A payout may settle production, but must not consume pending credit.
         guard before.homestead.nodeTiers == after.homestead.nodeTiers else { return nil }
         var settled = before.homestead
-        settled.settleProduction(at: after.homestead.lastProductionAt, roster: before.roster)
+        settled.settleProduction(at: after.homestead.lastProductionAt, gold: before.roster.gold)
         guard !HomesteadResource.allCases.contains(where: {
             after.homestead.pendingProduction[$0, default: 0] < settled.pendingProduction[$0, default: 0]
         }), let claims = claims(from: before, to: after), claims.count <= 1 else { return nil }

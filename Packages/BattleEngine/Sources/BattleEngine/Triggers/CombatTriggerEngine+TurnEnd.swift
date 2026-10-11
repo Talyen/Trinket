@@ -41,7 +41,7 @@ package extension CombatTriggerEngine {
         guard triggers.unspentManaConvertsToBlock, runtime.maxMana > 0, runtime.currentMana > 0 else { return [] }
         let converted = min(runtime.currentMana, 6)
         return emitBlock(
-            "unspentManaConvertsToBlock", "Mana Shield",
+            .unspentManaConvertsToBlock, "Mana Shield",
             amount: converted, to: actor, source: actor, in: &context,
         )
     }
@@ -55,7 +55,7 @@ package extension CombatTriggerEngine {
         let block = min(5, context.gold / triggers.blockPerGoldCollectedEvery)
         guard block > 0 else { return [] }
         return emitBlock(
-            "blockPerGoldCollectedEvery", "Hoard Armor",
+            .blockPerGoldCollectedEvery, "Hoard Armor",
             amount: block, to: actor, source: actor, in: &context,
         )
     }
@@ -71,7 +71,7 @@ package extension CombatTriggerEngine {
         let target = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
         guard context.roster.health(for: target) < context.roster.maxHealth(for: target) else { return [] }
         return await emitHeal(
-            "endTurnWithBlockHealFlat", "Hibernation",
+            .endTurnWithBlockHealFlat, "Hibernation",
             amount: triggers.endTurnWithBlockHealFlat, to: target, source: actor, in: &context,
         )
     }
@@ -87,7 +87,7 @@ package extension CombatTriggerEngine {
         let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
         guard context.roster.health(for: lowest) < context.roster.maxHealth(for: lowest) else { return [] }
         return await emitHeal(
-            "endOfTurnHealLowestAlly", "Campfire Comfort",
+            .endOfTurnHealLowestAlly, "Campfire Comfort",
             amount: triggers.endOfTurnHealLowestAlly, to: lowest, source: actor, in: &context,
         )
     }
@@ -103,7 +103,7 @@ package extension CombatTriggerEngine {
             guard !context.isBattleOver, context.health(of: actor) > 0 else { break }
             guard member.currentHealth < member.maxHealth else { continue }
             await events.append(contentsOf: emitHeal(
-                "partyRegenPerRound", "Regeneration",
+                .partyRegenPerRound, "Regeneration",
                 amount: triggers.partyRegenPerRound, to: member.combatant, source: actor, in: &context,
             ))
         }

@@ -36,22 +36,19 @@ public struct EnemyTurnTriggers: Equatable, Hashable, Sendable {
         self.burnReducesEnemyHealingAndLeechPercent = burnReducesEnemyHealingAndLeechPercent
     }
 
-    /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["negateFirstEnemyAttack", "attackDelayEnemyTurnChancePercent", "bleedingEnemyActionSkipChancePercent", "extraCardDrawWhileEnemyBleeding", "extraCardDrawBelowEnemyHealthPercent", "ultimateAppliesBurnPotency", "onHeroHolyAbilityCompanionHolyDamage", "onHolyDamageRestoreMana", "burnReducesEnemyHealingAndLeechPercent"]
-
-    /// Field names where `self` differs from `other`.
-    func populatedFieldNames(comparedTo other: Self) -> [String] {
-        var names: [String] = []
-        if self.negateFirstEnemyAttack != other.negateFirstEnemyAttack { names.append("negateFirstEnemyAttack") }
-        if self.attackDelayEnemyTurnChancePercent != other.attackDelayEnemyTurnChancePercent { names.append("attackDelayEnemyTurnChancePercent") }
-        if self.bleedingEnemyActionSkipChancePercent != other.bleedingEnemyActionSkipChancePercent { names.append("bleedingEnemyActionSkipChancePercent") }
-        if self.extraCardDrawWhileEnemyBleeding != other.extraCardDrawWhileEnemyBleeding { names.append("extraCardDrawWhileEnemyBleeding") }
-        if self.extraCardDrawBelowEnemyHealthPercent != other.extraCardDrawBelowEnemyHealthPercent { names.append("extraCardDrawBelowEnemyHealthPercent") }
-        if self.ultimateAppliesBurnPotency != other.ultimateAppliesBurnPotency { names.append("ultimateAppliesBurnPotency") }
-        if self.onHeroHolyAbilityCompanionHolyDamage != other.onHeroHolyAbilityCompanionHolyDamage { names.append("onHeroHolyAbilityCompanionHolyDamage") }
-        if self.onHolyDamageRestoreMana != other.onHolyDamageRestoreMana { names.append("onHolyDamageRestoreMana") }
-        if self.burnReducesEnemyHealingAndLeechPercent != other.burnReducesEnemyHealingAndLeechPercent { names.append("burnReducesEnemyHealingAndLeechPercent") }
-        return names
+    /// Fields where `self` differs from `other`.
+    func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
+        var fields: [CombatTriggerField] = []
+        if self.negateFirstEnemyAttack != other.negateFirstEnemyAttack { fields.append(.negateFirstEnemyAttack) }
+        if self.attackDelayEnemyTurnChancePercent != other.attackDelayEnemyTurnChancePercent { fields.append(.attackDelayEnemyTurnChancePercent) }
+        if self.bleedingEnemyActionSkipChancePercent != other.bleedingEnemyActionSkipChancePercent { fields.append(.bleedingEnemyActionSkipChancePercent) }
+        if self.extraCardDrawWhileEnemyBleeding != other.extraCardDrawWhileEnemyBleeding { fields.append(.extraCardDrawWhileEnemyBleeding) }
+        if self.extraCardDrawBelowEnemyHealthPercent != other.extraCardDrawBelowEnemyHealthPercent { fields.append(.extraCardDrawBelowEnemyHealthPercent) }
+        if self.ultimateAppliesBurnPotency != other.ultimateAppliesBurnPotency { fields.append(.ultimateAppliesBurnPotency) }
+        if self.onHeroHolyAbilityCompanionHolyDamage != other.onHeroHolyAbilityCompanionHolyDamage { fields.append(.onHeroHolyAbilityCompanionHolyDamage) }
+        if self.onHolyDamageRestoreMana != other.onHolyDamageRestoreMana { fields.append(.onHolyDamageRestoreMana) }
+        if self.burnReducesEnemyHealingAndLeechPercent != other.burnReducesEnemyHealingAndLeechPercent { fields.append(.burnReducesEnemyHealingAndLeechPercent) }
+        return fields
     }
 }
 

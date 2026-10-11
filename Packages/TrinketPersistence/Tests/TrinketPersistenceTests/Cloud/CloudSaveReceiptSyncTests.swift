@@ -47,10 +47,16 @@ extension CloudSaveSyncTests {
         for store in [a, b] {
             var random = SeededRandomNumberGenerator(seed: 11)
             let encounter = EncounterIdentity(location: .journey(stageID: "chapter-1-stage-4"), save: store.currentSave)
-            guard case let .committed(offers) = store.prepareMysteryEncounter(event: event, encounter: encounter, using: &random, at: date),
-                  let offer = offers.first else { Issue.record("Expected pinned Mystery offers"); return }
+            guard case let .committed(prepared) = store.prepareMysteryEncounter(
+                encounter: encounter,
+                forcedEventID: event.id,
+                using: &random,
+                at: date,
+            ),
+                let offer = prepared.offers.first else { Issue.record("Expected pinned Mystery offers"); return }
+            let offers = prepared.offers
             expectedGems = offer.bonus.amount
-            let request = MysteryEncounterRequest(encounter: encounter, event: event, displayedOffers: offers)
+            let request = MysteryEncounterRequest(encounter: encounter, eventID: event.id, displayedOffers: offers)
             guard case .committed(.reward) = store.resolveMysteryEncounter(
                 request,
                 action: .choice(offer.choiceID),

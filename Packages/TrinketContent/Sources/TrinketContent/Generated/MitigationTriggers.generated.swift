@@ -87,39 +87,36 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         self.onHealthLossNextDamageReduction = onHealthLossNextDamageReduction
     }
 
-    /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["passiveMitigationFlat", "passivePhysicalMitigationFlat", "thornsPercent", "bleedResistance", "frozenEnemyDamageReductionFlat", "bleedingEnemyDamageReductionFlat", "stunnedEnemyNextTurnDamageMultiplier", "enemyBleedStacksDamageReductionStacks", "enemyBleedStacksDamageReductionPercent", "poisonedEnemyAccuracyPenaltyPercent", "poisonedEnemyMissChancePercent", "subzeroMist", "blindingLight", "holyDamageReduceTargetDamage", "bleedingEnemyAttackDealDamage", "onAllyDamageHeal", "damageReductionPerUnspentManaEvery", "toughnessOnHit", "toughnessOnHitCap", "blockedControlBurnResistance", "afflictionResistance", "burningEnemyDamageReductionFlat", "blockHalvesDoTDamage", "bleedingEnemyOutgoingDamageMultiplier", "verdantShelterDamageMultiplier", "onHealthLossNextDamageReduction"]
-
-    /// Field names where `self` differs from `other`.
-    func populatedFieldNames(comparedTo other: Self) -> [String] {
-        var names: [String] = []
-        if self.passiveMitigationFlat != other.passiveMitigationFlat { names.append("passiveMitigationFlat") }
-        if self.passivePhysicalMitigationFlat != other.passivePhysicalMitigationFlat { names.append("passivePhysicalMitigationFlat") }
-        if self.thornsPercent != other.thornsPercent { names.append("thornsPercent") }
-        if self.bleedResistance != other.bleedResistance { names.append("bleedResistance") }
-        if self.frozenEnemyDamageReductionFlat != other.frozenEnemyDamageReductionFlat { names.append("frozenEnemyDamageReductionFlat") }
-        if self.bleedingEnemyDamageReductionFlat != other.bleedingEnemyDamageReductionFlat { names.append("bleedingEnemyDamageReductionFlat") }
-        if self.stunnedEnemyNextTurnDamageMultiplier != other.stunnedEnemyNextTurnDamageMultiplier { names.append("stunnedEnemyNextTurnDamageMultiplier") }
-        if self.enemyBleedStacksDamageReductionStacks != other.enemyBleedStacksDamageReductionStacks { names.append("enemyBleedStacksDamageReductionStacks") }
-        if self.enemyBleedStacksDamageReductionPercent != other.enemyBleedStacksDamageReductionPercent { names.append("enemyBleedStacksDamageReductionPercent") }
-        if self.poisonedEnemyAccuracyPenaltyPercent != other.poisonedEnemyAccuracyPenaltyPercent { names.append("poisonedEnemyAccuracyPenaltyPercent") }
-        if self.poisonedEnemyMissChancePercent != other.poisonedEnemyMissChancePercent { names.append("poisonedEnemyMissChancePercent") }
-        if self.subzeroMist != other.subzeroMist { names.append("subzeroMist") }
-        if self.blindingLight != other.blindingLight { names.append("blindingLight") }
-        if self.holyDamageReduceTargetDamage != other.holyDamageReduceTargetDamage { names.append("holyDamageReduceTargetDamage") }
-        if self.bleedingEnemyAttackDealDamage != other.bleedingEnemyAttackDealDamage { names.append("bleedingEnemyAttackDealDamage") }
-        if self.onAllyDamageHeal != other.onAllyDamageHeal { names.append("onAllyDamageHeal") }
-        if self.damageReductionPerUnspentManaEvery != other.damageReductionPerUnspentManaEvery { names.append("damageReductionPerUnspentManaEvery") }
-        if self.toughnessOnHit != other.toughnessOnHit { names.append("toughnessOnHit") }
-        if self.toughnessOnHitCap != other.toughnessOnHitCap { names.append("toughnessOnHitCap") }
-        if self.blockedControlBurnResistance != other.blockedControlBurnResistance { names.append("blockedControlBurnResistance") }
-        if self.afflictionResistance != other.afflictionResistance { names.append("afflictionResistance") }
-        if self.burningEnemyDamageReductionFlat != other.burningEnemyDamageReductionFlat { names.append("burningEnemyDamageReductionFlat") }
-        if self.blockHalvesDoTDamage != other.blockHalvesDoTDamage { names.append("blockHalvesDoTDamage") }
-        if self.bleedingEnemyOutgoingDamageMultiplier != other.bleedingEnemyOutgoingDamageMultiplier { names.append("bleedingEnemyOutgoingDamageMultiplier") }
-        if self.verdantShelterDamageMultiplier != other.verdantShelterDamageMultiplier { names.append("verdantShelterDamageMultiplier") }
-        if self.onHealthLossNextDamageReduction != other.onHealthLossNextDamageReduction { names.append("onHealthLossNextDamageReduction") }
-        return names
+    /// Fields where `self` differs from `other`.
+    func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
+        var fields: [CombatTriggerField] = []
+        if self.passiveMitigationFlat != other.passiveMitigationFlat { fields.append(.passiveMitigationFlat) }
+        if self.passivePhysicalMitigationFlat != other.passivePhysicalMitigationFlat { fields.append(.passivePhysicalMitigationFlat) }
+        if self.thornsPercent != other.thornsPercent { fields.append(.thornsPercent) }
+        if self.bleedResistance != other.bleedResistance { fields.append(.bleedResistance) }
+        if self.frozenEnemyDamageReductionFlat != other.frozenEnemyDamageReductionFlat { fields.append(.frozenEnemyDamageReductionFlat) }
+        if self.bleedingEnemyDamageReductionFlat != other.bleedingEnemyDamageReductionFlat { fields.append(.bleedingEnemyDamageReductionFlat) }
+        if self.stunnedEnemyNextTurnDamageMultiplier != other.stunnedEnemyNextTurnDamageMultiplier { fields.append(.stunnedEnemyNextTurnDamageMultiplier) }
+        if self.enemyBleedStacksDamageReductionStacks != other.enemyBleedStacksDamageReductionStacks { fields.append(.enemyBleedStacksDamageReductionStacks) }
+        if self.enemyBleedStacksDamageReductionPercent != other.enemyBleedStacksDamageReductionPercent { fields.append(.enemyBleedStacksDamageReductionPercent) }
+        if self.poisonedEnemyAccuracyPenaltyPercent != other.poisonedEnemyAccuracyPenaltyPercent { fields.append(.poisonedEnemyAccuracyPenaltyPercent) }
+        if self.poisonedEnemyMissChancePercent != other.poisonedEnemyMissChancePercent { fields.append(.poisonedEnemyMissChancePercent) }
+        if self.subzeroMist != other.subzeroMist { fields.append(.subzeroMist) }
+        if self.blindingLight != other.blindingLight { fields.append(.blindingLight) }
+        if self.holyDamageReduceTargetDamage != other.holyDamageReduceTargetDamage { fields.append(.holyDamageReduceTargetDamage) }
+        if self.bleedingEnemyAttackDealDamage != other.bleedingEnemyAttackDealDamage { fields.append(.bleedingEnemyAttackDealDamage) }
+        if self.onAllyDamageHeal != other.onAllyDamageHeal { fields.append(.onAllyDamageHeal) }
+        if self.damageReductionPerUnspentManaEvery != other.damageReductionPerUnspentManaEvery { fields.append(.damageReductionPerUnspentManaEvery) }
+        if self.toughnessOnHit != other.toughnessOnHit { fields.append(.toughnessOnHit) }
+        if self.toughnessOnHitCap != other.toughnessOnHitCap { fields.append(.toughnessOnHitCap) }
+        if self.blockedControlBurnResistance != other.blockedControlBurnResistance { fields.append(.blockedControlBurnResistance) }
+        if self.afflictionResistance != other.afflictionResistance { fields.append(.afflictionResistance) }
+        if self.burningEnemyDamageReductionFlat != other.burningEnemyDamageReductionFlat { fields.append(.burningEnemyDamageReductionFlat) }
+        if self.blockHalvesDoTDamage != other.blockHalvesDoTDamage { fields.append(.blockHalvesDoTDamage) }
+        if self.bleedingEnemyOutgoingDamageMultiplier != other.bleedingEnemyOutgoingDamageMultiplier { fields.append(.bleedingEnemyOutgoingDamageMultiplier) }
+        if self.verdantShelterDamageMultiplier != other.verdantShelterDamageMultiplier { fields.append(.verdantShelterDamageMultiplier) }
+        if self.onHealthLossNextDamageReduction != other.onHealthLossNextDamageReduction { fields.append(.onHealthLossNextDamageReduction) }
+        return fields
     }
 }
 

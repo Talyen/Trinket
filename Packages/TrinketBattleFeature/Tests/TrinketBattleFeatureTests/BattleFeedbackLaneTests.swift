@@ -99,19 +99,13 @@ struct BattleFeedbackLaneTests {
     @Test @MainActor func `successive feedback bursts expire automatically`() async throws {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
-        var removedIDs: Set<Int> = []
-        lane.installBridge(ownerID: UUID()) { update in
-            if case let .remove(ids) = update {
-                removedIDs.formUnion(ids)
-            }
-        }
         for id in 1 ... 2 {
             lane.record(
                 [makeEvent(id: id, kind: .abilityDamage, amount: 1, keyword: .physical)],
                 at: Date.now.addingTimeInterval(-CombatFeedbackMotionSampler.lifetime + 0.05),
             )
             #expect(try await BattleSessionTestSupport.waitUntil {
-                removedIDs.contains(id)
+                !lane.chipBridge.debugItemIDs.contains(id)
             })
             #expect(lane.activeItems.isEmpty)
             #expect(lane.hitReactionsByTargetID.isEmpty)
@@ -125,7 +119,7 @@ struct BattleFeedbackLaneTests {
         #expect(try await BattleSessionTestSupport.waitUntil {
             Date.now >= cancelledDeadline.addingTimeInterval(0.03)
         })
-        #expect(removedIDs == [1, 2])
+        #expect(lane.chipBridge.debugItemIDs.isEmpty)
         #expect(lane.activeItems.isEmpty)
     }
 

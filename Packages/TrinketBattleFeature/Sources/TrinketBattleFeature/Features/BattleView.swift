@@ -398,12 +398,11 @@ private struct BattleHandProjectionLane: View {
     }
 }
 
-/// Invisible battle infrastructure: feedback bridge wiring (mount
+/// Invisible battle infrastructure: feedback scheduler preparation (mount
 /// lifetime) plus cast-artwork prewarm (per-configuration lifetime).
 /// One ZStack member instead of two; the two effects are independent.
 private struct BattleInfrastructureLane: View {
     @Environment(BattleSession.self) private var battleSession
-    @State private var ownerID = UUID()
 
     let presentation: BattlePresentationState
     @State private var artworkName: String?
@@ -422,19 +421,8 @@ private struct BattleInfrastructureLane: View {
             }
         }
         .onAppear {
-            battleSession.feedback.installBridge(
-                ownerID: ownerID,
-                onChange: { [weak feedback = battleSession.feedback] update in
-                    CombatFeedbackChipBridge.publish(update, onEvict: { [weak feedback] ids in
-                        feedback?.evictedItemIDs.formUnion(ids)
-                    })
-                },
-            )
             battleSession.feedback.prepareScheduler()
             CombatFeedbackRasterUIView.prewarmMotionClock()
-        }
-        .onDisappear {
-            battleSession.feedback.uninstallBridge(ownerID: ownerID)
         }
         .task(id: presentation.configurationID) {
             guard let configurationID = presentation.configurationID,

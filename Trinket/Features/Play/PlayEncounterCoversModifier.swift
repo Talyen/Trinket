@@ -105,23 +105,17 @@ private final class PreparedEncounterCover: Identifiable {
     nonisolated let id: ObjectIdentifier
     let encounter: EncounterCoverSession
     private(set) var artworkNames: [String]
-    private var pinnedNames: [String] = []
+    private let artworkPins = PreparedArtworkPinSet()
 
     init(encounter: EncounterCoverSession, worldSeed: UInt64) async {
         id = encounter.id
         self.encounter = encounter
         artworkNames = Array(Set(encounter.artworkNames(worldSeed: worldSeed))).sorted()
-        pinnedNames = await PreparedArtworkCache.shared.prepareAndPin(names: artworkNames)
+        await artworkPins.prepare(names: artworkNames)
     }
 
     func refreshArtwork(names: [String]) async {
-        let refreshed = await ArtworkPinSet.refresh(next: names, current: pinnedNames)
-        guard !Task.isCancelled else { return }
-        pinnedNames = refreshed
+        guard await artworkPins.prepare(names: names) != nil else { return }
         artworkNames = names
-    }
-
-    isolated deinit {
-        PreparedArtworkCache.shared.releasePins(names: pinnedNames)
     }
 }

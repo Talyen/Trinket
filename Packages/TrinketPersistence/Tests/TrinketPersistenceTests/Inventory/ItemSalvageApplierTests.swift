@@ -5,25 +5,6 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct ItemSalvageApplierTests {
-    @Test func `yields match slot and rarity table`() throws {
-        let basicWeapon = try SaveTestSupport.makeGeneratedItem(baseID: "longsword", rarity: .basic)
-        let astralAccessory = try SaveTestSupport.makeGeneratedItem(baseID: "sapphire_ring", rarity: .astral)
-        let basicArmor = try SaveTestSupport.makeGeneratedItem(baseID: "leather_armor", rarity: .basic)
-
-        #expect(ItemSalvage.yields(for: basicWeapon) == [
-            ResourceAmount(.iron, 8),
-            ResourceAmount(.wood, 4),
-        ])
-        #expect(ItemSalvage.yields(for: astralAccessory) == [
-            ResourceAmount(.herbs, 16),
-            ResourceAmount(.gems, 8),
-        ])
-        #expect(ItemSalvage.yields(for: basicArmor) == [
-            ResourceAmount(.hide, 8),
-            ResourceAmount(.stone, 4),
-        ])
-    }
-
     @Test @MainActor func `salvage removes item grants materials and persists`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()

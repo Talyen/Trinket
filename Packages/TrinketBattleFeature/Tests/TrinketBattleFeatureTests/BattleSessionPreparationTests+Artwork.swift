@@ -5,8 +5,19 @@ import TrinketContentTestSupport
 import TrinketCore
 import TrinketFeatureContracts
 @testable import TrinketBattleFeature
+@testable import TrinketFeatureSupport
 
 extension BattleSessionPreparationTests {
+    @Test func `tearing down artwork preparation releases only its own pins`() async {
+        let pins = ArtworkPinRecorder()
+        pins.acquire(["shared"])
+        var preparation: BattleArtworkPreparation? = pins.makePreparation()
+        await preparation?.prepare(names: ["shared", "battle"], displayScale: 1)
+        #expect(pins.counts == ["shared": 2, "battle": 1])
+        preparation = nil
+        #expect(pins.counts == ["shared": 1])
+    }
+
     @Test func `artwork replacement balances overlapping pins`() async {
         let pins = ArtworkPinRecorder()
         let preparation = pins.makePreparation()
@@ -233,23 +244,25 @@ private final class ArtworkPinRecorder {
     ) -> BattleArtworkPreparation {
         BattleArtworkPreparation(
             warmup: { _ in await warmup() },
-            acquire: { names in
-                let acquired = names.subtracting(unavailable)
-                self.acquire(acquired)
-                await decoding()
-                return acquired
-            },
-            release: { names in
-                for name in names {
-                    let count = self.counts[name, default: 0]
-                    #expect(count > 0)
-                    if count <= 1 {
-                        self.counts.removeValue(forKey: name)
-                    } else {
-                        self.counts[name] = count - 1
+            pins: PreparedArtworkPinSet(
+                acquire: { names in
+                    let acquired = names.subtracting(unavailable)
+                    self.acquire(acquired)
+                    await decoding()
+                    return acquired
+                },
+                release: { names in
+                    for name in names {
+                        let count = self.counts[name, default: 0]
+                        #expect(count > 0)
+                        if count <= 1 {
+                            self.counts.removeValue(forKey: name)
+                        } else {
+                            self.counts[name] = count - 1
+                        }
                     }
-                }
-            },
+                },
+            ),
         )
     }
 }

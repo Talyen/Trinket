@@ -20,10 +20,6 @@ public enum LabyrinthCompletion {
         }
     }
 
-    public static func rewardItemID(forNodeID nodeID: String) -> String {
-        "labyrinth-\(nodeID)"
-    }
-
     public static func resolveCombatLoot(
         for node: LabyrinthNode,
         effects: NodeModifierEffects,

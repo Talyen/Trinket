@@ -281,12 +281,12 @@ private struct AffixMagnitudeText {
 
 extension CombatTraitTriggers {
     enum AffixMagnitudeField: Sendable {
-        case int(WritableKeyPath<CombatTraitTriggers, Int> & Sendable, name: String)
-        case percent(WritableKeyPath<CombatTraitTriggers, Double> & Sendable, name: String)
+        case int(WritableKeyPath<CombatTraitTriggers, Int> & Sendable, field: CombatTriggerField)
+        case percent(WritableKeyPath<CombatTraitTriggers, Double> & Sendable, field: CombatTriggerField)
 
-        var fieldName: String {
+        var field: CombatTriggerField {
             switch self {
-            case let .int(_, name), let .percent(_, name): name
+            case let .int(_, field), let .percent(_, field): field
             }
         }
 
@@ -309,5 +309,5 @@ extension CombatTraitTriggers {
 
 public extension CombatTraitTriggers {
     /// Every populated affix trigger field must be rollable or explicitly excused.
-    static let affixMagnitudeFieldNames: Set<String> = Set(affixMagnitudeFields.map(\.fieldName))
+    static let affixMagnitudeFieldIDs: Set<CombatTriggerField> = Set(affixMagnitudeFields.map(\.field))
 }

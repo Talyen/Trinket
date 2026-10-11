@@ -257,13 +257,13 @@ struct CombatTriggerTalentDamageTests {
                 triggers: CombatTraitTriggers(
                     damage: DamageTriggers(damageVsBurningMultiplier: 1.25),
                 ),
-                triggerAbilityNames: ["damageVsBurningMultiplier": "Damnation"],
+                triggerAbilityNames: [.damageVsBurningMultiplier: "Damnation"],
             ),
             companionModifiers: .init(
                 triggers: CombatTraitTriggers(
                     damage: DamageTriggers(damageVsBurningMultiplier: 1.25),
                 ),
-                triggerAbilityNames: ["damageVsBurningMultiplier": "Intense Heat"],
+                triggerAbilityNames: [.damageVsBurningMultiplier: "Intense Heat"],
             ),
             dealOpeningHand: false,
         )
@@ -287,7 +287,7 @@ struct CombatTriggerTalentDamageTests {
                 triggers: CombatTraitTriggers(
                     damage: DamageTriggers(damageVsBurningMultiplier: 1.25),
                 ),
-                triggerAbilityNames: ["damageVsBurningMultiplier": "Intense Heat"],
+                triggerAbilityNames: [.damageVsBurningMultiplier: "Intense Heat"],
             ),
             dealOpeningHand: false,
         )

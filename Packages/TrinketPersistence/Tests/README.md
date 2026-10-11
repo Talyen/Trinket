@@ -21,13 +21,13 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | World seed | `PlayerSaveWorldSeedTests` | Assign-once seed; labyrinth backfill |
 | Starter selection | `StarterSelectionTests` | Draft/complete reload and invalid-draft repair |
 | Homestead store API | `PlayerHomesteadStoreTests` | `buildOrUpgradeNode` / `collectProduction` through the hub |
-| Homestead math | `HomesteadStateTests` | Build costs, production settlement (no store I/O) |
+| Homestead save integration | `HomesteadStateTests` | Sanitized production overflow and reward settlement; pure production/build rules live in TrinketContent |
 | Roster / inventory state | `PlayerRosterStateTests` | Loadouts, equipment, gold, equipped-item lookup |
 | Unique items | `UniqueItemRuleTests` | Unique affix-power reload; altar exclusion; trinket catalog refresh from stale rows |
 | Talents | `TalentPersistenceTests` | Sanitizer filter, unlock API, reload |
 | Journey progression | `JourneyProgressTests` | Unlock chain and campaign end, pin/progress reload, duplicate-stage repair |
 | Stage rewards | `StageRewardTests` | Claim policy, gold/XP, party-adjusted claim fallback (journey + spire) |
-| Combat loot rolls | `BattleLootTests` | Quantity bands, rarity ladder, seed-stable journey loot (pure; durable proof via Shop cross-applier reload) |
+| Combat loot integration | `BattleLootTests` | Mode adapters, captured levels, ownership, and duplicate-item compensation; pure roll coverage lives in TrinketContent |
 | Shop | `ShopPurchaseApplierTests` | Purchase rules; one cross-applier reload proof |
 | Mystery apply | `MysteryEffectApplierTests` | Gold/materials/XP/items/recruits |
 | Mystery pins | `MysteryEventPinTests` | Journey/labyrinth pin idempotency |

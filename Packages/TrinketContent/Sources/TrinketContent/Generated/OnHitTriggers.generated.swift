@@ -33,21 +33,18 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
         self.onHitGainBlock = onHitGainBlock
     }
 
-    /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["resonantShell", "onHitAttackerBurn", "onHitAttackerFreezeBuildup", "onHitAttackerPoison", "onHitAttackerBleedPotency", "onHitAttackerBleedTurns", "onHitAttackerHoly", "onHitGainBlock"]
-
-    /// Field names where `self` differs from `other`.
-    func populatedFieldNames(comparedTo other: Self) -> [String] {
-        var names: [String] = []
-        if self.resonantShell != other.resonantShell { names.append("resonantShell") }
-        if self.onHitAttackerBurn != other.onHitAttackerBurn { names.append("onHitAttackerBurn") }
-        if self.onHitAttackerFreezeBuildup != other.onHitAttackerFreezeBuildup { names.append("onHitAttackerFreezeBuildup") }
-        if self.onHitAttackerPoison != other.onHitAttackerPoison { names.append("onHitAttackerPoison") }
-        if self.onHitAttackerBleedPotency != other.onHitAttackerBleedPotency { names.append("onHitAttackerBleedPotency") }
-        if self.onHitAttackerBleedTurns != other.onHitAttackerBleedTurns { names.append("onHitAttackerBleedTurns") }
-        if self.onHitAttackerHoly != other.onHitAttackerHoly { names.append("onHitAttackerHoly") }
-        if self.onHitGainBlock != other.onHitGainBlock { names.append("onHitGainBlock") }
-        return names
+    /// Fields where `self` differs from `other`.
+    func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
+        var fields: [CombatTriggerField] = []
+        if self.resonantShell != other.resonantShell { fields.append(.resonantShell) }
+        if self.onHitAttackerBurn != other.onHitAttackerBurn { fields.append(.onHitAttackerBurn) }
+        if self.onHitAttackerFreezeBuildup != other.onHitAttackerFreezeBuildup { fields.append(.onHitAttackerFreezeBuildup) }
+        if self.onHitAttackerPoison != other.onHitAttackerPoison { fields.append(.onHitAttackerPoison) }
+        if self.onHitAttackerBleedPotency != other.onHitAttackerBleedPotency { fields.append(.onHitAttackerBleedPotency) }
+        if self.onHitAttackerBleedTurns != other.onHitAttackerBleedTurns { fields.append(.onHitAttackerBleedTurns) }
+        if self.onHitAttackerHoly != other.onHitAttackerHoly { fields.append(.onHitAttackerHoly) }
+        if self.onHitGainBlock != other.onHitGainBlock { fields.append(.onHitGainBlock) }
+        return fields
     }
 }
 

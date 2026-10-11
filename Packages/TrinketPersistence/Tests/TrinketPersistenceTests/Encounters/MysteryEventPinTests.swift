@@ -6,54 +6,6 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct MysteryEventPinTests {
-    @Test func `pin journey event is idempotent`() {
-        var save = SaveTestSupport.makeSave(modifiedAt: .now)
-        #expect(MysteryEventPinApplier.pinJourneyEvent(
-            stageID: "chapter-1-stage-5",
-            eventID: "mana-berries",
-            save: &save,
-        ))
-        #expect(save.journey.pinnedMysteryEventIDs["chapter-1-stage-5"] == "mana-berries")
-        #expect(MysteryEventPinApplier.pinJourneyEvent(
-            stageID: "chapter-1-stage-5",
-            eventID: "other-event",
-            save: &save,
-        ))
-        #expect(save.journey.pinnedMysteryEventIDs["chapter-1-stage-5"] == "mana-berries")
-    }
-
-    @Test func `pin labyrinth event writes missing pin and skips missing node`() {
-        var save = SaveTestSupport.makeSave(modifiedAt: .now)
-        #expect(!MysteryEventPinApplier.pinLabyrinthEvent(
-            nodeID: "missing-node",
-            eventID: "mana-berries",
-            save: &save,
-        ))
-
-        var node = LabyrinthNode(
-            id: "node-a",
-            type: .mystery,
-            depth: 2,
-            clusterID: "cluster-1",
-        )
-        save.labyrinth.nodes[node.id] = node
-        #expect(MysteryEventPinApplier.pinLabyrinthEvent(
-            nodeID: node.id,
-            eventID: "mana-berries",
-            save: &save,
-        ))
-        #expect(save.labyrinth.nodes[node.id]?.mysteryEventID == "mana-berries")
-
-        node.mysteryEventID = "mana-berries"
-        save.labyrinth.nodes[node.id] = node
-        #expect(MysteryEventPinApplier.pinLabyrinthEvent(
-            nodeID: node.id,
-            eventID: "other-event",
-            save: &save,
-        ))
-        #expect(save.labyrinth.nodes[node.id]?.mysteryEventID == "mana-berries")
-    }
-
     @Test(arguments: [false, true]) @MainActor
     func `offers survive disk reload and claim exactly once`(inLabyrinth: Bool) throws {
         let context = try PersistenceTestContext()
@@ -114,12 +66,13 @@ struct MysteryEventPinTests {
         let offers = try MysteryOfferPersistence.prepare(
             event: event, encounter: encounter, save: &save, using: &rng,
         )
+        encounter.pinMysteryEvent(event.id, save: &save)
         save.roster.gold = PlayerRosterState.maxGoldBalance
         #expect(store.persistBatch(logging: "Seed stale mystery offer") { $0 = save })
         let before = store.currentSave
         let request = MysteryEncounterRequest(
             encounter: EncounterIdentity(location: .journey(stageID: stage.id), save: before),
-            event: event, displayedOffers: offers,
+            eventID: event.id, displayedOffers: offers,
         )
         store.forcesNextSaveFailure = true
         let failed = store.persistTransaction(logging: "Refresh mystery offer") { candidate in
@@ -279,7 +232,7 @@ struct MysteryEventPinTests {
         #expect(context.corruptionAltarCooldownRemaining == 3)
         #expect(
             context.hasEligibleCorruptTarget
-                == !ItemCorruption.eligibleTargets(in: inventory).isEmpty,
+                == !ItemCorruption.eligibleTargets(in: inventory.items).isEmpty,
         )
     }
 
@@ -350,19 +303,20 @@ extension MysteryEventPinTests {
         let encounter = EncounterIdentity(location: .journey(stageID: stage.id), save: store.currentSave)
         var rng = SeededRandomNumberGenerator(seed: 3)
         let prepared = store.prepareMysteryEncounter(
-            event: event, encounter: encounter, using: &rng,
+            encounter: encounter, forcedEventID: event.id, using: &rng,
         )
-        guard case let .committed(offers) = prepared else {
+        guard case let .committed(preparedEncounter) = prepared else {
             Issue.record("Expected a saved Mystery offer")
             return
         }
+        let offers = preparedEncounter.offers
         let offer = try #require(offers.first)
         #expect(offer.homesteadReward != nil)
         try store.performBatchMutation { $0.roster.gold = PlayerRosterState.maxGoldBalance }
 
         let reloaded = try context.makeReloadedStore()
         let result = reloaded.resolveMysteryEncounter(
-            MysteryEncounterRequest(encounter: encounter, event: event, displayedOffers: offers),
+            MysteryEncounterRequest(encounter: encounter, eventID: event.id, displayedOffers: offers),
             action: .choice(offer.choiceID), using: &rng,
         )
         guard case let .committed(.reward(reward)) = result else {
@@ -375,6 +329,38 @@ extension MysteryEventPinTests {
         let claimed = try context.makeReloadedStore()
         #expect(claimed.inventory.items.contains(offer.item))
         #expect(claimed.journey.completedStageIDs.contains(stage.id))
+    }
+
+    @Test @MainActor func `a different event cannot replace or resolve a saved Mystery`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore(resetState: true)
+        let encounter = EncounterIdentity(location: .journey(stageID: "chapter-1-stage-4"), save: store.currentSave)
+        var rng = SeededRandomNumberGenerator(seed: 3)
+        guard case let .committed(prepared) = store.prepareMysteryEncounter(
+            encounter: encounter, forcedEventID: "hidden-cache", using: &rng,
+        ) else {
+            Issue.record("Expected pinned Mystery offers")
+            return
+        }
+        let reloaded = try context.makeReloadedStore()
+        let before = reloaded.currentSave
+        let altar = try #require(GameContent.mysteryEvent(matching: GameContent.corruptionAltarEventID))
+        let request = MysteryEncounterRequest(encounter: encounter, eventID: altar.id, displayedOffers: prepared.offers)
+        guard case .rejected = reloaded.resolveMysteryEncounter(request, action: .choice("leave"), using: &rng) else {
+            Issue.record("An unrelated event must not complete the saved Mystery")
+            return
+        }
+        #expect(reloaded.currentSave == before)
+        #expect(try context.makeReloadedStore().currentSave == before)
+        guard case let .committed(reopened) = reloaded.prepareMysteryEncounter(
+            encounter: encounter, forcedEventID: altar.id, using: &rng,
+        ) else {
+            Issue.record("Expected the original Mystery to remain openable")
+            return
+        }
+        #expect(reopened.event.id == prepared.event.id)
+        #expect(reopened.offers == prepared.offers)
+        #expect(encounter.mysteryEvent(in: reloaded.currentSave)?.id == prepared.event.id)
     }
 
     @Test func `legacy raw XP snapshot is capped without rerolling its item`() throws {

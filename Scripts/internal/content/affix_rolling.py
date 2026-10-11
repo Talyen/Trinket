@@ -50,10 +50,10 @@ def generate_affix_rolling(families: list[dict]) -> None:
              '    // Order preserves seeded roll and bump selection behavior.',
              '    static let affixMagnitudeFields: [AffixMagnitudeField] = [']
     for name, policy in ordered:
-        lines.append(f'        .{policy["kind"]}(\\.{name}, name: "{name}"),')
-    lines += ['    ]', '', '    static let nonRollableAffixFields: [String: String] = [']
+        lines.append(f'        .{policy["kind"]}(\\.{name}, field: .{name}),')
+    lines += ['    ]', '', '    static let nonRollableAffixFields: [CombatTriggerField: String] = [']
     for name, policy in policies.items():
         if 'reason' in policy:
-            lines.append(f'        "{name}": "{swift_escape(policy["reason"])}",')
+            lines.append(f'        .{name}: "{swift_escape(policy["reason"])}",')
     lines += ['    ]', '}']
     write_generated_file(GENERATED_DIR / 'AffixRolling.generated.swift', '\n'.join(lines) + '\n')

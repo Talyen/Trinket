@@ -4,12 +4,12 @@ import TrinketCore
 
 public struct MysteryEncounterRequest: Sendable {
     public let encounter: EncounterIdentity
-    public let event: MysteryEvent
+    public let eventID: String
     public let displayedOffers: [MysteryOffer]
 
-    public init(encounter: EncounterIdentity, event: MysteryEvent, displayedOffers: [MysteryOffer]) {
+    public init(encounter: EncounterIdentity, eventID: String, displayedOffers: [MysteryOffer]) {
         self.encounter = encounter
-        self.event = event
+        self.eventID = eventID
         self.displayedOffers = displayedOffers
     }
 }
@@ -36,18 +36,19 @@ public enum MysteryEncounterResolution {
         at date: Date = Date(),
     ) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure> {
         guard request.encounter.isPlayable(in: save),
+              let event = request.encounter.mysteryEvent(in: save), event.id == request.eventID,
               let choice = choiceID
-              .flatMap({ id in request.event.choices.first { $0.id == id } }) ?? (choiceID == nil ? request.event.choices.first : nil)
+              .flatMap({ id in event.choices.first { $0.id == id } }) ?? (choiceID == nil ? event.choices.first : nil)
         else { return .failure(.unavailable) }
         if choice.effects.contains(.corruptItem) {
-            return ItemCorruption.eligibleTargets(in: save.inventory).isEmpty ? .failure(.unavailable) : .success(.selectCorruptItem)
+            return ItemCorruption.eligibleTargets(in: save.inventory.items).isEmpty ? .failure(.unavailable) : .success(.selectCorruptItem)
         }
         if choice.effects.contains(.leave) {
-            guard complete(request, save: &save) else { return .failure(.unavailable) }
+            guard complete(request, event: event, save: &save) else { return .failure(.unavailable) }
             return .success(.dismiss)
         }
         if choice.itemPool != nil {
-            return resolveOffer(choice: choice, request: request, save: &save, using: &randomNumberGenerator, at: date)
+            return resolveOffer(event: event, choice: choice, request: request, save: &save, using: &randomNumberGenerator, at: date)
         }
         guard let rewardLevel = request.encounter.rewardLevel(in: save),
               let encounterLevel = request.encounter.encounterLevel(in: save) else { return .failure(.unavailable) }
@@ -77,7 +78,7 @@ public enum MysteryEncounterResolution {
         })
         guard result.grantedItems.count == requiredItems, result.unlockedCombatantIDs.count == requiredUnlocks,
               !result.isEmpty else { return .failure(.unavailable) }
-        guard complete(request, save: &candidate) else { return .failure(.unavailable) }
+        guard complete(request, event: event, save: &candidate) else { return .failure(.unavailable) }
         save = candidate
         if let unlocked = result.unlockedCombatantIDs.first {
             return .success(.reveal(unlockedCombatantID: unlocked))
@@ -91,7 +92,9 @@ public enum MysteryEncounterResolution {
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure> {
-        guard request.encounter.isPlayable(in: save), request.event.choices.contains(where: { $0.effects.contains(.corruptItem) }) else {
+        guard request.encounter.isPlayable(in: save),
+              let event = request.encounter.mysteryEvent(in: save), event.id == request.eventID,
+              event.choices.contains(where: { $0.effects.contains(.corruptItem) }) else {
             return .failure(.unavailable)
         }
         var candidate = save
@@ -99,12 +102,13 @@ public enum MysteryEncounterResolution {
         else {
             return .failure(.unavailable)
         }
-        guard complete(request, save: &candidate) else { return .failure(.unavailable) }
+        guard complete(request, event: event, save: &candidate) else { return .failure(.unavailable) }
         save = candidate
         return .success(.corruptionReveal(result))
     }
 
     private static func resolveOffer(
+        event: MysteryEvent,
         choice: MysteryChoice,
         request: MysteryEncounterRequest,
         save: inout PlayerSave,
@@ -114,7 +118,7 @@ public enum MysteryEncounterResolution {
         do {
             var candidate = save
             let prepared = try MysteryOfferPersistence.prepare(
-                event: request.event, encounter: request.encounter,
+                event: event, encounter: request.encounter,
                 save: &candidate, using: &randomNumberGenerator, at: date,
             )
             if prepared != request.displayedOffers {
@@ -136,10 +140,10 @@ public enum MysteryEncounterResolution {
         }
     }
 
-    private static func complete(_ request: MysteryEncounterRequest, save: inout PlayerSave) -> Bool {
+    private static func complete(_ request: MysteryEncounterRequest, event: MysteryEvent, save: inout PlayerSave) -> Bool {
         guard NonCombatEncounterCompletion.complete(encounter: request.encounter, save: &save, recordReceipt: { _ in }) == .completed
         else { return false }
-        if request.event.id == GameContent.corruptionAltarEventID || request.event.choices
+        if request.eventID == GameContent.corruptionAltarEventID || event.choices
             .contains(where: { $0.effects.contains(.corruptItem) }) {
             ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &save)
         } else {
@@ -158,7 +162,7 @@ public extension MysteryEventPickContext {
     ) -> Self {
         Self(
             allowsCorruptionAltar: chapterNumber >= 2,
-            hasEligibleCorruptTarget: !ItemCorruption.eligibleTargets(in: inventory).isEmpty,
+            hasEligibleCorruptTarget: !ItemCorruption.eligibleTargets(in: inventory.items).isEmpty,
             corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining,
         )
     }
@@ -169,7 +173,7 @@ public extension MysteryEventPickContext {
     ) -> Self {
         Self(
             allowsCorruptionAltar: true,
-            hasEligibleCorruptTarget: !ItemCorruption.eligibleTargets(in: inventory).isEmpty,
+            hasEligibleCorruptTarget: !ItemCorruption.eligibleTargets(in: inventory.items).isEmpty,
             corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining,
         )
     }

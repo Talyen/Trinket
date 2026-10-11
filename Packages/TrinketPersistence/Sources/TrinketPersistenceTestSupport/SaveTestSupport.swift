@@ -55,9 +55,10 @@ public enum SaveTestSupport {
     /// (same schema, file URL, no CloudKit mirroring).
     public static func makeContainer(
         storeURL: URL,
-        schema: Schema = PlayerSaveGraph.schema,
+        schema: Schema? = nil,
     ) throws -> ModelContainer {
-        try ModelContainer(
+        let schema = schema ?? PlayerSaveGraph.schema
+        return try ModelContainer(
             for: schema,
             configurations: ModelConfiguration(
                 schema: schema,
@@ -115,7 +116,7 @@ public enum SaveTestSupport {
     public static func writeRoot(
         _ save: PlayerSave,
         to storeURL: URL,
-        schema: Schema = PlayerSaveGraph.schema,
+        schema: Schema? = nil,
         additionalInserts: ((ModelContext) throws -> Void)? = nil,
     ) throws {
         let context = try ModelContext(makeContainer(storeURL: storeURL, schema: schema))

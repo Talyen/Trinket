@@ -46,13 +46,13 @@ public struct RosterCombatantDetailView: View {
                 effectsVolume: effectsVolume,
                 hidesNavigationBar: hidesNavigationBar,
                 onEdit: { edit in
-                    let saved = playerSave.editCombatant(edit, for: combatant)
-                    if !saved {
+                    let result = playerSave.editCombatant(edit, for: combatant.id)
+                    if result == .persistenceFailed {
                         playerSave.retrySaveAction(key: "combatant-edit-\(combatant.id)") {
-                            _ = playerSave.editCombatant(edit, for: combatant)
+                            _ = playerSave.editCombatant(edit, for: combatant.id)
                         }
                     }
-                    return saved
+                    return result == .committed
                 },
                 onUnlockTalent: { node, tree in
                     unlockTalent(node: node, tree: tree, for: combatant.id)
@@ -64,10 +64,10 @@ public struct RosterCombatantDetailView: View {
         }
     }
 
-    private func unlockTalent(node: TalentNode, tree: TalentTree, for id: String) -> TalentUnlockResult {
+    private func unlockTalent(node: TalentNode, tree: TalentTree, for id: String) -> RosterEditResult {
         let result = playerSave.unlockTalent(nodeID: node.id, treeID: tree.id, for: id)
         switch result {
-        case .unlocked:
+        case .committed:
             if scenePhase == .active {
                 playSFX(SFXID.talentUnlock, effectsVolume)
             }

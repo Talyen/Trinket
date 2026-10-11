@@ -98,10 +98,8 @@ public final class VoyagePlayMode {
             })
         case .shop:
             return encounters.beginShopOrAutoComplete(origin: encounterOrigin)
-        case .mystery:
+        case .mystery, .recruit:
             return encounters.beginMysteryEncounter(origin: encounterOrigin)
-        case .recruit:
-            return encounters.beginMysteryEncounter(origin: encounterOrigin, forcedEventID: node.recruitEventID)
         case .entrance:
             return nil
         }

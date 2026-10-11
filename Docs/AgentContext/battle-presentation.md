@@ -166,7 +166,12 @@ transforms, including the masked halves of the enemy split/dissolve death effect
 They are not positioned by fixed battlefield anchors. Remounted death fragments
 replay the bridge's live items using original timestamps and cached rasters.
 
-The raster host, bridge, glyph/mask cache, and shared display clock own rendering.
+Each `BattleFeedbackLane` owns its chip bridge, live items, eviction callback, and
+availability timer. Raster hosts bind to that lane through their session; host
+teardown unregisters from the bridge that registered it. Independent battles and
+debug previews may reuse combatant/event IDs without replacing or clearing each
+other's feedback. Publication follows lane lifetime rather than view mount order.
+The raster host, bridge, shared glyph/mask cache, and shared display clock own rendering.
 Prewarm the single production vocabulary including glint masks. Frame updates
 change layer properties only, using fitting positions cached when layout changes.
 Hosts unregister from the display clock on teardown and when eviction leaves no

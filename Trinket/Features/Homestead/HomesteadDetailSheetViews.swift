@@ -1,7 +1,6 @@
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
-import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -19,7 +18,7 @@ struct HomesteadDetailSheetView: View {
     var onPurchase: (Int) -> Void
 
     private var status: HomesteadProjectStatus {
-        HomesteadProjectStatus(definition: definition, homestead: playerSave.homestead, roster: playerSave.roster)
+        HomesteadProjectStatus(definition: definition, homestead: playerSave.homestead, gold: playerSave.roster.gold)
     }
 
     var body: some View {
@@ -124,7 +123,7 @@ struct HomesteadWalletSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                HomesteadResourceWallet(homestead: playerSave.homestead, roster: playerSave.roster)
+                HomesteadResourceWallet(homestead: playerSave.homestead, gold: playerSave.roster.gold)
                     .padding(TrinketDesign.Layout.contentMargin)
             }
             .navigationTitle("Resources")

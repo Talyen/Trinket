@@ -9,7 +9,7 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
     @Environment(OptionsStore.self) private var options
     @Environment(\.playSFX) private var playSFX
     @Namespace private var zoomNamespace
-    @State private var pinnedArtwork: [String] = []
+    @State private var artworkPins = PreparedArtworkPinSet()
     @Binding var salvageDetail: SalvageDetailState
     let hapticsEnabled: Bool
 
@@ -40,8 +40,7 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
             }
             .onDisappear {
                 cancelTransmutation()
-                PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
-                pinnedArtwork = []
+                artworkPins.release()
             }
             .trinketSensoryFeedback(
                 .success,
@@ -87,13 +86,9 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
     private func prepareDetail() async {
         guard let item = salvageDetail.requestedItem else { return }
         let names = Array(Set([item.artReference?.imageName, item.artReference?.thumbnailImageName].compactMap(\.self)))
-        let acquired = await PreparedArtworkCache.shared.prepareAndPin(names: names)
-        guard !Task.isCancelled, salvageDetail.requestedItem?.id == item.id else {
-            PreparedArtworkCache.shared.releasePins(names: acquired)
-            return
-        }
-        PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
-        pinnedArtwork = acquired
+        guard await artworkPins.prepare(names: names, isCurrent: {
+            salvageDetail.requestedItem?.id == item.id
+        }) != nil else { return }
         salvageDetail.selectedItem = item
         salvageDetail.requestedItem = nil
     }
@@ -101,8 +96,7 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
     private func releaseUnusedArtwork() {
         guard salvageDetail.selectedItem == nil, salvageDetail.requestedItem == nil,
               salvageDetail.transmutationEvent == nil else { return }
-        PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
-        pinnedArtwork = []
+        artworkPins.release()
     }
 
     private func cancelTransmutation() {

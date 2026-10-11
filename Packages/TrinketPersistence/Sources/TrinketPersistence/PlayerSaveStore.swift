@@ -32,7 +32,6 @@ public final class PlayerSaveStore {
 
     var deferredSaveTask: Task<Void, Never>?
     var pendingDeferredSave: PendingDeferredSave?
-    var observedSave: PlayerSave = .fresh
     let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave",
@@ -81,52 +80,59 @@ public final class PlayerSaveStore {
     public var forcesNextDatabaseSaveFailure = false
     #endif
 
-    public var journey: JourneyProgressState {
-        observedSave.journey
-    }
+    // Observe domain sections independently: a wallet edit must not invalidate
+    // map, inventory, or other unrelated readers of the save store.
+    public private(set) var journey: JourneyProgressState = .initial
+    public private(set) var roster: PlayerRosterState = .freshStart
+    public private(set) var inventory: PlayerInventoryState = .freshStart
+    public private(set) var homestead: PlayerHomesteadState = .freshStart
+    public private(set) var spires: PlayerSpiresState = .freshStart
+    public private(set) var labyrinth: PlayerLabyrinthState = .freshStart
+    public private(set) var voyage: PlayerVoyageState = .freshStart
+    public private(set) var contracts: PlayerContractsState = .freshStart
+    public private(set) var corruptionAltarCooldownRemaining = 0
+    public private(set) var worldSeed = PlayerSave.makeWorldSeed()
+    public private(set) var starterSelection: StarterSelectionState = .fresh
+    private var schemaVersion = PlayerSave.currentSchemaVersion
+    private var modifiedAt = Date()
+    public private(set) var sessionGeneration: UInt64 = 0
 
-    public var roster: PlayerRosterState {
-        observedSave.roster
-    }
-
-    public var inventory: PlayerInventoryState {
-        observedSave.inventory
-    }
-
-    public var homestead: PlayerHomesteadState {
-        observedSave.homestead
-    }
-
-    public var spires: PlayerSpiresState {
-        observedSave.spires
-    }
-
-    public var labyrinth: PlayerLabyrinthState {
-        observedSave.labyrinth
-    }
-
-    public var voyage: PlayerVoyageState {
-        observedSave.voyage
-    }
-
-    public var contracts: PlayerContractsState {
-        observedSave.contracts
-    }
-
-    public var corruptionAltarCooldownRemaining: Int {
-        observedSave.corruptionAltarCooldownRemaining
-    }
-
-    public var worldSeed: UInt64 {
-        observedSave.worldSeed
-    }
-
-    public var starterSelection: StarterSelectionState {
-        observedSave.starterSelection
-    }
-
+    /// Complete transaction snapshot. Feature readers use the narrower sections
+    /// above; observing this value intentionally subscribes to the entire save.
     public var currentSave: PlayerSave {
-        observedSave
+        PlayerSave(
+            schemaVersion: schemaVersion, modifiedAt: modifiedAt,
+            sessionGeneration: sessionGeneration, worldSeed: worldSeed,
+            starterSelection: starterSelection, journey: journey, roster: roster,
+            inventory: inventory, homestead: homestead, spires: spires,
+            labyrinth: labyrinth, contracts: contracts, voyage: voyage,
+            corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining,
+        )
+    }
+
+    func installObservedSave(_ save: PlayerSave, slices: PlayerSaveSlice = .all) {
+        if save.sessionGeneration != sessionGeneration {
+            saveActionRetries.cancelAll()
+        }
+        for section in slices.sections {
+            switch section {
+            case .root:
+                schemaVersion = save.schemaVersion
+                modifiedAt = save.modifiedAt
+                sessionGeneration = save.sessionGeneration
+                worldSeed = save.worldSeed
+                starterSelection = save.starterSelection
+                corruptionAltarCooldownRemaining = max(0, save.corruptionAltarCooldownRemaining)
+            case .journey: journey = save.journey
+            case .roster: roster = save.roster
+            case .inventory: inventory = save.inventory
+            case .homestead: homestead = save.homestead
+            case .spires: spires = save.spires
+            case .labyrinth: labyrinth = save.labyrinth
+            case .contracts: contracts = save.contracts
+            case .voyage: voyage = save.voyage
+            }
+        }
     }
 
     public convenience init(
@@ -292,7 +298,7 @@ public final class PlayerSaveStore {
         }
 
         do {
-            try applyCandidate(save, replacing: observedSave, slices: repairSlices)
+            try applyCandidate(save, replacing: currentSave, slices: repairSlices)
         } catch {
             logger.error("Failed to repair player save graph: \(String(describing: error), privacy: .public)")
             lastPersistenceError = PlayerSavePersistenceError.mapped(error)

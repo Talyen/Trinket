@@ -196,7 +196,7 @@ package enum DamagePipeline {
         state.damageEvents.append(context.nextEvent(
             kind: .status, source: .init(source),
             abilityName: context.modifiers(for: sourceID).triggerAbilityName(
-                "onHealthLossNextDamageReduction", fallback: "Loose Rubble",
+                .onHealthLossNextDamageReduction, fallback: "Loose Rubble",
             ),
             target: state.combatant, amount: reduction, keyword: state.damageKeyword ?? .physical,
         ))

@@ -85,7 +85,7 @@ extension HealingEngine {
                 to: request.target,
                 source: request.target,
                 abilityName: context.modifiers(for: request.target.id).triggerAbilityName(
-                    "overhealShieldCap",
+                    .overhealShieldCap,
                     fallback: "Reclaimed Reagents",
                 ),
             ))

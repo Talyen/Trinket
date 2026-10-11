@@ -3,17 +3,21 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 @MainActor
-enum CombatFeedbackChipBridge {
-    private static var hosts: [ObjectIdentifier: WeakHost] = [:]
-    private static var evictedIDs: Set<Int> = []
-    private static var onEvict: ((Set<Int>) -> Void)?
-    private static var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
-    private static let availabilityTimer = FeedbackDeadlineTimer {
-        availabilityTimerDidFire()
+final class CombatFeedbackChipBridge {
+    private var hosts: [ObjectIdentifier: WeakHost] = [:]
+    private var evictedIDs: Set<Int> = []
+    private let onEvict: ((Set<Int>) -> Void)?
+    private var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
+    private lazy var availabilityTimer = FeedbackDeadlineTimer { [weak self] in
+        self?.availabilityTimerDidFire()
     }
 
-    private static var nextAvailabilityDate: Date?
-    private static var nextAvailabilityTargetID: String?
+    init(onEvict: ((Set<Int>) -> Void)? = nil) {
+        self.onEvict = onEvict
+    }
+
+    private var nextAvailabilityDate: Date?
+    private var nextAvailabilityTargetID: String?
 
     private struct WeakHost {
         weak var view: CombatFeedbackRasterUIView?
@@ -22,13 +26,13 @@ enum CombatFeedbackChipBridge {
         let displayScale: CGFloat
     }
 
-    static func register(
+    func register(
         _ view: CombatFeedbackRasterUIView,
         combatantID: String,
         layoutDirection: LayoutDirection,
         displayScale: CGFloat,
     ) {
-        view.onEvict = suppress
+        view.onEvict = { [weak self] ids in self?.suppress(ids) }
         let key = ObjectIdentifier(view)
         let previous = hosts[key]
         let metadataChanged = previous == nil
@@ -47,17 +51,13 @@ enum CombatFeedbackChipBridge {
         }
     }
 
-    static func unregister(_ view: CombatFeedbackRasterUIView) {
+    func unregister(_ view: CombatFeedbackRasterUIView) {
         view.stopMotion()
+        view.onEvict = nil
         hosts.removeValue(forKey: ObjectIdentifier(view))
     }
 
-    static func publish(_ update: CombatFeedbackUpdate) {
-        publish(update, onEvict: nil)
-    }
-
-    static func publish(_ update: CombatFeedbackUpdate, onEvict: ((Set<Int>) -> Void)?) {
-        self.onEvict = onEvict
+    func publish(_ update: CombatFeedbackUpdate) {
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
             BattleFramePacingSignposts.Name.chipPublish,
         )
@@ -99,7 +99,7 @@ enum CombatFeedbackChipBridge {
         updateAvailabilityWakeTime(considering: affectedTargets)
     }
 
-    private static func updateAvailabilityWakeTime(considering affectedTargets: Set<String>) {
+    private func updateAvailabilityWakeTime(considering affectedTargets: Set<String>) {
         let now = Date()
         var earliest: Date?
         var earliestTargetID: String?
@@ -125,7 +125,7 @@ enum CombatFeedbackChipBridge {
         availabilityTimer.schedule(at: nextAvailabilityDate)
     }
 
-    private static func availabilityTimerDidFire() {
+    private func availabilityTimerDidFire() {
         let now = Date.now
         let targets = Set(itemsByTarget.compactMap { targetID, items in
             items.values.contains { $0.availableAt <= now && now < $0.expiresAt }
@@ -136,7 +136,7 @@ enum CombatFeedbackChipBridge {
         updateAvailabilityWakeTime(considering: Set(itemsByTarget.keys))
     }
 
-    private static func refreshHosts(for targetIDs: Set<String>) {
+    private func refreshHosts(for targetIDs: Set<String>) {
         guard !targetIDs.isEmpty else { return }
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
             BattleFramePacingSignposts.Name.chipFlush,
@@ -152,7 +152,7 @@ enum CombatFeedbackChipBridge {
         }
     }
 
-    private static func refresh(hostKey: ObjectIdentifier) {
+    private func refresh(hostKey: ObjectIdentifier) {
         guard let entry = hosts[hostKey] else { return }
         guard let view = entry.view else {
             hosts.removeValue(forKey: hostKey)
@@ -185,28 +185,22 @@ enum CombatFeedbackChipBridge {
         view.apply(chips: chips)
     }
 
-    private static func suppress(_ ids: Set<Int>) {
+    private func suppress(_ ids: Set<Int>) {
         evictedIDs.formUnion(ids)
         onEvict?(ids)
     }
 
     #if DEBUG
-    static var debugNextAvailabilityDate: Date? {
+    var debugItemIDs: Set<Int> {
+        Set(itemsByTarget.values.flatMap(\.keys)).subtracting(evictedIDs)
+    }
+
+    var debugNextAvailabilityDate: Date? {
         nextAvailabilityDate
     }
 
-    static var debugNextAvailabilityTargetID: String? {
+    var debugNextAvailabilityTargetID: String? {
         nextAvailabilityTargetID
-    }
-
-    static func debugReset() {
-        hosts.removeAll()
-        evictedIDs.removeAll()
-        onEvict = nil
-        itemsByTarget.removeAll()
-        nextAvailabilityDate = nil
-        nextAvailabilityTargetID = nil
-        availabilityTimer.cancel()
     }
     #endif
 }

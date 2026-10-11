@@ -172,7 +172,7 @@ package extension HealingEngine {
                 to: actorCombatant,
                 source: actorCombatant,
                 abilityName: CombatTriggerEngine.triggerAbilityName(
-                    "leechBlockChancePercent", for: actorCombatant, fallback: "Bloodward", in: context,
+                    .leechBlockChancePercent, for: actorCombatant, fallback: "Bloodward", in: context,
                 ),
                 amountBasis: .resolved,
             ))
@@ -193,7 +193,7 @@ package extension HealingEngine {
                 kind: .effect, effectKind: .thornsApplied,
                 source: .init(actorCombatant),
                 abilityName: CombatTriggerEngine.triggerAbilityName(
-                    "leechThornsWithoutThorns", for: actorCombatant, fallback: "Bloodroot", in: context,
+                    .leechThornsWithoutThorns, for: actorCombatant, fallback: "Bloodroot", in: context,
                 ),
                 target: actorCombatant, amount: profile.triggers.leechThornsWithoutThorns, keyword: .thorns,
             ))
@@ -213,7 +213,7 @@ package extension HealingEngine {
                 events.append(context.nextEvent(
                     kind: .abilityDamage, source: .init(actorCombatant),
                     abilityName: CombatTriggerEngine.triggerAbilityName(
-                        "leechStunBelowHalfHealth", for: actorCombatant, fallback: "Heartshock", in: context,
+                        .leechStunBelowHalfHealth, for: actorCombatant, fallback: "Heartshock", in: context,
                     ),
                     target: target, amount: stun.healthLost, keyword: .stun,
                 ))
@@ -316,7 +316,7 @@ package extension HealingEngine {
             logAs: .instantHeal(
                 source: .init(source),
                 abilityName: CombatTriggerEngine.triggerAbilityName(
-                    "companionLeechSharePercent", for: source,
+                    .companionLeechSharePercent, for: source,
                     fallback: "Symbiosis", in: context,
                 ),
                 keyword: .health,

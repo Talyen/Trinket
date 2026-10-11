@@ -197,8 +197,8 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             before = output.read_bytes()
             generate_affix_rolling(families)
             self.assertEqual(before, output.read_bytes())
-            self.assertIn('.int(\\.onBleedApplyPoison, name: "onBleedApplyPoison")', before.decode())
-            self.assertIn('"sunderingBlockMultiplier":', before.decode())
+            self.assertIn('.int(\\.onBleedApplyPoison, field: .onBleedApplyPoison)', before.decode())
+            self.assertIn('.sunderingBlockMultiplier:', before.decode())
         for policy in ({'reason': ''}, {'kind': 'percent', 'order': 0}, {'kind': 'int', 'order': -1},
                        {'kind': 'int', 'order': 0, 'reason': 'ambiguous'}):
             with self.subTest(policy=policy), self.assertRaises(ValueError):

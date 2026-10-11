@@ -2,12 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public enum TalentUnlockResult: Equatable, Sendable {
-    case unlocked
-    case unavailable
-    case persistenceFailed
-}
-
 @MainActor
 public extension PlayerSaveStore {
     @discardableResult
@@ -66,32 +60,29 @@ public extension PlayerSaveStore {
         nodeID: String,
         treeID: String,
         for combatantID: String,
-    ) -> TalentUnlockResult {
-        guard let config = CombatantTalentCatalog.configIfAvailable(for: combatantID),
-              let tree = config.tree(matching: treeID),
-              let node = tree.node(matching: nodeID)
-        else { return .unavailable }
-
-        let unlocked = roster.unlockedTalents(for: combatantID)
-        let points = roster.availableTalentPoints(for: combatantID)
-        guard tree.canUnlock(
-            node: node,
-            unlockedNodeIDs: unlocked,
-            availablePoints: points,
-        ) else { return .unavailable }
-
-        let persisted = mutateRoster(logging: "Failed to unlock talent") { roster in
-            _ = roster.unlockTalent(
-                node: node,
-                inTree: tree,
-                for: combatantID,
-            )
+    ) -> RosterEditResult {
+        persistRosterEdit(logging: "Failed to unlock talent") { save in
+            save.applyTalentUnlock(nodeID: nodeID, treeID: treeID, for: combatantID, access: contentAccess)
         }
-        guard persisted else { return .persistenceFailed }
-        // Sanitize runs after the mutation and can clamp/drop over-budget
-        // talents; verify the commit actually kept the node instead of
-        // reporting success for a dropped unlock.
-        guard roster.unlockedTalents(for: combatantID).contains(nodeID) else { return .unavailable }
-        return .unlocked
+    }
+}
+
+@MainActor
+extension PlayerSaveStore {
+    private enum RosterEditRejection: Error {
+        case unavailable
+    }
+
+    /// Rejections discard the candidate before graph/journal writes; only refused
+    /// durable commits are retryable. Every interactive roster command uses this path.
+    func persistRosterEdit(logging message: String, _ edit: (inout PlayerSave) -> Bool) -> RosterEditResult {
+        let result: SaveTransactionResult<Void, RosterEditRejection> = persistTransaction(logging: message) { save in
+            edit(&save) ? .success(()) : .failure(.unavailable)
+        }
+        switch result {
+        case .committed: return .committed
+        case .rejected: return .unavailable
+        case .persistFailed: return .persistenceFailed
+        }
     }
 }

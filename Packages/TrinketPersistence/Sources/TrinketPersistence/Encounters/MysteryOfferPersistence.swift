@@ -43,7 +43,7 @@ public enum MysteryOfferPersistence {
             throw MysteryOfferError.unavailableEncounter
         }
         let bonuses = encounter.modifierEffects(in: save)
-        save.homestead.settleProduction(at: date, roster: save.roster)
+        save.homestead.settleProduction(at: date, gold: save.roster.gold)
         // Non-pool choices (leave, corrupt-only, unlock-only) resolve through
         // the direct-effects path, so only pooled choices produce offers.
         let offers: [MysteryOffer] = event.choices.compactMap { choice in
@@ -98,7 +98,7 @@ public enum MysteryOfferPersistence {
         // offers cannot grant partial rewards or complete the encounter.
         let grantDate = date
         var candidate = save
-        candidate.homestead.settleProduction(at: grantDate, roster: candidate.roster)
+        candidate.homestead.settleProduction(at: grantDate, gold: candidate.roster.gold)
         guard let level = encounter.encounterLevel(in: candidate) else {
             return MysteryEffectResult()
         }

@@ -81,37 +81,34 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         self.affixDeathsDoorSurviveHealFlat = affixDeathsDoorSurviveHealFlat
     }
 
-    /// All field names for this family — avoids `Mirror` reflection.
-    public static let fieldNames: [String] = ["undyingEmber", "borrowedLife", "onceDeathReviveHealth", "onceDeathReviveBlock", "deathsDoorDurationBonusTurns", "reviveDealBurnDamage", "deathsDoorDodgeAndDebuffImmunity", "onDeathDealPhysicalDamageAllEnemies", "guaranteedCritWhileOnDeathsDoor", "deathsDoorExpiredHealFlat", "holyDamageReviveCompanionChancePercent", "surviveDeathsDoorPartyHealFlat", "onHeroFatalReviveHealth", "enterDeathsDoorHeal", "enterDeathsDoorBurnDamage", "surviveDeathsDoorNextAttackDouble", "deathsDoorIncomingDamageMultiplier", "deathsDoorNegativeStatusImmune", "onAllyDeathsDoorRestoreHealth", "firstAllyFatalIntercept", "deathsDoorCriticalChanceBonus", "enterDeathsDoorDrawCard", "surviveDeathsDoorPartyBlockFlat", "affixDeathsDoorSurviveHealFlat"]
-
-    /// Field names where `self` differs from `other`.
-    func populatedFieldNames(comparedTo other: Self) -> [String] {
-        var names: [String] = []
-        if self.undyingEmber != other.undyingEmber { names.append("undyingEmber") }
-        if self.borrowedLife != other.borrowedLife { names.append("borrowedLife") }
-        if self.onceDeathReviveHealth != other.onceDeathReviveHealth { names.append("onceDeathReviveHealth") }
-        if self.onceDeathReviveBlock != other.onceDeathReviveBlock { names.append("onceDeathReviveBlock") }
-        if self.deathsDoorDurationBonusTurns != other.deathsDoorDurationBonusTurns { names.append("deathsDoorDurationBonusTurns") }
-        if self.reviveDealBurnDamage != other.reviveDealBurnDamage { names.append("reviveDealBurnDamage") }
-        if self.deathsDoorDodgeAndDebuffImmunity != other.deathsDoorDodgeAndDebuffImmunity { names.append("deathsDoorDodgeAndDebuffImmunity") }
-        if self.onDeathDealPhysicalDamageAllEnemies != other.onDeathDealPhysicalDamageAllEnemies { names.append("onDeathDealPhysicalDamageAllEnemies") }
-        if self.guaranteedCritWhileOnDeathsDoor != other.guaranteedCritWhileOnDeathsDoor { names.append("guaranteedCritWhileOnDeathsDoor") }
-        if self.deathsDoorExpiredHealFlat != other.deathsDoorExpiredHealFlat { names.append("deathsDoorExpiredHealFlat") }
-        if self.holyDamageReviveCompanionChancePercent != other.holyDamageReviveCompanionChancePercent { names.append("holyDamageReviveCompanionChancePercent") }
-        if self.surviveDeathsDoorPartyHealFlat != other.surviveDeathsDoorPartyHealFlat { names.append("surviveDeathsDoorPartyHealFlat") }
-        if self.onHeroFatalReviveHealth != other.onHeroFatalReviveHealth { names.append("onHeroFatalReviveHealth") }
-        if self.enterDeathsDoorHeal != other.enterDeathsDoorHeal { names.append("enterDeathsDoorHeal") }
-        if self.enterDeathsDoorBurnDamage != other.enterDeathsDoorBurnDamage { names.append("enterDeathsDoorBurnDamage") }
-        if self.surviveDeathsDoorNextAttackDouble != other.surviveDeathsDoorNextAttackDouble { names.append("surviveDeathsDoorNextAttackDouble") }
-        if self.deathsDoorIncomingDamageMultiplier != other.deathsDoorIncomingDamageMultiplier { names.append("deathsDoorIncomingDamageMultiplier") }
-        if self.deathsDoorNegativeStatusImmune != other.deathsDoorNegativeStatusImmune { names.append("deathsDoorNegativeStatusImmune") }
-        if self.onAllyDeathsDoorRestoreHealth != other.onAllyDeathsDoorRestoreHealth { names.append("onAllyDeathsDoorRestoreHealth") }
-        if self.firstAllyFatalIntercept != other.firstAllyFatalIntercept { names.append("firstAllyFatalIntercept") }
-        if self.deathsDoorCriticalChanceBonus != other.deathsDoorCriticalChanceBonus { names.append("deathsDoorCriticalChanceBonus") }
-        if self.enterDeathsDoorDrawCard != other.enterDeathsDoorDrawCard { names.append("enterDeathsDoorDrawCard") }
-        if self.surviveDeathsDoorPartyBlockFlat != other.surviveDeathsDoorPartyBlockFlat { names.append("surviveDeathsDoorPartyBlockFlat") }
-        if self.affixDeathsDoorSurviveHealFlat != other.affixDeathsDoorSurviveHealFlat { names.append("affixDeathsDoorSurviveHealFlat") }
-        return names
+    /// Fields where `self` differs from `other`.
+    func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
+        var fields: [CombatTriggerField] = []
+        if self.undyingEmber != other.undyingEmber { fields.append(.undyingEmber) }
+        if self.borrowedLife != other.borrowedLife { fields.append(.borrowedLife) }
+        if self.onceDeathReviveHealth != other.onceDeathReviveHealth { fields.append(.onceDeathReviveHealth) }
+        if self.onceDeathReviveBlock != other.onceDeathReviveBlock { fields.append(.onceDeathReviveBlock) }
+        if self.deathsDoorDurationBonusTurns != other.deathsDoorDurationBonusTurns { fields.append(.deathsDoorDurationBonusTurns) }
+        if self.reviveDealBurnDamage != other.reviveDealBurnDamage { fields.append(.reviveDealBurnDamage) }
+        if self.deathsDoorDodgeAndDebuffImmunity != other.deathsDoorDodgeAndDebuffImmunity { fields.append(.deathsDoorDodgeAndDebuffImmunity) }
+        if self.onDeathDealPhysicalDamageAllEnemies != other.onDeathDealPhysicalDamageAllEnemies { fields.append(.onDeathDealPhysicalDamageAllEnemies) }
+        if self.guaranteedCritWhileOnDeathsDoor != other.guaranteedCritWhileOnDeathsDoor { fields.append(.guaranteedCritWhileOnDeathsDoor) }
+        if self.deathsDoorExpiredHealFlat != other.deathsDoorExpiredHealFlat { fields.append(.deathsDoorExpiredHealFlat) }
+        if self.holyDamageReviveCompanionChancePercent != other.holyDamageReviveCompanionChancePercent { fields.append(.holyDamageReviveCompanionChancePercent) }
+        if self.surviveDeathsDoorPartyHealFlat != other.surviveDeathsDoorPartyHealFlat { fields.append(.surviveDeathsDoorPartyHealFlat) }
+        if self.onHeroFatalReviveHealth != other.onHeroFatalReviveHealth { fields.append(.onHeroFatalReviveHealth) }
+        if self.enterDeathsDoorHeal != other.enterDeathsDoorHeal { fields.append(.enterDeathsDoorHeal) }
+        if self.enterDeathsDoorBurnDamage != other.enterDeathsDoorBurnDamage { fields.append(.enterDeathsDoorBurnDamage) }
+        if self.surviveDeathsDoorNextAttackDouble != other.surviveDeathsDoorNextAttackDouble { fields.append(.surviveDeathsDoorNextAttackDouble) }
+        if self.deathsDoorIncomingDamageMultiplier != other.deathsDoorIncomingDamageMultiplier { fields.append(.deathsDoorIncomingDamageMultiplier) }
+        if self.deathsDoorNegativeStatusImmune != other.deathsDoorNegativeStatusImmune { fields.append(.deathsDoorNegativeStatusImmune) }
+        if self.onAllyDeathsDoorRestoreHealth != other.onAllyDeathsDoorRestoreHealth { fields.append(.onAllyDeathsDoorRestoreHealth) }
+        if self.firstAllyFatalIntercept != other.firstAllyFatalIntercept { fields.append(.firstAllyFatalIntercept) }
+        if self.deathsDoorCriticalChanceBonus != other.deathsDoorCriticalChanceBonus { fields.append(.deathsDoorCriticalChanceBonus) }
+        if self.enterDeathsDoorDrawCard != other.enterDeathsDoorDrawCard { fields.append(.enterDeathsDoorDrawCard) }
+        if self.surviveDeathsDoorPartyBlockFlat != other.surviveDeathsDoorPartyBlockFlat { fields.append(.surviveDeathsDoorPartyBlockFlat) }
+        if self.affixDeathsDoorSurviveHealFlat != other.affixDeathsDoorSurviveHealFlat { fields.append(.affixDeathsDoorSurviveHealFlat) }
+        return fields
     }
 }
 

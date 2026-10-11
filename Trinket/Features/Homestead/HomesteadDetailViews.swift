@@ -3,7 +3,6 @@ import TrinketAppState
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
-import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -29,7 +28,7 @@ struct HomesteadNodeDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var build = HomesteadBuildControl()
-    @State private var pinnedArtwork: [String] = []
+    @State private var artworkPins = PreparedArtworkPinSet()
     @State private var sheet: HomesteadDetailSheet?
     @State private var requestedCraft: Bool?
     @State private var preparedCraft: Bool?
@@ -46,7 +45,7 @@ struct HomesteadNodeDetailView: View {
     }
 
     private var status: HomesteadProjectStatus {
-        HomesteadProjectStatus(definition: definition, homestead: playerSave.homestead, roster: playerSave.roster)
+        HomesteadProjectStatus(definition: definition, homestead: playerSave.homestead, gold: playerSave.roster.gold)
     }
 
     var body: some View {
@@ -113,8 +112,7 @@ struct HomesteadNodeDetailView: View {
         .task(id: definition.id) { await refreshArtworkPins() }
         .onDisappear {
             cancelCelebration()
-            PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
-            pinnedArtwork = []
+            artworkPins.release()
         }
     }
 
@@ -253,9 +251,7 @@ struct HomesteadNodeDetailView: View {
 
     private func refreshArtworkPins() async {
         let names = [ArtCatalog.portraitBackgroundArtByID[definition.id.rawValue]?.imageName].compactMap(\.self)
-        let refreshed = await ArtworkPinSet.refresh(next: names, current: pinnedArtwork)
-        guard !Task.isCancelled else { return }
-        pinnedArtwork = refreshed
+        await artworkPins.prepare(names: names)
     }
 
     private func buildOrUpgrade(_ expectedTier: Int) {

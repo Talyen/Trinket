@@ -4,11 +4,26 @@ Use with [persistence ownership](persistence.md) for schemas, graph reconciliati
 
 ## Schema and sanitization
 
+The mutable SwiftData graph, its mappings, and its schema are not public API.
+Game consumers use `PlayerSaveStore` commands and value projections, keeping
+validation, economic receipts, recovery, and observation on the same write path.
+Only the root fixture initializer and schema have package access for
+`TrinketPersistenceTestSupport`; graph inspection tests use `@testable` access.
+The [module boundary gate](../../Scripts/check-module-boundaries.sh) rejects
+public graph declarations. Access-control changes preserve model names, stored
+fields, relationships, and schema versions; they do not require a save migration.
+
 Labyrinth node decoding clamps negative saved depth before cleared-boss exit
 repair, which uses that depth to generate the next floor. Preserve the node's
 identity, cleared state and readable payloads when repairing damaged scalars.
 
-Reads use an in-memory observed projection; load/repair sanitizes `root.toPlayerSave()` from the SwiftData graph. `PlayerSave.currentSchemaVersion` versions the value-layer payload and its sanitizer/mapping migrations independently of the SwiftData migration version declared by `PlayerSaveSchema`; bumping one does not imply bumping the other. Slice writes expand through `PlayerSaveSlice.sanitizeTargets`: inventory also sanitizes roster (equipped items must exist), and labyrinth also sanitizes roster (recruit eligibility feeds map healing). Labyrinth sanitize runs on labyrinth mutations and full load, not on every inventory or roster write; recruit eligibility is applied when a map is generated.
+Reads use an in-memory projection with independently observed domain sections and
+root fields. Views read the narrow section or `sessionGeneration`; `currentSave`
+assembles a complete transaction snapshot and intentionally observes every section.
+Publication, compensation, and full replacements share `installObservedSave`;
+unchanged sections do not invalidate their readers.
+
+Load/repair sanitizes `root.toPlayerSave()` from the SwiftData graph. `PlayerSave.currentSchemaVersion` versions the value-layer payload and its sanitizer/mapping migrations independently of the SwiftData migration version declared by `PlayerSaveSchema`; bumping one does not imply bumping the other. Slice writes expand through `PlayerSaveSlice.sanitizeTargets`: inventory also sanitizes roster (equipped items must exist), and labyrinth also sanitizes roster (recruit eligibility feeds map healing). Labyrinth sanitize runs on labyrinth mutations and full load, not on every inventory or roster write; recruit eligibility is applied when a map is generated.
 
 Roster sanitization accepts current catalog IDs and applies [Core talent repair](../../Packages/TrinketCore/README.md).
 Roster hydration maps retired `sap-arrow` selections to `bounty-shot` before
@@ -113,6 +128,15 @@ keeps that session available for retry. Do not restore automatic delete-and-recr
 recovery during migration.
 
 ### Reconciliation
+
+Cloud synchronization separates CPU-bound value planning from main-actor store
+work. `CloudSavePlanner` concurrently restores and merges snapshots, replays offline
+actions, and prepares local transitions; only immutable `Sendable` values cross
+that boundary. The coordinator retains transport ordering, presentation preparation,
+and durable commits. It rechecks cancellation, account and pending-request identity
+before upload, and transition source state before local publication. New gameplay
+may extend a frozen upload prefix while planning runs; its later actions remain
+pending until their own receipt. Replay checks cancellation between actions.
 
 Approved reconciliation merges concurrent branches within the same reset epoch
 without player conflict prompts. Each immediate durable game mutation records an

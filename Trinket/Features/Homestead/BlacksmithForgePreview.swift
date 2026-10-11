@@ -22,7 +22,7 @@ struct BlacksmithForgePreview: View {
     let onOpenResult: (InventoryItem, Bool) -> Void
 
     private var canAfford: Bool {
-        recipe.cost.allSatisfy { playerSave.homestead.balance(for: $0.resource, roster: playerSave.roster) >= $0.quantity }
+        recipe.cost.allSatisfy { playerSave.homestead.balance(for: $0.resource, gold: playerSave.roster.gold) >= $0.quantity }
     }
 
     var body: some View {
@@ -121,7 +121,10 @@ struct BlacksmithForgePreview: View {
                         HomesteadMaterialValue(
                             resource: amount.resource,
                             value: amount.quantity.formatted(),
-                            isInsufficient: playerSave.homestead.balance(for: amount.resource, roster: playerSave.roster) < amount.quantity,
+                            isInsufficient: playerSave.homestead.balance(
+                                for: amount.resource,
+                                gold: playerSave.roster.gold,
+                            ) < amount.quantity,
                         )
                     }
                 }

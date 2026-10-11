@@ -7,6 +7,10 @@ import TrinketFeatureSupport
 
 @MainActor
 final class BattleFeedbackLane {
+    private(set) lazy var chipBridge = CombatFeedbackChipBridge { [weak self] ids in
+        self?.evictedItemIDs.formUnion(ids)
+    }
+
     var evictedItemIDs: Set<Int> = []
 
     var feedbackLifetime: TimeInterval {
@@ -37,10 +41,6 @@ final class BattleFeedbackLane {
     var suspendedAt: Date?
     weak var automaticPlayback: BattleCardPlaybackState?
 
-    private var bridges: [(
-        ownerID: UUID,
-        onChange: (CombatFeedbackUpdate) -> Void,
-    )] = []
     private var hitReactionBridges: [(
         ownerID: UUID,
         combatantID: String,
@@ -51,18 +51,6 @@ final class BattleFeedbackLane {
         combatantID: String,
         onChange: (CombatantAttackReaction?) -> Void,
     )] = []
-
-    func installBridge(
-        ownerID: UUID,
-        onChange: @escaping (CombatFeedbackUpdate) -> Void,
-    ) {
-        bridges.removeAll { $0.ownerID == ownerID }
-        bridges.append((ownerID, onChange))
-    }
-
-    func uninstallBridge(ownerID: UUID) {
-        bridges.removeAll { $0.ownerID == ownerID }
-    }
 
     func installHitReactionBridge(
         ownerID: UUID,
@@ -93,9 +81,7 @@ final class BattleFeedbackLane {
     }
 
     func publish(_ update: CombatFeedbackUpdate) {
-        for bridge in bridges {
-            bridge.onChange(update)
-        }
+        chipBridge.publish(update)
     }
 
     func noteItemsChanged() {

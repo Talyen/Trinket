@@ -4,8 +4,31 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-/// A resolved enemy plus the level it should fight at.
-public typealias ScaledEncounter = (combatant: Combatant, level: Int)
+/// The enemy build shared by inspection, preparation, activation, and Retry.
+/// Resolve the power curve here so launch cannot select a different one.
+public struct ScaledEncounter: Equatable {
+    public let level: Int
+
+    public var combatant: Combatant {
+        build.combatant
+    }
+
+    let build: CombatBuild
+    let faction: EnemyFaction
+
+    init(combatant: Combatant, level: Int, profile: EnemyPowerCurve.Profile = .standard) {
+        self.level = level
+        if let enemy = GameContent.enemy(matching: combatant.id) {
+            build = CombatBuildResolver.build(enemy: enemy, level: level, profile: profile)
+            faction = enemy.faction
+        } else {
+            var modifiers = CombatModifierProfile.zero
+            modifiers.outgoingDamagePercent = EnemyPowerCurve.rawDamagePercent(level: level, isBoss: false, profile: profile)
+            build = CombatBuild(combatant: combatant, modifiers: modifiers)
+            faction = .mortal
+        }
+    }
+}
 
 /// Shared loot tail for battle modes: world seed, ownership, and astral bonus
 /// read from the same save slice. Modes keep only their `resolveLoot`
@@ -84,14 +107,12 @@ enum ModeBattleSpec {
         modifiers: ModeBattleModifiers = .none,
         completionBonus: VoyageCompletionBonus? = nil,
         additionalRewardItems: [InventoryItem] = [],
-        enemyPowerProfile: EnemyPowerCurve.Profile? = nil,
     ) -> BattleLaunchInput {
         BattleLaunchInput(
             origin: origin,
             hero: roster.activeHero,
             companion: roster.activeCompanion,
-            enemy: encounter.combatant,
-            enemyEncounterLevel: encounter.level,
+            encounter: encounter,
             stageReward: loot.asStageReward,
             experienceBonusPercent: experienceBonusPercent + modifiers.experienceBonusPercent,
             victoryOnlyExperienceBonusPercent: victoryOnlyExperienceBonusPercent,
@@ -101,7 +122,6 @@ enum ModeBattleSpec {
             universalModifiers: modifiers.universalModifiers,
             nodeModifiers: modifiers.definitions,
             completionBonus: completionBonus,
-            enemyPowerProfile: enemyPowerProfile,
         )
     }
 }
@@ -115,7 +135,7 @@ enum PlayBattlePreparation {
         guard let enemyID,
               let catalogEnemy = GameContent.enemy(matching: enemyID)
         else { return nil }
-        return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level, profile: profile), level)
+        return ScaledEncounter(combatant: catalogEnemy.combatant, level: level, profile: profile)
     }
 
     /// One home for per-mode encounter math. The level curves stay distinct by

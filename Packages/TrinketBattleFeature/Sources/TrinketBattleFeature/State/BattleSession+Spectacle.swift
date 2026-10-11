@@ -248,11 +248,6 @@ extension BattleSession {
             spectacle.outcomeTask.invalidate()
             spectacle.celebrateTask.invalidate()
             spectacle = BattleSpectacleState()
-            // NB: no unconditional chip-bridge reset here. The lane already
-            // publishes `.reset` on clear when it published presentation, and
-            // production owns one long-lived session, so a teardown-time
-            // unconditional publish would only couple concurrent lanes
-            // (tests, DEBUG transition lab) through shared bridge statics.
         } else {
             clearSpectacle()
         }

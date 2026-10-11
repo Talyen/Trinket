@@ -4,53 +4,53 @@ import TrinketContent
 import TrinketCore
 
 @Model
-public final class HomesteadModel {
-    public var root: PlayerSaveRoot?
+final class HomesteadModel {
+    var root: PlayerSaveRoot?
 
     @Relationship(deleteRule: .cascade, inverse: \HomesteadResourceBalanceModel.homestead)
-    public var resources: [HomesteadResourceBalanceModel]?
+    var resources: [HomesteadResourceBalanceModel]?
     @Relationship(deleteRule: .cascade, inverse: \HomesteadPendingProductionModel.homestead)
-    public var pendingProduction: [HomesteadPendingProductionModel]?
+    var pendingProduction: [HomesteadPendingProductionModel]?
     @Relationship(deleteRule: .cascade, inverse: \HomesteadNodeTierModel.homestead)
-    public var nodeTiers: [HomesteadNodeTierModel]?
-    public var lastProductionAt: Date = Date()
-    public var goldRewardRemainder: Int = 0
-    public var gemsRewardRemainder: Int = 0
+    var nodeTiers: [HomesteadNodeTierModel]?
+    var lastProductionAt: Date = Date()
+    var goldRewardRemainder: Int = 0
+    var gemsRewardRemainder: Int = 0
 
-    public init() {}
+    init() {}
 }
 
 @Model
-public final class HomesteadResourceBalanceModel {
-    public var resourceID: String = ""
-    public var quantity: Int = 0
-    public var homestead: HomesteadModel?
+final class HomesteadResourceBalanceModel {
+    var resourceID: String = ""
+    var quantity: Int = 0
+    var homestead: HomesteadModel?
 
-    public init(resourceID: String = "", quantity: Int = 0) {
+    init(resourceID: String = "", quantity: Int = 0) {
         self.resourceID = resourceID
         self.quantity = quantity
     }
 }
 
 @Model
-public final class HomesteadPendingProductionModel {
-    public var resourceID: String = ""
-    public var quantity: Double = 0
-    public var homestead: HomesteadModel?
+final class HomesteadPendingProductionModel {
+    var resourceID: String = ""
+    var quantity: Double = 0
+    var homestead: HomesteadModel?
 
-    public init(resourceID: String = "", quantity: Double = 0) {
+    init(resourceID: String = "", quantity: Double = 0) {
         self.resourceID = resourceID
         self.quantity = quantity
     }
 }
 
 @Model
-public final class HomesteadNodeTierModel {
-    public var nodeID: String = ""
-    public var tier: Int = 0
-    public var homestead: HomesteadModel?
+final class HomesteadNodeTierModel {
+    var nodeID: String = ""
+    var tier: Int = 0
+    var homestead: HomesteadModel?
 
-    public init(nodeID: String = "", tier: Int = 0) {
+    init(nodeID: String = "", tier: Int = 0) {
         self.nodeID = nodeID
         self.tier = tier
     }

@@ -25,10 +25,10 @@ package extension CombatTriggerEngine {
         amount: Int,
         triggers: CombatTraitTriggers,
         actor: Combatant,
-        abilityKey: String = "blockGainThornsPercent",
+        abilityKey: CombatTriggerField = .blockGainThornsPercent,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        let percent = abilityKey == "blockGainThornsPercent"
+        let percent = abilityKey == .blockGainThornsPercent
             ? triggers.blockGainThornsPercent
             : triggers.retainedBlockGainThornsPercent
         let gained = CombatRounding.scaled(amount, multiplier: percent)
@@ -82,7 +82,7 @@ package extension CombatTriggerEngine {
             to: context.roster.hero.combatant,
             source: actor,
             abilityName: triggerAbilityName(
-                "companionBlockSharesToHeroPercent",
+                .companionBlockSharesToHeroPercent,
                 for: actor,
                 fallback: "Shield Bond",
                 in: context,
@@ -128,7 +128,7 @@ package extension CombatTriggerEngine {
         }
         let healTarget = BattleActionContext(actor: target, in: context).target(.lowestHealthAlly, in: context)
         await events.append(contentsOf: emitHeal(
-            "blockBrokenSaintfallPower", "Saintfall",
+            .blockBrokenSaintfallPower, "Saintfall",
             amount: power, to: healTarget, source: target, in: &context,
         ))
         return events
@@ -176,14 +176,14 @@ package extension CombatTriggerEngine {
         }
         if profile.triggers.blockBrokenBlockFlat > 0 {
             events.append(contentsOf: emitBlock(
-                "blockBrokenBlockFlat", "Cascading",
+                .blockBrokenBlockFlat, "Cascading",
                 amount: profile.triggers.blockBrokenBlockFlat, to: target, source: target, in: &context,
             ))
         }
         if profile.triggers.blockBrokenThornsFlat > 0 {
             await events.append(contentsOf: heroTalentThorns(
                 to: target, source: target, amount: profile.triggers.blockBrokenThornsFlat,
-                name: triggerAbilityName("blockBrokenThornsFlat", for: target, fallback: "Briarward", in: context),
+                name: triggerAbilityName(.blockBrokenThornsFlat, for: target, fallback: "Briarward", in: context),
                 in: &context,
             ))
         }
@@ -290,7 +290,7 @@ package extension CombatTriggerEngine {
             events.append(contentsOf: applyMarked(
                 to: enemy,
                 source: actor,
-                abilityName: triggerAbilityName("enemyStunnedApplyMarked", for: actor, fallback: "Branding", in: context),
+                abilityName: triggerAbilityName(.enemyStunnedApplyMarked, for: actor, fallback: "Branding", in: context),
                 in: &context,
             ))
         }
@@ -308,7 +308,7 @@ package extension CombatTriggerEngine {
                     to: enemy,
                     source: actor,
                     abilityName: triggerAbilityName(
-                        triggers.enemyStunnedPurgeAll ? "enemyStunnedPurgeAll" : "enemyStunnedPurgeCount",
+                        triggers.enemyStunnedPurgeAll ? .enemyStunnedPurgeAll : .enemyStunnedPurgeCount,
                         for: actor,
                         fallback: "Disrupting",
                         in: context,
@@ -332,7 +332,7 @@ package extension CombatTriggerEngine {
             .all(nil),
             source: actor,
             target: enemy,
-            abilityName: triggerAbilityName("stunPurgeDealHolyPerEffect", for: actor, fallback: "Disrupting", in: context),
+            abilityName: triggerAbilityName(.stunPurgeDealHolyPerEffect, for: actor, fallback: "Disrupting", in: context),
             in: &context,
         )
         var events = purge.events
@@ -393,7 +393,7 @@ package extension CombatTriggerEngine {
         guard percent < profile.triggers.onceBelowHealthPercentThreshold else { return events }
         context.roster.mutateRuntime(for: target) { $0.hasTriggeredSecondWind = true }
         await events.append(contentsOf: emitHeal(
-            "onceBelowHealthPercentHeal", "Second Wind",
+            .onceBelowHealthPercentHeal, "Second Wind",
             amount: profile.triggers.onceBelowHealthPercentHeal, to: target, source: target, in: &context,
         ))
         return events

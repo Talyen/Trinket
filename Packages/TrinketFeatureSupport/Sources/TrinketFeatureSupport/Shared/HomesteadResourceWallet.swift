@@ -2,12 +2,10 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
-import TrinketFeatureSupport
-import TrinketPersistence
 
 public struct HomesteadResourceWallet: View {
     let homestead: PlayerHomesteadState
-    let roster: PlayerRosterState
+    let gold: Int
     let walletAnimationNamespace: Namespace.ID?
     let displayedBalances: [HomesteadResource: Int]
     let increaseAnimationDelays: [HomesteadResource: TimeInterval]
@@ -15,14 +13,14 @@ public struct HomesteadResourceWallet: View {
 
     public init(
         homestead: PlayerHomesteadState,
-        roster: PlayerRosterState,
+        gold: Int,
         walletAnimationNamespace: Namespace.ID? = nil,
         displayedBalances: [HomesteadResource: Int] = [:],
         increaseAnimationDelays: [HomesteadResource: TimeInterval] = [:],
         keepsArtworkStationary: Bool = false,
     ) {
         self.homestead = homestead
-        self.roster = roster
+        self.gold = gold
         self.walletAnimationNamespace = walletAnimationNamespace
         self.displayedBalances = displayedBalances
         self.increaseAnimationDelays = increaseAnimationDelays
@@ -42,7 +40,7 @@ public struct HomesteadResourceWallet: View {
     private func walletPill(for resource: HomesteadResource, index: Int) -> some View {
         TrinketWalletResourcePill(
             title: resource.displayName,
-            amount: displayedBalances[resource] ?? homestead.balance(for: resource, roster: roster),
+            amount: displayedBalances[resource] ?? homestead.balance(for: resource, gold: gold),
             increaseAnimationDelay: increaseAnimationDelays[resource] ?? min(
                 Double(index) * TrinketMotion.Interaction.walletIncreaseDelayStep,
                 TrinketMotion.Interaction.walletIncreaseMaximumDelay,
@@ -56,7 +54,7 @@ public struct HomesteadResourceWallet: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(resource.displayName)
-        .accessibilityValue((displayedBalances[resource] ?? homestead.balance(for: resource, roster: roster)).formatted())
+        .accessibilityValue((displayedBalances[resource] ?? homestead.balance(for: resource, gold: gold)).formatted())
         .accessibilityIdentifier(AccessibilityID.Homestead.resourceBalance(resource))
     }
 

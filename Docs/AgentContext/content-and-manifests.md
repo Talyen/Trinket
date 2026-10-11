@@ -70,6 +70,10 @@ names, Swift cases, numeric kinds and keyword arguments. It generates the
 `AffixModifier` enum and mechanical transforms; gameplay application, presentation,
 and magnitude bump policy remain authored. Preserve case names, associated-value
 shapes, and Codable representations when evolving these definitions.
+Generation derives `CombatTriggerField` identities and populated-field traversal from
+the same schema. Combat provenance and affix-roll policy use those typed identities;
+raw names remain the flat Codable keys. Renaming a field requires migrating its
+compiled consumers while preserving or migrating the stored key.
 Validation checks Swift identifiers, typed defaults, type-compatible merge operations,
 and 64-bit `Int` bounds before rendering trigger/modifier literals.
 

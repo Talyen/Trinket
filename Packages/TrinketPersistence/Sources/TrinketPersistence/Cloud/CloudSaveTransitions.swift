@@ -1,6 +1,6 @@
 /// A proposed local transition, including the source that must still be current
 /// after asynchronous presentation preparation. Computing a plan never writes a save.
-struct CloudSaveTransition {
+struct CloudSaveTransition: Sendable {
     let sourceState: CloudDeviceState
     let sourceSnapshot: CloudSaveSnapshot
     let state: CloudDeviceState
@@ -16,7 +16,7 @@ struct CloudSaveTransition {
 /// presentation preparation and durable commits; server merge rules stay in
 /// `CloudSaveReconciler`.
 enum CloudSaveTransitions {
-    struct Acknowledgement {
+    struct Acknowledgement: Sendable {
         let transition: CloudSaveTransition
         let isCurrent: Bool
         let operationReceipt: CloudSaveReceipt?

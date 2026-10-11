@@ -15,7 +15,7 @@ public struct CombatantTalentsView: View {
     let nodeAccessibilityIdentifier: (String) -> String
     let unlockAccessibilityIdentifier: String
     let hapticsEnabled: Bool
-    let onUnlockTalent: (TalentNode, TalentTree) -> TalentUnlockResult
+    let onUnlockTalent: (TalentNode, TalentTree) -> RosterEditResult
     let onResetTalents: (() -> Bool)?
 
     @State private var selectedNodeID: String?
@@ -34,7 +34,7 @@ public struct CombatantTalentsView: View {
         nodeAccessibilityIdentifier: @escaping (String) -> String = AccessibilityID.CombatantDetail.talentsNode,
         unlockAccessibilityIdentifier: String = AccessibilityID.CombatantDetail.talentsUnlockButton,
         hapticsEnabled: Bool = false,
-        onUnlockTalent: @escaping (TalentNode, TalentTree) -> TalentUnlockResult,
+        onUnlockTalent: @escaping (TalentNode, TalentTree) -> RosterEditResult,
         onResetTalents: (() -> Bool)? = nil,
     ) {
         self.tree = tree
@@ -340,7 +340,7 @@ public struct CombatantTalentsView: View {
             Button(title) {
                 let result = onUnlockTalent(node, tree)
                 switch result {
-                case .unlocked:
+                case .committed:
                     confirmedNodeID = node.id
                     unlockSuccessTrigger &+= 1
                     if let nextID = nextUnlockableNodeID(after: node.id) {

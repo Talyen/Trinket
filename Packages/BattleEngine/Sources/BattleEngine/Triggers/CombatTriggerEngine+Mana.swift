@@ -22,7 +22,7 @@ package extension CombatTriggerEngine {
             effectKind: .cardsDrawn,
             source: .init(actor),
             abilityName: triggerAbilityName(
-                "empoweredElementDrawOpposite",
+                .empoweredElementDrawOpposite,
                 for: actor,
                 fallback: "Twin Casting",
                 in: context,
@@ -108,7 +108,7 @@ package extension CombatTriggerEngine {
     ) -> [ActionEvent] {
         guard triggers.spendManaBlockFlat > 0 else { return [] }
         return emitBlock(
-            "spendManaBlockFlat", "Aetherward",
+            .spendManaBlockFlat, "Aetherward",
             amount: triggers.spendManaBlockFlat, to: actor, source: actor, in: &context,
         )
     }
@@ -127,7 +127,7 @@ package extension CombatTriggerEngine {
                 to: context.roster.companion.combatant,
                 source: actor,
                 abilityName: triggerAbilityName(
-                    "onHeroSpendManaGainBlock",
+                    .onHeroSpendManaGainBlock,
                     for: context.roster.companion.combatant,
                     fallback: "Mana Absorption",
                     in: context,
@@ -154,7 +154,7 @@ package extension CombatTriggerEngine {
               BattleChance.succeeds(probability: triggers.spendManaRefundChancePercent, using: &context.rng) else {
             return []
         }
-        return await emitMana("spendManaRefundChancePercent", "Mana Flow", amount: amountSpent, to: actor, in: &context)
+        return await emitMana(.spendManaRefundChancePercent, "Mana Flow", amount: amountSpent, to: actor, in: &context)
     }
 
     private static func drawOnManaSpendChance(
@@ -302,7 +302,7 @@ package extension CombatTriggerEngine {
               spentLastMana,
               context.claimBattleGuard(.darkRecovery, actorID: actor.id) else { return [] }
         return await emitMana(
-            "onReachZeroManaRestoreMana", "Dark Recovery",
+            .onReachZeroManaRestoreMana, "Dark Recovery",
             amount: triggers.onReachZeroManaRestoreMana, to: actor, in: &context,
         )
     }
@@ -401,7 +401,7 @@ package extension CombatTriggerEngine {
         guard triggers.cardsPlayedManaThreshold > 0, triggers.cardsPlayedManaFlat > 0,
               count == triggers.cardsPlayedManaThreshold else { return [] }
         return await emitMana(
-            "cardsPlayedManaThreshold", "Resonant Chimes",
+            .cardsPlayedManaThreshold, "Resonant Chimes",
             amount: triggers.cardsPlayedManaFlat, to: actor, in: &context,
         )
     }
@@ -416,13 +416,13 @@ package extension CombatTriggerEngine {
         let amount = triggers.gainManaBlockFlat
         if amount > 0 {
             events.append(contentsOf: emitBlock(
-                "gainManaBlockFlat", "Arcane Ward",
+                .gainManaBlockFlat, "Arcane Ward",
                 amount: amount, to: actor, source: actor, in: &context,
             ))
         }
         if triggers.onGainManaHealFlat > 0 {
             await events.append(contentsOf: emitHeal(
-                "onGainManaHealFlat", "Life Tap",
+                .onGainManaHealFlat, "Life Tap",
                 amount: triggers.onGainManaHealFlat, to: actor, source: actor, in: &context,
             ))
         }

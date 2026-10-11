@@ -185,6 +185,14 @@ immediate card play without mid-battle on-demand decoding.
 
 Presentation layout (3:4 art, no top chrome, health anchors): [TrinketBattleFeature README](../../Packages/TrinketBattleFeature/README.md).
 
+`BattleTurnState` owns opening/round resolution/draw preparation/readiness and
+completion as one state, including each pending draw queue. Turn-start finalizers
+consume their preparation before applying effects, so retries cannot grant Block,
+Mana or talent rewards twice. `BattlePhase.preparingTurn` rejects manual cards and
+End Turn until settlement; automatic reaction cards retain their ordered resolution.
+A deferred opening may be replaced by a caller-supplied hand: the first manual
+card or End Turn consumes that optional opening without granting its effects later.
+
 Turn and opening-hand drivers can record immutable presentation checkpoints while
 finishing all engine work synchronously. Incremental draw helpers are package-only.
 Operation and mutation contracts live in [battle-engine context](battle-engine.md);

@@ -3,7 +3,6 @@ import TrinketAppState
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
-import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -13,7 +12,7 @@ struct HomesteadCategoryView: View {
 
     @Environment(PlayerSaveStore.self) private var playerSave
     @State private var showsWallet = false
-    @State private var pinnedHomesteadArtwork: [String] = []
+    @State private var artworkPins = PreparedArtworkPinSet()
 
     private var homestead: PlayerHomesteadState {
         playerSave.homestead
@@ -36,7 +35,7 @@ struct HomesteadCategoryView: View {
                 ForEach(definitions) { definition in
                     HomesteadProjectTile(
                         definition: definition,
-                        status: HomesteadProjectStatus(definition: definition, homestead: homestead, roster: roster),
+                        status: HomesteadProjectStatus(definition: definition, homestead: homestead, gold: roster.gold),
                         zoomNamespace: zoomNamespace,
                     )
                 }
@@ -64,8 +63,7 @@ struct HomesteadCategoryView: View {
             await refreshImminentHomesteadArtworkPins()
         }
         .onDisappear {
-            PreparedArtworkCache.shared.releasePins(names: pinnedHomesteadArtwork)
-            pinnedHomesteadArtwork = []
+            artworkPins.release()
         }
     }
 
@@ -83,12 +81,7 @@ struct HomesteadCategoryView: View {
     }
 
     private func refreshImminentHomesteadArtworkPins() async {
-        let refreshed = await ArtworkPinSet.refresh(
-            next: Self.imminentHomesteadArtworkNames(for: definitions),
-            current: pinnedHomesteadArtwork,
-        )
-        guard !Task.isCancelled else { return }
-        pinnedHomesteadArtwork = refreshed
+        await artworkPins.prepare(names: Self.imminentHomesteadArtworkNames(for: definitions))
     }
 }
 

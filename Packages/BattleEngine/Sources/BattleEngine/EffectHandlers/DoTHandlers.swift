@@ -191,7 +191,7 @@ struct BleedHandler: BattleEffectHandler {
             effectKind: .cardsDrawn,
             source: .init(source.combatant),
             abilityName: CombatTriggerEngine.triggerAbilityName(
-                "bleedTickDrawChancePercent",
+                .bleedTickDrawChancePercent,
                 for: source.combatant,
                 fallback: "Bloodrush",
                 in: context,

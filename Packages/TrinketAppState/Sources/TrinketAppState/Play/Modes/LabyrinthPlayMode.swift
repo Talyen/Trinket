@@ -76,14 +76,8 @@ public final class LabyrinthPlayMode {
             return encounters.beginShopOrAutoComplete(
                 origin: .labyrinth(nodeID: nodeID),
             )
-        case .mystery:
+        case .mystery, .recruit:
             return beginMysteryEncounter(nodeID: nodeID)
-        case .recruit:
-            let resolution = resolveRecruitEncounter(for: node)
-            return beginMysteryEncounter(
-                nodeID: nodeID,
-                forcedEventID: resolution.event.id,
-            )
         case .entrance:
             return nil
         }
@@ -120,25 +114,11 @@ public final class LabyrinthPlayMode {
         case .mystery:
             return encounters.previewMysteryEvent(origin: .labyrinth(nodeID: node.id))
         case .recruit:
-            if case let .mystery(event) = resolveRecruitEncounter(for: node) {
-                return event
-            }
-            return nil
+            guard let event = encounters.previewMysteryEvent(origin: .labyrinth(nodeID: node.id)), !event.isRecruit else { return nil }
+            return event
         default:
             return nil
         }
-    }
-
-    private func resolveRecruitEncounter(for node: LabyrinthNode) -> RecruitEncounterResolution {
-        let roster = playerSave.roster
-        return GameContent.resolveRecruitEncounter(
-            configuredEventID: node.recruitEventID,
-            encounterID: node.id,
-            worldSeed: playerSave.worldSeed,
-            unlockedHeroIDs: roster.unlockedHeroIDs,
-            unlockedCompanionIDs: roster.unlockedCompanionIDs,
-            access: playerSave.contentAccess,
-        )
     }
 
     public func prepareReachableBattles() {

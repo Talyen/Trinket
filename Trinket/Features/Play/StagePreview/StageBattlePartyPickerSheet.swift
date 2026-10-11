@@ -86,12 +86,14 @@ private func attemptPartySelection(
 ) {
     guard BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .available else { return }
     guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
-    let didPersist = switch slot {
-    case .hero: playerSave.selectParty(hero: combatant)
-    case .companion: playerSave.selectParty(companion: combatant)
+    let result = switch slot {
+    case .hero: playerSave.selectParty(heroID: combatant.id)
+    case .companion: playerSave.selectParty(companionID: combatant.id)
     }
-    guard didPersist else {
-        playerSave.retrySaveAction(key: "party-\(slot.title)", action: onPersistFailed)
+    guard result == .committed else {
+        if result == .persistenceFailed {
+            playerSave.retrySaveAction(key: "party-\(slot.title)", action: onPersistFailed)
+        }
         return
     }
     onSelected()

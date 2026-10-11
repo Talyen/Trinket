@@ -257,7 +257,7 @@ enum EffectRemovalOperation {
                     triggers.onPurgeGainBlock,
                     to: source, source: source,
                     abilityName: context.modifiers(for: source.id).triggerAbilityName(
-                        "onPurgeGainBlock", fallback: "Unraveling",
+                        .onPurgeGainBlock, fallback: "Unraveling",
                     ),
                 ))
             }

@@ -19,7 +19,7 @@ package extension CombatTriggerEngine {
            let owner = context.roster.participant(for: actor) {
             events.append(contentsOf: drawCards(
                 1, for: owner, actor: actor, abilityName: triggerAbilityName(
-                    "goldTheftDrawChancePercent", for: actor, fallback: "Scavenger’s Cache", in: context,
+                    .goldTheftDrawChancePercent, for: actor, fallback: "Scavenger’s Cache", in: context,
                 ), in: &context,
             ))
         }
@@ -44,14 +44,14 @@ package extension CombatTriggerEngine {
            context.claimHeroTalent(.firstGoldTheftDraw, actorID: actor.id) {
             events.append(contentsOf: drawCards(
                 triggers.firstGoldTheftDraw, for: owner, actor: actor,
-                abilityName: triggerAbilityName("firstGoldTheftDraw", for: actor, fallback: "Quick Fingers", in: context),
+                abilityName: triggerAbilityName(.firstGoldTheftDraw, for: actor, fallback: "Quick Fingers", in: context),
                 in: &context,
             ))
         }
         if triggers.firstGoldTheftHeal > 0,
            context.claimHeroTalent(.firstGoldTheftHeal, actorID: actor.id) {
             await events.append(contentsOf: emitHeal(
-                "firstGoldTheftHeal", "Scavenger's Cache",
+                .firstGoldTheftHeal, "Scavenger's Cache",
                 amount: triggers.firstGoldTheftHeal, to: actor, source: actor, in: &context,
             ))
         }
@@ -82,7 +82,7 @@ package extension CombatTriggerEngine {
             let amount = context.modifiers(for: actor.id).triggers.defeatEnemyGoldFlat
             if amount > 0 {
                 await events.append(contentsOf: emitGold(
-                    "defeatEnemyGoldFlat", "Bounty", amount: amount, to: actor, in: &context,
+                    .defeatEnemyGoldFlat, "Bounty", amount: amount, to: actor, in: &context,
                 ))
             }
         }
@@ -104,7 +104,7 @@ package extension CombatTriggerEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         guard triggers.critOnDefeatGold > 0 else { return [] }
         return await emitGold(
-            "critOnDefeatGold", "Bounty Hunter", amount: triggers.critOnDefeatGold, to: actor, in: &context,
+            .critOnDefeatGold, "Bounty Hunter", amount: triggers.critOnDefeatGold, to: actor, in: &context,
         )
     }
 
@@ -115,13 +115,13 @@ package extension CombatTriggerEngine {
             let triggers = context.modifiers(for: actor.id).triggers
             if triggers.victoryGoldFlat > 0 {
                 await events.append(contentsOf: emitGold(
-                    "victoryGoldFlat", "Smuggler's Map", amount: triggers.victoryGoldFlat, to: actor, in: &context,
+                    .victoryGoldFlat, "Smuggler's Map", amount: triggers.victoryGoldFlat, to: actor, in: &context,
                 ))
             }
             if triggers.victoryGoldCoin {
                 let amount = BattleChance.succeeds(probability: 0.5, using: &context.rng) ? 7 : 3
                 await events.append(contentsOf: emitGold(
-                    "victoryGoldCoin", "Wishing Well Coin", amount: amount, to: actor, in: &context,
+                    .victoryGoldCoin, "Wishing Well Coin", amount: amount, to: actor, in: &context,
                 ))
             }
         }
@@ -181,7 +181,7 @@ package extension CombatTriggerEngine {
                 events.append(contentsOf: drawCards(
                     1, for: owner, actor: combatant,
                     abilityName: triggerAbilityName(
-                        "goldGainDrawChancePercent", for: combatant, fallback: "Lucky Break", in: context,
+                        .goldGainDrawChancePercent, for: combatant, fallback: "Lucky Break", in: context,
                     ), in: &context,
                 ))
             }
@@ -202,7 +202,7 @@ package extension CombatTriggerEngine {
                 for: owner,
                 actor: combatant,
                 abilityName: triggerAbilityName(
-                    "gainGoldDrawThreshold",
+                    .gainGoldDrawThreshold,
                     for: combatant,
                     fallback: "Golden Opportunity",
                     in: context,
@@ -213,7 +213,7 @@ package extension CombatTriggerEngine {
         if restoration.restoresParty {
             for (_, member) in livingPartyMembers(in: context) {
                 await events.append(contentsOf: emitHeal(
-                    "onGainGoldHealParty", "Golden Recovery",
+                    .onGainGoldHealParty, "Golden Recovery",
                     amount: triggers.onGainGoldHealParty, to: member.combatant, source: combatant, in: &context,
                 ))
             }
@@ -226,7 +226,7 @@ package extension CombatTriggerEngine {
                     let block = CombatRounding.scaled(granted, multiplier: percent)
                     if block > 0 {
                         events.append(contentsOf: emitBlock(
-                            "goldGainBlockPercent", "Golden Guard",
+                            .goldGainBlockPercent, "Golden Guard",
                             amount: block, to: member.combatant, source: member.combatant, in: &context,
                         ))
                     }
@@ -237,7 +237,7 @@ package extension CombatTriggerEngine {
                 let newlyGranted = currentEarned / every - previousEarned / every
                 if newlyGranted > 0 {
                     events.append(contentsOf: emitBlock(
-                        "blockPerGoldEarnedEvery", "Golden Guard",
+                        .blockPerGoldEarnedEvery, "Golden Guard",
                         amount: newlyGranted, to: member.combatant, source: member.combatant, in: &context,
                     ))
                 }
@@ -294,7 +294,7 @@ package extension CombatTriggerEngine {
 
         if triggers.leechRestoreManaFlat > 0 {
             await events.append(contentsOf: emitMana(
-                "leechRestoreManaFlat", "Siphoning",
+                .leechRestoreManaFlat, "Siphoning",
                 amount: context.paced(triggers.leechRestoreManaFlat, sourceActorID: actor.id),
                 to: actor, in: &context,
             ))
@@ -302,7 +302,7 @@ package extension CombatTriggerEngine {
 
         if triggers.leechGoldFlat > 0 {
             await events.append(contentsOf: emitGold(
-                "leechGoldFlat", "Blood Price", amount: triggers.leechGoldFlat, to: actor, in: &context,
+                .leechGoldFlat, "Blood Price", amount: triggers.leechGoldFlat, to: actor, in: &context,
             ))
         }
 

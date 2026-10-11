@@ -89,7 +89,6 @@ public final class ContractsPlayMode {
             roster: playerSave.roster,
             experienceBonusPercent: ContractsCompletion.effectiveModifier(for: offer, inventory: playerSave.inventory)
                 .experienceBonusPercent,
-            enemyPowerProfile: offer.difficulty == .easy ? .recovery : .standard,
         )
         return (input, .contract(offerID: offer.id))
     }

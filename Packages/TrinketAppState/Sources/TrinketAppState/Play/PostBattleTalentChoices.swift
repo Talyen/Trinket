@@ -39,13 +39,13 @@ struct PostBattleTalentChoices {
         }
     }
 
-    mutating func choose(nodeID: String, treeID: String, in playerSave: PlayerSaveStore) -> TalentUnlockResult {
+    mutating func choose(nodeID: String, treeID: String, in playerSave: PlayerSaveStore) -> RosterEditResult {
         prune(in: playerSave.roster)
         guard let combatantID = currentCombatantID(in: playerSave.roster) else {
             return .unavailable
         }
         let result = playerSave.unlockTalent(nodeID: nodeID, treeID: treeID, for: combatantID)
-        if result == .unlocked {
+        if result == .committed {
             confirmation = Confirmation(combatantID: combatantID)
             if !playerSave.roster.hasUnlockableTalent(for: combatantID) {
                 queuedCombatantIDs.removeAll { $0 == combatantID }

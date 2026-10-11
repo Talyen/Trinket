@@ -88,7 +88,7 @@ extension PlayBattleCoordinator {
                 guard let registration = registration(for: origin.runKey),
                       registration.launch.configuration.hero.combatant.id == input.hero.id,
                       registration.launch.configuration.companion.combatant.id == input.companion.id,
-                      registration.launch.configuration.enemy?.id == input.enemy?.id else { return false }
+                      registration.launch.configuration.enemy?.id == input.encounter?.combatant.id else { return false }
             }
             guard let route else { return false }
             guard prepareCombat(input, route: route),
@@ -138,18 +138,12 @@ extension PlayBattleCoordinator {
         let roster = playerSave.roster
         let hero = roster.heroes.first { $0.id == configuration.hero.combatant.id } ?? roster.activeHero
         let companion = roster.companions.first { $0.id == configuration.companion.combatant.id } ?? roster.activeCompanion
-        let launch = makeBattleLaunch(BattleLaunchInput(
-            origin: original.origin, hero: hero, companion: companion,
-            enemy: original.enemy, enemyEncounterLevel: original.enemyEncounterLevel,
-            stageReward: original.stageReward,
-            experienceBonusPercent: original.experienceBonusPercent,
-            victoryOnlyExperienceBonusPercent: original.victoryOnlyExperienceBonusPercent,
-            pendingRewardItem: original.pendingRewardItem,
-            additionalRewardItems: original.additionalRewardItems,
-            stageRewardsAlreadyClaimed: original.stageRewardsAlreadyClaimed,
-            universalModifiers: original.universalModifiers,
-            nodeModifiers: original.nodeModifiers, completionBonus: original.completionBonus,
-        ))
+        // Copy the complete request: Retry changes party state and RNG, never
+        // encounter rules or captured rewards as new launch fields are added.
+        var input = original
+        input.hero = hero
+        input.companion = companion
+        let launch = makeBattleLaunch(input)
         guard restart(launch, route: run.route) else { return false }
         shellSession.selectedTab = .play
         return true

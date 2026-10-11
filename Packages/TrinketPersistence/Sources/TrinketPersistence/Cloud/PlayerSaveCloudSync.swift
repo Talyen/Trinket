@@ -5,15 +5,23 @@ import os
 public final class PlayerSaveCloudSync {
     private weak var store: PlayerSaveStore?
     private let transport: any CloudSaveTransport
+    private let reconcile: @Sendable (CloudSaveRequest, CloudServerSave?) async throws -> CloudSaveReconciler.Resolution
     private var task: Task<Bool, Never>?
     private var taskID: UUID?
     private var lastOperationReceipt: CloudSaveReceipt?
     private(set) var requiresAuthority: Bool
     private let logger = Logger(subsystem: PlayerSaveDefaults.loggingSubsystem, category: "CloudSave")
 
-    init(store: PlayerSaveStore, transport: any CloudSaveTransport) {
+    init(
+        store: PlayerSaveStore,
+        transport: any CloudSaveTransport,
+        reconcile: @escaping @Sendable (CloudSaveRequest, CloudServerSave?) async throws -> CloudSaveReconciler.Resolution = {
+            try await CloudSavePlanner.resolve($0, against: $1)
+        },
+    ) {
         self.store = store
         self.transport = transport
+        self.reconcile = reconcile
         requiresAuthority = store.cloudDeviceState.activeAccountID != nil
     }
 
@@ -106,7 +114,7 @@ public final class PlayerSaveCloudSync {
                     _ = try enqueue(state.resetRequested ? .reset : .upload, in: store)
                 }
             }
-            var server = try await transport.fetchHead(accountID: accountID)
+            let server = try await transport.fetchHead(accountID: accountID)
             try Task.checkCancellation()
             guard store.cloudDeviceState.activeAccountID == accountID else { throw CloudSaveError.accountChanged }
             guard let request = store.cloudDeviceState.account.pending else {
@@ -124,19 +132,9 @@ public final class PlayerSaveCloudSync {
                 continue
             }
             do {
-                if let existing = server {
-                    server = try await transport.refreshTime(accountID: accountID, head: existing)
-                }
-                try Task.checkCancellation()
-                let resolution = try CloudSaveReconciler.resolve(request, against: server)
-                let committed = try await transport.commit(
-                    accountID: accountID,
-                    replacing: server,
-                    head: resolution.head,
-                    receipt: resolution.receipt,
-                    backups: resolution.backups,
-                )
-                if try await finish(request, receipt: resolution.receipt, server: committed, accountID: accountID, in: store) {
+                guard let result = try await reconcileAndCommit(request, against: server, accountID: accountID, in: store)
+                else { continue }
+                if try await finish(request, receipt: result.receipt, server: result.server, accountID: accountID, in: store) {
                     return
                 }
             } catch CloudSaveError.conflict {
@@ -145,6 +143,28 @@ public final class PlayerSaveCloudSync {
             }
         }
         throw CloudSaveError.unavailable
+    }
+
+    private func reconcileAndCommit(
+        _ request: CloudSaveRequest, against server: CloudServerSave?, accountID: String, in store: PlayerSaveStore,
+    ) async throws -> (server: CloudServerSave, receipt: CloudSaveReceipt)? {
+        var server = server
+        if let existing = server {
+            server = try await transport.refreshTime(accountID: accountID, head: existing)
+        }
+        try Task.checkCancellation()
+        let resolution = try await reconcile(request, server)
+        try Task.checkCancellation()
+        // Planning yields to local play and account changes. New local
+        // earnings may extend this request's frozen prefix; replacing
+        // the account or pending request makes the result obsolete.
+        guard store.cloudDeviceState.activeAccountID == accountID else { throw CloudSaveError.accountChanged }
+        guard store.cloudDeviceState.account.pending?.id == request.id else { return nil }
+        let committed = try await transport.commit(
+            accountID: accountID, replacing: server,
+            head: resolution.head, receipt: resolution.receipt, backups: resolution.backups,
+        )
+        return (committed, resolution.receipt)
     }
 
     /// Server-conflict backoff, intentionally separate from `SaveRetryPolicy`:
@@ -159,7 +179,7 @@ public final class PlayerSaveCloudSync {
 
     private func importRemoteIfUnchanged(_ server: CloudServerSave?, in store: PlayerSaveStore) async throws -> Bool {
         guard let server else { throw CloudSaveError.missingHead }
-        guard let transition = try CloudSaveTransitions.importRemote(
+        guard let transition = try await CloudSavePlanner.importRemote(
             server.head, state: store.cloudDeviceState, local: CloudSaveSnapshot(store.currentSave),
         ) else { return false }
         return try await apply(transition, in: store)
@@ -212,7 +232,7 @@ public final class PlayerSaveCloudSync {
         in store: PlayerSaveStore,
     ) async throws -> Bool {
         try Task.checkCancellation()
-        guard let acknowledgement = try CloudSaveTransitions.acknowledge(
+        guard let acknowledgement = try await CloudSavePlanner.acknowledge(
             request, receipt: receipt, head: server.head, accountID: accountID,
             state: store.cloudDeviceState, local: CloudSaveSnapshot(store.currentSave),
         ), try await apply(acknowledgement.transition, in: store) else { return false }
@@ -223,7 +243,7 @@ public final class PlayerSaveCloudSync {
     }
 
     private func bind(_ accountID: String?, in store: PlayerSaveStore) async throws {
-        guard let transition = try CloudSaveTransitions.bind(
+        guard let transition = try await CloudSavePlanner.bind(
             accountID, state: store.cloudDeviceState, local: CloudSaveSnapshot(store.currentSave),
         ) else { return }
         guard try await apply(transition, in: store) else { throw CloudSaveError.conflict }

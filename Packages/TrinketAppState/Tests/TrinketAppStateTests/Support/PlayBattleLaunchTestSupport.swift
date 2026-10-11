@@ -96,8 +96,9 @@ enum PlayBattleLaunchTestSupport {
                 origin: origin,
                 hero: hero,
                 companion: companion,
-                enemy: enemy,
-                enemyEncounterLevel: enemyEncounterLevel,
+                encounter: enemy.map {
+                    ScaledEncounter(combatant: $0, level: enemyEncounterLevel ?? roster.progression(for: hero).level)
+                },
                 stageReward: stageReward,
                 experienceBonusPercent: experienceBonusPercent,
                 pendingRewardItem: pendingRewardItem,

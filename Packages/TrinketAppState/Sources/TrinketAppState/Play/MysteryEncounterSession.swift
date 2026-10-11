@@ -122,59 +122,6 @@ public final class MysteryEncounterSession: Identifiable {
         self.combatant = combatant
     }
 
-    static func resolveEvent(
-        origin: PlayEncounterOrigin,
-        forcedEventID: String?,
-        worldSeed: UInt64,
-        pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
-        pinnedLabyrinthEventID: String? = nil,
-        pinnedJourneyEventID: String? = nil,
-    ) -> MysteryEvent {
-        switch origin {
-        case let .labyrinth(nodeID), let .voyage(_, nodeID):
-            GameContent.resolveLabyrinthMysteryEvent(
-                nodeID: nodeID,
-                worldSeed: worldSeed,
-                forcedEventID: forcedEventID,
-                pinnedEventID: pinnedLabyrinthEventID,
-                context: pickContext,
-            )
-        case let .journey(stage):
-            GameContent.resolveJourneyMysteryEvent(
-                stage: stage,
-                worldSeed: worldSeed,
-                forcedEventID: forcedEventID,
-                pinnedEventID: pinnedJourneyEventID,
-                context: pickContext,
-            )
-        }
-    }
-
-    static func open(
-        origin: PlayEncounterOrigin,
-        encounter: EncounterIdentity,
-        forcedEventID: String?,
-        worldSeed: UInt64,
-        pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
-        pinnedLabyrinthEventID: String? = nil,
-        pinnedJourneyEventID: String? = nil,
-    ) -> MysteryEncounterSession {
-        let event = resolveEvent(
-            origin: origin,
-            forcedEventID: forcedEventID,
-            worldSeed: worldSeed,
-            pickContext: pickContext,
-            pinnedLabyrinthEventID: pinnedLabyrinthEventID,
-            pinnedJourneyEventID: pinnedJourneyEventID,
-        )
-        return MysteryEncounterSession(
-            origin: origin,
-            encounter: encounter,
-            event: event,
-            combatant: GameContent.combatant(forMysteryEvent: event),
-        )
-    }
-
     func claimRewardCollectionSound() -> Bool {
         guard showsReward, !hasCollectedReward else { return false }
         hasCollectedReward = true
@@ -182,7 +129,7 @@ public final class MysteryEncounterSession: Identifiable {
     }
 
     var resolutionRequest: MysteryEncounterRequest {
-        MysteryEncounterRequest(encounter: encounter, event: event, displayedOffers: offers)
+        MysteryEncounterRequest(encounter: encounter, eventID: event.id, displayedOffers: offers)
     }
 
     func installOffers(_ offers: [MysteryOffer]) {
@@ -223,7 +170,7 @@ extension MysteryEncounterSession {
         case let .reveal(unlockedCombatantID):
             present(.reveal(combatantID: unlockedCombatantID))
         case .selectCorruptItem:
-            let items = inventory.map(ItemCorruption.eligibleTargets(in:)) ?? []
+            let items = inventory.map { ItemCorruption.eligibleTargets(in: $0.items) } ?? []
             present(.corruptItemChoice(items))
         case let .corruptionReveal(result):
             present(.corruptionReveal(result))

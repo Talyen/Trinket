@@ -4,7 +4,7 @@ Use with [persistence ownership](persistence.md) for domain commands, rewards an
 
 ## Reward levels
 
-`BattleLoot.resolve` owns seeded battle drops for every mode. `LootRequest` carries
+Content's `BattleLoot.resolve` owns seeded battle drops for every mode. `LootRequest` carries
 mode identity and bonuses; the captured encounter level drives both item quality
 and currency quantities. Item-tier odds clamp at loot level 40; currency quantities
 continue to scale beyond it. Noncombat item offers and Blacksmith forging use the
@@ -81,16 +81,10 @@ sequence is owned by [battle completion](battle-launch.md).
 
 ## Corruption and Salvage
 
-Corruption gives each successfully added or replaced affix one numeric bump at the
-item's final rarity: increase/decrease odds use the existing 40:20 weights (two to
-one), changing one eligible value by 1 or one percentage point. A decrease that
-cannot respect the 1 / 1% minimum becomes an increase. On/off affixes stay eligible
-without a numeric bump. The independent item-wide 40% increase and 20% decrease
-rolls target only surviving original affixes, preventing extra bumps on new affixes.
-Existing corrupted items are unchanged; structural selection and corruption-mark
-priority retain their existing rules. Items with affixes absent from the current
-catalog remain saved intact and are ineligible for corruption; the altar must not
-partially rebuild their affixes or powers.
+Item eligibility, Corruption rolls/result values, and Salvage yields belong to
+`TrinketContent/Equipment`; see [item transformations](../../Packages/TrinketContent/README.md#item-transformations).
+Persistence owns item lookup/replacement/removal, unequipping, material grants,
+economic receipts, and the Corruption Altar cooldown.
 
 Salvage and Corruption appliers return typed domain results consumed directly by
 `persistTransaction`. Store commands distinguish committed results, rejected
@@ -101,8 +95,15 @@ actions, and storage failure; a rejected action never enters commit.
 Mystery opening pins the chosen event and prepares any saved offers in one
 transaction; rejected offers leave no new pin, and the session appears only
 after the save commits. `prepareMysteryEncounter` and `resolveMysteryEncounter`
-own these transactions in Persistence. `MysteryEncounterResolution` owns choice
-effects and progress together, including required item/unlock validation. Mystery requests,
+own these transactions in Persistence. Event selection and preview use
+`EncounterIdentity.mysteryEvent(in:)` against the save and catalog. The prepared
+result supplies presentation; recruits also pin before opening. Saved pins win
+over later selection hints. Interrupted recruit pins use normal roster substitution
+when that combatant was unlocked elsewhere. Requests carry an expected event ID,
+never executable effects; ordinary choices and corruption must match the authoritative
+event before mutation. Unreadable pins reject without replacement.
+
+`MysteryEncounterResolution` owns choice effects and progress together, including required item/unlock validation. Mystery requests,
 offer preparation, and claims use one required `EncounterIdentity`; levels, payloads,
 and completion derive from its location rather than a parallel stage or optional
 node ID. Direct choices receive normal noncombat completion rewards; pooled offers
@@ -137,13 +138,19 @@ prices to reconstruct these charges.
 
 `NonCombatEncounterCompletion` owns Journey, Labyrinth, and Voyage progress for
 Shops and Mystery events. It requires a current playable `EncounterIdentity`;
-stale sessions and combat nodes cannot grant rewards or advance progress. Direct
-choices receive normal encounter rewards; pooled Mystery offers only advance
+stale sessions and combat nodes cannot grant rewards or advance progress.
+Direct choices receive normal encounter rewards; pooled Mystery offers only advance
 progress. Empty Shops prepare stock and complete in one transaction. Shop exit
 rejects a stale session without writing and closes its obsolete presentation;
 failed writes retain the session and retry silently.
 
 ## Homestead transactions
+
+Content's `PlayerHomesteadState` owns production, collection, affordability, and
+upgrade math using Gold values, with the wallet bound in Core's `GoldBalance`.
+Persistence owns saved Gold, Homestead graph mapping/sanitization, admission,
+and receipts; cloud replay uses the same Content rules with historical Gold.
+The Homestead value's Codable fields and the SwiftData graph remain unchanged.
 
 Homestead collection and build/upgrade commands are asynchronous. Linked cloud
 players collect and upgrade locally after a durable write, including offline;

@@ -3,7 +3,7 @@ import TrinketFeatureSupport
 
 @MainActor
 final class ItemPickerArtworkLease {
-    private let names: [String]
+    private let lease: PreparedArtworkLease
 
     init(items: [InventoryItem]) async {
         let requested = ArtworkViewportPrewarm.windowNames(
@@ -13,10 +13,6 @@ final class ItemPickerArtworkLease {
             prefetchRows: ArtworkViewportPrewarm.defaultPrefetchRows,
             estimatedColumns: ArtworkViewportPrewarm.partyPickerEstimatedColumns,
         )
-        names = await PreparedArtworkCache.shared.prepareAndPin(names: requested)
-    }
-
-    isolated deinit {
-        PreparedArtworkCache.shared.releasePins(names: names)
+        lease = await PreparedArtworkLease(names: requested)
     }
 }

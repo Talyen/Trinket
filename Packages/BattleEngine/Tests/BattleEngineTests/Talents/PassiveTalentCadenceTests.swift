@@ -10,8 +10,8 @@ struct PassiveTalentCadenceTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.burnCriticalRestoreMana = 2
         profile.triggers.bleedCriticalDrawChancePercent = 1
-        profile.setTriggerAbilityName("burnCriticalRestoreMana", "Mana Reward")
-        profile.setTriggerAbilityName("bleedCriticalDrawChancePercent", sharedName ? "Mana Reward" : "Card Reward")
+        profile.setTriggerAbilityName(.burnCriticalRestoreMana, "Mana Reward")
+        profile.setTriggerAbilityName(.bleedCriticalDrawChancePercent, sharedName ? "Mana Reward" : "Card Reward")
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxMana: 10, companionMana: 0, companionModifiers: profile,
             dealOpeningHand: false,

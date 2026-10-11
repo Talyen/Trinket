@@ -39,8 +39,7 @@ struct PlayBattleLaunchTests {
         }
         let preview = try #require(PlayBattlePreparation.scaledEncounter(enemyID: enemy.id, level: 40, profile: profile))
         let launch = makeLaunch(BattleLaunchInput(
-            origin: origin, hero: party.knight, companion: party.wolf, enemy: preview.combatant,
-            enemyEncounterLevel: 40, enemyPowerProfile: mode == .contract ? .recovery : nil,
+            origin: origin, hero: party.knight, companion: party.wolf, encounter: preview,
         ))
         let launchedEnemy = try #require(launch.configuration.enemy)
         #expect(launchedEnemy.maxHealth == preview.combatant.maxHealth)
@@ -85,7 +84,7 @@ struct PlayBattleLaunchTests {
             input: BattleLaunchInput(
                 hero: hero,
                 companion: companion,
-                enemy: enemy,
+                encounter: ScaledEncounter(combatant: enemy, level: 1),
                 universalModifiers: [modifier],
             ),
             rngSeed: 0,
@@ -112,7 +111,7 @@ struct PlayBattleLaunchTests {
             input: BattleLaunchInput(
                 hero: hero,
                 companion: companion,
-                enemy: enemy,
+                encounter: ScaledEncounter(combatant: enemy, level: 1),
                 nodeModifiers: modifiers,
             ),
             rngSeed: 0,
@@ -133,7 +132,7 @@ struct PlayBattleLaunchTests {
         let item = try #require(GameContent.uniqueItems.first)
         let input = ModeBattleSpec.launchInput(
             origin: .labyrinth(nodeID: "test-node"),
-            encounter: (enemy, 5),
+            encounter: ScaledEncounter(combatant: enemy, level: 5),
             loot: BattleLootResult(item: item, gold: 0, materials: []),
             roster: .testSeed,
             modifiers: modifiers,
@@ -161,7 +160,7 @@ struct PlayBattleLaunchTests {
                 origin: .journey(stageID: stage.id),
                 hero: knight,
                 companion: wolf,
-                enemy: enemy,
+                encounter: ScaledEncounter(combatant: enemy, level: 1),
                 stageRewardsAlreadyClaimed: true,
             ),
             rngSeed: 0,
@@ -176,7 +175,7 @@ struct PlayBattleLaunchTests {
         #expect(launch.presentation.stageRewardsAlreadyClaimed)
     }
 
-    @Test func `assemble preserves pre scaled enemy stats`() throws {
+    @Test func `assembly uses the resolved encounter build`() throws {
         let chapter = try #require(GameContent.chapters.first)
         let battleStages = chapter.stages.filter(\.encounter.isCombat)
         let stage = try #require(battleStages.last)
@@ -193,8 +192,7 @@ struct PlayBattleLaunchTests {
                 origin: .journey(stageID: stage.id),
                 hero: knight,
                 companion: wolf,
-                enemy: scaledEnemy,
-                enemyEncounterLevel: encounterLevel,
+                encounter: ScaledEncounter(combatant: catalogEnemy.combatant, level: encounterLevel),
             ),
             rngSeed: 0,
             rosterState: .testSeed,
@@ -220,7 +218,7 @@ struct PlayBattleLaunchTests {
                 origin: .journey(stageID: "launch-test"),
                 hero: knight,
                 companion: wolf,
-                enemyEncounterLevel: 2,
+                encounter: ScaledEncounter(combatant: Enemy.fallbackCombatant, level: 2),
                 stageReward: stageReward,
             ),
             rngSeed: 0,
@@ -251,7 +249,7 @@ struct PlayBattleLaunchTests {
                 origin: .journey(stageID: "reward-test"),
                 hero: knight,
                 companion: wolf,
-                enemy: enemy,
+                encounter: ScaledEncounter(combatant: enemy, level: 1),
                 stageReward: StageReward(gold: 10, itemTemplateIDs: ["shortsword-basic"]),
                 pendingRewardItem: pendingItem,
             ),
@@ -259,7 +257,7 @@ struct PlayBattleLaunchTests {
         #expect(withPending.presentation.rewardPlan.items == [pendingItem])
 
         let noPendingNilStage = makeLaunch(
-            BattleLaunchInput(hero: knight, companion: wolf, enemy: enemy),
+            BattleLaunchInput(hero: knight, companion: wolf, encounter: ScaledEncounter(combatant: enemy, level: 1)),
         )
         #expect(noPendingNilStage.presentation.rewardPlan.items.isEmpty)
 
@@ -268,7 +266,7 @@ struct PlayBattleLaunchTests {
                 origin: .journey(stageID: "reward-test"),
                 hero: knight,
                 companion: wolf,
-                enemy: enemy,
+                encounter: ScaledEncounter(combatant: enemy, level: 1),
                 stageReward: StageReward(gold: 0, itemTemplateIDs: []),
             ),
         )
@@ -280,7 +278,7 @@ struct PlayBattleLaunchTests {
                 origin: .journey(stageID: "reward-test"),
                 hero: knight,
                 companion: wolf,
-                enemy: enemy,
+                encounter: ScaledEncounter(combatant: enemy, level: 1),
                 stageReward: StageReward(gold: 10, itemTemplateIDs: ["shortsword-basic"]),
             ),
         )

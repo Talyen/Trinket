@@ -3,13 +3,14 @@ import TrinketContent
 import TrinketCore
 
 enum CloudSaveReconciler {
-    struct Resolution {
+    struct Resolution: Sendable {
         let head: CloudSaveHead
         let receipt: CloudSaveReceipt
         let backups: [CloudSaveBackup]
     }
 
     static func resolve(_ request: CloudSaveRequest, against server: CloudServerSave?) throws -> Resolution {
+        try Task.checkCancellation()
         try validateEffects(in: request)
         let incomingSave = try request.revision.snapshot.restored()
         guard let server else {
@@ -22,7 +23,7 @@ enum CloudSaveReconciler {
         if !existing.productionClockEstablished {
             oldSave.homestead.lastProductionAt = min(oldSave.homestead.lastProductionAt, server.serverTime)
         }
-        oldSave.homestead.settleProduction(at: server.serverTime, roster: oldSave.roster)
+        oldSave.homestead.settleProduction(at: server.serverTime, gold: oldSave.roster.gold)
         let sameEpoch = request.baseEpoch == existing.epoch
             || (request.baseEpoch == nil && existing.resetCount == 0)
         var head = existing
@@ -121,6 +122,7 @@ enum CloudSaveReconciler {
 
     private static func validateEffects(in request: CloudSaveRequest) throws {
         for mutation in request.mutations?.records ?? [] {
+            try Task.checkCancellation()
             try mutation.economy?.validate()
             for receipt in mutation.receipts ?? [] {
                 try receipt.validate()
@@ -177,6 +179,7 @@ enum CloudSaveReconciler {
         var projected = initial
         var seen: Set<String> = []
         for mutation in mutations where mutation.changedSliceMask != 0 && seen.insert(mutation.id).inserted {
+            try Task.checkCancellation()
             let before = try mutation.before.restored()
             let after = try mutation.after.restored()
             var merged = CloudSaveMerge.merge(
@@ -218,7 +221,7 @@ enum CloudSaveReconciler {
         let outcome: CloudSaveReceipt.Outcome
         switch request.action {
         case .collect:
-            let collected = save.homestead.collectProduction(at: date, roster: &save.roster)
+            let collected = save.homestead.collectProduction(at: date, gold: &save.roster.gold)
             outcome = .collected(Dictionary(uniqueKeysWithValues: collected.map { ($0.resource, $0.quantity) }))
             if !collected.isEmpty {
                 head.authoritySequence += 1

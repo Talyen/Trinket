@@ -20,6 +20,7 @@ struct TalentPersistenceTests {
             combatantID == "wildcard" ? "wildcard_dodge_t1_2" : "druid_health_t1_2",
         ]
         var saved = PlayerSave.fresh
+        _ = saved.roster.unlockCombatant(id: combatantID)
         saved.roster.progressions[combatantID] = .at(level: 100)
         saved.roster.progressions["knight"] = .at(level: 12)
         saved.roster.unlockedTalents[combatantID] = purchased
@@ -37,10 +38,11 @@ struct TalentPersistenceTests {
         #expect(reloaded.roster.progressions["knight"] == .at(level: 12))
         #expect(reloaded.roster.availableTalentPoints(for: combatantID) == 50 - retained.count)
         if !complete {
+            reloaded.contentAccess = .fullGame
             let keyword: Keyword = combatantID == "wildcard" ? .dodge : .health
             let tree = try #require(CombatantTalentCatalog.config(for: combatantID).tree(for: keyword))
             let introductory = try #require(tree.nodes(forRow: 1).first)
-            #expect(reloaded.unlockTalent(nodeID: introductory.id, treeID: tree.id, for: combatantID) == .unlocked)
+            #expect(reloaded.unlockTalent(nodeID: introductory.id, treeID: tree.id, for: combatantID) == .committed)
             let savedAgain = try context.makeReloadedStore()
             #expect(savedAgain.roster.unlockedTalents(for: combatantID) == retained.union([introductory.id]))
         }
@@ -53,6 +55,8 @@ struct TalentPersistenceTests {
         let rogueTalents: Set = ["rogue_poison_t1_1", "rogue_poison_t1_2"]
 
         try firstStore.performBatchMutation { save in
+            _ = save.roster.unlockCombatant(id: "knight")
+            _ = save.roster.unlockCombatant(id: "rogue")
             save.roster.progressions["knight"] = .at(level: 4)
             save.roster.progressions["rogue"] = .at(level: 4)
         }
@@ -60,7 +64,7 @@ struct TalentPersistenceTests {
             let config = try #require(CombatantTalentCatalog.configIfAvailable(for: combatantID))
             for nodeID in nodeIDs.sorted() {
                 let tree = try #require(config.trees.first { $0.node(matching: nodeID) != nil })
-                #expect(firstStore.unlockTalent(nodeID: nodeID, treeID: tree.id, for: combatantID) == .unlocked)
+                #expect(firstStore.unlockTalent(nodeID: nodeID, treeID: tree.id, for: combatantID) == .committed)
             }
         }
 
@@ -75,6 +79,7 @@ struct TalentPersistenceTests {
 
     @Test @MainActor func `in-memory store rejects unavailable talent without mutation`() throws {
         let store = try PlayerSaveStore(inMemoryOnly: true)
+        try store.performBatchMutation { _ = $0.roster.unlockCombatant(id: "knight") }
         let knightTree = try #require(CombatantTalentCatalog.allConfigs["knight"]?.trees.first)
         let knightNode = try #require(knightTree.nodes.first)
         let rogueTree = try #require(CombatantTalentCatalog.allConfigs["rogue"]?.trees.first)
@@ -100,6 +105,7 @@ struct TalentPersistenceTests {
     @Test @MainActor func `in-memory failed talent save rolls back unlock`() throws {
         let store = try PlayerSaveStore(inMemoryOnly: true)
         try store.performBatchMutation { save in
+            _ = save.roster.unlockCombatant(id: "knight")
             save.roster.progressions["knight"] = .at(level: 2)
         }
         let tree = try #require(CombatantTalentCatalog.allConfigs["knight"]?.trees.first)

@@ -312,7 +312,7 @@ struct StationaryFeedbackTests {
 
         view.apply(chips: [(items[0], raster)])
         #expect(view.debugIsMotionRegistered)
-        CombatFeedbackChipBridge.unregister(view)
+        view.stopMotion()
         #expect(!view.debugIsMotionRegistered)
         #expect(view.debugVisibleChipIDs == [1])
         view.apply(chips: [(items[0], raster)])

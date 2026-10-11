@@ -1,8 +1,6 @@
 import Testing
 import TrinketContent
 import TrinketCore
-import TrinketFeatureAdapters
-import TrinketPersistence
 @testable import TrinketFeatureSupport
 
 struct HomesteadPresentationTests {
@@ -174,8 +172,6 @@ struct HomesteadPresentationTests {
         homestead: PlayerHomesteadState,
         gold: Int = 0,
     ) -> HomesteadProjectStatus {
-        var roster = PlayerRosterState.freshStart
-        roster.gold = gold
-        return HomesteadProjectStatus(definition: definition, homestead: homestead, roster: roster)
+        HomesteadProjectStatus(definition: definition, homestead: homestead, gold: gold)
     }
 }

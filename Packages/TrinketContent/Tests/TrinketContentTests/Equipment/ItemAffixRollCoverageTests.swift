@@ -80,11 +80,11 @@ struct ItemAffixRollCoverageTests {
     }
 
     @Test func `every populated affix trigger field rolls or is excused`() {
-        let rollable = CombatTraitTriggers.affixMagnitudeFieldNames
+        let rollable = CombatTraitTriggers.affixMagnitudeFieldIDs
         var violations: [String] = []
         for definition in GameContent.itemAffixDefinitions {
             for power in [definition.basic, definition.astral] {
-                for field in power.triggers.populatedFieldNames {
+                for field in power.triggers.populatedFields {
                     if !rollable.contains(field), CombatTraitTriggers.nonRollableAffixFields[field] == nil {
                         violations.append("\(definition.id): \(field)")
                     }

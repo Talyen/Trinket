@@ -4,7 +4,7 @@ Use for player progression, roster, inventory, homestead, SwiftData, or CloudKit
 
 `TrinketPersistence` owns the SwiftData model graph and stores. `PlayerSaveRoot` owns the graph; `PlayerSaveStore` opens/configures persistence and provides read-only observed slices and explicit domain commands (`PlayerSaveStore+Homestead.swift`, `PlayerSaveStore+Roster.swift`, `PlayerSaveStore+ContentAccess.swift`, plus `salvageItem` in `ItemSalvage.swift` and `corruptItem` in `ItemCorruption.swift`). Prefer value types for rules/calculations. Views and AppState use domain commands; unrestricted save/roster mutation closures are internal to Persistence. Assigning a save slice is not a persistence API.
 
-Campaign reward and completion **domain write policies** also live here (`BattleLoot`, `StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`, `MysteryEventPinApplier`): app sessions decide when to apply them; Persistence owns the save mutation. Save-store test harnesses live in this package's `TrinketPersistenceTestSupport` target — see the package `AGENTS.md`.
+Campaign reward and completion **domain write policies** also live here (`StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`): app sessions decide when to apply them; Persistence owns the save mutation. Save-store test harnesses live in this package's `TrinketPersistenceTestSupport` target — see the package `AGENTS.md`.
 
 Domain commands return a committed value, a domain rejection, or a storage failure.
 The internal `persistTransaction`, `persistBatch`, and `performBatchMutation` share
@@ -26,6 +26,13 @@ navigation only after commit; they do not show technical save-error alerts.
 Deferred mutation is an internal `performBatchMutation(..., persistImmediately: false)`
 operation, with a debounced save and a synchronous lifecycle flush; there is no
 store-wide deferred-setter setting or `-defer-persistence` launch argument.
+
+Roster edits carry combatant, ability, and physical item IDs, never caller-owned
+catalog or Inventory snapshots. Candidate-value rules in `Models/RosterEdits.swift`
+resolve those IDs against current content, unlocks, purchase access, and Inventory
+before mutation. Loadout, party, and talent commands return `RosterEditResult`;
+only `persistenceFailed` schedules a save retry. Unavailable intents do not write
+or silently select a fallback; save hydration still repairs older data.
 
 Options are deliberately separate: `OptionsStore` uses app-storage-compatible `UserDefaults`, not player-save/CloudKit state. Packages must not import app or SwiftUI feature code.
 

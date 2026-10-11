@@ -38,22 +38,29 @@ public extension PlayerSaveStore {
     }
 
     func prepareMysteryEncounter(
-        event: MysteryEvent, encounter: EncounterIdentity,
+        encounter: EncounterIdentity, forcedEventID: String? = nil,
         using random: inout some RandomNumberGenerator, at date: Date = Date(),
-    ) -> SaveTransactionResult<[MysteryOffer], MysteryChoiceFailure> {
+    ) -> SaveTransactionResult<PreparedMysteryEncounter, MysteryChoiceFailure> {
         persistTransaction(logging: "Failed to open mystery encounter") { save in
-            guard encounter.isPlayable(in: save), Self.pinMysteryEvent(event.id, encounter: encounter, save: &save)
+            guard encounter.isPlayable(in: save),
+                  let event = encounter.mysteryEvent(in: save, forcedEventID: forcedEventID, access: contentAccess),
+                  event.unlockCombatantID.map(contentAccess.allowsCombatant) ?? true
             else { return .failure(.unavailable) }
+            encounter.pinMysteryEvent(event.id, save: &save)
             guard event.id != GameContent.corruptionAltarEventID,
-                  !event.choices.contains(where: { $0.effects.contains(.corruptItem) }) else { return .success([]) }
+                  !event.choices.contains(where: { $0.effects.contains(.corruptItem) }) else { return .success(PreparedMysteryEncounter(
+                event: event,
+                offers: [],
+            )) }
             do {
-                return try .success(MysteryOfferPersistence.prepare(
+                let offers = try MysteryOfferPersistence.prepare(
                     event: event,
                     encounter: encounter,
                     save: &save,
                     using: &random,
                     at: date,
-                ))
+                )
+                return .success(PreparedMysteryEncounter(event: event, offers: offers))
             } catch {
                 return .failure(.unavailable)
             }
@@ -65,6 +72,10 @@ public extension PlayerSaveStore {
         using random: inout some RandomNumberGenerator, at date: Date = Date(),
     ) -> SaveTransactionResult<MysteryChoiceOutcome, MysteryChoiceFailure> {
         persistTransaction(logging: "Failed to resolve mystery encounter") { save, recordReceipt in
+            guard let event = request.encounter.mysteryEvent(in: save, access: contentAccess),
+                  event.id == request.eventID,
+                  event.unlockCombatantID.map(contentAccess.allowsCombatant) ?? true
+            else { return .failure(.unavailable) }
             let before = save
             let result = switch action {
             case let .choice(id):
@@ -79,22 +90,6 @@ public extension PlayerSaveStore {
                 recordReceipt(.reward(from: before, to: save, claim: claim))
             }
             return result
-        }
-    }
-}
-
-extension PlayerSaveStore {
-    private static func pinMysteryEvent(_ eventID: String, encounter: EncounterIdentity, save: inout PlayerSave) -> Bool {
-        switch encounter.location {
-        case let .voyage(runID, nodeID):
-            guard save.voyage.node(runID: runID, nodeID: nodeID)?.mysteryEventID == nil else { return true }
-            save.voyage.updateNode(runID: runID, nodeID: nodeID) { $0.mysteryEventID = eventID }
-            return true
-        case let .labyrinth(nodeID):
-            return MysteryEventPinApplier.pinLabyrinthEvent(nodeID: nodeID, eventID: eventID, save: &save)
-        case let .journey(stageID):
-            guard GameContent.stage(id: stageID)?.mysteryEvent == nil else { return true }
-            return MysteryEventPinApplier.pinJourneyEvent(stageID: stageID, eventID: eventID, save: &save)
         }
     }
 }

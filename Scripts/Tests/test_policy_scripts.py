@@ -176,12 +176,15 @@ else:
             contracts = root / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/Probe.swift"
             contracts.parent.mkdir(parents=True)
             design_probe = root / "Packages/TrinketDesignSystem/Sources/Probe.swift"
+            graph_probe = root / "Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveGraph/Probe.swift"
+            graph_probe.parent.mkdir(parents=True)
             appstate_manifest = root / "Packages/TrinketAppState/Package.swift"
             seam = root / "Trinket/Features/Play/PlayView.swift"
             outsider = root / "Trinket/Features/Play/OutsiderView.swift"
             seam.parent.mkdir(parents=True)
             clean = (
                 (design_probe, "struct Probe {}\n"),
+                (graph_probe, "package final class SaveRoot {}\nextension SaveRoot {}\n"),
                 (contracts, "import BattleEngine\nstruct Contract {}\n"),
                 (seam, "import TrinketBattleFeature\nstruct PlayView {}\n"),
                 (outsider, "struct OutsiderView {}\n"),
@@ -193,6 +196,12 @@ else:
             )
             cases = (
                 ("clean tree with allowlisted seam", (), None),
+                ("public mutable storage model",
+                 ((graph_probe, "public final class SaveRoot {}\n"),),
+                 "persistence graph must not export public"),
+                ("public storage mapping extension",
+                 ((graph_probe, "public extension SaveRoot {}\n"),),
+                 "persistence graph must not export public"),
                 ("contracts importing persistence",
                  ((contracts, "import TrinketPersistence\nstruct Contract {}\n"),),
                  "TrinketFeatureContracts must not import TrinketPersistence"),

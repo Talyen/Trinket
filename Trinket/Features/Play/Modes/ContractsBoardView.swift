@@ -16,7 +16,7 @@ struct ContractsBoardView: View {
     @Environment(\.presentPlayCombatantDetail) private var presentPlayCombatantDetail
 
     @State private var message: StageMapMessage?
-    @State private var pinnedArtwork: [String] = []
+    @State private var artworkPins = PreparedArtworkPinSet()
     @State private var feedbackTrigger = 0
     @State private var displayedOffers: [ContractOffer] = []
     @State private var hasPreparedBoard = false
@@ -111,8 +111,7 @@ struct ContractsBoardView: View {
             } catch {}
         }
         .onDisappear {
-            PreparedArtworkCache.shared.releasePins(names: pinnedArtwork)
-            pinnedArtwork = []
+            artworkPins.release()
             hasPreparedBoard = false
         }
     }
@@ -131,7 +130,7 @@ struct ContractsBoardView: View {
 
     @ViewBuilder
     private var heroArtwork: some View {
-        if let art = ArtCatalog.backgroundArtByID[EncounterArtIDs.contractsHeroID], pinnedArtwork.contains(art.imageName) {
+        if let art = ArtCatalog.backgroundArtByID[EncounterArtIDs.contractsHeroID], artworkPins.names.contains(art.imageName) {
             FocalBackgroundArtwork(art: art)
         } else {
             TrinketDesign.Colors.canvas
@@ -157,23 +156,14 @@ struct ContractsBoardView: View {
 
     private func isArtworkReady(for offer: ContractOffer) -> Bool {
         guard let name = GameContent.enemy(matching: offer.enemyID)?.combatant.artReference?.imageName else { return false }
-        return pinnedArtwork.contains(name)
+        return artworkPins.names.contains(name)
     }
 
-    /// Intentionally bespoke instead of ArtworkPinSet.refresh: outgoing pins
-    /// must survive the board crossfade (see ui-performance Contracts rules),
-    /// so release is deferred until after the crossfade sleep with a
-    /// superseded-generation guard. Sharing the helper would release outgoing
-    /// pins at publish time, risking eviction mid-crossfade.
     private func prepareBoard(offers: [ContractOffer]) async {
-        let names = artworkNames(for: offers)
-        let added = Array(Set(names).subtracting(pinnedArtwork))
-        let acquired = await PreparedArtworkCache.shared.prepareAndPin(names: added)
-        guard !Task.isCancelled, offers == playerSave.contracts.offers else {
-            PreparedArtworkCache.shared.releasePins(names: acquired)
-            return
-        }
-        pinnedArtwork = Array(Set(pinnedArtwork).union(acquired))
+        guard let update = await artworkPins.prepare(
+            names: artworkNames(for: offers), retainingOutgoing: true,
+            isCurrent: { offers == playerSave.contracts.offers },
+        ) else { return }
         withAnimation(TrinketMotion.Screen.crossfade) {
             displayedOffers = offers
             hasPreparedBoard = true
@@ -181,13 +171,8 @@ struct ContractsBoardView: View {
         do {
             try await Task.sleep(for: .seconds(TrinketMotion.Screen.crossfadeDuration))
             try Task.checkCancellation()
-            // Superseded generations must not release pins: the newer
-            // prepareBoard owns the outgoing set now. Releasing here would
-            // double-release pins the new board still references.
             guard offers == playerSave.contracts.offers else { return }
-            let outgoing = Set(pinnedArtwork).subtracting(names)
-            PreparedArtworkCache.shared.releasePins(names: Array(outgoing))
-            pinnedArtwork.removeAll { outgoing.contains($0) }
+            artworkPins.finish(update)
         } catch {}
     }
 

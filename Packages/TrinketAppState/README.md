@@ -44,8 +44,11 @@ closures and receipt collection stay internal to Persistence. The app compositio
 connects its typed progression delegate before bootstrap; view appearance is not part of
 the reward or completion lifecycle.
 
-`FullGameStore` owns StoreKit product loading, verified purchase ownership,
-transaction delivery, and explicit restoration. AppState supplies its transient
+`FullGameStore` owns purchase state, entitlement refresh ordering, and explicit
+restoration. Its internal `FullGameStorefront` adapter owns StoreKit I/O and
+verified delivery acknowledgement capabilities. Every delivery source refreshes
+current entitlements before acknowledgement; transaction history never grants
+access independently. AppState supplies its transient
 access snapshot to the player store and reconciles the party at safe boundaries.
 Call `synchronizePurchaseAccess` from the app shell after purchase, restoration,
 or foregrounding — never from within a battle or encounter flow; it defers while

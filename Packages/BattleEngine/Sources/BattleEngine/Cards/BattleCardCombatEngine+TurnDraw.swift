@@ -8,23 +8,22 @@ package extension BattleCardCombatEngine {
         context: inout BattleState,
     ) async -> [ActionEvent] {
         guard !context.isBattleOver, context.phase == .playerTurn else {
-            assertionFailure("BattleCardCombatEngine.endTurnWithoutDraw called outside playerTurn")
             return []
         }
 
+        context.turnState = .resolving
         var events = await advanceRoundCommon(context: &context)
         if context.phase == .ended {
             return events
         }
 
-        context.phase = .playerTurn
         events.append(contentsOf: UniqueCombatEngine.startTurn(in: &context))
 
         context.heroDeck.recycleDiscards()
         context.companionDeck.recycleDiscards()
         let plannedDraws = scheduledDraws(in: &context)
 
-        context.pendingTurnDrawState = TurnDrawState(plannedDraws: plannedDraws)
+        context.turnState = .drawing(plannedDraws)
 
         return events
     }
@@ -33,19 +32,12 @@ package extension BattleCardCombatEngine {
     static func drawNextTurnStartCard(
         context: inout BattleState,
     ) -> Bool {
-        guard var state = context.pendingTurnDrawState else {
-            return false
-        }
-
-        while !state.plannedDraws.isEmpty {
-            let nextOwner = state.plannedDraws.removeFirst()
-            context.pendingTurnDrawState = state.plannedDraws.isEmpty ? nil : state
-            if drawOne(for: nextOwner, context: &context) != nil {
+        while let owner = context.turnState.nextDraw(opening: false) {
+            if drawOne(for: owner, context: &context) != nil {
                 return true
             }
         }
 
-        context.pendingTurnDrawState = nil
         return false
     }
 
@@ -53,7 +45,7 @@ package extension BattleCardCombatEngine {
     static func finalizeTurnStart(
         context: inout BattleState,
     ) async -> [ActionEvent] {
-        context.pendingTurnDrawState = nil
+        guard context.turnState.beginTurnStart(opening: false) else { return [] }
         var events: [ActionEvent] = []
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         await events.append(contentsOf: restoreManaAtPlayerTurnStart(context: &context))

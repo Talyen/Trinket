@@ -138,7 +138,7 @@ public struct PlayerSave: Equatable, Sendable {
     @discardableResult
     public mutating func grantGold(_ amount: Int, at date: Date = Date()) -> Int {
         guard amount > 0 else { return 0 }
-        homestead.settleProduction(at: date, roster: roster)
+        homestead.settleProduction(at: date, gold: roster.gold)
         let balanceBefore = roster.gold
         let reserved = PlayerRosterState.reservedGold(from: homestead.pendingProduction)
         let available = PlayerRosterState.availableGoldCapacity(gold: roster.gold, reservedGold: reserved)
@@ -151,7 +151,7 @@ public struct PlayerSave: Equatable, Sendable {
         if amount >= 0 {
             return grantGold(amount, at: date)
         }
-        homestead.settleProduction(at: date, roster: roster)
+        homestead.settleProduction(at: date, gold: roster.gold)
         let balanceBefore = roster.gold
         _ = roster.spendGold(min(-amount, roster.gold))
         return roster.gold - balanceBefore
@@ -163,7 +163,7 @@ public struct PlayerSave: Equatable, Sendable {
         at date: Date = Date(),
     ) -> [ResourceAmount] {
         guard !rewards.isEmpty else { return [] }
-        homestead.settleProduction(at: date, roster: roster)
+        homestead.settleProduction(at: date, gold: roster.gold)
         let balancesBefore = homestead.resources
         homestead.grant(rewards)
 

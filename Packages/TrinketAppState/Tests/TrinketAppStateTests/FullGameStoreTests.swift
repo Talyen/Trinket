@@ -7,27 +7,23 @@ import Testing
 struct FullGameStoreTests {
     @Test @MainActor
     func `an older entitlement refresh cannot revoke a newer restored purchase`() async throws {
-        let store = FullGameStore()
+        let backend = ControlledFullGameStorefront()
         let response = AsyncStream<FullGameStore.Ownership>.makeStream()
-        var firstReadStarted = false
-        let first = Task {
-            await store.refreshOwnership {
-                firstReadStarted = true
-                var iterator = response.stream.makeAsyncIterator()
-                return await iterator.next() ?? .free
-            }
-        }
+        backend.nextRead = response.stream
+        let store = FullGameStore(storefront: backend.storefront)
+        let first = Task { await store.refreshOwnership() }
         defer {
             first.cancel()
             response.continuation.finish()
         }
         let deadline = ContinuousClock.now + .seconds(5)
-        while !firstReadStarted, ContinuousClock.now < deadline {
+        while backend.readCount == 0, ContinuousClock.now < deadline {
             await Task.yield()
         }
-        try #require(firstReadStarted, "Entitlement refresh did not start")
+        try #require(backend.readCount == 1, "Entitlement refresh did not start")
 
-        await store.refreshOwnership { .purchased }
+        backend.ownership = .purchased
+        await store.restore()
         #expect(store.ownership.access.hasFullGame)
         response.continuation.yield(.free)
         response.continuation.finish()
@@ -38,8 +34,87 @@ struct FullGameStoreTests {
     }
 
     @Test @MainActor
+    func `unfinished purchase delivery cannot regrant revoked access`() async {
+        let backend = ControlledFullGameStorefront()
+        let store = FullGameStore(storefront: backend.storefront)
+        backend.unfinished = [FullGameTransaction(finish: { @MainActor in
+            backend.ownershipAtFinish.append(store.ownership)
+        })]
+
+        await store.start()
+
+        #expect(store.ownership == .free)
+        #expect(backend.ownershipAtFinish == [.free])
+    }
+
+    @Test @MainActor
+    func `live delivery reconciles revocation and family access before acknowledgement`() async throws {
+        let backend = ControlledFullGameStorefront()
+        backend.ownership = .purchased
+        let store = FullGameStore(storefront: backend.storefront)
+        await store.start()
+        #expect(store.ownership == .purchased)
+        let receive = try await backend.waitForUpdateReceiver()
+        let transaction = FullGameTransaction(finish: { @MainActor in
+            backend.ownershipAtFinish.append(store.ownership)
+        })
+
+        backend.ownership = .free
+        await receive(transaction)
+        #expect(!store.ownership.access.hasFullGame)
+        backend.ownership = .familyShared
+        await receive(transaction)
+        #expect(store.ownership.access.hasFullGame)
+        #expect(backend.ownershipAtFinish == [.free, .familyShared])
+
+        // Unverified notifications must also invalidate previously granted access
+        // when the current entitlement set no longer contains a verified purchase.
+        backend.ownership = .unverified
+        await receive(FullGameTransaction(finish: nil))
+        #expect(store.ownership == .unverified)
+        #expect(!store.ownership.access.hasFullGame)
+        #expect(backend.ownershipAtFinish.count == 2)
+    }
+
+    @Test @MainActor
+    func `a superseded delivery cannot grant access or acknowledge discarded ownership`() async throws {
+        let backend = ControlledFullGameStorefront()
+        backend.ownership = .purchased
+        let store = FullGameStore(storefront: backend.storefront)
+        await store.start()
+        let receive = try await backend.waitForUpdateReceiver()
+        let response = AsyncStream<FullGameStore.Ownership>.makeStream()
+        backend.nextRead = response.stream
+        let transaction = FullGameTransaction(finish: { @MainActor in
+            backend.ownershipAtFinish.append(store.ownership)
+        })
+        let pending = Task { await receive(transaction) }
+        defer {
+            pending.cancel()
+            response.continuation.finish()
+        }
+        let deadline = ContinuousClock.now + .seconds(5)
+        while backend.readCount < 2, ContinuousClock.now < deadline {
+            await Task.yield()
+        }
+        try #require(backend.readCount == 2, "Delivery refresh did not start")
+
+        backend.ownership = .free
+        await store.refreshOwnership()
+        response.continuation.yield(.purchased)
+        response.continuation.finish()
+        await pending.value
+        #expect(store.ownership == .free)
+        #expect(backend.ownershipAtFinish.isEmpty)
+
+        await receive(transaction)
+        #expect(backend.ownershipAtFinish == [.free])
+    }
+
+    @Test @MainActor
     func `cancelling and pending never grant access`() async {
-        let store = FullGameStore()
+        let backend = ControlledFullGameStorefront()
+        let store = FullGameStore(storefront: backend.storefront)
         store.purchaseStarted()
         await store.purchaseCompleted(.success(.userCancelled))
         #expect(!store.ownership.access.hasFullGame)
@@ -52,5 +127,50 @@ struct FullGameStoreTests {
         await store.purchaseCompleted(.failure(StoreKitError.networkError(URLError(.notConnectedToInternet))))
         #expect(!store.ownership.access.hasFullGame)
         #expect(!store.isPurchasing)
+        #expect(backend.readCount == 0)
+    }
+}
+
+@MainActor
+private final class ControlledFullGameStorefront {
+    var ownership = FullGameStore.Ownership.free
+    var nextRead: AsyncStream<FullGameStore.Ownership>?
+    var readCount = 0
+    var unfinished: [FullGameTransaction] = []
+    var receiveUpdate: FullGameStorefront.Receive?
+    var ownershipAtFinish: [FullGameStore.Ownership] = []
+
+    var storefront: FullGameStorefront {
+        FullGameStorefront(
+            currentOwnership: { await self.resolve() },
+            observeUpdates: { self.receiveUpdate = $0 },
+            recoverUnfinished: { receive in
+                let transactions = self.unfinished
+                self.unfinished.removeAll()
+                for transaction in transactions {
+                    await receive(transaction)
+                }
+            },
+            loadProduct: { nil },
+            sync: {},
+        )
+    }
+
+    func waitForUpdateReceiver() async throws -> FullGameStorefront.Receive {
+        let deadline = ContinuousClock.now + .seconds(5)
+        while receiveUpdate == nil, ContinuousClock.now < deadline {
+            await Task.yield()
+        }
+        return try #require(receiveUpdate, "Transaction listener did not start")
+    }
+
+    private func resolve() async -> FullGameStore.Ownership {
+        readCount += 1
+        if let nextRead {
+            self.nextRead = nil
+            var iterator = nextRead.makeAsyncIterator()
+            return await iterator.next() ?? .free
+        }
+        return ownership
     }
 }

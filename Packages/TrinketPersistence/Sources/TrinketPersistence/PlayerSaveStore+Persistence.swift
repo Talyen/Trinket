@@ -197,19 +197,4 @@ extension PlayerSaveStore {
         root.apply(snapshot, slices: slices, context: context)
         installObservedSave(snapshot, slices: slices)
     }
-
-    func installObservedSave(_ save: PlayerSave, slices: PlayerSaveSlice = .all) {
-        if save.sessionGeneration != observedSave.sessionGeneration {
-            saveActionRetries.cancelAll()
-        }
-        if slices == .all {
-            observedSave = save
-            return
-        }
-        var updated = observedSave
-        for section in slices.sections {
-            section.copy(from: save, into: &updated)
-        }
-        observedSave = updated
-    }
 }

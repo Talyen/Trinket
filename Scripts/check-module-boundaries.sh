@@ -60,6 +60,15 @@ while IFS= read -r file; do
   trinket_rg_violation "$file: packages must not import Trinket app module"
 done <<< "$TRINKET_RG_MATCHES"
 
+# The mutable storage graph is implementation, not a second save-command API.
+# Same-package test support can use package access; consumers use store commands.
+trinket_rg_scan -l '^[[:space:]]*(public|open)([[:space:]]|$)' \
+  Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveGraph -g '*.swift'
+while IFS= read -r file; do
+  [[ -n "$file" ]] || continue
+  trinket_rg_violation "$file: persistence graph must not export public storage models, mappings, or schema"
+done <<< "$TRINKET_RG_MATCHES"
+
 # Enforce the package DAG in both source imports and Package.swift declarations.
 for forbidden in TrinketContent BattleEngine TrinketPersistence TrinketFeatureSupport TrinketBattleFeature TrinketAppState; do
   check_no_import "Packages/TrinketDesignSystem/Sources" "^import $forbidden$" \

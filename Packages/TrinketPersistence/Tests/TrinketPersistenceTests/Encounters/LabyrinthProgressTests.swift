@@ -229,7 +229,7 @@ struct LabyrinthProgressTests {
         if pending.isTrinket || pending.rarity == .unique {
             #expect(pending.id == pending.templateID)
         } else {
-            #expect(pending.id == LabyrinthCompletion.rewardItemID(forNodeID: bossID))
+            #expect(pending.id == "labyrinth-\(bossID)")
         }
 
         LabyrinthCompletion.complete(

@@ -184,7 +184,7 @@ package extension CombatTriggerEngine {
             count,
             for: owner,
             actor: actor,
-            abilityKey: "drawOnSpendMana",
+            abilityKey: .drawOnSpendMana,
             fallback: "Runic Quill",
             in: &context,
         )
@@ -199,7 +199,7 @@ package extension CombatTriggerEngine {
             count,
             for: owner,
             actor: actor,
-            abilityKey: "drawOnHealthLoss",
+            abilityKey: .drawOnHealthLoss,
             fallback: "Bone Charm",
             in: &context,
         )
@@ -209,7 +209,7 @@ package extension CombatTriggerEngine {
         _ count: Int,
         for owner: BattleParticipant,
         actor: Combatant,
-        abilityKey: String,
+        abilityKey: CombatTriggerField,
         fallback: String,
         in context: inout BattleState,
     ) -> [ActionEvent] {
@@ -286,7 +286,7 @@ package extension CombatTriggerEngine {
             else { continue }
             for (_, target) in livingPartyMembers(in: context) {
                 await events.append(contentsOf: emitHeal(
-                    "cardsPlayedHealPartyThreshold", "Playful Energy",
+                    .cardsPlayedHealPartyThreshold, "Playful Energy",
                     amount: triggers.cardsPlayedHealPartyAmount,
                     to: target.combatant, source: actor.combatant, in: &context,
                 ))

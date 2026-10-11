@@ -1,5 +1,4 @@
 import Foundation
-import TrinketContent
 import TrinketCore
 
 public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
@@ -81,9 +80,9 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         self.rewardRemainders = rewardRemainders
     }
 
-    public func balance(for resource: HomesteadResource, roster: PlayerRosterState) -> Int {
+    public func balance(for resource: HomesteadResource, gold: Int) -> Int {
         if resource == .gold {
-            return roster.gold
+            return gold
         }
         return resources[resource, default: 0]
     }
@@ -107,16 +106,16 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
 
     public func pendingProductionAmounts(
         at date: Date,
-        roster: PlayerRosterState,
+        gold: Int,
     ) -> [ResourceAmount] {
         var projected = self
-        projected.settleProduction(at: date, roster: roster)
-        return projected.collectibleAmounts(roster: roster)
+        projected.settleProduction(at: date, gold: gold)
+        return projected.collectibleAmounts(gold: gold)
     }
 
-    private func collectibleAmounts(roster: PlayerRosterState) -> [ResourceAmount] {
+    private func collectibleAmounts(gold: Int) -> [ResourceAmount] {
         pendingProduction.compactMap { resource, amount in
-            let quantity = collectibleQuantity(for: resource, pending: amount, roster: roster)
+            let quantity = collectibleQuantity(for: resource, pending: amount, gold: gold)
             return quantity > 0 ? ResourceAmount(resource, quantity) : nil
         }.sorted { $0.resource.rawValue < $1.resource.rawValue }
     }
@@ -128,9 +127,9 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         }.filter { $0.quantity > 0 }
     }
 
-    public func nextCollectibleDate(after date: Date, roster: PlayerRosterState) -> Date? {
+    public func nextCollectibleDate(after date: Date, gold: Int) -> Date? {
         var projected = self
-        projected.settleProduction(at: date, roster: roster)
+        projected.settleProduction(at: date, gold: gold)
 
         var rates: [HomesteadResource: Double] = [:]
         for production in projected.activeProduction {
@@ -141,8 +140,8 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         for (resource, rate) in rates where rate > 0 {
             let pending = projected.pendingProduction[resource, default: 0]
             if resource == .gold {
-                let capacity = Double(PlayerRosterState.maxGoldBalance)
-                    - Double(projected.balance(for: .gold, roster: roster))
+                let capacity = Double(GoldBalance.maximum)
+                    - Double(projected.balance(for: .gold, gold: gold))
                 guard pending < capacity else { continue }
             }
             let remaining = floor(pending) + 1 - pending
@@ -153,35 +152,35 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         return soonest.map { date.addingTimeInterval($0) }
     }
 
-    func collectibleQuantity(
+    private func collectibleQuantity(
         for resource: HomesteadResource,
         pending amount: Double,
-        roster: PlayerRosterState,
+        gold: Int,
     ) -> Int {
         let available = SaturatedArithmetic.rounded(amount.rounded(.down))
         guard available > 0 else { return 0 }
         if resource == .gold {
             return min(
                 available,
-                max(0, PlayerRosterState.maxGoldBalance - balance(for: .gold, roster: roster)),
+                max(0, GoldBalance.maximum - balance(for: .gold, gold: gold)),
             )
         }
-        let capacity = Int.max - max(0, balance(for: resource, roster: roster))
+        let capacity = Int.max - max(0, balance(for: resource, gold: gold))
         return min(available, capacity)
     }
 
     @discardableResult
     public mutating func collectProduction(
         at date: Date,
-        roster: inout PlayerRosterState,
+        gold: inout Int,
     ) -> [ResourceAmount] {
-        settleProduction(at: date, roster: roster)
+        settleProduction(at: date, gold: gold)
 
-        let collected = collectibleAmounts(roster: roster)
+        let collected = collectibleAmounts(gold: gold)
 
         for amount in collected {
             if amount.resource == .gold {
-                roster.grantGold(amount.quantity)
+                gold = GoldBalance.clamped(gold + amount.quantity)
             } else {
                 resources[amount.resource, default: 0] += amount.quantity
             }
@@ -191,7 +190,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         return collected
     }
 
-    public mutating func settleProduction(at date: Date, roster: PlayerRosterState) {
+    public mutating func settleProduction(at date: Date, gold: Int) {
         guard date >= lastProductionAt else { return }
         let elapsed = date.timeIntervalSince(lastProductionAt)
         guard elapsed > 0 else {
@@ -203,8 +202,8 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
             let pending = pendingProduction[production.resource, default: 0]
             let generated = Double(production.quantity) * elapsed / Self.secondsPerDay
             if production.resource == .gold {
-                let capacity = Double(PlayerRosterState.maxGoldBalance)
-                    - Double(balance(for: .gold, roster: roster))
+                let capacity = Double(GoldBalance.maximum)
+                    - Double(balance(for: .gold, gold: gold))
                     - pending
                 guard capacity > 0 else { continue }
                 pendingProduction[.gold] = pending + min(capacity, generated)
@@ -221,18 +220,18 @@ public extension PlayerHomesteadState {
         definition.tier(tier(for: definition.id) + 1)
     }
 
-    func canAfford(_ tier: HomesteadNodeTier, roster: PlayerRosterState) -> Bool {
-        canAfford(cost: tier.cost, roster: roster)
+    func canAfford(_ tier: HomesteadNodeTier, gold: Int) -> Bool {
+        canAfford(cost: tier.cost, gold: gold)
     }
 
-    func canAfford(cost: [ResourceAmount], roster: PlayerRosterState) -> Bool {
-        cost.allSatisfy { balance(for: $0.resource, roster: roster) >= $0.quantity }
+    func canAfford(cost: [ResourceAmount], gold: Int) -> Bool {
+        cost.allSatisfy { balance(for: $0.resource, gold: gold) >= $0.quantity }
     }
 
-    mutating func deductCost(_ cost: [ResourceAmount], roster: inout PlayerRosterState) {
+    mutating func deductCost(_ cost: [ResourceAmount], gold: inout Int) {
         for amount in cost {
             if amount.resource == .gold {
-                roster.gold -= amount.quantity
+                gold = GoldBalance.clamped(gold - amount.quantity)
             } else {
                 resources[amount.resource, default: 0] -= amount.quantity
             }
@@ -243,12 +242,12 @@ public extension PlayerHomesteadState {
         tier(for: definition.id) >= definition.maxTier
     }
 
-    mutating func buildOrUpgrade(_ definition: HomesteadNodeDefinition, roster: inout PlayerRosterState) -> Bool {
+    mutating func buildOrUpgrade(_ definition: HomesteadNodeDefinition, gold: inout Int) -> Bool {
         guard let tier = nextTier(for: definition),
-              canAfford(tier, roster: roster)
+              canAfford(tier, gold: gold)
         else { return false }
 
-        deductCost(tier.cost, roster: &roster)
+        deductCost(tier.cost, gold: &gold)
         nodeTiers[definition.id, default: 0] += 1
         return true
     }
