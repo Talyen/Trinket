@@ -6,13 +6,6 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct MysteryMaterialBoundaryTests {
-    @Test(arguments: [Int.min, 0, 1, 3, 4, 7, 50, Int.max / 14, Int.max / 14 + 1, Int.max])
-    func `material scaling preserves the exact quotient across integer boundaries`(level: Int) {
-        let product = UInt(max(1, level)).multipliedFullWidth(by: 14)
-        let quotient = UInt(49).dividingFullWidth(product).quotient
-        #expect(MysteryEffectApplier.materialQuantity(forLevel: level) == 4 + Int(quotient))
-    }
-
     @Test @MainActor func `a readable extreme-depth Mystery still prepares materials after disk reload`() throws {
         let context = try PersistenceTestContext()
         var save = SaveTestSupport.makeSave()

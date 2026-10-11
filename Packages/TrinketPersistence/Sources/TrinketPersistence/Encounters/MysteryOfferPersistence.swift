@@ -44,29 +44,29 @@ public enum MysteryOfferPersistence {
         }
         let bonuses = encounter.modifierEffects(in: save)
         save.homestead.settleProduction(at: date, gold: save.roster.gold)
+        let resolver = MysteryRewardResolver(save: save, at: date)
         // Non-pool choices (leave, corrupt-only, unlock-only) resolve through
         // the direct-effects path, so only pooled choices produce offers.
         let offers: [MysteryOffer] = event.choices.compactMap { choice in
             let saved = previous.first { $0.choiceID == choice.id }
-            guard let offer = saved ?? MysteryEffectApplier.resolveOffer(
+            guard let offer = saved ?? resolver.resolveOffer(
                 choice: choice,
                 encounterID: encounter.stageID,
                 encounterLevel: level,
                 rewardLevel: rewardLevel,
-                save: save,
                 bonuses: bonuses,
                 using: &randomNumberGenerator,
             ) else { return nil }
-            if saved != nil, MysteryEffectApplier.hasCurrentHomesteadReward(offer, save: save) {
+            if saved != nil, resolver.hasCurrentHomesteadReward(offer) {
                 return offer
             }
             var remainders = save.homestead.rewardRemainders ?? .zero
             let nominal = offer.homesteadReward?.resolve(remainders: &remainders) ?? offer.bonus
             return MysteryOffer(
                 choiceID: offer.choiceID, item: offer.item,
-                bonus: MysteryEffectApplier.settledBonus(
-                    nominal, encounterLevel: level, save: save,
-                    experiencePercent: bonuses.experienceEarnedPercent, at: date,
+                bonus: resolver.settledBonus(
+                    nominal, encounterLevel: level,
+                    experiencePercent: bonuses.experienceEarnedPercent,
                 ),
                 homesteadReward: offer.homesteadReward,
             )
@@ -103,7 +103,7 @@ public enum MysteryOfferPersistence {
             return MysteryEffectResult()
         }
         let bonuses = encounter.modifierEffects(in: candidate)
-        guard MysteryEffectApplier.hasCurrentHomesteadReward(offer, save: candidate) else { return MysteryEffectResult() }
+        guard MysteryRewardResolver(save: candidate, at: grantDate).hasCurrentHomesteadReward(offer) else { return MysteryEffectResult() }
         let result = MysteryEffectApplier.apply(
             offer, save: &candidate, at: grantDate,
             goldOverflowExperience: RewardExperiencePolicy.encounterAward(

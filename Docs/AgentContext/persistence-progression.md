@@ -21,7 +21,10 @@ produces `BattleRewardSettlement`; the same value drives the reveal and completi
 A positive net Gold award fills available wallet space; only the excess becomes
 XP in proportion to the overflow fraction of the original award. Preserve generic
 battle spending in the net calculation for compatibility. Current combat content
-does not produce battle spending. Mystery offers pin their item and nominal bonus
+does not produce battle spending. Content's `MysteryRewardResolver` owns Mystery
+generation and settlement from explicit ownership, Homestead, and reward inputs.
+Persistence owns pinning and claim writes.
+Mystery offers pin their item and nominal bonus
 when opened, show a Gold/XP split when initially needed, and convert any further
 Gold overflow at claim. Reward arithmetic saturates at integer limits, including Voyage completion
 bonuses and saved run totals; ordinary reward amounts retain their existing values.

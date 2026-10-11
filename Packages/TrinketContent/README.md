@@ -124,6 +124,15 @@ affordability, and upgrades. It accepts Gold values rather than saved rosters;
 sanitization, graph mapping, transaction admission, and economic receipts.
 The value's Codable fields are preserved for existing cloud snapshots.
 
+## Mystery rewards
+
+`MysteryRewardResolver` owns item-pool generation, reward scaling, Homestead
+fractions, and offer settlement. Its captured inputs are `RewardOwnership`,
+`HomesteadEffects`, and `RewardSettlementInputs`; it needs no player-save graph.
+Persistence projects those inputs, pins offers, validates encounter admission,
+and applies each result within the save transaction. Direct effect sequences
+refresh inputs after each mutation so later rewards see updated ownership and XP.
+
 ## Item transformations
 
 `ItemCorruption` accepts item values and inventory arrays; `ItemSalvage` computes

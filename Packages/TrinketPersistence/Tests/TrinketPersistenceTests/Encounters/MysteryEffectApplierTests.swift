@@ -36,12 +36,12 @@ struct MysteryEffectApplierTests {
         try #expect(result.hasGrantedExperience)
         try #expect(
             result.grantedMaterials
-                == [ResourceAmount(.herbs, MysteryEffectApplier.materialQuantity(forLevel: 1))],
+                == [ResourceAmount(.herbs, MysteryRewardResolver.materialQuantity(forLevel: 1))],
         )
         try #expect(save.roster.gold == 20)
         try #expect(
             save.homestead.balance(for: .herbs, gold: save.roster.gold)
-                >= MysteryEffectApplier.materialQuantity(forLevel: 1),
+                >= MysteryRewardResolver.materialQuantity(forLevel: 1),
         )
         try #expect(result.heroProgressionBefore == heroProgressionBefore)
         try #expect(result.heroProgressionAfter == heroProgressionBefore.addingExperience(expectedHeroXP))
@@ -92,7 +92,7 @@ struct MysteryEffectApplierTests {
         #expect(boosted.grantedGold == CombatRounding.scaled(baseline.grantedGold, byPercent: 25))
         #expect(boosted.heroGrantedExperience == CombatRounding.scaled(baseline.heroGrantedExperience, byPercent: 25))
         #expect(boosted.companionGrantedExperience == CombatRounding.scaled(baseline.companionGrantedExperience, byPercent: 25))
-        let baseQuantity = MysteryEffectApplier.materialQuantity(forLevel: 1)
+        let baseQuantity = MysteryRewardResolver.materialQuantity(forLevel: 1)
         try #expect(
             boosted.grantedMaterials == [ResourceAmount(.herbs, CombatRounding.scaled(baseQuantity, byPercent: 25))],
         )
@@ -171,15 +171,6 @@ struct MysteryEffectApplierTests {
         try #expect(save.homestead.resources[.herbs] == 1001)
     }
 
-    @Test func `material quantity scales with level`() {
-        #expect(MysteryEffectApplier.materialQuantity(forLevel: 1) == 4)
-        #expect(MysteryEffectApplier.materialQuantity(forLevel: 50) == 18)
-        #expect(
-            MysteryEffectApplier.materialQuantity(forLevel: 50)
-                > MysteryEffectApplier.materialQuantity(forLevel: 1),
-        )
-    }
-
     @Test func `generated item includes guaranteed affix and uses rolled rarity`() throws {
         var save = SaveTestSupport.makeSave()
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 11)
@@ -205,12 +196,11 @@ struct MysteryEffectApplierTests {
         var save = SaveTestSupport.makeSave()
         let event = try #require(GameContent.mysteryEvent(matching: "enchanted-spring"))
         var rng = SeededRandomNumberGenerator(seed: 42)
-        let offer = try #require(MysteryEffectApplier.resolveOffer(
+        let offer = try #require(MysteryRewardResolver(save: save).resolveOffer(
             choice: event.choices[0],
             encounterID: "spring",
             encounterLevel: 6,
             rewardLevel: 6,
-            save: save,
             using: &rng,
         ))
         let result = MysteryEffectApplier.apply(offer, save: &save)
@@ -218,36 +208,6 @@ struct MysteryEffectApplierTests {
         #expect(save.inventory.items.contains(offer.item))
         #expect(result.grantedMaterials == [ResourceAmount(.gems, offer.bonus.amount)])
         #expect(MysteryEffectApplier.apply(offer, save: &save).isEmpty)
-    }
-
-    @Test func `special rewards stay inside the choice pool and exclude owned items`() throws {
-        let event = try #require(GameContent.mysteryEvent(matching: "enchanted-spring"))
-        let choice = event.choices[0]
-        var seen: Set<String> = []
-        var save = SaveTestSupport.makeSave()
-        var rng = SeededRandomNumberGenerator(seed: 42)
-        for _ in 0 ..< 100 {
-            let offer = try #require(MysteryEffectApplier.resolveOffer(
-                choice: choice, encounterID: "spring", encounterLevel: 6, rewardLevel: 20, save: save, using: &rng,
-            ))
-            if offer.item.isTrinket || offer.item.rarity == .unique {
-                #expect(["icy_heart", "rimeheart_locket"].contains(offer.item.templateID))
-                seen.insert(offer.item.templateID)
-            } else {
-                #expect(offer.item.baseType.id == "sapphire_amulet")
-            }
-        }
-        #expect(seen == ["icy_heart", "rimeheart_locket"])
-        for id in seen {
-            try save.inventory.appendUniqueItem(#require(GameContent.itemTemplate(matching: id) ?? GameContent.unique(matching: id)))
-        }
-        for _ in 0 ..< 20 {
-            let offer = try #require(MysteryEffectApplier.resolveOffer(
-                choice: choice, encounterID: "spring", encounterLevel: 6, rewardLevel: 20, save: save, using: &rng,
-            ))
-            #expect(!offer.item.isTrinket && offer.item.rarity != .unique)
-            #expect(offer.item.baseType.id == "sapphire_amulet")
-        }
     }
 
     @Test func `mana berry harvest choice applies expected rewards`() throws {
@@ -268,7 +228,7 @@ struct MysteryEffectApplierTests {
 
         try #expect(
             result.grantedMaterials
-                .contains(ResourceAmount(.herbs, MysteryEffectApplier.materialQuantity(forLevel: 1))),
+                .contains(ResourceAmount(.herbs, MysteryRewardResolver.materialQuantity(forLevel: 1))),
         )
         let ring = try #require(result.grantedItems.first)
         try #expect(ring.baseType.id == "sapphire_ring")

@@ -134,9 +134,9 @@ struct MysteryEventPinTests {
         let stage = try #require(GameContent.stage(id: "chapter-4-stage-4"))
         let matchingSeed = (UInt64(1) ... 1000).first { seed in
             var rng = SeededRandomNumberGenerator(seed: seed)
-            let offer = MysteryEffectApplier.resolveOffer(
+            let offer = MysteryRewardResolver(save: SaveTestSupport.makeSave()).resolveOffer(
                 choice: event.choices[0], encounterID: stage.id, encounterLevel: 16, rewardLevel: 16,
-                save: SaveTestSupport.makeSave(), using: &rng,
+                using: &rng,
             )
             return offer?.item.rarity == .unique
         }
@@ -258,9 +258,9 @@ struct MysteryEventPinTests {
         #expect(offers.count == 1)
         #expect(offers[0].choiceID == "take")
         var rng2 = SeededRandomNumberGenerator(seed: 7)
-        #expect(MysteryEffectApplier.resolveOffer(
+        #expect(MysteryRewardResolver(save: save).resolveOffer(
             choice: event.choices[1], encounterID: stage.id, encounterLevel: 1, rewardLevel: 1,
-            save: save, using: &rng2,
+            using: &rng2,
         ) == nil)
     }
 

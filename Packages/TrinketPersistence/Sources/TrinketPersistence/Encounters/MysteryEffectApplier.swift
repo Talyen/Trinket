@@ -52,62 +52,13 @@ public struct MysteryEffectResult: Equatable, Sendable {
 }
 
 public enum MysteryEffectApplier {
-    public static func materialQuantity(forLevel level: Int) -> Int {
-        let level = max(1, level)
-        // 14/49 reduces to 2/7; split before multiplying to preserve the exact quotient at large depths.
-        return 4 + (level / 7) * 2 + ((level % 7) * 2) / 7
-    }
-
-    /// Failable by design: choices without an item pool or secondary
-    /// reward (leave, corrupt-only, unlock-only) have no offer to resolve.
-    /// Callers skip nils instead of trapping so mixed events stay openable.
-    public static func resolveOffer(
-        choice: MysteryChoice,
-        encounterID: String,
-        encounterLevel: Int,
-        rewardLevel: Int,
-        save: PlayerSave,
-        bonuses: NodeModifierEffects = .zero,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> MysteryOffer? {
-        guard let pool = choice.itemPool,
-              let bonusEffect = choice.effects.first(where: { effect in
-                  switch effect {
-                  case .gainGold, .gainMaterial, .gainExperience: true
-                  default: false
-                  }
-              }),
-              let reward = resolveReward(
-                  bonusEffect,
-                  encounterLevel: encounterLevel,
-                  save: save,
-                  goldPercent: bonuses.goldFoundPercent,
-                  experiencePercent: bonuses.experienceEarnedPercent,
-                  materialsPercent: bonuses.materialsFoundPercent,
-              )
-        else {
-            return nil
-        }
-        return MysteryOffer(
-            choiceID: choice.id,
-            item: generateItem(
-                pool: pool,
-                rewardLevel: rewardLevel, id: "\(encounterID)-\(choice.id)",
-                save: save,
-                using: &randomNumberGenerator,
-            ),
-            bonus: reward.bonus,
-            homesteadReward: reward.homestead,
-        )
-    }
-
     /// Applies the prepared offer, converting any additional Gold overflow at claim.
     public static func apply(
         _ offer: MysteryOffer, save: inout PlayerSave, at date: Date = Date(),
         goldOverflowExperience: Int = 0, allowOwnedItem: Bool = false,
     ) -> MysteryEffectResult {
         guard allowOwnedItem || isAvailable(offer.item, in: save.inventory),
-              hasCurrentHomesteadReward(offer, save: save) else { return MysteryEffectResult() }
+              MysteryRewardResolver(save: save, at: date).hasCurrentHomesteadReward(offer) else { return MysteryEffectResult() }
         var result = MysteryEffectResult()
         consumeHomesteadReward(offer.homesteadReward, save: &save)
         append(offer.item, save: &save, result: &result)
@@ -128,19 +79,6 @@ public enum MysteryEffectApplier {
             apply(offer.bonus, save: &save, result: &result, at: date)
         }
         return result
-    }
-
-    static func hasCurrentHomesteadReward(_ offer: MysteryOffer, save: PlayerSave) -> Bool {
-        guard let reward = offer.homesteadReward else { return true }
-        var remainders = save.homestead.rewardRemainders ?? .zero
-        switch (reward.resolve(remainders: &remainders), offer.bonus) {
-        case let (.gold(current), .gold(pinned)): return current == pinned
-        case let (.gold(current), .goldAndExperience(_, _, nominalGold, _)): return current == nominalGold
-        case let (.material(resource, current), .material(pinnedResource, pinned)):
-            return resource == pinnedResource && current == pinned
-        case (.gold, .experience): return true
-        default: return false
-        }
     }
 
     private static func applyPinnedGold(
@@ -174,13 +112,13 @@ public enum MysteryEffectApplier {
         save.homestead.settleProduction(at: grantDate, gold: save.roster.gold)
         var result = MysteryEffectResult()
         for effect in effects {
+            let resolver = MysteryRewardResolver(save: save, at: grantDate)
             switch effect {
             case let .gainItem(pool):
-                let item = generateItem(
+                let item = resolver.generateItem(
                     pool: pool,
                     rewardLevel: rewardLevel,
                     id: "\(stageID)-\(choiceID)-\(result.grantedItems.count)",
-                    save: save,
                     using: &randomNumberGenerator,
                 )
                 append(item, save: &save, result: &result)
@@ -189,20 +127,17 @@ public enum MysteryEffectApplier {
                     result.unlockedCombatantIDs.append(id)
                 }
             case .gainGold, .gainMaterial, .gainExperience:
-                if let reward = resolveReward(
+                if let reward = resolver.resolveReward(
                     effect,
                     encounterLevel: encounterLevel,
-                    save: save,
                     goldPercent: goldFoundPercent,
                     experiencePercent: experienceEarnedPercent,
                     materialsPercent: materialsFoundPercent,
                 ) {
-                    let settled = settledBonus(
+                    let settled = resolver.settledBonus(
                         reward.bonus,
                         encounterLevel: encounterLevel,
-                        save: save,
                         experiencePercent: experienceEarnedPercent,
-                        at: grantDate,
                     )
                     consumeHomesteadReward(reward.homestead, save: &save)
                     apply(settled, save: &save, result: &result, at: grantDate)
@@ -218,120 +153,11 @@ public enum MysteryEffectApplier {
         !InventoryDuplicatePolicy.containsDuplicate(of: item, in: inventory.items)
     }
 
-    private static func generateItem(
-        pool: MysteryItemPool,
-        rewardLevel: Int, id: String,
-        save: PlayerSave,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> InventoryItem {
-        guard let base = GameContent.itemBaseType(matching: pool.baseTypeID), base.slot != .trinket else {
-            preconditionFailure("Mystery item pools require a known gear base")
-        }
-        return ItemRewardGenerator.generate(
-            id: id,
-            rewardLevel: rewardLevel,
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
-            ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-            ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-            eligibleTrinketIDs: pool.trinketIDs,
-            eligibleUniqueIDs: pool.uniqueIDs,
-            fallbackBaseType: base,
-            guaranteedAffixIDs: pool.guaranteedAffixIDs,
-            using: &randomNumberGenerator,
-        )
-    }
-
-    private static func homesteadReward(
-        _ effect: MysteryEffect, encounterLevel: Int, save: PlayerSave,
-        goldPercent: Int, materialsPercent: Int,
-    ) -> HomesteadMysteryReward? {
-        switch effect {
-        case let .gainGold(amount) where save.homestead.effects.goldFindPercent > 0:
-            HomesteadMysteryReward(
-                resource: .gold, amount: CombatRounding.scaled(amount, byPercent: goldPercent),
-                percent: save.homestead.effects.goldFindPercent,
-            )
-        case .gainMaterial(.gems) where save.homestead.effects.gemsFindPercent > 0:
-            HomesteadMysteryReward(
-                resource: .gems,
-                amount: CombatRounding.scaled(materialQuantity(forLevel: encounterLevel), byPercent: materialsPercent),
-                percent: save.homestead.effects.gemsFindPercent,
-            )
-        default: nil
-        }
-    }
-
-    private static func resolveReward(
-        _ effect: MysteryEffect,
-        encounterLevel: Int,
-        save: PlayerSave,
-        goldPercent: Int,
-        experiencePercent: Int,
-        materialsPercent: Int,
-    ) -> (bonus: MysteryRewardBonus, homestead: HomesteadMysteryReward?)? {
-        let reward = homesteadReward(
-            effect, encounterLevel: encounterLevel, save: save,
-            goldPercent: goldPercent, materialsPercent: materialsPercent,
-        )
-        if let reward {
-            var remainders = save.homestead.rewardRemainders ?? .zero
-            return (reward.resolve(remainders: &remainders), reward)
-        }
-        let bonus: MysteryRewardBonus
-        switch effect {
-        case let .gainGold(amount):
-            bonus = .gold(CombatRounding
-                .scaled(amount, byPercent: goldPercent + save.homestead.effects.goldFindPercent) +
-                (amount > 0 ? save.homestead.effects.goldFindFlat : 0))
-        case let .gainMaterial(resource):
-            bonus = .material(
-                resource,
-                CombatRounding
-                    .scaled(materialQuantity(forLevel: encounterLevel), byPercent: materialsPercent) +
-                    (resource == .gems ? save.homestead.effects.gemsFindBonus : 0),
-            )
-        case .gainExperience:
-            bonus = .experience(RewardExperiencePolicy.encounterAward(
-                encounterLevel: encounterLevel,
-                roster: save.roster,
-                percent: experiencePercent + save.homestead.effects.experienceBonusPercent,
-            ) + save.homestead.effects.experienceBonus)
-        default:
-            return nil
-        }
-        return (bonus, nil)
-    }
-
     private static func consumeHomesteadReward(_ reward: HomesteadMysteryReward?, save: inout PlayerSave) {
         guard let reward else { return }
         var remainders = save.homestead.rewardRemainders ?? .zero
         _ = reward.resolve(remainders: &remainders)
         save.homestead.rewardRemainders = remainders == .zero ? nil : remainders
-    }
-
-    /// Resolves receivable bonuses for offer preparation and claim validation.
-    /// Direct effects use the same wallet-cap replacement and shared-XP limits.
-    static func settledBonus(
-        _ bonus: MysteryRewardBonus,
-        encounterLevel: Int,
-        save: PlayerSave,
-        experiencePercent: Int = 0,
-        at date: Date,
-    ) -> MysteryRewardBonus {
-        RewardSettlementPolicy.settle(
-            bonus,
-            inputs: RewardSettlementInputs(
-                save: save,
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
-                at: date,
-            ),
-            replacementExperience: RewardExperiencePolicy.encounterAward(
-                encounterLevel: encounterLevel,
-                roster: save.roster,
-                percent: experiencePercent,
-            ),
-        )
     }
 
     private static func append(_ item: InventoryItem, save: inout PlayerSave, result: inout MysteryEffectResult) {
