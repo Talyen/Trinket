@@ -234,6 +234,19 @@ to start a new deployment, which allocates a new number.
 | Upload interrupted, processing delayed, or distribution pending | Use `--resume RUN`. Do not equate upload acceptance with tester availability. |
 | Apple rejects processing or build expires | Inspect the exact Apple build, fix the cause, and start a new run with a new number. |
 
+Local StoreKit qualification (2026-10-11): Xcode 27.0 (27A266a) with iOS 27.0
+(24A434) exposed a denied Ask to Buy purchase as a verified current entitlement
+in a standalone app. With the same Xcode, iOS 26.2 (23C54) passed both the
+standalone approval/denial/retry controls and Trinket's denial/retry journey.
+Until requalified, select an existing managed iOS 26.2 simulator through
+`TRINKET_SIMULATOR_NAME` when running the command above, and confirm its actual
+runtime in the test evidence. A newer runtime is not automatically qualified.
+Retain the complete release gate and the player-facing denial and retry checks;
+legacy `SKTestTransaction.state` can remain deferred after a correctly resolved
+denial. This finding concerns local StoreKit testing, not production App Store
+behavior. Apple's [Ask to Buy testing contract](https://developer.apple.com/documentation/storekit/testing-ask-to-buy-in-xcode)
+says denial delivers no transaction to the app.
+
 Tooling updates are deliberate maintenance: update the pinned Fastlane version
 and Bundler lockfile together, run script regressions and handoff, then rerun
 setup. Normal setup uses frozen dependencies and does not update them. Ordinary
