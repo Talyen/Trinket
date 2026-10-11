@@ -10,12 +10,21 @@ constraints; [Docs](Docs/README.md) owns policy precedence.
 Write for someone who knows Trinket as a game. Use player-facing names, explain
 material decisions/risks/blockers, and distinguish verified behavior from inference.
 
+Chats work independently. Task-relevant messaging is authorized only for a concrete
+unresolved dependency or conflict that cannot be answered from the repository.
+No startup announcements, ownership negotiations, progress/completion broadcasts,
+acknowledgments, verification-window requests, or routine peer polling. Keep a
+necessary exchange bounded; do not reply merely to acknowledge a message.
+After completion, stop: do not message, poll, or wake completed chats unless the
+user explicitly asks to resume them. Unsolicited routine messages require no reply
+and do not reopen a task. This authorization covers Codex chats only.
+
 ## Protect the workspace
 
 - Before editing, inspect scoped status with the router below and every overlapping dirty file's full diff. Preserve in-flight work with surgical edits; clarify unclear ownership. Use `git status --short` only for intentional whole-tree inspection.
 - Never discard, overwrite, or stash unrelated work, or run destructive Git commands against a dirty tree.
-- Work in the primary checkout on `main`; no routine worktrees, branches, or pull requests.
-- Commit/push only when requested. Read [Release](Docs/Platform/Release.md#local-hooks-and-push-discipline) for staging and push rules; hosted CI follows a push, not a prerequisite for it. For TestFlight, read [deployment](Docs/Platform/Release.md#local-testflight-deployment) and use `./Scripts/testflight.sh` and its doctor.
+- Use one isolated worktree and `codex/` task branch per implementation chat, based on committed local `main` unless instructed otherwise. Reuse that chat's suitable worktree; do not inspect other chats to decide whether isolation is needed. Keep the primary checkout on `main` for locked integration only. [Isolated chat workflow](Docs/Platform/Release.md#isolated-chat-workflow) owns commands, locking, and recovery.
+- Implementation tasks authorize task-scoped commits and verified local integration into `main`, unless the user restricts the task. Pushes, PRs, publication, destructive cleanup, and unrelated changes require separate authorization. Read [Release](Docs/Platform/Release.md#local-hooks-and-push-discipline) for staging and push rules; hosted CI follows a push, not a prerequisite for it. For TestFlight, read [deployment](Docs/Platform/Release.md#local-testflight-deployment) and use `./Scripts/testflight.sh` and its doctor.
 - Edit authored inputs, never generated code/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Build/handoff handles freshness; `./Scripts/generate.sh` explicitly regenerates.
 - Never kill foreign Xcode/Simulator processes. [Verification](Docs/Platform/Verification.md) owns isolation and diagnostics.
 

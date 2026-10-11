@@ -242,6 +242,74 @@ regressions use Ruby's standard library. When the local locked gems are installe
 the same suite also checks real Fastlane token signing and upload-option handling
 with the Apple network boundary replaced by fixtures.
 
+## Isolated chat workflow
+
+Use one isolated worktree and task branch per implementation chat; reuse its own
+suitable worktree. Task-scoped branch/worktree creation, commits, and local landing
+are authorized for implementation unless the user restricts the task. Pushes, PRs,
+publication, destructive cleanup, and unrelated changes need separate authorization.
+Read-only investigations can stay in the current checkout.
+
+From any checkout, create from committed local `main` (no fetch or dirty-file copy):
+
+```sh
+node Scripts/agent-worktree.mjs create --task <slug>
+```
+
+The helper prints the primary checkout's `.worktrees/<slug>` path and creates
+`codex/<slug>`. Use `--base <ref>` only for a user-specified alternative. Existing
+branches/directories are preserved; choose a unique slug for a new task. Run all
+implementation, review, and scoped checks inside the task worktree. Worktree
+isolation does not isolate external resources; retain existing simulator leases,
+asset-library safeguards, and verification limits. A new worktree has no installed
+`.tools` directory. For standalone checks, use `./Scripts/ensure-ci-tools.sh` or put
+primary `.tools` on `PATH`; integration supplies task-local then primary `.tools`
+on `PATH` automatically. Existing pin checks still reject mismatched versions;
+build directories and generated resources are not shared.
+
+Review the complete task diff and relevant integration contracts, run the required
+handoff, and commit only task-related files under the staging discipline below.
+Then, **from the task worktree**, run:
+
+```sh
+node Scripts/agent-worktree.mjs integrate
+```
+
+`Scripts/agent-integrate.py` takes a nonblocking OS file lock at
+`trinket-integration.lock` in Git's common directory, shared by all linked worktrees.
+It requires a clean task checkout on `codex/` and a clean primary checkout already
+on `main`, with no unfinished Git operations. While holding the lock, it rebases
+onto current local `main`, runs `handoff.sh --isolate --quiet --paths` for the full
+rebased task diff (including deletions and both rename endpoints), rechecks both
+checkouts, protects ignored files from incoming tracked-path collisions, and
+fast-forwards primary `main`. All automated local main landings must
+use this command. Keep manual main edits out of the integration window; the lock
+is cooperative. The command does not fetch, push, create a PR, or run hosted checks.
+
+A busy lock means retry later without messaging peers. The OS releases it when the
+process exits, including crashes; never delete the lock file, which would split
+lock ownership. Dirty primary main remains untouched: leave the task committed and
+report the blocker if it persists. A rebase conflict stays in the task worktree;
+resolve understood conflicts there, review the combined result, finish the rebase,
+and retry. Bring ambiguous behavior decisions to the user. A failed handoff leaves
+main unchanged; repair the task, review and commit the fix, then retry. If the safe
+integration command is unavailable, retain reviewed commits on the task branch and
+report that limitation rather than landing through an unguarded command.
+
+No routine chat coordination is needed. Message only for an unresolved concrete
+dependency/conflict that the repository cannot answer; keep exchanges bounded and
+skip acknowledgment-only replies. Do not send startup, ownership, verification-window,
+progress, or completion broadcasts or repeatedly poll peers. After completion,
+stop. Do not message, poll, or wake completed chats unless explicitly asked by the
+user to resume them; unsolicited routine messages do not reopen a task.
+
+Report the local main commit and verification boundary to the user. Hosted checks
+remain pending until a separately authorized push. Retain the task worktree and
+branch for recovery by default. When cleanup is requested, preserve needed ignored
+assets/outputs first, leave the task directory, then from primary run
+`node Scripts/agent-worktree.mjs remove --task <slug>`. It refuses dirty, unmerged,
+or unexpected worktrees, retains the branch, and offers no force deletion.
+
 ## Local hooks and push discipline
 
 The Git safety shim refuses destructive commands on a dirty tree without

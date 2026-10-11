@@ -10,6 +10,14 @@ helpers, `config/` owns shared configuration, and `Tests/` owns script regressio
 
 ## Everyday workflow
 
+Implementation chats start in an isolated worktree with
+`node Scripts/agent-worktree.mjs create --task <slug>` (or reuse their own suitable
+worktree). Work and commit there, then run `node Scripts/agent-worktree.mjs integrate`
+there to verify and land into local `main` under the shared integration lock.
+[Isolated chat workflow](../Docs/Platform/Release.md#isolated-chat-workflow) owns
+failure recovery, authorization, and the quiet communication policy. Push separately
+only when requested. Read-only investigations do not need a new worktree.
+
 Start indexed concerns with `python3 Scripts/agent-brief.py --task <concern>`
 for scoped status, safeguards, initial guidance, and source/test pointers. Find a
 concern with `agent-search.py '<concern>' --task`; unindexed work starts with

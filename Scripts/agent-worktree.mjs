@@ -4,157 +4,76 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const currentFile = fileURLToPath(import.meta.url);
-const root = path.resolve(path.dirname(currentFile), "..");
-const WORKTREE_ROOT = path.join(root, ".worktrees");
-
-function runGit(args, opts = {}) {
-  const result = spawnSync("git", args, {
-    cwd: root,
-    encoding: "utf8",
-    stdio: opts.stdio ?? "pipe",
-  });
-  return result;
+const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+function git(args, cwd = source) {
+  const result = spawnSync("git", args, { cwd, encoding: "utf8" });
+  if (result.status !== 0) throw new Error(result.stderr || result.error?.message || `git ${args.join(" ")} failed`);
+  return result.stdout.trim();
 }
-
 function usage() {
   console.log(`Usage:
-  node Scripts/agent-worktree.mjs create --task <slug> [--base <branch>]
-  node Scripts/agent-worktree.mjs remove --task <slug> [--force]
+  node Scripts/agent-worktree.mjs create --task <slug> [--base <ref>]
+  node Scripts/agent-worktree.mjs integrate
+  node Scripts/agent-worktree.mjs remove --task <slug>
   node Scripts/agent-worktree.mjs list
-  node Scripts/agent-worktree.mjs prune
 
-Creates isolated worktrees under .worktrees/<slug> on branch agent/<slug>.
-Use only for an explicitly requested worktree or disposable evaluation.
-Ordinary work stays in the primary checkout on main.
-`);
+Implementation uses .worktrees/<slug> on codex/<slug>, based on local main.
+Run integrate from the task worktree: locked rebase, scoped handoff, fast-forward
+into primary main. No push. Remove only clean work already merged into main.
+See Docs/Platform/Release.md#isolated-chat-workflow for authorization and recovery.`);
 }
 
-function slugify(s) {
-  return s
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9-_]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 64);
-}
-
-const [cmd, ...rest] = process.argv.slice(2);
-
-function getArg(name) {
-  const idx = rest.indexOf(name);
-  if (idx === -1) return null;
-  return rest[idx + 1] ?? null;
-}
-
-function hasFlag(name) {
-  return rest.includes(name);
-}
-
-if (!cmd || cmd === "--help" || cmd === "-h") {
-  usage();
-  process.exit(0);
-}
-
-if (cmd === "list") {
-  const r = runGit(["worktree", "list"], { stdio: "inherit" });
-  process.exit(r.status ?? 0);
-}
-
-if (cmd === "prune") {
-  const r = runGit(["worktree", "prune", "-v"], { stdio: "inherit" });
-  process.exit(r.status ?? 0);
-}
-
-if (cmd === "create") {
-  const taskRaw = getArg("--task");
-  if (!taskRaw) {
-    console.error("missing --task <slug>");
+try {
+  const [command, ...args] = process.argv.slice(2);
+  if (!command || ["--help", "-h"].includes(command)) {
     usage();
-    process.exit(1);
-  }
-  const task = slugify(taskRaw);
-  if (!task) {
-    console.error("invalid --task slug");
-    process.exit(1);
-  }
-  const base = getArg("--base") ?? "main";
-  const worktreePath = path.join(WORKTREE_ROOT, task);
-  const branch = `agent/${task}`;
-
-  if (fs.existsSync(worktreePath)) {
-    console.error(`worktree already exists: ${worktreePath}`);
-    console.error(`remove with: node Scripts/agent-worktree.mjs remove --task ${task}`);
-    process.exit(1);
-  }
-
-  const branchExists = runGit(["show-ref", "--verify", `refs/heads/${branch}`]);
-
-  fs.mkdirSync(WORKTREE_ROOT, { recursive: true });
-
-  const args =
-    branchExists.status === 0
-      ? ["worktree", "add", worktreePath, branch]
-      : ["worktree", "add", "-b", branch, worktreePath, base];
-
-  console.log(`▸ git ${args.join(" ")}`);
-  const r = runGit(args, { stdio: "inherit" });
-  if (r.status !== 0) process.exit(r.status ?? 1);
-  console.log(`worktree ready: ${worktreePath} on ${branch} (base ${base})`);
-  console.log(`  cd ${path.relative(root, worktreePath)}  # work in isolation`);
-  console.log(`  node Scripts/agent-worktree.mjs remove --task ${task}  # after merging to main`);
-  process.exit(0);
-}
-
-if (cmd === "remove") {
-  const taskRaw = getArg("--task");
-  if (!taskRaw) {
-    console.error("missing --task <slug>");
-    usage();
-    process.exit(1);
-  }
-  const task = slugify(taskRaw);
-  if (!task) {
-    console.error("invalid --task slug");
-    process.exit(1);
-  }
-  const worktreePath = path.join(WORKTREE_ROOT, task);
-  const branch = `agent/${task}`;
-  const force = hasFlag("--force");
-
-  const list = runGit(["worktree", "list", "--porcelain", "-z"]);
-  if (list.status !== 0) {
-    console.error(list.stderr || "Unable to list worktrees; nothing removed.");
-    process.exit(list.status ?? 1);
-  }
-  const isRegistered = (list.stdout ?? "").split("\0").includes(`worktree ${worktreePath}`);
-
-  if (isRegistered) {
-    const args = ["worktree", "remove", worktreePath];
-    if (force) args.push("--force");
-    console.log(`▸ git ${args.join(" ")}`);
-    const r = runGit(args, { stdio: "inherit" });
-    if (r.status !== 0) process.exit(r.status ?? 1);
-  } else if (fs.existsSync(worktreePath)) {
-    console.error(`Refusing to remove unregistered directory: ${worktreePath}`);
-    process.exit(1);
+  } else if (command === "integrate") {
+    if (args.length) throw new Error("integrate takes no arguments");
+    const result = spawnSync("python3", [path.join(source, "Scripts/agent-integrate.py")], { cwd: source, stdio: "inherit" });
+    process.exitCode = result.status ?? 1;
   } else {
-    console.log(`no worktree at ${worktreePath}`);
-  }
-
-  const branchExists = runGit(["show-ref", "--verify", `refs/heads/${branch}`]);
-  if (branchExists.status === 0) {
-    const del = runGit(["branch", force ? "-D" : "-d", branch], { stdio: "inherit" });
-    if (del.status !== 0 && !force) {
-      console.error(`branch ${branch} not fully merged; use --force to delete`);
-      process.exit(del.status ?? 1);
+    if (!["create", "remove", "list"].includes(command)) throw new Error(`Unknown command: ${command}`);
+    const options = {};
+    for (let index = 0; index < args.length; index += 2) {
+      const key = args[index];
+      if (!["--task", ...(command === "create" ? ["--base"] : [])].includes(key)
+          || !args[index + 1] || args[index + 1].startsWith("--") || key in options) {
+        throw new Error(`Invalid argument: ${key}`);
+      }
+      options[key] = args[index + 1];
+    }
+    if (command === "list") {
+      if (args.length) throw new Error("list takes no arguments");
+      console.log(git(["worktree", "list"]));
+    } else {
+      const task = options["--task"];
+      if (!task || !/^[a-z0-9][a-z0-9_-]{0,63}$/.test(task)) throw new Error("--task requires a lowercase slug (1–64 letters, digits, underscores or hyphens)");
+      const records = git(["worktree", "list", "--porcelain", "-z"]).split("\0\0").map(record => record.split("\0"));
+      if (records[0].includes("bare") || !records[0][0].startsWith("worktree ")) throw new Error("Non-bare primary checkout required");
+      const primary = records[0][0].slice("worktree ".length);
+      const destination = path.join(primary, ".worktrees", task);
+      const branch = `codex/${task}`;
+      if (command === "create") {
+        if (fs.existsSync(destination)) throw new Error(`Worktree already exists: ${destination}. Reuse it for this task only.`);
+        // Refuse existing branches rather than accidentally reusing another chat's work.
+        git(["rev-parse", "--verify", `${options["--base"] ?? "main"}^{commit}`], primary);
+        fs.mkdirSync(path.dirname(destination), { recursive: true });
+        console.log(git(["worktree", "add", "-b", branch, destination, options["--base"] ?? "main"], primary));
+        console.log(`Work in ${destination}\nLand there with: node Scripts/agent-worktree.mjs integrate`);
+      } else {
+        const registered = records.find(record => record.includes(`worktree ${destination}`));
+        if (!registered || !registered.includes(`branch refs/heads/${branch}`)) throw new Error(`Refusing unregistered or unexpected worktree: ${destination}`);
+        if (source === path.resolve(destination)) throw new Error("Run remove from the primary checkout after leaving the task worktree");
+        if (git(["status", "--porcelain", "--untracked-files=all"], destination)) throw new Error("Dirty worktree preserved; commit and integrate task work first");
+        if (git(["ls-files", "--others", "--ignored", "--exclude-standard"], destination)) throw new Error("Ignored files preserved; archive needed assets/outputs before cleanup");
+        git(["merge-base", "--is-ancestor", branch, "main"], primary);
+        console.log(git(["worktree", "remove", destination], primary));
+        // Retain the merged branch as a recovery pointer; no forced deletion.
+        console.log(`Removed ${destination}; retained ${branch} for recovery.`);
+      }
     }
   }
-
-  const prune = runGit(["worktree", "prune"], { stdio: "inherit" });
-  process.exit(prune.status ?? 0);
+} catch (error) {
+  console.error(error.message);
+  process.exitCode = 1;
 }
-
-console.error(`unknown command: ${cmd}`);
-usage();
-process.exit(1);
