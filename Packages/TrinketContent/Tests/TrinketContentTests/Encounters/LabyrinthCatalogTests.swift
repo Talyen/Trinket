@@ -46,7 +46,7 @@ struct LabyrinthCatalogTests {
     @Test func `modifier effects combine damage and reward bonuses`() throws {
         let iron = try #require(GameContent.nodeModifier(id: NodeModifierID("ironPressure")))
         let effects = NodeModifierEffects.combining([iron])
-        #expect(effects.damageDealtBonus == [.physical: 1])
+        #expect(effects.combatModifiers == [.damageDealt(.physical, 1)])
         #expect(effects.shopDiscountPercent == 0)
     }
 

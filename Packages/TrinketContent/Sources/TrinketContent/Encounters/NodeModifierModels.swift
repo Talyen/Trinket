@@ -91,76 +91,40 @@ public struct NodeModifierDefinition: Identifiable, Hashable, Sendable {
     }
 }
 
+/// Resolved encounter rules. Combat uses the same modifier language as equipment
+/// and talents, so launch and headless simulations cannot translate it differently.
 public struct NodeModifierEffects: Equatable, Sendable {
-    public var damageDealtBonus: [Keyword: Int]
-    public var damageTakenReduction: [Keyword: Int]
-    public var blockGainedBonus: Int
-    public var leechGainedPercent: Int
-    public var startBattleBlock: Int
-    public var attackLeech: Bool
-    public var attackBlockRemoval: Int
-    public var attackPurgeCount: Int
-    public var goldFoundPercent: Int
-    public var experienceEarnedPercent: Int
-    public var materialsFoundPercent: Int
-    public var shopDiscountPercent: Int
-    public var astralShopOffers: Bool
+    public private(set) var combatModifiers: [AffixModifier] = []
+    public var goldFoundPercent = 0
+    public var experienceEarnedPercent = 0
+    public var materialsFoundPercent = 0
+    public var shopDiscountPercent = 0
+    public var astralShopOffers = false
     public var rewardModifier: RewardModifier?
 
-    public static let zero = Self(damageDealtBonus: [:])
-
-    public init(
-        damageDealtBonus: [Keyword: Int],
-        damageTakenReduction: [Keyword: Int] = [:],
-        blockGainedBonus: Int = 0,
-        leechGainedPercent: Int = 0,
-        startBattleBlock: Int = 0,
-        attackLeech: Bool = false,
-        attackBlockRemoval: Int = 0,
-        attackPurgeCount: Int = 0,
-        goldFoundPercent: Int = 0,
-        experienceEarnedPercent: Int = 0,
-        materialsFoundPercent: Int = 0,
-        shopDiscountPercent: Int = 0,
-        astralShopOffers: Bool = false,
-        rewardModifier: RewardModifier? = nil,
-    ) {
-        self.damageDealtBonus = damageDealtBonus
-        self.damageTakenReduction = damageTakenReduction
-        self.blockGainedBonus = blockGainedBonus
-        self.leechGainedPercent = leechGainedPercent
-        self.startBattleBlock = startBattleBlock
-        self.attackLeech = attackLeech
-        self.attackBlockRemoval = attackBlockRemoval
-        self.attackPurgeCount = attackPurgeCount
-        self.goldFoundPercent = goldFoundPercent
-        self.experienceEarnedPercent = experienceEarnedPercent
-        self.materialsFoundPercent = materialsFoundPercent
-        self.shopDiscountPercent = shopDiscountPercent
-        self.astralShopOffers = astralShopOffers
-        self.rewardModifier = rewardModifier
-    }
+    public static let zero = Self()
 
     public static func combining(_ modifiers: [NodeModifierDefinition]) -> Self {
         var effects = Self.zero
+        var combat = NodeCombatBonuses()
         for modifier in modifiers {
             switch modifier.effect {
             case let .damageDealt(keyword, amount):
-                effects.damageDealtBonus[keyword, default: 0] += amount
+                combat.damageDealtBonus[keyword, default: 0] += amount
             case let .damageTakenReduction(keyword, percent):
-                effects.damageTakenReduction[keyword, default: 0] += percent
+                combat.damageTakenReduction[keyword, default: 0] += percent
             case let .blockGained(amount):
-                effects.blockGainedBonus += amount
+                combat.blockGainedBonus += amount
             case let .leechGainedPercent(percent):
-                effects.leechGainedPercent += percent
+                combat.leechGainedPercent += percent
             case let .startBattleBlock(amount):
-                effects.startBattleBlock += amount
+                combat.startBattleBlock += amount
             case .attackLeech:
-                effects.attackLeech = true
+                combat.attackLeech = true
             case let .attackBlockRemoval(amount):
-                effects.attackBlockRemoval += amount
+                combat.attackBlockRemoval += amount
             case let .attackPurge(count):
-                effects.attackPurgeCount += count
+                combat.attackPurgeCount += count
             case let .reward(modifier):
                 effects.rewardModifier = modifier
                 effects.goldFoundPercent += modifier.goldBonusPercent
@@ -172,6 +136,48 @@ public struct NodeModifierEffects: Equatable, Sendable {
                 effects.astralShopOffers = true
             }
         }
+        effects.combatModifiers = combat.modifiers
         return effects
+    }
+}
+
+/// Aggregate before converting percentages, preserve stable keyword order, and
+/// grant attack Leech once even when multiple definitions supply it.
+private struct NodeCombatBonuses {
+    var damageDealtBonus: [Keyword: Int] = [:]
+    var damageTakenReduction: [Keyword: Int] = [:]
+    var blockGainedBonus = 0
+    var leechGainedPercent = 0
+    var startBattleBlock = 0
+    var attackLeech = false
+    var attackBlockRemoval = 0
+    var attackPurgeCount = 0
+
+    var modifiers: [AffixModifier] {
+        var result: [AffixModifier] = damageDealtBonus
+            .sorted { $0.key.rawValue < $1.key.rawValue }
+            .map { .damageDealt($0.key, $0.value) }
+        result += damageTakenReduction
+            .sorted { $0.key.rawValue < $1.key.rawValue }
+            .map { .damageTakenPercent($0.key, Double($0.value) / 100) }
+        if blockGainedBonus != 0 {
+            result.append(.blockGained(blockGainedBonus))
+        }
+        if leechGainedPercent != 0 {
+            result.append(.leechGainedPercent(Double(leechGainedPercent) / 100))
+        }
+        if startBattleBlock != 0 {
+            result.append(.startBattleBlock(startBattleBlock))
+        }
+        if attackLeech {
+            result.append(.attackLeechPercent(Effect.abilityLeechPercent))
+        }
+        if attackBlockRemoval != 0 {
+            result.append(.attackBlockRemoval(attackBlockRemoval))
+        }
+        if attackPurgeCount != 0 {
+            result.append(.attackPurgeCount(attackPurgeCount))
+        }
+        return result
     }
 }

@@ -64,31 +64,7 @@ struct ModeBattleModifiers {
         let effects = NodeModifierEffects.combining(definitions)
         experienceBonusPercent = effects.experienceEarnedPercent
 
-        var modifiers: [AffixModifier] = effects.damageDealtBonus
-            .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { .damageDealt($0.key, $0.value) }
-        modifiers += effects.damageTakenReduction
-            .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { .damageTakenPercent($0.key, Double($0.value) / 100) }
-        if effects.blockGainedBonus != 0 {
-            modifiers.append(.blockGained(effects.blockGainedBonus))
-        }
-        if effects.leechGainedPercent != 0 {
-            modifiers.append(.leechGainedPercent(Double(effects.leechGainedPercent) / 100))
-        }
-        if effects.startBattleBlock != 0 {
-            modifiers.append(.startBattleBlock(effects.startBattleBlock))
-        }
-        if effects.attackLeech {
-            modifiers.append(.attackLeechPercent(Effect.abilityLeechPercent))
-        }
-        if effects.attackBlockRemoval != 0 {
-            modifiers.append(.attackBlockRemoval(effects.attackBlockRemoval))
-        }
-        if effects.attackPurgeCount != 0 {
-            modifiers.append(.attackPurgeCount(effects.attackPurgeCount))
-        }
-        universalModifiers = modifiers
+        universalModifiers = effects.combatModifiers
     }
 }
 

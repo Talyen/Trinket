@@ -233,10 +233,7 @@ struct BattleSessionAppIntegrationTests {
             LabyrinthTestSupport.firstReachableCombatNodeID(
                 where: { node in
                     let effects = appState.playerSave.labyrinth.effects(for: node.id)
-                    return !effects.damageDealtBonus.isEmpty
-                        || !effects.damageTakenReduction.isEmpty
-                        || effects.blockGainedBonus != 0
-                        || effects.leechGainedPercent != 0
+                    return !effects.combatModifiers.isEmpty
                 },
                 in: appState,
             ),
@@ -247,7 +244,8 @@ struct BattleSessionAppIntegrationTests {
         let effects = appState.playerSave.labyrinth.effects(for: combatNodeID)
         let originalUniversalModifiers = appState.battleUniversalModifiers(for: original.runKey)
         #expect(originalUniversalModifiers.count == 1)
-        for (keyword, amount) in effects.damageDealtBonus {
+        #expect(originalUniversalModifiers == effects.combatModifiers)
+        for case let .damageDealt(keyword, amount) in effects.combatModifiers {
             #expect(original.hero.modifiers.damageDealtBonus(for: keyword) == 0)
             #expect(original.companion.modifiers.damageDealtBonus(for: keyword) == 0)
             #expect(original.enemyModifiers.damageDealtBonus(for: keyword) == amount)

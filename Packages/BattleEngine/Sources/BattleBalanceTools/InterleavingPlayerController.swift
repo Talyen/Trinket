@@ -222,11 +222,7 @@ final class InterleavingPlayerController {
               let floor = GameContent.spireFloor(spireID: SpireID(step.containerID), floor: step.stepIndex),
               let modifier = GameContent.spireModifier(for: floor, worldSeed: worldSeed)
         else { return [] }
-        switch modifier.effect {
-        case let .damageDealt(keyword, amount): return [.damageDealt(keyword, amount)]
-        case let .damageTakenReduction(keyword, percent): return [.damageTakenPercent(keyword, Double(percent) / 100)]
-        default: return [] // Spire keyword rewards do not modify combat.
-        }
+        return NodeModifierEffects.combining([modifier]).combatModifiers
     }
 
     private var partyAverageLevel: Int {
