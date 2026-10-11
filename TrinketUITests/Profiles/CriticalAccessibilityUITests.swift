@@ -129,13 +129,10 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
     }
 
     func testRewardClaimRemainsReachableAndReturnsUnderRequestedSettings() throws {
-        let args = TestLaunchArg.productionTiming() + ["-performance-strong-party", "-coverage-diagnostics"]
-        launchApp(arguments: args)
+        launchApp(arguments: TestLaunchArg.productionTiming()
+            + TestLaunchArg.screen("battle-victory") + ["-coverage-diagnostics"])
         try assertRequestedEnvironment()
-        play.openCampaign()
-        play.startBattle(chapter: 1, stage: 1)
-        tapWhenReady(battle.autoBattleToggle)
-        assertExists(AccessibilityID.Battle.victory, timeout: 30)
+        assertExists(AccessibilityID.Battle.victory)
         assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
         try auditProductAccessibility()
         retainScreenshot(named: "reward-claim")

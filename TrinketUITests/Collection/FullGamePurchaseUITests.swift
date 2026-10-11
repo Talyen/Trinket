@@ -49,10 +49,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         // Legacy transaction state varies by runtime; prove denial through the purchase guard.
         tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
         assertExists(AccessibilityID.FullGame.offer)
-        dismissSheet(AccessibilityID.FullGame.offer)
         session.askToBuyEnabled = false
-        tabBar.selectOptions()
-        tapButton(AccessibilityID.FullGame.options)
         assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
         assertDoesNotExist(AccessibilityID.FullGame.offer)
@@ -73,10 +70,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         // Reset configuration overrides without deleting the failed transaction.
         session.resetToDefaultState()
         session.disableDialogs = true
-        dismissSheet(AccessibilityID.FullGame.offer)
         assertFullGameAccess(false)
-        tapButton(AccessibilityID.FullGame.options)
-        assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
         assertDoesNotExist(AccessibilityID.FullGame.offer)
         assertWarlockAccessible()

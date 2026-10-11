@@ -14,18 +14,14 @@ enum PerformanceReportRecorder {
     ) {
         let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
         var captured: FramePacingReport?
-        let completed = NSPredicate { _, _ in
+        let completed = trinketWaitUntil(timeout: 12) {
             guard let payload = metrics.value as? String,
                   let report = FramePacingReport.parseAccessibilityValue(payload)
             else { return false }
             captured = report
             return true
         }
-        let result = XCTWaiter().wait(
-            for: [XCTNSPredicateExpectation(predicate: completed, object: metrics)],
-            timeout: 12,
-        )
-        guard result == .completed, let report = captured else {
+        guard completed, let report = captured else {
             XCTFail("Frame snapshot did not complete for \(scenario); last=\(metrics.value ?? "nil")")
             return
         }

@@ -338,10 +338,12 @@ class TrinketUITestCase: XCTestCase {
     }
 
     private func missingElementMessage(_ message: String) -> String {
-        guard let app else { return message }
+        guard let app, let snapshot = try? app.snapshot() else { return message }
         var entries: [String] = []
         var seen: Set<String> = []
-        for element in app.descendants(matching: .any).allElementsBoundByIndex {
+        var pending = Array(snapshot.children.reversed())
+        while let element = pending.popLast() {
+            pending.append(contentsOf: element.children.reversed())
             let identifier = element.identifier.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !identifier.isEmpty else { continue }
             let normalizedIdentifier = identifier.replacingOccurrences(
@@ -364,11 +366,9 @@ class TrinketUITestCase: XCTestCase {
             let end = min(start + 4, entries.count)
             lines.append("AX: " + entries[start ..< end].joined(separator: "; "))
         }
-        var snapshot = lines.joined(separator: "\n")
-        if snapshot.count > 2400 {
-            snapshot = String(snapshot.prefix(2399)) + "…"
-        }
-        return "\(message)\nAccessibility snapshot:\n\(snapshot)"
+        let description = lines.joined(separator: "\n")
+        let bounded = description.count > 2400 ? String(description.prefix(2399)) + "…" : description
+        return "\(message)\nAccessibility snapshot:\n\(bounded)"
     }
 
     func assertDoesNotExist(
@@ -399,8 +399,6 @@ class TrinketUITestCase: XCTestCase {
             swipingUp: true,
             maxAttempts: maxAttempts,
             requireHittable: requireHittable,
-            file: file,
-            line: line,
         )
         if !element.exists || (requireHittable && !element.isHittable) {
             scrollUntilVisible(
@@ -408,8 +406,6 @@ class TrinketUITestCase: XCTestCase {
                 swipingUp: false,
                 maxAttempts: max(3, maxAttempts / 2),
                 requireHittable: requireHittable,
-                file: file,
-                line: line,
             )
         }
         guard element.exists else {
@@ -421,17 +417,11 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func goBack() {
-        tapWhenReady(app.navigationBars.buttons["BackButton"])
-    }
-
     func scrollUntilVisible(
         _ element: XCUIElement,
         swipingUp: Bool,
         maxAttempts: Int = 6,
         requireHittable: Bool = false,
-        file _: StaticString = #file,
-        line _: UInt = #line,
     ) {
         app.scrollUntilVisible(
             element,

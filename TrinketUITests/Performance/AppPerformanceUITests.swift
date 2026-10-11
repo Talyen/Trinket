@@ -15,10 +15,7 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
 
     @MainActor
     func test00ColdLaunchToPlay() throws {
-        try XCTSkipIf(
-            ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_SCENARIOS"] != nil,
-            "Cold launch metrics are outside the selected frame scenarios",
-        )
+        try XCTSkipUnless(selected("launch-animation"), "Launch metrics not selected")
         let options = XCTMeasureOptions()
         options.iterationCount = repetitionCount
         measure(metrics: [XCTApplicationLaunchMetric()], options: options) {
@@ -84,7 +81,6 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
             )
             launchApp(arguments: arguments)
             play.openCampaign()
-            play.assertCampaignLoaded(number: 1)
             let stageAction = button(AccessibilityID.Play.stageAction(chapter: 1, stage: 1))
             XCTAssertTrue(stageAction.trinketWaitForExistence(timeout: Self.defaultTimeout))
             let stageActionCoordinate = stageAction.coordinate(

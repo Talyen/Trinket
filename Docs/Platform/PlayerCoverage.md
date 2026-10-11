@@ -62,6 +62,10 @@ methods verify the actual text-size and motion environment reached SwiftUI.
 Simulator checks do not establish hardware evidence. Native audits exclude only
 the opt-in diagnostic label; no product failures are blanket-suppressed.
 
+Settings-profile reward checks enter the existing victory fixture, then audit and tap
+the real claim and verify next-stage access. Earned victory remains smoke-owned;
+profiles avoid repeating combat in all six settings/device combinations.
+
 Settings-profile Homestead checks audit and exercise the upgrade controls through the
 visible tier change. Detailed resource debits and reload persistence remain owned by
 `HomesteadControlsUITests`, avoiding repeated accounting across all six settings/device

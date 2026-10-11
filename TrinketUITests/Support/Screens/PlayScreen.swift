@@ -34,23 +34,11 @@ struct PlayScreen {
         assertLoaded()
         let element = app.buttons[AccessibilityID.Play.exploreModeCard]
         element.trinketTapWhenReady()
-        assertElementExists(AccessibilityID.Play.exploreHub)
-    }
-
-    private func assertElementExists(
-        _ identifier: String,
-        timeout: TimeInterval = TrinketUITestCase.deepLinkTimeout,
-        file: StaticString = #file,
-        line: UInt = #line,
-    ) {
-        let element = app.descendants(matching: .any)[identifier]
-        XCTAssertTrue(element.trinketWaitForExistence(timeout: timeout), "Element '\(identifier)' not found", file: file, line: line)
+        let hub = app.descendants(matching: .any)[AccessibilityID.Play.exploreHub]
+        XCTAssertTrue(hub.trinketWaitForExistence(timeout: TrinketUITestCase.deepLinkTimeout), "Explore hub not found")
     }
 
     func startBattle(chapter: Int, stage: Int) {
-        let party = app.descendants(matching: .any)[AccessibilityID.Play.stagePartyControl]
-        XCTAssertTrue(party.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle party control not found")
-
         let start = app.buttons[AccessibilityID.Play.stageAction(chapter: chapter, stage: stage)]
         start.trinketTapWhenReady()
 

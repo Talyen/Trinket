@@ -43,8 +43,7 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
 
     func waitForMeasurementState(_ state: String) {
         let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
-        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", state), object: metrics)
-        XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: 4), .completed)
+        XCTAssertTrue(trinketWaitUntil(timeout: 4) { metrics.value as? String == state })
     }
 
     @MainActor
@@ -143,10 +142,6 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
         }
         let moved = scrollAnchorsMoved(from: before, to: after)
         if !moved {
-            let snapshot = XCTAttachment(screenshot: app.screenshot())
-            snapshot.name = "scroll-did-not-move"
-            snapshot.lifetime = .keepAlways
-            add(snapshot)
             let hierarchy = XCTAttachment(string: surface.debugDescription)
             hierarchy.name = "scroll-surface"
             hierarchy.lifetime = .keepAlways
@@ -156,8 +151,9 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
     }
 
     private func scrollAnchorsMoved(from before: [ScrollAnchor], to after: [ScrollAnchor]) -> Bool {
-        before.contains { anchor in
-            let matches = after.filter { $0.key == anchor.key }
+        let byKey = Dictionary(grouping: after, by: \.key)
+        return before.contains { anchor in
+            let matches = byKey[anchor.key, default: []]
             return matches.isEmpty || matches.allSatisfy {
                 abs($0.frame.minX - anchor.frame.minX) > 2 || abs($0.frame.minY - anchor.frame.minY) > 2
             }

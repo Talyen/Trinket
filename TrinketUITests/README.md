@@ -65,8 +65,7 @@ Keep default launch args unless testing persistence. Prefer `AccessibilityID`
 selectors and assert with `assertExists`; use visible text only when it is the
 product contract. UI tests tap tab labels, not `AppTab` raw values. Sheet dismissal names the expected
 sheet identifier and waits for it to disappear. Native sheet drag dismissal is
-used where the screen intentionally has no Close control; Back selects the native
-`BackButton` identifier rather than an arbitrary navigation-bar button.
+used where the screen intentionally has no Close control.
 
 Launch waits for the loading cover to disappear and for app controls to appear;
 cover absence alone does not prove an interactive surface is ready.
@@ -195,8 +194,9 @@ audited. Captured backend counts establish scheduling/start results, not audibil
 
 The Full Game smoke fixture enters the active Campaign chapter directly through
 `-purchase-chapter-fixture` in an owned, cloud-disabled Debug store. It still taps
-the real locked chapter action. Cancellation and populated Restore use the Debug
-entitlement observation only to avoid repeated Collection traversal; purchase,
+the real locked chapter action. Cancellation retries in the same offer; declined Ask to Buy retries from the offer
+opened by the locked character. Cancellation and populated Restore use the Debug
+entitlement observation to avoid repeated Collection traversal; purchase,
 cold-launch access, and Warlock unlock wiring remain exercised. Merchant detail
 waits for its fixed purchase footer before reading price or buying, without scrolling
 a sheet that is still preparing artwork. Contract return waits for either an earned
@@ -207,3 +207,8 @@ measurements resolve one surface and keep both probe snapshots outside the captu
 Multi-step equipment and talent journeys explicitly skip trailing unselected actions;
 only prerequisites for a selected step run without measurement. Background-return
 and normal-speed rapid-card/drag checks share one battle and retain the usable exit.
+
+Performance state/report waits check immediately before installing a bounded wait.
+Scroll-probe comparison groups anchors by identity once; failures reuse the shared
+failure screenshot and retain the scroll hierarchy. Cold-launch metrics run with the
+launch-animation selection, including the default matrix.
