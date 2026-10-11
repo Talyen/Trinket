@@ -187,7 +187,12 @@ struct EnemyTraitCompositionTests {
             triggers: CombatTraitTriggers(mitigation: MitigationTriggers(frozenEnemyDamageReductionFlat: 1)),
         ),
         "yeti": baseline(
-            modifiers: [.damageTakenPercent(.freeze, 0.30), .damageTakenVulnerability(.burn, 0.30)],
+            modifiers: [
+                .damageTakenPercent(.freeze, 0.30),
+                .damageTakenVulnerability(.burn, 0.30),
+                .damageTakenVulnerability(.physical, 0.20),
+                .damageTakenVulnerability(.stun, 0.20),
+            ],
             triggers: CombatTraitTriggers(block: BlockTriggers(onEnemyFrozenGainBlock: 1)),
         ),
         "banshee": baseline(
@@ -203,7 +208,7 @@ struct EnemyTraitCompositionTests {
             triggers: CombatTraitTriggers(block: BlockTriggers(blockPerTurn: 1, shieldDamageBonusWhileBlocked: 1)),
         ),
         "earth_elemental": baseline(
-            modifiers: [.damageTakenPercent(.physical, 0.20), .damageTakenVulnerability(.stun, 0.30)],
+            modifiers: [.damageTakenPercent(.physical, 0.10), .damageTakenVulnerability(.stun, 0.30)],
             triggers: CombatTraitTriggers(),
         ),
         "the_stone_titan": baseline(

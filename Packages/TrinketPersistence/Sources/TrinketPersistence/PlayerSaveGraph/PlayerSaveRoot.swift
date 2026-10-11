@@ -4,7 +4,7 @@ import TrinketCore
 
 @Model
 package final class PlayerSaveRoot {
-    var id: String = "primary"
+    package var id: String = "primary"
     var schemaVersion: Int = PlayerSave.currentSchemaVersion
     var modifiedAt: Date = Date()
     var sessionGeneration: UInt64 = 0
