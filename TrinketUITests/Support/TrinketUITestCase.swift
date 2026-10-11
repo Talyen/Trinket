@@ -279,6 +279,10 @@ class TrinketUITestCase: XCTestCase {
             warmup.waitForNonExistence(timeout: Self.launchWarmupTimeout),
             "Launch artwork preparation did not finish",
         )
+        XCTAssertTrue(
+            app.buttons.firstMatch.trinketWaitForExistence(timeout: Self.launchWarmupTimeout),
+            "Launch must expose an interactive surface after artwork preparation",
+        )
     }
 
     func button(_ identifier: String) -> XCUIElement {

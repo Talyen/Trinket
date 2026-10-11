@@ -68,11 +68,15 @@ sheet identifier and waits for it to disappear. Native sheet drag dismissal is
 used where the screen intentionally has no Close control; Back selects the native
 `BackButton` identifier rather than an arbitrary navigation-bar button.
 
+Launch waits for the loading cover to disappear and for app controls to appear;
+cover absence alone does not prove an interactive surface is ready.
 Normal control taps use the shared default timeout and require existence,
 enablement, a finite nonempty frame, and hittability. Check geometry before
 hittability because sheet transitions can temporarily expose invalid frames.
 Use explicit
 coordinate gestures only for gesture tests or a demonstrated automation limitation.
+The Haptics switch exposes its entire labeled row; a brief press on the native
+thumb changes the preference, which the test verifies again after relaunch.
 The transparent frame-metrics reset control reports unhittable in XCUITest;
 its explicit coordinate taps prepare the sampler, wait for `ready`, then establish
 `measuring` before stimulus. A final tap freezes the report after the interaction

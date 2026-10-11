@@ -25,7 +25,8 @@ final class OptionsUITests: TrinketUITestCase {
         assertExists(toggle)
         let before = toggle.value as? String
         XCTAssertNotNil(before)
-        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        // The switch exposes the whole labeled row; target its native thumb.
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).press(forDuration: 0.1)
         waitUntil("Haptics thumb must change its preference") { toggle.value as? String != before }
         let changed = toggle.value as? String
         XCTAssertNotEqual(changed, before)
