@@ -16,13 +16,7 @@ final class ExplorePerformanceUITests: PerformanceJourneyUITestCase {
                 tapButton(AccessibilityID.Play.labyrinthEnter)
             }
             assertExists(AccessibilityID.Play.labyrinthMap, timeout: 20)
-            let labyrinthScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            let didScroll = measured("labyrinth-scroll", iteration: iteration) {
-                performScrollGestures(app.scrollViews.firstMatch)
-            }
-            if didScroll {
-                verifyScrollProbes(labyrinthScrollProbes, app.scrollViews.firstMatch)
-            }
+            measured("labyrinth-scroll", iteration: iteration, scrolling: app.scrollViews.firstMatch)
         }
     }
 }

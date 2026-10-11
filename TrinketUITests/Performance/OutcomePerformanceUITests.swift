@@ -58,6 +58,7 @@ final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
                 tapButton(AccessibilityID.Battle.continueButton)
                 assertExists(AccessibilityID.TalentChoice.screen)
             }
+            guard selected("postbattle-talent-choice") else { continue }
             measured("postbattle-talent-choice", iteration: iteration) {
                 let tree = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "Post-Battle Talent Tree ")).firstMatch
                 tapWhenReady(tree)

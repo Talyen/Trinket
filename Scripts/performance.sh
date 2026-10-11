@@ -49,8 +49,6 @@ TESTS=()
 while IFS= read -r test; do TESTS+=("$test"); done < "$OUTPUT_DIR/tests.txt"
 export TRINKET_PERFORMANCE_SCENARIOS
 TRINKET_PERFORMANCE_SCENARIOS="$(python3 -c 'import json,sys; print(",".join(json.load(open(sys.argv[1]))["scenarios"]))' "$OUTPUT_DIR/baseline.json")"
-export TRINKET_PERFORMANCE_TEST_SCENARIOS
-TRINKET_PERFORMANCE_TEST_SCENARIOS="$(python3 -c 'import json,sys; print(json.dumps(json.load(open(sys.argv[1]))["testScenarios"]))' "$OUTPUT_DIR/baseline.json")"
 # Budget the whole suite separately from the per-interaction 60-second watchdog.
 wall_budget=$((300 + ${#TESTS[@]} * 60 * REPETITIONS))
 if (( wall_budget < 1200 )); then wall_budget=1200; fi

@@ -48,7 +48,6 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
                 playTab.tap()
                 play.assertLoaded()
             }
-            play.assertLoaded()
         }
     }
 
@@ -96,7 +95,6 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
                 stageActionCoordinate.tap()
                 battle.assertActive(timeout: 8)
             }
-            battle.assertActive(timeout: 8)
         }
     }
 

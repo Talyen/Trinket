@@ -2,20 +2,6 @@ import TrinketFeatureSupport
 import XCTest
 
 class PerformanceJourneyUITestCase: TrinketUITestCase {
-    private var completedSteps: [Int: Set<String>] = [:]
-
-    private lazy var currentTestSelection: Set<String>? = {
-        guard let raw = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_TEST_SCENARIOS"],
-              let data = raw.data(using: .utf8),
-              let selections = try? JSONDecoder().decode([String: [String]].self, from: data)
-        else { return nil }
-        let entry = selections.first { key, _ in
-            let parts = key.split(separator: "/")
-            return parts.count == 2 && self.name.contains("[\(parts[0]) ") && self.name.hasSuffix(" \(parts[1])]")
-        }
-        return entry.map { Set($0.value) }
-    }()
-
     var repetitionCount: Int {
         max(1, Int(ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_REPETITIONS"] ?? "1") ?? 1)
     }
@@ -26,14 +12,11 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
     }
 
     @MainActor
-    @discardableResult
-    func measured(_ scenario: String, iteration: Int = 1, settle: TimeInterval = 1.5, action: () -> Void) -> Bool {
+    func measured(_ scenario: String, iteration: Int = 1, settle: TimeInterval = 1.5, action: () -> Void) {
         guard selected(scenario) else {
-            let neededForLaterSelection = currentTestSelection.map { !$0.isSubset(of: completedSteps[iteration] ?? []) } ?? true
-            if neededForLaterSelection {
-                action()
-            }
-            return neededForLaterSelection
+            // Unmeasured prerequisites still prepare a later selected step.
+            action()
+            return
         }
         let control = measurementControl
         control.tap()
@@ -42,8 +25,14 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
         waitForMeasurementState("measuring")
         action()
         finishMeasurement(scenario, iteration: iteration, settle: settle, control: control)
-        completedSteps[iteration, default: []].insert(scenario)
-        return true
+    }
+
+    @MainActor
+    func measured(_ scenario: String, iteration: Int, scrolling surface: XCUIElement) {
+        guard selected(scenario) else { return }
+        let probes = captureScrollProbes(surface)
+        measured(scenario, iteration: iteration) { performScrollGestures(surface) }
+        verifyScrollProbes(probes, surface)
     }
 
     var measurementControl: XCUICoordinate {

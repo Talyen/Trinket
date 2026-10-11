@@ -10,13 +10,7 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allForScreen("hero:knight")))
             combatantDetail.assertLoaded(for: "Knight")
-            let detailScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            let didScroll = measured("combatant-detail-scroll", iteration: iteration) {
-                performScrollGestures(app.scrollViews.firstMatch)
-            }
-            if didScroll {
-                verifyScrollProbes(detailScrollProbes, app.scrollViews.firstMatch)
-            }
+            measured("combatant-detail-scroll", iteration: iteration, scrolling: app.scrollViews.firstMatch)
         }
     }
 
@@ -30,13 +24,8 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
             reveal(button(slot))
             tapButton(slot)
             assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
-            if selected("equipment-picker-scroll") {
-                let pickerScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-                measured("equipment-picker-scroll", iteration: iteration) {
-                    performScrollGestures(app.scrollViews.firstMatch)
-                }
-                verifyScrollProbes(pickerScrollProbes, app.scrollViews.firstMatch)
-            }
+            measured("equipment-picker-scroll", iteration: iteration, scrolling: app.scrollViews.firstMatch)
+            guard selected("equipment-search-filter") else { continue }
             measured("equipment-search-filter", iteration: iteration) {
                 tapButton(AccessibilityID.LoadoutPicker.itemFilter)
                 tapButton(AccessibilityID.LoadoutPicker.itemRarityFilter)
@@ -57,13 +46,7 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
             collection.assertLoaded()
-            let browseScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            let didBrowse = measured("collection-browse-scroll", iteration: iteration) {
-                performScrollGestures(app.scrollViews.firstMatch)
-            }
-            if didBrowse {
-                verifyScrollProbes(browseScrollProbes, app.scrollViews.firstMatch)
-            }
+            measured("collection-browse-scroll", iteration: iteration, scrolling: app.scrollViews.firstMatch)
         }
     }
 
@@ -83,13 +66,7 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
             ).firstMatch
             reveal(tree)
             tapWhenReady(tree)
-            let talentScrollProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            let didScroll = measured("talent-tree-scroll", iteration: iteration) {
-                performScrollGestures(app.scrollViews.firstMatch)
-            }
-            if didScroll {
-                verifyScrollProbes(talentScrollProbes, app.scrollViews.firstMatch)
-            }
+            measured("talent-tree-scroll", iteration: iteration, scrolling: app.scrollViews.firstMatch)
         }
     }
 }

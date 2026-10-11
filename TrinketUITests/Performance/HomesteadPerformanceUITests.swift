@@ -10,13 +10,7 @@ final class HomesteadPerformanceUITests: PerformanceJourneyUITestCase {
             homestead.assertLoaded()
             homestead.openFarmingCategoryAndRevealWheatFieldNode()
             assertExists(AccessibilityID.Homestead.gallery)
-            let homesteadGalleryProbes = captureScrollProbes(app.scrollViews.firstMatch)
-            let didScrollGallery = measured("homestead-gallery-scroll", iteration: iteration) {
-                performScrollGestures(app.scrollViews.firstMatch)
-            }
-            if didScrollGallery {
-                verifyScrollProbes(homesteadGalleryProbes, app.scrollViews.firstMatch)
-            }
+            measured("homestead-gallery-scroll", iteration: iteration, scrolling: app.scrollViews.firstMatch)
         }
     }
 }

@@ -194,4 +194,8 @@ waits for its fixed purchase footer before reading price or buying, without scro
 a sheet that is still preparing artwork. Contract return waits for either an earned
 talent sheet or the board with a hittable Play tab, avoiding an unconditional optional
 sheet delay while respecting pending talent presentation. Class-filtered performance
-runs exit unselected methods before app launch or scroll-probe setup.
+runs exit unselected methods before app launch or scroll-probe setup. Shared scroll
+measurements resolve one surface and keep both probe snapshots outside the capture.
+Multi-step equipment and talent journeys explicitly skip trailing unselected actions;
+only prerequisites for a selected step run without measurement. Background-return
+and normal-speed rapid-card/drag checks share one battle and retain the usable exit.

@@ -3,21 +3,6 @@ import TrinketFeatureSupport
 import XCTest
 
 final class BattleLifecycleUITests: TrinketUITestCase {
-    func testBackgroundedBattleAcceptsManualPlayAfterReturn() {
-        launchApp(arguments: TestLaunchArg.productionTiming())
-        play.openCampaign()
-        play.startBattle(chapter: 1, stage: 1)
-        battle.assertActive()
-        backgroundAndActivate()
-        let card = battle.handCards.firstMatch
-        assertExists(card)
-        let identity = card.identifier
-        tapWhenReady(card)
-        waitUntil("Returned battle must accept manual input") {
-            !self.any(identity).exists || self.any(AccessibilityID.Battle.victory).exists
-        }
-    }
-
     func testCommittedRewardSurvivesTerminationWithoutReseeding() {
         launchApp(arguments: TestLaunchArg.allForTab("play")
             + ["-performance-strong-party", TestLaunchArg.rewardCheckpoint])
@@ -71,10 +56,12 @@ final class BattleLifecycleUITests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Debug.talentConfirmationCheckpoint)
     }
 
-    func testProductionTimingRapidCardsAndDragLeaveUsableExit() {
+    func testBackgroundedProductionBattleAcceptsRapidCardsDragAndExit() {
         launchApp(arguments: TestLaunchArg.productionTiming())
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
+        battle.assertActive()
+        backgroundAndActivate()
         let first = battle.handCards.firstMatch
         assertExists(first)
         let firstID = first.identifier
