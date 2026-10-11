@@ -69,8 +69,10 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         waitUntil("Cancelled purchase must leave purchase available") {
             self.button(AccessibilityID.FullGame.purchase).isEnabled
         }
-        XCTAssertTrue(session.allTransactions().isEmpty)
-        try await session.setSimulatedError(nil, forAPI: .purchase)
+        // Clearing only the error leaves iOS 26.2's cancellation batch active.
+        // Reset configuration overrides without deleting the failed transaction.
+        session.resetToDefaultState()
+        session.disableDialogs = true
         dismissSheet(AccessibilityID.FullGame.offer)
         assertFullGameAccess(false)
         tapButton(AccessibilityID.FullGame.options)

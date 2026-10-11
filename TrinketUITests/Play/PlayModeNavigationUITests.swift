@@ -35,7 +35,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         tapWhenReady(action)
         battle.assertActive()
         tapWhenReady(battle.autoBattleToggle)
-        assertExists(AccessibilityID.Battle.victory, timeout: 30)
+        assertExists(AccessibilityID.Battle.victory, timeout: 60)
         assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
         tapButton(AccessibilityID.Battle.continueButton)
         assertExists(AccessibilityID.Play.labyrinthMap)

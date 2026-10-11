@@ -245,7 +245,11 @@ Retain the complete release gate and the player-facing denial and retry checks;
 legacy `SKTestTransaction.state` can remain deferred after a correctly resolved
 denial. This finding concerns local StoreKit testing, not production App Store
 behavior. Apple's [Ask to Buy testing contract](https://developer.apple.com/documentation/storekit/testing-ask-to-buy-in-xcode)
-says denial delivers no transaction to the app.
+says denial delivers no transaction to the app. On iOS 26.2, clearing a simulated
+purchase cancellation with `setSimulatedError(nil, forAPI: .purchase)` reports nil
+but can leave the following purchase canceled by the test server. Reset the test
+configuration with `resetToDefaultState()` and reapply `disableDialogs` before
+retrying; keep the transaction history and verify locked access and successful retry.
 
 Tooling updates are deliberate maintenance: update the pinned Fastlane version
 and Bundler lockfile together, run script regressions and handoff, then rerun
