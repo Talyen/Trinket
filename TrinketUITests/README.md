@@ -47,7 +47,7 @@ its battle and floor-selection interactions because they protect distinct UI wir
 
 Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift` and parsed by
 `AppEnvironment`. Helpers include `allForScreen`, `allForTab`, `allForBattle`,
-`allForMidBattle`, `allForShop`, and
+`allForMidBattle`, and
 `completedStages`. Use the source type for the complete, current catalog.
 
 **Default smoke args:** `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`.
@@ -212,3 +212,7 @@ Performance state/report waits check immediately before installing a bounded wai
 Scroll-probe comparison groups anchors by identity once; failures reuse the shared
 failure screenshot and retain the scroll hierarchy. Cold-launch metrics run with the
 launch-animation selection, including the default matrix.
+
+Readiness taps own their existence wait; avoid a second existence assertion immediately
+before the same tap. Tap readiness reads enablement and geometry from one snapshot.
+Numeric reads resolve value and fallback label from the same snapshot.

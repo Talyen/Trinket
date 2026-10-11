@@ -22,7 +22,6 @@ enum TestLaunchArg {
     static let resetState = "-reset-state"
     static let seedTestProgress = "-seed-test-progress"
     static let skipStarterSelection = "-skip-starter-selection"
-    static let skipOnboardingCeremony = "-skip-onboarding-ceremony"
     static let disableCloudSync = "-disable-cloud-sync"
     static let testLaunchArgs = [
         resetState,
@@ -110,10 +109,6 @@ enum TestLaunchArg {
         replacingBattleTickInterval("60", in: testLaunchArgs)
     }
 
-    static func allForShop() -> [String] {
-        allForScreen("shop")
-    }
-
     static func replacingBattleTickInterval(_ interval: String, in args: [String]) -> [String] {
         var result = args
         if let index = result.firstIndex(of: "-battle-tick-interval"), index + 1 < result.count {
@@ -182,9 +177,7 @@ class TrinketUITestCase: XCTestCase {
     }
 
     override func tearDownWithError() throws {
-        if let app {
-            app.terminate()
-        }
+        app?.terminate()
         app = nil
         try super.tearDownWithError()
     }
@@ -195,10 +188,8 @@ class TrinketUITestCase: XCTestCase {
         launchArgs.append(contentsOf: ["-store-name", storeName])
         app.launchArguments = launchArgs
         var launchEnvironment = app.launchEnvironment
-        for key in ["TRINKET_PERFORMANCE_QUICK"] {
-            if let value = ProcessInfo.processInfo.environment[key], !value.isEmpty {
-                launchEnvironment[key] = value
-            }
+        if let quick = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"], !quick.isEmpty {
+            launchEnvironment["TRINKET_PERFORMANCE_QUICK"] = quick
         }
         app.launchEnvironment = launchEnvironment
         app.launch()
@@ -266,7 +257,8 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func integer(in element: XCUIElement) throws -> Int {
-        let text = (element.value as? String).flatMap { $0.isEmpty ? nil : $0 } ?? element.label
+        let snapshot = try element.snapshot()
+        let text = (snapshot.value as? String).flatMap { $0.isEmpty ? nil : $0 } ?? snapshot.label
         let digits = text.replacingOccurrences(of: ",", with: "").split(whereSeparator: { !$0.isNumber }).first
         return try XCTUnwrap(digits.flatMap { Int($0) }, "Missing numeric amount: \(text)")
     }

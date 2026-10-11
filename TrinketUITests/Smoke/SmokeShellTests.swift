@@ -36,18 +36,14 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         XCTAssertFalse(heroName.isEmpty)
 
         let heroConfirmID = AccessibilityID.Onboarding.confirm(role: .hero)
-        assertExists(heroConfirmID, timeout: 15)
-        let heroConfirm = app.descendants(matching: .any)[heroConfirmID]
-        tapWhenReady(heroConfirm)
+        any(heroConfirmID).trinketTapWhenReady(timeout: 15)
 
         assertExists(AccessibilityID.Onboarding.companionScreen, timeout: 15)
         let companionName = any(AccessibilityID.Onboarding.selectedName).label
         XCTAssertFalse(companionName.isEmpty)
 
         let companionConfirmID = AccessibilityID.Onboarding.confirm(role: .companion)
-        assertExists(companionConfirmID, timeout: 15)
-        let companionConfirm = app.descendants(matching: .any)[companionConfirmID]
-        tapWhenReady(companionConfirm)
+        any(companionConfirmID).trinketTapWhenReady(timeout: 15)
 
         XCTAssertTrue(
             app.tabBars.firstMatch.trinketWaitForExistence(timeout: 15),

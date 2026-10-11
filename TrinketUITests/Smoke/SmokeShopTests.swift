@@ -3,7 +3,7 @@ import XCTest
 
 final class SmokeShopTests: TrinketUITestCase {
     func testMerchantPurchasePaysAndReturnsToPlay() throws {
-        launchApp(arguments: TestLaunchArg.allForShop()
+        launchApp(arguments: TestLaunchArg.allForScreen("shop")
             + TestLaunchArg.completedStages((1 ... 7).map { "chapter-2-stage-\($0)" })
             + ["-starting-gold", "200"])
         let shop = ShopScreen(app: app)

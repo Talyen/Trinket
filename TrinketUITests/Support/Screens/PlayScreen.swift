@@ -24,14 +24,12 @@ struct PlayScreen {
     }
 
     func openCampaign(number: Int = 1) {
-        assertLoaded()
         let campaign = app.buttons[AccessibilityID.Play.campaignModeCard]
         campaign.trinketTapWhenReady()
         assertCampaignLoaded(number: number)
     }
 
     func openExplore() {
-        assertLoaded()
         let element = app.buttons[AccessibilityID.Play.exploreModeCard]
         element.trinketTapWhenReady()
         let hub = app.descendants(matching: .any)[AccessibilityID.Play.exploreHub]

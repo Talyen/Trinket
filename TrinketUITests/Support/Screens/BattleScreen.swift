@@ -37,11 +37,8 @@ struct BattleScreen {
         file: StaticString = #file,
         line: UInt = #line,
     ) {
-        let handChrome = app.descendants(matching: .any)
-            .matching(identifier: AccessibilityID.Battle.hand)
-            .firstMatch
         XCTAssertTrue(
-            handChrome.trinketWaitForExistence(timeout: timeout),
+            hand.trinketWaitForExistence(timeout: timeout),
             "Battle hand chrome not found",
             file: file,
             line: line,

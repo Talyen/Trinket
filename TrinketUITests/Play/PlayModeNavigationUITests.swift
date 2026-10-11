@@ -53,9 +53,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         let embark = app.buttons.matching(NSPredicate(
             format: "identifier BEGINSWITH %@", AccessibilityID.Voyage.action(""),
         )).firstMatch
-        assertExists(embark)
         tapWhenReady(embark)
-        assertExists(AccessibilityID.Voyage.options)
         tapButton(AccessibilityID.Voyage.options)
         tapButton(AccessibilityID.Voyage.abandon)
         tapButton(AccessibilityID.Voyage.confirmAbandon)

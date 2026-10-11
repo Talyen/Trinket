@@ -47,17 +47,12 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
         battle.assertActive(timeout: 8)
         let gesture = prepareGesture(for: scenario)
 
-        let start = app.buttons[AccessibilityID.Debug.battlePerformanceStart]
-        XCTAssertTrue(start.trinketWaitForExistence(timeout: Self.defaultTimeout))
-        let status = app.descendants(matching: .any)[AccessibilityID.Debug.battlePerformanceStatus]
-        XCTAssertTrue(status.trinketWaitForExistence(timeout: Self.defaultTimeout))
-        let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
-        XCTAssertTrue(metrics.trinketWaitForExistence(timeout: Self.defaultTimeout))
-
+        let start = button(AccessibilityID.Debug.battlePerformanceStart)
+        let status = any(AccessibilityID.Debug.battlePerformanceStatus)
         let stop = measurementControl
         tapWhenReady(start)
         XCTAssertTrue(
-            waitForStatus(status, prefix: "measuring:\(scenario)"),
+            waitUntil(timeout: 4) { (status.value as? String)?.hasPrefix("measuring:\(scenario)") == true },
             "Scenario did not enter its measurement window: \(status.value ?? "missing")",
         )
         perform(gesture)
@@ -121,14 +116,6 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
 
     private func drag(from origin: XCUICoordinate, offset: CGVector) {
         origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(offset))
-    }
-
-    private func waitForStatus(
-        _ element: XCUIElement,
-        prefix: String,
-        timeout: TimeInterval = 4,
-    ) -> Bool {
-        waitUntil(timeout: timeout) { (element.value as? String)?.hasPrefix(prefix) == true }
     }
 
     private func waitUntil(timeout: TimeInterval = 3, condition: () -> Bool) -> Bool {
