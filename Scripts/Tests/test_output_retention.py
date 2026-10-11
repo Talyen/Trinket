@@ -180,6 +180,10 @@ class OutputRetentionTests(ScriptRegressionTestCase):
     def test_staged_diagnostics_survive_cleanup_and_aliases_cannot_target_results_root(self):
         from script_test_support import load_script
         maintenance = load_script('retention_maintenance', 'diagnostic_maintenance.py')
+        # Deployment's live lock must not govern this temporary retention fixture.
+        fixture_root = patch('internal.cli.ROOT', self.root.resolve())
+        fixture_root.start()
+        self.addCleanup(fixture_root.stop)
         results = self.root / 'TestResults'
         bundle = results / 'passed.xcresult'
         bundle.mkdir(parents=True)
