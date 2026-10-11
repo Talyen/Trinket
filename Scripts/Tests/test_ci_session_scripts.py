@@ -470,8 +470,10 @@ class CISessionScriptTests(ScriptRegressionTestCase):
             self.assertTrue((results / "new-fail-invocation.json").exists())
 
     def test_cleanup_sweeps_orphan_bundles_and_logs_by_age(self) -> None:
+        maintenance = load_script("diagnostic_cleanup_orphans", "diagnostic_maintenance.py")
         with tempfile.TemporaryDirectory() as directory:
-            results = Path(directory) / "TestResults"
+            root = Path(directory).resolve()
+            results = root / "TestResults"
             raw = results / "raw"
             raw.mkdir(parents=True)
             stale_time = time.time() - 10 * 86400
@@ -488,14 +490,10 @@ class CISessionScriptTests(ScriptRegressionTestCase):
             for path in (orphan_bundle, orphan_log):
                 os.utime(path, (stale_time, stale_time))
 
-            cleaned = subprocess.run(
-                [str(ROOT / "Scripts" / "ci-diagnostics.sh"), "--cleanup", str(results)],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(cleaned.returncode, 0, cleaned.stderr)
+            # Isolated deployment puts TMPDIR under .DerivedData, whose live lock
+            # protects real outputs. Keep this age-policy fixture in its own root.
+            with patch("internal.cli.ROOT", root), contextlib.redirect_stdout(io.StringIO()):
+                maintenance.cleanup(results, keep=False)
             self.assertFalse(orphan_bundle.exists())
             self.assertFalse(orphan_log.exists())
             # Fresh orphans and evidence with a diagnostics report survive.
