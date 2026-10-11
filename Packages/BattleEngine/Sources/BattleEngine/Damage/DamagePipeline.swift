@@ -68,7 +68,7 @@ package enum DamagePipeline {
     /// Committed-damage reaction order (load-bearing, do not reorder):
     /// card-hit (or non-card attack rewards) → enemy traits → DoT mirrors/ticks → leech → enemy Purge → attacker on-hit
     /// applications → attacker mirrors → control meter/fang → retaliation-gated
-    /// reactive/keyword → ally Block → Threefold Grace → crit → uniques. DoT mirrors must precede leech so
+    /// reactive → keyword rewards → ally Block → Threefold Grace → crit → uniques. DoT mirrors must precede leech so
     /// mirrored ticks count toward the same hit; keyword reactions stay last
     /// among pipeline-owned steps so wards see final healthLost.
     private static func applyCommittedDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) async {
@@ -109,6 +109,10 @@ package enum DamagePipeline {
         await AttackerOnHitEngine.applyNimbleFang(to: &state, in: &context)
         if !state.options.isRetaliation {
             await applyReactiveOnHit(to: &state, in: &context)
+        }
+        // Freeze rewards include pulses and reactions; converted Holy Thorns retains Holy rewards.
+        if !state.options.isRetaliation || state.damageKeyword == .freeze
+            || (state.options.isThornsDamage && state.damageKeyword == .holy) {
             await applyKeywordReactions(to: &state, in: &context)
         }
         applyFinalCompanionHolyHitRewards(to: &state, in: &context)

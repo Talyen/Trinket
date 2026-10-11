@@ -143,7 +143,8 @@ refill mid-turn; decks do not reshuffle after battle start.
 
 Pack Tactics deals Physical damage, then draws a manual card from the caster's
 ally's deck. It falls back to the caster's deck when the ally is defeated, blocked
-from drawing, unable to pay the drawn card's Health cost, or has no card to draw.
+from drawing, or has no card to draw. Health-cost affordability is checked when
+the drawn card is played, rather than when it is drawn.
 Feint prepares Dodge and draws a manual card from the caster's deck; a missing
 card does not borrow the partner's. Shadowstep deals Physical damage, then draws
 from the caster's deck, without Dodge or repeat preparation. Current card text

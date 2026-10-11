@@ -143,7 +143,7 @@ enum AttackerOnHitEngine {
             in: &context,
         )
         state.damageEvents.append(contentsOf: stunEvents)
-        guard triggers.holyTriggeredStunGoldFlat > 0,
+        guard context.health(of: hit.source) > 0, triggers.holyTriggeredStunGoldFlat > 0,
               stunEvents.contains(where: {
                   $0.effectKind == .controlTriggered && $0.keyword == .stun
               })

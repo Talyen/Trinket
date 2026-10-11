@@ -96,7 +96,8 @@ Health damage, sharing Spiteful's once-per-turn allowance with a consumed Thorns
 Its Physical reflection also observes Thorns resistance.
 Committed Thorns and lingering Bleed still deal damage after their source falls.
 Their personal rewards require a living owner: Martial Guard's Block, both
-Blood Money rewards, and Critical Hit Gold stop after final defeat.
+Blood Money rewards, Golden Verdict's Stun theft, and Critical Hit Gold stop after
+final defeat.
 Fully Blocked Critical Hits still qualify for ordinary Critical Hit Gold and Purge
 reactions; effects that explicitly require Health damage keep that requirement.
 Spitebloom follows Thorns Health damage with a separate Poison hit and attaches

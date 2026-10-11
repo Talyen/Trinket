@@ -21,6 +21,22 @@ struct EffectHandlersApplyTests {
         #expect(!outcome.events.contains { $0.kind == .ability && $0.actorID == battle.hero.id })
     }
 
+    @Test func `Pack Tactics can draw an ally's currently unaffordable card`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
+        battle.roster.companion.currentHealth = 1
+        battle.heroDeck = CombatDeck(abilities: [.block])
+        battle.companionDeck = CombatDeck(abilities: [.darkPact])
+
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .drawCards(1), ability: .packTactics, source: battle.hero, target: battle.hero, battle: &battle,
+        )
+
+        #expect(outcome.didApply)
+        #expect(battle.hand.cards.contains { $0.owner == .companion && $0.ability.id == Ability.darkPact.id })
+        #expect(battle.heroDeck.abilities.count == 1)
+        #expect(battle.companionDeck.abilities.isEmpty)
+    }
+
     @Test func `burn handler applies burn effect`() throws {
         var battle = BattleStateTestFactory.makeBattle()
         let enemy = battle.enemy

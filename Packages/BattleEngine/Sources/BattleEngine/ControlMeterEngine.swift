@@ -182,7 +182,7 @@ package enum ControlMeterEngine {
         if keyword == .freeze,
            combatant.role == .enemy,
            let sourceActorID,
-           let source = context.roster.combatant(for: sourceActorID),
+           let source = context.roster.combatant(for: sourceActorID), source.isAlive,
            context.modifiers(for: sourceActorID).triggers.onFreezeEnemyGainManaEqualBlock {
             let owner = source.combatant
             let currentBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: owner))

@@ -22,8 +22,11 @@ Duplication, transfer, and already-scaled gains use `.resolved` to avoid applyin
 outgoing bonuses and fight pacing again; consequences read `BlockGain.applied`.
 Resolved Block also preserves its amount through recipient gain multipliers and
 leaves a prepared next-Block-gain bonus available for the next base grant.
-Rimeheart Locket grants resolved Block equal to the Freeze hit's actual Health damage
-only if its wearer survives the hit's retaliation. Holy restoration, Block, Cleanse,
+Rimeheart Locket grants resolved Block equal to actual Freeze Health damage, including
+Blizzard pulses and reactive damage, only while its wearer lives after retaliation.
+Its Freeze-triggered Mana also requires a living wearer. Holy Infusion's committed
+Holy Thorns qualifies for Holy damage rewards, including Beacon healing; personal
+rewards require their owner to survive. Holy restoration, Block, Cleanse,
 Mana and preparation rewards likewise require a living source; committed offensive
 consequences retain their own eligibility.
 Sun Glyph and Vitality Infusion grant ally Block after the hit's retaliation and
