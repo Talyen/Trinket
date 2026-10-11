@@ -5,6 +5,16 @@ final class AudioLifecycleUITests: TrinketUITestCase {
     func testRealBackendsPlayAfterBattleAndForegroundRouting() throws {
         launchApp(arguments: TestLaunchArg.productionTiming(audio: true)
             + ["-performance-strong-party", "-coverage-diagnostics"])
+        tabBar.selectOptions()
+        options.assertLoaded()
+        let musicVolume = app.sliders["Music"]
+        XCTAssertTrue(musicVolume.waitForExistence(timeout: Self.defaultTimeout))
+        musicVolume.adjust(toNormalizedSliderPosition: 0.75)
+        waitUntil("Music must start after enabling simulator music") {
+            do { return try (self.coverageReport()["musicStarts"] as? Int ?? 0) > 0 }
+            catch { return false }
+        }
+        tabBar.selectPlay()
         play.openExplore()
         tapButton(AccessibilityID.Play.contractsModeCard)
         completeAudioContract()
