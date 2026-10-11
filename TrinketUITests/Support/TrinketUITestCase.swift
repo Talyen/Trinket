@@ -266,8 +266,7 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func integer(in element: XCUIElement) throws -> Int {
-        let snapshot = try element.snapshot()
-        let text = (snapshot.value as? String).flatMap { $0.isEmpty ? nil : $0 } ?? snapshot.label
+        let text = (element.value as? String).flatMap { $0.isEmpty ? nil : $0 } ?? element.label
         let digits = text.replacingOccurrences(of: ",", with: "").split(whereSeparator: { !$0.isNumber }).first
         return try XCTUnwrap(digits.flatMap { Int($0) }, "Missing numeric amount: \(text)")
     }
