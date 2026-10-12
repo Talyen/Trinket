@@ -9,8 +9,10 @@ final class SmokeShopTests: TrinketUITestCase {
         let offers = app.buttons.matching(NSPredicate(format: "identifier ENDSWITH %@", AccessibilityID.Shop.offerCardSuffix))
         let detailBuy = button(AccessibilityID.Shop.detailBuyButton)
         let leave = button(AccessibilityID.Shop.leaveButton)
-        assertExists(AccessibilityID.Shop.goldBalance)
-        let goldBefore = try integer(in: any(AccessibilityID.Shop.goldBalance))
+        // iOS 18 mirrors this one wallet's semantics on its native toolbar host and child.
+        let goldBalance = app.descendants(matching: .any).matching(identifier: AccessibilityID.Shop.goldBalance).firstMatch
+        assertExists(goldBalance)
+        let goldBefore = try integer(in: goldBalance)
         assertExists(offers.firstMatch)
         let offerID = offers.firstMatch.identifier
         let offer = button(offerID)
@@ -24,7 +26,7 @@ final class SmokeShopTests: TrinketUITestCase {
         XCTAssertEqual(try integer(in: detailBuy), price)
         tapWhenReady(detailBuy)
         assertDoesNotExist(AccessibilityID.Shop.detailBuyButton)
-        XCTAssertEqual(try integer(in: any(AccessibilityID.Shop.goldBalance)), goldBefore - price)
+        XCTAssertEqual(try integer(in: goldBalance), goldBefore - price)
 
         scrollUntilVisible(leave, swipingUp: true, requireHittable: true)
         tapWhenReady(leave)

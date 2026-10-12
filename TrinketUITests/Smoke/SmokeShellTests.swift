@@ -29,14 +29,16 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
 
         assertExists(AccessibilityID.Onboarding.heroScreen, timeout: 15)
         XCTAssertEqual(app.tabBars.count, 0)
-        let heroName = any(AccessibilityID.Onboarding.selectedName).label
+        let heroName = any(AccessibilityID.Onboarding.heroScreen)
+            .staticTexts[AccessibilityID.Onboarding.selectedName].label
         XCTAssertFalse(heroName.isEmpty)
 
         let heroConfirmID = AccessibilityID.Onboarding.confirm(role: .hero)
         any(heroConfirmID).trinketTapWhenReady(timeout: 15)
 
         assertExists(AccessibilityID.Onboarding.companionScreen, timeout: 15)
-        let companionName = any(AccessibilityID.Onboarding.selectedName).label
+        let companionName = any(AccessibilityID.Onboarding.companionScreen)
+            .staticTexts[AccessibilityID.Onboarding.selectedName].label
         XCTAssertFalse(companionName.isEmpty)
 
         let companionConfirmID = AccessibilityID.Onboarding.confirm(role: .companion)

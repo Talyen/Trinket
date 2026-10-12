@@ -231,9 +231,17 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func auditProductAccessibility() throws {
-        try app.performAccessibilityAudit { issue in
-            // Exclude only the opt-in Debug observation label, never product controls.
-            issue.element?.identifier == AccessibilityID.Debug.coverageDiagnostics
+        func audit() throws {
+            try app.performAccessibilityAudit { issue in
+                // Exclude only the opt-in Debug observation label, never product controls.
+                issue.element?.identifier == AccessibilityID.Debug.coverageDiagnostics
+            }
+        }
+        do {
+            try audit()
+        } catch let error as NSError where error.domain == "com.apple.xcode.xctest.accessibilityAudit" && error.code == -56 {
+            // Retry one native audit timeout; violations and a second timeout still fail.
+            try audit()
         }
     }
 

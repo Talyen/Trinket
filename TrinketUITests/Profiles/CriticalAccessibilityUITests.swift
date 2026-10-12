@@ -39,11 +39,12 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
 
     private static func reduceMotionControl() -> XCUIElement {
         let control = settings.switches["Reduce Motion"].firstMatch
-        if control.exists {
+        if control.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout) {
             revealSettingsElement(control, scrolling: settings)
             return control
         }
-        let accessibility = settings.staticTexts["Accessibility"].firstMatch
+        // A retained navigation title has the same text as the root's destination row.
+        let accessibility = settings.cells.containing(.staticText, identifier: "Accessibility").firstMatch
         let sidebar = settings.collectionViews["com.apple.settings.sidebar.collectionView"].firstMatch
         if !sidebar.exists {
             for _ in 0 ..< 4 {

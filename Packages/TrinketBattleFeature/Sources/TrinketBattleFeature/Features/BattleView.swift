@@ -68,7 +68,8 @@ public struct BattleView: View {
             .toolbarVisibility(.visible, for: .navigationBar)
             .toolbarVisibility(.hidden, for: .tabBar)
             .toolbar {
-                if !spectacle.outcomePresentation.isOutcomePresented {
+                // Register native controls after the retained battlefield becomes interactive.
+                if battleSession.lifecyclePhase == .active, !spectacle.outcomePresentation.isOutcomePresented {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         BattleAutoToggle(battleSession: battleSession)
                         battleActionsMenu(canRetreat: battleSession.canRetreat)

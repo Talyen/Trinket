@@ -72,7 +72,10 @@ device's profiles, even on failed journeys. Reduce Motion is selected through th
 and restored after each class execution, including failed journeys. Both profile
 methods verify the actual text-size and motion environment reached SwiftUI.
 Simulator checks do not establish hardware evidence. Native audits exclude only
-the opt-in diagnostic label; no product failures are blanket-suppressed.
+the opt-in diagnostic label; no product failures are blanket-suppressed. A native
+audit timeout receives one immediate retry; a repeated timeout or any product
+violation still fails the profile. Settings navigation waits for the retained Motion
+screen and selects the Accessibility destination row rather than its matching title.
 
 Settings-profile reward checks enter the existing victory fixture, then audit and tap
 the real claim and verify next-stage access. Earned victory remains smoke-owned;
