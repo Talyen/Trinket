@@ -33,7 +33,7 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
                 let search = app.searchFields.firstMatch
                 XCTAssertTrue(search.trinketWaitForExistence(timeout: 5))
                 replaceText(in: search, with: "long")
-                assertButtonExists(AccessibilityID.LoadoutPicker.itemCandidate("longsword-astral"))
+                assertExists(button(AccessibilityID.LoadoutPicker.itemCandidate("longsword-astral")))
                 search.typeText("\n")
                 XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
             }

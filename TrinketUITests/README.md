@@ -222,3 +222,10 @@ Coverage diagnostics use one snapshot per report. Audio waits retain the report 
 satisfied the condition for subsequent checks, including each of the twenty soak cycles.
 Battle performance keeps gesture setup before capture and its existing short polling
 cadence, card-count assertions, and animation tail without a separate gesture model.
+
+Audio lifecycle and the twenty-Contract soak share one Contract journey helper.
+The Fight control's readiness wait owns entry; return-to-board, real-audio, and
+per-offer claim assertions remain intact. Scroll reveal reuses the existence wait's
+result instead of querying existence again after each gesture. Immediate existence
+checks before native waits remain intentional fast paths. Homestead audits stop
+after the tier change; the accounting journey always verifies same-store reload.

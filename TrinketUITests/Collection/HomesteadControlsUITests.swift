@@ -5,12 +5,12 @@ import XCTest
 final class HomesteadControlsUITests: TrinketUITestCase {
     func testDisplayedUpgradeCostAndTierSurviveRelaunch() throws {
         launchApp(arguments: TestLaunchArg.allForTab("homestead"))
-        try verifyWheatFieldUpgrade(relaunch: true)
+        try verifyWheatFieldUpgrade()
     }
 }
 
 extension TrinketUITestCase {
-    func verifyWheatFieldUpgrade(relaunch: Bool, audit: Bool = false) throws {
+    func verifyWheatFieldUpgrade(audit: Bool = false) throws {
         homestead.assertLoaded()
         homestead.openFarmingCategoryAndRevealWheatFieldNode()
         tapWhenReady(any(AccessibilityID.Homestead.node(title: "Wheat Field")))
@@ -35,8 +35,6 @@ extension TrinketUITestCase {
         }
         if audit {
             try auditProductAccessibility()
-        }
-        if audit {
             retainScreenshot(named: "reachable-upgrade-controls")
         } else {
             attachSuccessScreenshot(named: "reachable-upgrade-controls")
@@ -52,14 +50,12 @@ extension TrinketUITestCase {
         for (resource, amount) in before {
             XCTAssertEqual(after[resource], amount - costs[resource, default: 0], "Displayed debit: \(resource)")
         }
-        if relaunch {
-            relaunchApp(arguments: ["-selectedTab", "homestead"])
-            homestead.openFarmingCategoryAndRevealWheatFieldNode()
-            tapWhenReady(any(AccessibilityID.Homestead.node(title: "Wheat Field")))
-            assertExists(AccessibilityID.Homestead.progress(tier: 2))
-            tapButton(AccessibilityID.Homestead.walletButton)
-            XCTAssertEqual(try homesteadBalances(), after)
-        }
+        relaunchApp(arguments: ["-selectedTab", "homestead"])
+        homestead.openFarmingCategoryAndRevealWheatFieldNode()
+        tapWhenReady(any(AccessibilityID.Homestead.node(title: "Wheat Field")))
+        assertExists(AccessibilityID.Homestead.progress(tier: 2))
+        tapButton(AccessibilityID.Homestead.walletButton)
+        XCTAssertEqual(try homesteadBalances(), after)
         tapButton(AccessibilityID.Homestead.closeSheetButton)
     }
 

@@ -115,7 +115,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         tapButton(AccessibilityID.Battle.defeatLeaveButton)
         play.assertCampaignLoaded()
         tabBar.selectHomestead()
-        try verifyWheatFieldUpgrade(relaunch: false, audit: true)
+        try verifyWheatFieldUpgrade(audit: true)
         tapButton(AccessibilityID.Homestead.backButton)
         tabBar.selectOptions()
         assertExistsAfterScroll(AccessibilityID.FullGame.restore, requireHittable: true)

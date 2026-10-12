@@ -7,28 +7,17 @@ final class RepeatedPlayUITests: TrinketUITestCase {
             + ["-performance-strong-party", "-coverage-diagnostics"])
         play.openExplore()
         tapButton(AccessibilityID.Play.contractsModeCard)
+        assertExists(AccessibilityID.Play.contractsBoard)
         var lastAudioPlays = 0
         var outcomes: [String] = []
         for cycle in 1 ... 20 {
-            assertExists(AccessibilityID.Play.contractsBoard)
             let before = try coverageReport()
             let contracts = try XCTUnwrap(before["contracts"] as? [String: Any])
             let offers = try XCTUnwrap(contracts["offers"] as? [[String: Any]])
             let offerID = try XCTUnwrap(offers.first { $0["difficulty"] as? String == "easy" }?["id"] as? String)
             let previousClaims = Set(contracts["completedOfferIDs"] as? [String] ?? [])
-            tapButton(AccessibilityID.Play.contractFight("easy"))
-            battle.assertActive()
-            tapWhenReady(battle.autoBattleToggle)
-            waitUntil("Contract must reach a usable result", timeout: 45) {
-                self.any(AccessibilityID.Battle.victory).exists || self.any(AccessibilityID.Battle.defeat).exists
-            }
-            let won = any(AccessibilityID.Battle.victory).exists
+            let won = completeAudioContract()
             outcomes.append(won ? "victory" : "defeat")
-            let leave = won ? AccessibilityID.Battle.continueButton : AccessibilityID.Battle.defeatLeaveButton
-            assertExistsAfterScroll(leave, requireHittable: true)
-            tapButton(leave)
-            dismissEarnedTalentChoicesIfPresented()
-            assertExists(AccessibilityID.Play.contractsBoard)
             var report: [String: Any] = [:]
             waitUntil("Cycle \(cycle) must schedule real audio") {
                 report = (try? self.coverageReport()) ?? [:]

@@ -287,15 +287,6 @@ class TrinketUITestCase: XCTestCase {
         element.trinketTapWhenReady(file: file, line: line)
     }
 
-    func assertButtonExists(
-        _ identifier: String,
-        timeout: TimeInterval = defaultTimeout,
-        file: StaticString = #file,
-        line: UInt = #line,
-    ) {
-        assertExists(button(identifier), timeout: timeout, message: "Button '\(identifier)' not found", file: file, line: line)
-    }
-
     func assertExists(
         _ identifier: String,
         timeout: TimeInterval = defaultTimeout,
@@ -522,8 +513,7 @@ extension XCUIApplication {
         let container = scrollContainer()
         for _ in 0 ..< maxAttempts {
             container.dragScroll(fromY: swipingUp ? 0.90 : 0.35, toY: swipingUp ? 0.35 : 0.90)
-            _ = trinketWaitForExistenceMainActorSafe(element, timeout: 0.35)
-            if element.exists, !requireHittable || element.isHittable {
+            if trinketWaitForExistenceMainActorSafe(element, timeout: 0.35), !requireHittable || element.isHittable {
                 return true
             }
         }

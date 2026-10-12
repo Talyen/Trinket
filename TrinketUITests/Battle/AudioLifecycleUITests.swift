@@ -5,7 +5,6 @@ final class AudioLifecycleUITests: TrinketUITestCase {
     func testRealBackendsPlayAfterBattleAndForegroundRouting() throws {
         launchApp(arguments: TestLaunchArg.productionTiming(tab: "options", audio: true)
             + ["-performance-strong-party", "-coverage-diagnostics"])
-        options.assertLoaded()
         let musicVolume = app.sliders["Music"]
         XCTAssertTrue(musicVolume.trinketWaitForExistence(timeout: Self.defaultTimeout))
         musicVolume.adjust(toNormalizedSliderPosition: 0.75)
@@ -35,20 +34,23 @@ final class AudioLifecycleUITests: TrinketUITestCase {
         attachment.lifetime = .keepAlways
         add(attachment)
     }
+}
 
-    private func completeAudioContract() {
-        assertExists(AccessibilityID.Play.contractsBoard)
+extension TrinketUITestCase {
+    @discardableResult
+    func completeAudioContract() -> Bool {
         tapButton(AccessibilityID.Play.contractFight("easy"))
         battle.assertActive()
         tapWhenReady(battle.autoBattleToggle)
         waitUntil("Audio-enabled battle must resolve", timeout: 45) {
             self.any(AccessibilityID.Battle.victory).exists || self.any(AccessibilityID.Battle.defeat).exists
         }
-        let leave = any(AccessibilityID.Battle.victory).exists
-            ? AccessibilityID.Battle.continueButton : AccessibilityID.Battle.defeatLeaveButton
+        let won = any(AccessibilityID.Battle.victory).exists
+        let leave = won ? AccessibilityID.Battle.continueButton : AccessibilityID.Battle.defeatLeaveButton
         assertExistsAfterScroll(leave, requireHittable: true)
         tapButton(leave)
         dismissEarnedTalentChoicesIfPresented()
         assertExists(AccessibilityID.Play.contractsBoard)
+        return won
     }
 }
