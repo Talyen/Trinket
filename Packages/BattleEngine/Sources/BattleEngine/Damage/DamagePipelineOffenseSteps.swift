@@ -222,6 +222,7 @@ package extension DamagePipeline {
               state.combatant.role == .enemy
         else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
+        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
         if keyword == .stun, state.options.isAttackHit, triggers.stolenThunder {
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant))
             if block > 0, context.claimActionGuard(.stolenThunder, actorID: source.id) {
@@ -229,7 +230,7 @@ package extension DamagePipeline {
                 state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, block)
             }
         }
-        guard keyword == .physical, state.options.isAttackHit, !state.options.isRetaliation else { return }
+        guard keyword == .physical || sharedKeyword == .physical, state.options.isAttackHit, !state.options.isRetaliation else { return }
         var stored = 0
         if CombatTriggerEngine.hasLivingPartyTrigger(\.storedImpact, in: context) {
             for owner in [BattleParticipant.hero, .companion] {
@@ -373,7 +374,7 @@ package extension DamagePipeline {
                 bonus += context.heroModifiers.companionPhysicalDamageDealtBonus + profile.companionPhysicalDamageDealtBonus
             }
             if keyword == .bleed || sharedKeyword == .bleed {
-                bonus += context.heroModifiers.companionBleedDamageDealtBonus
+                bonus += context.heroModifiers.companionBleedDamageDealtBonus + profile.companionBleedDamageDealtBonus
             }
         }
         if let source = context.roster.combatant(for: sourceActorID) {

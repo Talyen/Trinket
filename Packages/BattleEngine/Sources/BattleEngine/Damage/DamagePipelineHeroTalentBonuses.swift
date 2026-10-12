@@ -127,7 +127,7 @@ package extension DamagePipeline {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + percent)
             }
         }
-        if keyword == .bleed, state.options.isAttackHit,
+        if keyword == .bleed || sharedKeyword == .bleed, state.options.isAttackHit,
            let bonus = context.roster.runtime(for: source)?.talents.pending.nextBleedDamageBonus,
            bonus > 0 {
             state.remaining += bonus

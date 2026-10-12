@@ -148,7 +148,7 @@ package extension CombatTriggerEngine {
         if status.isBleeding, source.role != .enemy || state.options.isAttackHit {
             bonus += triggers.damageVsBleedingBonus
         }
-        if damageKeyword == .physical,
+        if damageKeyword == .physical || sharedKeyword == .physical,
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: target)) > 0 {
             bonus += triggers.physicalDamageVsBlockedBonus
         }

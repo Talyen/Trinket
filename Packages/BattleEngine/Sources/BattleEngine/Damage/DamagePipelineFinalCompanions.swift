@@ -159,7 +159,7 @@ package extension DamagePipeline {
             if context.roster.runtime(for: source)?.talents.action.arcaneBurst == true {
                 multiplier *= triggers.manaEmpowerDamageMultiplier
             }
-            if state.damageKeyword == .burn || state.damageKeyword == .freeze {
+            if state.damageKeyword == .burn || sharedKeyword == .burn || state.damageKeyword == .freeze {
                 multiplier *= triggers.manaEmpowerBurnFreezeDamageMultiplier
             }
         }
