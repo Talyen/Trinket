@@ -138,7 +138,7 @@ public struct RewardRevealLootSection: View {
                     }
                 }
 
-                ForEach(positiveMaterials.enumerated(), id: \.element.resource) { index, reward in
+                ForEach(Array(positiveMaterials.enumerated()), id: \.element.resource) { index, reward in
                     let revealIndex = index + goldOffset
                     TrinketWalletResourcePill(
                         title: reward.resource.displayName,

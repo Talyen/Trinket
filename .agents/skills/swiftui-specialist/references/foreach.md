@@ -14,10 +14,14 @@ ForEach(items) { item in
     ItemRow(item: item)
 }
 
-ForEach(items.enumerated(), id: \.element.id) { index, item in
+ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
     ItemRow(number: index + 1, item: item)
 }
 ```
+
+For indexed rows supporting iOS 18, materialize `enumerated()` as an `Array`.
+`EnumeratedSequence` gains the `RandomAccessCollection` conformance required by
+`ForEach` only on iOS 26+. Preserve the element's stable ID when wrapping it.
 
 Indices can be appropriate when the position itself is the identity, such as
 fixed board slots. `id: \.self` is appropriate for unique, stable values; it is
