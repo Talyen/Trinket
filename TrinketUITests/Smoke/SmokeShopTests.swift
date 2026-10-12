@@ -21,10 +21,16 @@ final class SmokeShopTests: TrinketUITestCase {
         let price = try integer(in: button(buyID))
         scrollUntilVisible(offer, swipingUp: true, requireHittable: true)
         tapWhenReady(offer)
-        // Artwork preparation presents the sheet asynchronously; its purchase footer is fixed.
-        waitUntil("Merchant detail must expose its matching purchase price") {
-            detailBuy.exists && detailBuy.isHittable && (try? self.integer(in: detailBuy)) == price
+        // Native presentation can expose the footer before it has a valid activation frame.
+        let windowBounds = app.frame
+        waitUntil("Merchant detail purchase control must have an on-screen frame") {
+            guard detailBuy.exists,
+                  let bounds = trinketOnMainActor({ try? detailBuy.snapshot().frame }),
+                  !bounds.isEmpty
+            else { return false }
+            return windowBounds.contains(bounds)
         }
+        XCTAssertEqual(try integer(in: detailBuy), price)
         tapWhenReady(detailBuy)
         assertDoesNotExist(AccessibilityID.Shop.detailBuyButton)
         XCTAssertEqual(try integer(in: goldBalance), goldBefore - price)
