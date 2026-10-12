@@ -40,7 +40,6 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
     func openOptionsOffer() {
         assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
         tapButton(AccessibilityID.FullGame.options)
-        assertExists(AccessibilityID.FullGame.offer)
         assertPurchaseProductLoaded()
     }
 

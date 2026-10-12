@@ -6,11 +6,13 @@ final class SmokeShopTests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForScreen("shop")
             + TestLaunchArg.completedStages((1 ... 7).map { "chapter-2-stage-\($0)" })
             + ["-starting-gold", "200"])
-        let shop = ShopScreen(app: app)
+        let offers = app.buttons.matching(NSPredicate(format: "identifier ENDSWITH %@", AccessibilityID.Shop.offerCardSuffix))
+        let detailBuy = button(AccessibilityID.Shop.detailBuyButton)
+        let leave = button(AccessibilityID.Shop.leaveButton)
         assertExists(AccessibilityID.Shop.goldBalance)
         let goldBefore = try integer(in: any(AccessibilityID.Shop.goldBalance))
-        assertExists(shop.offerCards.firstMatch)
-        let offerID = shop.offerCards.firstMatch.identifier
+        assertExists(offers.firstMatch)
+        let offerID = offers.firstMatch.identifier
         let offer = button(offerID)
         let buyID = AccessibilityID.Shop.buyButton(offerID: String(offerID.dropLast(AccessibilityID.Shop.offerCardSuffix.count)))
         assertExists(buyID)
@@ -18,14 +20,14 @@ final class SmokeShopTests: TrinketUITestCase {
         scrollUntilVisible(offer, swipingUp: true, requireHittable: true)
         tapWhenReady(offer)
         // Artwork preparation presents the sheet asynchronously; its purchase footer is fixed.
-        assertExists(shop.detailBuy)
-        XCTAssertEqual(try integer(in: shop.detailBuy), price)
-        tapWhenReady(shop.detailBuy)
+        assertExists(detailBuy)
+        XCTAssertEqual(try integer(in: detailBuy), price)
+        tapWhenReady(detailBuy)
         assertDoesNotExist(AccessibilityID.Shop.detailBuyButton)
         XCTAssertEqual(try integer(in: any(AccessibilityID.Shop.goldBalance)), goldBefore - price)
 
-        scrollUntilVisible(shop.leaveButton, swipingUp: true, requireHittable: true)
-        tapWhenReady(shop.leaveButton)
+        scrollUntilVisible(leave, swipingUp: true, requireHittable: true)
+        tapWhenReady(leave)
         play.assertLoaded()
     }
 }

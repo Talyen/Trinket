@@ -48,7 +48,7 @@ final class RepeatedPlayUITests: TrinketUITestCase {
 
     private func visitTabsAndCaptureDiagnostics(cycle: Int) throws {
         tabBar.selectCollection()
-        collection.assertLoaded()
+        assertExists(AccessibilityID.Screen.collection, timeout: Self.deepLinkTimeout)
         tabBar.selectHomestead()
         homestead.assertLoaded()
         backgroundAndActivate()

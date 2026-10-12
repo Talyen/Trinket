@@ -4,19 +4,16 @@ import XCTest
 final class SmokeShellTests: TrinketUITestCase {
     func testTabShellsAreReachable() {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
-        play.assertLoaded(timeout: 10)
         assertExists(AccessibilityID.Play.campaignModeCard, timeout: 10)
 
         tabBar.selectCollection()
-        collection.assertLoaded(timeout: 10)
         assertExists(AccessibilityID.Collection.heroesCategory, timeout: 10)
 
         tabBar.selectHomestead()
-        homestead.assertLoaded(timeout: 10)
         assertExists(AccessibilityID.Homestead.resourceWallet, timeout: 10)
 
         tabBar.selectOptions()
-        options.assertLoaded(timeout: 10)
+        assertExists(AccessibilityID.Screen.options, timeout: 10)
         tabBar.selectPlay()
         play.assertLoaded(timeout: 10)
     }

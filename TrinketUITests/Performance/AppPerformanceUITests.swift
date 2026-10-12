@@ -37,11 +37,11 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
 
             measured("tab-round-trip", iteration: iteration) {
                 collectionTab.tap()
-                collection.assertLoaded()
+                assertExists(AccessibilityID.Screen.collection, timeout: Self.deepLinkTimeout)
                 homesteadTab.tap()
                 homestead.assertLoaded()
                 optionsTab.tap()
-                options.assertLoaded()
+                assertExists(AccessibilityID.Screen.options, timeout: Self.deepLinkTimeout)
                 playTab.tap()
                 play.assertLoaded()
             }
@@ -53,7 +53,7 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
         try XCTSkipUnless(selected("collection-navigation"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
-            collection.assertLoaded()
+            assertExists(AccessibilityID.Screen.collection, timeout: Self.deepLinkTimeout)
             let card = app.buttons[AccessibilityID.CombatantDetail.collectionCard(name: "Knight")]
             XCTAssertTrue(card.trinketWaitForExistence(timeout: Self.defaultTimeout))
             let cardCoordinate = card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
@@ -67,7 +67,7 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
                 assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
             }
             assertDoesNotExist(AccessibilityID.CombatantDetail.header(name: "Knight"))
-            collection.assertLoaded()
+            assertExists(AccessibilityID.Screen.collection, timeout: Self.deepLinkTimeout)
         }
     }
 

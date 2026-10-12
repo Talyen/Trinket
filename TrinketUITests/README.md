@@ -18,7 +18,7 @@ waits, flakiness, and maintenance; medium-value additions are rare, justified ex
 | Performance | `Performance/`, `BattlePerformance.xctestplan` (repo root) | Manual CI `performance.yml` / `performance.sh` investigations; outside routine smoke |
 | Profiles | `Profiles/`; generated `Profiles.xctestplan` | Nightly/manual compact iOS 26 phone and portrait iOS 27 iPad; three settings configurations per device |
 | Soak | `Soak/`; generated `Soak.xctestplan` | Weekly/manual audio-enabled twenty-Contract career; outside routine FullUI |
-| Support | `Support/` | Shared launch and StoreKit fixtures; page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
+| Support | `Support/` | Shared launch and StoreKit fixtures; shared journeys (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
 Author smoke and exhaustive membership once in `Scripts/config/ui-tests.tsv`.
 Each row supplies suite, smoke routing key (empty for other suites), and class.
@@ -229,3 +229,9 @@ per-offer claim assertions remain intact. Scroll reveal reuses the existence wai
 result instead of querying existence again after each gesture. Immediate existence
 checks before native waits remain intentional fast paths. Homestead audits stop
 after the tier change; the accounting journey always verifies same-store reload.
+
+Homestead accounting reads each wallet and upgrade-cost subtree once per successful
+read, then checks every resource locally. Wallet reads retain a bounded wait for all
+eight balances; missing amounts still fail. Plain Collection/Options readiness uses
+`assertExists` directly; the merchant journey keeps its selectors beside its sole
+consumer. Smoke checks destination controls without first checking their parent screen.

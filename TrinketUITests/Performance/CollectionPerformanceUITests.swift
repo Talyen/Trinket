@@ -45,7 +45,7 @@ final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
         try XCTSkipUnless(selected("collection-browse-scroll"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "collection"))
-            collection.assertLoaded()
+            assertExists(AccessibilityID.Screen.collection, timeout: Self.deepLinkTimeout)
             measured("collection-browse-scroll", iteration: iteration, scrolling: app.scrollViews.firstMatch)
         }
     }

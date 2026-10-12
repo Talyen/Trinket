@@ -134,10 +134,6 @@ class TrinketUITestCase: XCTestCase {
         PlayScreen(app: app)
     }
 
-    var collection: CollectionScreen {
-        CollectionScreen(app: app)
-    }
-
     var combatantDetail: CombatantDetailScreen {
         CombatantDetailScreen(app: app)
     }
@@ -148,10 +144,6 @@ class TrinketUITestCase: XCTestCase {
 
     var homestead: HomesteadScreen {
         HomesteadScreen(app: app)
-    }
-
-    var options: OptionsScreen {
-        OptionsScreen(app: app)
     }
 
     var battle: BattleScreen {
@@ -246,10 +238,26 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func integer(in element: XCUIElement) throws -> Int {
-        let snapshot = try element.snapshot()
+        try integer(in: element.snapshot())
+    }
+
+    private func integer(in snapshot: any XCUIElementSnapshot) throws -> Int {
         let text = (snapshot.value as? String).flatMap { $0.isEmpty ? nil : $0 } ?? snapshot.label
         let digits = text.replacingOccurrences(of: ",", with: "").split(whereSeparator: { !$0.isNumber }).first
         return try XCTUnwrap(digits.flatMap { Int($0) }, "Missing numeric amount: \(text)")
+    }
+
+    func integers(in container: XCUIElement, identifiers: Set<String>) throws -> [String: Int] {
+        // Read one subtree so related amounts come from the same UI state.
+        var pending = try [container.snapshot()]
+        var amounts: [String: Int] = [:]
+        while let snapshot = pending.popLast() {
+            pending.append(contentsOf: snapshot.children)
+            if identifiers.contains(snapshot.identifier) {
+                amounts[snapshot.identifier] = try integer(in: snapshot)
+            }
+        }
+        return amounts
     }
 
     func waitForLaunchPreparation() {
@@ -444,12 +452,8 @@ class TrinketUITestCase: XCTestCase {
     /// Success-path screenshots bloat result bundles; capture them only with
     /// `TRINKET_UI_SUCCESS_SCREENSHOTS=1`. Failure screenshots are always retained.
     func attachSuccessScreenshot(named name: String) {
-        guard ProcessInfo.processInfo.environment["TRINKET_UI_SUCCESS_SCREENSHOTS"] == "1",
-              let app else { return }
-        let preview = XCTAttachment(screenshot: app.screenshot())
-        preview.name = name
-        preview.lifetime = .keepAlways
-        add(preview)
+        guard ProcessInfo.processInfo.environment["TRINKET_UI_SUCCESS_SCREENSHOTS"] == "1", app != nil else { return }
+        retainScreenshot(named: name)
     }
 }
 

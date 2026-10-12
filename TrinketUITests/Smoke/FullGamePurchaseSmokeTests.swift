@@ -13,7 +13,6 @@ final class FullGamePurchaseSmokeTests: FullGameStoreKitUITestCase {
         let unlock = AccessibilityID.Play.stageAction(chapter: 4, stage: 1)
         assertExistsAfterScroll(unlock, requireHittable: true)
         tapButton(unlock)
-        assertExists(AccessibilityID.FullGame.offer)
         dismissSheet(AccessibilityID.FullGame.offer)
         assertExists(unlock)
 

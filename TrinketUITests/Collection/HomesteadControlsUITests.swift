@@ -25,12 +25,11 @@ extension TrinketUITestCase {
         assertExists(AccessibilityID.Homestead.upgradeSheet)
         var costs: [HomesteadResource: Int] = [:]
         if !audit {
-            for resource in HomesteadResource.allCases {
-                let value = any(AccessibilityID.Homestead.resourceCost(resource))
-                if value.exists {
-                    costs[resource] = try integer(in: value)
-                }
-            }
+            let identifiers = Set(HomesteadResource.allCases.map(AccessibilityID.Homestead.resourceCost))
+            let displayed = try integers(in: any(AccessibilityID.Homestead.upgradeSheet), identifiers: identifiers)
+            costs = Dictionary(uniqueKeysWithValues: HomesteadResource.allCases.compactMap { resource in
+                displayed[AccessibilityID.Homestead.resourceCost(resource)].map { (resource, $0) }
+            })
             XCTAssertFalse(costs.isEmpty, "Upgrade must display its actual cost")
         }
         if audit {
@@ -60,12 +59,16 @@ extension TrinketUITestCase {
     }
 
     private func homesteadBalances() throws -> [HomesteadResource: Int] {
-        var amounts: [HomesteadResource: Int] = [:]
-        for resource in HomesteadResource.allCases {
-            let element = any(AccessibilityID.Homestead.resourceBalance(resource))
-            assertExists(element)
-            amounts[resource] = try integer(in: element)
+        let wallet = any(AccessibilityID.Homestead.resourceWallet)
+        assertExists(wallet)
+        let identifiers = Set(HomesteadResource.allCases.map(AccessibilityID.Homestead.resourceBalance))
+        var displayed: [String: Int] = [:]
+        waitUntil("Wallet must expose every resource balance") {
+            displayed = (try? self.integers(in: wallet, identifiers: identifiers)) ?? [:]
+            return identifiers.isSubset(of: displayed.keys)
         }
-        return amounts
+        return try Dictionary(uniqueKeysWithValues: HomesteadResource.allCases.map { resource in
+            try (resource, XCTUnwrap(displayed[AccessibilityID.Homestead.resourceBalance(resource)], "Missing balance: \(resource)"))
+        })
     }
 }

@@ -226,7 +226,7 @@ public enum AccessibilityID {
         public static let goldBalance = "Shop Gold Balance"
         public static let leaveButton = "Shop Leave Button"
         public static let detailBuyButton = "Shop Detail Buy Button"
-        /// Suffix shared with the `ShopScreen` query so a copy change cannot silently empty it.
+        /// Suffix shared with the merchant smoke query so a copy change cannot silently empty it.
         public static let offerCardSuffix = " shop offer"
 
         public static func offerCard(offerID: String) -> String {

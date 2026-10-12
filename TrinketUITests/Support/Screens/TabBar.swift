@@ -55,16 +55,3 @@ struct HomesteadScreen {
         )
     }
 }
-
-struct OptionsScreen {
-    let app: XCUIApplication
-
-    func assertLoaded(
-        timeout: TimeInterval = TrinketUITestCase.deepLinkTimeout,
-        file: StaticString = #file,
-        line: UInt = #line,
-    ) {
-        let element = app.descendants(matching: .any)[AccessibilityID.Screen.options]
-        XCTAssertTrue(element.trinketWaitForExistence(timeout: timeout), "Options screen not found", file: file, line: line)
-    }
-}
