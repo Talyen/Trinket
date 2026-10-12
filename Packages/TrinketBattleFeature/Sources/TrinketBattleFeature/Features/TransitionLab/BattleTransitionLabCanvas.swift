@@ -59,7 +59,6 @@ struct BattleTransitionLabCanvas: View {
     var body: some View {
         GeometryReader { geometry in
             let handFrame = BattleHandLayout.frame(in: geometry.size)
-            let handScale = BattleHandLayout.scale(for: geometry.size.width)
             let battlefieldSize = BattleHandLayout.battlefieldSize(in: geometry.size)
             let layout = BattleCardGridLayout.metrics(in: battlefieldSize)
             ZStack(alignment: .bottom) {
@@ -82,7 +81,7 @@ struct BattleTransitionLabCanvas: View {
                     hapticsEnabled: false,
                 )
                 .frame(height: handFrame.height)
-                .offset(y: -BattleHandLayout.bottomRise * handScale)
+                .offset(y: -BattleHandLayout.bottomRise)
             }
             .clipped()
             .coordinateSpace(.named(BattleCoordinateSpace.field))

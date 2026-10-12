@@ -150,7 +150,6 @@ struct VoyageView: View {
                     board(state.offers)
                 }
             }
-            .padding(.bottom, TrinketDesign.Layout.compactTabBarContentClearance)
         }
     }
 

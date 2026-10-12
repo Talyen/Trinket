@@ -58,7 +58,6 @@ struct ContractsBoardView: View {
                     .id(displayedOffers.map(\.id))
                     .transition(.opacity)
                     .trinketPresentationVisibility(isBoardInteractive, opacity: hasPreparedBoard ? 1 : 0)
-                    .padding(.bottom, TrinketDesign.Layout.compactTabBarContentClearance)
                 }
             }
             .containerRelativeFrame(.horizontal)

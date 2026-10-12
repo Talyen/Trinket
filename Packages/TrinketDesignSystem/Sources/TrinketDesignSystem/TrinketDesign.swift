@@ -111,8 +111,6 @@ public enum TrinketDesign {
         public static let collectionShelfCardSpacing: CGFloat = Spacing.large
         public static let collectionShelfPeekRatio: CGFloat = 0.08
         public static let collectionShelfPreviewLimit = 8
-        public static let tabBarContentClearance: CGFloat = 112
-        public static let compactTabBarContentClearance: CGFloat = 92
         public static let chipPaddingHorizontal: CGFloat = 10
         public static let chipPaddingVertical: CGFloat = Spacing.small
         public static let chipEmphasisPaddingHorizontal: CGFloat = Spacing.large

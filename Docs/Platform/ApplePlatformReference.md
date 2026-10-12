@@ -44,34 +44,34 @@ merely to match Xcode's bundled Swift compiler.
 
 ## Portrait device support
 
-[PD-033](../Product/Decisions.md) owns the shared portrait design for iPhone and
-native iPad. `project.yml` is authoritative for device families and orientations;
-regenerate the project through the managed build workflow after changing it.
-Keep both platforms restricted to upright portrait, including onboarding,
-encounters, and native presentations.
+[PD-033](../Product/Decisions.md) owns the shared stacked game arrangements for
+iPhone, Duo, and native iPad. `project.yml` is authoritative for device families
+and orientations; regenerate through the managed build workflow after changes.
 
-`PortraitAppRoot` supplies a first-party `UIHostingController` with
-`prefersInterfaceOrientationLocked` enabled and a portrait geometry preference.
-The game content and lifecycle remain SwiftUI. Forward public scene/display inputs
-into the hosted root; copying the entire `EnvironmentValues` replaces hosting's
-internal accessibility state and hides cold-launch controls. Keep the hosting
-boundary full-window and let the game content retain its original safe areas.
-Root scroll-edge and appearance modifiers belong inside the hosted content;
-let hosting resolve the color scheme from that preference instead of copying
-the outer window's scheme over it.
+iOS 27.1 and later use the native SwiftUI scene root so display transitions,
+window geometry, and framework safe areas reach the game directly. All four
+orientations are declared for iPhone and iPad. Layout follows current container
+geometry rather than device orientation or identity. Keep enemy-above-party
+battle arrangements and vertically stacked hubs in compact and expanded windows.
+The compact horizontal presentation retains tab icons and stacked hubs; native
+system bars may move with the available space. Do not add device-specific panels.
 
-Trinket deliberately requests `UIRequiresFullScreen` because iPad windowing can
-otherwise ignore the portrait-only orientation declaration. This is an orientation
-compatibility choice, not a guarantee that the OS prevents windows or resizing.
-Apple deprecates the key and changes its resize behavior in iPadOS 27; see
+Before iOS 27.1, `PortraitAppRoot` retains the upright portrait lock through its
+first-party hosting controller. Forward public scene/display inputs into that
+hosted root; copying the entire `EnvironmentValues` replaces hosting's internal
+accessibility state and hides cold-launch controls. Apply blanket safe-area
+ignoring only to the legacy representable. Native game content receives system
+safe areas; full-bleed artwork owns any scoped background exception. Root
+scroll-edge and appearance modifiers belong to the shared game content.
+
+`UIRequiresFullScreen` retains legacy orientation compatibility; the system
+ignores it starting with iOS 27.1, matching the native root. Maintain runtime
+resizing evidence for this versioned opt-out under
 [TN3192](https://developer.apple.com/documentation/technotes/tn3192-Migrating-your-app-from-the-deprecated-UIRequiresFullScreen-key).
-Verify orientation and reachable actions on each supported runtime. System-owned
-window presentation must not be mistaken for approval to introduce landscape
-gameplay. Preserve the shared SwiftUI layouts and existing phone geometry when
-adapting content sizes. The app keeps compact horizontal presentation for the
-shared portrait interface: bottom tabs retain their icons and hub cards remain
-vertically stacked on iPad as on iPhone. Do not inherit the regular-width tab bar
-or hub rearrangements merely because a device has a wider screen.
+Verify reachable controls, sheets, and retained battle state through compact,
+expanded, and rotated sizes; an orientation declaration alone proves none of them.
+Use live safe areas and measured insets instead of fixed tab-bar or inspector
+clearances. Preserve prepared artwork and the shared interaction hierarchy.
 
 ## Apple skill references
 

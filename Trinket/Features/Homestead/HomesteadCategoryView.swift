@@ -41,7 +41,6 @@ struct HomesteadCategoryView: View {
                 }
             }
             .padding(TrinketDesign.Layout.contentMargin)
-            .padding(.bottom, TrinketDesign.Layout.tabBarContentClearance)
         }
         .trinketScreenBackground()
         .navigationTitle(category.rawValue)

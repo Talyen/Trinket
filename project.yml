@@ -90,6 +90,7 @@ targets:
         TrinketCloudEnvironment: $(CLOUDKIT_ENVIRONMENT)
         TrinketCloudSyncEnabled: $(CLOUDKIT_SYNC_ENABLED)
         ITSAppUsesNonExemptEncryption: false
+        UIRequiresFullScreenIgnoredStartingWithVersion: "27.1"
         UIBackgroundModes:
           - remote-notification
           - fetch
@@ -115,10 +116,10 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
-        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
-        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait
-        # iPad windowing otherwise ignores the portrait-only orientation mask.
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        # Legacy hosting retains the portrait lock before iOS 27.1.
         INFOPLIST_KEY_UIRequiresFullScreen: YES
         # Unlock >60Hz CADisplayLink / CAAnimation on ProMotion iPhones (Apple opt-in).
         INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: YES

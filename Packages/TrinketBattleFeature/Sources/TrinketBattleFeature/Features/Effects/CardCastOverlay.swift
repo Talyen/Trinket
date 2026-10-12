@@ -39,6 +39,12 @@ final class BattleCastPresentationState {
         pendingStuckResetTasks.removeValue(forKey: id)?.cancel()
     }
 
+    func hideStaleGeometry() {
+        for index in requests.indices {
+            requests[index].isVisible = false
+        }
+    }
+
     func reset() {
         requests.removeAll()
         for task in pendingStuckResetTasks.values {
@@ -79,6 +85,7 @@ struct CardActivationRequest: Equatable, Identifiable {
     let id: UUID
     var startedAt: Date
     var pausedAt: Date?
+    var isVisible = true
     let artworkName: String?
     let center: CGPoint
     let size: CGSize
@@ -131,6 +138,7 @@ struct CardActivationRequest: Equatable, Identifiable {
         let metrics = BattleHandLayout.metrics(
             containerWidth: handFrame.width,
             cardCount: cardCount,
+            handHeight: handFrame.height,
         )
         let restingCenter = BattleHandLayout.restingCenter(
             index: index,
@@ -173,7 +181,7 @@ struct CardCastEffectsLayer: View {
                 cardActivationProgress(elapsed: ($0.pausedAt ?? timeline.date).timeIntervalSince($0.startedAt))
             } ?? 0
             cast(displayedRequest, progress: progress)
-                .opacity(request == nil ? 0 : 1)
+                .opacity(request?.isVisible == true ? 1 : 0)
         }
         .task(id: request) {
             guard let request, request.pausedAt == nil else { return }

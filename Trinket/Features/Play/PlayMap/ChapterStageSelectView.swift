@@ -79,7 +79,6 @@ struct ChapterStageSelectView: View {
                     )
                 }
             }
-            .padding(.bottom, TrinketDesign.Layout.compactTabBarContentClearance)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.play)
         .overlay(alignment: .topLeading) {

@@ -68,7 +68,7 @@ public struct BattleView: View {
             .toolbarVisibility(.visible, for: .navigationBar)
             .toolbarVisibility(.hidden, for: .tabBar)
             .toolbar {
-                if !spectacle.outcomePresentation.isOutcomePresented {
+                if battleSession.lifecyclePhase == .active, !spectacle.outcomePresentation.isOutcomePresented {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         BattleAutoToggle(battleSession: battleSession)
                         battleActionsMenu(canRetreat: battleSession.canRetreat)
@@ -218,7 +218,6 @@ struct BattleFieldLane: View {
     var body: some View {
         GeometryReader { geometry in
             let handFrame = BattleHandLayout.frame(in: geometry.size)
-            let handScale = BattleHandLayout.scale(for: geometry.size.width)
             let battlefieldSize = BattleHandLayout.battlefieldSize(in: geometry.size)
             let layout = BattleCardGridLayout.metrics(in: battlefieldSize)
             let hapticsEnabled = battleSession.hapticsEnabled
@@ -238,14 +237,19 @@ struct BattleFieldLane: View {
                 BattleHandProjectionLane(
                     presentation: presentation,
                     hapticsEnabled: hapticsEnabled,
-                    onFrameChanged: { measuredHandFrame = $0 },
+                    onFrameChanged: { frame in
+                        if let measuredHandFrame, measuredHandFrame != frame {
+                            castPresentation.hideStaleGeometry()
+                        }
+                        measuredHandFrame = frame
+                    },
                     onPlay: { playCard($0, request: $1) },
                     onInteractionChanged: updateCombatantTapSuppression(_:),
                     onLift: beginCardLift,
                     onLiftCancel: cancelCardLift(for:),
                 )
                 .frame(height: handFrame.height)
-                .offset(y: -BattleHandLayout.bottomRise * handScale)
+                .offset(y: -BattleHandLayout.bottomRise)
                 .zIndex(1)
 
                 cardCastLane()
@@ -287,7 +291,7 @@ struct BattleFieldLane: View {
             AutomaticCardCastView(
                 cast: cast,
                 stagingFrame: CGRect(x: handFrame.minX, y: 0, width: handFrame.width, height: max(0, handFrame.minY)),
-                handWidth: handFrame.width,
+                handFrame: handFrame,
             ) {
                 presentation.cardPlayback.remove(id: cast.id)
             }

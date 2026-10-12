@@ -139,29 +139,35 @@ struct TrinketApp: App {
 
     var body: some Scene {
         WindowGroup {
-            PortraitAppRoot {
-                Group {
-                    if let appState {
-                        PreparedAppRoot(
-                            appState: appState,
-                            priorityImageNames: launchPriorityImageNames,
-                        )
-                        // Intentional: Trinket hides scroll indicators app-wide as an
-                        // art-forward choice; individual screens must not re-enable
-                        // them without product approval.
-                        .scrollIndicators(.never)
-                    } else {
-                        AppBootstrapRecoveryView(isRetrying: isRetryingBootstrap, retry: retryBootstrap)
-                    }
-                }
-                .trinketSoftTopScrollEdge()
-                .preferredColorScheme(.dark)
+            if #available(iOS 27.1, *) {
+                gameContent
+            } else {
+                PortraitAppRoot { gameContent }
+                    .ignoresSafeArea()
             }
-            .ignoresSafeArea()
         }
         // Intentional: game screens manage their own chrome; system overlays
         // stay hidden app-wide unless product approves a scoped exception.
         .persistentSystemOverlays(.hidden)
+    }
+
+    private var gameContent: some View {
+        Group {
+            if let appState {
+                PreparedAppRoot(
+                    appState: appState,
+                    priorityImageNames: launchPriorityImageNames,
+                )
+                // Intentional: Trinket hides scroll indicators app-wide as an
+                // art-forward choice; individual screens must not re-enable
+                // them without product approval.
+                .scrollIndicators(.never)
+            } else {
+                AppBootstrapRecoveryView(isRetrying: isRetryingBootstrap, retry: retryBootstrap)
+            }
+        }
+        .trinketSoftTopScrollEdge()
+        .preferredColorScheme(.dark)
     }
 }
 

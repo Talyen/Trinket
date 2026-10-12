@@ -143,7 +143,9 @@ an active run, retain the captured outgoing display, without interaction, until
 the replacement artwork is ready; do not expose the browsing stack during that
 asynchronous preparation. Publish the new display and its identity together.
 Keep the overlay mounted for prewarm
-and preserve its navigation inset until hidden.
+and preserve its navigation inset until hidden. Native toolbar items must also
+be gated by the active battle lifecycle: opacity and hit-testing on retained
+content do not hide system-owned vertical bars during prewarm.
 
 Artwork admission is shared across callers: at most two decodes run concurrently,
 with at most one deferred catalog decode. Launch/imminent pins precede viewport

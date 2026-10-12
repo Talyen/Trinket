@@ -9,8 +9,6 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct LabyrinthMapView: View {
-    private static let inspectorScrollClearance: CGFloat = 360
-
     @Environment(\.dismiss) private var dismiss
     @Environment(LabyrinthPlayMode.self) private var labyrinth
     @Environment(EncounterPlayMode.self) private var encounters
@@ -171,31 +169,31 @@ struct LabyrinthMapView: View {
                 )
                 .padding(.horizontal, TrinketDesign.Layout.contentMargin)
                 .padding(.top, TrinketDesign.Spacing.small)
-                .padding(.bottom, Self.inspectorScrollClearance)
             }
             .scrollIndicators(.hidden)
             .defaultScrollAnchor(.top)
             .id(cluster.id)
             .transition(.opacity.combined(with: .offset(y: 12)))
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                Group {
+                    if let selectedNode {
+                        LabyrinthNodeInspector(
+                            node: selectedNode,
+                            type: snapshot.type(for: selectedNode),
+                            resolvedMysteryEvent: snapshot.events[selectedNode.id],
+                            recruitArtwork: snapshot.recruitArtwork(for: selectedNode),
+                            onPrimaryAction: { handleNodeAction(selectedNode, snapshot: snapshot) },
+                        )
+                        .frame(maxWidth: min(420, proxy.size.height * 0.7))
+                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                        .padding(.bottom, TrinketDesign.Spacing.small)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                }
+                .animation(LabyrinthMapMotion.inspector, value: selectedNodeID)
+            }
         }
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthMap)
-        .overlay(alignment: .bottom) {
-            Group {
-                if let selectedNode {
-                    LabyrinthNodeInspector(
-                        node: selectedNode,
-                        type: snapshot.type(for: selectedNode),
-                        resolvedMysteryEvent: snapshot.events[selectedNode.id],
-                        recruitArtwork: snapshot.recruitArtwork(for: selectedNode),
-                        onPrimaryAction: { handleNodeAction(selectedNode, snapshot: snapshot) },
-                    )
-                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-                    .padding(.bottom, TrinketDesign.Spacing.small)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-            }
-            .animation(LabyrinthMapMotion.inspector, value: selectedNodeID)
-        }
         .animation(LabyrinthMapMotion.floorChange, value: viewedFloor)
         .trinketSensoryFeedback(
             .selection,

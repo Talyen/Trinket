@@ -74,7 +74,6 @@ struct HomesteadView: View {
                 .padding(.horizontal, TrinketDesign.Layout.contentMargin)
             }
             .padding(.top, TrinketDesign.Layout.sectionHeaderSpacing)
-            .padding(.bottom, TrinketDesign.Layout.tabBarContentClearance)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
         .modifier(HomesteadDepositOverlay(event: depositEvent, geometryChanged: updateDepositGeometry))

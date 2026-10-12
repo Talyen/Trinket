@@ -45,7 +45,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             .onScrollGeometryChange(for: HeroHeaderScrollMetrics.self) { geometry in
                 let topInset = geometry.contentInsets.top
                 let baseHeight = heroHeightPolicy.height(forWidth: geometry.containerSize.width)
-                let threshold = baseHeight - topInset - 44
+                let threshold = baseHeight - topInset
                 let offsetY = geometry.contentOffset.y + topInset
                 let opacity = min(max((offsetY - threshold) / 32, 0), 1)
                 return HeroHeaderScrollMetrics(baseHeight: baseHeight, titleOpacity: opacity)

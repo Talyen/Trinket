@@ -261,6 +261,30 @@ struct BattleSessionAutoBattleTests {
         _ = await driver.result
     }
 
+    @Test func `resizing hides stale cast geometry without releasing auto pacing`() {
+        let casts = BattleCastPresentationState()
+        let startedAt = Date.now
+        casts.append(CardActivationRequest(
+            startedAt: startedAt,
+            artworkName: nil,
+            center: CGPoint(x: 200, y: 600),
+            size: CGSize(width: 168, height: 224),
+            rotation: 0,
+            verticalTilt: 0,
+            scale: 1,
+            keywords: [.physical],
+        ))
+        let requestID = casts.request?.id
+
+        casts.hideStaleGeometry()
+
+        #expect(casts.request?.id == requestID)
+        #expect(casts.request?.isVisible == false)
+        #expect(casts.blocksAutoBattle(at: startedAt))
+        #expect(!casts.blocksAutoBattle(at: startedAt.addingTimeInterval(BattleMotion.autoBattleCardInterval)))
+        casts.reset()
+    }
+
     @Test func `auto battle resumes after stuck cast request clears`() async {
         let session = BattleSessionTestSupport.makeConfiguredSession()
         let castPresentation = BattleCastPresentationState()

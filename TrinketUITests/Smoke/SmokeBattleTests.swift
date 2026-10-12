@@ -43,6 +43,8 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertExists(AccessibilityID.Battle.defeat)
         tapButton(AccessibilityID.Battle.defeatLeaveButton)
         play.assertCampaignLoaded()
+        assertDoesNotExist(AccessibilityID.Battle.autoBattleToggle)
+        assertDoesNotExist(AccessibilityID.Battle.actionsMenu)
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 1))
     }
 }

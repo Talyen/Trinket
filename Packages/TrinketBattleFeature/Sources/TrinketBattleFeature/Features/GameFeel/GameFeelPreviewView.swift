@@ -96,7 +96,7 @@ public struct GameFeelPreviewView: View {
                             AutomaticCardCastView(
                                 cast: cast,
                                 stagingFrame: CGRect(x: hand.minX, y: 0, width: hand.width, height: max(0, hand.minY)),
-                                handWidth: hand.width,
+                                handFrame: hand,
                             ) { fixture.session.cardPlayback.remove(id: cast.id) }
                         }
                     }

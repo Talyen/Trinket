@@ -13,13 +13,12 @@ enum BattleHandLayout {
     static let aspectRatio: CGFloat = 4.0 / 3.0
     static let widthRatio: CGFloat = 0.45
     static let horizontalInset: CGFloat = 20
-    static let maxOverlapRatio: CGFloat = 0.45
+    static let maxOverlapRatio: CGFloat = 0.70
     static let fanAngleStep: CGFloat = 9
     static let fanLiftStep: CGFloat = 10
     static let bottomRise: CGFloat = 30
-    static let reservedHeight: CGFloat = 224
+    static let fanClearance: CGFloat = 28
     static let overlapAllowance: CGFloat = 56
-    static let restingYFraction: CGFloat = 0.20
     struct Metrics: Equatable {
         let cardWidth: CGFloat
         let cardHeight: CGFloat
@@ -27,22 +26,13 @@ enum BattleHandLayout {
         let startX: CGFloat
     }
 
-    /// Keep compact hand geometry unchanged; grow the same fan in wider space.
-    static func scale(for containerWidth: CGFloat) -> CGFloat {
-        max(1, containerWidth / 700)
-    }
-
     static func battlefieldSize(in containerSize: CGSize) -> CGSize {
         let handFrame = frame(in: containerSize)
-        let existingHeight = containerSize.height - handFrame.height
-            + overlapAllowance * scale(for: containerSize.width)
-        guard containerSize.width > 500 else {
-            return CGSize(width: containerSize.width, height: max(0, existingHeight))
-        }
+        let existingHeight = containerSize.height - handFrame.height + overlapAllowance
 
-        // A wider portrait canvas must leave the party's resource bars above
+        // The battlefield must leave the party's resource bars above
         // the resting fan, including its rotation about each card's bottom.
-        let metrics = metrics(containerWidth: containerSize.width, cardCount: 3)
+        let metrics = metrics(containerWidth: containerSize.width, cardCount: 3, handHeight: handFrame.height)
         let cardBounds = CGRect(
             x: -metrics.cardWidth / 2,
             y: -metrics.cardHeight,
@@ -60,30 +50,37 @@ enum BattleHandLayout {
     }
 
     static func frame(in containerSize: CGSize) -> CGRect {
-        let scale = scale(for: containerSize.width)
+        let desiredWidth = min(maxCardWidth, max(minCardWidth, containerSize.width * widthRatio))
+        let height = min(desiredWidth * aspectRatio + fanClearance, max(0, containerSize.height * 0.42))
         return CGRect(
             x: 0,
-            y: containerSize.height - (reservedHeight + bottomRise) * scale,
+            y: containerSize.height - height - bottomRise,
             width: containerSize.width,
-            height: reservedHeight * scale,
+            height: height,
         )
     }
 
     static func metrics(
         containerWidth: CGFloat,
         cardCount: Int,
+        handHeight: CGFloat,
     ) -> Metrics {
-        let scale = scale(for: containerWidth)
-        let cardWidth = min(
-            maxCardWidth * scale,
-            max(minCardWidth * scale, containerWidth * widthRatio),
-        )
+        let cardWidth = max(0, min(
+            maxCardWidth,
+            max(0, containerWidth - horizontalInset * 2),
+            max(minCardWidth, containerWidth * widthRatio),
+            (handHeight - fanClearance) / aspectRatio,
+        ))
         let cardHeight = cardWidth * aspectRatio
+        let rotationAngle = fanAngleStep * .pi / 180
+        let rotationInset = cardHeight * sin(rotationAngle) + cardWidth / 2 * (1 - cos(rotationAngle))
+        let edgeInset = max(horizontalInset, rotationInset)
+        let spreadRatio = min(maxOverlapRatio, max(0.45, containerWidth / 1000))
         let overlap: CGFloat = cardCount > 1
-            ? min(
-                cardWidth * maxOverlapRatio,
-                (containerWidth - cardWidth - horizontalInset * 2 * scale) / CGFloat(cardCount - 1),
-            )
+            ? max(0, min(
+                cardWidth * spreadRatio,
+                (containerWidth - cardWidth - edgeInset * 2) / CGFloat(cardCount - 1),
+            ))
             : 0
         let totalWidth = cardWidth + overlap * CGFloat(max(cardCount - 1, 0))
         let startX = (containerWidth - totalWidth) / 2
@@ -105,11 +102,7 @@ enum BattleHandLayout {
         cardCount: Int,
         handFrame: CGRect,
     ) -> CGPoint {
-        let baseOffsetY = metrics.cardHeight * restingYFraction
-            + restingOffsetY(
-                index: index,
-                cardCount: cardCount,
-            )
+        let baseOffsetY = restingOffsetY(index: index, cardCount: cardCount)
         return CGPoint(
             x: handFrame.midX + cardOffsetX(
                 index: index,
