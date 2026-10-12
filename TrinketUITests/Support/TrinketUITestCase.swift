@@ -207,7 +207,7 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func backgroundAndActivate() {
-        XCUIDevice.shared.press(.home)
+        XCUIApplication(bundleIdentifier: "com.apple.springboard").activate()
         waitUntil("App must enter the background before reactivation") {
             let state = self.app.state
             return state == .runningBackground || state == .runningBackgroundSuspended

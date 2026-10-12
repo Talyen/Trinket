@@ -16,6 +16,11 @@ struct BattleScreen {
         )
     }
 
+    var frontmostHandCard: XCUIElement {
+        // The fan stacks later cards above earlier ones; their centers remain exposed.
+        handCards.element(boundBy: max(0, handCards.count - 1))
+    }
+
     var actionsMenu: XCUIElement {
         app.buttons[AccessibilityID.Battle.actionsMenu]
     }

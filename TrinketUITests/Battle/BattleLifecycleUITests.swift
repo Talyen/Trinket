@@ -58,18 +58,18 @@ final class BattleLifecycleUITests: TrinketUITestCase {
         play.startBattle(chapter: 1, stage: 1)
         battle.assertActive()
         backgroundAndActivate()
-        let first = battle.handCards.firstMatch
+        let first = battle.frontmostHandCard
         assertExists(first)
         let firstID = first.identifier
         first.tap()
-        let second = battle.handCards.firstMatch
+        let second = battle.frontmostHandCard
         assertExists(second)
         let secondID = second.identifier
         second.tap()
         waitUntil("Distinct rapid plays must depart from the hand") {
             !self.any(firstID).exists && !self.any(secondID).exists
         }
-        let drag = battle.handCards.firstMatch
+        let drag = battle.frontmostHandCard
         assertExists(drag)
         let dragID = drag.identifier
         let origin = drag.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))

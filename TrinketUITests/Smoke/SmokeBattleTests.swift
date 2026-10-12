@@ -8,7 +8,7 @@ final class SmokeBattleTests: TrinketUITestCase {
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
         battle.assertActive()
-        let card = battle.handCards.firstMatch
+        let card = battle.frontmostHandCard
         assertExists(card)
         let playedID = card.identifier
         tapWhenReady(card)
