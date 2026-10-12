@@ -83,10 +83,10 @@ package enum DamagePipeline {
         }
         if state.options.isAttackHit, !state.options.isCardAttack,
            state.amount > 0, state.combatant.role == .enemy {
-            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterNonCardAttackHit(
+            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterNonCardAttackHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID,
                 fullyBlocked: state.blockedAmount > 0 && state.remaining == 0,
-                in: &context,
+                options: state.options, in: &context,
             ))
         }
 
@@ -110,15 +110,15 @@ package enum DamagePipeline {
         if !state.options.isRetaliation {
             await applyReactiveOnHit(to: &state, in: &context)
         }
-        // Freeze rewards include pulses and reactions; converted Holy Thorns retains Holy rewards.
-        if !state.options.isRetaliation || state.damageKeyword == .freeze
+        // Full Basic counterattacks retain damage rewards without reopening counterattack retaliation.
+        if !state.options.isRetaliation || state.options.isCounterattack || state.damageKeyword == .freeze
             || (state.options.isThornsDamage && state.damageKeyword == .holy) {
             await applyKeywordReactions(to: &state, in: &context)
         }
         applyFinalCompanionHolyHitRewards(to: &state, in: &context)
         applyCompanionLeechCriticalBlock(to: &state, in: &context)
         await applyThreefoldGrace(to: &state, in: &context)
-        if !state.options.isRetaliation {
+        if !state.options.isRetaliation || state.options.isCounterattack {
             await applyCriticalReaction(to: &state, in: &context)
         }
         await state.damageEvents.append(contentsOf: UniqueCombatEngine.afterDamage(state, in: &context))

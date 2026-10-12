@@ -58,7 +58,7 @@ package extension DamagePipeline {
             await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHolyDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
-                attackHit: state.options.isAttackHit && !state.options.isRetaliation,
+                attackHit: state.options.isAttackHit,
                 sourceHadNoBlock: state.sourceHadNoBlockAtHit,
                 in: &context,
             ))

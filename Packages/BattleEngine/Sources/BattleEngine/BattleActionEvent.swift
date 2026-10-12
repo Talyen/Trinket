@@ -2,14 +2,14 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct ActionEvent: Identifiable, Equatable {
-    public enum Origin: Equatable {
+public struct ActionEvent: Identifiable, Equatable, Sendable {
+    public enum Origin: Equatable, Sendable {
         case direct, automatic, periodic
     }
 
     /// Effect and milestone payloads belong to their kind, so every consumer
     /// sees the same meaning and emitted events cannot be partially retagged.
-    public enum Kind: Equatable {
+    public enum Kind: Equatable, Sendable {
         case ability
         case abilityDamage
         case status
@@ -17,7 +17,7 @@ public struct ActionEvent: Identifiable, Equatable {
         case milestone(Milestone)
     }
 
-    public enum Milestone: Equatable {
+    public enum Milestone: Equatable, Sendable {
         case battleStarted(heroName: String, companionName: String)
         case enemyDefeated
         case partyDefeated

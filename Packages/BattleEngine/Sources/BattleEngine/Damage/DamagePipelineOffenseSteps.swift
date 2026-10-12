@@ -62,9 +62,10 @@ package extension DamagePipeline {
         if BattleChance.succeeds(probability: triggers.burnDamageDoubleChancePercent, using: &context.rng) {
             state.remaining = SaturatedArithmetic.saturatingMul(state.remaining, 2)
         }
-        if state.options.isCardAttack,
+        if state.options.isAttackHit,
+           !state.options.isRetaliation || state.options.isCounterattack || state.options.isCardAttack,
            triggers.burnAttackDoubleChancePercent > 0,
-           context.claimHeroCardBonus(.burnAttackDoubleChance, actorID: sourceActorID),
+           context.claimTalentAbility(.burnAttackDoubleChance, actorID: sourceActorID),
            BattleChance.succeeds(probability: triggers.burnAttackDoubleChancePercent, using: &context.rng) {
             state.remaining = SaturatedArithmetic.saturatingMul(state.remaining, 2)
         }

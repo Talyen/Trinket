@@ -42,10 +42,10 @@ package extension CombatTriggerEngine {
             triggers: triggers, in: &context,
         ))
         guard keyword == .physical else { return events }
-        await events.append(contentsOf: afterPhysicalCardHit(
-            actor: actor, sourceID: sourceID, critical: critical,
-            triggers: triggers, in: &context,
-        ))
+        if critical {
+            removeBlockAfterPhysicalCriticalHit(by: sourceID, in: &context)
+        }
+        await events.append(contentsOf: prismaticEdgeDamage(actor: actor, triggers: triggers, in: &context))
         return events
     }
 
@@ -53,15 +53,24 @@ package extension CombatTriggerEngine {
         keyword: Keyword?,
         sourceID: String?,
         fullyBlocked: Bool,
+        options: DamageOperation,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) async -> [ActionEvent] {
         guard let sourceID, let source = context.roster.combatant(for: sourceID),
               source.isAlive, source.role != .enemy else { return [] }
+        let actor = source.combatant
         let triggers = context.modifiers(for: sourceID).triggers
-        prepareTemperCycle(keyword: keyword, actor: source.combatant, triggers: triggers, in: &context)
-        return afterBlockedAttack(
-            actor: source.combatant, fullyBlocked: fullyBlocked, triggers: triggers, in: &context,
-        )
+        prepareTemperCycle(keyword: keyword, actor: actor, triggers: triggers, in: &context)
+        let allowsBonusDamage = !options.isRetaliation || options.isCounterattack
+        var events = allowsBonusDamage
+            ? await bloodfireDamage(keyword: keyword, actor: actor, triggers: triggers, in: &context) : []
+        events.append(contentsOf: afterBlockedAttack(
+            actor: actor, fullyBlocked: fullyBlocked, triggers: triggers, in: &context,
+        ))
+        if allowsBonusDamage, keyword == .physical {
+            await events.append(contentsOf: prismaticEdgeDamage(actor: actor, triggers: triggers, in: &context))
+        }
+        return events
     }
 
     private static func prepareTemperCycle(
@@ -121,18 +130,13 @@ package extension CombatTriggerEngine {
         DefensePoolEngine.set(0, on: context.enemy, in: &context)
     }
 
-    private static func afterPhysicalCardHit(
+    private static func prismaticEdgeDamage(
         actor: Combatant,
-        sourceID: String,
-        critical: Bool,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) async -> [ActionEvent] {
-        if critical {
-            removeBlockAfterPhysicalCriticalHit(by: sourceID, in: &context)
-        }
         guard triggers.physicalElementChancePercent > 0, triggers.physicalElementDamage > 0,
-              context.claimHeroCardBonus(.prismaticEdge, actorID: sourceID),
+              context.claimTalentAbility(.prismaticEdge, actorID: actor.id),
               BattleChance.succeeds(probability: triggers.physicalElementChancePercent, using: &context.rng)
         else { return [] }
         let keyword: Keyword = Bool.random(using: &context.rng) ? .burn : .freeze
@@ -151,15 +155,7 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) async -> [ActionEvent] {
-        var events: [ActionEvent] = []
-        if keyword == .burn, triggers.burnAttackBleedDamage > 0,
-           context.claimHeroCardBonus(.bloodfire, actorID: actor.id),
-           BattleChance.succeeds(probability: triggers.burnAttackBleedChancePercent, using: &context.rng) {
-            await events.append(contentsOf: heroTalentDamage(
-                .bleed, amount: triggers.burnAttackBleedDamage, source: actor,
-                name: "Bloodfire", in: &context,
-            ))
-        }
+        var events = await bloodfireDamage(keyword: keyword, actor: actor, triggers: triggers, in: &context)
         events.append(contentsOf: afterBlockedAttack(
             actor: actor, fullyBlocked: fullyBlocked, triggers: triggers, in: &context,
         ))
@@ -168,6 +164,22 @@ package extension CombatTriggerEngine {
             healthLost: healthLost, triggers: triggers, in: &context,
         ))
         return events
+    }
+
+    private static func bloodfireDamage(
+        keyword: Keyword?,
+        actor: Combatant,
+        triggers: CombatTraitTriggers,
+        in context: inout BattleState,
+    ) async -> [ActionEvent] {
+        guard keyword == .burn, triggers.burnAttackBleedDamage > 0,
+              context.claimTalentAbility(.bloodfire, actorID: actor.id),
+              BattleChance.succeeds(probability: triggers.burnAttackBleedChancePercent, using: &context.rng)
+        else { return [] }
+        return await heroTalentDamage(
+            .bleed, amount: triggers.burnAttackBleedDamage, source: actor,
+            name: "Bloodfire", in: &context,
+        )
     }
 
     private static func afterBlockedAttack(

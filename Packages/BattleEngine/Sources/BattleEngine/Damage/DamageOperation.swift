@@ -129,6 +129,13 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         }
     }
 
+    var isCounterattack: Bool {
+        if case .attack(_, .counterattack) = kind {
+            return true
+        }
+        return false
+    }
+
     var isAttackHit: Bool {
         if case .attack = kind {
             return true

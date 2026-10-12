@@ -250,6 +250,12 @@ Companion attack rewards such as Bone Shield and Bloodrush also recognize full
 Basic counterattacks. Their ability allowances belong to that counterattack,
 independently of an interrupted card's allowance.
 
+Supernova, Bloodfire, and Prismatic Edge also recognize full Basic counterattacks,
+using the counterattack's own ability allowance. Holy Basic counterattacks retain
+Hallowguard and ordinary Holy damage rewards; Critical Basic counterattacks retain
+Light Fingers and ordinary Critical Hit rewards. Raw retaliation and damage repeats
+keep their existing reaction guards.
+
 Temper Cycle also readies its Bleed bonus after a Burn Basic counterattack.
 Toxic Transfusion requires the Companion to survive the Critical Hit's retaliation
 before preparing the Hero's doubled Poison attack.
