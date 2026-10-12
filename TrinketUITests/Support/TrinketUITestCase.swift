@@ -231,32 +231,37 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func auditProductAccessibility() throws {
-        // Keep every iOS audit, but give each its own native deadline on older runtimes.
-        let types: [XCUIAccessibilityAuditType] = [
-            .contrast, .elementDetection, .hitRegion, .sufficientElementDescription,
-            .dynamicType, .textClipped, .trait,
-        ]
-        for type in types {
-            func audit() throws {
-                try app.performAccessibilityAudit(for: type) { issue in
-                    // Exclude only the opt-in Debug observation label, never product controls.
-                    if issue.element?.identifier == AccessibilityID.Debug.coverageDiagnostics {
-                        return true
+        try trinketOnMainActor {
+            // Keep every iOS audit, but give each its own native deadline on older runtimes.
+            let types: [XCUIAccessibilityAuditType] = [
+                .contrast, .elementDetection, .hitRegion, .sufficientElementDescription,
+                .dynamicType, .textClipped, .trait,
+            ]
+            for type in types {
+                @MainActor func audit() throws {
+                    try app.performAccessibilityAudit(for: type) { issue in
+                        // Exclude only the opt-in Debug observation label, never product controls.
+                        if issue.element?.identifier == AccessibilityID.Debug.coverageDiagnostics {
+                            return true
+                        }
+                        let detail = "\(issue.compactDescription)\n\(issue.detailedDescription)\n"
+                            + String((issue.element?.debugDescription ?? "No element").prefix(3000))
+                        let attachment = XCTAttachment(string: detail)
+                        let activityName = "Native audit \(issue.auditType.rawValue)"
+                        attachment.name = activityName
+                        attachment.lifetime = .keepAlways
+                        XCTContext.runActivity(named: activityName) { activity in
+                            activity.add(attachment)
+                        }
+                        return false
                     }
-                    let detail = "\(issue.compactDescription)\n\(issue.detailedDescription)\n"
-                        + String((issue.element?.debugDescription ?? "No element").prefix(3000))
-                    let attachment = XCTAttachment(string: detail)
-                    attachment.name = "Native audit \(issue.auditType.rawValue)"
-                    attachment.lifetime = .keepAlways
-                    self.add(attachment)
-                    return false
                 }
-            }
-            do {
-                try audit()
-            } catch let error as NSError where error.domain == "com.apple.xcode.xctest.accessibilityAudit" && error.code == -56 {
-                // Retry one native audit timeout; violations and a second timeout still fail.
-                try audit()
+                do {
+                    try audit()
+                } catch let error as NSError where error.domain == "com.apple.xcode.xctest.accessibilityAudit" && error.code == -56 {
+                    // Retry one native audit timeout; violations and a second timeout still fail.
+                    try audit()
+                }
             }
         }
     }
