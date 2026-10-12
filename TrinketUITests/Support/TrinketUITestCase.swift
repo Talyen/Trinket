@@ -231,6 +231,7 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func auditProductAccessibility() throws {
+        let application = try XCTUnwrap(app)
         try trinketOnMainActor {
             // Keep every iOS audit, but give each its own native deadline on older runtimes.
             let types: [XCUIAccessibilityAuditType] = [
@@ -239,7 +240,7 @@ class TrinketUITestCase: XCTestCase {
             ]
             for type in types {
                 @MainActor func audit() throws {
-                    try app.performAccessibilityAudit(for: type) { issue in
+                    try application.performAccessibilityAudit(for: type) { issue in
                         // Exclude only the opt-in Debug observation label, never product controls.
                         if issue.element?.identifier == AccessibilityID.Debug.coverageDiagnostics {
                             return true
