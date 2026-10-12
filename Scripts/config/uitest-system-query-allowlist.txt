@@ -10,4 +10,5 @@ Astral
 
 # Native Settings controls used only by the managed critical-settings profile.
 Accessibility
+Cancel
 Motion

@@ -74,6 +74,9 @@ enablement, a finite nonempty frame, and hittability. Check geometry before
 hittability because sheet transitions can temporarily expose invalid frames.
 Use explicit
 coordinate gestures only for gesture tests or a demonstrated automation limitation.
+On iOS 18, the visible native Battle Menu reports itself as unhittable. Its helper
+validates finite onscreen bounds before a center tap and requires the real Combat
+Log menu action to appear; iOS 26+ retains ordinary readiness taps.
 The Haptics switch exposes its entire labeled row; a brief press on the native
 thumb changes the preference, which the test verifies again after relaunch.
 The transparent frame-metrics reset control reports unhittable in XCUITest;

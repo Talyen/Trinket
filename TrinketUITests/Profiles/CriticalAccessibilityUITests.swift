@@ -43,6 +43,10 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
             revealSettingsElement(control, scrolling: settings)
             return control
         }
+        let cancelSearch = settings.buttons["Cancel"].firstMatch
+        if settings.searchFields.firstMatch.exists, cancelSearch.exists {
+            cancelSearch.trinketTapWhenReady()
+        }
         // A retained navigation title has the same text as the root's destination row.
         let accessibility = settings.cells.containing(.staticText, identifier: "Accessibility").firstMatch
         let sidebar = settings.collectionViews["com.apple.settings.sidebar.collectionView"].firstMatch
@@ -51,9 +55,14 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
                 if accessibility.exists {
                     break
                 }
-                let back = settings.navigationBars.buttons.element(boundBy: 0)
+                // Search can leave Dictate as the first button; it is never a back action.
+                let back = settings.navigationBars.buttons.matching(
+                    NSPredicate(format: "label IN %@", ["Settings", "Accessibility", "Back"]),
+                ).firstMatch
                 if back.exists {
-                    back.tap()
+                    back.trinketTapWhenReady()
+                } else {
+                    break
                 }
             }
         }
@@ -74,7 +83,9 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
             }
             container.swipeUp()
         }
-        XCTAssertTrue(element.exists && element.isHittable, "Requested native setting is not reachable")
+        if !element.exists || !element.isHittable {
+            XCTFail("Requested native setting is not reachable. Settings hierarchy:\n\(settings.debugDescription.prefix(6000))")
+        }
     }
 
     private static func reduceMotionValue(_ control: XCUIElement) throws -> Bool {

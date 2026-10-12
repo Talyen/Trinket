@@ -75,7 +75,8 @@ Simulator checks do not establish hardware evidence. Native audits exclude only
 the opt-in diagnostic label; no product failures are blanket-suppressed. A native
 audit timeout receives one immediate retry; a repeated timeout or any product
 violation still fails the profile. Settings navigation waits for the retained Motion
-screen and selects the Accessibility destination row rather than its matching title.
+screen, dismisses native search, and selects named back actions and the Accessibility
+destination row rather than matching titles or keyboard buttons.
 
 Settings-profile reward checks enter the existing victory fixture, then audit and tap
 the real claim and verify next-stage access. Earned victory remains smoke-owned;
