@@ -28,6 +28,12 @@ private func trinketOnMainActor<Value: Sendable>(_ body: @MainActor () throws ->
     }
 }
 
+private func trinketInteger(in snapshot: any XCUIElementSnapshot) throws -> Int {
+    let text = (snapshot.value as? String).flatMap { $0.isEmpty ? nil : $0 } ?? snapshot.label
+    let digits = text.replacingOccurrences(of: ",", with: "").split(whereSeparator: { !$0.isNumber }).first
+    return try XCTUnwrap(digits.flatMap { Int($0) }, "Missing numeric amount: \(text)")
+}
+
 enum TestLaunchArg {
     static let resetState = "-reset-state"
     static let seedTestProgress = "-seed-test-progress"
@@ -248,13 +254,7 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func integer(in element: XCUIElement) throws -> Int {
-        try trinketOnMainActor { try integer(in: element.snapshot()) }
-    }
-
-    private func integer(in snapshot: any XCUIElementSnapshot) throws -> Int {
-        let text = (snapshot.value as? String).flatMap { $0.isEmpty ? nil : $0 } ?? snapshot.label
-        let digits = text.replacingOccurrences(of: ",", with: "").split(whereSeparator: { !$0.isNumber }).first
-        return try XCTUnwrap(digits.flatMap { Int($0) }, "Missing numeric amount: \(text)")
+        try trinketOnMainActor { try trinketInteger(in: element.snapshot()) }
     }
 
     func integers(in container: XCUIElement, identifiers: Set<String>) throws -> [String: Int] {
@@ -265,7 +265,7 @@ class TrinketUITestCase: XCTestCase {
             while let snapshot = pending.popLast() {
                 pending.append(contentsOf: snapshot.children)
                 if identifiers.contains(snapshot.identifier) {
-                    amounts[snapshot.identifier] = try integer(in: snapshot)
+                    amounts[snapshot.identifier] = try trinketInteger(in: snapshot)
                 }
             }
             return amounts
@@ -330,8 +330,9 @@ class TrinketUITestCase: XCTestCase {
     }
 
     private func missingElementMessage(_ message: String) -> String {
-        trinketOnMainActor {
-            guard let app, let snapshot = try? app.snapshot() else { return message }
+        guard let app else { return message }
+        return trinketOnMainActor {
+            guard let snapshot = try? app.snapshot() else { return message }
             var entries: [String] = []
             var seen: Set<String> = []
             var pending = Array(snapshot.children.reversed())

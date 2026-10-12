@@ -283,7 +283,7 @@ struct CombatTriggerTalentControlTests {
         #expect(poisons.first?.effect.potency == 4)
         #expect(poisons.first?.sourceActorID == battle.roster.hero.id)
         #expect(outcome.events.contains {
-            $0.sourceActorID == battle.roster.companion.id && $0.keyword == .poison && $0.amount == 1
+            $0.actorID == battle.roster.companion.id && $0.keyword == .poison && $0.amount == 1
         })
     }
 
