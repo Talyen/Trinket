@@ -18,8 +18,9 @@ encounter orchestration plus `Modes/`; `Purchases/` owns StoreKit access;
   registrations and active run, reward claims/save retries, keyed presentation exit,
   and Talent baselines across Retry. Each run retains authoritative launch inputs,
   configuration, reward plan, and optional route, including standalone battles.
-- `BattleLaunchAssembly` / `BattleRewardAssembly`: pure configuration, reward-plan,
-  and display assembly from one immutable `BattlePreparationInputs` snapshot.
+- `BattleLaunchAssembly` / `BattleRewardAssembly`: pure configuration and display
+  assembly from one immutable `BattlePreparationInputs` snapshot. Reward inputs
+  adapt to Content's shared `BattleRewardPlan.forEncounter` policy.
   Retry uses that retained launch request with current saved party inputs and a fresh
   combat seed; completion settles its reward plan against the current save.
   Neither reads presentation fields for gameplay inputs.

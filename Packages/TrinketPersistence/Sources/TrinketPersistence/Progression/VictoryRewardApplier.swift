@@ -41,26 +41,6 @@ public enum VictoryRewardApplier {
         ).resolve(battleGold: battleGold).goldDelta
     }
 
-    public static func battleExperienceAward(
-        playerLevel: Int,
-        enemyLevel: Int,
-        highestLevel: Int,
-        experienceEarnedPercent: Int = 0,
-    ) -> Int {
-        let raw = CombatRounding.scaled(
-            ExperienceScaling.battleAwardWithCatchUp(
-                playerLevel: playerLevel,
-                enemyLevel: enemyLevel,
-                highestLevel: highestLevel,
-            ),
-            byPercent: experienceEarnedPercent,
-        )
-        return ExperienceScaling.cappedAward(
-            raw,
-            requiredXP: CombatantProgression.requiredXP(forLevel: playerLevel),
-        )
-    }
-
     /// Resolves encounter rewards that have no settled battle award.
     /// A duplicate headline item (owned trinket/unique) converts to
     /// level-scaled consolation gold instead of granting nothing: the
@@ -130,28 +110,16 @@ public enum VictoryRewardApplier {
             let range = BattleLoot.quantityRange(forLevel: encounterLevel)
             consolationGold = (range.lowerBound + range.upperBound) / 2
         }
-        let effects = save.homestead.effects
-        func experience(for combatant: Combatant, highestLevel: Int) -> Int {
-            guard grantsCombatExperience else { return 0 }
-            return battleExperienceAward(
-                playerLevel: save.roster.progression(for: combatant).level,
-                enemyLevel: encounterLevel,
-                highestLevel: highestLevel,
-                experienceEarnedPercent: experienceEarnedPercent + effects.experienceBonusPercent,
-            ) + effects.experienceBonus
-        }
-        return BattleRewardPlan(
+        return BattleRewardPlan.forEncounter(
+            party: (save.roster.progression(for: party.hero), save.roster.progression(for: party.companion)),
+            highestLevels: (save.roster.highestHeroLevel, save.roster.highestCompanionLevel),
+            encounterLevel: encounterLevel,
+            homestead: save.homestead,
             stageGold: SaturatedArithmetic.saturatingAdd(stageGold, consolationGold),
-            goldFindPercent: effects.goldFindPercent,
-            goldFindFlat: effects.goldFindFlat,
-            gemsFindBonus: effects.gemsFindBonus,
-            gemsFindPercent: effects.gemsFindPercent,
-            goldOverflowExperience: RewardExperiencePolicy.encounterAward(
-                encounterLevel: encounterLevel, roster: save.roster, percent: experienceEarnedPercent,
-            ),
-            heroExperience: experience(for: party.hero, highestLevel: save.roster.highestHeroLevel),
-            companionExperience: experience(for: party.companion, highestLevel: save.roster.highestCompanionLevel),
             materials: loot.materials, items: payableItem.map { [$0] } ?? [],
+            experienceEarnedPercent: experienceEarnedPercent,
+            grantsCombatExperience: grantsCombatExperience,
+            flatExperienceBonus: save.homestead.effects.experienceBonus,
         )
     }
 

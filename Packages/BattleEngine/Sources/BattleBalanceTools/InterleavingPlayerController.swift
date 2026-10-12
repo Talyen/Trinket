@@ -123,12 +123,12 @@ final class InterleavingPlayerController {
             state.battlesWon += 1
         }
         let enemyLevel = encounterLevel(for: step)
-        let heroNormal = ExperienceScaling.battleAwardWithCatchUp(
+        let heroNormal = RewardExperiencePolicy.battleExperienceAward(
             playerLevel: state.heroLevel,
             enemyLevel: enemyLevel,
             highestLevel: state.heroLevel,
         )
-        let companionNormal = ExperienceScaling.battleAwardWithCatchUp(
+        let companionNormal = RewardExperiencePolicy.battleExperienceAward(
             playerLevel: state.companionLevel,
             enemyLevel: enemyLevel,
             highestLevel: state.companionLevel,

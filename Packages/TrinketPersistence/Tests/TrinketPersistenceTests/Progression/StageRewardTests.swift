@@ -75,14 +75,14 @@ struct StageRewardTests {
         let heroLevel = PlayerRosterState.testSeed.progression(for: hero).level
         let companionLevel = PlayerRosterState.testSeed.progression(for: companion).level
         let expectedHeroProgression = PlayerRosterState.testSeed.progression(for: hero).addingExperience(
-            VictoryRewardApplier.battleExperienceAward(
+            RewardExperiencePolicy.battleExperienceAward(
                 playerLevel: heroLevel,
                 enemyLevel: encounterLevel,
                 highestLevel: PlayerRosterState.testSeed.highestHeroLevel,
             ),
         )
         let expectedCompanionProgression = PlayerRosterState.testSeed.progression(for: companion).addingExperience(
-            VictoryRewardApplier.battleExperienceAward(
+            RewardExperiencePolicy.battleExperienceAward(
                 playerLevel: companionLevel,
                 enemyLevel: encounterLevel,
                 highestLevel: PlayerRosterState.testSeed.highestCompanionLevel,

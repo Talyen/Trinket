@@ -76,6 +76,41 @@ struct RewardSettlementTests {
         #expect(bonused.award.companionExperience == 37)
     }
 
+    @Test func `encounter plans keep victory bonuses out of defeat and suppress claimed loot`() {
+        let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.library: 4, .wishingWell: 2])
+        let plan = BattleRewardPlan.forEncounter(
+            party: (.at(level: 1), .at(level: 1)), highestLevels: (1, 1),
+            encounterLevel: 1, homestead: homestead,
+            stageGold: 10, materials: [ResourceAmount(.wood, 3)], items: [],
+            experienceEarnedPercent: 30, victoryOnlyExperienceBonusPercent: 50,
+        )
+        // L1 normal XP is 7: Library +20%, shared +30%, victory-only +50%.
+        #expect(plan.heroExperience == 14)
+        #expect(plan.companionExperience == 14)
+        #expect(plan.defeatHeroExperience == 11)
+        #expect(plan.defeatCompanionExperience == 11)
+        let defeat = plan.settleDefeat(
+            progress: .init(remainingHealth: 50, maximumHealth: 100),
+            inputs: inputs(heroLevel: 1, companionLevel: 1),
+        )
+        #expect(defeat.award.heroExperience == 2)
+        #expect(defeat.award.companionExperience == 2)
+
+        let claimed = BattleRewardPlan.forEncounter(
+            party: (.at(level: 1), .at(level: 1)), highestLevels: (1, 1),
+            encounterLevel: 1, homestead: homestead,
+            stageGold: 10, materials: [ResourceAmount(.wood, 3)], items: [],
+            rewardsAlreadyClaimed: true,
+        )
+        #expect(claimed.heroExperience == 0)
+        #expect(claimed.defeatHeroExperience == 0)
+        #expect(claimed.materials.isEmpty)
+        // Replays still retain earned combat Gold and its Homestead bonus.
+        let replay = claimed.resolve(battleGold: .init(gained: 10))
+        #expect(replay.stageGold == 0)
+        #expect(replay.goldDelta == 11)
+    }
+
     @Test func `resolve splits stage gold from battle gains`() {
         let plan = BattleRewardPlan(
             stageGold: 100,

@@ -101,6 +101,26 @@ public enum RewardSettlementPolicy {
 }
 
 public enum RewardExperiencePolicy {
+    public static func battleExperienceAward(
+        playerLevel: Int,
+        enemyLevel: Int,
+        highestLevel: Int,
+        experienceEarnedPercent: Int = 0,
+    ) -> Int {
+        let raw = CombatRounding.scaled(
+            ExperienceScaling.battleAwardWithCatchUp(
+                playerLevel: playerLevel,
+                enemyLevel: enemyLevel,
+                highestLevel: highestLevel,
+            ),
+            byPercent: experienceEarnedPercent,
+        )
+        return ExperienceScaling.cappedAward(
+            raw,
+            requiredXP: CombatantProgression.requiredXP(forLevel: playerLevel),
+        )
+    }
+
     public static func encounterAward(
         encounterLevel: Int, hero: CombatantProgression, companion: CombatantProgression, percent: Int = 0,
     ) -> Int {

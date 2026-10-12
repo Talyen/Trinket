@@ -14,8 +14,13 @@ party or battle level.
 
 ## Victory settlement
 
+Content's `BattleRewardPlan.forEncounter` constructs both launch and unsettled
+encounter plans from captured party, Homestead, loot, and eligibility values.
+AppState and Persistence adapt those inputs; they do not calculate parallel reward
+plans. `RewardExperiencePolicy.battleExperienceAward` owns recipient catch-up,
+percentage bonuses, and the normal XP cap, including for progression simulations.
 Battle launch captures reward quantities, recipients, bonuses, and Gold-overflow
-XP in `BattleRewardPlan`. `RewardSettlementInputs` projects wallet reservations
+XP in that plan. `RewardSettlementInputs` projects wallet reservations
 and recipient progression at a recorded production date. Content's pure settlement
 produces `BattleRewardSettlement`; the same value drives the reveal and completion.
 A positive net Gold award fills available wallet space; only the excess becomes
