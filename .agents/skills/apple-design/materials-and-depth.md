@@ -20,7 +20,7 @@ variants casually or hard-code a dimming recipe across all artwork.
 - Keep content and controls visually distinct. Avoid stacking translucent surfaces
   when an existing opaque or shared material expresses the hierarchy more clearly.
 - Preserve native scroll-edge separation beneath floating controls. Use the
-  soft top effect established by [SwiftUI feature guidance](../../../Docs/AgentContext/swiftui-features.md)
+  soft top effect on iOS 26+ and native older-OS chrome established by [SwiftUI feature guidance](../../../Docs/AgentContext/swiftui-features.md)
   and the app root, including the documented detail-header exception. Avoid stacking
   custom fades or applying an edge effect where no control floats above the scroll view.
 - Prefer the native or shared presentation transition. Custom blur/scale animation

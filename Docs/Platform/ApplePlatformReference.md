@@ -7,21 +7,22 @@ Banned legacy APIs are enforced by `./Scripts/check-api-bans.sh`.
 
 ## Platform support
 
-[PD-026](../Product/Decisions.md) establishes a rolling window of the latest public
-iOS major and its predecessor. Give the newest release primary design attention;
-an older deployment target must not prevent adopting useful current APIs or native
-system behavior. Use small `#available` checks where an older supported version
+[PD-026](../Product/Decisions.md) establishes iOS 18 as the supported minimum.
+Give the newest release primary design attention; an older deployment target must
+not prevent adopting useful current APIs or native system behavior. Use small
+`#available` checks where an older supported version
 needs the existing behavior. Avoid parallel UI frameworks and speculative shims.
 Apple recommends [supporting older versions while adopting new APIs](https://developer.apple.com/documentation/xcode/running-code-on-a-specific-version/).
 
 The deployment target is the **minimum** supported OS, not the SDK version or a
 maximum OS. The authored values in `project.yml` and `Packages/*/Package.swift`
-remain authoritative. Keep the current iOS 26 minimum through the iOS 27 transition;
-this policy does not require backporting the game below its existing minimum.
-Review the window at each public major release and advance the minimum in the
-next verified app update, preserving saves and explaining the changed requirement
-in player-facing release notes. Reconsider the window explicitly if support cost
-or a critical capability warrants an exception.
+remain authoritative. Keep iOS 18 support when adopting newer SDKs; a new public
+major does not automatically raise the minimum. Review support cost and critical
+capabilities before explicitly changing the minimum, preserve saves, and explain
+any changed requirement in player-facing release notes. iOS 26+ keeps native glass
+and scroll-edge treatments; shared controls use native bordered styles and material
+surfaces on iOS 18. The explicit minimum-OS lane in [Player coverage](PlayerCoverage.md)
+owns older-runtime evidence.
 
 Test new iOS/Xcode betas and release candidates before launch. [Toolchain selection](../../Scripts/Reference.md#toolchain-ladder)
 owns which Xcode CI and local runs use, including version/build logging and helper-tool pins.

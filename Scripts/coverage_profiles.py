@@ -13,6 +13,7 @@ import subprocess
 import sys
 
 PROFILES = {
+    'ios18': ('com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation', 18),
     'compact': ('com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation', 26),
     'tablet': ('com.apple.CoreSimulator.SimDeviceType.iPad-A16', 27),
 }

@@ -73,7 +73,7 @@ struct OptionsView: View {
         }
         .scrollContentBackground(.hidden)
         .trinketScreenBackground()
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .trinketSoftTopScrollEdge()
         .navigationTitle("Options")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier(AccessibilityID.Screen.options)

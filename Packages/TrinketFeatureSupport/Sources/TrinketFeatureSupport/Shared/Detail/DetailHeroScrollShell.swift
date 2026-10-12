@@ -41,8 +41,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             .trinketScreenBackground()
             .ignoresSafeArea(edges: .top)
             .scrollBounceBehavior(.always)
-            .scrollEdgeEffectHidden(!showsPinnedScrollEdgeEffect, for: .top)
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .trinketSoftTopScrollEdge(isHidden: !showsPinnedScrollEdgeEffect)
             .onScrollGeometryChange(for: HeroHeaderScrollMetrics.self) { geometry in
                 let topInset = geometry.contentInsets.top
                 let baseHeight = heroHeightPolicy.height(forWidth: geometry.containerSize.width)
@@ -83,7 +82,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                             opacity: titleOpacity,
                         )
                     }
-                    .sharedBackgroundVisibility(.hidden)
+                    .trinketToolbarBackgroundHidden()
                 }
         }
     }

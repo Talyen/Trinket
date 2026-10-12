@@ -83,8 +83,8 @@ edits to a test module select that module.
 
 ## Player coverage automation
 
-`player-coverage.sh compact|tablet|soak` owns serial settings profiles and weekly
-functional soak/recovery. It is CI-owned and respects the heavy-local policy.
+`player-coverage.sh ios18|compact|tablet|soak` owns minimum-OS compatibility,
+serial settings profiles, and weekly functional soak/recovery. It is CI-owned and respects the heavy-local policy.
 [Player coverage](../Docs/Platform/PlayerCoverage.md) owns scenarios, cadence,
 explicit profile prerequisites, and evidence limitations. UI membership is authored
 in `config/ui-tests.tsv`; Profiles and Soak stay outside routine FullUI.

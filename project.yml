@@ -3,7 +3,7 @@ options:
   bundleIdPrefix: com.ryanmcintire
   projectFormat: xcode16_0
   deploymentTarget:
-    iOS: "26.0"
+    iOS: "18.0"
 fileGroups:
   - StoreKit/Trinket.storekit
   - Smoke.xctestplan
@@ -49,7 +49,7 @@ targets:
   Trinket:
     type: application
     platform: iOS
-    deploymentTarget: "26.0"
+    deploymentTarget: "18.0"
     sources:
       # Swift-only synchronized roots. Heavy Assets/Media/AppIcon are explicit
       # source entries (buildPhase resources) so actool/audio churn does not resync
@@ -125,7 +125,7 @@ targets:
   TrinketUITests:
     type: bundle.ui-testing
     platform: iOS
-    deploymentTarget: "26.0"
+    deploymentTarget: "18.0"
     sources:
       - path: TrinketUITests
         type: syncedFolder

@@ -72,7 +72,7 @@ struct BlacksmithForgeView: View {
             .padding(TrinketDesign.Layout.contentMargin)
         }
         .trinketScreenBackground()
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .trinketSoftTopScrollEdge()
         .accessibilityIdentifier(AccessibilityID.Homestead.forgeGrid)
         .task(id: visibleIDs) {
             await ArtworkViewportPrewarm.prewarm(

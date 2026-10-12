@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "TrinketAppState",
-    platforms: [.iOS(.v26)],
+    platforms: [.iOS(.v18)],
     products: [
         .library(
             name: "TrinketAppState",

@@ -23,9 +23,10 @@ MODULE = load_script('coverage_profiles', 'coverage_profiles.py')
 class PlayerCoverageTests(unittest.TestCase):
     def test_explicit_runtime_and_device_requests_never_fall_back(self):
         runtimes = [dict(identifier=f'ios-{version}', version=version, platform='iOS', isAvailable=True)
-                    for version in ('26.9', '26.10', '27.1')]
+                    for version in ('26.9', '26.10', '27.1', '18.0', '18.7')]
         types = [dict(identifier='compact')]
         self.assertEqual(MODULE.select_profile(runtimes, types, 'compact', 26)['identifier'], 'ios-26.10')
+        self.assertEqual(MODULE.select_profile(runtimes, types, 'compact', 18)['identifier'], 'ios-18.7')
         for requested_type, major in [('tablet', 26), ('compact', 25)]:
             with self.subTest(device=requested_type, major=major), self.assertRaisesRegex(ValueError, 'unavailable'):
                 MODULE.select_profile(runtimes, types, requested_type, major)
@@ -34,21 +35,23 @@ class PlayerCoverageTests(unittest.TestCase):
             MODULE.select_profile(runtimes, types, 'compact', 27)
 
     def test_runtime_preparation_installs_missing_major_and_validates_the_result(self):
-        device, _ = MODULE.PROFILES['compact']
-        types = json.dumps({'devicetypes': [dict(identifier=device)]})
-        missing = json.dumps({'runtimes': []})
-        available = json.dumps({'runtimes': [dict(identifier='ios-26', version='26.0', platform='iOS', isAvailable=True)]})
-        with patch.object(MODULE, 'simctl', side_effect=[types, missing, available]), \
-                patch.object(MODULE.subprocess, 'run') as install:
-            MODULE.prepare_profile('compact')
-            install.assert_called_once()
-        with patch.object(MODULE, 'simctl', side_effect=[types, available]), \
-                patch.object(MODULE.subprocess, 'run') as install:
-            MODULE.prepare_profile('compact')
-            install.assert_not_called()
-        with patch.object(MODULE, 'simctl', side_effect=[types, missing, missing]), \
-                patch.object(MODULE.subprocess, 'run'), self.assertRaisesRegex(ValueError, 'unavailable iOS 26'):
-            MODULE.prepare_profile('compact')
+        for name in ('compact', 'ios18'):
+            device, major = MODULE.PROFILES[name]
+            types = json.dumps({'devicetypes': [dict(identifier=device)]})
+            missing = json.dumps({'runtimes': []})
+            available = json.dumps({'runtimes': [dict(identifier=f'ios-{major}', version=f'{major}.0',
+                                                       platform='iOS', isAvailable=True)]})
+            with self.subTest(profile=name), patch.object(MODULE, 'simctl', side_effect=[types, missing, available]), \
+                    patch.object(MODULE.subprocess, 'run') as install:
+                MODULE.prepare_profile(name)
+                self.assertEqual(install.call_args.args[0][-1], f'{major}.0')
+            with patch.object(MODULE, 'simctl', side_effect=[types, available]), \
+                    patch.object(MODULE.subprocess, 'run') as install:
+                MODULE.prepare_profile(name)
+                install.assert_not_called()
+            with patch.object(MODULE, 'simctl', side_effect=[types, missing, missing]), \
+                    patch.object(MODULE.subprocess, 'run'), self.assertRaisesRegex(ValueError, f'unavailable iOS {major}'):
+                MODULE.prepare_profile(name)
 
     def test_native_text_size_restores_after_body_or_setting_failure(self):
         for fail in ('body', 'setting'):
@@ -157,14 +160,58 @@ trinket_run_env_install_self_clean() { :; }
             self.assertEqual(sum('--crash-proof' in line for line in calls), 1)
             self.assertIn(f'test.sh ui --no-build RepeatedPlayUITests results={root.resolve()}/data/TestResults', calls)
 
+    def test_ios18_failure_still_runs_purchase_recovery_and_durable_store_checks(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            scripts = root / 'Scripts'
+            (scripts / 'lib').mkdir(parents=True)
+            (scripts / 'player-coverage.sh').write_text((ROOT / 'Scripts/player-coverage.sh').read_text())
+            (scripts / 'lib/verification-policy.sh').write_text('trinket_require_heavy_verification() { return 0; }\n')
+            (scripts / 'run-env.sh').write_text('''trinket_run_env_init() { export DERIVED_DATA_PATH="$PWD/data" RESULTS_DIR="$PWD/data/TestResults" SIMULATOR_UDID=owned SIMULATOR_DESTINATION=fixture-ios18; }
+trinket_sim_slot_ensure() { :; }
+trinket_run_env_install_self_clean() { :; }
+''')
+            (scripts / 'ensure-simulator.sh').write_text('ensure_test_simulator_logged() { :; }\n')
+            for name in ('test.sh', 'test-package.sh'):
+                path = scripts / name
+                path.write_text('''#!/bin/sh
+printf '%s\n' "$0 $* major=$TRINKET_SIM_OS_MAJOR purchase=$TEST_RUNNER_TRINKET_REQUIRED_PURCHASE screenshots=$TRINKET_UI_SUCCESS_SCREENSHOTS" >> "$PWD/calls"
+exit 0
+''')
+                path.chmod(0o755)
+            binaries = root / 'bin'
+            binaries.mkdir()
+            python = binaries / 'python3'
+            python.write_text('''#!/bin/sh
+case "$*" in
+  *'definition --name ios18') printf 'fixture-phone\t18\n' ;;
+  *'--classes Smoke') printf 'SmokeBattleTests StarterOnboardingSmokeTests FullGamePurchaseSmokeTests\n' ;;
+  *'coverage_profiles.py run'*) exit 1 ;;
+  *) exit 2 ;;
+esac
+''')
+            python.chmod(0o755)
+            result = subprocess.run(['bash', 'Scripts/player-coverage.sh', 'ios18'], cwd=root,
+                                    env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}',
+                                         'TRINKET_COVERAGE_NO_BUILD': '1'}, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1, result.stderr)
+            calls = (root / 'calls').read_text().splitlines()
+            self.assertEqual(len(calls), 3)
+            self.assertIn('smoke --no-build SmokeBattleTests StarterOnboardingSmokeTests FullGamePurchaseSmokeTests', calls[0])
+            self.assertIn('FullGamePurchaseUITests', calls[1])
+            self.assertIn('BattleLifecycleUITests/testCommittedRewardSurvivesTerminationWithoutReseeding', calls[1])
+            self.assertIn('--destination fixture-ios18 TrinketPersistence', calls[2])
+            self.assertTrue(all('major=18 purchase=1 screenshots=1' in call for call in calls))
+
     def test_advisory_status_propagates_failed_or_cancelled_requested_jobs(self):
         workflow = (ROOT / '.github/workflows/player-coverage.yml').read_text()
         command = workflow.split('      - name: Report actual requested-job conclusions', 1)[1].split('        run: |\n', 1)[1]
         command = '\n'.join(line[10:] for line in command.splitlines())
         with tempfile.TemporaryDirectory() as temporary:
-            for profiles, soak, expected in [('success', 'skipped', 0), ('failure', 'success', 1),
-                                              ('success', 'cancelled', 1)]:
+            for compatibility, profiles, soak, expected in [('success', 'success', 'skipped', 0),
+                    ('failure', 'success', 'success', 1), ('cancelled', 'success', 'skipped', 1),
+                    ('skipped', 'failure', 'success', 1), ('success', 'success', 'cancelled', 1)]:
                 result = subprocess.run(['bash', '-ec', command], env={**os.environ,
-                    'PROFILES': profiles, 'SOAK': soak, 'GITHUB_STEP_SUMMARY': str(Path(temporary) / 'summary')},
+                    'COMPATIBILITY': compatibility, 'PROFILES': profiles, 'SOAK': soak, 'GITHUB_STEP_SUMMARY': str(Path(temporary) / 'summary')},
                     capture_output=True, text=True)
                 self.assertEqual(result.returncode, expected, result.stderr)

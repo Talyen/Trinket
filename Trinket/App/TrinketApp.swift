@@ -154,7 +154,7 @@ struct TrinketApp: App {
                         AppBootstrapRecoveryView(isRetrying: isRetryingBootstrap, retry: retryBootstrap)
                     }
                 }
-                .scrollEdgeEffectStyle(.soft, for: .top)
+                .trinketSoftTopScrollEdge()
                 .preferredColorScheme(.dark)
             }
             .ignoresSafeArea()

@@ -26,7 +26,7 @@ struct CollectionView: View {
     var body: some View {
         collectionBrowseContent
             .trinketScreenBackground()
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .trinketSoftTopScrollEdge()
             .accessibilityIdentifier(AccessibilityID.Screen.collection)
             .navigationTitle("Collection")
             .navigationBarTitleDisplayMode(.large)

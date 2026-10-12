@@ -166,7 +166,7 @@ struct MaterialRoleModifier: ViewModifier {
     func body(content: Content) -> some View {
         switch role {
         case .bottomBar:
-            content.glassEffect(.regular, in: shape)
+            content.modifier(GlassSurfaceModifier(shape: shape))
         case .frostedPanel:
             content
                 .background(.thinMaterial, in: shape)
@@ -175,6 +175,20 @@ struct MaterialRoleModifier: ViewModifier {
             content
                 .background(.ultraThinMaterial, in: shape)
                 .overlay { shape.stroke(TrinketDesign.Colors.subtleStroke, lineWidth: 1) }
+        }
+    }
+}
+
+private struct GlassSurfaceModifier<S: InsettableShape>: ViewModifier {
+    let shape: S
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect(.regular, in: shape)
+        } else {
+            content
+                .background(.regularMaterial, in: shape)
+                .overlay { shape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1) }
         }
     }
 }
@@ -206,7 +220,7 @@ struct GlassChipModifier: ViewModifier {
                     )
                 }
             }
-            .glassEffect(.regular, in: Capsule(style: .continuous))
+            .modifier(GlassSurfaceModifier(shape: Capsule(style: .continuous)))
     }
 }
 

@@ -9,18 +9,20 @@ buttons and system toolbar styling.
 | `.trinketScreenBackground()` | Inherited canvas: `TrinketDesign.Colors.canvas` by default, the shared sheet color beneath `.trinketSheetSurface()` |
 | `.trinketSheetSurface()` | Opaque sheet presentation/body surface and inherited canvas color for artwork blends; apply at the sheet boundary |
 | `.trinketSurface(_:)` | Secondary panels, cards, and dense rows |
-| `.trinketMaterial(_:)` | `.bottomBar`: regular glass; `.subtleOverlay`: standard ultra-thin material with a semantic stroke; `.frostedPanel`: thin material with a subtle border for Homestead action and benefit panels |
-| `.trinketGlassChip(_:)` | Regular-glass capsules; `.standard` / `.emphasis` select shared padding and emphasis stroke |
+| `.trinketMaterial(_:)` | `.bottomBar`: regular glass on iOS 26+, regular material with a semantic stroke on iOS 18; `.subtleOverlay`: standard ultra-thin material with a semantic stroke; `.frostedPanel`: thin material with a subtle border for Homestead action and benefit panels |
+| `.trinketGlassChip(_:)` | Regular-glass capsules on iOS 26+, regular material on iOS 18; `.standard` / `.emphasis` select shared padding and emphasis stroke |
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
 | `.trinketCardSurface(showsStroke:)` | Card identity tiles (`showsStroke` adds the artwork clip + subtle stroke) |
 | `.trinketArtworkPickerSelectionBorder(isSelected:color:lineWidth:)` | Selection border around artwork picker cards |
 | `.trinketLockedCardEffect(isLocked:cornerRadius:)` | Subtle desaturation + opaque content blur, larger opaque paper lock with ink edge contrast |
 | `TrinketDesign.Layout.collectionGridItems` / `.partyPickerGridItems` / `.hubGridItems(for:)` | Shared collection, party-picker, and size-class hub grids (via `Spacing`) |
 | `TrinketDesign.Layout.collectionShelfPreviewLimit` | Peek-shelf card count for Collection / party shelves |
-| `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`, single `GlassButtonModifier`) |
-| `.trinketSecondaryActionButton()` | Secondary CTAs (`.glass`) |
+| `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent` on iOS 26+, `.borderedProminent` on iOS 18) |
+| `.trinketSecondaryActionButton()` | Secondary CTAs (`.glass` on iOS 26+, `.bordered` on iOS 18) |
 | `.trinketArtworkCardButtonStyle()` | Press-scale feedback for card buttons; accepts optional `pressedScale` (default `0.99`), with `TrinketMotion.Interaction.choiceCardPressedScale` for talent choices |
 | `.trinketCardLabelSpace(_:)` | Reserved label height under cards |
+| `.trinketSoftTopScrollEdge(isHidden:)` | Native soft top scroll-edge treatment on iOS 26+, preserving inherited visibility unless `isHidden` is supplied; earlier systems retain native chrome |
+| `.trinketToolbarBackgroundHidden()` | Hide the shared toolbar glass background on iOS 26+; earlier systems retain native toolbar styling |
 | `.trinketAccessibilityIdentifier(_:)` | Optional test identifier passthrough |
 | `.optionalMatchedTransitionSource(id:in:)` | Matched transitions with an optional namespace |
 | `.trinketCollectionShelfCardWidth()` | Peek-shelf card width |
@@ -41,8 +43,8 @@ button styling.
 
 Glass chips and bar materials route through `.glassEffect` inside this package
 only. Glass buttons intentionally use `.buttonStyle(.glass/.glassProminent)`,
-which is the button-system equivalent; feature views must not call either
-directly — use the `trinket*` modifiers above.
+which is the button-system equivalent, with native material/bordered fallbacks on
+iOS 18; feature views must not call either directly — use the `trinket*` modifiers above.
 
 Artwork blends transition full-bleed art into the surface below. Use `.trinketBottomArtworkBlend()` where art meets a lower surface. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
 

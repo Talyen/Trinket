@@ -1,6 +1,6 @@
 # Trinket
 
-Portrait-first **iOS 26+** native fantasy turn-based card combat (deckbuilder). Built with **SwiftUI** and **SwiftData**. See the build requirements below.
+Portrait-first **iOS 18+** native fantasy turn-based card combat (deckbuilder). Built with **SwiftUI** and **SwiftData**. See the build requirements below.
 
 ## Player loop
 

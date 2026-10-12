@@ -38,7 +38,7 @@ struct BlacksmithForgePreview: View {
                 .frame(maxWidth: .infinity, alignment: .top)
             }
             .scrollBounceBehavior(.basedOnSize)
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .trinketSoftTopScrollEdge()
             .accessibilityIdentifier(AccessibilityID.Homestead.forgePreview)
         }
         .trinketScreenBackground()

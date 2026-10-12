@@ -116,7 +116,7 @@ struct InventoryGridView: View {
                 estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns,
             )
         }
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .trinketSoftTopScrollEdge()
         .navigationTitle(category.rawValue)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {

@@ -44,22 +44,17 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         Color.clear
             .frame(height: baseHeight)
             .overlay {
-                GeometryReader { geometry in
-                    art()
-                        .frame(width: geometry.size.width, height: geometry.size.height)
-                        .clipped()
-                }
-                .backgroundExtensionEffect()
-                .allowsHitTesting(false)
-                .clipped()
-                .trinketBottomArtworkBlend()
-                .visualEffect { content, proxy in
-                    let overscroll = max(proxy.frame(in: .scrollView(axis: .vertical)).minY, 0)
-                    let stretch = baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1
-                    return content
-                        .scaleEffect(stretch, anchor: .top)
-                        .offset(y: -overscroll)
-                }
+                extendedArtwork
+                    .allowsHitTesting(false)
+                    .clipped()
+                    .trinketBottomArtworkBlend()
+                    .visualEffect { content, proxy in
+                        let overscroll = max(proxy.frame(in: .scrollView(axis: .vertical)).minY, 0)
+                        let stretch = baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1
+                        return content
+                            .scaleEffect(stretch, anchor: .top)
+                            .offset(y: -overscroll)
+                    }
             }
             .overlay(alignment: .bottomLeading) {
                 VStack(alignment: .leading) {
@@ -71,6 +66,23 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 .clipped()
             }
+    }
+
+    private var artworkFrame: some View {
+        GeometryReader { geometry in
+            art()
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .clipped()
+        }
+    }
+
+    @ViewBuilder
+    private var extendedArtwork: some View {
+        if #available(iOS 26.0, *) {
+            artworkFrame.backgroundExtensionEffect()
+        } else {
+            artworkFrame
+        }
     }
 
     private var titleBlock: some View {

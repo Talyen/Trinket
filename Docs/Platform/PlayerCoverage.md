@@ -9,6 +9,7 @@ Apple-service readiness.
 
 | Player risk | Executable owner | Cadence |
 |---|---|---|
+| iOS 18 fallback controls, onboarding, combat, purchases/restore and durable saves | `player-coverage.sh ios18`: Profiles, registry Smoke, Full Game recovery, interrupted reward and Persistence package tests | Nightly/manual compatibility lane |
 | Collected reward interrupted; duplicate Continue | Campaign `SmokeBattleTests` with a committed-reward checkpoint | Required routed push smoke |
 | Live battle return; accepted claim termination; failed-write Leave; talent confirmation; normal-speed rapid cards/drag | `BattleLifecycleUITests`, AppState integration, BattleFeature card-play tests | Package checks plus nightly/manual FullUI |
 | Voyage, Spires, Labyrinth inspector | `PlayModeNavigationUITests` | Nightly/manual FullUI |
@@ -29,22 +30,24 @@ No per-mechanic UI matrix duplicates those owners.
 ## CI and profiles
 
 [Player coverage workflow](../../.github/workflows/player-coverage.yml) uses the
-verified toolchain. Critical settings profiles run nightly; soak/recovery runs
-weekly. Manual dispatch selects profiles, soak, or both. Results are advisory for
-pushes, but requested-job failures produce a failed coverage aggregate. Requested FullUI also fails its advisory aggregate on failed, skipped, or unavailable execution; CI OK remains independent. Skipped
+verified toolchain. iOS 18 compatibility and critical settings profiles run nightly;
+soak/recovery runs weekly. Manual dispatch selects compatibility, profiles, soak,
+or all. Results are advisory for pushes, but requested-job failures produce a failed coverage aggregate. Requested FullUI also fails its advisory aggregate on failed, skipped, or unavailable execution; CI OK remains independent. Skipped
 jobs mean unrequested portfolios, not executed coverage.
 
 Run wrappers only in CI or an expressly requested local diagnostic:
 
 ```sh
+./Scripts/player-coverage.sh ios18
 ./Scripts/player-coverage.sh compact
 ./Scripts/player-coverage.sh tablet
 ./Scripts/player-coverage.sh soak
 ```
 
-Profiles request iPhone SE third generation on iOS 26 and iPad A16 (eleventh
-generation) on iOS 27. Missing types, incompatible/missing runtimes, and missing
-native text controls fail visibly without fallback. CI installs the requested
+Settings profiles request iPhone SE third generation on iOS 26 and iPad A16
+(eleventh generation) on iOS 27. The compatibility lane separately requests iPhone
+SE third generation on iOS 18. Missing types, incompatible/missing runtimes, and
+missing native text controls fail visibly without fallback. CI installs the requested
 major's `.0` runtime when that major is absent, then checks availability and device
 compatibility again. Compatible products from successful exact-commit CI are reused;
 missing or incompatible products rebuild, using the shared warm cache when no transfer
@@ -53,8 +56,8 @@ their owned simulator lease. Test runs retain the build's shared results directo
 so its validated build stamps remain available; each settings log and verdict
 identifies its retained result directory.
 
-Each device runs native default text, native largest accessibility text, and
-largest text with Reduce Motion. Native text settings are verified for every profile,
+Each settings and compatibility device runs native default text, native largest
+accessibility text, and largest text with Reduce Motion. Native text settings are verified for every profile,
 unchanged sizes are not reapplied, and the original size is restored once after the
 device's profiles, even on failed journeys. Reduce Motion is selected through the native Settings app in the owned simulator
 and restored after each class execution, including failed journeys. Both profile
@@ -64,12 +67,24 @@ the opt-in diagnostic label; no product failures are blanket-suppressed.
 
 Settings-profile reward checks enter the existing victory fixture, then audit and tap
 the real claim and verify next-stage access. Earned victory remains smoke-owned;
-profiles avoid repeating combat in all six settings/device combinations.
+profiles avoid repeating combat across settings/device combinations.
 
 Settings-profile Homestead checks audit and exercise the upgrade controls through the
 visible tier change. Detailed resource debits and reload persistence remain owned by
-`HomesteadControlsUITests`, avoiding repeated accounting across all six settings/device
+`HomesteadControlsUITests`, avoiding repeated accounting across settings/device
 combinations while retaining each combination's native accessibility evidence.
+
+The iOS 18 lane also runs every registry-owned smoke class, the existing Full Game
+purchase/recovery suite, committed-reward termination recovery, and the complete
+Persistence package suite on the explicitly selected simulator. These cover
+onboarding reload, tab navigation, manual combat and earned rewards, purchase access,
+populated restore, and schema migration/reload without duplicating test bodies.
+Purchase automation is required; an unavailable purchase runtime cannot count as
+successful compatibility evidence. Stages run serially, retain failures while
+continuing independent checks, and export screenshots for visual review. A passing
+lane does not establish artwork readability, app-icon appearance, frame pacing,
+thermal behavior, or memory readiness on older physical hardware; inspect those
+before claiming release readiness.
 
 Weekly UI soak uses one audio-enabled store for twenty Contracts, visiting
 Collection/Homestead and backgrounding every fifth cycle. Headless careers cover

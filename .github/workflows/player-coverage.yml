@@ -10,7 +10,7 @@ on:
         description: Coverage portfolio
         type: choice
         default: profiles
-        options: [profiles, soak, all]
+        options: [profiles, compatibility, soak, all]
 
 permissions:
   contents: read
@@ -21,6 +21,44 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  compatibility:
+    name: iOS 18 compatibility, purchases and durable saves
+    if: github.event.schedule == '0 8 * * *' || inputs.scope == 'compatibility' || inputs.scope == 'all'
+    runs-on: xcode-27
+    timeout-minutes: 120
+    env:
+      DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
+      TRINKET_DIAGNOSTICS_SESSION_ID: ios18-${{ github.run_id }}-${{ github.run_attempt }}
+      TRINKET_CLEANUP_TEST_ARTIFACTS: '0'
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: ./.github/actions/setup-trinket
+        with:
+          metal: 'true'
+          xcode-channel: verified
+      - name: Prepare the required iOS 18 runtime
+        timeout-minutes: 35
+        run: python3 Scripts/coverage_profiles.py prepare --name ios18
+      - uses: ./.github/actions/coverage-products
+      - name: Verify fallback controls, smoke, purchase recovery and persistence serially
+        env:
+          TRINKET_COVERAGE_NO_BUILD: '1'
+        run: ./Scripts/player-coverage.sh ios18
+      - name: Stage compatibility evidence
+        if: always()
+        run: python3 Scripts/coverage_profiles.py stage --results .DerivedData/TestResults --output .DerivedData/CompatibilityDiagnostics
+      - name: Retain compatibility results and failures
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ios18-compatibility-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .DerivedData/PlayerCoverage
+            .DerivedData/CompatibilityDiagnostics
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: warn
+
   profiles:
     name: Critical controls on compact phone and portrait iPad
     if: github.event.schedule == '0 8 * * *' || inputs.scope == 'profiles' || inputs.scope == 'all'
@@ -100,17 +138,18 @@ jobs:
 
   coverage-status:
     name: Player coverage status (advisory for pushes)
-    needs: [profiles, soak]
+    needs: [compatibility, profiles, soak]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Report actual requested-job conclusions
         env:
+          COMPATIBILITY: ${{ needs.compatibility.result }}
           PROFILES: ${{ needs.profiles.result }}
           SOAK: ${{ needs.soak.result }}
         shell: bash
         run: |
-          printf 'Profiles: %s\nSoak: %s\n' "$PROFILES" "$SOAK" >> "$GITHUB_STEP_SUMMARY"
-          for result in "$PROFILES" "$SOAK"; do
+          printf 'iOS 18: %s\nProfiles: %s\nSoak: %s\n' "$COMPATIBILITY" "$PROFILES" "$SOAK" >> "$GITHUB_STEP_SUMMARY"
+          for result in "$COMPATIBILITY" "$PROFILES" "$SOAK"; do
             [[ "$result" == success || "$result" == skipped ]] || exit 1
           done

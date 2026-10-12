@@ -67,7 +67,7 @@ struct ShopEncounterView: View {
                         .accessibilityValue(playerSave.roster.gold.formatted())
                         .accessibilityIdentifier(AccessibilityID.Shop.goldBalance)
                 }
-                .sharedBackgroundVisibility(.hidden)
+                .trinketToolbarBackgroundHidden()
             }
         }
         .interactiveDismissDisabled()

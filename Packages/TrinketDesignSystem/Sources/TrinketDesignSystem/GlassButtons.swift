@@ -10,10 +10,16 @@ private struct GlassButtonModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         Group {
-            if isProminent {
-                content.buttonStyle(.glassProminent)
+            if #available(iOS 26.0, *) {
+                if isProminent {
+                    content.buttonStyle(.glassProminent)
+                } else {
+                    content.buttonStyle(.glass)
+                }
+            } else if isProminent {
+                content.buttonStyle(.borderedProminent)
             } else {
-                content.buttonStyle(.glass)
+                content.buttonStyle(.bordered)
             }
         }
         .tint(tint)

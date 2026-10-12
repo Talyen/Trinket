@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
     name: "TrinketPersistence",
     platforms: [
-        .iOS(.v26),
+        .iOS(.v18),
         .macOS(.v15),
     ],
     products: [

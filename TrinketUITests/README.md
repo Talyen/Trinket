@@ -16,7 +16,7 @@ waits, flakiness, and maintenance; medium-value additions are rare, justified ex
 | Smoke | `Smoke/` sources; `Smoke.xctestplan` at repo root | CI `test.sh smoke` (registry-defined classes); runs on the build runner without a product transfer |
 | Exhaustive | `Play/`, `Collection/`, `Battle/` | Advisory nightly/dispatch CI, runs all registered classes on one runner; includes StoreKit recovery; deliberate local diagnostics follow [Verification.md](../Docs/Platform/Verification.md#local-simulator-budget) |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` (repo root) | Manual CI `performance.yml` / `performance.sh` investigations; outside routine smoke |
-| Profiles | `Profiles/`; generated `Profiles.xctestplan` | Nightly/manual compact iOS 26 phone and portrait iOS 27 iPad; three settings configurations per device |
+| Profiles | `Profiles/`; generated `Profiles.xctestplan` | Nightly/manual compact iOS 26 phone, portrait iOS 27 iPad, and the iOS 18 compatibility phone; three settings configurations per device |
 | Soak | `Soak/`; generated `Soak.xctestplan` | Weekly/manual audio-enabled twenty-Contract career; outside routine FullUI |
 | Support | `Support/` | Shared launch and StoreKit fixtures; shared journeys (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 

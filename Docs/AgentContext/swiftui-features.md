@@ -2,9 +2,10 @@
 
 Use for tabs, screens, navigation, shared views, design-system polish, and accessibility identifiers.
 
-The app root sets a soft top scroll-edge effect for all screens. Preserve this
-blurred transition instead of inheriting the OS automatic appearance; detail
-headers may still hide the effect until their title is pinned.
+The app root uses `trinketSoftTopScrollEdge` for the native soft top effect on
+iOS 26+; iOS 18 retains its native scroll/navigation appearance. Detail headers
+hide the newer effect until their title is pinned. Keep availability checks in
+shared chrome, preserving readable controls on both appearances.
 
 Play, Collection, Homestead, and Options screens live in `Trinket/Features/`.
 Shared game-specific views, presentation models, accessibility IDs, and artwork/frame
