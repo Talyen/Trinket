@@ -22,7 +22,7 @@ buttons and system toolbar styling.
 | `.trinketArtworkCardButtonStyle()` | Press-scale feedback for card buttons; accepts optional `pressedScale` (default `0.99`), with `TrinketMotion.Interaction.choiceCardPressedScale` for talent choices |
 | `.trinketCardLabelSpace(_:)` | Reserved label height under cards |
 | `.trinketSoftTopScrollEdge(isHidden:)` | Native soft top scroll-edge treatment on iOS 26+, preserving inherited visibility unless `isHidden` is supplied; earlier systems retain native chrome |
-| `.trinketToolbarBackgroundHidden()` | Hide the shared toolbar glass background on iOS 26+; earlier systems retain native toolbar styling |
+| `.trinketToolbarBackgroundHidden { ... }` | Install toolbar content with its shared glass background hidden on iOS 26+; earlier systems retain native toolbar styling |
 | `.trinketAccessibilityIdentifier(_:)` | Optional test identifier passthrough |
 | `.optionalMatchedTransitionSource(id:in:)` | Matched transitions with an optional namespace |
 | `.trinketCollectionShelfCardWidth()` | Peek-shelf card width |

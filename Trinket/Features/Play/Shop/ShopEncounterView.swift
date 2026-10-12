@@ -59,7 +59,7 @@ struct ShopEncounterView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .trinketScreenBackground()
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+            .trinketToolbarBackgroundHidden {
                 ToolbarItem(placement: .topBarTrailing) {
                     goldWallet
                         .accessibilityElement(children: .ignore)
@@ -67,7 +67,6 @@ struct ShopEncounterView: View {
                         .accessibilityValue(playerSave.roster.gold.formatted())
                         .accessibilityIdentifier(AccessibilityID.Shop.goldBalance)
                 }
-                .trinketToolbarBackgroundHidden()
             }
         }
         .interactiveDismissDisabled()

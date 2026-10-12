@@ -75,14 +75,13 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbarBackground(.clear, for: .navigationBar)
                 .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
-                .toolbar {
+                .trinketToolbarBackgroundHidden {
                     ToolbarItem(placement: .principal) {
                         DetailScrollNavigationTitle(
                             title: title,
                             opacity: titleOpacity,
                         )
                     }
-                    .trinketToolbarBackgroundHidden()
                 }
         }
     }

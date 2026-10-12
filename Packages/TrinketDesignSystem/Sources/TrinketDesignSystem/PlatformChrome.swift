@@ -14,15 +14,19 @@ public extension View {
             self
         }
     }
-}
 
-public extension ToolbarContent {
-    @ToolbarContentBuilder
-    func trinketToolbarBackgroundHidden() -> some ToolbarContent {
+    @ViewBuilder
+    func trinketToolbarBackgroundHidden(
+        @ToolbarContentBuilder content: () -> some ToolbarContent,
+    ) -> some View {
+        // Keep availability outside ToolbarContentBuilder: SDK 27.1 beta's
+        // optimized device linker cannot resolve its limited-availability type.
         if #available(iOS 26.0, *) {
-            sharedBackgroundVisibility(.hidden)
+            toolbar {
+                content().sharedBackgroundVisibility(.hidden)
+            }
         } else {
-            self
+            toolbar(content: content)
         }
     }
 }
