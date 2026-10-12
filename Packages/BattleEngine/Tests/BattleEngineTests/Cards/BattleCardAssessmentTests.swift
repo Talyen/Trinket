@@ -183,6 +183,17 @@ struct BattleCardAssessmentTests {
         #expect(state.roster.companion.currentMana == 4)
     }
 
+    @Test func `meteor quotes predictable Pyromancers Spark discounted mana spend`() throws {
+        let profile = CombatantTalentCatalog.profile(for: ["wizard_burn_t3_2"])
+        var state = battle(heroMana: 8, heroModifiers: profile)
+        let card = deal(.meteor, in: &state)
+        let rng = state.rng
+        #expect(state.assessCard(card).resources.first { $0.keyword == .mana }?.amount == 8)
+        #expect(state.rng == rng)
+        _ = try state.playCard(cardID: card.id)
+        #expect(state.roster.hero.currentMana == 0)
+    }
+
     @Test func `repeated empowerment quotes total spend with first purchase discount`() throws {
         var profile = CombatModifierProfile.zero
         profile.triggers.empowermentCostReduction = 1

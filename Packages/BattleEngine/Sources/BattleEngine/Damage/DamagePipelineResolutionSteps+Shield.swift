@@ -233,11 +233,15 @@ package extension DamagePipeline {
         isAttackHit: Bool,
     ) -> Int {
         let remainingBlock = max(0, buffer - consumedBlock)
-        let canSunder = damageKeyword == .physical || damageKeyword == .stun
+        let sharedKeyword = damageKeyword.flatMap {
+            UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: sourceTriggers ?? CombatTraitTriggers())
+        }
+        let isPhysical = damageKeyword == .physical || sharedKeyword == .physical
+        let canSunder = isPhysical || damageKeyword == .stun
         var extraRemoved = canSunder
             ? CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers?.sunderingBlockMultiplier ?? 0)
             : 0
-        if isAttackHit, damageKeyword == .physical, let sourceTriggers, sourceTriggers.physicalBlockBreakMultiplier > 0 {
+        if isAttackHit, isPhysical, let sourceTriggers, sourceTriggers.physicalBlockBreakMultiplier > 0 {
             extraRemoved += CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers.physicalBlockBreakMultiplier - 1)
         }
         if damageKeyword == .holy, let sourceTriggers, sourceTriggers.holyBlockBreakMultiplier > 0 {
@@ -256,14 +260,14 @@ package extension DamagePipeline {
                 multiplier: sourceTriggers.poisonDamageVsBlockMultiplier - 1,
             )
         }
-        if isAttackHit, damageKeyword == .burn, let sourceTriggers,
+        if isAttackHit, damageKeyword == .burn || sharedKeyword == .burn, let sourceTriggers,
            sourceTriggers.burnAttackBlockBreakMultiplier > 1 {
             extraRemoved += CombatRounding.scaled(
                 consumedBlock,
                 multiplier: sourceTriggers.burnAttackBlockBreakMultiplier - 1,
             )
         }
-        if isAttackHit, damageKeyword == .bleed, let sourceTriggers,
+        if isAttackHit, damageKeyword == .bleed || sharedKeyword == .bleed, let sourceTriggers,
            sourceTriggers.bleedAttackBlockBreakMultiplier > 1 {
             extraRemoved += CombatRounding.scaled(
                 consumedBlock,

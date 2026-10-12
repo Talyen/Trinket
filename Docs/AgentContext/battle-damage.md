@@ -80,7 +80,10 @@ their magnitude. Newly readied Toxic Backlash still doubles the next Poison dama
 event once, including a stored tick; Venomtrail retains its per-event rule below.
 Oathkeeper and Bloodember share keyword percentage bonuses as well as flat bonuses,
 counting universal bonuses once, including companion status multipliers, Critical
-damage bonuses, and chance-based damage multipliers such as Supernova. Thermal
+damage bonuses, and chance-based damage multipliers such as Supernova and Standard
+Deviation. Shared numeric bonuses include damage to Block: Shatterguard applies to
+Oathkeeper Holy damage, while Flaming Arrows and Armor Shred apply to the other
+Bloodember keyword. Block absorption and attack-only eligibility remain unchanged. Thermal
 Shock and Frostfire apply once per new hit.
 Searing Body attaches Burn after attack Health damage, never after periodic or
 reaction damage. Unquenchable Flame bypasses talent damage reduction as well as

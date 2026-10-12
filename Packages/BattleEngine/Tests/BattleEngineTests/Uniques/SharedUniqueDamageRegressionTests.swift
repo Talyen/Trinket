@@ -4,6 +4,61 @@ import TrinketCore
 @testable import BattleEngine
 
 struct SharedUniqueDamageRegressionTests {
+    @Test(arguments: [UInt64(1), 2, 3, 4])
+    func `oathkeeper shares Standard Deviation with holy damage`(seed: UInt64) throws {
+        let fixtures = UniqueCollectionTests()
+        let profile = CombatantTalentCatalog.profile(for: ["wildcard_physical_t1_2"])
+        var shared = try fixtures.battle(["oathkeeper"], extra: profile)
+        var physical = try fixtures.battle([], extra: profile)
+        shared.rng = SeededRandomNumberGenerator(seed: seed)
+        physical.rng = SeededRandomNumberGenerator(seed: seed)
+        try fixtures.play(fixtures.attack(.holy, amount: 20), in: &shared)
+        try fixtures.play(fixtures.attack(.physical, amount: 20), in: &physical)
+        #expect(shared.health(of: shared.enemy) == physical.health(of: physical.enemy))
+        #expect([1960, 1990].contains(shared.health(of: shared.enemy)))
+    }
+
+    @Test func `oathkeeper shares Shatterguards block damage with holy damage`() throws {
+        let fixtures = UniqueCollectionTests()
+        let charm = try #require(GameContent.trinketItems.first { $0.templateID == "sundering_charm" })
+        let power = try #require(charm.resolvedPower(at: 0))
+        var profile = CombatModifierProfile.zero
+        power.triggers.apply(to: &profile)
+        var shared = try fixtures.battle(["oathkeeper"], extra: profile)
+        DefensePoolEngine.set(40, on: shared.enemy, in: &shared)
+        try fixtures.play(fixtures.attack(.holy), in: &shared)
+        #expect(DefensePoolEngine.blockPoints(in: shared.activeEffects(of: shared.enemy)) == 20)
+        #expect(shared.health(of: shared.enemy) == 2000)
+
+        var ordinary = try fixtures.battle([], extra: profile)
+        DefensePoolEngine.set(40, on: ordinary.enemy, in: &ordinary)
+        try fixtures.play(fixtures.attack(.holy), in: &ordinary)
+        #expect(DefensePoolEngine.blockPoints(in: ordinary.activeEffects(of: ordinary.enemy)) == 30)
+    }
+
+    @Test func `bloodember shares Flaming Arrows block damage with bleed attacks`() throws {
+        try sharedBlockDamage(talentID: "ranger_burn_t1_1", keyword: .bleed, owner: .hero)
+    }
+
+    @Test func `bloodember shares Armor Shreds block damage with burn attacks`() throws {
+        try sharedBlockDamage(talentID: "lizard_scout_bleed_t3_2", keyword: .burn, owner: .companion)
+    }
+
+    private func sharedBlockDamage(talentID: String, keyword: Keyword, owner: BattleParticipant) throws {
+        let fixtures = UniqueCollectionTests()
+        let profile = CombatantTalentCatalog.profile(for: [talentID])
+        var shared = try fixtures.battle(["bloodember_pendant"], owner: owner, extra: profile)
+        DefensePoolEngine.set(40, on: shared.enemy, in: &shared)
+        try fixtures.play(fixtures.attack(keyword), owner: owner, in: &shared)
+        #expect(DefensePoolEngine.blockPoints(in: shared.activeEffects(of: shared.enemy)) == 25)
+        #expect(shared.health(of: shared.enemy) == 2000)
+
+        var ordinary = try fixtures.battle([], owner: owner, extra: profile)
+        DefensePoolEngine.set(40, on: ordinary.enemy, in: &ordinary)
+        try fixtures.play(fixtures.attack(keyword), owner: owner, in: &ordinary)
+        #expect(DefensePoolEngine.blockPoints(in: ordinary.activeEffects(of: ordinary.enemy)) == 30)
+    }
+
     @Test(arguments: ["bear_physical_t2_2", "risen_skeleton_physical_t4_1"])
     func `oathkeeper shares companion conditional physical damage bonuses`(talentID: String) throws {
         let fixtures = UniqueCollectionTests()

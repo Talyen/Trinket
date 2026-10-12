@@ -217,7 +217,8 @@ remain unresolved until their drawn actions execute.
 Targets that depend on preceding effects remain unresolved; Panacea exposes
 its separate cleanse and healing recipients unless Fresh Batch can change the
 healing recipient after Cleanse. Branch-dependent costs and reactive repeated payments remain non-quantitative;
-only resolved combat events establish the result. The legacy
+only resolved combat events establish the result. Static discounts such as
+Pyromancer’s Spark still allow a quantitative repeated-payment quote. The legacy
 `heldCardNextAttackDamage` trigger is retained for saved-item conversion in
 `InventoryItem.resolvedPower(at:)`, not as an active combat rule.
 

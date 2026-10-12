@@ -34,9 +34,11 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        guard state.damageKeyword == .physical, state.remaining > 0,
-              let sourceActorID = state.sourceActorID,
-              context.modifiers(for: sourceActorID).triggers.standardDeviation else { return }
+        guard state.remaining > 0, let keyword = state.damageKeyword,
+              let sourceActorID = state.sourceActorID else { return }
+        let triggers = context.modifiers(for: sourceActorID).triggers
+        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
+        guard keyword == .physical || sharedKeyword == .physical, triggers.standardDeviation else { return }
         let doubled: Bool
         if context.hasHeroCard(for: sourceActorID) {
             if let stored = context.resolution.cardTalents?.standardDeviationDouble {
