@@ -1,6 +1,24 @@
 import TrinketContent
 import TrinketCore
 
+/// Gameplay always accounts for economic effects, including an empty receipt set.
+/// Snapshot inference is retained only for Debug fixtures that exercise older journals.
+enum SaveMutationAccounting {
+    case receipts([SaveEconomicReceipt])
+    #if DEBUG
+    case fixtureSnapshot
+    #endif
+
+    var receipts: [SaveEconomicReceipt]? {
+        switch self {
+        case let .receipts(receipts): receipts
+        #if DEBUG
+        case .fixtureSnapshot: nil
+        #endif
+        }
+    }
+}
+
 /// A synchronous candidate and its effects have one lifetime and one commit.
 final class SaveEconomicMutation {
     enum ValidationFailure: Error {

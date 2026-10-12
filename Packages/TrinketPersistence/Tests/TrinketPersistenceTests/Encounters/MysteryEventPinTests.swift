@@ -20,17 +20,17 @@ struct MysteryEventPinTests {
         var rng = SeededRandomNumberGenerator(seed: 11)
         let offered = try MysteryOfferPersistence.prepare(event: event, encounter: encounter, save: &save, using: &rng)
         try #require(offered.count == 2)
-        try store.performBatchMutation { $0 = save }
+        try store.performFixtureMutation { $0 = save }
         let reloaded = try context.makeReloadedStore()
         var reopenedSave = reloaded.currentSave
         rng = SeededRandomNumberGenerator(seed: 999)
         let reopened = try MysteryOfferPersistence.prepare(event: event, encounter: encounter, save: &reopenedSave, using: &rng)
-        try reloaded.performBatchMutation { $0 = reopenedSave }
+        try reloaded.performFixtureMutation { $0 = reopenedSave }
         #expect(reopened == offered)
         let gemsBefore = reloaded.homestead.resources[.gems, default: 0]
         let goldBefore = reloaded.roster.gold
         var result = MysteryEffectResult()
-        #expect(reloaded.persistBatch(logging: "Claim mystery offer") { save in
+        #expect(reloaded.persistFixtureBatch(logging: "Claim mystery offer") { save in
             result = MysteryOfferPersistence.claim(offered[0], encounter: encounter, save: &save)
         })
         #expect(result.grantedItems == [offered[0].item])
@@ -39,7 +39,7 @@ struct MysteryEventPinTests {
         let claimed = try context.makeReloadedStore()
         #expect(claimed.inventory.items.contains(offered[0].item))
         #expect(claimed.homestead.resources[.gems, default: 0] == gemsBefore + offered[0].bonus.amount)
-        #expect(claimed.persistBatch(logging: "Retry completed mystery") { save in
+        #expect(claimed.persistFixtureBatch(logging: "Retry completed mystery") { save in
             result = MysteryOfferPersistence.claim(offered[0], encounter: encounter, save: &save)
         })
         #expect(result.isEmpty)
@@ -68,7 +68,7 @@ struct MysteryEventPinTests {
         )
         encounter.pinMysteryEvent(event.id, save: &save)
         save.roster.gold = PlayerRosterState.maxGoldBalance
-        #expect(store.persistBatch(logging: "Seed stale mystery offer") { $0 = save })
+        #expect(store.persistFixtureBatch(logging: "Seed stale mystery offer") { $0 = save })
         let before = store.currentSave
         let request = MysteryEncounterRequest(
             encounter: EncounterIdentity(location: .journey(stageID: stage.id), save: before),
@@ -107,7 +107,7 @@ struct MysteryEventPinTests {
         let reachable = Set(labyrinth.reachableNodeIDs())
         if let mysteryID = labyrinth.nodes.values.filter({ $0.type == .mystery && reachable.contains($0.id) })
             .min(by: { $0.id < $1.id })?.id {
-            #expect(store.persistBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
+            #expect(store.persistFixtureBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
             return mysteryID
         }
         let reachableID = try #require(reachable.min())
@@ -125,7 +125,7 @@ struct MysteryEventPinTests {
             isCleared: false,
             isRevealed: true,
         )
-        #expect(store.persistBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
+        #expect(store.persistFixtureBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
         return reachableID
     }
 
@@ -294,7 +294,7 @@ extension MysteryEventPinTests {
         let store = try context.makeSaveStore(resetState: true)
         let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
-        try store.performBatchMutation {
+        try store.performFixtureMutation {
             $0.roster.gold = 0
             $0.homestead.nodeTiers[.wishingWell] = 1
             $0.homestead.pendingProduction = [:]
@@ -312,7 +312,7 @@ extension MysteryEventPinTests {
         let offers = preparedEncounter.offers
         let offer = try #require(offers.first)
         #expect(offer.homesteadReward != nil)
-        try store.performBatchMutation { $0.roster.gold = PlayerRosterState.maxGoldBalance }
+        try store.performFixtureMutation { $0.roster.gold = PlayerRosterState.maxGoldBalance }
 
         let reloaded = try context.makeReloadedStore()
         let result = reloaded.resolveMysteryEncounter(

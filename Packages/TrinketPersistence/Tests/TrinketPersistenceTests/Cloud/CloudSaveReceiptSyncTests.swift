@@ -25,12 +25,49 @@ extension CloudSaveSyncTests {
         #expect(try context.makeReloadedStore().currentSave == before)
     }
 
+    @Test(arguments: ["batch", "transaction", "immediate", "deferred"]) @MainActor
+    func `save-only APIs reject economic edits before publication or journaling`(api: String) async throws {
+        let context = try PersistenceTestContext()
+        let store = try cloudStore(context, transport: CloudSaveTestTransport())
+        #expect(await store.cloudSync?.synchronize() == true)
+        let before = store.currentSave
+        let journal = store.cloudDeviceState.account.journal
+        let mutation: (inout PlayerSave) -> Void = { save in
+            save.roster.gold += 10
+            save.homestead.resources[.iron, default: 0] += 3
+            let hero = save.roster.activeHero
+            _ = save.roster.grantExperience(5, to: hero)
+        }
+        switch api {
+        case "batch":
+            #expect(!store.persistBatch(logging: "Unrecorded effects", mutation))
+        case "transaction":
+            enum Rejection: Error { case unavailable }
+            let result: SaveTransactionResult<Void, Rejection> = store.persistTransaction(logging: "Unrecorded effects") { save in
+                mutation(&save)
+                return .success(())
+            }
+            guard case .persistFailed = result else { Issue.record("Expected rejected economic coverage"); return }
+        default:
+            #expect(throws: SaveEconomicMutation.ValidationFailure.self) {
+                try store.performBatchMutation(mutation, persistImmediately: api == "immediate")
+            }
+        }
+        #expect(store.currentSave == before)
+        #expect(store.cloudDeviceState.account.journal == journal)
+        #expect(store.pendingDeferredSave == nil)
+        #expect(try context.makeReloadedStore().currentSave == before)
+        // The same save-only path still commits a real non-economic edit.
+        #expect(store.persistBatch(logging: "Non-economic edit") { $0.corruptionAltarCooldownRemaining = 1 })
+        #expect(try context.makeReloadedStore().corruptionAltarCooldownRemaining == 1)
+    }
+
     @Test @MainActor func `Mystery claims and forging retain separate effects through concurrent replay and response loss`() async throws {
         let transport = CloudSaveTestTransport()
         let first = try PersistenceTestContext()
         let second = try PersistenceTestContext()
         let a = try cloudStore(first, transport: transport)
-        #expect(a.persistBatch(logging: "Economic command setup") { save in
+        #expect(a.persistFixtureBatch(logging: "Economic command setup") { save in
             save.starterSelection = .complete
             save.inventory.items = []
             save.homestead = PlayerHomesteadState(
@@ -88,7 +125,7 @@ extension CloudSaveSyncTests {
         let second = try PersistenceTestContext()
         let a = try cloudStore(first, transport: transport)
         try seedHomestead(a)
-        try a.performBatchMutation { $0.roster.gold = PlayerRosterState.maxGoldBalance - 1 }
+        try a.performFixtureMutation { $0.roster.gold = PlayerRosterState.maxGoldBalance - 1 }
         #expect(await a.cloudSync?.synchronize() == true)
         var b: PlayerSaveStore? = try cloudStore(second, transport: transport)
         #expect(await b?.cloudSync?.synchronize() == true)
@@ -97,7 +134,7 @@ extension CloudSaveSyncTests {
         await transport.advance(day)
         _ = await a.collectProduction(at: date)
         let secondStore = try #require(b)
-        #expect(secondStore.persistBatch(logging: "Spend before collecting") { $0.applyGoldDelta(-5, at: date) })
+        #expect(secondStore.persistFixtureBatch(logging: "Spend before collecting") { $0.applyGoldDelta(-5, at: date) })
         _ = await secondStore.collectProduction(at: date)
         #expect(await a.cloudSync?.synchronize() == true)
         #expect(await secondStore.cloudSync?.synchronize() == true)
@@ -130,7 +167,7 @@ extension CloudSaveSyncTests {
         let item = try #require(GameContent.sampleInventoryItems.first { ItemSalvage.isEligible($0) })
         let items = ["shared", "first", "second"].map { item.rewardInstance(for: "receipt-\($0)") }
         let initial = try #require(a)
-        #expect(initial.persistBatch(logging: "Salvage setup") { save in
+        #expect(initial.persistFixtureBatch(logging: "Salvage setup") { save in
             save.starterSelection = .complete
             save.inventory.items = items
             save.homestead.resources = [:]

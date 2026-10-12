@@ -76,8 +76,8 @@ struct ShopPurchaseApplierTests {
         let loaded = try ShopStockPersistence.stock(encounter: encounter, save: store.currentSave)
         let original = try #require(loaded)
         let offer = try #require(original.offers.first)
-        let result = store.persistTransaction(logging: "Buy shop item") { save in
-            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save, recordReceipt: { _ in })
+        let result = store.persistTransaction(logging: "Buy shop item") { save, recordReceipt in
+            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save, recordReceipt: recordReceipt)
         }
         guard case let .committed(item) = result else { Issue.record("Expected purchase"); return }
         guard case .committed = store.salvageItem(id: item.id) else { Issue.record("Expected salvage"); return }
@@ -91,8 +91,8 @@ struct ShopPurchaseApplierTests {
         #expect(stock.purchasedOfferIDs == [offer.id])
         #expect(ShopPurchaseApplier
             .availability(offerID: offer.id, encounter: encounter, save: reloaded.currentSave) == .unavailable(.soldOut))
-        let repeatPurchase = reloaded.persistTransaction(logging: "Repeat purchase") { save in
-            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save, recordReceipt: { _ in })
+        let repeatPurchase = reloaded.persistTransaction(logging: "Repeat purchase") { save, recordReceipt in
+            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save, recordReceipt: recordReceipt)
         }
         guard case .rejected(.soldOut) = repeatPurchase else { Issue.record("Expected sold out"); return }
         #expect(reloaded.roster.gold == gold)
@@ -142,20 +142,20 @@ struct ShopPurchaseApplierTests {
         let store = try context.makeSaveStore()
         let offer = try makeOffer(price: 20)
         var encounter: EncounterIdentity?
-        try store.performBatchMutation { save in
+        try store.performFixtureMutation { save in
             save.roster.gold = 100
             encounter = try? pin([offer], in: &save)
         }
         let identity = try #require(encounter)
         let before = store.currentSave
         store.forcesNextSaveFailure = true
-        let failed = store.persistTransaction(logging: "Fail purchase") { save in
-            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: identity, save: &save, recordReceipt: { _ in })
+        let failed = store.persistTransaction(logging: "Fail purchase") { save, recordReceipt in
+            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: identity, save: &save, recordReceipt: recordReceipt)
         }
         guard case .persistFailed = failed else { Issue.record("Expected persistence failure"); return }
         #expect(store.currentSave == before)
-        let retried = store.persistTransaction(logging: "Retry purchase") { save in
-            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: identity, save: &save, recordReceipt: { _ in })
+        let retried = store.persistTransaction(logging: "Retry purchase") { save, recordReceipt in
+            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: identity, save: &save, recordReceipt: recordReceipt)
         }
         guard case .committed = retried else { Issue.record("Expected successful retry"); return }
         let reloaded = try context.makeReloadedStore()
@@ -183,7 +183,7 @@ struct ShopPurchaseApplierTests {
         let offer = try makeOffer(price: 20)
         let payload = try ShopStockPersistence.encode(ShopStock(offers: [offer]), encounter: encounter)
         ShopStockPersistence.setPayload(payload, encounter: encounter, save: &save)
-        try store.performBatchMutation { $0 = save }
+        try store.performFixtureMutation { $0 = save }
         return encounter
     }
 

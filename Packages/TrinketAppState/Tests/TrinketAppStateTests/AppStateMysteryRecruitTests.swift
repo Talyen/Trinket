@@ -86,7 +86,7 @@ struct AppStateMysteryRecruitTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         var roster = state.playerSave.roster
         roster.unlockedHeroIDs = [PlayerRosterState.starterHeroID, "ranger"]
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
 
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-5"))
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
@@ -154,7 +154,7 @@ struct AppStateMysteryRecruitTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
         let unreadableOffers = Data([0xFF])
-        #expect(state.playerSave.persistBatch(logging: "Install unreadable test offers") { save in
+        #expect(state.playerSave.persistFixtureBatch(logging: "Install unreadable test offers") { save in
             save.journey.mysteryOfferPayloads[stage.id] = unreadableOffers
         })
 
@@ -201,7 +201,7 @@ struct AppStateMysteryRecruitTests {
         var roster = state.playerSave.roster
         roster.progressions[roster.activeHeroID] = .at(level: 20)
         roster.progressions[roster.activeCompanionID] = .at(level: 5)
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
         let session = try attachPreparedMystery(event: event, to: state)
         let offer = try #require(session.offers.last)
@@ -230,7 +230,7 @@ struct AppStateMysteryRecruitTests {
         let inventoryBefore = state.playerSave.inventory
         var roster = state.playerSave.roster
         roster.gold = 999
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
 
         #expect(state.encounters.resolveActiveMysteryChoice(choiceID: offer.choiceID))
         #expect(state.playerSave.inventory != inventoryBefore)
@@ -243,7 +243,7 @@ struct AppStateMysteryRecruitTests {
 
     @Test func `corrupt choice with no eligible items fails with banner`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.inventory = .freshStart })
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.inventory = .freshStart })
         let event = try #require(GameContent.mysteryEvent(matching: GameContent.corruptionAltarEventID))
         attachMysterySession(event: event, to: state)
 
@@ -368,7 +368,7 @@ struct AppStateMysteryRecruitTests {
             event: event,
             combatant: nil,
         )
-        #expect(state.playerSave.persistBatch(logging: "Pin test Mystery identity") { save in
+        #expect(state.playerSave.persistFixtureBatch(logging: "Pin test Mystery identity") { save in
             save.journey.pinnedMysteryEventIDs[stage.id] = event.id
         })
         state.encounters.activeMysteryEncounter = session

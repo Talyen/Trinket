@@ -16,7 +16,7 @@ struct StageRewardTests {
         #expect(award.goldDelta == 10)
         let beforeHero = store.roster.progression(for: store.roster.activeHero)
         let beforeCompanion = store.roster.progression(for: store.roster.activeCompanion)
-        try #require(store.persistBatch(logging: "Apply resolved award") { save in
+        try #require(store.persistFixtureBatch(logging: "Apply resolved award") { save in
             save.roster.gold = 100
             save.homestead.nodeTiers[.wishingWell] = 3
             save.homestead.lastProductionAt = Date()
@@ -348,10 +348,10 @@ struct StageRewardTests {
     @Test @MainActor func `victory persists gold spent beyond the loot reward`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        try #require(store.persistBatch(logging: "Seed battle wallet") { save in
+        try #require(store.persistFixtureBatch(logging: "Seed battle wallet") { save in
             save.roster.gold = 100
         })
-        try #require(store.persistBatch(logging: "Complete battle with gold spending") { save in
+        try #require(store.persistFixtureBatch(logging: "Complete battle with gold spending") { save in
             VictoryRewardApplier.grantVictoryRewards(
                 party: (save.roster.activeHero, save.roster.activeCompanion),
                 encounterLevel: 1, stageGold: 5, battleGold: .init(spent: 20),

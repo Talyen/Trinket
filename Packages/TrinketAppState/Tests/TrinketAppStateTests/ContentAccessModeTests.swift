@@ -31,7 +31,7 @@ struct ContentAccessModeTests {
         let state = try context.makeAppState()
         let store = state.playerSave
         #expect(state.play.labyrinth.enter() == nil)
-        #expect(store.persistBatch(logging: "Test deep map") { save in
+        #expect(store.persistFixtureBatch(logging: "Test deep map") { save in
             for _ in 1 ... 3 {
                 let floor = save.labyrinth.currentFloorNumber
                 if let boss = save.labyrinth.nodes.values.first(where: {

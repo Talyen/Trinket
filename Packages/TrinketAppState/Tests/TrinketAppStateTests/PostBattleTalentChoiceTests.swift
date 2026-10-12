@@ -18,7 +18,7 @@ struct PostBattleTalentChoiceTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
-        try state.playerSave.performBatchMutation { save in
+        try state.playerSave.performFixtureMutation { save in
             save.roster.progressions[hero.id] = CombatantProgression(
                 level: 1, currentXP: 9, requiredXP: 10,
             )
@@ -61,7 +61,7 @@ struct PostBattleTalentChoiceTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
         let companion = state.playerSave.roster.activeCompanion
-        try state.playerSave.performBatchMutation { save in
+        try state.playerSave.performFixtureMutation { save in
             save.roster.progressions[hero.id] = CombatantProgression(
                 level: 1,
                 currentXP: 9,
@@ -115,7 +115,7 @@ struct PostBattleTalentChoiceTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
         let companion = state.playerSave.roster.activeCompanion
-        try state.playerSave.performBatchMutation { save in
+        try state.playerSave.performFixtureMutation { save in
             let nearLevelTwo = CombatantProgression(level: 1, currentXP: 9, requiredXP: 10)
             save.roster.progressions[hero.id] = nearLevelTwo
             save.roster.progressions[companion.id] = nearLevelTwo
@@ -144,7 +144,7 @@ struct PostBattleTalentChoiceTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
-        try state.playerSave.performBatchMutation { save in
+        try state.playerSave.performFixtureMutation { save in
             let requiredLevel3 = CombatantProgression.requiredXP(forLevel: 3)
             save.roster.progressions[hero.id] = CombatantProgression(level: 3, currentXP: requiredLevel3 - 1, requiredXP: requiredLevel3)
         }
@@ -183,7 +183,7 @@ struct PostBattleTalentChoiceTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
-        try state.playerSave.performBatchMutation { save in
+        try state.playerSave.performFixtureMutation { save in
             save.roster.progressions[hero.id] = .at(level: 2)
         }
         _ = state.journey.startBattle(for: stage)
@@ -200,7 +200,7 @@ struct PostBattleTalentChoiceTests {
         let state = try context.makePlaySession(playerSave: playerSave)
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
-        try playerSave.performBatchMutation { save in
+        try playerSave.performFixtureMutation { save in
             save.roster.progressions[hero.id] = CombatantProgression(
                 level: 1,
                 currentXP: 9,
@@ -220,7 +220,7 @@ struct PostBattleTalentChoiceTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.playerSave.roster.activeHero
-        try state.playerSave.performBatchMutation { save in
+        try state.playerSave.performFixtureMutation { save in
             save.roster.progressions[hero.id] = CombatantProgression(
                 level: 1,
                 currentXP: 9,

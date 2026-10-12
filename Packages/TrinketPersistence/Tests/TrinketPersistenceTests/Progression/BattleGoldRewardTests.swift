@@ -10,11 +10,11 @@ struct BattleGoldRewardTests {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         let item = try #require(GameContent.uniqueItems.first)
-        try #require(store.persistBatch(logging: "Seed duplicate reward item") { save in
+        try #require(store.persistFixtureBatch(logging: "Seed duplicate reward item") { save in
             save.inventory.items = [item]
         })
         let contracts = store.currentSave.contracts
-        try #require(store.persistBatch(logging: "Grant maximum Gold reward") { save in
+        try #require(store.persistFixtureBatch(logging: "Grant maximum Gold reward") { save in
             VictoryRewardApplier.grantVictoryRewards(
                 party: (save.roster.activeHero, save.roster.activeCompanion),
                 encounterLevel: 1,
@@ -45,7 +45,7 @@ struct BattleGoldRewardTests {
             progress: .init(remainingHealth: 10, maximumHealth: 100),
             inputs: RewardSettlementInputs(save: before, hero: hero, companion: companion),
         )
-        try #require(store.persistBatch(logging: "Save defeat experience") { save in
+        try #require(store.persistFixtureBatch(logging: "Save defeat experience") { save in
             BattleExperienceReward.apply(settlement, hero: hero, companion: companion, save: &save, recordReceipt: { _ in })
         })
         let reloaded = try context.makeReloadedStore()
@@ -59,7 +59,7 @@ struct BattleGoldRewardTests {
     @Test @MainActor func `victory persists positive battle gold without reducing wallet`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        try #require(store.persistBatch(logging: "Seed battle wallet") { save in
+        try #require(store.persistFixtureBatch(logging: "Seed battle wallet") { save in
             save.roster.gold = 100
             let hero = save.roster.activeHero
             let companion = save.roster.activeCompanion

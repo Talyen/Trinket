@@ -72,7 +72,7 @@ struct AppStateTests {
         )
         let state = try context.makeAppState(playerSave: playerSave)
         let goldBefore = state.playerSave.roster.gold
-        try state.playerSave.performBatchMutation({ $0.roster.grantGold(13) }, persistImmediately: false)
+        try state.playerSave.performFixtureMutation({ $0.roster.grantGold(13) }, persistImmediately: false)
 
         state.reconcileShellState(.scenePhaseChanged, scenePhase: .background)
 
@@ -90,7 +90,7 @@ struct AppStateTests {
                 storeURL: storeURL,
                 disableCloudSync: true,
             )
-            try firstStore.performBatchMutation { $0 = save }
+            try firstStore.performFixtureMutation { $0 = save }
         }
 
         let state = try context.makeAppState(

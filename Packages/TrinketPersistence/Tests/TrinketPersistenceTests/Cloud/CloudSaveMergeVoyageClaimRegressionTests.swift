@@ -67,7 +67,7 @@ struct CloudSaveMergeVoyageClaimRegressionTests {
         let context = try PersistenceTestContext()
         try SaveTestSupport.writeRoot(merged, to: context.storeURL())
         let store = try context.makeSaveStore()
-        #expect(store.persistBatch(logging: "Repair retired Voyage board") { save in
+        #expect(store.persistFixtureBatch(logging: "Repair retired Voyage board") { save in
             save.voyage.ensureBoard(access: .free)
         })
         var reloaded = try context.makeReloadedStore().currentSave

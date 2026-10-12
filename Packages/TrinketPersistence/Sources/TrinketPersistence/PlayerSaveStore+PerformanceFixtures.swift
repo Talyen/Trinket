@@ -11,7 +11,7 @@ public extension PlayerSaveStore {
     ) {
         // "TRIN" in hex; retained fixture seed keeps map comparisons deterministic.
         let labyrinthFixtureSeed: UInt64 = 0x5452_494E
-        _ = persistBatch(logging: "Performance fixtures") { save in
+        _ = persistFixtureBatch(logging: "Performance fixtures") { save in
             if let event = mysteryEvent {
                 save.journey.pinnedMysteryEventIDs["chapter-1-stage-2"] = event
                 save.journey.mysteryOfferPayloads.removeValue(forKey: "chapter-1-stage-2")

@@ -14,7 +14,7 @@ struct PlayerSaveGraphIdentityTests {
         var homestead = store.homestead
         homestead.grant([ResourceAmount(.wood, 1)])
 
-        #expect(store.persistBatch(logging: "Test setup") { $0.homestead = homestead })
+        #expect(store.persistFixtureBatch(logging: "Test setup") { $0.homestead = homestead })
 
         #expect(try GraphIdentity(store.container) == before)
         let reloaded = try context.makeReloadedStore()
@@ -34,7 +34,7 @@ struct PlayerSaveGraphIdentityTests {
         inventory.items[0] = changedItem.renamed("\(changedItem.displayName) +1")
         inventory.items.removeLast()
 
-        #expect(store.persistBatch(logging: "Test setup") { $0.inventory = inventory })
+        #expect(store.persistFixtureBatch(logging: "Test setup") { $0.inventory = inventory })
 
         let after = try GraphIdentity(store.container)
         let survivingRows = before.inventoryItems.filter { $0.key != removedItem.id }
@@ -52,7 +52,7 @@ struct PlayerSaveGraphIdentityTests {
         let item = try #require(GameContent.itemTemplate(matching: "shortsword-basic")).rewardInstance(
             for: "chapter-1-stage-1",
         )
-        try store.performBatchMutation { save in
+        try store.performFixtureMutation { save in
             save.inventory.items.append(item)
         }
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
@@ -60,11 +60,11 @@ struct PlayerSaveGraphIdentityTests {
         var loadout = roster.equipmentLoadout(for: knight)
         loadout.equip(item, inventory: [item])
         roster.setEquipmentLoadout(loadout, for: knight)
-        #expect(store.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(store.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
         let equippedSlots = try context.makeSideContext().fetch(FetchDescriptor<EquipmentSlotModel>())
         try #require(equippedSlots.contains { $0.itemID == item.id })
 
-        #expect(store.persistBatch(logging: "Test setup") { $0.inventory = .freshStart })
+        #expect(store.persistFixtureBatch(logging: "Test setup") { $0.inventory = .freshStart })
 
         let slots = try context.makeSideContext().fetch(FetchDescriptor<EquipmentSlotModel>())
         try #expect(slots.allSatisfy { $0.itemID != item.id })

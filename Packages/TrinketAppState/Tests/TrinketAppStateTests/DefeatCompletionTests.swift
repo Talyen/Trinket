@@ -84,7 +84,7 @@ struct DefeatCompletionTests {
         #expect(play.playerSave.currentSave == before)
         #expect(battle.activeBattle?.id == configuration.id)
         #expect(play.playerSave.isRetryingSaveAction)
-        try play.playerSave.performBatchMutation { save in
+        try play.playerSave.performFixtureMutation { save in
             save.roster.grantExperience(1, to: configuration.hero.combatant)
         }
         #expect(!battle.claimDefeat(configurationID: configuration.id, settlement: settlement, action: .leave))
@@ -122,7 +122,7 @@ struct DefeatCompletionTests {
         let play = try context.makePlaySession(arguments: ["-reset-state"])
         let hero = play.playerSave.roster.activeHero
         let companion = play.playerSave.roster.activeCompanion
-        try play.playerSave.performBatchMutation { save in
+        try play.playerSave.performFixtureMutation { save in
             let before = CombatantProgression(level: 1, currentXP: 9, requiredXP: 10)
             save.roster.progressions[hero.id] = before
             save.roster.progressions[companion.id] = before

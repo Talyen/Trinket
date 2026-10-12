@@ -34,7 +34,7 @@ struct MysteryMaterialBoundaryTests {
             }
             return false
         })
-        #expect(store.persistBatch(logging: "Pin extreme-depth Mystery materials") { $0.labyrinth = candidate.labyrinth })
+        #expect(store.persistFixtureBatch(logging: "Pin extreme-depth Mystery materials") { $0.labyrinth = candidate.labyrinth })
         var reloaded = try context.makeReloadedStore().currentSave
         let reopened = try MysteryOfferPersistence.prepare(event: event, encounter: encounter, save: &reloaded, using: &rng)
         #expect(reopened == offers)

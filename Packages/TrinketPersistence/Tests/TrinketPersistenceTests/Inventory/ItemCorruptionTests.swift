@@ -65,7 +65,7 @@ struct ItemCorruptionTests {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2, id: "store-corrupt")
-        try store.performBatchMutation { save in
+        try store.performFixtureMutation { save in
             save.inventory.items = [item]
         }
         var rng = SeededRandomNumberGenerator(seed: 3)
@@ -107,7 +107,7 @@ struct ItemCorruptionTests {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         let item = try makeItem(baseID: "sapphire_ring", rarity: .basic, affixCount: 2, id: "corrupt-ring")
-        try store.performBatchMutation { save in
+        try store.performFixtureMutation { save in
             save.inventory.items = [item]
         }
 
@@ -122,7 +122,7 @@ struct ItemCorruptionTests {
             }
         })
         var applied: ItemCorruptionDetail?
-        try store.performBatchMutation { save in
+        try store.performFixtureMutation { save in
             var rng = SeededRandomNumberGenerator(seed: seed)
             if case let .success(result) = ItemCorruptionApplier.corrupt(
                 itemID: item.id,

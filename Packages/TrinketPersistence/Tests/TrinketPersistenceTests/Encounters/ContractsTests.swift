@@ -163,11 +163,12 @@ struct ContractsPersistenceTests {
         #expect(store.contracts == .freshStart)
         #expect(store.roster == saved.roster)
         #expect(store.inventory == saved.inventory)
-        #expect(store.persistBatch(logging: "Contracts test") { $0.contracts.ensureBoard(eligibleModifiers: [.keyword(.deathsDoor)]) })
+        #expect(store
+            .persistFixtureBatch(logging: "Contracts test") { $0.contracts.ensureBoard(eligibleModifiers: [.keyword(.deathsDoor)]) })
         let first = store.contracts
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.contracts == first)
-        #expect(reloaded.persistBatch(logging: "Contracts test") {
+        #expect(reloaded.persistFixtureBatch(logging: "Contracts test") {
             $0.contracts.earnRefresh()
             _ = $0.contracts.refresh()
         })
@@ -191,7 +192,7 @@ struct ContractsPersistenceTests {
         let store = try context.makeSaveStore()
         #expect(store.contracts.offers.map(\.id) == saved.contracts.offers.map(\.id))
         #expect(store.contracts.offers.allSatisfy { $0.rewardModifier == .gold })
-        #expect(store.persistBatch(logging: "Legacy contracts") { $0.contracts.ensureBoard() })
+        #expect(store.persistFixtureBatch(logging: "Legacy contracts") { $0.contracts.ensureBoard() })
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.contracts == store.contracts)
     }
@@ -200,7 +201,7 @@ struct ContractsPersistenceTests {
     @Test @MainActor func `failed claim rolls back all slices and retries exactly once across reload`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        #expect(store.persistBatch(logging: "Contracts test") { save in
+        #expect(store.persistFixtureBatch(logging: "Contracts test") { save in
             save.roster = .testSeed
             save.contracts.ensureBoard()
         })
@@ -211,7 +212,7 @@ struct ContractsPersistenceTests {
         let loot = ContractsCompletion.resolveLoot(for: offer, encounterLevel: level, save: store.currentSave)
         let before = store.currentSave
         store.forcesNextSaveFailure = true
-        let failed = store.persistBatch(logging: "Contracts test") { save in
+        let failed = store.persistFixtureBatch(logging: "Contracts test") { save in
             _ = ContractsCompletion.complete(
                 offerID: offer.id, hero: hero, companion: companion, rewards: .unsettled(.init(loot: loot, enemyEncounterLevel: level)),
                 save: &save,
@@ -222,7 +223,7 @@ struct ContractsPersistenceTests {
         #expect(store.currentSave == before)
         let failedReload = try context.makeReloadedStore()
         #expect(failedReload.currentSave == before)
-        #expect(failedReload.persistBatch(logging: "Contracts test") { save in
+        #expect(failedReload.persistFixtureBatch(logging: "Contracts test") { save in
             _ = ContractsCompletion.complete(
                 offerID: offer.id, hero: hero, companion: companion, rewards: .unsettled(.init(loot: loot, enemyEncounterLevel: level)),
                 save: &save,
@@ -233,7 +234,7 @@ struct ContractsPersistenceTests {
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.currentSave == claimed)
         var applied = EncounterCompletion.completed
-        #expect(reloaded.persistBatch(logging: "Contracts test") { save in
+        #expect(reloaded.persistFixtureBatch(logging: "Contracts test") { save in
             applied = ContractsCompletion.complete(
                 offerID: offer.id, hero: hero, companion: companion, rewards: .unsettled(.init(loot: loot, enemyEncounterLevel: level)),
                 save: &save,

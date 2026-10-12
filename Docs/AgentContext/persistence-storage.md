@@ -219,9 +219,10 @@ an unrelated reward. Spending does not alter these collection identities.
 
 Older records retain their version-one economic or conservative snapshot replay,
 including historically compacted records whose separate actions cannot be recovered.
-Legacy generic batches retain that fallback. Current production economic commands
-record explicit effects; non-economic commands and internal test fixtures may use
-save-only batches. Preserve older journal readers rather than reconstructing
+Current production commands always validate economic coverage, including an empty
+receipt set for non-economic edits. Unrestricted snapshot-inferred writes are
+Debug-only fixture APIs, preserving legacy replay coverage without a gameplay bypass.
+Preserve older journal readers rather than reconstructing
 receipts whose separate actions are no longer recoverable. Unsupported
 receipt/economic versions reject the entire upload before acknowledging or changing
 progress. Local device metadata advances to version 3 when receipts are recorded;

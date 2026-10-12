@@ -56,7 +56,7 @@ struct BattleSessionAppIntegrationTests {
         let battle = try #require(state.battle as? BattleSession)
         battle.presentLaunchVictory()
         let summary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
-        try state.playerSave.performBatchMutation { save in save.roster.gold = 999 }
+        try state.playerSave.performFixtureMutation { save in save.roster.gold = 999 }
         #expect(!battle.claimVictory(configurationID: configuration.id, summary: summary, defersPresentationExit: defersExit))
         #expect(!state.playerSave.journey.hasClaimedRewards(for: stage))
         let refreshedSummary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
@@ -96,7 +96,7 @@ struct BattleSessionAppIntegrationTests {
         let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
         let prepared = try #require(state.battleRegistration(for: runKey)?.launch.configuration)
         let item = try #require(GameContent.sampleInventoryItems.first { $0.baseType.defaultEquipmentSlot == .weapon })
-        try state.playerSave.performBatchMutation { save in
+        try state.playerSave.performFixtureMutation { save in
             save.inventory.appendUniqueItem(item)
             var loadout = save.roster.equipmentLoadout(for: hero)
             loadout.equip(item, inventory: save.inventory.items)
@@ -189,7 +189,7 @@ struct BattleSessionAppIntegrationTests {
 
         var updatedRoster = appState.playerSave.roster
         updatedRoster.grantExperience(3, to: appState.playerSave.roster.activeHero)
-        #expect(appState.playerSave.persistBatch(logging: "Test setup") { $0.roster = updatedRoster })
+        #expect(appState.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = updatedRoster })
         appState.restartActiveBattle()
 
         #expect(appState.battle.activeBattle?.hero.progression.currentXP == 3)
@@ -277,7 +277,7 @@ struct BattleSessionAppIntegrationTests {
 
         var save = appState.playerSave.currentSave
         save.roster.unlock(otherHero)
-        #expect(appState.playerSave.persistBatch(logging: "Test setup") { $0.roster = save.roster })
+        #expect(appState.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = save.roster })
 
         #expect(appState.labyrinth.startBattle(nodeID: combatNodeID) == nil)
         let original = try #require(appState.battle.activeBattle)
@@ -286,7 +286,7 @@ struct BattleSessionAppIntegrationTests {
 
         var updatedRoster = appState.playerSave.roster
         updatedRoster.setActiveHero(otherHero)
-        #expect(appState.playerSave.persistBatch(logging: "Test setup") { $0.roster = updatedRoster })
+        #expect(appState.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = updatedRoster })
 
         appState.restartActiveBattle()
 
@@ -433,7 +433,7 @@ extension BattleSessionAppIntegrationTests {
             ),
         )
         if retries {
-            #expect(play.playerSave.persistBatch(logging: "Advance progression before Retry") { save in
+            #expect(play.playerSave.persistFixtureBatch(logging: "Advance progression before Retry") { save in
                 save.roster.grantExperience(1, to: request.hero)
             })
             play.battleCoordinator.nextCombatSeed = { 42 }

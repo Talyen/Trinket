@@ -9,7 +9,7 @@ struct PlayerSaveStoreCleanupTests {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let original = try context.makeSaveStore()
-        #expect(original.persistBatch(logging: "Test setup") { $0.roster.gold = 99 })
+        #expect(original.persistFixtureBatch(logging: "Test setup") { $0.roster.gold = 99 })
         let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
         let other = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
         other.modifiedAt = .distantPast
@@ -106,7 +106,7 @@ struct PlayerSaveStoreCleanupTests {
             let store = try context.makeSaveStore()
             var roster = store.roster
             roster.gold = 99
-            #expect(store.persistBatch(logging: "Test setup") { $0.roster = roster })
+            #expect(store.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
         }
 
         _ = try context.makeSaveStore(resetState: true)
@@ -123,7 +123,7 @@ struct PlayerSaveStoreCleanupTests {
             let firstStore = try context.makeSaveStore()
             var roster = firstStore.roster
             roster.gold = 99
-            #expect(firstStore.persistBatch(logging: "Test setup") { $0.roster = roster })
+            #expect(firstStore.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
         }
 
         let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
@@ -145,7 +145,7 @@ struct PlayerSaveStoreCleanupTests {
             let firstStore = try context.makeSaveStore()
             var roster = firstStore.roster
             roster.gold = 99
-            #expect(firstStore.persistBatch(logging: "Test setup") { $0.roster = roster })
+            #expect(firstStore.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
         }
 
         let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)

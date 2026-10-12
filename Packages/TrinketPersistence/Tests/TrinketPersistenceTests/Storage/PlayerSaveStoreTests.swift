@@ -96,7 +96,7 @@ struct PlayerSaveStoreTests {
         )
         var homestead = firstStore.homestead
         homestead.resources[.wood] = 12345
-        #expect(firstStore.persistBatch(logging: "Test setup") { $0.homestead = homestead })
+        #expect(firstStore.persistFixtureBatch(logging: "Test setup") { $0.homestead = homestead })
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
 
@@ -135,7 +135,7 @@ struct PlayerSaveStoreTests {
         let url = blockedDirectory.appending(path: "PlayerSave.sqlite")
         let store = try PlayerSaveStore(storeURL: url)
         let before = store.currentSave
-        #expect(!store.persistBatch(logging: "Blocked recovery fixture") { $0.roster.gold += 17 })
+        #expect(!store.persistFixtureBatch(logging: "Blocked recovery fixture") { $0.roster.gold += 17 })
         #expect(store.currentSave == before)
         #expect(throws: PlayerSavePersistenceError.writeFailed) { try store.resetGameplayProgress() }
         #expect(store.currentSave == before)
@@ -174,7 +174,7 @@ struct PlayerSaveStoreTests {
         let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         var labyrinth = PlayerLabyrinthState.freshStart
         labyrinth.ensureMap(seed: 42)
-        #expect(store.persistBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
+        #expect(store.persistFixtureBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
         let labyrinthBefore = store.labyrinth
         try #require(labyrinthBefore.hasMap)
 
@@ -290,7 +290,7 @@ struct PlayerSaveStoreTests {
         let store = try context.makeSaveStore(inMemoryOnly: true)
         let before = store.currentSave.modifiedAt
 
-        try store.performBatchMutation { _ in }
+        try store.performFixtureMutation { _ in }
 
         try #expect(store.currentSave.modifiedAt == before)
     }
@@ -327,7 +327,7 @@ struct PlayerSaveStoreTests {
             storeURL: storeURL,
             disableCloudSync: true,
         )
-        try store.performBatchMutation({ $0.roster.grantGold(19) }, persistImmediately: false)
+        try store.performFixtureMutation({ $0.roster.grantGold(19) }, persistImmediately: false)
         try #expect(store.roster.gold == 19)
 
         store.flushPendingPersistence()
@@ -344,7 +344,7 @@ struct PlayerSaveStoreTests {
         let snapshot = store.currentSave
 
         try #expect(throws: (any Error).self) {
-            try store.performBatchMutation { save in
+            try store.performFixtureMutation { save in
                 save.schemaVersion = 0
             }
         }
@@ -362,7 +362,7 @@ extension PlayerSaveStoreTests {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         let date = Date()
-        try store.performBatchMutation { save in
+        try store.performFixtureMutation { save in
             save.homestead.resources[.food] = 900
             save.homestead.pendingProduction = [.food: 10]
             save.homestead.lastProductionAt = date
@@ -391,7 +391,7 @@ extension PlayerSaveStoreTests {
         store.forcesNextSaveFailure = true
 
         let error = try #require(throws: PlayerSavePersistenceError.self) {
-            try store.performBatchMutation { save in
+            try store.performFixtureMutation { save in
                 save.roster.gold += 50
             }
         }
@@ -434,7 +434,7 @@ extension PlayerSaveStoreTests {
             storeURL: storeURL,
             disableCloudSync: true,
         )
-        try store.performBatchMutation { save in
+        try store.performFixtureMutation { save in
             save.roster.gold = 10
             save.homestead.pendingProduction = [.food: 10]
         }
@@ -469,14 +469,14 @@ extension PlayerSaveStoreTests {
             storeURL: storeURL,
             disableCloudSync: true,
         )
-        try store.performBatchMutation({ save in
+        try store.performFixtureMutation({ save in
             save.roster.gold = 10
             save.homestead.pendingProduction = [.food: 10]
         }, persistImmediately: true)
         try #expect(store.roster.gold == 10)
 
         for gold in deferredGold {
-            try store.performBatchMutation({ save in
+            try store.performFixtureMutation({ save in
                 save.roster.gold = gold
                 save.homestead.pendingProduction = [:]
             }, persistImmediately: false)
@@ -506,7 +506,7 @@ extension PlayerSaveStoreTests {
         store.grantGold(10)
         store.forcesNextSaveFailure = true
 
-        let persisted = store.persistBatch(logging: "Test persist") { save in
+        let persisted = store.persistFixtureBatch(logging: "Test persist") { save in
             save.roster.gold += 50
         }
 
@@ -520,17 +520,17 @@ extension PlayerSaveStoreTests {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        try store.performBatchMutation { save in
+        try store.performFixtureMutation { save in
             save.roster.gold = 10
             save.homestead.pendingProduction = [.food: 10]
         }
-        try store.performBatchMutation({ save in
+        try store.performFixtureMutation({ save in
             save.roster.gold = 20
         }, persistImmediately: false)
         let deferredSnapshot = store.currentSave
         store.forcesNextSaveFailure = true
         #expect(throws: PlayerSavePersistenceError.self) {
-            try store.performBatchMutation { save in
+            try store.performFixtureMutation { save in
                 save.roster.gold = 30
                 save.homestead.pendingProduction = [:]
             }
@@ -559,13 +559,13 @@ extension PlayerSaveStoreTests {
             storeURL: storeURL,
             disableCloudSync: true,
         )
-        try store.performBatchMutation({ save in
+        try store.performFixtureMutation({ save in
             save.roster.gold = 10
         }, persistImmediately: true)
-        try store.performBatchMutation({ save in
+        try store.performFixtureMutation({ save in
             save.roster.gold = 20
         }, persistImmediately: false)
-        try store.performBatchMutation({ save in
+        try store.performFixtureMutation({ save in
             save.roster.gold = 50
         }, persistImmediately: true)
         try #expect(store.roster.gold == 50)
@@ -584,25 +584,25 @@ extension PlayerSaveStoreTests {
 
 private extension PlayerSaveStore {
     func grantExperience(_ amount: Int, to combatant: Combatant) {
-        #expect(persistBatch(logging: "Test experience") { $0.roster.grantExperience(amount, to: combatant) })
+        #expect(persistFixtureBatch(logging: "Test experience") { $0.roster.grantExperience(amount, to: combatant) })
     }
 
     func grantGold(_ amount: Int) {
-        #expect(persistBatch(logging: "Test gold") { $0.roster.grantGold(amount) })
+        #expect(persistFixtureBatch(logging: "Test gold") { $0.roster.grantGold(amount) })
     }
 
     func appendInventoryItem(_ item: InventoryItem) {
-        #expect(persistBatch(logging: "Test inventory") { $0.inventory.items.append(item) })
+        #expect(persistFixtureBatch(logging: "Test inventory") { $0.inventory.items.append(item) })
     }
 
     func advanceJourneyToStage(_ stageID: String) {
-        #expect(persistBatch(logging: "Test journey") {
+        #expect(persistFixtureBatch(logging: "Test journey") {
             $0.journey.completedStageIDs.insert("chapter-1-stage-1")
             $0.journey.activeStageID = stageID
         })
     }
 
     func grantHomestead(_ rewards: [ResourceAmount]) {
-        #expect(persistBatch(logging: "Test homestead") { $0.homestead.grant(rewards) })
+        #expect(persistFixtureBatch(logging: "Test homestead") { $0.homestead.grant(rewards) })
     }
 }

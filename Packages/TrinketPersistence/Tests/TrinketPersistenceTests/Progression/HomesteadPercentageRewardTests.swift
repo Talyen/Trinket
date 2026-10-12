@@ -9,14 +9,14 @@ struct HomesteadPercentageRewardTests {
         let context = try PersistenceTestContext()
         let date = Date(timeIntervalSince1970: 2000000000)
         let store = try context.makeSaveStore()
-        #expect(store.persistBatch(logging: "Seed percentage rewards") { save in
+        #expect(store.persistFixtureBatch(logging: "Seed percentage rewards") { save in
             save.roster.gold = 0
             save.homestead = .init(
                 resources: [:], nodeTiers: [.wishingWell: 4, .moonlitSanctum: 4], lastProductionAt: date,
             )
         })
         for _ in 0 ..< 4 {
-            #expect(store.persistBatch(logging: "Small battle reward") { save in
+            #expect(store.persistFixtureBatch(logging: "Small battle reward") { save in
                 VictoryRewardApplier.grantVictoryRewards(
                     party: (save.roster.activeHero, save.roster.activeCompanion),
                     encounterLevel: 1, stageGold: 1, grantsCombatExperience: false,
@@ -29,7 +29,7 @@ struct HomesteadPercentageRewardTests {
         #expect(reloaded.roster.gold == 4)
         #expect(reloaded.homestead.resources[.gems] == 4)
         #expect(reloaded.homestead.rewardRemainders == .init(gold: 80, gems: 80))
-        #expect(reloaded.persistBatch(logging: "Pay fractional reward") { save in
+        #expect(reloaded.persistFixtureBatch(logging: "Pay fractional reward") { save in
             VictoryRewardApplier.grantVictoryRewards(
                 party: (save.roster.activeHero, save.roster.activeCompanion),
                 encounterLevel: 1, stageGold: 1, grantsCombatExperience: false,

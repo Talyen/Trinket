@@ -90,9 +90,9 @@ struct BlacksmithForgeTests {
         var save = fundedSave()
         var random = SeededRandomNumberGenerator(seed: 41)
         let attempt = try BlacksmithForgeAttempt.prepare(recipeID: "blacksmith-longsword", save: save, using: &random).get()
-        _ = try attempt.apply(to: &save).get()
+        _ = try attempt.apply(to: &save, recordReceipt: { _ in }).get()
         let committed = save
-        #expect(attempt.apply(to: &save) == .failure(.alreadyOwned))
+        #expect(attempt.apply(to: &save, recordReceipt: { _ in }) == .failure(.alreadyOwned))
         #expect(save == committed)
         save.homestead.resources = [:]
         #expect(BlacksmithForgeAttempt.prepare(recipeID: "blacksmith-dagger", save: save, using: &random).failure == .insufficientResources)
@@ -103,7 +103,7 @@ struct BlacksmithForgeTests {
     @Test(arguments: [false, true]) @MainActor func `forge commits item and costs across reload and recovery`(recovery: Bool) async throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        try store.performBatchMutation { $0 = fundedSave() }
+        try store.performFixtureMutation { $0 = fundedSave() }
         store.forcesNextDatabaseSaveFailure = recovery
         let item = try await store.forgeBlacksmithItem(recipeID: "blacksmith-longsword").get()
         #expect(store.inventory.items == [item])
@@ -118,7 +118,7 @@ struct BlacksmithForgeTests {
     @Test @MainActor func `automatic retry spends once and reset invalidates pending craft`() async throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        try store.performBatchMutation { $0 = fundedSave() }
+        try store.performFixtureMutation { $0 = fundedSave() }
         store.forcesNextSaveFailure = true
         let item = try await store.forgeBlacksmithItem(recipeID: "blacksmith-dagger").get()
         #expect(store.inventory.items == [item])
@@ -143,15 +143,19 @@ struct BlacksmithForgeTests {
     @Test @MainActor func `failed transaction retains rolled item and rolls back cost`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        try store.performBatchMutation { $0 = fundedSave() }
+        try store.performFixtureMutation { $0 = fundedSave() }
         var random = SeededRandomNumberGenerator(seed: 42)
         let attempt = try BlacksmithForgeAttempt.prepare(recipeID: "blacksmith-dagger", save: store.currentSave, using: &random).get()
         let before = store.currentSave
         store.forcesNextSaveFailure = true
-        let failure = store.persistTransaction(logging: "Forge failure test") { attempt.apply(to: &$0) }
+        let failure = store.persistTransaction(logging: "Forge failure test") { save, recordReceipt in
+            attempt.apply(to: &save, recordReceipt: recordReceipt)
+        }
         guard case .persistFailed = failure else { Issue.record("Expected failure"); return }
         #expect(store.currentSave == before)
-        let success = store.persistTransaction(logging: "Forge retry test") { attempt.apply(to: &$0) }
+        let success = store.persistTransaction(logging: "Forge retry test") { save, recordReceipt in
+            attempt.apply(to: &save, recordReceipt: recordReceipt)
+        }
         guard case let .committed(item) = success else { Issue.record("Expected commit"); return }
         #expect(item == attempt.item)
         #expect(store.inventory.items == [attempt.item])

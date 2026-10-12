@@ -12,9 +12,9 @@ struct ContentAccessPersistenceTests {
         #expect(store.confirmStarterHero("warlock"))
         #expect(store.completeStarterSelection(companionID: "phoenix"))
         let warlock = try #require(GameContent.combatant(matching: "warlock"))
-        #expect(store.mutateRoster(logging: "Test premium progress") { roster in
-            roster.gold = 41
-            _ = roster.grantExperience(5, to: warlock)
+        #expect(store.persistFixtureBatch(logging: "Test premium progress") { save in
+            save.roster.gold = 41
+            _ = save.roster.grantExperience(5, to: warlock)
         })
         let progress = store.roster.progressions
         store.contentAccess = .free

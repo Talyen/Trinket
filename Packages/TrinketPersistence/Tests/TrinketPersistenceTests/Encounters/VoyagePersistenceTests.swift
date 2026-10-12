@@ -244,14 +244,14 @@ struct VoyagePersistenceTests {
     @Test @MainActor func `active route stock and mystery pins survive reload`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        #expect(store.persistBatch(logging: "Voyage setup") { save in
+        #expect(store.persistFixtureBatch(logging: "Voyage setup") { save in
             save.roster = .testSeed
             save.voyage.ensureBoard(access: .free)
             _ = save.voyage.embark(offerID: save.voyage.offers[0].id, eligibleRecruitEventIDs: [], access: .free)
         })
         let run = try #require(store.voyage.activeRun)
         let shopIndex = try #require(run.nodes.firstIndex { $0.type == .shop })
-        #expect(store.persistBatch(logging: "Voyage progress") { save in
+        #expect(store.persistFixtureBatch(logging: "Voyage progress") { save in
             for node in run.nodes.prefix(shopIndex) {
                 save.voyage.updateNode(runID: run.id, nodeID: node.id) { $0.isCleared = true }
             }
@@ -259,12 +259,12 @@ struct VoyagePersistenceTests {
             save.voyage.activeRun?.earnedMaterials = [.wood: 11]
         })
         let shop = EncounterIdentity(location: .voyage(runID: run.id, nodeID: run.nodes[shopIndex].id), save: store.currentSave)
-        #expect(store.persistBatch(logging: "Voyage shop") { save in
+        #expect(store.persistFixtureBatch(logging: "Voyage shop") { save in
             _ = ShopStockPersistence.prepare(encounter: shop, save: &save)
         })
         let stock = try #require(try ShopStockPersistence.stock(encounter: shop, save: store.currentSave))
         let offer = try #require(stock.offers.first)
-        #expect(store.persistBatch(logging: "Voyage purchase") { save in
+        #expect(store.persistFixtureBatch(logging: "Voyage purchase") { save in
             save.roster.gold = 10000
             _ = ShopPurchaseApplier.purchase(offerID: offer.id, encounter: shop, save: &save, recordReceipt: { _ in })
         })
@@ -274,7 +274,7 @@ struct VoyagePersistenceTests {
         #expect(loadedStock.purchasedOfferIDs.contains(offer.id))
         #expect(loadedStock.offers == stock.offers)
         let mysteryNode = try #require(reloaded.voyage.activeRun?.nodes.first(where: { $0.type == .mystery }))
-        #expect(reloaded.persistBatch(logging: "Voyage mystery pin") { save in
+        #expect(reloaded.persistFixtureBatch(logging: "Voyage mystery pin") { save in
             save.voyage.updateNode(runID: run.id, nodeID: mysteryNode.id) {
                 $0.mysteryEventID = "pinned-event"
                 $0.mysteryOffersPayload = Data([1, 2, 3])
@@ -312,7 +312,7 @@ struct VoyagePersistenceTests {
         try SaveTestSupport.writeRoot(save, to: context.storeURL())
         let store = try context.makeSaveStore()
         var reopened: [MysteryOffer] = []
-        #expect(store.persistBatch(logging: "Reopen Voyage mystery") { candidate in
+        #expect(store.persistFixtureBatch(logging: "Reopen Voyage mystery") { candidate in
             do {
                 reopened = try MysteryOfferPersistence.prepare(
                     event: event, encounter: encounter, save: &candidate, using: &rng,
@@ -323,7 +323,7 @@ struct VoyagePersistenceTests {
         let offered = try #require(first.first)
         let before = store.currentSave
         var result = MysteryEffectResult()
-        #expect(store.persistBatch(logging: "Claim Voyage mystery") { candidate in
+        #expect(store.persistFixtureBatch(logging: "Claim Voyage mystery") { candidate in
             result = MysteryOfferPersistence.claim(offered, encounter: encounter, save: &candidate)
         })
         #expect(result.grantedItems == [offered.item])
@@ -350,7 +350,7 @@ struct VoyagePersistenceTests {
         #expect(store.voyage.isUnreadable)
         #expect(store.voyage.encodedPayload == unreadable)
         #expect(store.roster == saved.roster)
-        #expect(store.persistBatch(logging: "Preserve unreadable Voyage") { $0.voyage.refresh(access: .free) })
+        #expect(store.persistFixtureBatch(logging: "Preserve unreadable Voyage") { $0.voyage.refresh(access: .free) })
         #expect(try context.makeReloadedStore().voyage.encodedPayload == unreadable)
         var json = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(CloudSaveSnapshot(saved))) as? [String: Any])
         json.removeValue(forKey: "voyagePayload")

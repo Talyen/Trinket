@@ -121,7 +121,8 @@ struct LabyrinthSaveRecoveryTests {
 
         do {
             let store = try context.makeSaveStore()
-            #expect(store.persistBatch(logging: "Test setup") { $0.labyrinth = PlayerLabyrinthState(worldSeed: 55, hasEntered: true) })
+            #expect(store
+                .persistFixtureBatch(logging: "Test setup") { $0.labyrinth = PlayerLabyrinthState(worldSeed: 55, hasEntered: true) })
         }
 
         do {

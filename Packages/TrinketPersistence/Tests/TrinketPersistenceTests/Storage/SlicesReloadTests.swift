@@ -63,7 +63,7 @@ struct SlicesReloadTests {
         let spire = try #require(GameContent.spires.first)
         var spires = firstStore.spires
         spires.highestClearedFloorBySpireID[spire.id.rawValue] = 9999
-        #expect(firstStore.persistBatch(logging: "Test setup") { $0.spires = spires })
+        #expect(firstStore.persistFixtureBatch(logging: "Test setup") { $0.spires = spires })
 
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var loadout = knight.abilityLoadout
@@ -75,7 +75,7 @@ struct SlicesReloadTests {
         loadout = loadout.selecting(thirdChoiceUltimate)
         var roster = firstStore.roster
         roster.abilityLoadouts["knight"] = loadout
-        #expect(firstStore.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(firstStore.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
 
         let reloaded = try context.makeReloadedStore()
 
@@ -134,7 +134,7 @@ struct SlicesReloadTests {
             recordReceipt: { _ in },
         )
         let clearedXP = draft.roster.progression(for: draft.roster.activeHero).currentXP
-        try firstStore.performBatchMutation { $0 = draft }
+        try firstStore.performFixtureMutation { $0 = draft }
 
         let reloaded = try context.makeReloadedStore()
 

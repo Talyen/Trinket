@@ -17,7 +17,7 @@ extension PlayerSaveStore {
         case let .failure(error): return .rejected(error)
         case let .success(value):
             do {
-                try commit(candidate.save, receipts: candidate.receipts)
+                try commit(candidate.save, accounting: .receipts(candidate.receipts))
                 return .committed(value)
             } catch {
                 notePersistenceFailure(error, logging: message)
@@ -34,7 +34,7 @@ extension PlayerSaveStore {
         let candidate = SaveEconomicMutation(currentSave)
         mutation(&candidate.save, candidate.record)
         do {
-            try commit(candidate.save, receipts: candidate.receipts)
+            try commit(candidate.save, accounting: .receipts(candidate.receipts))
             return true
         } catch {
             notePersistenceFailure(error, logging: message)

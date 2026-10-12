@@ -10,7 +10,7 @@ struct PlayerHomesteadStoreTests {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         let definition = try #require(GameContent.homesteadNode(matching: .runesmithWorkshop))
-        #expect(store.persistBatch(logging: "Independent building fixture") { save in
+        #expect(store.persistFixtureBatch(logging: "Independent building fixture") { save in
             save.homestead = PlayerHomesteadState(resources: [.iron: 9, .gems: 2], nodeTiers: [:])
         })
         #expect(await store.buildOrUpgradeNode(definition, targetTier: 1) == .success)
@@ -29,7 +29,7 @@ struct PlayerHomesteadStoreTests {
         var before: PlayerSave
         do {
             let store = try context.makeSaveStore()
-            #expect(store.persistBatch(logging: "Test setup") { save in
+            #expect(store.persistFixtureBatch(logging: "Test setup") { save in
                 save.roster.gold = 100
                 save.homestead = PlayerHomesteadState(
                     resources: [.wood: 99, .herbs: 99],
@@ -73,13 +73,13 @@ struct PlayerHomesteadStoreTests {
         let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        #expect(firstStore.persistBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
+        #expect(firstStore.persistFixtureBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
             resources: [.wood: 20, .herbs: 10],
             nodeTiers: [:],
         ) })
         var roster = firstStore.roster
         roster.gold = 4
-        #expect(firstStore.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(firstStore.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
 
         let result = await firstStore.buildOrUpgradeNode(definition, targetTier: 1)
         try #expect(result == .success)
@@ -96,7 +96,7 @@ struct PlayerHomesteadStoreTests {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore(inMemoryOnly: true)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        #expect(store.persistBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [:]) })
+        #expect(store.persistFixtureBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [:]) })
 
         let result = await store.buildOrUpgradeNode(definition, targetTier: 1)
         try #expect(result == .insufficientResources)
@@ -108,7 +108,7 @@ struct PlayerHomesteadStoreTests {
         let store = try context.makeSaveStore(inMemoryOnly: true)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let maxTier = try #require(definition.tiers.map(\.tier).max())
-        #expect(store.persistBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
+        #expect(store.persistFixtureBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
             resources: [.wood: 99, .herbs: 99],
             nodeTiers: [.wheatField: maxTier],
         ) })
@@ -122,7 +122,7 @@ struct PlayerHomesteadStoreTests {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        #expect(store.persistBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
+        #expect(store.persistFixtureBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
             resources: [.wood: 99, .herbs: 99],
             nodeTiers: [:],
         ) })
@@ -140,14 +140,14 @@ struct PlayerHomesteadStoreTests {
         let firstStore = try context.makeSaveStore()
         let start = Date(timeIntervalSince1970: 0)
         let collectionDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
-        #expect(firstStore.persistBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
+        #expect(firstStore.persistFixtureBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
             resources: [:],
             nodeTiers: [.wheatField: 1, .wishingWell: 1],
             lastProductionAt: start,
         ) })
         var roster = firstStore.roster
         roster.gold = 900
-        #expect(firstStore.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(firstStore.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
 
         let result = await firstStore.collectProduction(at: collectionDate)
         try #expect(result == .success([
@@ -168,7 +168,7 @@ struct PlayerHomesteadStoreTests {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let start = Date(timeIntervalSince1970: 0)
         let upgradeDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
-        #expect(store.persistBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
+        #expect(store.persistFixtureBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
             resources: [.wood: 20, .herbs: 20],
             nodeTiers: [.wheatField: 1],
             lastProductionAt: start,

@@ -16,7 +16,11 @@ extension PlayerSaveStore {
     /// `persistBatch` (Bool), and `persistTransaction` (tri-state): sanitize,
     /// diff slices, reconcile, write. The public spellings differ only in how
     /// they report failure.
-    func commit(_ proposed: PlayerSave, persistImmediately: Bool = true, receipts: [SaveEconomicReceipt]? = nil) throws {
+    func commit(
+        _ proposed: PlayerSave,
+        persistImmediately: Bool = true,
+        accounting: SaveMutationAccounting = .receipts([]),
+    ) throws {
         let mutationInterval = Self.performanceSignposter.beginInterval("PlayerSaveMutation")
         defer {
             Self.performanceSignposter.endInterval("PlayerSaveMutation", mutationInterval)
@@ -24,6 +28,7 @@ extension PlayerSaveStore {
         do {
             let snapshot = currentSave
             let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed)
+            let receipts = accounting.receipts
             if let receipts {
                 try SaveEconomicMutation.validate(from: snapshot, to: candidate, receipts: receipts)
             }

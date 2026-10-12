@@ -13,7 +13,7 @@ struct RosterEditPersistenceTests {
         let hero = try #require(GameContent.hero(matching: "knight"))
         let item = try SaveTestSupport.makeGeneratedItem(baseID: "longsword", rarity: .basic)
         let node = try #require(CombatantTalentCatalog.configIfAvailable(for: hero.id)?.trees.first?.nodes.first)
-        try playerSave.performBatchMutation { save in
+        try playerSave.performFixtureMutation { save in
             save.roster = .testSeed
             save.roster.progressions[hero.id] = .at(level: 2)
             save.roster.setEquipmentLoadout(.init(), for: hero)
@@ -54,7 +54,7 @@ struct RosterEditPersistenceTests {
         let premium = try #require(GameContent.hero(matching: "druid"))
         let tree = try #require(CombatantTalentCatalog.configIfAvailable(for: premium.id)?.trees.first)
         let node = try #require(tree.nodes.first)
-        try store.performBatchMutation { save in
+        try store.performFixtureMutation { save in
             _ = save.roster.unlock(knight)
             _ = save.roster.unlock(premium)
             save.roster.progressions[premium.id] = .at(level: 4)
@@ -75,7 +75,7 @@ struct RosterEditPersistenceTests {
         #expect(store.forcesNextSaveFailure)
         store.forcesNextSaveFailure = false
         #endif
-        try store.performBatchMutation { save in
+        try store.performFixtureMutation { save in
             save.roster.unlockedHeroIDs.remove(premium.id)
         }
         let withoutRecruit = store.currentSave

@@ -20,7 +20,7 @@ struct UniqueItemRuleTests {
         )
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        try store.performBatchMutation {
+        try store.performFixtureMutation {
             $0.inventory.items = [legacy]
             $0.roster.equipmentLoadouts["knight"] = EquipmentLoadout(itemIDsBySlot: [.weapon: legacy.id])
         }
@@ -43,7 +43,7 @@ struct UniqueItemRuleTests {
         var save = store.currentSave
         save.inventory.items = uniques
         save.roster.equipmentLoadouts["knight"] = EquipmentLoadout(itemIDsBySlot: [.weapon: "oathkeeper"])
-        try store.performBatchMutation { $0 = save }
+        try store.performFixtureMutation { $0 = save }
 
         let reloaded = try PlayerSaveStore(
             storeURL: context.storeURL(),

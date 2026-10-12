@@ -65,14 +65,14 @@ enum PlayBattleLaunchTestSupport {
         if let companionLevel {
             roster.progressions[roster.activeCompanionID] = .at(level: companionLevel)
         }
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
     }
 
     static func setActiveCompanion(_ companion: Combatant, in state: PlaySession) {
         var roster = state.playerSave.roster
         _ = roster.unlock(companion)
         roster.setActiveCompanion(companion)
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
     }
 
     static func make(

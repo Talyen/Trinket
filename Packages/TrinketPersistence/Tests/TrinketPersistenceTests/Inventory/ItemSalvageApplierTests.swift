@@ -17,7 +17,7 @@ struct ItemSalvageApplierTests {
         save.inventory.items = [item]
         save.roster.equipmentLoadouts["knight"] = EquipmentLoadout(itemIDsBySlot: [.weapon: item.id])
         save.homestead.resources = [:]
-        try store.performBatchMutation { $0 = save }
+        try store.performFixtureMutation { $0 = save }
         try #require(store.roster.equipmentLoadouts["knight"]?.itemID(for: .weapon) == item.id)
 
         let result = store.salvageItem(id: item.id)

@@ -43,14 +43,19 @@ struct BlacksmithForgeAttempt {
         save.homestead.canAfford(cost: recipe.cost, gold: save.roster.gold)
     }
 
-    func apply(to save: inout PlayerSave) -> Result<InventoryItem, BlacksmithForgeFailure> {
+    func apply(
+        to save: inout PlayerSave,
+        recordReceipt: (SaveEconomicReceipt) -> Void,
+    ) -> Result<InventoryItem, BlacksmithForgeFailure> {
         guard save.homestead.tier(for: .blacksmithForge) > 0 else { return .failure(.unavailable) }
         guard !InventoryDuplicatePolicy.containsDuplicate(of: item, in: save.inventory.items) else {
             return .failure(.alreadyOwned)
         }
         guard Self.affordable(recipe, in: save) else { return .failure(.insufficientResources) }
+        let before = save
         save.homestead.deductCost(recipe.cost, gold: &save.roster.gold)
         save.inventory.appendUniqueItem(item)
+        recordReceipt(.reward(from: before, to: save))
         return .success(item)
     }
 }
@@ -66,12 +71,7 @@ public extension PlayerSaveStore {
         }
         let result = await retryingTransientOperation {
             self.persistTransaction(logging: "Failed to forge Blacksmith item") { save, recordReceipt in
-                let before = save
-                let result = attempt.apply(to: &save)
-                if case .success = result {
-                    recordReceipt(.reward(from: before, to: save))
-                }
-                return result
+                attempt.apply(to: &save, recordReceipt: recordReceipt)
             }
         } while: {
             if case .persistFailed = $0 {

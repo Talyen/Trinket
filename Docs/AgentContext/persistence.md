@@ -14,9 +14,10 @@ AppState neither mutates the candidate nor forwards receipts. Before any graph o
 journal write, commit verifies that receipt replay accounts for the candidate's
 Gold, materials, XP and fractional balances. Missing or partial effects reject the
 whole transaction even when cloud sync is disabled. Receipts and game progress
-share the same durable commit and compensation. Non-economic commands retain
-save-only transactions; test fixtures may exercise legacy batches through
-`@testable import TrinketPersistence`.
+share the same durable commit and compensation. Non-economic commands use an empty
+receipt set and reject economic edits through the same commit validation. Debug-only `performFixtureMutation` and
+`persistFixtureBatch` support unrestricted setup and legacy journal coverage through
+`@testable import TrinketPersistence`; gameplay never uses snapshot inference.
 Domain operations mutate a candidate
 save; rejection discards it without publishing or writing. Immediate writes publish
 the observed candidate only after the graph or durable recovery file accepts it.

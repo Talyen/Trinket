@@ -118,7 +118,7 @@ enum CloudProcessRecovery {
             #expect(try await transport.remote().receipts[pendingID] != nil)
             let acceptedReceipts = try await transport.remote().receipts.count
             // Later offline earnings must survive acknowledgement of the frozen prefix.
-            #expect(store.persistBatch(logging: "Later offline earnings") { $0.roster.gold += 9 })
+            #expect(store.persistFixtureBatch(logging: "Later offline earnings") { $0.roster.gold += 9 })
             #expect(await store.cloudSync?.synchronize() == true)
             #expect(store.roster.gold == 16)
             #expect(try await transport.remote().head?.revision.snapshot.roster.gold == 16)
@@ -136,7 +136,7 @@ enum CloudProcessRecovery {
             try JSONEncoder().encode(summary).write(to: output.appendingPathComponent("summary.json"), options: .atomic)
         } else {
             #expect(await store.cloudSync?.synchronize() == true)
-            #expect(store.persistBatch(logging: "Earned before interrupted response") { $0.roster.gold += 7 })
+            #expect(store.persistFixtureBatch(logging: "Earned before interrupted response") { $0.roster.gold += 7 })
             await transport.interruptNextAcknowledgement()
             _ = await store.cloudSync?.synchronize()
             Issue.record("Owned cloud interruption checkpoint was not reached")
@@ -169,7 +169,7 @@ struct CloudPresentationBoundaryTests {
         #expect(await first.cloudSync?.synchronize() == true)
         #expect(battle.activeBattle?.id == configuration.id)
         #expect(first.journey.hasClaimedRewards(for: stage))
-        #expect(second.persistBatch(logging: "Remote earnings") { $0.roster.gold += 9 })
+        #expect(second.persistFixtureBatch(logging: "Remote earnings") { $0.roster.gold += 9 })
         #expect(await second.cloudSync?.synchronize() == true)
         #expect(await first.cloudSync?.synchronize() == true)
         #expect(battle.activeBattle == nil)

@@ -33,7 +33,7 @@ struct AppStateShopEncounterTests {
 
         let firstSession = try #require(state.encounters.activeShopEncounter)
         let offer = try #require(firstSession.offers.first)
-        try state.playerSave.performBatchMutation { save in
+        try state.playerSave.performFixtureMutation { save in
             save.roster.gold = offer.price * 3
         }
 
@@ -62,7 +62,7 @@ struct AppStateShopEncounterTests {
         #expect(stage.rewards.itemTemplateIDs.isEmpty)
 
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
-        try state.playerSave.performBatchMutation { save in
+        try state.playerSave.performFixtureMutation { save in
             save.roster.gold = 0
         }
         let itemsBefore = state.playerSave.inventory.items.count
@@ -150,7 +150,7 @@ struct AppStateShopEncounterTests {
         let origin = try shopOrigin(in: state, inLabyrinth: inLabyrinth)
         #expect(state.encounters.beginShopOrAutoComplete(origin: origin) == nil)
         #expect(state.encounters.activeShopEncounter != nil)
-        try state.playerSave.performBatchMutation { $0.sessionGeneration &+= 1 }
+        try state.playerSave.performFixtureMutation { $0.sessionGeneration &+= 1 }
         let imported = state.playerSave.currentSave
 
         #expect(state.encounters.finishActiveShopEncounter())
@@ -166,7 +166,7 @@ struct AppStateShopEncounterTests {
         let origin = try shopOrigin(in: state, inLabyrinth: inLabyrinth)
         let encounter = origin.identity(in: state.playerSave.currentSave)
         let payload = try ShopStockPersistence.encode(ShopStock(offers: []), encounter: encounter)
-        try state.playerSave.performBatchMutation { save in
+        try state.playerSave.performFixtureMutation { save in
             ShopStockPersistence.setPayload(payload, encounter: encounter, save: &save)
         }
         let goldBefore = state.playerSave.roster.gold
@@ -205,7 +205,7 @@ struct AppStateShopEncounterTests {
         let origin = try shopOrigin(in: state, inLabyrinth: false)
         let encounter = origin.identity(in: playerSave.currentSave)
         let payload = try ShopStockPersistence.encode(ShopStock(offers: []), encounter: encounter)
-        try playerSave.performBatchMutation { save in
+        try playerSave.performFixtureMutation { save in
             ShopStockPersistence.setPayload(payload, encounter: encounter, save: &save)
         }
         let before = playerSave.currentSave
@@ -229,7 +229,7 @@ struct AppStateShopEncounterTests {
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
         let session = try #require(state.encounters.activeShopEncounter)
         let offer = try #require(session.offers.first)
-        try playerSave.performBatchMutation { save in
+        try playerSave.performFixtureMutation { save in
             save.roster.gold = offer.price * 3
         }
         let itemsBefore = playerSave.inventory.items.count

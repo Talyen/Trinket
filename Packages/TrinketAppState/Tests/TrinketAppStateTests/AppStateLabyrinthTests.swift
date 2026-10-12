@@ -32,7 +32,7 @@ struct AppStateLabyrinthTests {
 
     @Test func `unreadable map heals on write and enter succeeds`() throws {
         let state = try context.makePlaySession()
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.labyrinth = PlayerLabyrinthState(
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.labyrinth = PlayerLabyrinthState(
             worldSeed: 55,
             hasEntered: true,
             isMapPayloadUnreadable: true,
@@ -66,7 +66,7 @@ struct AppStateLabyrinthTests {
 
         var homestead = state.playerSave.homestead
         homestead.nodeTiers[.agilityTraining] = 1
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.homestead = homestead })
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.homestead = homestead })
         state.labyrinth.prepareReachableBattles()
 
         #expect(battle.preparedBattlePresentationRevision > preparedRevision)
@@ -131,7 +131,7 @@ struct AppStateLabyrinthTests {
         let state = try context.makePlaySession()
         let nodeID = try LabyrinthTestSupport.enterAndFindCombatNode(in: state)
         let node = try #require(state.playerSave.labyrinth.nodes[nodeID])
-        #expect(state.playerSave.persistBatch(logging: "Keyword Labyrinth reward") { save in
+        #expect(state.playerSave.persistFixtureBatch(logging: "Keyword Labyrinth reward") { save in
             save.labyrinth.nodes[nodeID] = LabyrinthNode(
                 id: node.id, type: node.type, enemyID: node.enemyID, depth: node.depth, clusterID: node.clusterID,
                 gridPosition: node.gridPosition, modifierIDs: [NodeModifierCatalog.rewardID(.keyword(.purge))],
@@ -232,7 +232,7 @@ struct AppStateLabyrinthTests {
         let state = try context.makePlaySession()
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: "recruit-bear", in: state))
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = .testSeed })
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = .testSeed })
 
         #expect(state.labyrinth.handleNodeAction(nodeID: nodeID) == nil)
         #expect(state.encounters.activeMysteryEncounter?.event.isRecruit == false)
@@ -242,7 +242,7 @@ struct AppStateLabyrinthTests {
         let state = try context.makePlaySession()
         _ = state.labyrinth.enter()
         let nodeID = try #require(LabyrinthTestSupport.installRecruitNode(eventID: "recruit-bear", in: state))
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = .testSeed })
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = .testSeed })
 
         let recruitNode = try #require(state.playerSave.labyrinth.nodes[nodeID])
         let preview = try #require(state.labyrinth.previewMysteryEvent(for: recruitNode))

@@ -10,7 +10,7 @@ enum SpiresTestSupport {
     static func completeFloor(_ floor: SpireFloor, in state: PlaySession) -> Bool {
         let playerSave = state.playerSave
         let roster = playerSave.roster
-        return playerSave.persistBatch(logging: "Test setup: complete Spire floor") { save in
+        return playerSave.persistFixtureBatch(logging: "Test setup: complete Spire floor") { save in
             #expect(SpireCompletion.complete(
                 floor: floor,
                 hero: roster.activeHero,

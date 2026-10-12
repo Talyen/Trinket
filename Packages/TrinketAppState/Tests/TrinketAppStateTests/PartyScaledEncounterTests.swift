@@ -19,12 +19,12 @@ struct PartyScaledEncounterTests {
         var roster = state.playerSave.roster
         roster.progressions[roster.activeHeroID] = .at(level: heroLevel)
         roster.progressions[roster.activeCompanionID] = .at(level: companionLevel)
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
     }
 
     private func unlockSpireThroughPenultimateFloor(in state: PlaySession) throws -> SpireFloor {
         let spire = try #require(GameContent.spire(id: .ironVein))
-        #expect(state.playerSave.persistBatch(logging: "Test setup: unlock Spire floor") {
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup: unlock Spire floor") {
             $0.spires.highestClearedFloorBySpireID[spire.id.rawValue] = spire.floorCount - 1
         })
         return try #require(GameContent.spireFloor(spireID: .ironVein, floor: spire.floorCount))

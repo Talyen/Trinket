@@ -75,7 +75,7 @@ struct HeadlessPlaythroughTests {
             let save = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
             let play = try context.makePlaySession(playerSave: save)
             // Targeted fixture: resources establish action coverage, never pacing.
-            try save.performBatchMutation { value in
+            try save.performFixtureMutation { value in
                 value.roster.gold = 100
                 value.homestead = .init(resources: [.wood: 20, .herbs: 10], nodeTiers: [:], lastProductionAt: .distantPast)
             }

@@ -60,7 +60,7 @@ struct AppStatePlayFlowTests {
         let preparedRevision = battle.preparedBattlePresentationRevision
         #expect(state.battlePresentation(for: runKey)?.stageRewardsAlreadyClaimed == false)
 
-        try state.playerSave.performBatchMutation { save in
+        try state.playerSave.performFixtureMutation { save in
             save.journey.markRewardsClaimed(for: stage)
         }
         state.journey.prepareBattle(for: stage)
@@ -256,7 +256,7 @@ struct AppStatePlayFlowTests {
         var save = state.playerSave.currentSave
         save.roster.gold = PlayerRosterState.maxGoldBalance - 4
         save.homestead.pendingProduction[.gold] = 1
-        try state.playerSave.performBatchMutation { $0 = save }
+        try state.playerSave.performFixtureMutation { $0 = save }
 
         let enemy = try #require(GameContent.enemies.first?.combatant)
         #expect(state.battleCoordinator.activateBattle(BattleLaunchInput(
@@ -368,7 +368,7 @@ struct AppStatePlayFlowTests {
         var homestead = state.playerSave.homestead
         homestead.nodeTiers[.wishingWell] = 2
         homestead.lastProductionAt = Date()
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.homestead = homestead })
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.homestead = homestead })
 
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.journey.startBattle(for: stage)
@@ -440,7 +440,7 @@ extension AppStatePlayFlowTests {
         }
         state.journey.prepareBattle(for: stage)
         let original = try #require(state.battleRegistration(for: runKey))
-        #expect(state.playerSave.persistBatch(logging: "Test setup") {
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") {
             $0.homestead.nodeTiers[.agilityTraining] = 1
         })
 
@@ -469,7 +469,7 @@ extension AppStatePlayFlowTests {
         let siblingKey = PlayBattleOrigin.journey(stageID: siblingStage.id).runKey
         let sibling = try #require(state.battleRegistration(for: siblingKey))
 
-        #expect(state.playerSave.persistBatch(logging: "Test setup") {
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") {
             $0.homestead.nodeTiers[.agilityTraining] = 1
         })
         runtime.shouldRejectPreparation = true

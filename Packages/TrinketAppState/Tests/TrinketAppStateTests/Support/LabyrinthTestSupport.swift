@@ -15,7 +15,7 @@ enum LabyrinthTestSupport {
     static func completeNode(nodeID: String, in state: PlaySession) -> Bool {
         let playerSave = state.playerSave
         let roster = playerSave.roster
-        return playerSave.persistBatch(logging: "Test setup: complete Labyrinth node") { save in
+        return playerSave.persistFixtureBatch(logging: "Test setup: complete Labyrinth node") { save in
             #expect(LabyrinthCompletion.complete(
                 nodeID: nodeID,
                 hero: roster.activeHero,
@@ -58,7 +58,7 @@ enum LabyrinthTestSupport {
     static func store(_ node: LabyrinthNode, in state: PlaySession) -> String {
         var labyrinth = state.playerSave.labyrinth
         labyrinth.nodes[node.id] = node
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.labyrinth = labyrinth })
         return node.id
     }
 

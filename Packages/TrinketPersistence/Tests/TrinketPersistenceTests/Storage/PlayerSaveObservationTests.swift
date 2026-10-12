@@ -11,7 +11,7 @@ struct PlayerSaveObservationTests {
         let before = store.currentSave
         let changed = trackSections(in: store)
 
-        try store.performBatchMutation { $0.roster.gold += 7 }
+        try store.performFixtureMutation { $0.roster.gold += 7 }
 
         #expect(changed.names.withLock { $0 } == ["roster", "snapshot"])
         var expected = before
@@ -38,12 +38,12 @@ struct PlayerSaveObservationTests {
         let refusedChanges = trackSections(in: store)
         store.forcesNextSaveFailure = true
         #expect(throws: PlayerSavePersistenceError.self) {
-            try store.performBatchMutation { $0.roster.gold += 7 }
+            try store.performFixtureMutation { $0.roster.gold += 7 }
         }
         #expect(refusedChanges.names.withLock { $0 }.isEmpty)
         #expect(store.currentSave == durable)
 
-        try store.performBatchMutation({ $0.roster.gold += 7 }, persistImmediately: false)
+        try store.performFixtureMutation({ $0.roster.gold += 7 }, persistImmediately: false)
         #expect(refusedChanges.names.withLock { $0 } == ["roster", "snapshot"])
         #expect(store.roster.gold == durable.roster.gold + 7)
         let rollbackChanges = trackSections(in: store)

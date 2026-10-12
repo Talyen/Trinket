@@ -14,14 +14,14 @@ struct VoyagePlayModeTests {
     @Test(arguments: VoyageDifficulty.allCases)
     func `route resumes and party changes scale each attempt`(difficulty: VoyageDifficulty) throws {
         let play = try context.makePlaySession()
-        #expect(play.playerSave.persistBatch(logging: "Unlock alternate Voyage hero") { save in
+        #expect(play.playerSave.persistFixtureBatch(logging: "Unlock alternate Voyage hero") { save in
             save.roster.unlockHero(id: "wizard")
         })
         #expect(play.voyage.enter() == nil)
         let offer = try #require(play.playerSave.voyage.offers.first { $0.difficulty == difficulty })
         play.voyage.embark(offerID: offer.id)
         let firstNode = try #require(play.playerSave.voyage.activeRun?.nextNode)
-        #expect(play.playerSave.persistBatch(logging: "Keyword Voyage reward") { save in
+        #expect(play.playerSave.persistFixtureBatch(logging: "Keyword Voyage reward") { save in
             save.voyage.updateNode(runID: offer.id, nodeID: firstNode.id) {
                 $0.modifierIDs = [NodeModifierCatalog.rewardID(.keyword(.freeze))]
             }
@@ -36,7 +36,7 @@ struct VoyagePlayModeTests {
         roster.setActiveHero(hero)
         roster.progressions[roster.activeHeroID] = .at(level: 10)
         roster.progressions[roster.activeCompanionID] = .at(level: 6)
-        #expect(play.playerSave.persistBatch(logging: "Voyage party") { $0.roster = roster })
+        #expect(play.playerSave.persistFixtureBatch(logging: "Voyage party") { $0.roster = roster })
         #expect(play.voyage.handleNode(runID: run.id, nodeID: node.id) == nil)
         let battle = try #require(play.battle.activeBattle)
         #expect(battle.hero.combatant.id == "wizard")
@@ -117,7 +117,7 @@ struct VoyagePlayModeTests {
             nodes[index].isCleared = true
         }
         nodes[nodes.count - 1].modifierIDs = [NodeModifierCatalog.rewardID(.armsHoard)]
-        #expect(play.playerSave.persistBatch(logging: "Prepare final Voyage") { save in
+        #expect(play.playerSave.persistFixtureBatch(logging: "Prepare final Voyage") { save in
             save.voyage.activeRun = VoyageRun(offer: offer, nodes: nodes)
         })
         let run = try #require(play.playerSave.voyage.activeRun)
@@ -150,7 +150,7 @@ struct VoyagePlayModeTests {
             nodes[index].isCleared = true
         }
         nodes[nodes.count - 1].modifierIDs = [NodeModifierCatalog.rewardID(.experience)]
-        #expect(play.playerSave.persistBatch(logging: "Prepare XP Voyage") { save in
+        #expect(play.playerSave.persistFixtureBatch(logging: "Prepare XP Voyage") { save in
             save.voyage.activeRun = VoyageRun(offer: offer, nodes: nodes)
         })
         let run = try #require(play.playerSave.voyage.activeRun)
@@ -179,7 +179,7 @@ struct VoyagePlayModeTests {
         play.voyage.embark(offerID: offer.id)
         let run = try #require(play.playerSave.voyage.activeRun)
         let recruit = try #require(run.nodes.first { $0.type == .recruit })
-        #expect(play.playerSave.persistBatch(logging: "Unlock remaining recruits") { save in
+        #expect(play.playerSave.persistFixtureBatch(logging: "Unlock remaining recruits") { save in
             save.roster.unlockAllCombatants(atLevel: 1)
         })
         _ = play.voyage.enter()
@@ -199,7 +199,7 @@ struct VoyagePlayModeTests {
         let run = try #require(play.playerSave.voyage.activeRun)
         let recruitIndex = try #require(run.nodes.firstIndex { $0.type == .recruit })
         let recruit = run.nodes[recruitIndex]
-        #expect(play.playerSave.persistBatch(logging: "Prepare exhausted Voyage recruit") { save in
+        #expect(play.playerSave.persistFixtureBatch(logging: "Prepare exhausted Voyage recruit") { save in
             save.roster.unlockAllCombatants(atLevel: 1)
             for node in run.nodes.prefix(recruitIndex) {
                 save.voyage.updateNode(runID: run.id, nodeID: node.id) { $0.isCleared = true }
@@ -258,7 +258,7 @@ struct VoyagePlayModeTests {
         #expect(!preview.id.isEmpty)
 
         for node in run.nodes.prefix(mysteryIndex) {
-            _ = play.playerSave.persistBatch(logging: "Clear node") { save in
+            _ = play.playerSave.persistFixtureBatch(logging: "Clear node") { save in
                 save.voyage.updateNode(runID: run.id, nodeID: node.id) { $0.isCleared = true }
             }
         }

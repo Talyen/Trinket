@@ -28,7 +28,7 @@ struct BattleSettlementFallbackIntegrationTests {
         defer { withExtendedLifetime(unavailable) {} }
         battle.presentLaunchVictory()
         let displayed = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
-        try state.playerSave.performBatchMutation { save in save.roster.gold = 999 }
+        try state.playerSave.performFixtureMutation { save in save.roster.gold = 999 }
 
         #expect(!battle.claimVictory(configurationID: configuration.id, summary: displayed))
         #expect(!state.playerSave.journey.hasClaimedRewards(for: stage))

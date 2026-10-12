@@ -106,7 +106,7 @@ struct LabyrinthProgressTests {
         progress.ensureMap(seed: 55)
         let firstReachable = try #require(progress.reachableNodeIDs().first)
         progress.markCleared(nodeID: firstReachable)
-        try first.performBatchMutation { $0.labyrinth = progress }
+        try first.performFixtureMutation { $0.labyrinth = progress }
 
         let second = try context.makeReloadedStore()
         #expect(second.labyrinth == first.labyrinth)

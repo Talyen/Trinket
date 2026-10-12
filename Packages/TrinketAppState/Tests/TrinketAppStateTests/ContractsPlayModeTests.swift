@@ -27,7 +27,7 @@ struct ContractsPlayModeTests {
         roster.setActiveCompanion(companion)
         roster.progressions[roster.activeHeroID] = .at(level: 40)
         roster.progressions[roster.activeCompanionID] = .at(level: 1)
-        #expect(play.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(play.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
 
         #expect(play.contracts.startBattle(offerID: standard.id) == nil)
         let configuration = try #require(play.battle.activeBattle)
@@ -53,7 +53,7 @@ struct ContractsPlayModeTests {
         #expect(play.playerSave.contracts == board)
         roster.progressions[roster.activeHeroID] = .at(level: 10)
         roster.progressions[roster.activeCompanionID] = .at(level: 5)
-        #expect(play.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(play.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
         #expect(play.contracts.startBattle(offerID: standard.id) == nil)
         #expect(play.battle.activeBattle?.enemyEncounterLevel == 7)
         #expect(play.battle.activeBattle?.id != configuration.id)
@@ -63,7 +63,7 @@ struct ContractsPlayModeTests {
         let play = try context.makePlaySession()
         #expect(play.contracts.enter() == nil)
         let offer = try #require(play.playerSave.contracts.offer(for: .easy))
-        #expect(play.playerSave.persistBatch(logging: "High level recovery contract") { save in
+        #expect(play.playerSave.persistFixtureBatch(logging: "High level recovery contract") { save in
             save.roster.progressions[save.roster.activeHeroID] = .at(level: 40)
             save.roster.progressions[save.roster.activeCompanionID] = .at(level: 40)
         })
@@ -79,7 +79,7 @@ struct ContractsPlayModeTests {
         #expect(original.enemyModifiers == recovery.modifiers)
         #expect(original.enemyModifiers.outgoingDamagePercent != standard.modifiers.outgoingDamagePercent)
 
-        #expect(play.playerSave.persistBatch(logging: "Progression before Retry") { save in
+        #expect(play.playerSave.persistFixtureBatch(logging: "Progression before Retry") { save in
             save.roster.grantExperience(1, to: launch.inputs.launch.hero)
         })
         play.battleCoordinator.nextCombatSeed = { 42 }
@@ -107,7 +107,7 @@ struct ContractsPlayModeTests {
         var roster = play.playerSave.roster
         roster.progressions[roster.activeHeroID] = .at(level: 2)
         roster.progressions[roster.activeCompanionID] = .at(level: 3)
-        #expect(play.playerSave.persistBatch(logging: "Test setup") { $0.roster = roster })
+        #expect(play.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
         #expect(play.contracts.startBattle(offerID: offer.id) == nil)
         let expectedLevel = switch difficulty {
         case .easy: 1
@@ -122,7 +122,7 @@ struct ContractsPlayModeTests {
     func `victory pays the shown rewards and returns to one replaced offer`(modifier: RewardModifier) throws {
         let play = try context.makePlaySession()
         #expect(play.contracts.enter() == nil)
-        #expect(play.playerSave.persistBatch(logging: "Contract modifier fixture") { save in
+        #expect(play.playerSave.persistFixtureBatch(logging: "Contract modifier fixture") { save in
             save.contracts = PlayerContractsState(offers: save.contracts.offers.map {
                 ContractOffer(id: $0.id, difficulty: $0.difficulty, enemyID: $0.enemyID, rewardModifier: modifier)
             })
@@ -161,7 +161,7 @@ struct ContractsPlayModeTests {
     @Test func `failed board refresh keeps jobs available for launch`() throws {
         let play = try context.makePlaySession()
         #expect(play.contracts.enter() == nil)
-        #expect(play.playerSave.persistBatch(logging: "Earn refresh fixture") { $0.contracts.earnRefresh() })
+        #expect(play.playerSave.persistFixtureBatch(logging: "Earn refresh fixture") { $0.contracts.earnRefresh() })
         let before = play.playerSave.currentSave
         play.playerSave.forcesNextSaveFailure = true
         #expect(play.contracts.refresh() == nil)

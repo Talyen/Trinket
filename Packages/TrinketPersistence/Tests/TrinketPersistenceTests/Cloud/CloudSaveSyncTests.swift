@@ -12,8 +12,8 @@ struct CloudSaveSyncTests {
         var original: PlayerSaveStore? = try cloudStore(context, transport: transport)
         #expect(await original?.cloudSync?.synchronize() == true)
         #expect(original?.cloudDeviceState.account.journal == nil)
-        #expect(original?.persistBatch(logging: "Earn Gold offline") { $0.roster.gold += 5 } == true)
-        #expect(original?.persistBatch(logging: "Earn Wood offline") { $0.homestead.resources[.wood] = 7 } == true)
+        #expect(original?.persistFixtureBatch(logging: "Earn Gold offline") { $0.roster.gold += 5 } == true)
+        #expect(original?.persistFixtureBatch(logging: "Earn Wood offline") { $0.homestead.resources[.wood] = 7 } == true)
         #expect(original?.cloudDeviceState.account.journal?.count == 2)
         original = nil
 
@@ -33,7 +33,7 @@ struct CloudSaveSyncTests {
         let first = try PersistenceTestContext()
         let second = try PersistenceTestContext()
         let a = try cloudStore(first, transport: transport)
-        #expect(a.persistBatch(logging: "Mystery setup") { save in
+        #expect(a.persistFixtureBatch(logging: "Mystery setup") { save in
             save.starterSelection = .complete
             save.inventory.items = []
             save.roster.gold = 10
@@ -45,12 +45,12 @@ struct CloudSaveSyncTests {
         let templates = GameContent.sampleInventoryItems.filter { $0.rarity == .basic }
         let left = try #require(templates.first).rewardInstance(for: "\(stageID)-left")
         let right = try #require(templates.dropFirst().first).rewardInstance(for: "\(stageID)-right")
-        #expect(a.persistBatch(logging: "Left Mystery choice") { save in
+        #expect(a.persistFixtureBatch(logging: "Left Mystery choice") { save in
             save.inventory.appendUniqueItem(left)
             save.journey.claimedRewardStageIDs.insert(stageID)
             save.roster.gold += 10
         })
-        #expect(b.persistBatch(logging: "Right Mystery choice") { save in
+        #expect(b.persistFixtureBatch(logging: "Right Mystery choice") { save in
             save.inventory.appendUniqueItem(right)
             save.journey.claimedRewardStageIDs.insert(stageID)
             save.roster.gold += 20
@@ -74,7 +74,7 @@ struct CloudSaveSyncTests {
             id: "cloud-sword", baseType: baseType, rarity: .basic,
             fixedAffixCount: 2, using: &random,
         )
-        #expect(first.persistBatch(logging: "Cloud gear setup") { save in
+        #expect(first.persistFixtureBatch(logging: "Cloud gear setup") { save in
             save.starterSelection = .complete
             save.inventory.items = [item]
             save.roster.gold = 10
@@ -91,7 +91,7 @@ struct CloudSaveSyncTests {
         let corrupted = try #require(first.inventory.item(matching: item.id))
         #expect(corrupted.isCorrupted)
         try await Task.sleep(for: .milliseconds(10))
-        #expect(second?.persistBatch(logging: "Earn Gold on other device") { $0.roster.gold += 5 } == true)
+        #expect(second?.persistFixtureBatch(logging: "Earn Gold on other device") { $0.roster.gold += 5 } == true)
         #expect(await first.cloudSync?.synchronize() == true)
         #expect(await second?.cloudSync?.synchronize() == true)
         #expect(second?.inventory.item(matching: item.id) == corrupted)
@@ -108,7 +108,7 @@ struct CloudSaveSyncTests {
         let first = try PersistenceTestContext()
         let second = try PersistenceTestContext()
         let a = try cloudStore(first, transport: transport)
-        #expect(a.persistBatch(logging: "Contract setup") { save in
+        #expect(a.persistFixtureBatch(logging: "Contract setup") { save in
             save.starterSelection = .complete
             save.roster.gold = 100
             save.contracts.ensureBoard()
@@ -116,7 +116,7 @@ struct CloudSaveSyncTests {
         #expect(await a.cloudSync?.synchronize() == true)
         var b: PlayerSaveStore? = try cloudStore(second, transport: transport)
         // Both offline branches must start with the same Contract identities.
-        try b?.performBatchMutation { $0.contracts = a.contracts }
+        try b?.performFixtureMutation { $0.contracts = a.contracts }
         #expect(await b?.cloudSync?.synchronize() == true)
         let base = a.currentSave
         let hero = base.roster.activeHero
@@ -130,7 +130,7 @@ struct CloudSaveSyncTests {
         #expect(journal.allSatisfy { $0.economy != nil || $0.receipts != nil })
         #if DEBUG
         b?.forcesNextSaveFailure = true
-        #expect(b?.persistBatch(logging: "Rejected earnings") { $0.roster.gold += 9 } == false)
+        #expect(b?.persistFixtureBatch(logging: "Rejected earnings") { $0.roster.gold += 9 } == false)
         #expect(b?.cloudDeviceState.account.journal == journal)
         #endif
         #expect(await a.cloudSync?.synchronize() == true)
@@ -179,13 +179,13 @@ extension CloudSaveSyncTests {
         #expect(store.cloudDeviceState.account.journal?.first?.receipts?.first?.effects.claim == .contract(offerID))
         let claimed = store.currentSave
         for _ in 0 ..< 70 {
-            #expect(store.persistBatch(logging: "Offline battle") { save in
+            #expect(store.persistFixtureBatch(logging: "Offline battle") { save in
                 save.roster.gold += gains
                 save.homestead.resources[.food, default: 0] += gains
                 save.roster.grantExperience(gains, to: hero)
             })
         }
-        #expect(store.persistBatch(logging: "Offline spending") { save in
+        #expect(store.persistFixtureBatch(logging: "Offline spending") { save in
             save.roster.gold -= spending.gold
             save.homestead.resources[.food, default: 0] -= spending.food
         })
@@ -202,10 +202,10 @@ extension CloudSaveSyncTests {
         let b = try cloudStore(second, transport: transport)
         #expect(await b.cloudSync?.synchronize() == true)
         await transport.advance(PlayerHomesteadState.secondsPerDay)
-        #expect(b.persistBatch(logging: "Unrelated remote play") { $0.roster.gold += 1 })
+        #expect(b.persistFixtureBatch(logging: "Unrelated remote play") { $0.roster.gold += 1 })
         #expect(await b.cloudSync?.synchronize() == true)
         #expect(await b.cloudSync?.perform(.collect) != nil)
-        #expect(a.persistBatch(logging: "Offline Gold") { $0.roster.gold += 7 })
+        #expect(a.persistFixtureBatch(logging: "Offline Gold") { $0.roster.gold += 7 })
         #expect(await a.cloudSync?.synchronize() == true)
         #expect(a.roster.gold == 109)
         #expect(await transport.account().head?.head.revision.snapshot.roster.gold == 109)
@@ -222,7 +222,7 @@ extension CloudSaveSyncTests {
         try seedHomestead(store)
         #expect(await store.cloudSync?.synchronize() == true)
         await transport.advance(PlayerHomesteadState.secondsPerDay)
-        try store.performBatchMutation { $0.roster.gold += 7 }
+        try store.performFixtureMutation { $0.roster.gold += 7 }
         let outcome = await store.cloudSync?.perform(action)
         let expectedGold: Int
         switch action {
@@ -268,12 +268,12 @@ extension CloudSaveSyncTests {
         var invalidations = 0
         a.onExternalProgressChange = { invalidations += 1 }
         #expect(await a.cloudSync?.synchronize() == true)
-        try a.performBatchMutation { $0.roster.gold = 11 }
+        try a.performFixtureMutation { $0.roster.gold = 11 }
         #expect(await a.cloudSync?.synchronize() == true)
         #expect(invalidations == 0)
         let b = try cloudStore(second, transport: transport)
         #expect(await b.cloudSync?.synchronize() == true)
-        try b.performBatchMutation { $0.roster.gold = 22 }
+        try b.performFixtureMutation { $0.roster.gold = 22 }
         #expect(await b.cloudSync?.synchronize() == true)
         var preparationEvents: [String] = []
         a.prepareExternalProgress = { incomingSave in
@@ -289,7 +289,7 @@ extension CloudSaveSyncTests {
         #expect(invalidations == 1)
         #expect(preparationEvents == ["prepared", "published"])
 
-        try b.performBatchMutation { $0.roster.gold = 33 }
+        try b.performFixtureMutation { $0.roster.gold = 33 }
         #expect(await b.cloudSync?.synchronize() == true)
         a.prepareExternalProgress = { _ in throw CloudSaveError.unavailable }
         #expect(await a.cloudSync?.synchronize() == false)
@@ -308,7 +308,7 @@ extension CloudSaveSyncTests {
         let b = try cloudStore(second, transport: transport)
         #expect(await a.cloudSync?.synchronize() == true)
         #expect(await b.cloudSync?.synchronize() == true)
-        try b.performBatchMutation { $0.roster.gold = 21 }
+        try b.performFixtureMutation { $0.roster.gold = 21 }
         #expect(await b.cloudSync?.synchronize() == true)
 
         var discarded = false
@@ -328,7 +328,7 @@ extension CloudSaveSyncTests {
     @Test @MainActor func `unreadable cloud metadata stays intact while local progress remains playable`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        try store.performBatchMutation { $0.roster.gold = 47 }
+        try store.performFixtureMutation { $0.roster.gold = 47 }
         let container = try ModelContainer(for: PlayerSaveGraph.schema, configurations: ModelConfiguration(
             schema: PlayerSaveGraph.schema, url: context.storeURL(), cloudKitDatabase: .none,
         ))
@@ -341,7 +341,7 @@ extension CloudSaveSyncTests {
         #expect(!reopened.isCloudSyncEnabled)
         #expect(reopened.cloudSync == nil)
         #expect(reopened.roster.gold == 47)
-        try reopened.performBatchMutation { $0.roster.gold += 3 }
+        try reopened.performFixtureMutation { $0.roster.gold += 3 }
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.roster.gold == 50)
         let inspection = try ModelContainer(for: PlayerSaveGraph.schema, configurations: ModelConfiguration(
@@ -367,7 +367,7 @@ extension CloudSaveSyncTests {
         let first = try PersistenceTestContext()
         let second = try PersistenceTestContext()
         let local = try first.makeSaveStore()
-        try local.performBatchMutation { save in
+        try local.performFixtureMutation { save in
             save.starterSelection = .complete
             save.roster.gold = 17
             save.journey.completedStageIDs = ["chapter-1-stage-1"]
@@ -375,7 +375,7 @@ extension CloudSaveSyncTests {
         let a = try cloudStore(first, transport: transport)
         #expect(await a.cloudSync?.synchronize() == true)
         let b = try cloudStore(second, transport: transport)
-        try b.performBatchMutation { save in
+        try b.performFixtureMutation { save in
             save.starterSelection = .complete
             save.roster.gold = 29
             save.journey.completedStageIDs = ["chapter-1-stage-1", "chapter-1-stage-2"]
@@ -398,10 +398,10 @@ extension CloudSaveSyncTests {
         let first = try PersistenceTestContext()
         let second = try PersistenceTestContext()
         let a = try cloudStore(first, transport: transport)
-        try a.performBatchMutation { $0.roster.gold = 10 }
+        try a.performFixtureMutation { $0.roster.gold = 10 }
         #expect(await a.cloudSync?.synchronize() == true)
         let b = try cloudStore(second, transport: transport)
-        try b.performBatchMutation { $0.roster.gold = 20 }
+        try b.performFixtureMutation { $0.roster.gold = 20 }
         await transport.configure(failCommit: true)
         #expect(await b.cloudSync?.synchronize() == false)
         let pending = try #require(b.cloudDeviceState.account.pending)
@@ -514,7 +514,7 @@ extension CloudSaveSyncTests {
         #expect(await store.cloudSync?.synchronize() == true)
         let date = Date(timeIntervalSince1970: 2000000000 + PlayerHomesteadState.secondsPerDay)
         await transport.configure(offline: true)
-        try store.performBatchMutation { $0.roster.gold += 7 }
+        try store.performFixtureMutation { $0.roster.gold += 7 }
         #expect(await store.collectProduction(at: date) == .success([ResourceAmount(.food, 1), ResourceAmount(.gold, 1)]))
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         #expect(await store.buildOrUpgradeNode(definition, targetTier: 2, at: date) == .success)
@@ -537,7 +537,7 @@ extension CloudSaveSyncTests {
         let b = try cloudStore(second, transport: transport)
         #expect(await b.cloudSync?.synchronize() == true)
         let oldEpoch = b.cloudDeviceState.account.base?.epoch
-        try b.performBatchMutation { save in
+        try b.performFixtureMutation { save in
             save.roster.gold = 888
             save.journey.completedStageIDs = Set(GameContent.chapters.flatMap(\.stages).map(\.id))
         }
@@ -555,12 +555,12 @@ extension CloudSaveSyncTests {
         let transport = CloudSaveTestTransport()
         let context = try PersistenceTestContext()
         let store = try cloudStore(context, transport: transport)
-        try store.performBatchMutation { $0.roster.gold = 100 }
+        try store.performFixtureMutation { $0.roster.gold = 100 }
         #expect(await store.cloudSync?.synchronize() == true)
         await transport.switchAccount(nil)
         #expect(await store.cloudSync?.synchronize() == true)
         #expect(store.roster.gold == 100)
-        try store.performBatchMutation { $0.roster.gold = 777 }
+        try store.performFixtureMutation { $0.roster.gold = 777 }
         var preparedGold: [Int] = []
         store.prepareExternalProgress = { incomingSave in
             preparedGold.append(incomingSave.roster.gold)
@@ -587,10 +587,10 @@ extension CloudSaveSyncTests {
         #expect(await a.cloudSync?.synchronize() == true)
         let b = try cloudStore(second, transport: transport)
         #expect(await b.cloudSync?.synchronize() == true)
-        try b.performBatchMutation { $0.roster.gold = 40 }
+        try b.performFixtureMutation { $0.roster.gold = 40 }
         #expect(await b.cloudSync?.synchronize() == true)
         await transport.onNextFetch {
-            #expect(a.persistBatch(logging: "Concurrent gameplay") { save in
+            #expect(a.persistFixtureBatch(logging: "Concurrent gameplay") { save in
                 save.roster.gold = 70
                 save.journey.completedStageIDs = ["chapter-1-stage-1"]
             })
@@ -616,7 +616,7 @@ extension CloudSaveSyncTests {
     }
 
     @MainActor func seedHomestead(_ store: PlayerSaveStore) throws {
-        try store.performBatchMutation { save in
+        try store.performFixtureMutation { save in
             save.starterSelection = .complete
             save.roster.gold = 100
             save.homestead = PlayerHomesteadState(

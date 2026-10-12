@@ -70,7 +70,7 @@ struct PlayerSaveSliceSanitizerTests {
         let labyrinth = store.currentSave.labyrinth
         let wood = (store.homestead.resources[.wood] ?? 0) + 1
 
-        try store.performBatchMutation { $0.homestead.resources[.wood] = wood }
+        try store.performFixtureMutation { $0.homestead.resources[.wood] = wood }
 
         #expect(store.currentSave.labyrinth == labyrinth)
         let reloaded = try context.makeReloadedStore()

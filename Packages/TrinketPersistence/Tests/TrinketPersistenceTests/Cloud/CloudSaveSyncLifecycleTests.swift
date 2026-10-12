@@ -8,7 +8,7 @@ extension CloudSaveSyncTests {
         let transport = CloudSaveTestTransport()
         let store = try cloudStore(context, transport: transport)
         #expect(await store.cloudSync?.synchronize() == true)
-        #expect(store.persistBatch(logging: "Offline earnings") { $0.roster.gold += 17 })
+        #expect(store.persistFixtureBatch(logging: "Offline earnings") { $0.roster.gold += 17 })
         let journalIDs = store.cloudDeviceState.account.journal?.records.map(\.id)
         let receiptCount = await transport.account().receipts.count
         let gate = ReconciliationGate()
@@ -24,7 +24,7 @@ extension CloudSaveSyncTests {
         if cancelUpload {
             sync.accountDidChange()
         } else {
-            #expect(store.persistBatch(logging: "Earnings during reconciliation") { $0.roster.gold += 5 })
+            #expect(store.persistFixtureBatch(logging: "Earnings during reconciliation") { $0.roster.gold += 5 })
         }
         await gate.resume()
         #expect(await upload.value == !cancelUpload)
@@ -50,7 +50,7 @@ extension CloudSaveSyncTests {
         let transport = CloudSaveTestTransport()
         let store = try cloudStore(context, transport: transport)
         #expect(await store.cloudSync?.synchronize() == true)
-        #expect(store.persistBatch(logging: "Offline earnings") { $0.roster.gold += 17 })
+        #expect(store.persistFixtureBatch(logging: "Offline earnings") { $0.roster.gold += 17 })
         let pending = store.cloudDeviceState.account.journal?.records.map(\.id)
         await transport.onNextFetch { await transport.switchAccount("player-b") }
         #expect(await store.cloudSync?.synchronize() == false)

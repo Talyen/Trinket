@@ -20,7 +20,7 @@ struct BattleGemRewardIntegrationTests {
         let seed = try #require((1 ... 64).first { candidate in
             StageCompletion.resolveLoot(for: stage, worldSeed: UInt64(candidate)).materials.contains { $0.resource == .gems }
         })
-        #expect(state.playerSave.persistBatch(logging: "Test setup") { save in
+        #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { save in
             save.worldSeed = UInt64(seed)
             save.homestead.nodeTiers[.moonlitSanctum] = 1
             save.homestead.rewardRemainders = .init(gems: 95)

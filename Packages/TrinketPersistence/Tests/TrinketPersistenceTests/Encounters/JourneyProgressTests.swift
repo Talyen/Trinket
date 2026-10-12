@@ -65,7 +65,7 @@ struct JourneyProgressTests {
         let context = try PersistenceTestContext()
 
         let firstSaveStore = try context.makeSaveStore()
-        try firstSaveStore.performBatchMutation { save in
+        try firstSaveStore.performFixtureMutation { save in
             save.journey.complete(chapter.stages[0], in: GameContent.chapters)
         }
 
@@ -79,7 +79,7 @@ struct JourneyProgressTests {
 
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
         let firstSaveStore = try context.makeSaveStore()
-        try firstSaveStore.performBatchMutation { save in
+        try firstSaveStore.performFixtureMutation { save in
             save.journey.pinnedMysteryEventIDs["chapter-1-stage-5"] = event.id
         }
 

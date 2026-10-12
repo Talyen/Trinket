@@ -49,7 +49,7 @@ struct PlaythroughLifecycleTests {
         defer { career.close() }
         try await career.perform(.starterHero("knight"))
         try await career.perform(.starterCompanion("wolf"))
-        try #require(career.store.persistBatch(logging: "Winning persistence fixture") { save in
+        try #require(career.store.persistFixtureBatch(logging: "Winning persistence fixture") { save in
             save.homestead.nodeTiers[.wheatField] = 4
             save.homestead.nodeTiers[.chickenCoop] = 4
             save.homestead.nodeTiers[.blacksmithForge] = 4
