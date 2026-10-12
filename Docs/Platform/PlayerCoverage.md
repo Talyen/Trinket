@@ -71,9 +71,10 @@ unchanged sizes are not reapplied, and the original size is restored once after 
 device's profiles, even on failed journeys. Reduce Motion is selected through the native Settings app in the owned simulator
 and restored after each class execution, including failed journeys. Both profile
 methods verify the actual text-size and motion environment reached SwiftUI.
-Simulator checks do not establish hardware evidence. Native audits exclude only
-the opt-in diagnostic label; no product failures are blanket-suppressed. A native
-audit timeout receives one immediate retry; a repeated timeout or any product
+Simulator checks do not establish hardware evidence. Native audits run all seven
+iOS audit types individually and exclude only the opt-in diagnostic label; no product
+failures are blanket-suppressed. Each native audit timeout receives one immediate
+retry; a repeated timeout or any product
 violation still fails the profile. Settings navigation waits for the retained Motion
 screen, dismisses native search, and selects named back actions and the Accessibility
 destination row rather than matching titles or keyboard buttons.
@@ -81,6 +82,8 @@ destination row rather than matching titles or keyboard buttons.
 Settings-profile reward checks enter the existing victory fixture, then audit and tap
 the real claim and verify next-stage access. Earned victory remains smoke-owned;
 profiles avoid repeating combat across settings/device combinations.
+Each settings profile publishes its log and status before the next profile starts,
+so a failed profile remains visible while independent checks continue.
 
 Settings-profile Homestead checks audit and exercise the upgrade controls through the
 visible tier change. Detailed resource debits and reload persistence remain owned by

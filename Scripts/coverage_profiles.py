@@ -110,9 +110,15 @@ def run_profiles(udid, output):
                                TEST_RUNNER_TRINKET_PROFILE_LARGE_TEXT=str(int(size != 'large')),
                                TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION=str(int(reduced)))
             apply_size(size)
-            with (output / f'{name}.log').open('w') as log:
+            log_path = output / f'{name}.log'
+            print(f'Running native settings profile: {name}', flush=True)
+            with log_path.open('w') as log:
                 result = subprocess.run(['./Scripts/test.sh', 'ui', '--no-build', 'CriticalAccessibilityUITests'],
                                         env=environment, stdout=log, stderr=subprocess.STDOUT)
+            print(log_path.read_text(), end='', flush=True)
+            print(f'Native settings profile {name}: {"passed" if result.returncode == 0 else "failed"}', flush=True)
+            if result.returncode and os.environ.get('GITHUB_ACTIONS') == 'true':
+                print(f'::error::Native settings profile {name} failed; see its diagnostics above.', flush=True)
             results.append(dict(profile=name, log=f'{name}.log', resultsDirectory=os.environ.get('RESULTS_DIR'),
                                 textSize=size, reduceMotion=reduced,
                                 reduceMotionSource='native Settings control with class restoration',

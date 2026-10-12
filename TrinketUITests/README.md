@@ -172,6 +172,8 @@ Collection card instead of repeating detail navigation. These fixtures seed recr
 independently of StoreKit ownership. The shared assertion checks the card's lock
 label, which combines recruitment and purchase access. Purchase preserves the earned
 recruitment and progression rules in [Monetization](../Docs/Product/Monetization.md#access).
+The refund journey gives its initial StoreKit purchase up to 60 seconds to finish;
+the offer must dismiss and earned-character access must succeed before refund begins.
 
 ## Real-player coverage
 
@@ -192,7 +194,10 @@ Debug stores may hold presentation completion. Release builds contain no holds.
 Production-timing journeys omit the tick override; audio journeys omit audio
 suppression. `Coverage Diagnostics` is an opt-in Debug label; the native audit
 excludes only this nonshipping observation element. All product controls remain
-audited. Captured backend counts establish scheduling/start results, not audibility.
+audited. Its clipped one-point frame avoids covering controls at large text sizes.
+Every iOS audit type runs separately with one retry for a native audit timeout;
+violations and repeated timeouts fail, retaining bounded element diagnostics.
+Captured backend counts establish scheduling/start results, not audibility.
 
 
 The Full Game smoke fixture enters the active Campaign chapter directly through

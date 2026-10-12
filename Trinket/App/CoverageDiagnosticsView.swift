@@ -17,6 +17,8 @@ struct CoverageDiagnosticsView: View {
                 .accessibilityIdentifier(AccessibilityID.Debug.coverageDiagnostics)
                 .accessibilityValue(report)
                 .allowsHitTesting(false)
+                .frame(width: 1, height: 1)
+                .clipped()
         }
     }
 

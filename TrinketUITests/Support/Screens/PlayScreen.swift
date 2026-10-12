@@ -38,6 +38,10 @@ struct PlayScreen {
 
     func startBattle(chapter: Int, stage: Int) {
         let start = app.buttons[AccessibilityID.Play.stageAction(chapter: chapter, stage: stage)]
+        guard app.scrollUntilVisible(start, swipingUp: true, maxAttempts: 8, requireHittable: true) else {
+            XCTFail("Stage action must be reachable after scrolling")
+            return
+        }
         start.trinketTapWhenReady()
 
         let hand = app.descendants(matching: .any)[AccessibilityID.Battle.hand]

@@ -185,9 +185,9 @@ public struct RewardRevealShell<Content: View>: View {
             } label: {
                 ZStack {
                     Text(primaryActionTitle)
-                        .opacity(isPrimaryActionConfirmed ? 0 : 1)
+                        .trinketPresentationVisibility(!isPrimaryActionConfirmed)
                     Label("Collected", systemImage: "checkmark")
-                        .opacity(isPrimaryActionConfirmed ? 1 : 0)
+                        .trinketPresentationVisibility(isPrimaryActionConfirmed)
                 }
                 .frame(maxWidth: .infinity)
                 .animation(TrinketMotion.Interaction.stateChange, value: isPrimaryActionConfirmed)

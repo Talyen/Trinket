@@ -16,7 +16,11 @@ public struct TrinketRarityLabel: View {
             case .astral, .unique:
                 premiumLabel
             case .basic:
-                Text(displayLabel).foregroundStyle(.secondary)
+                if #available(iOS 26.0, *) {
+                    Text(displayLabel).foregroundStyle(.secondary)
+                } else {
+                    Text(displayLabel).foregroundStyle(.primary)
+                }
             }
         }
         .trinketTypography(.eyebrow)

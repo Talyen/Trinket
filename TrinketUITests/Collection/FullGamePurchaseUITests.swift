@@ -107,7 +107,8 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         try skipUnavailablePurchaseAutomation()
         try launchOptionsOffer()
         tapButton(AccessibilityID.FullGame.purchase)
-        assertDoesNotExist(AccessibilityID.FullGame.offer)
+        // iOS 18's StoreKit test service can still be processing after the ordinary UI deadline.
+        assertDoesNotExist(AccessibilityID.FullGame.offer, timeout: 60)
         assertWarlockAccessible()
         let session = try XCTUnwrap(storeSession)
         let transaction = try XCTUnwrap(session.allTransactions().first)

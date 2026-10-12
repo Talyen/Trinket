@@ -404,9 +404,11 @@ private struct ExperienceProgress: View, Animatable {
                     .contentTransition(.numericText())
                     .scaleEffect(isLevelUpHighlighted ? Metrics.levelLabelScale : 1, anchor: .leading)
                     .foregroundStyle(isLevelUpHighlighted ? fillColor : .secondary)
+                    .trinketFittedText()
                 Spacer(minLength: TrinketDesign.Spacing.small)
                 Text("\(Int(experience.rounded())) / \(requiredXP) XP")
                     .monospacedDigit()
+                    .trinketFittedText()
             }
             .trinketTypography(.footnote)
             .foregroundStyle(.secondary)
