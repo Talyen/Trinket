@@ -60,8 +60,6 @@ package struct DamageResolutionState {
 
     public var healthLost: Int = 0
 
-    public var damageEvents: [ActionEvent] = []
-
     var heroCardBlockBroken = false
     var brokenBlockOwners: [Combatant] = []
     var blockAbsorbingOwners: [Combatant] = []

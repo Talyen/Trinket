@@ -24,9 +24,9 @@ package extension DamagePipeline {
                 // defeat before its own stack attaches, so both disjuncts matter.
                 let gold = context.modifiers(for: source.id).triggers.defeatBleedingEnemyGold
                 if gold > 0 {
-                    await state.damageEvents.append(contentsOf: context.grantGoldEvent(
+                    _ = await context.grantGoldEvent(
                         gold, to: source.combatant, abilityName: "Blood Money",
-                    ))
+                    )
                 }
             }
         }
@@ -40,26 +40,26 @@ package extension DamagePipeline {
         }
         if lost > 0 {
             if state.combatant.role != .hero || context.roster.health(for: state.combatant) > 0 {
-                await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentHealthLoss(
+                _ = await CombatTriggerEngine.afterHeroTalentHealthLoss(
                     target: state.combatant, sourceID: state.sourceActorID, keyword: state.damageKeyword, in: &context,
-                ))
+                )
             }
-            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHealthDropped(
+            _ = await CombatTriggerEngine.afterHealthDropped(
                 target: state.combatant,
                 in: &context,
-            ))
-            await state.damageEvents.append(contentsOf: applyDefenderOnTakenReactions(
+            )
+            _ = await applyDefenderOnTakenReactions(
                 defender: state.combatant,
                 isRetaliation: state.options.isRetaliation,
                 isAttackHit: state.options.isAttackHit,
                 in: &context,
-            ))
-            await state.damageEvents.append(contentsOf: applyCompanionLeechToHero(
+            )
+            _ = await applyCompanionLeechToHero(
                 lost: lost,
                 defender: state.combatant,
                 sourceActorID: state.sourceActorID,
                 in: &context,
-            ))
+            )
         }
     }
 
@@ -84,13 +84,13 @@ package extension DamagePipeline {
         }
         var options = DamageOperation.redirected
         options.isThornsDamage = state.options.isThornsDamage
-        await state.damageEvents.append(contentsOf: context.resolveDamage(DamageRequest(
+        _ = await context.resolveDamage(DamageRequest(
             amount: redirected,
             target: companion,
             keyword: state.damageKeyword ?? .physical,
             sourceActorID: state.sourceActorID,
             options: options,
-        )).events)
+        ))
         state.remaining = 0
         state.healthLost = 0
         return true
@@ -194,14 +194,14 @@ package extension DamagePipeline {
             }
             return false
         }
-        state.damageEvents.append(context.nextEvent(
+        _ = context.nextEvent(
             kind: .effect(.markedConsumed),
             source: .init(state.combatant),
             abilityName: "Marked",
             target: state.combatant,
             amount: bonus,
             keyword: .physical,
-        ))
+        )
     }
 
     static func applyDeathsDoor(
@@ -210,19 +210,19 @@ package extension DamagePipeline {
     ) async {
         let deferredPartyHealthLoss = state.healthLost > 0 && state.combatant.role != .enemy
             && context.roster.health(for: state.combatant) == 0
-        await state.damageEvents.append(contentsOf: DeathsDoorEngine.resolveAfterDamage(
+        _ = await DeathsDoorEngine.resolveAfterDamage(
             to: state.combatant,
             in: &context,
-        ))
+        )
         if deferredPartyHealthLoss, context.roster.health(for: state.combatant) > 0 {
             if state.combatant.role == .hero {
-                await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentHealthLoss(
+                _ = await CombatTriggerEngine.afterHeroTalentHealthLoss(
                     target: state.combatant, sourceID: state.sourceActorID, keyword: state.damageKeyword, in: &context,
-                ))
+                )
             }
-            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterSurvivingHealthLoss(
+            _ = await CombatTriggerEngine.afterSurvivingHealthLoss(
                 target: state.combatant, in: &context,
-            ))
+            )
         }
     }
 }

@@ -80,13 +80,13 @@ package extension DamagePipeline {
         }
 
         for dst in destinations {
-            await state.damageEvents.append(contentsOf: dealTalentMirroredDamage(
+            _ = await dealTalentMirroredDamage(
                 scaled,
                 keyword: dst,
                 target: state.combatant,
                 source: source.combatant,
                 in: &context,
-            ))
+            )
         }
     }
 
@@ -102,18 +102,18 @@ package extension DamagePipeline {
            context.roster.companion.isAlive,
            context.claimTalentAbility(.sunwall, actorID: source.id),
            BattleChance.succeeds(probability: triggers.sunwallChancePercent, using: &context.rng) {
-            state.damageEvents.append(contentsOf: grantTalentCompanionBlock(
+            _ = grantTalentCompanionBlock(
                 state.healthLost,
                 source: source.combatant,
                 in: &context,
-            ))
+            )
         }
         if triggers.eyeOfTheStorm, keyword == .stun {
-            await state.damageEvents.append(contentsOf: context.restoreManaEmitting(
+            _ = await context.restoreManaEmitting(
                 state.remaining,
                 to: source.combatant,
                 abilityName: "Eye of the Storm",
-            ))
+            )
         }
     }
 
@@ -125,11 +125,11 @@ package extension DamagePipeline {
     ) async {
         let shouldDetonateBleed = triggers.arterialCascade && state.options.isAttackHit && state.isCritical
         if shouldDetonateBleed {
-            await state.damageEvents.append(contentsOf: CombatTriggerEngine.detonateBleed(
+            _ = await CombatTriggerEngine.detonateBleed(
                 on: state.combatant,
                 sourceActorID: source.id,
                 in: &context,
-            ))
+            )
         }
     }
 
@@ -141,21 +141,21 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) async {
         if triggers.ashenArsenal, keyword == .burn {
-            state.damageEvents.append(contentsOf: drawTalentCard(
+            _ = drawTalentCard(
                 .physical,
                 for: source.combatant,
                 in: &context,
-            ))
+            )
         }
         if triggers.bountyBlade, state.isCritical {
-            await state.damageEvents.append(contentsOf: context.grantGoldEvent(
+            _ = await context.grantGoldEvent(
                 3,
                 to: source.combatant,
                 abilityName: "Bounty Blade",
-            ))
-            state.damageEvents.append(contentsOf: DefensePoolEngine.steal(
+            )
+            _ = DefensePoolEngine.steal(
                 3, from: state.combatant, to: source.combatant, abilityName: "Bounty Blade", in: &context,
-            ))
+            )
         }
         if triggers.perfectTempo, keyword == .physical, state.isCritical {
             context.prependEffect(.evadeNextHit, to: source.combatant, remainingTurns: 0)

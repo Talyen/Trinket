@@ -74,20 +74,20 @@ package enum DamagePipeline {
     private static func applyCommittedDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) async {
         await applyAttackRewards(to: &state, in: &context)
         if state.options.isCardAttack, state.amount > 0, state.combatant.role == .enemy {
-            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroCardHit(
+            _ = await CombatTriggerEngine.afterHeroCardHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID, critical: state.isCritical,
                 healthLost: state.healthLost,
                 fullyBlocked: state.blockedAmount > 0 && state.remaining == 0,
                 in: &context,
-            ))
+            )
         }
         if state.options.isAttackHit, !state.options.isCardAttack,
            state.amount > 0, state.combatant.role == .enemy {
-            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterNonCardAttackHit(
+            _ = await CombatTriggerEngine.afterNonCardAttackHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID,
                 fullyBlocked: state.blockedAmount > 0 && state.remaining == 0,
                 options: state.options, in: &context,
-            ))
+            )
         }
 
         if state.options.isAttackHit, !state.options.isCardAttack, state.isCritical,
@@ -95,9 +95,9 @@ package enum DamagePipeline {
             CombatTriggerEngine.removeBlockAfterPhysicalCriticalHit(by: state.sourceActorID, in: &context)
         }
 
-        await state.damageEvents.append(contentsOf: EnemyTraitEngine.basicFreezeDamage(from: state, context: &context))
-        await state.damageEvents.append(contentsOf: EnemyTraitEngine.firstAttackBleedBonus(from: state, context: &context))
-        await state.damageEvents.append(contentsOf: EnemyTraitEngine.attacksApplyPoison(from: state, context: &context))
+        _ = await EnemyTraitEngine.basicFreezeDamage(from: state, context: &context)
+        _ = await EnemyTraitEngine.firstAttackBleedBonus(from: state, context: &context)
+        _ = await EnemyTraitEngine.attacksApplyPoison(from: state, context: &context)
         await applyDoTDamageReactions(to: &state, in: &context)
         await applyCompanionDamageRetaliation(to: &state, in: &context)
         await applyLeech(to: &state, in: &context)
@@ -121,32 +121,32 @@ package enum DamagePipeline {
         if !state.options.isRetaliation || state.options.isCounterattack {
             await applyCriticalReaction(to: &state, in: &context)
         }
-        await state.damageEvents.append(contentsOf: UniqueCombatEngine.afterDamage(state, in: &context))
+        _ = await UniqueCombatEngine.afterDamage(state, in: &context)
     }
 
     private static func applyDoTDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) async {
         if let keyword = state.damageKeyword, keyword == .burn || keyword == .bleed,
            let sourceActorID = state.sourceActorID {
-            await state.damageEvents.append(contentsOf: DoTMirrorCascade.resolve(
+            _ = await DoTMirrorCascade.resolve(
                 keyword: keyword, initialHealthLost: state.healthLost, target: state.combatant,
                 sourceActorID: sourceActorID, in: &context,
-            ))
+            )
         }
         if state.damageKeyword == .burn, state.healthLost > 0, let sourceID = state.sourceActorID {
-            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBurnDamageConversion(
+            _ = await CombatTriggerEngine.afterBurnDamageConversion(
                 to: state.combatant, sourceActorID: sourceID, in: &context,
-            ))
+            )
         }
         if state.damageKeyword == .bleed {
-            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBleedDamage(
+            _ = await CombatTriggerEngine.afterBleedDamage(
                 healthLost: state.healthLost, target: state.combatant,
                 sourceActorID: state.sourceActorID, in: &context,
-            ))
+            )
         } else if state.damageKeyword == .poison {
-            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterPoisonDamage(
+            _ = await CombatTriggerEngine.afterPoisonDamage(
                 healthLost: state.healthLost, target: state.combatant,
                 sourceActorID: state.sourceActorID, in: &context,
-            ))
+            )
         }
     }
 
@@ -164,6 +164,8 @@ package enum DamagePipeline {
         // damage needlessly peaks worker-thread stacks.
         let amount: Int = {
             var preview = context
+            // The preview owns its mutations, including emitted feedback.
+            preview.commandOutput = nil
             var avoided = state
             avoided.targetStatus = DamageTargetStatus(for: state.combatant, in: preview)
             applyOutgoingDamage(to: &avoided, in: &preview)
@@ -176,12 +178,11 @@ package enum DamagePipeline {
             amount: amount, target: attacker.combatant, keyword: .freeze,
             sourceActorID: state.combatant.id, options: options,
         ))
-        state.damageEvents.append(contentsOf: outcome.events)
         if outcome.healthLost > 0 {
-            state.damageEvents.append(context.nextEvent(
+            _ = context.nextEvent(
                 kind: .abilityDamage, source: .init(state.combatant), abilityName: "Winter’s Wake",
                 target: attacker.combatant, amount: outcome.healthLost, keyword: .freeze,
-            ))
+            )
         }
     }
 
@@ -197,13 +198,13 @@ package enum DamagePipeline {
         let reduction = min(state.remaining, runtime.talents.pending.nextDamageReduction)
         context.roster.mutateRuntime(for: source) { $0.talents.pending.nextDamageReduction = 0 }
         state.remaining -= reduction
-        state.damageEvents.append(context.nextEvent(
+        _ = context.nextEvent(
             kind: .status, source: .init(source),
             abilityName: context.modifiers(for: sourceID).triggerAbilityName(
                 .onHealthLossNextDamageReduction, fallback: "Loose Rubble",
             ),
             target: state.combatant, amount: reduction, keyword: state.damageKeyword ?? .physical,
-        ))
+        )
     }
 
     private static func applyOutgoingDamage(
@@ -264,7 +265,7 @@ package enum DamagePipeline {
     /// the applicator before reaching this helper.
     ///
     /// The `.thornsTriggered` decorator is never added here. Ward paths that
-    /// need it must call `appendNestedDamage`, which makes the decorator
+    /// need it must call `resolveWardDamage`, which makes the decorator
     /// explicit at the call site; every other nested-damage caller uses this
     /// function directly so no decorator fires.
     static func resolveNestedDamage(
@@ -298,19 +299,18 @@ package enum DamagePipeline {
     }
 
     /// Ward-only sibling of `resolveNestedDamage`: resolves nested damage and
-    /// appends the `.thornsTriggered` decorator when damage lands. Call sites
+    /// emits the `.thornsTriggered` decorator when damage lands. Call sites
     /// are limited to defender-ward retaliation (freeze wards, typed wards,
     /// thorns); talent strikes, reflections, and other nested damage must call
     /// `resolveNestedDamage` directly so the decorator stays off.
     @discardableResult
-    static func appendNestedDamage(
+    static func resolveWardDamage(
         amount: Int,
         keyword: Keyword,
         abilityName: String,
         target: Combatant,
         defender: Combatant,
         isThornsDamage: Bool = false,
-        to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) async -> Int {
         guard amount > 0 else { return 0 }
@@ -322,18 +322,16 @@ package enum DamagePipeline {
             isThornsDamage: isThornsDamage,
             in: &context,
         )
-        var retaliationEvents = outcome.events
         if outcome.healthLost > 0 {
-            retaliationEvents.append(context.nextEvent(
+            _ = context.nextEvent(
                 kind: .effect(.thornsTriggered),
                 source: .init(defender),
                 abilityName: abilityName,
                 target: target,
                 amount: outcome.healthLost,
                 keyword: keyword,
-            ))
+            )
         }
-        state.damageEvents.append(contentsOf: retaliationEvents)
         return outcome.healthLost
     }
 
@@ -347,7 +345,7 @@ package enum DamagePipeline {
         in context: inout BattleState,
     ) {
         state.remaining -= amount
-        state.damageEvents.append(context.nextEvent(
+        _ = context.nextEvent(
             kind: .effect(.shieldAbsorbed),
             source: source,
             abilityName: abilityName,
@@ -355,6 +353,6 @@ package enum DamagePipeline {
             amount: amount,
             keyword: keyword,
             isFullyBlocked: state.remaining == 0 && amount > 0,
-        ))
+        )
     }
 }

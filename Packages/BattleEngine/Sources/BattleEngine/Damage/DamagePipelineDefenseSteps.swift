@@ -181,13 +181,12 @@ package extension DamagePipeline {
               context.claimHeroTalent(.guardian, actorID: context.roster.companion.id, battle: true)
         else { return }
         let block = context.companionModifiers.triggers.guardianHeroBlockFlat
-        let granted = context.applyBlockGain(
+        _ = context.applyBlockGain(
             block,
             to: state.combatant,
             source: context.roster.companion.combatant,
             abilityName: "Guardian",
             origin: .automatic,
         )
-        state.damageEvents.append(contentsOf: granted.events)
     }
 }

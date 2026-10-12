@@ -217,10 +217,10 @@ package extension DamagePipeline {
         }
         if state.isCritical, state.options.isAttackHit,
            triggers.leechCriticalPoisonDamage > 0, context.roster.enemy.isAlive {
-            await state.damageEvents.append(contentsOf: CombatTriggerEngine.heroTalentDamage(
+            _ = await CombatTriggerEngine.heroTalentDamage(
                 .poison, amount: triggers.leechCriticalPoisonDamage,
                 source: source.combatant, name: "Toxic Touch", in: &context,
-            ))
+            )
         }
     }
 
@@ -237,11 +237,11 @@ package extension DamagePipeline {
               context.resolution.claim(
                   .heroTalent(.sunGlyph), actorID: sourceID, cadence: .turn(context.turnCount),
               ) else { return }
-        state.damageEvents.append(contentsOf: context.applyBlock(
+        _ = context.applyBlock(
             context.modifiers(for: sourceID).triggers.firstHolyHitAllyBlockPerTurn,
             to: context.roster.hero.combatant,
             source: source.combatant,
             abilityName: "Sun Glyph",
-        ))
+        )
     }
 }

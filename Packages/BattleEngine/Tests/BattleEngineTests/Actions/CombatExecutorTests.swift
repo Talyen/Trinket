@@ -5,6 +5,57 @@ import TrinketCore
 @testable import BattleEngine
 
 struct CombatExecutorTests {
+    @Test(arguments: [false, true])
+    func `damage outcomes retain nested reactions independently of battle history`(tracksEvents: Bool) {
+        var battle = BattleStateTestFactory.makeBattle(tracksEvents: tracksEvents, dealOpeningHand: false)
+        battle.appliesFightPacing = false
+        battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        let start = battle.events.count
+        let outcome = battle.resolveDamage(DamageRequest(
+            amount: 5, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
+            options: .attack(accuracy: .unavoidable),
+        ))
+        #expect(outcome.healthLost == 5)
+        #expect(outcome.events.contains { $0.effectKind == .thornsTriggered })
+        #expect(outcome.events.map(\.id) == outcome.events.map(\.id).sorted())
+        #expect(Set(outcome.events.map(\.id)).count == outcome.events.count)
+        if tracksEvents {
+            #expect(outcome.events == Array(battle.events.dropFirst(start)))
+        } else {
+            #expect(battle.events.isEmpty)
+        }
+        #expect(battle.commandOutput == nil)
+    }
+
+    @Test func `Winter Wake preview cannot publish Guardian block into the live command`() {
+        var hero = CombatModifierProfile.zero
+        hero.triggers.wintersWake = true
+        var companion = CombatModifierProfile.zero
+        companion.triggers.guardianHeroBlockFlat = 2
+        var battle = BattleStateTestFactory.makeBattle(
+            heroModifiers: hero, companionModifiers: companion, dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.appendEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        let start = battle.events.count
+        var outcome = CombatOutcome.empty
+        let events = CombatExecutor.run {
+            await battle.collectingEvents { context in
+                outcome = await context.resolveDamage(DamageRequest(
+                    amount: 10, target: context.hero, keyword: .physical, sourceActorID: context.enemy.id,
+                    options: .attack(),
+                ))
+            }
+        }
+        #expect(outcome.isDodged)
+        #expect(events.contains { $0.abilityName == "Winter’s Wake" })
+        #expect(!events.contains { $0.abilityName == "Guardian" })
+        #expect(events == Array(battle.events.dropFirst(start)))
+        #expect(outcome.events == events)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.hero)) == 0)
+        #expect(battle.commandOutput == nil)
+    }
+
     @Test func `deep continuations unwind in order on a small caller stack`() async throws {
         let trace = try await Self.onSmallStack {
             let caller = Thread.current

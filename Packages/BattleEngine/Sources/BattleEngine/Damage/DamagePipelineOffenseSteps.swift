@@ -256,14 +256,14 @@ package extension DamagePipeline {
             in: context,
         ).abilityNames
         for name in names {
-            state.damageEvents.append(context.nextEvent(
+            _ = context.nextEvent(
                 kind: .ability,
                 source: .init(source),
                 abilityName: name,
                 target: target,
                 amount: 0,
                 keyword: state.damageKeyword ?? .physical,
-            ))
+            )
         }
     }
 

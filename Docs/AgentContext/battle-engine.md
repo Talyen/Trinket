@@ -20,8 +20,13 @@ Public card, turn, and opening commands return `BattleCommandResult` only after
 resolution completes. `BattleState.nextEvent` writes command output in emission
 order, independently of retained battle history and optional action recording.
 Card/turn orchestration does not reconstruct command events from child return
-values. Nested card operations collect their local event range from that same
-command output; damage/healing outcomes may retain their operation-specific events.
+values. Nested card and damage operations collect their local event range from that
+same command output, including counterattacks drained after the outer damage packet.
+Damage pipeline steps emit events without maintaining a second accumulated list;
+the damage scratch state contains calculations and reaction flags only. Standalone
+damage installs a temporary output even when retained battle history is disabled.
+Discarded damage previews detach command output so speculative effects cannot publish.
+Healing outcomes retain their operation-specific events.
 Optional action recording never invokes consumer code or exposes intermediate
 engine snapshots.
 Default effect-handler witnesses keep async signatures so direct calls cannot

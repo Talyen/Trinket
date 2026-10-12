@@ -28,13 +28,21 @@ package extension BattleState {
     mutating func collectingEvents(
         _ operation: (inout Self) async throws -> Void,
     ) async rethrows -> [ActionEvent] {
+        try await collectingResult(operation).events
+    }
+
+    /// Outcomes and command output share emission order, including nested rules.
+    /// A standalone operation installs a temporary output even with history disabled.
+    mutating func collectingResult<Value>(
+        _ operation: (inout Self) async throws -> Value,
+    ) async rethrows -> (value: Value, events: [ActionEvent]) {
         let previous = commandOutput
         let output = previous ?? BattleCommandOutput(recordActions: false)
         let start = output.events.count
         commandOutput = output
         defer { commandOutput = previous }
-        try await operation(&self)
-        return Array(output.events.dropFirst(start))
+        let value = try await operation(&self)
+        return (value, Array(output.events.dropFirst(start)))
     }
 
     func eventSource(actorID: String?, fallback: Combatant) -> CombatEventSource {

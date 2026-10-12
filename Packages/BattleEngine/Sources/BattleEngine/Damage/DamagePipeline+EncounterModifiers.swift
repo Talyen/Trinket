@@ -17,11 +17,11 @@ package extension DamagePipeline {
         let removed = min(current, amount)
         guard removed > 0 else { return }
         DefensePoolEngine.set(current - removed, on: state.combatant, in: &context)
-        state.damageEvents.append(context.nextEvent(
+        _ = context.nextEvent(
             kind: .effect(.blockStripped),
             source: .init(source.combatant), abilityName: "Sundered Guard",
             target: state.combatant, amount: removed, keyword: .block,
-        ))
+        )
     }
 
     static func applyEnemyAttackPurge(
@@ -36,10 +36,9 @@ package extension DamagePipeline {
         else { return }
         let count = context.modifiers(for: sourceID).triggers.attackPurgeCount
         guard count > 0 else { return }
-        let purge = await EffectRemovalOperation.resolvePurge(
+        _ = await EffectRemovalOperation.resolvePurge(
             .randomBuffs(count), source: source.combatant, target: state.combatant,
             abilityName: "Unbinding Strike", in: &context,
         )
-        state.damageEvents.append(contentsOf: purge.events)
     }
 }

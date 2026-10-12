@@ -358,6 +358,15 @@ enum CombatResolver {
             return .empty
         }
         await CombatExecutor.suspend()
+        let result = await context.collectingResult { context in
+            await resolveDamage(request, in: &context)
+        }
+        var outcome = result.value
+        outcome.events = result.events
+        return outcome
+    }
+
+    private static func resolveDamage(_ request: DamageRequest, in context: inout BattleState) async -> CombatOutcome {
         context.resolution.enter(.damage)
         var state = DamageResolutionState(
             amount: request.amount, combatant: request.target, sourceActorID: request.sourceActorID,
@@ -365,7 +374,7 @@ enum CombatResolver {
         )
         state.provenance = request.provenance
         await DamagePipeline.run(state: &state, in: &context)
-        var outcome = CombatOutcome.fromDamage(state: state)
+        let outcome = CombatOutcome.fromDamage(state: state)
         // Recording is scoped to a resolved action, including its immediate DoT pulses.
         if !request.options.isHealthCost, let impact = outcome.damageImpact {
             context.commandOutput?.recordDamage(BattleResolvedDamage(
@@ -380,8 +389,8 @@ enum CombatResolver {
             context.uniques.isDrainingOutOfTurnAttacks = true
             while !context.uniques.pendingCounterAttackActorIDs.isEmpty
                 || !context.uniques.pendingBlockAnswerOwners.isEmpty {
-                await outcome.events.append(contentsOf: CombatTriggerEngine.drainPendingCounterAttacks(in: &context))
-                await outcome.events.append(contentsOf: UniqueCombatEngine.drainPendingBlockAnswers(in: &context))
+                _ = await CombatTriggerEngine.drainPendingCounterAttacks(in: &context)
+                _ = await UniqueCombatEngine.drainPendingBlockAnswers(in: &context)
             }
             context.uniques.isDrainingOutOfTurnAttacks = false
         }

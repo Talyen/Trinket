@@ -74,7 +74,6 @@ extension CombatOutcome {
         }
         return CombatOutcome(
             healthDelta: -state.healthLost,
-            events: state.damageEvents,
             flags: flags,
             damageImpact: state.options.isHealthCost ? nil
                 : state.isDodged ? .dodged : .landed(blocked: state.blockedAmount, healthLost: state.healthLost),

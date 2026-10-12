@@ -54,7 +54,7 @@ package extension DamagePipeline {
                 return false
             }
         }
-        state.damageEvents.append(context.nextEvent(
+        _ = context.nextEvent(
             kind: .effect(.dodgeApplied),
             source: .init(state.combatant),
             abilityName: "Dodge",
@@ -62,24 +62,24 @@ package extension DamagePipeline {
             amount: 0,
             keyword: .dodge,
             appliedEffectSummaries: [],
-        ))
+        )
         state.isDodged = true
         await applyWinterWake(to: &state, in: &context)
         if !state.options.causedByDodge {
-            await state.damageEvents.append(contentsOf: UniqueCombatEngine.afterUniqueDodge(
+            _ = await UniqueCombatEngine.afterUniqueDodge(
                 by: state.combatant,
                 attackerID: state.sourceActorID,
                 in: &context,
-            ))
+            )
         }
-        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHeroTalentDodge(by: state.combatant, in: &context))
+        _ = CombatTriggerEngine.afterHeroTalentDodge(by: state.combatant, in: &context)
         if !state.options.causedByDodge {
-            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(
+            _ = await CombatTriggerEngine.afterDodge(
                 by: state.combatant,
                 attackerID: state.sourceActorID,
                 allowsCounterattacks: !autoDodge,
                 in: &context,
-            ))
+            )
         }
     }
 
@@ -321,12 +321,12 @@ package extension DamagePipeline {
         else { return }
         let enemyBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant))
         guard enemyBlock > 0 else { return }
-        state.damageEvents.append(contentsOf: DefensePoolEngine.steal(
+        _ = DefensePoolEngine.steal(
             enemyBlock,
             from: state.combatant,
             to: source.combatant,
             abilityName: "Master Thief",
             in: &context,
-        ))
+        )
     }
 }

@@ -83,33 +83,33 @@ package extension DamagePipeline {
         recordBlockAbsorption(absorbed, owner: owner, to: &state, in: &context)
 
         if !isBorrowed {
-            await state.damageEvents.append(contentsOf: applyBlockAbsorptionReactions(
+            _ = await applyBlockAbsorptionReactions(
                 absorbed: absorbed,
                 blockBroken: blockBroken,
                 defenderTriggers: defenderTriggers,
                 sourceTriggers: sourceTriggers,
                 to: &state,
                 in: &context,
-            ))
+            )
         }
-        await state.damageEvents.append(contentsOf: handleTalentBlockedDamage(
+        _ = await handleTalentBlockedDamage(
             absorbed: absorbed,
             blockBroken: blockBroken,
             defender: owner,
             attackerID: state.sourceActorID,
             in: &context,
-        ))
+        )
         if !isBorrowed, state.options.isAttackHit, blockBroken, state.remaining > 0,
            defenderTriggers.postBlockOverflowDamageMultiplier != 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: defenderTriggers.postBlockOverflowDamageMultiplier)
         }
         if blockBroken {
             state.brokenBlockOwners.append(owner)
-            await state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBlockBroken(
+            _ = await CombatTriggerEngine.afterBlockBroken(
                 on: owner,
                 attackerID: state.sourceActorID,
                 in: &context,
-            ))
+            )
         }
         return min(buffer, max(0, stripBeforeAbsorption))
     }
