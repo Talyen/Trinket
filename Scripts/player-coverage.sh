@@ -37,7 +37,9 @@ else
   mkdir -p "$coverage_output"
   export TRINKET_UI_PLAN=Soak
   coverage_status=0
-  ./Scripts/test.sh ui --no-build RepeatedPlayUITests || coverage_status=1
+  # Twenty production-timed battles plus foreground checks can exceed the generic 20-minute limit.
+  TRINKET_XCODE_WALL_TIMEOUT_SECONDS="${TRINKET_XCODE_WALL_TIMEOUT_SECONDS:-2400}" \
+    ./Scripts/test.sh ui --no-build RepeatedPlayUITests || coverage_status=1
   ./Scripts/test-package.sh --build-for-testing TrinketAppState
   career_products="$DERIVED_DATA_PATH/packages/TrinketAppState/Build/Products"
   # Ordinary careers share one worker; crash/recovery still crosses real processes.
