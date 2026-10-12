@@ -198,7 +198,9 @@ extension BattleTurnEngineTests {
     @Test(arguments: [Keyword.burn, .physical])
     func `unquenchable flame bypasses Verdant Shelter only for Burn`(keyword: Keyword) throws {
         let profile = CombatantTalentCatalog.profile(for: ["druid_health_t4_1"])
-        var context = try enemyTraitContext("pyromancer", heroModifiers: profile)
+        var context = try enemyTraitContext("pyromancer", heroModifiers: profile, enemyModifiers: .init(
+            triggers: CombatTraitTriggers(block: BlockTriggers(burnIgnoresBlockAndMitigation: true)),
+        ))
         context.appendEffect(.thorns(2), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
         let result = context.resolveDamage(DamageRequest(
             amount: 20, target: context.hero, keyword: keyword, sourceActorID: context.enemy.id,
@@ -210,13 +212,12 @@ extension BattleTurnEngineTests {
     @Test(arguments: [Keyword.burn, .physical])
     func `unquenchable flame bypasses Aetherial Armor and preserves unused protection`(keyword: Keyword) throws {
         let fixtures = UniqueCollectionTests()
-        let pyromancer = try #require(GameContent.enemy(matching: "pyromancer"))
         let profile = CombatantTalentCatalog.profile(for: ["frost_whelp_mana_t2_2"])
         var context = try fixtures.battle(
             [],
             owner: .companion,
             extra: profile,
-            enemyExtra: CombatBuildResolver.build(enemy: pyromancer).modifiers,
+            enemyExtra: .init(triggers: CombatTraitTriggers(block: BlockTriggers(burnIgnoresBlockAndMitigation: true))),
         )
         context.roster.companion.currentMana = 1
         context.roster.companion.talents.pending.nextIncomingDamageMultiplier = PreparedTalentBonus(value: 0.5)

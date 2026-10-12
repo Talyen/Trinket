@@ -5,7 +5,7 @@ import TrinketCore
 @testable import BattleEngine
 
 struct DrawAndPlayRegressionTests {
-    @Test func `Pack Tactics falls back when the ally cannot pay a card's Health cost`() {
+    @Test func `Pack Tactics draws the ally card before checking its Health cost`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         battle.roster.companion.currentHealth = 1
         battle.heroDeck = CombatDeck(abilities: [.slash])
@@ -20,9 +20,10 @@ struct DrawAndPlayRegressionTests {
         )
 
         #expect(!outcome.events.contains { $0.kind == .abilityDamage })
-        #expect(battle.hand.cards.map(\.ability.id) == [Ability.slash.id])
+        #expect(battle.hand.cards.map(\.ability.id) == [Ability.bloodOffering.id])
         #expect(!outcome.events.contains { $0.abilityID == Ability.bloodOffering.id })
-        #expect(battle.companionDeck.abilities.first?.id == Ability.bloodOffering.id)
+        #expect(battle.companionDeck.abilities.isEmpty)
+        #expect(battle.roster.companion.currentHealth == 1)
     }
 
     @Test func `Feint cannot borrow a card from the partner's deck`() {

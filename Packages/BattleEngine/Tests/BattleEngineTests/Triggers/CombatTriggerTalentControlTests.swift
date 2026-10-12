@@ -263,11 +263,11 @@ struct CombatTriggerTalentControlTests {
             dealOpeningHand: false,
         )
         BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 2)],
+            [ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 2, sourceActorID: battle.roster.hero.id)],
             for: battle.roster.enemy.combatant,
             on: &battle,
         )
-        _ = battle.resolveDamage(
+        let outcome = battle.resolveDamage(
             DamageRequest(
                 amount: 5,
                 target: battle.roster.enemy.combatant,
@@ -279,7 +279,12 @@ struct CombatTriggerTalentControlTests {
         #expect(battle.roster.health(for: battle.roster.enemy.combatant) == 94)
         let poisons = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
             .filter { $0.effect.keyword == .poison }
-        #expect(poisons.contains { $0.sourceActorID == battle.roster.companion.id })
+        #expect(poisons.count == 1)
+        #expect(poisons.first?.effect.potency == 4)
+        #expect(poisons.first?.sourceActorID == battle.roster.hero.id)
+        #expect(outcome.events.contains {
+            $0.sourceActorID == battle.roster.companion.id && $0.keyword == .poison && $0.amount == 1
+        })
     }
 
     @Test func `harvest essence ignores do T and retaliation`() {

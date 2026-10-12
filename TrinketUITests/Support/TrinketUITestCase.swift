@@ -18,6 +18,16 @@ private func trinketWaitForExistenceMainActorSafe(_ element: XCUIElement, timeou
     }
 }
 
+/// Snapshot objects stay on the main actor; only their value projections cross back.
+private func trinketOnMainActor<Value: Sendable>(_ body: @MainActor () throws -> Value) rethrows -> Value {
+    if Thread.isMainThread {
+        return try MainActor.assumeIsolated { try body() }
+    }
+    return try DispatchQueue.main.sync {
+        try MainActor.assumeIsolated { try body() }
+    }
+}
+
 enum TestLaunchArg {
     static let resetState = "-reset-state"
     static let seedTestProgress = "-seed-test-progress"
@@ -210,7 +220,7 @@ class TrinketUITestCase: XCTestCase {
 
     func coverageReport() throws -> [String: Any] {
         let probe = any(AccessibilityID.Debug.coverageDiagnostics)
-        let encoded = try XCTUnwrap(probe.snapshot().value as? String)
+        let encoded = try trinketOnMainActor { try XCTUnwrap(probe.snapshot().value as? String) }
         return try XCTUnwrap(JSONSerialization.jsonObject(with: Data(encoded.utf8)) as? [String: Any])
     }
 
@@ -238,7 +248,7 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func integer(in element: XCUIElement) throws -> Int {
-        try integer(in: element.snapshot())
+        try trinketOnMainActor { try integer(in: element.snapshot()) }
     }
 
     private func integer(in snapshot: any XCUIElementSnapshot) throws -> Int {
@@ -248,16 +258,18 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func integers(in container: XCUIElement, identifiers: Set<String>) throws -> [String: Int] {
-        // Read one subtree so related amounts come from the same UI state.
-        var pending = try [container.snapshot()]
-        var amounts: [String: Int] = [:]
-        while let snapshot = pending.popLast() {
-            pending.append(contentsOf: snapshot.children)
-            if identifiers.contains(snapshot.identifier) {
-                amounts[snapshot.identifier] = try integer(in: snapshot)
+        try trinketOnMainActor {
+            // Read one subtree so related amounts come from the same UI state.
+            var pending = try [container.snapshot()]
+            var amounts: [String: Int] = [:]
+            while let snapshot = pending.popLast() {
+                pending.append(contentsOf: snapshot.children)
+                if identifiers.contains(snapshot.identifier) {
+                    amounts[snapshot.identifier] = try integer(in: snapshot)
+                }
             }
+            return amounts
         }
-        return amounts
     }
 
     func waitForLaunchPreparation() {
@@ -318,37 +330,39 @@ class TrinketUITestCase: XCTestCase {
     }
 
     private func missingElementMessage(_ message: String) -> String {
-        guard let app, let snapshot = try? app.snapshot() else { return message }
-        var entries: [String] = []
-        var seen: Set<String> = []
-        var pending = Array(snapshot.children.reversed())
-        while let element = pending.popLast() {
-            pending.append(contentsOf: element.children.reversed())
-            let identifier = element.identifier.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !identifier.isEmpty else { continue }
-            let normalizedIdentifier = identifier.replacingOccurrences(
-                of: #"\s+"#,
-                with: " ",
-                options: .regularExpression,
-            )
-            let entry = "\(String(describing: element.elementType))[\(normalizedIdentifier)]"
-            guard seen.insert(entry).inserted else { continue }
-            entries.append(entry)
-            if entries.count == 30 {
-                break
+        trinketOnMainActor {
+            guard let app, let snapshot = try? app.snapshot() else { return message }
+            var entries: [String] = []
+            var seen: Set<String> = []
+            var pending = Array(snapshot.children.reversed())
+            while let element = pending.popLast() {
+                pending.append(contentsOf: element.children.reversed())
+                let identifier = element.identifier.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !identifier.isEmpty else { continue }
+                let normalizedIdentifier = identifier.replacingOccurrences(
+                    of: #"\s+"#,
+                    with: " ",
+                    options: .regularExpression,
+                )
+                let entry = "\(String(describing: element.elementType))[\(normalizedIdentifier)]"
+                guard seen.insert(entry).inserted else { continue }
+                entries.append(entry)
+                if entries.count == 30 {
+                    break
+                }
             }
+            if entries.isEmpty {
+                return "\(message)\nAccessibility snapshot:\nAX: (no identified elements)"
+            }
+            var lines: [String] = []
+            for start in stride(from: 0, to: entries.count, by: 4) {
+                let end = min(start + 4, entries.count)
+                lines.append("AX: " + entries[start ..< end].joined(separator: "; "))
+            }
+            let description = lines.joined(separator: "\n")
+            let bounded = description.count > 2400 ? String(description.prefix(2399)) + "…" : description
+            return "\(message)\nAccessibility snapshot:\n\(bounded)"
         }
-        if entries.isEmpty {
-            return "\(message)\nAccessibility snapshot:\nAX: (no identified elements)"
-        }
-        var lines: [String] = []
-        for start in stride(from: 0, to: entries.count, by: 4) {
-            let end = min(start + 4, entries.count)
-            lines.append("AX: " + entries[start ..< end].joined(separator: "; "))
-        }
-        let description = lines.joined(separator: "\n")
-        let bounded = description.count > 2400 ? String(description.prefix(2399)) + "…" : description
-        return "\(message)\nAccessibility snapshot:\n\(bounded)"
     }
 
     func assertDoesNotExist(
@@ -464,13 +478,15 @@ extension XCUIElement {
         line: UInt = #line,
     ) {
         func isReady(_ element: XCUIElement) -> Bool {
-            guard element.exists, let snapshot = try? element.snapshot(), snapshot.isEnabled else { return false }
-            let bounds = snapshot.frame
-            guard !bounds.isEmpty,
-                  bounds.minX.isFinite, bounds.minY.isFinite,
-                  bounds.maxX.isFinite, bounds.maxY.isFinite
-            else { return false }
-            return element.isHittable
+            trinketOnMainActor {
+                guard element.exists, let snapshot = try? element.snapshot(), snapshot.isEnabled else { return false }
+                let bounds = snapshot.frame
+                guard !bounds.isEmpty,
+                      bounds.minX.isFinite, bounds.minY.isFinite,
+                      bounds.maxX.isFinite, bounds.maxY.isFinite
+                else { return false }
+                return element.isHittable
+            }
         }
         guard trinketWaitUntil(timeout: timeout, condition: { isReady(self) }) else {
             XCTFail(
