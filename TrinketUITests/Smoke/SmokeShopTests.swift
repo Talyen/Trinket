@@ -22,8 +22,9 @@ final class SmokeShopTests: TrinketUITestCase {
         scrollUntilVisible(offer, swipingUp: true, requireHittable: true)
         tapWhenReady(offer)
         // Artwork preparation presents the sheet asynchronously; its purchase footer is fixed.
-        assertExists(detailBuy)
-        XCTAssertEqual(try integer(in: detailBuy), price)
+        waitUntil("Merchant detail must expose its matching purchase price") {
+            detailBuy.exists && detailBuy.isHittable && (try? self.integer(in: detailBuy)) == price
+        }
         tapWhenReady(detailBuy)
         assertDoesNotExist(AccessibilityID.Shop.detailBuyButton)
         XCTAssertEqual(try integer(in: goldBalance), goldBefore - price)
