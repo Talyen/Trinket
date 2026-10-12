@@ -48,13 +48,13 @@ package extension CombatTriggerEngine {
             )
             if profile.triggers.onBleedDealBurnDamage > 0, bleedBurnChance > 0,
                BattleChance.succeeds(probability: min(1, bleedBurnChance), using: &context.rng) {
-                await events.append(contentsOf: DoTDamage.resolveDamage(
-                    basePotency: profile.triggers.onBleedDealBurnDamage,
+                await events.append(contentsOf: context.applyDecayingDoT(
                     keyword: .burn,
-                    target: target,
+                    potency: profile.triggers.onBleedDealBurnDamage,
+                    to: target,
                     sourceActorID: sourceActorID,
-                    in: &context,
-                ).events)
+                    application: .reaction,
+                ))
             }
 
             return events

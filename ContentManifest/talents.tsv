@@ -21,7 +21,7 @@ rogue_poison_t1_1	Toxic Coating	sf:flask.fill	Bleeding enemies take 25% increase
 rogue_poison_t1_2	Lingering Toxin	sf:hourglass.bottomhalf.filled	Poison fades 25% slower		poisonDecaySlowPercent:0.25
 rogue_poison_t2_1	Noxious Reaction	sf:microbe.fill	Poison Critical Hits make your next Bleed attack Critically Hit		poisonCritPreparesBleedCrit:true
 rogue_poison_t2_2	Blinding Fumes	sf:eye.slash.fill	Poisoned enemies deal 20% less damage		poisonedEnemyAccuracyPenaltyPercent:0.20
-rogue_poison_t3_1	Contagion	sf:arrow.clockwise	Poison damage has a 25% chance to grow instead of fading.		poisonDecayIncreaseChance:0.25
+rogue_poison_t3_1	Contagion	sf:arrow.clockwise	Each turn, Poison has a 25% chance to grow instead of fading.		poisonDecayIncreaseChance:0.25
 rogue_poison_t3_2	Deadly Dose	sf:flask.fill	Poisoned enemies take 25% additional damage		damageVsPoisonedMultiplier:1.25
 rogue_bleed_t1_1	Serrated Blades	sf:burst.fill	Bleed from Critical Hits lasts 1 extra turn		bleedDurationFromCriticalBonus:1
 rogue_bleed_t1_2	Deep Wounds	sf:drop.fill	Bleed ignores enemy Block		bleedIgnoresEnemyBlock:true
@@ -107,7 +107,7 @@ bear_stun_t2_1	Shockwave	sf:waveform	Stun attacks ignore half enemy Block		stunB
 bear_stun_t2_2	Deep Stun	sf:hourglass.bottomhalf.filled	Stun has a 20% chance to last another turn		stun_extend_chance_percent:0.20
 bear_stun_t3_1	Exposed Prey	sf:scope	Stunned enemies take 25% more damage from your ally		heroDamageVsStunnedMultiplier:1.25
 bear_stun_t3_2	Seismic Roar	sf:waveform	Below half Health, your Stun build-up increases by 50%		stunBuildupBelowHalfMultiplier:1.5
-frost_whelp_freeze_t1_1	Rimewind	sf:wind	Freeze damage has a 10% chance to draw a card		freezeAttackDrawChancePercent:0.10
+frost_whelp_freeze_t1_1	Rimewind	sf:wind	Freeze card hits that remove Health have a 10% chance to draw a card		freezeAttackDrawChancePercent:0.10
 frost_whelp_freeze_t1_2	Chilling Scales	sf:shield.fill	Taking damage has a 10% chance to return 4 Freeze damage		onDamageFreezeRetaliationChancePercent:0.10|onDamageFreezeRetaliationDamage:4
 frost_whelp_freeze_t2_1	Glacial Grip	sf:hand.raised.fill	Increase Freeze build-up by 20%		freezeBuildupMultiplier:1.2
 frost_whelp_freeze_t2_2	Frost Siphon	sf:moon.stars.fill	Freezing an enemy restores 2 Mana		onFreezeEnemyRestoreMana:2
@@ -145,9 +145,9 @@ lizard_scout_gold_t3_1	Flawless Bounty	sf:trophy.fill	Excess Leech restoration o
 lizard_scout_gold_t3_2	Gilded Claws	sf:pawprint.fill	Gold stolen adds equal damage to your next attack		gildedClaws:true
 panther_bleed_t1_1	Razor Claws	sf:pawprint.fill	Bleed attacks deal 1 additional damage		bleedAttackDamageBonus:1
 panther_bleed_t1_2	Raking Swipes	sf:burst.fill	Bleed attacks gain +10% Critical Hit chance		bleedAttackCriticalBonus:0.10
-panther_bleed_t2_1	Stalk the Wound	sf:scope	Bleeding enemies below half Health take 25% increased damage		attackVsBleedingBelowHalfMultiplier:1.25
+panther_bleed_t2_1	Stalk the Wound	sf:scope	You deal 25% more damage to Bleeding enemies below half Health		attackVsBleedingBelowHalfMultiplier:1.25
 panther_bleed_t2_2	Rend Flesh	sf:drop.fill	Bleed Critical Hits deal 25% more damage		bleedCriticalDamageMultiplier:1.25
-panther_bleed_t3_1	Crippling Laceration	sf:drop.fill	Enemies with 3 or more Bleed deal 30% less damage.		enemyBleedStacksDamageReductionStacks:3|enemyBleedStacksDamageReductionPercent:0.30
+panther_bleed_t3_1	Crippling Laceration	sf:drop.fill	Enemies with 3 or more Bleed stacks deal 30% less damage.		enemyBleedStacksDamageReductionStacks:3|enemyBleedStacksDamageReductionPercent:0.30
 panther_bleed_t3_2	Bloodprice	sf:heart.fill	Bleeding enemies restore half as much Health		bleedingEnemyHealingMultiplier:0.5
 panther_leech_t1_1	Blood Hunger	sf:drop.fill	Bleed attacks gain Leech while below 30% Health		bleedAttackLeechBelowHealthThreshold:0.30
 panther_leech_t1_2	Shared Feast	sf:heart.fill	Excess Leech Health restoration is shared with your ally		leechOverflowShareAlly:true

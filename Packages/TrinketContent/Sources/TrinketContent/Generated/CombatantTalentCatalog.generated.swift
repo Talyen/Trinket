@@ -335,7 +335,7 @@ public extension CombatantTalentCatalog {
             "rogue_poison_t3_1": CombatantTalentEffect(
                 name: "Contagion",
                 iconID: "sf:arrow.clockwise",
-                description: "Poison damage has a 25% chance to grow instead of fading.",
+                description: "Each turn, Poison has a 25% chance to grow instead of fading.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(dot: DotTriggers(poisonDecayIncreaseChance: 0.25))
             ),
@@ -1521,7 +1521,7 @@ public extension CombatantTalentCatalog {
             "frost_whelp_freeze_t1_1": CombatantTalentEffect(
                 name: "Rimewind",
                 iconID: "sf:wind",
-                description: "Freeze damage has a 10% chance to draw a card",
+                description: "Freeze card hits that remove Health have a 10% chance to draw a card",
                 modifiers: [],
                 triggers: CombatTraitTriggers(control: ControlTriggers(freezeAttackDrawChancePercent: 0.10))
             ),
@@ -1842,7 +1842,7 @@ public extension CombatantTalentCatalog {
             "panther_bleed_t2_1": CombatantTalentEffect(
                 name: "Stalk the Wound",
                 iconID: "sf:scope",
-                description: "Bleeding enemies below half Health take 25% increased damage",
+                description: "You deal 25% more damage to Bleeding enemies below half Health",
                 modifiers: [],
                 triggers: CombatTraitTriggers(attack: AttackTriggers(attackVsBleedingBelowHalfMultiplier: 1.25))
             ),
@@ -1856,7 +1856,7 @@ public extension CombatantTalentCatalog {
             "panther_bleed_t3_1": CombatantTalentEffect(
                 name: "Crippling Laceration",
                 iconID: "sf:drop.fill",
-                description: "Enemies with 3 or more Bleed deal 30% less damage.",
+                description: "Enemies with 3 or more Bleed stacks deal 30% less damage.",
                 modifiers: [],
                 triggers: CombatTraitTriggers(mitigation: MitigationTriggers(enemyBleedStacksDamageReductionStacks: 3, enemyBleedStacksDamageReductionPercent: 0.30))
             ),

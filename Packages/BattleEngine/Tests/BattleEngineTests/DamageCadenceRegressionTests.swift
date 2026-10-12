@@ -82,10 +82,11 @@ struct DamageCadenceRegressionTests {
         #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 3)
     }
 
-    @Test func `Cauterize reacts to ongoing Bleed damage`() {
+    @Test func `Cauterize reacts to ongoing Bleed damage and leaves Burn`() throws {
+        let affix = try #require(GameContent.itemAffixDefinition(matching: "cauterize"))
         var profile = CombatModifierProfile.zero
+        affix.astral.triggers.apply(to: &profile, abilityName: affix.title)
         profile.triggers.criticalChanceBonus = -1
-        profile.triggers.onBleedDealBurnDamage = 2
         profile.triggers.onBleedDealBurnChancePercent = 1
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
         battle.appliesFightPacing = false
@@ -98,6 +99,7 @@ struct DamageCadenceRegressionTests {
             in: &battle,
         ) }
         #expect(battle.health(of: battle.enemy) == before - 6)
+        #expect(CombatTriggerEngine.totalPotency(of: .burn, on: battle.enemy, in: battle) == 2)
     }
 
     @Test(arguments: [Keyword.bleed, .burn])

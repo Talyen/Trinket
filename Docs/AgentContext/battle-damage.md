@@ -46,6 +46,8 @@ Infected, Cauterize, and Ashen Wake react to positive Health damage, including
 ticks, rather than stack attachment. Infected can successfully trigger only once
 per wearer per turn; failed rolls do not spend its allowance. Silent stack grants
 do not trigger them.
+Cauterize's Burn hit leaves Burn equal to its Health damage, like Infected and
+Ashen Wake's Poison hits.
 Later damage components skip a target already defeated by the same action, so
 post-defeat hits cannot trigger another on-hit reward; later support effects still resolve.
 `DecayingDoTProgression` captures the original stack owner’s decay and tick rules
