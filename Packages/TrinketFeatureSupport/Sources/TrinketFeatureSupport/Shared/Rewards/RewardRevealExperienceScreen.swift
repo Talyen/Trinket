@@ -180,6 +180,8 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                 primaryActionEntranceOffset: 0,
             )
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(title)
         .coverageRewardCheckpoint(isCollected: collection.isCollected)
         .scrollDisabled(collection.isCompleting)
         .trinketSensoryFeedback(.success, trigger: collection.feedbackTrigger, enabled: action.hapticsEnabled)

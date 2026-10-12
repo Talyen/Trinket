@@ -85,6 +85,8 @@ offscreen rows in either direction, including during settings restoration.
 Settings-profile reward checks enter the existing victory fixture, then audit and tap
 the real claim and verify next-stage access. Earned victory remains smoke-owned;
 profiles avoid repeating combat across settings/device combinations.
+Defeat and reward journeys scroll to their real actions before auditing and restore
+their reachability afterward, since native text-size audits can move the viewport.
 Each settings profile publishes its log and status before the next profile starts,
 so a failed profile remains visible while independent checks continue.
 

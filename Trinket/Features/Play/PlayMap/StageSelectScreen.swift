@@ -3,6 +3,7 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct StageSelectScreen<HeroArt: View, Content: View>: View {
+    @Environment(\.isBattleActive) private var isBattleActive
     let eyebrow: String?
     let title: String
     let subtitle: String?
@@ -14,7 +15,7 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
 
     var body: some View {
         DetailHeroScrollShell(
-            title: title,
+            title: navigationTitle,
             heroHeightPolicy: .cinematicLandscape,
         ) { baseHeight in
             DetailHeroHeader(
@@ -40,6 +41,14 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
         } bodyContent: {
             content()
         }
+    }
+
+    private var navigationTitle: String {
+        if #available(iOS 26.0, *) {
+            return title
+        }
+        // iOS 18 can expose a retained native title beneath the battle overlay.
+        return isBattleActive ? "" : title
     }
 }
 

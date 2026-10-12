@@ -41,8 +41,9 @@ buttons and system toolbar styling.
 Native toolbar buttons use the system-provided container without custom glass
 button styling.
 
-Wallet resource titles and Basic rarity labels retain secondary styling on iOS 26+
-and use primary text on iOS 18's surfaces to keep their labels readable.
+Wallet resource titles and Basic rarity labels retain secondary styling on iOS 26+.
+On iOS 18, resource titles use opaque paper text and intrinsic wrapping height on
+material pills; Basic rarity labels use primary text.
 
 Glass chips and bar materials route through `.glassEffect` inside this package
 only. Glass buttons intentionally use `.buttonStyle(.glass/.glassProminent)`,

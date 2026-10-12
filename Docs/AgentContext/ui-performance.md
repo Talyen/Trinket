@@ -132,6 +132,9 @@ outer `NavigationStack`: native navigation hosting can retain accessible childre
 beneath an otherwise hidden container. Also hide the outer stack's accessibility
 exposure and native navigation bar so navigation titles cannot remain exposed
 beneath battle.
+On iOS 18, `StageSelectScreen` also clears only its native navigation title while
+the existing battle-active environment is true; its artwork, content, and scroll
+state remain mounted. This prevents the retained title leaking into native audits.
 Keep opacity at one for the immediate return
 from battle; do not unmount the stack or add battle observation to its destinations.
 The retained battle overlay root owns stable navigation geometry. Battle visibility

@@ -43,12 +43,14 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         formattedValue == nil
     }
 
-    private var titleStyle: AnyShapeStyle {
+    @ViewBuilder
+    private var titleLabel: some View {
         if #available(iOS 26.0, *) {
-            return AnyShapeStyle(.secondary)
+            Text(title).trinketTypography(.caption).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.76)
+        } else {
+            // Opaque text and intrinsic height avoid iOS 18 material contrast and clipping.
+            Text(title).trinketTypography(.caption).foregroundStyle(TrinketDesign.Colors.Overlay.paper).trinketFittedText()
         }
-        // Native secondary text has insufficient contrast on iOS 18's material pills.
-        return AnyShapeStyle(.primary)
     }
 
     public var body: some View {
@@ -56,7 +58,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
             artwork.frame(width: TrinketDesign.Layout.walletResourceArtworkSize, height: TrinketDesign.Layout.walletResourceArtworkSize)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
-                Text(title).trinketTypography(.caption).foregroundStyle(titleStyle).lineLimit(1).minimumScaleFactor(0.76)
+                titleLabel
 
                 Text(displayedAmount).trinketTypography(.statValue).foregroundStyle(valueColor).lineLimit(1).minimumScaleFactor(0.7)
                     .allowsTightening(true)

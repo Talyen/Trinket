@@ -37,12 +37,12 @@ public struct KeywordPlasmaBackground: View {
                     )
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
-                    .accessibilityHidden(true)
                 } else {
                     singleSourceBody(primary: resolved.primary, secondary: resolved.secondary)
                 }
             }
         }
+        .accessibilityHidden(true)
         .onAppear { clock.setActive(!isTimelinePaused, at: Date()) }
         .onChange(of: isTimelinePaused) { _, paused in
             clock.setActive(!paused, at: Date())
@@ -80,7 +80,6 @@ public struct KeywordPlasmaBackground: View {
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
-        .accessibilityHidden(true)
         .animation(reduceMotion ? nil : TrinketMotion.Content.fade, value: keywords)
     }
 

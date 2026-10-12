@@ -126,7 +126,10 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         battle.openActions()
         tapButton(AccessibilityID.Battle.retreat)
         assertExists(AccessibilityID.Battle.defeat)
+        assertExistsAfterScroll(AccessibilityID.Battle.defeatLeaveButton, requireHittable: true)
         try auditProductAccessibility()
+        // Native Dynamic Type audits can change the scroll position while exercising sizes.
+        assertExistsAfterScroll(AccessibilityID.Battle.defeatLeaveButton, requireHittable: true)
         retainScreenshot(named: "defeat-leave")
         tapButton(AccessibilityID.Battle.defeatLeaveButton)
         play.assertCampaignLoaded()
@@ -151,6 +154,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         assertExists(AccessibilityID.Battle.victory)
         assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
         try auditProductAccessibility()
+        assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
         retainScreenshot(named: "reward-claim")
         tapButton(AccessibilityID.Battle.continueButton)
         play.assertCampaignLoaded()

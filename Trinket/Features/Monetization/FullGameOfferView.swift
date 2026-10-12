@@ -95,12 +95,21 @@ struct FullGameOfferView: View {
                         }
                         Text("Restore Purchases")
                     }
+                    .frame(minHeight: footerControlMinHeight)
+                    .contentShape(.rect)
                 }
                 .disabled(store.isRestoring || store.isPurchasing)
                 .accessibilityIdentifier(AccessibilityID.FullGame.restore)
-                Text("·")
-                Link("Privacy", destination: TrinketPublicPages.privacy)
-                    .accessibilityIdentifier(AccessibilityID.FullGame.privacy)
+                if #available(iOS 26.0, *) {
+                    Text("·")
+                        .accessibilityHidden(true)
+                }
+                Link(destination: TrinketPublicPages.privacy) {
+                    Text("Privacy")
+                        .frame(minWidth: footerControlMinHeight, minHeight: footerControlMinHeight)
+                        .contentShape(.rect)
+                }
+                .accessibilityIdentifier(AccessibilityID.FullGame.privacy)
             }
             .trinketTypography(.caption)
             .foregroundStyle(.secondary)
@@ -113,6 +122,13 @@ struct FullGameOfferView: View {
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)
         .trinketScreenBackground()
+    }
+
+    private var footerControlMinHeight: CGFloat? {
+        if #available(iOS 26.0, *) {
+            return nil
+        }
+        return 44
     }
 }
 
