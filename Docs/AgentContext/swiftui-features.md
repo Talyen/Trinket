@@ -65,4 +65,7 @@ alerts or confirmation dialogs. Keep diagnostics internal, action eligibility
 visible before a tap, and rejected/pending outcomes distinct from success. Use
 unlabeled progress only during active work, with Retry/Back controls when blocked.
 Destructive actions expand inline consequences with Cancel and a final action;
-revalidate on that final action. Apple-managed purchase authorization is unchanged.
+revalidate on that final action. Full Game purchasing is a narrow exception: show
+concise inline pricing, pending-approval, verification, and restoration outcomes
+under [Purchases](../Platform/Purchases.md). Keep cancellation quiet and avoid
+additional alerts over Apple's purchase authorization.

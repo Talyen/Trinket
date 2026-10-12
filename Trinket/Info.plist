@@ -27,7 +27,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
-		<string>fetch</string>
 	</array>
 	<key>UIRequiresFullScreenIgnoredStartingWithVersion</key>
 	<string>27.1</string>

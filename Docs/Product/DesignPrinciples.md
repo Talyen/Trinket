@@ -30,7 +30,8 @@ require adding new input methods.
   implying success. Preserve the existing [failure presentation
   contract](../AgentContext/swiftui-features.md): no error/operation-status text
   or authored alerts; use visible eligibility, inline state, unlabeled progress
-  during active work, and Retry/Back controls when blocked.
+  during active work, and Retry/Back controls when blocked. Full Game purchasing
+  uses the contract's narrow exception for concise inline purchase outcomes.
 - Keep essential outcomes understandable with sound and haptics off. Sound and
   haptics can reinforce visual feedback; haptics alone do not satisfy the
   principle. Preserve Options settings and native accessibility semantics under

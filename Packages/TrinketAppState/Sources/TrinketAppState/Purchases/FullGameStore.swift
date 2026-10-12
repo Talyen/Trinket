@@ -17,14 +17,24 @@ public final class FullGameStore {
         }
     }
 
+    public enum Outcome: Equatable, Sendable {
+        case pricingUnavailable
+        case pendingApproval
+        case restoreFailed
+        case noPurchaseFound
+        case purchaseUnverified
+    }
+
     public nonisolated static let productID = "com.ryanmcintire.Trinket.fullgame"
     public private(set) var ownership: Ownership = .checking
+    public private(set) var outcome: Outcome?
     public private(set) var product: Product?
     public private(set) var isLoading = false
     public private(set) var isPurchasing = false
     public private(set) var isRestoring = false
     @ObservationIgnored private var listener: Task<Void, Never>?
     private var revision = 0
+    private var outcomeRevision = 0
     private let storefront: FullGameStorefront
 
     public convenience init() {
@@ -55,12 +65,16 @@ public final class FullGameStore {
 
     public func loadProduct() async {
         guard !isLoading, product == nil else { return }
+        let startedAt = beginOutcomeOperation()
         isLoading = true
         defer { isLoading = false }
         do {
             product = try await storefront.loadProduct()
         } catch {
             product = nil
+        }
+        if product == nil, !ownership.access.hasFullGame {
+            publishOutcome(.pricingUnavailable, revision: startedAt)
         }
     }
 
@@ -74,19 +88,33 @@ public final class FullGameStore {
         let resolved = await storefront.currentOwnership()
         guard revision == startedAt, !Task.isCancelled else { return false }
         ownership = resolved
+        if resolved.access.hasFullGame {
+            _ = beginOutcomeOperation()
+        }
         return true
     }
 
     public func purchaseStarted() {
+        _ = beginOutcomeOperation()
         isPurchasing = true
     }
 
     public func purchaseCompleted(_ result: Result<Product.PurchaseResult, any Error>) async {
+        let startedAt = outcomeRevision
         defer { isPurchasing = false }
         switch result {
         case let .success(.success(verification)):
             if let transaction = FullGameStorefront.delivery(verification) {
                 await receive(transaction)
+                if case .unverified = verification, !ownership.access.hasFullGame {
+                    publishOutcome(.purchaseUnverified, revision: startedAt)
+                } else if ownership == .unverified {
+                    publishOutcome(.purchaseUnverified, revision: startedAt)
+                }
+            }
+        case .success(.pending):
+            if !ownership.access.hasFullGame {
+                publishOutcome(.pendingApproval, revision: startedAt)
             }
         case .success, .failure:
             break
@@ -95,14 +123,37 @@ public final class FullGameStore {
 
     public func restore() async {
         guard !isRestoring, !isPurchasing else { return }
+        let startedAt = beginOutcomeOperation()
         isRestoring = true
         defer { isRestoring = false }
         do {
             try await storefront.sync()
+        } catch StoreKitError.userCancelled {
+            return
         } catch {
+            publishOutcome(.restoreFailed, revision: startedAt)
             return
         }
-        await refreshOwnership()
+        guard await reconcileOwnership() else { return }
+        switch ownership {
+        case .free:
+            publishOutcome(.noPurchaseFound, revision: startedAt)
+        case .unverified:
+            publishOutcome(.purchaseUnverified, revision: startedAt)
+        case .checking, .purchased, .familyShared:
+            break
+        }
+    }
+
+    private func beginOutcomeOperation() -> Int {
+        outcomeRevision &+= 1
+        outcome = nil
+        return outcomeRevision
+    }
+
+    private func publishOutcome(_ value: Outcome, revision: Int) {
+        guard outcomeRevision == revision, !Task.isCancelled else { return }
+        outcome = value
     }
 
     private func receive(_ transaction: FullGameTransaction) async {

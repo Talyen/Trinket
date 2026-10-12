@@ -1,9 +1,11 @@
 # App Store submission draft
 
-Data draft for the existing App Store Connect app **Trinket: Heroes & Companions**
-(`6811284921`), not standing policy. These fields describe the current local-only
-beta. Review them against the selected release build before submission, especially
-iCloud behavior. Product facts (identifier, pricing, Family Sharing) live in
+Submission draft for App Store Connect app `6811284921`, currently named
+**Trinket!**. The intended submission includes iCloud progress sync; current
+published pages and the latest inspected beta remain local-only. Apply the
+cloud-enabled replacements below only with a verified enabled build. These are
+draft fields, not standing policy. Product facts (identifier, pricing, Family
+Sharing) live in
 [Purchases.md](Purchases.md); release prerequisites and commands remain in
 [Release.md](Release.md).
 
@@ -67,13 +69,43 @@ To review Full Game, open Options → Unlock Full Game. This one-time, non-consu
 
 App Store Connect product `6811501717` uses the existing identifier from
 [Purchases.md](Purchases.md), with English description **Unlock all chapters and
-game modes permanently.** Creation/localization/pricing do not submit the product
-for review. Availability is configured for the United States for the owner's
-internal test. The review screenshot remains unfinished. Paid Apps Agreement,
-banking/tax, and sandbox purchase/restore status follow
-[Purchases.md](Purchases.md#before-release); current standing: agreement activation is pending
-the owner's bank account and W-9, and live sandbox purchase and restore verification
-remain outstanding. No app review was requested.
+game modes permanently.** Submit the first non-consumable with the app version;
+product configuration alone does not submit it for review.
+
+### Read-only readiness check — October 12, 2026
+
+- Apple API: Full Game is a non-consumable in `MISSING_METADATA`, with Family
+  Sharing enabled, US-only availability, and no purchase review screenshot or
+  review note. English product localization is `PREPARE_FOR_SUBMISSION`.
+- App version **1.0** is `PREPARE_FOR_SUBMISSION`, with manual release, no selected
+  build, and no screenshot sets. Existing review contact fields are populated;
+  sign-in is not required. The app name is **Trinket!**. The stored description
+  and review notes still describe local-only progress and must be reconciled
+  with the eventual cloud-enabled submission. The description also predates Voyage.
+- Existing age-rating answers declare frequent/intense fantasy violence and
+  weapons, mild/infrequent horror, and no paid loot boxes, gambling, chat, UGC,
+  or advertising. These answers were read, not changed; a full release-artwork
+  review and App Privacy answer reconciliation remain outstanding.
+- iPhone 14 Pro, installed TestFlight **0.1.0 (24)**: live product loading showed
+  **$4.99**; Apple's sheet explicitly stated testing only/no charge. A fresh
+  purchase succeeded, the offer dismissed, and Options showed **Full Game ·
+  Purchased**. Restore Purchases was exercised to completion and ownership
+  remained; ownership also survived termination/relaunch. Existing Stage 1-8
+  progress was preserved. This is not proof of fresh-install restoration,
+  Family Sharing, refund handling, gameplay-reset behavior, or the changed UI.
+- The retained local build-24 receipt records `cloud_sync=NO` and source
+  `898ca7f19015a6f186a0ee2a5c02ffa02be31315`. It does not verify current cloud sync.
+- Release doctor confirmed Apple API access and the existing Personal Testing
+  internal group. Paid Apps Agreement/banking/tax status was not verified:
+  the browser was signed out. Older pending-account notes are historical;
+  sandbox purchase success does not establish production agreement status.
+
+Before submission, verify the agreement directly, prepare and upload the
+release-build purchase screenshot, add app screenshots, choose a matching
+version/build, and confirm intended storefront availability. No portal fields,
+website content, tester membership, uploads, or submission state were changed by
+this check. The release candidate and current cloud-enabled device checks remain
+pending under the [CloudKit checklist](CloudKitPreShipChecklist.md).
 
 ## Cloud-enabled beta copy
 

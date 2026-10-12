@@ -85,6 +85,8 @@ struct FullGameOfferView: View {
                     .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.FullGame.retry)
             }
 
+            FullGameOutcomeMessage(outcome: store.outcome)
+
             HStack(spacing: TrinketDesign.Spacing.small) {
                 Button {
                     Task { await store.restore() }
@@ -158,4 +160,33 @@ private struct FullGameProductStyle: ProductViewStyle {
 enum TrinketPublicPages {
     static let privacy = URL(string: "https://talyen.github.io/Trinket/privacy.html")!
     static let support = URL(string: "https://talyen.github.io/Trinket/")!
+}
+
+struct FullGameOutcomeMessage: View {
+    let outcome: FullGameStore.Outcome?
+
+    var body: some View {
+        if let outcome {
+            Text(message(for: outcome))
+                .accessibilityIdentifier(AccessibilityID.FullGame.status)
+                .trinketTypography(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func message(for outcome: FullGameStore.Outcome) -> LocalizedStringKey {
+        switch outcome {
+        case .pricingUnavailable:
+            "Pricing is unavailable. Try again."
+        case .pendingApproval:
+            "Waiting for approval. Full Game will unlock when approved."
+        case .restoreFailed:
+            "Couldn’t restore purchases. Please try again."
+        case .noPurchaseFound:
+            "No Full Game purchase was found for your Apple Account."
+        case .purchaseUnverified:
+            "Couldn’t verify Full Game ownership. Please try Restore Purchases."
+        }
+    }
 }

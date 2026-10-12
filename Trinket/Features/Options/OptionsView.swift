@@ -106,6 +106,7 @@ struct OptionsView: View {
             .trinketTypography(.body)
             .disabled(fullGame.isRestoring || fullGame.isPurchasing)
             .accessibilityIdentifier(AccessibilityID.FullGame.restore)
+            FullGameOutcomeMessage(outcome: fullGame.outcome)
         }
     }
 

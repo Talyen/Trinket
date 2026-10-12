@@ -23,6 +23,23 @@ Only the newest started refresh may publish. Verified deliveries are finished
 after that refresh publishes; cancellation or supersession leaves them available
 for redelivery. A delayed foreground check cannot overwrite later restoration.
 
+## Purchase feedback
+
+`FullGameStore` exposes transient, read-only outcome state to the Full Game offer
+and Options. Show concise inline messages for unavailable pricing (alongside
+Retry), pending approval, restore failure, no purchase found, and unverified
+ownership. These outcomes never grant access. Clear stale messages when another
+purchase action starts or verified ownership arrives; asynchronous results from
+an older action cannot replace a newer outcome. Keep raw errors internal,
+cancellation quiet, and Apple-managed payment failures free of duplicate alerts.
+Successful purchase or restoration retains the existing ownership display and
+offer dismissal; delayed approval must not navigate away from gameplay.
+
+The app privacy manifest declares app-local UserDefaults (`CA92.1`) and file
+metadata (`C617.1`); save recovery reads modification timestamps inside the app
+container to prune old corrupt-save samples. File metadata access does not imply
+tracking or off-device data collection.
+
 ## Local development
 
 Both **Trinket** and **Trinket Development** use the

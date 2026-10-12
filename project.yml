@@ -93,7 +93,6 @@ targets:
         UIRequiresFullScreenIgnoredStartingWithVersion: "27.1"
         UIBackgroundModes:
           - remote-notification
-          - fetch
     dependencies:
       - sdk: StoreKit.framework
       - package: TrinketCore

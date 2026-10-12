@@ -7,6 +7,9 @@ checklist. It is not a code-quality audit. Source checks can run locally;
 account, portal, and device checks require access to the corresponding Apple services.
 
 Do not check boxes into git as durable state — leave items unchecked in the committed file. Record build-specific outcomes in the release handoff or TestFlight notes.
+The latest App Store and device readiness snapshot is in
+[AppStoreMetadata.md](AppStoreMetadata.md#read-only-readiness-check-october-12-2026);
+it distinguishes verified purchase behavior from outstanding cloud evidence.
 
 **Apple Developer Program:** A paid membership is required to create the CloudKit container, fill production entitlements, and verify multi-device sync. Local SwiftData, privacy-manifest prep, and `-disable-cloud-sync` testing do **not** require an account.
 
@@ -26,7 +29,7 @@ Recheck provisioning in App Store Connect and Xcode when preparing a
 cloud-enabled build; these identifiers do not check off the release gates.
 Container `iCloud.com.ryanmcintire.Trinket` serves app ID
 `com.ryanmcintire.Trinket` (iCloud and Push Notifications enabled); the App
-Store Connect record is **Trinket: Heroes & Companions**.
+Store Connect record is `6811284921` (currently **Trinket!**).
 
 Banking/tax completion and Full Game purchase testing are separate StoreKit work
 and do not block CloudKit development. See [Purchases.md](Purchases.md).
@@ -148,8 +151,8 @@ unapproved merge algorithm.
   TestFlight uses Production CloudKit and cannot be the first Development test.
 - [ ] Verify a cloud-enabled internal TestFlight update over the existing local-save
   beta, repeating stage 3's critical device scenarios and stage 2's rollback proof.
-  Record actual outcomes and build IDs. Preserve source identifiers even though the
-  App Store display name includes “Heroes & Companions.”
+  Record actual outcomes and build IDs. Preserve source identifiers independently
+  of the App Store display name.
 - [ ] Ship `PrivacyInfo.xcprivacy` and reconcile the iCloud sync delta against actual
   behavior: optional sync, offline play without login, and propagated reset.
   Do not promise manual sync controls. General support/privacy pages and App Privacy

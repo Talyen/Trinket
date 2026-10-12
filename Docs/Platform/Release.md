@@ -55,7 +55,7 @@ Use the existing App Store Connect record for TestFlight (provisioning:
 Complete its public listing using the [metadata draft](AppStoreMetadata.md);
 do not create another app or change the bundle ID to match the display name.
 
-1. In **Apps → Trinket: Heroes & Companions → App Information**, prepare the
+1. In **Apps → the existing Trinket app → App Information**, prepare the
    subtitle, Games category/subcategories, content rights, and age-rating answers
    based on actual game content. Use Apple's
    [age-rating questionnaire](https://developer.apple.com/help/app-store-connect/manage-app-information/set-an-app-age-rating/).
@@ -153,8 +153,8 @@ not proof of installation or a successful device test.
    and installs the locked Fastlane dependencies from `Gemfile.lock`. It does not
    use system Ruby, `sudo`, or change shell profiles. Homebrew is the prerequisite
    if the Mac does not already have it; see [Homebrew](https://brew.sh).
-2. In App Store Connect, use the existing **Trinket: Heroes & Companions** app
-   (`com.ryanmcintire.Trinket`) and select an existing internal group with its
+2. In App Store Connect, use app record `6811284921` (currently **Trinket!**;
+   `com.ryanmcintire.Trinket`) and select an existing internal group with its
    intended testers. Obtain a team API key through **Users and Access →
    Integrations → App Store Connect API**, with an App Manager or Admin role
    for upload and beta distribution. Signing additionally requires permission
