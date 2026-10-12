@@ -48,8 +48,10 @@ Settings profiles request iPhone SE third generation on iOS 26 and iPad A16
 (eleventh generation) on iOS 27. The compatibility lane separately requests iPhone
 SE third generation on iOS 18. Missing types, incompatible/missing runtimes, and
 missing native text controls fail visibly without fallback. CI installs the requested
-major's `.0` runtime when that major is absent, then checks availability and device
-compatibility again. Compatible products from successful exact-commit CI are reused;
+major's `.0` runtime with an explicit universal architecture variant when that
+major is absent, then checks availability and device compatibility again. Explicit
+variant selection makes the download consistent across CI hosts.
+Compatible products from successful exact-commit CI are reused;
 missing or incompatible products rebuild, using the shared warm cache when no transfer
 is available. One architecture's products are reused across settings and device profiles. All executions are serial on
 their owned simulator lease. Test runs retain the build's shared results directory

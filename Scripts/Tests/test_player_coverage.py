@@ -44,7 +44,9 @@ class PlayerCoverageTests(unittest.TestCase):
             with self.subTest(profile=name), patch.object(MODULE, 'simctl', side_effect=[types, missing, available]), \
                     patch.object(MODULE.subprocess, 'run') as install:
                 MODULE.prepare_profile(name)
-                self.assertEqual(install.call_args.args[0][-1], f'{major}.0')
+                install.assert_called_once_with(
+                    ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', f'{major}.0',
+                     '-architectureVariant', 'universal'], check=True, timeout=1800)
             with patch.object(MODULE, 'simctl', side_effect=[types, available]), \
                     patch.object(MODULE.subprocess, 'run') as install:
                 MODULE.prepare_profile(name)

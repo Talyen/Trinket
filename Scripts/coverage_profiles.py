@@ -78,7 +78,8 @@ def prepare_profile(name):
     runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
     if not any(item.get('isAvailable') is True and item.get('platform') == 'iOS'
                and str(item.get('version', '')).split('.')[0] == str(major) for item in runtimes):
-        subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', f'{major}.0'],
+        subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', f'{major}.0',
+                        '-architectureVariant', 'universal'],
                        check=True, timeout=1800)
         runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
     select_profile(runtimes, types, type_id, major)
