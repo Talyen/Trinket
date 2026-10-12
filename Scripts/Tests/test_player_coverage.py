@@ -210,10 +210,13 @@ esac
         command = workflow.split('      - name: Report actual requested-job conclusions', 1)[1].split('        run: |\n', 1)[1]
         command = '\n'.join(line[10:] for line in command.splitlines())
         with tempfile.TemporaryDirectory() as temporary:
-            for compatibility, profiles, soak, expected in [('success', 'success', 'skipped', 0),
-                    ('failure', 'success', 'success', 1), ('cancelled', 'success', 'skipped', 1),
-                    ('skipped', 'failure', 'success', 1), ('success', 'success', 'cancelled', 1)]:
+            for runtime, compatibility, profiles, soak, expected in [('success', 'success', 'success', 'skipped', 0),
+                    ('success', 'failure', 'success', 'success', 1), ('success', 'cancelled', 'success', 'skipped', 1),
+                    ('skipped', 'skipped', 'failure', 'success', 1), ('success', 'success', 'success', 'cancelled', 1),
+                    ('failure', 'skipped', 'skipped', 'skipped', 1), ('cancelled', 'skipped', 'skipped', 'skipped', 1),
+                    ('skipped', 'skipped', 'success', 'skipped', 0)]:
                 result = subprocess.run(['bash', '-ec', command], env={**os.environ,
-                    'COMPATIBILITY': compatibility, 'PROFILES': profiles, 'SOAK': soak, 'GITHUB_STEP_SUMMARY': str(Path(temporary) / 'summary')},
+                    'IOS18_RUNTIME': runtime, 'COMPATIBILITY': compatibility, 'PROFILES': profiles,
+                    'SOAK': soak, 'GITHUB_STEP_SUMMARY': str(Path(temporary) / 'summary')},
                     capture_output=True, text=True)
                 self.assertEqual(result.returncode, expected, result.stderr)

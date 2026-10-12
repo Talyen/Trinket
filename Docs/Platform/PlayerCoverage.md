@@ -47,10 +47,14 @@ Run wrappers only in CI or an expressly requested local diagnostic:
 Settings profiles request iPhone SE third generation on iOS 26 and iPad A16
 (eleventh generation) on iOS 27. The compatibility lane separately requests iPhone
 SE third generation on iOS 18. Missing types, incompatible/missing runtimes, and
-missing native text controls fail visibly without fallback. CI installs the requested
-major's `.0` runtime with an explicit universal architecture variant when that
-major is absent, then checks availability and device compatibility again. Explicit
-variant selection makes the download consistent across CI hosts.
+missing native text controls fail visibly without fallback. Xcode 27's command-line
+download rejects pre-26 runtimes ([FB24836279](https://developer.apple.com/forums/thread/847134)).
+CI exports Apple's iOS 18.0 runtime with Xcode 26.6 on `macos-26`, transfers the
+archive with one-day retention, then imports it on the verified Xcode 27 runner.
+Compilation and tests still use the verified toolchain. Other profiles install the
+requested major's `.0` runtime with an explicit universal architecture variant
+when absent. Every profile checks runtime availability and device compatibility
+after preparation; failed provisioning fails the aggregate verdict.
 Compatible products from successful exact-commit CI are reused;
 missing or incompatible products rebuild, using the shared warm cache when no transfer
 is available. One architecture's products are reused across settings and device profiles. All executions are serial on

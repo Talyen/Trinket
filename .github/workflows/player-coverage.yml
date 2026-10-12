@@ -21,8 +21,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  ios18-runtime:
+    name: Export Apple's iOS 18 runtime
+    if: github.event.schedule == '0 8 * * *' || inputs.scope == 'compatibility' || inputs.scope == 'all'
+    runs-on: macos-26
+    timeout-minutes: 50
+    steps:
+      # Xcode 27's CLI rejects pre-26 downloads (FB24836279). Export with
+      # Xcode 26, then import on the verified build/test runner below.
+      - name: Export the iOS 18.0 simulator runtime
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+        run: xcodebuild -downloadPlatform iOS -buildVersion 18.0 -exportPath "$RUNNER_TEMP/ios18-runtime"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ios18-runtime-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ios18-runtime/**/*.dmg
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+
   compatibility:
     name: iOS 18 compatibility, purchases and durable saves
+    needs: ios18-runtime
     if: github.event.schedule == '0 8 * * *' || inputs.scope == 'compatibility' || inputs.scope == 'all'
     runs-on: xcode-27
     timeout-minutes: 120
@@ -36,9 +57,23 @@ jobs:
         with:
           metal: 'true'
           xcode-channel: verified
-      - name: Prepare the required iOS 18 runtime
+      - uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317
+        with:
+          name: ios18-runtime-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ios18-runtime
+      - name: Import and validate the required iOS 18 runtime
         timeout-minutes: 35
-        run: python3 Scripts/coverage_profiles.py prepare --name ios18
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import subprocess
+          archives = list((Path(os.environ['RUNNER_TEMP']) / 'ios18-runtime').rglob('*.dmg'))
+          if len(archives) != 1:
+              raise SystemExit(f'Expected one Apple runtime archive, found {len(archives)}')
+          subprocess.run(['xcodebuild', '-importPlatform', str(archives[0])], check=True, timeout=1800)
+          PY
+          python3 Scripts/coverage_profiles.py prepare --name ios18
       - uses: ./.github/actions/coverage-products
       - name: Verify fallback controls, smoke, purchase recovery and persistence serially
         env:
@@ -138,18 +173,19 @@ jobs:
 
   coverage-status:
     name: Player coverage status (advisory for pushes)
-    needs: [compatibility, profiles, soak]
+    needs: [ios18-runtime, compatibility, profiles, soak]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Report actual requested-job conclusions
         env:
+          IOS18_RUNTIME: ${{ needs.ios18-runtime.result }}
           COMPATIBILITY: ${{ needs.compatibility.result }}
           PROFILES: ${{ needs.profiles.result }}
           SOAK: ${{ needs.soak.result }}
         shell: bash
         run: |
-          printf 'iOS 18: %s\nProfiles: %s\nSoak: %s\n' "$COMPATIBILITY" "$PROFILES" "$SOAK" >> "$GITHUB_STEP_SUMMARY"
-          for result in "$COMPATIBILITY" "$PROFILES" "$SOAK"; do
+          printf 'iOS 18 runtime: %s\niOS 18: %s\nProfiles: %s\nSoak: %s\n' "$IOS18_RUNTIME" "$COMPATIBILITY" "$PROFILES" "$SOAK" >> "$GITHUB_STEP_SUMMARY"
+          for result in "$IOS18_RUNTIME" "$COMPATIBILITY" "$PROFILES" "$SOAK"; do
             [[ "$result" == success || "$result" == skipped ]] || exit 1
           done
