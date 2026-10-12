@@ -701,6 +701,29 @@ trinket_dir_lock_acquire "$2" 0
             self.assertIn('Simulator guest process inspection failed', result.stderr)
             self.assertFalse((root / 'guest-tests').exists())
 
+    def test_guest_process_timeout_retries_once_and_fails_closed(self):
+        source = (ROOT / 'Scripts/lib/simctl.sh').read_text()
+        reader = source.split("<<'PY_PROCESSES'\n", 1)[1].split('\nPY_PROCESSES', 1)[0]
+        command = ['ps', '-axo', 'pid=,ppid=,lstart=,command=']
+        snapshot = '123 1 Wed Sep 30 12:01:00 2026 launchd_sim /Devices/fixture/data/var/run/launchd_bootstrap.plist\n'
+        for recovers in (False, True):
+            with self.subTest(recovers=recovers):
+                timeout = subprocess.TimeoutExpired(command, 10)
+                outcomes = [timeout, subprocess.CompletedProcess(command, 0, stdout=snapshot) if recovers else timeout]
+                output, errors = io.StringIO(), io.StringIO()
+                with patch('subprocess.run', side_effect=outcomes) as query, \
+                        contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors):
+                    if recovers:
+                        exec(reader, {})
+                    else:
+                        with self.assertRaises(SystemExit) as failure:
+                            exec(reader, {})
+                        self.assertEqual(failure.exception.code, 1)
+                self.assertEqual([call.kwargs['timeout'] for call in query.call_args_list], [10, 30])
+                self.assertEqual(output.getvalue(), snapshot if recovers else '')
+                if not recovers:
+                    self.assertIn('Simulator guest process inspection failed', errors.getvalue())
+
     def test_cancellation_stops_workers_before_releasing_resources(self) -> None:
         def check(case: tuple[str, signal.Signals]) -> None:
             owner, sig = case

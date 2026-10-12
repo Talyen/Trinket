@@ -55,12 +55,19 @@ trinket_test_guest_processes() {
   local processes
   # CoreSimulator can leave process inspection stalled after boot. A failed
   # baseline must stop the run, never authorize cleanup of unknown guests.
+  # Retry a transient timeout once, as in output_retention.process_snapshot.
   processes="$(python3 - <<'PY_PROCESSES'
 import subprocess
 import sys
 try:
-    result = subprocess.run(["ps", "-axo", "pid=,ppid=,lstart=,command="],
-                            stdout=subprocess.PIPE, text=True, check=True, timeout=10)
+    for timeout in (10, 30):
+        try:
+            result = subprocess.run(["ps", "-axo", "pid=,ppid=,lstart=,command="],
+                                    stdout=subprocess.PIPE, text=True, check=True, timeout=timeout)
+            break
+        except subprocess.TimeoutExpired:
+            if timeout == 30:
+                raise
     print(result.stdout, end="")
 except (OSError, subprocess.SubprocessError) as error:
     print(f"Simulator guest process inspection failed: {error}", file=sys.stderr)
