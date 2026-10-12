@@ -6,6 +6,10 @@ inputs:
     description: verified uses the exact required build; latest validates the newest installed Xcode
     required: false
     default: 'verified'
+  xcode-build:
+    description: Exact candidate product build; requires the latest validation channel
+    required: false
+    default: ''
   metal:
     description: Ensure Metal toolchain is downloaded and installed (needed only for jobs compiling shaders/app targets)
     required: false
@@ -18,9 +22,11 @@ runs:
       shell: bash
       env:
         TRINKET_CI_XCODE_CHANNEL: ${{ inputs.xcode-channel }}
+        TRINKET_CI_XCODE_BUILD: ${{ inputs.xcode-build }}
         TRINKET_CI_METAL: ${{ inputs.metal }}
       run: |
         args=(--channel "$TRINKET_CI_XCODE_CHANNEL")
+        if [[ -n "$TRINKET_CI_XCODE_BUILD" ]]; then args+=(--build "$TRINKET_CI_XCODE_BUILD"); fi
         if [[ "$TRINKET_CI_METAL" == true ]]; then args+=(--metal); fi
         python3 Scripts/setup-ci-xcode.py "${args[@]}"
 

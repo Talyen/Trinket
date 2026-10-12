@@ -37,7 +37,17 @@ def installed_xcodes(directory: Path) -> list[tuple[Path, str, str]]:
 
 
 def select_xcode(installations: list[tuple[Path, str, str]], channel: str,
-                 approved: dict[str, str]) -> tuple[Path, str, str]:
+                 approved: dict[str, str], requested_build: str = "") -> tuple[Path, str, str]:
+    if requested_build:
+        if channel != "latest":
+            raise RuntimeError("An explicit candidate build requires the latest validation channel")
+        if not re.fullmatch(r"[0-9]+[A-Z][0-9]+[a-z]?", requested_build):
+            raise RuntimeError("Invalid Xcode product build")
+        matches = [item for item in installations if item[2] == requested_build]
+        if not matches:
+            raise RuntimeError(f"Candidate Xcode build {requested_build} is not installed; "
+                               f"available: {[(version, build) for _, version, build in installations]}")
+        return matches[0]
     if channel == "verified":
         matches = [item for item in installations if item[1:] == (approved["version"], approved["build"])]
         if not matches:
@@ -101,9 +111,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--channel", choices=("verified", "latest"), default="verified")
     parser.add_argument("--metal", action="store_true")
+    parser.add_argument("--build", default="", help="Exact candidate product build; requires --channel latest")
     args = parser.parse_args()
     approved = json.loads((ROOT / "Scripts/config/ci-xcode.json").read_text())
-    app, version, build = select_xcode(installed_xcodes(Path("/Applications")), args.channel, approved)
+    app, version, build = select_xcode(installed_xcodes(Path("/Applications")), args.channel, approved, args.build)
     environment = {**os.environ, "DEVELOPER_DIR": str(app / "Contents/Developer")}
     print(f"Selecting Xcode: {app} ({version}, build {build}, channel {args.channel})", flush=True)
     subprocess.run(["xcodebuild", "-version"], env=environment, timeout=30, check=True)

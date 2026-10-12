@@ -17,6 +17,11 @@ on:
         options:
           - verified
           - latest
+      xcode-build:
+        description: Exact candidate product build (requires toolchain latest; blank selects newest)
+        required: false
+        type: string
+        default: ''
       scope:
         description: Test scope
         required: true
@@ -43,6 +48,7 @@ jobs:
     uses: ./.github/workflows/tests.yml
     with:
       xcode-channel: ${{ github.event_name == 'schedule' && 'latest' || inputs.toolchain || 'verified' }}
+      xcode-build: ${{ inputs.xcode-build || '' }}
       force-full: ${{ inputs.scope == 'exhaustive-pilot' }}
       qualify-native: ${{ inputs.scope == 'qualification' }}
       include-exhaustive: ${{ github.event_name == 'schedule' || inputs.scope == 'exhaustive' || inputs.scope == 'exhaustive-pilot' }}

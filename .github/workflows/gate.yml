@@ -3,6 +3,10 @@ name: Gate
 on:
   workflow_call:
     inputs:
+      xcode-build:
+        description: Exact candidate product build for latest validation
+        type: string
+        default: ''
       xcode-channel:
         type: string
         default: verified
@@ -50,6 +54,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
         with:
           xcode-channel: ${{ inputs.xcode-channel }}
+          xcode-build: ${{ inputs.xcode-build }}
       # Same semantics as local ./Scripts/ci-gate.sh (single owner).
       - name: CI gate
         env:

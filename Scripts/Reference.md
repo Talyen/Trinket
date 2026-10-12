@@ -186,6 +186,11 @@ fails setup rather than silently changing the compiler. Nightly CI and manual
 cannot reuse the required toolchain's verification. Local scripts honor
 `DEVELOPER_DIR`, otherwise inheriting the Mac's selected Xcode.
 
+Manual `toolchain=latest` runs can set `xcode-build` to an exact candidate product
+build (for example `27A9275`). Every job must find that build installed or fail;
+the selector never substitutes the newest beta or changes the verified pin.
+Leave the field blank for normal newest-installed validation.
+
 Promote a newer build in `ci-xcode.json` only after `toolchain=latest` CI proves
 that exact build's Metal readiness, app/smoke, package tests and device Release
 compilation. Commit the pin and verify its push; a marketing version alone cannot

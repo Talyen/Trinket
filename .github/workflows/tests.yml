@@ -10,6 +10,10 @@ name: Build and test
 on:
   workflow_call:
     inputs:
+      xcode-build:
+        description: Exact candidate product build for latest validation
+        type: string
+        default: ''
       xcode-channel:
         description: Required verified toolchain or newest installed beta validation
         type: string
@@ -64,6 +68,7 @@ jobs:
     uses: ./.github/workflows/gate.yml
     with:
       xcode-channel: ${{ inputs.xcode-channel }}
+      xcode-build: ${{ inputs.xcode-build }}
 
   assets-gate:
     name: Prepared asset integrity
@@ -79,6 +84,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
         with:
           xcode-channel: ${{ inputs.xcode-channel }}
+          xcode-build: ${{ inputs.xcode-build }}
       # Same semantics as local ./Scripts/ci-assets-gate.sh (single owner).
       - name: Prepared asset integrity gate
         run: python3 Scripts/ci-run-budget.py -- ./Scripts/ci-assets-gate.sh
@@ -143,6 +149,7 @@ jobs:
         with:
           metal: 'true'
           xcode-channel: ${{ inputs.xcode-channel }}
+          xcode-build: ${{ inputs.xcode-build }}
       - name: Read smoke test classes
         id: ui-matrices
         shell: bash
@@ -228,6 +235,7 @@ jobs:
         with:
           metal: 'true'
           xcode-channel: ${{ inputs.xcode-channel }}
+          xcode-build: ${{ inputs.xcode-build }}
       - name: Compile unsigned device Release
         env:
           SKIP_GENERATE: 1
@@ -292,6 +300,7 @@ jobs:
           # TrinketFeatureSupport, which compiles DesignSystem shaders.
           metal: ${{ matrix.name == 'Content' || matrix.name == 'State' || matrix.name == 'Battle' }}
           xcode-channel: ${{ inputs.xcode-channel }}
+          xcode-build: ${{ inputs.xcode-build }}
       - uses: ./.github/actions/package-cache
         id: package-cache
         with:
@@ -399,6 +408,7 @@ jobs:
         with:
           metal: 'true'
           xcode-channel: ${{ inputs.xcode-channel }}
+          xcode-build: ${{ inputs.xcode-build }}
       - name: Read exhaustive test classes
         if: needs.reuse.outputs.standard == 'true'
         id: ui-targets

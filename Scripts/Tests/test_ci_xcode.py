@@ -2,6 +2,7 @@
 SCRIPT_INPUTS = (
     'Scripts/setup-ci-xcode.py', 'Scripts/config/ci-xcode.json',
     '.github/actions/setup-trinket/action.yml', '.github/workflows/gate.yml',
+    '.github/workflows/ci.yml', '.github/workflows/tests.yml',
 )
 
 from pathlib import Path
@@ -37,6 +38,18 @@ class CIXcodeTests(unittest.TestCase):
             self.assertEqual(SETUP.select_xcode(installations, 'latest', pin)[1:], ('27.2', '27B5028f'))
             with self.assertRaisesRegex(RuntimeError, 'not installed'):
                 SETUP.select_xcode(installations, 'verified', dict(version='27.2', build='27B5019j'))
+
+    def test_explicit_candidate_never_falls_back_or_overrides_verified_pin(self):
+        installations = [(Path('/Applications/RC.app'), '27.1', '27A9275'),
+                         (Path('/Applications/Beta.app'), '27.2', '27B5028f')]
+        pin = dict(version='27.1', build='27A9269')
+        self.assertEqual(SETUP.select_xcode(installations, 'latest', pin, '27A9275'), installations[0])
+        with self.assertRaisesRegex(RuntimeError, 'not installed'):
+            SETUP.select_xcode(installations[1:], 'latest', pin, '27A9275')
+        with self.assertRaisesRegex(RuntimeError, 'latest validation channel'):
+            SETUP.select_xcode(installations, 'verified', pin, '27A9275')
+        with self.assertRaisesRegex(RuntimeError, 'Invalid'):
+            SETUP.select_xcode(installations, 'latest', pin, '../RC.app')
 
     def test_metal_retry_requires_real_readiness_and_never_accepts_download_exit_alone(self):
         environment = dict(DEVELOPER_DIR='/Applications/Selected.app/Contents/Developer')
