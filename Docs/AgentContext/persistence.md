@@ -19,14 +19,14 @@ receipt set and reject economic edits through the same commit validation. Debug-
 `persistFixtureBatch` support unrestricted setup and legacy journal coverage through
 `@testable import TrinketPersistence`; gameplay never uses snapshot inference.
 Domain operations mutate a candidate
-save; rejection discards it without publishing or writing. Immediate writes publish
+save; rejection discards it without publishing or writing. Writes publish
 the observed candidate only after the graph or durable recovery file accepts it.
 Total write failures use compensation and silent action retries, as described in
 [storage recovery](persistence-storage.md). Observable sessions apply outcomes and
 navigation only after commit; they do not show technical save-error alerts.
-Deferred mutation is an internal `performBatchMutation(..., persistImmediately: false)`
-operation, with a debounced save and a synchronous lifecycle flush; there is no
-store-wide deferred-setter setting or `-defer-persistence` launch argument.
+There is one commit model: every mutation is durable before publication.
+`flushPendingPersistence` retries an already accepted recovery-file save at
+lifecycle and synchronization checkpoints; it never publishes an uncommitted edit.
 
 Roster edits carry combatant, ability, and physical item IDs, never caller-owned
 catalog or Inventory snapshots. Candidate-value rules in `Models/RosterEdits.swift`
@@ -45,7 +45,7 @@ existing persistence tests may suffice for a new API. Apply
 
 | Concern | Canonical contract |
 |---|---|
-| Graph, schema, sanitization, deferred writes and failure recovery | [Storage](persistence-storage.md) |
+| Graph, schema, sanitization and failure recovery | [Storage](persistence-storage.md) |
 | Rewards, claims, Shop stock, encounter identity and Homestead transactions | [Progression](persistence-progression.md) |
 
 `agent-context.sh` suggests references for known domain paths; store hubs, tests

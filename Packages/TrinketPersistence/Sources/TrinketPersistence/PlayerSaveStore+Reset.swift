@@ -50,7 +50,6 @@ extension PlayerSaveStore {
         } else {
             lastPersistenceError = nil
         }
-        clearPendingDeferredPersistence()
         installObservedSave(sanitized, slices: .all)
     }
 
@@ -122,7 +121,6 @@ extension PlayerSaveStore {
             }
             try setCloudDeviceState(cloudDeviceState)
             try saveGraph()
-            clearPendingDeferredPersistence()
             installObservedSave(save)
         } catch {
             container = previous.container

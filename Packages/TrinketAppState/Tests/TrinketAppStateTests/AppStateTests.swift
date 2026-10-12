@@ -64,7 +64,7 @@ struct AppStateTests {
         #expect(!state.play.battle.isSuspendedForScenePhase)
     }
 
-    @Test func `scene phase flushes deferred player save synchronously`() throws {
+    @Test func `scene phase flushes accepted recovery save synchronously`() throws {
         let storeURL = SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL)
         let playerSave = try PlayerSaveStore(
             storeURL: storeURL,
@@ -72,12 +72,15 @@ struct AppStateTests {
         )
         let state = try context.makeAppState(playerSave: playerSave)
         let goldBefore = state.playerSave.roster.gold
-        try state.playerSave.performFixtureMutation({ $0.roster.grantGold(13) }, persistImmediately: false)
+        playerSave.forcesNextDatabaseSaveFailure = true
+        try playerSave.performFixtureMutation { $0.roster.grantGold(13) }
+        #expect(playerSave.isPersistenceDegraded)
 
         state.reconcileShellState(.scenePhaseChanged, scenePhase: .background)
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         #expect(reloaded.roster.gold == goldBefore + 13)
+        #expect(!playerSave.isPersistenceDegraded)
         #expect(playerSave.lastPersistenceError == nil)
     }
 

@@ -30,8 +30,6 @@ public final class PlayerSaveStore {
         saveActionRetries.isRetrying
     }
 
-    var deferredSaveTask: Task<Void, Never>?
-    var pendingDeferredSave: PendingDeferredSave?
     let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave",
@@ -235,7 +233,6 @@ public final class PlayerSaveStore {
     }
 
     isolated deinit {
-        deferredSaveTask?.cancel()
         saveActionRetries.cancelAll()
     }
 

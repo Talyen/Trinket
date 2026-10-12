@@ -42,8 +42,7 @@ extension PlayerSaveStore {
         }
     }
 
-    /// Transactional commit spelling. Transactions are always immediate;
-    /// deferred writes use `performBatchMutation(persistImmediately: false)`.
+    /// Commits a candidate only after the domain operation accepts it.
     func persistTransaction<Value, Failure: Error>(
         logging message: String,
         _ mutation: (inout PlayerSave) -> Result<Value, Failure>,

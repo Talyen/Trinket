@@ -80,10 +80,11 @@ An action completes only after the graph or recovery file accepts its save. If
 both writes fail, restore the pre-mutation value snapshot into affected graph
 slices and the observed projection. Compensation stays unsaved until a later
 successful write; do not use `ModelContext.rollback()` because restoring deleted
-relationship rows can crash SwiftData on the iOS 27 simulator. An immediate total
-failure preserves earlier deferred changes; a failed explicit deferred flush
-restores its last persisted snapshot. Reload tests prove subsequent writes retain
-the recovered values. Production actions use immediate commits.
+relationship rows can crash SwiftData on the iOS 27 simulator. Every mutation uses
+this durable acceptance boundary; there is no optimistic deferred-write path.
+Lifecycle and sync checkpoints retry pending recovery files without rolling back
+already accepted progress. Reload tests prove subsequent writes retain the
+recovered values.
 
 `retrySaveAction` retains a failed action and retries it without a player prompt.
 Keys prevent duplicate retries; the captured session generation prevents late
@@ -139,9 +140,9 @@ may extend a frozen upload prefix while planning runs; its later actions remain
 pending until their own receipt. Replay checks cancellation between actions.
 
 Approved reconciliation merges concurrent branches within the same reset epoch
-without player conflict prompts. Each immediate durable game mutation records an
-identified domain action with reconstructible before/after snapshots in the local cloud outbox;
-deferred mutations remain in the complete save projection. Upload requests
+without player conflict prompts. Each durable game mutation records an
+identified domain action with reconstructible before/after snapshots in the local cloud outbox.
+Upload requests
 carry those actions, their acknowledged base snapshot, and a stable request ID;
 the server replays the actions into one complete projected save and an immutable
 receipt. A successful receipt removes only its included local actions. Union earned

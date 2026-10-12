@@ -320,23 +320,6 @@ struct PlayerSaveStoreTests {
         }
     }
 
-    @Test @MainActor func `flush pending persistence persists deferred mutation through reload`() throws {
-        let context = try PersistenceTestContext()
-        let storeURL = context.storeURL()
-        let store = try PlayerSaveStore(
-            storeURL: storeURL,
-            disableCloudSync: true,
-        )
-        try store.performFixtureMutation({ $0.roster.grantGold(19) }, persistImmediately: false)
-        try #expect(store.roster.gold == 19)
-
-        store.flushPendingPersistence()
-
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        try #expect(reloaded.roster.gold == 19)
-        try #expect(store.lastPersistenceError == nil)
-    }
-
     @Test @MainActor func `perform batch mutation preserves state when validation fails`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore(inMemoryOnly: true)
@@ -461,45 +444,6 @@ extension PlayerSaveStoreTests {
         #expect(resetReload.roster.gold == 0)
     }
 
-    @Test(arguments: [[20, 30], [30]])
-    @MainActor func `deferred flush rolls back to last persisted snapshot`(deferredGold: [Int]) throws {
-        let context = try PersistenceTestContext()
-        let storeURL = context.storeURL()
-        let store = try PlayerSaveStore(
-            storeURL: storeURL,
-            disableCloudSync: true,
-        )
-        try store.performFixtureMutation({ save in
-            save.roster.gold = 10
-            save.homestead.pendingProduction = [.food: 10]
-        }, persistImmediately: true)
-        try #expect(store.roster.gold == 10)
-
-        for gold in deferredGold {
-            try store.performFixtureMutation({ save in
-                save.roster.gold = gold
-                save.homestead.pendingProduction = [:]
-            }, persistImmediately: false)
-        }
-        try #expect(store.roster.gold == deferredGold.last)
-
-        store.forcesNextSaveFailure = true
-        store.flushPendingPersistence()
-
-        try #expect(store.roster.gold == 10)
-        try #expect(store.lastPersistenceError == .writeFailed)
-
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        try #expect(reloaded.roster.gold == 10)
-        #expect(reloaded.homestead.pendingProduction == [.food: 10])
-        #expect(store.homestead.pendingProduction == [.food: 10])
-        store.grantGold(5)
-        store.flushPendingPersistence()
-        let retryReload = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        #expect(retryReload.roster.gold == 15)
-        #expect(retryReload.homestead.pendingProduction == [.food: 10])
-    }
-
     @Test @MainActor func `persist batch returns false and rolls back when save fails`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
@@ -513,71 +457,6 @@ extension PlayerSaveStoreTests {
         #expect(!persisted)
         try #expect(store.roster.gold == 10)
         try #expect(store.lastPersistenceError == .writeFailed)
-    }
-
-    @Test(arguments: [false, true])
-    @MainActor func `failed immediate write preserves earlier deferred changes`(failsFlush: Bool) throws {
-        let context = try PersistenceTestContext()
-        let storeURL = context.storeURL()
-        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        try store.performFixtureMutation { save in
-            save.roster.gold = 10
-            save.homestead.pendingProduction = [.food: 10]
-        }
-        try store.performFixtureMutation({ save in
-            save.roster.gold = 20
-        }, persistImmediately: false)
-        let deferredSnapshot = store.currentSave
-        store.forcesNextSaveFailure = true
-        #expect(throws: PlayerSavePersistenceError.self) {
-            try store.performFixtureMutation { save in
-                save.roster.gold = 30
-                save.homestead.pendingProduction = [:]
-            }
-        }
-        #expect(store.currentSave == deferredSnapshot)
-        let failedReload = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        #expect(failedReload.roster.gold == 10)
-        #expect(failedReload.homestead.pendingProduction == [.food: 10])
-
-        store.forcesNextSaveFailure = failsFlush
-        store.flushPendingPersistence()
-        #expect(store.roster.gold == (failsFlush ? 10 : 20))
-        let flushedReload = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        #expect(flushedReload.roster.gold == (failsFlush ? 10 : 20))
-        #expect(flushedReload.homestead.pendingProduction == [.food: 10])
-        store.grantGold(5)
-        let retryReload = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        #expect(retryReload.roster.gold == (failsFlush ? 15 : 25))
-        #expect(retryReload.homestead.pendingProduction == [.food: 10])
-    }
-
-    @Test @MainActor func `immediate persist retires deferred rollback so A later flush failure keeps saved progress`() throws {
-        let context = try PersistenceTestContext()
-        let storeURL = context.storeURL()
-        let store = try PlayerSaveStore(
-            storeURL: storeURL,
-            disableCloudSync: true,
-        )
-        try store.performFixtureMutation({ save in
-            save.roster.gold = 10
-        }, persistImmediately: true)
-        try store.performFixtureMutation({ save in
-            save.roster.gold = 20
-        }, persistImmediately: false)
-        try store.performFixtureMutation({ save in
-            save.roster.gold = 50
-        }, persistImmediately: true)
-        try #expect(store.roster.gold == 50)
-
-        store.forcesNextSaveFailure = true
-        store.flushPendingPersistence()
-
-        try #expect(store.roster.gold == 50)
-        try #expect(store.lastPersistenceError == nil)
-
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        try #expect(reloaded.roster.gold == 50)
     }
 }
 #endif

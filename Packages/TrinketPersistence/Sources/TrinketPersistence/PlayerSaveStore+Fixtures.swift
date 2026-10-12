@@ -5,11 +5,10 @@ extension PlayerSaveStore {
     /// separate from gameplay transactions and unavailable in Release builds.
     func performFixtureMutation(
         _ mutation: (inout PlayerSave) -> Void,
-        persistImmediately: Bool = true,
     ) throws {
         var candidate = currentSave
         mutation(&candidate)
-        try commit(candidate, persistImmediately: persistImmediately, accounting: .fixtureSnapshot)
+        try commit(candidate, accounting: .fixtureSnapshot)
     }
 
     @discardableResult

@@ -25,7 +25,7 @@ extension CloudSaveSyncTests {
         #expect(try context.makeReloadedStore().currentSave == before)
     }
 
-    @Test(arguments: ["batch", "transaction", "immediate", "deferred"]) @MainActor
+    @Test(arguments: ["batch", "transaction", "immediate"]) @MainActor
     func `save-only APIs reject economic edits before publication or journaling`(api: String) async throws {
         let context = try PersistenceTestContext()
         let store = try cloudStore(context, transport: CloudSaveTestTransport())
@@ -50,12 +50,11 @@ extension CloudSaveSyncTests {
             guard case .persistFailed = result else { Issue.record("Expected rejected economic coverage"); return }
         default:
             #expect(throws: SaveEconomicMutation.ValidationFailure.self) {
-                try store.performBatchMutation(mutation, persistImmediately: api == "immediate")
+                try store.performBatchMutation(mutation)
             }
         }
         #expect(store.currentSave == before)
         #expect(store.cloudDeviceState.account.journal == journal)
-        #expect(store.pendingDeferredSave == nil)
         #expect(try context.makeReloadedStore().currentSave == before)
         // The same save-only path still commits a real non-economic edit.
         #expect(store.persistBatch(logging: "Non-economic edit") { $0.corruptionAltarCooldownRemaining = 1 })

@@ -7,9 +7,8 @@ import TrinketContent
 extension PlayerSaveStore {
     func performBatchMutation(
         _ update: (inout PlayerSave) -> Void,
-        persistImmediately: Bool = true,
     ) throws {
-        try commit(proposedSave(by: update), persistImmediately: persistImmediately)
+        try commit(proposedSave(by: update))
     }
 
     /// Single commit path shared by `performBatchMutation` (throws),
@@ -18,7 +17,6 @@ extension PlayerSaveStore {
     /// they report failure.
     func commit(
         _ proposed: PlayerSave,
-        persistImmediately: Bool = true,
         accounting: SaveMutationAccounting = .receipts([]),
     ) throws {
         let mutationInterval = Self.performanceSignposter.beginInterval("PlayerSaveMutation")
@@ -36,7 +34,6 @@ extension PlayerSaveStore {
                 candidate,
                 replacing: snapshot,
                 slices: changedSlices,
-                persistImmediately: persistImmediately,
                 receipts: receipts,
             )
         } catch {
@@ -86,6 +83,17 @@ extension PlayerSaveStore {
         )
     }
 
+    /// Lifecycle/sync checkpoint for an already accepted recovery-file save.
+    /// Gameplay commands always persist before publishing their candidate.
+    public func flushPendingPersistence() {
+        guard pendingSaveRecovery?.hasPendingSave == true else { return }
+        do {
+            try saveGraph()
+        } catch {
+            notePersistenceFailure(error, logging: "Failed to flush pending player progress")
+        }
+    }
+
     func saveGraph() throws {
         let interval = Self.performanceSignposter.beginInterval("ModelContextSave")
         defer {
@@ -132,42 +140,25 @@ extension PlayerSaveStore {
         _ candidate: PlayerSave,
         replacing snapshot: PlayerSave,
         slices: PlayerSaveSlice,
-        persistImmediately: Bool = true,
         recordsCloudMutation: Bool = true,
         receipts: [SaveEconomicReceipt]? = nil,
     ) throws {
         guard !slices.isEmpty else { return }
         let previousCloudState = cloudDeviceState
-        if recordsCloudMutation, persistImmediately {
+        if recordsCloudMutation {
             try recordCloudMutation(from: snapshot, to: candidate, slices: slices, receipts: receipts)
         }
         root.apply(candidate, slices: slices, context: context)
-        if persistImmediately {
+        do {
+            try saveGraph()
+        } catch {
             do {
-                try saveGraph()
-                // Immediate success persists the whole graph, including any
-                // earlier deferred rows, so the deferred rollback is done.
-                clearPendingDeferredPersistence()
+                try restoreCloudMetadata(previousCloudState)
             } catch {
-                do {
-                    try restoreCloudMetadata(previousCloudState)
-                } catch {
-                    logger.error("Failed to restore cloud journal after a rejected save: \(String(describing: error), privacy: .public)")
-                }
-                // Immediate total failure preserves earlier deferred changes
-                // per the storage contract: compensate only this attempt's
-                // slices, leaving deferred increments published for their own
-                // flush/rollback.
-                restoreSnapshot(snapshot, slices: slices)
-                throw PlayerSavePersistenceError.mapped(error)
+                logger.error("Failed to restore cloud journal after a rejected save: \(String(describing: error), privacy: .public)")
             }
-        } else {
-            if pendingDeferredSave == nil {
-                pendingDeferredSave = PendingDeferredSave(snapshot: snapshot, slices: slices)
-            } else {
-                pendingDeferredSave?.include(slices)
-            }
-            scheduleDeferredSave()
+            restoreSnapshot(snapshot, slices: slices)
+            throw PlayerSavePersistenceError.mapped(error)
         }
         installObservedSave(candidate, slices: slices)
     }

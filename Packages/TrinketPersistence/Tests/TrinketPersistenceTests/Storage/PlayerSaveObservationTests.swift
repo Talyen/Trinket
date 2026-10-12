@@ -31,7 +31,7 @@ struct PlayerSaveObservationTests {
     }
 
     #if DEBUG
-    @Test @MainActor func `deferred rollback publishes only reverted sections and refused commits publish nothing`() throws {
+    @Test @MainActor func `refused commits publish nothing and preserve durable progress`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         let durable = store.currentSave
@@ -43,14 +43,6 @@ struct PlayerSaveObservationTests {
         #expect(refusedChanges.names.withLock { $0 }.isEmpty)
         #expect(store.currentSave == durable)
 
-        try store.performFixtureMutation({ $0.roster.gold += 7 }, persistImmediately: false)
-        #expect(refusedChanges.names.withLock { $0 } == ["roster", "snapshot"])
-        #expect(store.roster.gold == durable.roster.gold + 7)
-        let rollbackChanges = trackSections(in: store)
-        store.forcesNextSaveFailure = true
-        store.flushPendingPersistence()
-        #expect(rollbackChanges.names.withLock { $0 } == ["roster", "snapshot"])
-        #expect(store.currentSave == durable)
         #expect(try context.makeReloadedStore().currentSave == durable)
     }
     #endif
