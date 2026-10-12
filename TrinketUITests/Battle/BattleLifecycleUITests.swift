@@ -8,7 +8,9 @@ final class BattleLifecycleUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Battle.victory)
         assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
         tapButton(AccessibilityID.Battle.continueButton)
-        assertExists(AccessibilityID.Debug.rewardCollectionCheckpoint)
+        waitUntil("Rewards must commit before termination") {
+            self.button(AccessibilityID.Battle.continueButton).label == "Collected"
+        }
         relaunchApp()
         play.openCampaign()
         let next = button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))

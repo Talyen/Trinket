@@ -41,7 +41,7 @@ struct PlayBattleOverlay: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
-            .toolbarVisibility(.visible, for: .navigationBar)
+            .toolbarVisibility(isActive ? .visible : .hidden, for: .navigationBar)
         }
         .trinketPresentationVisibility(
             isActive && preparedOverlayID == configuration?.id,

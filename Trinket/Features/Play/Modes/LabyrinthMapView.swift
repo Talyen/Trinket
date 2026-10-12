@@ -127,7 +127,7 @@ struct LabyrinthMapView: View {
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthFloor(floor.depthBand))
             }
         } label: {
-            Text("Floor \(viewedFloor)")
+            Label("Floor \(viewedFloor)", systemImage: "square.stack")
         }
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthFloorMenu)
     }

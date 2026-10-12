@@ -9,7 +9,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         battle.assertActive()
 
         let cards = battle.handCards
-        let inspectedCard = cards.firstMatch
+        let inspectedCard = battle.frontmostHandCard
         XCTAssertTrue(inspectedCard.trinketWaitForExistence(timeout: Self.defaultTimeout))
         let inspectCountBefore = cards.count
         inspectedCard.press(forDuration: 0.7)
@@ -31,9 +31,9 @@ final class BattleFlowUITests: TrinketUITestCase {
         dismissSheet(AccessibilityID.CombatantDetail.header(name: "Ranger"))
 
         let tapCountBefore = cards.count
-        inspectedCard.tap()
+        battle.frontmostHandCard.tap()
         waitUntil("The first tap after dismissing details must play the card") { cards.count == tapCountBefore - 1 }
-        let dragCard = cards.firstMatch
+        let dragCard = battle.frontmostHandCard
         assertExists(dragCard)
         let dragCountBefore = cards.count
         let origin = dragCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))

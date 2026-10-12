@@ -22,7 +22,7 @@ final class SmokeBattleTests: TrinketUITestCase {
         let lootAll = button(AccessibilityID.Battle.continueButton)
         scrollUntilVisible(lootAll, swipingUp: true, requireHittable: true)
         lootAll.doubleTap()
-        assertExists(AccessibilityID.Debug.rewardCollectionCheckpoint)
+        waitUntil("Rewards must commit before backgrounding") { lootAll.label == "Collected" }
         backgroundAndActivate()
 
         play.assertCampaignLoaded()

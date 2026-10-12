@@ -14,6 +14,7 @@ final class AudioLifecycleUITests: TrinketUITestCase {
         }
         tabBar.selectPlay()
         play.openExplore()
+        assertExistsAfterScroll(AccessibilityID.Play.contractsModeCard, requireHittable: true)
         tapButton(AccessibilityID.Play.contractsModeCard)
         completeAudioContract()
         let before = try coverageReport()
@@ -39,6 +40,7 @@ final class AudioLifecycleUITests: TrinketUITestCase {
 extension TrinketUITestCase {
     @discardableResult
     func completeAudioContract() -> Bool {
+        assertExistsAfterScroll(AccessibilityID.Play.contractFight("easy"), requireHittable: true)
         tapButton(AccessibilityID.Play.contractFight("easy"))
         battle.assertActive()
         tapWhenReady(battle.autoBattleToggle)

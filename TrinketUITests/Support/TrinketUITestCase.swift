@@ -229,7 +229,8 @@ class TrinketUITestCase: XCTestCase {
 
     func coverageReport() throws -> [String: Any] {
         let probe = any(AccessibilityID.Debug.coverageDiagnostics)
-        let encoded = try trinketOnMainActor { try XCTUnwrap(probe.snapshot().value as? String) }
+        // Hierarchy snapshots truncate long values; the direct attribute retains the JSON.
+        let encoded = try trinketOnMainActor { try XCTUnwrap(probe.value as? String) }
         return try XCTUnwrap(JSONSerialization.jsonObject(with: Data(encoded.utf8)) as? [String: Any])
     }
 

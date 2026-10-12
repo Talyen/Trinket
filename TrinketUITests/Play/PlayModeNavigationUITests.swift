@@ -108,7 +108,11 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         XCTAssertTrue(locked.label.hasSuffix(", locked"), locked.label)
         locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         assertExists(selected)
-        tapWhenReady(button(AccessibilityID.Play.labyrinthDismissSelection).firstMatch)
+        let entry = any(AccessibilityID.Play.labyrinthFloor1EntryNode)
+        scrollUntilVisible(entry, swipingUp: false, requireHittable: true)
+        // Tap the map background beside a visible node, outside its seal.
+        entry.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0.5))
+            .withOffset(CGVector(dx: -12, dy: 0)).tap()
         assertDoesNotExist(AccessibilityID.Play.labyrinthNodeInspector)
         assertExistsAfterScroll(AccessibilityID.Play.labyrinthFloor1EntryNode, requireHittable: true)
         tapWhenReady(any(AccessibilityID.Play.labyrinthFloor1EntryNode))

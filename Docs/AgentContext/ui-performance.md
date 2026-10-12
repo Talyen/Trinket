@@ -146,6 +146,9 @@ Keep the overlay mounted for prewarm
 and preserve its navigation inset until hidden. Native toolbar items must also
 be gated by the active battle lifecycle: opacity and hit-testing on retained
 content do not hide system-owned vertical bars during prewarm.
+The overlay's navigation bar follows the same active-display gate; an inactive
+prepared stack must not compete with browsing's native bar. Toolbar actions need
+symbol-backed labels so their actions remain visible in Duo's vertical bars.
 
 Artwork admission is shared across callers: at most two decodes run concurrently,
 with at most one deferred catalog decode. Launch/imminent pins precede viewport
