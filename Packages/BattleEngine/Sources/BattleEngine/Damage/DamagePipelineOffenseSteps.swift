@@ -56,9 +56,11 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
-        guard state.damageKeyword == .burn, state.remaining > 0,
+        guard state.remaining > 0,
               let sourceActorID = state.sourceActorID else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
+        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
+        guard state.damageKeyword == .burn || sharedKeyword == .burn else { return }
         if BattleChance.succeeds(probability: triggers.burnDamageDoubleChancePercent, using: &context.rng) {
             state.remaining = SaturatedArithmetic.saturatingMul(state.remaining, 2)
         }

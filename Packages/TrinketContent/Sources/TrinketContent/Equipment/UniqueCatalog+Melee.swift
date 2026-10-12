@@ -34,7 +34,7 @@ extension UniqueCatalog {
             name: "Red Harvest",
             base: "hatchet",
             keywords: [.physical, .bleed],
-            description: "Physical Critical Hits detonate Bleed.",
+            description: "Physical Critical Hits that remove Health detonate Bleed.",
             triggers: CombatTraitTriggers(attack: AttackTriggers(redHarvestPhysicalCriticalDetonatesBleed: true)),
             supports: ["keen", "serrated", "leeching"],
         ),

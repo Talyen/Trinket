@@ -7,7 +7,7 @@ extension UniqueCatalog {
             name: "Huntsmaster’s Call",
             base: "longbow",
             keywords: [.physical],
-            description: "Your Physical Critical Hits draw from your Companion's deck.",
+            description: "Your Physical Critical Hits that remove Health draw from your Companion's deck.",
             triggers: CombatTraitTriggers(attack: AttackTriggers(huntsmasterPhysicalCriticalDrawsCompanion: true)),
             supports: ["keen", "serrated", "envenomed"],
         ),

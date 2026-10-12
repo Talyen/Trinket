@@ -117,7 +117,8 @@ package extension DamagePipeline {
         if state.options.isAttackHit, state.targetStatus.isBleeding, attackHasLeech {
             multiplier *= triggers.leechAttackDamageVsBleedingMultiplier
         }
-        if state.options.isAttackHit, state.isCritical, state.damageKeyword == .physical {
+        if state.options.isAttackHit, state.isCritical,
+           state.damageKeyword == .physical || sharedKeyword == .physical {
             if state.targetStatus.isBleeding {
                 multiplier *= triggers.physicalCriticalDamageVsBleedingMultiplier
             }

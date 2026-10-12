@@ -4,6 +4,61 @@ import TrinketCore
 @testable import BattleEngine
 
 struct SharedUniqueDamageRegressionTests {
+    @Test(arguments: ["bear_physical_t2_2", "risen_skeleton_physical_t4_1"])
+    func `oathkeeper shares companion conditional physical damage bonuses`(talentID: String) throws {
+        let fixtures = UniqueCollectionTests()
+        let profile = CombatantTalentCatalog.profile(for: [talentID])
+        let critical = talentID == "risen_skeleton_physical_t4_1"
+        let status: Effect = critical ? .poison(1) : .controlMeter(.stun, 400, 400)
+        var shared = try fixtures.battle(["oathkeeper"], owner: .companion, extra: profile)
+        shared.appendEffect(status, to: shared.enemy, sourceID: shared.companion.id, remainingTurns: 0)
+        try fixtures.play(fixtures.attack(.holy, amount: 20), owner: .companion, critical: critical, in: &shared)
+        #expect(shared.health(of: shared.enemy) == (critical ? 1940 : 1975))
+
+        var ordinary = try fixtures.battle([], owner: .companion, extra: profile)
+        ordinary.appendEffect(status, to: ordinary.enemy, sourceID: ordinary.companion.id, remainingTurns: 0)
+        try fixtures.play(fixtures.attack(.holy, amount: 20), owner: .companion, critical: critical, in: &ordinary)
+        #expect(ordinary.health(of: ordinary.enemy) == (critical ? 1960 : 1980))
+    }
+
+    @Test func `bloodember shares Supernovas damage roll with Bleed without changing other keywords`() throws {
+        let fixtures = UniqueCollectionTests()
+        var profile = CombatantTalentCatalog.profile(for: ["wizard_burn_t3_1"])
+        // Guarantee the proc to isolate keyword eligibility from the random roll.
+        profile.triggers.burnAttackDoubleChancePercent = 1
+        var shared = try fixtures.battle(["bloodember_pendant"], extra: profile)
+        try fixtures.play(fixtures.attack(.bleed), in: &shared)
+        #expect(shared.health(of: shared.enemy) == 1980)
+        try fixtures.play(fixtures.attack(.physical), in: &shared)
+        #expect(shared.health(of: shared.enemy) == 1970)
+
+        var ordinary = try fixtures.battle([], extra: profile)
+        try fixtures.play(fixtures.attack(.bleed), in: &ordinary)
+        #expect(ordinary.health(of: ordinary.enemy) == 1990)
+    }
+
+    @Test(arguments: [Keyword.burn, .poison])
+    func `adding allied damage preserves the original decaying stack owners rules`(keyword: Keyword) throws {
+        let fixtures = UniqueCollectionTests()
+        var profile = CombatModifierProfile.zero
+        profile.triggers.burnDecaySlowPercent = 0.4
+        profile.triggers.poisonDecaySlowPercent = 0.4
+        var context = try fixtures.battle([], extra: profile)
+        for owner in [BattleParticipant.hero, .companion] {
+            _ = CombatExecutor.run { await DoTApplicator.applyDecayingDoT(
+                keyword: keyword, potency: 10, to: context.enemy,
+                sourceActorID: context.roster[owner].id, application: .attached, in: &context,
+            ) }
+        }
+        let active = try #require(context.activeEffects(of: context.enemy).first { $0.keyword == keyword })
+        #expect(active.sourceActorID == context.hero.id)
+        let expected = active.effect.potencyAfterTurn(burnDecaySlowPercent: 0.4, poisonDecaySlowPercent: 0.4)
+        let before = context.health(of: context.enemy)
+        let handler = EffectHandlers.handler(for: active.effect.kind)
+        _ = CombatExecutor.run { await handler.advanceTurn(active, on: context.enemy, in: &context) }
+        #expect(before - context.health(of: context.enemy) == expected)
+    }
+
     @Test func `bloodember shares razor claws with burn attacks and stores the resolved bonus once`() throws {
         let fixtures = UniqueCollectionTests()
         let profile = CombatantTalentCatalog.profile(for: ["panther_bleed_t1_1"])

@@ -187,7 +187,7 @@ package extension DamagePipeline {
            context.consumeTalentPreparation(\.doubleNextBleedAttack, for: source.combatant) == true {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
         }
-        if state.damageKeyword == .physical, state.targetStatus.isStunned,
+        if state.damageKeyword == .physical || sharedKeyword == .physical, state.targetStatus.isStunned,
            triggers.physicalDamageVsStunnedMultiplier > 1 {
             state.remaining = CombatRounding.scaled(
                 state.remaining, multiplier: triggers.physicalDamageVsStunnedMultiplier,

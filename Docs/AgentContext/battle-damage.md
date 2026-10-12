@@ -50,8 +50,9 @@ Later damage components skip a target already defeated by the same action, so
 post-defeat hits cannot trigger another on-hit reward; later support effects still resolve.
 `DecayingDoTProgression` captures the original stack owner’s decay and tick rules
 for Burn and Poison. Turn handlers and `DecayingDoTDetonation` use that same
-policy and `Effect.potencyAfterTurn`; preservation and growth rolls remain exclusive
-to live turns. Ability and critical-hit detonations share the executor; callers
+policy and `Effect.potencyAfterTurn`; adding potency to an existing pool retains
+its original source, decay rules, and tick credit. Preservation and growth rolls
+remain exclusive to live turns. Ability and critical-hit detonations share the executor; callers
 commit stack removal and own recursion scope before executing damage.
 
 Burn and Poison attached by damaging attacks or effect applications store the
@@ -78,8 +79,9 @@ Resolved outgoing packets also skip source talent multipliers already included i
 their magnitude. Newly readied Toxic Backlash still doubles the next Poison damage
 event once, including a stored tick; Venomtrail retains its per-event rule below.
 Oathkeeper and Bloodember share keyword percentage bonuses as well as flat bonuses,
-counting universal bonuses once, including conditional passive damage and Critical
-damage bonuses. Thermal Shock and Frostfire apply once per new hit.
+counting universal bonuses once, including companion status multipliers, Critical
+damage bonuses, and chance-based damage multipliers such as Supernova. Thermal
+Shock and Frostfire apply once per new hit.
 Searing Body attaches Burn after attack Health damage, never after periodic or
 reaction damage. Unquenchable Flame bypasses talent damage reduction as well as
 flat mitigation, typed resistance and Block; unapplied prepared protection remains ready.
@@ -102,6 +104,8 @@ Committed Thorns and lingering Bleed still deal damage after their source falls.
 Their personal rewards require a living owner: Martial Guard's Block, both
 Blood Money rewards, Golden Verdict's Stun theft, and Critical Hit Gold stop after
 final defeat.
+Red Harvest detonates Bleed and Huntsmaster’s Call draws a Companion card only
+after Physical Critical Hits remove Health.
 Fully Blocked Critical Hits still qualify for ordinary Critical Hit Gold and Purge
 reactions; effects that explicitly require Health damage keep that requirement.
 Spitebloom follows Thorns Health damage with a separate Poison hit and attaches
