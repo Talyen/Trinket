@@ -32,12 +32,18 @@ final class MetricKitSubscriber: NSObject, MXMetricManagerSubscriber {
     nonisolated func didReceive(_ payloads: [MXMetricPayload]) {
         // Collect first so the MainActor hop happens once per batch, not once
         // per payload; MetricKit delivers these off the main thread.
-        let hitchRatios = payloads.compactMap { $0.animationMetrics?.hitchTimeRatio }
+        let hitchRatios = payloads.compactMap { payload -> (name: String, value: String)? in
+            guard let metric = payload.animationMetrics else { return nil }
+            if #available(iOS 26.0, *) {
+                return ("hitchTimeRatio", String(describing: metric.hitchTimeRatio))
+            }
+            return ("scrollHitchTimeRatio", String(describing: metric.scrollHitchTimeRatio))
+        }
         guard !hitchRatios.isEmpty else { return }
         Task { @MainActor in
             for hitchRatio in hitchRatios {
                 self.logger.info(
-                    "MXAnimationMetric hitchTimeRatio=\(String(describing: hitchRatio), privacy: .public)",
+                    "MXAnimationMetric \(hitchRatio.name, privacy: .public)=\(hitchRatio.value, privacy: .public)",
                 )
             }
         }

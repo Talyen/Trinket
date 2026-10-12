@@ -46,7 +46,9 @@ final class PortraitHostingController<Content: View>: UIHostingController<Conten
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        setNeedsUpdateOfPrefersInterfaceOrientationLocked()
+        if #available(iOS 26.0, *) {
+            setNeedsUpdateOfPrefersInterfaceOrientationLocked()
+        }
         view.window?.windowScene?.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
     }
 }

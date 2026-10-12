@@ -300,7 +300,7 @@ Prefer direct stored-state mutation, one projection publication, narrow observat
 
 Simulator evidence does not establish physical-device performance. Before claiming ProMotion performance, pin a supported iPhone/OS, derive cadence from the display link, capture Instruments traces on-device, and record thermal state and Low Power Mode.
 
-MetricKit `MXAnimationMetric.hitchTimeRatio` remains production trend evidence. It complements—and does not replace—reproducible local scenarios and Instruments traces.
+MetricKit `MXAnimationMetric.hitchTimeRatio` supplies production trend evidence for tracked animations on iOS 26+. On iOS 18, Trinket records `scrollHitchTimeRatio`, which covers scrolling only. Keep these differently scoped metrics separate when comparing trends. They complement—and do not replace—reproducible local scenarios and Instruments traces.
 
 ### Unresolved device evidence
 
