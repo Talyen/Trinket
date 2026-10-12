@@ -19,7 +19,7 @@ private func trinketWaitForExistenceMainActorSafe(_ element: XCUIElement, timeou
 }
 
 /// Snapshot objects stay on the main actor; only their value projections cross back.
-private func trinketOnMainActor<Value: Sendable>(_ body: @MainActor () throws -> Value) rethrows -> Value {
+func trinketOnMainActor<Value: Sendable>(_ body: @MainActor () throws -> Value) rethrows -> Value {
     if Thread.isMainThread {
         return try MainActor.assumeIsolated { try body() }
     }
