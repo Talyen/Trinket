@@ -69,7 +69,9 @@ package extension DamagePipeline {
         source: Combatant,
         in context: inout BattleState,
     ) {
-        guard state.damageKeyword == .burn, state.options.isAttackHit,
+        let triggers = context.modifiers(for: source.id).triggers
+        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
+        guard state.damageKeyword == .burn || sharedKeyword == .burn, state.options.isAttackHit,
               let bonus = context.consumeTalentPreparation(\.nextBurnDamageBonus, for: source) else { return }
         state.remaining += bonus
         state.itemBonus += bonus
@@ -182,7 +184,7 @@ package extension DamagePipeline {
                 state.remaining, multiplier: triggers.bleedCriticalDamageMultiplier,
             )
         }
-        if state.damageKeyword == .bleed, state.options.isAttackHit,
+        if state.damageKeyword == .bleed || sharedKeyword == .bleed, state.options.isAttackHit,
            let source = context.roster.combatant(for: sourceActorID),
            context.consumeTalentPreparation(\.doubleNextBleedAttack, for: source.combatant) == true {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)

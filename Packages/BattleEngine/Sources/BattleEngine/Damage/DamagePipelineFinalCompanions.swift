@@ -172,6 +172,8 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) -> Double {
         var multiplier = 1.0
+        let triggers = context.modifiers(for: source.id).triggers
+        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
         if state.damageKeyword == .holy,
            context.consumeTalentPreparation(\.nextHolyHitDouble, for: source) == true {
             multiplier *= 2
@@ -180,11 +182,11 @@ package extension DamagePipeline {
            context.consumeTalentPreparation(\.nextStunAttackDouble, for: source) == true {
             multiplier *= 2
         }
-        if state.options.isAttackHit, state.damageKeyword == .bleed,
+        if state.options.isAttackHit, state.damageKeyword == .bleed || sharedKeyword == .bleed,
            let prepared = context.consumeTalentPreparation(\.nextBleedAttackMultiplier, for: source) {
             multiplier *= prepared
         }
-        if state.options.isAttackHit, state.damageKeyword == .physical,
+        if state.options.isAttackHit, state.damageKeyword == .physical || sharedKeyword == .physical,
            let prepared = context.consumeTalentPreparation(\.nextPhysicalAttackMultiplier, for: source) {
             multiplier *= prepared
         }

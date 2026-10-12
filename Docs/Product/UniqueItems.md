@@ -107,7 +107,9 @@ uses full equipped Basic abilities, including utility effects, with normal
 - Oathkeeper and Bloodember share applicable numeric damage bonuses, counting
   shared universal bonuses once. Resistances, durations, Leech and proc behavior
   stay separate. Shared attacks consume the same first-attack and prepared-damage
-  allowances as the original type, including Bounty Blade and Soul Burn. Stored
+  allowances as the original type, including Bounty Blade, Soul Burn, Ashen
+  Vitality, Redline, Nimble Fang, Feigned Miss, and Phantom Counter. Consuming a
+  shared bonus leaves none for a later hit of the original type. Stored
   DoT potency does not bake those bonuses a second time.
 - Viper's Courtesy consumes readiness on the next ordinary card hit that causes
   Health loss. Each follow-up starts at half that loss and uses normal typed
