@@ -24,6 +24,11 @@ and scroll-edge treatments; shared controls use native bordered styles and mater
 surfaces on iOS 18. The explicit minimum-OS lane in [Player coverage](PlayerCoverage.md)
 owns older-runtime evidence.
 
+Availability also applies to Swift standard-library conformances and concurrency
+runtime features. Indexed rows follow the [ForEach guidance](../../.agents/skills/swiftui-specialist/references/foreach.md);
+resource teardown follows [Core lifetime support](../../Packages/TrinketCore/README.md#resource-lifetime)
+to preserve the iOS 18.0 minimum.
+
 Test new iOS/Xcode betas and release candidates before launch. [Toolchain selection](../../Scripts/Reference.md#toolchain-ladder)
 owns which Xcode CI and local runs use, including version/build logging and helper-tool pins.
 Trinket requires Swift 6.4 or newer (Xcode 27 or newer for Apple-platform builds).

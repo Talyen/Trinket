@@ -8,7 +8,7 @@ struct MusicResumeKey: Hashable {
     let trackID: String
 }
 
-struct MusicPlaybackRequest: Equatable {
+struct MusicPlaybackRequest: Equatable, Sendable {
     let track: MusicTrack
     let enemyID: String?
 

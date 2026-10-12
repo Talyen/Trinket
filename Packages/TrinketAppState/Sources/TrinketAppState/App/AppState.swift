@@ -184,29 +184,21 @@ public final class AppState {
         UIApplication.shared.isIdleTimerDisabled = (scenePhase == .active)
     }
 
-    private var memoryPressureObserver: (any NSObjectProtocol)?
-    var cloudAccountObserver: (any NSObjectProtocol)?
-
-    isolated deinit {
-        if let cloudAccountObserver {
-            NotificationCenter.default.removeObserver(cloudAccountObserver)
-        }
-        if let memoryPressureObserver {
-            NotificationCenter.default.removeObserver(memoryPressureObserver)
-        }
-    }
+    @ObservationIgnored private var memoryPressureObserver: MainActorCleanup?
+    @ObservationIgnored var cloudAccountObserver: MainActorCleanup?
 
     public func installMemoryPressureHandling() {
         #if canImport(UIKit)
-        if let memoryPressureObserver {
-            NotificationCenter.default.removeObserver(memoryPressureObserver)
-        }
-        memoryPressureObserver = NotificationCenter.default.addObserver(
+        memoryPressureObserver = nil
+        let observer = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main,
         ) { [weak self] _ in
             self?.trimMemoryFootprint()
+        }
+        memoryPressureObserver = MainActorCleanup {
+            NotificationCenter.default.removeObserver(observer)
         }
         #endif
     }

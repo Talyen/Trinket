@@ -1,6 +1,6 @@
 # TrinketCore
 
-Domain primitives shared across all Trinket packages. No UIKit/SwiftUI dependencies.
+Domain primitives and Foundation-only lifetime support shared across Trinket packages. No UIKit/SwiftUI dependencies.
 Keep this package independent of the app and feature UI.
 
 Owns effects and keywords, stats and combat rounding, progression and enemy power
@@ -52,6 +52,16 @@ order; node IDs must be unique across trees). Removed selections leave their poi
 available; valid selections within budget are unchanged. Point budget
 (`totalTalentPoints`) is owned by `CombatantProgression`; unlock legality is
 owned by `TalentModels`.
+
+## Resource lifetime
+
+`MainActorCleanup` owns one cleanup closure for resources such as notification
+subscriptions and run-loop timers. Dropping the owner performs cleanup synchronously
+on the main thread, or schedules it on MainActor after a background release.
+`MainActorCleanup.perform` applies the same policy to a deinitializer's immutable,
+Sendable snapshots. Capture those values or surviving resource owners, never the
+object being deinitialized. Sendable task handles can be cancelled directly.
+This supports iOS 18.0 without `isolated deinit`, which requires iOS 18.4+.
 
 ## Testing
 

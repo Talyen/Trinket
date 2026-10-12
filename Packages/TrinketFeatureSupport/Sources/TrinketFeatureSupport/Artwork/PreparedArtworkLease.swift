@@ -1,4 +1,5 @@
 import Foundation
+import TrinketCore
 
 /// An acquisition can be released only by its owner, at most once.
 @MainActor
@@ -26,9 +27,10 @@ public final class PreparedArtworkLease {
         return names
     }
 
-    isolated deinit {
+    deinit {
         if let names {
-            cache.releasePins(names: names)
+            let cache = cache
+            MainActorCleanup.perform { cache.releasePins(names: names) }
         }
     }
 }

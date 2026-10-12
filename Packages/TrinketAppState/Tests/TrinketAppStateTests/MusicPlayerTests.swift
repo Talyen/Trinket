@@ -5,6 +5,22 @@ import TrinketContent
 
 @MainActor
 struct MusicPlayerTests {
+    @Test func `teardown stops the active and prepared replacement voices`() async throws {
+        let backend = ControlledMusicBackend()
+        var player: MusicPlayer? = MusicPlayer(isDisabled: false, backend: backend)
+        let active = try await start(request("active"), player: #require(player), backend: backend)
+        try player?.prepare(request("prepared"))
+        try await eventually { backend.loads.count == 2 }
+        let prepared = TestMusicVoice()
+        backend.completeLoad(1, with: prepared)
+        try await eventually { prepared.configurations > 0 }
+        weak let released = player
+        player = nil
+        #expect(released == nil)
+        #expect(active.stops == 1)
+        #expect(prepared.stops == 1)
+    }
+
     @Test func `disabled player never loads or activates audio`() throws {
         let backend = ControlledMusicBackend()
         let player = MusicPlayer(isDisabled: true, backend: backend)

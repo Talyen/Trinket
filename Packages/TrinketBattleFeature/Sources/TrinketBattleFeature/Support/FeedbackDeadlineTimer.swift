@@ -1,8 +1,10 @@
 import Foundation
+import TrinketCore
 
 @MainActor
 final class FeedbackDeadlineTimer {
     private var timer: Timer?
+    private var cleanup: MainActorCleanup?
     private let onFire: () -> Void
 
     init(onFire: @escaping () -> Void) {
@@ -17,19 +19,17 @@ final class FeedbackDeadlineTimer {
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.timer = nil
+                self.cleanup = nil
                 self.onFire()
             }
         }
         self.timer = timer
+        cleanup = MainActorCleanup { timer.invalidate() }
         RunLoop.main.add(timer, forMode: .common)
     }
 
     func cancel() {
-        timer?.invalidate()
+        cleanup = nil
         timer = nil
-    }
-
-    isolated deinit {
-        timer?.invalidate()
     }
 }

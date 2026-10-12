@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import TrinketCore
 
 /// Owns a surface's replaceable artwork working set across asynchronous preparation.
 @MainActor
@@ -15,7 +16,7 @@ public final class PreparedArtworkPinSet {
     @ObservationIgnored private let ownerID = UUID()
     @ObservationIgnored private var generation: UInt64 = 0
     @ObservationIgnored private let acquire: (Set<String>) async -> Set<String>
-    @ObservationIgnored private let releasePins: (Set<String>) -> Void
+    @ObservationIgnored private let releasePins: @MainActor @Sendable (Set<String>) -> Void
 
     public convenience init() {
         self.init(
@@ -26,14 +27,17 @@ public final class PreparedArtworkPinSet {
 
     init(
         acquire: @escaping (Set<String>) async -> Set<String>,
-        release: @escaping (Set<String>) -> Void,
+        release: @escaping @MainActor @Sendable (Set<String>) -> Void,
     ) {
         self.acquire = acquire
         releasePins = release
     }
 
-    isolated deinit {
-        releasePins(names)
+    deinit {
+        // The observation accessor is actor-isolated; teardown copies its stored value.
+        let names = _names
+        let releasePins = releasePins
+        MainActorCleanup.perform { releasePins(names) }
     }
 
     /// Returns nil for cancelled or superseded work. Outgoing pins can survive

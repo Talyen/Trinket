@@ -3,6 +3,7 @@ import Observation
 import os
 import SwiftData
 import TrinketContent
+import TrinketCore
 
 public enum PlayerSaveDefaults {
     public static let loggingSubsystem = "com.ryanmcintire.Trinket"
@@ -232,8 +233,9 @@ public final class PlayerSaveStore {
         }
     }
 
-    isolated deinit {
-        saveActionRetries.cancelAll()
+    deinit {
+        let retries = saveActionRetries
+        MainActorCleanup.perform { retries.cancelAll() }
     }
 
     static func openSaveContainer(

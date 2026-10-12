@@ -39,7 +39,7 @@ final class PendingSaveRecovery {
         hasPendingSave = FileManager.default.fileExists(atPath: url.path)
     }
 
-    isolated deinit {
+    deinit {
         retryTask?.cancel()
     }
 

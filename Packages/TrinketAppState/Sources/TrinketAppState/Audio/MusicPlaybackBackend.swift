@@ -4,7 +4,7 @@ import os
 import TrinketContent
 
 @MainActor
-protocol MusicPlaybackVoice: AnyObject {
+protocol MusicPlaybackVoice: AnyObject, Sendable {
     var volume: Float { get set }
     var currentTime: TimeInterval { get set }
     var duration: TimeInterval { get }

@@ -4,6 +4,24 @@ import Testing
 
 @MainActor
 struct PreparedArtworkPinSetTests {
+    @Test(arguments: [false, true])
+    func `teardown releases only its own remaining pins`(releaseFirst: Bool) async {
+        let backend = PinBackend()
+        var departing: PreparedArtworkPinSet? = backend.makePinSet()
+        let remaining = backend.makePinSet()
+        await departing?.prepare(names: ["shared", "departing"])
+        await remaining.prepare(names: ["shared"])
+        if releaseFirst {
+            departing?.release()
+        }
+        weak let released = departing
+        departing = nil
+        #expect(released == nil)
+        #expect(backend.counts == ["shared": 1])
+        remaining.release()
+        #expect(backend.counts.isEmpty)
+    }
+
     @Test func `leaving during preparation cannot release a returning surface's pins`() async {
         let backend = PinBackend()
         let pins = backend.makePinSet()

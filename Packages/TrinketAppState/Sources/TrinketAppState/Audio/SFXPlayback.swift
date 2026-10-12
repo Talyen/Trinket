@@ -13,6 +13,18 @@ enum SFXCommand: Sendable {
 /// audio framework. Foreground commands are submitted in order by SFXPlayer;
 /// catalog warming can yield during decode and must honor resource invalidation.
 actor SFXPlayback<Backend: SFXPlaybackBackend> {
+    private final class PendingLoad: Sendable {
+        let task: Task<Backend.Buffer?, Never>
+
+        init(task: Task<Backend.Buffer?, Never>) {
+            self.task = task
+        }
+
+        deinit {
+            task.cancel()
+        }
+    }
+
     private final class VoicePool {
         let buffer: Backend.Buffer
         var voices: [Backend.Voice] = []
@@ -31,7 +43,7 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
     }
 
     private enum Resource {
-        case loading(Task<Backend.Buffer?, Never>)
+        case loading(PendingLoad)
         case ready(VoicePool)
         case failed
     }
@@ -50,11 +62,8 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
         self.load = load
     }
 
-    isolated deinit {
+    deinit {
         catalogWarmTask?.cancel()
-        for case let .loading(task) in resources.values {
-            task.cancel()
-        }
     }
 
     func execute(_ command: SFXCommand) async {
@@ -94,15 +103,15 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
             case let .ready(existing): pool = existing
             case .failed: continue
             case .loading, nil:
-                let task: Task<Backend.Buffer?, Never>
+                let pending: PendingLoad
                 if case let .loading(existing) = resources[id] {
-                    task = existing
+                    pending = existing
                 } else {
                     let load = load
-                    task = Task.detached(priority: .utility) { await load(clip) }
-                    resources[id] = .loading(task)
+                    pending = PendingLoad(task: Task.detached(priority: .utility) { await load(clip) })
+                    resources[id] = .loading(pending)
                 }
-                let decoded = await task.value
+                let decoded = await pending.task.value
                 guard generation == startedGeneration, !Task.isCancelled else { return false }
                 // A shared decode may already have completed in another warmup.
                 // Grow that same pool so voices and its rotation never get replaced.
@@ -128,8 +137,8 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
         catalogWarmTask?.cancel()
         catalogWarmTask = nil
         resources = resources.filter {
-            guard case let .loading(task) = $0.value else { return true }
-            task.cancel()
+            guard case let .loading(pending) = $0.value else { return true }
+            pending.task.cancel()
             return false
         }
     }

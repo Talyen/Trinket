@@ -23,7 +23,7 @@ public final class FullGameStore {
     public private(set) var isLoading = false
     public private(set) var isPurchasing = false
     public private(set) var isRestoring = false
-    private var listener: Task<Void, Never>?
+    @ObservationIgnored private var listener: Task<Void, Never>?
     private var revision = 0
     private let storefront: FullGameStorefront
 
@@ -35,7 +35,7 @@ public final class FullGameStore {
         self.storefront = storefront
     }
 
-    isolated deinit {
+    deinit {
         listener?.cancel()
     }
 

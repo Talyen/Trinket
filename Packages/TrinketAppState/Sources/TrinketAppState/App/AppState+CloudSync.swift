@@ -1,5 +1,6 @@
 import CloudKit
 import Foundation
+import TrinketCore
 
 extension AppState {
     func installCloudSynchronization() {
@@ -7,7 +8,7 @@ extension AppState {
         playerSave.onExternalProgressChange = { [weak play] in
             play?.clearTransientState()
         }
-        cloudAccountObserver = NotificationCenter.default.addObserver(
+        let observer = NotificationCenter.default.addObserver(
             forName: .CKAccountChanged, object: nil, queue: .main,
         ) { [weak self] _ in
             Task { @MainActor in
@@ -15,6 +16,9 @@ extension AppState {
                 sync.accountDidChange()
                 await sync.synchronize()
             }
+        }
+        cloudAccountObserver = MainActorCleanup {
+            NotificationCenter.default.removeObserver(observer)
         }
     }
 

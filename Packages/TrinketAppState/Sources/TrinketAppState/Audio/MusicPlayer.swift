@@ -1,21 +1,22 @@
 import Foundation
+import TrinketCore
 
 @MainActor
 final class MusicPlayer {
-    private struct Track {
+    private struct Track: Sendable {
         let voice: any MusicPlaybackVoice
         let request: MusicPlaybackRequest
         var canSavePosition = true
     }
 
-    private struct Load {
+    private struct Load: Sendable {
         let id: UUID
         let request: MusicPlaybackRequest
         let task: Task<Void, Never>
         var startVolume: Float?
     }
 
-    private enum PendingTrack {
+    private enum PendingTrack: Sendable {
         case idle
         case loading(Load)
         case prepared(Track)
@@ -29,7 +30,7 @@ final class MusicPlayer {
         }
     }
 
-    private struct Fade {
+    private struct Fade: Sendable {
         let id: UUID
         let outgoing: any MusicPlaybackVoice
         let task: Task<Void, Never>
@@ -54,17 +55,21 @@ final class MusicPlayer {
         self.backend = backend
     }
 
-    // Concurrency-Safety: isolated teardown owns every voice and task on MainActor.
-    isolated deinit {
+    deinit {
+        let pending = pending
+        let fade = fade
+        let current = current
         if case let .loading(load) = pending {
             load.task.cancel()
         }
-        if case let .prepared(track) = pending {
-            track.voice.stop()
-        }
         fade?.task.cancel()
-        fade?.outgoing.stop()
-        current?.voice.stop()
+        MainActorCleanup.perform {
+            if case let .prepared(track) = pending {
+                track.voice.stop()
+            }
+            fade?.outgoing.stop()
+            current?.voice.stop()
+        }
     }
 
     var canPreviewVolume: Bool {
