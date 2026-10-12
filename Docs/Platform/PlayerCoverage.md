@@ -73,11 +73,14 @@ and restored after each class execution, including failed journeys. Both profile
 methods verify the actual text-size and motion environment reached SwiftUI.
 Simulator checks do not establish hardware evidence. Native audits run all seven
 iOS audit types individually and exclude only the opt-in diagnostic label; no product
-failures are blanket-suppressed. Each native audit timeout receives one immediate
+failures are blanket-suppressed. Audits record all their findings before restoring
+the journey's stop-on-failure behavior; every recorded violation still fails its test.
+Each native audit timeout receives one immediate
 retry; a repeated timeout or any product
 violation still fails the profile. Settings navigation waits for the retained Motion
-screen, dismisses native search, and selects named back actions and the Accessibility
-destination row rather than matching titles or keyboard buttons.
+screen, dismisses native search, and selects named back actions and destination
+cells rather than matching titles or keyboard buttons. It scrolls toward retained
+offscreen rows in either direction, including during settings restoration.
 
 Settings-profile reward checks enter the existing victory fixture, then audit and tap
 the real claim and verify next-stage access. Earned victory remains smoke-owned;

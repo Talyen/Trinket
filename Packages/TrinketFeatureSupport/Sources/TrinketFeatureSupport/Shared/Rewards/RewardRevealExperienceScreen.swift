@@ -158,6 +158,8 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                                 onExceptionalReveal: onExceptionalReveal,
                                 onSelectItem: { selectedRewardItem = $0 },
                             )
+                            .accessibilityElement(children: .contain)
+                            .accessibilityLabel("Rewards")
                             .accessibilityIdentifier(loot.lootAccessibilityIdentifier ?? titleAccessibilityIdentifier)
                         } else {
                             ProgressView()

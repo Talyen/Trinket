@@ -79,5 +79,8 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
             guard animatesAmountChanges, newAmount > oldAmount else { return }
             increaseAnimationTrigger &+= 1
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(title)
+        .accessibilityValue(displayedAmount)
     }
 }

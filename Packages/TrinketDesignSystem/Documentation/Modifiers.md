@@ -31,7 +31,7 @@ buttons and system toolbar styling.
 | `.trinketShineText(colors:)` | Animated shine over explicit colors (Reduce Motion aware, freezes while parked); for a `Shine` model value use FeatureSupport's `shineText(_:)` |
 | `TrinketWalletGrid` / `TrinketWalletResourcePill` / `TrinketCompactResourceChip` | Wallet grid and resource pills/chips |
 | `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
-| `.trinketOnArtText(_:)` | Opaque paper foreground + crisp ink outline on artwork; preserves explicit colored and shine fills |
+| `.trinketOnArtText(_:)` | Opaque paper foreground + crisp ink outline on artwork; iOS 18 adds opaque ink backing for contrast; preserves explicit colored and shine fills |
 | `.trinketBottomArtworkBlend(color:)` | Bottom-edge blend into a destination color (inherits the screen/sheet canvas; pass an explicit color for another surface, panel, or section fill below the art) |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
 | `.trinketDecorativeMotion(_:)` | Park decorative clocks (shine, plasma, aura) for a subtree; AND-composed so descendants cannot re-enable under a suppressed ancestor |
@@ -52,8 +52,10 @@ iOS 18; feature views must not call either directly — use the `trinket*` modif
 Artwork blends transition full-bleed art into the surface below. Use `.trinketBottomArtworkBlend()` where art meets a lower surface. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
 
 For text placed directly over artwork, use `.trinketOnArtText(_:)`: titles receive
-a stronger outline than eyebrows and supporting copy. Do not add a text-only
-gradient or soft halo behind the label group. Existing outlined combat feedback
+a stronger outline than eyebrows and supporting copy. iOS 18 also uses opaque ink
+backing because its native audit does not establish contrast from the outline alone.
+Keep this fallback in the shared modifier; do not add a text-only gradient or soft
+halo behind the label group. Existing outlined combat feedback
 keeps its specialized renderer. Labels below artwork and controls with their own
 surfaces keep their existing surface treatment.
 
@@ -64,4 +66,6 @@ production rates and comparisons. Amounts default to the primary text color;
 formatted values accept `valueColor` for semantic states such as insufficient
 Homestead costs, which use `TrinketDesign.Colors.destructive`. Increasing numeric
 balances bump the whole pill by default; `keepsArtworkStationary: true` bumps only
-the amount text so collection artwork remains fixed at its destination.
+the amount text so collection artwork remains fixed at its destination. Each pill
+exposes its resource title and displayed amount as one accessible element, keeping
+its artwork decorative.

@@ -231,6 +231,9 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func auditProductAccessibility() throws {
+        let originalContinueAfterFailure = continueAfterFailure
+        continueAfterFailure = true
+        defer { continueAfterFailure = originalContinueAfterFailure }
         let application = try XCTUnwrap(app)
         try trinketOnMainActor {
             // Keep every iOS audit, but give each its own native deadline on older runtimes.

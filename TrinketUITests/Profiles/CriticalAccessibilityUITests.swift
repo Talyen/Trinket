@@ -68,7 +68,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         }
         revealSettingsElement(accessibility, scrolling: sidebar.exists ? sidebar : settings)
         accessibility.trinketTapWhenReady()
-        let motion = settings.staticTexts["Motion"].firstMatch
+        let motion = settings.cells.containing(.staticText, identifier: "Motion").firstMatch
         revealSettingsElement(motion, scrolling: settings)
         motion.trinketTapWhenReady()
         XCTAssertTrue(control.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout))
@@ -81,7 +81,11 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
             if element.exists, element.isHittable {
                 return
             }
-            container.swipeUp()
+            if element.exists, element.frame.midY < container.frame.midY {
+                container.swipeDown()
+            } else {
+                container.swipeUp()
+            }
         }
         if !element.exists || !element.isHittable {
             XCTFail("Requested native setting is not reachable. Settings hierarchy:\n\(settings.debugDescription.prefix(6000))")

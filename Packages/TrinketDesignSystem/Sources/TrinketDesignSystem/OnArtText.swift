@@ -19,11 +19,17 @@ private struct OnArtTextModifier: ViewModifier {
         let width: CGFloat = emphasis == .title ? 1 : 0.75
         // Zero-blur shadows accumulate into a continuous ink edge, including
         // diagonals, without duplicating text or replacing colored/shine fills.
-        content
+        let outlined = content
             .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
             .shadow(color: ink, radius: 0, x: width)
             .shadow(color: ink, radius: 0, x: -width)
             .shadow(color: ink, radius: 0, y: width)
             .shadow(color: ink, radius: 0, y: -width)
+
+        if #available(iOS 26.0, *) {
+            outlined
+        } else {
+            outlined.background(ink)
+        }
     }
 }
