@@ -59,7 +59,7 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
     }
 
     func revealWarlock() {
-        let tab = app.tabBars.buttons[AccessibilityID.Tab.collection]
+        let tab = app.buttons[AccessibilityID.Tab.collection]
         if !tab.isSelected {
             tapWhenReady(tab)
         }

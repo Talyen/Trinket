@@ -3,10 +3,8 @@ import XCTest
 
 final class SmokeBattleTests: TrinketUITestCase {
     func testCampaignCardPlayVictoryAndClaimUnlockTheNextStage() {
-        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval(
-            "0.01",
-            in: TestLaunchArg.allForTab("play"),
-        ) + ["-performance-strong-party", TestLaunchArg.rewardCheckpoint])
+        launchApp(arguments: TestLaunchArg.allForTab("play")
+            + ["-performance-strong-party", TestLaunchArg.rewardCheckpoint])
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
         battle.assertActive()

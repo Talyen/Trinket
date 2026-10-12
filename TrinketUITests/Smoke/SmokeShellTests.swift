@@ -28,7 +28,7 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         ])
 
         assertExists(AccessibilityID.Onboarding.heroScreen, timeout: 15)
-        XCTAssertEqual(app.tabBars.count, 0)
+        XCTAssertFalse(app.buttons[AccessibilityID.Tab.play].exists)
         let heroName = any(AccessibilityID.Onboarding.heroScreen)
             .staticTexts[AccessibilityID.Onboarding.selectedName].label
         XCTAssertFalse(heroName.isEmpty)
@@ -45,8 +45,8 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         any(companionConfirmID).trinketTapWhenReady(timeout: 15)
 
         XCTAssertTrue(
-            app.tabBars.firstMatch.trinketWaitForExistence(timeout: 15),
-            "Tab bar did not appear after onboarding",
+            app.buttons[AccessibilityID.Tab.play].trinketWaitForExistence(timeout: 15),
+            "Play navigation did not appear after onboarding",
         )
         play.assertLoaded(timeout: 15)
         relaunchApp()

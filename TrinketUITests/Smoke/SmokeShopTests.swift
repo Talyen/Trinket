@@ -13,6 +13,7 @@ final class SmokeShopTests: TrinketUITestCase {
         let goldBalance = app.descendants(matching: .any).matching(identifier: AccessibilityID.Shop.goldBalance).firstMatch
         assertExists(goldBalance)
         let goldBefore = try integer(in: goldBalance)
+        scrollUntilVisible(offers.firstMatch, swipingUp: true, requireHittable: true)
         assertExists(offers.firstMatch)
         let offerID = offers.firstMatch.identifier
         let offer = button(offerID)

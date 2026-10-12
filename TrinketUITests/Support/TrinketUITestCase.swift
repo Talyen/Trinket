@@ -208,7 +208,10 @@ class TrinketUITestCase: XCTestCase {
 
     func backgroundAndActivate() {
         XCUIDevice.shared.press(.home)
-        XCTAssertTrue(app.wait(for: .runningBackground, timeout: Self.defaultTimeout))
+        waitUntil("App must enter the background before reactivation") {
+            let state = self.app.state
+            return state == .runningBackground || state == .runningBackgroundSuspended
+        }
         app.activate()
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: Self.defaultTimeout))
     }
@@ -217,7 +220,7 @@ class TrinketUITestCase: XCTestCase {
         let choices = any(AccessibilityID.TalentChoice.screen)
         let board = any(AccessibilityID.Play.contractsBoard)
         waitUntil("Contract must return to its board or earned talent choice") {
-            choices.exists || (board.exists && self.app.tabBars.buttons[AccessibilityID.Tab.play].isHittable)
+            choices.exists || (board.exists && self.app.buttons[AccessibilityID.Tab.play].isHittable)
         }
         if choices.exists {
             dismissSheet(AccessibilityID.TalentChoice.screen)
