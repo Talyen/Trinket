@@ -226,11 +226,13 @@ package extension DamagePipeline {
             attackerID: sourceActorID,
             in: &context,
         ))
-        await state.damageEvents.append(contentsOf: EnemyTraitEngine.traitAttackerBurn(
-            defender: state.combatant,
-            attackerID: sourceActorID,
-            in: &context,
-        ))
+        if state.options.isAttackHit {
+            await state.damageEvents.append(contentsOf: EnemyTraitEngine.traitAttackerBurn(
+                defender: state.combatant,
+                attackerID: sourceActorID,
+                in: &context,
+            ))
+        }
     }
 
     private static func applyOnHitAttackerWards(

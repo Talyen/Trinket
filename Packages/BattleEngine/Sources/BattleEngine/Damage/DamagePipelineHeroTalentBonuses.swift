@@ -86,15 +86,19 @@ package extension DamagePipeline {
             state.remaining += bonus
             state.itemBonus += bonus
         }
-        if keyword == .bleed, state.isCritical, triggers.bleedCriticalBelowHalfMultiplier > 1,
+        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
+        if keyword == .bleed || sharedKeyword == .bleed,
+           state.isCritical, triggers.bleedCriticalBelowHalfMultiplier > 1,
            context.roster.isBelowHalfHealth(for: state.combatant) {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.bleedCriticalBelowHalfMultiplier)
         }
-        if keyword == .bleed, state.options.isAttackHit, state.targetStatus.isStunned,
+        if keyword == .bleed || sharedKeyword == .bleed,
+           state.options.isAttackHit, state.targetStatus.isStunned,
            triggers.bleedAttackVsStunnedMultiplier > 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.bleedAttackVsStunnedMultiplier)
         }
-        if keyword == .burn, state.targetStatus.isBleeding, triggers.burnDamageVsBleedingMultiplier > 1 {
+        if keyword == .burn || sharedKeyword == .burn,
+           state.targetStatus.isBleeding, triggers.burnDamageVsBleedingMultiplier > 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.burnDamageVsBleedingMultiplier)
         }
     }
@@ -113,10 +117,11 @@ package extension DamagePipeline {
            triggers.burnBelowHalfHealthMultiplier > 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.burnBelowHalfHealthMultiplier)
         }
+        if keyword == .burn || sharedKeyword == .burn,
+           context.roster.runtime(for: source)?.currentMana == 0, triggers.zeroManaBurnMultiplier > 1 {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.zeroManaBurnMultiplier)
+        }
         if keyword == .burn {
-            if context.roster.runtime(for: source)?.currentMana == 0, triggers.zeroManaBurnMultiplier > 1 {
-                state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.zeroManaBurnMultiplier)
-            }
             if state.options.isAttackHit,
                let percent = context.consumeTalentPreparation(\.nextBurnAttackPercent, for: source) {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + percent)

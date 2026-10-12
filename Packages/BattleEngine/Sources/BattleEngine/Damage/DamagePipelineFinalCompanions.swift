@@ -92,7 +92,8 @@ package extension DamagePipeline {
         in context: BattleState,
     ) -> Double {
         var multiplier = 1.0
-        if state.damageKeyword == .bleed, state.targetStatus.isPoisoned {
+        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
+        if state.damageKeyword == .bleed || sharedKeyword == .bleed, state.targetStatus.isPoisoned {
             multiplier *= triggers.bleedDamageVsPoisonedMultiplier
         }
         if state.damageKeyword == .holy, state.targetStatus.isStunned {
@@ -134,11 +135,12 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) -> Double {
         var multiplier = 1.0
+        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
         if state.options.isAttackHit, state.isCritical {
             if state.damageKeyword == .freeze {
                 multiplier *= triggers.freezeCriticalDamageMultiplier
             }
-            if state.damageKeyword == .burn {
+            if state.damageKeyword == .burn || sharedKeyword == .burn {
                 multiplier *= triggers.burnCriticalDamageMultiplier
             }
         }

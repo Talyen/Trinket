@@ -43,8 +43,8 @@ identifiers use underscores.
 | Greatsword | Everkeen | Your first Physical Critical Hit each turn strikes again. |
 | Hatchet | Red Harvest | Physical Critical Hits detonate Bleed. |
 | Longsword | Oathkeeper | Your Physical damage bonuses also strengthen Holy damage. |
-| Shortsword | The Patient Edge | Blocking an attack makes your next attack Critically Hit. |
-| Dagger | Viper’s Courtesy | After Dodging, your next hit deals additional Poison and Bleed damage, each equal to half its damage. |
+| Shortsword | The Patient Edge | Blocking an attack makes your next manually played attack Critically Hit. |
+| Dagger | Viper’s Courtesy | After Dodging, your next manually played card hit that removes Health deals additional Poison and Bleed damage, each equal to half the Health lost. |
 | Mace | The Lingering Bell | Stunning an enemy preserves a quarter of the Stun buildup that triggered it. |
 | Longbow | Huntsmaster’s Call | Your Physical Critical Hits draw from your Companion's deck. |
 | Shortbow | Wrenflight | Playing your second card each turn draws a card and grants 10% Dodge until your next turn. |
@@ -91,7 +91,8 @@ from the Companion's deck after each damaging Physical Critical Hit by its hero 
  Normal Companion draw restrictions and the shared hand buffer apply. The Patient Edge prepares
 the wearer's next ordinary attack to Critically Hit after Block actually absorbs
 attack damage (gaining Block alone and blocking ongoing damage never qualify;
-refresh not stack; persist until consumed or combat ends). The Knight's Answer
+refresh not stack; persist until consumed or combat ends). Automatic Basics and
+triggered cards leave it ready; only the next ordinary attack hit consumes it. The Knight's Answer
 uses full equipped Basic abilities, including utility effects, with normal
  targeting, resource requirements, and survival/control restrictions; they do
  not consume a deck card. Answers owed by in-progress damage resolve right

@@ -56,8 +56,8 @@ extension InventoryItem {
                 triggers.partnerFirstAttackDamage = 0
                 triggers.heldCardNextAttackDamage = 0
             }
-            description = "Blocking an attack makes your next attack Critically Hit."
-        case "red_harvest", "huntsmasters_call", "threefold_grace", "golden_verdict":
+            description = "Blocking an attack makes your next manually played attack Critically Hit."
+        case "red_harvest", "huntsmasters_call", "threefold_grace", "golden_verdict", "vipers_courtesy":
             return Self.normalizedReworkedUnique(original, affixID: affixID)
         default:
             return original

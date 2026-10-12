@@ -121,9 +121,14 @@ package extension BattleState {
             text: "Wrenflight: +\(Int((state.wrenflightDodge * 100).rounded()))% Dodge chance until your next turn.",
         )
         summaries.append(
+            .physical,
+            when: state.patientEdgeReady,
+            text: "The Patient Edge: Your next manually played attack hit Critically Hits.",
+        )
+        summaries.append(
             .poison,
             when: state.viperReady,
-            text: "Viper’s Courtesy: Your next hit that removes Health deals additional Poison and Bleed damage, each equal to half its damage.",
+            text: "Viper’s Courtesy: Your next manually played card hit that removes Health deals additional Poison and Bleed damage, each equal to half the Health lost.",
         )
         summaries.append(
             .poison,

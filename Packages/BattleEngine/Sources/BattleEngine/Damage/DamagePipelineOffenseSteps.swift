@@ -395,10 +395,12 @@ package extension DamagePipeline {
             CombatRounding.scaled(state.remaining, multiplier: critMultiplier), bonus,
         )
         state.remaining = CombatRounding.scaled(criticalDamage, multiplier: 1 + percent)
-        if state.damageKeyword == .burn, state.options.isAttackHit, let sourceActorID = state.sourceActorID {
-            state.remaining = SaturatedArithmetic.saturatingAdd(
-                state.remaining, context.modifiers(for: sourceActorID).triggers.burnCriticalDamageBonus,
-            )
+        if state.options.isAttackHit, let keyword = state.damageKeyword, let sourceActorID = state.sourceActorID {
+            let triggers = context.modifiers(for: sourceActorID).triggers
+            let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
+            if keyword == .burn || sharedKeyword == .burn {
+                state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.burnCriticalDamageBonus)
+            }
         }
         if state.damageKeyword == .poison, state.options.isAttackHit, let sourceActorID = state.sourceActorID {
             state.remaining = SaturatedArithmetic.saturatingAdd(

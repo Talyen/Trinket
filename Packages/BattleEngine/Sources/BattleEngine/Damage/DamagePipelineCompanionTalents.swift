@@ -167,6 +167,7 @@ package extension DamagePipeline {
               context.roster.combatant(for: sourceActorID)?.role == .companion
         else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
+        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
         if state.targetStatus.isBleeding,
            context.roster.isBelowHalfHealth(for: state.combatant),
            triggers.attackVsBleedingBelowHalfMultiplier > 1 {
@@ -174,7 +175,8 @@ package extension DamagePipeline {
                 state.remaining, multiplier: triggers.attackVsBleedingBelowHalfMultiplier,
             )
         }
-        if state.damageKeyword == .bleed, state.options.isAttackHit, state.isCritical,
+        if state.damageKeyword == .bleed || sharedKeyword == .bleed,
+           state.options.isAttackHit, state.isCritical,
            triggers.bleedCriticalDamageMultiplier > 1 {
             state.remaining = CombatRounding.scaled(
                 state.remaining, multiplier: triggers.bleedCriticalDamageMultiplier,
@@ -197,7 +199,7 @@ package extension DamagePipeline {
                 state.remaining, multiplier: triggers.poisonDamageVsStunnedMultiplier,
             )
         }
-        if state.damageKeyword == .bleed,
+        if state.damageKeyword == .bleed || sharedKeyword == .bleed,
            context.roster.isBelowHalfHealth(for: state.combatant),
            triggers.bleedDamageBelowHalfMultiplier > 1 {
             state.remaining = CombatRounding.scaled(
@@ -245,7 +247,8 @@ package extension DamagePipeline {
         ) > 0 ? triggers.damageTakenMultiplierWhileBlocked : 1
         let multiplier = manaMultiplier * doorMultiplier * blockedMultiplier
         if multiplier < 1 {
-            state.remaining = CombatRounding.scaled(state.remaining, multiplier: multiplier)
+            let mitigation = DamageDefensePolicy.mitigationMultiplier(state: state, context: context)
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - (1 - multiplier) * mitigation)
         }
     }
 
@@ -254,6 +257,7 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard state.remaining > 0, state.combatant.role != .enemy,
+              DamageDefensePolicy.mitigationMultiplier(state: state, context: context) > 0,
               let multiplier = context.consumeTalentPreparation(\.nextIncomingDamageMultiplier, for: state.combatant)
         else { return }
         state.remaining = CombatRounding.scaled(state.remaining, multiplier: multiplier)

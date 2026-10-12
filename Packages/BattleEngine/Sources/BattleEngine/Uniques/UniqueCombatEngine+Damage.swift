@@ -6,6 +6,13 @@ extension UniqueCombatEngine {
         guard !request.options.isHealthCost, let sourceID = request.sourceActorID,
               isOrdinaryAction(actorID: sourceID, in: context) else { return request }
         var prepared = request
+        if request.options.isAttackHit, request.amount > 0, request.target.role == .enemy,
+           let actor = context.roster.combatant(for: sourceID),
+           let owner = context.roster.participant(for: actor.combatant),
+           context.uniques.owners[owner]?.patientEdgeReady == true {
+            prepared.options.guaranteedCritical = true
+            context.uniques.owners[owner]?.patientEdgeReady = false
+        }
         if context.uniques.card?.guaranteedCritical == true {
             prepared.options.guaranteedCritical = true
         }

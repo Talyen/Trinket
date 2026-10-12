@@ -161,14 +161,8 @@ package extension DamagePipeline {
         guard state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
               context.modifiers(for: owner.id).triggers.blockPreparesCritical
         else { return }
-        ActiveEffectMutation.removeMatching(from: owner, in: &context) { $0 == .nextStrikeCritical }
-        _ = context.insertEffect(
-            .nextStrikeCritical,
-            to: owner,
-            sourceID: owner.id,
-            remainingTurns: 0,
-            replacing: { $0 == .nextStrikeCritical },
-        )
+        guard let participant = context.roster.participant(for: owner), participant.isPartyMember else { return }
+        context.uniques.owners[participant, default: .init()].patientEdgeReady = true
     }
 
     private static func handleTalentBlockedDamage(

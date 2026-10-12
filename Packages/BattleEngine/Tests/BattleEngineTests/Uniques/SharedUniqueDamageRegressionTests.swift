@@ -64,6 +64,32 @@ struct SharedUniqueDamageRegressionTests {
         #expect(ordinary.roster.enemy.currentHealth == 1990)
     }
 
+    @Test(arguments: ["warlock_mana_t4_1", "ranger_burn_t2_1"])
+    func `bloodember shares Void Focus and Woundfire with Bleed`(talentID: String) throws {
+        let fixtures = UniqueCollectionTests()
+        let profile = CombatantTalentCatalog.profile(for: [talentID])
+        var context = try fixtures.battle(["bloodember_pendant"], extra: profile)
+        context.appendEffect(.bleed(1), to: context.enemy, sourceID: context.hero.id, remainingTurns: 2)
+        try fixtures.play(fixtures.attack(.bleed, amount: 20), in: &context)
+        #expect(context.roster.enemy.currentHealth == 1975)
+    }
+
+    @Test func `bloodember shares Inferno Barrages Critical damage with Bleed`() throws {
+        let fixtures = UniqueCollectionTests()
+        let profile = CombatantTalentCatalog.profile(for: ["ranger_burn_t3_2"])
+        var context = try fixtures.battle(["bloodember_pendant"], extra: profile)
+        try fixtures.play(fixtures.attack(.bleed), critical: true, in: &context)
+        #expect(context.roster.enemy.currentHealth == 1976)
+    }
+
+    @Test func `bloodember shares Savage Tears Critical damage with Burn`() throws {
+        let fixtures = UniqueCollectionTests()
+        let profile = CombatantTalentCatalog.profile(for: ["wolf_bleed_t3_2"])
+        var context = try fixtures.battle(["bloodember_pendant"], owner: .companion, extra: profile)
+        try fixtures.play(fixtures.attack(.burn), owner: .companion, critical: true, in: &context)
+        #expect(context.roster.enemy.currentHealth == 1970)
+    }
+
     @Test(arguments: [Keyword.holy, .burn, .bleed], [BattleParticipant.hero, .companion])
     func `shared damage includes both keyword percentages and universal bonuses once`(
         keyword: Keyword,

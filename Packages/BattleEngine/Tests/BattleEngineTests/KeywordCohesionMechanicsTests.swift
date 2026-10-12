@@ -555,7 +555,7 @@ extension KeywordCohesionMechanicsTests {
             sourceActorID: battle.enemy.id,
             options: .attack(),
         ))
-        try #expect(battle.roster.activeEffects(for: battle.hero).contains { $0.effect == .nextStrikeCritical })
+        try #expect(battle.uniques.owners[.hero]?.patientEdgeReady == true)
     }
 
     @Test func `companion cards per turn draws alongside draw every other turn`() {

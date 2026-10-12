@@ -22,8 +22,8 @@ struct AllyBlockProtectionRegressionTests {
         var battle = try makeBattle(uniques: ["the_patient_edge"])
         DefensePoolEngine.set(10, on: battle.hero, in: &battle)
         _ = hit(5, target: target, in: &battle)
-        #expect(battle.roster.hero.activeEffects.contains { $0.effect == .nextStrikeCritical })
-        #expect(!battle.roster.companion.activeEffects.contains { $0.effect == .nextStrikeCritical })
+        #expect(battle.uniques.owners[.hero]?.patientEdgeReady == true)
+        #expect(battle.uniques.owners[.companion]?.patientEdgeReady != true)
     }
 
     @Test(arguments: [BattleParticipant.hero, .companion])

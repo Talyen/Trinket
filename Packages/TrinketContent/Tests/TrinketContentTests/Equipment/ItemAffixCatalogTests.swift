@@ -85,7 +85,7 @@ struct ItemAffixCatalogTests {
         #expect(power.triggers.heldCardNextAttackDamage == 0)
         #expect(power.triggers.partnerFirstAttackDamage == 0)
         #expect(power.triggers.blockPreparesCritical)
-        #expect(power.description == "Blocking an attack makes your next attack Critically Hit.")
+        #expect(power.description == "Blocking an attack makes your next manually played attack Critically Hit.")
     }
 
     @Test func `nested affix reactions are ignored in favor of flat keys`() throws {

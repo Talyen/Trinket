@@ -55,7 +55,7 @@ package extension DamagePipeline {
            context.roster.isAboveHalfHealth(for: state.combatant) {
             state.remaining = CombatRounding.scaled(
                 state.remaining,
-                multiplier: context.heroModifiers.triggers.verdantShelterDamageMultiplier,
+                multiplier: 1 - (1 - context.heroModifiers.triggers.verdantShelterDamageMultiplier) * reductionMultiplier,
             )
         }
         applyCompanionDefenseMultipliers(to: &state, in: context)

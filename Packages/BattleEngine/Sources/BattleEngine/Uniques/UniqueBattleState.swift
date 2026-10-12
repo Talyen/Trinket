@@ -12,6 +12,7 @@ package struct UniqueBattleState {
         var returnedGaleThisTurn = false
         var returnedFlightThisTurn = false
         var hasAttacked = false
+        var patientEdgeReady = false
         var viperReady = false
         var wildheartReady = false
         var goldDamage = 0

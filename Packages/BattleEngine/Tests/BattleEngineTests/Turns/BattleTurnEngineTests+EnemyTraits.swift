@@ -185,6 +185,49 @@ extension BattleTurnEngineTests {
         #expect(context.enemyModifiers.damageTakenVulnerability[.freeze] == 0.30)
     }
 
+    @Test(arguments: [false, true])
+    func `searing body responds to attacks rather than ongoing damage`(attack: Bool) throws {
+        var context = try enemyTraitContext("fire_elemental")
+        _ = context.resolveDamage(DamageRequest(
+            amount: 1, target: context.enemy, keyword: .bleed, sourceActorID: context.hero.id,
+            options: attack ? .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1) : .periodic,
+        ))
+        #expect(context.roster.hasAffliction(.burn, on: context.hero) == attack)
+    }
+
+    @Test(arguments: [Keyword.burn, .physical])
+    func `unquenchable flame bypasses Verdant Shelter only for Burn`(keyword: Keyword) throws {
+        let profile = CombatantTalentCatalog.profile(for: ["druid_health_t4_1"])
+        var context = try enemyTraitContext("pyromancer", heroModifiers: profile)
+        context.appendEffect(.thorns(2), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
+        let result = context.resolveDamage(DamageRequest(
+            amount: 20, target: context.hero, keyword: keyword, sourceActorID: context.enemy.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ))
+        #expect(result.healthLost == (keyword == .burn ? 20 : 15))
+    }
+
+    @Test(arguments: [Keyword.burn, .physical])
+    func `unquenchable flame bypasses Aetherial Armor and preserves unused protection`(keyword: Keyword) throws {
+        let fixtures = UniqueCollectionTests()
+        let pyromancer = try #require(GameContent.enemy(matching: "pyromancer"))
+        let profile = CombatantTalentCatalog.profile(for: ["frost_whelp_mana_t2_2"])
+        var context = try fixtures.battle(
+            [],
+            owner: .companion,
+            extra: profile,
+            enemyExtra: CombatBuildResolver.build(enemy: pyromancer).modifiers,
+        )
+        context.roster.companion.currentMana = 1
+        context.roster.companion.talents.pending.nextIncomingDamageMultiplier = PreparedTalentBonus(value: 0.5)
+        let result = context.resolveDamage(DamageRequest(
+            amount: 20, target: context.companion, keyword: keyword, sourceActorID: context.enemy.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ))
+        #expect(result.healthLost == (keyword == .burn ? 20 : 8))
+        #expect((context.roster.companion.talents.pending.nextIncomingDamageMultiplier != nil) == (keyword == .burn))
+    }
+
     @Test func `cleric feedback names each independent trait`() throws {
         var context = try enemyTraitContext("cleric")
         let enemy = context.enemy

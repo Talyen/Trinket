@@ -78,7 +78,11 @@ Resolved outgoing packets also skip source talent multipliers already included i
 their magnitude. Newly readied Toxic Backlash still doubles the next Poison damage
 event once, including a stored tick; Venomtrail retains its per-event rule below.
 Oathkeeper and Bloodember share keyword percentage bonuses as well as flat bonuses,
-counting universal bonuses once. Thermal Shock and Frostfire apply once per new hit.
+counting universal bonuses once, including conditional passive damage and Critical
+damage bonuses. Thermal Shock and Frostfire apply once per new hit.
+Searing Body attaches Burn after attack Health damage, never after periodic or
+reaction damage. Unquenchable Flame bypasses talent damage reduction as well as
+flat mitigation, typed resistance and Block; unapplied prepared protection remains ready.
 
 The Final Spark snapshots each original packet's outgoing magnitude and Critical
 Hit result before recipient defenses. Its repeat uses current defenses without
