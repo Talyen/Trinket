@@ -227,3 +227,54 @@ struct SharedUniqueDamageRegressionTests {
         #expect(ordinary.roster.enemy.currentHealth == 1860)
     }
 }
+
+extension SharedUniqueDamageRegressionTests {
+    @Test(arguments: ["wolf_physical_t4_1", "bear_physical_t4_1", "wolf_physical_t3_1"])
+    func `oathkeeper shares first attack and burst damage while retaining their allowances`(talentID: String) throws {
+        let fixtures = UniqueCollectionTests()
+        var profile = CombatantTalentCatalog.profile(for: [talentID])
+        if talentID == "wolf_physical_t3_1" {
+            profile.triggers.physicalAttackBurstChancePercent = 1
+        }
+        var battle = try fixtures.battle(["oathkeeper"], owner: .companion, extra: profile)
+        fixtures.block(20, owner: .companion, in: &battle)
+
+        try fixtures.play(fixtures.attack(.holy, amount: 20), owner: .companion, in: &battle)
+        #expect(battle.health(of: battle.enemy) == (talentID == "wolf_physical_t4_1" ? 1960 : 1970))
+
+        // Shared hits spend the same first-attack allowance; a later Physical hit cannot earn it again.
+        try fixtures.play(fixtures.attack(.physical, amount: 20), owner: .companion, in: &battle)
+        #expect(battle.health(of: battle.enemy) == (talentID == "wolf_physical_t3_1" ? 1940 :
+                talentID == "wolf_physical_t4_1" ? 1940 : 1950))
+    }
+
+    @Test func `oathkeeper consumes Bounty Blades prepared damage on a Holy attack`() throws {
+        let fixtures = UniqueCollectionTests()
+        let profile = CombatantTalentCatalog.profile(for: ["rogue_gold_t4_1"])
+        var battle = try fixtures.battle(["oathkeeper"], extra: profile)
+        _ = battle.grantGoldEvent(1, to: battle.hero, abilityName: "Steal", isTheft: true)
+
+        try fixtures.play(fixtures.attack(.holy, amount: 20), in: &battle)
+        #expect(battle.health(of: battle.enemy) == 1977)
+        #expect(battle.roster.hero.talents.pending.nextPhysicalDamageBonus == 0)
+        try fixtures.play(fixtures.attack(.physical, amount: 20), in: &battle)
+        #expect(battle.health(of: battle.enemy) == 1957)
+    }
+
+    @Test func `bloodember shares Soul Burns prepared bonus with the next Bleed attack`() throws {
+        let fixtures = UniqueCollectionTests()
+        let profile = CombatantTalentCatalog.profile(for: ["warlock_burn_t2_2"])
+        var battle = try fixtures.battle(["bloodember_pendant"], extra: profile)
+        battle.roster.hero.currentMana = 3
+
+        // Empowering this Burn card spends the last Mana and prepares a later attack.
+        try fixtures.play(fixtures.attack(.burn), in: &battle)
+        #expect(battle.health(of: battle.enemy) == 1989)
+        #expect(battle.mana(of: battle.hero) == 0)
+        try fixtures.play(fixtures.attack(.bleed, amount: 20), in: &battle)
+        #expect(battle.health(of: battle.enemy) == 1959)
+        #expect(battle.roster.hero.talents.pending.nextBurnAttackPercent == nil)
+        try fixtures.play(fixtures.attack(.burn, amount: 20), in: &battle)
+        #expect(battle.health(of: battle.enemy) == 1939)
+    }
+}

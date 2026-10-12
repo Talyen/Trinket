@@ -121,7 +121,7 @@ package extension DamagePipeline {
            context.roster.runtime(for: source)?.currentMana == 0, triggers.zeroManaBurnMultiplier > 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.zeroManaBurnMultiplier)
         }
-        if keyword == .burn {
+        if keyword == .burn || sharedKeyword == .burn {
             if state.options.isAttackHit,
                let percent = context.consumeTalentPreparation(\.nextBurnAttackPercent, for: source) {
                 state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + percent)
@@ -177,7 +177,7 @@ package extension DamagePipeline {
             state.remaining += bonus
             state.itemBonus += bonus
         }
-        if keyword == .physical, state.options.isAttackHit,
+        if keyword == .physical || sharedKeyword == .physical, state.options.isAttackHit,
            let bonus = context.roster.runtime(for: source)?.talents.pending.nextPhysicalDamageBonus,
            bonus > 0 {
             state.remaining += bonus

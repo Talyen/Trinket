@@ -63,6 +63,7 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard state.options.isAttackHit else { return }
+        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
         if let bonus = context.consumeTalentPreparation(\.nextManaSpendAttackBonus, for: source) {
             state.remaining += bonus
         }
@@ -70,13 +71,13 @@ package extension DamagePipeline {
            context.claimHeroTalent(.sunlightSpark, actorID: source.id) {
             state.remaining += triggers.firstHolyAttackBonusPerTurn
         }
-        if state.damageKeyword == .physical, triggers.firstPhysicalAttackBattleMultiplier > 1,
+        if state.damageKeyword == .physical || sharedKeyword == .physical, triggers.firstPhysicalAttackBattleMultiplier > 1,
            context.claimHeroTalent(.alphaStrike, actorID: source.id, battle: true) {
             state.remaining = CombatRounding.scaled(
                 state.remaining, multiplier: triggers.firstPhysicalAttackBattleMultiplier,
             )
         }
-        if state.damageKeyword == .physical, triggers.physicalAttackBurstChancePercent > 0,
+        if state.damageKeyword == .physical || sharedKeyword == .physical, triggers.physicalAttackBurstChancePercent > 0,
            context.claimTalentAbility(.feralFrenzy, actorID: source.id),
            BattleChance.succeeds(probability: triggers.physicalAttackBurstChancePercent, using: &context.rng) {
             state.remaining = CombatRounding.scaled(

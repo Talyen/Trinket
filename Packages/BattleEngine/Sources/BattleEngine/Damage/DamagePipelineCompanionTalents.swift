@@ -150,7 +150,7 @@ package extension DamagePipeline {
             state.remaining += triggers.firstStunAttackBonusPerTurn
             state.itemBonus += triggers.firstStunAttackBonusPerTurn
         }
-        if keyword == .physical, triggers.firstPhysicalAttackBlockDamagePercent > 0,
+        if keyword == .physical || sharedKeyword == .physical, triggers.firstPhysicalAttackBlockDamagePercent > 0,
            context.claimHeroTalent(.batteringRam, actorID: sourceActorID) {
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant))
             let bonus = CombatRounding.scaled(block, multiplier: triggers.firstPhysicalAttackBlockDamagePercent)

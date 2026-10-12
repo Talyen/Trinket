@@ -106,7 +106,9 @@ uses full equipped Basic abilities, including utility effects, with normal
   Poison before each attack packet; other mitigation remains effective.
 - Oathkeeper and Bloodember share applicable numeric damage bonuses, counting
   shared universal bonuses once. Resistances, durations, Leech and proc behavior
-  stay separate. Stored DoT potency does not bake those bonuses a second time.
+  stay separate. Shared attacks consume the same first-attack and prepared-damage
+  allowances as the original type, including Bounty Blade and Soul Burn. Stored
+  DoT potency does not bake those bonuses a second time.
 - Viper's Courtesy consumes readiness on the next ordinary card hit that causes
   Health loss. Each follow-up starts at half that loss and uses normal typed
   damage and status application.
