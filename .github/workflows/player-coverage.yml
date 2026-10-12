@@ -32,7 +32,11 @@ jobs:
       - name: Export the iOS 18.0 simulator runtime
         env:
           DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
-        run: xcodebuild -downloadPlatform iOS -buildVersion 18.0 -exportPath "$RUNNER_TEMP/ios18-runtime"
+        run: |
+          sudo xcode-select --switch "$DEVELOPER_DIR"
+          sudo xcodebuild -runFirstLaunch
+          xcrun simctl list runtimes available
+          xcodebuild -downloadPlatform iOS -buildVersion 18.0 -exportPath "$RUNNER_TEMP/ios18-runtime"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: ios18-runtime-${{ github.run_id }}-${{ github.run_attempt }}
