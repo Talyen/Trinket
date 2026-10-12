@@ -29,8 +29,11 @@ final class RepeatedPlayUITests: TrinketUITestCase {
             tapButton(leave)
             dismissEarnedTalentChoicesIfPresented()
             assertExists(AccessibilityID.Play.contractsBoard)
-            waitForAudioProgress(after: lastAudioPlays)
-            let report = try coverageReport()
+            var report: [String: Any] = [:]
+            waitUntil("Cycle \(cycle) must schedule real audio") {
+                report = (try? self.coverageReport()) ?? [:]
+                return (report["sfxPlays"] as? Int ?? 0) > lastAudioPlays
+            }
             let currentContracts = try XCTUnwrap(report["contracts"] as? [String: Any])
             let claims = try Set(XCTUnwrap(currentContracts["completedOfferIDs"] as? [String]))
             XCTAssertEqual(

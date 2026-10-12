@@ -45,7 +45,17 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
         let arguments = TestLaunchArg.allForBattlePerformance(scenario)
         launchApp(arguments: arguments)
         battle.assertActive(timeout: 8)
-        let gesture = prepareGesture(for: scenario)
+        let isPlay = scenario == "real-card-play"
+        let isCancel = scenario == "hand-drag-cancel"
+        let cards = battle.handCards
+        var origin: XCUICoordinate?
+        var initialCardCount = 0
+        if isPlay || isCancel {
+            let card = cards.firstMatch
+            assertExists(card)
+            origin = screenCoordinate(for: card)
+            initialCardCount = cards.count
+        }
 
         let start = button(AccessibilityID.Debug.battlePerformanceStart)
         let status = any(AccessibilityID.Debug.battlePerformanceStatus)
@@ -55,56 +65,17 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
             waitUntil(timeout: 4) { (status.value as? String)?.hasPrefix("measuring:\(scenario)") == true },
             "Scenario did not enter its measurement window: \(status.value ?? "missing")",
         )
-        perform(gesture)
-        validate(gesture)
+        if let origin {
+            origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(
+                isPlay ? CGVector(dx: 0, dy: -120) : CGVector(dx: 48, dy: -20),
+            ))
+            if isPlay {
+                XCTAssertTrue(waitUntil { cards.count == initialCardCount - 1 }, "A successful release did not remove exactly one card")
+            } else {
+                XCTAssertEqual(cards.count, initialCardCount, "Cancel gestures changed hand membership")
+            }
+        }
         finishMeasurement(scenario, iteration: iteration, settle: 3, suite: "battle", control: stop)
-    }
-
-    private enum Gesture {
-        case none
-        case play(origin: XCUICoordinate, initialCardCount: Int)
-        case cancel(origin: XCUICoordinate, initialCardCount: Int)
-    }
-
-    private func prepareGesture(for scenario: String) -> Gesture {
-        guard scenario == "real-card-play" || scenario == "hand-drag-cancel" else { return .none }
-        let cards = battle.handCards
-        let card = cards.firstMatch
-        XCTAssertTrue(card.trinketWaitForExistence(timeout: Self.defaultTimeout))
-        let origin = screenCoordinate(for: card)
-        let count = cards.count
-        return scenario == "real-card-play"
-            ? .play(origin: origin, initialCardCount: count)
-            : .cancel(origin: origin, initialCardCount: count)
-    }
-
-    private func perform(_ gesture: Gesture) {
-        switch gesture {
-        case .none:
-            return
-        case let .play(origin, _):
-            drag(from: origin, offset: CGVector(dx: 0, dy: -120))
-        case let .cancel(origin, _):
-            drag(from: origin, offset: CGVector(dx: 48, dy: -20))
-        }
-    }
-
-    private func validate(_ gesture: Gesture) {
-        switch gesture {
-        case .none:
-            return
-        case let .play(_, initialCardCount):
-            XCTAssertTrue(
-                waitUntil { self.battle.handCards.count == initialCardCount - 1 },
-                "A successful release did not remove exactly one card",
-            )
-        case let .cancel(_, initialCardCount):
-            XCTAssertEqual(
-                battle.handCards.count,
-                initialCardCount,
-                "Cancel gestures changed hand membership",
-            )
-        }
     }
 
     private func screenCoordinate(for element: XCUIElement) -> XCUICoordinate {
@@ -112,10 +83,6 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
         return app.coordinate(withNormalizedOffset: .zero).withOffset(
             CGVector(dx: frame.midX, dy: frame.midY),
         )
-    }
-
-    private func drag(from origin: XCUICoordinate, offset: CGVector) {
-        origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(offset))
     }
 
     private func waitUntil(timeout: TimeInterval = 3, condition: () -> Bool) -> Bool {

@@ -215,4 +215,10 @@ launch-animation selection, including the default matrix.
 
 Readiness taps own their existence wait; avoid a second existence assertion immediately
 before the same tap. Tap readiness reads enablement and geometry from one snapshot.
-Numeric reads resolve value and fallback label from the same snapshot.
+Numeric reads resolve value and fallback label from the same snapshot. Scroll helpers
+return the visibility result from their last check; callers reuse it instead of querying
+existence and hittability again. Forward and reverse reveal budgets are unchanged.
+Coverage diagnostics use one snapshot per report. Audio waits retain the report that
+satisfied the condition for subsequent checks, including each of the twenty soak cycles.
+Battle performance keeps gesture setup before capture and its existing short polling
+cadence, card-count assertions, and animation tail without a separate gesture model.

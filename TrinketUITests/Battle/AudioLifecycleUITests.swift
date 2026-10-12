@@ -3,12 +3,11 @@ import XCTest
 
 final class AudioLifecycleUITests: TrinketUITestCase {
     func testRealBackendsPlayAfterBattleAndForegroundRouting() throws {
-        launchApp(arguments: TestLaunchArg.productionTiming(audio: true)
+        launchApp(arguments: TestLaunchArg.productionTiming(tab: "options", audio: true)
             + ["-performance-strong-party", "-coverage-diagnostics"])
-        tabBar.selectOptions()
         options.assertLoaded()
         let musicVolume = app.sliders["Music"]
-        XCTAssertTrue(musicVolume.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(musicVolume.trinketWaitForExistence(timeout: Self.defaultTimeout))
         musicVolume.adjust(toNormalizedSliderPosition: 0.75)
         waitUntil("Music must start after enabling simulator music") {
             do { return try (self.coverageReport()["musicStarts"] as? Int ?? 0) > 0 }
@@ -21,15 +20,14 @@ final class AudioLifecycleUITests: TrinketUITestCase {
         let before = try coverageReport()
         backgroundAndActivate()
         completeAudioContract()
-        try waitForAudioProgress(after: XCTUnwrap(before["sfxPlays"] as? Int))
+        let plays = try XCTUnwrap(before["sfxPlays"] as? Int)
         let musicStarts = try XCTUnwrap(before["musicStarts"] as? Int)
-        waitUntil("Foreground routing must restart real music playback") {
-            do { return try (self.coverageReport()["musicStarts"] as? Int ?? 0) > musicStarts }
-            catch { return false }
+        var after: [String: Any] = [:]
+        waitUntil("Foreground routing must restart music and schedule another sound") {
+            after = (try? self.coverageReport()) ?? [:]
+            return (after["sfxPlays"] as? Int ?? 0) > plays
+                && (after["musicStarts"] as? Int ?? 0) > musicStarts
         }
-        let after = try coverageReport()
-        XCTAssertGreaterThan(try XCTUnwrap(after["sfxPlays"] as? Int), try XCTUnwrap(before["sfxPlays"] as? Int))
-        XCTAssertGreaterThan(try XCTUnwrap(after["musicStarts"] as? Int), try XCTUnwrap(before["musicStarts"] as? Int))
         XCTAssertEqual(after["audioFailures"] as? Int, 0)
         XCTAssertEqual(after["duplicateMusicOwners"] as? Int, 0)
         let attachment = XCTAttachment(string: String(describing: after))

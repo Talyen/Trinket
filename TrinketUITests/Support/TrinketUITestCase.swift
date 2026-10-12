@@ -218,19 +218,8 @@ class TrinketUITestCase: XCTestCase {
 
     func coverageReport() throws -> [String: Any] {
         let probe = any(AccessibilityID.Debug.coverageDiagnostics)
-        assertExists(probe)
-        let encoded = try XCTUnwrap(probe.value as? String)
+        let encoded = try XCTUnwrap(probe.snapshot().value as? String)
         return try XCTUnwrap(JSONSerialization.jsonObject(with: Data(encoded.utf8)) as? [String: Any])
-    }
-
-    func waitForAudioProgress(after plays: Int) {
-        waitUntil("Real backend must schedule another sound") {
-            do {
-                return try (self.coverageReport()["sfxPlays"] as? Int ?? 0) > plays
-            } catch {
-                return false
-            }
-        }
     }
 
     func auditProductAccessibility() throws {
@@ -386,35 +375,32 @@ class TrinketUITestCase: XCTestCase {
         line: UInt = #line,
     ) {
         let element = app.descendants(matching: .any)[identifier]
-        scrollUntilVisible(
+        let visible = scrollUntilVisible(
             element,
             swipingUp: true,
             maxAttempts: maxAttempts,
             requireHittable: requireHittable,
+        ) || scrollUntilVisible(
+            element,
+            swipingUp: false,
+            maxAttempts: max(3, maxAttempts / 2),
+            requireHittable: requireHittable,
         )
-        if !element.exists || (requireHittable && !element.isHittable) {
-            scrollUntilVisible(
-                element,
-                swipingUp: false,
-                maxAttempts: max(3, maxAttempts / 2),
-                requireHittable: requireHittable,
-            )
-        }
-        guard element.exists else {
-            fail("Element '\(identifier)' not found after scroll", file: file, line: line)
-            return
-        }
-        if requireHittable, !element.isHittable {
-            fail("Element '\(identifier)' not hittable after scroll", file: file, line: line)
-        }
+        XCTAssertTrue(
+            visible,
+            "Element '\(identifier)' not visible after scroll (hittable required: \(requireHittable))",
+            file: file,
+            line: line,
+        )
     }
 
+    @discardableResult
     func scrollUntilVisible(
         _ element: XCUIElement,
         swipingUp: Bool,
         maxAttempts: Int = 6,
         requireHittable: Bool = false,
-    ) {
+    ) -> Bool {
         app.scrollUntilVisible(
             element,
             swipingUp: swipingUp,
@@ -523,28 +509,25 @@ extension XCUIElement {
 }
 
 extension XCUIApplication {
+    @discardableResult
     func scrollUntilVisible(
         _ element: XCUIElement,
         swipingUp: Bool,
         maxAttempts: Int = 8,
         requireHittable: Bool = false,
-    ) {
+    ) -> Bool {
         if element.exists, !requireHittable || element.isHittable {
-            return
+            return true
         }
         let container = scrollContainer()
         for _ in 0 ..< maxAttempts {
+            container.dragScroll(fromY: swipingUp ? 0.90 : 0.35, toY: swipingUp ? 0.35 : 0.90)
+            _ = trinketWaitForExistenceMainActorSafe(element, timeout: 0.35)
             if element.exists, !requireHittable || element.isHittable {
-                return
+                return true
             }
-            if swipingUp {
-                container.dragScroll(fromY: 0.90, toY: 0.35)
-            } else {
-                container.dragScroll(fromY: 0.35, toY: 0.90)
-            }
-            let wait: TimeInterval = 0.35
-            _ = trinketWaitForExistenceMainActorSafe(element, timeout: wait)
         }
+        return false
     }
 
     private func scrollContainer() -> XCUIElement {

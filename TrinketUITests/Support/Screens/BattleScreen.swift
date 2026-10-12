@@ -24,14 +24,6 @@ struct BattleScreen {
         app.buttons[AccessibilityID.Battle.autoBattleToggle]
     }
 
-    var retreatAction: XCUIElement {
-        app.buttons[AccessibilityID.Battle.retreat]
-    }
-
-    var defeatLeaveAction: XCUIElement {
-        app.buttons[AccessibilityID.Battle.defeatLeaveButton].firstMatch
-    }
-
     func assertActive(
         timeout: TimeInterval = TrinketUITestCase.deepLinkTimeout,
         file: StaticString = #file,

@@ -3,7 +3,10 @@ import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
     func testHandInspectionDismissalAndDragPreserveCardPlay() {
-        launchMidBattleAndStart()
+        launchApp(arguments: TestLaunchArg.allForMidBattle())
+        play.openCampaign()
+        play.startBattle(chapter: 1, stage: 1)
+        battle.assertActive()
 
         let cards = battle.handCards
         let inspectedCard = cards.firstMatch
@@ -37,14 +40,6 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertCancelledDrag(from: origin, cards: cards)
         origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)))
         waitUntil("A successful drag must remove exactly one card") { cards.count == dragCountBefore - 1 }
-    }
-
-    private func launchMidBattleAndStart() {
-        launchApp(arguments: TestLaunchArg.allForMidBattle())
-        play.openCampaign()
-        play.startBattle(chapter: 1, stage: 1)
-
-        battle.assertActive()
     }
 
     private func assertCancelledDrag(from origin: XCUICoordinate, cards: XCUIElementQuery) {
