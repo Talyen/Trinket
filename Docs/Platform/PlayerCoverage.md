@@ -51,6 +51,9 @@ missing native text controls fail visibly without fallback. Xcode 27's command-l
 download rejects pre-26 runtimes ([FB24836279](https://developer.apple.com/forums/thread/847134)).
 CI exports Apple's iOS 18.0 runtime with Xcode 26.6 on `macos-26`, transfers the
 archive with one-day retention, then imports it on the verified Xcode 27 runner.
+The disposable hosted compatibility runner removes its preinstalled runtimes
+before transfer and deletes the archive after import to leave room for test
+products. Its build and test simulator requests both require the iOS 18 profile.
 Compilation and tests still use the verified toolchain. Other profiles install the
 requested major's `.0` runtime with an explicit universal architecture variant
 when absent. Every profile checks runtime availability and device compatibility
