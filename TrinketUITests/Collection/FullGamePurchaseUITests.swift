@@ -35,17 +35,19 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
 
     func testDeclinedAskToBuyRemainsLockedAndAllowsAnotherPurchase() throws {
         try skipUnavailablePurchaseAutomation()
-        try launchOptionsOffer()
+        try launchOptionsOffer(arguments: ["-coverage-diagnostics"])
         let session = try XCTUnwrap(storeSession)
         session.askToBuyEnabled = true
         tapButton(AccessibilityID.FullGame.purchase)
         let pending = try pendingTransaction(in: session)
         dismissSheet(AccessibilityID.FullGame.offer)
         assertWarlockLocked()
+        assertFullGameAccess(false)
         try session.declineAskToBuyTransaction(identifier: pending.identifier)
         waitUntil("Decline must clear its pending transaction") {
             !session.allTransactions().contains { $0.pendingAskToBuyConfirmation }
         }
+        assertFullGameAccess(false)
         // Legacy transaction state varies by runtime; prove denial through the purchase guard.
         tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
         assertExists(AccessibilityID.FullGame.offer)

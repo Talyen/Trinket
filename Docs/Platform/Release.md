@@ -238,6 +238,14 @@ Local StoreKit qualification (2026-10-11): Xcode 27.0 (27A266a) with iOS 27.0
 (24A434) exposed a denied Ask to Buy purchase as a verified current entitlement
 in a standalone app. With the same Xcode, iOS 26.2 (23C54) passed both the
 standalone approval/denial/retry controls and Trinket's denial/retry journey.
+Requalified 2026-10-12 with Xcode 27.1 RC (27A9275): iOS 27.1 (24A94232)
+still returns the declined transaction as a verified, unrevoked current entitlement
+while StoreKitTest marks the same transaction failed. An independent direct
+`Transaction.currentEntitlements` probe reproduced this before Trinket's access
+assertion failed. The same RC-built app on iOS 26.2 (23C54) returned no entitlement
+after denial and passed denial plus a subsequent purchase. This is an iOS 27 local
+StoreKit testing defect, not evidence of a production App Store failure. Do not
+filter valid signed entitlements or skip the denial assertion to accommodate it.
 Until requalified, select an existing managed iOS 26.2 simulator through
 `TRINKET_SIMULATOR_NAME` when running the command above, and confirm its actual
 runtime in the test evidence. A newer runtime is not automatically qualified.
