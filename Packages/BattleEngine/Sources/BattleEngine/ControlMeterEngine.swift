@@ -2,8 +2,15 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
+struct ControlMeterOutcome {
+    let didTrigger: Bool
+    let events: [ActionEvent]
+
+    static let empty = Self(didTrigger: false, events: [])
+}
+
 package enum ControlMeterEngine {
-    package static func applyMeterCharge( // swiftlint:disable:this function_body_length - control status mutation is one atomic pipeline
+    package static func applyMeterCharge(
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
@@ -11,24 +18,38 @@ package enum ControlMeterEngine {
         applyFightPacing: Bool = true,
         in context: inout BattleState,
     ) async -> [ActionEvent] {
-        guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
+        await resolveMeterCharge(
+            amount, keyword: keyword, to: combatant, sourceActorID: sourceActorID,
+            applyFightPacing: applyFightPacing, in: &context,
+        ).events
+    }
+
+    static func resolveMeterCharge( // swiftlint:disable:this function_body_length - control status mutation is one atomic pipeline
+        _ amount: Int,
+        keyword: Keyword,
+        to combatant: Combatant,
+        sourceActorID: String?,
+        applyFightPacing: Bool = true,
+        in context: inout BattleState,
+    ) async -> ControlMeterOutcome {
+        guard amount > 0, context.roster.health(for: combatant) > 0 else { return .empty }
         if keyword == .stun || keyword == .freeze,
            context.modifiers(for: combatant.id).triggers.blockedControlPrevention,
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: combatant)) > 0 {
-            return []
+            return .empty
         }
         if context.roster.hasControlStatus(for: combatant, keyword: keyword) {
-            return []
+            return .empty
         }
         let pacedAmount = applyFightPacing
             ? (sourceActorID.map { context.paced(amount, sourceActorID: $0) } ?? amount)
             : amount
-        guard pacedAmount > 0 else { return [] }
+        guard pacedAmount > 0 else { return .empty }
 
         let adjustedAmount = adjustedCharge(
             pacedAmount, keyword: keyword, to: combatant, sourceActorID: sourceActorID, in: context,
         )
-        guard adjustedAmount > 0 else { return [] }
+        guard adjustedAmount > 0 else { return .empty }
 
         let threshold = threshold(for: combatant, in: context)
         let effectiveThreshold: Int = if keyword == .stun, combatant.role == .enemy, let sourceActorID,
@@ -44,7 +65,7 @@ package enum ControlMeterEngine {
         guard !context.interceptDebuff(
             .controlMeter(keyword, adjustedAmount, effectiveThreshold),
             on: combatant,
-        ) else { return [] }
+        ) else { return .empty }
         let existingIndex = currentEffects.firstIndex { activeEffect in
             if case let .controlMeter(k, _, _) = activeEffect.effect, k == keyword {
                 return true
@@ -55,7 +76,7 @@ package enum ControlMeterEngine {
         let newAmount = min(SaturatedArithmetic.saturatingAdd(existingAmount, adjustedAmount), effectiveThreshold)
 
         if newAmount >= effectiveThreshold {
-            return await applyThresholdReached(
+            let events = await applyThresholdReached(
                 ControlMeterThresholdContext(
                     keyword: keyword,
                     combatant: combatant,
@@ -67,6 +88,7 @@ package enum ControlMeterEngine {
                 currentEffects: &currentEffects,
                 in: &context,
             )
+            return ControlMeterOutcome(didTrigger: true, events: events)
         }
 
         updateBuildup(
@@ -81,7 +103,7 @@ package enum ControlMeterEngine {
             currentEffects: &currentEffects,
             in: &context,
         )
-        return []
+        return .empty
     }
 
     package static func threshold(for combatant: Combatant, in context: BattleState) -> Int {

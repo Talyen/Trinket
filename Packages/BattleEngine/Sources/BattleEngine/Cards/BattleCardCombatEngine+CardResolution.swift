@@ -1,6 +1,11 @@
 import TrinketContent
 import TrinketCore
 
+struct CardPlayOutcome {
+    let events: [ActionEvent]
+    let criticalAttackActorIDs: Set<String>
+}
+
 extension BattleCardCombatEngine {
     @discardableResult
     package static func playCard(
@@ -16,7 +21,15 @@ extension BattleCardCombatEngine {
         context: inout BattleState,
         allowBufferedRemoval: Bool = true,
     ) async throws -> [ActionEvent] {
-        try await context.collectingEvents { context in
+        try await resolveDrawnCard(card, context: &context, allowBufferedRemoval: allowBufferedRemoval).events
+    }
+
+    static func resolveDrawnCard(
+        _ card: BattleCard,
+        context: inout BattleState,
+        allowBufferedRemoval: Bool = true,
+    ) async throws -> CardPlayOutcome {
+        let result = try await context.collectingResult { context in
             await CombatExecutor.suspend()
             if let error = playError(for: card, in: context, allowsTurnPreparation: allowBufferedRemoval) {
                 throw error
@@ -38,16 +51,18 @@ extension BattleCardCombatEngine {
             }
             discardPlayedCard(card, context: &context)
             context.commandOutput?.beginCard(card)
-            await resolvePlayedCard(card, actor: actor, context: &context)
+            let criticalAttackActorIDs = await resolvePlayedCard(card, actor: actor, context: &context)
             context.commandOutput?.endCard()
+            return criticalAttackActorIDs
         }
+        return CardPlayOutcome(events: result.events, criticalAttackActorIDs: result.value)
     }
 
-    static func resolvePlayedCard(
+    private static func resolvePlayedCard(
         _ card: BattleCard,
         actor: Combatant,
         context: inout BattleState,
-    ) async {
+    ) async -> Set<String> {
         let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
         defer { context.resolution.feedbackGroupID = previousFeedbackGroup }
         let previousUniqueCard = context.uniques.card
@@ -69,6 +84,7 @@ extension BattleCardCombatEngine {
             context: &context,
         )
         await finishPlayedCard(card, actor: actor, context: &context)
+        return context.resolution.criticalAttackActorIDs(forCard: playSerial)
     }
 
     private static func finishPlayedCard(

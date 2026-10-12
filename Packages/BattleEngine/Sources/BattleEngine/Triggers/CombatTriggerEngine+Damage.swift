@@ -437,14 +437,14 @@ package extension CombatTriggerEngine {
         if profile.triggers.criticalVsStunnedEnemyGold > 0,
            context.roster.health(for: source) > 0,
            targetWasStunnedAtHit {
-            await events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGold(
                 profile.triggers.criticalVsStunnedEnemyGold,
                 to: source,
                 abilityName: triggerAbilityName(
                     .criticalVsStunnedEnemyGold, for: source, fallback: "Confounding Loot", in: context,
                 ),
                 isTheft: true,
-            ))
+            ).events)
         }
 
         return events

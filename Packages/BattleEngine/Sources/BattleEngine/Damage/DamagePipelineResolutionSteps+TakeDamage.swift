@@ -24,7 +24,7 @@ package extension DamagePipeline {
                 // defeat before its own stack attaches, so both disjuncts matter.
                 let gold = context.modifiers(for: source.id).triggers.defeatBleedingEnemyGold
                 if gold > 0 {
-                    _ = await context.grantGoldEvent(
+                    _ = await context.grantGold(
                         gold, to: source.combatant, abilityName: "Blood Money",
                     )
                 }

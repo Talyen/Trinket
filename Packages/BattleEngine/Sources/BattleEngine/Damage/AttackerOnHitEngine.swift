@@ -31,7 +31,7 @@ enum AttackerOnHitEngine {
 
         if hit.keyword == .bleed, state.healthLost > 0, hit.triggers.bleedDamageGoldFlat > 0,
            context.roster.health(for: hit.source) > 0 {
-            _ = await context.grantGoldEvent(
+            _ = await context.grantGold(
                 hit.triggers.bleedDamageGoldFlat,
                 to: hit.source,
                 abilityName: "Cutpurse Knife",
@@ -40,7 +40,7 @@ enum AttackerOnHitEngine {
 
         if state.healthLost > 0, state.combatant.role == .enemy,
            hit.triggers.carrionClaim, hit.keyword == .poison || hit.keyword == .bleed {
-            _ = await context.grantGoldEvent(
+            _ = await context.grantGold(
                 1,
                 to: hit.source,
                 abilityName: "Carrion Claim",
@@ -134,7 +134,7 @@ enum AttackerOnHitEngine {
             state.remaining,
             multiplier: triggers.holyStunBuildupPercent,
         )
-        let stunEvents = await ControlMeterEngine.applyMeterCharge(
+        let stun = await ControlMeterEngine.resolveMeterCharge(
             buildup,
             keyword: .stun,
             to: state.combatant,
@@ -143,11 +143,9 @@ enum AttackerOnHitEngine {
             in: &context,
         )
         guard context.health(of: hit.source) > 0, triggers.holyTriggeredStunGoldFlat > 0,
-              stunEvents.contains(where: {
-                  $0.effectKind == .controlTriggered && $0.keyword == .stun
-              })
+              stun.didTrigger
         else { return }
-        _ = await context.grantGoldEvent(
+        _ = await context.grantGold(
             triggers.holyTriggeredStunGoldFlat,
             to: hit.source,
             abilityName: CombatTriggerEngine.triggerAbilityName(
@@ -337,7 +335,7 @@ extension AttackerOnHitEngine {
             )
         }
         if triggers.basicAttackStealGold > 0 {
-            _ = await context.grantGoldEvent(
+            _ = await context.grantGold(
                 triggers.basicAttackStealGold,
                 to: hit.source,
                 abilityName: "Snatch",
@@ -360,7 +358,7 @@ extension AttackerOnHitEngine {
         let targetIsPoisoned = context.roster.hasAffliction(.poison, on: target)
         let targetIsBleeding = context.roster.hasAffliction(.bleed, on: target)
         if triggers.onAttackStealGold > 0 {
-            _ = await context.grantGoldEvent(
+            _ = await context.grantGold(
                 triggers.onAttackStealGold + (targetIsPoisoned ? triggers.stealGoldBonusVsPoisoned : 0),
                 to: hit.source,
                 abilityName: "Pickpocket",
@@ -386,7 +384,7 @@ extension AttackerOnHitEngine {
             appendAttackerBlock(triggers.onAttackFrozenEnemyGainBlock, abilityName: "Frost Guard", state: &state, context: &context)
         }
         if triggers.onAttackStunnedEnemyGold > 0, targetIsStunned {
-            _ = await context.grantGoldEvent(
+            _ = await context.grantGold(
                 triggers.onAttackStunnedEnemyGold,
                 to: hit.source,
                 abilityName: "Disorienting Strike",

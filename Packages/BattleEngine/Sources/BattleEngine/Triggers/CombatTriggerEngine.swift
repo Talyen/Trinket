@@ -163,11 +163,11 @@ package enum CombatTriggerEngine {
         to target: Combatant,
         in context: inout BattleState,
     ) async -> [ActionEvent] {
-        await context.grantGoldEvent(
+        await context.grantGold(
             amount,
             to: target,
             abilityName: triggerAbilityName(key, for: target, fallback: fallback, in: context),
-        )
+        ).events
     }
 
     static func withDoTRecursionScope(

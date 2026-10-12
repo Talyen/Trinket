@@ -157,10 +157,10 @@ package extension HealingEngine {
             in: &context,
         )
         if profile.triggers.excessLeechHealthToGold, healing.allocation.remaining > 0 {
-            await healing.events.append(contentsOf: context.grantGoldEvent(
+            await healing.events.append(contentsOf: context.grantGold(
                 healing.allocation.remaining, to: actorCombatant, abilityName: "Flawless Bounty",
                 isLeechOverflow: true,
-            ))
+            ).events)
         }
         guard healing.didLeech else { return healing.combatOutcome }
         let actualRestored = healing.directRestoration

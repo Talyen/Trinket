@@ -49,6 +49,7 @@ struct CombatResolution {
     private struct Card {
         var partyDamageBonus = 0
         var partnerAttackDamageBonus = 0
+        var criticalAttackActorIDs: Set<String> = []
         let id: Int
         let actorID: String
         var outcome: ResolvedActionFacts?
@@ -321,6 +322,19 @@ struct CombatResolution {
     mutating func endAction() {
         guard case let .action(action) = frames.removeLast() else { preconditionFailure() }
         claims = claims.filter { $0.cadence != .action(action.id) }
+    }
+
+    /// Include nested attacks in their enclosing plays, without treating critical
+    /// healing or display decorators as attacks.
+    mutating func recordCardAttackCritical(by actorID: String) {
+        for index in cards.indices {
+            cards[index].criticalAttackActorIDs.insert(actorID)
+        }
+    }
+
+    func criticalAttackActorIDs(forCard id: Int) -> Set<String> {
+        precondition(cards.last?.id == id)
+        return cards.last?.criticalAttackActorIDs ?? []
     }
 
     mutating func endCard(_ id: Int) {

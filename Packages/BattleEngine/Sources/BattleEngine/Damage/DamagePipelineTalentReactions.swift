@@ -148,7 +148,7 @@ package extension DamagePipeline {
             )
         }
         if triggers.bountyBlade, state.isCritical {
-            _ = await context.grantGoldEvent(
+            _ = await context.grantGold(
                 3,
                 to: source.combatant,
                 abilityName: "Bounty Blade",

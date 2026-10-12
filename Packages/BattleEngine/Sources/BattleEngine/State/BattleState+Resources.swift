@@ -2,8 +2,13 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
+package struct GoldGain {
+    let applied: Int
+    let events: [ActionEvent]
+}
+
 package extension BattleState {
-    mutating func grantGoldEvent(
+    mutating func grantGold(
         _ amount: Int,
         to combatant: Combatant,
         abilityID: String = "",
@@ -11,7 +16,7 @@ package extension BattleState {
         isTheft: Bool = false,
         isDirectCardGain: Bool = false,
         isLeechOverflow: Bool = false,
-    ) async -> [ActionEvent] {
+    ) async -> GoldGain {
         if isLeechOverflow {
             resolution.enter(.leechOverflowGold)
         }
@@ -66,7 +71,7 @@ package extension BattleState {
             combatant: combatant,
             in: &self,
         ))
-        return events
+        return GoldGain(applied: granted, events: events)
     }
 
     func goldGranted(for amount: Int, sourceActorID: String) -> Int {

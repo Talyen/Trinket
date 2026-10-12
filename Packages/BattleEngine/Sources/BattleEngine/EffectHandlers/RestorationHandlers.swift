@@ -53,15 +53,13 @@ struct ResourceGainHandler: BattleEffectHandler {
             await events.append(contentsOf: CombatTriggerEngine.manaRestorationReactions(
                 for: target, restored: restored, in: &context,
             ))
-            return EffectApplyOutcome(events: events, didApply: true)
+            return EffectApplyOutcome(events: events, didApply: true, restoredMana: restored)
         case .gold:
-            return await EffectApplyOutcome(
-                events: context.grantGoldEvent(
-                    amount, to: source, abilityID: ability.id, abilityName: ability.name,
-                    isTheft: ability.stealsGold, isDirectCardGain: true,
-                ),
-                didApply: true,
+            let gain = await context.grantGold(
+                amount, to: source, abilityID: ability.id, abilityName: ability.name,
+                isTheft: ability.stealsGold, isDirectCardGain: true,
             )
+            return EffectApplyOutcome(events: gain.events, didApply: true, grantedGold: gain.applied)
         default:
             return EffectApplyOutcome(events: [], didApply: false)
         }

@@ -27,6 +27,12 @@ the damage scratch state contains calculations and reaction flags only. Standalo
 damage installs a temporary output even when retained battle history is disabled.
 Discarded damage previews detach command output so speculative effects cannot publish.
 Healing outcomes retain their operation-specific events.
+Card plays, direct resource grants, and control-meter charges return committed
+rule facts alongside their events. Critical-attack continuation, triggered-control
+rewards, and direct gain summaries consume those facts, never event searches,
+display names, or event positions. Critical card facts include nested attacks from
+the same actor but exclude critical healing. The active card frames own those
+facts even when history and optional action recording are disabled.
 Optional action recording never invokes consumer code or exposes intermediate
 engine snapshots.
 Default effect-handler witnesses keep async signatures so direct calls cannot

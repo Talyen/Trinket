@@ -92,10 +92,11 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
                 keyword: .physical,
             ),
         ]
-        await events.append(contentsOf: context.withAutomaticPlay { context in
+        let played = await context.withAutomaticPlay { context in
             await autoPlayDrawnCards(drawnCards, in: &context)
-        })
-        return EffectApplyOutcome(events: events, didApply: true)
+        }
+        events.append(contentsOf: played.events)
+        return EffectApplyOutcome(events: events, didApply: true, criticalAttackActorIDs: played.criticalAttackActorIDs)
     }
 
     private func collectDrawnCards(
@@ -132,23 +133,27 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
     private func autoPlayDrawnCards(
         _ drawnCards: [BattleCard],
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async -> CardPlayOutcome {
         context.resolution.enter(.draw)
         defer { context.resolution.leave(.draw) }
-        guard context.resolution.depth(.draw) <= BattleState.maxDrawAndPlayDepth else { return [] }
+        guard context.resolution.depth(.draw) <= BattleState.maxDrawAndPlayDepth else {
+            return CardPlayOutcome(events: [], criticalAttackActorIDs: [])
+        }
 
         var events: [ActionEvent] = []
+        var criticalAttackActorIDs: Set<String> = []
         for card in drawnCards {
             guard BattleCardCombatEngine.playError(for: card, in: context, allowsTurnPreparation: true) == nil else { continue }
             do {
-                let played = try await BattleCardCombatEngine.playDrawnCard(card, context: &context)
-                events.append(contentsOf: played)
+                let played = try await BattleCardCombatEngine.resolveDrawnCard(card, context: &context)
+                events.append(contentsOf: played.events)
+                criticalAttackActorIDs.formUnion(played.criticalAttackActorIDs)
             } catch {
                 cardDrawLogger.info(
                     "Draw-and-play card \(card.id, privacy: .public) failed: \(error.localizedDescription, privacy: .public)",
                 )
             }
         }
-        return events
+        return CardPlayOutcome(events: events, criticalAttackActorIDs: criticalAttackActorIDs)
     }
 }

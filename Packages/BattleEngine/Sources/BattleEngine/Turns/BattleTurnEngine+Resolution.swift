@@ -178,6 +178,9 @@ extension BattleTurnEngine {
         context: inout BattleState,
     ) async -> DamageComponentOutcome {
         let damageOutcome = await context.resolveDamage(prepared.request)
+        if damageOutcome.isCritical {
+            context.resolution.recordCardAttackCritical(by: actor.id)
+        }
         let dealt = damageOutcome.healthLost
         var events = damageOutcome.events
         let componentEvent = context.nextEvent(
@@ -390,8 +393,8 @@ extension BattleTurnEngine {
                     in: &context,
                 )
                 events.append(contentsOf: outcome.events)
-                grantedGold += directResourceGain(by: outcome, keyword: .gold, ability: ability)
-                restoredMana += directResourceGain(by: outcome, keyword: .mana, ability: ability)
+                grantedGold += outcome.grantedGold
+                restoredMana += outcome.restoredMana
                 didApply = didApply || outcome.didApply
             }
             if didApply, let summary = appliedEffectSummary(
@@ -401,15 +404,6 @@ extension BattleTurnEngine {
             }
         }
         return appliedEffectLogs
-    }
-
-    private static func directResourceGain(by outcome: EffectApplyOutcome, keyword: Keyword, ability: Ability) -> Int {
-        // The handler emits its gain before any talent reactions,
-        // including when automatic play changes its event origin.
-        guard let restoration = outcome.events.first,
-              restoration.effectKind == .resourceGain, restoration.keyword == keyword,
-              restoration.abilityName == ability.name else { return 0 }
-        return restoration.amount
     }
 
     private static func appliedEffectSummary(

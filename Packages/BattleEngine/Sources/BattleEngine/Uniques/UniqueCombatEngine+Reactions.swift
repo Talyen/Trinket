@@ -163,6 +163,9 @@ extension UniqueCombatEngine {
         guard !context.isBattleOver, context.roster.health(for: actor) > 0,
               context.roster.health(for: request.target) > 0 else { return [] }
         let result = await context.resolveDamage(request)
+        if result.isCritical {
+            context.resolution.recordCardAttackCritical(by: actor.id)
+        }
         var events = result.events + [context.nextEvent(
             kind: .abilityDamage,
             source: .init(actor),

@@ -16,10 +16,10 @@ package extension CombatTriggerEngine {
               context.roster.health(for: actor) > 0 else { return [] }
         var events: [ActionEvent] = []
         if critical, triggers.criticalGoldStealFlat > 0 {
-            await events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGold(
                 triggers.criticalGoldStealFlat, to: actor,
                 abilityName: "Pickpocket", isTheft: true,
-            ))
+            ).events)
         }
         if keyword == .poison,
            triggers.poisonAttackStunChancePercent > 0,
@@ -234,16 +234,16 @@ package extension CombatTriggerEngine {
         if triggers.attackGoldStealAmount > 0,
            context.claimTalentAbility(.snatch, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.attackGoldStealChancePercent, using: &context.rng) {
-            await events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGold(
                 triggers.attackGoldStealAmount, to: actor, abilityName: "Snatch", isTheft: true,
-            ))
+            ).events)
         }
         if critical, triggers.criticalGoldStealAmount > 0,
            context.claimTalentAbility(.luckyStrike, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.criticalGoldStealChancePercent, using: &context.rng) {
-            await events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGold(
                 triggers.criticalGoldStealAmount, to: actor, abilityName: "Lucky Strike", isTheft: true,
-            ))
+            ).events)
         }
         return events
     }
@@ -420,9 +420,9 @@ package extension CombatTriggerEngine {
         var events: [ActionEvent] = []
         if triggers.dodgeGoldAmount > 0,
            BattleChance.succeeds(probability: triggers.dodgeGoldChancePercent, using: &context.rng) {
-            await events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGold(
                 triggers.dodgeGoldAmount, to: actor, abilityName: "Palmed Coin",
-            ))
+            ).events)
         }
         if triggers.belowHalfFirstDodgeHealPerTurn > 0,
            context.roster.health(for: actor) > 0,

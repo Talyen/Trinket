@@ -4,13 +4,13 @@ import TrinketCore
 /// Synchronous entry points for isolated engine commands. Internal reactions use
 /// their async overloads so a child stays in the enclosing command executor.
 package extension BattleState {
-    mutating func withAutomaticPlay(_ body: (inout BattleState) throws -> [ActionEvent]) rethrows -> [ActionEvent] {
+    mutating func withAutomaticPlay<Value>(_ body: (inout BattleState) throws -> Value) rethrows -> Value {
         resolution.beginAutomaticPlay()
         defer { resolution.endAutomaticPlay() }
         return try body(&self)
     }
 
-    mutating func withAutomaticPlay(_ body: (inout BattleState) async throws -> [ActionEvent]) async rethrows -> [ActionEvent] {
+    mutating func withAutomaticPlay<Value>(_ body: (inout BattleState) async throws -> Value) async rethrows -> Value {
         resolution.beginAutomaticPlay()
         defer { resolution.endAutomaticPlay() }
         return try await body(&self)
@@ -25,14 +25,14 @@ package extension BattleState {
         isDirectCardGain: Bool = false,
         isLeechOverflow: Bool = false,
     ) -> [ActionEvent] {
-        CombatExecutor.run { await grantGoldEvent(
+        CombatExecutor.run { await grantGold(
             amount,
             to: combatant,
             abilityID: abilityID, abilityName: abilityName,
             isTheft: isTheft,
             isDirectCardGain: isDirectCardGain,
             isLeechOverflow: isLeechOverflow,
-        ) }
+        ).events }
     }
 
     mutating func restoreManaEmitting(

@@ -274,9 +274,7 @@ package extension CombatTriggerEngine {
             )
             guard played.didApply else { break }
             events.append(contentsOf: played.events)
-            guard played.events.contains(where: {
-                $0.kind == .abilityDamage && $0.actorID == combatant.id && $0.isCritical
-            }) else { break }
+            guard played.criticalAttackActorIDs.contains(combatant.id) else { break }
         }
         return events
     }
@@ -318,6 +316,9 @@ package extension CombatTriggerEngine {
             event.keyword == keyword ? event.with(abilityName: name) : event
         }
         if outcome.healthLost > 0 {
+            if outcome.isCritical {
+                context.resolution.recordCardAttackCritical(by: combatant.id)
+            }
             events.append(context.nextEvent(
                 kind: .abilityDamage,
                 source: .init(combatant),

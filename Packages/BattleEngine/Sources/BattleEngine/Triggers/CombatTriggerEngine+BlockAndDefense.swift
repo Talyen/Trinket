@@ -168,10 +168,10 @@ package extension CombatTriggerEngine {
         }
         if target.role == .companion, profile.triggers.blockBreakStealGoldFlat > 0,
            context.roster.enemy.isAlive {
-            await events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGold(
                 profile.triggers.blockBreakStealGoldFlat,
                 to: target, abilityName: "Trophy Scales", isTheft: true,
-            ))
+            ).events)
         }
         if profile.triggers.blockBrokenBlockFlat > 0 {
             events.append(contentsOf: emitBlock(

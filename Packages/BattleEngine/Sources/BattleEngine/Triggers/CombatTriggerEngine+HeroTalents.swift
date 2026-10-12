@@ -107,12 +107,12 @@ package extension CombatTriggerEngine {
         }
         if keyword == .stun, triggers.stunCriticalStealGold > 0,
            context.claimTalentAbility(.cutpurseCut, actorID: sourceID) {
-            await events.append(contentsOf: context.grantGoldEvent(
+            await events.append(contentsOf: context.grantGold(
                 triggers.stunCriticalStealGold,
                 to: actor,
                 abilityName: "Cutpurse Cut",
                 isTheft: true,
-            ))
+            ).events)
         }
         if keyword == .burn, triggers.burnAttackCritDrawCard,
            context.claimTalentAbility(.ashenArsenal, actorID: sourceID),
