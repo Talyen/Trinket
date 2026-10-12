@@ -12,7 +12,7 @@ struct CombatTriggerTalentControlTests {
             for: battle.roster.enemy.combatant,
             on: &battle,
         )
-        _ = CombatExecutor.run { await BattleCardCombatEngine.endTurn(context: &battle) }
+        _ = battle.endTurn()
         let meter = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
             .compactMap(\.effect.controlMeterValues)
             .first

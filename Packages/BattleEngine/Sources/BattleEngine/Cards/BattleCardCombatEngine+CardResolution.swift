@@ -16,37 +16,38 @@ extension BattleCardCombatEngine {
         context: inout BattleState,
         allowBufferedRemoval: Bool = true,
     ) async throws -> [ActionEvent] {
-        await CombatExecutor.suspend()
-        if let error = playError(for: card, in: context, allowsTurnPreparation: allowBufferedRemoval) {
-            throw error
+        try await context.collectingEvents { context in
+            await CombatExecutor.suspend()
+            if let error = playError(for: card, in: context, allowsTurnPreparation: allowBufferedRemoval) {
+                throw error
+            }
+            let actor = context.roster[card.owner].combatant
+            guard context.hand.card(id: card.id) != nil
+                || (allowBufferedRemoval && context.hand.buffer.contains(where: { $0.id == card.id })) else {
+                throw BattlePlayError.cardNotInHand
+            }
+            // A caller supplying its own hand may skip the optional opening deal.
+            // Only a manual command consumes it; automatic turn-start cards do not.
+            if !allowBufferedRemoval {
+                context.turnState = .playerTurn
+            }
+            if allowBufferedRemoval {
+                _ = context.hand.removeFromAnyLocation(id: card.id)
+            } else {
+                _ = context.hand.remove(id: card.id)
+            }
+            discardPlayedCard(card, context: &context)
+            context.commandOutput?.beginCard(card)
+            await resolvePlayedCard(card, actor: actor, context: &context)
+            context.commandOutput?.endCard()
         }
-        let actor = context.roster[card.owner].combatant
-        guard context.hand.card(id: card.id) != nil
-            || (allowBufferedRemoval && context.hand.buffer.contains(where: { $0.id == card.id })) else {
-            throw BattlePlayError.cardNotInHand
-        }
-        // A caller supplying its own hand may skip the optional opening deal.
-        // Only a manual command consumes it; automatic turn-start cards do not.
-        if !allowBufferedRemoval {
-            context.turnState = .playerTurn
-        }
-        if allowBufferedRemoval {
-            _ = context.hand.removeFromAnyLocation(id: card.id)
-        } else {
-            _ = context.hand.remove(id: card.id)
-        }
-        discardPlayedCard(card, context: &context)
-        context.commandRecording?.beginCard(card)
-        let events = await resolvePlayedCard(card, actor: actor, context: &context)
-        context.commandRecording?.endCard()
-        return events
     }
 
     static func resolvePlayedCard(
         _ card: BattleCard,
         actor: Combatant,
         context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
         defer { context.resolution.feedbackGroupID = previousFeedbackGroup }
         let previousUniqueCard = context.uniques.card
@@ -60,35 +61,31 @@ extension BattleCardCombatEngine {
         )
         defer { context.resolution.endCard(playSerial) }
         let abilityTarget = BattleActionContext(actor: actor, in: context).selectedTarget
-        var events = await BattleTurnEngine.performAction(
+        _ = await BattleTurnEngine.performAction(
             ability: card.ability,
             actor: actor,
             abilityTarget: abilityTarget,
             origin: context.uniques.card == nil ? .card : .ordinaryCard,
             context: &context,
         )
-        await finishPlayedCard(card, actor: actor, events: &events, context: &context)
-        return events
+        await finishPlayedCard(card, actor: actor, context: &context)
     }
 
     private static func finishPlayedCard(
         _ card: BattleCard,
         actor: Combatant,
-        events: inout [ActionEvent],
         context: inout BattleState,
     ) async {
         if let outcome = context.resolution.cardOutcome(for: actor.id) {
-            await events.append(contentsOf: CombatTriggerEngine.afterCardPlayed(outcome, in: &context))
-            await events.append(contentsOf: CombatTriggerEngine.afterPartyCardPlayed(in: &context))
+            _ = await CombatTriggerEngine.afterCardPlayed(outcome, in: &context)
+            _ = await CombatTriggerEngine.afterPartyCardPlayed(in: &context)
         }
-        events.append(contentsOf: CombatTriggerEngine.finishHeroCard(actor: actor, in: &context))
-        events.append(contentsOf: UniqueCombatEngine.finishCardDraws(in: &context))
-        if let returned = UniqueCombatEngine.returnPlayedCard(card, in: &context) {
-            events.append(returned)
-        }
+        _ = CombatTriggerEngine.finishHeroCard(actor: actor, in: &context)
+        _ = UniqueCombatEngine.finishCardDraws(in: &context)
+        _ = UniqueCombatEngine.returnPlayedCard(card, in: &context)
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
-        await events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
+        _ = await context.appendDefeatMilestonesIfNeeded()
         if context.isBattleOver {
             context.turnState = .ended
         }

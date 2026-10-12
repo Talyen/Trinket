@@ -20,10 +20,10 @@ struct CombatRuleAuditRegressionTests {
             ControlMeterEngine.threshold(for: battle.enemy, in: battle), keyword: .stun,
             to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false, in: &battle,
         ) }
-        _ = CombatExecutor.run { await BattleCardCombatEngine.endTurn(context: &battle) }
-        let recovered = CombatExecutor.run { await BattleCardCombatEngine.endTurn(context: &battle) }
+        _ = battle.endTurn()
+        let recovered = battle.endTurn().events
         #expect(recovered.filter { $0.kind == .abilityDamage && $0.actorID == battle.enemy.id }.map(\.amount) == [5])
-        let later = CombatExecutor.run { await BattleCardCombatEngine.endTurn(context: &battle) }
+        let later = battle.endTurn().events
         #expect(later.filter { $0.kind == .abilityDamage && $0.actorID == battle.enemy.id }.map(\.amount) == [10])
     }
 

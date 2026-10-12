@@ -385,8 +385,8 @@ extension BattleCardCombatTests {
         battle.turnCount = 1
         battle.turnState = opening ? .opening([]) : .drawing([])
         _ = opening
-            ? CombatExecutor.run { await BattleCardCombatEngine.finalizeOpeningHand(context: &battle) }
-            : CombatExecutor.run { await BattleCardCombatEngine.finalizeTurnStart(context: &battle) }
+            ? battle.finalizeOpeningHand()
+            : battle.finalizeTurnStart()
         #expect(battle.isBattleOver)
         #expect(battle.phase == .ended)
     }
@@ -404,8 +404,8 @@ extension BattleCardCombatTests {
         )
         battle.turnState = opening ? .opening([]) : .drawing([])
         _ = opening
-            ? CombatExecutor.run { await BattleCardCombatEngine.finalizeOpeningHand(context: &battle) }
-            : CombatExecutor.run { await BattleCardCombatEngine.finalizeTurnStart(context: &battle) }
+            ? battle.finalizeOpeningHand()
+            : battle.finalizeTurnStart()
         let card = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &battle)
         #expect(!battle.roster.hasPendingActionSkip(for: battle.hero))
         #expect(BattleCardCombatEngine.isCardPlayable(card, in: battle))
@@ -428,7 +428,7 @@ extension BattleCardCombatTests {
         #expect(playedIDs.count == (nested ? 3 : 2))
         #expect(playedIDs.first == initiating.id)
         assertResolvedAttacks(result.actions, playedIDs: playedIDs, events: result.events)
-        #expect(recorded.commandRecording == nil)
+        #expect(recorded.commandOutput == nil)
         #expect(recorded.hand == immediate.hand)
         #expect(recorded.heroDeck == immediate.heroDeck)
         #expect(recorded.companionDeck == immediate.companionDeck)

@@ -368,7 +368,7 @@ enum CombatResolver {
         var outcome = CombatOutcome.fromDamage(state: state)
         // Recording is scoped to a resolved action, including its immediate DoT pulses.
         if !request.options.isHealthCost, let impact = outcome.damageImpact {
-            context.commandRecording?.recordDamage(BattleResolvedDamage(
+            context.commandOutput?.recordDamage(BattleResolvedDamage(
                 targetID: request.target.id, keyword: request.keyword ?? .physical, impact: impact, isCritical: outcome.isCritical,
             ))
         }

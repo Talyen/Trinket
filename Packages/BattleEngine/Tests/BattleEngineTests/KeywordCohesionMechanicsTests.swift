@@ -444,7 +444,7 @@ extension KeywordCohesionMechanicsTests {
             buffer: [BattleCard(id: 3, ability: .block, owner: .companion)],
         )
 
-        _ = CombatExecutor.run { await BattleCardCombatEngine.finalizeOpeningHand(context: &battle) }
+        _ = battle.finalizeOpeningHand()
 
         #expect(battle.roster.health(for: battle.hero) == 0)
         #expect(battle.hand.cards.map(\.owner) == [.companion, .companion])

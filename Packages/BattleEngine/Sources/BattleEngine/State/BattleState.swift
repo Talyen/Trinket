@@ -8,7 +8,7 @@ public struct BattleState {
         roster.enemy.defeatProgress
     }
 
-    var commandRecording: BattleCommandRecording?
+    var commandOutput: BattleCommandOutput?
 
     public let rngSeed: UInt64
 
@@ -265,14 +265,11 @@ public struct BattleState {
         recordActions: Bool = false,
     ) throws -> BattleCommandResult {
         guard !isBattleOver else { throw BattlePlayError.battleOver }
-        commandRecording = recordActions ? BattleCommandRecording() : nil
-        defer { commandRecording = nil }
-        let events = try CombatExecutor.run { try await BattleCardCombatEngine.playCard(
-            cardID: cardID,
-            context: &self,
-        ) }
-        finishMutation(rebuildLog: rebuildLog)
-        return commandResult(events: events)
+        return try CombatExecutor.run {
+            try await performCommand(rebuildLog: rebuildLog, recordActions: recordActions) { context in
+                _ = try await BattleCardCombatEngine.playCard(cardID: cardID, context: &context)
+            }
+        }
     }
 
     @discardableResult
@@ -281,11 +278,11 @@ public struct BattleState {
         recordActions: Bool = false,
     ) -> BattleCommandResult {
         guard !isBattleOver else { return .empty }
-        commandRecording = recordActions ? BattleCommandRecording() : nil
-        defer { commandRecording = nil }
-        let events = CombatExecutor.run { await BattleCardCombatEngine.endTurn(context: &self) }
-        finishMutation(rebuildLog: rebuildLog)
-        return commandResult(events: events)
+        return CombatExecutor.run {
+            await performCommand(rebuildLog: rebuildLog, recordActions: recordActions) { context in
+                await BattleCardCombatEngine.endTurn(context: &context)
+            }
+        }
     }
 
     @discardableResult
@@ -293,19 +290,25 @@ public struct BattleState {
         rebuildLog: Bool = true,
         recordActions: Bool = false,
     ) -> BattleCommandResult {
-        commandRecording = recordActions ? BattleCommandRecording() : nil
-        defer { commandRecording = nil }
-        let events = CombatExecutor.run { await BattleCardCombatEngine.drawOpeningHand(context: &self) }
-        finishMutation(rebuildLog: rebuildLog)
-        return commandResult(events: events)
+        CombatExecutor.run {
+            await performCommand(rebuildLog: rebuildLog, recordActions: recordActions) { context in
+                await BattleCardCombatEngine.drawOpeningHand(context: &context)
+            }
+        }
     }
 
-    private func commandResult(events: [ActionEvent]) -> BattleCommandResult {
-        BattleCommandResult(
-            events: events,
-            playedCards: commandRecording?.playedCards ?? [],
-            actions: commandRecording?.resolvedActions ?? [],
-        )
+    private mutating func performCommand(
+        rebuildLog: Bool,
+        recordActions: Bool = false,
+        _ operation: (inout Self) async throws -> Void,
+    ) async rethrows -> BattleCommandResult {
+        precondition(commandOutput == nil, "Internal rules must use the active command's executor")
+        let output = BattleCommandOutput(recordActions: recordActions)
+        commandOutput = output
+        defer { commandOutput = nil }
+        try await operation(&self)
+        finishMutation(rebuildLog: rebuildLog)
+        return output.result
     }
 
     @discardableResult
@@ -319,16 +322,20 @@ public struct BattleState {
 
     @discardableResult
     package mutating func finalizeOpeningHand(rebuildLog: Bool = true) -> [ActionEvent] {
-        let events = CombatExecutor.run { await BattleCardCombatEngine.finalizeOpeningHand(context: &self) }
-        finishMutation(rebuildLog: rebuildLog)
-        return events
+        CombatExecutor.run {
+            await performCommand(rebuildLog: rebuildLog) { context in
+                await BattleCardCombatEngine.finalizeOpeningHand(context: &context)
+            }
+        }.events
     }
 
     @discardableResult
     package mutating func endTurnWithoutDraw(rebuildLog: Bool = true) -> [ActionEvent] {
-        let events = CombatExecutor.run { await BattleCardCombatEngine.endTurnWithoutDraw(context: &self) }
-        finishMutation(rebuildLog: rebuildLog)
-        return events
+        CombatExecutor.run {
+            await performCommand(rebuildLog: rebuildLog) { context in
+                await BattleCardCombatEngine.endTurnWithoutDraw(context: &context)
+            }
+        }.events
     }
 
     @discardableResult
@@ -342,9 +349,11 @@ public struct BattleState {
 
     @discardableResult
     package mutating func finalizeTurnStart(rebuildLog: Bool = true) -> [ActionEvent] {
-        let events = CombatExecutor.run { await BattleCardCombatEngine.finalizeTurnStart(context: &self) }
-        finishMutation(rebuildLog: rebuildLog)
-        return events
+        CombatExecutor.run {
+            await performCommand(rebuildLog: rebuildLog) { context in
+                await BattleCardCombatEngine.finalizeTurnStart(context: &context)
+            }
+        }.events
     }
 
     @discardableResult

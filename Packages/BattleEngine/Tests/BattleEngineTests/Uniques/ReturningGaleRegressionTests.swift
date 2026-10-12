@@ -72,9 +72,9 @@ struct ReturningGaleRegressionTests {
         try #expect((context.hand.cards + context.hand.buffer).contains { $0.owner == .hero && $0.ability.id == "played" })
         try #expect(!context.heroDeck.abilities.contains { $0.id == "played" })
         // 4. Complete enemy turn, state resets, normal next-turn draws.
-        _ = CombatExecutor.run { await BattleCardCombatEngine.endTurnWithoutDraw(context: &context) }
+        _ = context.endTurnWithoutDraw()
         _ = BattleCardCombatEngine.drawNextTurnStartCard(context: &context)
-        _ = CombatExecutor.run { await BattleCardCombatEngine.finalizeTurnStart(context: &context) }
+        _ = context.finalizeTurnStart()
         // 5. Returned ability remains available in visible hand or buffer.
         try #expect((context.hand.cards + context.hand.buffer).contains { $0.owner == .hero && $0.ability.id == "played" })
     }

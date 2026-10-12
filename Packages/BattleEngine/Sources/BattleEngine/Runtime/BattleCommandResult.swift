@@ -11,18 +11,31 @@ public struct BattleCommandResult: Equatable, Sendable {
     static let empty = Self(events: [], playedCards: [], actions: [])
 }
 
-final class BattleCommandRecording {
+/// Command-local output shared by nested rules, never retained by a completed state.
+final class BattleCommandOutput {
+    private(set) var events: [ActionEvent] = []
     private(set) var playedCards: [BattleCard] = []
     private(set) var resolvedActions: [BattleResolvedAction] = []
+    private let recordsActions: Bool
     private var cards: [(card: BattleCard, hasAction: Bool)] = []
     private var actions: [BattleResolvedAction] = []
 
+    init(recordActions: Bool) {
+        recordsActions = recordActions
+    }
+
+    var result: BattleCommandResult {
+        BattleCommandResult(events: events, playedCards: playedCards, actions: resolvedActions)
+    }
+
     func append(_ event: ActionEvent) {
+        events.append(event)
         guard !actions.isEmpty else { return }
         actions[actions.count - 1].eventIDs.append(event.id)
     }
 
     func beginCard(_ card: BattleCard) {
+        guard recordsActions else { return }
         cards.append((card, false))
         playedCards.append(card)
     }
@@ -32,6 +45,7 @@ final class BattleCommandRecording {
     }
 
     func beginAction(id: Int, actorID: String, abilityID: String, isAttack: Bool, afterEventID: Int) {
+        guard recordsActions else { return }
         let cardID = cards.last.flatMap { $0.hasAction ? nil : $0.card.id }
         if !cards.isEmpty {
             cards[cards.count - 1].hasAction = true

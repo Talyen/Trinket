@@ -36,11 +36,11 @@ extension BattleTurnEngine {
         )
         _ = context.resolution.prepareAction(repeated)
         context.resolution.prepareActionTalents(TalentActionFacts(actorID: actor.id))
-        context.commandRecording?.beginAction(
+        context.commandOutput?.beginAction(
             id: actionID, actorID: actor.id, abilityID: ability.id,
             isAttack: ability.dealsCombatDamage, afterEventID: context.nextEventID,
         )
-        defer { context.commandRecording?.endAction() }
+        defer { context.commandOutput?.endAction() }
         // Replay prepared effects without another cost, empowerment, or card-completion cadence.
         return await executePreparedOperations(repeated, ability: ability, context: &context)
     }

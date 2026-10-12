@@ -3,29 +3,26 @@ import TrinketContent
 import TrinketCore
 
 package extension BattleCardCombatEngine {
-    @discardableResult
     static func endTurnWithoutDraw(
         context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard !context.isBattleOver, context.phase == .playerTurn else {
-            return []
+            return
         }
 
         context.turnState = .resolving
-        var events = await advanceRoundCommon(context: &context)
+        await advanceRoundCommon(context: &context)
         if context.phase == .ended {
-            return events
+            return
         }
 
-        events.append(contentsOf: UniqueCombatEngine.startTurn(in: &context))
+        _ = UniqueCombatEngine.startTurn(in: &context)
 
         context.heroDeck.recycleDiscards()
         context.companionDeck.recycleDiscards()
         let plannedDraws = scheduledDraws(in: &context)
 
         context.turnState = .drawing(plannedDraws)
-
-        return events
     }
 
     @discardableResult
@@ -41,21 +38,18 @@ package extension BattleCardCombatEngine {
         return false
     }
 
-    @discardableResult
     static func finalizeTurnStart(
         context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard context.turnState.beginTurnStart(opening: false) else { return [] }
-        var events: [ActionEvent] = []
+    ) async {
+        guard context.turnState.beginTurnStart(opening: false) else { return }
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
-        await events.append(contentsOf: restoreManaAtPlayerTurnStart(context: &context))
-        await events.append(contentsOf: CombatTriggerEngine.atPlayerTurnStart(in: &context))
+        _ = await restoreManaAtPlayerTurnStart(context: &context)
+        _ = await CombatTriggerEngine.atPlayerTurnStart(in: &context)
         for owner in [BattleParticipant.hero, .companion] {
             UniqueCombatEngine.recoverStunBeforeClearing(on: context.roster[owner].combatant, in: &context)
             context.roster.clearControlStatusLinger(for: context.roster[owner].combatant)
         }
-        await events.append(contentsOf: finishPlayerTurnStart(context: &context))
-        return events
+        await finishPlayerTurnStart(context: &context)
     }
 
     @discardableResult

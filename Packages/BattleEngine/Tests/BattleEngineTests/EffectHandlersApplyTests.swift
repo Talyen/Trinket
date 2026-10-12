@@ -263,7 +263,7 @@ struct EffectHandlersApplyTests {
 
         #expect(!result.events.isEmpty)
         #expect(!recordsPlayback || result.playedCards.count > 2)
-        #expect(battle.commandRecording == nil)
+        #expect(battle.commandOutput == nil)
         try #expect(battle.resolution.depth(.draw) == 0)
     }
 

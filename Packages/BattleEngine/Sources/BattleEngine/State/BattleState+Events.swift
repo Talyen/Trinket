@@ -25,6 +25,18 @@ package struct CombatEventSource: Equatable, Hashable, Sendable {
 }
 
 package extension BattleState {
+    mutating func collectingEvents(
+        _ operation: (inout Self) async throws -> Void,
+    ) async rethrows -> [ActionEvent] {
+        let previous = commandOutput
+        let output = previous ?? BattleCommandOutput(recordActions: false)
+        let start = output.events.count
+        commandOutput = output
+        defer { commandOutput = previous }
+        try await operation(&self)
+        return Array(output.events.dropFirst(start))
+    }
+
     func eventSource(actorID: String?, fallback: Combatant) -> CombatEventSource {
         guard let actorID else { return .init(fallback) }
         return CombatEventSource(actorID: actorID, name: roster.combatant(for: actorID)?.name ?? fallback.name)
@@ -70,7 +82,7 @@ package extension BattleState {
         if tracksEvents {
             events.append(event)
         }
-        commandRecording?.append(event)
+        commandOutput?.append(event)
         return event
     }
 

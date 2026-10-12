@@ -17,8 +17,13 @@ timers, or independent tasks. Use synchronous facade commands only at command
 entry; internal reactions await their async overloads to retain one executor.
 Keep existing chain limits and post-damage counterattack/Block-answer timing.
 Public card, turn, and opening commands return `BattleCommandResult` only after
-resolution completes. Optional action recording collects values internally and
-never invokes consumer code or exposes intermediate engine snapshots.
+resolution completes. `BattleState.nextEvent` writes command output in emission
+order, independently of retained battle history and optional action recording.
+Card/turn orchestration does not reconstruct command events from child return
+values. Nested card operations collect their local event range from that same
+command output; damage/healing outcomes may retain their operation-specific events.
+Optional action recording never invokes consumer code or exposes intermediate
+engine snapshots.
 Default effect-handler witnesses keep async signatures so direct calls cannot
 bypass a specialized turn handler.
 `CombatExecutorTests` owns small-stack, ordered-unwind and recorded-battle parity

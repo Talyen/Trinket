@@ -21,7 +21,7 @@ extension BattleCardCombatTests {
         let recordedResult = opening
             ? recorded.drawOpeningHand(recordActions: true)
             : recorded.endTurn(recordActions: true)
-        #expect(recorded.commandRecording == nil)
+        #expect(recorded.commandOutput == nil)
         #expect(plain.hand == recorded.hand)
         for owner in [BattleParticipant.hero, .companion, .enemy] {
             #expect(plain.roster[owner] == recorded.roster[owner])

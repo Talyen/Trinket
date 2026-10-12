@@ -31,7 +31,7 @@ struct ThreeCardTurnTests {
         var state = battle()
         state.heroDeck = CombatDeck(abilities: [.block, .heal, .avatarOfJustice])
         state.companionDeck = CombatDeck(abilities: [.bash, .serratedEdge, .bloodthorn])
-        _ = CombatExecutor.run { await BattleCardCombatEngine.drawOpeningHand(context: &state) }
+        _ = state.drawOpeningHand()
         #expect(state.hand.cards.map(\.owner) == [.hero, .companion, .hero])
         let held = state.hand.cards
         for card in held {
@@ -58,7 +58,7 @@ struct ThreeCardTurnTests {
             sourceID: state.enemy.id,
             remainingTurns: 0,
         )
-        _ = CombatExecutor.run { await BattleCardCombatEngine.drawOpeningHand(context: &state) }
+        _ = state.drawOpeningHand()
         #expect(state.hand.cards.map(\.owner) == [.companion])
         #expect(state.companionDeck.count == 2)
         #expect(state.heroDeck.count == 3)
