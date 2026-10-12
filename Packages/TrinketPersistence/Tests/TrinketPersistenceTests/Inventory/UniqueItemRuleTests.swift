@@ -30,7 +30,7 @@ struct UniqueItemRuleTests {
         #expect(signature.triggers.blockPreparesCritical)
         #expect(signature.triggers.heldCardNextAttackDamage == 0)
         #expect(signature.triggers.partnerFirstAttackDamage == 0)
-        #expect(signature.description == "Blocking an attack makes your next attack Critically Hit.")
+        #expect(signature.description == "Blocking an attack makes your next manually played attack Critically Hit.")
         #expect(restored.affixPowers?.dropFirst() == powers.dropFirst())
         #expect(reloaded.inventory.ownedUniqueIDs.contains(item.templateID))
         #expect(reloaded.roster.equipmentLoadouts["knight"]?.itemID(for: .weapon) == item.id)

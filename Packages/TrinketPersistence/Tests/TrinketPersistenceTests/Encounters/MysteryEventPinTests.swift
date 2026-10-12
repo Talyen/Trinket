@@ -75,9 +75,7 @@ struct MysteryEventPinTests {
             eventID: event.id, displayedOffers: offers,
         )
         store.forcesNextSaveFailure = true
-        let failed = store.persistTransaction(logging: "Refresh mystery offer") { candidate in
-            MysteryEncounterResolution.resolve(choiceID: offers[0].choiceID, request: request, save: &candidate, using: &rng)
-        }
+        let failed = store.resolveMysteryEncounter(request, action: .choice(offers[0].choiceID), using: &rng)
         guard case .persistFailed = failed else {
             Issue.record("Expected failed refresh write")
             return
@@ -85,9 +83,7 @@ struct MysteryEventPinTests {
         #expect(store.currentSave == before)
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.currentSave == before)
-        let retry = reloaded.persistTransaction(logging: "Retry mystery refresh") { candidate in
-            MysteryEncounterResolution.resolve(choiceID: offers[0].choiceID, request: request, save: &candidate, using: &rng)
-        }
+        let retry = reloaded.resolveMysteryEncounter(request, action: .choice(offers[0].choiceID), using: &rng)
         guard case let .committed(.reward(result)) = retry else {
             Issue.record("Expected the pinned offer to be granted on retry")
             return

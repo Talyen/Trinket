@@ -151,15 +151,15 @@ struct PlayerSaveStoreTests {
         #expect(!reloaded.isPersistenceDegraded)
     }
 
-    @Test @MainActor func `mutate roster persists through hub`() throws {
+    @Test @MainActor func `fixture roster mutation persists through hub`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(
             storeURL: storeURL,
             disableCloudSync: true,
         )
-        let persisted = firstStore.mutateRoster {
-            $0.gold = 17
+        let persisted = firstStore.persistFixtureBatch(logging: "Seed roster Gold") {
+            $0.roster.gold = 17
         }
         try #expect(persisted)
         try #expect(firstStore.roster.gold == 17)
