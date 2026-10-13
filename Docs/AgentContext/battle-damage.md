@@ -164,6 +164,10 @@ Poisoned enemies while their Hero lives; the Hero's own bonus applies once.
 Control extensions belong to the active Freeze or Stun that earned them. Simultaneous
 statuses retain their own skipped actions; Cleanse removes the corresponding extension
 without removing another status's extension or an independent action delay.
+Freeze amplification and flat Block bonuses saturate before applying their caps.
+Control extension rolls convert whole guaranteed skips in constant time and saturate
+the stored allowance; non-finite chances grant no extension. Stun from a fallen
+source may still control its target, but cannot grant that source Block.
 
 `DamageDefensePolicy` applies damage caps
 to ordinary damage operations, exempting Health costs.

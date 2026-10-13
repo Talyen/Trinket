@@ -1,8 +1,8 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
+@testable import BattleEngine
 
 struct ControlMeterEngineTests {
     @Test func `stun buildup displays the threshold used by seismic impact`() throws {
@@ -397,6 +397,32 @@ private func preventedActions(in context: inout BattleState, for actor: Combatan
 }
 
 extension ControlMeterEngineTests {
+    @Test func `large control extensions resolve promptly and saturate their skip allowance`() throws {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.freezeExtendChancePercent = Double(Int.max)
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
+        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
+            10, keyword: .freeze, to: battle.enemy, sourceActorID: battle.hero.id,
+            applyFightPacing: false, in: &battle,
+        ) }
+        let status = try #require(battle.activeEffects(of: battle.enemy).first { $0.isAwaitingActionSkip })
+        #expect(battle.additionalControlSkipsByEffectID[status.id] == Int.max)
+    }
+
+    @Test func `a fallen Stun source cannot earn Block from lingering control damage`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.onStunEnemyGainBlock = 6
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
+        battle.roster.hero.currentHealth = 0
+        let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
+            10, keyword: .stun, to: battle.enemy, sourceActorID: battle.hero.id,
+            applyFightPacing: false, in: &battle,
+        ) }
+        #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun))
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 0)
+        #expect(!events.contains { $0.effectKind == .shieldApplied && $0.actorID == battle.hero.id })
+    }
+
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `glacial barrier rewards its wearer when either ally freezes the enemy`(source: BattleParticipant) {
         var battle = BattleTestFixtures.makePipelineContext(

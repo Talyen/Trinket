@@ -58,6 +58,9 @@ require restoration when the attack already has guaranteed Leech.
 Restorative rolls its Cleanse chance only after Health is actually restored.
 Clearheaded and Solace reward each status effect removed, not an empty Cleanse.
 Rekindled restores Health only when its wearer survives Death's Door expiry.
+Phoenix Gift only ends lethal-protection resolution if its recipient survives the
+restoration. A fully prevented Gift still consumes its combat allowance and falls
+through to other revival or Death's Door protection, retaining its emitted events.
 Boolean party-aura checks use `hasLivingPartyTrigger` rather than merging every
 trigger group on nested reaction paths.
 

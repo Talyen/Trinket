@@ -32,17 +32,23 @@ package enum DeathsDoorEngine {
     ) async -> [ActionEvent] {
         guard applies(to: combatant) else { return [] }
 
+        var events: [ActionEvent] = []
         let health = context.roster.health(for: combatant)
         if health == 0 {
             if combatant.role == .hero,
                let gift = await tryPhoenixGift(on: combatant, in: &context) {
-                return gift
+                events.append(contentsOf: gift)
+                if context.roster.health(for: combatant) > 0 {
+                    return events
+                }
             }
             if let reviveEvents = await tryTraitDeathRevive(on: combatant, in: &context) {
-                return reviveEvents
+                events.append(contentsOf: reviveEvents)
+                return events
             }
             if !context.roster.hasConsumedDeathsDoor(for: combatant) {
-                return await trigger(on: combatant, in: &context)
+                await events.append(contentsOf: trigger(on: combatant, in: &context))
+                return events
             }
             if hasLethalProtection(for: combatant, in: context) {
                 clampToMinimumHP(on: combatant, in: &context)
@@ -62,10 +68,10 @@ package enum DeathsDoorEngine {
                         options: .reaction(),
                     ),
                 )
-                return outcome.events
+                events.append(contentsOf: outcome.events)
             }
         }
-        return []
+        return events
     }
 
     private static func tryPhoenixGift(

@@ -79,6 +79,24 @@ struct BattleArithmeticBoundaryTests {
         #expect(events.contains { $0.effectKind == .controlTriggered })
     }
 
+    @Test func `Block grants with a saturated flat bonus fill capacity without overflowing`() {
+        var battle = makeBattle(profile: CombatModifierProfile(blockGainedBonus: Int.max))
+        let gain = battle.applyBlockGain(1, to: battle.hero, source: battle.hero, abilityName: "Block")
+        #expect(gain.applied == Int.max)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == Int.max)
+    }
+
+    @Test func `Freeze amplification saturates before applying the control threshold`() {
+        var battle = makeBattle()
+        battle.appendEffect(.controlMeter(.freeze, 2, 4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        let events = CombatExecutor.run { await ControlMeterEngine.multiplyBuildup(
+            Int.max, keyword: .freeze, to: battle.enemy, sourceActorID: battle.hero.id,
+            abilityName: "Cold Snap", in: &battle,
+        ) }
+        #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .freeze))
+        #expect(events.contains { $0.effectKind == .controlTriggered })
+    }
+
     private func makeBattle(
         profile: CombatModifierProfile = .zero, heroMaxHealth: Int = 20, enemyMaxHealth: Int = 20,
     ) -> BattleState {

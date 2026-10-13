@@ -5,6 +5,21 @@ import TrinketCore
 @testable import BattleEngine
 
 struct DeathsDoorEngineTests {
+    @Test func `a fully Sapped Phoenix Gift cannot suppress Deaths Door protection`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+            heroEffects: [ActiveEffect(id: 1, effect: .healingReductionPercent(1, 2), remainingTurns: 2)],
+            heroHealth: 0,
+            companionModifiers: CombatantTalentCatalog.profile(for: ["phoenix_health_t3_1"]),
+        )
+        let events = CombatExecutor.run { await DeathsDoorEngine.resolveAfterDamage(to: battle.hero, in: &battle) }
+        #expect(battle.health(of: battle.hero) == 1)
+        #expect(battle.roster.isDeathsDoorActive(for: battle.hero))
+        #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
+    }
+
     private func makeContext(
         heroHP: Int = 10,
         companionHP: Int = 10,

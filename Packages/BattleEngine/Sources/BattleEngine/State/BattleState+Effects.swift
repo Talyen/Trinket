@@ -22,7 +22,10 @@ package extension BattleState {
         switch effect {
         case let .shield(keyword, buffer):
             return .shield(
-                keyword, CombatRounding.scaled(buffer + profile.blockGainedBonus, multiplier: 1 + profile.blockGainedPercent),
+                keyword, CombatRounding.scaled(
+                    SaturatedArithmetic.saturatingAdd(buffer, profile.blockGainedBonus),
+                    multiplier: 1 + profile.blockGainedPercent,
+                ),
             )
         default:
             return effect

@@ -219,7 +219,7 @@ package enum ControlMeterEngine {
         if keyword == .stun,
            combatant.role == .enemy,
            let sourceActorID,
-           let source = context.roster.combatant(for: sourceActorID),
+           let source = context.roster.combatant(for: sourceActorID), source.isAlive,
            context.modifiers(for: sourceActorID).triggers.onStunEnemyGainBlock > 0,
            context.roster.health(for: combatant) > 0 {
             events.append(contentsOf: context.applyBlock(
@@ -275,16 +275,19 @@ package enum ControlMeterEngine {
         to combatant: Combatant,
         in context: inout BattleState,
     ) {
-        guard chance > 0, let status = context.roster.activeEffects(for: combatant).first(where: {
+        guard chance.isFinite, chance > 0, let status = context.roster.activeEffects(for: combatant).first(where: {
             $0.keyword == keyword && $0.isAwaitingActionSkip
         }) else { return }
-        var remaining = chance
-        while remaining >= 1 {
-            context.additionalControlSkipsByEffectID[status.id, default: 0] += 1
-            remaining -= 1
+        let whole = chance.rounded(.down)
+        var skips = SaturatedArithmetic.rounded(whole)
+        let fraction = chance - whole
+        if fraction > 0, BattleChance.succeeds(probability: fraction, using: &context.rng) {
+            skips = SaturatedArithmetic.saturatingAdd(skips, 1)
         }
-        if remaining > 0, BattleChance.succeeds(probability: remaining, using: &context.rng) {
-            context.additionalControlSkipsByEffectID[status.id, default: 0] += 1
+        if skips > 0 {
+            context.additionalControlSkipsByEffectID[status.id] = SaturatedArithmetic.saturatingAdd(
+                context.additionalControlSkipsByEffectID[status.id, default: 0], skips,
+            )
         }
     }
 
@@ -418,7 +421,7 @@ extension ControlMeterEngine {
         }
         guard !isProtected(currentEffects[existingIndex].effect, on: combatant, in: context) else { return [] }
 
-        let newAmount = min(currentAmount * factor, threshold)
+        let newAmount = min(SaturatedArithmetic.saturatingMul(currentAmount, factor), threshold)
         guard newAmount > currentAmount else { return [] }
 
         let amplificationEvent = context.nextEvent(
