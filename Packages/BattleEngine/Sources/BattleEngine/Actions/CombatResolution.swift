@@ -14,27 +14,8 @@ struct CombatResolution {
         case damage, dot, dotMirror, draw, heroReaction, uniqueReaction, talentReaction, detonation, leechOverflowGold
     }
 
-    enum Claim: Hashable {
-        case talent(CombatActivationClaim)
-        case heroTalent(CombatActivationClaim)
-        case heroCard(CombatActivationClaim)
-        case affix(CombatActivationClaim)
-    }
-
-    enum Cadence: Hashable {
-        case battle
-        case turn(Int)
-        case action(Int)
-        case standaloneAction(Int)
-        case standaloneRestoration(Int)
-        case card(Int)
-    }
-
-    private struct ClaimKey: Hashable {
-        let claim: Claim
-        let actorID: String
-        let cadence: Cadence
-    }
+    typealias Claim = CombatActivationLedger.Claim
+    typealias Cadence = CombatActivationLedger.Cadence
 
     private struct Action {
         let id: Int
@@ -71,7 +52,7 @@ struct CombatResolution {
     private var partyCardDamageBySource: [String: Int] = [:]
     private var partyDamageByRecipient: [String: Int] = [:]
     private(set) var nextCardID = 0
-    private var claims: Set<ClaimKey> = []
+    private var claims = CombatActivationLedger()
 
     mutating func beginStandaloneRestoration() -> Bool {
         guard currentAction == nil, cards.isEmpty, standaloneRestorationID == nil else { return false }
@@ -82,7 +63,7 @@ struct CombatResolution {
 
     mutating func endStandaloneRestoration() {
         guard let id = standaloneRestorationID else { preconditionFailure() }
-        claims = claims.filter { $0.cadence != .standaloneRestoration(id) }
+        claims.finish(.standaloneRestoration(id))
         standaloneRestorationID = nil
     }
 
@@ -116,7 +97,7 @@ struct CombatResolution {
     }
 
     func isClaimed(_ claim: Claim, actorID: String, cadence: Cadence) -> Bool {
-        claims.contains(ClaimKey(claim: claim, actorID: actorID, cadence: cadence))
+        claims.contains(claim, actorID: actorID, cadence: cadence)
     }
 
     mutating func recordCriticalAttack(by actorID: String) {
@@ -340,7 +321,7 @@ struct CombatResolution {
 
     mutating func endAction() {
         guard case let .action(action) = frames.removeLast() else { preconditionFailure() }
-        claims = claims.filter { $0.cadence != .action(action.id) }
+        claims.finish(.action(action.id))
     }
 
     /// Include nested attacks in their enclosing plays, without treating critical
@@ -359,27 +340,11 @@ struct CombatResolution {
     mutating func endCard(_ id: Int) {
         precondition(cards.last?.id == id)
         cards.removeLast()
-        claims = claims.filter { $0.cadence != .card(id) }
+        claims.finish(.card(id))
     }
 
     mutating func claim(_ claim: Claim, actorID: String, cadence: Cadence) -> Bool {
-        if case let .turn(turn) = cadence {
-            claims = claims.filter {
-                if case let .turn(previous) = $0.cadence {
-                    return previous == turn
-                }
-                return true
-            }
-        }
-        if case let .standaloneAction(action) = cadence {
-            claims = claims.filter {
-                if case let .standaloneAction(previous) = $0.cadence {
-                    return previous == action
-                }
-                return true
-            }
-        }
-        return claims.insert(ClaimKey(claim: claim, actorID: actorID, cadence: cadence)).inserted
+        claims.claim(claim, actorID: actorID, cadence: cadence)
     }
 }
 
