@@ -902,25 +902,6 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         }
     }
 
-    public init() {
-        storage = Storage(Fields(
-            damage: DamageTriggers(),
-            attack: AttackTriggers(),
-            block: BlockTriggers(),
-            mitigation: MitigationTriggers(),
-            dot: DotTriggers(),
-            control: ControlTriggers(),
-            dodge: DodgeTriggers(),
-            mana: ManaTriggers(),
-            gold: GoldTriggers(),
-            healing: HealingTriggers(),
-            revival: RevivalTriggers(),
-            cleanse: CleanseTriggers(),
-            enemyTurn: EnemyTurnTriggers(),
-            onHit: OnHitTriggers()
-        ))
-    }
-
     public init(
         damage: DamageTriggers = DamageTriggers(),
         attack: AttackTriggers = AttackTriggers(),

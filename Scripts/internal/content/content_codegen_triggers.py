@@ -9,6 +9,7 @@ import re
 
 from .content_codegen_modifiers import (
     VALID_KEYWORDS,
+    modifiers_swift,
     parse_modifier_tokens,
     parse_typed_bool,
     parse_typed_double,
@@ -276,6 +277,18 @@ def triggers_swift(raw: str, row_id: str = "") -> str:
     return "CombatTraitTriggers(" + ", ".join(parts) + ")"
 
 
+def power_arguments_swift(modifiers: str, triggers: str, *, indent: str) -> str:
+    """Let Swift's power initializers own the defaults for empty DSL columns."""
+    return "".join(
+        f",\n{indent}{label}: {render(raw)}"
+        for label, raw, render in (
+            ("modifiers", modifiers, modifiers_swift),
+            ("triggers", triggers, triggers_swift),
+        )
+        if raw.strip()
+    )
+
+
 def generate_trigger_families() -> None:
     families = _trigger_families()
     merge_lines = {
@@ -368,9 +381,6 @@ def generate_trigger_root() -> None:
     families = _trigger_families()
     pairs = [(family["family"], family["file_stem"]) for family in families]
     field_decls = "\n".join(f"        var {fid}: {tname}" for fid, tname in pairs)
-    default_inits = ",\n".join(
-        f"            {fid}: {tname}()" for fid, tname in pairs
-    )
     init_params = ",\n".join(
         f"        {fid}: {tname} = {tname}()" for fid, tname in pairs
     )
@@ -438,12 +448,6 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
             }}
             yield &storage.value
         }}
-    }}
-
-    public init() {{
-        storage = Storage(Fields(
-{default_inits}
-        ))
     }}
 
     public init(

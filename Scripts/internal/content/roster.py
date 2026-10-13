@@ -22,7 +22,7 @@ from internal.content.common import (
     write_generated_file,
 )
 from internal.content.content_codegen_modifiers import modifiers_swift
-from internal.content.content_codegen_triggers import triggers_swift
+from internal.content.content_codegen_triggers import power_arguments_swift, triggers_swift
 
 
 VALID_ROLES = frozenset({"hero", "companion"})
@@ -214,10 +214,9 @@ def generate_traits_catalog(rows: list[TraitRow]) -> None:
             "        CombatantTraitDefinition(\n"
             f'            id: "{swift_escape(row.id)}",\n'
             f'            name: "{swift_escape(row.name)}",\n'
-            f'            description: "{swift_escape(row.description)}",\n'
-            f"            modifiers: {modifiers_swift(row.modifiers)},\n"
-            f"            triggers: {triggers_swift(row.triggers)}\n"
-            "        )"
+            f'            description: "{swift_escape(row.description)}"'
+            + power_arguments_swift(row.modifiers, row.triggers, indent="            ")
+            + "\n        )"
         )
 
     body = (
