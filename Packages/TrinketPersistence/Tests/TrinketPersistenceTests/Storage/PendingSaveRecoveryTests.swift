@@ -364,3 +364,58 @@ struct PendingSaveRecoveryTests {
         #expect(try context.makeReloadedStore().roster.gold == (invalid ? 0 : 3))
     }
 }
+
+extension PendingSaveRecoveryTests {
+    @Test func `database failure with unreadable map keeps other progress across relaunch`() throws {
+        let fixture = try PersistenceTestContext()
+        var original: PlayerSaveStore? = try fixture.makeSaveStore()
+        let opaque = Data("unreadable-labyrinth-map".utf8)
+        // An unrelated slice can save while an unreadable graph awaits repair.
+        let map = try #require(original?.root.labyrinth)
+        map.worldSeed = try #require(original?.worldSeed)
+        map.hasEntered = true
+        map.mapPayload = opaque
+        original?.forcesNextDatabaseSaveFailure = true
+        #expect(original?.persistFixtureBatch(logging: "Recovery with unreadable map") {
+            $0.roster.gold = 73
+            $0.roster.progressions[$0.roster.activeHeroID] = .at(level: 4)
+        } == true)
+        let record = try #require(original?.pendingSaveRecovery?.read())
+        #expect(record.unreadableLabyrinthPayload == opaque)
+        #expect(try record.restoredSave().roster.gold == 73)
+        // Keep cloud admission strict; local recovery is a separate boundary.
+        #expect(throws: CloudSaveError.unsupportedSave) { _ = try record.snapshot.restored() }
+        original = nil
+
+        let restored = try fixture.makeReloadedStore()
+        #expect(restored.roster.gold == 73)
+        #expect(restored.roster.progressions[restored.roster.activeHeroID]?.level == 4)
+        #expect(restored.labyrinth.hasMap)
+        #expect(!restored.labyrinth.isMapPayloadUnreadable)
+        #expect(!restored.isPersistenceDegraded)
+        #expect(try fixture.makeReloadedStore().currentSave == restored.currentSave)
+    }
+
+    @Test func `local recovery preserves opaque map in a replacement graph and reads older sidecars`() throws {
+        let fixture = try PersistenceTestContext()
+        var save = PlayerSave.fresh
+        save.roster.gold = 42
+        save.labyrinth = PlayerLabyrinthState(worldSeed: save.worldSeed, hasEntered: true, isMapPayloadUnreadable: true)
+        let opaque = Data("preserved-map".utf8)
+        let recovery = PendingSaveRecovery(storeURL: fixture.storeURL())
+        try recovery.write(save: save, cloudState: nil, labyrinthPayload: opaque)
+        let replacement = try fixture.makeInMemoryStore()
+        try recovery.restore(into: replacement.root, context: replacement.context, preservesPrevious: false)
+        #expect(replacement.root.labyrinth?.mapPayload == opaque)
+        #expect(replacement.root.toPlayerSave().roster.gold == 42)
+
+        // Version-one records without the additive opaque field remain readable.
+        var legacy = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: recovery.url)) as? [String: Any])
+        legacy.removeValue(forKey: "unreadableLabyrinthPayload")
+        try JSONSerialization.data(withJSONObject: legacy).write(to: recovery.url)
+        let restored = try fixture.makeReloadedStore()
+        #expect(restored.roster.gold == 42)
+        #expect(restored.labyrinth.hasMap)
+        #expect(try fixture.makeReloadedStore().roster.gold == 42)
+    }
+}

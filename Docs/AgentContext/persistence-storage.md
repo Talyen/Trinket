@@ -58,8 +58,13 @@ Labyrinth's map is a JSON blob (`LabyrinthProgressModel.mapPayload`) while roste
 ## Durable acceptance and recovery
 
 A database write failure first preserves the complete candidate in an atomic
-`.pending-save.json` file beside the store. The versioned local envelope reuses
-`CloudSaveSnapshot` and includes local session generation and exact cloud metadata.
+`.pending-save.json` file beside the store. The versioned local envelope uses the shared
+`PlayerSaveSnapshot` value codec and includes local session generation and exact cloud
+metadata. Recovery decodes local values before ordinary startup repair; it must not
+use cloud admission, which rejects unreadable Labyrinth maps. Opaque unreadable map
+bytes travel in an optional sidecar field so restoration into a replacement database
+preserves them until local repair. Older sidecars without those bytes remain readable;
+SwiftData and remote snapshot schemas are unchanged.
 New recovery records also carry the referenced outbox row payloads; older records
 remain readable. Restore those rows with the save before resolving journal references.
 A pending recovery record is authoritative unless the primary graph has a newer

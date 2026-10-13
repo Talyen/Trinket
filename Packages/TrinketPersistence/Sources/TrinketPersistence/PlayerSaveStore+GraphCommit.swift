@@ -91,7 +91,7 @@ extension PlayerSaveStore {
                 do {
                     try pendingSaveRecovery.write(
                         save: save, cloudState: root.cloudStatePayload,
-                        outboxRecords: cloudOutbox?.storedRecords,
+                        outboxRecords: cloudOutbox?.storedRecords, labyrinthPayload: root.labyrinth?.mapPayload,
                     )
                 } catch {
                     notePersistenceFailure(error, logging: "Failed to align pending player save after reset")

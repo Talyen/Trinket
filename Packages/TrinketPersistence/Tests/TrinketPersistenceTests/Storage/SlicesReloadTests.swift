@@ -26,7 +26,7 @@ struct SlicesReloadTests {
         var save = PlayerSave.testSeed
         save.roster.abilityLoadouts["rogue"] = AbilityLoadout(basic: .stab, skill: .venomFangs, ultimate: .shadowstep)
         save.roster.abilityLoadouts["wolf"] = AbilityLoadout(basic: .fangs, skill: .venomFangs, ultimate: .shadowstep)
-        let snapshot = CloudRosterSnapshot(save.roster)
+        let snapshot = StoredRosterSnapshot(save.roster)
         let restored = snapshot.restored()
         #expect(restored.abilityLoadouts["rogue"]?.skill?.id == "feint")
         #expect(restored.abilityLoadouts["wolf"]?.skill == .venomFangs)
@@ -45,7 +45,7 @@ struct SlicesReloadTests {
         var save = PlayerSave.testSeed
         save.roster.abilityLoadouts["risen_skeleton"] = AbilityLoadout(basic: .block, skill: .darkPact, ultimate: .shadowstep)
         save.roster.abilityLoadouts["knight"] = AbilityLoadout(basic: .block, skill: .sunder, ultimate: .earthquake)
-        let cloud = CloudRosterSnapshot(save.roster).restored()
+        let cloud = StoredRosterSnapshot(save.roster).restored()
         #expect(cloud.abilityLoadouts["risen_skeleton"]?.basic == .shieldBash)
         #expect(cloud.abilityLoadouts["knight"]?.basic == .block)
         let store = try context.seedAndReload(save)

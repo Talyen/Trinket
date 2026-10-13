@@ -72,7 +72,7 @@ struct CloudSaveSnapshotDelta: Codable, Equatable, Sendable {
         self.changes = changes
     }
 
-    private static func rosterChanges(from before: CloudRosterSnapshot, to after: CloudRosterSnapshot) -> [Change] {
+    private static func rosterChanges(from before: StoredRosterSnapshot, to after: StoredRosterSnapshot) -> [Change] {
         var changes: [Change] = []
         if before.activeHeroID != after.activeHeroID {
             changes.append(.activeHero(after.activeHeroID))

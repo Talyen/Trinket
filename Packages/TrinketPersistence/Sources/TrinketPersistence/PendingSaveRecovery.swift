@@ -5,22 +5,27 @@ import SwiftData
 final class PendingSaveRecovery {
     struct Record: Codable {
         let version: Int
-        let snapshot: CloudSaveSnapshot
+        let snapshot: PlayerSaveSnapshot
         let sessionGeneration: UInt64
         let cloudState: Data?
         let outboxRecords: [CloudSaveOutbox.StoredRecord]?
+        let unreadableLabyrinthPayload: Data?
 
-        init(save: PlayerSave, cloudState: Data?, outboxRecords: [CloudSaveOutbox.StoredRecord]?) {
+        init(
+            save: PlayerSave, cloudState: Data?, outboxRecords: [CloudSaveOutbox.StoredRecord]?,
+            labyrinthPayload: Data? = nil,
+        ) {
             version = 1
-            snapshot = CloudSaveSnapshot(save)
+            snapshot = PlayerSaveSnapshot(save)
             sessionGeneration = save.sessionGeneration
             self.cloudState = cloudState
             self.outboxRecords = outboxRecords
+            unreadableLabyrinthPayload = save.labyrinth.isMapPayloadUnreadable ? labyrinthPayload : nil
         }
 
         func restoredSave() throws -> PlayerSave {
             guard version == 1 else { throw PlayerSavePersistenceError.invalidSave("Unsupported recovery record.") }
-            var save = try snapshot.restored()
+            var save = try snapshot.decodedSave()
             save.sessionGeneration = sessionGeneration
             return save
         }
@@ -172,13 +177,21 @@ final class PendingSaveRecovery {
         guard recovered.sessionGeneration >= persisted.sessionGeneration else { return }
         let graphWrite = try PlayerSaveGraphWrite(save: recovered, slices: .all)
         if preservesPrevious, persisted.hasDomainDifference(from: recovered) {
-            try preservePrevious(save: persisted, cloudState: root.cloudStatePayload, outboxRecords: outbox?.storedRecords)
+            try preservePrevious(
+                save: persisted, cloudState: root.cloudStatePayload, outboxRecords: outbox?.storedRecords,
+                labyrinthPayload: root.labyrinth?.mapPayload,
+            )
         }
         if let records = record.outboxRecords {
             guard let outbox else { throw CloudSaveError.unavailable }
             try outbox.restore(records)
         }
         root.apply(graphWrite, context: context)
+        // A recovered graph may be a new memory fallback. Preserve opaque map
+        // bytes there too; ordinary startup repair decides how to heal the map.
+        if recovered.labyrinth.isMapPayloadUnreadable, let payload = record.unreadableLabyrinthPayload {
+            root.labyrinth?.mapPayload = payload
+        }
         if let cloudState = record.cloudState {
             root.cloudStatePayload = cloudState
         }
@@ -189,17 +202,17 @@ final class PendingSaveRecovery {
     /// design (no durable primary exists) but report no retry — retries run
     /// only while the app runs and cannot outlive the fallback session.
     func persist(
-        save: PlayerSave, cloudState: Data?, memoryFallback: Bool,
+        save: PlayerSave, cloudState: Data?, memoryFallback: Bool, labyrinthPayload: Data? = nil,
         outboxRecords: () -> [CloudSaveOutbox.StoredRecord]? = { nil },
         primaryWrite: () throws -> Void,
     ) throws -> Bool {
         if memoryFallback || hasPendingSave {
-            try write(save: save, cloudState: cloudState, outboxRecords: outboxRecords())
+            try write(save: save, cloudState: cloudState, outboxRecords: outboxRecords(), labyrinthPayload: labyrinthPayload)
         }
         do {
             try primaryWrite()
         } catch {
-            try write(save: save, cloudState: cloudState, outboxRecords: outboxRecords())
+            try write(save: save, cloudState: cloudState, outboxRecords: outboxRecords(), labyrinthPayload: labyrinthPayload)
             return true
         }
         if !memoryFallback {
@@ -208,7 +221,10 @@ final class PendingSaveRecovery {
         return false
     }
 
-    func write(save: PlayerSave, cloudState: Data?, outboxRecords: [CloudSaveOutbox.StoredRecord]? = nil) throws {
+    func write(
+        save: PlayerSave, cloudState: Data?, outboxRecords: [CloudSaveOutbox.StoredRecord]? = nil,
+        labyrinthPayload: Data? = nil,
+    ) throws {
         #if DEBUG
         if forcesNextWriteFailure {
             forcesNextWriteFailure = false
@@ -216,7 +232,7 @@ final class PendingSaveRecovery {
         }
         #endif
         do {
-            try preserve(save: save, cloudState: cloudState, outboxRecords: outboxRecords, to: url)
+            try preserve(save: save, cloudState: cloudState, outboxRecords: outboxRecords, labyrinthPayload: labyrinthPayload, to: url)
         } catch {
             if Self.isFileProtectionError(error) {
                 throw PlayerSavePersistenceError.storeUnavailable("Device locked; retry after first unlock.")
@@ -226,14 +242,25 @@ final class PendingSaveRecovery {
         hasPendingSave = true
     }
 
-    func preservePrevious(save: PlayerSave, cloudState: Data?, outboxRecords: [CloudSaveOutbox.StoredRecord]? = nil) throws {
-        try preserve(save: save, cloudState: cloudState, outboxRecords: outboxRecords, to: previousFileURL)
+    func preservePrevious(
+        save: PlayerSave, cloudState: Data?, outboxRecords: [CloudSaveOutbox.StoredRecord]? = nil,
+        labyrinthPayload: Data? = nil,
+    ) throws {
+        try preserve(
+            save: save,
+            cloudState: cloudState,
+            outboxRecords: outboxRecords,
+            labyrinthPayload: labyrinthPayload,
+            to: previousFileURL,
+        )
     }
 
     private func preserve(
-        save: PlayerSave, cloudState: Data?, outboxRecords: [CloudSaveOutbox.StoredRecord]?, to destination: URL,
+        save: PlayerSave, cloudState: Data?, outboxRecords: [CloudSaveOutbox.StoredRecord]?, labyrinthPayload: Data?, to destination: URL,
     ) throws {
-        let data = try JSONEncoder().encode(Record(save: save, cloudState: cloudState, outboxRecords: outboxRecords))
+        let data = try JSONEncoder().encode(Record(
+            save: save, cloudState: cloudState, outboxRecords: outboxRecords, labyrinthPayload: labyrinthPayload,
+        ))
         try Self.writeDataAtomically(data, to: destination)
     }
 

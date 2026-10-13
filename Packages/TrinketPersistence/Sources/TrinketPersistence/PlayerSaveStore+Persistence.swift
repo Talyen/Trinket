@@ -119,7 +119,7 @@ extension PlayerSaveStore {
         }
         if try pendingSaveRecovery.persist(
             save: root.toPlayerSave(), cloudState: root.cloudStatePayload,
-            memoryFallback: usesMemoryFallback,
+            memoryFallback: usesMemoryFallback, labyrinthPayload: root.labyrinth?.mapPayload,
             outboxRecords: { self.cloudOutbox?.storedRecords },
             primaryWrite: savePrimaryGraph,
         ) {
