@@ -2,15 +2,15 @@ import Foundation
 
 @MainActor
 extension PlayerSaveStore {
-    func recordCloudMutation(
+    func cloudStateRecordingMutation(
         from snapshot: PlayerSave, to candidate: PlayerSave, slices: PlayerSaveSlice,
         receipts suppliedReceipts: [SaveEconomicReceipt]? = nil,
-    ) throws {
+    ) throws -> CloudDeviceState {
         guard isCloudSyncEnabled, cloudDeviceState.activeAccountID != nil,
               !cloudDeviceState.account.resetRequested,
               cloudDeviceState.account.journal != nil
               || cloudDeviceState.account.base?.revision.snapshot == CloudSaveSnapshot(snapshot)
-        else { return }
+        else { return cloudDeviceState }
         var state = cloudDeviceState
         var positions = state.account.collectionPositions ?? [:]
         for (resource, position) in state.account.base?.productionClaims?.positions ?? [:] {
@@ -39,6 +39,6 @@ extension PlayerSaveStore {
         var journal = state.account.journal ?? CloudSaveJournal()
         journal.append(mutation)
         state.account.journal = journal
-        cloudDeviceState = state
+        return state
     }
 }

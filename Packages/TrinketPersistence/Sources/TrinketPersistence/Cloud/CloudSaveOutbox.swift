@@ -24,6 +24,14 @@ final class CloudSaveOutbox {
         let payload: Data
     }
 
+    /// Fully encoded before touching SwiftData. Retired payloads are retained
+    /// only for this write, so compensation never needs to encode old history.
+    struct Update {
+        let metadata: Data
+        fileprivate let additions: [StoredRecord]
+        fileprivate let removals: [StoredRecord]
+    }
+
     private let context: ModelContext
     private var rows: [String: [Int: CloudOutboxRecord]] = [:]
 
@@ -53,9 +61,7 @@ final class CloudSaveOutbox {
         return state
     }
 
-    /// Stages additions/pruning in the same context as the gameplay candidate.
-    /// A failed write compensates through this same method, never rollback().
-    func stage(_ state: CloudDeviceState) throws -> Data {
+    func prepare(_ state: CloudDeviceState) throws -> Update {
         var journals: [String: CloudSaveJournal] = [:]
         for account in [state.account] + state.archives.values.map(\.state) {
             for journal in [account.journal, account.pending?.mutations].compactMap(\.self) where !journal.isEmpty {
@@ -65,31 +71,60 @@ final class CloudSaveOutbox {
             }
         }
         let encoder = JSONEncoder()
+        var additions: [StoredRecord] = []
+        var removals: [StoredRecord] = []
         for (id, journal) in journals {
             let existingCount = max(0, (rows[id]?.count ?? 0) - 1)
             if rows[id] == nil, let checkpoint = journal.checkpoint {
-                try insert(StoredRecord(journalID: id, index: -1, payload: encoder.encode(checkpoint)))
+                try additions.append(StoredRecord(journalID: id, index: -1, payload: encoder.encode(checkpoint)))
             }
             for (index, record) in journal.suffix(after: existingCount) {
-                try insert(StoredRecord(journalID: id, index: index, payload: encoder.encode(record)))
+                try additions.append(StoredRecord(journalID: id, index: index, payload: encoder.encode(record)))
             }
             if existingCount > journal.count {
                 for index in journal.count ..< existingCount {
-                    if let row = rows[id]?.removeValue(forKey: index) {
-                        context.delete(row)
+                    if let row = rows[id]?[index] {
+                        removals.append(StoredRecord(journalID: id, index: index, payload: row.payload))
                     }
                 }
             }
         }
-        for id in Array(rows.keys) where journals[id] == nil {
-            for row in rows.removeValue(forKey: id)?.values ?? [Int: CloudOutboxRecord]().values {
-                context.delete(row)
+        for (id, journal) in rows where journals[id] == nil {
+            for row in journal.values {
+                removals.append(StoredRecord(journalID: id, index: row.index, payload: row.payload))
             }
         }
         if let key = CloudSaveJournal.referencesKey {
             encoder.userInfo[key] = true
         }
-        return try encoder.encode(state)
+        return try Update(metadata: encoder.encode(state), additions: additions, removals: removals)
+    }
+
+    /// Apply immediately after preparation on the store's actor, with no
+    /// intervening suspension or other outbox update.
+    func apply(_ update: Update) {
+        for record in update.removals {
+            remove(record)
+        }
+        for record in update.additions {
+            insert(record)
+        }
+    }
+
+    func compensate(_ update: Update) {
+        for record in update.additions {
+            remove(record)
+        }
+        for record in update.removals {
+            insert(record)
+        }
+    }
+
+    /// Bootstrap migration also prepares every payload before staging rows.
+    func stage(_ state: CloudDeviceState) throws -> Data {
+        let update = try prepare(state)
+        apply(update)
+        return update.metadata
     }
 
     /// A recovery record owns its row payloads, so it survives loss of the primary
@@ -115,5 +150,14 @@ final class CloudSaveOutbox {
         let row = CloudOutboxRecord(journalID: record.journalID, index: record.index, payload: record.payload)
         context.insert(row)
         rows[record.journalID, default: [:]][record.index] = row
+    }
+
+    private func remove(_ record: StoredRecord) {
+        if let row = rows[record.journalID]?.removeValue(forKey: record.index) {
+            context.delete(row)
+        }
+        if rows[record.journalID]?.isEmpty == true {
+            rows.removeValue(forKey: record.journalID)
+        }
     }
 }

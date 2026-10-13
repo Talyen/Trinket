@@ -140,20 +140,6 @@ final class PendingSaveRecovery {
             || nsError.code == CocoaError.fileWriteNoPermission.rawValue
     }
 
-    func pendingData() throws -> Data? {
-        guard hasPendingSave else { return nil }
-        return try Data(contentsOf: url)
-    }
-
-    func restorePendingData(_ data: Data?) throws {
-        if let data {
-            try Self.writeDataAtomically(data, to: url)
-            hasPendingSave = true
-        } else {
-            try clear()
-        }
-    }
-
     func moveCorruptAside() throws {
         guard hasPendingSave else { return }
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)

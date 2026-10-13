@@ -95,72 +95,19 @@ extension PlayerSaveStore {
     }
 
     func saveGraph() throws {
-        let interval = Self.performanceSignposter.beginInterval("ModelContextSave")
-        defer {
-            Self.performanceSignposter.endInterval("ModelContextSave", interval)
-        }
-        do {
-            try encodeCloudStateForSave()
-            #if DEBUG
-            if forcesNextSaveFailure {
-                forcesNextSaveFailure = false
-                throw NSError(domain: "PlayerSaveStoreTests", code: 1)
-            }
-            #endif
-            try saveGraphWithRecovery()
-            isPersistenceDegraded = usesMemoryFallback || pendingSaveRecovery?.hasPendingSave == true
-            lastPersistenceError = nil
-        } catch {
-            notePersistenceFailure(error, logging: "Failed to save SwiftData player graph")
-            throw PlayerSavePersistenceError.mapped(error)
-        }
-    }
-
-    /// Encodes local cloud metadata onto the graph before a durable write.
-    /// Shared by normal commits and durable resets.
-    func encodeCloudStateForSave() throws {
-        try setCloudDeviceState(cloudDeviceState)
-    }
-
-    /// Single writer for `root.cloudStatePayload` outside recovery restore.
-    /// Keeps unreadable payloads opaque when `preservesUnreadableCloudState`.
-    func setCloudDeviceState(_ state: CloudDeviceState) throws {
-        cloudDeviceState = state
-        if !preservesUnreadableCloudState {
-            guard let cloudOutbox else { throw CloudSaveError.unavailable }
-            root.cloudStatePayload = try cloudOutbox.stage(state)
-        }
-    }
-
-    func restoreCloudMetadata(_ state: CloudDeviceState) throws {
-        try setCloudDeviceState(state)
+        let save = root.toPlayerSave()
+        try commitGraph(save, replacing: save, slices: [], cloudState: cloudDeviceState)
     }
 
     func applyCandidate(
         _ candidate: PlayerSave,
         replacing snapshot: PlayerSave,
         slices: PlayerSaveSlice,
-        recordsCloudMutation: Bool = true,
         receipts: [SaveEconomicReceipt]? = nil,
     ) throws {
         guard !slices.isEmpty else { return }
-        let previousCloudState = cloudDeviceState
-        if recordsCloudMutation {
-            try recordCloudMutation(from: snapshot, to: candidate, slices: slices, receipts: receipts)
-        }
-        root.apply(candidate, slices: slices, context: context)
-        do {
-            try saveGraph()
-        } catch {
-            do {
-                try restoreCloudMetadata(previousCloudState)
-            } catch {
-                logger.error("Failed to restore cloud journal after a rejected save: \(String(describing: error), privacy: .public)")
-            }
-            restoreSnapshot(snapshot, slices: slices)
-            throw PlayerSavePersistenceError.mapped(error)
-        }
-        installObservedSave(candidate, slices: slices)
+        let state = try cloudStateRecordingMutation(from: snapshot, to: candidate, slices: slices, receipts: receipts)
+        try commitGraph(candidate, replacing: snapshot, slices: slices, cloudState: state)
     }
 }
 
@@ -187,10 +134,5 @@ extension PlayerSaveStore {
             do { try saveGraph() } catch { return false }
             return pendingSaveRecovery?.hasPendingSave != true
         }
-    }
-
-    func restoreSnapshot(_ snapshot: PlayerSave, slices: PlayerSaveSlice = .all) {
-        root.apply(snapshot, slices: slices, context: context)
-        installObservedSave(snapshot, slices: slices)
     }
 }

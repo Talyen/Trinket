@@ -2,97 +2,36 @@ import Foundation
 import SwiftData
 
 @MainActor
-extension PlayerSaveStore {
-    /// Cloud-install path: preserves the incoming candidate in the pending
-    /// recovery file before the primary write (via `applyCandidate`).
-    func resetRoot(with save: PlayerSave) throws {
-        let snapshot = currentSave
-        let sanitized = try PlayerSaveSanitizer.sanitizeAndValidate(save)
-        try applyCandidate(sanitized, replacing: snapshot, slices: .all, recordsCloudMutation: false)
-    }
-
-    /// Local-reset path: writes the primary graph first and only replaces the
-    /// pending record when the fresh reset is durable, so a failed reset
-    /// retains prior recoverable progress.
-    func resetRootDurably(with save: PlayerSave) throws {
-        let snapshot = currentSave
-        let sanitized = try PlayerSaveSanitizer.sanitizeAndValidate(save)
-        root.apply(sanitized, slices: .all, context: context)
-        do {
-            try encodeCloudStateForSave()
-            try savePrimaryGraph()
-        } catch {
-            restoreSnapshot(snapshot, slices: .all)
-            let mapped = PlayerSavePersistenceError.mapped(error)
-            notePersistenceFailure(mapped, logging: "Failed to reset player save")
-            throw mapped
+public extension PlayerSaveStore {
+    func resetGameplayProgress() throws {
+        var state = cloudDeviceState
+        if state.activeAccountID != nil {
+            state.account.pending = nil
+            state.account.resetRequested = true
+            state.account.journal = nil
         }
-        if let pendingSaveRecovery, pendingSaveRecovery.hasPendingSave {
-            do {
-                try pendingSaveRecovery.clear()
-            } catch {
-                notePersistenceFailure(error, logging: "Failed to clear pending player save after reset")
-                do {
-                    try pendingSaveRecovery.write(
-                        save: sanitized,
-                        cloudState: root.cloudStatePayload,
-                        outboxRecords: cloudOutbox?.storedRecords,
-                    )
-                } catch {
-                    notePersistenceFailure(error, logging: "Failed to align pending player save after reset")
-                }
-            }
-        }
-        isPersistenceDegraded = usesMemoryFallback
-            || (pendingSaveRecovery?.hasPendingSave == true)
-        if pendingSaveRecovery?.hasPendingSave == true {
-            scheduleRecoveryRetry()
+        if usesMemoryFallback {
+            try resetDurableStorage(cloudState: state)
         } else {
-            lastPersistenceError = nil
-        }
-        installObservedSave(sanitized, slices: .all)
-    }
-
-    public func resetGameplayProgress() throws {
-        let previous = cloudDeviceState
-        if cloudDeviceState.activeAccountID != nil {
-            cloudDeviceState.account.pending = nil
-            cloudDeviceState.account.resetRequested = true
-            cloudDeviceState.account.journal = nil
-        }
-        do {
-            if usesMemoryFallback {
-                try resetDurableStorage()
-            } else {
-                try resetWithIncrementedSessionGeneration(.fresh)
-            }
-        } catch {
-            cloudDeviceState = previous
-            if !preservesUnreadableCloudState {
-                // PersistenceCheck: allow - rollback is best-effort; original error is rethrown
-                try? setCloudDeviceState(previous)
-            }
-            throw error
+            try resetWithIncrementedSessionGeneration(.fresh, cloudState: state)
         }
     }
 
-    public func applyTestSeed() throws {
+    func applyTestSeed() throws {
         try resetWithIncrementedSessionGeneration(.testSeed)
     }
 
-    public func unlockAllContent() throws {
+    func unlockAllContent() throws {
         try resetWithIncrementedSessionGeneration(.unlockedAll)
     }
 
-    func resetDurableStorage() throws {
+    private func resetDurableStorage(cloudState: CloudDeviceState) throws {
         guard let recoveryConfiguration else {
             throw PlayerSavePersistenceError.storeUnavailable(
                 "Couldn't reset saved progress on this device.",
             )
         }
         let previous = (container: container, context: context, root: root, outbox: cloudOutbox)
-        // PersistenceCheck: allow - backup is best-effort; missing backup clears a partial reset record
-        let pendingBackup = try? pendingSaveRecovery?.pendingData()
         do {
             try PlayerSaveStoreConfiguration.cleanStoreFiles(
                 at: recoveryConfiguration.url,
@@ -111,6 +50,7 @@ extension PlayerSaveStore {
             root = replacementRoot
             cloudOutbox = try CloudSaveOutbox(context: replacementContext)
             usesMemoryFallback = false
+            try commitGraph(save, replacing: currentSave, slices: .all, cloudState: cloudState, durability: .primaryOnly)
             // Recompute cloud enablement now that durable storage is back;
             // init disables cloud on memory fallback, so re-enable when a
             // cloud transport was requested.
@@ -119,9 +59,6 @@ extension PlayerSaveStore {
                     transport: CloudKitSaveTransport(containerIdentifier: Self.cloudKitContainerIdentifier),
                 )
             }
-            try setCloudDeviceState(cloudDeviceState)
-            try saveGraph()
-            installObservedSave(save)
         } catch {
             container = previous.container
             context = previous.context
@@ -131,33 +68,17 @@ extension PlayerSaveStore {
             isPersistenceDegraded = true
             let mapped = PlayerSavePersistenceError.mapped(error)
             notePersistenceFailure(mapped, logging: "Failed to restore durable player storage")
-            // PersistenceCheck: allow - prior recoverable progress is restored best-effort
-            try? pendingSaveRecovery?.restorePendingData(pendingBackup)
             throw mapped
         }
     }
 
-    func savePrimaryGraph() throws {
-        #if DEBUG
-        // Mirrors the total-failure check in saveGraph for paths that bypass
-        // it (durable resets). Normal commits throw before the pending write;
-        // resets throw here, after root.apply but before any file mutation,
-        // so prior recoverable progress is preserved.
-        if forcesNextSaveFailure {
-            forcesNextSaveFailure = false
-            throw NSError(domain: "PlayerSaveStoreTests", code: 1)
-        }
-        if forcesNextDatabaseSaveFailure {
-            forcesNextDatabaseSaveFailure = false
-            throw PlayerSavePersistenceError.writeFailed
-        }
-        #endif
-        try context.save()
-    }
-
-    private func resetWithIncrementedSessionGeneration(_ base: PlayerSave) throws {
+    private func resetWithIncrementedSessionGeneration(_ base: PlayerSave, cloudState: CloudDeviceState? = nil) throws {
         var save = base
         save.sessionGeneration = currentSave.sessionGeneration &+ 1
-        try resetRootDurably(with: save)
+        let sanitized = try PlayerSaveSanitizer.sanitizeAndValidate(save)
+        try commitGraph(
+            sanitized, replacing: currentSave, slices: .all,
+            cloudState: cloudState ?? cloudDeviceState, durability: .primaryOnly,
+        )
     }
 }

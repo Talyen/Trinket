@@ -76,12 +76,17 @@ reset fails, startup keeps the newer graph and retries pending-file cleanup.
 Previous snapshots are never restored automatically after reset. This does not
 change the SwiftData or CloudKit schema.
 
-An action completes only after the graph or recovery file accepts its save. If
-both writes fail, restore the pre-mutation value snapshot into affected graph
-slices and the observed projection. Compensation stays unsaved until a later
-successful write; do not use `ModelContext.rollback()` because restoring deleted
-relationship rows can crash SwiftData on the iOS 27 simulator. Every mutation uses
-this durable acceptance boundary; there is no optimistic deferred-write path.
+Gameplay, cloud transitions and resets share `PlayerSaveStore.commitGraph` as
+one durable publication boundary. Prepare cloud metadata and outbox additions
+before mutating the graph; retain removed row payloads for nonthrowing compensation.
+Publish cloud state and observed save slices only after the graph or recovery file
+accepts the candidate. A refused write restores affected graph slices, the exact
+prior metadata bytes and outbox payloads without re-encoding old journal history.
+Compensation stays unsaved until a later successful write; do not use
+`ModelContext.rollback()` because restoring deleted relationship rows can crash
+SwiftData on the iOS 27 simulator. Resets, including replacement of degraded
+storage, require the primary database write before replacing prior recoverable
+progress. There is no optimistic deferred-write path.
 Lifecycle and sync checkpoints retry pending recovery files without rolling back
 already accepted progress. Reload tests prove subsequent writes retain the
 recovered values.

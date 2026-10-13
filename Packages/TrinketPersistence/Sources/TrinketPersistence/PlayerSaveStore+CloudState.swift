@@ -52,24 +52,17 @@ extension PlayerSaveStore {
         replacing save: PlayerSave? = nil,
         invalidatesSession: Bool = true,
     ) throws {
-        let previous = cloudDeviceState
-        cloudDeviceState = state
-        do {
-            if var save {
-                let changed = invalidatesSession && CloudSaveSnapshot(currentSave) != CloudSaveSnapshot(save)
-                save.sessionGeneration = changed ? currentSave.sessionGeneration &+ 1 : currentSave.sessionGeneration
-                try resetRoot(with: save)
-                if changed {
-                    onExternalProgressChange?()
-                }
-            } else {
-                try saveGraph()
-            }
-            resetAffectsCloudProgress = state.activeAccountID != nil
-        } catch {
-            // PersistenceCheck: allow - rollback is best-effort; original error is rethrown
-            try? restoreCloudMetadata(previous)
-            throw error
+        let snapshot = currentSave
+        var candidate = snapshot
+        var changed = false
+        if let save {
+            changed = invalidatesSession && CloudSaveSnapshot(snapshot) != CloudSaveSnapshot(save)
+            candidate = try PlayerSaveSanitizer.sanitizeAndValidate(save)
+            candidate.sessionGeneration = changed ? snapshot.sessionGeneration &+ 1 : snapshot.sessionGeneration
+        }
+        try commitGraph(candidate, replacing: snapshot, slices: save == nil ? [] : .all, cloudState: state)
+        if changed {
+            onExternalProgressChange?()
         }
     }
 

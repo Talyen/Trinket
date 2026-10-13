@@ -24,7 +24,7 @@ struct PlayerSaveObservationTests {
         // starter flow still observes generation changes across a reset/import.
         let replacementChanges = trackSections(in: store)
         expected.sessionGeneration += 1
-        try store.resetRoot(with: expected)
+        try store.commitGraph(expected, replacing: store.currentSave, slices: .all, cloudState: store.cloudDeviceState)
         #expect(replacementChanges.names.withLock { $0 } == ["generation", "snapshot"])
         #expect(store.currentSave == expected)
         #expect(try context.makeReloadedStore().currentSave == expected)
