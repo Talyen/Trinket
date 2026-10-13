@@ -126,7 +126,7 @@ struct CombatTriggerTalentDamageTests {
             dealOpeningHand: false,
         )
         _ = battle.resolveTestDamage(1, keyword: .holy, options: .reaction(cause: .talent, scaling: .flat, accuracy: .unavoidable))
-        #expect(battle.heroTalents.history[battle.enemy.id]?.blindingReduction ?? 0 == 0)
+        #expect(battle.roster.combatant(for: battle.enemy.id)?.talents.history.blindingReduction ?? 0 == 0)
     }
 
     @Test(arguments: [false, true])

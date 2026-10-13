@@ -52,8 +52,8 @@ enum AttackerOnHitEngine {
             if hit.triggers.blindingLight, state.options.isAttackHit, !state.options.isRetaliation,
                state.combatant.role == .enemy {
                 let reduction = CombatRounding.scaled(state.healthLost + state.blockedAmount, multiplier: 0.5)
-                let current = context.heroTalents.history[state.combatant.id]?.blindingReduction ?? 0
-                context.heroTalents.history[state.combatant.id, default: HeroTalentHistory()].blindingReduction = max(current, reduction)
+                let current = context.roster.runtime(for: state.combatant)?.talents.history.blindingReduction ?? 0
+                context.roster.mutateRuntime(for: state.combatant) { $0.talents.history.blindingReduction = max(current, reduction) }
             }
             await applyHolyStunReactions(to: &state, hit: hit, in: &context)
         }

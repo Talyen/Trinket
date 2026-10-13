@@ -452,7 +452,7 @@ extension KeywordCohesionMechanicsTests {
         // set).
         // For unit check, assert enemy took only base + crit (no repeat yet would be separate event; flag preserved means next Physical can
         // still repeat).
-        try #expect(battle.uniques.owners[.hero]?.repeatedCritical != true)
+        try #expect(battle.roster[.hero].uniques.repeatedCritical != true)
     }
 
     @Test func `patient edge block prepares crit and refreshes`() throws {
@@ -460,7 +460,7 @@ extension KeywordCohesionMechanicsTests {
         var battle = makeCohesionBattle(heroModifiers: profile)
         DefensePoolEngine.set(5, on: battle.hero, in: &battle)
         _ = battle.resolveTestDamage(3, from: .enemy, to: .hero)
-        try #expect(battle.uniques.owners[.hero]?.patientEdgeReady == true)
+        try #expect(battle.roster[.hero].uniques.patientEdgeReady == true)
     }
 
     @Test func `companion cards per turn draws alongside draw every other turn`() {

@@ -9,9 +9,9 @@ extension UniqueCombatEngine {
         if request.options.isAttackHit, request.amount > 0, request.target.role == .enemy,
            let actor = context.roster.combatant(for: sourceID),
            let owner = context.roster.participant(for: actor.combatant),
-           context.uniques.owners[owner]?.patientEdgeReady == true {
+           context.roster[owner].uniques.patientEdgeReady == true {
             prepared.options.guaranteedCritical = true
-            context.uniques.owners[owner]?.patientEdgeReady = false
+            context.roster[owner].uniques.patientEdgeReady = false
         }
         if context.uniques.card?.guaranteedCritical == true {
             prepared.options.guaranteedCritical = true
@@ -69,8 +69,8 @@ extension UniqueCombatEngine {
               let source = damage.partySource(in: context),
               let owner = context.roster.participant(for: source.combatant)
         else { return }
-        damage.remaining = SaturatedArithmetic.saturatingAdd(damage.remaining, context.uniques.owners[owner]?.goldDamage ?? 0)
-        context.uniques.owners[owner, default: .init()].goldDamage = 0
+        damage.remaining = SaturatedArithmetic.saturatingAdd(damage.remaining, context.roster[owner].uniques.goldDamage)
+        context.roster[owner].uniques.goldDamage = 0
     }
 
     static func ignoresBlock(for damage: DamageResolutionState, in context: BattleState) -> Bool {
@@ -86,6 +86,6 @@ extension UniqueCombatEngine {
         guard amount > 0, context.modifiers(for: actor.id).triggers.goldGainedNextHolyDamage,
               let owner = context.roster.participant(for: actor), owner.isPartyMember
         else { return }
-        context.uniques.owners[owner, default: .init()].goldDamage += amount
+        context.roster[owner].uniques.goldDamage += amount
     }
 }

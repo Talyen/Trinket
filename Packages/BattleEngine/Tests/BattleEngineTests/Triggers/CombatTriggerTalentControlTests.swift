@@ -90,7 +90,7 @@ struct CombatTriggerTalentControlTests {
                 keyword: .holy,
                 options: DamageOperation.attack(scaling: .flat, accuracy: .unavoidable),
             )
-            #expect(battle.heroTalents.history[battle.enemy.id]?.blindingReduction == 3)
+            #expect(battle.roster.combatant(for: battle.enemy.id)?.talents.history.blindingReduction == 3)
         }
         #expect(!battle.roster.activeEffects(for: battle.enemy).contains { $0.effect == .evadeNextHit })
     }

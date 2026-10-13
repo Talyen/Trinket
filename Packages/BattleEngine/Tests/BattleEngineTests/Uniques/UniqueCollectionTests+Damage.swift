@@ -185,14 +185,14 @@ extension UniqueCollectionTests {
         let actor = context.roster.hero.combatant
         _ = CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(by: actor, attackerID: context.roster.enemy.id, in: &context) }
         _ = context.resolveTestDamage(1, options: .reaction())
-        #expect(context.uniques.owners[.hero]?.viperReady == true)
+        #expect(context.roster[.hero].uniques.viperReady == true)
         block(10, owner: .enemy, in: &context)
         try play(attack(.holy), in: &context)
-        #expect(context.uniques.owners[.hero]?.viperReady == true)
+        #expect(context.roster[.hero].uniques.viperReady == true)
         let before = context.roster.enemy.currentHealth
         try play(attack(.holy), in: &context)
         #expect(before - context.roster.enemy.currentHealth == 25)
-        #expect(context.uniques.owners[.hero]?.viperReady == false)
+        #expect(context.roster[.hero].uniques.viperReady == false)
         #expect(context.roster.enemy.activeEffects.contains { $0.effect == .poison(7) })
         #expect(context.roster.enemy.activeEffects.contains { $0.effect == .bleed(5) })
         try play(attack(), in: &context)
@@ -216,7 +216,7 @@ extension UniqueCollectionTests {
         ) }
         #expect(context.hand.cards.map(\.ability.id) == ["venom"])
         _ = try context.withAutomaticPlay { context in try play(poison, in: &context) }
-        #expect(context.uniques.owners[.hero]?.wildheartReady == true)
+        #expect(context.roster[.hero].uniques.wildheartReady == true)
         let before = context.roster.enemy.currentHealth
         let card = try #require(context.hand.cards.first { $0.ability.id == "venom" })
         let events = try context.playCard(cardID: card.id).events
@@ -226,7 +226,7 @@ extension UniqueCollectionTests {
         let originalHits = events.filter { $0.kind == .abilityDamage && $0.abilityID == "venom" }
         let allCritical = originalHits.allSatisfy(\.isCritical)
         #expect(allCritical)
-        #expect(context.uniques.owners[.hero]?.wildheartReady == false)
+        #expect(context.roster[.hero].uniques.wildheartReady == false)
         #expect(events.count(where: { $0.abilityName == "Everkeen" }) == 0)
     }
 

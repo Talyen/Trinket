@@ -84,28 +84,28 @@ extension TalentCatalogRoundTripTests {
         seedHeroTalentEffect(.shield(.block, 1000), on: .hero, in: &battle)
         var exceededFive = false
         for _ in 0 ..< 60 {
-            let previous = battle.heroTalents.history[battle.hero.id]?.dodgeGrowth ?? 0
+            let previous = battle.roster.combatant(for: battle.hero.id)?.talents.history.dodgeGrowth ?? 0
             let outcome = battle.resolveTestDamage(
                 1,
                 from: .enemy,
                 to: .hero,
                 options: DamageOperation.attack(scaling: .flat),
             )
-            let growth = battle.heroTalents.history[battle.hero.id]?.dodgeGrowth ?? 0
+            let growth = battle.roster.combatant(for: battle.hero.id)?.talents.history.dodgeGrowth ?? 0
             #expect(growth == (outcome.flags.contains(.dodged) ? 0 : previous + 5))
             #expect(outcome.healthLost == 0)
             exceededFive = exceededFive || growth > 5
             #expect(DamagePipeline.dodgeChance(for: battle.hero, attackerID: battle.enemy.id, in: battle) <= 0.75)
         }
         #expect(exceededFive)
-        let before = battle.heroTalents.history[battle.hero.id]?.dodgeGrowth
+        let before = battle.roster.combatant(for: battle.hero.id)?.talents.history.dodgeGrowth
         _ = battle.resolveTestDamage(
             1,
             from: .enemy,
             to: .hero,
             options: DamageOperation.attack(accuracy: .unavoidable),
         )
-        #expect(battle.heroTalents.history[battle.hero.id]?.dodgeGrowth == before)
+        #expect(battle.roster.combatant(for: battle.hero.id)?.talents.history.dodgeGrowth == before)
     }
 
     @Test func `blind spot refreshes and covers every physical hit of only the next owned card`() throws {

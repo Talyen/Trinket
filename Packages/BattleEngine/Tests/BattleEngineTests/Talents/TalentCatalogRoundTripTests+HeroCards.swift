@@ -61,7 +61,7 @@ extension TalentCatalogRoundTripTests {
             }
         }
         #expect(stolen > 0)
-        #expect(battle.heroTalents.history[battle.companion.id]?.stolenGoldDamage == stolen)
+        #expect(battle.roster.combatant(for: battle.companion.id)?.talents.history.stolenGoldDamage == stolen)
         ActiveEffectMutation.removeMatching(from: battle.enemy, in: &battle) { $0.kind == .marked }
         let next = try playHeroTalentCard(.stab, owner: .companion, in: &battle)
         let hit = try #require(next.first { $0.kind == .abilityDamage && $0.keyword == .physical })

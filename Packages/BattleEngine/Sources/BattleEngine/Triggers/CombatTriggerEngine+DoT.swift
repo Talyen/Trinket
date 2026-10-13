@@ -218,7 +218,7 @@ package extension CombatTriggerEngine {
     ) async -> [ActionEvent] {
         if context.modifiers(for: sourceActorID).triggers.redline,
            bleeds.contains(where: { $0.remainingTurns > 0 && ($0.effect.potency ?? 0) > 0 }) {
-            context.heroTalents.history[sourceActorID, default: HeroTalentHistory()].preparations.insert(.bleedDamage)
+            context.roster.mutateRuntime(forID: sourceActorID) { $0.talents.history.preparations.insert(.bleedDamage) }
         }
         var events: [ActionEvent] = []
         for active in bleeds {

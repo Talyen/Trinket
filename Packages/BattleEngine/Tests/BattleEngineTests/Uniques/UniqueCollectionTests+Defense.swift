@@ -119,7 +119,7 @@ extension UniqueCollectionTests {
         let actor = context.roster[owner].combatant
         context.roster.mutateRuntime(for: actor) { $0.currentHealth = 100 }
         _ = enemyHit(1, target: owner, in: &context)
-        #expect(context.uniques.owners[owner]?.answeredBlock != true)
+        #expect(context.roster[owner].uniques.answeredBlock != true)
         block(10, owner: owner, in: &context)
         let first = enemyHit(5, target: owner, in: &context)
         #expect(blockAmount(owner, in: context) == 8)

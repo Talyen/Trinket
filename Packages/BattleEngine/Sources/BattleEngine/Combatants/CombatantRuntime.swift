@@ -4,28 +4,32 @@ import TrinketCore
 public struct CombatantRuntime: Hashable {
     private final class StateStorage: Hashable {
         var value: CombatantTalentState
+        var uniques: CombatantUniqueState
         var peakDepleted: Int
         var referenceMaxHealth: Int
 
         init(
             _ value: CombatantTalentState = CombatantTalentState(),
+            uniques: CombatantUniqueState = CombatantUniqueState(),
             peakDepleted: Int = 0,
             referenceMaxHealth: Int = 1,
         ) {
             self.value = value
+            self.uniques = uniques
             self.peakDepleted = peakDepleted
             self.referenceMaxHealth = referenceMaxHealth
         }
 
         static func == (lhs: StateStorage, rhs: StateStorage) -> Bool {
             lhs === rhs || (
-                lhs.value == rhs.value && lhs.peakDepleted == rhs.peakDepleted
+                lhs.value == rhs.value && lhs.uniques == rhs.uniques && lhs.peakDepleted == rhs.peakDepleted
                     && lhs.referenceMaxHealth == rhs.referenceMaxHealth
             )
         }
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(value)
+            hasher.combine(uniques)
             hasher.combine(peakDepleted)
             hasher.combine(referenceMaxHealth)
         }
@@ -36,15 +40,27 @@ public struct CombatantRuntime: Hashable {
     var talents: CombatantTalentState {
         _read { yield runtimeStateStorage.value }
         _modify {
-            if !isKnownUniquelyReferenced(&runtimeStateStorage) {
-                runtimeStateStorage = StateStorage(
-                    runtimeStateStorage.value,
-                    peakDepleted: runtimeStateStorage.peakDepleted,
-                    referenceMaxHealth: runtimeStateStorage.referenceMaxHealth,
-                )
-            }
+            ensureUniqueStateStorage()
             yield &runtimeStateStorage.value
         }
+    }
+
+    var uniques: CombatantUniqueState {
+        _read { yield runtimeStateStorage.uniques }
+        _modify {
+            ensureUniqueStateStorage()
+            yield &runtimeStateStorage.uniques
+        }
+    }
+
+    private mutating func ensureUniqueStateStorage() {
+        guard !isKnownUniquelyReferenced(&runtimeStateStorage) else { return }
+        runtimeStateStorage = StateStorage(
+            runtimeStateStorage.value,
+            uniques: runtimeStateStorage.uniques,
+            peakDepleted: runtimeStateStorage.peakDepleted,
+            referenceMaxHealth: runtimeStateStorage.referenceMaxHealth,
+        )
     }
 
     public let combatant: Combatant
@@ -67,11 +83,8 @@ public struct CombatantRuntime: Hashable {
         let reference = max(1, runtimeStateStorage.referenceMaxHealth)
         let depleted = max(0, reference - currentHealth)
         guard depleted > runtimeStateStorage.peakDepleted else { return }
-        if !isKnownUniquelyReferenced(&runtimeStateStorage) {
-            runtimeStateStorage = StateStorage(runtimeStateStorage.value, peakDepleted: depleted, referenceMaxHealth: reference)
-        } else {
-            runtimeStateStorage.peakDepleted = depleted
-        }
+        ensureUniqueStateStorage()
+        runtimeStateStorage.peakDepleted = depleted
     }
 
     public package(set) var currentMana: Int

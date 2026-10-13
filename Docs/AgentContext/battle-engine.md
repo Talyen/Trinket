@@ -13,6 +13,14 @@ generator rather than advance the live battle's generator.
 an exact roster ID and matching role; role alone cannot address live battle state.
 Modifier lookup uses the same roster ID resolver, without reserved role-name aliases.
 Unknown combatants return empty read projections and cannot replace a roster member.
+`CombatantRuntime` owns all personal Talent preparations/history and Unique equipment
+readiness, counters, and tracked cards. They share its copy-on-write storage, equality,
+and hashing with the rest of its rule state; roster copies and updates carry them
+with their owner. Do not add parallel actor-ID or participant-keyed state dictionaries
+on `BattleState`. `CombatResolution` retains action/card frames and activation claims;
+`UniqueBattleState` retains in-flight card work, effect retention, and reaction queues
+that span participants. Their existing cadence and reaction ordering remain separate
+from runtime storage.
 
 `CombatExecutor` drains each synchronous command on its calling thread. Internal
 rules use async continuations; entering damage, healing, or automatic card play

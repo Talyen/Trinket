@@ -17,7 +17,7 @@ extension UniqueCollectionTests {
         #expect(blockAmount(owner, in: context) == 2)
         #expect(context.roster.enemy.currentHealth == 1978)
         #expect(events.count(where: { $0.abilityName == "The Final Spark" }) == 1)
-        #expect(context.uniques.owners[owner]?.answeredBlock != true)
+        #expect(context.roster[owner].uniques.answeredBlock != true)
     }
 
     @Test func `block only empowerment does not spend mana allowances or draw opposite element`() throws {
@@ -34,7 +34,7 @@ extension UniqueCollectionTests {
         #expect(context.roster.enemy.currentHealth == 1989)
         #expect(context.hand.isEmpty)
         #expect(!events.contains { $0.abilityName == "The Final Spark" })
-        #expect(context.uniques.owners[.hero]?.usedFinalSpark != true)
+        #expect(context.roster[.hero].uniques.usedFinalSpark != true)
         #expect(context.turnCadence.spendManaDrawOwners.isEmpty)
     }
 
@@ -48,7 +48,7 @@ extension UniqueCollectionTests {
         #expect(context.roster.hero.currentMana == 2)
         #expect(blockAmount(.hero, in: context) == before)
         #expect(context.roster.enemy.currentHealth == 1990)
-        #expect(context.uniques.owners[.hero]?.usedFinalSpark != true)
+        #expect(context.roster[.hero].uniques.usedFinalSpark != true)
     }
 
     @Test func `final spark qualifies before refunds and does not repeat utility`() throws {
@@ -120,7 +120,7 @@ extension UniqueCollectionTests {
         #expect(context.roster.hero.currentMana == 3)
         #expect(blockAmount(.hero, in: context) == 0)
         #expect(context.roster.enemy.currentHealth == 1989)
-        #expect(context.uniques.owners[.hero]?.usedFinalSpark != true)
+        #expect(context.roster[.hero].uniques.usedFinalSpark != true)
     }
 
     @Test func `final spark and everkeen do not recursively repeat`() throws {
@@ -156,9 +156,9 @@ extension UniqueCollectionTests {
         try play(attack(.holy), in: &context)
         #expect(context.roster.enemy.currentHealth == 1990)
         _ = context.grantGoldEvent(3, to: context.roster.companion.combatant, abilityName: "Other")
-        #expect(context.uniques.owners[.hero]?.goldDamage == 0)
+        #expect(context.roster[.hero].uniques.goldDamage == 0)
         _ = context.grantGoldEvent(3, to: context.roster.hero.combatant, abilityName: "Grant")
-        #expect(context.uniques.owners[.hero]?.goldDamage == 5)
+        #expect(context.roster[.hero].uniques.goldDamage == 5)
         _ = context.resolveTestDamage(
             1,
             to: context.roster.enemy.combatant,
@@ -166,13 +166,13 @@ extension UniqueCollectionTests {
             sourceActorID: context.roster.hero.id,
             options: .reaction(),
         )
-        #expect(context.uniques.owners[.hero]?.goldDamage == 5)
+        #expect(context.roster[.hero].uniques.goldDamage == 5)
         #expect(context.effectSummaries(of: context.hero).contains {
             $0.keyword == .holy && $0.text.contains("manually played card") && $0.text.contains("5")
         })
         try play(attack(.holy), in: &context)
         #expect(context.roster.enemy.currentHealth == 1974)
-        #expect(context.uniques.owners[.hero]?.goldDamage == 0)
+        #expect(context.roster[.hero].uniques.goldDamage == 0)
         #expect(!context.effectSummaries(of: context.hero).contains { $0.text.contains("The Golden Crucible") })
     }
 
@@ -183,10 +183,10 @@ extension UniqueCollectionTests {
         _ = context.grantGoldEvent(5, to: context.roster.hero.combatant, abilityName: "Grant")
         try play(attack(.holy), in: &context)
         #expect(context.roster.enemy.currentHealth == 1985)
-        #expect(context.uniques.owners[.hero]?.goldDamage == 2)
+        #expect(context.roster[.hero].uniques.goldDamage == 2)
         try play(attack(.holy), in: &context)
         #expect(context.roster.enemy.currentHealth == 1973)
-        #expect(context.uniques.owners[.hero]?.goldDamage == 2)
+        #expect(context.roster[.hero].uniques.goldDamage == 2)
     }
 
     @Test(arguments: [false, true])

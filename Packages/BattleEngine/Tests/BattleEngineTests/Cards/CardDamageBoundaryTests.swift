@@ -60,7 +60,7 @@ struct CardDamageBoundaryTests {
             dealOpeningHand: false,
         )
         if !sealedVial {
-            battle.heroTalents.history[battle.hero.id, default: HeroTalentHistory()].preparations.insert(.doublePoison)
+            battle.roster.mutateRuntime(for: battle.hero) { $0.talents.history.preparations.insert(.doublePoison) }
         }
         let ability = Ability(
             id: "poison-preparation-boundary", name: "Poison", tier: .basic,
@@ -84,7 +84,7 @@ struct CardDamageBoundaryTests {
             DamageComponent(3, keyword: .poison, target: .actor),
         ])
         #expect(prepared.targetedEffects == ability.targetedEffects)
-        #expect(battle.heroTalents.history[battle.hero.id]?.preparations.contains(.doublePoison) != true)
+        #expect(battle.roster.combatant(for: battle.hero.id)?.talents.history.preparations.contains(.doublePoison) != true)
     }
 
     private func prepareTalentCard(_ ability: Ability, in battle: inout BattleState) -> Ability {

@@ -80,7 +80,7 @@ extension TalentMigrationTests {
             $0.phantomCounter = true
         })
         battle.heroDeck = CombatDeck(abilities: [.slash])
-        battle.uniques.owners[.hero, default: .init()].cardsPlayed = 2
+        battle.roster[.hero].uniques.cardsPlayed = 2
         let healthBefore = battle.roster.enemy.currentHealth
         let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: battle.hero, attackerID: battle.enemy.id, in: &battle,
@@ -88,7 +88,7 @@ extension TalentMigrationTests {
         #expect(battle.roster.enemy.currentHealth < healthBefore)
         #expect(battle.hand.isEmpty)
         #expect(battle.heroDeck.discarded.map(\.ability.id) == [Ability.slash.id])
-        #expect(battle.uniques.owners[.hero]?.cardsPlayed == 2)
+        #expect(battle.roster[.hero].uniques.cardsPlayed == 2)
         #expect(!events.contains { $0.abilityName == "The Returning Gale" })
         #expect(battle.resolution.depth(.draw) == 0)
     }

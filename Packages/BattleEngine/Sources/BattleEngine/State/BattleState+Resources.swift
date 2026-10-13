@@ -48,7 +48,7 @@ package extension BattleState {
         let previousEarned = goldFlow.gained
         granted = recordGoldGain(granted)
         if isTheft, granted > 0, modifiers(for: combatant.id).triggers.gildedClaws {
-            heroTalents.history[combatant.id, default: HeroTalentHistory()].stolenGoldDamage += granted
+            roster.mutateRuntime(for: combatant) { $0.talents.history.stolenGoldDamage += granted }
         }
         UniqueCombatEngine.gainedGold(granted, by: combatant, in: &self)
         let currentEarned = goldFlow.gained

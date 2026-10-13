@@ -10,7 +10,7 @@ package extension BattleState {
             partyDamageBonus: resolution.pendingPartyDamage(for: combatant.id),
         )
         return pending + timedEffectSummaries(runtime.talents)
-            + preparedEffectSummaries(heroTalents.history[combatant.id])
+            + preparedEffectSummaries(runtime.talents.history)
             + uniqueEffectSummaries(of: combatant)
     }
 
@@ -78,8 +78,7 @@ package extension BattleState {
         }
     }
 
-    private func preparedEffectSummaries(_ history: HeroTalentHistory?) -> [EffectSummary] {
-        guard let history else { return [] }
+    private func preparedEffectSummaries(_ history: CombatantTalentHistory) -> [EffectSummary] {
         var summaries: [EffectSummary] = []
         summaries.append(
             .dodge,
@@ -115,8 +114,8 @@ package extension BattleState {
     }
 
     private func uniqueEffectSummaries(of combatant: Combatant) -> [EffectSummary] {
-        guard let owner = roster.participant(for: combatant),
-              let state = uniques.owners[owner] else { return [] }
+        guard let runtime = roster.runtime(for: combatant) else { return [] }
+        let state = runtime.uniques
         var summaries: [EffectSummary] = []
         summaries.append(
             .dodge,

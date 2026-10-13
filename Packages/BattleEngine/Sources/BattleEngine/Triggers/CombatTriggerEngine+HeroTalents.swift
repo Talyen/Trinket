@@ -252,7 +252,7 @@ package extension CombatTriggerEngine {
 
     static func afterHeroTalentDodge(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         guard context.allowsHeroTalentReaction, context.roster.health(for: actor) > 0 else { return [] }
-        context.heroTalents.history[actor.id, default: HeroTalentHistory()].dodgeGrowth = 0
+        context.roster.mutateRuntime(for: actor) { $0.talents.history.dodgeGrowth = 0 }
         let triggers = context.modifiers(for: actor.id).triggers
         var events: [ActionEvent] = []
         if triggers.dodgePreparesDoubleGoldSteal {
@@ -280,7 +280,7 @@ package extension CombatTriggerEngine {
             }
         }
         if triggers.blindSpot {
-            context.heroTalents.history[actor.id, default: HeroTalentHistory()].preparations.insert(.ignorePhysicalBlock)
+            context.roster.mutateRuntime(for: actor) { $0.talents.history.preparations.insert(.ignorePhysicalBlock) }
         }
         return events
     }
@@ -348,9 +348,7 @@ package extension CombatTriggerEngine {
     static func startHeroTalentTurn(in context: inout BattleState) -> [ActionEvent] {
         for owner in [BattleParticipant.hero, .companion] {
             let actor = context.roster[owner].combatant
-            var history = context.heroTalents.history[actor.id, default: HeroTalentHistory()]
-            history.spentMana = false
-            context.heroTalents.history[actor.id] = history
+            context.roster.mutateRuntime(for: actor) { $0.talents.history.spentMana = false }
         }
         return []
     }
@@ -360,7 +358,7 @@ package extension CombatTriggerEngine {
               let source = context.roster.combatant(for: sourceID), source.isAlive else { return [] }
         let triggers = context.modifiers(for: sourceID).triggers
         if triggers.unstableCulture, target.role == .enemy {
-            context.heroTalents.history[sourceID, default: HeroTalentHistory()].preparations.insert(.doublePoison)
+            context.roster.mutateRuntime(for: source.combatant) { $0.talents.history.preparations.insert(.doublePoison) }
         }
         var events: [ActionEvent] = []
         if triggers.poisonExpiryManaRestore > 0 {
@@ -420,11 +418,11 @@ package extension CombatTriggerEngine {
             }
         }
         guard amount > 0 else { return events }
-        context.heroTalents.history[actor.id, default: HeroTalentHistory()].spentMana = true
+        context.roster.mutateRuntime(for: actor) { $0.talents.history.spentMana = true }
         let hero = context.roster.hero.combatant
         if context.roster.hero.isAlive, context.roster.companion.isAlive,
-           context.heroTalents.history[hero.id]?.spentMana == true,
-           context.heroTalents.history[context.roster.companion.id]?.spentMana == true,
+           context.roster.hero.talents.history.spentMana == true,
+           context.roster.companion.talents.history.spentMana == true,
            context.heroModifiers.triggers.groveAccord,
            context.claimHeroTalent(.groveAccord, actorID: hero.id) {
             for target in [hero, context.roster.companion.combatant] {

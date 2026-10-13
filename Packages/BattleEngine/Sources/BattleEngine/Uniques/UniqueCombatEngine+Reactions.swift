@@ -32,8 +32,8 @@ extension UniqueCombatEngine {
         let triggers = context.modifiers(for: source.id).triggers
         context.resolution.enter(.uniqueReaction)
         defer { context.resolution.leave(.uniqueReaction) }
-        if damage.healthLost > 0, context.uniques.owners[owner]?.viperReady == true {
-            context.uniques.owners[owner]?.viperReady = false
+        if damage.healthLost > 0, context.roster[owner].uniques.viperReady == true {
+            context.roster[owner].uniques.viperReady = false
             let potency = CombatRounding.scaled(damage.healthLost, multiplier: triggers.dodgeNextHitPoisonAndBleedPercent)
             for keyword in [Keyword.poison, .bleed] where !context.isBattleOver {
                 await events.append(contentsOf: CombatTriggerEngine.applyDoT(
@@ -46,8 +46,8 @@ extension UniqueCombatEngine {
             }
         }
         guard damage.isCritical, damage.damageKeyword == .physical else { return events }
-        if triggers.firstCriticalHitRepeatsPerTurn, context.uniques.owners[owner]?.repeatedCritical != true {
-            context.uniques.owners[owner, default: .init()].repeatedCritical = true
+        if triggers.firstCriticalHitRepeatsPerTurn, context.roster[owner].uniques.repeatedCritical != true {
+            context.roster[owner].uniques.repeatedCritical = true
             let options = damage.options.repeated(origin: .criticalRepeat, scaling: .resolved, guaranteedCritical: true)
             await events.append(contentsOf: repeatHit(
                 DamageRequest(
@@ -106,9 +106,9 @@ extension UniqueCombatEngine {
         for actor in damage.blockAbsorbingOwners {
             guard let owner = context.roster.participant(for: actor), owner.isPartyMember,
                   context.modifiers(for: actor.id).triggers.blockedAttackBasicOncePerTurn,
-                  context.uniques.owners[owner]?.answeredBlock != true
+                  context.roster[owner].uniques.answeredBlock != true
             else { continue }
-            context.uniques.owners[owner, default: .init()].answeredBlock = true
+            context.roster[owner].uniques.answeredBlock = true
             // Never nest a full Basic inside damage resolution.
             if context.resolution.depth(.damage) > 0 {
                 if !context.uniques.pendingBlockAnswerOwners.contains(owner) {
@@ -198,10 +198,10 @@ extension UniqueCombatEngine {
         events.append(contentsOf: galeDodgeReturn(by: actor, owner: owner, in: &context))
         let triggers = context.modifiers(for: actor.id).triggers
         if triggers.dodgeNextHitPoisonAndBleedPercent > 0 {
-            context.uniques.owners[owner, default: .init()].viperReady = true
+            context.roster[owner].uniques.viperReady = true
         }
         if triggers.dodgeDrawPoisonAndReadyCritical {
-            context.uniques.owners[owner, default: .init()].wildheartReady = true
+            context.roster[owner].uniques.wildheartReady = true
             if BattleCardCombatEngine.drawFirstCard(matching: .poison, for: owner, context: &context) != nil {
                 events.append(context.nextEvent(
                     kind: .effect(.cardsDrawn),
@@ -250,13 +250,13 @@ extension UniqueCombatEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard context.modifiers(for: actor.id).triggers.thirdCardReturnsToHand,
-              !context.uniques.owners[owner, default: .init()].returnedGaleThisTurn,
-              let copyID = context.uniques.owners[owner]?.lastOrdinaryCopyID,
+              !context.roster[owner].uniques.returnedGaleThisTurn,
+              let copyID = context.roster[owner].uniques.lastOrdinaryCopyID,
               !context.isBattleOver,
               BattleCardCombatEngine.canDrawFromDeck(for: owner, in: context)
         else { return [] }
         guard BattleCardCombatEngine.recoverCard(copyID: copyID, owner: owner, context: &context) != nil else { return [] }
-        context.uniques.owners[owner, default: .init()].returnedGaleThisTurn = true
+        context.roster[owner].uniques.returnedGaleThisTurn = true
         return [context.nextEvent(
             kind: .effect(.cardsDrawn),
             source: .init(actor),
@@ -317,8 +317,8 @@ extension UniqueCombatEngine {
            triggers.lastManaEmpowermentRepeatsDamage,
            isOrdinaryAction(actorID: actor.id, in: context),
            let owner = context.roster.participant(for: actor),
-           context.uniques.owners[owner]?.usedFinalSpark != true {
-            context.uniques.owners[owner, default: .init()].usedFinalSpark = true
+           context.roster[owner].uniques.usedFinalSpark != true {
+            context.roster[owner].uniques.usedFinalSpark = true
             context.uniques.card?.repeatDamage = true
         }
     }

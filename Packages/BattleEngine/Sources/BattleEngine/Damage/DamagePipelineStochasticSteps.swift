@@ -42,7 +42,7 @@ package extension DamagePipeline {
         }
         guard dodged else {
             if state.options.isAttackHit, profile.triggers.improvingOdds {
-                context.heroTalents.history[state.combatant.id, default: HeroTalentHistory()].dodgeGrowth += 5
+                context.roster.mutateRuntime(for: state.combatant) { $0.talents.history.dodgeGrowth += 5 }
             }
             return
         }
@@ -98,7 +98,7 @@ package extension DamagePipeline {
         if combatant.role == .enemy {
             return 0
         }
-        let history = context.heroTalents.history[combatant.id]
+        let history = context.roster.runtime(for: combatant)?.talents.history
         var chance = 0.10 + Double(history?.dodgeGrowth ?? 0) / 100
         let profile = context.modifiers(for: combatant.id)
         chance += profile.triggers.dodgeChanceBonus
@@ -112,7 +112,7 @@ package extension DamagePipeline {
             }
         }
         if let owner = context.roster.participant(for: combatant) {
-            chance += context.uniques.owners[owner]?.wrenflightDodge ?? 0
+            chance += context.roster[owner].uniques.wrenflightDodge
         }
         chance += context.roster.runtime(for: combatant)?.talents.dodgeChanceBonus(atTurn: context.turnCount) ?? 0
         if context.roster.runtime(for: combatant)?.talents.turn.subzeroMistActive == true {

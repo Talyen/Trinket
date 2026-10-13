@@ -15,17 +15,17 @@ package enum UniqueCombatEngine {
               context.resolution.depth(.uniqueReaction) == 0 else { return nil }
         let actor = context.roster[card.owner].combatant
         let triggers = context.modifiers(for: actor.id).triggers
-        var owner = context.uniques.owners[card.owner, default: .init()]
+        var owner = context.roster[card.owner].uniques
         owner.cardsPlayed += 1
         let play = UniqueBattleState.CardPlay(owner: card.owner, originalCopyID: card.deckCopyID)
         if triggers.secondCardDrawAndDodgePercent > 0, owner.cardsPlayed == 2 {
             owner.wrenflightDodge = triggers.secondCardDrawAndDodgePercent
             var mutablePlay = play
             mutablePlay.draws.append("Wrenflight")
-            context.uniques.owners[card.owner] = owner
+            context.roster[card.owner].uniques = owner
             return mutablePlay
         }
-        context.uniques.owners[card.owner] = owner
+        context.roster[card.owner].uniques = owner
         return play
     }
 
@@ -33,9 +33,9 @@ package enum UniqueCombatEngine {
         let actor = facts.action.actor
         guard isOrdinaryAction(actorID: actor.id, in: context), var play = context.uniques.card else { return }
         let triggers = context.modifiers(for: actor.id).triggers
-        var owner = context.uniques.owners[play.owner, default: .init()]
+        var owner = context.roster[play.owner].uniques
         defer {
-            context.uniques.owners[play.owner] = owner
+            context.roster[play.owner].uniques = owner
             context.uniques.card = play
         }
         // The Returning Gale tracks the last ordinary card play, including non-damaging cards.
@@ -56,7 +56,7 @@ package enum UniqueCombatEngine {
         }
         guard !facts.damageKeywords.isEmpty else { return }
         let partner: BattleParticipant = play.owner == .hero ? .companion : .hero
-        if !owner.hasAttacked, context.uniques.owners[partner, default: .init()].cardsPlayed > 0 {
+        if !owner.hasAttacked, context.roster[partner].uniques.cardsPlayed > 0 {
             play.attackBonus = triggers.partnerFirstAttackDamage
         }
         owner.hasAttacked = true
@@ -100,7 +100,7 @@ package enum UniqueCombatEngine {
             context.uniques.retainedStunByEffectID = context.uniques.retainedStunByEffectID.filter { activeIDs.contains($0.key) }
         }
         for owner in [BattleParticipant.hero, .companion] {
-            context.uniques.owners[owner, default: .init()].resetTurn()
+            context.roster[owner].uniques.resetTurn()
         }
         context.uniques.pendingBlockAnswerOwners = []
         context.uniques.pendingCounterAttackActorIDs = []

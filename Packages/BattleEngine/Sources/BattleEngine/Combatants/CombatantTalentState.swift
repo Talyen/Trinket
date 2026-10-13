@@ -1,5 +1,13 @@
 import TrinketCore
 
+struct CombatantTalentHistory: Hashable, Sendable {
+    var spentMana = false
+    var preparations: Set<TalentPreparation> = []
+    var stolenGoldDamage = 0
+    var blindingReduction = 0
+    var dodgeGrowth = 0
+}
+
 struct HealingEcho: Hashable, Sendable {
     let amount: Int
     let sourceActorID: String
@@ -117,6 +125,7 @@ struct CombatantTalentState: Hashable, Sendable {
         var arcaneBurst = false
     }
 
+    var history = CombatantTalentHistory()
     var battle = Battle()
     var turn = Turn()
     var pending = Pending()

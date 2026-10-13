@@ -22,8 +22,8 @@ struct AllyBlockProtectionRegressionTests {
         var battle = try makeBattle(uniques: ["the_patient_edge"])
         DefensePoolEngine.set(10, on: battle.hero, in: &battle)
         _ = hit(5, target: target, in: &battle)
-        #expect(battle.uniques.owners[.hero]?.patientEdgeReady == true)
-        #expect(battle.uniques.owners[.companion]?.patientEdgeReady != true)
+        #expect(battle.roster[.hero].uniques.patientEdgeReady == true)
+        #expect(battle.roster[.companion].uniques.patientEdgeReady != true)
     }
 
     @Test(arguments: [BattleParticipant.hero, .companion])
@@ -36,8 +36,8 @@ struct AllyBlockProtectionRegressionTests {
         #expect(first.events.contains { $0.kind == .ability && $0.actorID == battle.hero.id && $0.abilityID == basic.id })
         #expect(block(for: .hero, in: battle) == 8)
         #expect(battle.roster.hero.currentHealth == 45)
-        #expect(battle.uniques.owners[.hero]?.answeredBlock == true)
-        #expect(battle.uniques.owners[.companion]?.answeredBlock != true)
+        #expect(battle.roster[.hero].uniques.answeredBlock == true)
+        #expect(battle.roster[.companion].uniques.answeredBlock != true)
         let second = hit(1, target: target, in: &battle)
         #expect(!second.events.contains { $0.kind == .ability && $0.abilityID == basic.id })
         #expect(block(for: .hero, in: battle) == 7)
@@ -52,7 +52,7 @@ struct AllyBlockProtectionRegressionTests {
         DefensePoolEngine.set(10, on: battle.hero, in: &battle)
         let borrowed = hit(5, target: .companion, in: &battle)
         #expect(!borrowed.events.contains { $0.kind == .ability && $0.abilityID == basic.id })
-        #expect(battle.uniques.owners[.companion]?.answeredBlock != true)
+        #expect(battle.roster[.companion].uniques.answeredBlock != true)
 
         DefensePoolEngine.set(0, on: battle.hero, in: &battle)
         DefensePoolEngine.set(10, on: battle.companion, in: &battle)

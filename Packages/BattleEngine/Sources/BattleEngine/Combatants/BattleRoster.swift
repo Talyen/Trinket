@@ -183,6 +183,11 @@ public struct BattleRoster {
         body(&self[participant])
     }
 
+    mutating func mutateRuntime(forID id: String, _ body: (inout CombatantRuntime) -> Void) {
+        guard let participant = participant(for: id) else { return }
+        body(&self[participant])
+    }
+
     public func hasConsumedDeathsDoor(for combatant: Combatant) -> Bool {
         runtime(for: combatant)?.hasConsumedDeathsDoor ?? false
     }

@@ -162,7 +162,7 @@ package extension DamagePipeline {
               context.modifiers(for: owner.id).triggers.blockPreparesCritical
         else { return }
         guard let participant = context.roster.participant(for: owner), participant.isPartyMember else { return }
-        context.uniques.owners[participant, default: .init()].patientEdgeReady = true
+        context.roster[participant].uniques.patientEdgeReady = true
     }
 
     private static func handleTalentBlockedDamage(

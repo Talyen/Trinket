@@ -1,7 +1,7 @@
 import TrinketContent
 import TrinketCore
 
-enum TalentPreparation: Hashable {
+enum TalentPreparation: Hashable, Sendable {
     case bleedDamage
     case doublePoison
     case ignorePhysicalBlock
@@ -22,16 +22,4 @@ package struct HeroTalentCardFacts {
     var preparations: Set<TalentPreparation> = []
     var capturedPreparations = false
     var gildedDamage = 0
-}
-
-struct HeroTalentHistory {
-    var spentMana = false
-    var preparations: Set<TalentPreparation> = []
-    var stolenGoldDamage = 0
-    var blindingReduction = 0
-    var dodgeGrowth = 0
-}
-
-struct HeroTalentState {
-    var history: [String: HeroTalentHistory] = [:]
 }

@@ -16,8 +16,8 @@ extension BattleTurnEngine {
         var components = ability.damageComponents
         var effects = ability.targetedEffects
         if actor.role == .enemy, ability.dealsCombatDamage {
-            action.blindingReduction = context.heroTalents.history[actor.id]?.blindingReduction ?? 0
-            context.heroTalents.history[actor.id, default: HeroTalentHistory()].blindingReduction = 0
+            action.blindingReduction = context.roster.runtime(for: actor)?.talents.history.blindingReduction ?? 0
+            context.roster.mutateRuntime(for: actor) { $0.talents.history.blindingReduction = 0 }
         } else if context.hasHeroCard(for: actor.id) {
             action.goldDamage = context.resolution.cardTalents?.gildedDamage ?? 0
             context.mutateHeroCard { $0.gildedDamage = 0 }
@@ -30,8 +30,8 @@ extension BattleTurnEngine {
                 }
             }
         } else if ability.dealsCombatDamage {
-            action.goldDamage = context.heroTalents.history[actor.id]?.stolenGoldDamage ?? 0
-            context.heroTalents.history[actor.id, default: HeroTalentHistory()].stolenGoldDamage = 0
+            action.goldDamage = context.roster.runtime(for: actor)?.talents.history.stolenGoldDamage ?? 0
+            context.roster.mutateRuntime(for: actor) { $0.talents.history.stolenGoldDamage = 0 }
         }
         context.resolution.prepareActionTalents(action)
         return ability.replacingOperations(preparedOperations(ability, components: components, effects: effects))
@@ -63,7 +63,7 @@ extension BattleTurnEngine {
     private static func captureTalentPreparations(for actor: Combatant, in context: inout BattleState) {
         guard context.hasHeroCard(for: actor.id), let card = context.resolution.cardTalents,
               !card.capturedPreparations, let outcome = context.resolution.cardOutcome(for: actor.id) else { return }
-        var history = context.heroTalents.history[actor.id, default: HeroTalentHistory()]
+        guard var history = context.roster.runtime(for: actor)?.talents.history else { return }
         var eligible: Set<TalentPreparation> = []
         if outcome.damageKeywords.contains(.physical) {
             eligible.formUnion([.bleedDamage, .ignorePhysicalBlock])
@@ -77,7 +77,7 @@ extension BattleTurnEngine {
         if !outcome.damageKeywords.isEmpty {
             history.stolenGoldDamage = 0
         }
-        context.heroTalents.history[actor.id] = history
+        context.roster.mutateRuntime(for: actor) { $0.talents.history = history }
         context.mutateHeroCard {
             $0.capturedPreparations = true
             $0.preparations = preparations

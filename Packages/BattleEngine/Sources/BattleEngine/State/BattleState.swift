@@ -98,7 +98,6 @@ public struct BattleState {
     }
 
     var resolution = CombatResolution()
-    var heroTalents = HeroTalentState()
     var uniques = UniqueBattleState()
 
     private var logProjection: BattleLogProjection?
