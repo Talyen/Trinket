@@ -20,7 +20,8 @@ struct BattleBoundaryRegressionTests {
         }
         let ability = Ability(id: "burn", name: "Burn", tier: .basic, directDamage: 1, damageKeyword: .burn)
         var budget = ManaEmpowermentBudget(ability: ability, actor: battle.hero, in: battle)
-        let payment = try #require(budget.nextPayment())
+        let nextPayment = budget.nextPayment()
+        let payment = try #require(nextPayment)
         #expect(payment.ownMana == 0)
         #expect(payment.partnerMana == 0)
         #expect(payment.block == 0)
