@@ -41,7 +41,11 @@ extension TalentMigrationTests {
             [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)], for: battle.enemy,
         )
         let enemyHealthBefore = battle.health(of: battle.enemy)
-        _ = BattleTestFixtures.apply(.purge(nil), abilityName: "purge", source: battle.hero, target: battle.enemy, in: &battle)
+        _ = EffectHandlersTestSupport.dispatch(
+            .purge(nil),
+            ability: Ability(id: "test-purge", name: "purge", tier: .basic, targetedEffects: [TargetedEffect(.purge(nil))]),
+            target: battle.enemy, battle: &battle,
+        )
         #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
     }
 
@@ -52,12 +56,11 @@ extension TalentMigrationTests {
             for: battle.roster.hero.combatant,
         )
         let heroHealthBefore = battle.health(of: battle.hero)
-        _ = BattleTestFixtures.apply(
+        _ = EffectHandlersTestSupport.dispatch(
             .purge(nil),
-            abilityName: "enemy-purge",
+            ability: Ability(id: "test-enemy-purge", name: "enemy-purge", tier: .basic, targetedEffects: [TargetedEffect(.purge(nil))]),
             source: battle.roster.enemy.combatant,
-            target: battle.roster.hero.combatant,
-            in: &battle,
+            battle: &battle,
         )
         #expect(battle.health(of: battle.hero) == heroHealthBefore)
     }

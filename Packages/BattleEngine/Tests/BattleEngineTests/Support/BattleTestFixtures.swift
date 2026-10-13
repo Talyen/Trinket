@@ -155,40 +155,6 @@ extension BattleTestFixtures {
         )
     }
 
-    /// Effect dispatch for tests that already have a battle and an ability.
-    static func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        let handler = EffectHandlers.handler(for: effect.kind)
-        return CombatExecutor.run { await handler.apply(
-            effect,
-            ability: ability,
-            source: source,
-            target: target,
-            in: &context,
-        ) }
-    }
-
-    static func apply(
-        _ effect: Effect,
-        abilityName: String,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        let ability = Ability(
-            id: "test-\(abilityName)",
-            name: abilityName,
-            tier: .basic,
-            targetedEffects: [TargetedEffect(effect)],
-        )
-        return apply(effect, ability: ability, source: source, target: target, in: &context)
-    }
-
     static func shieldPoints(for combatant: Combatant, in context: BattleState) -> Int {
         context.roster.activeEffects(for: combatant).reduce(0) { sum, active in
             if case let .shield(.block, points) = active.effect {

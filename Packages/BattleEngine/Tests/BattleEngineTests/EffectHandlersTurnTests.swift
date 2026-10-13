@@ -41,7 +41,7 @@ struct EffectHandlersTurnTests {
             _ = CombatTriggerEngine.turnBlock(for: battle.hero, in: &battle)
         } else {
             _ = EffectHandlersTestSupport.dispatch(
-                effect, source: battle.hero, target: battle.hero, battle: &battle,
+                effect, battle: &battle,
             )
             _ = EffectHandlersTestSupport.dispatchTick(
                 ActiveEffect(id: 1, effect: effect, remainingTurns: 2, sourceActorID: battle.hero.id),
@@ -77,7 +77,7 @@ struct EffectHandlersTurnTests {
         battle.appliesFightPacing = false
         let effect = Effect.recurringDamage(keyword, 2, 2)
         _ = EffectHandlersTestSupport.dispatch(
-            effect, source: battle.hero, target: battle.enemy, battle: &battle,
+            effect, target: battle.enemy, battle: &battle,
         )
         for expectedAmount in [2, 4] {
             #expect(battle.health(of: battle.enemy) == 200 - expectedAmount)
@@ -96,37 +96,26 @@ struct EffectHandlersTurnTests {
         }
     }
 
-    @Test func `decaying do T ticks use semantic decay rules`() throws {
-        for (potency, expectedPotency, removes) in [(4, 2, false), (2, 1, false), (1, 0, true)] {
-            var battle = BattleStateTestFactory.makeBattle()
-            let burn = ActiveEffect(id: 1, effect: .burn(potency), remainingTurns: 0, sourceActorID: "hero")
-            let outcome = EffectHandlersTestSupport.dispatchTick(burn, target: battle.enemy, battle: &battle)
-            try #expect(outcome.events.count == (removes ? 0 : 1))
-            try #expect((outcome.currentEffect?.effect.potency ?? 0) == expectedPotency)
-            try #expect((outcome.currentEffect == nil) == removes)
-        }
-
-        var poisonBattle = BattleStateTestFactory.makeBattle()
-        let poison = ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: "hero")
-        let poisonOutcome = EffectHandlersTestSupport.dispatchTick(poison, target: poisonBattle.enemy, battle: &poisonBattle)
-        try #expect(poisonOutcome.events.count == 1)
-        try #expect(poisonOutcome.currentEffect?.effect.potency == 6)
-        try #expect(poisonOutcome.currentEffect != nil)
-
-        for (remainingTurns, expectedTicks, removes) in [(3, 2, false), (1, 0, true)] {
-            var battle = BattleStateTestFactory.makeBattle()
-            let bleed = ActiveEffect(id: 1, effect: .bleed(3), remainingTurns: remainingTurns, sourceActorID: "hero")
-            let outcome = EffectHandlersTestSupport.dispatchTick(bleed, target: battle.enemy, battle: &battle)
-            try #expect(outcome.events.count == 1)
-            try #expect((outcome.currentEffect?.remainingTurns ?? 0) == expectedTicks)
-            try #expect((outcome.currentEffect == nil) == removes)
-        }
-
-        var expiredBattle = BattleStateTestFactory.makeBattle()
-        let expired = ActiveEffect(id: 1, effect: .bleed(3), remainingTurns: 0, sourceActorID: "hero")
-        let expiredOutcome = EffectHandlersTestSupport.dispatchTick(expired, target: expiredBattle.enemy, battle: &expiredBattle)
-        try #expect(expiredOutcome.events.isEmpty)
-        try #expect(expiredOutcome.currentEffect == expired)
+    @Test(arguments: [
+        (Effect.burn(4), 0, Effect?.some(.burn(2)), 0, 1),
+        (.burn(2), 0, .burn(1), 0, 1),
+        (.burn(1), 0, nil, 0, 0),
+        (.poison(8), 0, .poison(6), 0, 1),
+        (.bleed(3), 3, .bleed(3), 2, 1),
+        (.bleed(3), 1, nil, 0, 1),
+        (.bleed(3), 0, .bleed(3), 0, 0),
+    ])
+    func `damage over time advances potency duration and expiry`(
+        effect: Effect, turns: Int, expected: Effect?, remainingTurns: Int, eventCount: Int,
+    ) {
+        var battle = BattleStateTestFactory.makeBattle()
+        let active = ActiveEffect(id: 1, effect: effect, remainingTurns: turns, sourceActorID: "hero")
+        let outcome = EffectHandlersTestSupport.dispatchTick(active, target: battle.enemy, battle: &battle)
+        #expect(outcome.events.count == eventCount)
+        var replacement = active
+        replacement.effect = expected ?? effect
+        replacement.remainingTurns = remainingTurns
+        #expect(outcome.currentEffect == (expected == nil ? nil : replacement))
     }
 
     @Test func `burn decay slow talent slows burn applied by its owner`() throws {

@@ -131,7 +131,7 @@ struct KeywordCohesionMechanicsTests {
 
     @Test func `avatar deals once and prepares holy attack`() throws {
         var battle = makeCohesionBattle()
-        _ = BattleTurnEngine.performAction(ability: .avatarOfJustice, actor: battle.hero, abilityTarget: battle.enemy, context: &battle)
+        battle.performTestAction(.avatarOfJustice)
         try #expect(battle.roster.enemy.currentHealth == 94)
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 6)
         try #expect(battle.activeEffects(of: battle.hero).contains {
@@ -152,7 +152,7 @@ struct KeywordCohesionMechanicsTests {
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 0 }
         try #require(battle.roster.health(for: battle.companion) <= 0)
         let heroBefore = battle.roster.health(for: battle.hero)
-        _ = BattleTurnEngine.performAction(ability: .sunburst, actor: battle.hero, abilityTarget: battle.enemy, context: &battle)
+        battle.performTestAction(.sunburst)
         try #expect(battle.roster.health(for: battle.hero) >= min(20, heroBefore + 3))
         try #expect(battle.roster.health(for: battle.companion) <= 0)
         try #expect(battle.roster.enemy.currentHealth == 94)
@@ -241,7 +241,7 @@ extension KeywordCohesionMechanicsTests {
         let multi = Ability(id: "multi", name: "Multi", tier: .basic, damageComponents: [
             DamageComponent(3, keyword: .physical), DamageComponent(3, keyword: .physical),
         ])
-        _ = BattleTurnEngine.performAction(ability: multi, actor: battle.enemy, abilityTarget: battle.hero, context: &battle)
+        battle.performTestAction(multi, from: .enemy, to: .hero)
         // First hit granted 2 Block (absorbed 2 of 3), second hit also absorbed by remaining? Total Block 2 absorbs 2 of 6, health lost 4.
         // Exact numbers depend on no other mitigation; assert Block was granted (shield points consumed, so 0 left, but damage reduced).
         try #expect(battle.roster.health(for: battle.hero) < battle.roster.maxHealth(for: battle.hero))
@@ -508,19 +508,14 @@ extension KeywordCohesionMechanicsTests {
     @Test func `mimic deals one opening bleed bonus`() throws {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(damage: DamageTriggers(firstAttackBleedBonus: 2)))
         var battle = makeCohesionBattle(heroMaxHealth: 50, enemyModifiers: profile)
+        let attack = Ability(id: "hit", name: "Hit", tier: .basic, directDamage: 4, damageKeyword: .physical)
         let before = battle.roster.health(for: battle.hero)
-        _ = BattleTurnEngine.performAction(
-            ability: Ability(id: "hit", name: "Hit", tier: .basic, directDamage: 4, damageKeyword: .physical),
-            actor: battle.enemy, abilityTarget: battle.hero, context: &battle,
-        )
+        battle.performTestAction(attack, from: .enemy, to: .hero)
         // 4 Physical + 2 Bleed bonus (separate hit) = 6 total (before Block/mitigation).
         try #expect(before - battle.roster.health(for: battle.hero) >= 6)
         // Second attack no bonus (once).
         let mid = battle.roster.health(for: battle.hero)
-        _ = BattleTurnEngine.performAction(
-            ability: Ability(id: "hit", name: "Hit", tier: .basic, directDamage: 4, damageKeyword: .physical),
-            actor: battle.enemy, abilityTarget: battle.hero, context: &battle,
-        )
+        battle.performTestAction(attack, from: .enemy, to: .hero)
         try #expect(mid - battle.roster.health(for: battle.hero) == 4)
     }
 
@@ -533,10 +528,7 @@ extension KeywordCohesionMechanicsTests {
         )
         // Non-Physical Crit does not spend allowance or repeat.
         battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
-        _ = BattleTurnEngine.performAction(
-            ability: Ability(id: "burn", name: "Burn", tier: .basic, directDamage: 4, damageKeyword: .burn),
-            actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        battle.performTestAction(Ability(id: "burn", name: "Burn", tier: .basic, directDamage: 4, damageKeyword: .burn))
         // Allowance preserved (not spent) – next Physical Crit still repeats (would need full card flow to verify repeat; assert flag not
         // set).
         // For unit check, assert enemy took only base + crit (no repeat yet would be separate event; flag preserved means next Physical can

@@ -11,11 +11,16 @@ enum EffectHandlersTestSupport {
     static func dispatch(
         _ effect: Effect,
         ability: Ability = Ability(id: "test", name: "Test", tier: .basic),
-        source: Combatant,
-        target: Combatant,
+        source: Combatant? = nil,
+        target: Combatant? = nil,
         battle: inout BattleState,
     ) -> EffectApplyOutcome {
-        let outcome = BattleTestFixtures.apply(effect, ability: ability, source: source, target: target, in: &battle)
+        let source = source ?? battle.hero
+        let target = target ?? battle.hero
+        let handler = EffectHandlers.handler(for: effect.kind)
+        let outcome = CombatExecutor.run {
+            await handler.apply(effect, ability: ability, source: source, target: target, in: &battle)
+        }
         if battle.tracksLog {
             battle.syncLog()
         }

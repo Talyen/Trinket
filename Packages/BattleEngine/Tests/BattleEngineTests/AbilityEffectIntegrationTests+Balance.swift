@@ -23,9 +23,7 @@ extension AbilityEffectIntegrationTests {
             battle.roster.enemy.currentHealth = 2
         }
 
-        let events = BattleTurnEngine.performAction(
-            ability: .blackjack, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let events = battle.performTestAction(.blackjack)
 
         let qualifies = initialStun == 4 || (initialStun == 2 && !finishingHit)
         let theft = events.filter { $0.effectKind == .resourceGain && $0.abilityID == "blackjack" && $0.keyword == .gold }
@@ -42,7 +40,7 @@ extension AbilityEffectIntegrationTests {
             enemyModifiers: enemyProfile, dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
-        _ = BattleTurnEngine.performAction(ability: ability, actor: battle.enemy, abilityTarget: battle.hero, context: &battle)
+        battle.performTestAction(ability, from: .enemy, to: .hero)
         #expect(battle.health(of: battle.hero) == 98)
         let kind: EffectKind = ability.id == "ray-of-frost" ? .recurringDamage : .bleed
         let active = try #require(battle.activeEffects(of: battle.hero).first { $0.effect.kind == kind })
@@ -80,12 +78,7 @@ extension AbilityEffectIntegrationTests {
         battle.roster.companion.currentHealth = 10
         let enemyBefore = battle.health(of: battle.enemy)
 
-        _ = BattleTurnEngine.performAction(
-            ability: .blessedAegis,
-            actor: battle.hero,
-            abilityTarget: battle.enemy,
-            context: &battle,
-        )
+        battle.performTestAction(.blessedAegis)
 
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 5)
         #expect(battle.health(of: battle.companion) == 15)
@@ -100,12 +93,7 @@ extension AbilityEffectIntegrationTests {
         battle.appliesFightPacing = false
         DefensePoolEngine.set(8, on: battle.hero, in: &battle)
         let before = battle.health(of: battle.enemy)
-        _ = BattleTurnEngine.performAction(
-            ability: .blessedAegis,
-            actor: battle.hero,
-            abilityTarget: battle.enemy,
-            context: &battle,
-        )
+        battle.performTestAction(.blessedAegis)
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 13)
         #expect(before - battle.health(of: battle.enemy) == 5)
     }

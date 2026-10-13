@@ -1,214 +1,71 @@
 import BattleEngine
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 
 struct EffectHandlersApplyStatusTests {
-    private enum CleanseCase {
-        case specificPoison
-        case allDebuffs
-        case stunPrevention
-        case randomOneOfTwo
+    private static let poison = ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0)
+    private static let burn = ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0)
+    private static let block = ActiveEffect(id: 3, effect: .shield(.block, 5), remainingTurns: 6)
+    private static let thorns = ActiveEffect(id: 4, effect: .thorns(3), remainingTurns: 0)
+    private static let stun = ActiveEffect(id: 5, effect: .controlMeter(.stun, 5, 10), remainingTurns: 0)
+
+    @Test(arguments: [
+        (Effect.cleanse(.poison), [Self.poison], [], Set<Keyword>?.some([.poison])),
+        (.cleanse(nil), [Self.poison, Self.burn, Self.block], [Self.block], nil),
+        (.cleanse(.stun), [Self.stun], [], nil),
+    ])
+    private func `cleanse removes selected debuffs and preserves buffs`(
+        effect: Effect, stacks: [ActiveEffect], remaining: [ActiveEffect], feedback: Set<Keyword>?,
+    ) {
+        var battle = BattleStateTestFactory.makeBattle()
+        battle.seedActiveEffects(stacks, for: battle.hero)
+        let outcome = EffectHandlersTestSupport.dispatch(
+            effect, battle: &battle,
+        )
+        #expect(outcome.didApply)
+        #expect(battle.activeEffects(of: battle.hero) == remaining)
+        if let feedback {
+            #expect(Set(outcome.events.filter { $0.effectKind == .cleanseApplied }.map(\.keyword)) == feedback)
+        }
     }
 
     @Test(arguments: [
-        CleanseCase.specificPoison,
-        .allDebuffs,
-        .stunPrevention,
-        .randomOneOfTwo,
+        (Effect.purge(.block), [Self.block, Self.thorns], [Self.thorns], Set([Keyword.block])),
+        (.purge(nil), [Self.block, Self.poison], [Self.poison], [.block]),
+        (.purge(nil), [Self.block, Self.thorns], [], [.block, .thorns]),
     ])
-    private func `cleanse modes remove expected debuffs`(caseKind: CleanseCase) throws {
+    private func `purge removes selected buffs and emits per-keyword feedback`(
+        effect: Effect, stacks: [ActiveEffect], remaining: [ActiveEffect], feedback: Set<Keyword>,
+    ) {
         var battle = BattleStateTestFactory.makeBattle()
-        let effect = seedCleanseCase(caseKind, battle: &battle)
-
+        battle.seedActiveEffects(stacks, for: battle.enemy)
         let outcome = EffectHandlersTestSupport.dispatch(
-            effect,
-            source: battle.hero,
-            target: battle.hero,
-            battle: &battle,
+            effect, target: battle.enemy, battle: &battle,
         )
-        try #expect(outcome.didApply)
-        try assertCleanseOutcome(caseKind, battle: battle, outcome: outcome)
+        #expect(outcome.didApply)
+        #expect(battle.activeEffects(of: battle.enemy) == remaining)
+        let events = outcome.events.filter { $0.effectKind == .purgeApplied }
+        #expect(events.count == feedback.count)
+        #expect(Set(events.map(\.keyword)) == feedback)
     }
 
-    private func seedCleanseCase(_ caseKind: CleanseCase, battle: inout BattleState) -> Effect {
-        switch caseKind {
-        case .specificPoison:
-            BattleStateTestFactory.seedActiveEffects(
-                [ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0)],
-                for: battle.hero,
-                on: &battle,
-            )
-            return .cleanse(.poison)
-        case .allDebuffs:
-            BattleStateTestFactory.seedActiveEffects(
-                [
-                    ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
-                    ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
-                    ActiveEffect(id: 3, effect: .shield(.block, 5), remainingTurns: 6),
-                ],
-                for: battle.hero,
-                on: &battle,
-            )
-            return .cleanse(nil)
-        case .stunPrevention:
-            BattleStateTestFactory.seedActiveEffects(
-                [ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTurns: 0)],
-                for: battle.hero,
-                on: &battle,
-            )
-            return .cleanse(.stun)
-        case .randomOneOfTwo:
-            BattleStateTestFactory.seedActiveEffects(
-                [
-                    ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
-                    ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
-                ],
-                for: battle.hero,
-                on: &battle,
-            )
-            return .cleanseRandom
-        }
-    }
-
-    private func assertCleanseOutcome(
-        _ caseKind: CleanseCase,
-        battle: BattleState,
-        outcome: EffectApplyOutcome,
-    ) throws {
-        switch caseKind {
-        case .specificPoison:
-            try #expect(!(battle.activeEffects(of: battle.hero)).contains {
-                $0.effect.isDecayingDoT && $0.keyword == .poison
-            })
-            try #expect(outcome.events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
-        case .allDebuffs:
-            try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
-            try #expect(battle.activeEffects(of: battle.hero).contains { ae in
-                if case .shield(.block, 5) = ae.effect {
-                    return true
-                }
-                return false
-            })
-        case .stunPrevention:
-            try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isControlMeter))
-        case .randomOneOfTwo:
-            let remainingDebuffs = battle.activeEffects(of: battle.hero).filter(\.effect.isRemovableDebuff)
-            try #expect(remainingDebuffs.count == 1)
-        }
-    }
-
-    private enum PurgeCase {
-        case specificBlock
-        case allBuffsLeaveDebuffs
-        case randomOneOfTwo
-    }
-
-    @Test(arguments: [
-        PurgeCase.specificBlock,
-        .allBuffsLeaveDebuffs,
-        .randomOneOfTwo,
-    ])
-    private func `purge modes remove expected buffs`(caseKind: PurgeCase) throws {
+    @Test(arguments: [false, true])
+    func `random removal removes one eligible effect`(purge: Bool) {
         var battle = BattleStateTestFactory.makeBattle()
-        let effect = seedPurgeCase(caseKind, battle: &battle)
-
+        let target = purge ? battle.enemy : battle.hero
+        let stacks = purge ? [Self.block, Self.thorns] : [Self.poison, Self.burn]
+        battle.seedActiveEffects(stacks, for: target)
         let outcome = EffectHandlersTestSupport.dispatch(
-            effect,
-            source: battle.hero,
-            target: battle.enemy,
-            battle: &battle,
+            purge ? .purgeRandom : .cleanseRandom, target: target, battle: &battle,
         )
-        try #expect(outcome.didApply)
-        try assertPurgeOutcome(caseKind, battle: battle, outcome: outcome)
-    }
-
-    private func seedPurgeCase(_ caseKind: PurgeCase, battle: inout BattleState) -> Effect {
-        switch caseKind {
-        case .specificBlock:
-            BattleStateTestFactory.seedActiveEffects(
-                [
-                    ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
-                    ActiveEffect(id: 2, effect: .thorns(3), remainingTurns: 0),
-                ],
-                for: battle.enemy,
-                on: &battle,
-            )
-            return .purge(.block)
-        case .allBuffsLeaveDebuffs:
-            BattleStateTestFactory.seedActiveEffects(
-                [
-                    ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
-                    ActiveEffect(id: 2, effect: .poison(4), remainingTurns: 0),
-                ],
-                for: battle.enemy,
-                on: &battle,
-            )
-            return .purge(nil)
-        case .randomOneOfTwo:
-            BattleStateTestFactory.seedActiveEffects(
-                [
-                    ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
-                    ActiveEffect(id: 2, effect: .thorns(3), remainingTurns: 0),
-                ],
-                for: battle.enemy,
-                on: &battle,
-            )
-            return .purgeRandom
+        #expect(outcome.didApply)
+        let remaining = battle.activeEffects(of: target)
+        #expect(remaining.count == 1)
+        #expect(remaining.allSatisfy { stacks.contains($0) })
+        if purge {
+            #expect(outcome.events.contains { $0.effectKind == .purgeApplied })
         }
-    }
-
-    private func assertPurgeOutcome(
-        _ caseKind: PurgeCase,
-        battle: BattleState,
-        outcome: EffectApplyOutcome,
-    ) throws {
-        switch caseKind {
-        case .specificBlock:
-            try #expect(!(battle.activeEffects(of: battle.enemy)).contains {
-                if case .shield = $0.effect {
-                    return true
-                }
-                return false
-            })
-            try #expect(battle.activeEffects(of: battle.enemy).contains {
-                if case .thorns = $0.effect {
-                    return true
-                }
-                return false
-            })
-            try #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.keyword == .block })
-        case .allBuffsLeaveDebuffs:
-            try #expect(!(battle.activeEffects(of: battle.enemy)).contains(where: \.effect.isRemovableBuff))
-            try #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isRemovableDebuff))
-            try #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.keyword == .block })
-        case .randomOneOfTwo:
-            try #expect(battle.activeEffects(of: battle.enemy).filter(\.effect.isRemovableBuff).count == 1)
-            try #expect(outcome.events.contains { $0.effectKind == .purgeApplied })
-        }
-    }
-
-    @Test func `direct purge of multiple buffs emits per-keyword events`() throws {
-        var battle = BattleStateTestFactory.makeBattle()
-        BattleStateTestFactory.seedActiveEffects(
-            [
-                ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
-                ActiveEffect(id: 2, effect: .thorns(3), remainingTurns: 0),
-            ],
-            for: battle.enemy,
-            on: &battle,
-        )
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .purge(nil),
-            source: battle.hero,
-            target: battle.enemy,
-            battle: &battle,
-        )
-        try #expect(outcome.didApply)
-        let purgeEvents = outcome.events.filter { $0.effectKind == .purgeApplied }
-        try #expect(purgeEvents.count == 2)
-        try #expect(Set(purgeEvents.map(\.keyword)) == [.block, .thorns])
     }
 
     @Test func `intercepted timed debuff reports not applied`() throws {
@@ -223,7 +80,6 @@ struct EffectHandlersApplyStatusTests {
         let outcome = EffectHandlersTestSupport.dispatch(
             .damageReductionFlat(2, 2),
             source: battle.enemy,
-            target: battle.hero,
             battle: &battle,
         )
         try #expect(!outcome.didApply)

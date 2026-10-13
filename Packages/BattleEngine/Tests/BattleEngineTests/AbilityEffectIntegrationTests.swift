@@ -69,9 +69,7 @@ struct AbilityEffectIntegrationTests {
             tier: .basic,
             damageComponents: [DamageComponent(3, keyword: keyword)],
         )
-        let events = BattleTurnEngine.performAction(
-            ability: attack, actor: battle.enemy, abilityTarget: battle.hero, context: &battle,
-        )
+        let events = battle.performTestAction(attack, from: .enemy, to: .hero)
         #expect(events.contains { $0.effectKind == .dodgeApplied })
         #expect(battle.roster.hero.currentHealth == before)
         #expect(!battle.roster.hero.activeEffects.contains { $0.keyword == keyword })
@@ -100,9 +98,7 @@ struct AbilityEffectIntegrationTests {
             criticalChanceBonus: -1,
         )
         let before = battle.roster.enemy.currentHealth
-        let events = BattleTurnEngine.performAction(
-            ability: attack, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let events = battle.performTestAction(attack)
         #expect(battle.roster.hero.currentHealth == 0)
         #expect(battle.roster.enemy.currentHealth == before - (hemorrhage ? 0 : 1))
         #expect(battle.gold == 0)
@@ -142,14 +138,10 @@ struct AbilityEffectIntegrationTests {
             [ActiveEffect(id: 100, effect: .hemorrhage(4), remainingTurns: 0, sourceActorID: "enemy")],
             for: battle.hero,
         )
-        _ = BattleTurnEngine.performAction(
-            ability: support, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        battle.performTestAction(support)
         #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == .hemorrhage(4) })
         let health = battle.health(of: battle.hero)
-        _ = BattleTurnEngine.performAction(
-            ability: .slash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        battle.performTestAction(.slash)
         #expect(!battle.activeEffects(of: battle.hero).contains { $0.effect == .hemorrhage(4) })
         #expect(battle.health(of: battle.hero) < health)
     }
@@ -162,9 +154,7 @@ struct AbilityEffectIntegrationTests {
         )
         let health = battle.health(of: battle.hero)
         let cleanse = Ability(id: "cleanse", name: "Cleanse", tier: .skill, effects: [.cleanse(nil)])
-        _ = BattleTurnEngine.performAction(
-            ability: cleanse, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        battle.performTestAction(cleanse)
         #expect(battle.health(of: battle.hero) == health)
         #expect(!battle.activeEffects(of: battle.hero).contains { $0.effect == .hemorrhage(4) })
     }
@@ -191,35 +181,16 @@ struct AbilityEffectIntegrationTests {
         #expect(!battle.roster.enemy.activeEffects.contains { $0.effect.kind == .burn })
     }
 
-    @Test func `combustion consumes burn for bonus damage`() {
+    @Test(arguments: [false, true])
+    func `combustion detonates freshly applied and existing burn`(existingBurn: Bool) {
         var context = combustionBattle()
         let before = context.roster.health(for: context.enemy)
-        BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .burn(6), remainingTurns: 0)],
-            for: context.enemy,
-            on: &context,
-        )
-        _ = BattleTurnEngine.performAction(
-            ability: .combustion,
-            actor: context.hero,
-            abilityTarget: context.enemy,
-            context: &context,
-        )
-        let remainingBurn = context.roster.activeEffects(for: context.enemy).filter { $0.effect.keyword == .burn }
-        #expect(remainingBurn.isEmpty)
-        let lost = before - context.roster.health(for: context.enemy)
-        #expect(lost > 4)
-    }
-
-    @Test func `combustion detonates even freshly applied burn`() {
-        var context = combustionBattle()
-        let before = context.roster.health(for: context.enemy)
-        _ = BattleTurnEngine.performAction(
-            ability: .combustion,
-            actor: context.hero,
-            abilityTarget: context.enemy,
-            context: &context,
-        )
+        if existingBurn {
+            context.seedActiveEffects(
+                [ActiveEffect(id: 1, effect: .burn(6), remainingTurns: 0)], for: context.enemy,
+            )
+        }
+        context.performTestAction(.combustion)
         let remainingBurn = context.roster.activeEffects(for: context.enemy).filter { $0.effect.keyword == .burn }
         #expect(remainingBurn.isEmpty)
         let lost = before - context.roster.health(for: context.enemy)

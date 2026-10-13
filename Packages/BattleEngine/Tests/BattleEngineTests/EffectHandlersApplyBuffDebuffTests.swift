@@ -10,7 +10,7 @@ struct EffectHandlersApplyBuffDebuffTests {
         let conversion = Effect.nextStrikeDamageKeywordOverride(.burn)
         for _ in 0 ..< 2 {
             let outcome = EffectHandlersTestSupport.dispatch(
-                conversion, source: battle.hero, target: battle.hero, battle: &battle,
+                conversion, battle: &battle,
             )
             #expect(outcome.didApply)
             #expect(outcome.events.contains { $0.effectKind == .damageKeywordOverrideApplied && $0.keyword == .burn })
@@ -50,7 +50,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     func `debuff summaries reflect combined combat penalties`(effects: [Effect], expected: String) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         for effect in effects {
-            _ = EffectHandlersTestSupport.dispatch(effect, source: battle.hero, target: battle.enemy, battle: &battle)
+            _ = EffectHandlersTestSupport.dispatch(effect, target: battle.enemy, battle: &battle)
         }
         let summary = try #require(EffectSummaryBuilder.build(for: battle.activeEffects(of: battle.enemy)).first)
         #expect(summary.text.contains(expected))
@@ -77,8 +77,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(heroMaxMana: 8)
         _ = EffectHandlersTestSupport.dispatch(
             .maximumManaBonus(1),
-            source: battle.hero,
-            target: battle.hero,
             battle: &battle,
         )
         #expect(battle.mana(of: battle.hero) == 9)
@@ -86,7 +84,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         let outcome = EffectHandlersTestSupport.dispatch(
             purge,
             source: battle.enemy,
-            target: battle.hero,
             battle: &battle,
         )
 
@@ -107,7 +104,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         }
         let outcome = EffectHandlersTestSupport.dispatch(
             .halveShield(.block),
-            source: battle.hero,
             target: battle.enemy,
             battle: &battle,
         )
@@ -133,18 +129,12 @@ struct EffectHandlersApplyBuffDebuffTests {
         #expect(!Effect.controlMeter(.freeze, 1, 1).canApplyToDefeatedTarget)
     }
 
-    @Test func `card combat no op handlers do not apply`() throws {
-        do {
-            var battle = BattleStateTestFactory.makeBattle()
-            let outcome = EffectHandlersTestSupport.dispatch(
-                .deathsDoor,
-                source: battle.hero,
-                target: battle.hero,
-                battle: &battle,
-            )
-            try #expect(!(outcome.didApply))
-            try #expect(outcome.events.isEmpty)
-        }
+    @Test(arguments: [Effect.deathsDoor, .cleanse(.poison)])
+    func `effects without eligible state do not apply`(effect: Effect) {
+        var battle = BattleStateTestFactory.makeBattle()
+        let outcome = EffectHandlersTestSupport.dispatch(effect, battle: &battle)
+        #expect(!outcome.didApply)
+        #expect(outcome.events.isEmpty)
     }
 
     @Test(arguments: [
@@ -156,78 +146,45 @@ struct EffectHandlersApplyBuffDebuffTests {
     ) {
         var battle = BattleStateTestFactory.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
-            effect, source: battle.hero, target: battle.hero, battle: &battle,
+            effect, battle: &battle,
         )
         #expect(outcome.didApply)
         #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == effect && $0.remainingTurns == turns })
         #expect(outcome.events.contains { $0.effectKind == eventKind && $0.amount == amount && $0.keyword == keyword })
     }
 
-    @Test func `marked handler applies and replaces instead of stacking`() throws {
+    @Test(arguments: [
+        (
+            Effect.marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration), .marked(5, Effect.standardMarkedDuration),
+            BattleParticipant.enemy, ActionEvent.EffectOutcome.markedApplied, Effect.standardMarkedBonus, 5,
+        ),
+        (.criticalChanceBonus(0.15, 6), .criticalChanceBonus(0.20, 4), .hero, .criticalChanceApplied, 15, 20),
+    ])
+    func `reapplying a replacing effect refreshes its only stack and feedback`(
+        initial: Effect, replacement: Effect, recipient: BattleParticipant,
+        event: ActionEvent.EffectOutcome, initialAmount: Int, replacementAmount: Int,
+    ) {
         var battle = BattleStateTestFactory.makeBattle()
-        let first = EffectHandlersTestSupport.dispatch(
-            .marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration),
-            source: battle.hero,
-            target: battle.enemy,
-            battle: &battle,
-        )
-        try #expect(first.didApply)
-        try #expect(battle.activeEffects(of: battle.enemy).contains { active in
-            if case let .marked(bonus, duration) = active.effect {
-                return bonus == Effect.standardMarkedBonus
-                    && duration == Effect.standardMarkedDuration
-                    && active.remainingTurns == Effect.standardMarkedDuration
-            }
-            return false
-        })
-        try #expect(first.events.contains {
-            $0.effectKind == .markedApplied && $0.amount == Effect.standardMarkedBonus
-        })
-
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .marked(5, Effect.standardMarkedDuration),
-            source: battle.hero,
-            target: battle.enemy,
-            battle: &battle,
-        )
-        try #expect(outcome.didApply)
-        let marks = battle.activeEffects(of: battle.enemy).filter { $0.effect.kind == .marked }
-        #expect(marks.map(\.effect) == [.marked(5, Effect.standardMarkedDuration)])
-    }
-
-    @Test func `critical chance bonus reapply refreshes single stack`() throws {
-        var battle = BattleStateTestFactory.makeBattle()
-        let first = EffectHandlersTestSupport.dispatch(
-            .criticalChanceBonus(0.15, 6),
-            source: battle.hero,
-            target: battle.hero,
-            battle: &battle,
-        )
-        try #expect(first.didApply)
-        let second = EffectHandlersTestSupport.dispatch(
-            .criticalChanceBonus(0.20, 4),
-            source: battle.hero,
-            target: battle.hero,
-            battle: &battle,
-        )
-        try #expect(second.didApply)
-        let focused = battle.activeEffects(of: battle.hero).filter { $0.effect.kind == .criticalChanceBonus }
-        #expect(focused.map(\.effect) == [.criticalChanceBonus(0.20, 4)])
-        #expect(focused.map(\.remainingTurns) == [4])
-        try #expect(second.events.contains {
-            $0.effectKind == .criticalChanceApplied && $0.amount == 20
-        })
+        let target = battle.roster[recipient].combatant
+        for (effect, amount) in [(initial, initialAmount), (replacement, replacementAmount)] {
+            let outcome = EffectHandlersTestSupport.dispatch(effect, target: target, battle: &battle)
+            #expect(outcome.didApply)
+            let stacks = battle.activeEffects(of: target).filter { $0.effect.kind == initial.kind }
+            #expect(stacks.map(\.effect) == [effect])
+            #expect(stacks.map(\.remainingTurns) == [effect.durationTurns])
+            #expect(outcome.events.contains { $0.effectKind == event && $0.amount == amount })
+        }
     }
 
     @Test func `restore mana on hit recast stacks on top of existing shield`() {
         var battle = BattleStateTestFactory.makeBattle()
         let first = EffectHandlersTestSupport.dispatch(
-            .restoreManaOnHit(3, 6), source: battle.hero, target: battle.hero, battle: &battle,
+            .restoreManaOnHit(3, 6), battle: &battle,
         )
         #expect(first.didApply)
         #expect(first.events.contains { $0.effectKind == .manaShieldApplied && $0.amount == 3 && $0.keyword == .mana })
         let second = EffectHandlersTestSupport.dispatch(
-            .restoreManaOnHit(5, 4), source: battle.hero, target: battle.hero, battle: &battle,
+            .restoreManaOnHit(5, 4), battle: &battle,
         )
         #expect(second.didApply)
         let shields = battle.activeEffects(of: battle.hero).filter { $0.effect.kind == .restoreManaOnHit }
@@ -245,8 +202,8 @@ struct EffectHandlersApplyBuffDebuffTests {
         effect: Effect, expected: Effect, event: ActionEvent.EffectOutcome, keyword: Keyword, total: Int,
     ) {
         var battle = BattleStateTestFactory.makeBattle()
-        let first = EffectHandlersTestSupport.dispatch(effect, source: battle.hero, target: battle.hero, battle: &battle)
-        let second = EffectHandlersTestSupport.dispatch(effect, source: battle.hero, target: battle.hero, battle: &battle)
+        let first = EffectHandlersTestSupport.dispatch(effect, battle: &battle)
+        let second = EffectHandlersTestSupport.dispatch(effect, battle: &battle)
         #expect(first.didApply && second.didApply)
         #expect(battle.activeEffects(of: battle.hero).filter { $0.effect.kind == effect.kind }.map(\.effect) == [expected])
         #expect(second.events.last { $0.effectKind == event && $0.keyword == keyword }?.amount == total)

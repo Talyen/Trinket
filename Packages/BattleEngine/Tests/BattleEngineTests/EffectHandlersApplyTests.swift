@@ -28,7 +28,7 @@ struct EffectHandlersApplyTests {
         battle.companionDeck = CombatDeck(abilities: [.darkPact])
 
         let outcome = EffectHandlersTestSupport.dispatch(
-            .drawCards(1), ability: .packTactics, source: battle.hero, target: battle.hero, battle: &battle,
+            .drawCards(1), ability: .packTactics, battle: &battle,
         )
 
         #expect(outcome.didApply)
@@ -42,7 +42,6 @@ struct EffectHandlersApplyTests {
         let enemy = battle.enemy
         let outcome = EffectHandlersTestSupport.dispatch(
             .burn(3),
-            source: battle.hero,
             target: enemy,
             battle: &battle,
         )
@@ -54,8 +53,6 @@ struct EffectHandlersApplyTests {
         var battle = BattleStateTestFactory.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .shield(.block, 5),
-            source: battle.hero,
-            target: battle.hero,
             battle: &battle,
         )
         try #expect(outcome.didApply)
@@ -86,8 +83,6 @@ struct EffectHandlersApplyTests {
         let outcome = EffectHandlersTestSupport.dispatch(
             .drawCards(2),
             ability: .darkPact,
-            source: battle.hero,
-            target: battle.hero,
             battle: &battle,
         )
         try #expect(outcome.didApply)
@@ -120,8 +115,6 @@ struct EffectHandlersApplyTests {
         let outcome = EffectHandlersTestSupport.dispatch(
             .drawAndPlayCards(2),
             ability: .packTactics,
-            source: battle.hero,
-            target: battle.hero,
             battle: &battle,
         )
 
@@ -165,8 +158,6 @@ struct EffectHandlersApplyTests {
         let outcome = EffectHandlersTestSupport.dispatch(
             .drawAndPlayCards(1),
             ability: packTactics,
-            source: battle.hero,
-            target: battle.hero,
             battle: &battle,
         )
 
@@ -214,8 +205,6 @@ struct EffectHandlersApplyTests {
                 tier: .ultimate,
                 targetedEffects: [TargetedEffect(.drawAndPlayCards(2))],
             ),
-            source: battle.hero,
-            target: battle.hero,
             battle: &battle,
         )
 
@@ -293,8 +282,6 @@ struct EffectHandlersApplyTests {
         let outcome = EffectHandlersTestSupport.dispatch(
             .drawAndPlayCards(2),
             ability: packTactics,
-            source: battle.hero,
-            target: battle.hero,
             battle: &battle,
         )
 
@@ -325,8 +312,6 @@ struct EffectHandlersApplyTests {
         let outcome = EffectHandlersTestSupport.dispatch(
             .drawCards(2),
             ability: .darkPact,
-            source: battle.hero,
-            target: battle.hero,
             battle: &battle,
         )
         try #expect(outcome.didApply)
@@ -334,49 +319,23 @@ struct EffectHandlersApplyTests {
         try #expect(battle.hand.bufferCount == 2)
         try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
     }
-
-    @Test func `cleanse without debuffs does not apply`() throws {
-        var battle = BattleStateTestFactory.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .cleanse(.poison),
-            source: battle.hero,
-            target: battle.hero,
-            battle: &battle,
-        )
-        try #expect(!(outcome.didApply))
-        try #expect(outcome.events.isEmpty)
-    }
 }
 
 extension EffectHandlersApplyTests {
-    @Test func `victory coin grants gold without spending`() throws {
-        let successSeed = try #require((UInt64(0) ..< 16).first { seed in
+    @Test(arguments: [(true, 7), (false, 3)])
+    func `victory coin grants gold without spending`(winsCoinFlip: Bool, amount: Int) throws {
+        let seed = try #require((UInt64(0) ..< 16).first { seed in
             var rng = SeededRandomNumberGenerator(seed: seed)
-            return BattleChance.succeeds(probability: 0.5, using: &rng)
+            return BattleChance.succeeds(probability: 0.5, using: &rng) == winsCoinFlip
         })
-        let fallbackSeed = try #require((UInt64(0) ..< 16).first { seed in
-            var rng = SeededRandomNumberGenerator(seed: seed)
-            return !BattleChance.succeeds(probability: 0.5, using: &rng)
-        })
-
-        var successBattle = BattleStateTestFactory.makeBattle(
+        var battle = BattleStateTestFactory.makeBattle(
             initialGold: 10,
             heroModifiers: .init(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldCoin: true))),
         )
-        successBattle.rng = SeededRandomNumberGenerator(seed: successSeed)
-        let successEvents = CombatExecutor.run { await CombatTriggerEngine.afterVictory(in: &successBattle) }
-        #expect(successBattle.gold == 17)
-        #expect(successBattle.goldFlow == BattleGoldFlow(gained: 7))
-        #expect(successEvents.contains { $0.effectKind == .resourceGain && $0.amount == 7 })
-
-        var fallbackBattle = BattleStateTestFactory.makeBattle(
-            initialGold: 10,
-            heroModifiers: .init(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldCoin: true))),
-        )
-        fallbackBattle.rng = SeededRandomNumberGenerator(seed: fallbackSeed)
-        let fallbackEvents = CombatExecutor.run { await CombatTriggerEngine.afterVictory(in: &fallbackBattle) }
-        #expect(fallbackBattle.gold == 13)
-        #expect(fallbackBattle.goldFlow == BattleGoldFlow(gained: 3))
-        #expect(fallbackEvents.contains { $0.effectKind == .resourceGain && $0.amount == 3 })
+        battle.rng = SeededRandomNumberGenerator(seed: seed)
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterVictory(in: &battle) }
+        #expect(battle.gold == 10 + amount)
+        #expect(battle.goldFlow == BattleGoldFlow(gained: amount))
+        #expect(events.contains { $0.effectKind == .resourceGain && $0.amount == amount })
     }
 }

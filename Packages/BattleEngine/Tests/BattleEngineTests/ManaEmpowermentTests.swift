@@ -44,7 +44,7 @@ struct ManaEmpowermentTests {
     }
 
     @Test func `persistent free empowerment remains limited to one Meteor purchase`() {
-        var battle = makeBattle(
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 9, heroMana: 9,
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 mana: ManaTriggers(empowermentCostReduction: 3),
@@ -90,7 +90,7 @@ struct ManaEmpowermentTests {
         let meteorite = try #require(GameContent.trinketItems.first { $0.templateID == "meteorite" })
         let power = try #require(meteorite.resolvedPower(at: 0))
         power.triggers.apply(to: &profile)
-        var battle = makeBattle(
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 9, heroMana: 9,
             heroModifiers: profile,
         )
@@ -106,7 +106,7 @@ struct ManaEmpowermentTests {
     }
 
     @Test func `recurring freeze empowerment draws the opposite element`() {
-        var battle = makeBattle(
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 3, heroMana: 3,
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 mana: ManaTriggers(empoweredElementDrawOpposite: true),
@@ -123,7 +123,7 @@ struct ManaEmpowermentTests {
     }
 
     @Test func `dragon spark discounts only first empowerment and preserves its effect`() {
-        var battle = makeBattle(
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 4, heroMana: 4,
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 mana: ManaTriggers(firstEmpowermentCostReduction: 2),
@@ -140,7 +140,7 @@ struct ManaEmpowermentTests {
     }
 
     @Test func `dragon spark does not consume discount without enough mana`() {
-        var battle = makeBattle(
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 4, heroMana: 0,
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 mana: ManaTriggers(firstEmpowermentCostReduction: 2),
@@ -161,7 +161,7 @@ struct ManaEmpowermentTests {
 
     @Test(arguments: [0, 1])
     func `arcane breath adds flat damage even with discounted empowerment`(discount: Int) {
-        var battle = makeBattle(
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 3, heroMana: 3,
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 mana: ManaTriggers(empowermentDamageBonus: 3, empowermentCostReduction: discount),
@@ -175,81 +175,32 @@ struct ManaEmpowermentTests {
         #expect(ability.directDamage == Ability.frostbolt.directDamage + 4)
     }
 
-    private func makeBattle(
-        heroAbilities: [Ability],
-        companionAbilities: [Ability] = [],
-        enemyAbilities: [Ability] = [],
-        heroMaxMana: Int = 0,
-        heroMana: Int? = nil,
-        companionMaxMana: Int = 0,
-        companionMana: Int? = nil,
-        heroModifiers: CombatModifierProfile = .zero,
-    ) -> BattleState {
-        BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: heroAbilities,
-            companionAbilities: companionAbilities,
-            enemyAbilities: enemyAbilities,
-            heroMaxMana: heroMaxMana,
-            heroMana: heroMana,
-            companionMaxMana: companionMaxMana,
-            companionMana: companionMana,
-            heroModifiers: heroModifiers,
+    @Test(arguments: [
+        (Ability.fireball, 5, 5, 2, 5),
+        (.fireball, 20, 20, 17, 5),
+        (.fireball, 5, 2, 2, 4),
+        (.fireball, 5, 0, 0, 4),
+        (.frostbolt, 4, 4, 1, 5),
+        (.fireArrow, 4, 4, 1, 4),
+    ])
+    func `burn and freeze spells empower only when three mana is spent`(
+        ability: Ability, maxMana: Int, mana: Int, expectedMana: Int, expectedDamage: Int,
+    ) throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [ability], heroMaxMana: maxMana, heroMana: mana,
         )
-    }
-
-    private func recurringFreezePotency(on battle: BattleState) -> Int? {
-        battle.activeEffects(of: battle.enemy).first {
-            if case let .recurringDamage(keyword, _, _) = $0.effect {
-                return keyword == .freeze
-            }
-            return false
-        }?.effect.potency
-    }
-
-    private struct FireballCase {
-        let heroMaxMana: Int
-        let heroMana: Int
-        let expectedManaAfter: Int
-        let expectedDamage: Int
-
-        static let fullPool = Self(heroMaxMana: 5, heroMana: 5, expectedManaAfter: 2, expectedDamage: 5)
-        static let largePool = Self(heroMaxMana: 20, heroMana: 20, expectedManaAfter: 17, expectedDamage: 5)
-        static let partialPool = Self(heroMaxMana: 5, heroMana: 2, expectedManaAfter: 2, expectedDamage: 4)
-        static let emptyPool = Self(heroMaxMana: 5, heroMana: 0, expectedManaAfter: 0, expectedDamage: 4)
-    }
-
-    @Test(arguments: [Self.FireballCase.fullPool, .largePool, .partialPool, .emptyPool])
-    private func `fireball empowers only when three mana is spent`(_ testCase: FireballCase) throws {
-        var battle = makeBattle(
-            heroAbilities: [.fireball],
-            heroMaxMana: testCase.heroMaxMana,
-            heroMana: testCase.heroMana,
-        )
-        let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.fireball.id })
+        let card = try #require(battle.hand.cards.first { $0.ability.id == ability.id })
         let events = try battle.playCard(cardID: card.id).events
-
-        try #expect(battle.mana(of: battle.hero) == testCase.expectedManaAfter)
-        let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireball.id })
-        try #expect(abilityEvent.amount == testCase.expectedDamage)
-        try #expect(BattleTestFixtures.burnPotency(on: battle) == testCase.expectedDamage)
-    }
-
-    @Test func `freeze ability spends three mana for bonus damage`() throws {
-        var battle = makeBattle(
-            heroAbilities: [.frostbolt],
-            heroMaxMana: 4,
-            heroMana: 4,
-        )
-        let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.frostbolt.id })
-        let events = try battle.playCard(cardID: card.id).events
-
-        try #expect(battle.mana(of: battle.hero) == 1)
-        let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.frostbolt.id })
-        try #expect(abilityEvent.amount == 5)
+        #expect(battle.mana(of: battle.hero) == expectedMana)
+        let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == ability.id })
+        #expect(abilityEvent.amount == expectedDamage)
+        if ability.id != Ability.frostbolt.id {
+            #expect(BattleTestFixtures.burnPotency(on: battle) == expectedDamage)
+        }
     }
 
     @Test func `blizzard stores empowered recurring freeze potency`() throws {
-        var battle = makeBattle(
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.blizzard],
             heroMaxMana: 3,
             heroMana: 3,
@@ -258,7 +209,10 @@ struct ManaEmpowermentTests {
         _ = try battle.playCard(cardID: card.id)
 
         try #expect(battle.mana(of: battle.hero) == 0)
-        try #expect(recurringFreezePotency(on: battle) == 7)
+        let recurring = battle.activeEffects(of: battle.enemy).first {
+            $0.effect.kind == .recurringDamage && $0.keyword == .freeze
+        }
+        #expect(recurring?.effect.potency == 7)
     }
 
     @Test func `burn branch spends mana poison branch does not`() throws {
@@ -277,34 +231,19 @@ struct ManaEmpowermentTests {
             targetedEffects: [TargetedEffect(.poison(2))],
         )
 
-        var burnBattle = makeBattle(heroAbilities: [burnOnly], heroMaxMana: 3, heroMana: 3)
+        var burnBattle = BattleStateTestFactory.makeBattleWithAbilities(heroAbilities: [burnOnly], heroMaxMana: 3, heroMana: 3)
         let burnCard = try #require(burnBattle.hand.cards.first { $0.ability.id == burnOnly.id })
         _ = try burnBattle.playCard(cardID: burnCard.id)
         try #expect(burnBattle.mana(of: burnBattle.hero) == 0)
 
-        var poisonBattle = makeBattle(heroAbilities: [poisonOnly], heroMaxMana: 3, heroMana: 3)
+        var poisonBattle = BattleStateTestFactory.makeBattleWithAbilities(heroAbilities: [poisonOnly], heroMaxMana: 3, heroMana: 3)
         let poisonCard = try #require(poisonBattle.hand.cards.first { $0.ability.id == poisonOnly.id })
         _ = try poisonBattle.playCard(cardID: poisonCard.id)
         try #expect(poisonBattle.mana(of: poisonBattle.hero) == 3)
     }
 
-    @Test func `fire arrow empowerment spends three mana`() throws {
-        var battle = makeBattle(
-            heroAbilities: [.fireArrow],
-            heroMaxMana: 4,
-            heroMana: 4,
-        )
-        let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.fireArrow.id })
-        let events = try battle.playCard(cardID: card.id).events
-
-        try #expect(battle.mana(of: battle.hero) == 1)
-        let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireArrow.id })
-        try #expect(abilityEvent.amount == 4)
-        try #expect(BattleTestFixtures.burnPotency(on: battle) == 4)
-    }
-
     @Test func `mana regenerates at start of player turn for mana users`() throws {
-        var battle = makeBattle(
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash],
             companionAbilities: [.bash],
             enemyAbilities: [],
@@ -321,7 +260,7 @@ struct ManaEmpowermentTests {
     }
 
     @Test func `mana does not regenerate without mana pool`() throws {
-        var battle = makeBattle(
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash],
             companionAbilities: [.bash],
             heroMaxMana: 0,
@@ -335,7 +274,7 @@ struct ManaEmpowermentTests {
     }
 
     @Test func `aetherward triggers on mana empower spend`() throws {
-        var battle = makeBattle(
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.frostbolt],
             heroMaxMana: 3,
             heroMana: 3,
@@ -353,7 +292,7 @@ struct ManaEmpowermentTests {
     }
 
     @Test func `mana shield spends remaining mana after empower`() throws {
-        var battle = makeBattle(
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.kindling, .manaShield],
             companionAbilities: [.bash],
             heroMaxMana: 5,
