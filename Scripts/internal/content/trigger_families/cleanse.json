@@ -4,27 +4,19 @@
   "fields": [
     {
       "name": "interdict",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "lessonLearned",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "cleanseBonusDraw",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "holyDamageCleanseCount",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": {
         "kind": "int",
         "order": 17
@@ -33,8 +25,6 @@
     {
       "name": "holyDamagePurgeCount",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": {
         "kind": "int",
         "order": 25
@@ -42,205 +32,140 @@
     },
     {
       "name": "holyDamagePurgeAll",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "cleanseBlockPerStack",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "cleanseAffectsBothHeroAndCompanion",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "cleanseReflectDebuffToEnemy",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "autoCleanseTeamPerTurn",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "cleanseAlsoPurgesEnemyBuffs",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "cleanseDodgeChanceBonus",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "cleanseDodgeChanceBonusTurns",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "cleansePartyBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "blockFirstDebuffPerTurn",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "partyDebuffDurationHalved",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "purifyingAura",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "onCleansePoisonDealDamagePerStack",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "crownfall",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "clearSolution",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "freshBatch",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "heatRecovery",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "antitoxinCoating",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "clearMind",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "cleanBreak",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "perfectPurity",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "purgePreparesDoubleHolyAttack",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "cleanseNextAttackCriticalBonus",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "cleansePurgeChancePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "cleanseRemovesFreezeBuildup",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "cleanseTargetBlockFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "firstCleanseExtraRemovalPerTurn",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "cleanseSelfBlockFlat",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": { "kind": "int", "order": 63 }
     },
     {
       "name": "onCleanseRestoreMana",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": { "kind": "int", "order": 65 }
     },
     {
       "name": "onPurgeGainBlock",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": { "kind": "int", "order": 67 }
     },
     {
       "name": "onPurgeDealHolyDamage",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": { "kind": "int", "order": 68 }
     },
     {
       "name": "purgeDrawBelowHalf",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "cleanseHolyDamage",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     }
   ]
 }

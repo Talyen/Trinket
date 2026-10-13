@@ -4,57 +4,40 @@
   "fields": [
     {
       "name": "negateFirstEnemyAttack",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "attackDelayEnemyTurnChancePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "bleedingEnemyActionSkipChancePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "extraCardDrawWhileEnemyBleeding",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "extraCardDrawBelowEnemyHealthPercent",
       "type": "Double",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "ultimateAppliesBurnPotency",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "onHeroHolyAbilityCompanionHolyDamage",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "onHolyDamageRestoreMana",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "burnReducesEnemyHealingAndLeechPercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     }
   ]
 }

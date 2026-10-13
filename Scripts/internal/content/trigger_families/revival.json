@@ -4,100 +4,70 @@
   "fields": [
     {
       "name": "undyingEmber",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "borrowedLife",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "onceDeathReviveHealth",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "onceDeathReviveBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "deathsDoorDurationBonusTurns",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "reviveDealBurnDamage",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "deathsDoorDodgeAndDebuffImmunity",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "onDeathDealPhysicalDamageAllEnemies",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "guaranteedCritWhileOnDeathsDoor",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "deathsDoorExpiredHealFlat",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "holyDamageReviveCompanionChancePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "surviveDeathsDoorPartyHealFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "onHeroFatalReviveHealth",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "enterDeathsDoorHeal",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "enterDeathsDoorBurnDamage",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": { "kind": "int", "order": 69 }
     },
     {
       "name": "surviveDeathsDoorNextAttackDouble",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "deathsDoorIncomingDamageMultiplier",
@@ -107,46 +77,32 @@
     },
     {
       "name": "deathsDoorNegativeStatusImmune",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "onAllyDeathsDoorRestoreHealth",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "firstAllyFatalIntercept",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "deathsDoorCriticalChanceBonus",
       "type": "Double",
-      "default": "0",
-      "merge": "add",
       "affix_roll": { "kind": "percent", "order": 70 }
     },
     {
       "name": "enterDeathsDoorDrawCard",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "surviveDeathsDoorPartyBlockFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "affixDeathsDoorSurviveHealFlat",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": { "kind": "int", "order": 71 }
     }
   ]

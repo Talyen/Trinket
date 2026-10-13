@@ -76,6 +76,11 @@ raw names remain the flat Codable keys. Renaming a field requires migrating its
 compiled consumers while preserving or migrating the stored key.
 Validation checks Swift identifiers, typed defaults, type-compatible merge operations,
 and 64-bit `Int` bounds before rendering trigger/modifier literals.
+Fields omit conventional `default`/`merge` pairs: `Int` and `Double` use `0`/`add`,
+`Bool` uses `false`/`or`, `Keyword?` uses `nil`/`coalesce`, and `[Int]` uses
+`[]`/`union`. The loader expands these before validation and generation. Keep
+exceptions explicit, including multiplier defaults of `1` and `max` merge rules;
+changing a convention changes combat and flat save decoding for every omitted field.
 
 Trigger fields used by affixes require `affix_roll` metadata in their family JSON:
 `{"kind": "int" | "percent", "order": N}` for rollable values, or

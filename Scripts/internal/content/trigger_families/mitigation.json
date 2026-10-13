@@ -4,21 +4,15 @@
   "fields": [
     {
       "name": "passiveMitigationFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "passivePhysicalMitigationFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "thornsPercent",
       "type": "Double",
-      "default": "0",
-      "merge": "add",
       "affix_roll": {
         "kind": "percent",
         "order": 2
@@ -26,21 +20,15 @@
     },
     {
       "name": "bleedResistance",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "frozenEnemyDamageReductionFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "bleedingEnemyDamageReductionFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "stunnedEnemyNextTurnDamageMultiplier",
@@ -51,98 +39,69 @@
     {
       "name": "enemyBleedStacksDamageReductionStacks",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "enemyBleedStacksDamageReductionPercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "poisonedEnemyAccuracyPenaltyPercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "poisonedEnemyMissChancePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "subzeroMist",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "blindingLight",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "holyDamageReduceTargetDamage",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "bleedingEnemyAttackDealDamage",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "onAllyDamageHeal",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "damageReductionPerUnspentManaEvery",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "toughnessOnHit",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "toughnessOnHitCap",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "blockedControlBurnResistance",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "afflictionResistance",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "burningEnemyDamageReductionFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "blockHalvesDoTDamage",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "bleedingEnemyOutgoingDamageMultiplier",
@@ -159,7 +118,6 @@
     {
       "name": "onHealthLossNextDamageReduction",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     }
   ]

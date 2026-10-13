@@ -21,12 +21,13 @@ from internal.content.common import GENERATED_DIR, write_if_changed
 
 TRIGGER_FAMILY_SCHEMA = Path(__file__).resolve().parent / "trigger_families" / "index.json"
 
-MERGES_BY_TYPE = {
-    "Int": {"add", "max", "mul", "add_excess"},
-    "Double": {"add", "max", "mul", "add_excess"},
-    "Bool": {"or"},
-    "Keyword?": {"coalesce"},
-    "[Int]": {"union"},
+# Type -> neutral default, conventional merge, permitted merges.
+TRIGGER_TYPES = {
+    "Int": ("0", "add", {"add", "max", "mul", "add_excess"}),
+    "Double": ("0", "add", {"add", "max", "mul", "add_excess"}),
+    "Bool": ("false", "or", {"or"}),
+    "Keyword?": ("nil", "coalesce", {"coalesce"}),
+    "[Int]": ("[]", "union", {"union"}),
 }
 
 
@@ -46,11 +47,16 @@ def _trigger_families() -> list:
         if not all(re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", family[key]) for key in ("family", "file_stem")):
             raise ValueError("Trigger family and output stem must be Swift identifiers")
         for field in family["fields"]:
+            if set(field) - {"name", "type", "default", "merge", "affix_roll"}:
+                raise ValueError(f"Unknown trigger field attributes: {field}")
             if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", field["name"]):
                 raise ValueError(f"Invalid trigger field name {field['name']!r}")
-            if field["type"] not in MERGES_BY_TYPE:
+            if field["type"] not in TRIGGER_TYPES:
                 raise ValueError(f"Unknown trigger type {field['type']!r} for {field['name']!r}")
-            if field["merge"] not in MERGES_BY_TYPE[field["type"]]:
+            default, merge, allowed_merges = TRIGGER_TYPES[field["type"]]
+            field.setdefault("default", default)
+            field.setdefault("merge", merge)
+            if field["merge"] not in allowed_merges:
                 raise ValueError(f"Invalid merge op {field['merge']!r} for {field['type']} field {field['name']!r}")
             if field["type"] == "Keyword?" and field["default"] == "nil":
                 continue

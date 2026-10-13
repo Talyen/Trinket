@@ -4,27 +4,19 @@
   "fields": [
     {
       "name": "sealedSarcophagus",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "retainAllBlockBetweenTurns",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "blockedAttackBasicOncePerTurn",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "blockBrokenBlockFlat",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": {
         "kind": "int",
         "order": 11
@@ -33,14 +25,11 @@
     {
       "name": "blockBrokenSaintfallPower",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "holyDamageBlockFlat",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": {
         "kind": "int",
         "order": 16
@@ -48,21 +37,15 @@
     },
     {
       "name": "stunDamageBlockFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "blockPerTurn",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "blockGainThornsPercent",
       "type": "Double",
-      "default": "0",
-      "merge": "add",
       "affix_roll": {
         "kind": "percent",
         "order": 41
@@ -71,35 +54,25 @@
     {
       "name": "sunderingBlockMultiplier",
       "type": "Double",
-      "default": "0",
-      "merge": "add",
       "affix_roll": {
         "reason": "Word-described magnitude has no patchable number in the card text."
       }
     },
     {
       "name": "blockRetainsThreeQuarters",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "blockAbsorbsCompanionDamage",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "companionBlockAbsorbsHeroDamage",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "onEnemyBlockBrokenDealPhysical",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "postBlockOverflowDamageMultiplier",
@@ -110,32 +83,23 @@
     {
       "name": "maxDamagePerHitCap",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "guardianHeroBlockFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "doublePhysicalBlockAbsorption",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "blockPreparesCritical",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "shieldDamageBonusWhileBlocked",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "physicalBlockBreakMultiplier",
@@ -151,153 +115,106 @@
     },
     {
       "name": "physicalBlockIgnorePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "physicalIgnoresBlockVsStunnedOrFrozen",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "stunnedEnemyLoseAllBlock",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "holyIgnoresBlock",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "holyIgnoresBlockAndDodge",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "burnIgnoresBlockAndMitigation",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "poisonStripsBlockBeforeHealth",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "bleedStripsBlockPerTurn",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "spellDamageTakenReductionWhileBlocked",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "companionBlockSharesToHeroPercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "onBlockHitDealHoly",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "onBlockReduceAttackerAccuracyPercent",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "onBlockReduceAttackerAccuracyTurns",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "companionBlockProtectsHeroPercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "onAnyHealthLossGainBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "onSelfHealthLossGainBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "onEnemyFrozenGainBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "startBattleBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "blockPerGoldEarnedEvery",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "goldGainBlockPercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "blockPerGoldCollectedEvery",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "onBurnDamageGainBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "onAllyBurnDamageGainBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "onHolyDamagePartyBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "physicalDamageBlockPercent",
       "type": "Double",
-      "default": "0",
-      "merge": "add",
       "affix_roll": {
         "kind": "percent",
         "order": 43
@@ -305,75 +222,53 @@
     },
     {
       "name": "freezeDamageGrantsBlock",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "seismicReversal",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "unbrokenVow",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "storedImpact",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "firstBlockFreezeDamagePerTurn",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "retainedBlockGainThornsPercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "onStunEnemyGainBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "blockRetainsHalf",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "blockWhileGoldThreshold",
       "type": "Int",
-      "default": "0",
       "merge": "max"
     },
     {
       "name": "blockWhileGoldAmount",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "burnIgnoresBlock",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "thornsDamageDoubleWhileBlocked",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "blockAbsorptionMultiplierBelowHalfHealth",
@@ -383,21 +278,15 @@
     },
     {
       "name": "holyBlockIgnorePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "sunwallChancePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "bleedAttackBlockIgnorePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "burnAttackBlockBreakMultiplier",
@@ -413,21 +302,15 @@
     },
     {
       "name": "poisonAttackExtraBlockRemoval",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "bleedIgnoresEnemyBlock",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "leechAttackBlockIgnorePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "poisonDamageVsBlockMultiplier",
@@ -437,15 +320,11 @@
     },
     {
       "name": "physicalMitigationWhileBlockedFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "allyFirstBelowHalfBlock",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "bleedDamageMultiplierWhileBlocked",
@@ -467,9 +346,7 @@
     },
     {
       "name": "stunBlockIgnorePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "bleedAttackBlockBreakMultiplier",
@@ -479,27 +356,19 @@
     },
     {
       "name": "burnAttackBlockChancePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "burnAttackBlockAmount",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "blockedControlPrevention",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "blockBreakAllyBlockFlat",
-      "type": "Int",
-      "default": "0",
-      "merge": "add"
+      "type": "Int"
     },
     {
       "name": "blockAbsorptionMultiplierWhileMana",
@@ -515,15 +384,11 @@
     },
     {
       "name": "blockBreakNextHolyHitDouble",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "blockHolyReflectChancePercent",
-      "type": "Double",
-      "default": "0",
-      "merge": "add"
+      "type": "Double"
     },
     {
       "name": "damageTakenMultiplierWhileBlocked",
@@ -533,21 +398,15 @@
     },
     {
       "name": "doubleAllBlockAbsorption",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "firstBlockBreakNextStunDouble",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "retainAllBlockDuringDeathsDoor",
-      "type": "Bool",
-      "default": "false",
-      "merge": "or"
+      "type": "Bool"
     },
     {
       "name": "thornsDamageMultiplierWhileBlocked",
@@ -558,43 +417,31 @@
     {
       "name": "startBattleThorns",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": { "kind": "int", "order": 59 }
     },
     {
       "name": "blockBrokenThornsFlat",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": { "kind": "int", "order": 60 }
     },
     {
       "name": "retainedBlockThornsFlat",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": { "kind": "int", "order": 72 }
     },
     {
       "name": "holyAttackBlockIfNone",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": { "kind": "int", "order": 79 }
     },
     {
       "name": "attackBlockRemoval",
       "type": "Int",
-      "default": "0",
-      "merge": "add",
       "affix_roll": { "reason": "Encounter-only attack rule, not an equipment roll." }
     },
     {
       "name": "blockBreakDrawBelowHalf",
       "type": "Bool",
-      "default": "false",
-      "merge": "or",
       "affix_roll": {
         "reason": "Boolean card-draw signature with no magnitude roll."
       }

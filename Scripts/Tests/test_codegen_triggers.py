@@ -23,6 +23,36 @@ from internal.content import content_codegen_triggers
 
 
 class CodegenTriggersTests(ScriptRegressionTestCase):
+    def test_omitted_trigger_rules_preserve_neutral_values_and_explicit_exceptions(self) -> None:
+        fields = [
+            {"name": "damage", "type": "Int"},
+            {"name": "chance", "type": "Double"},
+            {"name": "enabled", "type": "Bool"},
+            {"name": "keyword", "type": "Keyword?"},
+            {"name": "turns", "type": "[Int]"},
+            {"name": "multiplier", "type": "Double", "default": "1", "merge": "mul"},
+            {"name": "threshold", "type": "Int", "default": "2", "merge": "max"},
+            {"name": "largest", "type": "Int", "merge": "max"},
+            {"name": "bonus", "type": "Int", "default": "2"},
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            index = folder / "index.json"
+            index.write_text(json.dumps({"families": ["sample.json"]}))
+            (folder / "sample.json").write_text(json.dumps({
+                "family": "sample", "file_stem": "SampleTriggers", "fields": fields,
+            }))
+            with patch.object(content_codegen_triggers, "TRIGGER_FAMILY_SCHEMA", index):
+                content_codegen_triggers._trigger_families.cache_clear()
+                try:
+                    expanded = content_codegen_triggers._trigger_families()[0]["fields"]
+                    self.assertEqual([(field["default"], field["merge"]) for field in expanded], [
+                        ("0", "add"), ("0", "add"), ("false", "or"), ("nil", "coalesce"),
+                        ("[]", "union"), ("1", "mul"), ("2", "max"), ("0", "max"), ("2", "add"),
+                    ])
+                finally:
+                    content_codegen_triggers._trigger_families.cache_clear()
+
     def test_split_schema_rejects_duplicate_fields_and_unsafe_index_entries(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)
@@ -46,7 +76,7 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
                     family['fields'] = [family['fields'][0]]
                     for overrides in ({'type': 'Bool', 'merge': 'add'}, {'merge': 'coalesce'},
                                       {'default': 'many'}, {'type': 'Bool', 'merge': 'or', 'default': 'TRUE'},
-                                      {'name': 'invalid-name'}):
+                                      {'name': 'invalid-name'}, {'defualt': '2'}, {'merg': 'max'}):
                         broken = {**family, 'fields': [{**family['fields'][0], **overrides}]}
                         (folder / 'sample.json').write_text(json.dumps(broken))
                         content_codegen_triggers._trigger_families.cache_clear()
