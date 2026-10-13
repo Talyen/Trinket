@@ -261,21 +261,21 @@ private struct PostBattleTalentChoiceContent: View {
     }
 
     private func choose(node: TalentNode, tree: TalentTree) -> RosterEditResult {
-        guard play.currentPostBattleTalentCombatantID == combatantID else { return .unavailable }
-        let result = play.choosePostBattleTalent(nodeID: node.id, treeID: tree.id)
-        switch result {
-        case .committed:
-            if scenePhase == .active {
-                playSFX(SFXID.talentUnlock, options.effectsVolume)
+        playerSave.performSaveAction(key: "talent-\(combatantID)") { _ -> RosterEditResult in
+            guard play.currentPostBattleTalentCombatantID == combatantID else { return .unavailable }
+            let result = play.choosePostBattleTalent(nodeID: node.id, treeID: tree.id)
+            switch result {
+            case .committed:
+                if scenePhase == .active {
+                    playSFX(SFXID.talentUnlock, options.effectsVolume)
+                }
+            case .unavailable:
+                selectedTalentTree = nil
+            case .persistenceFailed:
+                break
             }
-        case .unavailable:
-            selectedTalentTree = nil
-        case .persistenceFailed:
-            playerSave.retrySaveAction(key: "talent-\(combatantID)") {
-                _ = choose(node: node, tree: tree)
-            }
+            return result
         }
-        return result
     }
 
     private var treeColumns: [GridItem] {

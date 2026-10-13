@@ -1,7 +1,7 @@
 public enum SaveTransactionResult<Value, Failure: Error> {
     case committed(Value)
     case rejected(Failure)
-    case persistFailed
+    case persistFailed(PlayerSavePersistenceError)
 }
 
 @MainActor
@@ -21,7 +21,7 @@ extension PlayerSaveStore {
                 return .committed(value)
             } catch {
                 notePersistenceFailure(error, logging: message)
-                return .persistFailed
+                return .persistFailed(PlayerSavePersistenceError.mapped(error))
             }
         }
     }
@@ -56,7 +56,7 @@ extension PlayerSaveStore {
                 try commit(candidate)
             } catch {
                 notePersistenceFailure(error, logging: message)
-                return .persistFailed
+                return .persistFailed(PlayerSavePersistenceError.mapped(error))
             }
             return .committed(value)
         }

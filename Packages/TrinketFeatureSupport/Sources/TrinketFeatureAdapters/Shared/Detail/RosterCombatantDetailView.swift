@@ -46,11 +46,8 @@ public struct RosterCombatantDetailView: View {
                 effectsVolume: effectsVolume,
                 hidesNavigationBar: hidesNavigationBar,
                 onEdit: { edit in
-                    let result = playerSave.editCombatant(edit, for: combatant.id)
-                    if result == .persistenceFailed {
-                        playerSave.retrySaveAction(key: "combatant-edit-\(combatant.id)") {
-                            _ = playerSave.editCombatant(edit, for: combatant.id)
-                        }
+                    let result = playerSave.performSaveAction(key: "combatant-edit-\(combatant.id)") { _ in
+                        playerSave.editCombatant(edit, for: combatant.id)
                     }
                     return result == .committed
                 },
@@ -65,20 +62,18 @@ public struct RosterCombatantDetailView: View {
     }
 
     private func unlockTalent(node: TalentNode, tree: TalentTree, for id: String) -> RosterEditResult {
-        let result = playerSave.unlockTalent(nodeID: node.id, treeID: tree.id, for: id)
-        switch result {
-        case .committed:
-            if scenePhase == .active {
-                playSFX(SFXID.talentUnlock, effectsVolume)
+        playerSave.performSaveAction(key: "combatant-talent-\(id)") { _ -> RosterEditResult in
+            let result = playerSave.unlockTalent(nodeID: node.id, treeID: tree.id, for: id)
+            switch result {
+            case .committed:
+                if scenePhase == .active {
+                    playSFX(SFXID.talentUnlock, effectsVolume)
+                }
+            case .persistenceFailed, .unavailable:
+                break
             }
-        case .persistenceFailed:
-            playerSave.retrySaveAction(key: "combatant-talent-\(id)") {
-                _ = unlockTalent(node: node, tree: tree, for: id)
-            }
-        case .unavailable:
-            break
+            return result
         }
-        return result
     }
 
     private func resolveCombatant() -> Combatant? {

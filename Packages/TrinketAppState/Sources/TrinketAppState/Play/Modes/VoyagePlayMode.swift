@@ -23,40 +23,47 @@ public final class VoyagePlayMode {
 
     @discardableResult
     public func enter() -> StageMapMessage? {
-        if playerSave.voyage.activeRun?.isComplete == true {
-            dismissCompleted()
-        }
-        guard encounters.canBeginTransientEncounter else { return nil }
-        guard !playerSave.voyage.isUnreadable else {
-            return StageMapMessage(title: "Voyage Unavailable", message: "Your Voyage could not be read. Your progress is preserved.")
-        }
-        if !playerSave.prepareVoyage() {
-            playerSave.retrySaveAction(key: SaveRetryKey.voyageEnter) { [weak self] in
-                _ = self?.enter()
+        playerSave.performSaveAction(key: SaveRetryKey.voyageEnter) { [weak self] _ -> StageMapMessage? in
+            guard let self else { return nil }
+            if playerSave.voyage.activeRun?.isComplete == true {
+                dismissCompleted()
             }
+            guard encounters.canBeginTransientEncounter else { return nil }
+            guard !playerSave.voyage.isUnreadable else {
+                return StageMapMessage(title: "Voyage Unavailable", message: "Your Voyage could not be read. Your progress is preserved.")
+            }
+            _ = playerSave.prepareVoyage()
+            return nil
         }
-        return nil
     }
 
     public func refresh() {
-        guard encounters.canBeginTransientEncounter else { return }
-        persist(key: SaveRetryKey.voyageRefresh) { [playerSave] in playerSave.refreshVoyage() }
+        playerSave.performSaveAction(key: SaveRetryKey.voyageRefresh) { [weak self] _ in
+            guard let self, encounters.canBeginTransientEncounter else { return }
+            _ = playerSave.refreshVoyage()
+        }
     }
 
     public func embark(offerID: String) {
-        guard encounters.canBeginTransientEncounter else { return }
-        persist(key: SaveRetryKey.voyageEmbark(offerID)) { [playerSave] in playerSave.embarkVoyage(offerID: offerID) }
+        playerSave.performSaveAction(key: SaveRetryKey.voyageEmbark(offerID)) { [weak self] _ in
+            guard let self, encounters.canBeginTransientEncounter else { return }
+            _ = playerSave.embarkVoyage(offerID: offerID)
+        }
     }
 
     public func abandon(runID: String) {
-        guard encounters.canBeginTransientEncounter else { return }
-        persist(key: SaveRetryKey.voyageAbandon(runID)) { [playerSave] in playerSave.abandonVoyage(runID: runID) }
-        prunePrepared()
+        playerSave.performSaveAction(key: SaveRetryKey.voyageAbandon(runID)) { [weak self] _ in
+            guard let self, encounters.canBeginTransientEncounter else { return }
+            _ = playerSave.abandonVoyage(runID: runID)
+            prunePrepared()
+        }
     }
 
     public func dismissCompleted() {
-        guard encounters.canBeginTransientEncounter else { return }
-        persist(key: SaveRetryKey.voyageCompleted) { [playerSave] in playerSave.dismissCompletedVoyage() }
+        playerSave.performSaveAction(key: SaveRetryKey.voyageCompleted) { [weak self] _ in
+            guard let self, encounters.canBeginTransientEncounter else { return }
+            _ = playerSave.dismissCompletedVoyage()
+        }
     }
 
     public func resolvedEncounter(for node: VoyageNode) -> ScaledEncounter? {
@@ -75,33 +82,33 @@ public final class VoyagePlayMode {
 
     @discardableResult
     public func handleNode(runID: String, nodeID: String) -> StageMapMessage? {
-        guard encounters.canBeginTransientEncounter,
-              playerSave.voyage.isPlayable(runID: runID, nodeID: nodeID) else { return nil }
-        let origin = PlayBattleOrigin.voyage(runID: runID, nodeID: nodeID)
-        if let restriction = playerSave.accessRestriction(for: origin) {
-            return restriction
-        }
-        guard playerSave.prepareVoyage() else {
-            playerSave.retrySaveAction(key: SaveRetryKey.voyageNode(runID: runID, nodeID: nodeID)) { [weak self] in
-                _ = self?.handleNode(runID: runID, nodeID: nodeID)
+        playerSave.performSaveAction(key: SaveRetryKey.voyageNode(runID: runID, nodeID: nodeID)) { [weak self] _ -> StageMapMessage? in
+            guard let self else { return nil }
+            guard encounters.canBeginTransientEncounter,
+                  playerSave.voyage.isPlayable(runID: runID, nodeID: nodeID) else { return nil }
+            let origin = PlayBattleOrigin.voyage(runID: runID, nodeID: nodeID)
+            if let restriction = playerSave.accessRestriction(for: origin) {
+                return restriction
             }
-            return nil
-        }
-        guard let node = playerSave.voyage.node(runID: runID, nodeID: nodeID) else { return nil }
-        let encounterOrigin = PlayEncounterOrigin.voyage(runID: runID, nodeID: nodeID)
-        switch node.type {
-        case .battle, .boss:
-            prepareNextBattle()
-            return battleCoordinator.startBattle(origin: origin, encounters: encounters, busyMessage: nil, resolve: {
-                guard let request = request(runID: runID, node: node) else { return .missing }
-                return .ready(input: request.input, route: request.route)
-            })
-        case .shop:
-            return encounters.beginShopOrAutoComplete(origin: encounterOrigin)
-        case .mystery, .recruit:
-            return encounters.beginMysteryEncounter(origin: encounterOrigin)
-        case .entrance:
-            return nil
+            guard playerSave.prepareVoyage() else {
+                return nil
+            }
+            guard let node = playerSave.voyage.node(runID: runID, nodeID: nodeID) else { return nil }
+            let encounterOrigin = PlayEncounterOrigin.voyage(runID: runID, nodeID: nodeID)
+            switch node.type {
+            case .battle, .boss:
+                prepareNextBattle()
+                return battleCoordinator.startBattle(origin: origin, encounters: encounters, busyMessage: nil, resolve: {
+                    guard let request = request(runID: runID, node: node) else { return .missing }
+                    return .ready(input: request.input, route: request.route)
+                })
+            case .shop:
+                return encounters.beginShopOrAutoComplete(origin: encounterOrigin)
+            case .mystery, .recruit:
+                return encounters.beginMysteryEncounter(origin: encounterOrigin)
+            case .entrance:
+                return nil
+            }
         }
     }
 
@@ -146,13 +153,5 @@ public final class VoyagePlayMode {
 
     private func prunePrepared() {
         battleCoordinator.prunePreparedRuns(for: .voyage)
-    }
-
-    private func persist(key: String, action: @escaping () -> Bool) {
-        if !action() {
-            playerSave.retrySaveAction(key: key) { [weak self] in
-                self?.persist(key: key, action: action)
-            }
-        }
     }
 }

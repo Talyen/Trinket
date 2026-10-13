@@ -18,7 +18,7 @@ public enum PlayerSavePersistenceError: Error, Equatable, Sendable {
     /// Failures worth a silent background retry: generic writes plus temporary
     /// store outages (including the in-memory fallback). Validation failures
     /// (`.invalidSave`) never retry — retrying a rejection cannot heal it.
-    var isRetryable: Bool {
+    public var isRetryable: Bool {
         switch self {
         case .writeFailed, .storeUnavailable:
             true

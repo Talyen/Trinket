@@ -71,7 +71,7 @@ public final class PlayerSaveStore {
 
     #if DEBUG
     /// Total-write failure: throws before any durable write (no pending file,
-    /// no primary write). Tests `persistBatch == false` / `retrySaveAction`.
+    /// no primary write). Tests `persistBatch == false` / `performSaveAction`.
     public var forcesNextSaveFailure = false
     /// Primary-only failure: `context.save()` throws, but the pending recovery
     /// file still preserves the candidate (`persistBatch == true`, degraded).

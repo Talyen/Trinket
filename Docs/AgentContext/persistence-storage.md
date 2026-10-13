@@ -86,14 +86,18 @@ Lifecycle and sync checkpoints retry pending recovery files without rolling back
 already accepted progress. Reload tests prove subsequent writes retain the
 recovered values.
 
-`retrySaveAction` retains a failed action and retries it without a player prompt.
-Keys prevent duplicate retries; the captured session generation prevents late
-writes or navigation across reset/account boundaries. The retry queue uses failures
-recorded by persistence commands within each synchronous attempt; it does not
-clear or use the shared Progress Status diagnostic to decide whether to continue.
-An obsolete callback that performs no write ends its retry without hiding an
-unrelated error. Interaction owners retain
-only current choices/encounters while pending. Linked Homestead actions commit
+`performSaveAction` runs the initial action and registers any retry within one
+failure boundary. Persistence commands record failures in that attempt; the shared
+Progress Status diagnostic never decides whether to start or continue a retry.
+A later successful write cannot hide an earlier failure in the same attempt, and
+an unrelated old error cannot turn a rejection into a queued action. Nested actions
+own their failures and retries independently, so a failed reward does not replay
+an already completed encounter-opening step. The retained closure receives `isRetry`
+for delayed completion feedback; it must recheck its encounter or choice identity.
+Keys prevent duplicate queued retries; the captured session generation prevents
+late writes or navigation across reset/account boundaries. An obsolete callback
+that performs no write ends its retry without hiding an unrelated error. Interaction
+owners retain only current choices/encounters while pending. Linked Homestead actions commit
 locally and upload later; transient sync failures retry without player prompts.
 Pending legacy server receipts remain replay-safe. Total device write refusal cannot guarantee
 survival of an uncommitted action across process termination; do not report that

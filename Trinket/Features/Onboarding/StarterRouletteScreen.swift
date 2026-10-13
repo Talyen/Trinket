@@ -262,10 +262,9 @@ struct StarterRouletteScreen: View {
             requestOffer(.combatant(selectedCombatant.id))
             return
         }
-        if !onConfirm(selectedCombatant.id) {
-            playerSave.retrySaveAction(key: "starter-\(selectedCombatant.id)") {
-                _ = onConfirm(selectedCombatant.id)
-            }
+        playerSave.performSaveAction(key: "starter-\(selectedCombatant.id)") { _ in
+            guard playerSave.contentAccess.allowsCombatant(selectedCombatant.id) else { return }
+            _ = onConfirm(selectedCombatant.id)
         }
     }
 }

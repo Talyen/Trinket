@@ -115,24 +115,20 @@ extension ItemDetailView {
             salvageYields: yields,
             equippedByName: saveStore.roster.equippedCombatantName(for: item.id),
             onSalvage: { () -> ItemSalvageActionResult in
-                let result = withAnimation(TrinketMotion.Reward.collectionStateChange) {
-                    saveStore.salvageItem(id: item.id)
-                }
-                switch result {
-                case let .committed(yields):
-                    return .success(yields: yields)
-                case .rejected(.itemNotFound), .rejected(.ineligible):
-                    return .itemNotFound
-                case .persistFailed:
-                    saveStore.retrySaveAction(key: "salvage-\(item.id)") { [weak saveStore] in
-                        guard let saveStore else { return }
-                        switch saveStore.salvageItem(id: item.id) {
-                        case let .committed(yields): onFinished(.success(yields: yields))
-                        case .rejected(.itemNotFound), .rejected(.ineligible): onFinished(.itemNotFound)
-                        case .persistFailed: break
-                        }
+                saveStore.performSaveAction(key: "salvage-\(item.id)") { [weak saveStore] isRetry in
+                    guard let saveStore else { return ItemSalvageActionResult.itemNotFound }
+                    let result = withAnimation(TrinketMotion.Reward.collectionStateChange) {
+                        saveStore.salvageItem(id: item.id)
                     }
-                    return .persistenceFailure
+                    let outcome: ItemSalvageActionResult = switch result {
+                    case let .committed(yields): .success(yields: yields)
+                    case .rejected(.itemNotFound), .rejected(.ineligible): .itemNotFound
+                    case .persistFailed: .persistenceFailure
+                    }
+                    if isRetry, outcome != .persistenceFailure {
+                        onFinished(outcome)
+                    }
+                    return outcome
                 }
             },
             onSalvageFinished: onFinished,

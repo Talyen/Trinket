@@ -81,22 +81,18 @@ private func attemptPartySelection(
     for slot: BattlePartySlot,
     spire: SpireDefinition?,
     playerSave: PlayerSaveStore,
-    onPersistFailed: @escaping @MainActor () -> Void,
-    onSelected: () -> Void,
+    onSelected: @escaping () -> Void,
 ) {
-    guard BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .available else { return }
-    guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
-    let result = switch slot {
-    case .hero: playerSave.selectParty(heroID: combatant.id)
-    case .companion: playerSave.selectParty(companionID: combatant.id)
-    }
-    guard result == .committed else {
-        if result == .persistenceFailed {
-            playerSave.retrySaveAction(key: "party-\(slot.title)", action: onPersistFailed)
+    playerSave.performSaveAction(key: "party-\(slot.title)") { _ in
+        guard BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .available else { return }
+        guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
+        let result = switch slot {
+        case .hero: playerSave.selectParty(heroID: combatant.id)
+        case .companion: playerSave.selectParty(companionID: combatant.id)
         }
-        return
+        guard result == .committed else { return }
+        onSelected()
     }
-    onSelected()
 }
 
 struct StageBattlePartyPickerSheet: View {
@@ -218,7 +214,6 @@ private struct StageBattlePartyPickerContent: View {
             for: slot,
             spire: spire,
             playerSave: playerSave,
-            onPersistFailed: { select(combatant, for: slot) },
             onSelected: { selectionFeedbackTrigger += 1 },
         )
     }
@@ -289,7 +284,6 @@ private struct BattlePartySlotGridView: View {
             for: slot,
             spire: spire,
             playerSave: playerSave,
-            onPersistFailed: { select(combatant) },
             onSelected: { selectionFeedbackTrigger += 1 },
         )
     }

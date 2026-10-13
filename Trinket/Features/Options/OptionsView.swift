@@ -140,10 +140,8 @@ struct OptionsView: View {
                 Button("Reset Game Progress", role: .destructive) {
                     guard isResetConfirmationPresented, !appState.playerSave.isRetryingSaveAction else { return }
                     isResetConfirmationPresented = false
-                    if !appState.resetGameplayProgress() {
-                        appState.playerSave.retrySaveAction(key: "reset-progress") {
-                            _ = appState.resetGameplayProgress()
-                        }
+                    appState.playerSave.performSaveAction(key: "reset-progress") { _ in
+                        _ = appState.resetGameplayProgress()
                     }
                 }
                 .accessibilityIdentifier(AccessibilityID.Options.resetProgressConfirmation)
@@ -175,10 +173,8 @@ struct OptionsView: View {
             .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.entry)
 
             Button("Unlock All") {
-                if !appState.unlockAllContent() {
-                    appState.playerSave.retrySaveAction(key: "unlock-content") {
-                        _ = appState.unlockAllContent()
-                    }
+                appState.playerSave.performSaveAction(key: "unlock-content") { _ in
+                    _ = appState.unlockAllContent()
                 }
             }
             .accessibilityIdentifier(AccessibilityID.Options.unlockAllButton)

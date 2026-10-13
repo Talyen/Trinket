@@ -158,14 +158,24 @@ struct PendingSaveRecoveryTests {
     @Test(arguments: [false, true])
     func `pending action retries once and cannot cross reset`(reset: Bool) async throws {
         let store = try PlayerSaveStore(inMemoryOnly: true)
-        store.forcesNextSaveFailure = true
-        #expect(!store.persistFixtureBatch(logging: "Retry fixture") { $0.roster.gold += 3 })
         var attempts = 0
-        store.retrySaveAction(key: "claim") { [weak store] in
-            attempts += 1
-            _ = store?.persistFixtureBatch(logging: "Retry fixture") { $0.roster.gold += 3 }
+        store.forcesNextSaveFailure = true
+        store.performSaveAction(key: "claim") { [weak store] isRetry in
+            guard let store else { return }
+            if isRetry {
+                attempts += 1
+            }
+            _ = store.persistFixtureBatch(logging: "Retry fixture") { $0.roster.gold += 3 }
         }
-        store.retrySaveAction(key: "claim") { attempts += 100 }
+        // A second failed submission must not replace the first retained action.
+        store.forcesNextSaveFailure = true
+        store.performSaveAction(key: "claim") { [weak store] isRetry in
+            guard let store else { return }
+            if isRetry {
+                attempts += 100
+            }
+            _ = store.persistFixtureBatch(logging: "Retry fixture") { $0.roster.gold += 3 }
+        }
         if reset {
             try store.resetGameplayProgress()
         }
@@ -178,11 +188,16 @@ struct PendingSaveRecoveryTests {
 
     @Test func `obsolete retry preserves an unrelated validation failure`() async throws {
         let store = try PlayerSaveStore(inMemoryOnly: true)
-        store.forcesNextSaveFailure = true
-        #expect(!store.persistFixtureBatch(logging: "Retry fixture") { $0.roster.gold += 3 })
         var attempts = 0
-        // Represents an encounter callback whose session has already closed.
-        store.retrySaveAction(key: "closed-encounter") { attempts += 1 }
+        store.forcesNextSaveFailure = true
+        // The original write fails; its encounter closes before the retry.
+        store.performSaveAction(key: "closed-encounter") { [weak store] isRetry in
+            if isRetry {
+                attempts += 1
+                return
+            }
+            _ = store?.persistFixtureBatch(logging: "Retry fixture") { $0.roster.gold += 3 }
+        }
         #expect(!store.persistFixtureBatch(logging: "Invalid action fixture") { $0.schemaVersion = 0 })
         let failure = try #require(store.lastPersistenceError)
         guard case .invalidSave = failure else {
@@ -199,26 +214,56 @@ struct PendingSaveRecoveryTests {
         #expect(store.roster.gold == 0)
     }
 
+    @Test func `nested save action retries only its uncommitted reward`() async throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        var openings = 0
+        var claims = 0
+        store.performSaveAction(key: "open") { [weak store] _ in
+            guard let store else { return }
+            openings += 1
+            #expect(store.persistFixtureBatch(logging: "Opening fixture") { $0.roster.gold += 10 })
+            store.forcesNextSaveFailure = true
+            store.performSaveAction(key: "reward") { [weak store] _ in
+                guard let store else { return }
+                claims += 1
+                _ = store.persistFixtureBatch(logging: "Reward fixture") { $0.roster.gold += 3 }
+            }
+        }
+        #expect(store.roster.gold == 10)
+        #expect(store.isRetryingSaveAction)
+        for _ in 0 ..< 300 where store.isRetryingSaveAction {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(!store.isRetryingSaveAction)
+        #expect(openings == 1)
+        #expect(claims == 2)
+        #expect(try context.makeReloadedStore().roster.gold == 13)
+    }
+
     @Test(arguments: [false, true])
     func `retry follows command failures when another command succeeds`(invalid: Bool) async throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        store.forcesNextSaveFailure = true
-        #expect(!store.persistFixtureBatch(logging: "Retry fixture") { $0.roster.gold += 3 })
         var attempts = 0
-        store.retrySaveAction(key: "claim") { [weak store] in
+        store.performSaveAction(key: "claim") { [weak store] isRetry in
             guard let store else { return }
-            attempts += 1
-            store.forcesNextSaveFailure = !invalid && attempts == 1
-            _ = store.persistFixtureBatch(logging: "Retry fixture") { save in
-                if invalid {
+            if isRetry {
+                attempts += 1
+            }
+            store.forcesNextSaveFailure = !isRetry || (!invalid && attempts == 1)
+            let committed = store.persistFixtureBatch(logging: "Retry fixture") { save in
+                if isRetry, invalid {
                     save.schemaVersion = 0
                 } else {
                     save.roster.gold += 3
                 }
             }
-            // A separate idempotent write clears the diagnostic, but must not
-            // conceal the first command's uncommitted reward.
+            if !isRetry {
+                #expect(!committed)
+            }
+            // Clearing the shared diagnostic must not conceal a failed reward,
+            // including on the initial attempt before registration.
             #expect(store.persistFixtureBatch(logging: "Other command fixture") { $0.corruptionAltarCooldownRemaining = 1 })
         }
         for _ in 0 ..< 300 where store.isRetryingSaveAction {

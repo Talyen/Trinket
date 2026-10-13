@@ -248,6 +248,22 @@ struct AppStateShopEncounterTests {
         #expect(session.purchasePresentation?.sequence == 1)
     }
 
+    @Test func `busy shop rejection cannot reuse an unrelated write failure`() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+        #expect(state.encounters.beginShopOrAutoComplete(origin: .journey(stage: stage)) == nil)
+        let session = try #require(state.encounters.activeShopEncounter)
+        state.playerSave.forcesNextSaveFailure = true
+        #expect(!state.playerSave.persistFixtureBatch(logging: "Unrelated write fixture") { $0.roster.gold += 3 })
+        #expect(state.playerSave.lastPersistenceError == .writeFailed)
+
+        #expect(state.encounters.beginShopOrAutoComplete(origin: .journey(stage: stage)) == nil)
+
+        #expect(!state.playerSave.isRetryingSaveAction)
+        #expect(state.encounters.activeShopEncounter === session)
+        #expect(state.playerSave.lastPersistenceError == .writeFailed)
+    }
+
     @Test func `finish shop encounter retries silently when persist fails`() async throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)

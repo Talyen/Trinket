@@ -7,6 +7,8 @@ Use for player progression, roster, inventory, homestead, SwiftData, or CloudKit
 Campaign reward and completion **domain write policies** also live here (`StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`): app sessions decide when to apply them; Persistence owns the save mutation. Save-store test harnesses live in this package's `TrinketPersistenceTestSupport` target — see the package `AGENTS.md`.
 
 Domain commands return a committed value, a domain rejection, or a storage failure.
+`SaveTransactionResult.persistFailed` carries that operation's typed error, so callers
+can distinguish transient writes from validation failures without reading shared diagnostics.
 The internal `persistTransaction`, `persistBatch`, and `performBatchMutation` share
 candidate validation, slice reconciliation, and commit. Economic commands collect
 required `SaveEconomicReceipt` values in a synchronous `SaveEconomicMutation`;

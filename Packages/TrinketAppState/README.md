@@ -121,4 +121,4 @@ stack on `-disable-cloud-sync -disable-audio -skip-starter-selection`; add
 `Support/LabyrinthTestSupport.swift` covers map setup and reachable-node lookup;
 `Support/PlayBattleLaunchTestSupport.swift` covers party setup and bare launch
 assembly and enforces settled retry state after its bounded wait. `#if DEBUG` retry tests use
-`forcesNextSaveFailure` to drive the unbounded `retrySaveAction` paths.
+`forcesNextSaveFailure` to drive the unbounded `performSaveAction` paths.

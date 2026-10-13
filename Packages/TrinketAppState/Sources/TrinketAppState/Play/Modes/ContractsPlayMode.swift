@@ -25,25 +25,25 @@ public final class ContractsPlayMode {
 
     @discardableResult
     public func enter() -> StageMapMessage? {
-        guard battle.lifecyclePhase != .active else { return PlayBattleCoordinator.activationFailureMessage }
-        guard encounters.canBeginTransientEncounter else { return nil }
-        guard playerSave.prepareContracts(makeOffer: makeOffer) else {
-            playerSave.retrySaveAction(key: SaveRetryKey.contractsEnter) { [weak self] in _ = self?.enter() }
+        playerSave.performSaveAction(key: SaveRetryKey.contractsEnter) { [weak self] _ -> StageMapMessage? in
+            guard let self else { return nil }
+            guard battle.lifecyclePhase != .active else { return PlayBattleCoordinator.activationFailureMessage }
+            guard encounters.canBeginTransientEncounter else { return nil }
+            _ = playerSave.prepareContracts(makeOffer: makeOffer)
             return nil
         }
-        return nil
     }
 
     @discardableResult
     public func refresh() -> StageMapMessage? {
-        guard battle.lifecyclePhase != .active else { return PlayBattleCoordinator.activationFailureMessage }
-        guard encounters.canBeginTransientEncounter else { return nil }
-        guard playerSave.contracts.refreshAvailable else { return nil }
-        guard playerSave.refreshContracts(makeOffer: makeOffer) else {
-            playerSave.retrySaveAction(key: SaveRetryKey.contractsRefresh) { [weak self] in _ = self?.refresh() }
+        playerSave.performSaveAction(key: SaveRetryKey.contractsRefresh) { [weak self] _ -> StageMapMessage? in
+            guard let self else { return nil }
+            guard battle.lifecyclePhase != .active else { return PlayBattleCoordinator.activationFailureMessage }
+            guard encounters.canBeginTransientEncounter else { return nil }
+            guard playerSave.contracts.refreshAvailable else { return nil }
+            _ = playerSave.refreshContracts(makeOffer: makeOffer)
             return nil
         }
-        return nil
     }
 
     public func resolvedEncounter(for offer: ContractOffer) -> ScaledEncounter? {

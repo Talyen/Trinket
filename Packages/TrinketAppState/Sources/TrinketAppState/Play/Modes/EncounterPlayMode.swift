@@ -94,47 +94,45 @@ public final class EncounterPlayMode {
     @discardableResult
     public func purchaseActiveShopOffer(offerID: String) -> ShopPurchaseOutcome {
         guard let shopSession = activeShopEncounter else { return .rejected }
-        guard !shopSession.isPurchasing else { return .rejected }
-        shopSession.markPurchaseStarted()
-        switch playerSave.purchaseShopOffer(offerID: offerID, encounter: shopSession.encounter) {
-        case .committed:
-            shopSession.markPurchaseFinished()
-            shopSession.publishPurchase(offerID: offerID)
-            sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
-            return .committed
-        case .rejected:
-            shopSession.markPurchaseFinished()
-            sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
-            return .rejected
-        case .persistFailed:
-            // The mutation rolled back and the store retries silently, so this
-            // attempt is accepted rather than failed; the board is already
-            // disabled while `isRetryingSaveAction`.
-            shopSession.markPurchaseFinished()
-            playerSave.retrySaveAction(key: SaveRetryKey.shopPurchase(offerID)) { [weak self] in
-                guard let self, activeShopEncounter === shopSession else { return }
-                _ = purchaseActiveShopOffer(offerID: offerID)
+        return playerSave.performSaveAction(key: SaveRetryKey.shopPurchase(offerID)) { [weak self] _ -> ShopPurchaseOutcome in
+            guard let self else { return .rejected }
+            guard activeShopEncounter === shopSession else { return .rejected }
+            guard !shopSession.isPurchasing else { return .rejected }
+            shopSession.markPurchaseStarted()
+            switch playerSave.purchaseShopOffer(offerID: offerID, encounter: shopSession.encounter) {
+            case .committed:
+                shopSession.markPurchaseFinished()
+                shopSession.publishPurchase(offerID: offerID)
+                sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
+                return .committed
+            case .rejected:
+                shopSession.markPurchaseFinished()
+                sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
+                return .rejected
+            case .persistFailed:
+                // The mutation rolled back and the store retries silently, so this
+                // attempt is accepted rather than failed; the board is already
+                // disabled while `isRetryingSaveAction`.
+                shopSession.markPurchaseFinished()
+                return .retrying
             }
-            return .retrying
         }
     }
 
     @discardableResult
     func beginShopOrAutoComplete(origin: PlayEncounterOrigin) -> StageMapMessage? {
-        switch beginShopEncounter(origin: origin) {
-        case .autoCompleted:
-            return Self.emptyShopClosedMessage(identifier: origin.identity(in: playerSave.currentSave).stageID)
-        case .opened:
-            return nil
-        case .unavailable:
-            if playerSave.lastPersistenceError == .writeFailed {
-                playerSave.retrySaveAction(key: SaveRetryKey.shopOpen) { [weak self] in
-                    _ = self?.beginShopOrAutoComplete(origin: origin)
-                }
+        playerSave.performSaveAction(key: SaveRetryKey.shopOpen) { [weak self] _ -> StageMapMessage? in
+            guard let self else { return nil }
+            switch beginShopEncounter(origin: origin) {
+            case .autoCompleted:
+                return Self.emptyShopClosedMessage(identifier: origin.identity(in: playerSave.currentSave).stageID)
+            case .opened:
+                return nil
+            case .unavailable:
+                return nil
+            case let .failed(message):
+                return message
             }
-            return nil
-        case let .failed(message):
-            return message
         }
     }
 
@@ -145,17 +143,17 @@ public final class EncounterPlayMode {
     @discardableResult
     public func finishActiveShopEncounter() -> Bool {
         guard let shopSession = activeShopEncounter else { return false }
+        return playerSave.performSaveAction(key: SaveRetryKey.shopLeave) { [weak self] _ in
+            guard let self else { return false }
+            guard activeShopEncounter === shopSession else { return false }
 
-        switch playerSave.finishShop(encounter: shopSession.encounter) {
-        case .committed, .rejected:
-            clearActiveShopEncounter()
-            return true
-        case .persistFailed:
-            playerSave.retrySaveAction(key: SaveRetryKey.shopLeave) { [weak self] in
-                guard let self, activeShopEncounter === shopSession else { return }
-                _ = finishActiveShopEncounter()
+            switch playerSave.finishShop(encounter: shopSession.encounter) {
+            case .committed, .rejected:
+                clearActiveShopEncounter()
+                return true
+            case .persistFailed:
+                return false
             }
-            return false
         }
     }
 
