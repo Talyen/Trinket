@@ -116,7 +116,7 @@ local saves, deterministic Labyrinth maps, pending talent progress, live Battle
 states near an outcome, and a populated combat log. Outcome fixtures stop before
 the terminal command; normal Battle commands, settlement, and reveal remain in
 the measurement path. Defeat reveal uses the existing turn-transition harness to issue the terminal
-production end-turn command; auto-battle controls are measured separately. Fixture flags are distinct from
+production end-turn command. Fixture flags are distinct from
 `-enable-frame-metrics`, which remains measurement-only. Audio and production
 artwork preparation remain enabled.
 

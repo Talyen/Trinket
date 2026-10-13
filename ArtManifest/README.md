@@ -83,9 +83,10 @@ Reconvert is **content-and-output-settings-hash based** (not mtime). Digests liv
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ART_HEIC_QUALITY` | `80` | Lossy quality 0–100 |
-| `ART_MAX_DIMENSION` | kind default | Override every full-image max dimension |
-| `ART_<KIND>_DIMENSION` | table above | Override one full-image category, such as `ART_ABILITY_DIMENSION` |
-| `ART_THUMB_DIMENSION` | `480` | Thumbnail max dimension |
+| `ART_MAX_DIMENSION` | kind default | Fallback full-image max dimension when no kind-specific override is set |
+| `ART_<KIND>_DIMENSION` | `ART_MAX_DIMENSION`, otherwise table above | Override one full-image category, such as `ART_ABILITY_DIMENSION`; takes precedence over `ART_MAX_DIMENSION` |
+| `ART_THUMB_DIMENSION` | `480` | Thumbnail max dimension except portrait backgrounds |
+| `ART_PORTRAIT_THUMB_DIMENSION` | `960` | Portrait-background gallery thumbnail max dimension, independent of `ART_THUMB_DIMENSION` |
 | `FORCE_ASSET_REENCODE` | `0` | When `1`, re-encode all curated art even when source hashes match |
 
 ## Decoded Memory Report

@@ -17,7 +17,7 @@ is a lookup aid, not a reading checklist.
 
 | Fact | Owner |
 |------|-------|
-| Toolchain versions, schemes, entitlements | `project.yml`, `Package.swift`, `Scripts/tool-versions.env` |
+| Toolchain versions, schemes, entitlements | `project.yml`, `Packages/*/Package.swift`, `Scripts/tool-versions.env`; required CI Xcode version/build in [`Scripts/config/ci-xcode.json`](../Scripts/config/ci-xcode.json) |
 | Commands and flags | script usage/option parsing and [command reference](../Scripts/Reference.md) |
 | When to run which gate | [Platform/Verification.md](Platform/Verification.md) |
 | What a good test is | [Platform/Testing.md](Platform/Testing.md) |

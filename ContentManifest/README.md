@@ -157,6 +157,7 @@ node_id	title	summary	icon_id	category	tier	stage_name	cost	bonus_title	bonus_de
 ```
 
 - `node_id`: `HomesteadNodeID` case name (e.g. `wheatField`).
+- `icon_id`: `sf:name` for an SF Symbol, using the same validated format as talent icons. Choose the building's identity from [Game icon selections](../Docs/Product/GameIcons.md#talents-and-homestead-nodes); keep it consistent across the node's tiers.
 - `category`: `farming`, `crafting`, `alchemy`, `training`, or `arcana`.
 - Nodes have no building prerequisites; each tier requires only its authored material cost.
 - `stage_name`: authored construction-stage metadata; use no more than three words. Current [Build/Upgrade offers](../Docs/Product/Homestead.md#next-stage-offers) do not display these names.

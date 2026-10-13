@@ -129,7 +129,7 @@ Keep `BattleState` and `PlayerSaveStore` as thin facades. Keep `AppState` as com
 | Hub | Put new code here | Not here |
 |-----|-------------------|----------|
 | `BattleState` | `EffectHandlers/`, `*Engine`, `DamagePipeline`, or `BattleState+*.swift` for shared mutation plumbing | Catalog-specific branches; app/feature call sites for engine mutations |
-| `PlayerSaveStore` | Value-type rules in `Models/`; cross-slice actions in `PlayerSaveStore+Homestead.swift` / `PlayerSaveStore+Roster.swift`; open/config in `PlayerSaveStoreConfiguration` | Feature-specific methods on the hub class; empty pass-through facades |
+| `PlayerSaveStore` | Save value models and edit validation in `Models/`; reward, item, and Homestead rules in Content; domain commands and cross-slice writes in the matching store extension or applier; open/config in `PlayerSaveStoreConfiguration` | Feature-specific methods on the hub class; empty pass-through facades |
 | `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation via `play.battle`; mode construction in the `PlaySession` initializer; battle transitions/claims in `PlayBattleCoordinator`; pure launch/reward assembly helpers | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; a parallel `AppState.battle` handle |
 | Combat triggers | Authored `CombatTraitTriggers` (Content + codegen); nested on `CombatModifierProfile.triggers` | Parallel flat fields on `CombatModifierProfile` |
 

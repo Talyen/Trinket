@@ -88,8 +88,8 @@ Keep character progress, equipment, talents, completed encounters, and maps for
 restoration. Restore a usable free party when necessary without resetting other
 progress. Gameplay reset never resets purchase ownership.
 
-Spire eligibility considers all keywords on all basic, skill, and ultimate choices,
-including conditional damage, rather than equipped cards or talent affinities.
+Spire attunement follows the [ability-choice rule](Spires.md), independently of
+purchase access.
 
 Payment implementation and release prerequisites:
 [Purchases.md](../Platform/Purchases.md).
