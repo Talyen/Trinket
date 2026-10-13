@@ -20,14 +20,10 @@ struct EffectHandlersApplyBuffDebuffTests {
         #expect(summary.keyword == .burn)
         #expect(summary.text.contains(Keyword.burn.rawValue))
 
-        let converted = BattleTurnEngine.performAction(
-            ability: .slash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let converted = battle.performTestAction(.slash)
         #expect(converted.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.burn])
         #expect(!battle.activeEffects(of: battle.hero).contains { $0.effect == conversion })
-        let following = BattleTurnEngine.performAction(
-            ability: .slash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let following = battle.performTestAction(.slash)
         #expect(following.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.physical])
     }
 

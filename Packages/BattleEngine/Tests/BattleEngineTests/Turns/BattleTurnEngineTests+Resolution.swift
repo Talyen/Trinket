@@ -15,9 +15,8 @@ extension BattleTurnEngineTests {
             enemy: build.combatant,
             enemyHealth: 1,
             heroModifiers: CombatModifierProfile.withTriggers { $0.blockBrokenSaintfallPower = 6 },
-            enemyModifiers: build.modifiers,
+            enemyModifiers: build.modifiers, appliesFightPacing: false,
         )
-        context.appliesFightPacing = false
         context.turnCount = 2
         DefensePoolEngine.set(1, on: context.hero, in: &context)
 
@@ -37,14 +36,11 @@ extension BattleTurnEngineTests {
         try #expect(ability.outcomeBranches == nil)
         try #expect(ability.summary == "Deal 3 Stun damage\nSteal 2 Gold")
         var context = BattleStateTestFactory.makeMinimalBattle(
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100), appliesFightPacing: false,
         )
-        context.appliesFightPacing = false
         let initialHealth = context.roster.enemy.currentHealth
 
-        _ = BattleTurnEngine.performAction(
-            ability: ability, actor: context.hero, abilityTarget: context.enemy, context: &context,
-        )
+        _ = context.performTestAction(ability)
 
         #expect(context.gold == 2)
         #expect(context.roster.activeEffects(for: context.enemy).contains { $0.effect.keyword == .stun })

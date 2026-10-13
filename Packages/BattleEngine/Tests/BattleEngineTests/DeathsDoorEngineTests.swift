@@ -208,9 +208,8 @@ struct DeathsDoorEngineTests {
         var battle = BattleStateTestFactory.makeBattle(
             companion: phoenix.combatant,
             enemy: CombatantFixtures.passiveEnemy(),
-            companionModifiers: modifiers,
+            companionModifiers: modifiers, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 1
         battle.roster.companion.currentHealth = 1
         let companion = battle.roster.companion.combatant
@@ -272,9 +271,8 @@ struct DeathsDoorEngineTests {
         var battle = BattleStateTestFactory.makeBattle(
             companion: owl.combatant,
             companionModifiers: owl.modifiers,
-            rngSeed: 2,
+            rngSeed: 2, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let target = battle.roster[owner].combatant
         battle.roster.mutateRuntime(for: target) { $0.currentHealth = 1 }
         battle.appendEffect(.poison(8), to: target, sourceID: battle.roster.enemy.id, remainingTurns: 0)

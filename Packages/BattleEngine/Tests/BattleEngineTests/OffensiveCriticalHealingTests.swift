@@ -47,15 +47,13 @@ struct OffensiveCriticalHealingTests {
 
     private func makeBattle(owner: BattleParticipant) -> BattleState {
         let talents: Set<String> = owner == .hero ? ["warlock_burn_t3_2"] : ["ranger_burn_t4_1"]
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        return BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
             heroHealth: 10,
             heroModifiers: CombatantTalentCatalog.profile(for: talents),
-            rngSeed: 9,
+            rngSeed: 9, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     @Test(arguments: [UInt64(9), 4])
@@ -65,9 +63,8 @@ struct OffensiveCriticalHealingTests {
         var ordinary = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
-            heroHealth: 1, companionHealth: 10, heroModifiers: profile, rngSeed: rngSeed,
+            heroHealth: 1, companionHealth: 10, heroModifiers: profile, rngSeed: rngSeed, appliesFightPacing: false,
         )
-        ordinary.appliesFightPacing = false
         var lastlight = ordinary
         lastlight.appendEffect(.deathsDoor, to: lastlight.hero, sourceID: lastlight.hero.id, remainingTurns: 2)
         var attacking = lastlight

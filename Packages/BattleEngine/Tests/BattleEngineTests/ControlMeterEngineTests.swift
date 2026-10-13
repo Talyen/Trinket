@@ -11,17 +11,11 @@ struct ControlMeterEngineTests {
             heroModifiers: CombatModifierProfile.withTriggers { $0.enemyStunThresholdReductionPercent = 0.25 },
         )
         let target = context.roster.enemy.combatant
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            10, keyword: .stun, to: target, sourceActorID: context.roster.hero.id,
-            applyFightPacing: false, in: &context,
-        ) }
+        _ = context.chargeTestControl(10, keyword: .stun, to: target, sourceActorID: context.roster.hero.id, applyFightPacing: false)
         let meter = try #require(context.roster.activeEffects(for: target).first { $0.keyword == .stun })
         #expect(meter.effect.controlMeterValues?.threshold == 15)
         #expect(!context.roster.hasPendingActionSkip(for: target, keyword: .stun))
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            5, keyword: .stun, to: target, sourceActorID: context.roster.hero.id,
-            applyFightPacing: false, in: &context,
-        ) }
+        _ = context.chargeTestControl(5, keyword: .stun, to: target, sourceActorID: context.roster.hero.id, applyFightPacing: false)
         #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
     }
 
@@ -31,16 +25,16 @@ struct ControlMeterEngineTests {
             heroModifiers: CombatModifierProfile.withTriggers { $0.enemyStunThresholdReductionPercent = 0.25 },
         )
         let target = context.roster.enemy.combatant
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            16, keyword: .stun, to: target, sourceActorID: context.roster.companion.id,
-            applyFightPacing: false, in: &context,
-        ) }
+        _ = context.chargeTestControl(16, keyword: .stun, to: target, sourceActorID: context.roster.companion.id, applyFightPacing: false)
         #expect(!context.roster.hasControlStatus(for: target, keyword: .stun))
 
-        let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            1, keyword: .stun, to: target, sourceActorID: context.roster.hero.id,
-            applyFightPacing: false, in: &context,
-        ) }
+        let events = context.chargeTestControl(
+            1,
+            keyword: .stun,
+            to: target,
+            sourceActorID: context.roster.hero.id,
+            applyFightPacing: false,
+        )
 
         #expect(events.contains { $0.effectKind == .controlTriggered })
         #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
@@ -50,10 +44,13 @@ struct ControlMeterEngineTests {
     func `control triggers at its threshold and consumes overflow`(keyword: Keyword, maximumHealth: Int, charge: Int) {
         var context = BattleTestFixtures.makePipelineContext(targetMaxHealth: maximumHealth)
         let target = context.roster.enemy.combatant
-        let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            charge, keyword: keyword, to: target, sourceActorID: "source",
-            applyFightPacing: charge == 50, in: &context,
-        ) }
+        let events = context.chargeTestControl(
+            charge,
+            keyword: keyword,
+            to: target,
+            sourceActorID: "source",
+            applyFightPacing: charge == 50,
+        )
         #expect(events.contains { $0.effectKind == .controlTriggered && $0.keyword == keyword })
         if charge == 50 {
             #expect(!context.roster.activeEffects(for: target).contains {
@@ -75,10 +72,13 @@ struct ControlMeterEngineTests {
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50),
         )
         let target = context.roster[recipient].combatant
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            4, keyword: keyword, to: target, sourceActorID: recipient == .enemy ? context.hero.id : context.enemy.id,
-            applyFightPacing: false, in: &context,
-        ) }
+        _ = context.chargeTestControl(
+            4,
+            keyword: keyword,
+            to: target,
+            sourceActorID: recipient == .enemy ? context.hero.id : context.enemy.id,
+            applyFightPacing: false,
+        )
         let meter = try #require(context.roster.activeEffects(for: target).first { $0.keyword == keyword })
         #expect(meter.effect.controlMeterValues?.amount == (recipient == .enemy ? 4 : 3))
     }
@@ -92,10 +92,7 @@ struct ControlMeterEngineTests {
             heroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
             heroModifiers: CombatModifierProfile.withTriggers { $0.blockedControlBurnResistance = 0.5 },
         )
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            4, keyword: keyword, to: context.hero, sourceActorID: context.enemy.id,
-            applyFightPacing: false, in: &context,
-        ) }
+        _ = context.chargeTestControl(4, keyword: keyword, to: context.hero, sourceActorID: context.enemy.id, applyFightPacing: false)
         let meter = try #require(context.roster.activeEffects(for: context.hero).first { $0.keyword == keyword })
         #expect(meter.effect.controlMeterValues?.amount == 2)
     }
@@ -108,9 +105,7 @@ struct ControlMeterEngineTests {
         let target = context.roster.enemy.combatant
         #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun) == (remainingTurns == 0))
         #expect(context.roster.hasControlStatus(for: target, keyword: .stun))
-        let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            15, keyword: .stun, to: target, sourceActorID: "source", in: &context,
-        ) }
+        let events = context.chargeTestControl(15, keyword: .stun, to: target, sourceActorID: "source")
         #expect(events.isEmpty)
     }
 
@@ -122,13 +117,7 @@ struct ControlMeterEngineTests {
         )
         let target = context.roster.enemy.combatant
 
-        let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            3,
-            keyword: .freeze,
-            to: target,
-            sourceActorID: "source",
-            in: &context,
-        ) }
+        let events = context.chargeTestControl(3, keyword: .freeze, to: target, sourceActorID: "source")
 
         try #expect(events.isEmpty)
         let freezeMeter = context.roster.activeEffects(for: target).first {
@@ -160,13 +149,7 @@ struct ControlMeterEngineTests {
         let target = context.roster.enemy.combatant
         let baseThreshold = ControlMeterEngine.threshold(for: target, in: context)
 
-        let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            baseThreshold,
-            keyword: .stun,
-            to: target,
-            sourceActorID: "source",
-            in: &context,
-        ) }
+        let events = context.chargeTestControl(baseThreshold, keyword: .stun, to: target, sourceActorID: "source")
 
         try #expect(events.contains { $0.effectKind == .controlTriggered })
         try #expect(context.roster.hasControlStatus(for: target, keyword: .stun))
@@ -213,11 +196,13 @@ struct ControlMeterEngineTests {
             heroModifiers: .init(triggers: triggers), seed: seed,
         )
         let enemy = context.roster.enemy.combatant
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
+        _ = context.chargeTestControl(
             ControlMeterEngine.threshold(for: enemy, in: context),
-            keyword: keyword, to: enemy, sourceActorID: "source",
-            applyFightPacing: false, in: &context,
-        ) }
+            keyword: keyword,
+            to: enemy,
+            sourceActorID: "source",
+            applyFightPacing: false,
+        )
         #expect(preventedActions(in: &context, for: enemy) == expected)
     }
 }
@@ -236,10 +221,7 @@ extension ControlMeterEngineTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.freezeExtendChancePercent = Double(Int.max)
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            10, keyword: .freeze, to: battle.enemy, sourceActorID: battle.hero.id,
-            applyFightPacing: false, in: &battle,
-        ) }
+        _ = battle.chargeTestControl(10, keyword: .freeze, to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false)
         let status = try #require(battle.activeEffects(of: battle.enemy).first { $0.isAwaitingActionSkip })
         #expect(battle.additionalControlSkipsByEffectID[status.id] == Int.max)
     }
@@ -249,10 +231,7 @@ extension ControlMeterEngineTests {
         profile.triggers.onStunEnemyGainBlock = 6
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
         battle.roster.hero.currentHealth = 0
-        let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            10, keyword: .stun, to: battle.enemy, sourceActorID: battle.hero.id,
-            applyFightPacing: false, in: &battle,
-        ) }
+        let events = battle.chargeTestControl(10, keyword: .stun, to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false)
         #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun))
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 0)
         #expect(!events.contains { $0.effectKind == .shieldApplied && $0.actorID == battle.hero.id })
@@ -261,14 +240,16 @@ extension ControlMeterEngineTests {
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `glacial barrier rewards its wearer when either ally freezes the enemy`(source: BattleParticipant) {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatantTalentCatalog.profile(for: ["wizard_freeze_t2_2"]),
+            heroModifiers: CombatantTalentCatalog.profile(for: ["wizard_freeze_t2_2"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
 
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            10, keyword: .freeze, to: battle.enemy, sourceActorID: battle.roster[source].id,
-            applyFightPacing: false, in: &battle,
-        ) }
+        _ = battle.chargeTestControl(
+            10,
+            keyword: .freeze,
+            to: battle.enemy,
+            sourceActorID: battle.roster[source].id,
+            applyFightPacing: false,
+        )
 
         #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .freeze))
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 3)

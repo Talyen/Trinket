@@ -57,8 +57,7 @@ struct RogueRevisionTests {
         #expect(profile.triggers.bleedingEnemyHealingMultiplier == 0.5)
         for bleeding in [false, true] {
             let effects = bleeding ? [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)] : []
-            var battle = BattleTestFixtures.makePipelineContext(targetEffects: effects, heroModifiers: profile)
-            battle.appliesFightPacing = false
+            var battle = BattleTestFixtures.makePipelineContext(targetEffects: effects, heroModifiers: profile, appliesFightPacing: false)
             battle.roster.enemy.currentHealth = 10
             _ = battle.healEmitting(amount: 8, target: battle.enemy, source: battle.enemy, abilityName: "Heal")
             #expect(battle.roster.enemy.currentHealth == (bleeding ? 14 : 18))
@@ -85,9 +84,8 @@ struct RogueRevisionTests {
             enemyEffects: [thorns],
             heroHealth: 1,
             heroModifiers: CombatantTalentCatalog
-                .profile(for: ["rogue_gold_t1_1"]),
+                .profile(for: ["rogue_gold_t1_1"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.hasConsumedDeathsDoor = finallyDefeated
 
         let hit = battle.resolveTestDamage(4, options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true))

@@ -22,9 +22,8 @@ struct CleanseArithmeticBoundaryTests {
             ],
             companionHealth: 1,
             heroMana: 0,
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let hero = battle.hero
         let companion = battle.companion
 

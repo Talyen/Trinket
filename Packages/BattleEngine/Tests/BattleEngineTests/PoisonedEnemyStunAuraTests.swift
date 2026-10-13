@@ -21,16 +21,13 @@ struct PoisonedEnemyStunAuraTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: scenario == .defeatedHero ? 0 : 20,
             heroModifiers: CombatantTalentCatalog.profile(for: [talentID]),
-            companionModifiers: companionProfile,
+            companionModifiers: companionProfile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         if scenario != .unpoisoned {
             battle.appendEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
-        _ = BattleTurnEngine.performAction(
-            ability: .bash, actor: battle.companion, abilityTarget: battle.enemy, context: &battle,
-        )
+        _ = battle.performTestAction(.bash, from: .companion)
 
         #expect(battle.health(of: battle.enemy) == 96)
         let meter = battle.activeEffects(of: battle.enemy).first { $0.keyword == .stun }?.effect.controlMeterValues
@@ -41,15 +38,11 @@ struct PoisonedEnemyStunAuraTests {
     @Test func `the Hero's Poison susceptibility applies once to its own Stun`() {
         var battle = BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 100,
-            heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_poison_t4_1"]),
+            heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_poison_t4_1"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            4, keyword: .stun, to: battle.enemy, sourceActorID: battle.hero.id,
-            applyFightPacing: false, in: &battle,
-        ) }
+        _ = battle.chargeTestControl(4, keyword: .stun, to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false)
 
         let meter = battle.activeEffects(of: battle.enemy).first { $0.keyword == .stun }?.effect.controlMeterValues
         #expect(meter?.amount == 5)

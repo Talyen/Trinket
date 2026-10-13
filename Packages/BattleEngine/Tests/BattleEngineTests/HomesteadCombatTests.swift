@@ -10,9 +10,8 @@ struct HomesteadCombatTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
-            heroModifiers: .init(modifiers: [.criticalDamage(4)]),
+            heroModifiers: .init(modifiers: [.criticalDamage(4)]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let outcome = battle.resolveTestDamage(
             10,
             options: .effect(scaling: .items, abilityCriticalChanceBonus: critical ? 0 : -1, guaranteedCritical: critical),
@@ -46,8 +45,8 @@ struct HomesteadCombatTests {
             var battle = BattleStateTestFactory.makeMinimalBattle(
                 hero: hero, companion: companion, enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
                 heroModifiers: ranged ? build.modifiers : .zero, companionModifiers: ranged ? .zero : build.modifiers,
+                appliesFightPacing: false,
             )
-            battle.appliesFightPacing = false
             let outcome = battle.resolveTestDamage(
                 20,
                 to: battle.enemy,
@@ -80,9 +79,8 @@ struct HomesteadCombatTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
-            heroModifiers: .init(modifiers: [.criticalDamage(4), .criticalDamagePercent(0.4)]),
+            heroModifiers: .init(modifiers: [.criticalDamage(4), .criticalDamagePercent(0.4)]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let outcome = battle.resolveTestDamage(10, options: .effect(scaling: .items, guaranteedCritical: true))
         #expect(outcome.healthLost == 34)
     }
@@ -92,9 +90,8 @@ struct HomesteadCombatTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 100, maxMana: 20),
             companion: CombatantFixtures.passiveCompanion(), enemy: CombatantFixtures.passiveEnemy(), heroHealth: 10,
             heroModifiers: .init(modifiers: [.healthRestoredPercent(0.4), .leechHealingPercent(0.2),
-                                             .manaRestoredPercent(0.4), .blockGainedPercent(0.4)]),
+                                             .manaRestoredPercent(0.4), .blockGainedPercent(0.4)]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         _ = battle.resolveHeal(HealRequest(amount: 10, target: battle.hero, sourceActorID: battle.hero.id))
         #expect(battle.roster.hero.currentHealth == 24)
         _ = CombatExecutor
@@ -116,9 +113,8 @@ struct HomesteadCombatTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100), heroHealth: 10,
-            heroModifiers: modifiers,
+            heroModifiers: modifiers, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.enemy.currentHealth = 40
         _ = CombatExecutor.run { await HealingEngine.leechFromDamage(
             20, sourceActorID: battle.hero.id, target: battle.enemy, abilityHasLeech: true, in: &battle,

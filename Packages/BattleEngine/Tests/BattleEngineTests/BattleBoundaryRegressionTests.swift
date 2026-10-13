@@ -126,17 +126,14 @@ struct BattleBoundaryRegressionTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxMana: Int.max),
             companion: CombatantFixtures.passiveCompanion(maxMana: Int.max),
-            enemy: CombatantFixtures.passiveEnemy(), heroMana: 0, companionMana: 0,
+            enemy: CombatantFixtures.passiveEnemy(), heroMana: 0, companionMana: 0, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let ability = Ability(
             id: "party-mana", name: "Party Mana", tier: .skill,
             operations: [.effect(TargetedEffect(.resourceGain(.mana, Int.max), target: .eachAlly))],
         )
 
-        let events = BattleTurnEngine.performAction(
-            ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let events = battle.performTestAction(ability)
 
         #expect(battle.mana(of: battle.hero) == Int.max)
         #expect(battle.mana(of: battle.companion) == Int.max)
@@ -244,11 +241,9 @@ struct BattleBoundaryRegressionTests {
     }
 
     private func makeBattle(profile: CombatModifierProfile) -> BattleState {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 4),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 20), heroModifiers: profile,
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 20), heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 }

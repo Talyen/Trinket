@@ -10,9 +10,8 @@ struct QuickFingersCounterattackTests {
             ? ["wildcard_gold_t2_1"] : ["rogue_gold_t3_2"])
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 100, heroModifiers: profile, dealOpeningHand: false,
+            enemyMaxHealth: 100, heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.heroDeck = CombatDeck(abilities: [.slash, .block, .stab])
         let theft = Ability(
             id: "critical-double-theft", name: "Critical Double Theft", tier: .basic,
@@ -46,9 +45,8 @@ struct QuickFingersCounterattackTests {
             ? ["wildcard_gold_t2_1"] : ["rogue_gold_t3_2", "rogue_gold_t2_1"])
         profile.triggers.criticalChanceBonus = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 20, heroModifiers: profile, rngSeed: 0, dealOpeningHand: false,
+            enemyMaxHealth: 20, heroModifiers: profile, rngSeed: 0, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.heroDeck = CombatDeck(abilities: [.slash, .block])
         let events: [ActionEvent]
         if counterattack {
@@ -73,9 +71,8 @@ struct QuickFingersCounterattackTests {
             ? ["wildcard_gold_t2_1"] : ["rogue_gold_t3_2"])
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 20, heroModifiers: profile, dealOpeningHand: false,
+            enemyMaxHealth: 20, heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.heroDeck = CombatDeck(abilities: [.slash])
         battle.appendEffect(.controlMeter(.stun, 4, 4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         let serial = battle.resolution.beginCard(actorID: battle.hero.id)

@@ -14,9 +14,8 @@ struct ForbiddenLoreDeathsDoorTests {
             enemy: enemy,
             heroHealth: initialHealth,
             heroMana: 0,
-            heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_mana_t1_2"]),
+            heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_mana_t1_2"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
 
         _ = battle.resolveTestDamage(1, to: hero, keyword: .physical, sourceActorID: enemy.id, options: .attack(accuracy: .unavoidable))
 

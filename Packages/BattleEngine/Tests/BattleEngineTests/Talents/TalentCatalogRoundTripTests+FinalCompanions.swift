@@ -93,9 +93,8 @@ extension TalentCatalogRoundTripTests {
             damageComponents: [DamageComponent(3, keyword: .physical), DamageComponent(4, keyword: .physical)],
         )
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyAbilities: [attack], companionModifiers: profile, dealOpeningHand: false,
+            enemyAbilities: [attack], companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let heroHealth = battle.health(of: battle.hero)
         let companionHealth = battle.health(of: battle.companion)
         let result = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
@@ -112,9 +111,8 @@ extension TalentCatalogRoundTripTests {
         var profile = CombatantTalentCatalog.profile(for: ["shield_scarab_holy_t1_2"])
         profile.triggers.blockHolyReflectChancePercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: profile, dealOpeningHand: false,
+            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(10, on: battle.companion, in: &battle)
         let enemyHealth = battle.health(of: battle.enemy)
         let result = battle.resolveTestDamage(4, from: .enemy, to: .companion, options: .attack(scaling: .flat, accuracy: .unavoidable))
@@ -140,9 +138,8 @@ extension TalentCatalogRoundTripTests {
         var profile = CombatantTalentCatalog.profile(for: ["pixie_health_t2_1"])
         profile.triggers.healthRestorationRepeatNextTurnChancePercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: profile, dealOpeningHand: false,
+            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 1
         let first = battle.resolveHeal(HealRequest(
             amount: 3, target: battle.hero, sourceActorID: battle.companion.id,
@@ -210,9 +207,8 @@ extension TalentCatalogRoundTripTests {
         var profile = CombatantTalentCatalog.profile(for: ["fox_gold_t4_1"])
         profile.triggers.goldTheftStealEnemyBlockChancePercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: profile, dealOpeningHand: false,
+            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(5, on: battle.enemy, in: &battle)
         _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Gold")
         #expect(talentPoints(.shield, on: .enemy, in: battle) == 5)
@@ -226,9 +222,8 @@ extension TalentCatalogRoundTripTests {
         profile.triggers.manaRestorationDoubleChancePercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxMana: 10, companionMana: 0,
-            companionModifiers: profile, dealOpeningHand: false,
+            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         _ = battle.restoreManaEmitting(2, to: battle.companion, abilityName: "Restore")
         #expect(battle.mana(of: battle.companion) == 4)
     }
@@ -240,9 +235,8 @@ extension TalentCatalogRoundTripTests {
             profile.triggers.manaEmpowerDamageChancePercent = talents.contains("mana_moth_mana_t3_2") ? 1 : 0
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
                 enemyMaxHealth: 100, companionMaxMana: 3, companionMana: 3,
-                companionModifiers: profile, dealOpeningHand: false,
+                companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
             )
-            battle.appliesFightPacing = false
             let events = try playHeroTalentCard(.frostbolt, owner: .companion, in: &battle)
             let hits = events.filter { $0.kind == .abilityDamage && $0.keyword == .freeze }
             return (hits.reduce(0) { $0 + $1.amount }, hits.count)
@@ -261,14 +255,16 @@ extension TalentCatalogRoundTripTests {
         var profile = CombatantTalentCatalog.profile(for: ["fox_stun_t4_1"])
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: profile, dealOpeningHand: false,
+            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let threshold = ControlMeterEngine.threshold(for: battle.enemy, in: battle)
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            threshold, keyword: .stun, to: battle.enemy,
-            sourceActorID: battle.companion.id, applyFightPacing: false, in: &battle,
-        ) }
+        _ = battle.chargeTestControl(
+            threshold,
+            keyword: .stun,
+            to: battle.enemy,
+            sourceActorID: battle.companion.id,
+            applyFightPacing: false,
+        )
         let attack = DamageRequest(
             amount: 2, target: battle.enemy, keyword: .physical,
             sourceActorID: battle.companion.id,

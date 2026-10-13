@@ -15,9 +15,8 @@ struct CoolMossPartyDamageTests {
             hero: druid.combatant, companion: whelp.combatant,
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: druid.modifiers, companionModifiers: whelp.modifiers,
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         if poisoned {
             battle.appendEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }

@@ -9,8 +9,7 @@ struct LeechAttackQualificationTests {
         let affix = try #require(GameContent.itemAffixDefinition(matching: "parasitic_bloom"))
         var profile = CombatModifierProfile.zero
         affix.basic.triggers.apply(to: &profile, abilityName: affix.title)
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
         battle.roster.hero.currentHealth = 1
         let operation: DamageOperation = attack
             ? .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1) : .periodic
@@ -24,8 +23,7 @@ struct LeechAttackQualificationTests {
         profile.triggers.criticalChanceBonus = -0.1
         var criticals = 0
         for seed in 1 ... 32 {
-            var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, seed: UInt64(seed))
-            battle.appliesFightPacing = false
+            var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, seed: UInt64(seed), appliesFightPacing: false)
             battle.roster.hero.currentHealth = 10
             battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
             let result = battle.resolveTestDamage(8, options: .attack(accuracy: .unavoidable))
@@ -39,8 +37,7 @@ struct LeechAttackQualificationTests {
         var profile = CombatantTalentCatalog.profile(for: ["risen_skeleton_leech_t3_2"])
         profile.triggers.bleedDamageLeech = bloodfire
         profile.triggers.criticalChanceBonus = -1
-        var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile, appliesFightPacing: false)
         battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
         let result = battle.resolveTestDamage(8, from: .companion, keyword: .bleed, options: .attack(accuracy: .unavoidable))
         #expect(result.healthLost == (bloodfire ? 10 : 8))
@@ -50,8 +47,7 @@ struct LeechAttackQualificationTests {
     func `Toxic Touch follows a Bloodfire Leech Critical Hit at full Health`(bloodfire: Bool) {
         var profile = CombatantTalentCatalog.profile(for: ["risen_skeleton_leech_t1_2"])
         profile.triggers.bleedDamageLeech = bloodfire
-        var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile, appliesFightPacing: false)
         let before = battle.health(of: battle.enemy)
         let result = battle.resolveTestDamage(
             4,

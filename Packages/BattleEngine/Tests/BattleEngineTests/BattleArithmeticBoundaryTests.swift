@@ -26,9 +26,7 @@ struct BattleArithmeticBoundaryTests {
         var profile = CombatModifierProfile(damageDealtBonus: [.bleed: Int.max])
         profile.triggers.criticalChanceBonus = -1
         var battle = makeBattle(profile: profile, enemyMaxHealth: Int.max)
-        let events = BattleTurnEngine.performAction(
-            ability: AbilityCatalog.bloodOffering, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let events = battle.performTestAction(AbilityCatalog.bloodOffering)
         #expect(battle.health(of: battle.hero) == 18)
         #expect(battle.isEnemyDefeated)
         #expect(events.first { $0.kind == .ability }?.amount == Int.max)
@@ -68,10 +66,7 @@ struct BattleArithmeticBoundaryTests {
     @Test func `large control damage completes existing buildup without overflowing`() {
         var battle = makeBattle()
         battle.appendEffect(.controlMeter(.stun, 3, 4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            Int.max, keyword: .stun, to: battle.enemy, sourceActorID: nil,
-            applyFightPacing: false, in: &battle,
-        ) }
+        let events = battle.chargeTestControl(Int.max, keyword: .stun, to: battle.enemy, sourceActorID: nil, applyFightPacing: false)
         #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
         #expect(events.contains { $0.effectKind == .controlTriggered })
     }
@@ -97,13 +92,11 @@ struct BattleArithmeticBoundaryTests {
     private func makeBattle(
         profile: CombatModifierProfile = .zero, heroMaxHealth: Int = 20, enemyMaxHealth: Int = 20,
     ) -> BattleState {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: heroMaxHealth, maxMana: 4),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: enemyMaxHealth),
-            heroMana: 0, heroModifiers: profile,
+            heroMana: 0, heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     @Test func `probability endpoints do not depend on random endpoint`() {

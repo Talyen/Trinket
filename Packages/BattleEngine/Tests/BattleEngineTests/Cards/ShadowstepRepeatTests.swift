@@ -224,11 +224,9 @@ struct ShadowstepRepeatTests {
     }
 
     private func makeBattle(profile: CombatModifierProfile = .zero) -> BattleState {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroMaxMana: 6, heroMana: 6, heroModifiers: profile, dealOpeningHand: false,
+        BattleStateTestFactory.makeBattleWithAbilities(
+            heroMaxMana: 6, heroMana: 6, heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     private func attack() -> Ability {

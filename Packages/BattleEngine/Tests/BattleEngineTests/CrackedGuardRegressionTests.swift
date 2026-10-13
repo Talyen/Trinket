@@ -10,9 +10,8 @@ struct CrackedGuardRegressionTests {
         profile.triggers.merge(laughingGuard.triggers)
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.slash], heroModifiers: profile, dealOpeningHand: false,
+            heroAbilities: [.slash], heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(8, on: battle.hero, in: &battle)
         DefensePoolEngine.set(2, on: battle.enemy, in: &battle)
 
@@ -30,9 +29,8 @@ struct CrackedGuardRegressionTests {
         var profile = CombatantTalentCatalog.profile(for: ["wildcard_physical_t2_2"])
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: profile, dealOpeningHand: false,
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(1, on: battle.enemy, in: &battle)
         let twoHits = Ability(
             id: "two-physical-hits", name: "Two Physical Hits", tier: .basic,

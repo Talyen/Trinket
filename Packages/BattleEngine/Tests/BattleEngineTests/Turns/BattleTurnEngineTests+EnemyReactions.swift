@@ -19,9 +19,8 @@ extension BattleTurnEngineTests {
         for seed in CombatantFixtures.deterministicBattleSeed ..< CombatantFixtures.deterministicBattleSeed + 12 {
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
                 enemyAbilities: [ability], companionModifiers: companionProfile,
-                rngSeed: seed, dealOpeningHand: false,
+                rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false,
             )
-            battle.appliesFightPacing = false
             var expected = battle
             let resolved = BattleAbilityRules.resolveOutcome(ability, actor: battle.enemy, in: &expected)
             let attacks = resolved.dealsCombatDamage
@@ -44,9 +43,8 @@ extension BattleTurnEngineTests {
                 $0.negateFirstEnemyAttack = true
                 $0.swapAndDodgeForHeroChance = 1
             },
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.poison(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
         let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
@@ -61,9 +59,8 @@ extension BattleTurnEngineTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyAbilities: [control == nil ? .block : .slash],
             heroModifiers: CombatantTalentCatalog.profile(for: ["ranger_bleed_t3_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 3)
         if let control {
             battle.appendEffect(.controlMeter(control, 20, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)

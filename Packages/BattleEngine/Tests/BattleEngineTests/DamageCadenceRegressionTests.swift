@@ -11,9 +11,8 @@ struct DamageCadenceRegressionTests {
         let build = CombatBuildResolver.build(enemy: enemy)
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
-            enemy: build.combatant, enemyModifiers: build.modifiers,
+            enemy: build.combatant, enemyModifiers: build.modifiers, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.bleed(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
         battle.appendEffect(.burn(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.appendEffect(.controlMeter(.stun, 20, 20), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
@@ -28,8 +27,7 @@ struct DamageCadenceRegressionTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.stunnedDamageMultiplier = 2
         profile.triggers.criticalChanceBonus = -1
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
         battle.appendEffect(.controlMeter(.stun, 10, 10), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
         let tick = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 4, keyword: .bleed, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,
@@ -45,8 +43,7 @@ struct DamageCadenceRegressionTests {
         profile.triggers.onBleedDealPoisonChancePercent = 1
         profile.triggers.onBurnApplyPoison = 2
         profile.triggers.onBurnDealPoisonChancePercent = 1
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
         let before = battle.health(of: battle.enemy)
         _ = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 4, keyword: keyword, target: battle.enemy, sourceActorID: battle.hero.id,
@@ -61,8 +58,7 @@ struct DamageCadenceRegressionTests {
         var profile = CombatModifierProfile.zero
         affix.basic.triggers.apply(to: &profile, abilityName: affix.title)
         profile.triggers.onBleedDealPoisonChancePercent = 1
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, companionModifiers: profile)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, companionModifiers: profile, appliesFightPacing: false)
         func tick(from actor: Combatant, in battle: inout BattleState) {
             _ = battle.resolveDamage(.doTTick(amount: 2, target: battle.enemy, keyword: .bleed, sourceActorID: actor.id))
         }
@@ -82,8 +78,7 @@ struct DamageCadenceRegressionTests {
         affix.astral.triggers.apply(to: &profile, abilityName: affix.title)
         profile.triggers.criticalChanceBonus = -1
         profile.triggers.onBleedDealBurnChancePercent = 1
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
         let before = battle.health(of: battle.enemy)
         _ = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 4,
@@ -104,8 +99,7 @@ struct DamageCadenceRegressionTests {
         profile.triggers.onBleedDealPoisonChancePercent = 1
         profile.triggers.onBurnApplyPoison = 2
         profile.triggers.onBurnDealPoisonChancePercent = 1
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
         _ = CombatExecutor.run { await DoTApplicator.applyDoT(
             keyword: keyword, potency: 4, to: battle.enemy, sourceActorID: battle.hero.id,
             application: .attached, in: &battle,

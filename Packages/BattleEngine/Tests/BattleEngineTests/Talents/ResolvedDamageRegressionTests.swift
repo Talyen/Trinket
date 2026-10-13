@@ -9,9 +9,8 @@ struct ResolvedDamageRegressionTests {
         let profile = CombatantTalentCatalog.profile(for: [owner == .hero ? "wizard_freeze_t2_1" : "mana_moth_burn_t4_2"])
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 1000, heroModifiers: owner == .hero ? profile : .zero,
-            companionModifiers: owner == .companion ? profile : .zero, dealOpeningHand: false,
+            companionModifiers: owner == .companion ? profile : .zero, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.controlMeter(.freeze, 100, 100), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         let result = battle.resolveTestDamage(
             100,
@@ -26,9 +25,8 @@ struct ResolvedDamageRegressionTests {
     @Test func `Frozen enemy does not amplify stored Burn a second time`() {
         let profile = CombatantTalentCatalog.profile(for: ["mana_moth_burn_t4_2"])
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 1000, companionModifiers: profile, dealOpeningHand: false,
+            enemyMaxHealth: 1000, companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.controlMeter(.freeze, 100, 100), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
         let result = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 100, keyword: .burn, target: battle.enemy, sourceActorID: battle.companion.id,
@@ -42,9 +40,8 @@ struct ResolvedDamageRegressionTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 1000,
             companionModifiers: CombatantTalentCatalog.profile(for: ["shield_scarab_stun_t4_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.thorns(1), to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
         var options = operation
         options.abilityCriticalChanceBonus = -1
@@ -55,9 +52,8 @@ struct ResolvedDamageRegressionTests {
     @Test func `Toxic Backlash doubles the next stored Poison tick once`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 1000, heroModifiers: CombatantTalentCatalog.profile(for: ["ranger_poison_t2_2"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.poison(20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         _ = battle.resolveTestDamage(
             1,

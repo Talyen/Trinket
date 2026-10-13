@@ -9,9 +9,8 @@ struct FeintStrikeRegressionTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroModifiers: CombatantTalentCatalog.profile(for: hasSharedCurrent ? ["druid_mana_t3_1"] : []),
             companionModifiers: CombatantTalentCatalog.profile(for: ["fox_dodge_t1_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         if hasSharedCurrent {
             _ = CombatExecutor.run { await CombatTriggerEngine.afterHeroTalentSpendMana(
                 actor: battle.hero,

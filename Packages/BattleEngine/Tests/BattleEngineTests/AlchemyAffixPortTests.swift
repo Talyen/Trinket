@@ -11,16 +11,14 @@ struct AlchemyAffixPortTests {
         enemyEffects: [ActiveEffect] = [],
         modifiers: CombatModifierProfile = .zero,
     ) -> BattleState {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroEffects: heroEffects,
             enemyEffects: enemyEffects,
             heroHealth: heroHealth,
-            heroModifiers: modifiers,
+            heroModifiers: modifiers, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     @Test func `Spitebloom follows damaging Thorns with Poison`() {
@@ -128,10 +126,7 @@ struct AlchemyAffixPortTests {
         func holyDamage(stunned: Bool) -> Int {
             var battle = makeAffixBattle(modifiers: profile)
             if stunned {
-                _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-                    20, keyword: .stun, to: battle.enemy,
-                    sourceActorID: battle.hero.id, applyFightPacing: false, in: &battle,
-                ) }
+                _ = battle.chargeTestControl(20, keyword: .stun, to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false)
             }
             _ = battle.resolveTestDamage(
                 8,

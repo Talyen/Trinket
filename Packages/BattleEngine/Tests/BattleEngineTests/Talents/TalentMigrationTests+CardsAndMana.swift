@@ -11,9 +11,8 @@ extension TalentMigrationTests {
         profile.triggers.temperCycle = keyword == .freeze
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 1000, heroModifiers: profile, companionModifiers: profile, dealOpeningHand: false,
+            enemyMaxHealth: 1000, heroModifiers: profile, companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let burn = Ability(id: "burn", name: "Burn", tier: .basic, directDamage: 1, damageKeyword: .burn)
         let followup = Ability(id: "followup", name: "Followup", tier: .basic, directDamage: 2, damageKeyword: keyword)
 

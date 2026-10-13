@@ -15,9 +15,8 @@ struct ThornsFeedbackRegressionTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 10),
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
 
         let outcome = battle.resolveTestDamage(
             10,

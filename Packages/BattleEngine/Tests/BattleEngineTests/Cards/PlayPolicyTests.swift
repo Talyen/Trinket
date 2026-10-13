@@ -135,9 +135,8 @@ extension PlayPolicyTests {
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: enemyHealth),
-            heroModifiers: profile, enemyModifiers: enemyModifiers, dealOpeningHand: false,
+            heroModifiers: profile, enemyModifiers: enemyModifiers, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 1
         // Consume the optional opening so the fixture models a ready player turn.
         battle.turnState = .playerTurn

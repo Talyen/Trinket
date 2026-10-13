@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -35,9 +34,7 @@ struct DrawAndPlayRegressionTests {
         battle.companionDeck = CombatDeck(abilities: [.slash])
         let enemyHealth = battle.health(of: battle.enemy)
 
-        let events = BattleTurnEngine.performAction(
-            ability: AbilityCatalog.feint, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let events = battle.performTestAction(AbilityCatalog.feint)
 
         #expect(!events.contains { $0.abilityID == Ability.slash.id })
         #expect(battle.health(of: battle.enemy) == enemyHealth)

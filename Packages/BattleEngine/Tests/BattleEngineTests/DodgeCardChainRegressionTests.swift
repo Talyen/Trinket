@@ -30,7 +30,8 @@ struct DodgeCardChainRegressionTests {
         #expect(battle.events.isEmpty == !tracksEvents)
     }
 
-    @Test func `dance of blades repeats after the drawn attack Critically Hits`() throws {
+    @Test(arguments: [false, true])
+    func `dance of blades continues only after a critical attack rather than critical Leech`(criticalLeech: Bool) throws {
         let item = try #require(GameContent.unique(matching: "dance_of_blades"))
         let power = try #require(item.resolvedPower(at: 0))
         var profile = CombatModifierProfile.zero
@@ -39,17 +40,23 @@ struct DodgeCardChainRegressionTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 100),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroHealth: criticalLeech ? 10 : nil,
             heroModifiers: profile,
+            rngSeed: criticalLeech ? 17 : CombatantFixtures.deterministicBattleSeed, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        battle.heroDeck = CombatDeck(abilities: [.stab, .block])
-
+        battle.heroDeck = CombatDeck(abilities: [criticalLeech ? .fangs : .stab, .block])
         let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: battle.hero, attackerID: battle.enemy.id, in: &battle,
         ) }
-
-        #expect(events.contains { $0.kind == .abilityDamage && $0.abilityID == Ability.stab.id && $0.isCritical })
-        #expect(battle.heroDeck.abilities.isEmpty)
+        if criticalLeech {
+            #expect(events.contains { $0.keyword == .leech && $0.isCritical })
+            #expect(events.contains { $0.kind == .abilityDamage && $0.abilityID == Ability.fangs.id && !$0.isCritical })
+            #expect(battle.heroDeck.abilities.map(\.id) == [Ability.block.id])
+            #expect(battle.turnCadence.cardsPlayed[.hero] == 1)
+        } else {
+            #expect(events.contains { $0.kind == .abilityDamage && $0.abilityID == Ability.stab.id && $0.isCritical })
+            #expect(battle.heroDeck.abilities.isEmpty)
+        }
     }
 
     @Test func `a defeated dance of blades owner cannot grant Tailwind afterward`() {
@@ -58,9 +65,8 @@ struct DodgeCardChainRegressionTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionHealth: 1,
-            companionModifiers: profile,
+            companionModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.hasConsumedDeathsDoor = true
         battle.companionDeck = CombatDeck(abilities: [.stab])
         battle.heroDeck = CombatDeck(abilities: [.block])
@@ -74,31 +80,5 @@ struct DodgeCardChainRegressionTests {
         #expect(battle.health(of: battle.enemy) < 100)
         #expect(battle.heroDeck.abilities.map(\.id) == [Ability.block.id])
         #expect(!events.contains { $0.abilityName == "Tailwind" })
-    }
-
-    @Test func `dance of blades does not repeat for critical Leech on a noncritical attack`() throws {
-        let item = try #require(GameContent.unique(matching: "dance_of_blades"))
-        let power = try #require(item.resolvedPower(at: 0))
-        var profile = CombatModifierProfile.zero
-        power.triggers.apply(to: &profile)
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 100),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 100),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroHealth: 10,
-            heroModifiers: profile,
-            rngSeed: 17,
-        )
-        battle.appliesFightPacing = false
-        battle.heroDeck = CombatDeck(abilities: [.fangs, .block])
-
-        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
-            by: battle.hero, attackerID: battle.enemy.id, in: &battle,
-        ) }
-
-        #expect(events.contains { $0.keyword == .leech && $0.isCritical })
-        #expect(events.contains { $0.kind == .abilityDamage && $0.abilityID == Ability.fangs.id && !$0.isCritical })
-        #expect(battle.heroDeck.abilities.map(\.id) == [Ability.block.id])
-        #expect(battle.turnCadence.cardsPlayed[.hero] == 1)
     }
 }

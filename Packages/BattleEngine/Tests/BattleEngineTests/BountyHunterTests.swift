@@ -38,11 +38,9 @@ struct BountyHunterTests {
     private func makeBattle() -> BattleState {
         var profile = CombatantTalentCatalog.profile(for: ["rogue_gold_t3_1"])
         profile.triggers.criticalChanceBonus = -1
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        return BattleStateTestFactory.makeMinimalBattle(
             enemyHealth: 5,
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 }

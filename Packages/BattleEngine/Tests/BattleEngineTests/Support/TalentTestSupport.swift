@@ -13,24 +13,21 @@ extension TalentCatalogRoundTripTests {
         companionMana: Int = 10,
         seed: UInt64 = CombatantFixtures.deterministicBattleSeed,
     ) -> BattleState {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+        BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxMana: 10, companionMaxMana: companionMana,
             heroModifiers: CombatantTalentCatalog.profile(for: Set(talents)), rngSeed: seed, dealOpeningHand: false,
+            appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     func capstoneBattle(hero: [String] = [], companion: [String] = []) -> BattleState {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+        BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxHealth: 40, companionMaxHealth: 40, enemyMaxHealth: 200,
             heroMaxMana: 10, companionMaxMana: 10,
             heroModifiers: CombatantTalentCatalog.profile(for: Set(hero)),
             companionModifiers: CombatantTalentCatalog.profile(for: Set(companion)),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     @discardableResult

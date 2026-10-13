@@ -10,9 +10,8 @@ extension CombatTriggerTalentDamageTests {
         profile.triggers.onDamageFreezeRetaliationChancePercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionModifiers: profile,
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(block, on: battle.companion, in: &battle)
         let enemyHealth = battle.health(of: battle.enemy)
 
@@ -29,13 +28,12 @@ extension CombatTriggerTalentDamageTests {
     @Test func `dense bones gains reduction only from attack hits up to four`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 100,
-            companionModifiers: .init(triggers: CombatTraitTriggers.configured {
+            companionModifiers: .withTriggers {
                 $0.toughnessOnHit = 1
                 $0.toughnessOnHitCap = 4
-            }),
-            dealOpeningHand: false,
+            },
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         for options in [DamageOperation.periodic, .healthCost, .reaction()] {
             let outcome = battle.resolveTestDamage(
                 2,
@@ -62,13 +60,12 @@ extension CombatTriggerTalentDamageTests {
     @Test func `dense bones clamps a stacked step to its cap`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 100,
-            companionModifiers: .init(triggers: CombatTraitTriggers.configured {
+            companionModifiers: .withTriggers {
                 $0.toughnessOnHit = 3
                 $0.toughnessOnHitCap = 4
-            }),
-            dealOpeningHand: false,
+            },
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         for _ in 0 ..< 2 {
             _ = battle.resolveTestDamage(
                 6,
@@ -83,10 +80,9 @@ extension CombatTriggerTalentDamageTests {
     @Test(arguments: [DamageOperation.healthCost, .periodic, .reaction()])
     func `soul sharing heals from enemy damage but not skeleton health costs`(options: DamageOperation) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.companionDamageLeechesToHeroPercent = 0.5 }),
-            dealOpeningHand: false,
+            companionModifiers: .withTriggers { $0.companionDamageLeechesToHeroPercent = 0.5 },
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 5 }
         let outcome = battle.resolveTestDamage(
             4,
@@ -101,7 +97,7 @@ extension CombatTriggerTalentDamageTests {
 
     @Test func `bloodrush draws only physical cards on bleed ticks`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.bleedTickDrawChancePercent = 1.0 }),
+            companionModifiers: .withTriggers { $0.bleedTickDrawChancePercent = 1.0 },
             dealOpeningHand: false,
         )
         battle.companionDeck = CombatDeck(abilities: [.kindling, .slash])
@@ -119,10 +115,9 @@ extension CombatTriggerTalentDamageTests {
 
     @Test func `bone armor grants block on every health loss except absorbed damage`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.onSelfHealthLossGainBlock = 1 }),
-            dealOpeningHand: false,
+            heroModifiers: .withTriggers { $0.onSelfHealthLossGainBlock = 1 },
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.setActiveEffects(
             [ActiveEffect(id: 100, effect: .shield(.block, 5), remainingTurns: 0)], for: battle.hero,
         )
@@ -144,10 +139,9 @@ extension CombatTriggerTalentDamageTests {
         var successes = 0
         for seed in UInt64(1) ... 32 {
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.crossContamination = true }),
-                rngSeed: seed, dealOpeningHand: false,
+                heroModifiers: .withTriggers { $0.crossContamination = true },
+                rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false,
             )
-            battle.appliesFightPacing = false
             var expectedRng = battle.rng
             let shouldProc = BattleChance.succeeds(probability: 0.20, using: &expectedRng)
             var hit = DamageResolutionState(
@@ -173,8 +167,11 @@ extension CombatTriggerTalentDamageTests {
     func `concussive force builds stun from every physical damage origin`(operation: DamageOperation) {
         var profile = CombatModifierProfile.zero
         profile.triggers.physicalStunBuildupPercent = 1
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile,
+            dealOpeningHand: false,
+            appliesFightPacing: false,
+        )
         let hit = battle.resolveTestDamage(4, options: operation)
         #expect(hit.healthLost == 4)
         #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .controlMeter(.stun, 4, 20) })
@@ -184,8 +181,11 @@ extension CombatTriggerTalentDamageTests {
     func `martial guard grants block from physical reaction and periodic damage`(operation: DamageOperation) {
         var profile = CombatModifierProfile.zero
         profile.triggers.physicalDamageBlockPercent = 0.5
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile,
+            dealOpeningHand: false,
+            appliesFightPacing: false,
+        )
         let hit = battle.resolveTestDamage(4, options: operation)
         #expect(hit.healthLost == 4)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 2)
@@ -201,9 +201,8 @@ extension CombatTriggerTalentDamageTests {
             criticalChanceBonus: -1,
         )
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [ability], enemyMaxHealth: bloodfireIsLethal ? 4 : 100, heroModifiers: profile,
+            heroAbilities: [ability], enemyMaxHealth: bloodfireIsLethal ? 4 : 100, heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let card = try #require(battle.hand.cards.first)
         let events = try battle.playCard(cardID: card.id).events
         let immediateDamage = bloodfireIsLethal ? 2 : 4
@@ -234,8 +233,11 @@ extension CombatTriggerTalentDamageTests {
     @Test func `martial guard converts actual damage without overkill or a second block bonus`() {
         var profile = CombatModifierProfile(blockGainedBonus: 10)
         profile.triggers.physicalDamageBlockPercent = 0.5
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile,
+            dealOpeningHand: false,
+            appliesFightPacing: false,
+        )
         battle.roster.enemy.currentHealth = 4
         let hit = battle.resolveTestDamage(20, options: .attack(scaling: .flat, accuracy: .unavoidable))
         #expect(hit.healthLost == 4)
@@ -250,9 +252,8 @@ extension CombatTriggerTalentDamageTests {
         profile.triggers.sunwallChancePercent = 1
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.smite], heroModifiers: profile, dealOpeningHand: false,
+            heroAbilities: [.smite], heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.nextStrikeDouble, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         let card = BattleCardCombatEngine.deal(.smite, owner: .hero, context: &battle)
 

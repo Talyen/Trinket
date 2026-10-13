@@ -19,8 +19,7 @@ struct EncounterModifierCombatTests {
         var enemy = CombatModifierProfile(modifiers: [.attackLeechPercent(0.5)])
         enemy.triggers.criticalChanceBonus = -1
         let hero = CombatModifierProfile.withTriggers { $0.dodgeChanceBonus = -1 }
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy, appliesFightPacing: false)
         _ = battle.resolveTestDamage(10, options: .attack(scaling: .flat))
         let enemyBefore = battle.health(of: battle.enemy)
 
@@ -36,8 +35,7 @@ struct EncounterModifierCombatTests {
     @Test func `landed enemy attacks strip block before damage`() {
         let hero = CombatModifierProfile.withTriggers { $0.dodgeChanceBonus = -1 }
         let enemy = CombatModifierProfile(modifiers: [.attackBlockRemoval(2)])
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy, appliesFightPacing: false)
         DefensePoolEngine.set(6, on: battle.hero, in: &battle)
         let outcome = battle.resolveTestDamage(5, from: .enemy, to: .hero, options: .attack(scaling: .flat))
         #expect(outcome.healthLost == 1)
@@ -48,8 +46,7 @@ struct EncounterModifierCombatTests {
     @Test func `landed enemy attacks purge one surviving buff`() {
         let hero = CombatModifierProfile.withTriggers { $0.dodgeChanceBonus = -1 }
         let enemy = CombatModifierProfile(modifiers: [.attackPurgeCount(1)])
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy, appliesFightPacing: false)
         DefensePoolEngine.set(10, on: battle.hero, in: &battle)
         let outcome = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: .attack(scaling: .flat))
         #expect(outcome.healthLost == 0)
@@ -63,9 +60,8 @@ struct EncounterModifierCombatTests {
         var battle = BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 4,
             companionModifiers: companion,
-            enemyModifiers: CombatModifierProfile(modifiers: [.attackPurgeCount(1)]),
+            enemyModifiers: CombatModifierProfile(modifiers: [.attackPurgeCount(1)]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.seedActiveEffects([ActiveEffect(id: 1, effect: .thorns(3), remainingTurns: 2)], for: battle.companion)
         let outcome = battle.resolveTestDamage(4, from: .enemy, to: .companion, options: .attack(scaling: .flat, accuracy: .unavoidable))
         #expect(battle.health(of: battle.enemy) == 0)
@@ -79,9 +75,8 @@ struct EncounterModifierCombatTests {
         hero.triggers.criticalChanceBonus = -1
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: hero,
-            enemyModifiers: CombatModifierProfile(modifiers: [.damageTakenPercent(keyword, 0.5)]),
+            enemyModifiers: CombatModifierProfile(modifiers: [.damageTakenPercent(keyword, 0.5)]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let outcome = battle.resolveTestDamage(8, keyword: keyword, options: .attack(scaling: .flat))
         #expect(outcome.healthLost == 4)
     }
@@ -89,9 +84,8 @@ struct EncounterModifierCombatTests {
     @Test(arguments: [Keyword.burn, .poison, .bleed])
     func `typed ward halves periodic damage`(keyword: Keyword) {
         var battle = BattleTestFixtures.makePipelineContext(
-            enemyModifiers: CombatModifierProfile(modifiers: [.damageTakenPercent(keyword, 0.5)]),
+            enemyModifiers: CombatModifierProfile(modifiers: [.damageTakenPercent(keyword, 0.5)]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let outcome = battle.resolveTestDamage(8, keyword: keyword, options: .periodic)
         #expect(outcome.healthLost == 4)
     }

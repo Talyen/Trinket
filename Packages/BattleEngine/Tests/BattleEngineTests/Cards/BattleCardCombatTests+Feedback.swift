@@ -11,8 +11,8 @@ extension BattleCardCombatTests {
         )
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [ability], heroModifiers: CombatModifierProfile.withTriggers { $0.blockGainThornsPercent = 0.5 },
+            appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let card = try #require(battle.hand.cards.first)
         let events = try battle.playCard(cardID: card.id).events
         let block = try #require(events.first { $0.effectKind == .shieldApplied })
@@ -20,18 +20,17 @@ extension BattleCardCombatTests {
         #expect(block.origin == .direct)
         #expect(thorns.origin == .automatic)
         #expect(Set(events.map(\.feedbackGroupID)).count == 1)
-        let next = BattleTurnEngine.performAction(ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle)
+        let next = battle.performTestAction(ability)
         #expect(next.first?.feedbackGroupID != block.feedbackGroupID)
         let automatic = battle.withAutomaticPlay { context in
-            BattleTurnEngine.performAction(ability: ability, actor: context.hero, abilityTarget: context.enemy, context: &context)
+            context.performTestAction(ability)
         }
         #expect(automatic.filter { $0.effectKind == .shieldApplied }.allSatisfy { $0.origin == .automatic })
     }
 
     @Test(arguments: [2, 8])
     func `absorption events distinguish full and partial block`(block: Int) throws {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         DefensePoolEngine.set(block, on: battle.hero, in: &battle)
         let outcome = battle.resolveTestDamage(5, from: .enemy, to: .hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
         let event = try #require(outcome.events.first { $0.effectKind == .shieldAbsorbed })
@@ -39,8 +38,7 @@ extension BattleCardCombatTests {
     }
 
     @Test func `periodic feedback shares its checkpoint and detail includes active preparations`() {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         battle.appendEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 3)
         battle.appendEffect(.poison(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         let events = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }

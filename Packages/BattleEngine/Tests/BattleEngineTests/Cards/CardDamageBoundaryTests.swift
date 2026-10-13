@@ -6,8 +6,7 @@ import TrinketCore
 struct CardDamageBoundaryTests {
     @Test(arguments: [Int.max, Int.max / 2])
     func `large Kindled preparation resolves a doubled Burn card and its costs and rewards`(bonus: Int) throws {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         let hero = battle.hero
         _ = EffectHandlersTestSupport.dispatch(
             .nextBurnBonus(1), source: hero, target: hero, battle: &battle,

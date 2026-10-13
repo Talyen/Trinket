@@ -13,7 +13,7 @@ extension TalentCatalogRoundTripTests {
             criticalChanceBonus: -1,
         )
         func strike(_ battle: inout BattleState) -> [ActionEvent] {
-            BattleTurnEngine.performAction(ability: attack, actor: battle.companion, abilityTarget: battle.enemy, context: &battle)
+            battle.performTestAction(attack, from: .companion)
         }
         let first = strike(&battle)
         #expect(first.count { $0.effectKind == .leechHeal } == 2)
@@ -84,8 +84,11 @@ extension TalentCatalogRoundTripTests {
     @Test func `legacy purge protection prevents purged avatar from dealing damage or granting block`() throws {
         var profile = CombatModifierProfile.zero
         profile.triggers.interdict = true
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(companionModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: profile,
+            dealOpeningHand: false,
+            appliesFightPacing: false,
+        )
         let avatar = Effect.avatar(holyDamage: 6, blockPerTurn: 4, turns: 1)
         seedHeroTalentEffect(avatar, on: .enemy, in: &battle, source: .enemy)
         let purge = Ability(id: "purge-avatar", name: "Purge", tier: .skill, targetedEffects: [TargetedEffect(.purge(nil), target: .enemy)])
@@ -127,9 +130,8 @@ extension TalentCatalogRoundTripTests {
             heroMaxHealth: 40,
             heroModifiers: CombatModifierProfile.withTriggers { $0.dodgeChanceBonus = -1 },
             companionModifiers: CombatantTalentCatalog.profile(for: ["library_owl_holy_t2_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         try playHeroTalentCard(.smite, owner: .companion, in: &battle)
         #expect(battle.roster.enemy.talents.pending.nextAttackMissChance == 0.20)
         let dot = battle.resolveDamage(.doTTick(amount: 2, target: battle.hero, keyword: .burn, sourceActorID: battle.enemy.id))
@@ -140,7 +142,7 @@ extension TalentCatalogRoundTripTests {
         let avoided = CombatExecutor.run { await CombatTriggerEngine.enemyAttackAvoidance(in: &battle) }
         #expect(avoided.cancelled)
         let before = battle.roster.hero.currentHealth
-        _ = BattleTurnEngine.performAction(ability: attack, actor: battle.enemy, abilityTarget: battle.hero, context: &battle)
+        _ = battle.performTestAction(attack, from: .enemy, to: .hero)
         #expect(before - battle.roster.hero.currentHealth == 8)
         #expect(battle.roster.enemy.talents.pending.nextAttackMissChance == 0)
     }

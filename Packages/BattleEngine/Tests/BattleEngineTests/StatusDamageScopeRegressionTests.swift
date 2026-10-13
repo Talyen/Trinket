@@ -9,9 +9,8 @@ struct StatusDamageScopeRegressionTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 100,
             companionModifiers: CombatantTalentCatalog.profile(for: ["panther_bleed_t2_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.enemy.currentHealth = enemyHealth
         battle.appendEffect(.bleed(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
 
@@ -24,9 +23,8 @@ struct StatusDamageScopeRegressionTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 100,
             companionModifiers: CombatantTalentCatalog.profile(for: ["bear_physical_t2_2", "bear_stun_t4_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let threshold = ControlMeterEngine.threshold(for: battle.enemy, in: battle)
         battle.appendEffect(
             .controlMeter(.stun, threshold - 1, threshold),

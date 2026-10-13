@@ -48,24 +48,10 @@ extension UniqueCollectionTests {
         var context = try battle(["the_lingering_bell"])
         let enemy = context.roster.enemy.combatant
         let sourceID = context.roster.hero.id
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            900,
-            keyword: .stun,
-            to: enemy,
-            sourceActorID: sourceID,
-            applyFightPacing: false,
-            in: &context,
-        ) }
+        _ = context.chargeTestControl(900, keyword: .stun, to: enemy, sourceActorID: sourceID, applyFightPacing: false)
         #expect(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun))
         #expect(context.uniques.retainedStunByEffectID.values.first == 100)
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            100,
-            keyword: .stun,
-            to: enemy,
-            sourceActorID: sourceID,
-            applyFightPacing: false,
-            in: &context,
-        ) }
+        _ = context.chargeTestControl(100, keyword: .stun, to: enemy, sourceActorID: sourceID, applyFightPacing: false)
         #expect(context.uniques.retainedStunByEffectID.values.first == 100)
         _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context) }
         #expect(context.roster.hasControlStatus(for: enemy, keyword: .stun))
@@ -75,14 +61,7 @@ extension UniqueCollectionTests {
         #expect(!context.roster.hasControlStatus(for: enemy, keyword: .stun))
         let meter = try #require(context.roster.enemy.activeEffects.first { $0.keyword == .stun })
         #expect(meter.effect.controlMeterValues?.amount == 100)
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            300,
-            keyword: .stun,
-            to: enemy,
-            sourceActorID: sourceID,
-            applyFightPacing: false,
-            in: &context,
-        ) }
+        _ = context.chargeTestControl(300, keyword: .stun, to: enemy, sourceActorID: sourceID, applyFightPacing: false)
         #expect(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun))
     }
 
@@ -91,14 +70,7 @@ extension UniqueCollectionTests {
         extra.triggers.enemyStunThresholdReductionPercent = 0.25
         var context = try battle(["the_lingering_bell"], extra: extra)
         let enemy = context.roster.enemy.combatant
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            1000,
-            keyword: .stun,
-            to: enemy,
-            sourceActorID: context.roster.hero.id,
-            applyFightPacing: false,
-            in: &context,
-        ) }
+        _ = context.chargeTestControl(1000, keyword: .stun, to: enemy, sourceActorID: context.roster.hero.id, applyFightPacing: false)
         #expect(context.uniques.retainedStunByEffectID.values.first == 75)
         context.roster.setActiveEffects([], for: enemy)
         _ = UniqueCombatEngine.startTurn(in: &context)

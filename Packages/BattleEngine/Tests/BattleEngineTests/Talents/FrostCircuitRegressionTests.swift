@@ -54,9 +54,8 @@ struct FrostCircuitRegressionTests {
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
                 heroAbilities: [.rayOfFrost], enemyMaxHealth: 100,
                 heroMaxMana: 10, heroMana: 0, heroModifiers: profile,
-                rngSeed: seed,
+                rngSeed: seed, appliesFightPacing: false,
             )
-            battle.appliesFightPacing = false
             let card = try #require(battle.hand.cards.first { $0.owner == .hero })
             let events = try battle.playCard(cardID: card.id).events
             let criticalHits = events.count {

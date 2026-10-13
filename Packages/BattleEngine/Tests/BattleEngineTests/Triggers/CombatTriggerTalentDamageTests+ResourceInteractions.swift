@@ -8,9 +8,8 @@ extension CombatTriggerTalentDamageTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxMana: 3, heroMana: 3,
             heroModifiers: CombatantTalentCatalog.profile(for: ["wizard_mana_t1_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         var ability = Ability.frostbolt
         _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability,
@@ -23,9 +22,8 @@ extension CombatTriggerTalentDamageTests {
     @Test(arguments: [0, 2, 10])
     func `blood link transfers only excess leech`(missingHealth: Int) {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_leech_t2_1"]),
+            heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_leech_t2_1"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = $0.maxHealth - missingHealth }
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 1 }
         _ = CombatExecutor.run { await HealingEngine.leechFromDamage(
@@ -41,9 +39,8 @@ extension CombatTriggerTalentDamageTests {
     @Test func `dark recovery strengthens leech at zero mana`() {
         func restored(mana: Int) -> Int {
             var battle = BattleTestFixtures.makePipelineContext(
-                heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_mana_t1_1"]),
+                heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_mana_t1_1"]), appliesFightPacing: false,
             )
-            battle.appliesFightPacing = false
             battle.roster.hero.currentHealth = 5
             battle.roster.hero.currentMana = mana
             _ = CombatExecutor.run { await HealingEngine.leechFromDamage(
@@ -115,9 +112,8 @@ extension CombatTriggerTalentDamageTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxMana: 6, companionMana: 6,
             companionModifiers: CombatantTalentCatalog.profile(for: ["mana_moth_mana_t3_2"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.talents.battle.manaSpentTowardAutoPlay = 3
         battle.companionDeck = CombatDeck(abilities: [.kindling, .block])
         let result = CombatExecutor.run { await DrawAndPlayCardsHandler().apply(

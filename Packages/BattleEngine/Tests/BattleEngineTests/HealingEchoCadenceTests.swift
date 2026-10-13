@@ -14,9 +14,8 @@ struct HealingEchoCadenceTests {
             companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 10, companionHealth: 10, enemyHealth: 1,
-            companionModifiers: profile,
+            companionModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.enemy.hasConsumedDeathsDoor = true
         let sourceID = battle.companion.id
         battle.roster.hero.talents.pending.healingEchoes = [HealingEcho(amount: 1, sourceActorID: sourceID)]

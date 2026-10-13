@@ -30,12 +30,9 @@ struct ResolvedHealingReductionTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 100),
             enemy: CombatantFixtures.passiveEnemy(abilities: [.serratedEdge]),
-            companionModifiers: profile,
+            companionModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        _ = BattleTurnEngine.performAction(
-            ability: .serratedEdge, actor: battle.enemy, abilityTarget: battle.hero, context: &battle,
-        )
+        _ = battle.performTestAction(.serratedEdge, from: .enemy, to: .hero)
         battle.roster.hero.currentHealth = 10
         battle.roster.companion.currentHealth = 10
 
@@ -63,9 +60,8 @@ struct ResolvedHealingReductionTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 100),
             enemy: CombatantFixtures.passiveEnemy(abilities: [.serratedEdge]),
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         for target in heroSapped ? [battle.hero, battle.companion] : [battle.companion] {
             _ = BattleTurnEngine.performAction(
                 ability: .serratedEdge, actor: battle.enemy, abilityTarget: target, context: &battle,

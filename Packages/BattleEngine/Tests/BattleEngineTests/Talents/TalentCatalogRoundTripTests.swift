@@ -25,9 +25,8 @@ struct TalentCatalogRoundTripTests {
         enemyProfile.triggers.burnIgnoresBlockAndMitigation = true
         enemyProfile.triggers.physicalBlockIgnorePercent = physicalIgnore
         var battle = BattleStateTestFactory.makeBattle(
-            heroModifiers: heroProfile, enemyModifiers: enemyProfile, dealOpeningHand: false,
+            heroModifiers: heroProfile, enemyModifiers: enemyProfile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(10, on: battle.hero, in: &battle)
         DefensePoolEngine.set(4, on: battle.companion, in: &battle)
         let result = battle.resolveTestDamage(8, from: .enemy, to: .companion, keyword: keyword, options: .effect(scaling: .flat))
@@ -42,9 +41,8 @@ struct TalentCatalogRoundTripTests {
                 $0.blockBrokenBlockFlat = 2
                 $0.blockAbsorbsCompanionDamage = true
             },
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         _ = battle.applyBlock(3, to: battle.hero, source: battle.hero, abilityName: "Block")
         for amount in [1, 3] {
             _ = battle.resolveTestDamage(amount, from: .enemy, to: .companion, options: .reaction())
@@ -53,7 +51,8 @@ struct TalentCatalogRoundTripTests {
         #expect(battle.roster.companion.currentHealth == battle.roster.companion.maxHealth - 1)
     }
 
-    @Test func `deep freeze blocks enemy block and healing`() throws {
+    @Test(arguments: [BattleParticipant.enemy, .hero])
+    func `deep freeze denies only the frozen enemy Block and healing`(recipient: BattleParticipant) throws {
         let build = try BattleTestFixtures.catalogBuild(combatantID: "wizard", talents: "wizard_freeze_t3_1")
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: build.combatant,
@@ -61,50 +60,20 @@ struct TalentCatalogRoundTripTests {
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
             heroModifiers: build.modifiers,
         )
+        let target = battle.roster[recipient].combatant
         battle.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
-            for: battle.roster.enemy.combatant,
+            for: target,
         )
-        let blockEvents = battle.applyBlock(
-            5,
-            to: battle.roster.enemy.combatant,
-            source: battle.roster.enemy.combatant,
-            abilityName: "Test",
-        )
-        #expect(blockEvents.isEmpty)
-        battle.roster.mutateRuntime(for: battle.roster.enemy.combatant) { $0.currentHealth = 10 }
-        let heal = battle.resolveHeal(
-            HealRequest(amount: 5, target: battle.roster.enemy.combatant, sourceActorID: battle.roster.enemy.id),
-        )
-        #expect(heal.healthRestored == 0)
-        #expect(battle.roster.health(for: battle.roster.enemy.combatant) == 10)
-    }
-
-    @Test func `deep freeze does not deny frozen hero block or heal`() throws {
-        let build = try BattleTestFixtures.catalogBuild(combatantID: "wizard", talents: "wizard_freeze_t3_1")
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: build.combatant,
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
-            heroModifiers: build.modifiers,
-        )
-        battle.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
-            for: battle.roster.hero.combatant,
-        )
-        let blockEvents = battle.applyBlock(
-            5,
-            to: battle.roster.hero.combatant,
-            source: battle.roster.hero.combatant,
-            abilityName: "Test",
-        )
-        #expect(!(blockEvents.isEmpty))
-        battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentHealth = 10 }
-        let maxHealth = battle.roster.maxHealth(for: battle.roster.hero.combatant)
-        _ = battle.resolveHeal(
-            HealRequest(amount: 5, target: battle.roster.hero.combatant, sourceActorID: "enemy"),
-        )
-        #expect(battle.roster.health(for: battle.roster.hero.combatant) == min(15, maxHealth))
+        let blockEvents = battle.applyBlock(5, to: target, source: target, abilityName: "Test")
+        #expect(blockEvents.isEmpty == (recipient == .enemy))
+        battle.roster.mutateRuntime(for: target) { $0.currentHealth = 10 }
+        let heal = battle.resolveHeal(HealRequest(amount: 5, target: target, sourceActorID: "enemy"))
+        if recipient == .enemy {
+            #expect(heal.healthRestored == 0)
+        }
+        let expectedHealth = recipient == .enemy ? 10 : min(15, battle.roster.maxHealth(for: target))
+        #expect(battle.roster.health(for: target) == expectedHealth)
     }
 
     @Test func `phoenix gift heals hero from fatal damage`() throws {

@@ -66,10 +66,13 @@ extension UniqueCollectionTests {
         context.appendEffect(.thorns(3), to: enemy, sourceID: enemy.id, remainingTurns: 0)
         let threshold = ControlMeterEngine.threshold(for: enemy, in: context)
 
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            threshold, keyword: .stun, to: enemy, sourceActorID: context.roster[source].id,
-            applyFightPacing: false, in: &context,
-        ) }
+        _ = context.chargeTestControl(
+            threshold,
+            keyword: .stun,
+            to: enemy,
+            sourceActorID: context.roster[source].id,
+            applyFightPacing: false,
+        )
 
         #expect(context.roster.hasControlStatus(for: enemy, keyword: .stun))
         #expect(context.roster.enemy.activeEffects.contains { $0.effect == .thorns(3) } == (source == .companion))

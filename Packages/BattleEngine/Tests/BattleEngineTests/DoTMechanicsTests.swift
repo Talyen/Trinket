@@ -10,9 +10,8 @@ struct DoTMechanicsTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 10),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 10),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 10),
-            heroHealth: 1,
+            heroHealth: 1, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.mutateRuntime(for: battle.hero) { $0.hasConsumedDeathsDoor = true }
 
         _ = CombatExecutor.run { await DoTApplicator.applyBleed(
@@ -27,19 +26,21 @@ struct DoTMechanicsTests {
     @Test(arguments: [Keyword.burn, .poison], [false, true])
     func `flashover doubles the burn hit but not stored ticks`(keyword: Keyword, frozen: Bool) {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+            heroModifiers: .withTriggers {
                 $0.criticalChanceBonus = -1
                 $0.burnDoubleVsFrozenChancePercent = 1
-            }),
+            }, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let enemy = battle.roster.enemy.combatant
         if frozen {
             let threshold = ControlMeterEngine.threshold(for: enemy, in: battle)
-            _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-                threshold, keyword: .freeze, to: enemy,
-                sourceActorID: battle.roster.hero.id, applyFightPacing: false, in: &battle,
-            ) }
+            _ = battle.chargeTestControl(
+                threshold,
+                keyword: .freeze,
+                to: enemy,
+                sourceActorID: battle.roster.hero.id,
+                applyFightPacing: false,
+            )
         }
         #expect(battle.roster.hasControlStatus(for: enemy, keyword: .freeze) == frozen)
         let initialHit = battle.resolveTestDamage(4, to: enemy, keyword: keyword, sourceActorID: battle.roster.hero.id)
@@ -200,9 +201,8 @@ struct DoTMechanicsTests {
                 $0.poisonDamageLeechChancePercent = 1
                 $0.leechRestoreManaFlat = 2
             },
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let hero = battle.roster.hero.combatant
         battle.roster.mutateRuntime(for: hero) { $0.currentHealth = health }
         let events = battle.resolveTestDamage(4, keyword: .poison, options: .reaction()).events
@@ -214,12 +214,11 @@ struct DoTMechanicsTests {
 
     @Test func `poison leech heals once for attacks applications and ticks`() throws {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+            heroModifiers: .withTriggers {
                 $0.criticalChanceBonus = -1
                 $0.poisonDamageLeechChancePercent = 1
-            }),
+            }, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let hero = battle.roster.hero.combatant
         let enemy = battle.roster.enemy.combatant
         battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 20 }
@@ -260,9 +259,7 @@ struct DoTMechanicsTests {
             let handler = EffectHandlers.handler(for: .bleed)
             _ = CombatExecutor.run { await handler.advanceTurn(bleed, on: battle.enemy, in: &battle) }
         } else {
-            _ = BattleTurnEngine.performAction(
-                ability: .rendingSlash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-            )
+            _ = battle.performTestAction(.rendingSlash)
         }
         #expect(battle.roster.hero.currentHealth == (blocked ? 10 : 12))
         #expect(battle.roster.hero.talents.pending.basicCriticalBonus == (blocked ? 0 : 0.35))
@@ -321,9 +318,8 @@ extension DoTMechanicsTests {
                     $0.burnDamageDoubleChancePercent = 1
                     $0.burnTicksTwicePerTurn = true
                 },
-            ),
+            ), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let enemy = battle.roster.enemy.combatant
         let initial = battle.applyDecayingDoT(
             keyword: .burn, potency: 8, to: enemy,
@@ -348,9 +344,8 @@ extension DoTMechanicsTests {
                     $0.criticalChanceBonus = 1
                     $0.bleedTickCritChancePercent = specialCrit ? 1 : 0
                 },
-            ),
+            ), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let hero = battle.roster.hero.combatant
         let enemy = battle.roster.enemy.combatant
         battle.roster.mutateRuntime(for: hero) { $0.talents.battle.criticalMultiplierBonus = 0.5 }
@@ -379,7 +374,7 @@ extension DoTMechanicsTests {
         threshold: Int = 0,
         perTurnCap: Int = 0,
     ) -> BattleState {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+        BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 100,
             heroMaxMana: 5,
             heroMana: 0,
@@ -389,10 +384,8 @@ extension DoTMechanicsTests {
                 $0.onBurnDamageRestoreManaPerTurnCap = perTurnCap
                 $0.onBurnDamageRestoreManaFlat = 1
             },
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     @Test func `direct burn damage restores mana up to the per-turn cap`() {

@@ -34,9 +34,8 @@ struct CleanseHealingRecipientTests {
 
     private func makeBattle(triggers: CombatTraitTriggers, companionHealth: Int) -> BattleState {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: CombatModifierProfile(triggers: triggers), dealOpeningHand: false,
+            heroModifiers: CombatModifierProfile(triggers: triggers), dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 5
         battle.roster.companion.currentHealth = companionHealth
         battle.appendEffect(.poison(3), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)

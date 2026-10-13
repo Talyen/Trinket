@@ -39,9 +39,8 @@ struct ItemAffixKeywordExpansionTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 40, maxMana: 10),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             enemyEffects: [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 2)],
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let hero = battle.hero
         let enemy = battle.enemy
 
@@ -76,9 +75,8 @@ struct ItemAffixKeywordExpansionTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             enemyEffects: [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 2)],
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
 
         let outcome = battle.resolveTestDamage(1, options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true))
 
@@ -100,9 +98,8 @@ struct ItemAffixKeywordExpansionTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroHealth: 5,
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let hero = battle.hero
 
         _ = battle.resolveTestDamage(5, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
@@ -128,9 +125,8 @@ struct ItemAffixKeywordExpansionTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 2)],
             heroHealth: 10,
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let hero = battle.hero
 
         _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: hero, in: &battle) }

@@ -7,9 +7,8 @@ struct HeroTalentReworkRegressionTests {
     @Test(arguments: [Keyword.physical, .bleed, .holy])
     func `leech armor pierce applies across attack damage types`(keyword: Keyword) {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_leech_t1_2"]),
+            heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_leech_t1_2"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
         let outcome = battle.resolveTestDamage(
             8,
@@ -34,9 +33,8 @@ struct HeroTalentReworkRegressionTests {
 
     @Test func `poison critical prepares one bleed critical hit`() {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_poison_t2_1"]),
+            heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_poison_t2_1"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let serial = battle.resolution.beginCard(actorID: battle.hero.id)
         let poison = battle.resolveTestDamage(
             2,
@@ -62,9 +60,8 @@ struct HeroTalentReworkRegressionTests {
             func critical(hasLeech: Bool) -> Bool {
                 var battle = BattleTestFixtures.makePipelineContext(
                     targetEffects: [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)],
-                    heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_bleed_t2_1"]), seed: seed,
+                    heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_bleed_t2_1"]), seed: seed, appliesFightPacing: false,
                 )
-                battle.appliesFightPacing = false
                 return battle.resolveTestDamage(2, options: .attack(scaling: .items, accuracy: .unavoidable, abilityHasLeech: hasLeech))
                     .isCritical
             }
@@ -77,8 +74,8 @@ struct HeroTalentReworkRegressionTests {
     @Test func `shared prescription transfers only available excess healing`() {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatantTalentCatalog.profile(for: ["alchemist_health_t3_1", "alchemist_health_t1_1"]),
+            appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.currentHealth = 1
         _ = battle.healEmitting(amount: 3, target: battle.hero, source: battle.hero, abilityName: "Heal")
         #expect(battle.roster.companion.currentHealth == 4)

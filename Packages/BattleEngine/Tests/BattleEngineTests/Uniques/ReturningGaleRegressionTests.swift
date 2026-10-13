@@ -23,9 +23,8 @@ struct ReturningGaleRegressionTests {
             companion: CombatantFixtures.passiveCompanion(maxHealth: 200, maxMana: 12),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 2000),
             heroModifiers: owner == .hero ? profile : .zero,
-            companionModifiers: owner == .companion ? profile : .zero,
+            companionModifiers: owner == .companion ? profile : .zero, appliesFightPacing: false,
         )
-        context.appliesFightPacing = false
         if !heroDeck.isEmpty {
             context.heroDeck = CombatDeck(abilities: heroDeck)
         }
@@ -64,10 +63,7 @@ struct ReturningGaleRegressionTests {
         let heroDeckBefore = context.heroDeck.abilities.map(\.id)
         try #require(!heroDeckBefore.contains("played"))
         try #require(context.heroDeck.discarded.contains { $0.ability.id == "played" })
-        _ = BattleTurnEngine.performAction(
-            ability: attack(id: "enemy-hit"), actor: context.enemy,
-            abilityTarget: context.hero, context: &context,
-        )
+        _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
         // 3. Same ability returns from deck, no copy remains in deck.
         try #expect((context.hand.cards + context.hand.buffer).contains { $0.owner == .hero && $0.ability.id == "played" })
         try #expect(!context.heroDeck.abilities.contains { $0.id == "played" })
@@ -95,10 +91,7 @@ struct ReturningGaleRegressionTests {
         _ = BattleCardCombatEngine.deal(attack(id: "buffered"), owner: .hero, context: &context)
         try #require(context.hand.buffer.map(\.ability.id) == ["buffered"])
         context.prependEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
-        _ = BattleTurnEngine.performAction(
-            ability: attack(id: "enemy-hit"), actor: context.enemy,
-            abilityTarget: context.hero, context: &context,
-        )
+        _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
         // Returned card enters buffer FIFO (no overflow loss), visible hand unchanged.
         try #expect(context.hand.cards.map(\.ability.id) == ["held1", "held2", "held3"])
         try #expect(context.hand.buffer.map(\.ability.id) == ["buffered", "played"])
@@ -118,10 +111,7 @@ struct ReturningGaleRegressionTests {
         try play(attack(id: "played"), owner: .hero, in: &context)
         for _ in 0 ..< 2 {
             context.prependEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
-            _ = BattleTurnEngine.performAction(
-                ability: attack(id: "enemy-hit"), actor: context.enemy,
-                abilityTarget: context.hero, context: &context,
-            )
+            _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
         }
         let copies = (context.hand.cards + context.hand.buffer).count(where: { $0.owner == .hero && $0.ability.id == "played" })
             + context.heroDeck.abilities.count(where: { $0.id == "played" })
@@ -132,10 +122,7 @@ struct ReturningGaleRegressionTests {
         // No prior play -> Dodge does nothing.
         var context = try battle(["the_returning_gale"])
         context.prependEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
-        _ = BattleTurnEngine.performAction(
-            ability: attack(id: "enemy-hit"), actor: context.enemy,
-            abilityTarget: context.hero, context: &context,
-        )
+        _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
         try #expect(context.hand.totalCount == 0)
         // Already held -> do nothing (no duplicate).
         context = try battle(["the_returning_gale"], heroDeck: [attack(id: "played")])
@@ -144,10 +131,7 @@ struct ReturningGaleRegressionTests {
         _ = BattleCardCombatEngine.recoverCard(copyID: trackedCopyID, owner: .hero, context: &context)
         let totalBefore = context.hand.totalCount + context.heroDeck.count
         context.prependEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
-        _ = BattleTurnEngine.performAction(
-            ability: attack(id: "enemy-hit"), actor: context.enemy,
-            abilityTarget: context.hero, context: &context,
-        )
+        _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
         try #expect(context.hand.totalCount + context.heroDeck.count == totalBefore)
         // Absent from deck (already consumed) is covered by repeated dodge above.
         // A stunned owner cannot draw, so Dodge creates no additional copy.
@@ -155,10 +139,7 @@ struct ReturningGaleRegressionTests {
         try play(attack(id: "played"), owner: .hero, in: &context)
         context.appendEffect(.controlMeter(.stun, 10, 5), to: context.hero, sourceID: context.enemy.id, remainingTurns: 2)
         context.prependEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
-        _ = BattleTurnEngine.performAction(
-            ability: attack(id: "enemy-hit"), actor: context.enemy,
-            abilityTarget: context.hero, context: &context,
-        )
+        _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
         let copies = (context.hand.cards + context.hand.buffer).count(where: { $0.ability.id == "played" })
             + context.heroDeck.abilities.count(where: { $0.id == "played" })
         try #expect(copies <= 2)
@@ -174,10 +155,7 @@ struct ReturningGaleRegressionTests {
         try #expect((context.hand.cards + context.hand.buffer).contains { $0.ability.id == "played" })
         // Dodge later finds already held, does nothing (no duplicate).
         context.prependEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
-        _ = BattleTurnEngine.performAction(
-            ability: attack(id: "enemy-hit"), actor: context.enemy,
-            abilityTarget: context.hero, context: &context,
-        )
+        _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
         let copies = (context.hand.cards + context.hand.buffer).count(where: { $0.ability.id == "played" })
             + context.heroDeck.abilities.count(where: { $0.id == "played" })
         try #expect(copies == 1)

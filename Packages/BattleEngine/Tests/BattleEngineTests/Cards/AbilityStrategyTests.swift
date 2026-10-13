@@ -1,18 +1,15 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
 struct AbilityStrategyTests {
     private func battle(mana: Int = 0) -> BattleState {
         let profile = CombatModifierProfile.withTriggers { $0.criticalChanceBonus = -1 }
-        var state = BattleStateTestFactory.makeBattleWithAbilities(
+        return BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxMana: mana, heroMana: mana,
-            heroModifiers: profile, companionModifiers: profile, dealOpeningHand: false,
+            heroModifiers: profile, companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        state.appliesFightPacing = false
-        return state
     }
 
     private func deal(_ ability: Ability, owner: BattleParticipant = .hero, in state: inout BattleState) -> BattleCard {
@@ -50,9 +47,8 @@ struct AbilityStrategyTests {
             heroModifiers: CombatModifierProfile.withTriggers {
                 $0.bleedingEnemyAttackDealDamage = 1
                 $0.criticalChanceBonus = -1
-            }, dealOpeningHand: false,
+            }, dealOpeningHand: false, appliesFightPacing: false,
         )
-        state.appliesFightPacing = false
         DefensePoolEngine.set(2, on: state.enemy, in: &state)
         state.appendEffect(.bleed(1), to: state.enemy, sourceID: state.hero.id, remainingTurns: 3)
         let result = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(

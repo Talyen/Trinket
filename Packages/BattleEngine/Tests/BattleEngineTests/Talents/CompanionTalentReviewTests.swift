@@ -12,9 +12,8 @@ struct CompanionTalentReviewTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 100,
             heroModifiers: CombatantTalentCatalog.profile(for: ["ranger_bleed_t1_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         if targetIsBleeding {
             battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
         }
@@ -39,9 +38,8 @@ struct CompanionTalentReviewTests {
         let attack = Ability(id: "poison-attack", name: "Poison Attack", tier: .basic, directDamage: 4, damageKeyword: .poison)
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionAbilities: [attack], enemyMaxHealth: 100,
-            companionModifiers: profile, dealOpeningHand: false,
+            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(100, on: battle.enemy, in: &battle)
         let before = battle.roster.enemy.currentHealth
         battle.nextCardID += 1
@@ -55,9 +53,8 @@ struct CompanionTalentReviewTests {
     @Test func `seismic reversal retaliates when bear block breaks`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionModifiers: CombatantTalentCatalog.profile(for: ["bear_stun_t4_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(3, on: battle.companion, in: &battle)
         let enemyHealth = battle.roster.enemy.currentHealth
         let hit = DamageRequest(
@@ -90,9 +87,8 @@ struct CompanionTalentReviewTests {
     @Test func `mans best friend redirects only the first fatal hit`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionModifiers: CombatantTalentCatalog.profile(for: ["golden_retriever_health_t2_2"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 5
         let companionHealth = battle.roster.companion.currentHealth
         let hit = DamageRequest(
@@ -123,9 +119,8 @@ struct CompanionTalentReviewTests {
     @Test func `undying ember leeches only from phoenix burn during deaths door`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionModifiers: CombatantTalentCatalog.profile(for: ["phoenix_deathsdoor_t4_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.currentHealth = 1
         battle.appendEffect(.deathsDoor, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 2)
         let burn = DamageRequest(

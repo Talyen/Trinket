@@ -75,10 +75,13 @@ extension TalentMigrationTests {
                     for: battle.roster.enemy.combatant,
                 )
             }
-            _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-                20, keyword: .stun, to: battle.roster.enemy.combatant,
-                sourceActorID: battle.roster.hero.id, applyFightPacing: false, in: &battle,
-            ) }
+            _ = battle.chargeTestControl(
+                20,
+                keyword: .stun,
+                to: battle.roster.enemy.combatant,
+                sourceActorID: battle.roster.hero.id,
+                applyFightPacing: false,
+            )
             #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
             _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
             #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun) == burning)

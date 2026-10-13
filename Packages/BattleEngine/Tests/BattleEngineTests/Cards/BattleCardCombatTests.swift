@@ -61,9 +61,7 @@ struct BattleCardCombatTests {
             #expect(throws: BattlePlayError.insufficientHealth) { try battle.playCard(cardID: card.id) }
             #expect(battle.hand.card(id: card.id) != nil)
             #expect(battle.health(of: battle.hero) == health)
-            let events = BattleTurnEngine.performAction(
-                ability: .darkPact, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-            )
+            let events = battle.performTestAction(.darkPact)
             #expect(events.isEmpty)
         }
     }
@@ -400,9 +398,8 @@ extension BattleCardCombatTests {
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `pack tactics hits first then draws one manual ally card`(owner: BattleParticipant) throws {
         var battle = BattleStateTestFactory.makeBattle(
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000), dealOpeningHand: false,
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000), dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.heroDeck = CombatDeck(abilities: [.block])
         battle.companionDeck = CombatDeck(abilities: [.block])
         let card = BattleCardCombatEngine.deal(.packTactics, owner: owner, context: &battle)
@@ -418,8 +415,7 @@ extension BattleCardCombatTests {
     }
 
     @Test func `pack tactics draws one manual card from survivor deck`() throws {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         battle.roster.companion.currentHealth = 0
         battle.heroDeck = CombatDeck(abilities: [.block, .block])
         battle.companionDeck = CombatDeck(abilities: [.slash])

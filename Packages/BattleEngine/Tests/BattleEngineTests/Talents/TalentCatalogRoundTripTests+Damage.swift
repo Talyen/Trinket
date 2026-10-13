@@ -7,9 +7,8 @@ extension TalentCatalogRoundTripTests {
     @Test func `sacrificial guard spends companion block before hero health`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionModifiers: CombatantTalentCatalog.profile(for: ["golden_retriever_block_t3_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 10
         DefensePoolEngine.set(6, on: battle.companion, in: &battle)
 

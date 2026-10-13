@@ -76,12 +76,10 @@ struct CombatMagnitudeRegressionTests {
         heroProfile.triggers.criticalChanceBonus = -1
         var enemyProfile = CombatModifierProfile.zero
         enemyProfile.triggers.maxDamagePerHitCap = 3
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        return BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 20),
             heroModifiers: heroProfile,
-            enemyModifiers: enemyProfile,
+            enemyModifiers: enemyProfile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 }

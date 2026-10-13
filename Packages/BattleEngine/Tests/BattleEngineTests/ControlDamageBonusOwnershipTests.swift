@@ -25,9 +25,8 @@ struct ControlDamageBonusOwnershipTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             enemyEffects: [ActiveEffect(id: 1, effect: .controlMeter(control, 100, 100), remainingTurns: 1)],
             heroModifiers: companionOwnsPower ? .zero : profile,
-            companionModifiers: companionOwnsPower ? profile : .zero,
+            companionModifiers: companionOwnsPower ? profile : .zero, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let owner = companionOwnsPower ? battle.companion : battle.hero
         let partner = companionOwnsPower ? battle.hero : battle.companion
         let attack = DamageOperation.attack(scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1)

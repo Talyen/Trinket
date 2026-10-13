@@ -1,14 +1,12 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 @testable import BattleEngine
 
 struct BattleTurnLifecycleTests {
     @Test func `opening settlement cannot grant Block twice or return after a custom hand command`() throws {
         var profile = CombatModifierProfile.zero
         profile.triggers.blockPerTurn = 3
-        var battle = BattleStateTestFactory.makeBattle(heroModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattle(heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false)
         battle.drawOpeningHand()
         let settled = battle.roster.hero
         let eventCount = battle.events.count

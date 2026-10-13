@@ -20,8 +20,9 @@ enum BattleStateTestFactory {
         tracksLog: Bool = false,
         tracksEvents: Bool = true,
         dealOpeningHand: Bool = true,
+        appliesFightPacing: Bool = true,
     ) -> BattleState {
-        BattleState(
+        var battle = BattleState(
             hero: hero ?? CombatantFixtures.passiveHero(),
             companion: companion ?? CombatantFixtures.passiveCompanion(),
             enemy: enemy,
@@ -38,6 +39,9 @@ enum BattleStateTestFactory {
             tracksEvents: tracksEvents,
             dealOpeningHand: dealOpeningHand,
         )
+        // Configure after bootstrap, matching tests that disable pacing after construction.
+        battle.appliesFightPacing = appliesFightPacing
+        return battle
     }
 
     static func makeBattleWithAbilities(
@@ -57,6 +61,7 @@ enum BattleStateTestFactory {
         rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
         tracksLog: Bool = false,
         dealOpeningHand: Bool = true,
+        appliesFightPacing: Bool = true,
     ) -> BattleState {
         let hero = CombatantFixtures.combatant(
             id: "hero",
@@ -90,6 +95,7 @@ enum BattleStateTestFactory {
         if let companionMana {
             battle.roster.mutateRuntime(for: companion) { $0.currentMana = companionMana }
         }
+        battle.appliesFightPacing = appliesFightPacing
         return battle
     }
 
@@ -112,6 +118,7 @@ enum BattleStateTestFactory {
         rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
         nextEffectID: Int? = nil,
         nextEventID: Int = 0,
+        appliesFightPacing: Bool = true,
     ) -> BattleState {
         let maxExistingEffectID = max(
             heroEffects.map(\.id).max() ?? 0,
@@ -152,6 +159,7 @@ enum BattleStateTestFactory {
             heroModifiers: heroModifiers,
             companionModifiers: companionModifiers,
             enemyModifiers: enemyModifiers,
+            appliesFightPacing: appliesFightPacing,
         )
     }
 }

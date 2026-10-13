@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -13,13 +12,15 @@ struct CombatRuleAuditRegressionTests {
         let attack = Ability(id: "recovery-hit", name: "Recovery Hit", tier: .basic, directDamage: 10)
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyAbilities: [attack], heroMaxHealth: 100, companionMaxHealth: 100,
-            heroModifiers: hero, companionModifiers: companion, dealOpeningHand: false,
+            heroModifiers: hero, companionModifiers: companion, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            ControlMeterEngine.threshold(for: battle.enemy, in: battle), keyword: .stun,
-            to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false, in: &battle,
-        ) }
+        _ = battle.chargeTestControl(
+            ControlMeterEngine.threshold(for: battle.enemy, in: battle),
+            keyword: .stun,
+            to: battle.enemy,
+            sourceActorID: battle.hero.id,
+            applyFightPacing: false,
+        )
         _ = battle.endTurn()
         let recovered = battle.endTurn().events
         #expect(recovered.filter { $0.kind == .abilityDamage && $0.actorID == battle.enemy.id }.map(\.amount) == [5])
@@ -30,9 +31,8 @@ struct CombatRuleAuditRegressionTests {
     @Test func `Pulverize strips Block on a counterattacking Basic`() {
         let profile = CombatantTalentCatalog.profile(for: ["bear_physical_t3_2"])
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionAbilities: [.slash], companionModifiers: profile, dealOpeningHand: false,
+            companionAbilities: [.slash], companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(20, on: battle.enemy, in: &battle)
         battle.appendEffect(.nextStrikeCritical, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
         let events = BattleTurnEngine.performAction(
@@ -48,9 +48,8 @@ struct CombatRuleAuditRegressionTests {
         profile.triggers.poisonAttackLeech = true
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: profile, dealOpeningHand: false,
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 10
         let dagger = try play(.poisonDagger, in: &battle)
         #expect(dagger.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.poisonDagger.id }.map(\.amount) == [1, 1])
@@ -64,9 +63,8 @@ struct CombatRuleAuditRegressionTests {
         profile.triggers.onPurgeDealHolyDamage = 2
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 1, heroMaxMana: 9, heroMana: 9,
-            heroModifiers: profile, dealOpeningHand: false,
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         _ = try play(.meteor, in: &battle)
         #expect(battle.isBattleOver)
@@ -77,9 +75,8 @@ struct CombatRuleAuditRegressionTests {
         var profile = CombatModifierProfile.zero
         profile.goldGainedBonus = 2
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: profile, dealOpeningHand: false,
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let events = try play(.goldenPlate, in: &battle)
         #expect(battle.gold == 7)
         let summary = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.goldenPlate.id })

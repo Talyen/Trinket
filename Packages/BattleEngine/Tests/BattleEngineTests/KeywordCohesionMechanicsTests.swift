@@ -34,7 +34,7 @@ private func makeCohesionBattle(
     companionModifiers: CombatModifierProfile = .zero,
     enemyModifiers: CombatModifierProfile = .zero,
 ) -> BattleState {
-    var battle = BattleStateTestFactory.makeMinimalBattle(
+    BattleStateTestFactory.makeMinimalBattle(
         hero: CombatantFixtures.passiveHero(maxHealth: heroMaxHealth),
         companion: CombatantFixtures.passiveCompanion(maxHealth: companionMaxHealth),
         enemy: CombatantFixtures.passiveEnemy(maxHealth: enemyMaxHealth),
@@ -44,10 +44,8 @@ private func makeCohesionBattle(
         enemyHealth: enemyHealth,
         heroModifiers: heroModifiers,
         companionModifiers: companionModifiers,
-        enemyModifiers: enemyModifiers,
+        enemyModifiers: enemyModifiers, appliesFightPacing: false,
     )
-    battle.appliesFightPacing = false
-    return battle
 }
 
 struct KeywordCohesionMechanicsTests {
@@ -285,9 +283,8 @@ extension KeywordCohesionMechanicsTests {
     @Test func `loyal companion draws on real heal once per turn`() throws {
         let profile = CombatModifierProfile.withTriggers { $0.healCompanionDrawsCompanionCard = true }
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.heal], heroModifiers: profile,
+            heroAbilities: [.heal], heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         _ = battle.resolveTestDamage(5, from: .enemy, to: .companion, options: .effect())
         let deckBefore = battle.companionDeck.count
         battle.nextCardID += 1
@@ -309,9 +306,8 @@ extension KeywordCohesionMechanicsTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash, .bash, .block],
             heroModifiers: profile,
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let heroBefore = battle.roster.health(for: battle.hero)
         let first = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         try #expect(battle.roster.health(for: battle.hero) == heroBefore - 1)

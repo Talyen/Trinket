@@ -8,9 +8,8 @@ struct RimewindRegressionTests {
         profile.triggers.freezeAttackDrawChancePercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionAbilities: [.rayOfFrost], enemyMaxHealth: 100,
-            companionModifiers: profile, dealOpeningHand: false,
+            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.companionDeck = CombatDeck(abilities: [.iceShot, .stargaze])
         battle.nextCardID += 1
         let card = BattleCard(id: battle.nextCardID, ability: .rayOfFrost, owner: .companion)

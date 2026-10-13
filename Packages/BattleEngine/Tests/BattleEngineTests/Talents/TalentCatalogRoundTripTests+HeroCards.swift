@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -10,13 +9,10 @@ extension TalentCatalogRoundTripTests {
         var profile = CombatantTalentCatalog.profile(for: [talentID])
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 200, heroModifiers: profile, dealOpeningHand: false,
+            enemyMaxHealth: 200, heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         for _ in 0 ..< 2 {
-            _ = BattleTurnEngine.performAction(
-                ability: .steal, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-            )
+            _ = battle.performTestAction(.steal)
         }
         _ = battle.resolveDamage(.doTTick(amount: 1, target: battle.enemy, keyword: .burn, sourceActorID: battle.hero.id))
         let attack = Ability(
@@ -24,17 +20,13 @@ extension TalentCatalogRoundTripTests {
             damageComponents: [DamageComponent(2, keyword: keyword), DamageComponent(2, keyword: keyword)],
         )
         let before = battle.health(of: battle.enemy)
-        _ = BattleTurnEngine.performAction(
-            ability: attack, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        _ = battle.performTestAction(attack)
 
         let paidInFull = talentID == "wildcard_physical_t4_1"
         let expectedBonus = paidInFull ? 2 : (keyword == .physical ? 3 : 0)
         #expect(before - battle.health(of: battle.enemy) == 4 + expectedBonus)
         let after = battle.health(of: battle.enemy)
-        _ = BattleTurnEngine.performAction(
-            ability: .slash, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        _ = battle.performTestAction(.slash)
         let remainingBonus = !paidInFull && keyword != .physical ? 3 : 0
         #expect(after - battle.health(of: battle.enemy) == 3 + remainingBonus)
     }
@@ -79,8 +71,11 @@ extension TalentCatalogRoundTripTests {
     @Test func `unstable culture rewards natural enemy poison expiry without accumulating multipliers`() throws {
         var profile = CombatantTalentCatalog.profile(for: ["alchemist_poison_t3_2"])
         profile.triggers.criticalChanceBonus = -1
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile,
+            dealOpeningHand: false,
+            appliesFightPacing: false,
+        )
         for _ in 0 ..< 2 {
             seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle)
             _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }

@@ -12,9 +12,8 @@ struct HealingGainBoundaryTests {
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: Int.max),
-            heroHealth: 1, heroModifiers: profile,
+            heroHealth: 1, heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
 
         let outcome = battle.resolveHeal(HealRequest(amount: 1, target: battle.hero, sourceActorID: battle.hero.id))
 
@@ -28,9 +27,8 @@ struct HealingGainBoundaryTests {
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: Int.max - 1),
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
 
         let result = CombatExecutor.run { await HealingEngine.resolveHealing(
             HealRequest(amount: 3, target: battle.hero, sourceActorID: battle.hero.id), in: &battle,
@@ -48,9 +46,8 @@ struct HealingGainBoundaryTests {
         profile.triggers.criticalChanceBonus = critical ? 1 : -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: Int.max),
-            heroHealth: 1, heroModifiers: profile,
+            heroHealth: 1, heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         if critical {
             let seed = try #require((UInt64(0) ..< 32).first { seed in
                 var rng = SeededRandomNumberGenerator(seed: seed)
@@ -81,9 +78,8 @@ struct HealingGainBoundaryTests {
             companion: CombatantFixtures.passiveCompanion(maxHealth: 100),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 10,
-            companionModifiers: profile,
+            companionModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.poison(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
 
         let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
@@ -113,9 +109,8 @@ struct HealingGainBoundaryTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 10,
             heroModifiers: CombatantTalentCatalog.profile(for: [talent]),
-            companionModifiers: CombatantTalentCatalog.profile(for: ["pixie_health_t1_1"]),
+            companionModifiers: CombatantTalentCatalog.profile(for: ["pixie_health_t1_1"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.thorns(1), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         battle.appendEffect(.healingReductionPercent(reduction, 2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
 
@@ -138,9 +133,8 @@ struct HealingGainBoundaryTests {
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
             companionHealth: 10,
             companionModifiers: CombatantTalentCatalog
-                .profile(for: ["bear_block_t3_2"]),
+                .profile(for: ["bear_block_t3_2"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(value: 2)
 
         let gain = battle.applyBlockGain(
@@ -165,9 +159,8 @@ struct HealingGainBoundaryTests {
         profile.triggers.gainManaBlockFlat = 2
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 10, heroMaxMana: 10,
-            heroModifiers: profile, dealOpeningHand: false,
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.currentHealth = 7
         battle.roster.hero.currentMana = mana
         var request = HealRequest(
@@ -201,9 +194,8 @@ struct HealingGainBoundaryTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 10,
             heroModifiers: sourceProfile, companionModifiers: targetProfile,
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = alive ? battle.roster.hero.maxHealth - 2 : 0
         var request = HealRequest(amount: 10, target: battle.companion, sourceActorID: battle.hero.id)
         request.amountBasis = .resolved

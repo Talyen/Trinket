@@ -27,9 +27,8 @@ struct CombatBoundaryRegressionTests {
     @Test(arguments: [false, true])
     func `phoenix feather revival retains card feedback identity`(automatic: Bool) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.currentHealth = 0
         let events: [ActionEvent]
         if automatic {
@@ -60,9 +59,8 @@ struct CombatBoundaryRegressionTests {
             companion: CombatantFixtures.passiveCompanion(maxMana: 3),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 10, enemyHealth: 1, heroMana: 0, companionMana: 0,
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.enemy.hasConsumedDeathsDoor = true
 
         let events = CombatExecutor.run { await BattleCardCombatEngine.restoreManaAtPlayerTurnStart(context: &battle) }

@@ -107,11 +107,9 @@ struct CounterattackRewardRegressionTests {
         var profile = CombatantTalentCatalog.profile(for: talents)
         profile.triggers.criticalChanceBonus = -1
         configure(&profile)
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: profile, dealOpeningHand: false,
+        return BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     private func counter(

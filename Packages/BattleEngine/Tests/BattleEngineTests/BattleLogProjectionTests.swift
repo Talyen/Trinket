@@ -65,9 +65,7 @@ struct BattleLogProjectionTests {
     @Test func `Heal logs its actual ally recipient instead of the selected enemy`() {
         var battle = makeSupportBattle()
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 10 }
-        let events = BattleTurnEngine.performAction(
-            ability: .heal, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let events = battle.performTestAction(.heal)
         #expect(battle.roster.companion.currentHealth == 16)
         #expect(battle.roster.enemy.currentHealth == 100)
         let lines = BattleLogProjection.entries(from: events).map(\.text)
@@ -80,9 +78,7 @@ struct BattleLogProjectionTests {
         var battle = makeSupportBattle()
         DefensePoolEngine.set(3, on: battle.enemy, in: &battle)
         let ability = Ability(id: "purge", name: "Purge", tier: .skill, effects: [.purge(.block)])
-        let events = BattleTurnEngine.performAction(
-            ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let events = battle.performTestAction(ability)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.enemy.activeEffects) == 0)
         let lines = BattleLogProjection.entries(from: events).map(\.text)
         #expect(lines.contains("Enemy's Block is Purged (Purge)."))
@@ -93,19 +89,14 @@ struct BattleLogProjectionTests {
     func `Mana Potion logs only Mana actually restored`(initialMana: Int, automatic: Bool) {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxMana: 12),
-            heroMana: initialMana,
+            heroMana: initialMana, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let events: [ActionEvent] = if automatic {
             battle.withAutomaticPlay { context in
-                BattleTurnEngine.performAction(
-                    ability: .manaPotion, actor: context.hero, abilityTarget: context.enemy, context: &context,
-                )
+                context.performTestAction(.manaPotion)
             }
         } else {
-            BattleTurnEngine.performAction(
-                ability: .manaPotion, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-            )
+            battle.performTestAction(.manaPotion)
         }
         #expect(battle.roster.hero.currentMana == 12)
         let restored = 12 - initialMana
@@ -121,14 +112,10 @@ struct BattleLogProjectionTests {
         let ability = Ability(id: "supplies", name: "Supplies", tier: .skill, effects: [.resourceGain(.gold, 3), .resourceGain(.mana, 3)])
         let events: [ActionEvent] = if automatic {
             battle.withAutomaticPlay { context in
-                BattleTurnEngine.performAction(
-                    ability: ability, actor: context.hero, abilityTarget: context.enemy, context: &context,
-                )
+                context.performTestAction(ability)
             }
         } else {
-            BattleTurnEngine.performAction(
-                ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-            )
+            battle.performTestAction(ability)
         }
         #expect(battle.gold == 3)
         #expect(battle.roster.hero.currentMana == 3)
@@ -142,20 +129,16 @@ struct BattleLogProjectionTests {
     }
 
     private func makeSupportBattle() -> BattleState {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxMana: 5),
-            heroMana: 0,
+            heroMana: 0, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     @Test func `blood offering logs its health cost separately from enemy damage`() throws {
         var battle = makeActionDamageLogBattle()
         let before = battle.health(of: battle.hero)
-        let events = BattleTurnEngine.performAction(
-            ability: .bloodOffering, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let events = battle.performTestAction(.bloodOffering)
         #expect(before - battle.health(of: battle.hero) == 2)
         let summary = try #require(events.last { $0.kind == .ability })
         let entries = BattleLogProjection.entries(from: events)
@@ -171,9 +154,7 @@ struct BattleLogProjectionTests {
 
     @Test func `bloodthorn logs both damage types`() throws {
         var battle = makeActionDamageLogBattle()
-        let events = BattleTurnEngine.performAction(
-            ability: .bloodthorn, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let events = battle.performTestAction(.bloodthorn)
         let summary = try #require(events.last { $0.kind == .ability })
         let line = try #require(BattleLogProjection.entries(from: events).first { $0.id == events.firstIndex(of: summary) })
         #expect(line.text.contains("2 Bleed damage to Enemy"))
@@ -183,10 +164,8 @@ struct BattleLogProjectionTests {
 
     private func makeActionDamageLogBattle() -> BattleState {
         let profile = CombatModifierProfile.withTriggers { $0.criticalChanceBonus = -1 }
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.bloodOffering, .bloodthorn], heroModifiers: profile, dealOpeningHand: false,
+        return BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [.bloodOffering, .bloodthorn], heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 }

@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -8,13 +7,11 @@ struct ThreeCardTurnTests {
     private func battle(triggers: CombatTraitTriggers = .init(), seed: UInt64 = 42) -> BattleState {
         var profile = CombatModifierProfile.zero
         profile.triggers = triggers
-        var state = BattleStateTestFactory.makeBattleWithAbilities(
+        return BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxHealth: 100, companionMaxHealth: 100, enemyMaxHealth: 1000,
             heroMaxMana: 12, heroMana: 0, heroModifiers: profile, rngSeed: seed,
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        state.appliesFightPacing = false
-        return state
     }
 
     private func attack(_ damage: Int = 2) -> Ability {
@@ -70,12 +67,12 @@ struct ThreeCardTurnTests {
         _ = try state.playCard(cardID: played.id)
         let duplicate = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &state)
         state.appendEffect(.evadeNextHit, to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
-        _ = BattleTurnEngine.performAction(ability: attack(), actor: state.enemy, abilityTarget: state.hero, context: &state)
+        _ = state.performTestAction(attack(), from: .enemy, to: .hero)
         let recovered = try #require(state.hand.cards.first { $0.deckCopyID == played.deckCopyID })
         #expect(recovered.deckCopyID != duplicate.deckCopyID)
         _ = try state.playCard(cardID: recovered.id)
         state.appendEffect(.evadeNextHit, to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
-        _ = BattleTurnEngine.performAction(ability: attack(), actor: state.enemy, abilityTarget: state.hero, context: &state)
+        _ = state.performTestAction(attack(), from: .enemy, to: .hero)
         #expect(!state.hand.cards.contains { $0.deckCopyID == played.deckCopyID })
         #expect(state.heroDeck.discarded.count == 1)
         #expect(state.hand.cards.contains { $0.deckCopyID == duplicate.deckCopyID })
@@ -92,14 +89,14 @@ struct ThreeCardTurnTests {
             sourceID: state.hero.id,
             remainingTurns: alreadyFrozen ? 1 : 0,
         )
-        _ = BattleTurnEngine.performAction(ability: .coldSnap, actor: state.hero, abilityTarget: state.enemy, context: &state)
+        _ = state.performTestAction(.coldSnap)
         #expect(state.hand.cards.map(\.ability.id) == [Ability.block.id])
     }
 
     @Test func `Cold Snap without Frozen does not draw and Blood Offering pays changed cost`() throws {
         var state = battle()
         state.heroDeck = CombatDeck(abilities: [.block])
-        _ = BattleTurnEngine.performAction(ability: .coldSnap, actor: state.hero, abilityTarget: state.enemy, context: &state)
+        _ = state.performTestAction(.coldSnap)
         #expect(state.hand.isEmpty)
         let card = BattleCardCombatEngine.deal(.bloodOffering, owner: .hero, context: &state)
         let health = state.health(of: state.hero)
@@ -167,7 +164,7 @@ struct ThreeCardTurnTests {
         state.roster.hero.currentHealth = health
         state.heroDeck = CombatDeck(abilities: [.block, .heal])
         state.appendEffect(.shield(.block, 1), to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
-        _ = BattleTurnEngine.performAction(ability: attack(2), actor: state.enemy, abilityTarget: state.hero, context: &state)
+        _ = state.performTestAction(attack(2), from: .enemy, to: .hero)
         #expect(state.health(of: state.hero) == health - 1)
         #expect(state.hand.totalCount == (health <= 50 ? 1 : 0))
     }
@@ -219,7 +216,7 @@ struct ThreeCardTurnTests {
             plays += 1
             try #require(plays <= 5)
             state.appendEffect(.evadeNextHit, to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
-            _ = BattleTurnEngine.performAction(ability: attack(), actor: state.enemy, abilityTarget: state.hero, context: &state)
+            _ = state.performTestAction(attack(), from: .enemy, to: .hero)
         }
         #expect(plays == 5)
         #expect(state.heroDeck.isEmpty)
@@ -233,11 +230,11 @@ struct ThreeCardTurnTests {
         state.heroDeck = CombatDeck(abilities: [.block, .heal, .slash])
         for _ in 0 ..< 2 {
             state.appendEffect(.shield(.block, 1), to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
-            _ = BattleTurnEngine.performAction(ability: attack(2), actor: state.enemy, abilityTarget: state.hero, context: &state)
+            _ = state.performTestAction(attack(2), from: .enemy, to: .hero)
         }
         #expect(state.hand.totalCount == 2)
         state.appendEffect(.shield(.block, 1), to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
-        _ = BattleTurnEngine.performAction(ability: attack(2), actor: state.hero, abilityTarget: state.hero, context: &state)
+        _ = state.performTestAction(attack(2), to: .hero)
         #expect(state.hand.totalCount == 2)
         DefensePoolEngine.set(0, on: state.hero, in: &state)
         #expect(state.hand.totalCount == 2)
@@ -252,7 +249,7 @@ struct ThreeCardTurnTests {
             effects: [.resourceGain(.gold, 1), .resourceGain(.gold, 1)], stealsGold: true,
         )
         for _ in 0 ..< 2 {
-            _ = BattleTurnEngine.performAction(ability: theft, actor: state.hero, abilityTarget: state.enemy, context: &state)
+            _ = state.performTestAction(theft)
         }
         #expect(state.hand.totalCount == (chance == 1 ? 2 : 0))
         _ = state.grantGoldEvent(1, to: state.hero, abilityName: "Ordinary Gold")

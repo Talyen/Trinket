@@ -8,9 +8,8 @@ struct AbilityEffectIntegrationTests {
     @Test(arguments: [0, 2, 8])
     func `hemorrhage preserves Block and lethal protection events in feedback and history`(block: Int) throws {
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            heroHealth: 3,
+            heroHealth: 3, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.hemorrhage(4), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         DefensePoolEngine.set(block, on: battle.hero, in: &battle)
 
@@ -39,9 +38,8 @@ struct AbilityEffectIntegrationTests {
             enemyMaxHealth: 1,
             heroModifiers: owner == .hero ? CombatModifierProfile(triggers: triggers) : .zero,
             companionModifiers: owner == .companion ? CombatModifierProfile(triggers: triggers) : .zero,
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let attack = Ability(
             id: "finishing-double-hit", name: "Finishing Double Hit", tier: .basic,
             damageComponents: [DamageComponent(1), DamageComponent(1)],
@@ -93,8 +91,7 @@ struct AbilityEffectIntegrationTests {
 
     @Test(arguments: [Keyword.burn, .poison, .bleed])
     func `dodging an enemy attack prevents its damage over time`(keyword: Keyword) {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         battle.appendEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let before = battle.roster.hero.currentHealth
         let attack = Ability(
@@ -113,8 +110,7 @@ struct AbilityEffectIntegrationTests {
 
     @Test(arguments: [true, false])
     func `a defeated attacker stops before remaining damage and support effects`(hemorrhage: Bool) {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         battle.roster.hero.currentHealth = 1
         battle.roster.hero.hasConsumedDeathsDoor = true
         battle.roster.hero.deathsDoorExpiredAtTurn = -1
@@ -197,9 +193,8 @@ struct AbilityEffectIntegrationTests {
         triggers.burnDecaySlowPercent = slow
         triggers.burnTicksTwicePerTurn = doubleTicks
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: CombatModifierProfile(triggers: triggers), dealOpeningHand: false,
+            companionModifiers: CombatModifierProfile(triggers: triggers), dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.burn(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
         let before = battle.roster.enemy.currentHealth
 

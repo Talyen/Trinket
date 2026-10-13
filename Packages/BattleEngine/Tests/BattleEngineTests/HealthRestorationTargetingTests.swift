@@ -23,15 +23,13 @@ struct HealthRestorationTargetingTests {
         heroHealth: Int = 20,
         companionHealth: Int = 1,
     ) -> BattleState {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: heroHealth,
             companionHealth: companionHealth,
             heroModifiers: heroModifiers,
-            companionModifiers: companionModifiers,
+            companionModifiers: companionModifiers, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     @Test func `holy and dodge affixes restore the lowest ally`() {

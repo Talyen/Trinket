@@ -18,9 +18,8 @@ struct DefeatedSourceDoTRegressionTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 3),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             enemyEffects: [burn], heroHealth: survives ? 20 : 0, companionHealth: 5,
-            heroMana: 0, heroModifiers: profile, companionModifiers: companionProfile,
+            heroMana: 0, heroModifiers: profile, companionModifiers: companionProfile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
 
         _ = CombatExecutor.run { await EffectHandlers.handler(for: .burn).advanceTurn(burn, on: battle.enemy, in: &battle) }
 
@@ -39,9 +38,8 @@ struct DefeatedSourceDoTRegressionTests {
             enemyEffects: [bleed],
             heroHealth: survives ? 10 : 0,
             heroModifiers: CombatantTalentCatalog
-                .profile(for: ["rogue_bleed_t2_2"]),
+                .profile(for: ["rogue_bleed_t2_2"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
 
         let events = CombatExecutor.run { await EffectHandlers.handler(for: .bleed).advanceTurn(
             bleed, on: battle.enemy, in: &battle,
@@ -71,9 +69,8 @@ struct DefeatedSourceDoTRegressionTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             enemyEffects: [bleed],
             heroHealth: 0,
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
 
         _ = CombatExecutor.run { await EffectHandlers.handler(for: .bleed).advanceTurn(
             bleed, on: battle.enemy, in: &battle,

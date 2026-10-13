@@ -119,10 +119,7 @@ extension BattleTurnEngineTests {
     @Test func `yeti gains block for each party member frozen`() throws {
         var context = try enemyTraitContext("yeti")
         for target in [context.hero, context.companion] {
-            _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-                100, keyword: .freeze, to: target, sourceActorID: context.enemy.id,
-                applyFightPacing: false, in: &context,
-            ) }
+            _ = context.chargeTestControl(100, keyword: .freeze, to: target, sourceActorID: context.enemy.id, applyFightPacing: false)
         }
 
         #expect(DefensePoolEngine.blockPoints(in: context.roster.enemy.activeEffects) == 2)
@@ -149,10 +146,9 @@ extension BattleTurnEngineTests {
 
     @Test func `trait thorns skips zero-rounded reflection`() {
         var battle = BattleStateTestFactory.makeBattle(
-            enemyModifiers: .init(triggers: CombatTraitTriggers.configured { $0.thornsPercent = 0.1 }),
-            dealOpeningHand: false,
+            enemyModifiers: .withTriggers { $0.thornsPercent = 0.1 },
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let heroHealthBefore = battle.roster.hero.currentHealth
         let outcome = battle.resolveTestDamage(
             1,
@@ -196,9 +192,11 @@ extension BattleTurnEngineTests {
     @Test(arguments: [Keyword.burn, .physical])
     func `unquenchable flame bypasses Verdant Shelter only for Burn`(keyword: Keyword) throws {
         let profile = CombatantTalentCatalog.profile(for: ["druid_health_t4_1"])
-        var context = try enemyTraitContext("pyromancer", heroModifiers: profile, enemyModifiers: .init(
-            triggers: CombatTraitTriggers.configured { $0.burnIgnoresBlockAndMitigation = true },
-        ))
+        var context = try enemyTraitContext(
+            "pyromancer",
+            heroModifiers: profile,
+            enemyModifiers: .withTriggers { $0.burnIgnoresBlockAndMitigation = true },
+        )
         context.appendEffect(.thorns(2), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
         let result = context.resolveTestDamage(
             20,
@@ -302,8 +300,7 @@ extension BattleTurnEngineTests {
                 $0.turnRandomDamageAllEnemiesInterval = 2
             },
         )
-        var context = BattleStateTestFactory.makeBattle(enemyModifiers: profile, dealOpeningHand: false)
-        context.appliesFightPacing = false
+        var context = BattleStateTestFactory.makeBattle(enemyModifiers: profile, dealOpeningHand: false, appliesFightPacing: false)
         context.turnCount = 2
         let targets = [context.hero, context.companion]
         let healthBefore = targets.map { context.health(of: $0) }
@@ -339,16 +336,14 @@ extension BattleTurnEngineTests {
     ) throws -> BattleState {
         let definition = try #require(GameContent.enemy(matching: enemyID))
         let build = CombatBuildResolver.build(enemy: definition)
-        var context = BattleStateTestFactory.makeMinimalBattle(
+        return BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 50),
             enemy: build.combatant,
             heroHealth: 40,
             companionHealth: 30,
             heroModifiers: heroModifiers,
-            enemyModifiers: enemyModifiers ?? build.modifiers,
+            enemyModifiers: enemyModifiers ?? build.modifiers, appliesFightPacing: false,
         )
-        context.appliesFightPacing = false
-        return context
     }
 }

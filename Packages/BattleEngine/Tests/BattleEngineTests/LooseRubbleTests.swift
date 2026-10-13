@@ -8,12 +8,10 @@ struct LooseRubbleTests {
     private func battle() throws -> BattleState {
         let titan = try #require(GameContent.enemy(matching: "the_stone_titan"))
         let build = CombatBuildResolver.build(enemy: titan)
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        return BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
-            enemy: build.combatant, enemyModifiers: build.modifiers,
+            enemy: build.combatant, enemyModifiers: build.modifiers, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     @Test(arguments: [DamageOperation.attack(accuracy: .unavoidable), .periodic, .resolvedPeriodic, .reaction()])

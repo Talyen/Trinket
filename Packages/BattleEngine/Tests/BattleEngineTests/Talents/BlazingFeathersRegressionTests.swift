@@ -9,9 +9,8 @@ struct BlazingFeathersRegressionTests {
         var profile = CombatantTalentCatalog.profile(for: ["phoenix_burn_t1_1"])
         profile.triggers.onDamageBurnRetaliationChancePercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: profile, dealOpeningHand: false,
+            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(block, on: battle.enemy, in: &battle)
         let enemyHealth = battle.roster.enemy.currentHealth
 

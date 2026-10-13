@@ -12,6 +12,7 @@ enum BattleTestFixtures {
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
         seed: UInt64 = CombatantFixtures.deterministicBattleSeed,
+        appliesFightPacing: Bool = true,
     ) -> BattleState {
         BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50),
@@ -22,6 +23,7 @@ enum BattleTestFixtures {
             companionModifiers: companionModifiers,
             enemyModifiers: enemyModifiers,
             rngSeed: seed,
+            appliesFightPacing: appliesFightPacing,
         )
     }
 

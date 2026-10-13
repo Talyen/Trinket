@@ -11,9 +11,8 @@ struct LingeringBlessingRefreshRegressionTests {
         profile.triggers.healthRestorationRepeatNextTurnChancePercent = 1
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: profile, dealOpeningHand: false,
+            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.currentHealth = 1
         battle.roster.companion.talents.timed.lingeringBlessing = LingeringBlessing(
             amount: 3, sourceActorID: battle.companion.id, turnsRemaining: 1,

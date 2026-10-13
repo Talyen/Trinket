@@ -14,9 +14,8 @@ struct CounterattackManaPreparationTests {
         )
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxMana: 3, heroMana: 3,
-            heroModifiers: CombatantTalentCatalog.profile(for: [talentID]), dealOpeningHand: false,
+            heroModifiers: CombatantTalentCatalog.profile(for: [talentID]), dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let beforePreparation = battle.health(of: battle.enemy)
 
         _ = BattleTurnEngine.performAction(
@@ -30,18 +29,14 @@ struct CounterattackManaPreparationTests {
         #expect((pending?.overchargePercent ?? pending?.nextBurnAttackPercent)?.value == expectedPercent)
         let beforeLaterAttack = battle.health(of: battle.enemy)
 
-        _ = BattleTurnEngine.performAction(
-            ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        _ = battle.performTestAction(ability)
 
         #expect(beforeLaterAttack - battle.health(of: battle.enemy) == laterDamage)
         #expect(battle.roster.runtime(for: battle.hero)?.talents.pending.overchargePercent == nil)
         #expect(battle.roster.runtime(for: battle.hero)?.talents.pending.nextBurnAttackPercent == nil)
         let beforeUnpreparedAttack = battle.health(of: battle.enemy)
 
-        _ = BattleTurnEngine.performAction(
-            ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        _ = battle.performTestAction(ability)
 
         #expect(beforeUnpreparedAttack - battle.health(of: battle.enemy) == 4)
     }

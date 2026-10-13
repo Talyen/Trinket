@@ -191,7 +191,7 @@ extension EffectHandlersApplyTests {
         })
         var battle = BattleStateTestFactory.makeBattle(
             initialGold: 10,
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.victoryGoldCoin = true }),
+            heroModifiers: .withTriggers { $0.victoryGoldCoin = true },
         )
         battle.rng = SeededRandomNumberGenerator(seed: seed)
         let events = CombatExecutor.run { await CombatTriggerEngine.afterVictory(in: &battle) }

@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -13,9 +12,8 @@ struct SharedRootsHealingTests {
         profile.triggers.criticalChanceBonus = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxHealth: 100, companionMaxHealth: 100,
-            heroModifiers: profile, dealOpeningHand: false,
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 10
         battle.roster.companion.currentHealth = companionHealth
 

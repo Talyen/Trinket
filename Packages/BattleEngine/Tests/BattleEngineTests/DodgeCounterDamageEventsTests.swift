@@ -10,9 +10,8 @@ struct DodgeCounterDamageEventsTests {
         let profile = CombatModifierProfile.withTriggers { $0.dodgeDealStunFlat = 3 }
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         if triggersStun {
             battle.appendEffect(.controlMeter(.stun, 19, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }

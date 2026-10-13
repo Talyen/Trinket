@@ -12,9 +12,8 @@ struct FallenSupportRewardRegressionTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: survives ? 2 : 1,
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.hasConsumedDeathsDoor = true
         battle.appendEffect(.thorns(4), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
@@ -33,9 +32,8 @@ struct FallenSupportRewardRegressionTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionHealth: survives ? 5 : 1,
-            heroModifiers: hero,
+            heroModifiers: hero, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.hasConsumedDeathsDoor = true
         battle.appendEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 

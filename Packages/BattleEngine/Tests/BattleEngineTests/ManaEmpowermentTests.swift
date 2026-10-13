@@ -9,9 +9,8 @@ struct ManaEmpowermentTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxMana: mana, companionMana: mana,
             companionModifiers: CombatantTalentCatalog.profile(for: ["pixie_health_t4_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let companion = battle.companion
         _ = CombatExecutor.run { await HealingEngine.resolveHealing(HealRequest(
             amount: 1, target: companion, sourceActorID: companion.id,
@@ -46,7 +45,7 @@ struct ManaEmpowermentTests {
     @Test func `persistent free empowerment remains limited to one Meteor purchase`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 9, heroMana: 9,
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.empowermentCostReduction = 3 }),
+            heroModifiers: .withTriggers { $0.empowermentCostReduction = 3 },
         )
         #expect(ManaEmpowermentBudget(ability: .meteor, actor: battle.hero, in: battle).purchaseLimit == 1)
         var ability = Ability.meteor
@@ -65,9 +64,8 @@ struct ManaEmpowermentTests {
         companionProfile.triggers.spendLastManaStunDamage = 3
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxMana: 1, heroMana: 1, companionMaxMana: 2, companionMana: 2,
-            heroModifiers: heroProfile, companionModifiers: companionProfile, dealOpeningHand: false,
+            heroModifiers: heroProfile, companionModifiers: companionProfile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.heroDeck = CombatDeck(abilities: [Ability(
             id: "refill-patron", name: "Refill Patron", tier: .basic,
             targetedEffects: [TargetedEffect(.resourceGain(.mana, 2), target: .companion)],
@@ -106,7 +104,7 @@ struct ManaEmpowermentTests {
     @Test func `recurring freeze empowerment draws the opposite element`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 3, heroMana: 3,
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.empoweredElementDrawOpposite = true }),
+            heroModifiers: .withTriggers { $0.empoweredElementDrawOpposite = true },
         )
         battle.heroDeck = CombatDeck(abilities: [.kindling])
         var ability = Ability.rayOfFrost
@@ -121,7 +119,7 @@ struct ManaEmpowermentTests {
     @Test func `dragon spark discounts only first empowerment and preserves its effect`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 4, heroMana: 4,
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.firstEmpowermentCostReduction = 2 }),
+            heroModifiers: .withTriggers { $0.firstEmpowermentCostReduction = 2 },
         )
         for expectedMana in [3, 0] {
             var ability = Ability.frostbolt
@@ -136,7 +134,7 @@ struct ManaEmpowermentTests {
     @Test func `dragon spark does not consume discount without enough mana`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 4, heroMana: 0,
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.firstEmpowermentCostReduction = 2 }),
+            heroModifiers: .withTriggers { $0.firstEmpowermentCostReduction = 2 },
         )
         var ability = Ability.frostbolt
         _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
@@ -155,10 +153,10 @@ struct ManaEmpowermentTests {
     func `arcane breath adds flat damage even with discounted empowerment`(discount: Int) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 3, heroMana: 3,
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+            heroModifiers: .withTriggers {
                 $0.empowermentDamageBonus = 3
                 $0.empowermentCostReduction = discount
-            }),
+            },
         )
         var ability = Ability.frostbolt
         _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
@@ -314,9 +312,8 @@ extension ManaEmpowermentTests {
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.darkPact], heroMaxHealth: 2,
-            heroMaxMana: 6, heroMana: 6, heroModifiers: profile,
+            heroMaxMana: 6, heroMana: 6, heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.hasConsumedDeathsDoor = true
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.darkPact.id })
 
@@ -334,15 +331,12 @@ extension ManaEmpowermentTests {
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxMana: 3, companionMana: 3,
-            companionModifiers: profile, dealOpeningHand: false,
+            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let branches = try #require(Ability.astralArrow.outcomeBranches)
         let branch = try #require(branches.first { $0.damageComponents.first?.keyword == keyword })
         let ability = Ability.astralArrow.resolving(branch: branch, using: &battle.rng)
-        let events = BattleTurnEngine.performAction(
-            ability: ability, actor: battle.companion, abilityTarget: battle.enemy, context: &battle,
-        )
+        let events = battle.performTestAction(ability, from: .companion)
         let hits = events.filter { $0.kind == .abilityDamage }
         let expectedDamage = keyword == .freeze ? 9 : 8
         #expect(hits.count == 1)

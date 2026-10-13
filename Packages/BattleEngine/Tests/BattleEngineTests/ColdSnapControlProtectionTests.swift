@@ -19,13 +19,10 @@ struct ColdSnapControlProtectionTests {
                 ActiveEffect(id: 2, effect: .shield(.block, 3), remainingTurns: 0),
             ],
             heroModifiers: heroModifiers,
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
 
-        _ = BattleTurnEngine.performAction(
-            ability: Self.multiplyFreeze, actor: battle.enemy, abilityTarget: battle.hero, context: &battle,
-        )
+        _ = battle.performTestAction(Self.multiplyFreeze, from: .enemy, to: .hero)
 
         let meter = try #require(battle.activeEffects(of: battle.hero).first { $0.keyword == .freeze })
         #expect(meter.effect.controlMeterValues?.amount == 1)
@@ -41,9 +38,7 @@ struct ColdSnapControlProtectionTests {
         battle.roster.mutateRuntime(for: battle.hero) { $0.talents.turn.negativeStatusImmune = true }
         battle.appliesFightPacing = false
 
-        _ = BattleTurnEngine.performAction(
-            ability: Self.multiplyFreeze, actor: battle.enemy, abilityTarget: battle.hero, context: &battle,
-        )
+        _ = battle.performTestAction(Self.multiplyFreeze, from: .enemy, to: .hero)
 
         let meter = try #require(battle.activeEffects(of: battle.hero).first { $0.keyword == .freeze })
         #expect(meter.effect.controlMeterValues?.amount == 1)

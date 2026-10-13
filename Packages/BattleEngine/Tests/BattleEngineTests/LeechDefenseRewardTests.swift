@@ -9,17 +9,14 @@ struct LeechDefenseRewardTests {
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleTestFixtures.makePipelineContext(
             targetEffects: [ActiveEffect(id: 1, effect: .shield(.block, 8), remainingTurns: 0)],
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let ability = Ability(
             id: "burn-strike", name: "Burn Strike", tier: .basic,
             damageComponents: [DamageComponent(8, keyword: .burn)],
             criticalChanceBonus: -1,
         )
-        let events = BattleTurnEngine.performAction(
-            ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let events = battle.performTestAction(ability)
         let hit = events.first { $0.kind == .abilityDamage && $0.targetID == battle.enemy.id }
         #expect(hit?.amount == 4)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 4)
@@ -28,8 +25,7 @@ struct LeechDefenseRewardTests {
     @Test func `Vitality Infusion recognizes Scarfeast even when healing is prevented`() {
         var profile = CombatantTalentCatalog.profile(for: ["panther_leech_t2_1"])
         profile.triggers.physicalAttackLeechBelowHalfHealth = true
-        var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile, appliesFightPacing: false)
         battle.roster.companion.currentHealth = 5
         battle.appendEffect(.healingReductionPercent(1, 2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 2)
         let result = battle.resolveTestDamage(4, from: .companion, options: .attack(accuracy: .unavoidable, guaranteedCritical: true))
@@ -41,9 +37,8 @@ struct LeechDefenseRewardTests {
     @Test func `Vitality Infusion does not reward a fully blocked Leech Critical Hit`() {
         var battle = BattleTestFixtures.makePipelineContext(
             targetEffects: [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 0)],
-            companionModifiers: CombatantTalentCatalog.profile(for: ["panther_leech_t2_1"]),
+            companionModifiers: CombatantTalentCatalog.profile(for: ["panther_leech_t2_1"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let result = battle.resolveTestDamage(
             4,
             from: .companion,

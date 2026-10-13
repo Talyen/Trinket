@@ -17,9 +17,8 @@ struct SunGlyphRegressionTests {
         }
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: enemyHealth),
-            companionModifiers: profile,
+            companionModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let outcome: CombatOutcome
         if reflected {
             DefensePoolEngine.set(4, on: battle.companion, in: &battle)
@@ -64,9 +63,8 @@ struct SunGlyphRegressionTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionHealth: survives ? 5 : 1,
-            companionModifiers: CombatantTalentCatalog.profile(for: [talent]),
+            companionModifiers: CombatantTalentCatalog.profile(for: [talent]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.hasConsumedDeathsDoor = true
         battle.appendEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         // Vitality Infusion qualifies through guaranteed Leech even when Sapped prevents restoration.

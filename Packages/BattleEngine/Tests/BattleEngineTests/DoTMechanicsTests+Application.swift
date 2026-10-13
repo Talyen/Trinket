@@ -32,8 +32,7 @@ extension DoTMechanicsTests {
                     $0.dodgeChanceBonus = -1
                 },
             )
-            var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, enemyModifiers: profile)
-            battle.appliesFightPacing = false
+            var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, enemyModifiers: profile, appliesFightPacing: false)
             let actor = enemyAttacks ? battle.enemy : battle.hero
             let target = enemyAttacks ? battle.hero : battle.enemy
             DefensePoolEngine.set(block, on: target, in: &battle)
@@ -58,8 +57,10 @@ extension DoTMechanicsTests {
     @Test(arguments: [Keyword.burn, .poison], [0, 6])
     func `damaging effects and reactions attach only health damage`(keyword: Keyword, block: Int) {
         for application in [DoTApplication.ability, .reaction] {
-            var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .init(damageDealtBonus: [keyword: 2]))
-            battle.appliesFightPacing = false
+            var battle = BattleTestFixtures.makePipelineContext(
+                heroModifiers: .init(damageDealtBonus: [keyword: 2]),
+                appliesFightPacing: false,
+            )
             let target = battle.enemy
             DefensePoolEngine.set(block, on: target, in: &battle)
             let before = battle.health(of: target)
@@ -78,9 +79,8 @@ extension DoTMechanicsTests {
     func `critical scaled hits store final damage and ticks still respect defenses`(keyword: Keyword) throws {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(damageDealtBonus: [keyword: 2], outgoingDamagePercent: 0.5),
-            enemyModifiers: .init(damageTakenFlat: [keyword: 1]),
+            enemyModifiers: .init(damageTakenFlat: [keyword: 1]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let target = battle.enemy
         battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let ability = Ability(id: "critical-dot", name: "Critical DoT", tier: .skill, directDamage: 4, damageKeyword: keyword)
@@ -100,8 +100,7 @@ extension DoTMechanicsTests {
     @Test(arguments: [Keyword.burn, .poison])
     func `repeated attacks cannot attach stacks through block or dodge`(keyword: Keyword) {
         for dodged in [false, true] {
-            var battle = BattleTestFixtures.makePipelineContext()
-            battle.appliesFightPacing = false
+            var battle = BattleTestFixtures.makePipelineContext(, appliesFightPacing: false)
             let target = battle.hero
             if dodged {
                 battle.appendEffect(.evadeNextHit, to: target, sourceID: target.id, remainingTurns: 0)
@@ -125,9 +124,8 @@ extension DoTMechanicsTests {
     @Test(arguments: [Keyword.burn, .poison])
     func `detonation consumes stored potency without outgoing bonuses`(keyword: Keyword) {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(damageDealtBonus: [keyword: 4], outgoingDamagePercent: 1),
+            heroModifiers: .init(damageDealtBonus: [keyword: 4], outgoingDamagePercent: 1), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.decayingDoT(keyword: keyword, potency: 6), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         let before = battle.health(of: battle.enemy)
 
@@ -142,11 +140,10 @@ extension DoTMechanicsTests {
     @Test func `combustion detonates fresh health damage without counting bonuses twice`() {
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .init(
             damageDealtBonus: [.burn: 2], triggers: CombatTraitTriggers.configured { $0.criticalChanceBonus = -1 },
-        ))
-        battle.appliesFightPacing = false
+        ), appliesFightPacing: false)
         let before = battle.health(of: battle.enemy)
 
-        _ = BattleTurnEngine.performAction(ability: .combustion, actor: battle.hero, abilityTarget: battle.enemy, context: &battle)
+        _ = battle.performTestAction(.combustion)
 
         #expect(before - battle.health(of: battle.enemy) == 15)
         #expect(!battle.roster.hasAffliction(.burn, on: battle.enemy))
@@ -154,12 +151,14 @@ extension DoTMechanicsTests {
 
     @Test func `defender on hit attacker bleed applies reaction damage to attacker`() {
         let defenderTriggers = CombatTraitTriggers.configured { $0.onHitAttackerBleedPotency = 3 }
-        var battle = BattleTestFixtures.makePipelineContext(enemyModifiers: CombatModifierProfile(triggers: defenderTriggers))
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(
+            enemyModifiers: CombatModifierProfile(triggers: defenderTriggers),
+            appliesFightPacing: false,
+        )
         let heroBefore = battle.health(of: battle.hero)
 
         let strike = Ability(id: "strike", name: "Strike", tier: .basic, directDamage: 5, damageKeyword: .physical)
-        _ = BattleTurnEngine.performAction(ability: strike, actor: battle.hero, abilityTarget: battle.enemy, context: &battle)
+        _ = battle.performTestAction(strike)
 
         #expect(battle.roster.hasAffliction(.bleed, on: battle.hero))
         #expect(heroBefore - battle.health(of: battle.hero) == 3)

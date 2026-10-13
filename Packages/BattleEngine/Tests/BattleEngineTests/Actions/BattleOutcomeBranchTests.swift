@@ -9,14 +9,11 @@ struct BattleOutcomeBranchTests {
         for seed in UInt64(1) ... 192 {
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
                 heroAbilities: [.slash], companionAbilities: [.slash], enemyMaxHealth: 500,
-                heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.criticalChanceBonus = -1 }),
-                rngSeed: seed, dealOpeningHand: false,
+                heroModifiers: .withTriggers { $0.criticalChanceBonus = -1 },
+                rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false,
             )
-            battle.appliesFightPacing = false
             battle.roster.companion.currentHealth = 1
-            let events = BattleTurnEngine.performAction(
-                ability: .luckPotion, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-            )
+            let events = battle.performTestAction(.luckPotion)
             #expect(!events.contains { $0.kind == .abilityDamage })
             #expect(battle.hand.cards.count == 1)
             let gain = try #require(events.first { $0.effectKind != nil })
@@ -43,8 +40,7 @@ struct BattleOutcomeBranchTests {
     @Test(arguments: [false, true])
     func `full Health luck potion excludes healing even with a defeated ally`(companionDefeated: Bool) {
         for seed in UInt64(1) ... 64 {
-            var battle = BattleStateTestFactory.makeBattleWithAbilities(rngSeed: seed, dealOpeningHand: false)
-            battle.appliesFightPacing = false
+            var battle = BattleStateTestFactory.makeBattleWithAbilities(rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false)
             if companionDefeated {
                 battle.roster.companion.currentHealth = 0
             }
@@ -58,13 +54,10 @@ struct BattleOutcomeBranchTests {
         var didHeal = false
         for seed in UInt64(1) ... 64 {
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                heroMaxHealth: 5, companionMaxHealth: 100, rngSeed: seed, dealOpeningHand: false,
+                heroMaxHealth: 5, companionMaxHealth: 100, rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false,
             )
-            battle.appliesFightPacing = false
             battle.roster.companion.currentHealth = 50
-            let events = BattleTurnEngine.performAction(
-                ability: .luckPotion, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-            )
+            let events = battle.performTestAction(.luckPotion)
             if let healed = events.first(where: { $0.effectKind == .instantHeal && $0.keyword == .health }) {
                 #expect(healed.targetID == battle.companion.id)
                 #expect(battle.health(of: battle.companion) > 50)
@@ -76,17 +69,12 @@ struct BattleOutcomeBranchTests {
     }
 
     @Test func `seeded luck potion replay resolves the same combat outcome`() {
-        var initial = BattleStateTestFactory.makeBattleWithAbilities(rngSeed: 7, dealOpeningHand: false)
-        initial.appliesFightPacing = false
+        var initial = BattleStateTestFactory.makeBattleWithAbilities(rngSeed: 7, dealOpeningHand: false, appliesFightPacing: false)
         initial.roster.companion.currentHealth = 1
         var first = initial
         var second = initial
-        let firstEvents = BattleTurnEngine.performAction(
-            ability: .luckPotion, actor: first.hero, abilityTarget: first.enemy, context: &first,
-        )
-        let secondEvents = BattleTurnEngine.performAction(
-            ability: .luckPotion, actor: second.hero, abilityTarget: second.enemy, context: &second,
-        )
+        let firstEvents = first.performTestAction(.luckPotion)
+        let secondEvents = second.performTestAction(.luckPotion)
         #expect(!firstEvents.isEmpty)
         #expect(firstEvents == secondEvents)
     }

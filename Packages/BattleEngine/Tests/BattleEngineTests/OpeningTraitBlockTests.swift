@@ -14,9 +14,8 @@ struct OpeningTraitBlockTests {
             companion: CombatantFixtures.passiveCompanion(maxHealth: 50),
             enemy: build.combatant,
             enemyModifiers: build.modifiers,
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         if paced {
             while battle.drawNextOpeningHandCard(rebuildLog: false) {}
             battle.finalizeOpeningHand(rebuildLog: false)
@@ -42,9 +41,8 @@ struct OpeningTraitBlockTests {
             heroModifiers: profile,
             companionModifiers: profile,
             enemyModifiers: profile,
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 0 }
         battle.drawOpeningHand(rebuildLog: false)
 

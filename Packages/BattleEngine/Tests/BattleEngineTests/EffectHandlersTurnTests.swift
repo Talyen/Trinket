@@ -6,8 +6,7 @@ import TrinketCore
 struct EffectHandlersTurnTests {
     @Test(arguments: [false, true])
     func `enemy avatar targets surviving companion`(onTurn: Bool) {
-        var battle = BattleStateTestFactory.makeBattle()
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattle(, appliesFightPacing: false)
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 0 }
         let before = battle.health(of: battle.companion)
         let effect = Effect.avatar(holyDamage: 2, blockPerTurn: 2, turns: 2)
@@ -32,9 +31,8 @@ struct EffectHandlersTurnTests {
         triggers.blockPerTurn = 2
         var battle = BattleStateTestFactory.makeBattle(
             heroModifiers: CombatModifierProfile(blockGainedBonus: 3, triggers: triggers),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let effect = Effect.avatar(holyDamage: 1, blockPerTurn: 2, turns: 2)
         if fromTalent {
             _ = CombatTriggerEngine.turnBlock(for: battle.hero, in: &battle)
@@ -71,8 +69,7 @@ struct EffectHandlersTurnTests {
 
     @Test(arguments: [Keyword.freeze, .stun])
     func `recurring control damage builds control on application and subsequent turns`(keyword: Keyword) {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 200, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 200, dealOpeningHand: false, appliesFightPacing: false)
         let effect = Effect.recurringDamage(keyword, 2, 2)
         _ = EffectHandlersTestSupport.dispatch(
             effect, target: battle.enemy, battle: &battle,

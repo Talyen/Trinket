@@ -252,15 +252,11 @@ extension CleanseIntegrationTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20),
             companion: owl.combatant, enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: reflection, dealOpeningHand: false,
+            companionModifiers: reflection, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let hero = battle.hero
         let enemy = battle.enemy
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            100, keyword: keyword, to: hero, sourceActorID: enemy.id,
-            applyFightPacing: false, in: &battle,
-        ) }
+        _ = battle.chargeTestControl(100, keyword: keyword, to: hero, sourceActorID: enemy.id, applyFightPacing: false)
         #expect(battle.roster.hasPendingActionSkip(for: hero, keyword: keyword))
         let card = BattleCardCombatEngine.deal(.panaceaPotion, owner: .companion, context: &battle)
 
@@ -281,9 +277,8 @@ extension CleanseIntegrationTests {
     func `reproving light rewards successful removal rather than debuff count`(removedCount: Int) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionModifiers: CombatantTalentCatalog.profile(for: ["library_owl_cleanse_t3_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         for effect in [Effect.poison(2), .burn(2)].prefix(removedCount) {
             battle.appendEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         }
@@ -299,8 +294,11 @@ extension CleanseIntegrationTests {
     @Test func `reproving light does not reopen Holy rewards or reward a nested Cleanse`() {
         var profile = CombatantTalentCatalog.profile(for: ["library_owl_cleanse_t3_1"])
         profile.triggers.holyDamageCleanseCount = 1
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(companionModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: profile,
+            dealOpeningHand: false,
+            appliesFightPacing: false,
+        )
         for recipient in [battle.hero, battle.companion] {
             battle.appendEffect(.poison(2), to: recipient, sourceID: battle.enemy.id, remainingTurns: 0)
         }
@@ -326,8 +324,8 @@ extension CleanseIntegrationTests {
     @Test func `perfect purity requires removal and prevents debuffs without preventing damage`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionModifiers: CombatantTalentCatalog.profile(for: ["alchemist_cleanse_t4_1"]), dealOpeningHand: false,
+            appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         func cleanse(_ battle: inout BattleState) {
             _ = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
                 .all(nil), source: battle.companion, target: battle.hero, abilityName: "Cleanse", in: &battle,

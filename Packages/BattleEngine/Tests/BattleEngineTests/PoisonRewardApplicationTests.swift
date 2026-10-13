@@ -44,13 +44,11 @@ struct PoisonRewardApplicationTests {
     }
 
     private func makeBattle(profile: CombatModifierProfile) -> BattleState {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 }

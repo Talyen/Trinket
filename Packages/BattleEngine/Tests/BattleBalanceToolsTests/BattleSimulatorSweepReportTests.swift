@@ -7,26 +7,13 @@ import TrinketCore
 @Suite(.serialized)
 struct BattleSimulatorSweepReportTests {
     @Test func `parallel identity matches sequential outcomes`() {
-        let sequential = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 6,
-                seed: 11,
-                tiers: [.early],
-                jobs: 1,
-                enemyIDs: ["living_armor"],
-            ),
+        var config = BalanceSweepConfig(
+            mode: .identity, battlesPerTier: 6, seed: 11, tiers: [.early],
+            jobs: 1, enemyIDs: ["living_armor"],
         )
-        let parallel = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 6,
-                seed: 11,
-                tiers: [.early],
-                jobs: 4,
-                enemyIDs: ["living_armor"],
-            ),
-        )
+        let sequential = BalanceSweepRunner.run(config: config)
+        config.jobs = 4
+        let parallel = BalanceSweepRunner.run(config: config)
         #expect(sequential.records == parallel.records)
     }
 
@@ -149,30 +136,11 @@ struct BattleSimulatorSweepReportTests {
             enemyIDs: ["living_armor"],
         )
         let full = BalanceSweepRunner.run(config: config)
-        let first = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 4,
-                seed: 11,
-                tiers: [.early],
-                jobs: 1,
-                workOffset: 0,
-                workLimit: 2,
-                enemyIDs: ["living_armor"],
-            ),
-        )
-        let second = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 4,
-                seed: 11,
-                tiers: [.early],
-                jobs: 1,
-                workOffset: 2,
-                workLimit: 2,
-                enemyIDs: ["living_armor"],
-            ),
-        )
+        var slice = config
+        slice.workLimit = 2
+        let first = BalanceSweepRunner.run(config: slice)
+        slice.workOffset = 2
+        let second = BalanceSweepRunner.run(config: slice)
         let merged = BalanceSweepReport.merged(
             [first, second],
             config: config,

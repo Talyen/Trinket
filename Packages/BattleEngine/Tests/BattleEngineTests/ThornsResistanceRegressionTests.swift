@@ -16,9 +16,8 @@ struct ThornsResistanceRegressionTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionHealth: 5,
             heroModifiers: profile,
-            enemyModifiers: .init(modifiers: [.damageTakenPercent(.thorns, 1)]),
+            enemyModifiers: .init(modifiers: [.damageTakenPercent(.thorns, 1)]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
 
         let reflected = battle.resolveTestDamage(
             20,
@@ -46,9 +45,8 @@ struct ThornsResistanceRegressionTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: hero,
-            enemyModifiers: .init(modifiers: [.damageTakenPercent(.thorns, 0.5)]),
+            enemyModifiers: .init(modifiers: [.damageTakenPercent(.thorns, 0.5)]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
         let hit = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(scaling: .flat, accuracy: .unavoidable))

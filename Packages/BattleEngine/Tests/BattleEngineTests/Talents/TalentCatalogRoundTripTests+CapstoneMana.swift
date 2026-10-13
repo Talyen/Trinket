@@ -9,9 +9,8 @@ extension TalentCatalogRoundTripTests {
             heroMaxMana: 0, heroMana: 0,
             companionMaxMana: 8, companionMana: 3,
             companionModifiers: CombatantTalentCatalog.profile(for: ["frost_whelp_mana_t4_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         var card = Ability.rayOfFrost
         _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &card,

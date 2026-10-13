@@ -10,9 +10,8 @@ struct BlockTalentOwnershipRegressionTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: CombatantTalentCatalog.profile(for: ["wizard_freeze_t4_1"]),
+            heroModifiers: CombatantTalentCatalog.profile(for: ["wizard_freeze_t4_1"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let defender = heroBlocks ? battle.hero : battle.companion
         DefensePoolEngine.set(5, on: defender, in: &battle)
 
@@ -57,9 +56,8 @@ struct BlockTalentOwnershipRegressionTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: CombatantTalentCatalog.profile(for: ["wizard_freeze_t4_1", "knight_block_t2_1"]),
+            heroModifiers: CombatantTalentCatalog.profile(for: ["wizard_freeze_t4_1", "knight_block_t2_1"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(2, on: battle.hero, in: &battle)
         DefensePoolEngine.set(3, on: battle.companion, in: &battle)
 
@@ -88,9 +86,8 @@ struct BlockTalentOwnershipRegressionTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: CombatantTalentCatalog.profile(for: ["bear_block_t3_1"]),
+            companionModifiers: CombatantTalentCatalog.profile(for: ["bear_block_t3_1"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(2, on: battle.companion, in: &battle)
 
         let damage = battle.resolveTestDamage(6, from: .enemy, to: .companion, keyword: .bleed, options: operation)
@@ -106,9 +103,8 @@ struct BlockTalentOwnershipRegressionTests {
             hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: CombatantTalentCatalog.profile(for: ["bear_block_t3_1"]),
-            enemyModifiers: enemyProfile,
+            enemyModifiers: enemyProfile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(8, on: battle.companion, in: &battle)
 
         let damage = battle.resolveTestDamage(

@@ -96,9 +96,8 @@ struct BattleCardAssessmentTests {
     func `Panacea healing cue accounts for a preceding Fresh Batch heal`(hasDebuff: Bool) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroModifiers: CombatantTalentCatalog.profile(for: ["alchemist_cleanse_t1_2"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 5
         battle.roster.companion.currentHealth = 6
         if hasDebuff {
@@ -299,15 +298,13 @@ struct BattleCardAssessmentTests {
         heroMana: Int = 0, companionMana: Int = 0,
         heroModifiers: CombatModifierProfile = .zero, companionModifiers: CombatModifierProfile = .zero,
     ) -> BattleState {
-        var state = BattleStateTestFactory.makeMinimalBattle(
+        BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100, maxMana: 12),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 100, maxMana: 12),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
             heroMana: heroMana, companionMana: companionMana,
-            heroModifiers: heroModifiers, companionModifiers: companionModifiers,
+            heroModifiers: heroModifiers, companionModifiers: companionModifiers, appliesFightPacing: false,
         )
-        state.appliesFightPacing = false
-        return state
     }
 
     private func deal(_ ability: Ability, in state: inout BattleState) -> BattleCard {

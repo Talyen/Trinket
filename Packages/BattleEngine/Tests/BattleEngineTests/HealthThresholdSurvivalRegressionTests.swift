@@ -12,9 +12,8 @@ struct HealthThresholdSurvivalRegressionTests {
             companion: bear.combatant,
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: bear.modifiers,
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let hero = battle.hero
         battle.roster.mutateRuntime(for: hero) { $0.hasConsumedDeathsDoor = finallyDefeated }
         #expect(battle.roster.health(for: hero) * 2 >= battle.roster.maxHealth(for: hero))
@@ -38,9 +37,8 @@ struct HealthThresholdSurvivalRegressionTests {
             companion: panther.combatant,
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: panther.modifiers,
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let companion = battle.companion
         battle.roster.mutateRuntime(for: companion) { $0.hasConsumedDeathsDoor = finallyDefeated }
         #expect(battle.roster.health(for: companion) * 2 >= battle.roster.maxHealth(for: companion))

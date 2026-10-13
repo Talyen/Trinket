@@ -9,9 +9,8 @@ struct FoxRecoveryVictoryTests {
         var profile = CombatantTalentCatalog.profile(for: ["fox_gold_t3_2"])
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: enemyHealth, companionModifiers: profile, dealOpeningHand: false,
+            enemyMaxHealth: enemyHealth, companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.currentHealth = 4
         let card = BattleCardCombatEngine.deal(.steal, owner: .companion, context: &battle)
 
@@ -36,17 +35,14 @@ struct FoxRecoveryVictoryTests {
         profile.merge(signature.modifiers)
         signature.triggers.apply(to: &profile)
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: enemyHealth, companionModifiers: profile, dealOpeningHand: false,
+            enemyMaxHealth: enemyHealth, companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.currentHealth = 4
         DefensePoolEngine.set(8, on: battle.companion, in: &battle)
         battle.appendEffect(.evadeNextHit, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
         let attack = Ability(id: "fox-recovery-enemy-attack", name: "Enemy Attack", tier: .basic, directDamage: 5, criticalChanceBonus: -1)
 
-        let events = BattleTurnEngine.performAction(
-            ability: attack, actor: battle.enemy, abilityTarget: battle.companion, context: &battle,
-        )
+        let events = battle.performTestAction(attack, from: .enemy, to: .companion)
 
         #expect(events.contains { $0.effectKind == .dodgeApplied })
         #expect(battle.health(of: battle.enemy) == max(0, enemyHealth - 4))
@@ -65,9 +61,8 @@ struct FoxRecoveryVictoryTests {
             "fox_stun_t3_2", "fox_gold_t2_1", "fox_gold_t3_1",
         ])
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: profile, dealOpeningHand: false,
+            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let firstHit = battle.resolveTestDamage(
             10,
             from: .companion,

@@ -7,8 +7,7 @@ import TrinketCore
 struct CombatExecutorTests {
     @Test(arguments: [false, true])
     func `damage outcomes retain nested reactions independently of battle history`(tracksEvents: Bool) {
-        var battle = BattleStateTestFactory.makeBattle(tracksEvents: tracksEvents, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattle(tracksEvents: tracksEvents, dealOpeningHand: false, appliesFightPacing: false)
         battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let start = battle.events.count
         let outcome = battle.resolveTestDamage(5, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))
@@ -30,9 +29,8 @@ struct CombatExecutorTests {
         var companion = CombatModifierProfile.zero
         companion.triggers.guardianHeroBlockFlat = 2
         var battle = BattleStateTestFactory.makeBattle(
-            heroModifiers: hero, companionModifiers: companion, dealOpeningHand: false,
+            heroModifiers: hero, companionModifiers: companion, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.appendEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let start = battle.events.count
         var outcome = CombatOutcome.empty
@@ -133,9 +131,8 @@ struct CombatExecutorTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [chain, .slash], companionAbilities: [.slash], enemyAbilities: [.slash],
             heroMaxHealth: 100, companionMaxHealth: 100, enemyMaxHealth: 2000,
-            heroModifiers: profile, rngSeed: seed, tracksLog: true, dealOpeningHand: false,
+            heroModifiers: profile, rngSeed: seed, tracksLog: true, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.heroDeck = CombatDeck(abilities: [chain, .slash])
         battle.companionDeck = CombatDeck(abilities: [.slash])
         battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)

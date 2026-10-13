@@ -14,9 +14,8 @@ struct ThornsArithmeticBoundaryTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroEffects: [ActiveEffect(id: 1, effect: .thorns(Int.max), remainingTurns: 0)],
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.enemy.hasConsumedDeathsDoor = true
         if talentGain {
             _ = CombatExecutor.run { await CombatTriggerEngine.heroTalentThorns(

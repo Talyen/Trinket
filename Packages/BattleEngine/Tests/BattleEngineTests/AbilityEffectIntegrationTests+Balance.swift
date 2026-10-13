@@ -10,9 +10,8 @@ extension AbilityEffectIntegrationTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 20, heroModifiers: profile, dealOpeningHand: false,
+            enemyMaxHealth: 20, heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         if initialStun > 0 {
             battle.appendEffect(
                 .controlMeter(.stun, initialStun, 4), to: battle.enemy,
@@ -37,9 +36,8 @@ extension AbilityEffectIntegrationTests {
         enemyProfile.triggers.basicAttackFreezeBuildup = 1
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 100),
-            enemyModifiers: enemyProfile, dealOpeningHand: false,
+            enemyModifiers: enemyProfile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.performTestAction(ability, from: .enemy, to: .hero)
         #expect(battle.health(of: battle.hero) == 98)
         let kind: EffectKind = ability.id == "ray-of-frost" ? .recurringDamage : .bleed
@@ -61,9 +59,8 @@ extension AbilityEffectIntegrationTests {
                 profile.triggers.freezeDamageLeechChancePercent = 0.5
             }
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                heroModifiers: profile, rngSeed: seed, dealOpeningHand: false,
+                heroModifiers: profile, rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false,
             )
-            battle.appliesFightPacing = false
             battle.roster.hero.currentHealth = 1
             _ = battle.resolveDamage(.doTTick(amount: 8, target: battle.enemy, keyword: keyword, sourceActorID: battle.hero.id))
             #expect([1, 5].contains(battle.roster.hero.currentHealth))
@@ -73,8 +70,7 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `blessed aegis grants actor block heals lowest ally and deals holy damage`() {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         battle.roster.companion.currentHealth = 10
         let enemyBefore = battle.health(of: battle.enemy)
 
@@ -89,8 +85,7 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `blessed aegis holy damage does not grow with stored block`() {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 500, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 500, dealOpeningHand: false, appliesFightPacing: false)
         DefensePoolEngine.set(8, on: battle.hero, in: &battle)
         let before = battle.health(of: battle.enemy)
         battle.performTestAction(.blessedAegis)
@@ -111,9 +106,8 @@ extension AbilityEffectIntegrationTests {
         profile.triggers.leechChancePercent = 0.25
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxHealth: 50, heroMaxMana: 10, heroMana: 0,
-            heroModifiers: profile, dealOpeningHand: false,
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 10
         _ = battle.resolveTestDamage(8, keyword: keyword, options: .effect(abilityHasLeech: alreadyLeeches))
         #expect(battle.roster.hero.currentHealth == 15)
@@ -124,8 +118,11 @@ extension AbilityEffectIntegrationTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.poisonDamageLeechChancePercent = 1
         profile.triggers.freezeDamageLeechChancePercent = 1
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile,
+            dealOpeningHand: false,
+            appliesFightPacing: false,
+        )
         battle.roster.hero.currentHealth = 1
         _ = battle.resolveTestDamage(8, keyword: .holy, options: .reaction())
         #expect(battle.roster.hero.currentHealth == 1)

@@ -14,13 +14,10 @@ struct EnemyActionCadenceRegressionTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 1000),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 1000),
             enemy: enemy.combatant,
-            heroModifiers: heroModifiers,
+            heroModifiers: heroModifiers, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let health = battle.health(of: battle.enemy)
-        _ = BattleTurnEngine.performAction(
-            ability: ability, actor: battle.enemy, abilityTarget: battle.hero, context: &battle,
-        )
+        _ = battle.performTestAction(ability, from: .enemy, to: .hero)
         #expect(battle.health(of: battle.enemy) == health)
         #expect(battle.health(of: battle.hero) < 1000)
     }
@@ -33,9 +30,8 @@ struct EnemyActionCadenceRegressionTests {
         companionModifiers.triggers.negateFirstEnemyAttack = true
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyAbilities: [basic, skill], heroMaxHealth: 100, companionMaxHealth: 100,
-            companionModifiers: companionModifiers, dealOpeningHand: false,
+            companionModifiers: companionModifiers, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
 
         let dodged = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
         _ = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }

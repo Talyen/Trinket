@@ -112,9 +112,7 @@ struct BattleTurnEngineTests {
             heroAbilities: [ability], heroEffects: [ActiveEffect(id: 1, effect: effect, remainingTurns: 0)],
         )
         let healthBefore = context.health(of: context.enemy)
-        let events = BattleTurnEngine.performAction(
-            ability: ability, actor: context.hero, abilityTarget: context.enemy, context: &context,
-        )
+        let events = context.performTestAction(ability)
         let hit = try #require(events.first { $0.kind == .abilityDamage })
         #expect(hit.amount == damage)
         if consumed {
@@ -136,12 +134,7 @@ struct BattleTurnEngineTests {
             ],
         )
         var context = makeTurnContext(heroAbilities: [ability])
-        let events = BattleTurnEngine.performAction(
-            ability: ability,
-            actor: context.hero,
-            abilityTarget: context.enemy,
-            context: &context,
-        )
+        let events = context.performTestAction(ability)
 
         let components = events.filter { $0.kind == .abilityDamage }
         #expect(components.count == 2)
@@ -166,12 +159,7 @@ struct BattleTurnEngineTests {
                 ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 2),
             ],
         )
-        let events = BattleTurnEngine.performAction(
-            ability: ability,
-            actor: context.hero,
-            abilityTarget: context.enemy,
-            context: &context,
-        )
+        let events = context.performTestAction(ability)
 
         let component = try #require(events.first { $0.kind == .abilityDamage })
         #expect(component.isCritical)
@@ -239,9 +227,7 @@ struct BattleTurnEngineBurnBonusTests {
             heroAbilities: [.kindling],
             heroEffects: hasBonus ? [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)] : [],
         )
-        let events = BattleTurnEngine.performAction(
-            ability: .kindling, actor: context.hero, abilityTarget: context.enemy, context: &context,
-        )
+        let events = context.performTestAction(.kindling)
         let hit = try #require(events.first { $0.kind == .abilityDamage })
         #expect(hit.amount == (hasBonus ? 5 : 4))
         #expect(!context.activeEffects(of: context.hero).contains { $0.effect.kind == .nextBurnBonus })
@@ -261,12 +247,7 @@ struct BattleTurnEngineComponentTests {
         )
         let healthBefore = context.roster.health(for: context.enemy)
 
-        let events = BattleTurnEngine.performAction(
-            ability: ability,
-            actor: context.hero,
-            abilityTarget: context.enemy,
-            context: &context,
-        )
+        let events = context.performTestAction(ability)
 
         #expect(context.roster.health(for: context.enemy) == healthBefore - 30)
         let burnStatus = try #require(events.first { $0.kind == .status && $0.keyword == .burn })
@@ -287,12 +268,7 @@ struct BattleTurnEngineComponentTests {
         )
         var context = makeTurnContext(heroAbilities: [ability])
 
-        let events = BattleTurnEngine.performAction(
-            ability: ability,
-            actor: context.hero,
-            abilityTarget: context.enemy,
-            context: &context,
-        )
+        let events = context.performTestAction(ability)
 
         let components = events.filter { $0.kind == .abilityDamage }
         #expect(components.count == 2)

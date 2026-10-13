@@ -72,14 +72,12 @@ struct AllyBlockProtectionRegressionTests {
             profile.merge(power.modifiers)
             power.triggers.apply(to: &profile)
         }
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        return BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(id: "knight", maxHealth: 100, abilities: [basic]),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 100),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     private func hit(_ amount: Int, target: BattleParticipant, in battle: inout BattleState) -> CombatOutcome {

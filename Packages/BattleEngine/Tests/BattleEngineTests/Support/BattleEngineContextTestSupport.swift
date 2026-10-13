@@ -3,6 +3,22 @@ import TrinketCore
 @testable import BattleEngine
 
 extension BattleState {
+    @discardableResult
+    mutating func chargeTestControl(
+        _ amount: Int,
+        keyword: Keyword,
+        to target: Combatant,
+        sourceActorID: String?,
+        applyFightPacing: Bool = true,
+    ) -> [ActionEvent] {
+        CombatExecutor.run {
+            await ControlMeterEngine.applyMeterCharge(
+                amount, keyword: keyword, to: target, sourceActorID: sourceActorID,
+                applyFightPacing: applyFightPacing, in: &self,
+            )
+        }
+    }
+
     /// Resolves one engine action without moving a physical hand card.
     @discardableResult
     mutating func performTestAction(

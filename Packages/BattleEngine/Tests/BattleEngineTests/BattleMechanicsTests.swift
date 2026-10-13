@@ -13,9 +13,8 @@ struct BattleMechanicsTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 10),
             heroEffects: [ActiveEffect(id: 1, effect: .thorns(1), remainingTurns: 0)],
             heroHealth: 1, companionHealth: 0, enemyHealth: 1,
-            heroModifiers: gold, companionModifiers: gold,
+            heroModifiers: gold, companionModifiers: gold, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.mutateRuntime(for: battle.hero) { $0.hasConsumedDeathsDoor = true }
 
         _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))
@@ -87,8 +86,7 @@ struct BattleMechanicsTests {
     func `repeating nonattack damage preserves attack resources and rewards`(operation: DamageOperation) {
         var profile = CombatModifierProfile.zero
         profile.triggers.onAttackStealGold = 2
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
         battle.roster.hero.talents.pending.nextAttackHolyBonus = 3
         let result = battle.resolveTestDamage(4, options: operation.repeated())
         #expect(result.healthLost == 4)
@@ -195,9 +193,8 @@ struct BattleMechanicsTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 30),
             heroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 0)],
             enemyModifiers: venom,
-            nextEffectID: 2,
+            nextEffectID: 2, appliesFightPacing: false,
         )
-        blocking.appliesFightPacing = false
 
         // The strip lands before absorption, so a packet larger than the
         // defender's Block reaches Health in full.
@@ -211,9 +208,8 @@ struct BattleMechanicsTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 30),
             heroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
             enemyModifiers: venom,
-            nextEffectID: 2,
+            nextEffectID: 2, appliesFightPacing: false,
         )
-        absorbed.appliesFightPacing = false
 
         let stopped = absorbed.resolveTestDamage(3, from: .enemy, to: .hero, keyword: .poison, options: .attack(accuracy: .unavoidable))
         try #expect(stopped.healthLost == 0)

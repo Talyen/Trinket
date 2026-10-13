@@ -57,6 +57,10 @@ helpers live in `Support/`. All remain in the same test target.
   `BattleState` construction; `BattleTestFixtures` composes it for combat scenarios
   and provides play, catalog-build, effect-dispatch, and assertion helpers.
 - Use `BattleStateTestFactory.makeMinimalBattle(...)` for pipeline tests that must skip deck bootstrap.
+- Pass `appliesFightPacing: false` to battle factories for unpaced probes; full
+  factories apply this after bootstrap to preserve opening-hand behavior.
+- Use `performTestAction` and `chargeTestControl` for synchronous rule probes;
+  these retain the engine entry points and ordered executor boundary.
 - Dispatch effects through `EffectHandlers.handler(for:)`.
 - Public facade: reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package`.
 - Mutate package-visible battle state directly in tests. Use `syncLog()` when

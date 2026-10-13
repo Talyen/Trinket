@@ -28,10 +28,10 @@ struct DoTArithmeticBoundaryTests {
 
     @Test(arguments: [Keyword.burn, .poison])
     func `live growth at capped potency preserves the cap`(keyword: Keyword) {
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .withTriggers {
             $0.poisonDecayIncreaseChance = 1
             $0.burnIncreaseChancePercent = 1
-        }))
+        })
         let progression = DecayingDoTProgression(
             type: keyword == .burn ? .burn : .poison,
             sourceActorID: battle.hero.id, target: battle.enemy, in: battle,
@@ -69,8 +69,8 @@ struct DoTArithmeticBoundaryTests {
 
     @Test func `party poison preservation precedes growth and detonation does not roll`() {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.enemyPoisonDecayIncreaseChance = 1 }),
-            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.enemyPoisonPreventDecayChancePercent = 1 }),
+            heroModifiers: .withTriggers { $0.enemyPoisonDecayIncreaseChance = 1 },
+            companionModifiers: .withTriggers { $0.enemyPoisonPreventDecayChancePercent = 1 },
         )
         let preserved = DecayingDoTProgression(type: .poison, sourceActorID: battle.hero.id, target: battle.enemy, in: battle)
         #expect(preserved.turnPotency(from: 10, using: &battle.rng) == 10)
@@ -93,8 +93,7 @@ struct DoTArithmeticBoundaryTests {
 
     @Test(arguments: [Keyword.burn, .bleed])
     func `detonation of capped potency resolves lethal damage without overflowing`(keyword: Keyword) {
-        var battle = BattleTestFixtures.makePipelineContext()
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(, appliesFightPacing: false)
         battle.appendEffect(
             keyword == .burn ? .burn(Int.max) : .bleed(Int.max),
             to: battle.enemy, sourceID: battle.hero.id,

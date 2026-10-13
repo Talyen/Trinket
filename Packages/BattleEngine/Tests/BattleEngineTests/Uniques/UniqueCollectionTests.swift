@@ -21,7 +21,7 @@ struct UniqueCollectionTests {
             profile.merge(signature.modifiers)
             signature.triggers.apply(to: &profile)
         }
-        var context = BattleStateTestFactory.makeMinimalBattle(
+        return BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 200, maxMana: 12, abilities: [heroBasic]),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 200, maxMana: 12, abilities: [companionBasic]),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 2000),
@@ -29,10 +29,8 @@ struct UniqueCollectionTests {
             companionMana: 0,
             heroModifiers: owner == .hero ? profile : other,
             companionModifiers: owner == .companion ? profile : other,
-            enemyModifiers: enemyExtra,
+            enemyModifiers: enemyExtra, appliesFightPacing: false,
         )
-        context.appliesFightPacing = false
-        return context
     }
 
     func attack(_ keyword: Keyword = .physical, amount: Int = 10, id: String = "strike") -> Ability {

@@ -16,8 +16,11 @@ struct ActionPreparationRegressionTests {
         )
         var profile = CombatantTalentCatalog.profile(for: ["alchemist_cleanse_t2_1"])
         profile.triggers.criticalChanceBonus = -1
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile,
+            dealOpeningHand: false,
+            appliesFightPacing: false,
+        )
         battle.appendEffect(.burn(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
 
         if card {
@@ -33,14 +36,10 @@ struct ActionPreparationRegressionTests {
         #expect(!battle.roster.hasAffliction(.burn, on: battle.hero))
         #expect(battle.roster.hero.talents.pending.nextBurnDamageBonus?.value == 2)
 
-        _ = BattleTurnEngine.performAction(
-            ability: .fireArrow, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        _ = battle.performTestAction(.fireArrow)
         #expect(battle.health(of: battle.enemy) == 92)
         #expect(battle.roster.hero.talents.pending.nextBurnDamageBonus == nil)
-        _ = BattleTurnEngine.performAction(
-            ability: .fireArrow, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        _ = battle.performTestAction(.fireArrow)
         #expect(battle.health(of: battle.enemy) == 89)
     }
 
@@ -54,8 +53,11 @@ struct ActionPreparationRegressionTests {
         )
         var profile = CombatantTalentCatalog.profile(for: ["library_owl_cleanse_t3_2"])
         profile.triggers.criticalChanceBonus = -0.1
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(companionModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: profile,
+            dealOpeningHand: false,
+            appliesFightPacing: false,
+        )
         battle.appendEffect(.burn(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
         let before = battle.rng
 
@@ -67,9 +69,7 @@ struct ActionPreparationRegressionTests {
         #expect(battle.rng == before)
         #expect(battle.roster.companion.talents.pending.nextCleanseCriticalBonus?.value == 0.2)
 
-        _ = BattleTurnEngine.performAction(
-            ability: .slash, actor: battle.companion, abilityTarget: battle.enemy, context: &battle,
-        )
+        _ = battle.performTestAction(.slash, from: .companion)
         #expect(battle.rng != before)
         #expect(battle.roster.companion.talents.pending.nextCleanseCriticalBonus == nil)
     }
@@ -85,8 +85,11 @@ struct ActionPreparationRegressionTests {
         )
         var profile = CombatantTalentCatalog.profile(for: ["bear_block_t4_1"])
         profile.triggers.criticalChanceBonus = -1
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(companionModifiers: profile, dealOpeningHand: false)
-        battle.appliesFightPacing = false
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: profile,
+            dealOpeningHand: false,
+            appliesFightPacing: false,
+        )
         let threshold = ControlMeterEngine.threshold(for: battle.enemy, in: battle)
         battle.appendEffect(
             .controlMeter(.stun, threshold - 1, threshold), to: battle.enemy,
@@ -101,14 +104,10 @@ struct ActionPreparationRegressionTests {
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 3)
         #expect(battle.roster.companion.talents.pending.nextBlockGainMultiplier?.value == 2)
 
-        _ = BattleTurnEngine.performAction(
-            ability: .block, actor: battle.companion, abilityTarget: battle.enemy, context: &battle,
-        )
+        _ = battle.performTestAction(.block, from: .companion)
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 9)
         #expect(battle.roster.companion.talents.pending.nextBlockGainMultiplier == nil)
-        _ = BattleTurnEngine.performAction(
-            ability: .block, actor: battle.companion, abilityTarget: battle.enemy, context: &battle,
-        )
+        _ = battle.performTestAction(.block, from: .companion)
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 12)
     }
 }

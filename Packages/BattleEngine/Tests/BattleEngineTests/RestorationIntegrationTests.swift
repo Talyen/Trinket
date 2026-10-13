@@ -29,9 +29,8 @@ struct RestorationIntegrationTests {
 
     @Test func `full health leech emits overflow without triggering leech success`() {
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
+            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
             20, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle,
         ) }
@@ -103,14 +102,13 @@ struct RestorationIntegrationTests {
     func `overheal transfer consumes only recipient space before converting the remainder`(companionHealth: Int) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 10, heroMaxMana: 10,
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+            heroModifiers: .withTriggers {
                 $0.wishspring = true
                 $0.overhealConvertsToBlock = true
                 $0.leechOverhealTransfersToCompanion = true
-            }),
-            dealOpeningHand: false,
+            },
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.currentHealth = companionHealth
         battle.roster.hero.currentMana = 0
         var request = HealRequest(amount: 10, target: battle.hero, sourceActorID: battle.hero.id, origin: .leech, logAs: .silent)
@@ -141,13 +139,12 @@ struct RestorationIntegrationTests {
     @Test func `aether shield waits for overflow remaining after blood link`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 20,
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+            heroModifiers: .withTriggers {
                 $0.leechOverhealTransfersToCompanion = true
                 $0.overhealFirstBlockPerTurn = 3
-            }),
-            dealOpeningHand: false,
+            },
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.companion.currentHealth = 10
         var request = HealRequest(amount: 10, target: battle.hero, sourceActorID: battle.hero.id, origin: .leech, logAs: .silent)
         request.amountBasis = .resolved
@@ -165,9 +162,8 @@ extension RestorationIntegrationTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
             heroHealth: 10, companionHealth: 10,
-            companionModifiers: CombatantTalentCatalog.profile(for: ["pixie_health_t1_1"]),
+            companionModifiers: CombatantTalentCatalog.profile(for: ["pixie_health_t1_1"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         var transfer = HealRequest(amount: 3, target: battle.hero, sourceActorID: battle.companion.id)
         transfer.amountBasis = .resolved
 
@@ -186,9 +182,8 @@ extension RestorationIntegrationTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         var request = HealRequest(amount: 4, target: battle.hero, sourceActorID: battle.hero.id)
         request.amountBasis = .resolved
 

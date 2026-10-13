@@ -14,9 +14,8 @@ struct PassiveTalentCadenceTests {
         profile.setTriggerAbilityName(.bleedCriticalDrawChancePercent, sharedName ? "Mana Reward" : "Card Reward")
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxMana: 10, companionMana: 0, companionModifiers: profile,
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.companionDeck = CombatDeck(abilities: [.stargaze, .stargaze])
         let attack = Ability(
             id: "critical-reward-cadence", name: "Critical Reward Cadence", tier: .basic,

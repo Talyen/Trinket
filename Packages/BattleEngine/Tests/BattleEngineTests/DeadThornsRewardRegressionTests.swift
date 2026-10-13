@@ -17,9 +17,8 @@ struct DeadThornsRewardRegressionTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 1,
             companionHealth: 5,
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.hasConsumedDeathsDoor = finallyDefeated
         battle.appendEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
@@ -51,9 +50,8 @@ struct DeadThornsRewardRegressionTests {
             companion: CombatantFixtures.passiveCompanion(maxHealth: 100),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionHealth: 5,
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         if hasStack {
             battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         }
@@ -81,9 +79,8 @@ struct DeadThornsRewardRegressionTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         DefensePoolEngine.set(enemyBlock, on: battle.enemy, in: &battle)
 
         _ = battle.resolveTestDamage(

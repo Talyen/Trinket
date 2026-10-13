@@ -8,8 +8,7 @@ struct AttackOnlyBonusRegressionTests {
     func `Physical attack Block talents preserve ordinary reaction Block removal`(talentID: String, attack: Bool) {
         var profile = CombatantTalentCatalog.profile(for: [talentID])
         profile.triggers.criticalChanceBonus = -1
-        var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile, appliesFightPacing: false)
         DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
 
         let result = battle.resolveTestDamage(
@@ -24,8 +23,10 @@ struct AttackOnlyBonusRegressionTests {
 
     @Test func `Ogre Shieldbreaker does not double its Thorns Block removal`() throws {
         let ogre = try #require(GameContent.enemies.first { $0.id == "ogre" })
-        var battle = BattleTestFixtures.makePipelineContext(enemyModifiers: CombatBuildResolver.build(enemy: ogre).modifiers)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(
+            enemyModifiers: CombatBuildResolver.build(enemy: ogre).modifiers,
+            appliesFightPacing: false,
+        )
         DefensePoolEngine.set(10, on: battle.hero, in: &battle)
         battle.appendEffect(.thorns(3), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 
@@ -41,8 +42,7 @@ struct AttackOnlyBonusRegressionTests {
             $0.sunderingBlockMultiplier = 1
             $0.holyBlockBreakMultiplier = 2
         }
-        var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile)
-        battle.appliesFightPacing = false
+        var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile, appliesFightPacing: false)
         DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
 
         _ = battle.resolveTestDamage(3, from: .companion, keyword: keyword, options: .reaction())

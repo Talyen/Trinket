@@ -64,14 +64,13 @@ struct FaeWardTests {
 
     @Test func `stun meter charge is blocked once`() {
         var battle = makeWardedHeroBattle()
-        let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
+        let events = battle.chargeTestControl(
             3,
             keyword: .stun,
             to: battle.roster.hero.combatant,
             sourceActorID: battle.roster.enemy.id,
             applyFightPacing: false,
-            in: &battle,
-        ) }
+        )
         #expect(events.isEmpty)
         let meters = battle.roster.activeEffects(for: battle.roster.hero.combatant)
             .filter { $0.effect.keyword == .stun }
@@ -80,7 +79,7 @@ struct FaeWardTests {
 
     @Test func `marked from stun reaction is blocked once`() {
         var battle = makeWardedHeroBattle(
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.enemyStunnedApplyMarked = true }),
+            heroModifiers: .withTriggers { $0.enemyStunnedApplyMarked = true },
             enemyModifiers: Self.faeWard,
         )
         let events = CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(sourceActorID: battle.roster.hero.id, in: &battle) }

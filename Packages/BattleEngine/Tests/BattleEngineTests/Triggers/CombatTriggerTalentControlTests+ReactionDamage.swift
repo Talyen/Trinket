@@ -9,7 +9,7 @@ extension CombatTriggerTalentControlTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.onDodgeApplyPoisonOrBleed = 2 }),
+            heroModifiers: .withTriggers { $0.onDodgeApplyPoisonOrBleed = 2 },
             dealOpeningHand: false,
         )
         _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
@@ -26,7 +26,7 @@ extension CombatTriggerTalentControlTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.holyAttackApplyBurnAndStunBuildup = 2 }),
+            heroModifiers: .withTriggers { $0.holyAttackApplyBurnAndStunBuildup = 2 },
             dealOpeningHand: false,
         )
         _ = battle.resolveTestDamage(
@@ -46,17 +46,16 @@ extension CombatTriggerTalentControlTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.onStunEnemyApplyBurn = 2 }),
+            heroModifiers: .withTriggers { $0.onStunEnemyApplyBurn = 2 },
             dealOpeningHand: false,
         )
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
+        _ = battle.chargeTestControl(
             ControlMeterEngine.threshold(for: battle.enemy, in: battle),
             keyword: .stun,
             to: battle.enemy,
             sourceActorID: battle.hero.id,
             applyFightPacing: false,
-            in: &battle,
-        ) }
+        )
         #expect(battle.roster.health(for: battle.roster.enemy.combatant) == 98)
         let burns = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
             .filter { $0.effect.keyword == Keyword.burn }

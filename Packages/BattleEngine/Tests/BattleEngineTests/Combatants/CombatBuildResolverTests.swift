@@ -9,10 +9,9 @@ struct CombatBuildResolverTests {
     func `shredding ignores only its share of mitigation`(ignored: Double) {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.ignoreEnemyMitigationPercent = ignored }),
-            enemyModifiers: .init(incomingDamageReductionPercent: 0.8),
+            heroModifiers: .withTriggers { $0.ignoreEnemyMitigationPercent = ignored },
+            enemyModifiers: .init(incomingDamageReductionPercent: 0.8), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let outcome = battle.resolveTestDamage(100, options: .reaction())
         #expect(outcome.healthLost == CombatRounding.scaled(100, multiplier: 1 - 0.8 * (1 - ignored)))
     }
@@ -27,9 +26,8 @@ struct CombatBuildResolverTests {
             var battle = BattleStateTestFactory.makeMinimalBattle(
                 enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
                 heroModifiers: attacker,
-                enemyModifiers: defender,
+                enemyModifiers: defender, appliesFightPacing: false,
             )
-            battle.appliesFightPacing = false
             let outcome = battle.resolveTestDamage(damage, options: .reaction())
             #expect(outcome.healthLost == expected)
         }
@@ -50,9 +48,8 @@ struct CombatBuildResolverTests {
             hero: hero, companion: companion,
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
             heroModifiers: owner == .hero ? build.modifiers : .zero,
-            companionModifiers: owner == .companion ? build.modifiers : .zero,
+            companionModifiers: owner == .companion ? build.modifiers : .zero, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let outcome = battle.resolveTestDamage(
             10,
             to: battle.enemy,
@@ -65,13 +62,11 @@ struct CombatBuildResolverTests {
 
     @Test func `leech armor pierce bypasses mitigation only for leech abilities`() {
         func makeBattle(leechPierce: Bool) -> BattleState {
-            var battle = BattleStateTestFactory.makeMinimalBattle(
+            BattleStateTestFactory.makeMinimalBattle(
                 enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
-                heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.leechIgnoresMitigation = leechPierce }),
-                enemyModifiers: .init(incomingDamageReductionPercent: 0.8),
+                heroModifiers: .withTriggers { $0.leechIgnoresMitigation = leechPierce },
+                enemyModifiers: .init(incomingDamageReductionPercent: 0.8), appliesFightPacing: false,
             )
-            battle.appliesFightPacing = false
-            return battle
         }
         func dealDamage(leechAbility: Bool, in battle: inout BattleState) -> Int {
             var options: DamageOperation = .reaction()
@@ -88,9 +83,8 @@ struct CombatBuildResolverTests {
 
     @Test func `outermost damage drains every out-of-turn queue`() {
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 200), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.uniques.pendingCounterAttackActorIDs = [battle.hero.id]
         battle.uniques.pendingBlockAnswerOwners = [.hero]
         _ = battle.resolveTestDamage(10, options: .reaction())

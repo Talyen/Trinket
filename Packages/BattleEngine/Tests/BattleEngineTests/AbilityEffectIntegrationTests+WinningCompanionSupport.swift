@@ -8,9 +8,8 @@ extension AbilityEffectIntegrationTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 1, companionMaxMana: 10, companionMana: 0,
             companionModifiers: CombatantTalentCatalog.profile(for: ["phoenix_burn_t4_1"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let attack = Ability(
             id: "winning-burn", name: "Winning Burn", tier: .basic,
             damageComponents: [DamageComponent(1, keyword: .burn)],
@@ -34,9 +33,8 @@ extension AbilityEffectIntegrationTests {
         profile.triggers.holyAttackDrawChancePercent = keyword == .holy ? 1 : 0
         profile.triggers.bleedCriticalDrawChancePercent = keyword == .bleed ? 1 : 0
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 1, companionModifiers: profile, dealOpeningHand: false,
+            enemyMaxHealth: 1, companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.companionDeck = CombatDeck(abilities: [.stargaze])
         let attack = Ability(
             id: "winning-draw", name: "Winning Draw", tier: .basic,
@@ -64,9 +62,8 @@ extension AbilityEffectIntegrationTests {
         profile.triggers.holyCriticalStunDamage = 3
         profile.triggers.holyCritEnemyNextAttackMissChance = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 1, companionModifiers: profile, dealOpeningHand: false,
+            enemyMaxHealth: 1, companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let attack = Ability(
             id: "winning-block", name: "Winning Block", tier: .basic,
             damageComponents: [DamageComponent(1, keyword: keyword)],

@@ -11,9 +11,8 @@ struct HealingReductionTests {
             heroMaxHealth: 40, companionMaxHealth: 40,
             heroMaxMana: 3,
             heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_leech_t2_1", "warlock_leech_t2_2"]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentMana = 0
         battle.roster.hero.currentHealth -= missingHealth
         battle.roster.companion.currentHealth = 1
@@ -32,7 +31,7 @@ struct HealingReductionTests {
         var silent = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             heroHealth: 10,
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.criticalChanceBonus = 0.5 }),
+            heroModifiers: .withTriggers { $0.criticalChanceBonus = 0.5 },
         )
         var visible = silent
         let silentResult = silent.resolveHeal(HealRequest(
@@ -55,9 +54,8 @@ struct HealingReductionTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
-            enemy: CombatantFixtures.passiveEnemy(abilities: [.serratedEdge]),
+            enemy: CombatantFixtures.passiveEnemy(abilities: [.serratedEdge]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let target = battle.roster[recipient].combatant
         _ = BattleTurnEngine.performAction(
             ability: .serratedEdge, actor: battle.enemy, abilityTarget: target, context: &battle,
@@ -82,9 +80,7 @@ struct HealingReductionTests {
         )
         let target = battle.roster[recipient].combatant
         battle.roster.mutateRuntime(for: target) { $0.currentHealth = 10 }
-        _ = BattleTurnEngine.performAction(
-            ability: .serratedEdge, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        _ = battle.performTestAction(.serratedEdge)
         let outcome = battle.resolveHeal(HealRequest(
             amount: 8, target: target, sourceActorID: target.id, logAs: .silent, skipFightPacing: true,
         ))
@@ -100,9 +96,8 @@ struct HealingReductionTests {
             companionModifiers: CombatModifierProfile(
                 blockGainedBonus: 3,
                 triggers: CombatTraitTriggers.configured { $0.onHealGrantBlock = 2 },
-            ),
+            ), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let hero = battle.roster.hero.combatant
         battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
 
@@ -118,9 +113,8 @@ struct HealingReductionTests {
             companionModifiers: CombatModifierProfile.withTriggers {
                 $0.cleanseSelfHeal = 3
                 $0.onHealCleanseTargetChance = 1
-            },
+            }, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         let hero = battle.roster.hero.combatant
         let companion = battle.roster.companion.combatant
         battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
@@ -149,9 +143,8 @@ extension HealingReductionTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxHealth: 100, companionMaxHealth: 100,
             heroModifiers: owner == .hero ? profile : .zero,
-            companionModifiers: owner == .companion ? profile : .zero, dealOpeningHand: false,
+            companionModifiers: owner == .companion ? profile : .zero, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 10
         battle.roster.companion.currentHealth = 10
         let outcome = CombatExecutor.run { await HealingEngine.leechFromDamage(
@@ -171,9 +164,8 @@ extension HealingReductionTests {
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroHealth: heroHealth,
-            companionModifiers: CombatantTalentCatalog.profile(for: ["panther_bleed_t3_2"]),
+            companionModifiers: CombatantTalentCatalog.profile(for: ["panther_bleed_t3_2"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.enemy.currentHealth = 10
         battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
 
@@ -188,9 +180,8 @@ extension HealingReductionTests {
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroHealth: 10, companionHealth: 10,
-            companionModifiers: CombatantTalentCatalog.profile(for: ["risen_skeleton_leech_t2_2"]),
+            companionModifiers: CombatantTalentCatalog.profile(for: ["risen_skeleton_leech_t2_2"]), appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.enemy.currentHealth = 8
         battle.roster.enemy.hasConsumedDeathsDoor = true
         let outcome = battle.resolveTestDamage(8, from: .companion, options: .effect(abilityHasLeech: true))

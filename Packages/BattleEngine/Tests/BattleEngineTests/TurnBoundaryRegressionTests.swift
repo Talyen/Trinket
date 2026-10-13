@@ -12,12 +12,10 @@ struct TurnBoundaryRegressionTests {
         )
         var profile = CombatantTalentCatalog.profile(for: ["wizard_mana_t1_2"])
         profile.triggers.dodgeChanceBonus = -1
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+        return BattleStateTestFactory.makeBattleWithAbilities(
             enemyAbilities: [attack], heroMaxMana: heroMana, heroMana: heroMana,
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     @Test func `Mana reserves cannot indefinitely absorb attacks above the Shield talent budget`() {
@@ -47,9 +45,7 @@ struct TurnBoundaryRegressionTests {
     func `Gold rewards and Gold steals retain their meaning in the battle log`(theft: Bool) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities()
         let ability = theft ? Ability.steal : Ability.goldenPlate
-        let events = BattleTurnEngine.performAction(
-            ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
-        )
+        let events = battle.performTestAction(ability)
         let summary = events.first { $0.kind == .ability && $0.abilityID == ability.id }?.appliedEffectSummaries
         #expect(summary?.contains(theft ? "steal 2 Gold" : "gain 5 Gold") == true)
     }
@@ -57,7 +53,7 @@ struct TurnBoundaryRegressionTests {
     @Test func `loyal companion draws for companion on alternating turns`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionAbilities: [.slash],
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.companionCardsEveryOtherTurn = 1 }),
+            heroModifiers: .withTriggers { $0.companionCardsEveryOtherTurn = 1 },
             dealOpeningHand: false,
         )
         for turn in 0 ... 3 {
@@ -135,14 +131,12 @@ struct TurnBoundaryRegressionTests {
     ) -> BattleState {
         var hero = heroModifiers
         hero.triggers.criticalChanceBonus = -1
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        return BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100, maxMana: 4),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 100),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 10, companionHealth: 20, enemyHealth: 1, heroMana: 0,
-            heroModifiers: hero, companionModifiers: companionModifiers,
+            heroModifiers: hero, companionModifiers: companionModifiers, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 }

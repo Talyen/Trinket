@@ -37,9 +37,8 @@ extension AbilityEffectIntegrationTests {
         var context = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 500,
             heroModifiers: CombatModifierProfile(damageDealtBonus: [.holy: 2]),
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        context.appliesFightPacing = false
         context.performTestAction(.avatarOfJustice)
 
         let attack = Ability(
@@ -56,8 +55,7 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `feint draws a manual card and dodges the next hit`() throws {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        context.appliesFightPacing = false
+        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         context.heroDeck = CombatDeck(abilities: [.slash])
         let enemyBefore = context.health(of: context.enemy)
 
@@ -84,8 +82,7 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `avatar deals holy damage and converts the next attack`() {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        context.appliesFightPacing = false
+        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         let openingHealth = context.health(of: context.enemy)
         context.performTestAction(.avatarOfJustice)
         #expect(context.health(of: context.enemy) == openingHealth - 6)
@@ -113,8 +110,7 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `avatar conversion remains through a non damaging card`() {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        context.appliesFightPacing = false
+        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         context.performTestAction(.avatarOfJustice)
         context.performTestAction(.block)
         #expect(context.activeEffects(of: context.hero).contains {
@@ -124,8 +120,7 @@ extension AbilityEffectIntegrationTests {
 
     @Test func `blizzard and earthquake deal six damage twice`() {
         for ability in [Ability.blizzard, Ability.earthquake] {
-            var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-            context.appliesFightPacing = false
+            var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
             let initialHealth = context.health(of: context.enemy)
             context.performTestAction(ability)
             #expect(context.health(of: context.enemy) == initialHealth - 6)
@@ -137,8 +132,7 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `hemorrhage applies and detonates bleed`() {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        context.appliesFightPacing = false
+        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         context.appendEffect(.bleed(4), to: context.enemy, sourceID: context.hero.id, remainingTurns: 0)
         let before = context.health(of: context.enemy)
         let events = context.performTestAction(.hemorrhage)
@@ -148,8 +142,7 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `molten bulwark grants block and thorns without a ward`() {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        context.appliesFightPacing = false
+        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         context.performTestAction(.moltenBulwark)
         #expect(BattleTestFixtures.shieldPoints(for: context.hero, in: context) == 4)
         #expect(context.activeEffects(of: context.hero).contains { $0.effect == .thorns(4) })
@@ -157,8 +150,7 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `thorn mail uses block gained by the same ability`() {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        context.appliesFightPacing = false
+        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         DefensePoolEngine.set(4, on: context.hero, in: &context)
         context.performTestAction(.thornMail)
         #expect(BattleTestFixtures.shieldPoints(for: context.hero, in: context) == 10)
@@ -227,8 +219,7 @@ extension AbilityEffectIntegrationTests {
 
     @Test(arguments: [3, 10])
     func `control multiplication doubles buildup after damage and triggers at threshold`(initialAmount: Int) {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        context.appliesFightPacing = false
+        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         context.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .controlMeter(.freeze, initialAmount, 20), remainingTurns: 0)],
             for: context.enemy,
@@ -249,8 +240,7 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `poison dagger resolves two poison hits`() {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        context.appliesFightPacing = false
+        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         let before = context.health(of: context.enemy)
 
         let events = context.performTestAction(.poisonDagger)
@@ -262,8 +252,7 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `spiked shield deals damage and grants one random defense effect`() {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        context.appliesFightPacing = false
+        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
 
         let events = context.performTestAction(.spikedShield)
 

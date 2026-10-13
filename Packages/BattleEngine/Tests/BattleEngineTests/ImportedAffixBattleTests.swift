@@ -10,15 +10,13 @@ struct ImportedAffixBattleTests {
         heroEffects: [ActiveEffect] = [],
         modifiers: CombatModifierProfile = .zero,
     ) -> BattleState {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
+        BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroEffects: heroEffects,
             heroHealth: heroHealth,
-            heroModifiers: modifiers,
+            heroModifiers: modifiers, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     @Test func `Thornwrought grants Thorns only at battle start`() {
@@ -88,9 +86,8 @@ struct ImportedAffixBattleTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: finallyDefeated ? 1 : 20,
             companionHealth: 5,
-            heroModifiers: profile,
+            heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
         battle.roster.hero.hasConsumedDeathsDoor = true
         battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.appendEffect(.thorns(8), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)

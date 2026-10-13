@@ -56,15 +56,13 @@ struct AshenVitalityActionPreparationTests {
         var profile = CombatantTalentCatalog.profile(for: ["phoenix_health_t3_2"])
         profile.triggers.criticalChanceBonus = -1
         profile.triggers.onDodgeCounterBasicAttack = countersAfterDodge
-        var battle = BattleStateTestFactory.makeBattle(
+        return BattleStateTestFactory.makeBattle(
             companion: CombatantFixtures.passiveCompanion(abilities: [basic]),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: profile,
             enemyModifiers: CombatModifierProfile.withTriggers { $0.dodgeChanceBonus = -1 },
-            dealOpeningHand: false,
+            dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appliesFightPacing = false
-        return battle
     }
 
     private func expectLaterBurnConsumesPreparation(actor: Combatant, target: Combatant, in battle: inout BattleState) {

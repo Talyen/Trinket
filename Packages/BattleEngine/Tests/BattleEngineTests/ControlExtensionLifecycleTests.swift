@@ -68,17 +68,14 @@ struct ControlExtensionLifecycleTests {
 
     private func extendedControlBattle() -> BattleState {
         BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+            heroModifiers: .withTriggers {
                 $0.freezeExtendChancePercent = 1
                 $0.stunExtendChancePercent = 1
-            }),
+            },
         )
     }
 
     private func applyControl(_ keyword: Keyword, source: Combatant, in battle: inout BattleState) {
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            100, keyword: keyword, to: battle.enemy, sourceActorID: source.id,
-            applyFightPacing: false, in: &battle,
-        ) }
+        _ = battle.chargeTestControl(100, keyword: keyword, to: battle.enemy, sourceActorID: source.id, applyFightPacing: false)
     }
 }
