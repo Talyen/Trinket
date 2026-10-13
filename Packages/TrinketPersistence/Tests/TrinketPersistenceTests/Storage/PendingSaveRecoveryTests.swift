@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
@@ -193,7 +194,7 @@ struct PendingSaveRecoveryTests {
     }
 
     @Test(arguments: [false, true])
-    func `pending action retries once and cannot cross reset`(reset: Bool) async throws {
+    func `latest pending action retries once and cannot cross reset`(reset: Bool) async throws {
         let store = try PlayerSaveStore(inMemoryOnly: true)
         var attempts = 0
         store.forcesNextSaveFailure = true
@@ -204,7 +205,7 @@ struct PendingSaveRecoveryTests {
             }
             _ = store.persistFixtureBatch(logging: "Retry fixture") { $0.roster.gold += 3 }
         }
-        // A second failed submission must not replace the first retained action.
+        // A newer failed submission owns the retry; reset still cancels it.
         store.forcesNextSaveFailure = true
         store.performSaveAction(key: "claim") { [weak store] isRetry in
             guard let store else { return }
@@ -219,8 +220,59 @@ struct PendingSaveRecoveryTests {
         for _ in 0 ..< 300 where store.isRetryingSaveAction {
             try await Task.sleep(for: .milliseconds(10))
         }
-        #expect(attempts == (reset ? 0 : 1))
+        #expect(attempts == (reset ? 0 : 100))
         #expect(store.roster.gold == (reset ? 0 : 3))
+    }
+
+    @Test(arguments: [false, true])
+    func `new party choice supersedes a failed selection even without a write`(alreadySelected: Bool) async throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        store.contentAccess = .fullGame
+        let knight = try #require(GameContent.hero(matching: "knight"))
+        let druid = try #require(GameContent.hero(matching: "druid"))
+        try store.performFixtureMutation { save in
+            _ = save.roster.unlock(knight)
+            _ = save.roster.unlock(druid)
+        }
+        let latestID = alreadySelected ? store.roster.activeHeroID : druid.id
+        store.forcesNextSaveFailure = true
+        store.performSaveAction(key: "party-Hero") { [weak store] _ in
+            _ = store?.selectParty(heroID: knight.id)
+        }
+        #expect(store.isRetryingSaveAction)
+        store.performSaveAction(key: "party-Hero") { [weak store] _ in
+            guard let store, store.roster.activeHeroID != latestID else { return }
+            #expect(store.selectParty(heroID: latestID) == .committed)
+        }
+        #expect(!store.isRetryingSaveAction)
+        for _ in 0 ..< 300 where store.isRetryingSaveAction {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(store.roster.activeHeroID == latestID)
+        #expect(try context.makeReloadedStore().roster.activeHeroID == latestID)
+    }
+
+    @Test func `retry callback cannot discard its replacement action`() async throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        store.forcesNextSaveFailure = true
+        store.performSaveAction(key: "claim") { [weak store] isRetry in
+            guard let store else { return }
+            if !isRetry {
+                _ = store.persistFixtureBatch(logging: "Original fixture") { $0.roster.gold += 3 }
+                return
+            }
+            store.forcesNextSaveFailure = true
+            store.performSaveAction(key: "claim") { [weak store] _ in
+                _ = store?.persistFixtureBatch(logging: "Replacement fixture") { $0.roster.gold += 7 }
+            }
+        }
+        for _ in 0 ..< 300 where store.isRetryingSaveAction {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(!store.isRetryingSaveAction)
+        #expect(try context.makeReloadedStore().roster.gold == 7)
     }
 
     @Test func `obsolete retry preserves an unrelated validation failure`() async throws {

@@ -99,9 +99,14 @@ an unrelated old error cannot turn a rejection into a queued action. Nested acti
 own their failures and retries independently, so a failed reward does not replay
 an already completed encounter-opening step. The retained closure receives `isRetry`
 for delayed completion feedback; it must recheck its encounter or choice identity.
-Keys prevent duplicate queued retries; the captured session generation prevents
-late writes or navigation across reset/account boundaries. An obsolete callback
-that performs no write ends its retry without hiding an unrelated error. Interaction
+Keys identify replaceable player intents. Every submission takes ownership before
+running its initial action and retires the previous callback with that key, even
+when the new intent rejects or needs no write. Only the current submission may
+schedule, continue, or finish its retry; a re-entrant replacement cannot be removed
+by the old callback's completion. Different keys remain independent. The captured
+session generation prevents late writes or navigation across reset/account boundaries.
+An obsolete callback that performs no write ends its retry without hiding an unrelated
+error. Interaction
 owners retain only current choices/encounters while pending. Linked Homestead actions commit
 locally and upload later; transient sync failures retry without player prompts.
 Pending legacy server receipts remain replay-safe. Total device write refusal cannot guarantee
