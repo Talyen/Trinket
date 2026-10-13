@@ -76,6 +76,16 @@ checked `Sendable` conformance, and all field mutations pass through one accesso
 that ensures unique storage before writing. The wrapper's unchecked conformance
 relies on this encapsulation; storage references must never escape the wrapper.
 
+## Encounter boards
+
+`ContractBoard` and `VoyageBoard` own offer repair, generation, and replacement
+from explicit pinned offers, retirement identities, access, and eligible rewards.
+Voyage selection accepts a random generator; Contracts retains its offer-factory
+injection. These rules need no save store. Persistence owns serialized state,
+refresh admission, active runs, and completion/abandonment receipts. Preparing an
+existing valid board retains its pinned offers; replacing a retired offer preserves
+the other slots. Save fields and offer identifiers retain their existing formats.
+
 ## Random item rewards
 
 `ItemRewardGenerator` owns category selection and candidate filtering for battles,

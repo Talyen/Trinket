@@ -51,6 +51,7 @@ source selection and preparation.
 | Item generation, Corruption, and Salvage rules | TrinketContent | Item values and inventory arrays; Persistence owns save commands, receipts, and cooldowns |
 | Homestead production and upgrade rules | TrinketContent | Value state and Gold inputs; Persistence owns saved wallet writes, graph mapping, and receipts |
 | Catalogs and authored content | [TrinketContent](../../Packages/TrinketContent/README.md) | Manifest/codegen boundary and runtime catalog |
+| Contracts and Voyage board selection | TrinketContent | Value-only repair, generation, and replacement rules; Persistence owns refresh admission, active runs, and retirement receipts |
 | Encounter scaling | TrinketContent | `EncounterScaling` pairs mode level rules with enemy power profiles for launch, reward fallbacks, and simulations |
 | Combat rules and card combat | [BattleEngine](../../Packages/BattleEngine/README.md) | Simulation owner |
 | Player save, stores, and sync wiring | [TrinketPersistence](../../Packages/TrinketPersistence/README.md) | Canonical save graph and write policy |

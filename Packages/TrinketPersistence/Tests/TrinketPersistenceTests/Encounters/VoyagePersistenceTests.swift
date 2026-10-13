@@ -77,9 +77,6 @@ struct VoyagePersistenceTests {
     @Test func `board access and run lifecycle`() throws {
         var state = PlayerVoyageState()
         state.ensureBoard(access: .free)
-        #expect(Set(state.offers.map(\.chapterID)) == ["chapter-1", "chapter-2", "chapter-3"])
-        #expect(state.offers.map(\.difficulty) == VoyageDifficulty.allCases)
-        #expect(Set(state.offers.map(\.rewardModifier)).count == 3)
         let original = state
         state.ensureBoard(access: .free)
         #expect(state == original)

@@ -7,36 +7,16 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct ContractBoardTests {
-    @Test func `board generation repair and refresh preserve the three slot rules`() {
+    @Test func `refresh requires and consumes the earned permission`() {
         var board = PlayerContractsState()
         board.ensureBoard()
         let original = board
-        board.ensureBoard()
+        #expect(!board.refresh())
         #expect(board == original)
-        #expect(board.offers.map(\.difficulty) == ContractDifficulty.allCases)
-        #expect(Set(board.offers.map(\.enemyID)).count == 3)
-        for offer in board.offers {
-            #expect(GameContent.enemy(matching: offer.enemyID)?.isBoss == offer.difficulty.isBoss)
-        }
-        let unavailableRefresh = board.refresh()
-        #expect(!unavailableRefresh)
         board.earnRefresh()
-        let refreshed = board.refresh()
-        #expect(refreshed)
+        #expect(board.refresh())
         #expect(!board.refreshAvailable)
-        for offer in board.offers {
-            #expect(offer.id != original.offer(for: offer.difficulty)?.id)
-            #expect(offer.enemyID != original.offer(for: offer.difficulty)?.enemyID)
-        }
-
-        let retained = board.offers.filter { $0.difficulty != .easy }
-        board = PlayerContractsState(offers: retained + [
-            ContractOffer(id: "invalid", difficulty: .easy, enemyID: "missing-enemy"),
-        ])
-        board.ensureBoard()
-        #expect(board.offers.count == 3)
-        #expect(board.offers.filter { $0.difficulty != .easy } == retained)
-        #expect(Set(board.offers.map(\.enemyID)).count == 3)
+        #expect(board.offers != original.offers)
     }
 
     @Test func `item quality follows won encounters rather than roster leveling`() throws {

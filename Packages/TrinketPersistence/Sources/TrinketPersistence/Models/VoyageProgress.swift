@@ -51,28 +51,17 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
 
     public mutating func ensureBoard(access: ContentAccessPolicy, eligibleModifiers: [RewardModifier] = RewardModifier.allCases) {
         guard !isUnreadable, activeRun == nil else { return }
-        let allowed = Self.chapterIDs(access: access)
-        if offers.count != 3 || Set(offers.map(\.chapterID)).count != 3
-            || offers.contains(where: { !allowed.contains($0.chapterID) }) {
-            refresh(access: access, eligibleModifiers: eligibleModifiers)
-        }
-        let retiredIDs = (completedRunIDs ?? []).union(abandonedRunIDs ?? [])
-        for offer in offers where retiredIDs.contains(offer.id) {
-            replaceOffer(runID: offer.id, access: access, eligibleModifiers: eligibleModifiers)
-        }
+        var rng = SystemRandomNumberGenerator()
+        offers = VoyageBoard.preparedOffers(
+            offers, excluding: (completedRunIDs ?? []).union(abandonedRunIDs ?? []),
+            access: access, eligibleModifiers: eligibleModifiers, using: &rng,
+        )
     }
 
     public mutating func refresh(access: ContentAccessPolicy, eligibleModifiers: [RewardModifier] = RewardModifier.allCases) {
         guard !isUnreadable, activeRun == nil else { return }
-        var chapters = Self.chapterIDs(access: access).shuffled()
-        var modifiers = eligibleModifiers.isEmpty ? [.gold] : eligibleModifiers.shuffled()
-        offers = VoyageDifficulty.allCases.compactMap { difficulty in
-            guard let chapterID = chapters.popLast() else { return nil }
-            if modifiers.isEmpty {
-                modifiers = eligibleModifiers.shuffled()
-            }
-            return Self.offer(chapterID: chapterID, difficulty: difficulty, modifier: modifiers.popLast() ?? .gold)
-        }
+        var rng = SystemRandomNumberGenerator()
+        offers = VoyageBoard.refreshedOffers(access: access, eligibleModifiers: eligibleModifiers, using: &rng)
     }
 
     @discardableResult
@@ -83,7 +72,7 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
         guard !isUnreadable, activeRun == nil,
               completedRunIDs?.contains(offerID) != true, abandonedRunIDs?.contains(offerID) != true,
               let offer = offers.first(where: { $0.id == offerID }),
-              Self.chapterIDs(access: access).contains(offer.chapterID) else { return false }
+              VoyageBoard.chapterIDs(access: access).contains(offer.chapterID) else { return false }
         activeRun = VoyageRun(
             offer: offer,
             nodes: VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards),
@@ -94,17 +83,8 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
     public mutating func replaceOffer(
         runID: String, access: ContentAccessPolicy, eligibleModifiers: [RewardModifier] = RewardModifier.allCases,
     ) {
-        guard let index = offers.firstIndex(where: { $0.id == runID }) else { return }
-        let previous = offers[index]
-        let used = Set(offers.map(\.chapterID))
-        let candidates = Self.chapterIDs(access: access).filter { !used.contains($0) }
-        let usedModifiers = Set(offers.enumerated().filter { $0.offset != index }.map(\.element.rewardModifier))
-        let pool = eligibleModifiers.filter { !usedModifiers.contains($0) }
-        let modifier = (pool.isEmpty ? eligibleModifiers : pool).randomElement() ?? .gold
-        offers[index] = Self.offer(
-            chapterID: candidates.randomElement() ?? previous.chapterID,
-            difficulty: previous.difficulty, modifier: modifier,
-        )
+        var rng = SystemRandomNumberGenerator()
+        offers = VoyageBoard.replacingOffer(runID, in: offers, access: access, eligibleModifiers: eligibleModifiers, using: &rng)
     }
 
     @discardableResult
@@ -198,16 +178,5 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
                 && (!node.type.isCombat || node.enemyID.flatMap { GameContent.enemy(matching: $0) } != nil)
                 && node.modifierIDs.allSatisfy { NodeModifierCatalog.modifier(id: $0) != nil }
         }
-    }
-
-    private static func chapterIDs(access: ContentAccessPolicy) -> [String] {
-        GameContent.chapters.filter { access.allowsChapter($0.number) && VoyageCatalog.bossID(chapterID: $0.id) != nil }.map(\.id)
-    }
-
-    private static func offer(chapterID: String, difficulty: VoyageDifficulty, modifier: RewardModifier) -> VoyageOffer {
-        VoyageOffer(
-            id: UUID().uuidString, chapterID: chapterID, difficulty: difficulty,
-            seed: UInt64.random(in: .min ... .max), rewardModifier: modifier,
-        )
     }
 }

@@ -37,17 +37,9 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
         eligibleModifiers: [RewardModifier] = RewardModifier.allCases,
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) {
-        self = sanitized()
-        var excludedEnemyIDs = Set(offers.map(\.enemyID))
-        let previous = offers
-        offers = ContractDifficulty.allCases.map { difficulty in
-            if let offer = previous.first(where: { $0.difficulty == difficulty }) {
-                return offer
-            }
-            let newOffer = makeOffer(difficulty, excludedEnemyIDs, eligibleModifiers)
-            excludedEnemyIDs.insert(newOffer.enemyID)
-            return newOffer
-        }
+        offers = ContractBoard.preparedOffers(
+            offers, excluding: completedOfferIDs ?? [], eligibleModifiers: eligibleModifiers, makeOffer: makeOffer,
+        )
     }
 
     @discardableResult
@@ -57,18 +49,7 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
     ) -> Bool {
         guard refreshAvailable else { return false }
         completedOfferIDs = completedOfferIDs ?? []
-        let previous = offers
-        offers = []
-        var excludedEnemyIDs = Set<String>()
-        for difficulty in ContractDifficulty.allCases {
-            var excluded = excludedEnemyIDs
-            if let prior = previous.first(where: { $0.difficulty == difficulty }) {
-                excluded.insert(prior.enemyID)
-            }
-            let newOffer = makeOffer(difficulty, excluded, eligibleModifiers)
-            excludedEnemyIDs.insert(newOffer.enemyID)
-            offers.append(newOffer)
-        }
+        offers = ContractBoard.refreshedOffers(replacing: offers, eligibleModifiers: eligibleModifiers, makeOffer: makeOffer)
         refreshAvailable = false
         return true
     }
@@ -87,29 +68,19 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
         eligibleModifiers: [RewardModifier] = RewardModifier.allCases,
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> Bool {
-        guard let index = offers.firstIndex(where: { $0.id == offerID }) else { return false }
-        let replacement = makeOffer(offers[index].difficulty, Set(offers.map(\.enemyID)), eligibleModifiers)
+        guard let replacement = ContractBoard.replacingOffer(
+            offerID, in: offers, eligibleModifiers: eligibleModifiers, makeOffer: makeOffer,
+        ) else { return false }
         completedOfferIDs = (completedOfferIDs ?? []).union([offerID])
-        offers[index] = replacement
+        offers = replacement
         return true
     }
 
     func sanitized() -> Self {
-        var ids: Set<String> = []
-        var enemyIDs: Set<String> = []
-        var valid: [ContractOffer] = []
-        for difficulty in ContractDifficulty.allCases {
-            guard let offer = offers.first(where: {
-                $0.difficulty == difficulty && !$0.id.isEmpty
-                    && !(completedOfferIDs ?? []).contains($0.id)
-                    && !ids.contains($0.id) && !enemyIDs.contains($0.enemyID)
-                    && GameContent.enemy(matching: $0.enemyID)?.isBoss == difficulty.isBoss
-            }) else { continue }
-            ids.insert(offer.id)
-            enemyIDs.insert(offer.enemyID)
-            valid.append(offer)
-        }
-        var repaired = Self(offers: valid, refreshAvailable: refreshAvailable, highestWonEncounterLevel: highestWonEncounterLevel)
+        var repaired = Self(
+            offers: ContractBoard.retainedOffers(offers, excluding: completedOfferIDs ?? []),
+            refreshAvailable: refreshAvailable, highestWonEncounterLevel: highestWonEncounterLevel,
+        )
         repaired.completedOfferIDs = completedOfferIDs
         return repaired
     }
