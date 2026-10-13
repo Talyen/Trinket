@@ -85,6 +85,24 @@ Raw evidence and the findings ledger live in the primary checkout’s explicitly
 [performance playbook](../Platform/PerformanceInvestigationPlaybook.md) for evidence
 interpretation; callback averages do not prove render-pipeline smoothness.
 
+## Pinned release recovery
+
+The task checkout was updated through the shared integration lock to 8a8edc94d
+and pushed. Deploy from this isolated checkout so primary main may advance
+without changing release inputs. Canonical setup and doctor passed there.
+Build 26 at 2c804a1f5 was interrupted before archive/upload when primary main
+advanced during verification; this is not a product assertion failure. Original
+receipts remain in primary, with copies preserving reservations in this checkout.
+
+Build 27 at 8a8edc94d was interrupted before archive/upload after hosted CI
+confirmed an incorrect lingering-Burn test expectation. Burn 6 halves before its
+tick, leaving a 100-Health enemy at 97; the test expected 96. Correct only that
+expectation and retain every alive/dead-source reward assertion. Raw hosted
+artifacts are retained as ci-7c9-engine/ and ci-8a8-engine/. Native Engine
+verification passed all 921 discovered tests with the correction. New clean-commit
+hosted CI and the complete deployment gate remain required.
+No performance fix or phone gameplay result is established.
+
 ## Phone preparation and restoration
 
 Wi-Fi only per user. Native Xcode device input rejected the phone; the exclusive

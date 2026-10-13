@@ -25,7 +25,7 @@ struct DefeatedSourceDoTRegressionTests {
 
         _ = CombatExecutor.run { await EffectHandlers.handler(for: .burn).advanceTurn(burn, on: battle.enemy, in: &battle) }
 
-        #expect(battle.health(of: battle.enemy) == 96)
+        #expect(battle.health(of: battle.enemy) == 97)
         #expect(battle.health(of: battle.companion) == (survives ? 7 : 5))
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == (survives ? 3 : 0))
         #expect(battle.mana(of: battle.hero) == (survives ? 1 : 0))
