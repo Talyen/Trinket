@@ -1,13 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/check-ui-style.py',
-    'Scripts/check-artwork-budget.sh',
-    'Scripts/check-accessibility-ids.py',
-    'Scripts/config/system-colors.txt',
-    'Scripts/config/uitest-system-query-allowlist.txt',
-)
-
 from pathlib import Path
 from unittest.mock import patch
 import shutil

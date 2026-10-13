@@ -2,23 +2,6 @@
 
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    '.github/workflows/ci.yml',
-    '.github/workflows/release.yml',
-    '.githooks/pre-push',
-    'Scripts/pre-push-paths.py',
-    'Scripts/assert-generated-output.sh',
-    'Scripts/ci-gate.sh', 'Scripts/ci-run-budget.py',
-    'Scripts/config/cheap-slices.txt',
-    'Scripts/handoff.sh',
-    'Scripts/lib/args.sh',
-    'Scripts/lib/cheap-slices.sh',
-    'Scripts/lib/gate.sh',
-    'Scripts/report-exhaustive-ci.py',
-    'Scripts/build-inputs.env',
-)
-
-
 import os
 import json
 import shutil

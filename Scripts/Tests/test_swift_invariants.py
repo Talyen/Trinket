@@ -1,12 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/check-agent-invariants.sh',
-    'Scripts/check-exclusivity-footguns.sh',
-    'Scripts/internal/swift_policy.py',
-    'Scripts/lib/rg-check.sh',
-)
-
 import subprocess
 import tempfile
 from script_test_support import ROOT, ScriptRegressionTestCase, run_captured

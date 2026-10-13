@@ -1,15 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/ci-path-filter.py',
-    'Scripts/config/generated-paths.tsv',
-    'Scripts/handoff.sh',
-    '.github/workflows/changes.yml',
-    'Packages/*/Package.swift',
-)
-
-
 import ast
 import base64
 import io

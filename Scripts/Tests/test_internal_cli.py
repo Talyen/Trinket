@@ -4,13 +4,6 @@
 
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    "Scripts/build-inputs.env",
-    "Scripts/check-links.py",
-    "Scripts/config/diagnostic-limits.env",
-    "Scripts/internal/diagnostics/diagnostic_limits.py",
-)
-
 import tempfile
 import unittest
 from pathlib import Path

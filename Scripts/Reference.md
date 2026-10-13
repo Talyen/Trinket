@@ -176,8 +176,8 @@ actually need); generated-output ownership lives in
 mechanics only (tool PATH setup, app build arguments, media conversion/state
 sorting, cache pruning, and infrastructure-failure matching); domain-specific
 policy remains in the owning command. `Scripts/script_test_selection.py` reads
-Python modules' `SCRIPT_INPUTS` and owns
-shell mappings and full-suite exceptions; see [script regression ownership](README.md#script-regression-ownership).
+[the shared regression registry](config/script-regressions.tsv) and owns
+full-suite exceptions; see [script regression ownership](README.md#script-regression-ownership).
 Unknown inputs fall back to the full suite. The selector is consumed by
 `test-scripts.sh`, not a separate gate.
 

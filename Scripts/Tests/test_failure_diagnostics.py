@@ -8,25 +8,6 @@ the tool calls are patched at the process boundary.
 
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/xcresult-report.py',
-    'Scripts/internal/output_retention.py',
-    'Scripts/lib/output-retention.sh',
-    'Scripts/ci-diagnostics.py',
-    'Scripts/ci-diagnostics.sh',
-    'Scripts/config/diagnostic-limits.env',
-    'Scripts/config/infrastructure-patterns.env',
-    'Scripts/diagnostic_maintenance.py',
-    'Scripts/failure_diagnostics.py',
-    'Scripts/internal/diagnostics/diagnostic_limits.py',
-    'Scripts/internal/diagnostics/diagnostic_model.py',
-    'Scripts/internal/diagnostics/diagnostic_rendering.py',
-    'Scripts/internal/diagnostics/failure_diagnostics_parsers.py',
-    'Scripts/internal/diagnostics/xcresult_diagnostics.py',
-    'Scripts/script_diagnostics.py',
-)
-
-
 import io
 import json
 import os
@@ -688,7 +669,7 @@ class ReporterTests(unittest.TestCase):
                 scripts = root / "Scripts"
                 for relative in ("lib", "config", "Tests"):
                     (scripts / relative).mkdir(parents=True)
-                for name in ("test-scripts.sh", "script_test_selection.py", "lib/args.sh", "script_diagnostics.py", "internal/cli.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env", "cleanup-outputs.py", "internal/output_retention.py", "lib/output-retention.sh", "lib/lock.sh"):
+                for name in ("test-scripts.sh", "script_test_selection.py", "config/script-regressions.tsv", "lib/args.sh", "script_diagnostics.py", "internal/cli.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env", "cleanup-outputs.py", "internal/output_retention.py", "lib/output-retention.sh", "lib/lock.sh"):
                     (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
                 write_executable(scripts / "check-build-cache-paths.sh", "#!/bin/bash\nexit 0\n")

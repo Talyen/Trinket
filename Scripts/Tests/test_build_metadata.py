@@ -1,22 +1,5 @@
 """Build identity and CI transfer contracts, using fake toolchains and products."""
 
-SCRIPT_INPUTS = (
-    'Scripts/xcresult-report.py',
-    'Scripts/build-metadata.py',
-    'Scripts/build-freshness.sh',
-    'Scripts/build-inputs.env',
-    'Scripts/config/generated-paths.tsv',
-    'Scripts/lib/generated-paths.sh',
-    'Scripts/build-for-testing.sh',
-    'Scripts/build.sh',
-    'Scripts/run-simulator.sh',
-    'Scripts/test.sh',
-    'Scripts/test-package.sh',
-    'Scripts/lib/test-helpers.sh',
-    'Scripts/restore-ci-test-products.sh',
-    'Scripts/stage-ci-test-artifact.sh',
-)
-
 import json
 import os
 import plistlib

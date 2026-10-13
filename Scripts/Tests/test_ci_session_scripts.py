@@ -2,37 +2,6 @@
 
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/internal/output_retention.py',
-    'Scripts/lib/output-retention.sh',
-    'Scripts/ci-diagnostics.sh',
-    'Scripts/diagnostic_maintenance.py',
-    'Scripts/config/infrastructure-patterns.env',
-    'Scripts/config/simulator-names.env',
-    'Scripts/ensure-simulator.sh',
-    'Scripts/install-device.sh',
-    'Scripts/lib/infrastructure-patterns.sh',
-    'Scripts/lib/lock.sh',
-    'Scripts/lib/promote.sh',
-    'Scripts/lib/simctl.sh',
-    'Scripts/lib/slots.sh',
-    'Scripts/lib/xcode-manifest.sh',
-    'Scripts/lib/xcode-watchdog.sh',
-    'Scripts/lib/xcodebuild-infra.sh',
-    'Scripts/playthrough-sweep.sh',
-    'Scripts/playthrough_sweep.py',
-    'Scripts/promote.sh',
-    'Scripts/record-time-profiler.sh',
-    'Scripts/release.sh',
-    'Scripts/run-env.sh',
-    'Scripts/run-simulator.sh',
-    'Scripts/simctl_json.py',
-    'Scripts/test-deploy.sh',
-    'Scripts/validate-commit-msg.sh',
-    'Scripts/xcode-runner.sh',
-)
-
-
 import json
 import contextlib
 import io

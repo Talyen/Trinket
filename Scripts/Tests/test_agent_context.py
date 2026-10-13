@@ -2,19 +2,6 @@
 
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/internal/agent_tasks.py',
-    'Scripts/config/agent-tasks.json',
-    'Scripts/agent-context.sh',
-    'Scripts/internal/change_routing.py',
-    'Scripts/internal/ui_registration.py',
-    'Scripts/internal/agent_status.py',
-    'Scripts/agent-brief.py',
-    'Scripts/agent-read.py',
-    'Scripts/verify.py',
-)
-
-
 import os
 import shlex
 import shutil

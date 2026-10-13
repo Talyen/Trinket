@@ -1,11 +1,6 @@
 """Requested profiles fail closed; cleanup and failed journeys retain their verdict."""
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/coverage_profiles.py', 'Scripts/player-coverage.sh', 'Scripts/ensure-simulator.sh',
-    'Scripts/test.sh', '.github/workflows/player-coverage.yml', '.github/actions/coverage-products/action.yml',
-)
-
 import json
 import os
 from pathlib import Path

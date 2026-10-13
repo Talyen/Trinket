@@ -51,10 +51,10 @@ shared infrastructure, unknown scripts and unscoped CI run the full suite. Scrip
 syntax follows the supplied path scope; build-input alignment and the handoff's
 cheap slices remain full-tree. Family
 ownership follows [script regression ownership](../../Scripts/README.md#script-regression-ownership):
-Python modules declare `SCRIPT_INPUTS` beside their tests; the selector retains
-shell mappings and full-suite exceptions. Update the consuming module's metadata
-when a Python-tested leaf gains a consumer. Do not narrow shared helpers from
-filename similarity alone.
+Python and shell consumers share `Scripts/config/script-regressions.tsv`; the
+selector retains explicit full-suite exceptions. Update the input's registry row
+when a leaf gains a consumer. Do not narrow shared helpers from filename
+similarity alone.
 
 ## New iOS release readiness
 

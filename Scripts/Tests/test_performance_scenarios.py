@@ -1,18 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/internal/output_retention.py',
-    'Scripts/lib/output-retention.sh',
-    'Scripts/aggregate-performance-results.py',
-    'Scripts/collect-performance-results.py',
-    'Scripts/compare-performance.py',
-    'Scripts/internal/performance/performance_model.py',
-    'Scripts/performance-scenarios.py',
-    'Scripts/performance.sh',
-    'Scripts/performance_environment.py',
-)
-
-
 import copy
 import hashlib
 import json

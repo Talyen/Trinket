@@ -1,20 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/internal/output_retention.py',
-    'Scripts/lib/output-retention.sh',
-    'Scripts/agent-read.py',
-    'Scripts/agent-brief.py',
-    'Scripts/agent-context.sh',
-    'Scripts/internal/agent_tasks.py',
-    'Scripts/check-links.py',
-    'Scripts/internal/markdown.py',
-    'Scripts/internal/source_declarations.py',
-    'Scripts/internal/agent_arguments.py',
-    'Scripts/internal/swift_policy.py',
-)
-
-
 import contextlib
 import io
 import hashlib

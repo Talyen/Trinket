@@ -1,18 +1,5 @@
 """Protect source, active work, and staged consumers while expiring disposable output."""
 
-SCRIPT_INPUTS = (
-    'Scripts/cleanup-outputs.py',
-    'Scripts/diagnostic_maintenance.py',
-    'Scripts/internal/output_retention.py',
-    'Scripts/lib/output-retention.sh',
-    'Scripts/lib/lock.sh',
-    'Scripts/lib/derived-data.sh',
-    'Scripts/phase-timing.py',
-    'Scripts/testflight.sh',
-    'Scripts/handoff.sh',
-    'Scripts/test-scripts.sh',
-)
-
 from datetime import datetime, timezone
 import json
 import os

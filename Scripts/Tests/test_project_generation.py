@@ -1,33 +1,5 @@
 """Generated project and real Git hook behavior in isolated repositories."""
 
-SCRIPT_INPUTS = (
-    '.githooks/pre-push',
-    'Scripts/pre-push-paths.py',
-    'Scripts/agent-push-gate.sh',
-    'Scripts/apply-scheme-storekit.py',
-    'Scripts/assert-generated-output.sh',
-    'Scripts/build-inputs.env',
-    'Scripts/change-budget.sh',
-    'Scripts/check-staged-project.sh',
-    'Scripts/check-testplan-sync.py',
-    'Scripts/internal/ui_registration.py',
-    'Scripts/config/generated-paths.tsv',
-    'Scripts/config/ui-tests.tsv',
-    'Scripts/ensure-ci-tools.sh',
-    'Scripts/ensure-git-cliff.sh',
-    'Scripts/format-dirs.env',
-    'Scripts/generate.sh',
-    'Scripts/lib/ci-tools.d/ripgrep.sh',
-    'Scripts/lib/ci-tools.d/xcodegen.sh',
-    'Scripts/lib/generated-paths.sh',
-    'Scripts/lib/project-generation.sh',
-    'Scripts/lib/tool-install.sh',
-    'Scripts/lib/tools.sh',
-    'Scripts/tool-versions.env',
-    'Scripts/update-tools.sh',
-)
-
-
 import os
 from pathlib import Path
 import shutil

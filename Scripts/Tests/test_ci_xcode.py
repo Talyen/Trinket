@@ -1,10 +1,4 @@
 """Prevent runner image changes or a failed Metal install from passing setup."""
-SCRIPT_INPUTS = (
-    'Scripts/setup-ci-xcode.py', 'Scripts/config/ci-xcode.json',
-    '.github/actions/setup-trinket/action.yml', '.github/workflows/gate.yml',
-    '.github/workflows/ci.yml', '.github/workflows/tests.yml',
-)
-
 from pathlib import Path
 import plistlib
 import subprocess

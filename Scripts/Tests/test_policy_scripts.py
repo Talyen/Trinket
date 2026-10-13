@@ -1,20 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/agent-watch-ci.sh',
-    'Scripts/check-api-bans.sh',
-    'Scripts/check-module-boundaries.sh',
-    'Scripts/ci-infra-rerun.sh',
-    'Scripts/config/infrastructure-patterns.env',
-    'Scripts/lib/infrastructure-patterns.sh',
-    'Scripts/format-dirs.env',
-    'Scripts/release-notes.sh',
-    'Scripts/check-agent-invariants.sh',
-    'Scripts/check-exclusivity-footguns.sh',
-    'Scripts/lib/rg-check.sh',
-    'Scripts/lib/test-style.sh',
-)
-
 from pathlib import Path
 import os
 import shutil

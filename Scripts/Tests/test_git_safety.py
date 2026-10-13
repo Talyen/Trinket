@@ -1,13 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/agent-worktree.mjs',
-    'Scripts/bin/git',
-    'Scripts/config/destructive-git-commands.txt',
-    'Scripts/git-safety-guard.mjs',
-    'Scripts/setup-git-safety.mjs',
-)
-
 from pathlib import Path
 import os
 import shutil

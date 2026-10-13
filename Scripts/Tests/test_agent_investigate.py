@@ -1,16 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/agent-investigate.py',
-    'Scripts/agent-search.py',
-    'Scripts/internal/agent_callers.py',
-    'Scripts/internal/agent_tasks.py',
-    'Scripts/internal/source_declarations.py',
-    'Scripts/internal/swift_policy.py',
-    'Scripts/config/agent-tasks.json',
-    'Scripts/config/generated-paths.tsv',
-)
-
 import contextlib
 import io
 import shlex

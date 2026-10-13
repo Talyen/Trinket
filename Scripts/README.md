@@ -69,17 +69,17 @@ to script-test additions and scoped retirement. Cheap execution or a new script
 branch alone does not justify coverage; protect credible, materially harmful
 failures with high marginal value or a rare, justified medium-value exception.
 
-Each Python test module declares a literal `SCRIPT_INPUTS = ("Scripts/owner.py", ...)`
-tuple of repository-relative files or globs; literal directories are rejected.
-Use an explicit glob for a family of inputs. The selector reads it with AST literal
-parsing and never imports test modules. Keep ownership beside the tests when adding
-or moving coverage; shared consumers combine their selections. List direct inputs
-even when a shared source already takes the full-suite route. Shell-suite mappings
-and explicit full-suite exceptions remain in `script_test_selection.py`. Unknown
-script and infrastructure inputs fall back to the full suite. Unrelated product
-paths use their own gates unless a regression declares them as direct inputs.
-Ownership regressions reject unaccounted leaves and malformed metadata. Direct
-edits to a test module select that module.
+[script-regressions.tsv](config/script-regressions.tsv) maps each repository-relative
+input file or glob to comma-separated test suite basenames. Keep one row per input;
+list all consumers together when adding or moving coverage. Python and shell suites
+share this registry, which the selector validates without importing test modules.
+Literal directories, duplicate inputs, and malformed suite names are rejected.
+List direct inputs even when a shared source already takes the full-suite route.
+Explicit full-suite exceptions remain in `script_test_selection.py`; changing the
+registry itself runs the full suite. Unknown script and infrastructure inputs fall
+back to the full suite. Unrelated product paths use their own gates unless claimed
+in the registry. Ownership regressions reject unaccounted leaves, missing consumers,
+and malformed metadata. Direct edits to a test module select that module.
 
 ## Player coverage automation
 

@@ -2,17 +2,6 @@
 
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/ci-assets-gate.sh',
-    'Scripts/lib/media-assets.sh',
-    'Scripts/prepare-app-icon.sh',
-    'Scripts/prepare-art-assets.sh',
-    'Scripts/prepare-assets.sh',
-    'Scripts/prepare-audio-assets.sh',
-    'Scripts/report-art-memory.sh',
-)
-
-
 import os
 import re
 import subprocess

@@ -9,19 +9,6 @@ import tempfile
 
 from script_test_support import ScriptRegressionTestCase, run_captured, write_executable, write_json
 
-SCRIPT_INPUTS = (
-    'Scripts/asset-library.py',
-    'Scripts/build-freshness.sh',
-    'Scripts/build-inputs.env',
-    'Scripts/config/generated-paths.tsv',
-    'Scripts/lib/args.sh',
-    'Scripts/lib/generated-paths.sh',
-    'Scripts/lib/media-assets.sh',
-    'Scripts/prepare-assets.sh',
-    'Scripts/prepare-audio-assets.sh',
-)
-
-
 class AssetLibraryTests(ScriptRegressionTestCase):
     def test_automatic_healing_retries_interrupted_preparation_and_stays_source_free_on_ci(self):
         with tempfile.TemporaryDirectory() as directory:

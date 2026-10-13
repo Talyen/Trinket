@@ -3,19 +3,6 @@
 
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/install-device.sh',
-    'Scripts/lib/promote.sh',
-    'Scripts/promote.sh',
-    'Scripts/record-time-profiler.sh',
-    'Scripts/release-notes-user.py',
-    'Scripts/release.sh',
-    'Scripts/run-simulator.sh',
-    'Scripts/test-deploy.sh',
-    'Scripts/validate-commit-msg.sh',
-)
-
-
 import io
 from contextlib import redirect_stdout
 from unittest.mock import patch

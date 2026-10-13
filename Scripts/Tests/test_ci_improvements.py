@@ -1,13 +1,6 @@
 """Protect exact-product diagnostics, native execution proof, and owned deadlines."""
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/ci-diagnostic-ui.py', 'Scripts/ci-run-budget.py', 'Scripts/native-test-results.py',
-    'Scripts/test-ci-packages.sh', 'Scripts/test-package-host.sh', 'Scripts/ci-diagnostics.py', 'Scripts/test-timing.py',
-    'Scripts/lib/xcode-watchdog.sh', '.github/actions/package-cache/action.yml',
-    '.github/actions/build-cache-key/action.yml', '.github/workflows/gate.yml', '.github/workflows/diagnostic-ui.yml', '.github/workflows/tests.yml',
-)
-
 import json
 import hashlib
 import os

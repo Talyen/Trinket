@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-SCRIPT_INPUTS = ('.gitignore', 'Scripts/pre-push-paths.py', '.githooks/pre-push',
-                 'Scripts/internal/ui_registration.py')
-
 import os
 from pathlib import Path
 import shutil

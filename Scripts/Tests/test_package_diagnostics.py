@@ -1,18 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/config/diagnostic-limits.env',
-    'Scripts/internal/diagnostics/diagnostic_limits.py',
-    'Scripts/internal/diagnostics/diagnostic_model.py',
-    'Scripts/package-diagnostics.py',
-    'Scripts/script_diagnostics.py',
-    'Scripts/test-package.sh',
-    'Scripts/phase-timing.py',
-    'Scripts/lib/args.sh',
-    'Scripts/lib/verification-policy.sh',
-)
-
-
 import contextlib
 import io
 import tempfile

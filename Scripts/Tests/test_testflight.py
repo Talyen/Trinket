@@ -1,20 +1,5 @@
 """Exercise deployment orchestration without credentials, Xcode, or Ruby gems."""
 
-SCRIPT_INPUTS = (
-    'Scripts/internal/output_retention.py',
-    'Scripts/lib/output-retention.sh',
-    'Gemfile',
-    'Gemfile.lock',
-    'Scripts/Tests/testflight_test.rb',
-    'Scripts/config/testflight.example.json',
-    'Scripts/internal/testflight.rb',
-    'Scripts/internal/cli.py',
-    'Scripts/lib/testflight-tools.sh',
-    'Scripts/setup-testflight.sh',
-    'Scripts/testflight.sh',
-)
-
-
 import os
 import shutil
 import subprocess

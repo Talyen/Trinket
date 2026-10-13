@@ -1,10 +1,4 @@
 
-SCRIPT_INPUTS = (
-    'Scripts/internal/output_retention.py',
-    'Scripts/lib/output-retention.sh',
-    'Scripts/balance-sweep.sh',
-)
-
 import os
 from pathlib import Path
 import shutil

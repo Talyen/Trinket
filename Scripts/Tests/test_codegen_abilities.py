@@ -1,15 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/config/diagnostic-limits.env',
-    'Scripts/content_codegen.py',
-    'Scripts/internal/content/abilities.py',
-    'Scripts/internal/content/common.py',
-    'Scripts/internal/diagnostics/diagnostic_limits.py',
-    'Scripts/script_diagnostics.py',
-)
-
-
 from pathlib import Path
 from unittest.mock import patch
 import os

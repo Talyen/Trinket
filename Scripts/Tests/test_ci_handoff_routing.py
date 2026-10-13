@@ -2,18 +2,6 @@
 
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/ci-gate.sh',
-    'Scripts/config/cheap-slices.txt',
-    'Scripts/handoff.sh',
-    'Scripts/verify.py',
-    'Scripts/internal/change_routing.py',
-    'Scripts/internal/ui_registration.py',
-    'Scripts/lib/args.sh',
-    'Scripts/lib/cheap-slices.sh',
-    'Scripts/lib/gate.sh',
-)
-
 import re
 import shlex
 import shutil

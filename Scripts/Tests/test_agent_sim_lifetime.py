@@ -8,8 +8,6 @@ import time
 import unittest
 from unittest.mock import patch
 
-SCRIPT_INPUTS = (
-    'Scripts/internal/output_retention.py',"Scripts/agent-sim-lifetime.py", "Scripts/ensure-simulator.sh", "Scripts/lib/simctl.sh")
 from script_test_support import ROOT, load_script, write_executable, write_json
 
 MODULE = load_script("agent_sim_lifetime", "agent-sim-lifetime.py")

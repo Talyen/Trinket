@@ -1,12 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/agent-diff.py',
-    'Scripts/internal/generated_summary.py',
-    'Scripts/config/generated-paths.tsv',
-)
-
-
 import contextlib
 import io
 import shlex

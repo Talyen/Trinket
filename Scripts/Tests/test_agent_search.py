@@ -1,15 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/agent-search.py',
-    'Scripts/config/generated-paths.tsv',
-    'Scripts/config/agent-tasks.json',
-    'Scripts/internal/agent_tasks.py',
-    'Scripts/internal/agent_arguments.py',
-    'Scripts/internal/markdown.py',
-)
-
-
 import contextlib
 import io
 import json

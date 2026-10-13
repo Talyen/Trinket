@@ -4,102 +4,58 @@
 from __future__ import annotations
 
 import argparse
-import ast
 from fnmatch import fnmatchcase
 from pathlib import Path
 
 from internal.cli import ROOT, validate_repo_paths
 
-# Keep each leaf with its consumers' regressions. Infrastructure, runners,
-# and shared fixtures without declared ownership use the full-suite fallback.
-#
-# Explicit full-suite exceptions take precedence over declared consumers;
-# test_script_selection.py enforces that every
-# other Scripts/ leaf is owned by suite metadata or the shell families below.
+# Explicit full-suite exceptions take precedence over the ownership registry.
+# test_script_selection.py requires every other Scripts/ leaf to have an owner.
 INTENTIONALLY_UNMAPPED = {
     "Scripts/internal/cli.py": "shared CLI and file helpers; a narrow route would miss consumers",
     "Scripts/test-scripts.sh": "the runner itself; self-hosted, always full suite",
+    "Scripts/config/script-regressions.tsv": "shared regression ownership; verify all consumers",
     ".github/workflows/tests.yml": "shared test orchestration; declared consumers cannot narrow its coverage",
 }
 # Product inputs have their own handoff gates. A regression may still claim one
-# explicitly through SCRIPT_INPUTS, which takes precedence over this exclusion.
+# explicitly in the registry, which takes precedence over this exclusion.
 PRODUCT_ROOTS = frozenset({
     "Packages", "Trinket", "TrinketUITests", "ContentManifest", "ArtManifest",
     "MusicManifest", "SoundManifest", "Raw Assets",
     "StoreKit", "Performance",
 })
-SHELL_FAMILIES = (({'Scripts/build-for-testing.sh',
-   'Scripts/build-freshness.sh',
-   'Scripts/build.sh',
-   'Scripts/check-build-cache-paths.sh',
-   'Scripts/format.sh',
-   'Scripts/lib/app-build.sh',
-   'Scripts/lib/args.sh',
-   'Scripts/lib/derived-data.sh',
-   'Scripts/lib/tempdir.sh',
-   'Scripts/lib/test-helpers.sh',
-   'Scripts/lib/test-style.sh',
-   'Scripts/lint-analyze.sh',
-   'Scripts/lint.sh',
-   'Scripts/prune-derived-data-cache.sh',
-   'Scripts/stage-ci-test-artifact.sh',
-   'Scripts/test-package.sh',
-   'Scripts/test.sh'},
-  {'test-lib-args.sh', 'test-lib-tempdir.sh'}),
- ({'Scripts/ci-gate.sh',
-   'Scripts/config/cheap-slices.txt',
-   'Scripts/handoff.sh',
-   'Scripts/lib/args.sh',
-   'Scripts/lib/cheap-slices.sh',
-   'Scripts/lib/gate.sh'},
-  {'test-lib-args.sh'}),
- ({'Scripts/ci-assets-gate.sh',
-   'Scripts/lib/media-assets.sh',
-   'Scripts/prepare-app-icon.sh',
-   'Scripts/prepare-art-assets.sh',
-   'Scripts/prepare-assets.sh',
-   'Scripts/prepare-audio-assets.sh',
-   'Scripts/report-art-memory.sh'},
-  {'test-asset-hash-sort-locale.sh'}),
- ({'Scripts/config/simulator-names.env',
-   'Scripts/ensure-simulator.sh',
-   'Scripts/lib/lock.sh',
-   'Scripts/lib/simctl.sh',
-   'Scripts/lib/slots.sh',
-   'Scripts/run-env.sh',
-   'Scripts/simctl_json.py'},
-  {'test-run-env.sh'}),
- ({'Scripts/config/infrastructure-patterns.env',
-   'Scripts/lib/infrastructure-patterns.sh',
-   'Scripts/lib/xcode-manifest.sh',
-   'Scripts/lib/xcode-watchdog.sh',
-   'Scripts/lib/xcodebuild-infra.sh',
-   'Scripts/xcode-runner.sh'},
-  {'test-xcode-runner.sh'}))
+REGISTRY = "Scripts/config/script-regressions.tsv"
 
 
 def regression_families(root: Path = ROOT) -> list[tuple[set[str], set[str]]]:
-    """Read literal SCRIPT_INPUTS without importing or executing test modules."""
-    families = [(owners, {f"Scripts/Tests/{name}" for name in names}) for owners, names in SHELL_FAMILIES]
-    for path in sorted((root / "Scripts/Tests").glob("test*.py")):
-        try:
-            tree = ast.parse(path.read_text(), filename=str(path))
-            declarations = [node for node in tree.body if isinstance(node, ast.Assign)
-                            and any(isinstance(target, ast.Name) and target.id == "SCRIPT_INPUTS"
-                                    for target in node.targets)]
-            if not declarations:
+    """Read the shared dependency registry without importing test modules."""
+    families = []
+    seen: set[str] = set()
+    try:
+        for number, line in enumerate((root / REGISTRY).read_text().splitlines(), 1):
+            if not line.strip() or line.startswith("#"):
                 continue
-            if len(declarations) != 1:
-                raise ValueError("SCRIPT_INPUTS must be declared once")
-            inputs = ast.literal_eval(declarations[0].value)
-            if not isinstance(inputs, (tuple, list)) or not all(isinstance(value, str) for value in inputs):
-                raise ValueError("SCRIPT_INPUTS must be a literal tuple/list of repository-relative paths or globs")
-            for value in inputs:
-                if not value or Path(value).is_absolute() or ".." in Path(value).parts or (root / value).is_dir():
-                    raise ValueError(f"invalid SCRIPT_INPUTS path: {value!r}")
-            families.append((set(inputs), {path.relative_to(root).as_posix()}))
-        except (OSError, SyntaxError, ValueError, TypeError) as error:
-            raise ValueError(f"{path.relative_to(root)}: invalid test ownership: {error}") from error
+            columns = line.split("\t")
+            if len(columns) != 2:
+                raise ValueError(f"line {number}: expected input and suites separated by one tab")
+            owner, names = columns
+            if (not owner or owner != owner.strip() or Path(owner).is_absolute()
+                    or ".." in Path(owner).parts or (root / owner).is_dir()):
+                raise ValueError(f"line {number}: invalid input path: {owner!r}")
+            if owner in seen:
+                raise ValueError(f"line {number}: duplicate input: {owner}")
+            seen.add(owner)
+            modules = names.split(",")
+            if len(modules) != len(set(modules)) or any(
+                Path(name).name != name or name != name.strip() or not (
+                    name.startswith("test") and name.endswith(".py")
+                    or name.startswith("test-") and name.endswith(".sh")
+                ) for name in modules
+            ):
+                raise ValueError(f"line {number}: expected unique test suite basenames")
+            families.append(({owner}, {f"Scripts/Tests/{name}" for name in modules}))
+    except (OSError, ValueError) as error:
+        raise ValueError(f"{REGISTRY}: invalid test ownership: {error}") from error
     return families
 
 

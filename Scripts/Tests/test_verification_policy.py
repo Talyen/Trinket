@@ -1,19 +1,6 @@
 """Routine laptop verification cannot start compiled or simulator workloads."""
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/lib/verification-policy.sh',
-    'Scripts/handoff.sh',
-    'Scripts/test.sh',
-    'Scripts/test-package.sh', 'Scripts/test-package-host.sh', 'Scripts/test-ci-packages.sh',
-    'Scripts/build-for-testing.sh',
-    'Scripts/performance.sh',
-    'Scripts/ci-gate.sh',
-    'Scripts/test-deploy.sh',
-    'Scripts/playthrough-sweep.sh',
-    'Scripts/lib/app-build.sh',
-)
-
 import tempfile
 from pathlib import Path
 from script_test_support import ROOT, ScriptRegressionTestCase, run_captured

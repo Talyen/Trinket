@@ -9,12 +9,6 @@ back to the full suite, which masks routing gaps.
 
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/script_test_selection.py',
-    'Scripts/test-scripts.sh',
-)
-
-
 import os
 import shutil
 import sys
@@ -47,7 +41,7 @@ def script_leaves() -> set[str]:
 
 
 class ScriptSelectionTests(unittest.TestCase):
-    def test_every_python_regression_declares_inputs(self) -> None:
+    def test_every_python_regression_has_an_owner(self) -> None:
         registered = {module for _, modules in regression_families()
                       for module in modules if module.endswith(".py")}
         available = {path.relative_to(ROOT).as_posix() for path in (ROOT / "Scripts/Tests").glob("test*.py")}
@@ -227,15 +221,21 @@ class ScriptSelectionTests(unittest.TestCase):
             self.assertIn("(no regressions selected)", result.stdout)
             self.assertIn("Script checks passed", result.stdout)
 
-    def test_literal_metadata_is_not_executed_and_globs_union_consumers(self) -> None:
+    def test_registry_is_data_and_globs_union_consumers(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             tests = root / "Scripts/Tests"
             tests.mkdir(parents=True)
-            (tests / "test_one.py").write_text(
-                "SCRIPT_INPUTS = ('Scripts/domain/*.json', 'Packages/Game/Sources/Owned.swift')\n"
-                "raise RuntimeError('must not execute')\n")
-            (tests / "test_two.py").write_text("SCRIPT_INPUTS = ['Scripts/domain/known.json', 'Scripts/other.py']\n")
+            registry = root / "Scripts/config/script-regressions.tsv"
+            registry.parent.mkdir()
+            (tests / "test_one.py").write_text("raise RuntimeError('must not execute')\n")
+            (tests / "test_two.py").touch()
+            registry.write_text(
+                "# input\tsuites\n"
+                "Scripts/domain/*.json\ttest_one.py\n"
+                "Scripts/domain/known.json\ttest_two.py\n"
+                "Scripts/other.py\ttest_two.py\n"
+                "Packages/Game/Sources/Owned.swift\ttest_one.py\n")
             all_tests = select_tests([], root)
             self.assertEqual(select_tests(['Scripts/domain/known.json'], root), all_tests)
             self.assertEqual(select_tests(['Scripts/domain/new.json'], root), ['Scripts/Tests/test_one.py'])
@@ -246,12 +246,23 @@ class ScriptSelectionTests(unittest.TestCase):
                              ['Scripts/Tests/test_one.py'])
             self.assertEqual(select_tests(['Scripts/unmapped.py'], root), all_tests)
             self.assertEqual(select_tests(['Scripts/Tests/test_two.py'], root), ['Scripts/Tests/test_two.py'])
-            for source in ("SCRIPT_INPUTS = get_paths()", "SCRIPT_INPUTS = ('../outside.py',)",
-                           "SCRIPT_INPUTS = 'Scripts/one.py'", "SCRIPT_INPUTS = ('Scripts/Tests',)",
-                           "SCRIPT_INPUTS = ()\nSCRIPT_INPUTS = ()"):
-                (tests / "test_one.py").write_text(source)
-                with self.assertRaisesRegex(ValueError, 'invalid test ownership'):
-                    select_tests(['Scripts/domain/known.json'], root)
+            self.assertEqual(select_tests(['Scripts/config/script-regressions.tsv'], root), all_tests)
+            for row in ("../outside.py\ttest_one.py", "/absolute.py\ttest_one.py",
+                        "Scripts/Tests\ttest_one.py", "Scripts/one.py", "Scripts/one.py\t",
+                        "Scripts/one.py\t../test_one.py", "Scripts/one.py\tnot-a-suite.py",
+                        "Scripts/one.py\ttest_one.py,test_one.py", "Scripts/one.py\t test_one.py",
+                        "Scripts/one.py\ttest_one.py\textra",
+                        "Scripts/one.py\ttest_one.py\nScripts/one.py\ttest_two.py"):
+                with self.subTest(row=row):
+                    registry.write_text(row + "\n")
+                    with self.assertRaisesRegex(ValueError, 'invalid test ownership'):
+                        select_tests(['Scripts/domain/known.json'], root)
+            registry.write_text("Scripts/one.py\ttest_missing.py\n")
+            with self.assertRaisesRegex(ValueError, 'selected regression modules are missing'):
+                select_tests(['Scripts/one.py'], root)
+            registry.unlink()
+            with self.assertRaisesRegex(ValueError, 'invalid test ownership'):
+                select_tests(['Scripts/one.py'], root)
 
     def test_scope_validation_precedes_fallback_and_rejects_symlink_escapes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

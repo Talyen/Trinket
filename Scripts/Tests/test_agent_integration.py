@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = ('Scripts/agent-worktree.mjs', 'Scripts/agent-integrate.py')
-
 import fcntl
 import os
 from pathlib import Path

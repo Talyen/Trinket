@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/check-unused-assets.py',
-    'Scripts/config/full-only-art-kinds.txt',
-    'Scripts/internal/content/common.py',
-)
-
-
 import tempfile
 import unittest
 from unittest.mock import patch

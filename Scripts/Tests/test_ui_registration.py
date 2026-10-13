@@ -1,14 +1,6 @@
 """UI registration controls ordered Xcode selections and serial CI filters."""
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/check-testplan-sync.py',
-    'Scripts/internal/ui_registration.py',
-    'Scripts/internal/change_routing.py',
-    'Scripts/config/ui-tests.tsv',
-)
-
-
 import copy
 import json
 import subprocess

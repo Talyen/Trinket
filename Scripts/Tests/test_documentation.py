@@ -1,27 +1,5 @@
 from __future__ import annotations
 
-SCRIPT_INPUTS = (
-    'Scripts/internal/output_retention.py',
-    'Scripts/lib/output-retention.sh',
-    'Scripts/check-docs.py',
-    'Scripts/check-links.py',
-    'Scripts/check-plans.py',
-    'Scripts/check-testplan-sync.py',
-    'Scripts/internal/ui_registration.py',
-    'Scripts/ci-gate.sh',
-    'Scripts/config/cheap-slices.txt',
-    'Scripts/config/ui-tests.tsv',
-    'Scripts/handoff.sh',
-    'Scripts/internal/doc_diagnostics.py',
-    'Scripts/internal/markdown.py',
-    'Scripts/internal/swift_policy.py',
-    'Scripts/lib/args.sh',
-    'Scripts/lib/cheap-slices.sh',
-    'Scripts/lib/gate.sh',
-    'Scripts/new-plan.sh',
-)
-
-
 import contextlib
 import io
 import json
