@@ -94,6 +94,8 @@ Assert a journey’s return destination before using helpers that navigate elsew
   hittability. A successful snapshot proves existence without a preceding query.
   Keep the final geometry/hittability recheck for animation races. Avoid an
   existence assertion immediately before tapping the same control.
+  AudioLifecycle enables Music with a direct slider drag and still requires
+  backend starts; a moved AX thumb alone does not establish a value change.
 - `PlayScreen.startBattle` taps the stage action. Each caller waits for its actual
   next interaction: battle hand, card, Actions, or Auto-Battle. Do not add a generic
   battle-entry wait before that destination wait. Mid-battle tests still enter
