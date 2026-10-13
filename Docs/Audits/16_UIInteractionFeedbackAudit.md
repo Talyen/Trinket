@@ -22,8 +22,8 @@ for contextual teaching; do not add tutorial infrastructure without evidence.
 
 Controls should communicate action and state. Native buttons are preferred, while
 intentional game gestures can be valid. Image labeling/hiding and stable test
-identifiers follow existing product and testing contracts. Preserve shared portrait
-iPhone/iPad interaction and existing accommodations under
+identifiers follow existing product and testing contracts. Preserve shared stacked
+iPhone/Duo/iPad arrangements, interactions, and existing accommodations under
 [PD-033](../Product/Decisions.md); do not add bespoke accessibility modes or
 setting-specific layout branches. Bounded native settings and critical-control
 tests follow PD-014 and [Player coverage](../Platform/PlayerCoverage.md).

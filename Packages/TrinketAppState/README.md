@@ -112,8 +112,8 @@ changes use path-scoped handoff.
 `Support/AppTestContext.swift` builds isolated states (temp directory plus
 `UserDefaults` suite, torn down with the context). It defaults to full-game
 access — pass `contentAccess:` when a test needs anything else — and wires a
-silent battle runtime with the production progression closures. Normal contexts
-cache an in-memory save; constructing another state in that context is not a disk
+silent battle runtime connected to PlaySession's production progression delegate.
+Normal contexts cache an in-memory save; constructing another state in that context is not a disk
 reload. Durability tests inject a file-backed `PlayerSaveStore` and independently
 reopen that store. Test arguments
 stack on `-disable-cloud-sync -disable-audio -skip-starter-selection`; add

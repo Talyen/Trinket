@@ -1,17 +1,22 @@
 # Headless playthrough testing
 
-The manual playthrough runner develops a private, real SwiftData save through
+The playthrough runner develops a private, real SwiftData save through
 production AppState, encounter, BattleSession, and persistence commands. It runs
 inside an owned iOS Simulator test process without constructing a SwiftUI view
 tree. The runtime still uses Apple frameworks and its normal presentation models;
 this is not a macOS/Linux port or UI verification.
 
+For ad hoc careers, use the linked commands below. Weekly/manual
+[player coverage](PlayerCoverage.md#ci-and-profiles) also runs a fixed career
+portfolio and process-interruption recovery checks. Functional invariants determine
+acceptance; balance investigations remain manual.
+
 ## Running
 
 Commands and flags belong to [Scripts](../../Scripts/Reference.md#headless-playthroughs).
 Running a career, replay, baseline comparison, or crash proof builds a test product
-and uses a Simulator; it is not part of routine local handoff. An expressly requested
-local diagnostic requires `TRINKET_ALLOW_HEAVY_LOCAL=1` under
+and uses a Simulator; it is not part of routine local handoff. A bounded, task-relevant
+local diagnostic uses `TRINKET_ALLOW_HEAVY_LOCAL=1` under
 [execution limits](Verification.md#execution-limits). `--help` remains available
 without compilation or a Simulator lease.
 The default scenario selects Knight and Wolf through onboarding, plays two settled
@@ -31,8 +36,10 @@ a locked encounter, or an unavailable choice produces an incomplete result.
 Every output career includes its complete `scenario.json`; copy and edit that file
 and pass `--scenario` to change action, turn, step, evidence, or simulated-time
 budgets. A supplied scenario overrides CLI defaults; `--scenarios` runs consecutive
-world seeds. Seed selection is not filtered for wins. Each career runs in a new
-process, sequentially under a managed Simulator lease. Ordinary package tests run
+world seeds. Seed selection is not filtered for wins. By default, each career runs
+in a new process, sequentially under a managed Simulator lease. `--batch` runs
+ordinary fresh careers serially in one process with independent stores and contexts;
+interruption and recovery checks retain separate processes. Ordinary package tests run
 only bounded correctness cases; `PlaythroughSweepTests` is disabled unless the
 wrapper supplies its private request file.
 
@@ -145,7 +152,8 @@ The Wilson interval for careers reaching a victory is conditional on completed
 careers, whose denominator is explicit; incomplete careers remain visible
 separately. A single career supplies no estimated standard error for an economy
 difference. Thresholds are advisory; confirm anomalies with more seeds and another
-policy before making a balance claim. No automation or balance CI gate is installed.
+policy before making a balance claim. The scheduled functional portfolio does not
+establish balance, and there is no balance CI gate.
 
 ## Coverage and execution budget
 
@@ -167,16 +175,9 @@ exhaustion of builds, renewable Contracts, or infinite Labyrinth depth. CloudKit
 StoreKit delivery, UI wiring/accessibility, art/audio, and device behavior retain
 their separate verification routes.
 
-Initial measurements on 2026-09-19 (Xcode 27 Simulator, Debug): baseline AppState
-package build/test was 23 seconds; warm manual two/three-attempt workers took about
-3.6–4.0 seconds including process startup, with roughly 0.13–0.20 seconds in careers.
-A 20-attempt full-access setup-aware Campaign career settled 19 victories and one
-defeat, reached Chapter 4, performed 20 reloads, earned 12 talent unlocks and seven
-Homestead upgrades: about 4.4 seconds in the career, 8.1 seconds including startup,
-and 17 MiB of journal evidence. Two four-attempt rotation workers peaked near
-279 MiB resident memory; use 512 MiB as an initial advisory worker budget. Peak
-resident memory is recorded per worker, including framework startup. Cold clean
-compilation was not measured; no native-port decision depends on that cost. These are feasibility measurements, not game
-performance targets. Defaults are 180 seconds externally, 2,000 actions, 100 turns
-per battle, 200 career steps, and 32 MiB journal evidence. Keep workers sequential
-on the managed host; native hosting/parallelism is unnecessary at this throughput.
+`PlaythroughScenario` owns action, turn, step, and journal limits;
+`Scripts/playthrough_sweep.py` owns the external timeout and advisory worker-memory
+budget. Each report records its scenario and observed process footprint, including
+framework startup. Keep workers sequential on the managed host and use current-run
+evidence when assessing execution cost; simulator worker memory is not a shipping
+device-performance measurement.

@@ -70,6 +70,9 @@ resizing evidence for this versioned opt-out under
 [TN3192](https://developer.apple.com/documentation/technotes/tn3192-Migrating-your-app-from-the-deprecated-UIRequiresFullScreen-key).
 Verify reachable controls, sheets, and retained battle state through compact,
 expanded, and rotated sizes; an orientation declaration alone proves none of them.
+Resize during card dragging, inspection, Auto Battle, automatic casts, and outcome
+reveal. Confirm that cancelled gestures cannot later commit, commands and rewards
+do not repeat, and the active battle and navigation remain intact.
 Use live safe areas and measured insets instead of fixed tab-bar or inspector
 clearances. Preserve prepared artwork and the shared interaction hierarchy.
 
@@ -106,7 +109,7 @@ owns the Trinket application of each source. Revisit the relevant Apple source
 when changing the behavior or adopting a new SDK; a reviewed date does not
 certify runtime behavior.
 
-Broader accessibility remains governed by PD-014. Native portrait iPad support
+Broader accessibility remains governed by PD-014. Native iPad support
 follows PD-033 and the [device contract](#portrait-device-support). macOS expansion,
 controllers, and new account or AI features need a product use case; appearing on
 Apple's design site does not add them to Trinket.

@@ -221,8 +221,8 @@ generation, and only when content, project, and asset inputs are all unchanged.
 The build job compiles app test products once, runs smoke on that runner, and
 publishes products for exhaustive UI. Exhaustive UI runs every registered FullUI
 class on one runner with one product transfer. It restores the exact-run product
-archive through the cache service first, falls back to the retained artifact on
-cache miss, and rebuilds only when transferred products cannot be validated.
+archive from the retained build artifact and rebuilds when that transfer is missing
+or cannot be validated. Incremental build caches are separate from product transfers.
 Pushes select owning packages for edits confined to their `Tests/` directories.
 Source and shared test-support edits also select transitive dependents. Shared build
 inputs, package-manifest changes, unknown ownership, and missing dependency evidence

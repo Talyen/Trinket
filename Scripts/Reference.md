@@ -60,7 +60,9 @@ two local build workers.
 
 ### Headless playthroughs
 
-Manual only; [scope, evidence, and interpretation](../Docs/Platform/HeadlessPlaythroughs.md).
+Ad hoc commands; [scope, evidence, and interpretation](../Docs/Platform/HeadlessPlaythroughs.md).
+The weekly/manual [player-coverage portfolio](../Docs/Platform/PlayerCoverage.md#ci-and-profiles)
+also uses this runner for functional career and recovery checks.
 These Simulator careers compile a test product and require a bounded
 local diagnostic under [execution limits](../Docs/Platform/Verification.md#execution-limits).
 Help remains a read-only query without the opt-in.
@@ -79,7 +81,9 @@ TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/playthrough-sweep.sh --baseline Playthroug
 `--hero`/`--companion` choose starter IDs; `--full-access` simulates content ownership.
 `--timeout` bounds each worker in seconds. `--help` lists modes and policies without
 acquiring a Simulator. The wrapper acquires isolation, builds the AppState test
-product, and supplies explicit worker requests; no nightly automation is created.
+product, and supplies explicit worker requests. `--batch` runs ordinary fresh
+careers serially in one process with independent stores; crash/recovery checks
+retain separate processes.
 Read `report-agent.md` first for bounded findings and recommendations. It links to
 complete collections in `report-agent.json`; use `report.html` for human review and
 reserve `report.json` plus worker evidence for targeted diagnostics.
